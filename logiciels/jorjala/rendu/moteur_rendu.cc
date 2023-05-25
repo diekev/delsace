@@ -28,33 +28,33 @@
 
 long deleguee_scene::nombre_objets() const
 {
-	return objets.taille();
+    return objets.taille();
 }
 
 const ObjetRendu &deleguee_scene::objet(long idx) const
 {
-	return objets[idx];
+    return objets[idx];
 }
 
 /* ************************************************************************** */
 
-MoteurRendu::MoteurRendu()
-	: m_delegue(memoire::loge<deleguee_scene>("Délégué Scène"))
-{}
+MoteurRendu::MoteurRendu() : m_delegue(memoire::loge<deleguee_scene>("Délégué Scène"))
+{
+}
 
 MoteurRendu::~MoteurRendu()
 {
-	memoire::deloge("Délégué Scène", m_delegue);
+    memoire::deloge("Délégué Scène", m_delegue);
 }
 
-void MoteurRendu::camera(vision::Camera3D *camera)
+void MoteurRendu::camera(JJL::Camera3D camera)
 {
-	m_camera = camera;
+    m_camera = camera;
 }
 
 deleguee_scene *MoteurRendu::delegue()
 {
-	return m_delegue;
+    return m_delegue;
 }
 
 void MoteurRendu::construit_scene()

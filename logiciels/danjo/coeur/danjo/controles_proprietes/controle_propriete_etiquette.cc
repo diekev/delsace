@@ -31,18 +31,13 @@
 
 namespace danjo {
 
-ControleProprieteEtiquette::ControleProprieteEtiquette(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_etiquette(new QLabel(this))
+ControleProprieteEtiquette::ControleProprieteEtiquette(QString const &texte, QWidget *parent)
+    : ControlePropriete(nullptr, 0, parent), m_agencement(new QHBoxLayout(this)),
+      m_etiquette(new QLabel(this))
 {
-	m_agencement->addWidget(m_etiquette);
-	setLayout(m_agencement);
+    m_agencement->addWidget(m_etiquette);
+    m_etiquette->setText(texte);
+    setLayout(m_agencement);
 }
 
-void ControleProprieteEtiquette::finalise(const DonneesControle &donnees)
-{
-	m_etiquette->setText(donnees.valeur_defaut.c_str());
-}
-
-}  /* namespace danjo */
+} /* namespace danjo */

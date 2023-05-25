@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/liste.hh"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/liste.hh"
 
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -36,74 +36,79 @@ struct ContexteGenerationCode;
 struct DonneesMorceaux;
 
 class assembleuse_arbre {
-	dls::pile<lcc::noeud::base *> m_pile{};
-	dls::tableau<lcc::noeud::base *> m_noeuds{};
+    dls::pile<lcc::noeud::base *> m_pile{};
+    dls::tableau<lcc::noeud::base *> m_noeuds{};
 
-	size_t m_memoire_utilisee = 0;
+    size_t m_memoire_utilisee = 0;
 
-public:
-	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
-	~assembleuse_arbre();
+  public:
+    explicit assembleuse_arbre(ContexteGenerationCode &contexte);
+    ~assembleuse_arbre();
 
-	/**
-	 * Crée un nouveau noeud et met le sur le dessus de la pile de noeud. Si le
-	 * paramètre 'ajoute' est vrai, le noeud crée est ajouté à la liste des
-	 * enfants du noeud courant avant d'être empilé. Puisque le noeud est
-	 * empilé, il deviendra le noeud courant.
-	 *
-	 * Retourne un pointeur vers le noeud ajouté.
-	 */
-	lcc::noeud::base *empile_noeud(lcc::noeud::type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute = true);
+    /**
+     * Crée un nouveau noeud et met le sur le dessus de la pile de noeud. Si le
+     * paramètre 'ajoute' est vrai, le noeud crée est ajouté à la liste des
+     * enfants du noeud courant avant d'être empilé. Puisque le noeud est
+     * empilé, il deviendra le noeud courant.
+     *
+     * Retourne un pointeur vers le noeud ajouté.
+     */
+    lcc::noeud::base *empile_noeud(lcc::noeud::type_noeud type,
+                                   ContexteGenerationCode &contexte,
+                                   DonneesMorceaux const &morceau,
+                                   bool ajoute = true);
 
-	/**
-	 * Ajoute le noeud spécifié au noeud courant.
-	 */
-	void ajoute_noeud(lcc::noeud::base *noeud);
+    /**
+     * Ajoute le noeud spécifié au noeud courant.
+     */
+    void ajoute_noeud(lcc::noeud::base *noeud);
 
-	/**
-	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
-	 * pointeur vers celui-ci.
-	 */
-	lcc::noeud::base *cree_noeud(lcc::noeud::type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+    /**
+     * Crée un noeud sans le désigner comme noeud courant, et retourne un
+     * pointeur vers celui-ci.
+     */
+    lcc::noeud::base *cree_noeud(lcc::noeud::type_noeud type,
+                                 ContexteGenerationCode &contexte,
+                                 DonneesMorceaux const &morceau);
 
-	/**
-	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
-	 * bien le type passé en paramètre.
-	 */
-	void depile_noeud(lcc::noeud::type_noeud type);
+    /**
+     * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
+     * bien le type passé en paramètre.
+     */
+    void depile_noeud(lcc::noeud::type_noeud type);
 
-	/**
-	 * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer
-	 * son 'code'. C'est attendu que les différends noeuds demandent à leurs
-	 * enfants d'imprimer leurs codes.
-	 *
-	 * Cette fonction est là pour le débogage.
-	 */
-	void imprime_code(std::ostream &os);
+    /**
+     * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer
+     * son 'code'. C'est attendu que les différends noeuds demandent à leurs
+     * enfants d'imprimer leurs codes.
+     *
+     * Cette fonction est là pour le débogage.
+     */
+    void imprime_code(std::ostream &os);
 
-	/**
-	 * Traverse l'arbre et génère le code LLVM.
-	 */
-	void genere_code(ContexteGenerationCode &contexte_generation, compileuse_lng &compileuse);
+    /**
+     * Traverse l'arbre et génère le code LLVM.
+     */
+    void genere_code(ContexteGenerationCode &contexte_generation, compileuse_lng &compileuse);
 
-	/**
-	 * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
-	 * est ajouté à une liste de noeuds supprimés en fonction de son type, pour
-	 * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à
-	 * réallouer de la mémoire pour un noeud du même type.
-	 */
-	void supprime_noeud(lcc::noeud::base *noeud);
+    /**
+     * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
+     * est ajouté à une liste de noeuds supprimés en fonction de son type, pour
+     * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à
+     * réallouer de la mémoire pour un noeud du même type.
+     */
+    void supprime_noeud(lcc::noeud::base *noeud);
 
-	/**
-	 * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
-	 * de l'arbre.
-	 */
-	size_t memoire_utilisee() const;
+    /**
+     * Retourne la quantité de mémoire utilisée pour créer et stocker les noeuds
+     * de l'arbre.
+     */
+    size_t memoire_utilisee() const;
 
-	/**
-	 * Retourne le nombre de noeuds dans l'arbre.
-	 */
-	size_t nombre_noeuds() const;
+    /**
+     * Retourne le nombre de noeuds dans l'arbre.
+     */
+    size_t nombre_noeuds() const;
 };
 
 /**

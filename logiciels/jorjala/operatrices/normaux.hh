@@ -32,18 +32,21 @@ struct Polygone;
 void calcul_normaux(Corps &corps, bool plats, bool inverse_normaux);
 
 enum class location_normal : char {
-	POINT,
-	PRIMITIVE,
-	CORPS,
+    POINT,
+    PRIMITIVE,
+    CORPS,
 };
 
 enum class pesee_normal : char {
-	AIRE,
-	ANGLE,
-	MOYENNE,
-	MAX,
+    AIRE,
+    ANGLE,
+    MOYENNE,
+    MAX,
 };
 
 dls::math::vec3f calcul_normal_poly(Corps const &corps, Polygone const &poly);
 
-void calcul_normaux(Corps &corps, location_normal location, pesee_normal pesee, bool inverse_normaux);
+void calcul_normaux(Corps &corps,
+                    location_normal location,
+                    pesee_normal pesee,
+                    bool inverse_normaux);

@@ -27,8 +27,8 @@
 #include <any>
 
 #include "biblinternes/math/transformation.hh"
-#include "biblinternes/phys/couleur.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
+#include "biblinternes/phys/couleur.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/vision/camera.h"
 
@@ -39,115 +39,115 @@ struct Noeud;
 /* ************************************************************************** */
 
 enum class type_objet : char {
-	NUL,
-	CORPS,
-	CAMERA,
-	LUMIERE,
+    NUL,
+    CORPS,
+    CAMERA,
+    LUMIERE,
 };
 
-struct DonneesObjet {};
+struct DonneesObjet {
+};
 
 /* ************************************************************************** */
 
 struct DonneesCorps : public DonneesObjet {
-	Corps corps{};
+    Corps corps{};
 };
 
 inline Corps &extrait_corps(DonneesObjet *donnees)
 {
-	return static_cast<DonneesCorps *>(donnees)->corps;
+    return static_cast<DonneesCorps *>(donnees)->corps;
 }
 
 inline Corps const &extrait_corps(DonneesObjet const *donnees)
 {
-	return static_cast<DonneesCorps const *>(donnees)->corps;
+    return static_cast<DonneesCorps const *>(donnees)->corps;
 }
 
 /* ************************************************************************** */
 
 struct DonneesCamera : public DonneesObjet {
-	vision::Camera3D camera;
+    vision::Camera3D camera;
 
-	DonneesCamera(int largeur, int hauteur)
-		: camera(largeur, hauteur)
-	{
-		camera.ajourne();
-	}
+    DonneesCamera(int largeur, int hauteur) : camera(largeur, hauteur)
+    {
+        camera.ajourne();
+    }
 };
 
 inline vision::Camera3D &extrait_camera(DonneesObjet *donnees)
 {
-	return static_cast<DonneesCamera *>(donnees)->camera;
+    return static_cast<DonneesCamera *>(donnees)->camera;
 }
 
 inline vision::Camera3D const &extrait_camera(DonneesObjet const *donnees)
 {
-	return static_cast<DonneesCamera const *>(donnees)->camera;
+    return static_cast<DonneesCamera const *>(donnees)->camera;
 }
 
 /* ************************************************************************** */
 
 enum {
-	LUMIERE_POINT,
-	LUMIERE_DISTANTE,
+    LUMIERE_POINT,
+    LUMIERE_DISTANTE,
 };
 
 struct Lumiere {
-	int type = LUMIERE_POINT;
-	float intensite = 1.0f;
-	dls::phys::couleur32 spectre{1.0f};
+    int type = LUMIERE_POINT;
+    float intensite = 1.0f;
+    dls::phys::couleur32 spectre{1.0f};
 };
 
 struct DonneesLumiere : public DonneesObjet {
-	Lumiere lumiere{};
+    Lumiere lumiere{};
 
-	DonneesLumiere() = default;
+    DonneesLumiere() = default;
 };
 
 inline Lumiere &extrait_lumiere(DonneesObjet *donnees)
 {
-	return static_cast<DonneesLumiere *>(donnees)->lumiere;
+    return static_cast<DonneesLumiere *>(donnees)->lumiere;
 }
 
 inline Lumiere const &extrait_lumiere(DonneesObjet const *donnees)
 {
-	return static_cast<DonneesLumiere const *>(donnees)->lumiere;
+    return static_cast<DonneesLumiere const *>(donnees)->lumiere;
 }
 
 /* ************************************************************************** */
 
 struct Objet {
-	type_objet type = type_objet::NUL;
+    type_objet type = type_objet::NUL;
 
-	bool rendu_scene = true;
+    bool rendu_scene = true;
 
-	/* transformation */
-	math::transformation transformation = math::transformation();
-	dls::math::point3f pivot        = dls::math::point3f(0.0f);
-	dls::math::point3f position     = dls::math::point3f(0.0f);
-	dls::math::point3f echelle      = dls::math::point3f(1.0f);
-	dls::math::point3f rotation     = dls::math::point3f(0.0f);
-	float echelle_uniforme              = 1.0f;
+    /* transformation */
+    math::transformation transformation = math::transformation();
+    dls::math::point3f pivot = dls::math::point3f(0.0f);
+    dls::math::point3f position = dls::math::point3f(0.0f);
+    dls::math::point3f echelle = dls::math::point3f(1.0f);
+    dls::math::point3f rotation = dls::math::point3f(0.0f);
+    float echelle_uniforme = 1.0f;
 
-	/* autres propriétés */
-	dls::synchronise<DonneesObjet *> donnees{};
+    /* autres propriétés */
+    dls::synchronise<DonneesObjet *> donnees{};
 
-	Noeud *noeud = nullptr;
+    Noeud *noeud = nullptr;
 
-	Objet();
-	~Objet();
+    Objet();
+    ~Objet();
 
-	Objet(Objet const &) = default;
-	Objet &operator=(Objet const &) = default;
+    Objet(Objet const &) = default;
+    Objet &operator=(Objet const &) = default;
 
-	void performe_versionnage();
+    void performe_versionnage();
 
-	const char *chemin_entreface() const;
+    const char *chemin_entreface() const;
 
-	void ajourne_parametres();
+    void ajourne_parametres();
 };
 
 inline Objet *extrait_objet(std::any const &any)
 {
-	return std::any_cast<Objet *>(any);
+    return std::any_cast<Objet *>(any);
 }

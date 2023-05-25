@@ -29,24 +29,24 @@
 #include "types/courbe_bezier.h"
 
 class ControleSpectreCouleur : public QWidget {
-	CourbeBezier m_courbe{};
-	PointBezier *m_point_courant = nullptr;
-	int m_type_point = 0;
-	int pad{};
+    CourbeBezier m_courbe{};
+    PointBezier *m_point_courant = nullptr;
+    int m_type_point = 0;
+    int pad{};
 
-public:
-	explicit ControleSpectreCouleur(QWidget *parent = nullptr);
+  public:
+    explicit ControleSpectreCouleur(QWidget *parent = nullptr);
 
-	ControleSpectreCouleur(ControleSpectreCouleur const &) = default;
-	ControleSpectreCouleur &operator=(ControleSpectreCouleur const &) = default;
+    ControleSpectreCouleur(ControleSpectreCouleur const &) = default;
+    ControleSpectreCouleur &operator=(ControleSpectreCouleur const &) = default;
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 };

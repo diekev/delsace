@@ -28,20 +28,19 @@
 
 namespace danjo {
 
-ConteneurControles::ConteneurControles(QWidget *parent)
-	: QWidget(parent)
-{}
+ConteneurControles::ConteneurControles(QWidget *parent) : QWidget(parent)
+{
+}
 
 void ConteneurControles::onglet_dossier_change(int index)
 {
-	INUTILISE(index);
+    INUTILISE(index);
 }
 
-void ConteneurControles::obtiens_liste(
-		const dls::chaine &/*attache*/,
-		dls::tableau<dls::chaine> &chaines)
+void ConteneurControles::obtiens_liste(const dls::chaine & /*attache*/,
+                                       dls::tableau<dls::chaine> &chaines)
 {
-	chaines.efface();
+    chaines.efface();
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

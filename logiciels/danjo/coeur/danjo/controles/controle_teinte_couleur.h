@@ -27,8 +27,8 @@
 #include <QWidget>
 
 class ControleTeinteCouleur : public QWidget {
-public:
-	explicit ControleTeinteCouleur(QWidget *parent = nullptr);
+  public:
+    explicit ControleTeinteCouleur(QWidget *parent = nullptr);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };

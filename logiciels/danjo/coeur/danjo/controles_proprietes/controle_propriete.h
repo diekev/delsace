@@ -29,7 +29,7 @@
 namespace danjo {
 
 struct DonneesControle;
-struct Propriete;
+class BasePropriete;
 
 /**
  * La classe Controle donne l'entreface nécessaire pour les contrôles à afficher
@@ -37,42 +37,38 @@ struct Propriete;
  * Controle::controle_change() est émis.
  */
 class ControlePropriete : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-protected:
-	Propriete *m_propriete = nullptr;
-	int m_temps = 0;
-	bool m_animation = false;
+  protected:
+    BasePropriete *m_propriete = nullptr;
+    int m_temps = 0;
+    bool m_animation = false;
 
-public:
-	explicit ControlePropriete(QWidget *parent = nullptr);
+  public:
+    explicit ControlePropriete(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-	ControlePropriete(ControlePropriete const &) = default;
-	ControlePropriete &operator=(ControlePropriete const &) = default;
+    ControlePropriete(ControlePropriete const &) = default;
+    ControlePropriete &operator=(ControlePropriete const &) = default;
 
-	/**
-	 * Finalise le contrôle. Cette fonction est appelée à la fin de la création
-	 * du contrôle par l'assembleur de contrôle.
-	 */
-	virtual void finalise(const DonneesControle &donnees) = 0;
+    /**
+     * Finalise le contrôle. Cette fonction est appelée à la fin de la création
+     * du contrôle par l'assembleur de contrôle.
+     */
+    virtual void finalise(const DonneesControle & /*donnees*/){};
 
-	void proriete(Propriete *p);
+  Q_SIGNALS:
+    /**
+     * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+     */
+    void precontrole_change();
 
-	void temps(int t);
+    /**
+     * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+     */
+    void controle_change();
 
-Q_SIGNALS:
-	/**
-	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
-	 */
-	void precontrole_change();
-
-	/**
-	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
-	 */
-	void controle_change();
-
-public Q_SLOTS:
-	void emet_precontrole_change();
+  public Q_SLOTS:
+    void emet_precontrole_change();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

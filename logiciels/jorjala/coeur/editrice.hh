@@ -42,72 +42,71 @@ struct Jorjala;
  */
 
 struct Editrice {
-	Jorjala &jorjala;
+    Jorjala &jorjala;
 
-	Editrice(Jorjala &ptr)
-		: jorjala(ptr)
-	{}
+    Editrice(Jorjala &ptr) : jorjala(ptr)
+    {
+    }
 };
 
 struct Editrice2D : public Editrice {
-	vision::Camera2D camera{};
+    vision::Camera2D camera{};
 
-	Editrice2D(Jorjala &ptr)
-		: Editrice(ptr)
-	{}
+    Editrice2D(Jorjala &ptr) : Editrice(ptr)
+    {
+    }
 };
 
 struct Editrice3D : public Editrice {
-	vision::Camera3D camera;
+    vision::Camera3D camera;
 
-	Editrice3D(Jorjala &ptr)
-		: Editrice(ptr)
-		, camera(0, 0)
-	{}
+    Editrice3D(Jorjala &ptr) : Editrice(ptr), camera(0, 0)
+    {
+    }
 };
 
 struct EditriceGraphe : public Editrice {
-	dls::chaine chemin{};
-	Graphe *graphe = nullptr;
-	dls::chaine mode{};
+    dls::chaine chemin{};
+    Graphe *graphe = nullptr;
+    dls::chaine mode{};
 
-	EditriceGraphe(Jorjala &ptr)
-		: Editrice(ptr)
-	{}
+    EditriceGraphe(Jorjala &ptr) : Editrice(ptr)
+    {
+    }
 
-	COPIE_CONSTRUCT(EditriceGraphe);
+    COPIE_CONSTRUCT(EditriceGraphe);
 };
 
 struct EditricePropriete : public Editrice {
-	EditricePropriete(Jorjala &ptr)
-		: Editrice(ptr)
-	{}
+    EditricePropriete(Jorjala &ptr) : Editrice(ptr)
+    {
+    }
 };
 
 struct EditriceArborescence : public Editrice {
-	EditriceArborescence(Jorjala &ptr)
-		: Editrice(ptr)
-	{}
+    EditriceArborescence(Jorjala &ptr) : Editrice(ptr)
+    {
+    }
 };
 
 struct EditriceLigneTemps : public Editrice {
-	EditriceLigneTemps(Jorjala &ptr)
-		: Editrice(ptr)
-	{}
+    EditriceLigneTemps(Jorjala &ptr) : Editrice(ptr)
+    {
+    }
 };
 
 struct Region {
-	Jorjala &jorjala;
-	dls::tableau<Editrice *> editrices{};
-	Editrice *editrice_courante{};
+    Jorjala &jorjala;
+    dls::tableau<Editrice *> editrices{};
+    Editrice *editrice_courante{};
 
-	Region(Jorjala &ptr)
-		: jorjala(ptr)
-	{}
+    Region(Jorjala &ptr) : jorjala(ptr)
+    {
+    }
 
-	COPIE_CONSTRUCT(Region);
+    COPIE_CONSTRUCT(Region);
 
-	void ajoute_editrice();
+    void ajoute_editrice();
 
-	void supprime_editrice();
+    void supprime_editrice();
 };

@@ -42,72 +42,72 @@ class Manipulable;
 /* ************************************************************************** */
 
 class ItemArbreManip : public QTreeWidgetItem {
-	const Manipulable *m_manipulable{};
+    const Manipulable *m_manipulable{};
 
-public:
-	explicit ItemArbreManip(const Manipulable *manip, QTreeWidgetItem *parent = nullptr);
+  public:
+    explicit ItemArbreManip(const Manipulable *manip, QTreeWidgetItem *parent = nullptr);
 
-	ItemArbreManip(ItemArbreManip const &) = default;
-	ItemArbreManip &operator=(ItemArbreManip const &) = default;
+    ItemArbreManip(ItemArbreManip const &) = default;
+    ItemArbreManip &operator=(ItemArbreManip const &) = default;
 
-	const Manipulable *pointeur() const;
+    const Manipulable *pointeur() const;
 };
 
 /* ************************************************************************** */
 
 class TreeWidget : public QTreeWidget {
-public:
-	explicit TreeWidget(QWidget *parent = nullptr);
+  public:
+    explicit TreeWidget(QWidget *parent = nullptr);
 
-	TreeWidget(TreeWidget const &) = default;
-	TreeWidget &operator=(TreeWidget const &) = default;
+    TreeWidget(TreeWidget const &) = default;
+    TreeWidget &operator=(TreeWidget const &) = default;
 };
 
 class ControleProprieteListeManip : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
+    char pad[3];
 
-	/* entreface */
-	QHBoxLayout *m_disp_horiz     = nullptr;
-	QVBoxLayout *m_disp_boutons   = nullptr;
-	QPushButton *m_bouton_ajoute  = nullptr;
-	QPushButton *m_bouton_enleve  = nullptr;
-	QPushButton *m_bouton_monte   = nullptr;
-	QPushButton *m_bouton_descend = nullptr;
-	TreeWidget *m_widget_arbre    = nullptr;
+    /* entreface */
+    QHBoxLayout *m_disp_horiz = nullptr;
+    QVBoxLayout *m_disp_boutons = nullptr;
+    QPushButton *m_bouton_ajoute = nullptr;
+    QPushButton *m_bouton_enleve = nullptr;
+    QPushButton *m_bouton_monte = nullptr;
+    QPushButton *m_bouton_descend = nullptr;
+    TreeWidget *m_widget_arbre = nullptr;
 
-	/* données */
-	dls::chaine m_attache = "";
-	ListeManipulable *m_pointeur = nullptr;
-	Manipulable *m_manipulable_courant = nullptr;
-	long m_index_courant = 0;
+    /* données */
+    dls::chaine m_attache = "";
+    ListeManipulable *m_pointeur = nullptr;
+    Manipulable *m_manipulable_courant = nullptr;
+    long m_index_courant = 0;
 
-public:
-	explicit ControleProprieteListeManip(QWidget *parent = nullptr);
+  public:
+    explicit ControleProprieteListeManip(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-	ControleProprieteListeManip(ControleProprieteListeManip const &) = default;
-	ControleProprieteListeManip &operator=(ControleProprieteListeManip const &) = default;
+    ControleProprieteListeManip(ControleProprieteListeManip const &) = default;
+    ControleProprieteListeManip &operator=(ControleProprieteListeManip const &) = default;
 
-	~ControleProprieteListeManip() override = default;
+    ~ControleProprieteListeManip() override = default;
 
-	/* entreface */
+    /* entreface */
 
-	void chemin_entreface(const dls::chaine &attache);
+    void chemin_entreface(const dls::chaine &attache);
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private:
-	void init_arbre();
+  private:
+    void init_arbre();
 
-	/* modification liste */
-private Q_SLOTS:
-	void ajoute_manipulable();
-	void enleve_manipulable();
-	void monte_manipulable();
-	void descend_manipulable();
+    /* modification liste */
+  private Q_SLOTS:
+    void ajoute_manipulable();
+    void enleve_manipulable();
+    void monte_manipulable();
+    void descend_manipulable();
 
-	void repond_selection();
+    void repond_selection();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

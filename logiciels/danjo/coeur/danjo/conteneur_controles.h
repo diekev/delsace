@@ -41,27 +41,29 @@ namespace danjo {
  * changement dans l'entreface.
  */
 class ConteneurControles : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-public:
-	explicit ConteneurControles(QWidget *parent = nullptr);
+  public:
+    explicit ConteneurControles(QWidget *parent = nullptr);
 
-public Q_SLOTS:
-	/**
-	 * Cette méthode est appelée à chaque qu'un contrôle associé est modifiée
-	 * dans l'entreface.
-	 */
-	virtual void ajourne_manipulable() = 0;
+  public Q_SLOTS:
+    /**
+     * Cette méthode est appelée à chaque qu'un contrôle associé est modifiée
+     * dans l'entreface.
+     */
+    virtual void ajourne_manipulable() = 0;
 
-	virtual void precontrole_change() {}
+    virtual void precontrole_change()
+    {
+    }
 
-	virtual void onglet_dossier_change(int index);
+    virtual void onglet_dossier_change(int index);
 
-	/**
-	 * Cette méthode est appelée à chaque fois qu'un controle de liste a besoin
-	 * de mettre à jour sa liste de chaînes disponible pour l'attache spécifiée.
-	 */
-	virtual void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines);
+    /**
+     * Cette méthode est appelée à chaque fois qu'un controle de liste a besoin
+     * de mettre à jour sa liste de chaînes disponible pour l'attache spécifiée.
+     */
+    virtual void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -29,92 +29,92 @@
 #include "biblinternes/phys/couleur.hh"
 
 struct Point {
-	float x;
-	float y;
+    float x;
+    float y;
 };
 
 enum {
-	CONTROLE_CONTRAINT = 0,
-	CONTROLE_LIBRE     = 1,
+    CONTROLE_CONTRAINT = 0,
+    CONTROLE_LIBRE = 1,
 };
 
 enum {
-	POINT_CONTROLE1 = 0,
-	POINT_CENTRE    = 1,
-	POINT_CONTROLE2 = 2,
+    POINT_CONTROLE1 = 0,
+    POINT_CENTRE = 1,
+    POINT_CONTROLE2 = 2,
 
-	NOMBRE_POINT
+    NOMBRE_POINT
 };
 
 struct PointBezier {
-	Point co[NOMBRE_POINT];
-	char type_controle = CONTROLE_CONTRAINT;
-	char pad[3];
+    Point co[NOMBRE_POINT];
+    char type_controle = CONTROLE_CONTRAINT;
+    char pad[3];
 };
 
 struct CourbeBezier {
-	/* les points constituants cette courbe */
-	dls::tableau<PointBezier> points{};
+    /* les points constituants cette courbe */
+    dls::tableau<PointBezier> points{};
 
-	/* le point courant de cette courbe */
-	PointBezier *point_courant = nullptr;
+    /* le point courant de cette courbe */
+    PointBezier *point_courant = nullptr;
 
-	/* extension du point minimum en dehors des limites de la courbe */
-	PointBezier extension_min{};
+    /* extension du point minimum en dehors des limites de la courbe */
+    PointBezier extension_min{};
 
-	/* extension du point maximum en dehors des limites de la courbe */
-	PointBezier extension_max{};
+    /* extension du point maximum en dehors des limites de la courbe */
+    PointBezier extension_max{};
 
-	/* Pour le rendu et l'évaluation. */
-	dls::tableau<Point> table{};
+    /* Pour le rendu et l'évaluation. */
+    dls::tableau<Point> table{};
 
-	/* valeur minimale de la courbe pour l'évaluation */
-	float valeur_min = 0.0f;
+    /* valeur minimale de la courbe pour l'évaluation */
+    float valeur_min = 0.0f;
 
-	/* valeur maximale de la courbe pour l'évaluation */
-	float valeur_max = 1.0f;
+    /* valeur maximale de la courbe pour l'évaluation */
+    float valeur_max = 1.0f;
 
-	/* défini si oui ou non la table doit être utilisée lors de l'évaluation
-	 * de la courbe */
-	bool utilise_table = true;
+    /* défini si oui ou non la table doit être utilisée lors de l'évaluation
+     * de la courbe */
+    bool utilise_table = true;
 
-	bool pad[7];
+    bool pad[7];
 
-	CourbeBezier() = default;
-	~CourbeBezier();
+    CourbeBezier() = default;
+    ~CourbeBezier();
 
-	CourbeBezier(CourbeBezier const &autre);
-	CourbeBezier(CourbeBezier &&autre) = default;
+    CourbeBezier(CourbeBezier const &autre);
+    CourbeBezier(CourbeBezier &&autre) = default;
 
-	CourbeBezier &operator=(CourbeBezier const &autre) = default;
+    CourbeBezier &operator=(CourbeBezier const &autre) = default;
 };
 
 enum {
-	COURBE_COULEUR_MAITRESSE = 0,
-	COURBE_COULEUR_ROUGE     = 1,
-	COURBE_COULEUR_VERTE     = 2,
-	COURBE_COULEUR_BLEUE     = 3,
-	COURBE_COULEUR_VALEUR    = 4,
+    COURBE_COULEUR_MAITRESSE = 0,
+    COURBE_COULEUR_ROUGE = 1,
+    COURBE_COULEUR_VERTE = 2,
+    COURBE_COULEUR_BLEUE = 3,
+    COURBE_COULEUR_VALEUR = 4,
 
-	NOMBRE_COURBES_COULEUR = 5,
+    NOMBRE_COURBES_COULEUR = 5,
 };
 
 enum {
-	COURBE_COULEUR_RGB      = 0,
-	COURBE_COULEUR_FILMIQUE = 1,
+    COURBE_COULEUR_RGB = 0,
+    COURBE_COULEUR_FILMIQUE = 1,
 };
 
 struct CourbeCouleur {
-	CourbeBezier courbes[NOMBRE_COURBES_COULEUR];
+    CourbeBezier courbes[NOMBRE_COURBES_COULEUR];
 
-	int mode = COURBE_COULEUR_MAITRESSE;
-	int type = COURBE_COULEUR_RGB;
+    int mode = COURBE_COULEUR_MAITRESSE;
+    int type = COURBE_COULEUR_RGB;
 
-	CourbeCouleur();
-	~CourbeCouleur() = default;
+    CourbeCouleur();
+    ~CourbeCouleur() = default;
 
-	CourbeCouleur(const CourbeCouleur &autre) = default;
-	CourbeCouleur(CourbeCouleur &&autre) = default;
+    CourbeCouleur(const CourbeCouleur &autre) = default;
+    CourbeCouleur(CourbeCouleur &&autre) = default;
 };
 
 void cree_courbe_defaut(CourbeBezier &courbe);
@@ -127,4 +127,5 @@ void calcule_controles_courbe(CourbeBezier &courbe);
 
 float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur);
 
-dls::phys::couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe, const dls::phys::couleur32 &valeur);
+dls::phys::couleur32 evalue_courbe_couleur(const CourbeCouleur &courbe,
+                                           const dls::phys::couleur32 &valeur);

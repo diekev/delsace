@@ -30,11 +30,11 @@
 namespace lcc {
 
 struct LCC {
-	magasin_fonctions fonctions{};
+    magasin_fonctions fonctions{};
 };
 
 void initialise(LCC &lcc);
 
 ContexteGenerationCode cree_contexte(LCC const &lcc);
 
-}  /* namespace lcc */
+} /* namespace lcc */

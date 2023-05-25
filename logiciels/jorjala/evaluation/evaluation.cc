@@ -33,8 +33,8 @@
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/jorjala.hh"
 #include "coeur/objet.h"
-#include "coeur/operatrice_image.h"
 #include "coeur/operatrice_graphe_detail.hh"
+#include "coeur/operatrice_image.h"
 
 #include "execution.hh"
 #include "outils.hh"
@@ -44,53 +44,54 @@
 
 void requiers_evaluation(Jorjala &jorjala, int raison, const char *message)
 {
-	if (jorjala.tache_en_cours) {
-		return;
-	}
+    if (jorjala.tache_en_cours) {
+        return;
+    }
 
-	jorjala.tache_en_cours = true;
+    jorjala.tache_en_cours = true;
 
-	auto planifieuse = Planifieuse{};
-	auto executrice = Executrice{};
+    auto planifieuse = Planifieuse{};
+    auto executrice = Executrice{};
 
-	auto compileuse = CompilatriceReseau{};
-	auto &reseau = jorjala.reseau;
-	compileuse.reseau = &reseau;
+    auto compileuse = CompilatriceReseau{};
+    auto &reseau = jorjala.reseau;
+    compileuse.reseau = &reseau;
 
-	auto noeud_actif = noeud_base_hierarchie(jorjala.graphe->noeud_actif);
+    auto noeud_actif = noeud_base_hierarchie(jorjala.graphe->noeud_actif);
 
-	auto contexte = cree_contexte_evaluation(jorjala);
-	compileuse.compile_reseau(contexte, &jorjala.bdd, noeud_actif);
+    auto contexte = cree_contexte_evaluation(jorjala);
+    compileuse.compile_reseau(contexte, &jorjala.bdd, noeud_actif);
 
-	auto plan = Planifieuse::PtrPlan{nullptr};
+    auto plan = Planifieuse::PtrPlan{nullptr};
 
-	switch (raison) {
-		case NOEUD_AJOUTE:
-		case NOEUD_ENLEVE:
-		case NOEUD_SELECTIONE:
-		case GRAPHE_MODIFIE:
-		case PARAMETRE_CHANGE:
-		{
-			plan = planifieuse.requiers_plan_pour_noeud(reseau, noeud_actif);
-			break;
-		}
-		case OBJET_AJOUTE:
-		case OBJET_ENLEVE:
-		case FICHIER_OUVERT:
-		case RENDU_REQUIS:
-		{
-			plan = planifieuse.requiers_plan_pour_scene(reseau);
-			break;
-		}
-		case TEMPS_CHANGE:
-		{
-			compileuse.marque_execution_temps_change();
-			plan = planifieuse.requiers_plan_pour_nouveau_temps(reseau, jorjala.temps_courant, jorjala.animation);
-			break;
-		}
-	}
+    switch (raison) {
+        case NOEUD_AJOUTE:
+        case NOEUD_ENLEVE:
+        case NOEUD_SELECTIONE:
+        case GRAPHE_MODIFIE:
+        case PARAMETRE_CHANGE:
+        {
+            plan = planifieuse.requiers_plan_pour_noeud(reseau, noeud_actif);
+            break;
+        }
+        case OBJET_AJOUTE:
+        case OBJET_ENLEVE:
+        case FICHIER_OUVERT:
+        case RENDU_REQUIS:
+        {
+            plan = planifieuse.requiers_plan_pour_scene(reseau);
+            break;
+        }
+        case TEMPS_CHANGE:
+        {
+            compileuse.marque_execution_temps_change();
+            plan = planifieuse.requiers_plan_pour_nouveau_temps(
+                reseau, jorjala.temps_courant, jorjala.animation);
+            break;
+        }
+    }
 
-	plan->message = message;
+    plan->message = message;
 
-	executrice.execute_plan(jorjala, plan, contexte);
+    executrice.execute_plan(jorjala, plan, contexte);
 }

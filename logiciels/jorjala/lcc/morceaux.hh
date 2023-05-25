@@ -22,121 +22,121 @@
  *
  */
 
- /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
- 
+/* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
+
 #pragma once
 
 #include "biblinternes/structures/vue_chaine.hh"
 
 enum class id_morceau : unsigned int {
-	EXCLAMATION,
-	GUILLEMET,
-	DIESE,
-	DOLLAR,
-	POURCENT,
-	ESPERLUETTE,
-	APOSTROPHE,
-	PARENTHESE_OUVRANTE,
-	PARENTHESE_FERMANTE,
-	FOIS,
-	PLUS,
-	VIRGULE,
-	MOINS,
-	POINT,
-	DIVISE,
-	DOUBLE_POINTS,
-	POINT_VIRGULE,
-	INFERIEUR,
-	EGAL,
-	SUPERIEUR,
-	AROBASE,
-	CROCHET_OUVRANT,
-	CROCHET_FERMANT,
-	CHAPEAU,
-	ACCOLADE_OUVRANTE,
-	BARRE,
-	ACCOLADE_FERMANTE,
-	TILDE,
-	DIFFERENCE,
-	DIRECTIVE,
-	ESP_ESP,
-	FOIS_EGAL,
-	PLUS_EGAL,
-	MOINS_EGAL,
-	DIVISE_EGAL,
-	DECALAGE_GAUCHE,
-	INFERIEUR_EGAL,
-	EGALITE,
-	SUPERIEUR_EGAL,
-	DECALAGE_DROITE,
-	BARRE_BARRE,
-	ARRETE,
-	BOOL,
-	BOUCLE,
-	CONTINUE,
-	DANS,
-	DEC,
-	ENT,
-	FAUX,
-	MAT3,
-	MAT4,
-	NUL,
-	POUR,
-	RETOURNE,
-	SI,
-	SINON,
-	VEC2,
-	VEC3,
-	VEC4,
-	VRAI,
-	NOMBRE_REEL,
-	NOMBRE_ENTIER,
-	NOMBRE_HEXADECIMAL,
-	NOMBRE_OCTAL,
-	NOMBRE_BINAIRE,
-	PLUS_UNAIRE,
-	MOINS_UNAIRE,
-	TROIS_POINTS,
-	CHAINE_CARACTERE,
-	CHAINE_LITTERALE,
-	CARACTERE,
-	TABLEAU,
-	INCONNU,
+    EXCLAMATION,
+    GUILLEMET,
+    DIESE,
+    DOLLAR,
+    POURCENT,
+    ESPERLUETTE,
+    APOSTROPHE,
+    PARENTHESE_OUVRANTE,
+    PARENTHESE_FERMANTE,
+    FOIS,
+    PLUS,
+    VIRGULE,
+    MOINS,
+    POINT,
+    DIVISE,
+    DOUBLE_POINTS,
+    POINT_VIRGULE,
+    INFERIEUR,
+    EGAL,
+    SUPERIEUR,
+    AROBASE,
+    CROCHET_OUVRANT,
+    CROCHET_FERMANT,
+    CHAPEAU,
+    ACCOLADE_OUVRANTE,
+    BARRE,
+    ACCOLADE_FERMANTE,
+    TILDE,
+    DIFFERENCE,
+    DIRECTIVE,
+    ESP_ESP,
+    FOIS_EGAL,
+    PLUS_EGAL,
+    MOINS_EGAL,
+    DIVISE_EGAL,
+    DECALAGE_GAUCHE,
+    INFERIEUR_EGAL,
+    EGALITE,
+    SUPERIEUR_EGAL,
+    DECALAGE_DROITE,
+    BARRE_BARRE,
+    ARRETE,
+    BOOL,
+    BOUCLE,
+    CONTINUE,
+    DANS,
+    DEC,
+    ENT,
+    FAUX,
+    MAT3,
+    MAT4,
+    NUL,
+    POUR,
+    RETOURNE,
+    SI,
+    SINON,
+    VEC2,
+    VEC3,
+    VEC4,
+    VRAI,
+    NOMBRE_REEL,
+    NOMBRE_ENTIER,
+    NOMBRE_HEXADECIMAL,
+    NOMBRE_OCTAL,
+    NOMBRE_BINAIRE,
+    PLUS_UNAIRE,
+    MOINS_UNAIRE,
+    TROIS_POINTS,
+    CHAINE_CARACTERE,
+    CHAINE_LITTERALE,
+    CARACTERE,
+    TABLEAU,
+    INCONNU,
 };
 
 inline id_morceau operator&(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) & id2);
 }
 
 inline id_morceau operator|(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) | id2);
 }
 
 inline id_morceau operator|(id_morceau id1, id_morceau id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+    return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
 inline id_morceau operator<<(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) << id2);
 }
 
 inline id_morceau operator>>(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
 }
 
 struct DonneesMorceaux {
-	using type = id_morceau;
-	static constexpr type INCONNU = id_morceau::INCONNU;
+    using type = id_morceau;
+    static constexpr type INCONNU = id_morceau::INCONNU;
 
-	dls::vue_chaine chaine;
-	unsigned long ligne_pos;
-	id_morceau genre;
-	int module = 0;
+    dls::vue_chaine chaine;
+    unsigned long ligne_pos;
+    id_morceau genre;
+    int module = 0;
 };
 
 const char *chaine_identifiant(id_morceau id);

@@ -10,11 +10,11 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC system_header
-#include "cycles/src/render/session.h"
+#include "cycles/src/graph/node_type.h"
 #include "cycles/src/render/light.h"
 #include "cycles/src/render/mesh.h"
+#include "cycles/src/render/nodes.h"
 #include "cycles/src/render/object.h"
 #include "cycles/src/render/scene.h"
-#include "cycles/src/render/nodes.h"
-#include "cycles/src/graph/node_type.h"
+#include "cycles/src/render/session.h"
 #pragma GCC diagnostic pop

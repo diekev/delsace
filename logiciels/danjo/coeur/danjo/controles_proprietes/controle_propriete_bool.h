@@ -32,25 +32,21 @@ class QHBoxLayout;
 namespace danjo {
 
 class ControleProprieteBool final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
-	QHBoxLayout *m_agencement{};
-	QCheckBox *m_case_a_cocher{};
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    QCheckBox *m_case_a_cocher{};
 
-	bool *m_pointeur{};
+  public:
+    explicit ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteBool() override = default;
 
-public:
-	explicit ControleProprieteBool(QWidget *parent = nullptr);
-	~ControleProprieteBool() override = default;
+    ControleProprieteBool(ControleProprieteBool const &) = default;
+    ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
 
-	ControleProprieteBool(ControleProprieteBool const &) = default;
-	ControleProprieteBool &operator=(ControleProprieteBool const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
-
-private Q_SLOTS:
-	void ajourne_valeur_pointee(bool valeur);
+  private Q_SLOTS:
+    void ajourne_valeur_pointee(bool valeur);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

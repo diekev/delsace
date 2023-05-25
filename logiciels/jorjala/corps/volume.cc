@@ -34,92 +34,92 @@
 template <typename T>
 static auto deloge_grille_impl(wlk::base_grille_3d *&grille)
 {
-	if (!grille->est_eparse()) {
-		auto ptr = dynamic_cast<wlk::grille_dense_3d<T> *>(grille);
-		memoire::deloge("grille", ptr);
-	}
-	else {
-		auto ptr = dynamic_cast<wlk::grille_eparse<T> *>(grille);
-		memoire::deloge("grille_eparse", ptr);
-	}
+    if (!grille->est_eparse()) {
+        auto ptr = dynamic_cast<wlk::grille_dense_3d<T> *>(grille);
+        memoire::deloge("grille", ptr);
+    }
+    else {
+        auto ptr = dynamic_cast<wlk::grille_eparse<T> *>(grille);
+        memoire::deloge("grille_eparse", ptr);
+    }
 
-	grille = nullptr;
+    grille = nullptr;
 }
 
 /* ************************************************************************** */
 
-Volume::Volume(wlk::base_grille_3d *grl)
-	: grille(grl)
-{}
+Volume::Volume(wlk::base_grille_3d *grl) : grille(grl)
+{
+}
 
 Volume::~Volume()
 {
-	if (grille == nullptr) {
-		return;
-	}
+    if (grille == nullptr) {
+        return;
+    }
 
-	auto const &desc = grille->desc();
+    auto const &desc = grille->desc();
 
-	switch (desc.type_donnees) {
-		case wlk::type_grille::N32:
-		{
-			deloge_grille_impl<char>(grille);
-			break;
-		}
-		case wlk::type_grille::Z8:
-		{
-			deloge_grille_impl<char>(grille);
-			break;
-		}
-		case wlk::type_grille::Z32:
-		{
-			deloge_grille_impl<int>(grille);
-			break;
-		}
-		case wlk::type_grille::R32:
-		{
-			deloge_grille_impl<float>(grille);
-			break;
-		}
-		case wlk::type_grille::R32_PTR:
-		{
-			deloge_grille_impl<float *>(grille);
-			break;
-		}
-		case wlk::type_grille::R64:
-		{
-			deloge_grille_impl<double>(grille);
-			break;
-		}
-		case wlk::type_grille::VEC2:
-		{
-			deloge_grille_impl<dls::math::vec2f>(grille);
-			break;
-		}
-		case wlk::type_grille::VEC3:
-		{
-			deloge_grille_impl<dls::math::vec3f>(grille);
-			break;
-		}
-		case wlk::type_grille::VEC3_R64:
-		{
-			deloge_grille_impl<dls::math::vec3d>(grille);
-			break;
-		}
-		case wlk::type_grille::COULEUR:
-		{
-			deloge_grille_impl<dls::phys::couleur32>(grille);
-			break;
-		}
-		case wlk::type_grille::COURBE_PAIRE_TEMPS:
-		{
-			deloge_grille_impl<wlk::type_courbe>(grille);
-			break;
-		}
-	}
+    switch (desc.type_donnees) {
+        case wlk::type_grille::N32:
+        {
+            deloge_grille_impl<char>(grille);
+            break;
+        }
+        case wlk::type_grille::Z8:
+        {
+            deloge_grille_impl<char>(grille);
+            break;
+        }
+        case wlk::type_grille::Z32:
+        {
+            deloge_grille_impl<int>(grille);
+            break;
+        }
+        case wlk::type_grille::R32:
+        {
+            deloge_grille_impl<float>(grille);
+            break;
+        }
+        case wlk::type_grille::R32_PTR:
+        {
+            deloge_grille_impl<float *>(grille);
+            break;
+        }
+        case wlk::type_grille::R64:
+        {
+            deloge_grille_impl<double>(grille);
+            break;
+        }
+        case wlk::type_grille::VEC2:
+        {
+            deloge_grille_impl<dls::math::vec2f>(grille);
+            break;
+        }
+        case wlk::type_grille::VEC3:
+        {
+            deloge_grille_impl<dls::math::vec3f>(grille);
+            break;
+        }
+        case wlk::type_grille::VEC3_R64:
+        {
+            deloge_grille_impl<dls::math::vec3d>(grille);
+            break;
+        }
+        case wlk::type_grille::COULEUR:
+        {
+            deloge_grille_impl<dls::phys::couleur32>(grille);
+            break;
+        }
+        case wlk::type_grille::COURBE_PAIRE_TEMPS:
+        {
+            deloge_grille_impl<wlk::type_courbe>(grille);
+            break;
+        }
+    }
 }
 
 type_primitive Volume::type_prim() const
 {
-	return type_primitive::VOLUME;
+    return type_primitive::VOLUME;
 }

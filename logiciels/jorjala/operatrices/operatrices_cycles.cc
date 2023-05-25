@@ -32,209 +32,213 @@
 
 static type_prise convertis_type_prise(ccl::SocketType::Type type)
 {
-	switch (type) {
-		case ccl::SocketType::BOOLEAN:
-		{
-			return type_prise::INVALIDE;
-		}
-		case ccl::SocketType::FLOAT:
-		{
-			return type_prise::DECIMAL;
-		}
-		case ccl::SocketType::INT:
-		case ccl::SocketType::UINT:
-		{
-			return type_prise::ENTIER;
-		}
-		case ccl::SocketType::COLOR:
-		{
-			return type_prise::COULEUR;
-		}
-		case ccl::SocketType::VECTOR:
-		case ccl::SocketType::POINT:
-		case ccl::SocketType::NORMAL:
-		{
-			return type_prise::VEC3;
-		}
-		case ccl::SocketType::POINT2:
-		{
-			return type_prise::VEC2;
-		}
-		case ccl::SocketType::CLOSURE:
-		{
-			return type_prise::COULEUR;
-		}
-		case ccl::SocketType::TRANSFORM:
-		{
-			return type_prise::MAT4;
-		}
-		case ccl::SocketType::STRING:
-		case ccl::SocketType::ENUM:
-		case ccl::SocketType::NODE:
-		case ccl::SocketType::BOOLEAN_ARRAY:
-		case ccl::SocketType::FLOAT_ARRAY:
-		case ccl::SocketType::INT_ARRAY:
-		case ccl::SocketType::COLOR_ARRAY:
-		case ccl::SocketType::VECTOR_ARRAY:
-		case ccl::SocketType::POINT_ARRAY:
-		case ccl::SocketType::NORMAL_ARRAY:
-		case ccl::SocketType::POINT2_ARRAY:
-		case ccl::SocketType::STRING_ARRAY:
-		case ccl::SocketType::TRANSFORM_ARRAY:
-		case ccl::SocketType::NODE_ARRAY:
-		case ccl::SocketType::UNDEFINED:
-		{
-			return type_prise::INVALIDE;
-		}
-	}
+    switch (type) {
+        case ccl::SocketType::BOOLEAN:
+        {
+            return type_prise::INVALIDE;
+        }
+        case ccl::SocketType::FLOAT:
+        {
+            return type_prise::DECIMAL;
+        }
+        case ccl::SocketType::INT:
+        case ccl::SocketType::UINT:
+        {
+            return type_prise::ENTIER;
+        }
+        case ccl::SocketType::COLOR:
+        {
+            return type_prise::COULEUR;
+        }
+        case ccl::SocketType::VECTOR:
+        case ccl::SocketType::POINT:
+        case ccl::SocketType::NORMAL:
+        {
+            return type_prise::VEC3;
+        }
+        case ccl::SocketType::POINT2:
+        {
+            return type_prise::VEC2;
+        }
+        case ccl::SocketType::CLOSURE:
+        {
+            return type_prise::COULEUR;
+        }
+        case ccl::SocketType::TRANSFORM:
+        {
+            return type_prise::MAT4;
+        }
+        case ccl::SocketType::STRING:
+        case ccl::SocketType::ENUM:
+        case ccl::SocketType::NODE:
+        case ccl::SocketType::BOOLEAN_ARRAY:
+        case ccl::SocketType::FLOAT_ARRAY:
+        case ccl::SocketType::INT_ARRAY:
+        case ccl::SocketType::COLOR_ARRAY:
+        case ccl::SocketType::VECTOR_ARRAY:
+        case ccl::SocketType::POINT_ARRAY:
+        case ccl::SocketType::NORMAL_ARRAY:
+        case ccl::SocketType::POINT2_ARRAY:
+        case ccl::SocketType::STRING_ARRAY:
+        case ccl::SocketType::TRANSFORM_ARRAY:
+        case ccl::SocketType::NODE_ARRAY:
+        case ccl::SocketType::UNDEFINED:
+        {
+            return type_prise::INVALIDE;
+        }
+    }
 
-	return type_prise::INVALIDE;
+    return type_prise::INVALIDE;
 }
 
 /* ************************************************************************** */
 
-OperatriceCycles::OperatriceCycles(Graphe &graphe_parent, Noeud &noeud_, const ccl::NodeType *type_noeud_)
-	: OperatriceImage(graphe_parent, noeud_)
+OperatriceCycles::OperatriceCycles(Graphe &graphe_parent,
+                                   Noeud &noeud_,
+                                   const ccl::NodeType *type_noeud_)
+    : OperatriceImage(graphe_parent, noeud_)
 {
-	type_noeud = type_noeud_;
+    type_noeud = type_noeud_;
 
-	noeud_cycles = static_cast<ccl::ShaderNode *>(type_noeud->create(type_noeud_));
+    noeud_cycles = static_cast<ccl::ShaderNode *>(type_noeud->create(type_noeud_));
 
-	entrees(static_cast<int>(noeud_cycles->inputs.size()));
-	sorties(static_cast<int>(noeud_cycles->outputs.size()));
+    entrees(static_cast<int>(noeud_cycles->inputs.size()));
+    sorties(static_cast<int>(noeud_cycles->outputs.size()));
 
-	cree_proprietes();
+    cree_proprietes();
 }
 
-OperatriceCycles *OperatriceCycles::cree(Graphe &graphe_, Noeud &noeud_, dls::chaine const &nom_type)
+OperatriceCycles *OperatriceCycles::cree(Graphe &graphe_,
+                                         Noeud &noeud_,
+                                         dls::chaine const &nom_type)
 {
-	auto type_noeud = ccl::NodeType::find(ccl::ustring(nom_type.c_str()));
+    auto type_noeud = ccl::NodeType::find(ccl::ustring(nom_type.c_str()));
 
-	if (type_noeud == nullptr) {
-		return nullptr;
-	}
+    if (type_noeud == nullptr) {
+        return nullptr;
+    }
 
-	return memoire::loge<OperatriceCycles>("OperatriceCycles", graphe_, noeud_, type_noeud);
+    return memoire::loge<OperatriceCycles>("OperatriceCycles", graphe_, noeud_, type_noeud);
 }
 
 const char *OperatriceCycles::nom_classe() const
 {
-	return NOM;
+    return NOM;
 }
 
 const char *OperatriceCycles::texte_aide() const
 {
-	return AIDE;
+    return AIDE;
 }
 
 const char *OperatriceCycles::nom_entree(int i)
 {
-	return noeud_cycles->inputs[static_cast<size_t>(i)]->name().c_str();
+    return noeud_cycles->inputs[static_cast<size_t>(i)]->name().c_str();
 }
 
 const char *OperatriceCycles::nom_sortie(int i)
 {
-	return noeud_cycles->outputs[static_cast<size_t>(i)]->name().c_str();
+    return noeud_cycles->outputs[static_cast<size_t>(i)]->name().c_str();
 }
 
 int OperatriceCycles::type() const
 {
-	return OPERATRICE_DETAIL;
+    return OPERATRICE_DETAIL;
 }
 
 type_prise OperatriceCycles::type_entree(int i) const
 {
-	return convertis_type_prise(noeud_cycles->inputs[static_cast<size_t>(i)]->type());
+    return convertis_type_prise(noeud_cycles->inputs[static_cast<size_t>(i)]->type());
 }
 
 type_prise OperatriceCycles::type_sortie(int i) const
 {
-	return convertis_type_prise(noeud_cycles->outputs[static_cast<size_t>(i)]->type());
+    return convertis_type_prise(noeud_cycles->outputs[static_cast<size_t>(i)]->type());
 }
 
 res_exec OperatriceCycles::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
-	return res_exec::REUSSIE;
+    return res_exec::REUSSIE;
 }
 
 template <typename T>
 T valeur_defaut(ccl::ShaderInput *entree)
 {
-	return *reinterpret_cast<const T *>(entree->socket_type.default_value);
+    return *reinterpret_cast<const T *>(entree->socket_type.default_value);
 }
 
 void OperatriceCycles::cree_proprietes()
 {
-	for (auto i = 0; i < entrees(); ++i) {
-		auto nom_propriete = nom_entree(i);
+    for (auto i = 0; i < entrees(); ++i) {
+        auto nom_propriete = nom_entree(i);
 
-		auto prop = danjo::Propriete();
+        auto prop = danjo::Propriete();
 
-		switch (type_entree(i)) {
-			case type_prise::DECIMAL:
-			{
-				prop.type = danjo::TypePropriete::DECIMAL;
-				prop.valeur = valeur_defaut<float>(noeud_cycles->inputs[static_cast<size_t>(i)]);
-				break;
-			}
-			case type_prise::ENTIER:
-			{
-				prop.type = danjo::TypePropriete::ENTIER;
-				prop.valeur = valeur_defaut<int>(noeud_cycles->inputs[static_cast<size_t>(i)]);
-				break;
-			}
-			case type_prise::VEC2:
-			case type_prise::VEC3:
-			{
-				prop.type = danjo::TypePropriete::VECTEUR;
-				auto f3 = valeur_defaut<ccl::float3>(noeud_cycles->inputs[static_cast<size_t>(i)]);
-				prop.valeur = dls::math::vec3f(f3.x, f3.y, f3.z);
-				break;
-			}
-			case type_prise::COULEUR:
-			{
-				prop.type = danjo::TypePropriete::COULEUR;
-				auto f3 = valeur_defaut<ccl::float3>(noeud_cycles->inputs[static_cast<size_t>(i)]);
-				prop.valeur = dls::phys::couleur32(f3.x, f3.y, f3.z, f3.w);
-				break;
-			}
-			case type_prise::MAT4:
-			{
-				prop.type = danjo::TypePropriete::ENTIER;
-				prop.valeur = valeur_defaut<int>(noeud_cycles->inputs[static_cast<size_t>(i)]);
-				break;
-			}
-			default:
-			{
-				continue;
-			}
-		}
+        switch (type_entree(i)) {
+            case type_prise::DECIMAL:
+            {
+                prop.type = danjo::TypePropriete::DECIMAL;
+                prop.valeur = valeur_defaut<float>(noeud_cycles->inputs[static_cast<size_t>(i)]);
+                break;
+            }
+            case type_prise::ENTIER:
+            {
+                prop.type = danjo::TypePropriete::ENTIER;
+                prop.valeur = valeur_defaut<int>(noeud_cycles->inputs[static_cast<size_t>(i)]);
+                break;
+            }
+            case type_prise::VEC2:
+            case type_prise::VEC3:
+            {
+                prop.type = danjo::TypePropriete::VECTEUR;
+                auto f3 = valeur_defaut<ccl::float3>(noeud_cycles->inputs[static_cast<size_t>(i)]);
+                prop.valeur = dls::math::vec3f(f3.x, f3.y, f3.z);
+                break;
+            }
+            case type_prise::COULEUR:
+            {
+                prop.type = danjo::TypePropriete::COULEUR;
+                auto f3 = valeur_defaut<ccl::float3>(noeud_cycles->inputs[static_cast<size_t>(i)]);
+                prop.valeur = dls::phys::couleur32(f3.x, f3.y, f3.z, f3.w);
+                break;
+            }
+            case type_prise::MAT4:
+            {
+                prop.type = danjo::TypePropriete::ENTIER;
+                prop.valeur = valeur_defaut<int>(noeud_cycles->inputs[static_cast<size_t>(i)]);
+                break;
+            }
+            default:
+            {
+                continue;
+            }
+        }
 
-		ajoute_propriete_extra(nom_propriete, prop);
-	}
+        ajoute_propriete_extra(nom_propriete, prop);
+    }
 }
 
 /* ************************************************************************** */
 
 dls::chaine genere_menu_noeuds_cycles()
 {
-	dls::chaine resultat;
+    dls::chaine resultat;
 
-	resultat += "menu \"Menu Cycles\" {\n";
+    resultat += "menu \"Menu Cycles\" {\n";
 
-	for (auto &type : ccl::NodeType::types()) {
-		if (type.second.type == ccl::NodeType::NONE) {
-			continue;
-		}
+    for (auto &type : ccl::NodeType::types()) {
+        if (type.second.type == ccl::NodeType::NONE) {
+            continue;
+        }
 
-		resultat += "    action(valeur=\"";
-		resultat += type.first.c_str();
-		resultat += "\"; attache=ajouter_noeud_cycles; métadonnée=\"";
-		resultat += type.first.c_str();
-		resultat += "\")\n";
-	}
+        resultat += "    action(valeur=\"";
+        resultat += type.first.c_str();
+        resultat += "\"; attache=ajouter_noeud_cycles; métadonnée=\"";
+        resultat += type.first.c_str();
+        resultat += "\")\n";
+    }
 
-	resultat += "}\n";
+    resultat += "}\n";
 
-	return resultat;
+    return resultat;
 }

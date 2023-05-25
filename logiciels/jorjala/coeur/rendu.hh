@@ -33,9 +33,9 @@ struct Noeud;
 /* ************************************************************************** */
 
 struct Rendu {
-	Noeud &noeud;
+    Noeud &noeud;
 
-	Rendu(Noeud &n);
+    Rendu(Noeud &n);
 };
 
 /* ************************************************************************** */
@@ -48,5 +48,5 @@ void evalue_graphe_rendu(Rendu *rendu, ContexteEvaluation &contexte);
 
 inline Rendu *extrait_rendu(std::any const &any)
 {
-	return std::any_cast<Rendu *>(any);
+    return std::any_cast<Rendu *>(any);
 }

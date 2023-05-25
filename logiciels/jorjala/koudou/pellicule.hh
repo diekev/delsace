@@ -33,44 +33,47 @@
 namespace kdo {
 
 struct CarreauPellicule {
-	unsigned int x;
-	unsigned int y;
-	unsigned int largeur;
-	unsigned int hauteur;
+    unsigned int x;
+    unsigned int y;
+    unsigned int largeur;
+    unsigned int hauteur;
 };
 
 struct PixelPellicule {
-	dls::math::vec3d couleur{};
-	double poids{};
+    dls::math::vec3d couleur{};
+    double poids{};
 };
 
 class Pellicule {
-public:
-	using type_grille = wlk::grille_dense_2d<dls::math::vec3d>;
+  public:
+    using type_grille = wlk::grille_dense_2d<dls::math::vec3d>;
 
-private:
-	wlk::grille_dense_2d<dls::math::vec3d> m_matrice{};
+  private:
+    wlk::grille_dense_2d<dls::math::vec3d> m_matrice{};
 
-	dls::tableau<PixelPellicule> m_pixels_pellicule{};
+    dls::tableau<PixelPellicule> m_pixels_pellicule{};
 
-public:
-	Pellicule();
+  public:
+    Pellicule();
 
-	int hauteur() const;
+    int hauteur() const;
 
-	int largeur() const;
+    int largeur() const;
 
-	void ajoute_echantillon(long i, long j, dls::math::vec3d const &couleur, const double poids = 1.0);
+    void ajoute_echantillon(long i,
+                            long j,
+                            dls::math::vec3d const &couleur,
+                            const double poids = 1.0);
 
-	dls::math::vec3d const &couleur(int i, int j);
+    dls::math::vec3d const &couleur(int i, int j);
 
-	type_grille const &donnees() const;
+    type_grille const &donnees() const;
 
-	void reinitialise();
+    void reinitialise();
 
-	void redimensionne(dls::math::Hauteur const &hauteur, dls::math::Largeur const &largeur);
+    void redimensionne(dls::math::Hauteur const &hauteur, dls::math::Largeur const &largeur);
 
-	void creer_image();
+    void creer_image();
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

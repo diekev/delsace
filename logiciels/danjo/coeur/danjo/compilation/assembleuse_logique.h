@@ -32,19 +32,18 @@
 namespace danjo {
 
 class AssembleuseLogique {
-	dls::ensemble<dls::chaine> m_noms_variables{};
+    dls::ensemble<dls::chaine> m_noms_variables{};
 
-	graphe_contrainte m_graphe{};
+    graphe_contrainte m_graphe{};
 
-public:
+  public:
+    Variable *ajoute_variable(const dls::chaine &nom);
 
-	Variable *ajoute_variable(const dls::chaine &nom);
+    void ajoute_contrainte(contrainte *c);
 
-	void ajoute_contrainte(contrainte *c);
+    bool variable_connue(const dls::chaine &nom);
 
-	bool variable_connue(const dls::chaine &nom);
-
-	Variable *variable(const dls::chaine &nom);
+    Variable *variable(const dls::chaine &nom);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -27,70 +27,63 @@
 #include "biblinternes/opengl/tampon_rendu.h"
 
 static const char *source_vertex_bordure =
-		"#version 330 core\n"
-		"layout(location = 0) in vec2 sommets;\n"
-		"uniform mat4 MVP;\n"
-		"uniform mat4 matrice;\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = MVP * matrice * vec4(sommets, 0.0, 1.0);\n"
-		"}\n";
+    "#version 330 core\n"
+    "layout(location = 0) in vec2 sommets;\n"
+    "uniform mat4 MVP;\n"
+    "uniform mat4 matrice;\n"
+    "void main()\n"
+    "{\n"
+    "	gl_Position = MVP * matrice * vec4(sommets, 0.0, 1.0);\n"
+    "}\n";
 
-static const char *source_fragment_bordure =
-		"#version 330 core\n"
-		"layout (location = 0) out vec4 fragment_color;\n"
-		" void main()\n"
-		"{\n"
-		"	fragment_color = vec4(1.0);\n"
-		"}\n";
+static const char *source_fragment_bordure = "#version 330 core\n"
+                                             "layout (location = 0) out vec4 fragment_color;\n"
+                                             " void main()\n"
+                                             "{\n"
+                                             "	fragment_color = vec4(1.0);\n"
+                                             "}\n";
 
-RenduManipulatrice2D::RenduManipulatrice2D()
-	: m_tampon(memoire::loge<TamponRendu>("TamponRendu"))
+RenduManipulatrice2D::RenduManipulatrice2D() : m_tampon(memoire::loge<TamponRendu>("TamponRendu"))
 {
-	m_tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex_bordure);
-	m_tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
-	m_tampon->finalise_programme();
+    m_tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex_bordure);
+    m_tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
+    m_tampon->finalise_programme();
 
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("MVP");
+    ParametresProgramme parametre_programme;
+    parametre_programme.ajoute_attribut("sommets");
+    parametre_programme.ajoute_uniforme("matrice");
+    parametre_programme.ajoute_uniforme("MVP");
 
-	m_tampon->parametres_programme(parametre_programme);
+    m_tampon->parametres_programme(parametre_programme);
 
-	float sommets[8] = {
-		-0.1f, 0.0f,
-		0.1f, 0.0f,
-		0.0f, -0.1f,
-		0.0f, 0.1f
-	};
+    float sommets[8] = {-0.1f, 0.0f, 0.1f, 0.0f, 0.0f, -0.1f, 0.0f, 0.1f};
 
-	unsigned int index[8] = { 0, 1, 2, 3 };
+    unsigned int index[8] = {0, 1, 2, 3};
 
-	auto parametres_tampon = ParametresTampon();
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 2;
-	parametres_tampon.pointeur_sommets = sommets;
-	parametres_tampon.taille_octet_sommets = sizeof(float) * 8;
-	parametres_tampon.pointeur_index = index;
-	parametres_tampon.taille_octet_index = sizeof(unsigned int) * 4;
-	parametres_tampon.elements = 4;
+    auto parametres_tampon = ParametresTampon();
+    parametres_tampon.attribut = "sommets";
+    parametres_tampon.dimension_attribut = 2;
+    parametres_tampon.pointeur_sommets = sommets;
+    parametres_tampon.taille_octet_sommets = sizeof(float) * 8;
+    parametres_tampon.pointeur_index = index;
+    parametres_tampon.taille_octet_index = sizeof(unsigned int) * 4;
+    parametres_tampon.elements = 4;
 
-	m_tampon->remplie_tampon(parametres_tampon);
+    m_tampon->remplie_tampon(parametres_tampon);
 
-	auto parametres_dessin = ParametresDessin();
-	parametres_dessin.type_dessin(GL_LINES);
-	parametres_dessin.taille_ligne(1.0);
+    auto parametres_dessin = ParametresDessin();
+    parametres_dessin.type_dessin(GL_LINES);
+    parametres_dessin.taille_ligne(1.0);
 
-	m_tampon->parametres_dessin(parametres_dessin);
+    m_tampon->parametres_dessin(parametres_dessin);
 }
 
 RenduManipulatrice2D::~RenduManipulatrice2D()
 {
-	memoire::deloge("TamponRendu", m_tampon);
+    memoire::deloge("TamponRendu", m_tampon);
 }
 
 void RenduManipulatrice2D::dessine(ContexteRendu const &contexte)
 {
-	m_tampon->dessine(contexte);
+    m_tampon->dessine(contexte);
 }

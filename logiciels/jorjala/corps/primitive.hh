@@ -25,17 +25,17 @@
 #pragma once
 
 enum class type_primitive : char {
-	POLYGONE = 0,
-	VOLUME   = 1,
-	SPHERE   = 2,
+    POLYGONE = 0,
+    VOLUME = 1,
+    SPHERE = 2,
 };
 
 class Primitive {
-public:
-	/* L'index de cette primitive. */
-	long index = 0;
+  public:
+    /* L'index de cette primitive. */
+    long index = 0;
 
-	virtual ~Primitive() = default;
+    virtual ~Primitive() = default;
 
-	virtual type_primitive type_prim() const = 0;
+    virtual type_primitive type_prim() const = 0;
 };

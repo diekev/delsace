@@ -24,8 +24,6 @@
 
 #include "commandes_vue3d.h"
 
-#include <iostream>
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -34,129 +32,112 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/objets/creation.h"
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/vision/camera.h"
-
-#include "coeur/evenement.h"
-#include "coeur/composite.h"
-#include "coeur/manipulatrice.h"
-#include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
+#include "biblinternes/outils/definitions.h"
+
+#include "commande_jorjala.hh"
+
+#include "coeur/jorjala.hh"
+
 /* ************************************************************************** */
 
-class CommandeZoomCamera3D : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto const delta = donnees.y;
-
-		auto camera = jorjala->camera_3d;
-
-		if (delta >= 0) {
-			auto const distance = camera->distance() + camera->vitesse_zoom();
-			camera->distance(distance);
-		}
-		else {
-			auto const temp = camera->distance() - camera->vitesse_zoom();
-			auto const distance = std::max(0.0f, temp);
-			camera->distance(distance);
-		}
-
-		camera->ajuste_vitesse();
-		camera->besoin_ajournement(true);
-
-		jorjala->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+class CommandeZoomCamera3D : public CommandeJorjala {
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        auto const delta = donnees.y;
+        auto camera = jorjala.caméra_3d();
+        camera.zoom(delta);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeTourneCamera3D : public Commande {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+class CommandeTourneCamera3D : public CommandeJorjala {
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandeTourneCamera3D() = default;
+  public:
+    CommandeTourneCamera3D() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		INUTILISE(pointeur);
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        INUTILISE(jorjala);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto camera = jorjala->camera_3d;
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
+        const float dx = (donnees.x - m_vieil_x);
+        const float dy = (donnees.y - m_vieil_y);
 
-		const float dx = (donnees.x - m_vieil_x);
-		const float dy = (donnees.y - m_vieil_y);
+        auto camera = jorjala.caméra_3d();
+        camera.tourne(dx, dy);
 
-		camera->tete(camera->tete() + dy * camera->vitesse_chute());
-		camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
-		camera->besoin_ajournement(true);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
 
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
+        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+    }
 
-		jorjala->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
-	}
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandePanCamera3D : public Commande {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+class CommandePanCamera3D : public CommandeJorjala {
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandePanCamera3D() = default;
+  public:
+    CommandePanCamera3D() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		INUTILISE(pointeur);
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        INUTILISE(jorjala);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto camera = jorjala->camera_3d;
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
+        const float dx = (donnees.x - m_vieil_x);
+        const float dy = (donnees.y - m_vieil_y);
 
-		const float dx = (donnees.x - m_vieil_x);
-		const float dy = (donnees.y - m_vieil_y);
+        auto camera = jorjala.caméra_3d();
+        camera.pan(dx, dy);
 
-		auto cible = (dy * camera->haut() - dx * camera->droite()) * camera->vitesse_laterale();
-		camera->cible(camera->cible() + cible);
-		camera->besoin_ajournement(true);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
 
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
+        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+    }
 
-		jorjala->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
-	}
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeSurvoleScene : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+class CommandeSurvoleScene : public CommandeJorjala {
+  public:
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+#if 0
 		auto manipulatrice = jorjala->manipulatrice_3d;
 
 		if (manipulatrice == nullptr) {
@@ -189,29 +170,30 @@ public:
 			jorjala->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
 		}
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
+#if 0
 static Plan plans[] = {
-	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 0.0f, 1.0f}},
-	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 1.0f, 0.0f}},
-	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 0.0f, 0.0f}},
-	{dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 1.0f, 1.0f}},
+    {dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 0.0f, 1.0f}},
+    {dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{0.0f, 1.0f, 0.0f}},
+    {dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 0.0f, 0.0f}},
+    {dls::math::point3f{0.0f, 0.0f, 0.0f}, dls::math::vec3f{1.0f, 1.0f, 1.0f}},
 };
 
-class CommandeDeplaceManipulatrice : public Commande {
-	dls::math::vec3f m_delta = dls::math::vec3f(0.0f);
+class CommandeDeplaceManipulatrice : public CommandeJorjala {
+    dls::math::vec3f m_delta = dls::math::vec3f(0.0f);
 
-public:
-	CommandeDeplaceManipulatrice() = default;
+  public:
+    CommandeDeplaceManipulatrice() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+#    if 0
 		if (jorjala->manipulation_3d_activee == false) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
@@ -282,12 +264,13 @@ public:
 		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
 
 		return EXECUTION_COMMANDE_MODALE;
-	}
+#    endif
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
+#    if 0
 		if (jorjala->manipulation_3d_activee == false) {
 			return;
 		}
@@ -357,32 +340,40 @@ public:
 		jorjala->ajourne_pour_nouveau_temps("fin manipulation déplacement");
 
 		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
-	}
+#    endif
+    }
+
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue3d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_zoom_camera_3d",
-						   description_commande<CommandeZoomCamera3D>(
-							   "vue_3d", Qt::MiddleButton, 0, 0, true));
+    usine.enregistre_type(
+        "commande_zoom_camera_3d",
+        description_commande<CommandeZoomCamera3D>("vue_3d", Qt::MiddleButton, 0, 0, true));
 
-	usine.enregistre_type("commande_tourne_camera_3d",
-						   description_commande<CommandeTourneCamera3D>(
-							   "vue_3d", Qt::MiddleButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_tourne_camera_3d",
+        description_commande<CommandeTourneCamera3D>("vue_3d", Qt::MiddleButton, 0, 0, false));
 
-	usine.enregistre_type("commande_pan_camera_3d",
-						   description_commande<CommandePanCamera3D>(
-							   "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
+    usine.enregistre_type("commande_pan_camera_3d",
+                          description_commande<CommandePanCamera3D>(
+                              "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
-	usine.enregistre_type("commande_survole_scene",
-						   description_commande<CommandeSurvoleScene>(
-							   "vue_3d", 0, 0, 0, false));
+#if 0
+    usine.enregistre_type("commande_survole_scene",
+                          description_commande<CommandeSurvoleScene>("vue_3d", 0, 0, 0, false));
 
-	usine.enregistre_type("commande_deplace_manipulatrice_3d",
-						   description_commande<CommandeDeplaceManipulatrice>(
-							   "vue_3d", Qt::LeftButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_deplace_manipulatrice_3d",
+        description_commande<CommandeDeplaceManipulatrice>("vue_3d", Qt::LeftButton, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

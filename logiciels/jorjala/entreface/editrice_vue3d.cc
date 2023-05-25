@@ -42,17 +42,21 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
-#include "coeur/manipulatrice.h"
+//#include "coeur/manipulatrice.h"
+//#include "coeur/operatrice_image.h"
+//#include "coeur/rendu.hh"
+
 #include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
-#include "coeur/rendu.hh"
 
 #include "opengl/visionneur_scene.h"
 
+#include "gestion_entreface.hh"
+
 /* ************************************************************************** */
 
-static void charge_manipulatrice(Jorjala &jorjala, int type_manipulation)
+static void charge_manipulatrice(JJL::Jorjala &jorjala, int type_manipulation)
 {
+#if 0
 	jorjala.type_manipulation_3d = type_manipulation;
 
 	auto graphe = jorjala.graphe;
@@ -74,263 +78,237 @@ static void charge_manipulatrice(Jorjala &jorjala, int type_manipulation)
 	}
 
 	jorjala.manipulatrice_3d = operatrice->manipulatrice_3d(jorjala.type_manipulation_3d);
+#endif
 }
 
 /* ************************************************************************** */
 
-VueCanevas3D::VueCanevas3D(Jorjala &jorjala, EditriceVue3D *base, QWidget *parent)
-	: QGLWidget(parent)
-	, m_jorjala(jorjala)
-	, m_visionneur_scene(new VisionneurScene(this, jorjala))
-	, m_base(base)
+VueCanevas3D::VueCanevas3D(JJL::Jorjala &jorjala, EditriceVue3D *base, QWidget *parent)
+    : QGLWidget(parent), m_jorjala(jorjala),
+      m_visionneur_scene(new VisionneurScene(this, jorjala)), m_base(base)
 {
-	setMouseTracking(true);
+    setMouseTracking(true);
 }
 
 VueCanevas3D::~VueCanevas3D()
 {
-	delete m_visionneur_scene;
+    delete m_visionneur_scene;
 }
 
 void VueCanevas3D::initializeGL()
 {
-	glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
 
-	if (err != GLEW_OK) {
-		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
-	}
+    if (err != GLEW_OK) {
+        std::cerr << "Error: " << glewGetErrorString(err) << "\n";
+    }
 
-	m_visionneur_scene->initialise();
+    m_visionneur_scene->initialise();
 }
 
 void VueCanevas3D::paintGL()
 {
-	m_visionneur_scene->peint_opengl();
+    m_visionneur_scene->peint_opengl();
 }
 
 void VueCanevas3D::resizeGL(int w, int h)
 {
-	glViewport(0, 0, w, h);
-	m_visionneur_scene->redimensionne(w, h);
+    glViewport(0, 0, w, h);
+    m_visionneur_scene->redimensionne(w, h);
 }
 
 void VueCanevas3D::mousePressEvent(QMouseEvent *e)
 {
-	m_base->rend_actif();
-
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = static_cast<int>(e->buttons());
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-	m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
+    m_base->mousePressEvent(e);
 }
 
 void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
 {
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = static_cast<int>(e->buttons());
-
-	if (e->buttons() == 0) {
-		m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
-	}
-	else {
-		m_jorjala.repondant_commande()->ajourne_commande_modale(donnees);
-	}
+    m_base->mouseMoveEvent(e);
 }
 
 void VueCanevas3D::wheelEvent(QWheelEvent *e)
 {
-	m_base->rend_actif();
-
-	/* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
-	 * roulement de la molette de la souris, on prétend que le roulement est un
-	 * double clique de la molette. */
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->angleDelta().x());
-	donnees.y = static_cast<float>(e->angleDelta().y());
-	donnees.souris = Qt::MiddleButton;
-	donnees.double_clique = true;
-
-	m_jorjala.repondant_commande()->appele_commande("vue_3d", donnees);
+    m_base->wheelEvent(e);
 }
 
 void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
 {
-	m_base->rend_actif();
-
-	DonneesCommande donnees;
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-
-	m_jorjala.repondant_commande()->acheve_commande_modale(donnees);
+    m_base->mouseReleaseEvent(e);
 }
 
 void VueCanevas3D::reconstruit_scene() const
 {
-	//m_visionneur_scene->reconstruit_scene();
+    // m_visionneur_scene->reconstruit_scene();
 }
 
 void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
 {
-	m_visionneur_scene->change_moteur_rendu(id);
+    m_visionneur_scene->change_moteur_rendu(id);
 }
 
 /* ************************************************************************** */
 
-EditriceVue3D::EditriceVue3D(Jorjala &jorjala, QWidget *parent)
-	: BaseEditrice(jorjala, parent)
-	, m_vue(new VueCanevas3D(jorjala, this, this))
+enum {
+    BOUTON_MANIPULATION = 0,
+    BOUTON_POSITION = 1,
+    BOUTON_ROTATION = 2,
+    BOUTON_ECHELLE = 3,
+
+    NOMBRE_DE_BOUTONS = 4,
+};
+
+struct DonneesBoutonsManipulation {
+    int type = BOUTON_MANIPULATION;
+    const char *chemin_icone_inactif;
+    const char *chemin_icone_actif;
+};
+
+static DonneesBoutonsManipulation donnees_boutons_manipulation[NOMBRE_DE_BOUTONS] = {
+    {BOUTON_MANIPULATION, "icones/icone_manipulation.png", "icones/icone_manipulation_active.png"},
+    {BOUTON_POSITION,
+     "icones/manipulation_position.png",
+     "icones/manipulation_position_active.png"},
+    {BOUTON_ROTATION,
+     "icones/manipulation_rotation.png",
+     "icones/manipulation_rotation_active.png"},
+    {BOUTON_ECHELLE, "icones/manipulation_echelle.png", "icones/manipulation_echelle_active.png"},
+};
+
+EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
+    : BaseEditrice("vue_3d", jorjala, parent), m_vue(new VueCanevas3D(jorjala, this, this))
 {
-	auto disp_widgets = new QVBoxLayout();
-	auto disp_boutons = new QHBoxLayout();
-	disp_boutons->addStretch();
+    auto disp_widgets = new QVBoxLayout();
+    auto disp_boutons = new QHBoxLayout();
+    disp_boutons->addStretch();
 
-	QIcon icone_manipulation;
-	icone_manipulation.addPixmap(QPixmap("icones/icone_manipulation.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_manipulation.addPixmap(QPixmap("icones/icone_manipulation_active.png"), QIcon::Mode::Normal, QIcon::State::On);
+    QToolButton *boutons_manipulation[4];
+    for (auto données_bouton : donnees_boutons_manipulation) {
+        QIcon icone_manipulation;
+        icone_manipulation.addPixmap(
+            QPixmap(données_bouton.chemin_icone_inactif), QIcon::Mode::Normal, QIcon::State::Off);
+        icone_manipulation.addPixmap(
+            QPixmap(données_bouton.chemin_icone_actif), QIcon::Mode::Normal, QIcon::State::On);
 
-	auto bouton = new QToolButton();
-	bouton->setIcon(icone_manipulation);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	bouton->setCheckable(true);
-	bouton->setChecked(false);
-	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::bascule_manipulation);
-	disp_boutons->addWidget(bouton);
+        auto bouton = new QToolButton();
+        bouton->setIcon(icone_manipulation);
+        bouton->setFixedHeight(32);
+        bouton->setFixedWidth(32);
+        bouton->setCheckable(true);
+        disp_boutons->addWidget(bouton);
 
-	QIcon icone_position;
-	icone_position.addPixmap(QPixmap("icones/icone_position.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_position.addPixmap(QPixmap("icones/icone_position_active.png"), QIcon::Mode::Normal, QIcon::State::On);
+        boutons_manipulation[données_bouton.type] = bouton;
+        disp_boutons->addWidget(bouton);
+    }
 
-	bouton = new QToolButton();
-	bouton->setIcon(icone_position);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	bouton->setCheckable(true);
-	bouton->setChecked(true);
-	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_position);
-	disp_boutons->addWidget(bouton);
-	m_bouton_position = bouton;
-	m_bouton_actif = bouton;
+    auto bouton = boutons_manipulation[BOUTON_MANIPULATION];
+    bouton->setChecked(false);
+    connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::bascule_manipulation);
 
-	QIcon icone_rotation;
-	icone_rotation.addPixmap(QPixmap("icones/icone_rotation.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_rotation.addPixmap(QPixmap("icones/icone_rotation_active.png"), QIcon::Mode::Normal, QIcon::State::On);
+    bouton = boutons_manipulation[BOUTON_POSITION];
+    bouton->setChecked(true);
+    connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_position);
+    m_bouton_position = bouton;
+    m_bouton_actif = bouton;
 
-	bouton = new QToolButton();
-	bouton->setIcon(icone_rotation);
-	bouton->setCheckable(true);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_rotation);
-	disp_boutons->addWidget(bouton);
-	m_bouton_rotation = bouton;
+    bouton = boutons_manipulation[BOUTON_ROTATION];
+    connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_rotation);
+    m_bouton_rotation = bouton;
 
-	QIcon icone_echelle;
-	icone_echelle.addPixmap(QPixmap("icones/icone_echelle.png"), QIcon::Mode::Normal, QIcon::State::Off);
-	icone_echelle.addPixmap(QPixmap("icones/icone_echelle_active.png"), QIcon::Mode::Normal, QIcon::State::On);
+    bouton = boutons_manipulation[BOUTON_ECHELLE];
+    connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_echelle);
+    m_bouton_echelle = bouton;
 
-	bouton = new QToolButton();
-	bouton->setIcon(icone_echelle);
-	bouton->setCheckable(true);
-	bouton->setFixedHeight(32);
-	bouton->setFixedWidth(32);
-	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_echelle);
-	disp_boutons->addWidget(bouton);
-	m_bouton_echelle = bouton;
+    m_selecteur_rendu = new QComboBox(this);
 
-	m_selecteur_rendu = new QComboBox(this);
+    connect(
+        m_selecteur_rendu, SIGNAL(currentIndexChanged(int)), this, SLOT(change_moteur_rendu(int)));
 
-	connect(m_selecteur_rendu, SIGNAL(currentIndexChanged(int)),
-			this, SLOT(change_moteur_rendu(int)));
+    disp_boutons->addWidget(m_selecteur_rendu);
 
-	disp_boutons->addWidget(m_selecteur_rendu);
+    disp_boutons->addStretch();
 
-	disp_boutons->addStretch();
+    disp_widgets->addWidget(m_vue);
+    disp_widgets->addLayout(disp_boutons);
 
-	disp_widgets->addWidget(m_vue);
-	disp_widgets->addLayout(disp_boutons);
-
-	m_main_layout->addLayout(disp_widgets);
+    m_main_layout->addLayout(disp_widgets);
 }
 
 void EditriceVue3D::ajourne_etat(int evenement)
 {
-	auto reconstruit_scene = evenement == (type_evenement::objet | type_evenement::ajoute);
-	auto const camera_modifie = evenement == (type_evenement::camera_3d | type_evenement::modifie);
+    auto reconstruit_scene = evenement == (type_evenement::objet | type_evenement::ajoute);
+    auto const camera_modifie = evenement == (type_evenement::camera_3d | type_evenement::modifie);
 
-	auto ajourne = camera_modifie | reconstruit_scene;
-	ajourne |= evenement == (type_evenement::noeud | type_evenement::selectionne);
-	ajourne |= evenement == (type_evenement::noeud | type_evenement::enleve);
-	ajourne |= evenement == (type_evenement::image | type_evenement::traite);
-	ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
-	ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
-	ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
-	ajourne |= evenement == (type_evenement::rafraichissement);
+    auto ajourne = camera_modifie | reconstruit_scene;
+    // L'affichage des informations des noeuds nous fait tout redessiner... (il nous faudrait une
+    // mise en tampon des données de dessin).
+    // ajourne |= evenement == (type_evenement::noeud | type_evenement::selectionne);
+    ajourne |= evenement == (type_evenement::noeud | type_evenement::enleve);
+    ajourne |= evenement == (type_evenement::image | type_evenement::traite);
+    ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
+    ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
+    ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
+    ajourne |= evenement == (type_evenement::rafraichissement);
 
-	auto signaux_blockes = m_selecteur_rendu->blockSignals(true);
-	m_selecteur_rendu->clear();
+#if 0
+    ajourne_combo_box(m_selecteur_rendu,
+                      "",
+                      m_jorjala.bdd.rendus(),
+                      [](Rendu const *rendu) -> DonnéesItemComboxBox {
+                          return {rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str())};
+                      });
+#endif
 
-	for (auto rendu : m_jorjala.bdd.rendus()) {
-		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str()));
-	}
+    if (!ajourne) {
+        return;
+    }
 
-	m_selecteur_rendu->blockSignals(signaux_blockes);
+    if (reconstruit_scene) {
+        m_vue->reconstruit_scene();
+    }
 
-	if (!ajourne) {
-		return;
-	}
-
-	if (reconstruit_scene) {
-		m_vue->reconstruit_scene();
-	}
-
-	m_vue->update();
+    m_vue->update();
 }
 
 void EditriceVue3D::bascule_manipulation()
 {
-	m_jorjala.manipulation_3d_activee = !m_jorjala.manipulation_3d_activee;
-	m_vue->update();
+    // m_jorjala.manipulation_3d_activee = !m_jorjala.manipulation_3d_activee;
+    m_vue->update();
 }
 
 void EditriceVue3D::manipule_rotation()
 {
-	m_bouton_actif->setChecked(false);
-	m_bouton_actif = m_bouton_rotation;
+    m_bouton_actif->setChecked(false);
+    m_bouton_actif = m_bouton_rotation;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_ROTATION);
-	m_vue->update();
+    // charge_manipulatrice(m_jorjala, MANIPULATION_ROTATION);
+    m_vue->update();
 }
 
 void EditriceVue3D::manipule_position()
 {
-	m_bouton_actif->setChecked(false);
-	m_bouton_actif = m_bouton_position;
+    m_bouton_actif->setChecked(false);
+    m_bouton_actif = m_bouton_position;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_POSITION);
-	m_vue->update();
+    // charge_manipulatrice(m_jorjala, MANIPULATION_POSITION);
+    m_vue->update();
 }
 
 void EditriceVue3D::manipule_echelle()
 {
-	m_bouton_actif->setChecked(false);
-	m_bouton_actif = m_bouton_echelle;
+    m_bouton_actif->setChecked(false);
+    m_bouton_actif = m_bouton_echelle;
 
-	charge_manipulatrice(m_jorjala, MANIPULATION_ECHELLE);
-	m_vue->update();
+    // charge_manipulatrice(m_jorjala, MANIPULATION_ECHELLE);
+    m_vue->update();
 }
 
 void EditriceVue3D::change_moteur_rendu(int idx)
 {
-	INUTILISE(idx);
-	auto valeur = m_selecteur_rendu->currentData().toString().toStdString();
+    INUTILISE(idx);
+    auto valeur = m_selecteur_rendu->currentData().toString().toStdString();
 
-	m_vue->change_moteur_rendu(valeur);
-	m_vue->update();
+    m_vue->change_moteur_rendu(valeur);
+    m_vue->update();
 }

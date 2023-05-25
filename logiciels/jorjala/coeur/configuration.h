@@ -25,8 +25,8 @@
 #pragma once
 
 struct ProjectSettings {
-	int largeur = 1920;
-	int hauteur = 1080;
+    int largeur = 1920;
+    int hauteur = 1080;
 
-	ProjectSettings() = default;
+    ProjectSettings() = default;
 };

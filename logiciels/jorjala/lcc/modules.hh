@@ -29,10 +29,10 @@
 #include "morceaux.hh"
 
 struct DonneesModule {
-	lng::tampon_source tampon{""};
-	dls::tableau<DonneesMorceaux> morceaux{};
-	dls::chaine nom{""};
-	size_t id = 0;
+    lng::tampon_source tampon{""};
+    dls::tableau<DonneesMorceaux> morceaux{};
+    dls::chaine nom{""};
+    size_t id = 0;
 
-	DonneesModule() = default;
+    DonneesModule() = default;
 };

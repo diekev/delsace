@@ -35,22 +35,21 @@ namespace danjo {
  * erreur de frappe est repérée.
  */
 class ErreurFrappe {
-	dls::chaine m_quoi{""};
+    dls::chaine m_quoi{""};
 
-public:
-	/**
-	 * Construit le message d'erreur selon les paramètres passés.
-	 */
-	ErreurFrappe(
-			const dls::vue_chaine &ligne,
-			long numero_ligne,
-			long position_ligne,
-			const dls::vue_chaine &quoi);
+  public:
+    /**
+     * Construit le message d'erreur selon les paramètres passés.
+     */
+    ErreurFrappe(const dls::vue_chaine &ligne,
+                 long numero_ligne,
+                 long position_ligne,
+                 const dls::vue_chaine &quoi);
 
-	/**
-	 * Retourne le message d'erreur.
-	 */
-	const char *quoi() const;
+    /**
+     * Retourne le message d'erreur.
+     */
+    const char *quoi() const;
 };
 
 /**
@@ -58,24 +57,23 @@ public:
  * erreur de syntaxe est repérée.
  */
 class ErreurSyntactique {
-	dls::chaine m_quoi{""};
+    dls::chaine m_quoi{""};
 
-public:
-	/**
-	 * Construit le message d'erreur selon les paramètres passés.
-	 */
-	ErreurSyntactique(
-			const dls::vue_chaine &ligne,
-			long numero_ligne,
-			long position_ligne,
-			const dls::vue_chaine &quoi,
-			const dls::vue_chaine &contenu,
-			id_morceau id);
+  public:
+    /**
+     * Construit le message d'erreur selon les paramètres passés.
+     */
+    ErreurSyntactique(const dls::vue_chaine &ligne,
+                      long numero_ligne,
+                      long position_ligne,
+                      const dls::vue_chaine &quoi,
+                      const dls::vue_chaine &contenu,
+                      id_morceau id);
 
-	/**
-	 * Retourne le message d'erreur.
-	 */
-	const char *quoi() const;
+    /**
+     * Retourne le message d'erreur.
+     */
+    const char *quoi() const;
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

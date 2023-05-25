@@ -30,206 +30,206 @@
 
 void pour_chaque_polygone(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
-		fonction_rappel(corps, polygone);
-	}
+        auto polygone = dynamic_cast<Polygone *>(prim);
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_polygone_ferme(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
+        auto polygone = dynamic_cast<Polygone *>(prim);
 
-		if (polygone->type != type_polygone::FERME) {
-			continue;
-		}
+        if (polygone->type != type_polygone::FERME) {
+            continue;
+        }
 
-		fonction_rappel(corps, polygone);
-	}
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_polygone_ouvert(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
+        auto polygone = dynamic_cast<Polygone *>(prim);
 
-		if (polygone->type != type_polygone::OUVERT) {
-			continue;
-		}
+        if (polygone->type != type_polygone::OUVERT) {
+            continue;
+        }
 
-		fonction_rappel(corps, polygone);
-	}
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_primitive(Corps &corps, type_fonc_rap_prim fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-		fonction_rappel(corps, prim);
-	}
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
+        fonction_rappel(corps, prim);
+    }
 }
 
 void pour_chaque_volume(Corps &corps, type_fonc_rap_volume fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::VOLUME) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::VOLUME) {
+            continue;
+        }
 
-		auto volume = dynamic_cast<Volume *>(prim);
+        auto volume = dynamic_cast<Volume *>(prim);
 
-		fonction_rappel(corps, volume);
-	}
+        fonction_rappel(corps, volume);
+    }
 }
 
 void pour_chaque_sphere(Corps &corps, type_fonc_rap_sphere fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::SPHERE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::SPHERE) {
+            continue;
+        }
 
-		auto sphere = dynamic_cast<Sphere *>(prim);
+        auto sphere = dynamic_cast<Sphere *>(prim);
 
-		fonction_rappel(corps, sphere);
-	}
+        fonction_rappel(corps, sphere);
+    }
 }
 
 /* versions const */
 
 void pour_chaque_polygone(const Corps &corps, type_fonc_rap_poly_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
-		fonction_rappel(corps, polygone);
-	}
+        auto polygone = dynamic_cast<Polygone *>(prim);
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_polygone_ferme(Corps const &corps, type_fonc_rap_poly_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
+        auto polygone = dynamic_cast<Polygone *>(prim);
 
-		if (polygone->type != type_polygone::FERME) {
-			continue;
-		}
+        if (polygone->type != type_polygone::FERME) {
+            continue;
+        }
 
-		fonction_rappel(corps, polygone);
-	}
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_polygone_ouvert(Corps const &corps, type_fonc_rap_poly_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::POLYGONE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::POLYGONE) {
+            continue;
+        }
 
-		auto polygone = dynamic_cast<Polygone *>(prim);
+        auto polygone = dynamic_cast<Polygone *>(prim);
 
-		if (polygone->type != type_polygone::OUVERT) {
-			continue;
-		}
+        if (polygone->type != type_polygone::OUVERT) {
+            continue;
+        }
 
-		fonction_rappel(corps, polygone);
-	}
+        fonction_rappel(corps, polygone);
+    }
 }
 
 void pour_chaque_primitive(Corps const &corps, type_fonc_rap_prim_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-		fonction_rappel(corps, prim);
-	}
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
+        fonction_rappel(corps, prim);
+    }
 }
 
 void pour_chaque_volume(Corps const &corps, type_fonc_rap_volume_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::VOLUME) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::VOLUME) {
+            continue;
+        }
 
-		auto volume = dynamic_cast<Volume *>(prim);
+        auto volume = dynamic_cast<Volume *>(prim);
 
-		fonction_rappel(corps, volume);
-	}
+        fonction_rappel(corps, volume);
+    }
 }
 
 void pour_chaque_sphere(Corps const &corps, type_fonc_rap_sphere_const fonction_rappel)
 {
-	auto prims = corps.prims();
+    auto prims = corps.prims();
 
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
+    for (auto i = 0; i < prims->taille(); ++i) {
+        auto prim = prims->prim(i);
 
-		if (prim->type_prim() != type_primitive::SPHERE) {
-			continue;
-		}
+        if (prim->type_prim() != type_primitive::SPHERE) {
+            continue;
+        }
 
-		auto sphere = dynamic_cast<Sphere *>(prim);
+        auto sphere = dynamic_cast<Sphere *>(prim);
 
-		fonction_rappel(corps, sphere);
-	}
+        fonction_rappel(corps, sphere);
+    }
 }

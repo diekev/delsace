@@ -40,149 +40,147 @@
 /* ************************************************************************** */
 
 class OperatriceTexture final : public OperatriceImage {
-	vision::Camera3D *m_camera = nullptr;
-	TextureImage m_texture{};
+    vision::Camera3D *m_camera = nullptr;
+    TextureImage m_texture{};
 
-public:
-	static constexpr auto NOM = "Texture";
-	static constexpr auto AIDE = "Crée une texture.";
+  public:
+    static constexpr auto NOM = "Texture";
+    static constexpr auto AIDE = "Crée une texture.";
 
-	OperatriceTexture(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceImage(graphe_parent, noeud_)
-	{
-		entrees(2);
-		sorties(1);
-	}
+    OperatriceTexture(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceImage(graphe_parent, noeud_)
+    {
+        entrees(2);
+        sorties(1);
+    }
 
-	OperatriceTexture(OperatriceTexture const &) = default;
-	OperatriceTexture &operator=(OperatriceTexture const &) = default;
+    OperatriceTexture(OperatriceTexture const &) = default;
+    OperatriceTexture &operator=(OperatriceTexture const &) = default;
 
-	int type() const override
-	{
-		return OPERATRICE_IMAGE;
-	}
+    int type() const override
+    {
+        return OPERATRICE_IMAGE;
+    }
 
-	type_prise type_entree(int n) const override
-	{
-		if (n == 0) {
-			return type_prise::IMAGE;
-		}
+    type_prise type_entree(int n) const override
+    {
+        if (n == 0) {
+            return type_prise::IMAGE;
+        }
 
-		return type_prise::INVALIDE;
-	}
+        return type_prise::INVALIDE;
+    }
 
-	const char *nom_entree(int n) override
-	{
-		if (n == 0) {
-			return "image";
-		}
+    const char *nom_entree(int n) override
+    {
+        if (n == 0) {
+            return "image";
+        }
 
-		return "caméra";
-	}
+        return "caméra";
+    }
 
-	type_prise type_sortie(int) const override
-	{
-		return type_prise::IMAGE;
-	}
+    type_prise type_sortie(int) const override
+    {
+        return type_prise::IMAGE;
+    }
 
-	ResultatCheminEntreface chemin_entreface() const override
-	{
-		return CheminFichier{"entreface/operatrice_texture.jo"};
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_texture.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		if (entree(0)->connectee() == false) {
-			ajoute_avertissement("Aucune image connectée pour la texture");
-			return res_exec::ECHOUEE;
-		}
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        if (entree(0)->connectee() == false) {
+            ajoute_avertissement("Aucune image connectée pour la texture");
+            return res_exec::ECHOUEE;
+        }
 
-		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
-		auto tampon = m_image.calque_pour_lecture("image");
+        entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+        auto tampon = m_image.calque_pour_lecture("image");
 
-		if (tampon == nullptr) {
-			ajoute_avertissement("Impossible de trouver un calque nommé 'image'");
-			return res_exec::ECHOUEE;
-		}
+        if (tampon == nullptr) {
+            ajoute_avertissement("Impossible de trouver un calque nommé 'image'");
+            return res_exec::ECHOUEE;
+        }
 
-		//m_texture.charge_donnees(tampon->tampon);
+        // m_texture.charge_donnees(tampon->tampon);
 
-		auto entrepolation = evalue_enum("entrepolation");
+        auto entrepolation = evalue_enum("entrepolation");
 
-		if (entrepolation == "linéaire") {
-			m_texture.entrepolation(ENTREPOLATION_LINEAIRE);
-		}
-		else if (entrepolation == "proximité") {
-			m_texture.entrepolation(ENTREPOLATION_VOISINAGE_PROCHE);
-		}
+        if (entrepolation == "linéaire") {
+            m_texture.entrepolation(ENTREPOLATION_LINEAIRE);
+        }
+        else if (entrepolation == "proximité") {
+            m_texture.entrepolation(ENTREPOLATION_VOISINAGE_PROCHE);
+        }
 
-		auto enveloppage = evalue_enum("enveloppage");
+        auto enveloppage = evalue_enum("enveloppage");
 
-		if (enveloppage == "répétition") {
-			m_texture.enveloppage(ENVELOPPAGE_REPETITION);
-		}
-		else if (enveloppage == "répétition_mirroir") {
-			m_texture.enveloppage(ENVELOPPAGE_REPETITION_MIRROIR);
-		}
-		else if (enveloppage == "restriction") {
-			m_texture.enveloppage(ENVELOPPAGE_RESTRICTION);
-		}
+        if (enveloppage == "répétition") {
+            m_texture.enveloppage(ENVELOPPAGE_REPETITION);
+        }
+        else if (enveloppage == "répétition_mirroir") {
+            m_texture.enveloppage(ENVELOPPAGE_REPETITION_MIRROIR);
+        }
+        else if (enveloppage == "restriction") {
+            m_texture.enveloppage(ENVELOPPAGE_RESTRICTION);
+        }
 
-		auto projection = evalue_enum("projection");
+        auto projection = evalue_enum("projection");
 
-		if (projection == "planaire") {
-			m_texture.projection(PROJECTION_PLANAIRE);
-		}
-		else if (projection == "triplanaire") {
-			m_texture.projection(PROJECTION_TRIPLANAIRE);
-		}
-		else if (projection == "caméra") {
-			m_texture.projection(PROJECTION_CAMERA);
-			//m_camera = entree(1)->requiers_camera(contexte, donnees_aval);
+        if (projection == "planaire") {
+            m_texture.projection(PROJECTION_PLANAIRE);
+        }
+        else if (projection == "triplanaire") {
+            m_texture.projection(PROJECTION_TRIPLANAIRE);
+        }
+        else if (projection == "caméra") {
+            m_texture.projection(PROJECTION_CAMERA);
+            // m_camera = entree(1)->requiers_camera(contexte, donnees_aval);
 
-			if (m_camera == nullptr) {
-				ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");
-			}
+            if (m_camera == nullptr) {
+                ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");
+            }
 
-			m_texture.camera(m_camera);
-		}
-		else if (projection == "cubique") {
-			m_texture.projection(PROJECTION_CUBIQUE);
-		}
-		else if (projection == "cylindrique") {
-			m_texture.projection(PROJECTION_CYLINDRIQUE);
-		}
-		else if (projection == "sphèrique") {
-			m_texture.projection(PROJECTION_SPHERIQUE);
-		}
-		else if (projection == "uv") {
-			m_texture.projection(PROJECTION_UV);
-		}
+            m_texture.camera(m_camera);
+        }
+        else if (projection == "cubique") {
+            m_texture.projection(PROJECTION_CUBIQUE);
+        }
+        else if (projection == "cylindrique") {
+            m_texture.projection(PROJECTION_CYLINDRIQUE);
+        }
+        else if (projection == "sphèrique") {
+            m_texture.projection(PROJECTION_SPHERIQUE);
+        }
+        else if (projection == "uv") {
+            m_texture.projection(PROJECTION_UV);
+        }
 
-		auto taille_texture = evalue_vecteur("taille_texture", contexte.temps_courant);
+        auto taille_texture = evalue_vecteur("taille_texture", contexte.temps_courant);
 
-		m_texture.taille(dls::math::vec3f(taille_texture.x,
-										  taille_texture.y,
-										  taille_texture.z));
-		return res_exec::REUSSIE;
-	}
+        m_texture.taille(dls::math::vec3f(taille_texture.x, taille_texture.y, taille_texture.z));
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceTexture>());
+    usine.enregistre_type(cree_desc<OperatriceTexture>());
 }
 
 #pragma clang diagnostic pop

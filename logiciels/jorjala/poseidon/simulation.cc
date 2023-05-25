@@ -26,160 +26,158 @@
 
 namespace psn {
 
-void ajoute_flottance(
-		wlk::grille_dense_3d<float> &density,
-		wlk::GrilleMAC &vel,
-		wlk::grille_dense_3d<int> &flags,
-		wlk::grille_dense_3d<float> *temperature,
-		dls::math::vec3f const &gravity,
-		float alpha,
-		float beta,
-		float temperature_ambiante,
-		float dt,
-		float coefficient)
+void ajoute_flottance(wlk::grille_dense_3d<float> &density,
+                      wlk::GrilleMAC &vel,
+                      wlk::grille_dense_3d<int> &flags,
+                      wlk::grille_dense_3d<float> *temperature,
+                      dls::math::vec3f const &gravity,
+                      float alpha,
+                      float beta,
+                      float temperature_ambiante,
+                      float dt,
+                      float coefficient)
 {
-	auto dx = static_cast<float>(density.desc().taille_voxel);
-	auto f = -gravity * dt / dx * coefficient;
+    auto dx = static_cast<float>(density.desc().taille_voxel);
+    auto f = -gravity * dt / dx * coefficient;
 
-	auto res = flags.desc().resolution;
+    auto res = flags.desc().resolution;
 
-	auto const dalle_x = 1;
-	auto const dalle_y = res.x;
-	auto const dalle_z = res.x * res.y;
+    auto const dalle_x = 1;
+    auto const dalle_y = res.x;
+    auto const dalle_z = res.x * res.y;
 
-	boucle_parallele(tbb::blocked_range<int>(1, res.z),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		auto lims = limites3i{};
-		lims.min = dls::math::vec3i(1, 1, plage.begin());
-		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
+    boucle_parallele(tbb::blocked_range<int>(1, res.z), [&](tbb::blocked_range<int> const &plage) {
+        auto lims = limites3i{};
+        lims.min = dls::math::vec3i(1, 1, plage.begin());
+        lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto iter = wlk::IteratricePosition(lims);
+        auto iter = wlk::IteratricePosition(lims);
 
-		while (!iter.fini()) {
-			auto pos_iter = iter.suivante();
-			auto idx = flags.calcul_index(pos_iter);
+        while (!iter.fini()) {
+            auto pos_iter = iter.suivante();
+            auto idx = flags.calcul_index(pos_iter);
 
-			if (flags.valeur(idx) != TypeFluid) {
-				continue;
-			}
+            if (flags.valeur(idx) != TypeFluid) {
+                continue;
+            }
 
-			auto &v = vel.valeur(idx);
+            auto &v = vel.valeur(idx);
 
-			if (flags.valeur(idx - dalle_x) == TypeFluid) {
-				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_x));
-				auto T = 0.0f;
+            if (flags.valeur(idx - dalle_x) == TypeFluid) {
+                auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_x));
+                auto T = 0.0f;
 
-				if (temperature) {
-					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_x));
-				}
+                if (temperature) {
+                    T = 0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_x));
+                }
 
-				v.x += f.x * (-alpha * s + beta * (T - temperature_ambiante));
-			}
+                v.x += f.x * (-alpha * s + beta * (T - temperature_ambiante));
+            }
 
-			if (flags.valeur(idx - dalle_y) == TypeFluid) {
-				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_y));
-				auto T = 0.0f;
+            if (flags.valeur(idx - dalle_y) == TypeFluid) {
+                auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_y));
+                auto T = 0.0f;
 
-				if (temperature) {
-					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_y));
-				}
+                if (temperature) {
+                    T = 0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_y));
+                }
 
-				v.y += f.y * (-alpha * s + beta * (T - temperature_ambiante));
-			}
+                v.y += f.y * (-alpha * s + beta * (T - temperature_ambiante));
+            }
 
-			if (flags.valeur(idx - dalle_z) == TypeFluid) {
-				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_z));
-				auto T = 0.0f;
+            if (flags.valeur(idx - dalle_z) == TypeFluid) {
+                auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_z));
+                auto T = 0.0f;
 
-				if (temperature) {
-					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_z));
-				}
+                if (temperature) {
+                    T = 0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_z));
+                }
 
-				v.z += f.z * (-alpha * s + beta * (T - temperature_ambiante));
-			}
-		}
-	});
+                v.z += f.z * (-alpha * s + beta * (T - temperature_ambiante));
+            }
+        }
+    });
 }
 
 void ajourne_conditions_bordures_murs(wlk::grille_dense_3d<int> &flags, wlk::GrilleMAC &vel)
 {
-	auto res = flags.desc().resolution;
+    auto res = flags.desc().resolution;
 
-	auto const dalle_x = 1;
-	auto const dalle_y = res.x;
-	auto const dalle_z = res.x * res.y;
+    auto const dalle_x = 1;
+    auto const dalle_y = res.x;
+    auto const dalle_z = res.x * res.y;
 
-	boucle_parallele(tbb::blocked_range<int>(0, res.z),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		auto lims = limites3i{};
-		lims.min = dls::math::vec3i(0, 0, plage.begin());
-		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
+    boucle_parallele(tbb::blocked_range<int>(0, res.z), [&](tbb::blocked_range<int> const &plage) {
+        auto lims = limites3i{};
+        lims.min = dls::math::vec3i(0, 0, plage.begin());
+        lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto iter = wlk::IteratricePosition(lims);
+        auto iter = wlk::IteratricePosition(lims);
 
-		while (!iter.fini()) {
-			auto pos_iter = iter.suivante();
-			auto idx = flags.calcul_index(pos_iter);
-			auto i = pos_iter.x;
-			auto j = pos_iter.y;
-			auto k = pos_iter.z;
+        while (!iter.fini()) {
+            auto pos_iter = iter.suivante();
+            auto idx = flags.calcul_index(pos_iter);
+            auto i = pos_iter.x;
+            auto j = pos_iter.y;
+            auto k = pos_iter.z;
 
-			auto curFluid = flags.valeur(idx) == TypeFluid;
-			auto curObs   = flags.valeur(idx) == TypeObstacle;
-			auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
+            auto curFluid = flags.valeur(idx) == TypeFluid;
+            auto curObs = flags.valeur(idx) == TypeObstacle;
+            auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
-			if (!curFluid && !curObs) {
-				continue;
-			}
+            if (!curFluid && !curObs) {
+                continue;
+            }
 
-			//	if (obvel) {
-			//		bcsVel.x = (*obvel)(idx).x;
-			//		bcsVel.y = (*obvel)(idx).y;
-			//		if((*obvel).is3D()) bcsVel.z = (*obvel)(idx).z;
-			//	}
+            //	if (obvel) {
+            //		bcsVel.x = (*obvel)(idx).x;
+            //		bcsVel.y = (*obvel)(idx).y;
+            //		if((*obvel).is3D()) bcsVel.z = (*obvel)(idx).z;
+            //	}
 
-			// we use i>0 instead of bnd=1 to check outer wall
-			if (i > 0 && flags.valeur(idx - dalle_x) == TypeObstacle) {
-				vel.valeur(idx).x = bcsVel.x;
-			}
+            // we use i>0 instead of bnd=1 to check outer wall
+            if (i > 0 && flags.valeur(idx - dalle_x) == TypeObstacle) {
+                vel.valeur(idx).x = bcsVel.x;
+            }
 
-			if (i > 0 && curObs && flags.valeur(idx - dalle_x) == TypeFluid) {
-				vel.valeur(idx).x = bcsVel.x;
-			}
+            if (i > 0 && curObs && flags.valeur(idx - dalle_x) == TypeFluid) {
+                vel.valeur(idx).x = bcsVel.x;
+            }
 
-			if (j > 0 && flags.valeur(idx - dalle_y) == TypeObstacle) {
-				vel.valeur(idx).y = bcsVel.y;
-			}
+            if (j > 0 && flags.valeur(idx - dalle_y) == TypeObstacle) {
+                vel.valeur(idx).y = bcsVel.y;
+            }
 
-			if (j > 0 && curObs && flags.valeur(idx - dalle_y) == TypeFluid) {
-				vel.valeur(idx).y = bcsVel.y;
-			}
+            if (j > 0 && curObs && flags.valeur(idx - dalle_y) == TypeFluid) {
+                vel.valeur(idx).y = bcsVel.y;
+            }
 
-			if (k > 0 && flags.valeur(idx - dalle_z) == TypeObstacle) {
-				vel.valeur(idx).z = bcsVel.z;
-			}
+            if (k > 0 && flags.valeur(idx - dalle_z) == TypeObstacle) {
+                vel.valeur(idx).z = bcsVel.z;
+            }
 
-			if (k > 0 && curObs && flags.valeur(idx - dalle_z) == TypeFluid) {
-				vel.valeur(idx).z = bcsVel.z;
-			}
+            if (k > 0 && curObs && flags.valeur(idx - dalle_z) == TypeFluid) {
+                vel.valeur(idx).z = bcsVel.z;
+            }
 
-			if (curFluid) {
-				if ((i > 0 && flags.valeur(idx - dalle_x) == TypeStick) || (i < (res.x - 1) && flags.valeur(idx + dalle_x) == TypeStick)) {
-					vel.valeur(idx).y = vel.valeur(idx).z = 0.0f;
-				}
+            if (curFluid) {
+                if ((i > 0 && flags.valeur(idx - dalle_x) == TypeStick) ||
+                    (i < (res.x - 1) && flags.valeur(idx + dalle_x) == TypeStick)) {
+                    vel.valeur(idx).y = vel.valeur(idx).z = 0.0f;
+                }
 
-				if ((j > 0 && flags.valeur(idx - dalle_y) == TypeStick) || (j < (res.y - 1) && flags.valeur(idx + dalle_y) == TypeStick)) {
-					vel.valeur(idx).x = vel.valeur(idx).z = 0.0f;
-				}
+                if ((j > 0 && flags.valeur(idx - dalle_y) == TypeStick) ||
+                    (j < (res.y - 1) && flags.valeur(idx + dalle_y) == TypeStick)) {
+                    vel.valeur(idx).x = vel.valeur(idx).z = 0.0f;
+                }
 
-				if ((k > 0 && flags.valeur(idx - dalle_z) == TypeStick) || (k < (res.z - 1) && flags.valeur(idx + dalle_z) == TypeStick)) {
-					vel.valeur(idx).x = vel.valeur(idx).y = 0.0f;
-				}
-			}
-		}
-	});
+                if ((k > 0 && flags.valeur(idx - dalle_z) == TypeStick) ||
+                    (k < (res.z - 1) && flags.valeur(idx + dalle_z) == TypeStick)) {
+                    vel.valeur(idx).x = vel.valeur(idx).y = 0.0f;
+                }
+            }
+        }
+    });
 }
 
-}  /* namespace psn */
+} /* namespace psn */

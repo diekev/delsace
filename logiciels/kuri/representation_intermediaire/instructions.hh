@@ -238,11 +238,10 @@ struct AtomeGlobale : public AtomeConstante {
     // index de la globale pour le code binaire
     int index = -1;
 
-    /* Adresse spéciale pour les exécutions de métaprogrammes. Ceci est principalement pour les
-     * infos-types où nous voulons une même adresse pour les NoeudCodes et le code binaire. Dans ce
-     * cas l'adresse sera celle d'un InfoType créé par la compilatrice (créée notamment lors de la
-     * conversion vers NoeudCode). */
-    void *adresse_pour_execution = nullptr;
+    /* Non nul si la globale est une info type. Dans l'exécution des métaprogrammes, les globales
+     * infos types ne sont pas converties en code binaire : nous les substituons par un objet
+     * InfoType créé par la compilatrice. */
+    const Type *est_info_type_de = nullptr;
 
     COPIE_CONSTRUCT(AtomeGlobale);
 

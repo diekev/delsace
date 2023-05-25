@@ -35,112 +35,111 @@ struct BSDF;
 struct Volume;
 
 struct ContexteNuancage {
-	dls::phys::rayond rayon{};
-	dls::math::point3d P{};
-	dls::math::vec3d N{};
-	dls::math::vec3d V{};
+    dls::phys::rayond rayon{};
+    dls::math::point3d P{};
+    dls::math::vec3d N{};
+    dls::math::vec3d V{};
 };
 
 enum class TypeNuanceur {
-	DIFFUS,
-	EMISSION,
-	ANGLE_VUE,
-	REFLECTION,
-	REFRACTION,
-	VOLUME,
+    DIFFUS,
+    EMISSION,
+    ANGLE_VUE,
+    REFLECTION,
+    REFRACTION,
+    VOLUME,
 };
 
 struct Nuanceur {
-	TypeNuanceur type{};
+    TypeNuanceur type{};
 
-	virtual ~Nuanceur() = default;
+    virtual ~Nuanceur() = default;
 
-	virtual BSDF *cree_BSDF(ContexteNuancage &ctx);
+    virtual BSDF *cree_BSDF(ContexteNuancage &ctx);
 
-	virtual bool a_volume() const;
+    virtual bool a_volume() const;
 
-	virtual Volume *cree_volume(ContexteNuancage &ctx,
-								wlk::grille_eparse<float> const *grille);
+    virtual Volume *cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille);
 };
 
 struct NuanceurAngleVue : public Nuanceur {
-	Spectre spectre = Spectre(0.8);
+    Spectre spectre = Spectre(0.8);
 
-	NuanceurAngleVue()
-	{
-		type = TypeNuanceur::ANGLE_VUE;
-	}
+    NuanceurAngleVue()
+    {
+        type = TypeNuanceur::ANGLE_VUE;
+    }
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 };
 
 struct NuanceurDiffus : public Nuanceur {
-	Spectre spectre = Spectre(0.8);
+    Spectre spectre = Spectre(0.8);
 
-	NuanceurDiffus()
-	{
-		type = TypeNuanceur::DIFFUS;
-	}
+    NuanceurDiffus()
+    {
+        type = TypeNuanceur::DIFFUS;
+    }
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 };
 
 struct NuanceurReflection : public Nuanceur {
-	NuanceurReflection()
-	{
-		type = TypeNuanceur::REFLECTION;
-	}
+    NuanceurReflection()
+    {
+        type = TypeNuanceur::REFLECTION;
+    }
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 };
 
 struct NuanceurRefraction : public Nuanceur {
-	double index_refraction = 1.3;
+    double index_refraction = 1.3;
 
-	NuanceurRefraction()
-	{
-		type = TypeNuanceur::REFRACTION;
-	}
+    NuanceurRefraction()
+    {
+        type = TypeNuanceur::REFRACTION;
+    }
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 };
 
 struct NuanceurVolume : public Nuanceur {
-	double densite = 1.0;
-	Spectre sigma_a = Spectre(1.0);
-	Spectre sigma_s = Spectre(1.0);
+    double densite = 1.0;
+    Spectre sigma_a = Spectre(1.0);
+    Spectre sigma_s = Spectre(1.0);
 
-	NuanceurVolume()
-	{
-		type = TypeNuanceur::VOLUME;
-	}
+    NuanceurVolume()
+    {
+        type = TypeNuanceur::VOLUME;
+    }
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 
-	Volume *cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille) override;
+    Volume *cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille) override;
 
-	bool a_volume() const override;
+    bool a_volume() const override;
 };
 
 struct NuanceurEmission : public Nuanceur {
-	Spectre spectre = Spectre(1.0);
-	double exposition = 1.0;
+    Spectre spectre = Spectre(1.0);
+    double exposition = 1.0;
 
-	NuanceurEmission();
+    NuanceurEmission();
 
-	static Nuanceur *defaut();
+    static Nuanceur *defaut();
 
-	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
+    BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

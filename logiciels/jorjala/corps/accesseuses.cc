@@ -26,76 +26,78 @@
 
 #include "corps.h"
 
-AccesseusePointLecture::AccesseusePointLecture(const ListePoints3D &pnts, const math::transformation &transform)
-	: m_points(pnts)
-	, m_transformation(transform)
-{}
+AccesseusePointLecture::AccesseusePointLecture(const ListePoints3D &pnts,
+                                               const math::transformation &transform)
+    : m_points(pnts), m_transformation(transform)
+{
+}
 
 type_point AccesseusePointLecture::point_local(long idx) const
 {
-	return m_points.point(idx);
+    return m_points.point(idx);
 }
 
 type_point AccesseusePointLecture::point_monde(long idx) const
 {
-	auto p = m_points.point(idx);
-	auto pos_monde_d = m_transformation(dls::math::point3d(p));
-	return dls::math::converti_type_vecteur<float>(pos_monde_d);
+    auto p = m_points.point(idx);
+    auto pos_monde_d = m_transformation(dls::math::point3d(p));
+    return dls::math::converti_type_vecteur<float>(pos_monde_d);
 }
 
 long AccesseusePointLecture::taille() const
 {
-	return m_points.taille();
+    return m_points.taille();
 }
 
-AccesseusePointEcriture::AccesseusePointEcriture(Corps &corps, ListePoints3D &pnts, const math::transformation &transform)
-	: m_corps(corps)
-	, m_points(pnts)
-	, m_transformation(transform)
-{}
+AccesseusePointEcriture::AccesseusePointEcriture(Corps &corps,
+                                                 ListePoints3D &pnts,
+                                                 const math::transformation &transform)
+    : m_corps(corps), m_points(pnts), m_transformation(transform)
+{
+}
 
 type_point AccesseusePointEcriture::point_local(long idx) const
 {
-	return m_points.point(idx);
+    return m_points.point(idx);
 }
 
 type_point AccesseusePointEcriture::point_monde(long idx) const
 {
-	auto p = m_points.point(idx);
-	auto pos_monde_d = m_transformation(dls::math::point3d(p));
-	return dls::math::converti_type_vecteur<float>(pos_monde_d);
+    auto p = m_points.point(idx);
+    auto pos_monde_d = m_transformation(dls::math::point3d(p));
+    return dls::math::converti_type_vecteur<float>(pos_monde_d);
 }
 
 long AccesseusePointEcriture::ajoute_point(const type_point &pnt)
 {
-	auto decalage = m_points.taille();
-	m_points.ajoute(pnt);
-	m_corps.redimensionne_attributs(portee_attr::POINT);
+    auto decalage = m_points.taille();
+    m_points.ajoute(pnt);
+    m_corps.redimensionne_attributs(portee_attr::POINT);
 
-	return decalage;
+    return decalage;
 }
 
 long AccesseusePointEcriture::ajoute_point(float x, float y, float z)
 {
-	return ajoute_point(type_point(x, y, z));
+    return ajoute_point(type_point(x, y, z));
 }
 
 void AccesseusePointEcriture::point(long idx, const type_point &pnt)
 {
-	m_points.point(idx, pnt);
+    m_points.point(idx, pnt);
 }
 
 void AccesseusePointEcriture::redimensionne(long nombre)
 {
-	m_points.redimensionne(nombre);
+    m_points.redimensionne(nombre);
 }
 
 void AccesseusePointEcriture::reserve(long nombre)
 {
-	m_points.reserve(nombre);
+    m_points.reserve(nombre);
 }
 
 long AccesseusePointEcriture::taille() const
 {
-	return m_points.taille();
+    return m_points.taille();
 }

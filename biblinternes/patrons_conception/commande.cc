@@ -62,7 +62,9 @@ void UsineCommande::enregistre_type(dls::chaine const &nom, DescriptionCommande 
 Commande *UsineCommande::operator()(dls::chaine const &nom)
 {
 	auto const iter = m_tableau.trouve(nom);
-	assert(iter != m_tableau.fin());
+    if (iter == m_tableau.fin()) {
+        return nullptr;
+    }
 
 	DescriptionCommande const &desc = iter->second;
 

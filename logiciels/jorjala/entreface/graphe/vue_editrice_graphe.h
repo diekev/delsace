@@ -30,58 +30,34 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGraphicsView>
-#include <QMenu>
 #pragma GCC diagnostic pop
 
 class EditriceGraphe;
-struct Jorjala;
-class QMenu;
-class RepondantCommande;
-
-namespace danjo {
-class GestionnaireInterface;
-}  /* namespace danjo */
 
 class VueEditeurNoeud : public QGraphicsView {
-	Jorjala &m_jorjala;
-	EditriceGraphe *m_base;
+    EditriceGraphe *m_base;
 
-	QMenu *m_menu_ajout_noeud_composite = nullptr;
-	QMenu *m_menu_ajout_noeud_detail = nullptr;
-	QMenu *m_menu_ajout_noeud_objet = nullptr;
-	QMenu *m_menu_ajout_noeud_rendu = nullptr;
-	QMenu *m_menu_graphe_objet = nullptr;
-	QMenu *m_menu_ajout_noeud_simulation = nullptr;
-	QMenu *m_menu_graphe_composite = nullptr;
-	QMenu *m_menu_graphe_nuanceur = nullptr;
-	QMenu *m_menu_graphe_rendu = nullptr;
-	QMenu *m_menu_ajout_noeud_cycles = nullptr;
+  public:
+    VueEditeurNoeud(EditriceGraphe *base, QWidget *parent = nullptr);
 
-public:
-	VueEditeurNoeud(
-			Jorjala &jorjala,
-			EditriceGraphe *base,
-			QWidget *parent = nullptr);
+    VueEditeurNoeud(VueEditeurNoeud const &) = default;
+    VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
 
-	VueEditeurNoeud(VueEditeurNoeud const &) = default;
-	VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
+    ~VueEditeurNoeud() override;
 
-	~VueEditeurNoeud() override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    /* Réimplémentation pour éviter les conflits entre le zoom et les barres de
+     * défilement. */
+    void wheelEvent(QWheelEvent *event) override;
 
-	/* Réimplémentation pour éviter les conflits entre le zoom et les barres de
-	 * défilement. */
-	void wheelEvent(QWheelEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
-	void keyPressEvent(QKeyEvent *event) override;
-
-	bool focusNextPrevChild(bool) override;
+    bool focusNextPrevChild(bool) override;
 };
-

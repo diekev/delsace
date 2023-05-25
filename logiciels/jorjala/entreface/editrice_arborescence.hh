@@ -41,16 +41,16 @@ class Objet;
 /* ************************************************************************** */
 
 class SceneTreeWidgetItem : public QWidget, public QTreeWidgetItem {
-	BaseDeDonnees *m_scene;
+    BaseDeDonnees *m_scene;
     bool m_visited;
 
-public:
-	explicit SceneTreeWidgetItem(BaseDeDonnees *scene, QWidget *parent = nullptr);
+  public:
+    explicit SceneTreeWidgetItem(BaseDeDonnees *scene, QWidget *parent = nullptr);
 
-	SceneTreeWidgetItem(SceneTreeWidgetItem const &) = default;
-	SceneTreeWidgetItem &operator=(SceneTreeWidgetItem const &) = default;
+    SceneTreeWidgetItem(SceneTreeWidgetItem const &) = default;
+    SceneTreeWidgetItem &operator=(SceneTreeWidgetItem const &) = default;
 
-	BaseDeDonnees *getScene() const;
+    BaseDeDonnees *getScene() const;
 
     bool visited() const;
     void setVisited();
@@ -59,16 +59,16 @@ public:
 /* ************************************************************************** */
 
 class ObjectTreeWidgetItem : public QTreeWidgetItem {
-	Objet *m_scene_node;
+    Objet *m_scene_node;
     bool m_visited;
 
-public:
-	explicit ObjectTreeWidgetItem(Objet *scene_node, QTreeWidgetItem *parent = nullptr);
+  public:
+    explicit ObjectTreeWidgetItem(Objet *scene_node, QTreeWidgetItem *parent = nullptr);
 
-	ObjectTreeWidgetItem(ObjectTreeWidgetItem const &) = default;
-	ObjectTreeWidgetItem &operator=(ObjectTreeWidgetItem const &) = default;
+    ObjectTreeWidgetItem(ObjectTreeWidgetItem const &) = default;
+    ObjectTreeWidgetItem &operator=(ObjectTreeWidgetItem const &) = default;
 
-	Objet *getNode() const;
+    Objet *getNode() const;
 
     bool visited() const;
     void setVisited();
@@ -77,32 +77,32 @@ public:
 /* ************************************************************************** */
 
 class ObjectNodeTreeWidgetItem : public QTreeWidgetItem {
-	Noeud *m_noeud;
+    Noeud *m_noeud;
 
-public:
-	explicit ObjectNodeTreeWidgetItem(Noeud *noeud, QTreeWidgetItem *parent = nullptr);
+  public:
+    explicit ObjectNodeTreeWidgetItem(Noeud *noeud, QTreeWidgetItem *parent = nullptr);
 
-	ObjectNodeTreeWidgetItem(ObjectNodeTreeWidgetItem const &) = default;
-	ObjectNodeTreeWidgetItem &operator=(ObjectNodeTreeWidgetItem const &) = default;
+    ObjectNodeTreeWidgetItem(ObjectNodeTreeWidgetItem const &) = default;
+    ObjectNodeTreeWidgetItem &operator=(ObjectNodeTreeWidgetItem const &) = default;
 
-	Noeud *pointeur_noeud() const;
+    Noeud *pointeur_noeud() const;
 };
 
 /* ************************************************************************** */
 
 class TreeWidget : public QTreeWidget {
-	BaseEditrice *m_base = nullptr;
+    BaseEditrice *m_base = nullptr;
 
-public:
-	explicit TreeWidget(QWidget *parent = nullptr);
+  public:
+    explicit TreeWidget(QWidget *parent = nullptr);
 
-	TreeWidget(TreeWidget const &) = default;
-	TreeWidget &operator=(TreeWidget const &) = default;
+    TreeWidget(TreeWidget const &) = default;
+    TreeWidget &operator=(TreeWidget const &) = default;
 
-	void set_base(BaseEditrice *base);
+    void set_base(BaseEditrice *base);
 
-	void mousePressEvent(QMouseEvent *e) override;
-	void dropEvent(QDropEvent *event) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void dropEvent(QDropEvent *event) override;
 };
 
 /* ************************************************************************** */
@@ -111,22 +111,24 @@ public:
  * from both QTreeWidget and WidgetBase, and we can't apparently use virtual
  * inheritance with Qt classes. */
 class EditriceArborescence : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	TreeWidget *m_tree_widget;
+    TreeWidget *m_tree_widget;
 
-public:
-	explicit EditriceArborescence(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceArborescence(Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceArborescence(EditriceArborescence const &) = default;
-	EditriceArborescence &operator=(EditriceArborescence const &) = default;
+    EditriceArborescence(EditriceArborescence const &) = default;
+    EditriceArborescence &operator=(EditriceArborescence const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-public Q_SLOTS:
-	void handleItemCollapsed(QTreeWidgetItem *item);
-	void handleItemExpanded(QTreeWidgetItem *item);
-	void handleItemSelection();
+  public Q_SLOTS:
+    void handleItemCollapsed(QTreeWidgetItem *item);
+    void handleItemExpanded(QTreeWidgetItem *item);
+    void handleItemSelection();
 };

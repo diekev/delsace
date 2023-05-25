@@ -34,7 +34,6 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
-#include "biblinternes/vision/camera_2d.h"
 
 #include "coeur/image.hh"
 
@@ -47,48 +46,58 @@ class RenduTexte;
 class RenduImage;
 class RenduManipulatrice2D;
 
+namespace JJL {
+class Composite;
+}
+
 class Visionneuse2D : public QGLWidget {
-	RenduImage *m_rendu_image = nullptr;
-	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
-	Jorjala &m_jorjala;
-	EditriceVue2D *m_base;
-	RenduTexte *m_rendu_texte = nullptr;
+    RenduImage *m_rendu_image = nullptr;
+    RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
+    JJL::Jorjala &m_jorjala;
+    EditriceVue2D *m_base;
+    RenduTexte *m_rendu_texte = nullptr;
 
-	ContexteRendu m_contexte{};
-	dls::math::mat4x4f m_matrice_image{};
-	dls::chrono::metre_seconde m_chrono_rendu{};
+    ContexteRendu m_contexte{};
+    dls::math::mat4x4f m_matrice_image{};
+    dls::chrono::metre_seconde m_chrono_rendu{};
 
-public:
-	explicit Visionneuse2D(Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
-	~Visionneuse2D() override;
+  public:
+    explicit Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
+    ~Visionneuse2D() override;
 
-	Visionneuse2D(Visionneuse2D const &) = default;
-	Visionneuse2D &operator=(Visionneuse2D const &) = default;
+    Visionneuse2D(Visionneuse2D const &) = default;
+    Visionneuse2D &operator=(Visionneuse2D const &) = default;
 
-	void initializeGL() override;
-	void paintGL() override;
-	void resizeGL(int w, int h) override;
-	void charge_image(const grille_couleur &image);
-	void wheelEvent(QWheelEvent *event) override;
-	void mouseMoveEvent(QMouseEvent *event) override;
-	void mousePressEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
+    void charge_image(const grille_couleur &image);
+    void wheelEvent(QWheelEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void charge_composite(JJL::Composite composite);
 };
 
 /* ************************************************************************** */
 
 class EditriceVue2D : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	Visionneuse2D *m_vue;
+    Visionneuse2D *m_vue;
 
-public:
-	explicit EditriceVue2D(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceVue2D(EditriceVue2D const &) = default;
-	EditriceVue2D &operator=(EditriceVue2D const &) = default;
+    EditriceVue2D(EditriceVue2D const &) = default;
+    EditriceVue2D &operator=(EditriceVue2D const &) = default;
 
-	void ajourne_etat(int event) override;
+    void ajourne_etat(int event) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
+
+  private:
+    QPointF transforme_position_evenement(QPoint pos) override;
 };

@@ -33,23 +33,23 @@
 struct Noeud;
 
 class Composite {
-	Image m_image{};
+    Image m_image{};
 
-public:
-	Composite() = default;
+  public:
+    Composite() = default;
 
-	COPIE_CONSTRUCT(Composite);
+    COPIE_CONSTRUCT(Composite);
 
-	~Composite() = default;
+    ~Composite() = default;
 
-	Noeud *noeud = nullptr;
+    Noeud *noeud = nullptr;
 
-	Image const &image() const;
+    Image const &image() const;
 
-	void image(Image const &img);
+    void image(Image const &img);
 };
 
 inline Composite *extrait_composite(std::any const &any)
 {
-	return std::any_cast<Composite *>(any);
+    return std::any_cast<Composite *>(any);
 }

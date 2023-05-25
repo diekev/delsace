@@ -49,14 +49,14 @@ struct noeud;
 /* ************************************************************************** */
 
 struct Monde {
-	Texture *texture = nullptr;
+    Texture *texture = nullptr;
 
-	Monde() = default;
+    Monde() = default;
 
-	Monde(Monde const &) = default;
-	Monde &operator=(Monde const &) = default;
+    Monde(Monde const &) = default;
+    Monde &operator=(Monde const &) = default;
 
-	~Monde();
+    ~Monde();
 };
 
 Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction);
@@ -66,44 +66,51 @@ Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction);
 struct Scene;
 
 struct delegue_scene {
-	Scene const &ptr_scene;
+    Scene const &ptr_scene;
 
-	delegue_scene(Scene const &scene);
+    delegue_scene(Scene const &scene);
 
-	long nombre_elements() const;
+    long nombre_elements() const;
 
-	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+    void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
 
-	dls::phys::esectd intersecte_element(long idx, const dls::phys::rayond &r) const;
+    dls::phys::esectd intersecte_element(long idx, const dls::phys::rayond &r) const;
 };
 
 struct Scene {
-	Monde monde{};
+    Monde monde{};
 
-	dls::tableau<wlk::grille_eparse<float> *> volumes{};
+    dls::tableau<wlk::grille_eparse<float> *> volumes{};
 
-	dls::tableau<noeud *> noeuds{};
-	delegue_scene delegue;
-	bli::BVHTree *arbre_hbe = nullptr;
+    dls::tableau<noeud *> noeuds{};
+    delegue_scene delegue;
+    bli::BVHTree *arbre_hbe = nullptr;
 
-	Scene();
-	~Scene();
+    Scene();
+    ~Scene();
 
-	Scene(Scene const &) = default;
-	Scene &operator=(Scene const &) = default;
+    Scene(Scene const &) = default;
+    Scene &operator=(Scene const &) = default;
 
-	void reinitialise();
+    void reinitialise();
 
-	void construit_arbre_hbe();
+    void construit_arbre_hbe();
 
-	dls::phys::esectd traverse(dls::phys::rayond const &r) const;
+    dls::phys::esectd traverse(dls::phys::rayond const &r) const;
 };
 
 /* ************************************************************************** */
 
-double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale);
+double ombre_scene(ParametresRendu const &parametres,
+                   Scene const &scene,
+                   dls::phys::rayond const &rayon,
+                   double distance_maximale);
 
-Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor);
+Spectre spectre_lumiere(ParametresRendu const &parametres,
+                        Scene const &scene,
+                        GNA &gna,
+                        dls::math::point3d const &pos,
+                        dls::math::vec3d const &nor);
 
 /* ************************************************************************** */
 
@@ -112,4 +119,4 @@ dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor);
 
 dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::vec3d const &rd);
 
-}  /* namespace kdo */
+} /* namespace kdo */

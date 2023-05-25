@@ -43,12 +43,12 @@ struct Corps;
 /* ************************************************************************** */
 
 enum class mi_drapeau : int {
-	AUCUN      = 0,
-	SUPPRIME   = (1 << 0),
-	NOUVEAU    = (1 << 1),
-	SOUSFACE   = (1 << 2),
-	EXTERIEURE = (1 << 3),
-	VALIDE     = (1 << 4),
+    AUCUN = 0,
+    SUPPRIME = (1 << 0),
+    NOUVEAU = (1 << 1),
+    SOUSFACE = (1 << 2),
+    EXTERIEURE = (1 << 3),
+    VALIDE = (1 << 4),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(mi_drapeau, int)
@@ -60,92 +60,92 @@ struct mi_sommet;
 struct mi_face;
 
 struct mi_sommet {
-	/* la position dans l'espace du sommet */
-	dls::math::vec3f p{};
+    /* la position dans l'espace du sommet */
+    dls::math::vec3f p{};
 
-	/* la mi-arête de ce sommet */
-	mi_arete *arete = nullptr;
+    /* la mi-arête de ce sommet */
+    mi_arete *arete = nullptr;
 
-	/* l'index du sommet dans la liste des sommets du polyèdre */
-	long index = 0;
+    /* l'index du sommet dans la liste des sommets du polyèdre */
+    long index = 0;
 
-	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
-	unsigned int label = 0;
+    /* label pour les algorithmes, par exemple pour stocker un index d'origine */
+    unsigned int label = 0;
 
-	/* drapeaux divers */
-	mi_drapeau drapeaux = mi_drapeau::AUCUN;
+    /* drapeaux divers */
+    mi_drapeau drapeaux = mi_drapeau::AUCUN;
 
-	mi_sommet() = default;
+    mi_sommet() = default;
 
-	COPIE_CONSTRUCT(mi_sommet);
+    COPIE_CONSTRUCT(mi_sommet);
 };
 
 struct mi_arete {
-	/* sommet à la fin de la mi-arête */
-	mi_sommet *sommet = nullptr;
+    /* sommet à la fin de la mi-arête */
+    mi_sommet *sommet = nullptr;
 
-	/* mi-arête adjacente opposément orientée */
-	mi_arete *paire = nullptr;
+    /* mi-arête adjacente opposément orientée */
+    mi_arete *paire = nullptr;
 
-	/* mi-face que la mi-arête borde */
-	mi_face *face = nullptr;
+    /* mi-face que la mi-arête borde */
+    mi_face *face = nullptr;
 
-	/* mi-arête suivante */
-	mi_arete *suivante = nullptr;
+    /* mi-arête suivante */
+    mi_arete *suivante = nullptr;
 
-	/* l'index de l'arête dans la liste des arêtes du polyèdre */
-	long index = 0;
+    /* l'index de l'arête dans la liste des arêtes du polyèdre */
+    long index = 0;
 
-	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
-	unsigned int label = 0;
+    /* label pour les algorithmes, par exemple pour stocker un index d'origine */
+    unsigned int label = 0;
 
-	/* drapeaux divers */
-	mi_drapeau drapeaux = mi_drapeau::AUCUN;
+    /* drapeaux divers */
+    mi_drapeau drapeaux = mi_drapeau::AUCUN;
 
-	mi_arete() = default;
+    mi_arete() = default;
 
-	COPIE_CONSTRUCT(mi_arete);
+    COPIE_CONSTRUCT(mi_arete);
 };
 
 struct mi_face {
-	/* l'une des arête de la face */
-	mi_arete *arete = nullptr;
+    /* l'une des arête de la face */
+    mi_arete *arete = nullptr;
 
-	/* l'index de la face dans la liste des faces du polyèdre */
-	long index = 0;
+    /* l'index de la face dans la liste des faces du polyèdre */
+    long index = 0;
 
-	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
-	unsigned int label = 0;
+    /* label pour les algorithmes, par exemple pour stocker un index d'origine */
+    unsigned int label = 0;
 
-	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
-	unsigned int label1 = 0;
+    /* label pour les algorithmes, par exemple pour stocker un index d'origine */
+    unsigned int label1 = 0;
 
-	/* drapeaux divers */
-	mi_drapeau drapeaux = mi_drapeau::AUCUN;
+    /* drapeaux divers */
+    mi_drapeau drapeaux = mi_drapeau::AUCUN;
 
-	mi_face() = default;
+    mi_face() = default;
 
-	COPIE_CONSTRUCT(mi_face);
+    COPIE_CONSTRUCT(mi_face);
 };
 
 struct Polyedre {
-	dls::tableau<mi_sommet *> sommets{};
-	dls::tableau<mi_arete *> aretes{};
-	dls::tableau<mi_face *> faces{};
+    dls::tableau<mi_sommet *> sommets{};
+    dls::tableau<mi_arete *> aretes{};
+    dls::tableau<mi_face *> faces{};
 
-	Polyedre() = default;
+    Polyedre() = default;
 
-	Polyedre(Polyedre &&autre);
+    Polyedre(Polyedre &&autre);
 
-	Polyedre &operator=(Polyedre &&autre);
+    Polyedre &operator=(Polyedre &&autre);
 
-	~Polyedre();
+    ~Polyedre();
 
-	mi_sommet *cree_sommet(dls::math::vec3f const &p);
+    mi_sommet *cree_sommet(dls::math::vec3f const &p);
 
-	mi_arete *cree_arete(mi_sommet *s, mi_face *f);
+    mi_arete *cree_arete(mi_sommet *s, mi_face *f);
 
-	mi_face *cree_face();
+    mi_face *cree_face();
 };
 
 mi_arete *suivante_autour_point(mi_arete *arete);
@@ -162,7 +162,6 @@ void converti_polyedre_corps(Polyedre const &polyedre, Corps &corps);
 
 inline auto calcul_direction_normal(mi_arete *a)
 {
-	return produit_croix(
-				a->suivante->sommet->p - a->sommet->p,
-				a->suivante->suivante->sommet->p - a->sommet->p);
+    return produit_croix(a->suivante->sommet->p - a->sommet->p,
+                         a->suivante->suivante->sommet->p - a->sommet->p);
 }

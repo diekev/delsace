@@ -26,52 +26,62 @@
 
 int main()
 {
-	std::ios::sync_with_stdio(false);
-	auto &os = std::cout;
+    std::ios::sync_with_stdio(false);
+    auto &os = std::cout;
 
-	auto lcc = lcc::LCC();
-	lcc::initialise(lcc);
+    auto lcc = lcc::LCC();
+    lcc::initialise(lcc);
 
-	auto nom_categories = dls::tableau<dls::chaine>();
+    auto nom_categories = dls::tableau<dls::chaine>();
 
-	for (auto const &paire_df : lcc.fonctions.table_categories) {
-		nom_categories.ajoute(paire_df.first);
-	}
+    for (auto const &paire_df : lcc.fonctions.table_categories) {
+        nom_categories.ajoute(paire_df.first);
+    }
 
-	std::sort(begin(nom_categories), end(nom_categories));
+    std::sort(begin(nom_categories), end(nom_categories));
 
-	os << "menu \"Noeud Détail\" {\n";
-	os << "\tmenu \"Entrée\" {\n";
-	os << "\t\taction(valeur=\"Charge Image\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Charge Image\")\n";
-	os << "\t\taction(valeur=\"Cherche Caméra\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Cherche Caméra\")\n";
-	os << "\t\taction(valeur=\"Crée Courbe Couleur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Courbe Couleur\")\n";
-	os << "\t\taction(valeur=\"Crée Courbe Valeur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Courbe Valeur\")\n";
-	os << "\t\taction(valeur=\"Crée Rampe Couleur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Rampe Couleur\")\n";
-	os << "\t\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Détail\")\n";
-	os << "\t\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Attribut\")\n";
-	os << "\t\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Info Exécution\")\n";
-	os << "\t}\n";
-	os << "\tmenu \"Sortie\" {\n";
-	os << "\t\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Sortie Détail\")\n";
-	os << "\t\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Sortie Attribut\")\n";
-	os << "\t}\n";
+    os << "menu \"Noeud Détail\" {\n";
+    os << "\tmenu \"Entrée\" {\n";
+    os << "\t\taction(valeur=\"Charge Image\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Charge Image\")\n";
+    os << "\t\taction(valeur=\"Cherche Caméra\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Cherche Caméra\")\n";
+    os << "\t\taction(valeur=\"Crée Courbe Couleur\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Crée Courbe Couleur\")\n";
+    os << "\t\taction(valeur=\"Crée Courbe Valeur\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Crée Courbe Valeur\")\n";
+    os << "\t\taction(valeur=\"Crée Rampe Couleur\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Crée Rampe Couleur\")\n";
+    os << "\t\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Entrée Détail\")\n";
+    os << "\t\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Entrée Attribut\")\n";
+    os << "\t\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Info Exécution\")\n";
+    os << "\t}\n";
+    os << "\tmenu \"Sortie\" {\n";
+    os << "\t\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Sortie Détail\")\n";
+    os << "\t\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud_spécial_détail; "
+          "métadonnée=\"Sortie Attribut\")\n";
+    os << "\t}\n";
 
-	for (auto const &categorie : nom_categories) {
-		auto const &fonctions = lcc.fonctions.table_categories[categorie];
+    for (auto const &categorie : nom_categories) {
+        auto const &fonctions = lcc.fonctions.table_categories[categorie];
 
-		os << "\tmenu \"" << categorie << "\" {\n";
+        os << "\tmenu \"" << categorie << "\" {\n";
 
-		for (auto const &fonction : fonctions) {
-			os << "\t\taction(valeur=\"";
-			os << fonction;
-			os << "\"; attache=ajouter_noeud_detail; métadonnée=\"";
-			os << fonction;
-			os << "\")\n";
-		}
-		os << "\t}\n";
-	}
+        for (auto const &fonction : fonctions) {
+            os << "\t\taction(valeur=\"";
+            os << fonction;
+            os << "\"; attache=ajouter_noeud_detail; métadonnée=\"";
+            os << fonction;
+            os << "\")\n";
+        }
+        os << "\t}\n";
+    }
 
-	os << "}\n";
+    os << "}\n";
 
-	return 0;
+    return 0;
 }

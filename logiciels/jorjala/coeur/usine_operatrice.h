@@ -36,43 +36,38 @@ class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
-	using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud &)>;
-	using fonction_destruction = std::function<void(OperatriceImage *)>;
+    using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud &)>;
+    using fonction_destruction = std::function<void(OperatriceImage *)>;
 
-	DescOperatrice() = default;
+    DescOperatrice() = default;
 
-	DescOperatrice(
-			dls::chaine const &opname,
-			dls::chaine const &ophelp,
-			fonction_construction func,
-			fonction_destruction func_supp)
-	    : name(opname)
-	    , tooltip(ophelp)
-	    , build_operator(func)
-		, supprime_operatrice(func_supp)
-	{}
+    DescOperatrice(dls::chaine const &opname,
+                   dls::chaine const &ophelp,
+                   fonction_construction func,
+                   fonction_destruction func_supp)
+        : name(opname), tooltip(ophelp), build_operator(func), supprime_operatrice(func_supp)
+    {
+    }
 
-	dls::chaine name = "";
-	dls::chaine tooltip = "";
-	fonction_construction build_operator = nullptr;
-	fonction_destruction supprime_operatrice = nullptr;
+    dls::chaine name = "";
+    dls::chaine tooltip = "";
+    fonction_construction build_operator = nullptr;
+    fonction_destruction supprime_operatrice = nullptr;
 };
 
 template <typename T>
 inline DescOperatrice cree_desc()
 {
-	return DescOperatrice(
-				T::NOM,
-				T::AIDE,
-				[](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage*
-	{
-		return memoire::loge<T>(T::NOM, graphe_parent, noeud);
-	},
-	[](OperatriceImage *operatrice) -> void
-	{
-		auto derivee = dynamic_cast<T *>(operatrice);
-		memoire::deloge(T::NOM, derivee);
-	});
+    return DescOperatrice(
+        T::NOM,
+        T::AIDE,
+        [](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage * {
+            return memoire::loge<T>(T::NOM, graphe_parent, noeud);
+        },
+        [](OperatriceImage *operatrice) -> void {
+            auto derivee = dynamic_cast<T *>(operatrice);
+            memoire::deloge(T::NOM, derivee);
+        });
 }
 
 class OperatriceCorps;
@@ -82,74 +77,74 @@ struct Corps;
 
 enum class res_exec : int;
 
-using type_operatrice_sans_entree = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*)>;
+using type_operatrice_sans_entree =
+    std::function<res_exec(OperatriceCorps &, ContexteEvaluation const &, DonneesAval *)>;
 
-using type_operatrice_entree0 = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*, Corps const &)>;
+using type_operatrice_entree0 = std::function<res_exec(
+    OperatriceCorps &, ContexteEvaluation const &, DonneesAval *, Corps const &)>;
 
-DescOperatrice cree_desc(
-		const char *nom,
-		const char *aide,
-		const char *chemin_entreface,
-		type_operatrice_sans_entree &&fonction,
-		bool depend_sur_temps);
+DescOperatrice cree_desc(const char *nom,
+                         const char *aide,
+                         const char *chemin_entreface,
+                         type_operatrice_sans_entree &&fonction,
+                         bool depend_sur_temps);
 
-DescOperatrice cree_desc(
-		const char *nom,
-		const char *aide,
-		const char *chemin_entreface,
-		type_operatrice_entree0 &&fonction,
-		bool depend_sur_temps);
+DescOperatrice cree_desc(const char *nom,
+                         const char *aide,
+                         const char *chemin_entreface,
+                         type_operatrice_entree0 &&fonction,
+                         bool depend_sur_temps);
 
 /* ************************************************************************** */
 
 class UsineOperatrice final {
-public:
-	/**
-	 * @brief register_type Register a new element in this factory.
-	 *
-	 * @param key The key associate @ func to.
-	 * @param func A function pointer with signature 'ImageNode *(void)'.
-	 *
-	 * @return The number of entries after registering the new element.
-	 */
-	long enregistre_type(DescOperatrice const &desc);
+  public:
+    /**
+     * @brief register_type Register a new element in this factory.
+     *
+     * @param key The key associate @ func to.
+     * @param func A function pointer with signature 'ImageNode *(void)'.
+     *
+     * @return The number of entries after registering the new element.
+     */
+    long enregistre_type(DescOperatrice const &desc);
 
-	/**
-	 * @brief operator() Create a ImageNode based on the given key.
-	 *
-	 * @param key The key to lookup.
-	 * @return A new ImageNode object corresponding to the given key.
-	 */
-	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud_);
+    /**
+     * @brief operator() Create a ImageNode based on the given key.
+     *
+     * @param key The key to lookup.
+     * @return A new ImageNode object corresponding to the given key.
+     */
+    OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud_);
 
-	void deloge(OperatriceImage *operatrice);
+    void deloge(OperatriceImage *operatrice);
 
-	/**
-	 * @brief num_entries The number of entries registered in this factory.
-	 *
-	 * @return The number of entries registered in this factory, 0 if empty.
-	 */
-	inline long num_entries() const
-	{
-		return m_map.taille();
-	}
+    /**
+     * @brief num_entries The number of entries registered in this factory.
+     *
+     * @return The number of entries registered in this factory, 0 if empty.
+     */
+    inline long num_entries() const
+    {
+        return m_map.taille();
+    }
 
-	/**
-	 * @brief keys dls::chaines registered in this factory.
-	 *
-	 * @return An unsorted vector containing the keys registered in this factory.
-	 */
-	dls::tableau<DescOperatrice> keys() const;
+    /**
+     * @brief keys dls::chaines registered in this factory.
+     *
+     * @return An unsorted vector containing the keys registered in this factory.
+     */
+    dls::tableau<DescOperatrice> keys() const;
 
-	/**
-	 * @brief registered Check whether or not a key has been registered in this
-	 *                   factory.
-	 *
-	 * @param key The key to lookup.
-	 * @return True if the key is found, false otherwise.
-	 */
-	bool registered(dls::chaine const &key) const;
+    /**
+     * @brief registered Check whether or not a key has been registered in this
+     *                   factory.
+     *
+     * @param key The key to lookup.
+     * @return True if the key is found, false otherwise.
+     */
+    bool registered(dls::chaine const &key) const;
 
-private:
-	dls::dico_desordonne<dls::chaine, DescOperatrice> m_map{};
+  private:
+    dls::dico_desordonne<dls::chaine, DescOperatrice> m_map{};
 };

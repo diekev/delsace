@@ -28,36 +28,37 @@
 
 namespace kdo {
 
-Lumiere::Lumiere(math::transformation const &transform)
-	: noeud(type_noeud::LUMIERE)
+Lumiere::Lumiere(math::transformation const &transform) : noeud(type_noeud::LUMIERE)
 {
-	this->tranformation = transform;
+    this->tranformation = transform;
 }
 
 Lumiere::~Lumiere()
 {
-	delete nuanceur;
+    delete nuanceur;
 }
 
 LumierePoint::LumierePoint(math::transformation const &transform, Spectre spec, double intens)
-	: Lumiere(transform)
+    : Lumiere(transform)
 {
-	this->type_l = type_lumiere::POINT;
-	this->spectre = spec;
-	this->intensite = intens;
+    this->type_l = type_lumiere::POINT;
+    this->spectre = spec;
+    this->intensite = intens;
 
-	transform(dls::math::point3d(0.0), &this->pos);
+    transform(dls::math::point3d(0.0), &this->pos);
 }
 
-LumiereDistante::LumiereDistante(math::transformation const &transform, Spectre spec, double intens)
-	: Lumiere(transform)
+LumiereDistante::LumiereDistante(math::transformation const &transform,
+                                 Spectre spec,
+                                 double intens)
+    : Lumiere(transform)
 {
-	this->type_l = type_lumiere::DISTANTE;
-	this->spectre = spec;
-	this->intensite = intens;
+    this->type_l = type_lumiere::DISTANTE;
+    this->spectre = spec;
+    this->intensite = intens;
 
-	transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
-	this->dir = dls::math::normalise(this->dir);
+    transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
+    this->dir = dls::math::normalise(this->dir);
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

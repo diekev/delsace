@@ -28,10 +28,10 @@
 
 Image const &Composite::image() const
 {
-	return m_image;
+    return m_image;
 }
 
 void Composite::image(Image const &img)
 {
-	m_image = img;
+    m_image = img;
 }

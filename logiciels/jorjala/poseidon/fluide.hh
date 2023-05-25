@@ -27,59 +27,59 @@
 #include "wolika/grille_dense.hh"
 
 enum {
-	TypeNone     = 0,
-	TypeFluid    = 1,
-	TypeObstacle = 2,
-	TypeVide     = 4,
-	TypeInflow   = 8,
-	TypeOutflow  = 16,
-	TypeOpen     = 32,
-	TypeStick    = 64,
-	// internal use only, for fast marching
-	TypeReserved = 256,
-	// 2^10 - 2^14 reserved for moving obstacles
+    TypeNone = 0,
+    TypeFluid = 1,
+    TypeObstacle = 2,
+    TypeVide = 4,
+    TypeInflow = 8,
+    TypeOutflow = 16,
+    TypeOpen = 32,
+    TypeStick = 64,
+    // internal use only, for fast marching
+    TypeReserved = 256,
+    // 2^10 - 2^14 reserved for moving obstacles
 };
 
 inline auto est_fluide(wlk::grille_dense_3d<int> const &flags, long idx)
 {
-	return (flags.valeur(idx) & TypeFluid) != 0;
+    return (flags.valeur(idx) & TypeFluid) != 0;
 }
 
 inline auto est_fluide(wlk::grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
-	return est_fluide(flags, flags.calcul_index(co));
+    auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+    return est_fluide(flags, flags.calcul_index(co));
 }
 
 inline auto est_obstacle(wlk::grille_dense_3d<int> const &flags, long idx)
 {
-	return (flags.valeur(idx) & TypeObstacle) != 0;
+    return (flags.valeur(idx) & TypeObstacle) != 0;
 }
 
 inline auto est_obstacle(wlk::grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
-	return est_obstacle(flags, flags.calcul_index(co));
+    auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+    return est_obstacle(flags, flags.calcul_index(co));
 }
 
 inline auto est_vide(wlk::grille_dense_3d<int> const &flags, long idx)
 {
-	return (flags.valeur(idx) & TypeVide) != 0;
+    return (flags.valeur(idx) & TypeVide) != 0;
 }
 
 inline auto est_vide(wlk::grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
-	return est_vide(flags, flags.calcul_index(co));
+    auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+    return est_vide(flags, flags.calcul_index(co));
 }
 
 inline auto est_outflow(wlk::grille_dense_3d<int> const &flags, long idx)
 {
-	return (flags.valeur(idx) & TypeOutflow) != 0;
+    return (flags.valeur(idx) & TypeOutflow) != 0;
 }
 
 inline auto est_outflow(wlk::grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
-	return est_outflow(flags, flags.calcul_index(co));
+    auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+    return est_outflow(flags, flags.calcul_index(co));
 }

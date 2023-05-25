@@ -48,57 +48,57 @@ struct ContexteEvaluation;
 /* ************************************************************************** */
 
 struct NoeudReseau {
-	dls::ensemble<NoeudReseau *> entrees{};
-	dls::ensemble<NoeudReseau *> sorties{};
+    dls::ensemble<NoeudReseau *> entrees{};
+    dls::ensemble<NoeudReseau *> sorties{};
 
-	Noeud *noeud{};
+    Noeud *noeud{};
 
-	int degree = 0;
-	int pad = 0;
+    int degree = 0;
+    int pad = 0;
 
-	NoeudReseau() = default;
-	~NoeudReseau() = default;
+    NoeudReseau() = default;
+    ~NoeudReseau() = default;
 
-	NoeudReseau(NoeudReseau const &) = default;
-	NoeudReseau &operator=(NoeudReseau const &) = default;
+    NoeudReseau(NoeudReseau const &) = default;
+    NoeudReseau &operator=(NoeudReseau const &) = default;
 };
 
 /* ************************************************************************** */
 
 struct Reseau {
-	dls::tableau<NoeudReseau *> noeuds{};
+    dls::tableau<NoeudReseau *> noeuds{};
 
-	/* noeud racine représentant le temps dans le réseau */
-	NoeudReseau noeud_temps{};
+    /* noeud racine représentant le temps dans le réseau */
+    NoeudReseau noeud_temps{};
 
-	~Reseau();
+    ~Reseau();
 
-	void reinitialise();
+    void reinitialise();
 };
 
 /* ************************************************************************** */
 
 struct CompilatriceReseau {
-private:
-	dls::dico_desordonne<Noeud *, NoeudReseau *> m_table_noeud_noeud{};
+  private:
+    dls::dico_desordonne<Noeud *, NoeudReseau *> m_table_noeud_noeud{};
 
-	NoeudReseau *trouve_noeud_reseau_pour_noeud(Noeud *noeud);
+    NoeudReseau *trouve_noeud_reseau_pour_noeud(Noeud *noeud);
 
-public:
-	Reseau *reseau = nullptr;
+  public:
+    Reseau *reseau = nullptr;
 
-	CompilatriceReseau() = default;
+    CompilatriceReseau() = default;
 
-	CompilatriceReseau(CompilatriceReseau const &) = default;
-	CompilatriceReseau &operator=(CompilatriceReseau const &) = default;
+    CompilatriceReseau(CompilatriceReseau const &) = default;
+    CompilatriceReseau &operator=(CompilatriceReseau const &) = default;
 
-	void cree_noeud(Noeud *noeud);
+    void cree_noeud(Noeud *noeud);
 
-	void ajoute_dependance(NoeudReseau *noeud_reseau, Noeud *noeud);
+    void ajoute_dependance(NoeudReseau *noeud_reseau, Noeud *noeud);
 
-	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
+    void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Noeud *noeud_racine);
+    void compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Noeud *noeud_racine);
 
-	void marque_execution_temps_change();
+    void marque_execution_temps_change();
 };

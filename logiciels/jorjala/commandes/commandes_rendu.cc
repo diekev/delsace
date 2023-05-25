@@ -24,29 +24,31 @@
 
 #include "commandes_rendu.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wregister"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wconversion"
-#include <OpenEXR/ImathBox.h>
-#include <OpenEXR/ImfChannelList.h>
-#include <OpenEXR/ImfOutputFile.h>
-#pragma GCC diagnostic pop
+#if 0
 
-#include "biblinternes/image/flux/ecriture.h"
-#include "biblinternes/outils/chemin.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wregister"
+#    pragma GCC diagnostic ignored "-Wold-style-cast"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    include <OpenEXR/ImathBox.h>
+#    include <OpenEXR/ImfChannelList.h>
+#    include <OpenEXR/ImfOutputFile.h>
+#    pragma GCC diagnostic pop
 
-#include "evaluation/evaluation.hh"
+#    include "biblinternes/image/flux/ecriture.h"
+#    include "biblinternes/outils/chemin.hh"
+#    include "commande_jorjala.hh"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
-#include "coeur/jorjala.hh"
+#    include "evaluation/evaluation.hh"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
+#    include "coeur/composite.h"
+#    include "coeur/evenement.h"
+#    include "coeur/jorjala.hh"
+
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
@@ -156,12 +158,10 @@ static bool ecris_image(
 
 /* ************************************************************************** */
 
-class CommandeRenduImage final : public Commande {
+class CommandeRenduImage final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		if (jorjala->nom_calque_sortie == "") {
 			jorjala->affiche_erreur("Le nom du calque de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -199,12 +199,10 @@ public:
 
 /* ************************************************************************** */
 
-class CommandeRenduSequence final : public Commande {
+class CommandeRenduSequence final : public CommandeJorjala {
 public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		auto const temps_originale = jorjala->temps_courant;
 
 		if (jorjala->nom_calque_sortie == "") {
@@ -257,11 +255,13 @@ public:
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_rendu(UsineCommande &usine)
 {
+#if 0
 	usine.enregistre_type("rendu_image",
 						   description_commande<CommandeRenduImage>(
 							   "rendu", 0, 0, 0, false));
@@ -269,6 +269,7 @@ void enregistre_commandes_rendu(UsineCommande &usine)
 	usine.enregistre_type("rendu_sequence",
 						   description_commande<CommandeRenduSequence>(
 							   "rendu", 0, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

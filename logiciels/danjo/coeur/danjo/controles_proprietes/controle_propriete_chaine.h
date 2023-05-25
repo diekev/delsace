@@ -26,8 +26,6 @@
 
 #include "controle_propriete.h"
 
-#include "biblinternes/structures/chaine.hh"
-
 class QHBoxLayout;
 class QLineEdit;
 class QPushButton;
@@ -37,46 +35,41 @@ class QVBoxLayout;
 namespace danjo {
 
 class ControleProprieteChaineCaractere final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	QHBoxLayout *m_agencement{};
-	QLineEdit *m_editeur_ligne{};
+    QHBoxLayout *m_agencement{};
+    QLineEdit *m_editeur_ligne{};
 
-	dls::chaine *m_pointeur{};
+  public:
+    explicit ControleProprieteChaineCaractere(BasePropriete *p,
+                                              int temps,
+                                              QWidget *parent = nullptr);
+    ~ControleProprieteChaineCaractere() override = default;
 
-public:
-	explicit ControleProprieteChaineCaractere(QWidget *parent = nullptr);
-	~ControleProprieteChaineCaractere() override = default;
+    ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
+    ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) =
+        default;
 
-	ControleProprieteChaineCaractere(ControleProprieteChaineCaractere const &) = default;
-	ControleProprieteChaineCaractere &operator=(ControleProprieteChaineCaractere const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
-
-private Q_SLOTS:
-	void ajourne_valeur_pointee();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee();
 };
 
 class ControleProprieteEditeurTexte final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	QVBoxLayout *m_agencement{};
-	QTextEdit *m_editeur_ligne{};
-	QPushButton *m_bouton{};
+    QVBoxLayout *m_agencement{};
+    QTextEdit *m_editeur_ligne{};
+    QPushButton *m_bouton{};
 
-	dls::chaine *m_pointeur{};
+  public:
+    explicit ControleProprieteEditeurTexte(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteEditeurTexte() override = default;
 
-public:
-	explicit ControleProprieteEditeurTexte(QWidget *parent = nullptr);
-	~ControleProprieteEditeurTexte() override = default;
+    ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
+    ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
 
-	ControleProprieteEditeurTexte(ControleProprieteEditeurTexte const &) = default;
-	ControleProprieteEditeurTexte &operator=(ControleProprieteEditeurTexte const &) = default;
-
-	void finalise(const DonneesControle &donnees) override;
-
-private Q_SLOTS:
-	void ajourne_valeur_pointee();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

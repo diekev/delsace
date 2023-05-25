@@ -28,7 +28,7 @@
 
 namespace vision {
 class Camera3D;
-}  /* namespace vision */
+} /* namespace vision */
 
 /* Notes sur le design d'Arnold qui inspire un peu notre moeteur de
  * rendu, d'autres moteurs seront étudiés afin de mieux savoir ce qu'il
@@ -72,56 +72,56 @@ class MoteurRendu;
 class StructureAcceleration;
 
 struct ParametresRendu {
-	unsigned int nombre_echantillons = 32;
-	unsigned int nombre_rebonds = 5;
-	unsigned int resolution = 0;
-	unsigned int hauteur_carreau = 32;
-	unsigned int largeur_carreau = 32;
-	double biais_ombre = 1e-4;
+    unsigned int nombre_echantillons = 32;
+    unsigned int nombre_rebonds = 5;
+    unsigned int resolution = 0;
+    unsigned int hauteur_carreau = 32;
+    unsigned int largeur_carreau = 32;
+    double biais_ombre = 1e-4;
 
-	Scene scene{};
+    Scene scene{};
 
 #ifdef NOUVELLE_CAMERA
-	CameraPerspective *camera = nullptr;
+    CameraPerspective *camera = nullptr;
 #else
-	vision::Camera3D *camera = nullptr;
+    vision::Camera3D *camera = nullptr;
 #endif
 
-	ParametresRendu();
-	~ParametresRendu();
+    ParametresRendu();
+    ~ParametresRendu();
 
-	ParametresRendu(ParametresRendu const &) = delete;
-	ParametresRendu &operator=(ParametresRendu const &) = delete;
+    ParametresRendu(ParametresRendu const &) = delete;
+    ParametresRendu &operator=(ParametresRendu const &) = delete;
 };
 
 struct InformationsRendu {
-	/* Le temps écoulé depuis le début du rendu. */
-	double temps_ecoule = 0.0;
+    /* Le temps écoulé depuis le début du rendu. */
+    double temps_ecoule = 0.0;
 
-	/* Le temps restant estimé pour finir le rendu. */
-	double temps_restant = 0.0;
+    /* Le temps restant estimé pour finir le rendu. */
+    double temps_restant = 0.0;
 
-	/* Le temps pris pour calculer le dernier échantillon tiré. */
-	double temps_echantillon = 0.0;
+    /* Le temps pris pour calculer le dernier échantillon tiré. */
+    double temps_echantillon = 0.0;
 
-	/* L'échantillon courant. */
-	unsigned int echantillon = 0;
+    /* L'échantillon courant. */
+    unsigned int echantillon = 0;
 };
 
 struct Koudou {
-	MoteurRendu *moteur_rendu;
-	ParametresRendu parametres_rendu{};
+    MoteurRendu *moteur_rendu;
+    ParametresRendu parametres_rendu{};
 
-	InformationsRendu informations_rendu{};
+    InformationsRendu informations_rendu{};
 
-	vision::Camera3D *camera;
+    vision::Camera3D *camera;
 
-	Koudou();
+    Koudou();
 
-	Koudou(Koudou const &) = delete;
-	Koudou &operator=(Koudou const &) = delete;
+    Koudou(Koudou const &) = delete;
+    Koudou &operator=(Koudou const &) = delete;
 
-	~Koudou();
+    ~Koudou();
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

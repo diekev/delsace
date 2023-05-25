@@ -29,15 +29,15 @@
 #include "wolika/base_grille.hh"
 
 class Volume final : public Primitive {
-public:
-	wlk::base_grille_3d *grille = nullptr;
+  public:
+    wlk::base_grille_3d *grille = nullptr;
 
-	explicit Volume(wlk::base_grille_3d *grl);
+    explicit Volume(wlk::base_grille_3d *grl);
 
-	Volume(Volume const &) = default;
-	Volume &operator=(Volume const &) = default;
+    Volume(Volume const &) = default;
+    Volume &operator=(Volume const &) = default;
 
-	~Volume();
+    ~Volume();
 
-	type_primitive type_prim() const;
+    type_primitive type_prim() const;
 };

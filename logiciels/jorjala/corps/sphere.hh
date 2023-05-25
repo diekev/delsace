@@ -29,13 +29,13 @@
 #include "primitive.hh"
 
 struct Sphere final : public Primitive {
-	long idx_point = 0;
-	float rayon = 0.0f;
-	REMBOURRE(4);
+    long idx_point = 0;
+    float rayon = 0.0f;
+    REMBOURRE(4);
 
-	Sphere() = default;
+    Sphere() = default;
 
-	Sphere(long idx, float r);
+    Sphere(long idx, float r);
 
-	type_primitive type_prim() const override;
+    type_primitive type_prim() const override;
 };

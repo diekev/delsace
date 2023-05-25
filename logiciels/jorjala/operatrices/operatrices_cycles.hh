@@ -33,41 +33,41 @@ struct Jorjala;
 namespace ccl {
 class NodeType;
 class ShaderNode;
-}
+}  // namespace ccl
 
 class OperatriceCycles final : public OperatriceImage {
-public:
-	const ccl::NodeType *type_noeud = nullptr;
-	ccl::ShaderNode *noeud_cycles = nullptr;
+  public:
+    const ccl::NodeType *type_noeud = nullptr;
+    ccl::ShaderNode *noeud_cycles = nullptr;
 
-	static constexpr auto NOM = "Fonction Détail";
-	static constexpr auto AIDE = "Fonction Détail";
+    static constexpr auto NOM = "Fonction Détail";
+    static constexpr auto AIDE = "Fonction Détail";
 
-	OperatriceCycles(Graphe &graphe_parent, Noeud &noeud_, const ccl::NodeType *type_noeud_);
+    OperatriceCycles(Graphe &graphe_parent, Noeud &noeud_, const ccl::NodeType *type_noeud_);
 
-	OperatriceCycles(OperatriceCycles const &) = default;
-	OperatriceCycles &operator=(OperatriceCycles const &) = default;
+    OperatriceCycles(OperatriceCycles const &) = default;
+    OperatriceCycles &operator=(OperatriceCycles const &) = default;
 
-	static OperatriceCycles *cree(Graphe &graphe, Noeud &noeud, dls::chaine const &nom_type);
+    static OperatriceCycles *cree(Graphe &graphe, Noeud &noeud, dls::chaine const &nom_type);
 
-	const char *nom_classe() const override;
+    const char *nom_classe() const override;
 
-	const char *texte_aide() const override;
+    const char *texte_aide() const override;
 
-	const char *nom_entree(int i) override;
+    const char *nom_entree(int i) override;
 
-	const char *nom_sortie(int i) override;
+    const char *nom_sortie(int i) override;
 
-	int type() const override;
+    int type() const override;
 
-	type_prise type_entree(int i) const override;
+    type_prise type_entree(int i) const override;
 
-	type_prise type_sortie(int i) const override;
+    type_prise type_sortie(int i) const override;
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-private:
-	void cree_proprietes();
+  private:
+    void cree_proprietes();
 };
 
 dls::chaine genere_menu_noeuds_cycles();

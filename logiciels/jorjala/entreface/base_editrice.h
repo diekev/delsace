@@ -28,30 +28,52 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 
-struct Jorjala;
+namespace JJL {
+class Jorjala;
+}
+
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
+class QPoint;
+class QPointF;
 
 class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
-	Q_OBJECT
+    Q_OBJECT
 
-protected:
-	Jorjala &m_jorjala;
-	QFrame *m_frame;
-	QVBoxLayout *m_layout;
-	QHBoxLayout *m_main_layout;
-	QLineEdit *m_path_edit{};
+  protected:
+    JJL::Jorjala &m_jorjala;
+    QFrame *m_frame;
+    QVBoxLayout *m_layout;
+    QHBoxLayout *m_main_layout;
+    QLineEdit *m_path_edit{};
 
-public:
-	explicit BaseEditrice(Jorjala &jorjala, QWidget *parent = nullptr);
+    const char *identifiant = nullptr;
 
-	BaseEditrice(BaseEditrice const &) = default;
-	BaseEditrice &operator=(BaseEditrice const &) = default;
+  public:
+    explicit BaseEditrice(const char *identifiant_,
+                          JJL::Jorjala &jorjala,
+                          QWidget *parent = nullptr);
 
-	void actif(bool ouinon);
-	void rend_actif();
+    BaseEditrice(BaseEditrice const &) = default;
+    BaseEditrice &operator=(BaseEditrice const &) = default;
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void actif(bool ouinon);
+    void rend_actif();
+
+    void mousePressEvent(QMouseEvent *e) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
+
+    void wheelEvent(QWheelEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+  protected:
+    virtual QPointF transforme_position_evenement(QPoint pos);
 };

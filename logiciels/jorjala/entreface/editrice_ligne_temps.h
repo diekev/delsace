@@ -38,32 +38,34 @@ namespace danjo {
 
 class RepondantBouton;
 
-}  /* namespace danjo */
+} /* namespace danjo */
 
 class EditriceLigneTemps : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	QSlider *m_slider;
+    QSlider *m_slider;
 
-	QHBoxLayout *m_tc_layout;
-	QHBoxLayout *m_num_layout;
-	QVBoxLayout *m_vbox_layout;
-	QSpinBox *m_end_frame, *m_start_frame, *m_cur_frame;
-	QDoubleSpinBox *m_fps;
+    QHBoxLayout *m_tc_layout;
+    QHBoxLayout *m_num_layout;
+    QVBoxLayout *m_vbox_layout;
+    QSpinBox *m_end_frame, *m_start_frame, *m_cur_frame;
+    QDoubleSpinBox *m_fps;
 
-public:
-	explicit EditriceLigneTemps(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceLigneTemps(EditriceLigneTemps const &) = default;
-	EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
+    EditriceLigneTemps(EditriceLigneTemps const &) = default;
+    EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
 
-	void ajourne_etat(int event) override;
+    void ajourne_etat(int event) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-private Q_SLOTS:
-	void setStartFrame(int value);
-	void setCurrentFrame(int value);
-	void setEndFrame(int value);
-	void setFPS(double value);
+  private Q_SLOTS:
+    void setStartFrame(int value);
+    void setCurrentFrame(int value);
+    void setEndFrame(int value);
+    void setFPS(double value);
 };

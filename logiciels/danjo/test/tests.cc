@@ -29,15 +29,15 @@
 
 int main(int argc, char **argv)
 {
-	/* Il nous faut une application pour pouvoir construire les QWidgets
-	 * nécessaires à l'initialisation des propriétés. */
-	QApplication app(argc, argv);
+    /* Il nous faut une application pour pouvoir construire les QWidgets
+     * nécessaires à l'initialisation des propriétés. */
+    QApplication app(argc, argv);
 
-	auto controleuse = dls::test_unitaire::Controleuse{};
-	controleuse.ajoute_fonction(test_decoupage);
-	controleuse.ajoute_fonction(test_initialisation);
+    auto controleuse = dls::test_unitaire::Controleuse{};
+    controleuse.ajoute_fonction(test_decoupage);
+    controleuse.ajoute_fonction(test_initialisation);
 
-	controleuse.performe_controles();
+    controleuse.performe_controles();
 
-	controleuse.imprime_resultat();
+    controleuse.imprime_resultat();
 }

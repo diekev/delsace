@@ -38,85 +38,85 @@ struct Nuanceur;
 struct Rendu;
 
 class BaseDeDonnees final {
-	dls::tableau<Composite *> m_composites{};
-	dls::tableau<Objet *> m_objets{};
-	dls::tableau<Nuanceur *> m_nuanceurs{};
-	dls::tableau<Rendu *> m_rendus{};
+    dls::tableau<Composite *> m_composites{};
+    dls::tableau<Objet *> m_objets{};
+    dls::tableau<Nuanceur *> m_nuanceurs{};
+    dls::tableau<Rendu *> m_rendus{};
 
-	Noeud m_racine{};
-	Noeud m_racine_composites{};
-	Noeud m_racine_objets{};
-	Noeud m_racine_nuanceurs{};
-	Noeud m_racine_rendus{};
+    Noeud m_racine{};
+    Noeud m_racine_composites{};
+    Noeud m_racine_objets{};
+    Noeud m_racine_nuanceurs{};
+    Noeud m_racine_rendus{};
 
-public:
-	BaseDeDonnees();
+  public:
+    BaseDeDonnees();
 
-	~BaseDeDonnees();
+    ~BaseDeDonnees();
 
-	void reinitialise();
+    void reinitialise();
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Noeud *racine();
+    Noeud *racine();
 
-	Noeud const *racine() const;
+    Noeud const *racine() const;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Objet *cree_objet(dls::chaine const &nom, type_objet type);
+    Objet *cree_objet(dls::chaine const &nom, type_objet type);
 
-	Objet *objet(dls::chaine const &nom) const;
+    Objet *objet(dls::chaine const &nom) const;
 
-	void enleve_objet(Objet *objet);
+    void enleve_objet(Objet *objet);
 
-	dls::tableau<Objet *> const &objets() const;
+    dls::tableau<Objet *> const &objets() const;
 
-	Graphe *graphe_objets();
+    Graphe *graphe_objets();
 
-	Graphe const *graphe_objets() const;
+    Graphe const *graphe_objets() const;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Composite *cree_composite(dls::chaine const &nom);
+    Composite *cree_composite(dls::chaine const &nom);
 
-	Composite *composite(dls::chaine const &nom) const;
+    Composite *composite(dls::chaine const &nom) const;
 
-	void enleve_composite(Composite *compo);
+    void enleve_composite(Composite *compo);
 
-	dls::tableau<Composite *> const &composites() const;
+    dls::tableau<Composite *> const &composites() const;
 
-	Graphe *graphe_composites();
+    Graphe *graphe_composites();
 
-	Graphe const *graphe_composites() const;
+    Graphe const *graphe_composites() const;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Nuanceur *cree_nuanceur(dls::chaine const &nom);
+    Nuanceur *cree_nuanceur(dls::chaine const &nom);
 
-	Nuanceur *nuanceur(dls::chaine const &nom) const;
+    Nuanceur *nuanceur(dls::chaine const &nom) const;
 
-	void enleve_nuanceur(Nuanceur *nuanceur);
+    void enleve_nuanceur(Nuanceur *nuanceur);
 
-	dls::tableau<Nuanceur *> const &nuanceurs() const;
+    dls::tableau<Nuanceur *> const &nuanceurs() const;
 
-	Graphe *graphe_nuanceurs();
+    Graphe *graphe_nuanceurs();
 
-	Graphe const *graphe_nuanceurs() const;
+    Graphe const *graphe_nuanceurs() const;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	Rendu *cree_rendu(dls::chaine const &nom);
+    Rendu *cree_rendu(dls::chaine const &nom);
 
-	Rendu *rendu(dls::chaine const &nom) const;
+    Rendu *rendu(dls::chaine const &nom) const;
 
-	void enleve_rendu(Rendu *rendu);
+    void enleve_rendu(Rendu *rendu);
 
-	dls::tableau<Rendu *> const &rendus() const;
+    dls::tableau<Rendu *> const &rendus() const;
 
-	Graphe *graphe_rendus();
+    Graphe *graphe_rendus();
 
-	Graphe const *graphe_rendus() const;
+    Graphe const *graphe_rendus() const;
 };
 
 Noeud *cherche_noeud_pour_chemin(BaseDeDonnees &base, dls::chaine const &chemin);

@@ -44,129 +44,132 @@ struct Sphere;
  * tous les types de corps.
  */
 struct Corps {
-	/* transformation */
-	math::transformation transformation = math::transformation();
-	dls::math::point3f pivot        = dls::math::point3f(0.0f);
-	dls::math::point3f position     = dls::math::point3f(0.0f);
-	dls::math::point3f echelle      = dls::math::point3f(1.0f);
-	dls::math::point3f rotation     = dls::math::point3f(0.0f);
-	float echelle_uniforme              = 1.0f;
+    /* transformation */
+    math::transformation transformation = math::transformation();
+    dls::math::point3f pivot = dls::math::point3f(0.0f);
+    dls::math::point3f position = dls::math::point3f(0.0f);
+    dls::math::point3f echelle = dls::math::point3f(1.0f);
+    dls::math::point3f rotation = dls::math::point3f(0.0f);
+    float echelle_uniforme = 1.0f;
 
-	/* boîte englobante */
-	dls::math::point3f min    = dls::math::point3f(0.0f);
-	dls::math::point3f max    = dls::math::point3f(0.0f);
-	dls::math::point3f taille = dls::math::point3f(0.0f);
+    /* boîte englobante */
+    dls::math::point3f min = dls::math::point3f(0.0f);
+    dls::math::point3f max = dls::math::point3f(0.0f);
+    dls::math::point3f taille = dls::math::point3f(0.0f);
 
-	/* autres propriétés */
-	dls::chaine nom = "corps";
+    /* autres propriétés */
+    dls::chaine nom = "corps";
 
-	using plage_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::iteratrice>;
-	using plage_const_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::const_iteratrice>;
+    using plage_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::iteratrice>;
+    using plage_const_attributs =
+        dls::outils::plage_iterable_liste<dls::liste<Attribut>::const_iteratrice>;
 
-	Corps() = default;
-	virtual ~Corps();
+    Corps() = default;
+    virtual ~Corps();
 
-	bool possede_attribut(dls::chaine const &nom_attribut);
+    bool possede_attribut(dls::chaine const &nom_attribut);
 
-	void ajoute_attribut(Attribut *attr);
+    void ajoute_attribut(Attribut *attr);
 
-	Attribut *ajoute_attribut(
-			dls::chaine const &nom_attribut,
-			type_attribut type_,
-			int dimensions = 1,
-			portee_attr portee = portee_attr::POINT,
-			bool force_vide = false);
+    Attribut *ajoute_attribut(dls::chaine const &nom_attribut,
+                              type_attribut type_,
+                              int dimensions = 1,
+                              portee_attr portee = portee_attr::POINT,
+                              bool force_vide = false);
 
-	void supprime_attribut(dls::chaine const &nom_attribut);
+    void supprime_attribut(dls::chaine const &nom_attribut);
 
-	Attribut *attribut(dls::chaine const &nom_attribut);
+    Attribut *attribut(dls::chaine const &nom_attribut);
 
-	Attribut const *attribut(dls::chaine const &nom_attribut) const;
+    Attribut const *attribut(dls::chaine const &nom_attribut) const;
 
-	void ajoute_primitive(Primitive *p);
+    void ajoute_primitive(Primitive *p);
 
-	void copie_points(Corps const autre);
+    void copie_points(Corps const autre);
 
-	/**
-	 * Copie la liste de points de ce corps avant de la rendre unique à lui,
-	 * pour la copie sur écriture, et retourne le nouveau pointeur.
-	 */
-	AccesseusePointEcriture points_pour_ecriture();
-	friend struct AccesseusePointEcriture;
+    /**
+     * Copie la liste de points de ce corps avant de la rendre unique à lui,
+     * pour la copie sur écriture, et retourne le nouveau pointeur.
+     */
+    AccesseusePointEcriture points_pour_ecriture();
+    friend struct AccesseusePointEcriture;
 
-	/**
-	 * Retourne un pointeur vers la liste de point de ce corps. Les points ne
-	 * sont pas modifiables.
-	 */
-	AccesseusePointLecture points_pour_lecture() const;
+    /**
+     * Retourne un pointeur vers la liste de point de ce corps. Les points ne
+     * sont pas modifiables.
+     */
+    AccesseusePointLecture points_pour_lecture() const;
 
-	ListePrimitives *prims();
+    ListePrimitives *prims();
 
-	const ListePrimitives *prims() const;
+    const ListePrimitives *prims() const;
 
-	/* polygones */
+    /* polygones */
 
-	Polygone *ajoute_polygone(type_polygone type_poly, long nombre_sommets = 0);
+    Polygone *ajoute_polygone(type_polygone type_poly, long nombre_sommets = 0);
 
-	long ajoute_sommet(Polygone *p, long idx_point);
+    long ajoute_sommet(Polygone *p, long idx_point);
 
-	long nombre_sommets() const;
+    long nombre_sommets() const;
 
-	/* sphères */
+    /* sphères */
 
-	Sphere *ajoute_sphere(long idx_point, float rayon);
+    Sphere *ajoute_sphere(long idx_point, float rayon);
 
-	/* autres */
+    /* autres */
 
-	void reinitialise();
+    void reinitialise();
 
-	Corps *copie() const;
+    Corps *copie() const;
 
-	void copie_vers(Corps *corps) const;
+    void copie_vers(Corps *corps) const;
 
-	plage_attributs attributs();
+    plage_attributs attributs();
 
-	plage_const_attributs attributs() const;
+    plage_const_attributs attributs() const;
 
-	/* Groupes points. */
+    /* Groupes points. */
 
-	using plage_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::iteratrice>;
-	using plage_const_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::const_iteratrice>;
+    using plage_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::iteratrice>;
+    using plage_const_grp_pnts =
+        dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::const_iteratrice>;
 
-	GroupePoint *ajoute_groupe_point(dls::chaine const &nom_groupe);
+    GroupePoint *ajoute_groupe_point(dls::chaine const &nom_groupe);
 
-	GroupePoint *groupe_point(const dls::chaine &nom_groupe) const;
+    GroupePoint *groupe_point(const dls::chaine &nom_groupe) const;
 
-	plage_grp_pnts groupes_points();
+    plage_grp_pnts groupes_points();
 
-	plage_const_grp_pnts groupes_points() const;
+    plage_const_grp_pnts groupes_points() const;
 
-	/* Groupes primitives. */
+    /* Groupes primitives. */
 
-	using plage_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::iteratrice>;
-	using plage_const_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::const_iteratrice>;
+    using plage_grp_prims =
+        dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::iteratrice>;
+    using plage_const_grp_prims =
+        dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::const_iteratrice>;
 
-	GroupePrimitive *ajoute_groupe_primitive(dls::chaine const &nom_groupe);
+    GroupePrimitive *ajoute_groupe_primitive(dls::chaine const &nom_groupe);
 
-	GroupePrimitive *groupe_primitive(dls::chaine const &nom_groupe) const;
+    GroupePrimitive *groupe_primitive(dls::chaine const &nom_groupe) const;
 
-	plage_grp_prims groupes_prims();
+    plage_grp_prims groupes_prims();
 
-	plage_const_grp_prims groupes_prims() const;
+    plage_const_grp_prims groupes_prims() const;
 
-protected:
-	dls::liste<Attribut> m_attributs{};
+  protected:
+    dls::liste<Attribut> m_attributs{};
 
-private:
-	void redimensionne_attributs(portee_attr portee);
+  private:
+    void redimensionne_attributs(portee_attr portee);
 
-	ListePoints3D m_points{};
-	ListePrimitives m_prims{};
+    ListePoints3D m_points{};
+    ListePrimitives m_prims{};
 
-	dls::liste<GroupePoint> m_groupes_points{};
-	dls::liste<GroupePrimitive> m_groupes_prims{};
+    dls::liste<GroupePoint> m_groupes_points{};
+    dls::liste<GroupePrimitive> m_groupes_prims{};
 
-	long m_nombre_sommets = 0;
+    long m_nombre_sommets = 0;
 };
 
 bool possede_volume(Corps const &corps);

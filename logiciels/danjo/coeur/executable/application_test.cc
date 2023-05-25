@@ -29,15 +29,15 @@
 #include "biblinternes/outils/fichier.hh"
 
 #include <QApplication>
+#include <QBoxLayout>
 #include <QMenuBar>
 #include <QWidget>
-#include <QBoxLayout>
 
 /* ************************************************************************** */
 
-WidgetTest::WidgetTest(QWidget *parent)
-	: danjo::ConteneurControles(parent)
-{}
+WidgetTest::WidgetTest(QWidget *parent) : danjo::ConteneurControles(parent)
+{
+}
 
 void WidgetTest::ajourne_manipulable()
 {
@@ -45,87 +45,85 @@ void WidgetTest::ajourne_manipulable()
 
 void WidgetTest::obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines)
 {
-	std::cerr << "Obtention de la liste pour l'attache : " << attache << '\n';
+    std::cerr << "Obtention de la liste pour l'attache : " << attache << '\n';
 
-	chaines.ajoute("image");
+    chaines.ajoute("image");
 }
 
 /* ************************************************************************** */
 
 void RepondantBoutonTest::repond_clique(const dls::chaine &valeur, const dls::chaine &metadonnee)
 {
-	std::cerr << "Répondant au clique pour " << valeur
-			  << ", avec métadonnée " << metadonnee << '\n';
+    std::cerr << "Répondant au clique pour " << valeur << ", avec métadonnée " << metadonnee
+              << '\n';
 
-	if (valeur == "redimension_image") {
-		danjo::Manipulable manipulable;
+    if (valeur == "redimension_image") {
+        danjo::Manipulable manipulable;
 
-		auto donnees = danjo::DonneesInterface{};
-		donnees.manipulable = &manipulable;
-		donnees.repondant_bouton = this;
-		donnees.conteneur = nullptr;
+        auto donnees = danjo::DonneesInterface{};
+        donnees.manipulable = &manipulable;
+        donnees.repondant_bouton = this;
+        donnees.conteneur = nullptr;
 
-		auto texte_entree = dls::contenu_fichier("exemples/redimension_image.jo");
-		auto ok = danjo::montre_dialogue(donnees, texte_entree.c_str());
+        auto texte_entree = dls::contenu_fichier("exemples/redimension_image.jo");
+        auto ok = danjo::montre_dialogue(donnees, texte_entree.c_str());
 
-		if (ok) {
-			std::cerr << "Dialogue accepté !\n";
-			std::cerr << "Largeur : " << manipulable.evalue_entier("largeur") << '\n';
-			std::cerr << "Hauteur : " << manipulable.evalue_entier("hauteur") << '\n';
-		}
-		else {
-			std::cerr << "Dialogue rejeté !\n";
-		}
-	}
+        if (ok) {
+            std::cerr << "Dialogue accepté !\n";
+            std::cerr << "Largeur : " << manipulable.evalue_entier("largeur") << '\n';
+            std::cerr << "Hauteur : " << manipulable.evalue_entier("hauteur") << '\n';
+        }
+        else {
+            std::cerr << "Dialogue rejeté !\n";
+        }
+    }
 }
 
 bool RepondantBoutonTest::evalue_predicat(const dls::chaine &valeur, const dls::chaine &metadonnee)
 {
-	std::cerr << "Évalue prédicat pour " << valeur
-			  << ", avec métadonnée " << metadonnee << '\n';
+    std::cerr << "Évalue prédicat pour " << valeur << ", avec métadonnée " << metadonnee << '\n';
 
-	return true;
+    return true;
 }
 
 /* ************************************************************************** */
 
-FenetreTest::FenetreTest()
-	: QMainWindow()
+FenetreTest::FenetreTest() : QMainWindow()
 {
-	auto widget_test = new WidgetTest;
+    auto widget_test = new WidgetTest;
 
-	danjo::Propriete prop;
-	prop.type = danjo::TypePropriete::ENTIER;
-	prop.valeur = 9;
+    danjo::Propriete prop;
+    prop.type_ = danjo::TypePropriete::ENTIER;
+    prop.valeur = 9;
 
-	m_manipulable.ajoute_propriete_extra("prop_entier", prop);
+    m_manipulable.ajoute_propriete_extra("prop_entier", prop);
 
-	prop.type = danjo::TypePropriete::DECIMAL;
-	prop.valeur = 16.2f;
+    prop.type_ = danjo::TypePropriete::DECIMAL;
+    prop.valeur = 16.2f;
 
-	m_manipulable.ajoute_propriete_extra("prop_decimal", prop);
+    m_manipulable.ajoute_propriete_extra("prop_decimal", prop);
 
-	auto donnees = danjo::DonneesInterface{};
-	donnees.manipulable = &m_manipulable;
-	donnees.repondant_bouton = &m_repondant;
-	donnees.conteneur = widget_test;
+    auto donnees = danjo::DonneesInterface{};
+    donnees.manipulable = &m_manipulable;
+    donnees.repondant_bouton = &m_repondant;
+    donnees.conteneur = widget_test;
 
-	auto texte_entree = dls::contenu_fichier("exemples/disposition_test.jo");
+    auto texte_entree = dls::contenu_fichier("exemples/disposition_test.jo");
 
-	auto disposition = danjo::compile_entreface(donnees, texte_entree.c_str());
-	widget_test->setLayout(disposition);
+    auto disposition = danjo::compile_entreface(donnees, texte_entree.c_str());
+    widget_test->setLayout(disposition);
 
-	setCentralWidget(widget_test);
+    setCentralWidget(widget_test);
 
-	auto script_menu = dls::contenu_fichier("exemples/menu_fichier.jo");
-	auto menu = danjo::compile_menu(donnees, script_menu.c_str());
+    auto script_menu = dls::contenu_fichier("exemples/menu_fichier.jo");
+    auto menu = danjo::compile_menu(donnees, script_menu.c_str());
 
-	menuBar()->addMenu(menu);
+    menuBar()->addMenu(menu);
 
-	script_menu = dls::contenu_fichier("exemples/menu_edition.jo");
-	menu = danjo::compile_menu(donnees, script_menu.c_str());
+    script_menu = dls::contenu_fichier("exemples/menu_edition.jo");
+    menu = danjo::compile_menu(donnees, script_menu.c_str());
 
-	menuBar()->addMenu(menu);
+    menuBar()->addMenu(menu);
 }
 
 /* ************************************************************************** */
@@ -133,17 +131,17 @@ FenetreTest::FenetreTest()
 int main(int argc, char *argv[])
 {
 #if 1
-	QApplication app(argc, argv);
+    QApplication app(argc, argv);
 
-	FenetreTest fenetre;
-	fenetre.show();
+    FenetreTest fenetre;
+    fenetre.show();
 
-	return app.exec();
+    return app.exec();
 #else
-//	auto texte_logique = dls::contenu_fichier("exemples/redimension_image.dan");
-//	danjo::compile_feuille_logique(texte_logique.c_str());
+    //	auto texte_logique = dls::contenu_fichier("exemples/redimension_image.dan");
+    //	danjo::compile_feuille_logique(texte_logique.c_str());
 
-	danjo::Manipulable manipulable;
-	danjo::initialise_entreface("exemples/redimension_image.dan", &manipulable);
+    danjo::Manipulable manipulable;
+    danjo::initialise_entreface("exemples/redimension_image.dan", &manipulable);
 #endif
 }

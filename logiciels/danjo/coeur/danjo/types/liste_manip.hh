@@ -29,7 +29,7 @@
 namespace danjo {
 
 struct ListeManipulable {
-	dls::tableau<Manipulable> manipulables{};
+    dls::tableau<Manipulable> manipulables{};
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

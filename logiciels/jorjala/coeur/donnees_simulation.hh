@@ -32,10 +32,10 @@
 /* Structure utilisée pour passer les données relatives à une simulation entre
  * les noeuds du graphe de celle-ci. */
 struct DonneesSimulation {
-	dls::dico_desordonne<dls::chaine, std::any> table{};
-	int temps_debut = 0;
-	int temps_fin = 0;
-	int dernier_temps = 0;
-	int sous_etape = 0;
-	double dt = 0.0;
+    dls::dico_desordonne<dls::chaine, std::any> table{};
+    int temps_debut = 0;
+    int temps_fin = 0;
+    int dernier_temps = 0;
+    int sous_etape = 0;
+    double dt = 0.0;
 };

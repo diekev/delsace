@@ -26,4 +26,4 @@
 
 namespace lcc {
 
-}  /* namespace lcc */
+} /* namespace lcc */

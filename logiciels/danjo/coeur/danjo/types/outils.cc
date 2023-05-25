@@ -24,26 +24,25 @@
 
 #include "outils.h"
 
-
 QColor converti_couleur(float r, float v, float b, float a)
 {
-	r = restreint(r, 0.0f, 1.0f);
-	v = restreint(v, 0.0f, 1.0f);
-	b = restreint(b, 0.0f, 1.0f);
-	a = restreint(a, 0.0f, 1.0f);
+    r = restreint(r, 0.0f, 1.0f);
+    v = restreint(v, 0.0f, 1.0f);
+    b = restreint(b, 0.0f, 1.0f);
+    a = restreint(a, 0.0f, 1.0f);
 
-	return QColor(static_cast<int>(r * 255.0f),
-				  static_cast<int>(v * 255.0f),
-				  static_cast<int>(b * 255.0f),
-				  static_cast<int>(a * 255.0f));
+    return QColor(static_cast<int>(r * 255.0f),
+                  static_cast<int>(v * 255.0f),
+                  static_cast<int>(b * 255.0f),
+                  static_cast<int>(a * 255.0f));
 }
 
 QColor converti_couleur(const float *rvba)
 {
-	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
+    return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
 }
 
 QColor converti_couleur(const dls::phys::couleur32 &rvba)
 {
-	return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
+    return converti_couleur(rvba[0], rvba[1], rvba[2], rvba[3]);
 }

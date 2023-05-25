@@ -35,7 +35,6 @@
 #include "base_editrice.h"
 
 class EditriceVue3D;
-struct Jorjala;
 class QComboBox;
 class QToolButton;
 class VisionneurScene;
@@ -43,62 +42,64 @@ class VisionneurScene;
 /* ************************************************************************** */
 
 class VueCanevas3D : public QGLWidget {
-	Jorjala &m_jorjala;
-	VisionneurScene *m_visionneur_scene;
-	EditriceVue3D *m_base;
+    JJL::Jorjala &m_jorjala;
+    VisionneurScene *m_visionneur_scene;
+    EditriceVue3D *m_base;
 
-public:
-	explicit VueCanevas3D(Jorjala &jorjala, EditriceVue3D *base, QWidget *parent = nullptr);
+  public:
+    explicit VueCanevas3D(JJL::Jorjala &jorjala, EditriceVue3D *base, QWidget *parent = nullptr);
 
-	VueCanevas3D(VueCanevas3D const &) = default;
-	VueCanevas3D &operator=(VueCanevas3D const &) = default;
+    VueCanevas3D(VueCanevas3D const &) = default;
+    VueCanevas3D &operator=(VueCanevas3D const &) = default;
 
-	~VueCanevas3D() override;
+    ~VueCanevas3D() override;
 
-	void initializeGL() override;
+    void initializeGL() override;
 
-	void paintGL() override;
+    void paintGL() override;
 
-	void resizeGL(int w, int h) override;
+    void resizeGL(int w, int h) override;
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
 
-	void mouseMoveEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
 
-	void wheelEvent(QWheelEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
 
-	void mouseReleaseEvent(QMouseEvent *) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
 
-	void reconstruit_scene() const;
-	void change_moteur_rendu(const dls::chaine &id) const;
+    void reconstruit_scene() const;
+    void change_moteur_rendu(const dls::chaine &id) const;
 };
 
 /* ************************************************************************** */
 
 class EditriceVue3D : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueCanevas3D *m_vue{};
-	QToolButton *m_bouton_position{};
-	QToolButton *m_bouton_rotation{};
-	QToolButton *m_bouton_echelle{};
-	QToolButton *m_bouton_actif{};
-	QComboBox *m_selecteur_rendu{};
+    VueCanevas3D *m_vue{};
+    QToolButton *m_bouton_position{};
+    QToolButton *m_bouton_rotation{};
+    QToolButton *m_bouton_echelle{};
+    QToolButton *m_bouton_actif{};
+    QComboBox *m_selecteur_rendu{};
 
-public:
-	explicit EditriceVue3D(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceVue3D(EditriceVue3D const &) = default;
-	EditriceVue3D &operator=(EditriceVue3D const &) = default;
+    EditriceVue3D(EditriceVue3D const &) = default;
+    EditriceVue3D &operator=(EditriceVue3D const &) = default;
 
-	void ajourne_etat(int event) override;
+    void ajourne_etat(int event) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-private Q_SLOTS:
-	void bascule_manipulation();
-	void manipule_rotation();
-	void manipule_position();
-	void manipule_echelle();
-	void change_moteur_rendu(int idx);
+  private Q_SLOTS:
+    void bascule_manipulation();
+    void manipule_rotation();
+    void manipule_position();
+    void manipule_echelle();
+    void change_moteur_rendu(int idx);
 };

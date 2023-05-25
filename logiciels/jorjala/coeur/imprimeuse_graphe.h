@@ -37,10 +37,10 @@ dls::chaine id_dot_pour_noeud(Noeud const *noeud, bool apostrophes = true);
 dls::chaine chaine_dot_pour_graphe(Graphe const &graphe);
 
 class ImprimeuseGraphe {
-	Graphe *m_graph;
+    Graphe *m_graph;
 
-public:
-	explicit ImprimeuseGraphe(Graphe *graph);
+  public:
+    explicit ImprimeuseGraphe(Graphe *graph);
 
-	void operator()(filesystem::path const &path);
+    void operator()(filesystem::path const &path);
 };

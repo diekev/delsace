@@ -33,38 +33,38 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
-using type_fonction_lecture = std::function<void(std::istream &, std::any const&)>;
-using type_fonction_ecriture = std::function<void(std::ostream &, std::any const&)>;
-using type_fonction_lecture_chemin = std::function<void(const char *, std::any const&)>;
-using type_fonction_ecriture_chemin = std::function<void(const char *, std::any const&)>;
+using type_fonction_lecture = std::function<void(std::istream &, std::any const &)>;
+using type_fonction_ecriture = std::function<void(std::ostream &, std::any const &)>;
+using type_fonction_lecture_chemin = std::function<void(const char *, std::any const &)>;
+using type_fonction_ecriture_chemin = std::function<void(const char *, std::any const &)>;
 
 struct PoigneeFichier {
-private:
-	std::mutex m_mutex{};
-	dls::chaine m_chemin{};
+  private:
+    std::mutex m_mutex{};
+    dls::chaine m_chemin{};
 
-public:
-	explicit PoigneeFichier(dls::chaine const &chemin);
+  public:
+    explicit PoigneeFichier(dls::chaine const &chemin);
 
-	void lecture(type_fonction_lecture &&fonction, std::any const &donnees);
+    void lecture(type_fonction_lecture &&fonction, std::any const &donnees);
 
-	/* certaines bibliothèques ne supportent pas les flux C++ par défaut, donc
-	 * passe le chemin à la fonction de rappel */
-	void lecture_chemin(type_fonction_lecture_chemin &&fonction, std::any const &donnees);
+    /* certaines bibliothèques ne supportent pas les flux C++ par défaut, donc
+     * passe le chemin à la fonction de rappel */
+    void lecture_chemin(type_fonction_lecture_chemin &&fonction, std::any const &donnees);
 
-	void ecriture(type_fonction_ecriture &&fonction, std::any const &donnees);
+    void ecriture(type_fonction_ecriture &&fonction, std::any const &donnees);
 
-	/* certaines bibliothèques ne supportent pas les flux C++ par défaut, donc
-	 * passe le chemin à la fonction de rappel */
-	void ecriture_chemin(type_fonction_lecture_chemin &&fonction, std::any const &donnees);
+    /* certaines bibliothèques ne supportent pas les flux C++ par défaut, donc
+     * passe le chemin à la fonction de rappel */
+    void ecriture_chemin(type_fonction_lecture_chemin &&fonction, std::any const &donnees);
 };
 
 class GestionnaireFichier {
-	std::mutex m_mutex{};
-	dls::dico_desordonne<dls::chaine, PoigneeFichier *> m_table{};
+    std::mutex m_mutex{};
+    dls::dico_desordonne<dls::chaine, PoigneeFichier *> m_table{};
 
-public:
-	~GestionnaireFichier();
+  public:
+    ~GestionnaireFichier();
 
-	PoigneeFichier *poignee_fichier(dls::chaine const &chemin);
+    PoigneeFichier *poignee_fichier(dls::chaine const &chemin);
 };

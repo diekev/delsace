@@ -31,32 +31,32 @@ namespace kdo {
 struct sphere;
 
 struct delegue_sphere {
-	sphere const &ptr_sphere;
+    sphere const &ptr_sphere;
 
-	delegue_sphere(sphere const &m);
+    delegue_sphere(sphere const &m);
 
-	long nombre_elements() const;
+    long nombre_elements() const;
 
-	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+    void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
 
-	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &rayon) const;
+    dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &rayon) const;
 };
 
 struct sphere : public noeud {
-	dls::math::vec3f point{};
-	int index = 0;
-	float rayon{};
-	double rayon2{};
+    dls::math::vec3f point{};
+    int index = 0;
+    float rayon{};
+    double rayon2{};
 
-	delegue_sphere delegue;
+    delegue_sphere delegue;
 
-	sphere();
+    sphere();
 
-	void construit_arbre_hbe() override;
+    void construit_arbre_hbe() override;
 
-	dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon) override;
+    dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon) override;
 
-	limites3d calcule_limites() override;
+    limites3d calcule_limites() override;
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

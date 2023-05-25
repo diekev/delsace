@@ -27,65 +27,65 @@
 #include "jorjala.hh"
 #include "tache.h"
 
-ChefExecution::ChefExecution(Jorjala &jorjala)
-	: m_jorjala(jorjala)
-{}
+ChefExecution::ChefExecution(Jorjala &jorjala) : m_jorjala(jorjala)
+{
+}
 
 bool ChefExecution::interrompu() const
 {
-	return m_jorjala.interrompu;
+    return m_jorjala.interrompu;
 }
 
 void ChefExecution::indique_progression(float progression)
 {
-	m_jorjala.notifiant_thread->signale_ajournement_progres(progression);
+    m_jorjala.notifiant_thread->signale_ajournement_progres(progression);
 }
 
 void ChefExecution::indique_progression_parallele(float delta)
 {
-	m_mutex_progression.lock();
-	m_progression_parallele += delta;
-	indique_progression(m_progression_parallele);
-	m_mutex_progression.unlock();
+    m_mutex_progression.lock();
+    m_progression_parallele += delta;
+    indique_progression(m_progression_parallele);
+    m_mutex_progression.unlock();
 }
 
 void ChefExecution::demarre_evaluation(const char *message)
 {
-	m_progression_parallele = 0.0f;
-	m_nombre_execution += 1;
-	m_jorjala.notifiant_thread->signale_debut_evaluation(message, m_nombre_execution, m_nombre_a_executer);
+    m_progression_parallele = 0.0f;
+    m_nombre_execution += 1;
+    m_jorjala.notifiant_thread->signale_debut_evaluation(
+        message, m_nombre_execution, m_nombre_a_executer);
 }
 
 void ChefExecution::reinitialise()
 {
-	m_nombre_a_executer = 0;
-	m_nombre_execution = 0;
+    m_nombre_a_executer = 0;
+    m_nombre_execution = 0;
 }
 
 void ChefExecution::incremente_compte_a_executer()
 {
-	m_nombre_a_executer += 1;
+    m_nombre_a_executer += 1;
 }
 
 /* ************************************************************************** */
 
-ChefWolika::ChefWolika(ChefExecution *chef_ex, const char *message)
-	: chef(chef_ex)
+ChefWolika::ChefWolika(ChefExecution *chef_ex, const char *message) : chef(chef_ex)
 {
-	chef->demarre_evaluation(message);
+    chef->demarre_evaluation(message);
 }
 
 bool ChefWolika::interrompue() const
 {
-	return chef->interrompu();
+    return chef->interrompu();
 }
 
 void ChefWolika::indique_progression(float progression)
 {
-	chef->indique_progression(progression);
+    chef->indique_progression(progression);
 }
 
 void ChefWolika::indique_progression_parallele(float delta)
 {
-	chef->indique_progression(delta);
+    chef->indique_progression(delta);
 }

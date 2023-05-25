@@ -33,8 +33,11 @@
 
 inline bool adresse_est_nulle(const void *adresse)
 {
-    /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
-    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
+    /* 0xbebebebebebebebe peut être utilisé par les débogueurs.
+     * Vérification si adresse est dans la première page pour également détecter les
+     * déréférencement d'adresses nulles. */
+    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe) ||
+           reinterpret_cast<unsigned long>(adresse) < 4096;
 }
 
 static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInterpretation res)

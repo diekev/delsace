@@ -38,522 +38,518 @@
 
 /* ************************************************************************** */
 
-EntreeOperatrice::EntreeOperatrice(PriseEntree *prise)
-	: m_ptr(prise)
-{}
+EntreeOperatrice::EntreeOperatrice(PriseEntree *prise) : m_ptr(prise)
+{
+}
 
 bool EntreeOperatrice::connectee() const
 {
-	return !m_ptr->liens.est_vide();
+    return !m_ptr->liens.est_vide();
 }
 
 long EntreeOperatrice::nombre_connexions() const
 {
-	return m_ptr->liens.taille();
+    return m_ptr->liens.taille();
 }
 
-Image const *EntreeOperatrice::requiers_image(
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval,
-		int index)
+Image const *EntreeOperatrice::requiers_image(ContexteEvaluation const &contexte,
+                                              DonneesAval *donnees_aval,
+                                              int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
-		return nullptr;
-	}
+    if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
+        return nullptr;
+    }
 
-	auto lien = m_ptr->liens[index];
+    auto lien = m_ptr->liens[index];
 
-	m_liste_noms_calques.efface();
+    m_liste_noms_calques.efface();
 
-	if (lien == nullptr) {
-		return nullptr;
-	}
+    if (lien == nullptr) {
+        return nullptr;
+    }
 
-	auto noeud = lien->parent;
+    auto noeud = lien->parent;
 
-	execute_noeud(*noeud, contexte, donnees_aval);
+    execute_noeud(*noeud, contexte, donnees_aval);
 
-	auto operatrice = extrait_opimage(noeud->donnees);
-	auto image = operatrice->image();
+    auto operatrice = extrait_opimage(noeud->donnees);
+    auto image = operatrice->image();
 
-	for (auto const &calque : image->calques()) {
-		m_liste_noms_calques.ajoute(calque->nom);
-	}
+    for (auto const &calque : image->calques()) {
+        m_liste_noms_calques.ajoute(calque->nom);
+    }
 
-	return image;
+    return image;
 }
 
-Image *EntreeOperatrice::requiers_copie_image(
-		Image &image,
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval,
-		int index)
+Image *EntreeOperatrice::requiers_copie_image(Image &image,
+                                              ContexteEvaluation const &contexte,
+                                              DonneesAval *donnees_aval,
+                                              int index)
 {
-	auto image_op = this->requiers_image(contexte, donnees_aval, index);
+    auto image_op = this->requiers_image(contexte, donnees_aval, index);
 
-	if (image_op == nullptr) {
-		return nullptr;
-	}
+    if (image_op == nullptr) {
+        return nullptr;
+    }
 
-	image = *image_op;
+    image = *image_op;
 
-	for (auto const &calque : image.calques()) {
-		m_liste_noms_calques.ajoute(calque->nom);
-	}
+    for (auto const &calque : image.calques()) {
+        m_liste_noms_calques.ajoute(calque->nom);
+    }
 
-	return &image;
+    return &image;
 }
 
-const Corps *EntreeOperatrice::requiers_corps(
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval,
-		int index)
+const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte,
+                                              DonneesAval *donnees_aval,
+                                              int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
-		return nullptr;
-	}
+    if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
+        return nullptr;
+    }
 
-	auto lien = m_ptr->liens[index];
+    auto lien = m_ptr->liens[index];
 
-	if (lien == nullptr) {
-		return nullptr;
-	}
+    if (lien == nullptr) {
+        return nullptr;
+    }
 
-	auto noeud = lien->parent;
+    auto noeud = lien->parent;
 
-	execute_noeud(*noeud, contexte, donnees_aval);
+    execute_noeud(*noeud, contexte, donnees_aval);
 
-	auto operatrice = extrait_opimage(noeud->donnees);
+    auto operatrice = extrait_opimage(noeud->donnees);
 
-	return operatrice->corps();
+    return operatrice->corps();
 }
 
-Corps *EntreeOperatrice::requiers_copie_corps(
-		Corps *corps,
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval,
-		int index)
+Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps,
+                                              ContexteEvaluation const &contexte,
+                                              DonneesAval *donnees_aval,
+                                              int index)
 {
-	auto corps_lien = this->requiers_corps(contexte, donnees_aval, index);
+    auto corps_lien = this->requiers_corps(contexte, donnees_aval, index);
 
-	if (corps_lien == nullptr) {
-		return nullptr;
-	}
+    if (corps_lien == nullptr) {
+        return nullptr;
+    }
 
-	if (corps != nullptr) {
-		corps_lien->copie_vers(corps);
-		return corps;
-	}
+    if (corps != nullptr) {
+        corps_lien->copie_vers(corps);
+        return corps;
+    }
 
-	return corps_lien->copie();
+    return corps_lien->copie();
 }
 
 void EntreeOperatrice::obtiens_liste_calque(dls::tableau<dls::chaine> &chaines) const
 {
-	chaines = m_liste_noms_calques;
+    chaines = m_liste_noms_calques;
 }
 
 void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaines) const
 {
-	if (m_ptr->liens.est_vide()) {
-		return;
-	}
+    if (m_ptr->liens.est_vide()) {
+        return;
+    }
 
-	auto lien = m_ptr->liens[0];
+    auto lien = m_ptr->liens[0];
 
-	if (lien == nullptr) {
-		return;
-	}
+    if (lien == nullptr) {
+        return;
+    }
 
-	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees);
-	auto corps = operatrice->corps();
+    auto noeud = lien->parent;
+    auto operatrice = extrait_opimage(noeud->donnees);
+    auto corps = operatrice->corps();
 
-	if (corps == nullptr) {
-		return;
-	}
+    if (corps == nullptr) {
+        return;
+    }
 
-	for (auto const &attributs : corps->attributs()) {
-		chaines.ajoute(attributs.nom());
-	}
+    for (auto const &attributs : corps->attributs()) {
+        chaines.ajoute(attributs.nom());
+    }
 }
 
 void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &chaines) const
 {
-	if (m_ptr->liens.est_vide()) {
-		return;
-	}
+    if (m_ptr->liens.est_vide()) {
+        return;
+    }
 
-	auto lien = m_ptr->liens[0];
+    auto lien = m_ptr->liens[0];
 
-	if (lien == nullptr) {
-		return;
-	}
+    if (lien == nullptr) {
+        return;
+    }
 
-	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees);
-	auto corps = operatrice->corps();
+    auto noeud = lien->parent;
+    auto operatrice = extrait_opimage(noeud->donnees);
+    auto corps = operatrice->corps();
 
-	if (corps == nullptr) {
-		return;
-	}
+    if (corps == nullptr) {
+        return;
+    }
 
-	for (auto const &groupe : corps->groupes_prims()) {
-		chaines.ajoute(groupe.nom);
-	}
+    for (auto const &groupe : corps->groupes_prims()) {
+        chaines.ajoute(groupe.nom);
+    }
 }
 
 void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &chaines) const
 {
-	if (m_ptr->liens.est_vide()) {
-		return;
-	}
+    if (m_ptr->liens.est_vide()) {
+        return;
+    }
 
-	auto lien = m_ptr->liens[0];
+    auto lien = m_ptr->liens[0];
 
-	if (lien == nullptr) {
-		return;
-	}
+    if (lien == nullptr) {
+        return;
+    }
 
-	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees);
-	auto corps = operatrice->corps();
+    auto noeud = lien->parent;
+    auto operatrice = extrait_opimage(noeud->donnees);
+    auto corps = operatrice->corps();
 
-	if (corps == nullptr) {
-		return;
-	}
+    if (corps == nullptr) {
+        return;
+    }
 
-	for (auto const &groupe : corps->groupes_points()) {
-		chaines.ajoute(groupe.nom);
-	}
+    for (auto const &groupe : corps->groupes_points()) {
+        chaines.ajoute(groupe.nom);
+    }
 }
 
 PriseEntree *EntreeOperatrice::pointeur()
 {
-	return m_ptr;
+    return m_ptr;
 }
 
 void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 {
-	if (m_ptr->liens.est_vide()) {
-		return;
-	}
+    if (m_ptr->liens.est_vide()) {
+        return;
+    }
 
-	auto lien = m_ptr->liens[0];
+    auto lien = m_ptr->liens[0];
 
-	if (lien == nullptr) {
-		return;
-	}
+    if (lien == nullptr) {
+        return;
+    }
 
-	/* nous poussons les noeuds dans une liste pour pouvoir donner une
-	 * progression correcte */
+    /* nous poussons les noeuds dans une liste pour pouvoir donner une
+     * progression correcte */
 
-	auto liste = dls::tableau<Noeud *>();
-	auto pile = dls::pile<Noeud *>();
-	pile.empile(lien->parent);
+    auto liste = dls::tableau<Noeud *>();
+    auto pile = dls::pile<Noeud *>();
+    pile.empile(lien->parent);
 
-	while (!pile.est_vide()) {
-		auto noeud = pile.depile();
+    while (!pile.est_vide()) {
+        auto noeud = pile.depile();
 
-		liste.ajoute(noeud);
+        liste.ajoute(noeud);
 
-		for (auto entree : noeud->entrees) {
-			for (auto sortie : entree->liens) {
-				pile.empile(sortie->parent);
-			}
-		}
-	}
+        for (auto entree : noeud->entrees) {
+            for (auto sortie : entree->liens) {
+                pile.empile(sortie->parent);
+            }
+        }
+    }
 
-	auto progres = 0.0f;
-	auto delta = 100.0f / static_cast<float>(liste.taille());
+    auto progres = 0.0f;
+    auto delta = 100.0f / static_cast<float>(liste.taille());
 
-	for (auto noeud : liste) {
-		noeud->besoin_execution = true;
-		auto op = extrait_opimage(noeud->donnees);
-		op->libere_memoire();
+    for (auto noeud : liste) {
+        noeud->besoin_execution = true;
+        auto op = extrait_opimage(noeud->donnees);
+        op->libere_memoire();
 
-		chef->indique_progression(progres + delta);
-		progres += delta;
-	}
+        chef->indique_progression(progres + delta);
+        progres += delta;
+    }
 }
 
 /* ************************************************************************** */
 
-SortieOperatrice::SortieOperatrice(PriseSortie *prise)
-	: m_ptr(prise)
-{}
+SortieOperatrice::SortieOperatrice(PriseSortie *prise) : m_ptr(prise)
+{
+}
 
 PriseSortie *SortieOperatrice::pointeur()
 {
-	return m_ptr;
+    return m_ptr;
 }
 
 /* ************************************************************************** */
 
 OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &n)
-	: m_graphe_parent(graphe_parent)
-	, noeud(n)
+    : m_graphe_parent(graphe_parent), noeud(n)
 {
-	noeud.donnees = this;
-	m_input_data.redimensionne(m_num_inputs);
-	m_sorties.redimensionne(m_num_outputs);
+    noeud.donnees = this;
+    m_input_data.redimensionne(m_num_inputs);
+    m_sorties.redimensionne(m_num_outputs);
 }
 
 void OperatriceImage::usine(UsineOperatrice *usine_op)
 {
-	m_usine = usine_op;
+    m_usine = usine_op;
 }
 
 UsineOperatrice *OperatriceImage::usine() const
 {
-	return m_usine;
+    return m_usine;
 }
 
 bool OperatriceImage::execute_toujours() const
 {
-	return m_execute_toujours;
+    return m_execute_toujours;
 }
 
 int OperatriceImage::type() const
 {
-	return OPERATRICE_IMAGE;
+    return OPERATRICE_IMAGE;
 }
 
 void OperatriceImage::entrees(long number)
 {
-	m_num_inputs = number;
-	m_input_data.redimensionne(number);
+    m_num_inputs = number;
+    m_input_data.redimensionne(number);
 }
 
 long OperatriceImage::entrees() const
 {
-	return m_num_inputs;
+    return m_num_inputs;
 }
 
 const char *OperatriceImage::nom_entree(int n)
 {
-	static const char *noms[] = {
-		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
-	};
+    static const char *noms[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                                 "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
-	return noms[n];
+    return noms[n];
 }
 
 type_prise OperatriceImage::type_entree(int n) const
 {
-	switch (n) {
-		default:
-		case 0: return type_prise::IMAGE;
-	}
+    switch (n) {
+        default:
+        case 0:
+            return type_prise::IMAGE;
+    }
 }
 
 bool OperatriceImage::connexions_multiples(int n) const
 {
-	INUTILISE(n);
-	return false;
+    INUTILISE(n);
+    return false;
 }
 
 EntreeOperatrice *OperatriceImage::entree(long index)
 {
-	if (index >= m_num_inputs) {
-		return nullptr;
-	}
+    if (index >= m_num_inputs) {
+        return nullptr;
+    }
 
-	return &m_input_data[index];
+    return &m_input_data[index];
 }
 
 const EntreeOperatrice *OperatriceImage::entree(long index) const
 {
-	if (index >= m_num_inputs) {
-		return nullptr;
-	}
+    if (index >= m_num_inputs) {
+        return nullptr;
+    }
 
-	return &m_input_data[index];
+    return &m_input_data[index];
 }
 
 void OperatriceImage::donnees_entree(long index, PriseEntree *socket)
 {
-	if (index >= m_input_data.taille()) {
-		std::cerr << nom_classe() << " : Overflow while setting data (inputs: "
-				  << m_input_data.taille() << ", index: " << index << ")\n";
-		return;
-	}
+    if (index >= m_input_data.taille()) {
+        std::cerr << nom_classe()
+                  << " : Overflow while setting data (inputs: " << m_input_data.taille()
+                  << ", index: " << index << ")\n";
+        return;
+    }
 
-	m_input_data[index] = EntreeOperatrice(socket);
+    m_input_data[index] = EntreeOperatrice(socket);
 }
 
 SortieOperatrice *OperatriceImage::sortie(long index)
 {
-	if (index >= m_num_outputs) {
-		return nullptr;
-	}
+    if (index >= m_num_outputs) {
+        return nullptr;
+    }
 
-	return &m_sorties[index];
+    return &m_sorties[index];
 }
 
 void OperatriceImage::donnees_sortie(long index, PriseSortie *prise)
 {
-	if (index >= m_sorties.taille()) {
-		std::cerr << nom_classe() << " : Overflow while setting data (outputs: "
-				  << m_sorties.taille() << ", index: " << index << ")\n";
-		return;
-	}
+    if (index >= m_sorties.taille()) {
+        std::cerr << nom_classe()
+                  << " : Overflow while setting data (outputs: " << m_sorties.taille()
+                  << ", index: " << index << ")\n";
+        return;
+    }
 
-	m_sorties[index] = SortieOperatrice(prise);
+    m_sorties[index] = SortieOperatrice(prise);
 }
 
 void OperatriceImage::sorties(long number)
 {
-	m_num_outputs = number;
-	m_sorties.redimensionne(number);
+    m_num_outputs = number;
+    m_sorties.redimensionne(number);
 }
 
 long OperatriceImage::sorties() const
 {
-	return m_num_outputs;
+    return m_num_outputs;
 }
 
 const char *OperatriceImage::nom_sortie(int n)
 {
-	static const char *noms[] = {
-		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
-	};
+    static const char *noms[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                                 "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
-	return noms[n];
+    return noms[n];
 }
 
 type_prise OperatriceImage::type_sortie(int n) const
 {
-	switch (n) {
-		default:
-		case 0: return type_prise::IMAGE;
-	}
+    switch (n) {
+        default:
+        case 0:
+            return type_prise::IMAGE;
+    }
 }
 
 ResultatCheminEntreface OperatriceImage::chemin_entreface() const
 {
-	return CheminFichier{""};
+    return CheminFichier{""};
 }
 
 void OperatriceImage::transfere_image(Image &image)
 {
-	image = m_image;
+    image = m_image;
 }
 
 void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
 {
-	m_avertissements.ajoute(avertissement);
+    m_avertissements.ajoute(avertissement);
 }
 
 void OperatriceImage::reinitialise_avertisements()
 {
-	m_avertissements.efface();
+    m_avertissements.efface();
 }
 
 dls::tableau<dls::chaine> const &OperatriceImage::avertissements() const
 {
-	return m_avertissements;
+    return m_avertissements;
 }
 
 Image *OperatriceImage::image()
 {
-	return &m_image;
+    return &m_image;
 }
 
 Image const *OperatriceImage::image() const
 {
-	return &m_image;
+    return &m_image;
 }
 
 Corps *OperatriceImage::corps()
 {
-	return nullptr;
+    return nullptr;
 }
 
 bool OperatriceImage::possede_manipulatrice_3d(int /*type*/) const
 {
-	return false;
+    return false;
 }
 
 Manipulatrice3D *OperatriceImage::manipulatrice_3d(int /*type*/)
 {
-	return nullptr;
+    return nullptr;
 }
 
 void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*temps*/)
-{}
-
-void OperatriceImage::obtiens_liste(
-		ContexteEvaluation const &contexte,
-		dls::chaine const &attache,
-		dls::tableau<dls::chaine> &chaines)
 {
-	INUTILISE(contexte);
-	INUTILISE(attache);
-
-	if (entrees() == 0) {
-		chaines.efface();
-		return;
-	}
-
-	/* Par défaut, on utilise la liste de la première entrée. */
-	entree(0)->obtiens_liste_calque(chaines);
 }
 
-void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau)
+void OperatriceImage::obtiens_liste(ContexteEvaluation const &contexte,
+                                    dls::chaine const &attache,
+                                    dls::tableau<dls::chaine> &chaines)
 {
-	INUTILISE(contexte);
-	INUTILISE(compilatrice);
-	INUTILISE(noeud_reseau);
+    INUTILISE(contexte);
+    INUTILISE(attache);
+
+    if (entrees() == 0) {
+        chaines.efface();
+        return;
+    }
+
+    /* Par défaut, on utilise la liste de la première entrée. */
+    entree(0)->obtiens_liste_calque(chaines);
+}
+
+void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte,
+                                           CompilatriceReseau &compilatrice,
+                                           NoeudReseau *noeud_reseau)
+{
+    INUTILISE(contexte);
+    INUTILISE(compilatrice);
+    INUTILISE(noeud_reseau);
 }
 
 bool OperatriceImage::depend_sur_temps() const
 {
-	return false;
+    return false;
 }
 
 void OperatriceImage::amont_change(PriseEntree *entree)
 {
-	INUTILISE(entree);
-	return;
+    INUTILISE(entree);
+    return;
 }
 
 void OperatriceImage::parametres_changes()
 {
-	return;
+    return;
 }
 
 void OperatriceImage::libere_memoire()
 {
-	m_image.reinitialise();
-	cache_est_invalide = true;
+    m_image.reinitialise();
+    cache_est_invalide = true;
 }
 
 /* ************************************************************************** */
 
-calque_image const *cherche_calque(
-		OperatriceImage &op,
-		Image const *image,
-		dls::chaine const &nom_calque)
+calque_image const *cherche_calque(OperatriceImage &op,
+                                   Image const *image,
+                                   dls::chaine const &nom_calque)
 {
-	if (image == nullptr) {
-		op.ajoute_avertissement("Aucune image trouvée en entrée !");
-		return nullptr;
-	}
+    if (image == nullptr) {
+        op.ajoute_avertissement("Aucune image trouvée en entrée !");
+        return nullptr;
+    }
 
-	if (nom_calque.est_vide()) {
-		op.ajoute_avertissement("Le nom du calque est vide");
-		return nullptr;
-	}
+    if (nom_calque.est_vide()) {
+        op.ajoute_avertissement("Le nom du calque est vide");
+        return nullptr;
+    }
 
-	auto tampon = image->calque_pour_lecture(nom_calque);
+    auto tampon = image->calque_pour_lecture(nom_calque);
 
-	if (tampon == nullptr) {
-		op.ajoute_avertissement("Calque '", nom_calque, "' introuvable !\n");
-		return nullptr;
-	}
+    if (tampon == nullptr) {
+        op.ajoute_avertissement("Calque '", nom_calque, "' introuvable !\n");
+        return nullptr;
+    }
 
-	return tampon;
+    return tampon;
 }

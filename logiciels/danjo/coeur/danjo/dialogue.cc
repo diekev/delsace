@@ -27,25 +27,24 @@
 #include <QBoxLayout>
 #include <QPushButton>
 
-Dialogue::Dialogue(QLayout *disposition, QWidget *parent)
-	: QDialog(parent)
+Dialogue::Dialogue(QLayout *disposition, QWidget *parent) : QDialog(parent)
 {
-	auto disposition_principale = new QVBoxLayout;
-	auto disposition_boutons = new QHBoxLayout;
+    auto disposition_principale = new QVBoxLayout;
+    auto disposition_boutons = new QHBoxLayout;
 
-	auto bouton_accepter = new QPushButton("Accepter");
-	auto bouton_annuler  = new QPushButton("Annuler");
+    auto bouton_accepter = new QPushButton("Accepter");
+    auto bouton_annuler = new QPushButton("Annuler");
 
-	connect(bouton_accepter, &QPushButton::clicked, this, &QDialog::accept);
-	connect(bouton_annuler, &QPushButton::clicked, this, &QDialog::reject);
+    connect(bouton_accepter, &QPushButton::clicked, this, &QDialog::accept);
+    connect(bouton_annuler, &QPushButton::clicked, this, &QDialog::reject);
 
-	disposition_boutons->addStretch();
-	disposition_boutons->addWidget(bouton_accepter);
-	disposition_boutons->addWidget(bouton_annuler);
+    disposition_boutons->addStretch();
+    disposition_boutons->addWidget(bouton_accepter);
+    disposition_boutons->addWidget(bouton_annuler);
 
-	disposition_principale->addLayout(disposition);
-	disposition_principale->addLayout(disposition_boutons);
+    disposition_principale->addLayout(disposition);
+    disposition_principale->addLayout(disposition_boutons);
 
-	this->setLayout(disposition_principale);
-	this->resize(256, this->rect().height());
+    this->setLayout(disposition_principale);
+    this->resize(256, this->rect().height());
 }

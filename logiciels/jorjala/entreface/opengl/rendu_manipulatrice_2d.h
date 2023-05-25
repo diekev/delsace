@@ -28,28 +28,28 @@ class ContexteRendu;
 class TamponRendu;
 
 class RenduManipulatrice2D {
-	TamponRendu *m_tampon;
+    TamponRendu *m_tampon;
 
-public:
-	/**
-	 * Construit une instance de RenduManipulatrice2D. La construction implique la
-	 * création de tampons OpenGL, donc elle doit se faire dans un contexte
-	 * OpenGL valide.
-	 */
-	RenduManipulatrice2D();
+  public:
+    /**
+     * Construit une instance de RenduManipulatrice2D. La construction implique la
+     * création de tampons OpenGL, donc elle doit se faire dans un contexte
+     * OpenGL valide.
+     */
+    RenduManipulatrice2D();
 
-	/* pour faire taire cppcheck */
-	RenduManipulatrice2D(RenduManipulatrice2D const &) = delete;
-	RenduManipulatrice2D &operator=(RenduManipulatrice2D const &) = default;
+    /* pour faire taire cppcheck */
+    RenduManipulatrice2D(RenduManipulatrice2D const &) = delete;
+    RenduManipulatrice2D &operator=(RenduManipulatrice2D const &) = default;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduManipulatrice2D();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduManipulatrice2D();
 
-	/**
-	 * Dessine la manipulatrice dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine la manipulatrice dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };

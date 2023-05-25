@@ -29,69 +29,69 @@
 /* ************************************************************************** */
 
 class ControleEchelleDecimale : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-	int m_case = 0;
-	float m_valeur = 0.0f;
-	float m_min = -std::numeric_limits<float>::max();
-	float m_max = std::numeric_limits<float>::max();
-	bool m_souris_pressee = false;
-	bool m_premier_changement = false;
-	char pad[2];
-	int m_vieil_x = 0;
+    int m_case = 0;
+    float m_valeur = 0.0f;
+    float m_min = -std::numeric_limits<float>::max();
+    float m_max = std::numeric_limits<float>::max();
+    bool m_souris_pressee = false;
+    bool m_premier_changement = false;
+    char pad[2];
+    int m_vieil_x = 0;
 
-public:
-	explicit ControleEchelleDecimale(QWidget *parent = nullptr);
+  public:
+    explicit ControleEchelleDecimale(QWidget *parent = nullptr);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void valeur(float v);
+    void valeur(float v);
 
-	void plage(float min, float max);
+    void plage(float min, float max);
 
-Q_SIGNALS:
-	void prevaleur_changee();
-	void valeur_changee(float valeur);
-	void edition_terminee();
+  Q_SIGNALS:
+    void prevaleur_changee();
+    void valeur_changee(float valeur);
+    void edition_terminee();
 };
 
 /* ************************************************************************** */
 
 class ControleEchelleEntiere : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-	int m_case = 0;
-	int m_valeur = 1;
-	int m_min = std::numeric_limits<int>::min();
-	int m_max = std::numeric_limits<int>::max();
-	bool m_souris_pressee = false;
-	bool m_premier_changement = false;
-	char pad[2];
-	int m_vieil_x = 0;
+    int m_case = 0;
+    int m_valeur = 1;
+    int m_min = std::numeric_limits<int>::min();
+    int m_max = std::numeric_limits<int>::max();
+    bool m_souris_pressee = false;
+    bool m_premier_changement = false;
+    char pad[2];
+    int m_vieil_x = 0;
 
-public:
-	explicit ControleEchelleEntiere(QWidget *parent = nullptr);
+  public:
+    explicit ControleEchelleEntiere(QWidget *parent = nullptr);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void valeur(int v);
+    void valeur(int v);
 
-	void plage(int min, int max);
+    void plage(int min, int max);
 
-Q_SIGNALS:
-	void prevaleur_changee();
-	void valeur_changee(int valeur);
-	void edition_terminee();
+  Q_SIGNALS:
+    void prevaleur_changee();
+    void valeur_changee(int valeur);
+    void edition_terminee();
 };
