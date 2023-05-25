@@ -578,7 +578,7 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_64:
                 {
-                    LIS_CONSTANTE(unsigned long);
+                    LIS_CONSTANTE(uint64_t);
                     os << " n64";
                     break;
                 }
@@ -1408,7 +1408,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<unsigned int>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(static_cast<unsigned long>(valeur_entiere));
+                    chunk.emets_constante(static_cast<uint64_t>(valeur_entiere));
                 }
             }
             else if (type->genre == GenreType::ENTIER_RELATIF) {
@@ -1558,7 +1558,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             switch (valeur_constante->valeur.genre) {
                 case AtomeValeurConstante::Valeur::Genre::NULLE:
                 {
-                    *reinterpret_cast<unsigned long *>(donnees) = 0;
+                    *reinterpret_cast<uint64_t *>(donnees) = 0;
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TYPE:
@@ -1595,8 +1595,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {
-                            *reinterpret_cast<unsigned long *>(
-                                donnees) = static_cast<unsigned long>(valeur_entiere);
+                            *reinterpret_cast<uint64_t *>(
+                                donnees) = static_cast<uint64_t>(valeur_entiere);
                         }
                     }
                     else if (type->genre == GenreType::ENTIER_RELATIF) {

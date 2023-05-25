@@ -103,7 +103,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 
     struct Valeur {
         union {
-            unsigned long long valeur_entiere;
+            uint64_t valeur_entiere;
             double valeur_reelle;
             bool valeur_booleenne;
             struct {
@@ -155,7 +155,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 
     Valeur valeur{};
 
-    AtomeValeurConstante(Type const *type_, unsigned long long valeur_) : AtomeValeurConstante()
+    AtomeValeurConstante(Type const *type_, uint64_t valeur_) : AtomeValeurConstante()
     {
         this->type = type_;
         this->valeur.genre = Valeur::Genre::ENTIERE;

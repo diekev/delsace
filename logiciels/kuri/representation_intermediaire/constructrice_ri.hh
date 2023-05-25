@@ -104,12 +104,12 @@ struct ConstructriceRI {
     void rassemble_statistiques(Statistiques &stats);
 
     AtomeConstante *cree_constante_booleenne(bool valeur);
-    AtomeConstante *cree_constante_caractere(Type const *type, unsigned long long valeur);
-    AtomeConstante *cree_constante_entiere(Type const *type, unsigned long long valeur);
+    AtomeConstante *cree_constante_caractere(Type const *type, uint64_t valeur);
+    AtomeConstante *cree_constante_entiere(Type const *type, uint64_t valeur);
     AtomeConstante *cree_constante_type(Type const *pointeur_type);
     AtomeConstante *cree_constante_taille_de(Type const *pointeur_type);
-    AtomeConstante *cree_z32(unsigned long long valeur);
-    AtomeConstante *cree_z64(unsigned long long valeur);
+    AtomeConstante *cree_z32(uint64_t valeur);
+    AtomeConstante *cree_z64(uint64_t valeur);
     AtomeConstante *cree_constante_nulle(Type const *type);
     AtomeConstante *cree_constante_reelle(Type const *type, double valeur);
     AtomeConstante *cree_constante_structure(Type const *type,

@@ -252,7 +252,7 @@ struct iteratrice_crue_inverse : public iteratrice_crue<T> {
     }
 };
 
-template <class T, unsigned long TAILLE_INITIALE>
+template <class T, uint64_t TAILLE_INITIALE>
 class tablet {
     T m_tablet[TAILLE_INITIALE];
     T *m_memoire = m_tablet;
@@ -585,7 +585,7 @@ auto cree_tablet(T arg, Ts &&...args)
     return resultat;
 }
 
-template <typename T, unsigned long N, typename TypeIndex>
+template <typename T, uint64_t N, typename TypeIndex>
 static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
 {
     dst.reserve(static_cast<TypeIndex>(src.taille()));

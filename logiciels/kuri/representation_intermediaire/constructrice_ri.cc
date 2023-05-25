@@ -85,7 +85,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
 }
 
 AtomeConstante *ConstructriceRI::cree_constante_entiere(Type const *type,
-                                                        unsigned long long valeur)
+                                                        uint64_t valeur)
 {
     return atomes_constante.ajoute_element(type, valeur);
 }
@@ -104,12 +104,12 @@ AtomeConstante *ConstructriceRI::cree_constante_taille_de(Type const *pointeur_t
     return taille_de;
 }
 
-AtomeConstante *ConstructriceRI::cree_z32(unsigned long long valeur)
+AtomeConstante *ConstructriceRI::cree_z32(uint64_t valeur)
 {
     return cree_constante_entiere(m_compilatrice.typeuse[TypeBase::Z32], valeur);
 }
 
-AtomeConstante *ConstructriceRI::cree_z64(unsigned long long valeur)
+AtomeConstante *ConstructriceRI::cree_z64(uint64_t valeur)
 {
     return cree_constante_entiere(m_compilatrice.typeuse[TypeBase::Z64], valeur);
 }
@@ -201,7 +201,7 @@ AtomeConstante *ConstructriceRI::cree_constante_booleenne(bool valeur)
 }
 
 AtomeConstante *ConstructriceRI::cree_constante_caractere(Type const *type,
-                                                          unsigned long long valeur)
+                                                          uint64_t valeur)
 {
     auto atome = atomes_constante.ajoute_element(type, valeur);
     atome->valeur.genre = AtomeValeurConstante::Valeur::Genre::CARACTERE;
@@ -2011,7 +2011,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 acces_membre = cree_reference_membre(noeud, alloc, 1);
                 auto index = cree_constante_entiere(
                     m_compilatrice.typeuse[TypeBase::Z32],
-                    static_cast<unsigned long>(transformation.index_membre + 1));
+                    static_cast<uint64_t>(transformation.index_membre + 1));
                 cree_stocke_mem(noeud, acces_membre, index);
             }
 
@@ -3573,7 +3573,7 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
 
         auto globale_tableau = cree_globale(type_tableau, tableau, false, true);
         auto pointeur_chaine = cree_acces_index_constant(globale_tableau, cree_z64(0));
-        auto taille_chaine = cree_z64(static_cast<unsigned long>(chaine.taille()));
+        auto taille_chaine = cree_z64(static_cast<uint64_t>(chaine.taille()));
 
         auto membres = kuri::tableau<AtomeConstante *>(2);
         membres[0] = pointeur_chaine;

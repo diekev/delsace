@@ -644,7 +644,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
             auto const taille = type->comme_tableau_fixe()->taille;
 
-            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
+            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
             break;
         }
         case GenreType::ENUM:

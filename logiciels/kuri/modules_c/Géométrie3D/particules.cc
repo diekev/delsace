@@ -538,7 +538,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 
     auto const graine = params.graine;
 
-    auto gna = GNA(static_cast<unsigned long>(graine));
+    auto gna = GNA(static_cast<uint64_t>(graine));
 
     auto grille_particule = GrilleParticules(dls::math::point3d(donnees_aires.limites_min),
                                              dls::math::point3d(donnees_aires.limites_max),

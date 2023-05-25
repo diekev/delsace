@@ -5,7 +5,7 @@
 
 namespace kuri {
 
-template <typename T, unsigned long N>
+template <typename T, uint64_t N>
 struct file_fixe {
   private:
     T valeurs[N];

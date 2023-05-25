@@ -144,7 +144,7 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "unsigned int";
                 }
                 else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "unsigned long";
+                    type_c.typedef_ = "uint64_t";
                 }
 
                 break;

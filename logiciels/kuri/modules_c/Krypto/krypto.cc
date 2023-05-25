@@ -217,25 +217,25 @@ HACHEUSE *KRYPTO_HACHEUSE_cree_crc32()
 }
 
 HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_md5(const void *key,
-                                        unsigned long numKeyBytes,
+                                        uint64_t numKeyBytes,
                                         const void *data,
-                                        unsigned long numDataBytes)
+                                        uint64_t numDataBytes)
 {
     return POIGNEE(new HacheuseHMACMD5(key, numKeyBytes, data, numDataBytes));
 }
 
 HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha1(const void *key,
-                                         unsigned long numKeyBytes,
+                                         uint64_t numKeyBytes,
                                          const void *data,
-                                         unsigned long numDataBytes)
+                                         uint64_t numDataBytes)
 {
     return POIGNEE(new HacheuseHMACSHA1(key, numKeyBytes, data, numDataBytes));
 }
 
 HACHEUSE *KRYPTO_HACHEUSE_cree_hmac_sha256(const void *key,
-                                           unsigned long numKeyBytes,
+                                           uint64_t numKeyBytes,
                                            const void *data,
-                                           unsigned long numDataBytes)
+                                           uint64_t numDataBytes)
 {
     return POIGNEE(new HacheuseHMACSHA256(key, numKeyBytes, data, numDataBytes));
 }
@@ -277,9 +277,9 @@ int KRYPTO_HACHEUSE_taille_bloc(HACHEUSE *poignee)
 }
 
 int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
-                                      unsigned long taille_a,
+                                      uint64_t taille_a,
                                       const unsigned char *b,
-                                      unsigned long taille_b)
+                                      uint64_t taille_b)
 {
     /* The volatile type declarations make sure that the compiler has no
      * chance to optimize and fold the code in any way that may change
@@ -287,7 +287,7 @@ int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
      */
     volatile const unsigned char *droite;
     volatile const unsigned char *gauche;
-    volatile unsigned long longueur;
+    volatile uint64_t longueur;
     volatile unsigned char resultat;
 
     /* loop count depends on length of b */
@@ -307,7 +307,7 @@ int KRYPTO_HACHEUSE_compare_condensat(const unsigned char *a,
         resultat = 1;
     }
 
-    for (unsigned long i = 0; i < longueur; ++i) {
+    for (uint64_t i = 0; i < longueur; ++i) {
         resultat = resultat | (*gauche++ ^ *droite++);
     }
 

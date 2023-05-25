@@ -3324,7 +3324,7 @@ static long valeur_min(Type *type)
             return std::numeric_limits<unsigned int>::min();
         }
 
-        return std::numeric_limits<unsigned long>::min();
+        return std::numeric_limits<uint64_t>::min();
     }
 
     if (type->taille_octet == 1) {
@@ -3342,7 +3342,7 @@ static long valeur_min(Type *type)
     return std::numeric_limits<long>::min();
 }
 
-static unsigned long valeur_max(Type *type)
+static uint64_t valeur_max(Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3357,7 +3357,7 @@ static unsigned long valeur_max(Type *type)
             return std::numeric_limits<unsigned int>::max();
         }
 
-        return std::numeric_limits<unsigned long>::max();
+        return std::numeric_limits<uint64_t>::max();
     }
 
     if (type->taille_octet == 1) {
@@ -3395,7 +3395,7 @@ static int nombre_de_bits_pour_type(Type *type)
         return std::numeric_limits<unsigned int>::digits;
     }
 
-    return std::numeric_limits<unsigned long>::digits;
+    return std::numeric_limits<uint64_t>::digits;
 }
 
 template <int N>

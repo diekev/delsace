@@ -7,7 +7,7 @@
 
 namespace kuri {
 
-template <typename T, unsigned long TAILLE_INITIALE>
+template <typename T, uint64_t TAILLE_INITIALE>
 struct ensemblon {
   private:
     T m_ensemblon[TAILLE_INITIALE];
@@ -156,7 +156,7 @@ struct ensemblon {
     }
 };
 
-template <typename T, unsigned long TAILLE_INITIALE, typename Rappel>
+template <typename T, uint64_t TAILLE_INITIALE, typename Rappel>
 void pour_chaque_element(ensemblon<T, TAILLE_INITIALE> const &ens, Rappel rappel)
 {
     if (ens.est_stocke_dans_classe()) {

@@ -699,19 +699,19 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::ENTIER_CONSTANT:
         case GenreType::ENTIER_RELATIF:
         {
-            unsigned long valeur = 0;
+            uint64_t valeur = 0;
 
             if (type->taille_octet == 1) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<char *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<char *>(pointeur));
             }
             else if (type->taille_octet == 2) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<short *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<short *>(pointeur));
             }
             else if (type->taille_octet == 4 || type->taille_octet == 0) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<int *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<int *>(pointeur));
             }
             else if (type->taille_octet == 8) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<long *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<long *>(pointeur));
             }
 
             return assembleuse->cree_litterale_entier(lexeme, type, valeur);
@@ -720,18 +720,18 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::ERREUR:
         case GenreType::ENTIER_NATUREL:
         {
-            unsigned long valeur = 0;
+            uint64_t valeur = 0;
             if (type->taille_octet == 1) {
-                valeur = static_cast<unsigned long>(*pointeur);
+                valeur = static_cast<uint64_t>(*pointeur);
             }
             else if (type->taille_octet == 2) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<unsigned short *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<unsigned short *>(pointeur));
             }
             else if (type->taille_octet == 4) {
-                valeur = static_cast<unsigned long>(*reinterpret_cast<unsigned int *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<unsigned int *>(pointeur));
             }
             else if (type->taille_octet == 8) {
-                valeur = *reinterpret_cast<unsigned long *>(pointeur);
+                valeur = *reinterpret_cast<uint64_t *>(pointeur);
             }
 
             return assembleuse->cree_litterale_entier(lexeme, type, valeur);

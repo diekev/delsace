@@ -63,7 +63,7 @@ struct pile {
     }
 };
 
-template <typename T, unsigned long N>
+template <typename T, uint64_t N>
 struct pile_fixe {
     using type_valeur = T;
     using type_reference = T &;

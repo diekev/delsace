@@ -36,7 +36,7 @@ struct chaine_statique {
     {
     }
 
-    template <unsigned long N>
+    template <uint64_t N>
     chaine_statique(const char (&ptr)[N]) : chaine_statique(ptr, static_cast<long>(N))
     {
     }

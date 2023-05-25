@@ -264,7 +264,7 @@ bool booleen_maillages(Maillage const &maillage_a,
 // Calcul du volume d'un maillage triangulé selon la méthode de
 // http://chenlab.ece.cornell.edu/Publication/Cha/icip01_Cha.pdf
 static float calcule_volume(std::vector<EnrichedPolyhedron::Point_3> vertices,
-                            std::vector<std::vector<unsigned long>> triangles)
+                            std::vector<std::vector<uint64_t>> triangles)
 {
     double volume = 0.0;
 
@@ -285,7 +285,7 @@ static float calcule_volume(std::vector<EnrichedPolyhedron::Point_3> vertices,
 }
 
 static math::vec3f calcule_centroide(std::vector<EnrichedPolyhedron::Point_3> vertices,
-                                     std::vector<std::vector<unsigned long>> triangles)
+                                     std::vector<std::vector<uint64_t>> triangles)
 {
     double x = 0.0;
     double y = 0.0;
@@ -318,7 +318,7 @@ bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
 
     struct PointsEtTrianglesCellule {
         std::vector<EnrichedPolyhedron::Point_3> vertices;
-        std::vector<std::vector<unsigned long>> triangles;
+        std::vector<std::vector<uint64_t>> triangles;
     };
 
     try {

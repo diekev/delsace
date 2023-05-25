@@ -37,7 +37,7 @@ inline bool adresse_est_nulle(const void *adresse)
      * Vérification si adresse est dans la première page pour également détecter les
      * déréférencement d'adresses nulles. */
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe) ||
-           reinterpret_cast<unsigned long>(adresse) < 4096;
+           reinterpret_cast<uint64_t>(adresse) < 4096;
 }
 
 static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInterpretation res)
@@ -153,7 +153,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_BINAIRE_POUR_TYPE(op, unsigned char)                                                       \
     else OP_BINAIRE_POUR_TYPE(op, unsigned short) else OP_BINAIRE_POUR_TYPE(                      \
-        op, unsigned int) else OP_BINAIRE_POUR_TYPE(op, unsigned long)
+        op, unsigned int) else OP_BINAIRE_POUR_TYPE(op, uint64_t)
 
 #define OP_BINAIRE_REEL(op)                                                                       \
     auto taille = LIS_4_OCTETS();                                                                 \
@@ -244,7 +244,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
                 os << *reinterpret_cast<unsigned int *>(pointeur);
             }
             else if (type->taille_octet == 8) {
-                os << *reinterpret_cast<unsigned long *>(pointeur);
+                os << *reinterpret_cast<uint64_t *>(pointeur);
             }
 
             break;
@@ -846,7 +846,7 @@ inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel
         }
         case CONSTANTE_ENTIER_NATUREL | BITS_64:
         {
-            EMPILE_CONSTANTE(unsigned long)
+            EMPILE_CONSTANTE(uint64_t)
         }
         case CONSTANTE_NOMBRE_REEL | BITS_32:
         {
@@ -1168,14 +1168,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, unsigned long)
+                FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, uint64_t)
                 break;
             }
             case OP_DIMINUE_NATUREL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, unsigned long)
+                FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, uint64_t)
                 break;
             }
             case OP_AUGMENTE_RELATIF:

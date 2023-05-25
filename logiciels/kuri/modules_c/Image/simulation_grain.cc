@@ -184,7 +184,7 @@ static void simule_grain_image(DonneesCanal<ParamatresGrain> &image,
     }
 
     boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
-        auto gna_local = GNA(static_cast<unsigned long>(graine + plage.begin()));
+        auto gna_local = GNA(static_cast<uint64_t>(graine + plage.begin()));
 
         for (int j = plage.begin(); j < plage.end(); ++j) {
             for (int i = 0; i < res_x; ++i) {
