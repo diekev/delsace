@@ -24,9 +24,7 @@ set(NOM_CIBLE jorjala_coeur)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
-	${INCLUSIONS_QT5_CORE}
-	${INCLUSIONS_QT5_WIDGETS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
         ${INCLUSIONS_JORJALA}
 )
 
