@@ -163,7 +163,7 @@ using HacheuseSHA256 = Hacheuse<SHA256>;
 
 extern "C" {
 
-long BCrypt_taille_tampon()
+int64_t BCrypt_taille_tampon()
 {
     return BCRYPT_HASHSIZE;
 }

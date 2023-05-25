@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-long BCrypt_taille_tampon();
+int64_t BCrypt_taille_tampon();
 
 void BCrypt_genere_empreinte(char *mot_de_passe, int charge_travail, char *sortie);
 

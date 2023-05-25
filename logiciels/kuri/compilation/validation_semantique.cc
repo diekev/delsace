@@ -3271,7 +3271,7 @@ static inline bool est_puissance_de_2(T x)
     return (x != 0) && (x & (x - 1)) == 0;
 }
 
-static bool est_hors_des_limites(long valeur, Type *type)
+static bool est_hors_des_limites(int64_t valeur, Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3309,7 +3309,7 @@ static bool est_hors_des_limites(long valeur, Type *type)
     return false;
 }
 
-static long valeur_min(Type *type)
+static int64_t valeur_min(Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3339,7 +3339,7 @@ static long valeur_min(Type *type)
         return std::numeric_limits<int>::min();
     }
 
-    return std::numeric_limits<long>::min();
+    return std::numeric_limits<int64_t>::min();
 }
 
 static uint64_t valeur_max(Type *type)
@@ -3372,7 +3372,7 @@ static uint64_t valeur_max(Type *type)
         return std::numeric_limits<int>::max();
     }
 
-    return std::numeric_limits<long>::max();
+    return std::numeric_limits<int64_t>::max();
 }
 
 static int nombre_de_bits_pour_type(Type *type)
@@ -3418,9 +3418,9 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     membres.reserve(decl->bloc->expressions->taille());
     decl->bloc->reserve_membres(decl->bloc->expressions->taille());
 
-    long valeur_enum_min = std::numeric_limits<long>::max();
-    long valeur_enum_max = std::numeric_limits<long>::min();
-    long valeurs_legales = 0;
+    int64_t valeur_enum_min = std::numeric_limits<int64_t>::max();
+    int64_t valeur_enum_max = std::numeric_limits<int64_t>::min();
+    int64_t valeurs_legales = 0;
 
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
         if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -4684,7 +4684,7 @@ void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gau
 
 void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression *b,
                                                                 TypeTableauFixe *type_tableau,
-                                                                long index_acces)
+                                                                int64_t index_acces)
 {
     erreur::lance_erreur_acces_hors_limites(
         *espace, b, type_tableau->taille, type_tableau, index_acces);

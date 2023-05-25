@@ -141,7 +141,7 @@ AtomeConstante *ConstructriceRI::cree_constante_tableau_donnees_constantes(
 
 AtomeConstante *ConstructriceRI::cree_constante_tableau_donnees_constantes(Type const *type,
                                                                            char *pointeur,
-                                                                           long taille)
+                                                                           int64_t taille)
 {
     return atomes_constante.ajoute_element(type, pointeur, taille);
 }

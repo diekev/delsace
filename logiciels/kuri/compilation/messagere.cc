@@ -103,7 +103,7 @@ Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
     return message;
 }
 
-long Messagere::memoire_utilisee() const
+int64_t Messagere::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += messages_fichiers.memoire_utilisee();

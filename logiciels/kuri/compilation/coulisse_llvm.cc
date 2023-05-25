@@ -383,7 +383,7 @@ struct GeneratriceCodeLLVM {
 
     void genere_code(const ProgrammeRepreInter &repr_inter);
 
-    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, long taille_chaine);
+    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
@@ -1480,7 +1480,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 }
 
 llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
-                                                        long taille_chaine)
+                                                        int64_t taille_chaine)
 {
     auto iter = valeurs_chaines_globales.valeur_ou(chaine, nullptr);
     if (iter) {

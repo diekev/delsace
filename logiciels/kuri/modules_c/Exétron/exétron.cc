@@ -154,7 +154,7 @@ void EXETRON_detruit_variable_condition(ContexteKuri *ctx_kuri,
     kuri_deloge(ctx_kuri, condition_variable);
 }
 
-static long taille_plage(PlageExecution const *plage)
+static int64_t taille_plage(PlageExecution const *plage)
 {
     return plage->fin - plage->debut;
 }
@@ -186,7 +186,7 @@ void EXETRON_boucle_parallele(PlageExecution const *plage,
         return;
     }
 
-    using type_plage = tbb::blocked_range<long>;
+    using type_plage = tbb::blocked_range<int64_t>;
 
     tbb::parallel_for(type_plage(plage->debut, plage->fin), [&](const type_plage &plage_) {
         PlageExecution plage_execution{plage_.begin(), plage_.end()};

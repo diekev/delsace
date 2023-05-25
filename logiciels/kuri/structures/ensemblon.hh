@@ -13,7 +13,7 @@ struct ensemblon {
     T m_ensemblon[TAILLE_INITIALE];
     kuri::ensemble<T> m_ensemble{};
 
-    long m_taille = 0;
+    int64_t m_taille = 0;
 
   public:
     ensemblon() = default;
@@ -44,7 +44,7 @@ struct ensemblon {
 
     bool est_stocke_dans_classe() const
     {
-        return m_taille <= static_cast<long>(TAILLE_INITIALE);
+        return m_taille <= static_cast<int64_t>(TAILLE_INITIALE);
     }
 
     void permute(ensemblon &autre)
@@ -91,7 +91,7 @@ struct ensemblon {
         }
 
         if (est_stocke_dans_classe()) {
-            if (m_taille + 1 <= static_cast<long>(TAILLE_INITIALE)) {
+            if (m_taille + 1 <= static_cast<int64_t>(TAILLE_INITIALE)) {
                 m_ensemblon[m_taille] = valeur;
                 m_taille += 1;
                 return;
@@ -121,7 +121,7 @@ struct ensemblon {
         return m_ensemble.possede(valeur);
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return m_taille;
     }

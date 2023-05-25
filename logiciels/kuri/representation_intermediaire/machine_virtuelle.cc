@@ -111,7 +111,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     (frame->pointeur += 4)
 
 #define LIS_8_OCTETS()                                                                            \
-    *reinterpret_cast<long *>(frame->pointeur);                                                   \
+    *reinterpret_cast<int64_t *>(frame->pointeur);                                                   \
     (frame->pointeur += 8)
 
 #define LIS_POINTEUR(type)                                                                        \
@@ -128,7 +128,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_UNAIRE_POUR_TYPE(op, char)                                                                 \
     else OP_UNAIRE_POUR_TYPE(op, short) else OP_UNAIRE_POUR_TYPE(                                 \
-        op, int) else OP_UNAIRE_POUR_TYPE(op, long)
+        op, int) else OP_UNAIRE_POUR_TYPE(op, int64_t)
 
 #define OP_UNAIRE_REEL(op)                                                                        \
     auto taille = LIS_4_OCTETS();                                                                 \
@@ -147,7 +147,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_BINAIRE_POUR_TYPE(op, char)                                                                \
     else OP_BINAIRE_POUR_TYPE(op, short) else OP_BINAIRE_POUR_TYPE(                               \
-        op, int) else OP_BINAIRE_POUR_TYPE(op, long)
+        op, int) else OP_BINAIRE_POUR_TYPE(op, int64_t)
 
 #define OP_BINAIRE_NATUREL(op)                                                                    \
     auto taille = LIS_4_OCTETS();                                                                 \
@@ -225,7 +225,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
                 os << *reinterpret_cast<int *>(pointeur);
             }
             else if (type->taille_octet == 8) {
-                os << *reinterpret_cast<long *>(pointeur);
+                os << *reinterpret_cast<int64_t *>(pointeur);
             }
 
             break;
@@ -294,7 +294,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
         case GenreType::CHAINE:
         {
             auto valeur_pointeur = pointeur;
-            auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
+            auto valeur_chaine = *reinterpret_cast<int64_t *>(pointeur + 8);
 
             auto chaine = kuri::chaine_statique(*reinterpret_cast<char **>(valeur_pointeur),
                                                 valeur_chaine);
@@ -412,7 +412,7 @@ inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 #else
     static_cast<void>(site);
 #endif
-    this->pointeur_pile += static_cast<long>(sizeof(T));
+    this->pointeur_pile += static_cast<int64_t>(sizeof(T));
     // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
     // static_cast<int>(pointeur_pile - pile) << '\n';
 }
@@ -420,14 +420,14 @@ inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
 template <typename T>
 inline T depile(NoeudExpression *site, octet_t *&pointeur_pile)
 {
-    pointeur_pile -= static_cast<long>(sizeof(T));
+    pointeur_pile -= static_cast<int64_t>(sizeof(T));
     return *reinterpret_cast<T *>(pointeur_pile);
 }
 
 template <typename T>
 inline T MachineVirtuelle::depile(NoeudExpression *site)
 {
-    this->pointeur_pile -= static_cast<long>(sizeof(T));
+    this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
     // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
     // static_cast<int>(pointeur_pile - pile) << '\n';
 #ifndef NDEBUG
@@ -442,7 +442,7 @@ inline T MachineVirtuelle::depile(NoeudExpression *site)
     return *reinterpret_cast<T *>(this->pointeur_pile);
 }
 
-void MachineVirtuelle::depile(NoeudExpression *site, long n)
+void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
 {
     pointeur_pile -= n;
     // std::cerr << "Dépile " << n << " octet(s), décalage : " << static_cast<int>(pointeur_pile -
@@ -828,7 +828,7 @@ inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel
         }
         case CONSTANTE_ENTIER_RELATIF | BITS_64:
         {
-            EMPILE_CONSTANTE(long)
+            EMPILE_CONSTANTE(int64_t)
         }
         case CONSTANTE_ENTIER_NATUREL | BITS_8:
         {
@@ -1182,14 +1182,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_AUGMENTE(char, short, int, long)
+                FAIS_TRANSTYPE_AUGMENTE(char, short, int, int64_t)
                 break;
             }
             case OP_DIMINUE_RELATIF:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_DIMINUE(char, short, int, long)
+                FAIS_TRANSTYPE_DIMINUE(char, short, int, int64_t)
                 break;
             }
             case OP_AUGMENTE_REEL:
@@ -1239,7 +1239,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 TRANSTYPE_EVR(char)
                 TRANSTYPE_EVR(short)
                 TRANSTYPE_EVR(int)
-                TRANSTYPE_EVR(long)
+                TRANSTYPE_EVR(int64_t)
 
 #undef TRANSTYPE_EVR
                 break;
@@ -1263,7 +1263,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             empile(site, static_cast<int>(v));                                                    \
         }                                                                                         \
         else if (taille_vers == 8) {                                                              \
-            empile(site, static_cast<long>(v));                                                   \
+            empile(site, static_cast<int64_t>(v));                                                   \
         }                                                                                         \
     }
 
@@ -1498,7 +1498,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto taille_donnees = LIS_4_OCTETS();
                 auto adresse = depile<char *>(site);
-                auto index = depile<long>(site);
+                auto index = depile<int64_t>(site);
                 auto nouvelle_adresse = adresse + index * taille_donnees;
                 empile(site, nouvelle_adresse);
                 //				std::cerr << "nouvelle_adresse : " << static_cast<void
@@ -1554,7 +1554,7 @@ void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
 bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
                                               const void *adresse_ou,
                                               const void *adresse_de,
-                                              const long taille,
+                                              const int64_t taille,
                                               bool assignation)
 {
     auto const taille_disponible = std::abs(static_cast<const char *>(adresse_de) -

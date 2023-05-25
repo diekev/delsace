@@ -22,7 +22,7 @@ struct ValeurExpression {
     using TypeVariant = std::variant<std::monostate,
                                      bool,
                                      double,
-                                     long,
+                                     int64_t,
                                      NoeudExpressionLitteraleChaine *,
                                      NoeudExpressionConstructionTableau *,
                                      NoeudDeclarationEnteteFonction *>;
@@ -33,15 +33,15 @@ struct ValeurExpression {
 
     /* Constructions. */
 
-    ValeurExpression(int e) : v(static_cast<long>(e))
+    ValeurExpression(int e) : v(static_cast<int64_t>(e))
     {
     }
 
-    ValeurExpression(unsigned int e) : v(static_cast<long>(e))
+    ValeurExpression(unsigned int e) : v(static_cast<int64_t>(e))
     {
     }
 
-    ValeurExpression(long e) : v(e)
+    ValeurExpression(int64_t e) : v(e)
     {
     }
 
@@ -70,7 +70,7 @@ struct ValeurExpression {
 
     inline bool est_entiere() const
     {
-        return std::holds_alternative<long>(v);
+        return std::holds_alternative<int64_t>(v);
     }
 
     inline bool est_booleenne() const
@@ -105,9 +105,9 @@ struct ValeurExpression {
         return std::get<bool>(v);
     }
 
-    inline long entiere() const
+    inline int64_t entiere() const
     {
-        return std::get<long>(v);
+        return std::get<int64_t>(v);
     }
 
     inline double reelle() const

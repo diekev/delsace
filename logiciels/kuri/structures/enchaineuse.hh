@@ -32,7 +32,7 @@ struct Enchaineuse {
 
     void ajoute_inverse(const kuri::chaine_statique &chn);
 
-    void ajoute(const char *c_str, long N);
+    void ajoute(const char *c_str, int64_t N);
 
     void pousse_caractere(char c);
 
@@ -44,7 +44,7 @@ struct Enchaineuse {
 
     int nombre_tampons_alloues() const;
 
-    long taille_chaine() const;
+    int64_t taille_chaine() const;
 
     kuri::chaine chaine() const;
 
@@ -148,7 +148,7 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
     flux << valeur;
 
     auto const chn = flux.chn();
-    enchaineuse.ajoute(chn.c_str(), static_cast<long>(chn.size()));
+    enchaineuse.ajoute(chn.c_str(), static_cast<int64_t>(chn.size()));
     return enchaineuse;
 }
 
@@ -171,7 +171,7 @@ inline Enchaineuse &operator<<(Enchaineuse &enchaineuse, char valeur)
 template <size_t N>
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char (&c)[N])
 {
-    enchaineuse.ajoute(c, static_cast<long>(N));
+    enchaineuse.ajoute(c, static_cast<int64_t>(N));
     return enchaineuse;
 }
 

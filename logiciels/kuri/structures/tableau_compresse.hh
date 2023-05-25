@@ -32,7 +32,7 @@ struct plage_iterable {
 static constexpr uintptr_t POINTEUR_MORT = static_cast<uintptr_t>(0xdeadc0de);
 
 /* Tableau n'allouant de la mémoire que lorsqu'une valeur ajoutée est différente de la première. */
-template <typename T, typename TypeIndex = long>
+template <typename T, typename TypeIndex = int64_t>
 struct tableau_compresse {
   private:
     T *m_pointeur = reinterpret_cast<T *>(POINTEUR_MORT);
@@ -176,10 +176,10 @@ struct tableau_compresse {
             reserve(static_cast<TypeIndex>(m_taille + 1));
 
             if (!std::is_trivially_constructible_v<T>) {
-                new (&m_pointeur[static_cast<long>(m_taille)]) T;
+                new (&m_pointeur[static_cast<int64_t>(m_taille)]) T;
             }
 
-            m_pointeur[static_cast<long>(m_taille)] = valeur;
+            m_pointeur[static_cast<int64_t>(m_taille)] = valeur;
             ++m_taille;
         }
     }

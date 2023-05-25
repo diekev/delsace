@@ -16,7 +16,7 @@ namespace kuri {
 struct chaine_statique {
   private:
     const char *pointeur_ = nullptr;
-    long taille_ = 0;
+    int64_t taille_ = 0;
 
   public:
     chaine_statique() = default;
@@ -28,16 +28,16 @@ struct chaine_statique {
     {
     }
 
-    chaine_statique(const char *ptr, long taille) : pointeur_(ptr), taille_(taille)
+    chaine_statique(const char *ptr, int64_t taille) : pointeur_(ptr), taille_(taille)
     {
     }
 
-    chaine_statique(const char *ptr) : chaine_statique(ptr, static_cast<long>(std::strlen(ptr)))
+    chaine_statique(const char *ptr) : chaine_statique(ptr, static_cast<int64_t>(std::strlen(ptr)))
     {
     }
 
     template <uint64_t N>
-    chaine_statique(const char (&ptr)[N]) : chaine_statique(ptr, static_cast<long>(N))
+    chaine_statique(const char (&ptr)[N]) : chaine_statique(ptr, static_cast<int64_t>(N))
     {
     }
 
@@ -46,7 +46,7 @@ struct chaine_statique {
         return pointeur_;
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return taille_;
     }

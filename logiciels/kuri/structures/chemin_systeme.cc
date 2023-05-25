@@ -15,7 +15,7 @@ std::filesystem::path vers_std_path(chaine_statique chn)
 static chaine chaine_depuis_std_path(std::filesystem::path const &std_path)
 {
     auto string = std_path.string();
-    return {string.c_str(), long(string.size())};
+    return {string.c_str(), int64_t(string.size())};
 }
 
 static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)

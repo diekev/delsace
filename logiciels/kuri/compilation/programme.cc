@@ -243,7 +243,7 @@ void Programme::change_de_phase(PhaseCompilation phase)
     m_etat_compilation.essaie_d_aller_a(phase);
 }
 
-long Programme::memoire_utilisee() const
+int64_t Programme::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += fonctions().taille_memoire();

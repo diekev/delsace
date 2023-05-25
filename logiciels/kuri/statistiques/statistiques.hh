@@ -31,8 +31,8 @@ concept TypeEntreesStats = requires(T a, T b)
 
 struct EntreeNombreMemoire {
     kuri::chaine nom = "";
-    long compte = 0;
-    long memoire = 0;
+    int64_t compte = 0;
+    int64_t memoire = 0;
 
     EntreeNombreMemoire &operator+=(EntreeNombreMemoire const &autre)
     {
@@ -49,7 +49,7 @@ struct EntreeNombreMemoire {
 
 struct EntreeTaille {
     kuri::chaine nom = "";
-    long taille = 0;
+    int64_t taille = 0;
 
     EntreeTaille &operator+=(EntreeTaille const &autre)
     {
@@ -66,10 +66,10 @@ struct EntreeTaille {
 struct EntreeFichier {
     kuri::chaine chemin = "";
     kuri::chaine nom = "";
-    long memoire_lexemes = 0;
-    long nombre_lexemes = 0;
-    long nombre_lignes = 0;
-    long memoire_tampons = 0;
+    int64_t memoire_lexemes = 0;
+    int64_t nombre_lexemes = 0;
+    int64_t nombre_lignes = 0;
+    int64_t memoire_tampons = 0;
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;
     double temps_chargement = 0.0;
@@ -170,14 +170,14 @@ using StatistiquesRI = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesTableaux = EntreesStats<EntreeTaille>;
 
 struct Statistiques {
-    long nombre_modules = 0l;
-    long nombre_identifiants = 0l;
-    long nombre_metaprogrammes_executes = 0l;
-    long memoire_compilatrice = 0l;
-    long memoire_ri = 0l;
-    long memoire_mv = 0l;
-    long memoire_bibliotheques = 0l;
-    long instructions_executees = 0l;
+    int64_t nombre_modules = 0l;
+    int64_t nombre_identifiants = 0l;
+    int64_t nombre_metaprogrammes_executes = 0l;
+    int64_t memoire_compilatrice = 0l;
+    int64_t memoire_ri = 0l;
+    int64_t memoire_mv = 0l;
+    int64_t memoire_bibliotheques = 0l;
+    int64_t instructions_executees = 0l;
     double temps_generation_code = 0.0;
     double temps_fichier_objet = 0.0;
     double temps_executable = 0.0;

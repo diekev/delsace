@@ -1165,7 +1165,7 @@ struct GeneratriceCodeCPP {
         os << "\treturn noeud;\n";
         os << "}\n\n";
 
-        os << "long ConvertisseuseNoeudCode::memoire_utilisee() const\n";
+        os << "int64_t ConvertisseuseNoeudCode::memoire_utilisee() const\n";
         os << "{\n";
 
         os << "\tauto mem = 0l;\n";
@@ -1379,7 +1379,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
     {
         os << "#include \"allocatrice.hh\"\n";
         os << "#include \"statistiques/statistiques.hh\"\n";
-        os << "long AllocatriceNoeud::nombre_noeuds() const\n";
+        os << "int64_t AllocatriceNoeud::nombre_noeuds() const\n";
         os << "{\n";
         os << "\tauto nombre = 0l;\n";
         POUR (proteines_struct) {

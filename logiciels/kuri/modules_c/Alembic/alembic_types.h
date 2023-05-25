@@ -320,7 +320,7 @@ struct ConvertisseuseImportAttributs {
     void (*ajoute_z8)(void *, uint64_t, signed char const *, int);
     void (*ajoute_z16)(void *, uint64_t, short const *, int);
     void (*ajoute_z32)(void *, uint64_t, int const *, int);
-    void (*ajoute_z64)(void *, uint64_t, long const *, int);
+    void (*ajoute_z64)(void *, uint64_t, int64_t const *, int);
     void (*ajoute_r16)(void *, uint64_t, r16 const *, int);
     void (*ajoute_r32)(void *, uint64_t, float const *, int);
     void (*ajoute_r64)(void *, uint64_t, double const *, int);

@@ -24,7 +24,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
     kuri::tableau<vertex_descriptor> vertices;
     vertices.reserve(maillage.nombreDePoints());
 
-    for (long i = 0; i < maillage.nombreDePoints(); i++) {
+    for (int64_t i = 0; i < maillage.nombreDePoints(); i++) {
         auto point = maillage.pointPourIndex(i);
         auto vd = CGAL::add_vertex(*resultat);
         put(point_map, vd, Point3d(point.x, point.y, point.z));
@@ -34,8 +34,8 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
     /* Exporte les polygones. */
     kuri::tableau<int> temp_access_index_sommet;
 
-    for (long i = 0; i < maillage.nombreDePolygones(); i++) {
-        const long nombre_sommets = maillage.nombreDeSommetsPolygone(i);
+    for (int64_t i = 0; i < maillage.nombreDePolygones(); i++) {
+        const int64_t nombre_sommets = maillage.nombreDeSommetsPolygone(i);
 
         temp_access_index_sommet.redimensionne(nombre_sommets);
         maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
@@ -43,7 +43,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(Maillage con
         std::vector<vertex_descriptor> face_vertices;
         face_vertices.reserve(nombre_sommets);
 
-        for (long j = 0; j < nombre_sommets; j++) {
+        for (int64_t j = 0; j < nombre_sommets; j++) {
             face_vertices.push_back(vertices[temp_access_index_sommet[j]]);
         }
 
@@ -90,7 +90,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
 
         /* Inverse l'ordre des sommets car il semblerait que l'algorithme de calcul booléen y est
          * sensible et que les cellules ont des ordres différents de ce que nous générons. */
-        for (long j = nombre_sommets - 1; j >= 0; j--) {
+        for (int64_t j = nombre_sommets - 1; j >= 0; j--) {
             face_vertices.push_back(vertices[cellule.poly_indices[skip + j + 1]]);
         }
 
@@ -107,7 +107,7 @@ static std::unique_ptr<EnrichedPolyhedron> convertis_vers_polyhedre(CelluleVoron
 
 void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage)
 {
-    const long num_verts = polyhedre.size_of_vertices();
+    const int64_t num_verts = polyhedre.size_of_vertices();
     if (num_verts == 0) {
         return;
     }
@@ -122,7 +122,7 @@ void convertis_vers_maillage(EnrichedPolyhedron &polyhedre, Maillage &maillage)
         maillage.ajouteUnPoint(point.x(), point.y(), point.z());
     }
 
-    const long num_faces = polyhedre.size_of_facets();
+    const int64_t num_faces = polyhedre.size_of_facets();
     if (num_faces == 0) {
         return;
     }
@@ -327,8 +327,8 @@ bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
         dls::tableau<PointsEtTrianglesCellule> cellules_finales;
         cellules_finales.reserve(cellules.taille());
 
-        long nombre_de_points = 0;
-        long nombre_de_triangles = 0;
+        int64_t nombre_de_points = 0;
+        int64_t nombre_de_triangles = 0;
 
         for (auto const &cellule : cellules) {
             auto mesh_B = convertis_vers_polyhedre(cellule);

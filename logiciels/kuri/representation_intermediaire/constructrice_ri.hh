@@ -120,7 +120,7 @@ struct ConstructriceRI {
         Type const *type, kuri::tableau<char> &&donnees_constantes);
     AtomeConstante *cree_constante_tableau_donnees_constantes(Type const *type,
                                                               char *pointeur,
-                                                              long taille);
+                                                              int64_t taille);
     AtomeGlobale *cree_globale(Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,

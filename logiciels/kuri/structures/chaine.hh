@@ -24,7 +24,7 @@ namespace kuri {
 
 struct chaine {
   private:
-    using TypeIndex = long;
+    using TypeIndex = int64_t;
 
     char *pointeur_ = nullptr;
     TypeIndex taille_ = 0;
@@ -49,7 +49,7 @@ struct chaine {
         permute(autre);
     }
 
-    chaine(const char *c_str, long taille) : chaine()
+    chaine(const char *c_str, int64_t taille) : chaine()
     {
         reserve(taille);
 
@@ -63,7 +63,7 @@ struct chaine {
     {
     }
 
-    chaine(const char *c_str) : chaine(c_str, static_cast<long>(std::strlen(c_str)))
+    chaine(const char *c_str) : chaine(c_str, static_cast<int64_t>(std::strlen(c_str)))
     {
     }
 
@@ -234,7 +234,7 @@ bool operator!=(const char *chn1, chaine const &chn2);
 
 std::ostream &operator<<(std::ostream &os, chaine const &chn);
 
-long distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2);
+int64_t distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2);
 
 }  // namespace kuri
 
@@ -257,15 +257,15 @@ struct Allocatrice;
 
 struct Allocatrice {
 private:
-    long m_nombre_allocations = 0;
-    long m_taille_allouee = 0;
+    int64_t m_nombre_allocations = 0;
+    int64_t m_taille_allouee = 0;
 
 public:
     template <typename T, typename... Args>
     T *loge(const char *ident, Args &&... args)
     {
         m_nombre_allocations += 1;
-        m_taille_allouee += static_cast<long>(sizeof(T));
+        m_taille_allouee += static_cast<int64_t>(sizeof(T));
         return new T(args...);
     }
 
@@ -274,29 +274,29 @@ public:
     {
         delete ptr;
         ptr = nullptr;
-        m_taille_allouee -= static_cast<long>(sizeof(T));
+        m_taille_allouee -= static_cast<int64_t>(sizeof(T));
     }
 
     template <typename T>
-    T *loge_tableau(const char *ident, long elements)
+    T *loge_tableau(const char *ident, int64_t elements)
     {
         m_nombre_allocations += 1;
-        m_taille_allouee += static_cast<long>(sizeof(T)) * elements;
+        m_taille_allouee += static_cast<int64_t>(sizeof(T)) * elements;
         return new T[elements];
     }
 
     template <typename T>
-    void reloge_tableau(const char *ident, T *&ptr, long ancienne_taille, long nouvelle_taille);
+    void reloge_tableau(const char *ident, T *&ptr, int64_t ancienne_taille, int64_t nouvelle_taille);
 
     template <typename T>
-    void deloge_tableau(T *&ptr, long taille);
+    void deloge_tableau(T *&ptr, int64_t taille);
 
-    long nombre_allocation() const
+    int64_t nombre_allocation() const
     {
         return m_nombre_allocations;
     }
 
-    long taille_allouee() const
+    int64_t taille_allouee() const
     {
         return m_taille_allouee;
     }

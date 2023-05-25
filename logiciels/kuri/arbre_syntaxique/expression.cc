@@ -275,20 +275,20 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
             if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
-                return ValeurExpression(static_cast<long>(b->comme_litterale_entier()->valeur));
+                return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
             }
 
-            return ValeurExpression(static_cast<long>(b->lexeme->valeur_entiere));
+            return ValeurExpression(static_cast<int64_t>(b->lexeme->valeur_entiere));
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
             if (b->possede_drapeau(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
-                return ValeurExpression(static_cast<long>(b->comme_litterale_entier()->valeur));
+                return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
             }
 
-            return ValeurExpression(static_cast<long>(b->lexeme->valeur_entiere));
+            return ValeurExpression(static_cast<int64_t>(b->lexeme->valeur_entiere));
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {

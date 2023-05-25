@@ -91,13 +91,13 @@ struct ErreurAppariement {
     ErreurMonomorphisation erreur_monomorphisation = {};
 
     struct NombreArguments {
-        long int nombre_obtenu = 0;
-        long int nombre_requis = 0;
+        int64_t nombre_obtenu = 0;
+        int64_t nombre_requis = 0;
     } nombre_arguments{};
 
     static ErreurAppariement mecomptage_arguments(NoeudExpression const *site,
-                                                  long nombre_requis,
-                                                  long nombre_obtenu)
+                                                  int64_t nombre_requis,
+                                                  int64_t nombre_obtenu)
     {
         auto erreur = cree_erreur(MECOMPTAGE_ARGS, site);
         erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;

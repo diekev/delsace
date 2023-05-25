@@ -9,8 +9,8 @@ template <typename T, uint64_t N>
 struct file_fixe {
   private:
     T valeurs[N];
-    long curseur = 0;
-    long tete = 0;
+    int64_t curseur = 0;
+    int64_t tete = 0;
 
   public:
     void enfile(T valeur)
@@ -31,7 +31,7 @@ struct file_fixe {
         return tete == curseur;
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return curseur - tete;
     }

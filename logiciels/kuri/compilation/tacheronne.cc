@@ -109,7 +109,7 @@ void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
                                                taches[index_file].taille());
 }
 
-long OrdonnanceuseTache::nombre_de_taches_en_attente() const
+int64_t OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
     auto resultat = 0l;
     POUR (taches) {
@@ -161,7 +161,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
     return Tache::dors(espace);
 }
 
-long OrdonnanceuseTache::memoire_utilisee() const
+int64_t OrdonnanceuseTache::memoire_utilisee() const
 {
     auto memoire = 0l;
     POUR (pique_taille.taches) {
@@ -711,7 +711,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                 valeur = static_cast<uint64_t>(*reinterpret_cast<int *>(pointeur));
             }
             else if (type->taille_octet == 8) {
-                valeur = static_cast<uint64_t>(*reinterpret_cast<long *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<int64_t *>(pointeur));
             }
 
             return assembleuse->cree_litterale_entier(lexeme, type, valeur);
@@ -810,7 +810,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::CHAINE:
         {
             auto valeur_pointeur = pointeur;
-            auto valeur_chaine = *reinterpret_cast<long *>(pointeur + 8);
+            auto valeur_chaine = *reinterpret_cast<int64_t *>(pointeur + 8);
 
             kuri::chaine_statique chaine = {*reinterpret_cast<char **>(valeur_pointeur),
                                             valeur_chaine};
@@ -878,7 +878,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             auto type_tableau = type->comme_tableau_dynamique();
 
             auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
-            auto taille_donnees = *reinterpret_cast<long *>(pointeur + 8);
+            auto taille_donnees = *reinterpret_cast<int64_t *>(pointeur + 8);
 
             if (taille_donnees == 0) {
                 espace->rapporte_erreur(directive, "Retour d'un tableau dynamique de taille 0 !");

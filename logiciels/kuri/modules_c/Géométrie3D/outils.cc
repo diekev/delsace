@@ -5,44 +5,44 @@
 
 namespace geo {
 
-long Maillage::nombreDePoints() const
+int64_t Maillage::nombreDePoints() const
 {
     return this->nombre_de_points(this->donnees);
 }
 
-math::vec3f Maillage::pointPourIndex(long n) const
+math::vec3f Maillage::pointPourIndex(int64_t n) const
 {
     math::vec3f pos;
     this->point_pour_index(this->donnees, n, &pos.x, &pos.y, &pos.z);
     return pos;
 }
 
-long Maillage::nombreDePolygones() const
+int64_t Maillage::nombreDePolygones() const
 {
     return this->nombre_de_polygones(this->donnees);
 }
 
-long Maillage::nombreDeSommetsPolygone(long n) const
+int64_t Maillage::nombreDeSommetsPolygone(int64_t n) const
 {
     return this->nombre_de_sommets_polygone(this->donnees, n);
 }
 
-void Maillage::pointPourSommetPolygones(long n, long v, math::vec3f &pos) const
+void Maillage::pointPourSommetPolygones(int64_t n, int64_t v, math::vec3f &pos) const
 {
     this->point_pour_sommet_polygone(this->donnees, n, v, &pos.x, &pos.y, &pos.z);
 }
 
-void Maillage::remplacePointALIndex(long n, const math::vec3f &point)
+void Maillage::remplacePointALIndex(int64_t n, const math::vec3f &point)
 {
     this->remplace_point_a_l_index(this->donnees, n, point.x, point.y, point.z);
 }
 
-void Maillage::indexPointsSommetsPolygone(long n, int *index) const
+void Maillage::indexPointsSommetsPolygone(int64_t n, int *index) const
 {
     this->index_points_sommets_polygone(this->donnees, n, index);
 }
 
-void Maillage::rafinePolygone(long i, const RafineusePolygone &rafineuse) const
+void Maillage::rafinePolygone(int64_t i, const RafineusePolygone &rafineuse) const
 {
     if (!this->rafine_polygone) {
         return;
@@ -64,14 +64,14 @@ limites<math::vec3f> Maillage::boiteEnglobante() const
     return {min, max};
 }
 
-math::vec3f Maillage::normalPolygone(long i) const
+math::vec3f Maillage::normalPolygone(int64_t i) const
 {
     math::vec3f pos;
     this->calcule_normal_polygone(this->donnees, i, &pos.x, &pos.y, &pos.z);
     return pos;
 }
 
-void Maillage::ajoutePoints(float *points, long nombre) const
+void Maillage::ajoutePoints(float *points, int64_t nombre) const
 {
     if (this->ajoute_plusieurs_points) {
         this->ajoute_plusieurs_points(this->donnees, points, nombre);
@@ -86,12 +86,12 @@ void Maillage::ajoutePoints(float *points, long nombre) const
     }
 }
 
-void Maillage::reserveNombreDePoints(long nombre) const
+void Maillage::reserveNombreDePoints(int64_t nombre) const
 {
     this->reserve_nombre_de_points(this->donnees, nombre);
 }
 
-void Maillage::reserveNombreDePolygones(long nombre) const
+void Maillage::reserveNombreDePolygones(int64_t nombre) const
 {
     this->reserve_nombre_de_polygones(this->donnees, nombre);
 }
@@ -108,7 +108,7 @@ void Maillage::ajouteUnPoint(math::vec3f xyz) const
 
 void Maillage::ajouteListePolygones(const int *sommets,
                                     const int *sommets_par_polygones,
-                                    long nombre_polygones)
+                                    int64_t nombre_polygones)
 {
     this->ajoute_liste_polygones(this->donnees, sommets, sommets_par_polygones, nombre_polygones);
 }
@@ -121,26 +121,26 @@ void Maillage::ajouteUnPolygone(const int *sommets, int taille) const
 void *Maillage::creeUnGroupeDePoints(const std::string &nom) const
 {
     return this->cree_un_groupe_de_points(
-        this->donnees, nom.c_str(), static_cast<long>(nom.size()));
+        this->donnees, nom.c_str(), static_cast<int64_t>(nom.size()));
 }
 
 void *Maillage::creeUnGroupeDePolygones(const std::string &nom) const
 {
     return this->cree_un_groupe_de_polygones(
-        this->donnees, nom.c_str(), static_cast<long>(nom.size()));
+        this->donnees, nom.c_str(), static_cast<int64_t>(nom.size()));
 }
 
-void Maillage::ajouteAuGroupe(void *poignee_groupe, long index) const
+void Maillage::ajouteAuGroupe(void *poignee_groupe, int64_t index) const
 {
     this->ajoute_au_groupe(poignee_groupe, index);
 }
 
-void Maillage::ajoutePlageAuGroupe(void *poignee_groupe, long index_debut, long index_fin) const
+void Maillage::ajoutePlageAuGroupe(void *poignee_groupe, int64_t index_debut, int64_t index_fin) const
 {
     this->ajoute_plage_au_groupe(poignee_groupe, index_debut, index_fin);
 }
 
-bool Maillage::groupePolygonePossedePoint(const void *poignee_groupe, long index) const
+bool Maillage::groupePolygonePossedePoint(const void *poignee_groupe, int64_t index) const
 {
     return this->groupe_polygone_possede_point(poignee_groupe, index);
 }
