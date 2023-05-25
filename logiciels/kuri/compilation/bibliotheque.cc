@@ -677,13 +677,6 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
                                                pos_premiere_espace - pos_premier_slash);
     return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
 }
-#else
-static kuri::chaine resoud_chemin_dynamique_si_script_ld(EspaceDeTravail & /*espace*/,
-                                                         NoeudExpression * /*site*/,
-                                                         kuri::chaine const &chemin_dynamique)
-{
-    return chemin_dynamique;
-}
 #endif
 
 struct ResultatRechercheBibliotheque {
@@ -734,10 +727,12 @@ static std::optional<ResultatRechercheBibliotheque> recherche_bibliotheque(
         }
     }
 
+#ifndef _MSC_VER
     if (chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
         resultat.chemins[DYNAMIQUE][POUR_PRODUCTION] = resoud_chemin_dynamique_si_script_ld(
             espace, site, resultat.chemins[DYNAMIQUE][POUR_PRODUCTION]);
     }
+#endif
 
     if (chemin_trouve[STATIQUE][POUR_PRODUCTION] || chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
         return resultat;
