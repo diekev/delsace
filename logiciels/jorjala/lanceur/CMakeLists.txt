@@ -23,12 +23,10 @@ set(NOM_CIBLE jorjala)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
-        ${INCLUSIONS_QT5_WIDGETS}
         ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
-    ${BIBLIOTHEQUES_QT5_WIDGETS}
     dl
         jorjala_coeur
 #	jorjala_commandes

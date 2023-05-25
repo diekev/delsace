@@ -22,16 +22,13 @@
 # ------------------------------------------------------------------------------
 
 set(INCLUSIONS_SYSTEMES
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${INCLUSIONS_QT5_CORE}
-	${INCLUSIONS_QT5_GUI}
-	${INCLUSIONS_QT5_WIDGETS}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_QT5_CORE}
-	${BIBLIOTHEQUES_QT5_GUI}
-	${BIBLIOTHEQUES_QT5_WIDGETS}
+        ${BIBLIOTHEQUES_QT_CORE}
+        ${BIBLIOTHEQUES_QT_GUI}
+        ${BIBLIOTHEQUES_QT_WIDGETS}
 	bib_phys
 	langage
 	memoire
