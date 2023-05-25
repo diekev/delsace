@@ -319,7 +319,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     };
 
     POUR (globales) {
-        if (it->adresse_pour_execution) {
+        if (it->est_info_type_de) {
             // À FAIRE : ignore également les globales utilisées uniquement dans celles-ci.
             continue;
         }
@@ -3392,9 +3392,12 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
         }
     }
 
-    type->info_type = convertisseuse_noeud_code.cree_info_type_pour(const_cast<Type *>(type));
-    assert(type->info_type);
-    static_cast<AtomeGlobale *>(type->atome_info_type)->adresse_pour_execution = type->info_type;
+    // À FAIRE : il nous toutes les informations du type pour pouvoir générer les informations
+    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) == 0, [type]() {
+        std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
+    });
+
+    static_cast<AtomeGlobale *>(type->atome_info_type)->est_info_type_de = type;
 
     return type->atome_info_type;
 }

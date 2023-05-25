@@ -32,11 +32,11 @@
 namespace kdo {
 
 struct Statistiques {
-	std::atomic_uint nombre_rayons_primaires;
-	std::atomic_uint test_entresections_triangles;
-	std::atomic_uint nombre_entresections_triangles;
-	std::atomic_uint test_entresections_boites;
-	std::atomic_uint test_entresections_volumes;
+    std::atomic_uint nombre_rayons_primaires;
+    std::atomic_uint test_entresections_triangles;
+    std::atomic_uint nombre_entresections_triangles;
+    std::atomic_uint test_entresections_boites;
+    std::atomic_uint test_entresections_volumes;
 };
 
 extern Statistiques statistiques;
@@ -45,4 +45,4 @@ void init_statistiques();
 
 void imprime_statistiques(std::ostream &os);
 
-}  /* namespace kdo */
+} /* namespace kdo */

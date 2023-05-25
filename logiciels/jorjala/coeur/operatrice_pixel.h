@@ -27,15 +27,14 @@
 #include "operatrice_image.h"
 
 class OperatricePixel : public OperatriceImage {
-public:
-	OperatricePixel(Graphe &graphe_parent, Noeud &noeud_);
+  public:
+    OperatricePixel(Graphe &graphe_parent, Noeud &noeud_);
 
-	virtual void evalue_entrees(int temps) = 0;
+    virtual void evalue_entrees(int temps) = 0;
 
-	virtual dls::phys::couleur32 evalue_pixel(
-			dls::phys::couleur32 const &pixel,
-			const float x,
-			const float y) = 0;
+    virtual dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel,
+                                              const float x,
+                                              const float y) = 0;
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };

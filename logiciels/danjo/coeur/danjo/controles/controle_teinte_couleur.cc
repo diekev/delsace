@@ -26,29 +26,28 @@
 
 #include <QPainter>
 
-ControleTeinteCouleur::ControleTeinteCouleur(QWidget *parent)
-	: QWidget(parent)
+ControleTeinteCouleur::ControleTeinteCouleur(QWidget *parent) : QWidget(parent)
 {
-	resize(512, 256);
+    resize(512, 256);
 }
 
 void ControleTeinteCouleur::paintEvent(QPaintEvent *)
 {
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
 
-	QLinearGradient degrade(QPoint(0, 0), QPoint(size().width(), 0));
-	degrade.setColorAt(0.000, QColor::fromHsv(  0, 255, 255));
-	degrade.setColorAt(0.125, QColor::fromHsv( 45, 255, 255));
-	degrade.setColorAt(0.250, QColor::fromHsv( 90, 255, 255));
-	degrade.setColorAt(0.375, QColor::fromHsv(135, 255, 255));
-	degrade.setColorAt(0.500, QColor::fromHsv(180, 255, 255));
-	degrade.setColorAt(0.625, QColor::fromHsv(225, 255, 255));
-	degrade.setColorAt(0.750, QColor::fromHsv(270, 255, 255));
-	degrade.setColorAt(0.875, QColor::fromHsv(315, 255, 255));
-	degrade.setColorAt(1.000, QColor::fromHsv(359, 255, 255));
+    QLinearGradient degrade(QPoint(0, 0), QPoint(size().width(), 0));
+    degrade.setColorAt(0.000, QColor::fromHsv(0, 255, 255));
+    degrade.setColorAt(0.125, QColor::fromHsv(45, 255, 255));
+    degrade.setColorAt(0.250, QColor::fromHsv(90, 255, 255));
+    degrade.setColorAt(0.375, QColor::fromHsv(135, 255, 255));
+    degrade.setColorAt(0.500, QColor::fromHsv(180, 255, 255));
+    degrade.setColorAt(0.625, QColor::fromHsv(225, 255, 255));
+    degrade.setColorAt(0.750, QColor::fromHsv(270, 255, 255));
+    degrade.setColorAt(0.875, QColor::fromHsv(315, 255, 255));
+    degrade.setColorAt(1.000, QColor::fromHsv(359, 255, 255));
 
-	painter.setBrush(QBrush(degrade));
+    painter.setBrush(QBrush(degrade));
 
-	painter.drawRect(this->rect());
+    painter.drawRect(this->rect());
 }

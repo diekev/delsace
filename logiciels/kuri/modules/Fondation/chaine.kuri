@@ -516,6 +516,17 @@ remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
 	retourne résultat
 }
 
+remplace_sans_copie :: fonc (ligne: *chaine, c: z8, par: z8)
+{
+	résultat := mémoire(ligne)
+    pour & résultat {
+        si it == c {
+            it = par
+        }
+    }
+    mémoire(ligne) = résultat
+}
+
 compte_occurences_de :: fonc (ligne: chaine, motif: chaine) -> z64
 {
     résultat := 0

@@ -34,49 +34,45 @@ class OperatriceImage;
 /* ************************************************************************** */
 
 struct CompileuseLCC {
-	compileuse_lng m_compileuse{};
-	gestionnaire_propriete m_gest_attrs{};
-	lcc::ctx_exec m_ctx_global{};
+    compileuse_lng m_compileuse{};
+    gestionnaire_propriete m_gest_attrs{};
+    lcc::ctx_exec m_ctx_global{};
 
-	lcc::pile &donnees();
+    lcc::pile &donnees();
 
-	template <typename T>
-	void remplis_donnees(
-			lcc::pile &donnees_pile,
-			dls::chaine const &nom,
-			T const &valeur)
-	{
-		::remplis_donnees(donnees_pile, m_gest_attrs, nom, valeur);
-	}
+    template <typename T>
+    void remplis_donnees(lcc::pile &donnees_pile, dls::chaine const &nom, T const &valeur)
+    {
+        ::remplis_donnees(donnees_pile, m_gest_attrs, nom, valeur);
+    }
 
-	void stocke_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
+    void stocke_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
 
-	void charge_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
+    void charge_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
 
-	int pointeur_donnees(dls::chaine const &nom);
+    int pointeur_donnees(dls::chaine const &nom);
 
-	void execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile);
+    void execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile);
 };
 
 /* ************************************************************************** */
 
 struct CompileuseGrapheLCC : public CompileuseLCC {
-	Graphe &graphe;
+    Graphe &graphe;
 
-	CompileuseGrapheLCC(Graphe &ptr_graphe);
+    CompileuseGrapheLCC(Graphe &ptr_graphe);
 
-	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
+    bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
 };
 
 /* ************************************************************************** */
 
 struct CompileuseScriptLCC : public CompileuseLCC {
-	ContexteGenerationCode ctx_gen{};
+    ContexteGenerationCode ctx_gen{};
 
-	bool compile_script(
-			OperatriceImage &op,
-			Corps &corps,
-			ContexteEvaluation const &contexte,
-			dls::chaine const &texte,
-			lcc::ctx_script ctx_script);
+    bool compile_script(OperatriceImage &op,
+                        Corps &corps,
+                        ContexteEvaluation const &contexte,
+                        dls::chaine const &texte,
+                        lcc::ctx_script ctx_script);
 };

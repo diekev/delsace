@@ -33,71 +33,52 @@
 
 namespace danjo {
 
-ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout)
-	, m_editeur_ligne(new QLineEdit(this))
-	, m_pointeur(nullptr)
+ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(BasePropriete *p,
+                                                                   int temps,
+                                                                   QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+      m_editeur_ligne(new QLineEdit(this))
 {
-	m_agencement->addWidget(m_editeur_ligne);
-	this->setLayout(m_agencement);
+    m_agencement->addWidget(m_editeur_ligne);
+    this->setLayout(m_agencement);
 
-	connect(m_editeur_ligne, &QLineEdit::returnPressed,
-			this, &ControleProprieteChaineCaractere::ajourne_valeur_pointee);
-}
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 
-void ControleProprieteChaineCaractere::finalise(const DonneesControle &donnees)
-{
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
-
-	if (donnees.initialisation) {
-		*m_pointeur = donnees.valeur_defaut;
-	}
-
-	m_editeur_ligne->setText(m_pointeur->c_str());
-
-	setToolTip(donnees.infobulle.c_str());
+    connect(m_editeur_ligne,
+            &QLineEdit::returnPressed,
+            this,
+            &ControleProprieteChaineCaractere::ajourne_valeur_pointee);
 }
 
 void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
 {
-	Q_EMIT(precontrole_change());
-	*m_pointeur = m_editeur_ligne->text().toStdString();
-	Q_EMIT(controle_change());
+    Q_EMIT(precontrole_change());
+    m_propriete->définit_valeur_chaine(m_editeur_ligne->text().toStdString());
+    Q_EMIT(controle_change());
 }
 
-ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QVBoxLayout)
-	, m_editeur_ligne(new QTextEdit(this))
-	, m_bouton(new QPushButton("Rafraîchis", this))
-	, m_pointeur(nullptr)
+ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
+                                                             int temps,
+                                                             QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QVBoxLayout),
+      m_editeur_ligne(new QTextEdit(this)), m_bouton(new QPushButton("Rafraîchis", this))
 {
-	m_agencement->addWidget(m_editeur_ligne);
-	m_agencement->addWidget(m_bouton);
-	this->setLayout(m_agencement);
+    m_agencement->addWidget(m_editeur_ligne);
+    m_agencement->addWidget(m_bouton);
+    this->setLayout(m_agencement);
 
-	connect(m_bouton, &QPushButton::pressed,
-			this, &ControleProprieteEditeurTexte::ajourne_valeur_pointee);
-}
+    m_editeur_ligne->setText(m_propriete->evalue_chaine(m_temps).c_str());
 
-void ControleProprieteEditeurTexte::finalise(const DonneesControle &donnees)
-{
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
-
-	if (donnees.initialisation) {
-		*m_pointeur = donnees.valeur_defaut;
-	}
-
-	m_editeur_ligne->setText(m_pointeur->c_str());
-
-	setToolTip(donnees.infobulle.c_str());
+    connect(m_bouton,
+            &QPushButton::pressed,
+            this,
+            &ControleProprieteEditeurTexte::ajourne_valeur_pointee);
 }
 
 void ControleProprieteEditeurTexte::ajourne_valeur_pointee()
 {
-	*m_pointeur = m_editeur_ligne->toPlainText().toStdString();
-	Q_EMIT(controle_change());
+    m_propriete->définit_valeur_chaine(m_editeur_ligne->toPlainText().toStdString());
+    Q_EMIT(controle_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

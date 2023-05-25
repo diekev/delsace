@@ -31,21 +31,25 @@
 namespace ccl {
 class Session;
 class Scene;
-}
+}  // namespace ccl
 
 class MoteurRenduCycles final : public MoteurRendu {
-	ccl::Session *m_session = nullptr;
-	ccl::Scene *m_scene = nullptr;
+    ccl::Session *m_session = nullptr;
+    ccl::Scene *m_scene = nullptr;
 
-	std::thread *t = nullptr;
+    std::thread *t = nullptr;
 
-public:
-	~MoteurRenduCycles() override;
+  public:
+    ~MoteurRenduCycles() override;
 
-	const char *id() const override
-	{
-		return "cycles";
-	}
+    const char *id() const override
+    {
+        return "cycles";
+    }
 
-	void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) override;
+    void calcule_rendu(StatistiquesRendu &stats,
+                       float *tampon,
+                       int hauteur,
+                       int largeur,
+                       bool rendu_final) override;
 };
