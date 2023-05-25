@@ -7,7 +7,9 @@ namespace kuri {
 
 std::filesystem::path vers_std_path(chaine_statique chn)
 {
-    return std::filesystem::path(std::string(chn.pointeur(), size_t(chn.taille())));
+    std::string std_string(chn.pointeur(), size_t(chn.taille()));
+    auto std_path = std::filesystem::path(std_string);
+    return std_path.make_preferred();
 }
 
 static chaine chaine_depuis_std_path(std::filesystem::path const &std_path)
@@ -19,6 +21,12 @@ static chaine chaine_depuis_std_path(std::filesystem::path const &std_path)
 static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)
 {
     return chemin_systeme(chaine_depuis_std_path(chemin));
+}
+
+/* Retourne le caractère utilisé par préférence pour le système. */
+static char séparateur_préféré()
+{
+    return '/';
 }
 
 static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char motif)
@@ -34,11 +42,32 @@ static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char
     return fin;
 }
 
+chemin_systeme::chemin_systeme(const char *str)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(str);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
+chemin_systeme::chemin_systeme(chaine_statique chemin)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(chemin);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
+chemin_systeme::chemin_systeme(chaine chemin)
+{
+    /* Garantie que nous avons les sépérateurs préférés du système. */
+    auto std_path = vers_std_path(chemin);
+    donnees = chaine_depuis_std_path(std_path);
+}
+
 chaine_statique chemin_systeme::nom_fichier() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, '/');
+    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, fin);
     return {donnees.pointeur() + distance + 1, taille - 1};
@@ -70,7 +99,7 @@ chaine_statique chemin_systeme::chemin_parent() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, '/');
+    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
     auto distance = std::distance(debut, pos);
     return {donnees.pointeur(), distance};
 }
