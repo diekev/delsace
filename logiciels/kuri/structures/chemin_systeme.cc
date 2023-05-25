@@ -60,7 +60,7 @@ static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)
 }
 
 /* Retourne le caractère utilisé par préférence pour le système. */
-static char separateur_prefere()
+static char séparateur_préféré()
 {
 #ifdef _MSC_VER
     return '\\';
@@ -107,7 +107,7 @@ chaine_statique chemin_systeme::nom_fichier() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, separateur_prefere());
+    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, fin);
     return {donnees.pointeur() + distance + 1, long(taille - 1)};
@@ -139,7 +139,7 @@ chaine_statique chemin_systeme::chemin_parent() const
 {
     auto debut = donnees.begin();
     auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, separateur_prefere());
+    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
     auto distance = std::distance(debut, pos);
     return {donnees.pointeur(), long(distance)};
 }
