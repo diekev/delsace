@@ -30,24 +30,25 @@
 
 ContexteEvaluation cree_contexte_evaluation(const Jorjala &jorjala)
 {
-	auto rectangle = Rectangle{};
-	rectangle.x = 0;
-	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(jorjala.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(jorjala.project_settings->largeur);
+    auto rectangle = Rectangle{};
+    rectangle.x = 0;
+    rectangle.y = 0;
+    rectangle.hauteur = static_cast<float>(jorjala.project_settings->hauteur);
+    rectangle.largeur = static_cast<float>(jorjala.project_settings->largeur);
 
-	auto contexte = ContexteEvaluation{};
-	contexte.bdd = &jorjala.bdd;
-	contexte.cadence = jorjala.cadence;
-	contexte.temps_debut = jorjala.temps_debut;
-	contexte.temps_fin = jorjala.temps_fin;
-	contexte.temps_courant = jorjala.temps_courant;
-	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&jorjala.gestionnaire_fichier);
-	contexte.chef = const_cast<ChefExecution *>(&jorjala.chef_execution);
-	contexte.resolution_rendu = rectangle;
-	contexte.lcc = jorjala.lcc;
+    auto contexte = ContexteEvaluation{};
+    contexte.bdd = &jorjala.bdd;
+    contexte.cadence = jorjala.cadence;
+    contexte.temps_debut = jorjala.temps_debut;
+    contexte.temps_fin = jorjala.temps_fin;
+    contexte.temps_courant = jorjala.temps_courant;
+    contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(
+        &jorjala.gestionnaire_fichier);
+    contexte.chef = const_cast<ChefExecution *>(&jorjala.chef_execution);
+    contexte.resolution_rendu = rectangle;
+    contexte.lcc = jorjala.lcc;
 
-	contexte.chef->reinitialise();
+    contexte.chef->reinitialise();
 
-	return contexte;
+    return contexte;
 }

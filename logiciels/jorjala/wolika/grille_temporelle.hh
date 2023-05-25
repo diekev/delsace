@@ -43,78 +43,78 @@ namespace wlk {
 using grille_auxilliaire = wlk::grille_eparse<type_courbe>;
 
 struct tuile_temporelle {
-	using type_valeur = float;
+    using type_valeur = float;
 
-	int decalage[VOXELS_TUILE + 1];
-	float *valeurs = nullptr;
-	float *temps = nullptr;
-	dls::math::vec3i min{};
-	dls::math::vec3i max{};
+    int decalage[VOXELS_TUILE + 1];
+    float *valeurs = nullptr;
+    float *temps = nullptr;
+    dls::math::vec3i min{};
+    dls::math::vec3i max{};
 
-	static void detruit(tuile_temporelle *&t)
-	{
-		auto nombre_valeurs = t->decalage[VOXELS_TUILE];
-		memoire::deloge_tableau("tuile_temp::valeurs", t->valeurs, nombre_valeurs);
-		memoire::deloge_tableau("tuile_temp::temps", t->temps, nombre_valeurs);
-		memoire::deloge("tuile", t);
-	}
+    static void detruit(tuile_temporelle *&t)
+    {
+        auto nombre_valeurs = t->decalage[VOXELS_TUILE];
+        memoire::deloge_tableau("tuile_temp::valeurs", t->valeurs, nombre_valeurs);
+        memoire::deloge_tableau("tuile_temp::temps", t->temps, nombre_valeurs);
+        memoire::deloge("tuile", t);
+    }
 
-	static type_valeur echantillonne(tuile_temporelle *t, long index, float temps)
-	{
-		/* voisin le plus proche */
-		auto deb = t->decalage[index];
-		auto dec = t->decalage[index + 1] - deb;
+    static type_valeur echantillonne(tuile_temporelle *t, long index, float temps)
+    {
+        /* voisin le plus proche */
+        auto deb = t->decalage[index];
+        auto dec = t->decalage[index + 1] - deb;
 
-		auto valeur = 0.0f;
+        auto valeur = 0.0f;
 
-		/* trouve le temps */
-		for (auto x = deb; x < deb + dec; ++x) {
-			/* temps exacte */
-			if (dls::math::sont_environ_egaux(t->temps[x], temps)) {
-				valeur = t->valeurs[x];
-				break;
-			}
+        /* trouve le temps */
+        for (auto x = deb; x < deb + dec; ++x) {
+            /* temps exacte */
+            if (dls::math::sont_environ_egaux(t->temps[x], temps)) {
+                valeur = t->valeurs[x];
+                break;
+            }
 
-			/* interpole depuis le premier temps le plus grand */
-			if (t->temps[x] >= temps) {
-				if (x == deb) {
-					valeur = t->valeurs[x];
-					break;
-				}
+            /* interpole depuis le premier temps le plus grand */
+            if (t->temps[x] >= temps) {
+                if (x == deb) {
+                    valeur = t->valeurs[x];
+                    break;
+                }
 
-				/* fait en sorte que t soit entre 0 et 1 */
-				auto fac = (temps - t->temps[x - 1]) / (t->temps[x] - t->temps[x - 1]);
-				valeur = t->valeurs[x] * fac + (1.0f - fac) * t->valeurs[x - 1];
-				break;
-			}
+                /* fait en sorte que t soit entre 0 et 1 */
+                auto fac = (temps - t->temps[x - 1]) / (t->temps[x] - t->temps[x - 1]);
+                valeur = t->valeurs[x] * fac + (1.0f - fac) * t->valeurs[x - 1];
+                break;
+            }
 
-			/* cas où le temps d'échantillonnage est supérieur au
-			 * dernier temps */
-			if (temps > t->temps[x] && x == deb + dec - 1) {
-				valeur = t->valeurs[x];
-			}
-		}
+            /* cas où le temps d'échantillonnage est supérieur au
+             * dernier temps */
+            if (temps > t->temps[x] && x == deb + dec - 1) {
+                valeur = t->valeurs[x];
+            }
+        }
 
-		return valeur;
-	}
+        return valeur;
+    }
 
-	static void copie_donnees(tuile_temporelle const *de, tuile_temporelle *vers)
-	{
-		auto nombre_valeurs = de->decalage[VOXELS_TUILE];
-		vers->valeurs = memoire::loge_tableau<float>("tuile_temp::valeurs", nombre_valeurs);
-		vers->temps = memoire::loge_tableau<float>("tuile_temp::temps", nombre_valeurs);
+    static void copie_donnees(tuile_temporelle const *de, tuile_temporelle *vers)
+    {
+        auto nombre_valeurs = de->decalage[VOXELS_TUILE];
+        vers->valeurs = memoire::loge_tableau<float>("tuile_temp::valeurs", nombre_valeurs);
+        vers->temps = memoire::loge_tableau<float>("tuile_temp::temps", nombre_valeurs);
 
-		for (auto j = 0; j < VOXELS_TUILE + 1; ++j) {
-			vers->decalage[j] = de->decalage[j];
-		}
+        for (auto j = 0; j < VOXELS_TUILE + 1; ++j) {
+            vers->decalage[j] = de->decalage[j];
+        }
 
-		for (auto j = 0; j < nombre_valeurs; ++j) {
-			vers->valeurs[j] = de->valeurs[j];
-			vers->temps[j] = de->temps[j];
-		}
-	}
+        for (auto j = 0; j < nombre_valeurs; ++j) {
+            vers->valeurs[j] = de->valeurs[j];
+            vers->temps[j] = de->temps[j];
+        }
+    }
 };
 
 using grille_temporelle = grille_eparse<float, tuile_temporelle>;
 
-}  /* namespace wlk */
+} /* namespace wlk */

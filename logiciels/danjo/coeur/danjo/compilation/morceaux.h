@@ -22,8 +22,8 @@
  *
  */
 
- /* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
- 
+/* Ce fichier est généré automatiquement. NE PAS ÉDITER ! */
+
 #pragma once
 
 #include "biblinternes/structures/vue_chaine.hh"
@@ -31,149 +31,149 @@
 namespace danjo {
 
 enum class id_morceau : unsigned int {
-	EXCLAMATION,
-	GUILLEMET,
-	DIESE,
-	POURCENT,
-	ESPERLUETTE,
-	APOSTROPHE,
-	PARENTHESE_OUVRANTE,
-	PARENTHESE_FERMANTE,
-	FOIS,
-	PLUS,
-	VIRGULE,
-	MOINS,
-	POINT,
-	DIVISE,
-	DOUBLE_POINTS,
-	POINT_VIRGULE,
-	INFERIEUR,
-	EGAL,
-	SUPERIEUR,
-	AROBASE,
-	CROCHET_OUVRANT,
-	CROCHET_FERMANT,
-	CHAPEAU,
-	ACCOLADE_OUVRANTE,
-	BARRE,
-	ACCOLADE_FERMANTE,
-	TILDE,
-	DIFFERENCE,
-	ESP_ESP,
-	ET_EGAL,
-	FOIS_EGAL,
-	PLUS_PLUS,
-	PLUS_EGAL,
-	MOINS_MOINS,
-	MOINS_EGAL,
-	FLECHE,
-	TROIS_POINT,
-	DIVISE_EGAL,
-	DECALAGE_GAUCHE,
-	INFERIEUR_EGAL,
-	EGALITE,
-	SUPERIEUR_EGAL,
-	DECALAGE_DROITE,
-	OUX_EGAL,
-	OU_EGAL,
-	BARE_BARRE,
-	ACTION,
-	ACTIVABLE,
-	ANIMABLE,
-	ATTACHE,
-	BARRE_OUTILS,
-	BOUTON,
-	CASE,
-	CHAINE,
-	COLONNE,
-	COULEUR,
-	COURBE_COULEUR,
-	COURBE_VALEUR,
-	DISPOSITION,
-	DOSSIER,
-	DECIMAL,
-	ENTIER,
-	ENTREFACE,
-	ENTREE,
-	FAUX,
-	FEUILLE,
-	FICHIER_ENTREE,
-	FICHIER_SORTIE,
-	FILTRES,
-	ICONE,
-	INFOBULLE,
-	ITEMS,
-	LIGNE,
-	LISTE,
-	LISTE_MANIP,
-	LOGIQUE,
-	MAX,
-	MENU,
-	MIN,
-	METADONNEE,
-	NOM,
-	ONGLET,
-	PAS,
-	PRECISION,
-	QUAND,
-	RAMPE_COULEUR,
-	RELATION,
-	RESULTAT,
-	SORTIE,
-	SUFFIXE,
-	SEPARATEUR,
-	TEXTE,
-	VALEUR,
-	VECTEUR,
-	VRAI,
-	ENUM,
-	ETIQUETTE,
-	CHAINE_CARACTERE,
-	CHAINE_LITTERALE,
-	CARACTERE,
-	NOMBRE_BINAIRE,
-	NOMBRE_ENTIER,
-	NOMBRE_REEL,
-	NOMBRE_OCTAL,
-	NOMBRE_HEXADECIMAL,
-	BOOL,
-	NUL,
-	INCONNU,
+    EXCLAMATION,
+    GUILLEMET,
+    DIESE,
+    POURCENT,
+    ESPERLUETTE,
+    APOSTROPHE,
+    PARENTHESE_OUVRANTE,
+    PARENTHESE_FERMANTE,
+    FOIS,
+    PLUS,
+    VIRGULE,
+    MOINS,
+    POINT,
+    DIVISE,
+    DOUBLE_POINTS,
+    POINT_VIRGULE,
+    INFERIEUR,
+    EGAL,
+    SUPERIEUR,
+    AROBASE,
+    CROCHET_OUVRANT,
+    CROCHET_FERMANT,
+    CHAPEAU,
+    ACCOLADE_OUVRANTE,
+    BARRE,
+    ACCOLADE_FERMANTE,
+    TILDE,
+    DIFFERENCE,
+    ESP_ESP,
+    ET_EGAL,
+    FOIS_EGAL,
+    PLUS_PLUS,
+    PLUS_EGAL,
+    MOINS_MOINS,
+    MOINS_EGAL,
+    FLECHE,
+    TROIS_POINT,
+    DIVISE_EGAL,
+    DECALAGE_GAUCHE,
+    INFERIEUR_EGAL,
+    EGALITE,
+    SUPERIEUR_EGAL,
+    DECALAGE_DROITE,
+    OUX_EGAL,
+    OU_EGAL,
+    BARE_BARRE,
+    ACTION,
+    ACTIVABLE,
+    ANIMABLE,
+    ATTACHE,
+    BARRE_OUTILS,
+    BOUTON,
+    CASE,
+    CHAINE,
+    COLONNE,
+    COULEUR,
+    COURBE_COULEUR,
+    COURBE_VALEUR,
+    DISPOSITION,
+    DOSSIER,
+    DECIMAL,
+    ENTIER,
+    ENTREFACE,
+    ENTREE,
+    FAUX,
+    FEUILLE,
+    FICHIER_ENTREE,
+    FICHIER_SORTIE,
+    FILTRES,
+    ICONE,
+    INFOBULLE,
+    ITEMS,
+    LIGNE,
+    LISTE,
+    LISTE_MANIP,
+    LOGIQUE,
+    MAX,
+    MENU,
+    MIN,
+    METADONNEE,
+    NOM,
+    ONGLET,
+    PAS,
+    PRECISION,
+    QUAND,
+    RAMPE_COULEUR,
+    RELATION,
+    RESULTAT,
+    SORTIE,
+    SUFFIXE,
+    SEPARATEUR,
+    TEXTE,
+    VALEUR,
+    VECTEUR,
+    VRAI,
+    ENUM,
+    ETIQUETTE,
+    CHAINE_CARACTERE,
+    CHAINE_LITTERALE,
+    CARACTERE,
+    NOMBRE_BINAIRE,
+    NOMBRE_ENTIER,
+    NOMBRE_REEL,
+    NOMBRE_OCTAL,
+    NOMBRE_HEXADECIMAL,
+    BOOL,
+    NUL,
+    INCONNU,
 };
 
 inline id_morceau operator&(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) & id2);
 }
 
 inline id_morceau operator|(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) | id2);
 }
 
 inline id_morceau operator|(id_morceau id1, id_morceau id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+    return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
 inline id_morceau operator<<(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) << id2);
 }
 
 inline id_morceau operator>>(id_morceau id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+    return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
 }
 
 struct DonneesMorceaux {
-	using type = id_morceau;
-	static constexpr type INCONNU = id_morceau::INCONNU;
+    using type = id_morceau;
+    static constexpr type INCONNU = id_morceau::INCONNU;
 
-	dls::vue_chaine chaine;
-	unsigned long ligne_pos;
-	id_morceau genre;
-	int pad = 0;
+    dls::vue_chaine chaine;
+    unsigned long ligne_pos;
+    id_morceau genre;
+    int pad = 0;
 };
 
 const char *chaine_identifiant(id_morceau id);
@@ -186,4 +186,4 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine);
 
 id_morceau id_chaine(const dls::vue_chaine &chaine);
 
-}  /* namespace danjo */
+} /* namespace danjo */

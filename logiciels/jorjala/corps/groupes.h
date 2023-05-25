@@ -34,59 +34,59 @@
 /* ************************************************************************** */
 
 class GroupePoint {
-	using type_liste = dls::tableau<long>;
-	using ptr_liste = std::shared_ptr<type_liste>;
+    using type_liste = dls::tableau<long>;
+    using ptr_liste = std::shared_ptr<type_liste>;
 
-	ptr_liste m_points{};
+    ptr_liste m_points{};
 
-public:
-	dls::chaine nom{};
+  public:
+    dls::chaine nom{};
 
-	void ajoute_index(long index_point);
+    void ajoute_index(long index_point);
 
-	void reserve(long const nombre);
+    void reserve(long const nombre);
 
-	void reinitialise();
+    void reinitialise();
 
-	long taille() const;
+    long taille() const;
 
-	bool contiens(long index_point) const;
+    bool contiens(long index_point) const;
 
-	long index(long i) const;
+    long index(long i) const;
 
-	void remplace_index(long i, long j);
+    void remplace_index(long i, long j);
 
-private:
-	void detache();
+  private:
+    void detache();
 };
 
 /* ************************************************************************** */
 
 class GroupePrimitive {
-	using type_liste = dls::tableau<long>;
-	using ptr_liste = std::shared_ptr<type_liste>;
+    using type_liste = dls::tableau<long>;
+    using ptr_liste = std::shared_ptr<type_liste>;
 
-	ptr_liste m_primitives{};
+    ptr_liste m_primitives{};
 
-public:
-	dls::chaine nom{};
+  public:
+    dls::chaine nom{};
 
-	void ajoute_index(long index_poly);
+    void ajoute_index(long index_poly);
 
-	void remplace_index(long i, long j);
+    void remplace_index(long i, long j);
 
-	void reserve(long const nombre);
+    void reserve(long const nombre);
 
-	void reinitialise();
+    void reinitialise();
 
-	bool contient(long index_poly) const;
+    bool contient(long index_poly) const;
 
-	long taille() const;
+    long taille() const;
 
-	long index(long i) const;
+    long index(long i) const;
 
-private:
-	void detache();
+  private:
+    void detache();
 };
 
 /* ************************************************************************** */
@@ -103,74 +103,74 @@ private:
  * cela augmenterait la consommation de mémoire.
  */
 class iteratrice_index {
-	long m_nombre = 0;
-	long m_courant = 0;
-	bool m_est_groupe = false;
-	bool m_pad[7];
-	GroupePoint *gpnt = nullptr;
-	GroupePrimitive *gprm = nullptr;
+    long m_nombre = 0;
+    long m_courant = 0;
+    bool m_est_groupe = false;
+    bool m_pad[7];
+    GroupePoint *gpnt = nullptr;
+    GroupePrimitive *gprm = nullptr;
 
-public:
-	/**
-	 * Classe implémentant l'incrémentation, la déréférence, et l'égalité des
-	 * iteratrices.
-	 */
-	class iteratrice {
-		bool m_est_groupe = false;
-		long m_etat_nombre = 0;
-		GroupePoint *gpnt = nullptr;
-		GroupePrimitive *gprm = nullptr;
+  public:
+    /**
+     * Classe implémentant l'incrémentation, la déréférence, et l'égalité des
+     * iteratrices.
+     */
+    class iteratrice {
+        bool m_est_groupe = false;
+        long m_etat_nombre = 0;
+        GroupePoint *gpnt = nullptr;
+        GroupePrimitive *gprm = nullptr;
 
-	public:
-		iteratrice(long nombre);
+      public:
+        iteratrice(long nombre);
 
-		iteratrice(GroupePoint *groupe_point);
+        iteratrice(GroupePoint *groupe_point);
 
-		iteratrice(GroupePrimitive *groupe_primitive);
+        iteratrice(GroupePrimitive *groupe_primitive);
 
-		long operator*();
+        long operator*();
 
-		iteratrice &operator++();
+        iteratrice &operator++();
 
-		bool est_egal(iteratrice it);
-	};
+        bool est_egal(iteratrice it);
+    };
 
-	iteratrice_index() = default;
+    iteratrice_index() = default;
 
-	/**
-	 * Construction à partir d'un nombre d'index, cela est pour itérer sur tout
-	 * le corps.
-	 *
-	 * L'itération se fait sur l'ensemble [0, 1, 2, ..., nombre - 1], où nombre
-	 * est soit le nombre de points, soit le nombre de primitives.
-	 */
-	explicit iteratrice_index(long nombre);
+    /**
+     * Construction à partir d'un nombre d'index, cela est pour itérer sur tout
+     * le corps.
+     *
+     * L'itération se fait sur l'ensemble [0, 1, 2, ..., nombre - 1], où nombre
+     * est soit le nombre de points, soit le nombre de primitives.
+     */
+    explicit iteratrice_index(long nombre);
 
-	/**
-	 * Construction à partir d'un groupe de points.
-	 *
-	 * L'itération se fait sur les index contenu dans le groupe.
-	 */
-	explicit iteratrice_index(GroupePoint *groupe_point);
+    /**
+     * Construction à partir d'un groupe de points.
+     *
+     * L'itération se fait sur les index contenu dans le groupe.
+     */
+    explicit iteratrice_index(GroupePoint *groupe_point);
 
-	/**
-	 * Construction à partir d'un groupe de primitive.
-	 *
-	 * L'itération se fait sur les index contenu dans le groupe.
-	 */
-	explicit iteratrice_index(GroupePrimitive *groupe_primitive);
+    /**
+     * Construction à partir d'un groupe de primitive.
+     *
+     * L'itération se fait sur les index contenu dans le groupe.
+     */
+    explicit iteratrice_index(GroupePrimitive *groupe_primitive);
 
-	iteratrice begin();
+    iteratrice begin();
 
-	iteratrice end();
+    iteratrice end();
 };
 
 inline bool operator==(iteratrice_index::iteratrice ita, iteratrice_index::iteratrice itb)
 {
-	return ita.est_egal(itb);
+    return ita.est_egal(itb);
 }
 
 inline bool operator!=(iteratrice_index::iteratrice ita, iteratrice_index::iteratrice itb)
 {
-	return !(ita == itb);
+    return !(ita == itb);
 }

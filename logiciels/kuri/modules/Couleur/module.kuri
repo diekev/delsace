@@ -119,9 +119,9 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
 }
 
 CouleurTSL :: struct {
-    t: r32
-    s: r32
-    l: r32
+    t: r32 @mutable
+    s: r32 @mutable
+    l: r32 @mutable
 }
 
 rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL

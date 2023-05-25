@@ -35,71 +35,64 @@
 
 namespace psn {
 
-enum mode_fusion {
-	ADDITION,
-	SOUSTRACTION,
-	MULTIPLICATION,
-	MINIMUM,
-	MAXIMUM,
-	SUPERPOSITION
-};
+enum mode_fusion { ADDITION, SOUSTRACTION, MULTIPLICATION, MINIMUM, MAXIMUM, SUPERPOSITION };
 
 struct ParametresSource {
-	mode_fusion fusion{};
-	float densite = 1.0f;
-	float temperature = 1.0f;
-	float fioul = 1.0f;
-	float facteur = 1.0f;
-	Objet *objet = nullptr;
-	int debut = 0;
-	int fin = 0;
+    mode_fusion fusion{};
+    float densite = 1.0f;
+    float temperature = 1.0f;
+    float fioul = 1.0f;
+    float facteur = 1.0f;
+    Objet *objet = nullptr;
+    int debut = 0;
+    int fin = 0;
 };
 
 struct Monde {
-	dls::tableau<ParametresSource> sources{};
-	dls::ensemble<Objet *> obstacles{};
+    dls::tableau<ParametresSource> sources{};
+    dls::ensemble<Objet *> obstacles{};
 };
 
 struct Poseidon {
-	Monde monde{};
+    Monde monde{};
 
-	wlk::grille_dense_3d<int> *drapeaux = nullptr;
-	wlk::grille_dense_3d<float> *densite = nullptr;
-	wlk::grille_dense_3d<float> *temperature = nullptr;
-	wlk::grille_dense_3d<float> *oxygene = nullptr;
-	wlk::grille_dense_3d<float> *divergence = nullptr;
-	wlk::grille_dense_3d<float> *fioul = nullptr;
-	wlk::grille_dense_3d<float> *pression = nullptr;
-	wlk::GrilleMAC *velocite = nullptr;
+    wlk::grille_dense_3d<int> *drapeaux = nullptr;
+    wlk::grille_dense_3d<float> *densite = nullptr;
+    wlk::grille_dense_3d<float> *temperature = nullptr;
+    wlk::grille_dense_3d<float> *oxygene = nullptr;
+    wlk::grille_dense_3d<float> *divergence = nullptr;
+    wlk::grille_dense_3d<float> *fioul = nullptr;
+    wlk::grille_dense_3d<float> *pression = nullptr;
+    wlk::GrilleMAC *velocite = nullptr;
 
-	/* pour la diffusion */
-	wlk::grille_dense_3d<float> *densite_prev = nullptr;
-	wlk::grille_dense_3d<float> *temperature_prev = nullptr;
-	wlk::grille_dense_3d<float> *oxygene_prev = nullptr;
-	wlk::GrilleMAC *velocite_prev = nullptr;
+    /* pour la diffusion */
+    wlk::grille_dense_3d<float> *densite_prev = nullptr;
+    wlk::grille_dense_3d<float> *temperature_prev = nullptr;
+    wlk::grille_dense_3d<float> *oxygene_prev = nullptr;
+    wlk::GrilleMAC *velocite_prev = nullptr;
 
-	bruit::ondelette bruit{};
+    bruit::ondelette bruit{};
 
-	particules parts{};
-	GrilleParticule grille_particule{};
+    particules parts{};
+    GrilleParticule grille_particule{};
 
-	float dt = 0.0f;
-	float dt_min = 0.0f;
-	float dt_max = 0.0f;
-	float cfl = 0.0f;
-	float duree_frame = 0.0f;
-	float temps_par_frame = 0.0f;
-	float temps_total = 0.0f;
-	int image = 0;
-	int resolution = 0;
+    float dt = 0.0f;
+    float dt_min = 0.0f;
+    float dt_max = 0.0f;
+    float cfl = 0.0f;
+    float duree_frame = 0.0f;
+    float temps_par_frame = 0.0f;
+    float temps_total = 0.0f;
+    int image = 0;
+    int resolution = 0;
 
-	bool verrouille_dt = false;
-	bool decouple = false;
-	bool solveur_flip = false;
+    bool verrouille_dt = false;
+    bool decouple = false;
+    bool solveur_flip = false;
 
-	~Poseidon();
+    ~Poseidon();
 
-	void supprime_particules();
+    void supprime_particules();
 };
 
 void ajourne_sources(Poseidon &poseidon, int temps);
@@ -112,4 +105,4 @@ float calcul_vel_max(wlk::GrilleMAC const &vel);
 
 void calcul_dt(Poseidon &poseidon, float vel_max);
 
-}  /* namespace psn */
+} /* namespace psn */

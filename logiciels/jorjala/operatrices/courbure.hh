@@ -28,11 +28,10 @@ class ChefExecution;
 class Corps;
 
 struct DonneesCalculCourbure {
-	int nombre_instable = 0;
-	int nombre_impossible = 0;
+    int nombre_instable = 0;
+    int nombre_impossible = 0;
 };
 
-[[nodiscard]] DonneesCalculCourbure calcule_courbure(
-		ChefExecution *chef,
-		Corps &corps,
-		double rayon);
+[[nodiscard]] DonneesCalculCourbure calcule_courbure(ChefExecution *chef,
+                                                     Corps &corps,
+                                                     double rayon);

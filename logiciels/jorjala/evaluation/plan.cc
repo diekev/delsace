@@ -32,118 +32,118 @@
 
 static void tri_graphe_plan(Planifieuse::PtrPlan plan, NoeudReseau *noeud_temps)
 {
-	auto predicat = [](NoeudReseau *noeud)
-	{
-		if (noeud->degree != 0) {
-			return false;
-		}
+    auto predicat = [](NoeudReseau *noeud) {
+        if (noeud->degree != 0) {
+            return false;
+        }
 
-		/* Diminue le degrée des noeuds attachés à celui-ci. */
-		for (auto enfant : noeud->sorties) {
-			enfant->degree -= 1;
-		}
+        /* Diminue le degrée des noeuds attachés à celui-ci. */
+        for (auto enfant : noeud->sorties) {
+            enfant->degree -= 1;
+        }
 
-		return true;
-	};
+        return true;
+    };
 
-	/* réduit le degrée des noeuds connectés au noeud temps */
-	if (noeud_temps != nullptr) {
-		predicat(noeud_temps);
-	}
+    /* réduit le degrée des noeuds connectés au noeud temps */
+    if (noeud_temps != nullptr) {
+        predicat(noeud_temps);
+    }
 
-	tri_topologique(plan->noeuds.debut(), plan->noeuds.fin(), predicat);
+    tri_topologique(plan->noeuds.debut(), plan->noeuds.fin(), predicat);
 }
 
 /* ************************************************************************** */
 
-static void rassemble_noeuds(
-		dls::tableau<NoeudReseau *> &noeuds,
-		dls::ensemble<NoeudReseau *> &noeuds_visites,
-		NoeudReseau *noeud)
+static void rassemble_noeuds(dls::tableau<NoeudReseau *> &noeuds,
+                             dls::ensemble<NoeudReseau *> &noeuds_visites,
+                             NoeudReseau *noeud)
 {
-	if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
-		return;
-	}
+    if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+        return;
+    }
 
-	noeuds.ajoute(noeud);
-	noeuds_visites.insere(noeud);
+    noeuds.ajoute(noeud);
+    noeuds_visites.insere(noeud);
 
-	for (auto enfant : noeud->sorties) {
-		rassemble_noeuds(noeuds, noeuds_visites, enfant);
-	}
+    for (auto enfant : noeud->sorties) {
+        rassemble_noeuds(noeuds, noeuds_visites, enfant);
+    }
 }
 
 /* ************************************************************************** */
 
 Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_scene(Reseau &reseau) const
 {
-	auto plan = std::make_shared<Plan>();
-	plan->noeuds = reseau.noeuds;
+    auto plan = std::make_shared<Plan>();
+    plan->noeuds = reseau.noeuds;
 
-	/* Prépare les noeuds au tri topologique. */
-	for (auto noeud_dep : plan->noeuds) {
-		noeud_dep->degree = static_cast<int>(noeud_dep->entrees.taille());
-	}
+    /* Prépare les noeuds au tri topologique. */
+    for (auto noeud_dep : plan->noeuds) {
+        noeud_dep->degree = static_cast<int>(noeud_dep->entrees.taille());
+    }
 
-	tri_graphe_plan(plan, &reseau.noeud_temps);
+    tri_graphe_plan(plan, &reseau.noeud_temps);
 
-	return plan;
+    return plan;
 }
 
 Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_noeud(Reseau &reseau, Noeud *noeud) const
 {
-	auto plan = std::make_shared<Plan>();
+    auto plan = std::make_shared<Plan>();
 
-	dls::ensemble<NoeudReseau *> noeuds_visites;
+    dls::ensemble<NoeudReseau *> noeuds_visites;
 
-	for (auto noeud_reseau : reseau.noeuds) {
-		if (noeud_reseau->noeud == noeud) {
-			rassemble_noeuds(plan->noeuds, noeuds_visites, noeud_reseau);
-			break;
-		}
-	}
+    for (auto noeud_reseau : reseau.noeuds) {
+        if (noeud_reseau->noeud == noeud) {
+            rassemble_noeuds(plan->noeuds, noeuds_visites, noeud_reseau);
+            break;
+        }
+    }
 
-	/* Prépare les noeuds au tri topologique, le degré doit être égal au nombre
-	 * de noeuds parents dans la branche. */
-	for (auto noeud_dep : plan->noeuds) {
-		for (auto noeud_aval : noeud_dep->entrees) {
-			if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
-				noeud_dep->degree += 1;
-			}
-		}
-	}
+    /* Prépare les noeuds au tri topologique, le degré doit être égal au nombre
+     * de noeuds parents dans la branche. */
+    for (auto noeud_dep : plan->noeuds) {
+        for (auto noeud_aval : noeud_dep->entrees) {
+            if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
+                noeud_dep->degree += 1;
+            }
+        }
+    }
 
-	tri_graphe_plan(plan, nullptr);
+    tri_graphe_plan(plan, nullptr);
 
-	return plan;
+    return plan;
 }
 
-Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_nouveau_temps(Reseau &reseau, int temps, bool est_animation) const
+Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_nouveau_temps(Reseau &reseau,
+                                                                   int temps,
+                                                                   bool est_animation) const
 {
-	auto plan = std::make_shared<Plan>();
-	plan->temps = temps;
-	plan->est_animation = est_animation;
-	plan->est_pour_temps = true;
+    auto plan = std::make_shared<Plan>();
+    plan->temps = temps;
+    plan->est_animation = est_animation;
+    plan->est_pour_temps = true;
 
-	dls::ensemble<NoeudReseau *> noeuds_visites;
+    dls::ensemble<NoeudReseau *> noeuds_visites;
 
-	/* Cela duplique la boucle dans rassemble_noeuds, mais le noeud temps ne
-	 * doit pas être dans le plan. */
-	for (auto noeud : reseau.noeud_temps.sorties) {
-		rassemble_noeuds(plan->noeuds, noeuds_visites, noeud);
-	}
+    /* Cela duplique la boucle dans rassemble_noeuds, mais le noeud temps ne
+     * doit pas être dans le plan. */
+    for (auto noeud : reseau.noeud_temps.sorties) {
+        rassemble_noeuds(plan->noeuds, noeuds_visites, noeud);
+    }
 
-	/* Prépare les noeuds au tri topologique, le degré doit être égal au nombre
-	 * de noeuds parents dans la branche. */
-	for (auto noeud_dep : plan->noeuds) {
-		for (auto noeud_aval : noeud_dep->entrees) {
-			if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
-				noeud_dep->degree += 1;
-			}
-		}
-	}
+    /* Prépare les noeuds au tri topologique, le degré doit être égal au nombre
+     * de noeuds parents dans la branche. */
+    for (auto noeud_dep : plan->noeuds) {
+        for (auto noeud_aval : noeud_dep->entrees) {
+            if (noeuds_visites.trouve(noeud_aval) != noeuds_visites.fin()) {
+                noeud_dep->degree += 1;
+            }
+        }
+    }
 
-	tri_graphe_plan(plan, &reseau.noeud_temps);
+    tri_graphe_plan(plan, &reseau.noeud_temps);
 
-	return plan;
+    return plan;
 }

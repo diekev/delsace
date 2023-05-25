@@ -29,7 +29,7 @@
 namespace kdo {
 class Maillage;
 class Scene;
-}
+}  // namespace kdo
 
 class ContexteRendu;
 class TamponRendu;
@@ -39,38 +39,38 @@ class TamponRendu;
  * scène 3D.
  */
 class RenduMaillage {
-	TamponRendu *m_tampon_surface = nullptr;
-	TamponRendu *m_tampon_normal = nullptr;
-	kdo::Maillage *m_maillage = nullptr;
+    TamponRendu *m_tampon_surface = nullptr;
+    TamponRendu *m_tampon_normal = nullptr;
+    kdo::Maillage *m_maillage = nullptr;
 
-public:
-	/**
-	 * Construit une instance de RenduMaillage pour le maillage spécifié.
-	 */
-	explicit RenduMaillage(kdo::Maillage *maillage);
+  public:
+    /**
+     * Construit une instance de RenduMaillage pour le maillage spécifié.
+     */
+    explicit RenduMaillage(kdo::Maillage *maillage);
 
-	RenduMaillage(RenduMaillage const &) = default;
-	RenduMaillage &operator=(RenduMaillage const &) = default;
+    RenduMaillage(RenduMaillage const &) = default;
+    RenduMaillage &operator=(RenduMaillage const &) = default;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduMaillage();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduMaillage();
 
-	void initialise();
+    void initialise();
 
-	/**
-	 * Dessine le maillage dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte, kdo::Scene const &scene);
+    /**
+     * Dessine le maillage dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte, kdo::Scene const &scene);
 
-	/**
-	 * Retourne la matrice du maillage.
-	 */
-	dls::math::mat4x4d matrice() const;
+    /**
+     * Retourne la matrice du maillage.
+     */
+    dls::math::mat4x4d matrice() const;
 
-private:
-	void genere_tampon_surface();
-	void genere_tampon_normal();
+  private:
+    void genere_tampon_surface();
+    void genere_tampon_normal();
 };

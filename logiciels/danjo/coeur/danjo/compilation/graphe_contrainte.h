@@ -35,60 +35,60 @@ namespace danjo {
 class Variable;
 
 class contrainte {
-public:
-	dls::tableau<Variable *> m_variables{};
-	dls::tableau<Symbole> m_expression{};
-	Variable *m_sortie{};
-	dls::tableau<Symbole> m_condition{};
+  public:
+    dls::tableau<Variable *> m_variables{};
+    dls::tableau<Symbole> m_expression{};
+    Variable *m_sortie{};
+    dls::tableau<Symbole> m_condition{};
 };
 
 class Variable {
-public:
-	dls::tableau<contrainte *> m_contraintes{};
+  public:
+    dls::tableau<contrainte *> m_contraintes{};
 
-	dls::chaine nom{}; // nom de la propriété du manipulable
-	int degree{};
+    dls::chaine nom{};  // nom de la propriété du manipulable
+    int degree{};
 };
 
 class graphe_contrainte {
-	dls::tableau<contrainte *> m_contraintes{};
-	dls::tableau<Variable *> m_variables{};
+    dls::tableau<contrainte *> m_contraintes{};
+    dls::tableau<Variable *> m_variables{};
 
-public:
-	using iterateur_contrainte = dls::tableau<contrainte *>::iteratrice;
-	using iterateur_contrainte_const = dls::tableau<contrainte *>::const_iteratrice;
-	using iterateur_variable = dls::tableau<Variable *>::iteratrice;
-	using iterateur_variable_const = dls::tableau<Variable *>::const_iteratrice;
+  public:
+    using iterateur_contrainte = dls::tableau<contrainte *>::iteratrice;
+    using iterateur_contrainte_const = dls::tableau<contrainte *>::const_iteratrice;
+    using iterateur_variable = dls::tableau<Variable *>::iteratrice;
+    using iterateur_variable_const = dls::tableau<Variable *>::const_iteratrice;
 
-	~graphe_contrainte();
+    ~graphe_contrainte();
 
-	void ajoute_contrainte(contrainte *c);
+    void ajoute_contrainte(contrainte *c);
 
-	void ajoute_variable(Variable *v);
+    void ajoute_variable(Variable *v);
 
-	/* Itérateurs contrainte. */
+    /* Itérateurs contrainte. */
 
-	iterateur_contrainte debut_contrainte();
+    iterateur_contrainte debut_contrainte();
 
-	iterateur_contrainte fin_contrainte();
+    iterateur_contrainte fin_contrainte();
 
-	iterateur_contrainte_const debut_contrainte() const;
+    iterateur_contrainte_const debut_contrainte() const;
 
-	iterateur_contrainte_const fin_contrainte() const;
+    iterateur_contrainte_const fin_contrainte() const;
 
-	/* Itérateurs variables. */
+    /* Itérateurs variables. */
 
-	iterateur_variable debut_variable();
+    iterateur_variable debut_variable();
 
-	iterateur_variable fin_variable();
+    iterateur_variable fin_variable();
 
-	iterateur_variable_const debut_variable() const;
+    iterateur_variable_const debut_variable() const;
 
-	iterateur_variable_const fin_variable() const;
+    iterateur_variable_const fin_variable() const;
 };
 
 void connecte(contrainte *c, Variable *v);
 
 void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe);
 
-}  /* namespace danjo */
+} /* namespace danjo */

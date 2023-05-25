@@ -27,57 +27,55 @@
 #include "biblinternes/langage/analyseuse.hh"
 
 #include "arbre_syntactic.h"
-#include "morceaux.hh"
 #include "erreur.h"
+#include "morceaux.hh"
 
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct DonneesModule;
 
 class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
-	ContexteGenerationCode &m_contexte;
-	assembleuse_arbre *m_assembleuse = nullptr;
+    ContexteGenerationCode &m_contexte;
+    assembleuse_arbre *m_assembleuse = nullptr;
 
-	/* Ces vecteurs sont utilisés pour stocker les données des expressions
-	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
-	 * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs
-	 * utilisations. Ainsi nous n'avons pas à récréer des vecteurs à chaque
-	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
-	 * sûre niveau multi-threading.
-	 */
-	using paire_vecteurs = std::pair<dls::tableau<lcc::noeud::base *>, dls::tableau<lcc::noeud::base *>>;
-	dls::tableau<paire_vecteurs> m_paires_vecteurs;
-	long m_profondeur = 0;
+    /* Ces vecteurs sont utilisés pour stocker les données des expressions
+     * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
+     * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs
+     * utilisations. Ainsi nous n'avons pas à récréer des vecteurs à chaque
+     * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
+     * sûre niveau multi-threading.
+     */
+    using paire_vecteurs =
+        std::pair<dls::tableau<lcc::noeud::base *>, dls::tableau<lcc::noeud::base *>>;
+    dls::tableau<paire_vecteurs> m_paires_vecteurs;
+    long m_profondeur = 0;
 
-	DonneesModule *m_module;
+    DonneesModule *m_module;
 
-public:
-	analyseuse_grammaire(
-			ContexteGenerationCode &contexte,
-			DonneesModule *module);
+  public:
+    analyseuse_grammaire(ContexteGenerationCode &contexte, DonneesModule *module);
 
-	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
-	 * module. */
-	analyseuse_grammaire(analyseuse_grammaire const &) = delete;
-	analyseuse_grammaire &operator=(analyseuse_grammaire const &) = delete;
+    /* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
+     * module. */
+    analyseuse_grammaire(analyseuse_grammaire const &) = delete;
+    analyseuse_grammaire &operator=(analyseuse_grammaire const &) = delete;
 
-	void lance_analyse(std::ostream &os) override;
+    void lance_analyse(std::ostream &os) override;
 
-private:
-	void analyse_expression(id_morceau identifiant_final, bool const calcul_expression = false);
-	void analyse_appel_fonction();
-	void analyse_bloc();
-	void analyse_controle_si();
-	void analyse_controle_pour();
-	void analyse_directive();
-	void analyse_parametre(lcc::type_var type_param);
+  private:
+    void analyse_expression(id_morceau identifiant_final, bool const calcul_expression = false);
+    void analyse_appel_fonction();
+    void analyse_bloc();
+    void analyse_controle_si();
+    void analyse_controle_pour();
+    void analyse_directive();
+    void analyse_parametre(lcc::type_var type_param);
 
-	/**
-	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
-	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesMorceaux lui correspondant.
-	 */
-	[[noreturn]] void lance_erreur(
-			const dls::chaine &quoi,
-			erreur::type_erreur type = erreur::type_erreur::NORMAL);
+    /**
+     * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+     * en paramètre ainsi que plusieurs données sur l'identifiant courant
+     * contenues dans l'instance DonneesMorceaux lui correspondant.
+     */
+    [[noreturn]] void lance_erreur(const dls::chaine &quoi,
+                                   erreur::type_erreur type = erreur::type_erreur::NORMAL);
 };

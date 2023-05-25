@@ -34,90 +34,93 @@
 #include <cstring>
 #include <fstream>
 
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/langage/unicode.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "lcc/lcc.hh"
 
 int main()
 {
-	std::ios::sync_with_stdio(false);
+    std::ios::sync_with_stdio(false);
 
-	auto lcc = lcc::LCC();
-	lcc::initialise(lcc);
+    auto lcc = lcc::LCC();
+    lcc::initialise(lcc);
 
-	auto fonc_normales = dls::tableau<std::pair<dls::chaine, lcc::donnees_fonction const *>>();
-	auto fonc_polymorphiques = dls::tableau<std::pair<dls::chaine, lcc::donnees_fonction const *>>();
+    auto fonc_normales = dls::tableau<std::pair<dls::chaine, lcc::donnees_fonction const *>>();
+    auto fonc_polymorphiques =
+        dls::tableau<std::pair<dls::chaine, lcc::donnees_fonction const *>>();
 
-	for (auto const &paire_df : lcc.fonctions.table) {
-		for (auto const &df : paire_df.second) {
-			if (!dls::outils::possede_drapeau(df.ctx, lcc::ctx_script::detail)) {
-				continue;
-			}
+    for (auto const &paire_df : lcc.fonctions.table) {
+        for (auto const &df : paire_df.second) {
+            if (!dls::outils::possede_drapeau(df.ctx, lcc::ctx_script::detail)) {
+                continue;
+            }
 
-			auto est_polymorphique = false;
+            auto est_polymorphique = false;
 
-			for (auto i = 0; i < df.seing.entrees.taille(); ++i) {
-				if (df.seing.entrees.type(i) == lcc::type_var::POLYMORPHIQUE) {
-					est_polymorphique = true;
-					break;
-				}
-			}
+            for (auto i = 0; i < df.seing.entrees.taille(); ++i) {
+                if (df.seing.entrees.type(i) == lcc::type_var::POLYMORPHIQUE) {
+                    est_polymorphique = true;
+                    break;
+                }
+            }
 
-			if (est_polymorphique) {
-				fonc_polymorphiques.ajoute({ paire_df.first, &df });
-			}
-			else {
-				fonc_normales.ajoute({ paire_df.first, &df });
-			}
-		}
-	}
+            if (est_polymorphique) {
+                fonc_polymorphiques.ajoute({paire_df.first, &df});
+            }
+            else {
+                fonc_normales.ajoute({paire_df.first, &df});
+            }
+        }
+    }
 
-	auto os = std::ofstream("/tmp/fonctions_normales.glsl");
+    auto os = std::ofstream("/tmp/fonctions_normales.glsl");
 
-	for (auto paire_df : fonc_normales) {
-		auto df = paire_df.second;
-		auto const &entrees = df->seing.entrees;
-		auto const &sorties = df->seing.sorties;
+    for (auto paire_df : fonc_normales) {
+        auto df = paire_df.second;
+        auto const &entrees = df->seing.entrees;
+        auto const &sorties = df->seing.sorties;
 
-		os << "void " << lng::supprime_accents(paire_df.first);
+        os << "void " << lng::supprime_accents(paire_df.first);
 
-		auto virgule = '(';
+        auto virgule = '(';
 
-		for (auto i = 0; i < entrees.taille(); ++i) {
-			os << virgule << "in " << type_var_opengl(entrees.type(i)) << ' ' << lng::supprime_accents(entrees.nom(i));
-			virgule = ',';
-		}
+        for (auto i = 0; i < entrees.taille(); ++i) {
+            os << virgule << "in " << type_var_opengl(entrees.type(i)) << ' '
+               << lng::supprime_accents(entrees.nom(i));
+            virgule = ',';
+        }
 
-		for (auto i = 0; i < sorties.taille(); ++i) {
-			os << virgule << "out " << type_var_opengl(sorties.type(i)) << ' ' << lng::supprime_accents(sorties.nom(i));
-		}
+        for (auto i = 0; i < sorties.taille(); ++i) {
+            os << virgule << "out " << type_var_opengl(sorties.type(i)) << ' '
+               << lng::supprime_accents(sorties.nom(i));
+        }
 
-		os << ")\n{\n}\n\n";
-	}
+        os << ")\n{\n}\n\n";
+    }
 
-	os = std::ofstream("/tmp/fonctions_polymorphiques.glsl");
+    os = std::ofstream("/tmp/fonctions_polymorphiques.glsl");
 
-	for (auto paire_df : fonc_polymorphiques) {
-		auto df = paire_df.second;
-		auto const &entrees = df->seing.entrees;
-		auto const &sorties = df->seing.sorties;
+    for (auto paire_df : fonc_polymorphiques) {
+        auto df = paire_df.second;
+        auto const &entrees = df->seing.entrees;
+        auto const &sorties = df->seing.sorties;
 
-		os << "void " << lng::supprime_accents(paire_df.first);
+        os << "void " << lng::supprime_accents(paire_df.first);
 
-		auto virgule = '(';
+        auto virgule = '(';
 
-		for (auto i = 0; i < entrees.taille(); ++i) {
-			os << virgule << "in TYPE_POLY" << ' ' << lng::supprime_accents(entrees.nom(i));
-			virgule = ',';
-		}
+        for (auto i = 0; i < entrees.taille(); ++i) {
+            os << virgule << "in TYPE_POLY" << ' ' << lng::supprime_accents(entrees.nom(i));
+            virgule = ',';
+        }
 
-		for (auto i = 0; i < sorties.taille(); ++i) {
-			os << virgule << "out TYPE_POLY" << ' ' << lng::supprime_accents(sorties.nom(i));
-		}
+        for (auto i = 0; i < sorties.taille(); ++i) {
+            os << virgule << "out TYPE_POLY" << ' ' << lng::supprime_accents(sorties.nom(i));
+        }
 
-		os << ")\n{\n}\n\n";
-	}
+        os << ")\n{\n}\n\n";
+    }
 
-	return 0;
+    return 0;
 }

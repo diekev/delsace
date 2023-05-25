@@ -33,39 +33,50 @@
 #pragma GCC diagnostic pop
 
 class BarreDeProgres;
-struct Jorjala;
+class BaseEditrice;
+
+namespace JJL {
+class Jorjala;
+}
 
 class FenetrePrincipale : public QMainWindow {
-	Q_OBJECT
+    Q_OBJECT
 
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
-	BarreDeProgres *m_barre_progres = nullptr;
-	QToolBar *m_barre_outil = nullptr;
+    BarreDeProgres *m_barre_progres = nullptr;
+    QToolBar *m_barre_outil = nullptr;
 
-public:
-	explicit FenetrePrincipale(Jorjala &jorjala, QWidget *parent = nullptr);
+    QVector<BaseEditrice *> m_editrices{};
 
-	FenetrePrincipale(FenetrePrincipale const &) = default;
-	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+  public:
+    explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-public Q_SLOTS:
-	void image_traitee();
-	void mis_a_jour_menu_fichier_recent();
+    FenetrePrincipale(FenetrePrincipale const &) = default;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
-	void signale_proces(int quoi);
+  public Q_SLOTS:
+    void image_traitee();
+    void mis_a_jour_menu_fichier_recent();
 
-	/* barre de progrès */
-	void tache_demarree();
-	void ajourne_progres(float progres);
-	void tache_terminee();
-	void evaluation_debutee(const char *message, int execution, int total);
+    void signale_proces(int quoi);
 
-private:
-	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);
-	void genere_barre_menu();
-	void genere_menu_prereglages();
-	void charge_reglages();
-	void ecrit_reglages() const;
-	void closeEvent(QCloseEvent *) override;
+    /* barre de progrès */
+    void tache_demarree();
+    void ajourne_progres(float progres);
+    void tache_terminee();
+    void evaluation_debutee(const QString &message, int execution, int total);
+
+  private:
+    QDockWidget *ajoute_dock(QString const &nom,
+                             int type,
+                             int aire,
+                             QDockWidget *premier = nullptr);
+    void genere_barre_menu();
+    void genere_menu_prereglages();
+    void charge_reglages();
+    void ecrit_reglages() const;
+    void closeEvent(QCloseEvent *) override;
+
+    bool eventFilter(QObject *, QEvent *) override;
 };

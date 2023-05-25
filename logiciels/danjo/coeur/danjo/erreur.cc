@@ -29,47 +29,47 @@
 namespace danjo {
 
 ErreurFrappe::ErreurFrappe(const dls::vue_chaine &ligne,
-		long numero_ligne,
-		long position_ligne,
-		const dls::vue_chaine &quoi)
+                           long numero_ligne,
+                           long position_ligne,
+                           const dls::vue_chaine &quoi)
 {
-	dls::flux_chaine ss;
+    dls::flux_chaine ss;
 
-	ss << "Erreur de frappe : ligne " << numero_ligne
-	   << ", position " << position_ligne << " :\n"
-	   << ligne << '\n'
-	   << quoi << '\n';
+    ss << "Erreur de frappe : ligne " << numero_ligne << ", position " << position_ligne << " :\n"
+       << ligne << '\n'
+       << quoi << '\n';
 
-	/* cppcheck-suppress useInitializationList */
-	m_quoi = ss.chn();
+    /* cppcheck-suppress useInitializationList */
+    m_quoi = ss.chn();
 }
 
 const char *ErreurFrappe::quoi() const
 {
-	return m_quoi.c_str();
+    return m_quoi.c_str();
 }
 
 ErreurSyntactique::ErreurSyntactique(const dls::vue_chaine &ligne,
-		long numero_ligne,
-		long position_ligne,
-		const dls::vue_chaine &quoi,
-		const dls::vue_chaine &contenu, id_morceau id)
+                                     long numero_ligne,
+                                     long position_ligne,
+                                     const dls::vue_chaine &quoi,
+                                     const dls::vue_chaine &contenu,
+                                     id_morceau id)
 {
-	dls::flux_chaine ss;
+    dls::flux_chaine ss;
 
-	ss << "Erreur syntactique : ligne " << numero_ligne
-	   << ", position "<< position_ligne<< " :\n"
-	   << ligne << '\n'
-	   << quoi << '\n'
-	   << "Obtenu : " << contenu << " (" << chaine_identifiant(id) << ")\n";
+    ss << "Erreur syntactique : ligne " << numero_ligne << ", position " << position_ligne
+       << " :\n"
+       << ligne << '\n'
+       << quoi << '\n'
+       << "Obtenu : " << contenu << " (" << chaine_identifiant(id) << ")\n";
 
-	/* cppcheck-suppress useInitializationList */
-	m_quoi = ss.chn();
+    /* cppcheck-suppress useInitializationList */
+    m_quoi = ss.chn();
 }
 
 const char *ErreurSyntactique::quoi() const
 {
-	return m_quoi.c_str();
+    return m_quoi.c_str();
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

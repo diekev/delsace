@@ -25,8 +25,8 @@
 #include <iostream>
 #include <random>
 
-#include "biblinternes/tests/test_aleatoire.hh"
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/tests/test_aleatoire.hh"
 
 #include "coeur/danjo/compilation/analyseuse_disposition.h"
 #include "coeur/danjo/compilation/morceaux.h"
@@ -35,50 +35,48 @@ namespace analyse_aleatoire {
 
 void init(u_char *tampon, size_t taille)
 {
-	auto rd = std::random_device{};
-	auto dist = std::uniform_int_distribution<int>{
-				0,
-				static_cast<int>(danjo::id_morceau::INCONNU)};
+    auto rd = std::random_device{};
+    auto dist = std::uniform_int_distribution<int>{0,
+                                                   static_cast<int>(danjo::id_morceau::INCONNU)};
 
-	const auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
+    const auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
 
-	auto ptr_morceaux = reinterpret_cast<danjo::id_morceau *>(tampon);
+    auto ptr_morceaux = reinterpret_cast<danjo::id_morceau *>(tampon);
 
-	for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
-		auto id = static_cast<danjo::id_morceau>(dist(rd));
-		*ptr_morceaux++ = id;
-	}
+    for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
+        auto id = static_cast<danjo::id_morceau>(dist(rd));
+        *ptr_morceaux++ = id;
+    }
 }
 
 int test(const u_char *tampon, size_t taille)
 {
-	const auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
-	auto ptr_morceaux = reinterpret_cast<const danjo::id_morceau *>(tampon);
+    const auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
+    auto ptr_morceaux = reinterpret_cast<const danjo::id_morceau *>(tampon);
 
-	auto donnees_morceaux = dls::tableau<danjo::DonneesMorceaux>{};
-	donnees_morceaux.reserve(static_cast<long>(nombre_morceaux_max));
+    auto donnees_morceaux = dls::tableau<danjo::DonneesMorceaux>{};
+    donnees_morceaux.reserve(static_cast<long>(nombre_morceaux_max));
 
-	for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
-		auto dm = danjo::DonneesMorceaux{};
-		dm.chaine = "analyse_aleatoire";
-		dm.genre = *ptr_morceaux++;
-	}
+    for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
+        auto dm = danjo::DonneesMorceaux{};
+        dm.chaine = "analyse_aleatoire";
+        dm.genre = *ptr_morceaux++;
+    }
 
-	auto tampon_donnees = lng::tampon_source{"analyse_aleatoire"};
+    auto tampon_donnees = lng::tampon_source{"analyse_aleatoire"};
 
-	auto analyseuse = danjo::AnalyseuseDisposition(tampon_donnees, donnees_morceaux);
+    auto analyseuse = danjo::AnalyseuseDisposition(tampon_donnees, donnees_morceaux);
 
-	try {
-		analyseuse.lance_analyse(std::cerr);
-	}
-	catch (...) {
+    try {
+        analyseuse.lance_analyse(std::cerr);
+    }
+    catch (...) {
+    }
 
-	}
-
-	return 0;
+    return 0;
 }
 
-}  /* namespace analyse_aleatoire */
+} /* namespace analyse_aleatoire */
 
 namespace analyse_structuree {
 
@@ -198,50 +196,51 @@ struct Arbre {
 
 static size_t genere_ligne(danjo::id_morceau *ptr_morceaux, size_t taille)
 {
-	if (taille  < 4) {
-		return 0;
-	}
+    if (taille < 4) {
+        return 0;
+    }
 
-	*ptr_morceaux++ = danjo::id_morceau::LIGNE;
-	*ptr_morceaux++ = danjo::id_morceau::CHAINE_CARACTERE;
-	*ptr_morceaux++ = danjo::id_morceau::ACCOLADE_OUVRANTE;
+    *ptr_morceaux++ = danjo::id_morceau::LIGNE;
+    *ptr_morceaux++ = danjo::id_morceau::CHAINE_CARACTERE;
+    *ptr_morceaux++ = danjo::id_morceau::ACCOLADE_OUVRANTE;
 
-	auto nombre = genere_ligne(ptr_morceaux, taille - 4);
+    auto nombre = genere_ligne(ptr_morceaux, taille - 4);
 
-	*ptr_morceaux++ = danjo::id_morceau::ACCOLADE_FERMANTE;
+    *ptr_morceaux++ = danjo::id_morceau::ACCOLADE_FERMANTE;
 
-	return nombre;
+    return nombre;
 }
 
 void init(u_char *tampon, size_t taille)
 {
-	auto rd = std::random_device{};
-//	auto dist = std::uniform_int_distribution<int>{
-//				0,
-//				static_cast<int>(danjo::id_morceau::INCONNU)};
+    auto rd = std::random_device{};
+    //	auto dist = std::uniform_int_distribution<int>{
+    //				0,
+    //				static_cast<int>(danjo::id_morceau::INCONNU)};
 
-	auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
+    auto nombre_morceaux_max = taille / sizeof(danjo::id_morceau);
 
-	auto ptr_morceaux = reinterpret_cast<danjo::id_morceau *>(tampon);
+    auto ptr_morceaux = reinterpret_cast<danjo::id_morceau *>(tampon);
 
-	*ptr_morceaux++ = danjo::id_morceau::DISPOSITION;
-	*ptr_morceaux++ = danjo::id_morceau::CHAINE_CARACTERE;
-	*ptr_morceaux++ = danjo::id_morceau::ACCOLADE_OUVRANTE;
+    *ptr_morceaux++ = danjo::id_morceau::DISPOSITION;
+    *ptr_morceaux++ = danjo::id_morceau::CHAINE_CARACTERE;
+    *ptr_morceaux++ = danjo::id_morceau::ACCOLADE_OUVRANTE;
 
-	for (size_t i = 0ul; i < nombre_morceaux_max - 4; ++i) {
-		i += genere_ligne(ptr_morceaux, nombre_morceaux_max - 4 - i);
-	}
+    for (size_t i = 0ul; i < nombre_morceaux_max - 4; ++i) {
+        i += genere_ligne(ptr_morceaux, nombre_morceaux_max - 4 - i);
+    }
 
-	*ptr_morceaux++ = danjo::id_morceau::ACCOLADE_FERMANTE;
+    *ptr_morceaux++ = danjo::id_morceau::ACCOLADE_FERMANTE;
 }
 
-}  /* namespace analyse_structuree */
+} /* namespace analyse_structuree */
 
 int main()
 {
-	auto testeuse = dls::test_aleatoire::Testeuse{};
-	testeuse.ajoute_tests("analyse_aleatoire", analyse_aleatoire::init, analyse_aleatoire::test);
-//	testeuse.ajoute_tests("analyse_structuree", analyse_structuree::init, analyse_aleatoire::test);
+    auto testeuse = dls::test_aleatoire::Testeuse{};
+    testeuse.ajoute_tests("analyse_aleatoire", analyse_aleatoire::init, analyse_aleatoire::test);
+    //	testeuse.ajoute_tests("analyse_structuree", analyse_structuree::init,
+    //analyse_aleatoire::test);
 
-	return testeuse.performe_tests(std::cerr);
+    return testeuse.performe_tests(std::cerr);
 }

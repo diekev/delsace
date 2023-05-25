@@ -32,46 +32,41 @@
 
 /* ************************************************************************** */
 
-ControleRampeCouleur::ControleRampeCouleur(QWidget *parent)
-	: QWidget(parent)
+ControleRampeCouleur::ControleRampeCouleur(QWidget *parent) : QWidget(parent)
 {
-	resize(512, 256);
-	auto metriques = this->fontMetrics();
-	setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 4.0f));
+    resize(512, 256);
+    auto metriques = this->fontMetrics();
+    setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 4.0f));
 }
 
 void ControleRampeCouleur::installe_rampe(RampeCouleur *rampe)
 {
-	m_rampe = rampe;
-	m_point_courant = trouve_point_selectionne(*m_rampe);
+    m_rampe = rampe;
+    m_point_courant = trouve_point_selectionne(*m_rampe);
 }
 
 void ControleRampeCouleur::paintEvent(QPaintEvent *)
 {
-	const auto &largeur = size().width();
-	const auto &metriques = this->fontMetrics();
-	const auto &hauteur_fonte = metriques.height();
+    const auto &largeur = size().width();
+    const auto &metriques = this->fontMetrics();
+    const auto &hauteur_fonte = metriques.height();
 
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
 
-	/* dessine le dégradé */
-	const auto largeur_degrade = largeur - hauteur_fonte * 2;
-	QLinearGradient degrade(QPoint(hauteur_fonte, 0),
-							QPoint(hauteur_fonte + largeur_degrade, 0));
+    /* dessine le dégradé */
+    const auto largeur_degrade = largeur - hauteur_fonte * 2;
+    QLinearGradient degrade(QPoint(hauteur_fonte, 0), QPoint(hauteur_fonte + largeur_degrade, 0));
 
-	for (auto i = 0.0; i <= 32.0; i += 1.0) {
-		auto couleur = evalue_rampe_couleur(*m_rampe, static_cast<float>(i / 32.0));
-		degrade.setColorAt(i / 32.0, converti_couleur(couleur));
-	}
+    for (auto i = 0.0; i <= 32.0; i += 1.0) {
+        auto couleur = evalue_rampe_couleur(*m_rampe, static_cast<float>(i / 32.0));
+        degrade.setColorAt(i / 32.0, converti_couleur(couleur));
+    }
 
-	painter.setBrush(QBrush(degrade));
-	painter.drawRect(hauteur_fonte,
-					 0,
-					 largeur_degrade,
-					 hauteur_fonte * 2);
+    painter.setBrush(QBrush(degrade));
+    painter.drawRect(hauteur_fonte, 0, largeur_degrade, hauteur_fonte * 2);
 
-	/* dessine les lignes de contrôles */
+    /* dessine les lignes de contrôles */
 #if 0
 	painter.setPen(QColor(0, 0, 0));
 
@@ -83,119 +78,122 @@ void ControleRampeCouleur::paintEvent(QPaintEvent *)
 	}
 #endif
 
-	/* dessine les poignées de contrôles */
-	QPoint points_triangle[3];
+    /* dessine les poignées de contrôles */
+    QPoint points_triangle[3];
 
-	for (const auto &point : m_rampe->points) {
-		painter.setBrush(QBrush(converti_couleur(point.couleur)));
+    for (const auto &point : m_rampe->points) {
+        painter.setBrush(QBrush(converti_couleur(point.couleur)));
 
-		{
-			auto x = static_cast<int>(static_cast<float>(largeur_degrade) * point.position) + hauteur_fonte;
-			auto y = static_cast<int>(static_cast<float>(hauteur_fonte) * 2.5f);
+        {
+            auto x = static_cast<int>(static_cast<float>(largeur_degrade) * point.position) +
+                     hauteur_fonte;
+            auto y = static_cast<int>(static_cast<float>(hauteur_fonte) * 2.5f);
 
-			points_triangle[0] = QPoint( x - hauteur_fonte / 2, y);
-			points_triangle[2] = QPoint( x + hauteur_fonte / 2, y);
-			points_triangle[1] = QPoint( x, hauteur_fonte * 2);
+            points_triangle[0] = QPoint(x - hauteur_fonte / 2, y);
+            points_triangle[2] = QPoint(x + hauteur_fonte / 2, y);
+            points_triangle[1] = QPoint(x, hauteur_fonte * 2);
 
-			painter.drawPolygon(points_triangle, 3);
-		}
+            painter.drawPolygon(points_triangle, 3);
+        }
 
-		{
-			auto l = hauteur_fonte;
-			auto h = hauteur_fonte;
-			auto x = static_cast<float>(largeur_degrade) * point.position + static_cast<float>(hauteur_fonte) * 0.5f;
-			auto y = static_cast<float>(hauteur_fonte) * 2.5f;
+        {
+            auto l = hauteur_fonte;
+            auto h = hauteur_fonte;
+            auto x = static_cast<float>(largeur_degrade) * point.position +
+                     static_cast<float>(hauteur_fonte) * 0.5f;
+            auto y = static_cast<float>(hauteur_fonte) * 2.5f;
 
-			painter.drawRect(static_cast<int>(x), static_cast<int>(y), l, h);
-		}
-	}
+            painter.drawRect(static_cast<int>(x), static_cast<int>(y), l, h);
+        }
+    }
 }
 
 float ControleRampeCouleur::position_degrade(float x)
 {
-	const auto &largeur = size().width();
-	const auto &metriques = this->fontMetrics();
-	const auto &hauteur_fonte = metriques.height();
-	const auto largeur_degrade = largeur - hauteur_fonte * 2;
-	const auto echelle = static_cast<float>(largeur) / static_cast<float>(largeur_degrade);
+    const auto &largeur = size().width();
+    const auto &metriques = this->fontMetrics();
+    const auto &hauteur_fonte = metriques.height();
+    const auto largeur_degrade = largeur - hauteur_fonte * 2;
+    const auto echelle = static_cast<float>(largeur) / static_cast<float>(largeur_degrade);
 
-	x = x / static_cast<float>(largeur);
-	x = 2.0f * x - 1.0f;
-	x *= echelle;
-	x = x * 0.5f + 0.5f;
+    x = x / static_cast<float>(largeur);
+    x = 2.0f * x - 1.0f;
+    x *= echelle;
+    x = x * 0.5f + 0.5f;
 
-	return x;
+    return x;
 }
 
 void ControleRampeCouleur::mousePressEvent(QMouseEvent *event)
 {
-	const auto &largeur = size().width();
-	const auto &metriques = this->fontMetrics();
-	const auto &hauteur_fonte = metriques.height();
-	const auto &taille_fenetre = (static_cast<float>(hauteur_fonte) * 0.5f) / static_cast<float>(largeur);
-	const auto &x = position_degrade(static_cast<float>(event->pos().x()));
+    const auto &largeur = size().width();
+    const auto &metriques = this->fontMetrics();
+    const auto &hauteur_fonte = metriques.height();
+    const auto &taille_fenetre = (static_cast<float>(hauteur_fonte) * 0.5f) /
+                                 static_cast<float>(largeur);
+    const auto &x = position_degrade(static_cast<float>(event->pos().x()));
 
-	PointRampeCouleur *point_courant = nullptr;
-	m_point_selectionne = false;
+    PointRampeCouleur *point_courant = nullptr;
+    m_point_selectionne = false;
 
-	for (auto &point : m_rampe->points) {
-		auto dist_x = point.position - x;
+    for (auto &point : m_rampe->points) {
+        auto dist_x = point.position - x;
 
-		if (std::abs(dist_x) < taille_fenetre) {
-			point_courant = &point;
-		}
-	}
+        if (std::abs(dist_x) < taille_fenetre) {
+            point_courant = &point;
+        }
+    }
 
-	if (point_courant != nullptr) {
-		if (point_courant != m_point_courant) {
-			if (m_point_courant != nullptr) {
-				m_point_courant->selectionne = false;
-			}
-		}
+    if (point_courant != nullptr) {
+        if (point_courant != m_point_courant) {
+            if (m_point_courant != nullptr) {
+                m_point_courant->selectionne = false;
+            }
+        }
 
-		m_point_courant = point_courant;
-		m_point_courant->selectionne = true;
-		m_point_selectionne = true;
-		Q_EMIT point_change();
-		update();
-	}
+        m_point_courant = point_courant;
+        m_point_courant->selectionne = true;
+        m_point_selectionne = true;
+        Q_EMIT point_change();
+        update();
+    }
 }
 
 void ControleRampeCouleur::mouseMoveEvent(QMouseEvent *event)
 {
-	if (m_point_selectionne) {
-		auto x = position_degrade(static_cast<float>(event->pos().x()));
-		x = std::max(0.0f, std::min(1.0f, x));
+    if (m_point_selectionne) {
+        auto x = position_degrade(static_cast<float>(event->pos().x()));
+        x = std::max(0.0f, std::min(1.0f, x));
 
-		m_point_courant->position = x;
-		tri_points_rampe(*m_rampe);
-		m_point_courant = trouve_point_selectionne(*m_rampe);
-		Q_EMIT position_modifie(x);
-		update();
-	}
+        m_point_courant->position = x;
+        tri_points_rampe(*m_rampe);
+        m_point_courant = trouve_point_selectionne(*m_rampe);
+        Q_EMIT position_modifie(x);
+        update();
+    }
 }
 
 void ControleRampeCouleur::mouseReleaseEvent(QMouseEvent *)
 {
-	m_point_selectionne = false;
+    m_point_selectionne = false;
 }
 
 void ControleRampeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
 {
-	const auto &x = position_degrade(static_cast<float>(event->pos().x()));
+    const auto &x = position_degrade(static_cast<float>(event->pos().x()));
 
-	auto couleur = dls::phys::couleur32{1.0f, 0.0f, 1.0f, 1.0f};
-	ajoute_point_rampe(*m_rampe, x, couleur);
-	update();
+    auto couleur = dls::phys::couleur32{1.0f, 0.0f, 1.0f, 1.0f};
+    ajoute_point_rampe(*m_rampe, x, couleur);
+    update();
 
-	Q_EMIT controle_ajoute();
+    Q_EMIT controle_ajoute();
 }
 
 void ControleRampeCouleur::ajourne_position(float x)
 {
-	if (m_point_courant != nullptr) {
-		m_point_courant->position = x;
-	}
+    if (m_point_courant != nullptr) {
+        m_point_courant->position = x;
+    }
 
-	update();
+    update();
 }

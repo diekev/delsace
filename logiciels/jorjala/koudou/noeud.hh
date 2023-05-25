@@ -34,30 +34,30 @@ namespace kdo {
 class Nuanceur;
 
 enum class type_noeud {
-	MAILLAGE,
-	LUMIERE,
-	SPHERE,
+    MAILLAGE,
+    LUMIERE,
+    SPHERE,
 };
 
 struct noeud {
-	math::transformation tranformation{};
-	bli::BVHTree *arbre_hbe = nullptr;
+    math::transformation tranformation{};
+    bli::BVHTree *arbre_hbe = nullptr;
 
-	Nuanceur *nuanceur = nullptr;
+    Nuanceur *nuanceur = nullptr;
 
-	type_noeud type{};
+    type_noeud type{};
 
-	noeud(type_noeud t);
+    noeud(type_noeud t);
 
-	COPIE_CONSTRUCT(noeud);
+    COPIE_CONSTRUCT(noeud);
 
-	virtual ~noeud();
+    virtual ~noeud();
 
-	virtual void construit_arbre_hbe();
+    virtual void construit_arbre_hbe();
 
-	virtual dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon);
+    virtual dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon);
 
-	virtual limites3d calcule_limites();
+    virtual limites3d calcule_limites();
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

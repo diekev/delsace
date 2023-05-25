@@ -26,4 +26,4 @@
 
 namespace wlk {
 
-}  /* namespace wlk */
+} /* namespace wlk */

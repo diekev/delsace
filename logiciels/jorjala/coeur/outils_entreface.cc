@@ -28,29 +28,33 @@
 
 void initialise_entreface(danjo::Manipulable *manipulable, const ResultatCheminEntreface &res)
 {
-	std::visit([&](auto &&arg)
-	{
-		using T = std::decay_t<decltype(arg)>;
-		if constexpr (std::is_same_v<T, CheminFichier>) {
-			danjo::initialise_entreface(manipulable, dls::contenu_fichier(arg.chemin).c_str());
-		}
-		else {
-			danjo::initialise_entreface(manipulable, arg.texte.c_str());
-		}
-	}, res);
+    std::visit(
+        [&](auto &&arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, CheminFichier>) {
+                danjo::initialise_entreface(manipulable, dls::contenu_fichier(arg.chemin).c_str());
+            }
+            else {
+                danjo::initialise_entreface(manipulable, arg.texte.c_str());
+            }
+        },
+        res);
 }
 
-
-void initialise_entreface(danjo::GestionnaireInterface *gestionnaire, danjo::Manipulable *manipulable, const ResultatCheminEntreface &res)
+void initialise_entreface(danjo::GestionnaireInterface *gestionnaire,
+                          danjo::Manipulable *manipulable,
+                          const ResultatCheminEntreface &res)
 {
-	std::visit([&](auto &&arg)
-	{
-		using T = std::decay_t<decltype(arg)>;
-		if constexpr (std::is_same_v<T, CheminFichier>) {
-			gestionnaire->initialise_entreface_texte(manipulable, dls::contenu_fichier(arg.chemin).c_str());
-		}
-		else {
-			gestionnaire->initialise_entreface_texte(manipulable, arg.texte.c_str());
-		}
-	}, res);
+    std::visit(
+        [&](auto &&arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, CheminFichier>) {
+                gestionnaire->initialise_entreface_texte(manipulable,
+                                                         dls::contenu_fichier(arg.chemin).c_str());
+            }
+            else {
+                gestionnaire->initialise_entreface_texte(manipulable, arg.texte.c_str());
+            }
+        },
+        res);
 }
