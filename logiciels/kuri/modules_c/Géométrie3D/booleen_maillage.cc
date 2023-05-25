@@ -3,6 +3,8 @@
 
 #include "booleen_maillage.hh"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #include "biblinternes/outils/gna.hh"
 #include "booleen/boolean_operations.hpp"
 #include "booleen/properties_polyhedron_3.h"
