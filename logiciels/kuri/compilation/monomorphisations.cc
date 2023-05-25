@@ -16,7 +16,8 @@ std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
     return os;
 }
 
-NoeudExpression *Monomorphisations::trouve_monomorphisation(kuri::tableau_statique<ItemMonomorphisation> items) const
+NoeudExpression *Monomorphisations::trouve_monomorphisation(
+    kuri::tableau_statique<ItemMonomorphisation> items) const
 {
     auto monomorphisations_ = monomorphisations.verrou_lecture();
 
