@@ -27,18 +27,21 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
 {
     assert(adresse >= 0);
 
-    auto taille = (adresse >> 32) & 0xffffffff;
-    adresse = (adresse & 0xfffffff);
+    /* MSVC convertis l'adresse implicitement vers un nombre naturel, ce qui cause une erreur de
+     * compilation. Convertissons explicitement. */
+    auto adresse_naturelle = size_t(adresse);
+    auto taille = (adresse_naturelle >> 32) & 0xffffffff;
+    adresse_naturelle = (adresse_naturelle & 0xfffffff);
 
     auto tampon_courant = &enchaineuse.m_tampon_base;
 
-    while (adresse >= Enchaineuse::TAILLE_TAMPON) {
-        adresse -= Enchaineuse::TAILLE_TAMPON;
+    while (adresse_naturelle >= size_t(Enchaineuse::TAILLE_TAMPON)) {
+        adresse_naturelle -= size_t(Enchaineuse::TAILLE_TAMPON);
         tampon_courant = tampon_courant->suivant;
     }
 
     assert(tampon_courant);
-    return {&tampon_courant->donnees[adresse], taille};
+    return {&tampon_courant->donnees[adresse_naturelle], long(taille)};
 }
 
 long GeranteChaine::memoire_utilisee() const
