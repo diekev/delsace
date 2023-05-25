@@ -11,7 +11,7 @@ namespace kuri {
 
 #ifdef _MSC_VER
 /* https://stackoverflow.com/questions/6693010/how-do-i-use-multibytetowidechar */
-static std::string vers_utf8(const std::wstring &wstr)
+std::string vers_utf8(const std::wstring &wstr)
 {
     auto const count = WideCharToMultiByte(
         CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);

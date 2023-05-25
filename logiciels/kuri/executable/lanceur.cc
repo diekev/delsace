@@ -338,6 +338,20 @@ static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
  */
 static std::optional<kuri::chaine> determine_racine_execution_kuri()
 {
+#ifdef _MSC_VER
+    std::wstring path(1024, L'\0');
+    const DWORD len
+        = GetModuleFileNameW(NULL, &path[0], (DWORD)path.size());
+    if (!len) {
+        std::cerr
+            << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !\n";
+        std::cerr << "Compilation avortée.\n";
+            return {};
+    }
+    path.resize(len);
+    std::string string = kuri::vers_utf8(path);
+    return kuri::chaine(string.c_str(), long(string.size()));
+#else
     /* Tente de déterminer la racine depuis le système. */
     char tampon[1024];
     ssize_t len = readlink("/proc/self/exe", tampon, 1024);
@@ -385,6 +399,7 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
     }
 
     return kuri::chaine(racine);
+#endif
 }
 
 int main(int argc, char *argv[])
