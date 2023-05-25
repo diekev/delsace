@@ -368,6 +368,7 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
         std::cerr << "Compilation avortée.\n";
         return {};
     }
+
     /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
      * parent. */
     auto chemin_executable = opt_chemin_executable.value();

@@ -293,7 +293,8 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
 
 #ifdef _MSC_VER
     /* NOTE : le nom de sortie doit être collé à "/Fo" */
-    enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << fichier_sortie;
+    enchaineuse << "\"" << fichier_entrée << "\""
+                << " /Fo" << fichier_sortie;
 #else
     enchaineuse << fichier_entrée << " -o " << fichier_sortie;
 #endif
@@ -328,7 +329,8 @@ kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
                                          kuri::chaine_statique fichier_sortie)
 {
-    return commande_pour_fichier_objet_impl(options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
+    return commande_pour_fichier_objet_impl(
+        options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
 }
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
@@ -345,7 +347,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     }
 
     POUR (fichiers_entrée) {
-    enchaineuse << '"' << it << "\" ";
+        enchaineuse << '"' << it << "\" ";
     }
 
     /* Ajoute le fichier objet pour les r16. */
@@ -421,7 +423,9 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
     enchaineuse << donne_compilateur_cpp();
 
 #ifdef _MSC_VER
-    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entree << "\"" << " /link /DLL /OUT:" << nom_sortie;
+    enchaineuse << " /D_USRDLL /D_WINDLL "
+                << "\"" << nom_entree << "\""
+                << " /link /DLL /OUT:" << nom_sortie;
 #else
     enchaineuse << " -shared -fPIC ";
 
