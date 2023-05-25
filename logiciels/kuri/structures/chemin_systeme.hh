@@ -21,17 +21,9 @@ struct chemin_systeme {
   public:
     chemin_systeme() = default;
 
-    chemin_systeme(const char *str) : donnees(str)
-    {
-    }
-
-    chemin_systeme(chaine_statique chemin) : donnees(chemin)
-    {
-    }
-
-    chemin_systeme(chaine chemin) : donnees(chemin)
-    {
-    }
+    chemin_systeme(const char *str);
+    chemin_systeme(chaine_statique chemin);
+    chemin_systeme(chaine chemin);
 
     /**
      * Retourne le nom de fichier à la fin du chemin.

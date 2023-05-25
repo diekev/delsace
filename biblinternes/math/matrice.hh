@@ -466,8 +466,7 @@ template <
 template <
         typename type_scalaire,
         template <int, typename, int...> class type_vecteur,
-        size_t... Colonnes,
-        size_t... Lignes
+        size_t... Colonnes
         >
 [[nodiscard]] auto normalise(
         matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Colonnes...>> const &mat)
@@ -487,8 +486,7 @@ template <
 template <
         typename type_scalaire,
         template <int, typename, int...> class type_vecteur,
-        size_t... Colonnes,
-        size_t... Lignes
+        size_t... Colonnes
         >
 [[nodiscard]] auto est_negative(
         matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Colonnes...>> const &mat)
