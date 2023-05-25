@@ -317,8 +317,10 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
     genere_enum(lexemes, os);
 
     const char *declarations = R"(
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 struct Lexeme {
     dls::vue_chaine_compacte chaine{};
 
@@ -334,7 +336,9 @@ struct Lexeme {
 	int ligne = 0;
 	int colonne = 0;
 };
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 namespace kuri {
 struct chaine_statique;
