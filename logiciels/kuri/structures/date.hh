@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include <cstdint>
+
 struct TempsSysteme {
-    long seconde;
-    long nanoseconde;
+    int64_t seconde;
+    int64_t nanoseconde;
 };
 
 TempsSysteme maintenant_systeme();
@@ -21,7 +23,7 @@ struct Date {
     int seconde;
 };
 
-bool est_annee_bissextile(long annee);
+bool est_annee_bissextile(int64_t annee);
 
 inline int secondes_par_an()
 {

@@ -704,7 +704,7 @@ auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree,
         auto const calque_entree = entree.calque_pour_index(&entree, i);
 
         char *ptr_nom;
-        long taille_nom;
+        int64_t taille_nom;
         entree.nom_calque(&entree, calque_entree, &ptr_nom, &taille_nom);
 
         auto calque_sortie = sortie.cree_calque(&sortie, ptr_nom, taille_nom);

@@ -123,7 +123,7 @@ static float simule_grain_pour_coordonnees(DonneesCanal<ParamatresGrain> &canal,
             // échantillone image
             auto const u = std::max(
                 0.0f, std::min(1.0f, valeur_entree(canal, int(coin_x), int(coin_y))));
-            auto const index_u = static_cast<long>(u * MAX_NIVEAU_GRIS);
+            auto const index_u = static_cast<int64_t>(u * MAX_NIVEAU_GRIS);
             auto const lambda = lambdas[index_u];
             auto const Q = poisson(gna_local.uniforme(0.0f, 1.0f), lambda);
 
@@ -184,7 +184,7 @@ static void simule_grain_image(DonneesCanal<ParamatresGrain> &image,
     }
 
     boucle_parallele(tbb::blocked_range<int>(0, res_y), [&](tbb::blocked_range<int> const &plage) {
-        auto gna_local = GNA(static_cast<unsigned long>(graine + plage.begin()));
+        auto gna_local = GNA(static_cast<uint64_t>(graine + plage.begin()));
 
         for (int j = plage.begin(); j < plage.end(); ++j) {
             for (int i = 0; i < res_x; ++i) {
@@ -228,7 +228,7 @@ void simule_grain_image(const ParametresSimulationGrain &params,
         auto const calque_entree = entree.calque_pour_index(&entree, i);
 
         char *ptr_nom;
-        long taille_nom;
+        int64_t taille_nom;
         entree.nom_calque(&entree, calque_entree, &ptr_nom, &taille_nom);
 
         auto calque_sortie = sortie.cree_calque(&sortie, ptr_nom, taille_nom);

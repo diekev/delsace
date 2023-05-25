@@ -181,7 +181,7 @@ struct ContexteValidationCode {
                                         NoeudExpression *noeud);
     void rapporte_erreur_acces_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
-                                            long index_acces);
+                                            int64_t index_acces);
     void rapporte_erreur_membre_inconnu(NoeudExpression *acces,
                                         NoeudExpression *membre,
                                         TypeCompose *type);

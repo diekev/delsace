@@ -114,7 +114,7 @@ struct Bibliotheque {
 
     bool charge(EspaceDeTravail *espace);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     kuri::chaine_statique chemin_de_base(OptionsDeCompilation const &options) const;
     kuri::chaine_statique chemin_statique(OptionsDeCompilation const &options) const;
@@ -150,7 +150,7 @@ struct GestionnaireBibliotheques {
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 

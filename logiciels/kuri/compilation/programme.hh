@@ -214,7 +214,7 @@ struct Programme {
 
     void change_de_phase(PhaseCompilation phase);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats);
 

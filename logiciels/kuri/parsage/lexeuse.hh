@@ -117,6 +117,6 @@ struct Lexeuse {
 
     unsigned lexe_caractere_litteral(kuri::chaine *chaine);
 
-    void pousse_lexeme_entier(unsigned long long valeur);
+    void pousse_lexeme_entier(uint64_t valeur);
     void pousse_lexeme_reel(double valeur);
 };

@@ -3,7 +3,7 @@
 
 #include "infos_types.hh"
 
-long AllocatriceInfosType::memoire_utilisee() const
+int64_t AllocatriceInfosType::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += infos_types.memoire_utilisee();

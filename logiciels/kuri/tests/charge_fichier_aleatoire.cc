@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
     char *donnees = new char[static_cast<size_t>(taille_fichier)];
 
-    fichier_entree.read(donnees, static_cast<long>(taille_fichier));
+    fichier_entree.read(donnees, static_cast<int64_t>(taille_fichier));
 
 #if 1
     {
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     }
 #else
     auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
-    auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
+    auto nombre_morceaux = taille_fichier / static_cast<int64_t>(sizeof(id_morceau));
 
     kuri::tableau<Lexeme> morceaux;
     morceaux.reserve(nombre_morceaux);

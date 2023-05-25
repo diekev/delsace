@@ -147,7 +147,7 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "unsigned int";
                 }
                 else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "unsigned long";
+                    type_c.typedef_ = "uint64_t";
                 }
 
                 break;
@@ -164,14 +164,14 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "int";
                 }
                 else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "long";
+                    type_c.typedef_ = "int64_t";
                 }
 
                 break;
             }
             case GenreType::TYPE_DE_DONNEES:
             {
-                type_c.typedef_ = "long";
+                type_c.typedef_ = "int64_t";
                 break;
             }
             case GenreType::REEL:
@@ -628,7 +628,7 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	)";
 
     /* déclaration des types de bases */
-    enchaineuse << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
+    enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
     enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
     enchaineuse << "typedef unsigned char bool;\n";

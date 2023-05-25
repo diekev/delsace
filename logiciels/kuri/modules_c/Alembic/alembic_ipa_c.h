@@ -25,7 +25,7 @@ void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
 struct LectriceCache *ABC_cree_lectrice_cache(struct ContexteKuri *ctx_kuri,
                                               struct ArchiveCache *archive,
                                               const char *ptr_nom,
-                                              unsigned long taille_nom);
+                                              uint64_t taille_nom);
 void ABC_detruit_lectrice(struct ContexteKuri *ctx_kuri, struct LectriceCache *lectrice);
 void ABC_lectrice_ajourne_donnees(struct LectriceCache *lectrice, void *donnees);
 void ABC_lis_objet(struct ContexteKuri *ctx_kuri,

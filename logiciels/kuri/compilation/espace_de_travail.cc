@@ -38,7 +38,7 @@ EspaceDeTravail::~EspaceDeTravail()
     memoire::deloge("Programme", programme);
 }
 
-long EspaceDeTravail::memoire_utilisee() const
+int64_t EspaceDeTravail::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += programme->memoire_utilisee();

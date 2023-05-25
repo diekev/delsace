@@ -33,7 +33,7 @@ struct DonneesExecution {
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
-    long instructions_executees = 0;
+    int64_t instructions_executees = 0;
 };
 
 struct EchantillonProfilage {
@@ -102,7 +102,7 @@ struct MachineVirtuelle {
 
     int nombre_de_metaprogrammes_executes = 0;
     double temps_execution_metaprogammes = 0;
-    long instructions_executees = 0;
+    int64_t instructions_executees = 0;
 
     MetaProgramme *m_metaprogramme = nullptr;
 
@@ -143,7 +143,7 @@ struct MachineVirtuelle {
     template <typename T>
     inline T depile(NoeudExpression *site);
 
-    void depile(NoeudExpression *site, long n);
+    void depile(NoeudExpression *site, int64_t n);
 
     bool appel(AtomeFonction *fonction, NoeudExpression *site);
 
@@ -176,7 +176,7 @@ struct MachineVirtuelle {
     bool adressage_est_possible(NoeudExpression *site,
                                 const void *adresse_ou,
                                 const void *adresse_de,
-                                const long taille,
+                                const int64_t taille,
                                 bool assignation);
     void ajoute_trace_appel(Erreur &e);
 };

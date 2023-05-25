@@ -15,7 +15,7 @@ using namespace dls;
 
 #include "ipa.h"
 
-inline std::string vers_std_string(const char *chemin, long taille_chemin)
+inline std::string vers_std_string(const char *chemin, int64_t taille_chemin)
 {
     return std::string(chemin, static_cast<size_t>(taille_chemin));
 }
@@ -34,25 +34,25 @@ template <int TypeAttribut>
 struct SelectriceClasseAttribut;
 
 #define FLUX_VALEUR(type, nom)                                                                    \
-    type lis_##nom(long index) const                                                              \
+    type lis_##nom(int64_t index) const                                                              \
     {                                                                                             \
         type v;                                                                                   \
         this->lis_##nom##_pour_index(this->donnees_utilisateur, index, &v);                       \
         return v;                                                                                 \
     }                                                                                             \
-    void ecris_##nom(long index, type v) const                                                    \
+    void ecris_##nom(int64_t index, type v) const                                                    \
     {                                                                                             \
         this->ecris_##nom##_a_l_index(this->donnees_utilisateur, index, v);                       \
     }
 
 #define FLUX_VECTEUR(type, nom)                                                                   \
-    type lis_##nom(long index) const                                                              \
+    type lis_##nom(int64_t index) const                                                              \
     {                                                                                             \
         type v;                                                                                   \
         this->lis_##nom##_pour_index(this->donnees_utilisateur, index, v);                        \
         return v;                                                                                 \
     }                                                                                             \
-    void ecris_##nom(long index, type v) const                                                    \
+    void ecris_##nom(int64_t index, type v) const                                                    \
     {                                                                                             \
         this->ecris_##nom##_a_l_index(this->donnees_utilisateur, index, v);                       \
     }
@@ -67,7 +67,7 @@ struct SelectriceClasseAttribut;
         op(type, nom);                                                                            \
         void copie(kuri::tableau<type> const &valeurs)                                            \
         {                                                                                         \
-            for (long i = 0; i < valeurs.taille(); i++) {                                         \
+            for (int64_t i = 0; i < valeurs.taille(); i++) {                                         \
                 ecris_##nom(i, valeurs[i]);                                                       \
             }                                                                                     \
         }                                                                                         \
@@ -98,18 +98,18 @@ class Maillage : public AdaptriceMaillage {
 
     /* Interface pour les points. */
 
-    long nombreDePoints() const;
+    int64_t nombreDePoints() const;
 
-    math::vec3f pointPourIndex(long n) const;
+    math::vec3f pointPourIndex(int64_t n) const;
 
-    void ajoutePoints(float *points, long nombre) const;
+    void ajoutePoints(float *points, int64_t nombre) const;
 
-    void reserveNombreDePoints(long nombre) const;
+    void reserveNombreDePoints(int64_t nombre) const;
 
     void ajouteUnPoint(float x, float y, float z) const;
     void ajouteUnPoint(math::vec3f xyz) const;
 
-    void remplacePointALIndex(long n, math::vec3f const &point);
+    void remplacePointALIndex(int64_t n, math::vec3f const &point);
 
     template <TypeAttributGeo3D TypeAttribut>
     typename SelectriceClasseAttribut<TypeAttribut>::Type ajouteAttributPoint(
@@ -121,7 +121,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->ajoute_attribut_sur_points(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -135,7 +135,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->accede_attribut_sur_points(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -144,25 +144,25 @@ class Maillage : public AdaptriceMaillage {
 
     /* Interface pour les polygones. */
 
-    long nombreDePolygones() const;
+    int64_t nombreDePolygones() const;
 
-    long nombreDeSommetsPolygone(long n) const;
+    int64_t nombreDeSommetsPolygone(int64_t n) const;
 
-    void pointPourSommetPolygones(long n, long v, math::vec3f &pos) const;
+    void pointPourSommetPolygones(int64_t n, int64_t v, math::vec3f &pos) const;
 
-    math::vec3f normalPolygone(long i) const;
+    math::vec3f normalPolygone(int64_t i) const;
 
-    void reserveNombreDePolygones(long nombre) const;
+    void reserveNombreDePolygones(int64_t nombre) const;
 
     void ajouteListePolygones(const int *sommets,
                               const int *sommets_par_polygones,
-                              long nombre_polygones);
+                              int64_t nombre_polygones);
 
     void ajouteUnPolygone(const int *sommets, int taille) const;
 
-    void indexPointsSommetsPolygone(long n, int *index) const;
+    void indexPointsSommetsPolygone(int64_t n, int *index) const;
 
-    void rafinePolygone(long i, const RafineusePolygone &rafineuse) const;
+    void rafinePolygone(int64_t i, const RafineusePolygone &rafineuse) const;
 
     template <TypeAttributGeo3D TypeAttribut>
     typename SelectriceClasseAttribut<TypeAttribut>::Type ajouteAttributPolygone(
@@ -174,7 +174,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->ajoute_attribut_sur_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -188,7 +188,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->accede_attribut_sur_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -205,7 +205,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->ajoute_attribut_sur_sommets_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -219,7 +219,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->accede_attribut_sur_sommets_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -232,11 +232,11 @@ class Maillage : public AdaptriceMaillage {
 
     void *creeUnGroupeDePolygones(const std::string &nom) const;
 
-    void ajouteAuGroupe(void *poignee_groupe, long index) const;
+    void ajouteAuGroupe(void *poignee_groupe, int64_t index) const;
 
-    void ajoutePlageAuGroupe(void *poignee_groupe, long index_debut, long index_fin) const;
+    void ajoutePlageAuGroupe(void *poignee_groupe, int64_t index_debut, int64_t index_fin) const;
 
-    bool groupePolygonePossedePoint(const void *poignee_groupe, long index) const;
+    bool groupePolygonePossedePoint(const void *poignee_groupe, int64_t index) const;
 
     template <TypeAttributGeo3D TypeAttribut>
     typename SelectriceClasseAttribut<TypeAttribut>::Type ajouteAttributMaillage(
@@ -248,7 +248,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->ajoute_attribut_sur_maillage(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -262,7 +262,7 @@ class Maillage : public AdaptriceMaillage {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
         this->accede_attribut_sur_maillage(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<long>(nom.size()), &adaptrice);
+            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
         if (!adaptrice) {
             return {};
         }

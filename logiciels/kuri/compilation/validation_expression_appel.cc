@@ -512,7 +512,7 @@ static ResultatAppariement apparie_appel_pointeur(
     /* Validation des types passés en paramètre. */
     for (auto i = 0l; i < slots.taille(); ++i) {
         auto index_param = std::min(i,
-                                    static_cast<long>(type_fonction->types_entrees.taille() - 1));
+                                    static_cast<int64_t>(type_fonction->types_entrees.taille() - 1));
         auto slot = slots[i];
         auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
         auto type_enf = slot->type;
@@ -689,7 +689,7 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     for (auto i = 0l; i < slots.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
+        auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
         auto arg = param->valeur;
         auto slot = slots[i];
@@ -797,7 +797,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = 0l; i < slots.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<long>(decl->params.taille() - 1));
+        auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
 
         if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {

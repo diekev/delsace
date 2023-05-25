@@ -46,10 +46,10 @@ struct GestionnaireChainesAjoutees {
      * Nous commençons à 2, car le fichier est préfixé par la date et l'heure, et
      * d'une ligne vide.
      */
-    long nombre_total_de_lignes = 2;
+    int64_t nombre_total_de_lignes = 2;
 
   public:
-    long ajoute(kuri::chaine chaine);
+    int64_t ajoute(kuri::chaine chaine);
 
     int nombre_de_chaines() const;
 
@@ -222,8 +222,8 @@ struct Compilatrice {
      * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
      * en dehors de portée, le programme crashera.
      */
-    Fichier *fichier(long index);
-    const Fichier *fichier(long index) const;
+    Fichier *fichier(int64_t index);
+    const Fichier *fichier(int64_t index) const;
 
     /**
      * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
@@ -265,7 +265,7 @@ struct Compilatrice {
 
     ContexteLexage contexte_lexage(EspaceDeTravail *espace);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 

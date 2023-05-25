@@ -54,7 +54,7 @@ struct Fichier {
     kuri::chaine nom_{""};
     kuri::chaine chemin_{""};
 
-    long id_ = 0;
+    int64_t id_ = 0;
 
     std::mutex mutex{};
 
@@ -71,7 +71,7 @@ struct Fichier {
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
     /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
-    long decalage_fichier = 0;
+    int64_t decalage_fichier = 0;
 
     Fichier() = default;
 
@@ -92,7 +92,7 @@ struct Fichier {
         return nom_;
     }
 
-    long id() const
+    int64_t id() const
     {
         return id_;
     }
@@ -202,14 +202,14 @@ struct SystemeModule {
 
     void rassemble_stats(Statistiques &stats) const;
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
-    Fichier *fichier(long index)
+    Fichier *fichier(int64_t index)
     {
         return &fichiers.a_l_index(index);
     }
 
-    const Fichier *fichier(long index) const
+    const Fichier *fichier(int64_t index) const
     {
         return &fichiers.a_l_index(index);
     }

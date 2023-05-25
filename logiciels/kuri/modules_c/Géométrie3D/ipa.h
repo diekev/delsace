@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #else
@@ -20,16 +22,17 @@ struct Interruptrice {
 
 /* Structure servant principalement à passer des messages d'erreurs. */
 struct ContexteEvaluation {
-    void (*rapporte_erreur)(void *, const char *, long);
-    void (*rapporte_avertissement)(void *, const char *, long);
+    void (*rapporte_erreur)(void *, const char *, int64_t);
+    void (*rapporte_avertissement)(void *, const char *, int64_t);
 
     void *donnees_utilisateur;
 };
 
 /* Structure servant à rafiner les polygones n'étant ni des triangles, ni des quadrilatères. */
 struct RafineusePolygone {
-    void (*ajoute_triangle)(struct RafineusePolygone *, long v1, long v2, long v3);
-    void (*ajoute_quadrilatere)(struct RafineusePolygone *, long v1, long v2, long v3, long v4);
+    void (*ajoute_triangle)(struct RafineusePolygone *, int64_t v1, int64_t v2, int64_t v3);
+    void (*ajoute_quadrilatere)(
+        struct RafineusePolygone *, int64_t v1, int64_t v2, int64_t v3, int64_t v4);
 };
 
 enum TypeAttributGeo3D {
@@ -57,21 +60,21 @@ struct AdaptriceAttribut {
 
   protected:
 #endif
-    void (*lis_bool_pour_index)(void *, long, bool *);
-    void (*lis_entier_pour_index)(void *, long, int *);
-    void (*lis_reel_pour_index)(void *, long, float *);
-    void (*lis_vec2_pour_index)(void *, long, float *);
-    void (*lis_vec3_pour_index)(void *, long, float *);
-    void (*lis_vec4_pour_index)(void *, long, float *);
-    void (*lis_couleur_pour_index)(void *, long, float *);
+    void (*lis_bool_pour_index)(void *, int64_t, bool *);
+    void (*lis_entier_pour_index)(void *, int64_t, int *);
+    void (*lis_reel_pour_index)(void *, int64_t, float *);
+    void (*lis_vec2_pour_index)(void *, int64_t, float *);
+    void (*lis_vec3_pour_index)(void *, int64_t, float *);
+    void (*lis_vec4_pour_index)(void *, int64_t, float *);
+    void (*lis_couleur_pour_index)(void *, int64_t, float *);
 
-    void (*ecris_bool_a_l_index)(void *, long, bool);
-    void (*ecris_entier_a_l_index)(void *, long, int);
-    void (*ecris_reel_a_l_index)(void *, long, float);
-    void (*ecris_vec2_a_l_index)(void *, long, float *);
-    void (*ecris_vec3_a_l_index)(void *, long, float *);
-    void (*ecris_vec4_a_l_index)(void *, long, float *);
-    void (*ecris_couleur_a_l_index)(void *, long, float *);
+    void (*ecris_bool_a_l_index)(void *, int64_t, bool);
+    void (*ecris_entier_a_l_index)(void *, int64_t, int);
+    void (*ecris_reel_a_l_index)(void *, int64_t, float);
+    void (*ecris_vec2_a_l_index)(void *, int64_t, float *);
+    void (*ecris_vec3_a_l_index)(void *, int64_t, float *);
+    void (*ecris_vec4_a_l_index)(void *, int64_t, float *);
+    void (*ecris_couleur_a_l_index)(void *, int64_t, float *);
 
     void *donnees_utilisateur;
 
@@ -90,67 +93,67 @@ struct AdaptriceMaillage {
 #endif
     /* Interface pour les points. */
 
-    long (*nombre_de_points)(void *);
-    void (*point_pour_index)(void *, long n, float *x, float *y, float *z);
-    void (*remplace_point_a_l_index)(void *, long n, float x, float y, float z);
+    int64_t (*nombre_de_points)(void *);
+    void (*point_pour_index)(void *, int64_t n, float *x, float *y, float *z);
+    void (*remplace_point_a_l_index)(void *, int64_t n, float x, float y, float z);
 
-    void (*reserve_nombre_de_points)(void *, long nombre);
+    void (*reserve_nombre_de_points)(void *, int64_t nombre);
     void (*ajoute_un_point)(void *, float x, float y, float z);
-    void (*ajoute_plusieurs_points)(void *, float *points, long nombre);
+    void (*ajoute_plusieurs_points)(void *, float *points, int64_t nombre);
 
     void (*ajoute_attribut_sur_points)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_points)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     /* Interface pour les polygones. */
 
-    long (*nombre_de_polygones)(void *);
-    long (*nombre_de_sommets_polygone)(void *, long n);
+    int64_t (*nombre_de_polygones)(void *);
+    int64_t (*nombre_de_sommets_polygone)(void *, int64_t n);
 
-    void (*point_pour_sommet_polygone)(void *, long p, long s, float *x, float *y, float *z);
-    void (*index_points_sommets_polygone)(void *, long n, int *index);
+    void (*point_pour_sommet_polygone)(void *, int64_t p, int64_t s, float *x, float *y, float *z);
+    void (*index_points_sommets_polygone)(void *, int64_t n, int *index);
 
-    void (*calcule_normal_polygone)(void *, long p, float *nx, float *ny, float *nz);
-    void (*reserve_nombre_de_polygones)(void *, long nombre);
+    void (*calcule_normal_polygone)(void *, int64_t p, float *nx, float *ny, float *nz);
+    void (*reserve_nombre_de_polygones)(void *, int64_t nombre);
     void (*ajoute_un_polygone)(void *, const int *sommets, int taille);
     void (*ajoute_liste_polygones)(void *,
                                    const int *sommets,
                                    const int *sommets_par_polygone,
-                                   long nombre_polygones);
+                                   int64_t nombre_polygones);
 
     void (*ajoute_attribut_sur_polygones)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_polygones)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     void (*ajoute_attribut_sur_sommets_polygones)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_sommets_polygones)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     /* Appelée si un polygone possède plus que 4 sommet afin que l'application cliente définissent
      * comment rafiner ces polygones. */
-    void (*rafine_polygone)(void *, long n, const struct RafineusePolygone *);
+    void (*rafine_polygone)(void *, int64_t n, const struct RafineusePolygone *);
 
     /* Interface pour les groupes. */
 
-    void *(*cree_un_groupe_de_points)(void *donnees, const char *nom, long taille_nom);
-    void *(*cree_un_groupe_de_polygones)(void *donnees, const char *nom, long taille_nom);
-    void (*ajoute_au_groupe)(void *poignee_groupe, long index);
-    void (*ajoute_plage_au_groupe)(void *poignee_groupe, long index_debut, long index_fin);
-    bool (*groupe_polygone_possede_point)(const void *poignee_groupe, long index);
+    void *(*cree_un_groupe_de_points)(void *donnees, const char *nom, int64_t taille_nom);
+    void *(*cree_un_groupe_de_polygones)(void *donnees, const char *nom, int64_t taille_nom);
+    void (*ajoute_au_groupe)(void *poignee_groupe, int64_t index);
+    void (*ajoute_plage_au_groupe)(void *poignee_groupe, int64_t index_debut, int64_t index_fin);
+    bool (*groupe_polygone_possede_point)(const void *poignee_groupe, int64_t index);
 
     /* Données générale sur le maillage. */
 
     void (*ajoute_attribut_sur_maillage)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     void (*accede_attribut_sur_maillage)(
-        void *, enum TypeAttributGeo3D type, const char *, long, struct AdaptriceAttribut *);
+        void *, enum TypeAttributGeo3D type, const char *, int64_t, struct AdaptriceAttribut *);
 
     /* Outils. */
 
@@ -193,8 +196,8 @@ void GEO3D_cree_sphere_uv(struct AdaptriceMaillage *adaptrice,
 void GEO3D_cree_torus(struct AdaptriceMaillage *adaptrice,
                       const float rayon_mineur,
                       const float rayon_majeur,
-                      const long segment_mineur,
-                      const long segment_majeur,
+                      const int64_t segment_mineur,
+                      const int64_t segment_majeur,
                       const float centre_x,
                       const float centre_y,
                       const float centre_z);
@@ -205,8 +208,8 @@ void GEO3D_cree_torus(struct AdaptriceMaillage *adaptrice,
 void GEO3D_cree_grille(struct AdaptriceMaillage *adaptrice,
                        const float taille_x,
                        const float taille_y,
-                       const long lignes,
-                       const long colonnes,
+                       const int64_t lignes,
+                       const int64_t colonnes,
                        const float centre_x,
                        const float centre_y,
                        const float centre_z);
@@ -215,7 +218,7 @@ void GEO3D_cree_grille(struct AdaptriceMaillage *adaptrice,
  * Crée un cercle avec les paramètres spécifiés.
  */
 void GEO3D_cree_cercle(struct AdaptriceMaillage *adaptrice,
-                       const long segments,
+                       const int64_t segments,
                        const float rayon,
                        const float centre_x,
                        const float centre_y,
@@ -225,7 +228,7 @@ void GEO3D_cree_cercle(struct AdaptriceMaillage *adaptrice,
  * Crée un cylindre avec les paramètres spécifiés.
  */
 void GEO3D_cree_cylindre(struct AdaptriceMaillage *adaptrice,
-                         const long segments,
+                         const int64_t segments,
                          const float rayon_mineur,
                          const float rayon_majeur,
                          const float profondeur,
@@ -245,15 +248,15 @@ void GEO3D_cree_icosphere(struct AdaptriceMaillage *adaptrice,
 
 void GEO3D_importe_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin);
+                               int64_t taille_chemin);
 
 void GEO3D_exporte_fichier_obj(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin);
+                               int64_t taille_chemin);
 
 void GEO3D_importe_fichier_stl(struct AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin);
+                               int64_t taille_chemin);
 
 struct ParametresFracture {
     bool periodique_x;
@@ -262,11 +265,11 @@ struct ParametresFracture {
 
     bool utilise_rayon;
     const char *ptr_nom_attribut_rayon;
-    long taille_nom_attribut_rayon;
+    int64_t taille_nom_attribut_rayon;
 
     bool genere_groupes;
     const char *ptr_nom_base_groupe;
-    long taille_nom_base_groupe;
+    int64_t taille_nom_base_groupe;
 
     /** Crée un attribut sur chaque polygone contenant l'index de la cellule voisine.
      *  Cet index sera également celui du groupe, si les groupes sont générés.
@@ -353,12 +356,12 @@ struct ParametreDistributionParticules {
     /* Paramètres pour contenir la génération de particules aux primitives d'un groupe. */
     bool utilise_groupe;
     const char *ptr_nom_groupe_primitive;
-    long taille_nom_groupe_primitive;
+    int64_t taille_nom_groupe_primitive;
 
     /* Paramètres pour exporter un attribut pour les rayons. */
     bool exporte_rayon;
     const char *ptr_nom_rayon;
-    long taille_nom_rayon;
+    int64_t taille_nom_rayon;
 };
 
 void GEO3D_distribue_particules_sur_surface(struct ParametreDistributionParticules *params,

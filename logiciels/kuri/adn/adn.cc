@@ -152,7 +152,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
         else if (m_nom.nom_cpp() == "NoeudDeclarationEnteteFonction") {
             os << "\t";
-            os << "\tNoeudDeclarationVariable *parametre_entree(long i) const\n";
+            os << "\tNoeudDeclarationVariable *parametre_entree(int64_t i) const\n";
             os << "\t{\n";
             os << "\t\tauto param = params[static_cast<int>(i)];\n";
 

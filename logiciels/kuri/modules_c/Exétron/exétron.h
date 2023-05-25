@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #else
@@ -54,8 +56,8 @@ void EXETRON_detruit_variable_condition(struct ContexteKuri *ctx_kuri,
 
 /* Plage pour une exécution en parallèle. */
 struct PlageExecution {
-    long debut;
-    long fin;
+    int64_t debut;
+    int64_t fin;
 };
 
 /* Données des tâches à exécuter dans une boucle parallèle. */

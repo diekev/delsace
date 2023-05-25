@@ -671,7 +671,7 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
 
         if (nom_anonymous != "") {
             auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
-            kuri::tableau<dls::chaine, long> tabl;
+            kuri::tableau<dls::chaine, int64_t> tabl;
             tabl.ajoute(nom);
             typedefs.insere({nom_anonymous, tabl});
             return nom;

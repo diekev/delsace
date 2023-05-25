@@ -1165,7 +1165,7 @@ struct GeneratriceCodeCPP {
         os << "\treturn noeud;\n";
         os << "}\n\n";
 
-        os << "long ConvertisseuseNoeudCode::memoire_utilisee() const\n";
+        os << "int64_t ConvertisseuseNoeudCode::memoire_utilisee() const\n";
         os << "{\n";
 
         os << "\tauto mem = 0l;\n";
@@ -1358,7 +1358,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 	NoeudBloc *cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
 	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, unsigned long valeur);
+	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
  NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
 	NoeudExpressionLitteraleReel *cree_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
 	NoeudExpression *cree_reference_type(const Lexeme *lexeme, Type *type);
@@ -1379,7 +1379,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
     {
         os << "#include \"allocatrice.hh\"\n";
         os << "#include \"statistiques/statistiques.hh\"\n";
-        os << "long AllocatriceNoeud::nombre_noeuds() const\n";
+        os << "int64_t AllocatriceNoeud::nombre_noeuds() const\n";
         os << "{\n";
         os << "\tauto nombre = 0l;\n";
         POUR (proteines_struct) {

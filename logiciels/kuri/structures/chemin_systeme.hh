@@ -61,7 +61,7 @@ struct chemin_systeme {
         return donnees.pointeur();
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return donnees.taille();
     }

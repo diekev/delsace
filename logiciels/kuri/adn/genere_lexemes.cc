@@ -325,10 +325,10 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
 struct Lexeme {
     dls::vue_chaine_compacte chaine{};
 
-	union {
-        uint64_t valeur_entiere;
+    union {
+		uint64_t valeur_entiere;
 		double valeur_reelle;
-        int64_t index_chaine;
+		int64_t index_chaine;
 		IdentifiantCode *ident;
 	};
 

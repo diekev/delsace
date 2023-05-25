@@ -74,7 +74,7 @@ struct EspaceDeTravail {
 
     POINTEUR_NUL(EspaceDeTravail)
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 

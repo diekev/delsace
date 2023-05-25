@@ -31,7 +31,7 @@
 unsigned char _crypt_itoa64[64 + 1] =
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-char *_crypt_gensalt_traditional_rn(const char *prefix, unsigned long count,
+char *_crypt_gensalt_traditional_rn(const char *prefix, uint64_t count,
 	const char *input, int size, char *output, int output_size)
 {
 	(void) prefix;
@@ -49,10 +49,10 @@ char *_crypt_gensalt_traditional_rn(const char *prefix, unsigned long count,
 	return output;
 }
 
-char *_crypt_gensalt_extended_rn(const char *prefix, unsigned long count,
+char *_crypt_gensalt_extended_rn(const char *prefix, uint64_t count,
 	const char *input, int size, char *output, int output_size)
 {
-	unsigned long value;
+	uint64_t value;
 
 	(void) prefix;
 
@@ -72,9 +72,9 @@ char *_crypt_gensalt_extended_rn(const char *prefix, unsigned long count,
 	output[2] = (char)_crypt_itoa64[(count >> 6) & 0x3f];
 	output[3] = (char)_crypt_itoa64[(count >> 12) & 0x3f];
 	output[4] = (char)_crypt_itoa64[(count >> 18) & 0x3f];
-	value = (unsigned long)(unsigned char)input[0] |
-		((unsigned long)(unsigned char)input[1] << 8) |
-		((unsigned long)(unsigned char)input[2] << 16);
+	value = (uint64_t)(unsigned char)input[0] |
+		((uint64_t)(unsigned char)input[1] << 8) |
+		((uint64_t)(unsigned char)input[2] << 16);
 	output[5] = (char)_crypt_itoa64[value & 0x3f];
 	output[6] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
 	output[7] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
@@ -84,10 +84,10 @@ char *_crypt_gensalt_extended_rn(const char *prefix, unsigned long count,
 	return output;
 }
 
-char *_crypt_gensalt_md5_rn(const char *prefix, unsigned long count,
+char *_crypt_gensalt_md5_rn(const char *prefix, uint64_t count,
 	const char *input, int size, char *output, int output_size)
 {
-	unsigned long value;
+	uint64_t value;
 
 	(void) prefix;
 
@@ -100,9 +100,9 @@ char *_crypt_gensalt_md5_rn(const char *prefix, unsigned long count,
 	output[0] = '$';
 	output[1] = '1';
 	output[2] = '$';
-	value = (unsigned long)(unsigned char)input[0] |
-		((unsigned long)(unsigned char)input[1] << 8) |
-		((unsigned long)(unsigned char)input[2] << 16);
+	value = (uint64_t)(unsigned char)input[0] |
+		((uint64_t)(unsigned char)input[1] << 8) |
+		((uint64_t)(unsigned char)input[2] << 16);
 	output[3] = (char)_crypt_itoa64[value & 0x3f];
 	output[4] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
 	output[5] = (char)_crypt_itoa64[(value >> 12) & 0x3f];
@@ -110,9 +110,9 @@ char *_crypt_gensalt_md5_rn(const char *prefix, unsigned long count,
 	output[7] = '\0';
 
 	if (size >= 6 && output_size >= 3 + 4 + 4 + 1) {
-		value = (unsigned long)(unsigned char)input[3] |
-			((unsigned long)(unsigned char)input[4] << 8) |
-			((unsigned long)(unsigned char)input[5] << 16);
+		value = (uint64_t)(unsigned char)input[3] |
+			((uint64_t)(unsigned char)input[4] << 8) |
+			((uint64_t)(unsigned char)input[5] << 16);
 		output[7] = (char)_crypt_itoa64[value & 0x3f];
 		output[8] = (char)_crypt_itoa64[(value >> 6) & 0x3f];
 		output[9] = (char)_crypt_itoa64[(value >> 12) & 0x3f];

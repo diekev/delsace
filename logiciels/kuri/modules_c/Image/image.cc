@@ -600,7 +600,7 @@ struct ParseuseDonneesImage {
 };
 
 ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
-                                                 long taille_chemin,
+                                                 int64_t taille_chemin,
                                                  AdaptriceImage *image)
 {
     const auto chemin_ = std::string(chemin, size_t(taille_chemin));
@@ -630,7 +630,7 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 
     for (auto const &desc_calque : parseuse.calques) {
         void *calque = image->cree_calque(
-            image, desc_calque.nom.c_str(), long(desc_calque.nom.size()));
+            image, desc_calque.nom.c_str(), int64_t(desc_calque.nom.size()));
 
         if (!calque) {
             return ResultatOperation::AJOUT_CALQUE_IMPOSSIBLE;
@@ -638,7 +638,7 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 
         for (auto const &desc_canal : desc_calque.canaux) {
             void *canal = image->ajoute_canal(
-                image, calque, desc_canal.nom.c_str(), long(desc_canal.nom.size()));
+                image, calque, desc_canal.nom.c_str(), int64_t(desc_canal.nom.size()));
 
             if (!canal) {
                 return ResultatOperation::AJOUT_CANAL_IMPOSSIBLE;
@@ -661,7 +661,7 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
 
 // À FAIRE : paramétrise les calques à écrire.
 ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
-                                                 long taille_chemin,
+                                                 int64_t taille_chemin,
                                                  AdaptriceImage *image)
 {
     const auto chemin_ = std::string(chemin, size_t(taille_chemin));
@@ -777,7 +777,7 @@ void IMG_detruit_image(ImageIO *image)
 }
 
 void IMG_calcul_empreinte_floue(
-    const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat)
+    const char *chemin, int composant_x, int composant_y, char *resultat, int64_t *taille_resultat)
 {
     auto input = OIIO::ImageInput::open(chemin);
 
@@ -807,7 +807,7 @@ void IMG_calcul_empreinte_floue(
         *resultat++ = c;
     }
 
-    *taille_resultat = static_cast<long>(res.size());
+    *taille_resultat = static_cast<int64_t>(res.size());
 
     input->close();
 }

@@ -15,8 +15,8 @@ class ensemble {
     kuri::tableau<T, int> cles{};
     kuri::tableau<char, int> occupes{};
 
-    long capacite = 0;
-    long nombre_elements = 0;
+    int64_t capacite = 0;
+    int64_t nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
 
@@ -53,12 +53,12 @@ class ensemble {
         return trouve_index(cle, empreinte) != -1;
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return nombre_elements;
     }
 
-    long taille_memoire() const
+    int64_t taille_memoire() const
     {
         return occupes.taille_memoire() + cles.taille_memoire();
     }
@@ -114,7 +114,7 @@ class ensemble {
     }
 
   private:
-    void alloue(long taille)
+    void alloue(int64_t taille)
     {
         capacite = taille;
 

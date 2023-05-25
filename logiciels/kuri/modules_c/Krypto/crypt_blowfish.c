@@ -877,7 +877,7 @@ char *_crypt_blowfish_rn(const char *key, const char *setting,
 	return NULL;
 }
 
-char *_crypt_gensalt_blowfish_rn(const char *prefix, unsigned long count,
+char *_crypt_gensalt_blowfish_rn(const char *prefix, uint64_t count,
 	const char *input, int size, char *output, int output_size)
 {
 	if (size < 16 || output_size < 7 + 22 + 1 ||

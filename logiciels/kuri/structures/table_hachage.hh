@@ -21,8 +21,8 @@ struct table_hachage {
     kuri::tableau<char, int> occupes{};
     kuri::tableau<size_t, int> empreintes{};
 
-    long capacite = 0;
-    long nombre_elements = 0;
+    int64_t capacite = 0;
+    int64_t nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
 
@@ -91,7 +91,7 @@ struct table_hachage {
     }
 
   public:
-    void alloue(long taille)
+    void alloue(int64_t taille)
     {
         capacite = taille;
 
@@ -217,7 +217,7 @@ struct table_hachage {
         return -1;
     }
 
-    long taille() const
+    int64_t taille() const
     {
         return nombre_elements;
     }
