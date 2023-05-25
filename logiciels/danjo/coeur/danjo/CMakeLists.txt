@@ -25,7 +25,7 @@ set(INCLUSIONS
 	${INCLUSIONS_SYSTEMES}
 )
 
-qt5_wrap_cpp(
+qt_wrap_cpp(
 	moc_headers
 
 	controles/action.h
