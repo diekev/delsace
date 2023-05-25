@@ -774,8 +774,8 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     bibliotheque->noms[POUR_DEBOGAGE_ASAN] = enchaine(bibliotheque->nom, "_asan");
 
     for (int i = 0; i < NUM_TYPES_INFORMATION_BIBLIOTHEQUE; i++) {
-        noms[STATIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".a");
-        noms[DYNAMIQUE][i] = enchaine("lib", bibliotheque->noms[i], ".so");
+        noms[STATIQUE][i] = nom_bibliothèque_statique_pour(bibliotheque->noms[i]);
+        noms[DYNAMIQUE][i] = nom_bibliothèque_dynamique_pour(bibliotheque->noms[i]);
     }
 
     const int plateformes[2] = {
