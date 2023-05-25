@@ -25,16 +25,14 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
-	${INCLUSIONS_QT5_WIDGETS}
-        ${INCLUSIONS_QT5_OPENGL}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
         ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
 	danjo
-	${BIBLIOTHEQUES_QT5_WIDGETS}
-	${BIBLIOTHEQUES_QT5_OPENGL}
+        ${BIBLIOTHEQUES_QT_WIDGETS}
+        ${BIBLIOTHEQUES_QT_OPENGL}
         ${BIBLIOTHEQUES_OPENGL}
         ego
         bib_opengl
@@ -64,8 +62,9 @@ set(ENTETES_POUR_QT
 
 qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
 
-add_library(qt_jorjala_entreface ${moc_headers})
+add_library(qt_jorjala_entreface "${moc_headers}")
 target_include_directories(qt_jorjala_entreface PUBLIC "${INCLUSIONS}")
+target_link_libraries(qt_jorjala_entreface PRIVATE ${BIBLIOTHEQUES_QT_WIDGETS} ${BIBLIOTHEQUES_QT_OPENGL})
 
 desactive_drapeaux_compilation(qt_jorjala_entreface)
 
