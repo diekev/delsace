@@ -669,8 +669,10 @@ struct convertisseuse_valeur<std::wstring> {
     }
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
 #define DEFINIS_CONVERTISSEUSE_VALEUR(TYPE_ALEMBIC, TYPE_POINTEUR, TYPE_KURI, DIMENSIONS)         \
     template <>                                                                                   \
     struct convertisseuse_valeur<TYPE_ALEMBIC> {                                                  \
@@ -732,7 +734,9 @@ DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C3c, uint8_t, n8, 3);
 // DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4h, half, r16, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4f, float, r32, 4);
 DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse,
                                    AbcGeom::GeometryScope portee_pretendue,

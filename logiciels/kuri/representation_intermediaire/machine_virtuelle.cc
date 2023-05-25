@@ -59,8 +59,10 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInte
 
 namespace oper {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#endif
 
 /* Ces structures nous servent à faire en sorte que le résultat des opérations
  * soient du bon type, pour éviter les problèmes liés à la promotion de nombre
@@ -96,7 +98,9 @@ DEFINIS_OPERATEUR(oux_binaire, ^, T, T)
 DEFINIS_OPERATEUR(dec_gauche, <<, T, T)
 DEFINIS_OPERATEUR(dec_droite, >>, T, T)
 
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 }  // namespace oper
 

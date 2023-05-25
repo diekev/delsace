@@ -70,8 +70,10 @@ struct Enchaineuse {
     kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wbool-compare"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wbool-compare"
+#endif
 template <typename T>
 unsigned nombre_chiffre_base_10_pro(T v)
 {
@@ -116,7 +118,9 @@ unsigned nombre_vers_chaine(char *tampon, T valeur)
     tampon[0] = static_cast<char>('0' + valeur);
     return n;
 }
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 template <typename T>
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)

@@ -6,8 +6,10 @@
 #ifndef __MAT4_H__
 #define __MAT4_H__
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 
 /**
  *
@@ -21,7 +23,9 @@ typedef union {
         float m30, m31, m32, m33;
     };
 } mat4;
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 mat4 *mat4_new(void);
 

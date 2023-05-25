@@ -6,8 +6,10 @@
 #ifndef __VEC234_H__
 #define __VEC234_H__
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 
 /**
  * Tuple of 4 ints.
@@ -96,6 +98,8 @@ typedef struct vec2 {
     float y;
 } vec2;
 
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #endif /* __VEC234_H__ */
