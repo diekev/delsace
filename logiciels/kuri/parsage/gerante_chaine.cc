@@ -3,12 +3,12 @@
 
 #include "gerante_chaine.hh"
 
-long GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
+int64_t GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
 {
     return ajoute_chaine(kuri::chaine_statique(chaine));
 }
 
-long GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
+int64_t GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
 {
     if ((enchaineuse.tampon_courant->occupe + chaine.taille()) >= Enchaineuse::TAILLE_TAMPON) {
         enchaineuse.ajoute_tampon();
@@ -20,10 +20,13 @@ long GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
 
     enchaineuse.ajoute(chaine);
 
-    return adresse | (chaine.taille() << 32);
+    auto result = int64_t((size_t(chaine.taille()) << 32) | (size_t(adresse) & 0xffffffff));
+
+    // std::cerr << __func__ << " : " << chaine << " taille " << chaine.taille() << " adresse " << result << '\n';
+    return (result);
 }
 
-kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
+kuri::chaine_statique GeranteChaine::chaine_pour_adresse(int64_t adresse) const
 {
     assert(adresse >= 0);
 
@@ -44,7 +47,7 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
     return {&tampon_courant->donnees[adresse_naturelle], long(taille)};
 }
 
-long GeranteChaine::memoire_utilisee() const
+int64_t GeranteChaine::memoire_utilisee() const
 {
     return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON;
 }

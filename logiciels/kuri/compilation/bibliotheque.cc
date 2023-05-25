@@ -357,6 +357,16 @@ static void initialise_chemins_systeme()
     chemins_syteme_i386 = chemins_systeme_pour(ArchitectureCible::X86);
 }
 
+static kuri::chaine_statique nom_bibliothèque_c()
+{
+#ifdef _MSC_VER
+    // "ucrt" est pour la version dynamique, "libucrt" est pour la version statique
+    return "ucrt";
+#else
+    return "c";
+#endif
+}
+
 GestionnaireBibliotheques::GestionnaireBibliotheques(Compilatrice &compilatrice_)
     : compilatrice(compilatrice_)
 {
@@ -371,7 +381,7 @@ bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilat
 
     /* La bibliothèque C. */
     auto libc = gestionnaire->cree_bibliotheque(
-        *espace, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
+        *espace, nullptr, table_idents->identifiant_pour_chaine("libc"), nom_bibliothèque_c());
 
     auto malloc_ = libc->cree_symbole("malloc");
     malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));

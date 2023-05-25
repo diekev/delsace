@@ -23,11 +23,19 @@
 
 #define AVEC_THREADS
 
+__declspec(noinline) size_t available_stack_size()
+{
+    MEMORY_BASIC_INFORMATION mbi;
+    VirtualQuery(&mbi, &mbi, sizeof(mbi));
+    return uintptr_t(&mbi) - uintptr_t(mbi.AllocationBase);
+}
+
 /**
  * Fonction de rappel pour les fils d'exécutions.
  */
 static void lance_tacheronne(Tacheronne *tacheronne)
 {
+    // std::cerr << "Available stack " << available_stack_size() << '\n';
     tacheronne->gere_tache();
 }
 

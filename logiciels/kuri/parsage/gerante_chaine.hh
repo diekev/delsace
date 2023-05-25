@@ -10,10 +10,10 @@ struct GeranteChaine {
     Enchaineuse enchaineuse{};
 
   public:
-    long ajoute_chaine(kuri::chaine_statique chaine);
-    long ajoute_chaine(kuri::chaine const &chaine);
+    int64_t ajoute_chaine(kuri::chaine_statique chaine);
+    int64_t ajoute_chaine(kuri::chaine const &chaine);
 
-    kuri::chaine_statique chaine_pour_adresse(long adresse) const;
+    kuri::chaine_statique chaine_pour_adresse(int64_t adresse) const;
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 };
