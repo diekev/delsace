@@ -241,12 +241,22 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     return enchaineuse.chaine();
 }
 
+static kuri::chaine_statique donne_compilateur_c()
+{
+    return COMPILATEUR_C_COULISSE_C;
+}
+
+static kuri::chaine_statique donne_compilateur_cpp()
+{
+    return COMPILATEUR_CXX_COULISSE_C;
+}
+
 kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
                                          kuri::chaine_statique fichier_sortie)
 {
     return commande_pour_fichier_objet_impl(
-        options, COMPILATEUR_C_COULISSE_C, fichier_entrée, fichier_sortie);
+        options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
 }
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
@@ -256,7 +266,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     auto options_compilateur = options_pour_liaison(options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
+    enchaineuse << donne_compilateur_cpp() << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
@@ -326,7 +336,7 @@ static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &
                                                     kuri::chaine_statique nom_sortie)
 {
     return commande_pour_fichier_objet_impl(
-        options, COMPILATEUR_CXX_COULISSE_C, nom_entree, nom_sortie);
+        options, donne_compilateur_cpp(), nom_entree, nom_sortie);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
@@ -336,7 +346,8 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
                                                          ArchitectureCible architecture_cible)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C;
+    enchaineuse << donne_compilateur_cpp();
+
     enchaineuse << " -shared -fPIC ";
 
     if (architecture_cible == ArchitectureCible::X86) {
