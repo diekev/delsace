@@ -30,41 +30,39 @@ namespace danjo {
 
 Variable *AssembleuseLogique::ajoute_variable(const dls::chaine &nom)
 {
-	auto var = new Variable;
-	var->degree = 0;
-	var->nom = nom;
+    auto var = new Variable;
+    var->degree = 0;
+    var->nom = nom;
 
-	m_graphe.ajoute_variable(var);
-	m_noms_variables.insere(nom);
+    m_graphe.ajoute_variable(var);
+    m_noms_variables.insere(nom);
 
-	return var;
+    return var;
 }
 
 void AssembleuseLogique::ajoute_contrainte(contrainte *c)
 {
-	m_graphe.ajoute_contrainte(c);
+    m_graphe.ajoute_contrainte(c);
 }
 
 bool AssembleuseLogique::variable_connue(const dls::chaine &nom)
 {
-	return m_noms_variables.trouve(nom) != m_noms_variables.fin();
+    return m_noms_variables.trouve(nom) != m_noms_variables.fin();
 }
 
 Variable *AssembleuseLogique::variable(const dls::chaine &nom)
 {
-	auto debut = m_graphe.debut_variable();
-	auto fin = m_graphe.fin_variable();
+    auto debut = m_graphe.debut_variable();
+    auto fin = m_graphe.fin_variable();
 
-	auto iter = std::find_if(debut, fin, [&](const Variable *variable)
-	{
-		return variable->nom == nom;
-	});
+    auto iter = std::find_if(
+        debut, fin, [&](const Variable *variable) { return variable->nom == nom; });
 
-	if (iter == fin) {
-		return nullptr;
-	}
+    if (iter == fin) {
+        return nullptr;
+    }
 
-	return *iter;
+    return *iter;
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

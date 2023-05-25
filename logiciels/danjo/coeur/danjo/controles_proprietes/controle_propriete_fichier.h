@@ -35,53 +35,54 @@ class QPushButton;
 namespace danjo {
 
 class SelecteurFichier : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
+    char pad[3];
 
-	QHBoxLayout *m_agencement{};
-	QLineEdit *m_line_edit{};
-	QPushButton *m_push_button{};
+    QHBoxLayout *m_agencement{};
+    QLineEdit *m_line_edit{};
+    QPushButton *m_push_button{};
 
-	QString m_filtres{};
-	bool m_input{};
-	char pad1[7];
+    QString m_filtres{};
+    bool m_input{};
+    char pad1[7];
 
-public:
-	explicit SelecteurFichier(bool input, QWidget *parent = nullptr);
+  public:
+    explicit SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent = nullptr);
 
-	SelecteurFichier(SelecteurFichier const &) = default;
-	SelecteurFichier &operator=(SelecteurFichier const &) = default;
+    SelecteurFichier(SelecteurFichier const &) = default;
+    SelecteurFichier &operator=(SelecteurFichier const &) = default;
 
-	~SelecteurFichier() = default;
+    ~SelecteurFichier() = default;
 
-	void setValue(const QString &text);
+    void setValue(const QString &text);
 
-	void ajourne_filtres(const QString &chaine);
+    void ajourne_filtres(const QString &chaine);
 
-private Q_SLOTS:
-	void setChoosenFile();
+  private Q_SLOTS:
+    void setChoosenFile();
 
-Q_SIGNALS:
-	void valeur_changee(const QString &text);
+  Q_SIGNALS:
+    void valeur_changee(const QString &text);
 };
 
 class ControleProprieteFichier final : public SelecteurFichier {
-	Q_OBJECT
+    Q_OBJECT
 
-	dls::chaine *m_pointeur{};
+  public:
+    explicit ControleProprieteFichier(BasePropriete *p,
+                                      int temps,
+                                      bool input,
+                                      QWidget *parent = nullptr);
+    ~ControleProprieteFichier() override = default;
 
-public:
-	explicit ControleProprieteFichier(bool input, QWidget *parent = nullptr);
-	~ControleProprieteFichier() override = default;
+    ControleProprieteFichier(ControleProprieteFichier const &) = default;
+    ControleProprieteFichier &operator=(ControleProprieteFichier const &) = default;
 
-	ControleProprieteFichier(ControleProprieteFichier const &) = default;
-	ControleProprieteFichier &operator=(ControleProprieteFichier const &) = default;
+    void finalise(const DonneesControle &donnees) override;
 
-	void finalise(const DonneesControle &donnees) override;
-
-private Q_SLOTS:
-	void ajourne_valeur_pointee(const QString &valeur);
+  private Q_SLOTS:
+    void ajourne_valeur_pointee(const QString &valeur);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

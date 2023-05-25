@@ -37,41 +37,38 @@
 
 #include "coeur/jorjala.hh"
 
-BarreDeProgres::BarreDeProgres(Jorjala &jorjala, QWidget *parent)
-	: QWidget(parent)
-	, m_jorjala(jorjala)
-	, m_barre_progres(new QProgressBar(this))
-	, m_label(new QLabel("Évaluation en cours :", this))
-	, m_bouton_stop(new QPushButton("STOP", this))
-	, m_disposition(new QHBoxLayout(this))
+BarreDeProgres::BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent)
+    : QWidget(parent), m_jorjala(jorjala), m_barre_progres(new QProgressBar(this)),
+      m_label(new QLabel("Évaluation en cours :", this)),
+      m_bouton_stop(new QPushButton("STOP", this)), m_disposition(new QHBoxLayout(this))
 {
-	m_barre_progres->setRange(0, 100);
+    m_barre_progres->setRange(0, 100);
 
-	m_disposition->addWidget(m_label);
-	m_disposition->addWidget(m_barre_progres);
-	m_disposition->addWidget(m_bouton_stop);
+    m_disposition->addWidget(m_label);
+    m_disposition->addWidget(m_barre_progres);
+    m_disposition->addWidget(m_bouton_stop);
 
-	connect(m_bouton_stop, &QPushButton::pressed, this, &BarreDeProgres::signal_stop);
+    connect(m_bouton_stop, &QPushButton::pressed, this, &BarreDeProgres::signal_stop);
 }
 
 void BarreDeProgres::ajourne_valeur(int valeur)
 {
-	m_barre_progres->setValue(valeur);
+    m_barre_progres->setValue(valeur);
 }
 
-void BarreDeProgres::ajourne_message(const char *message, int execution, int total)
+void BarreDeProgres::ajourne_message(const QString &message, int execution, int total)
 {
-	auto str = QString("Évaluation en cours ")
-			.append(QString::number(execution))
-			.append('/')
-			.append(QString::number(total))
-			.append(" : ")
-			.append(message);
+    auto str = QString("Évaluation en cours ")
+                   .append(QString::number(execution))
+                   .append('/')
+                   .append(QString::number(total))
+                   .append(" : ")
+                   .append(message);
 
-	m_label->setText(str);
+    m_label->setText(str);
 }
 
 void BarreDeProgres::signal_stop()
 {
-	m_jorjala.interrompu = true;
+    m_jorjala.interrompu(true);
 }

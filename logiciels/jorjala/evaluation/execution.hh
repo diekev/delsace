@@ -61,7 +61,9 @@ struct Jorjala;
 /* ************************************************************************** */
 
 struct Executrice {
-	void execute_plan(Jorjala &jorjala, Planifieuse::PtrPlan const &plan, ContexteEvaluation const &contexte);
+    void execute_plan(Jorjala &jorjala,
+                      Planifieuse::PtrPlan const &plan,
+                      ContexteEvaluation const &contexte);
 };
 
 /* ************************************************************************** */

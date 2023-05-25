@@ -32,26 +32,26 @@ namespace wlk {
  * Jorjala et Wolika.
  */
 struct interruptrice {
-	virtual ~interruptrice() = default;
+    virtual ~interruptrice() = default;
 
-	/**
-	 * Retourne vrai si l'interruptrice a été interrompue.
-	 */
-	virtual bool interrompue() const = 0;
+    /**
+     * Retourne vrai si l'interruptrice a été interrompue.
+     */
+    virtual bool interrompue() const = 0;
 
-	/**
-	 * Indique la progression d'un algorithme en série, dans un seul thread.
-	 */
-	virtual void indique_progression(float progression) = 0;
+    /**
+     * Indique la progression d'un algorithme en série, dans un seul thread.
+     */
+    virtual void indique_progression(float progression) = 0;
 
-	/**
-	 * Indique la progression depuis le corps d'une boucle parallèle. Le delta
-	 * est la quantité de travail effectuée dans le thread du corps.
-	 *
-	 * Un mutex est verrouillé à chaque appel, et le delta est ajouté à une
-	 * progression globale mise à zéro à chaque appel à demarre_evaluation().
-	 */
-	virtual void indique_progression_parallele(float delta) = 0;
+    /**
+     * Indique la progression depuis le corps d'une boucle parallèle. Le delta
+     * est la quantité de travail effectuée dans le thread du corps.
+     *
+     * Un mutex est verrouillé à chaque appel, et le delta est ajouté à une
+     * progression globale mise à zéro à chaque appel à demarre_evaluation().
+     */
+    virtual void indique_progression_parallele(float delta) = 0;
 };
 
-}  /* namespace wlk */
+} /* namespace wlk */

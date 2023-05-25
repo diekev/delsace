@@ -34,29 +34,28 @@ class QHBoxLayout;
 namespace danjo {
 
 class ControleProprieteEnum final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
+    char pad[3];
 
-	QHBoxLayout *m_agencement{};
-	QComboBox *m_liste_deroulante{};
+    QHBoxLayout *m_agencement{};
+    QComboBox *m_liste_deroulante{};
 
-	dls::chaine *m_pointeur{};
-	dls::chaine m_valeur_defaut{};
-	int m_index_valeur_defaut{};
-	int m_index_courant{};
+    dls::chaine m_valeur_defaut{};
+    int m_index_valeur_defaut{};
+    int m_index_courant{};
 
-public:
-	explicit ControleProprieteEnum(QWidget *parent = nullptr);
-	~ControleProprieteEnum() override = default;
+  public:
+    explicit ControleProprieteEnum(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteEnum() override = default;
 
-	ControleProprieteEnum(ControleProprieteEnum const &) = default;
-	ControleProprieteEnum &operator=(ControleProprieteEnum const &) = default;
+    ControleProprieteEnum(ControleProprieteEnum const &) = default;
+    ControleProprieteEnum &operator=(ControleProprieteEnum const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void ajourne_valeur_pointee(int valeur);
+  private Q_SLOTS:
+    void ajourne_valeur_pointee(int valeur);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

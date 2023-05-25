@@ -27,62 +27,60 @@
 #include "noeud.hh"
 
 OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_)
-	: OperatriceImage(graphe_parent, noeud_)
+    : OperatriceImage(graphe_parent, noeud_)
 {
 }
 
 int OperatriceCorps::type() const
 {
-	return OPERATRICE_CORPS;
+    return OPERATRICE_CORPS;
 }
 
 type_prise OperatriceCorps::type_entree(int) const
 {
-	return type_prise::CORPS;
+    return type_prise::CORPS;
 }
 
 type_prise OperatriceCorps::type_sortie(int) const
 {
-	return type_prise::CORPS;
+    return type_prise::CORPS;
 }
 
 Corps *OperatriceCorps::corps()
 {
-	return &m_corps;
+    return &m_corps;
 }
 
 void OperatriceCorps::donnees_simulation(DonneesSimulation *donnees)
 {
-	m_donnees_simulation = donnees;
+    m_donnees_simulation = donnees;
 }
 
 void OperatriceCorps::libere_memoire()
 {
-	m_corps.reinitialise();
-	cache_est_invalide = true;
+    m_corps.reinitialise();
+    cache_est_invalide = true;
 }
 
 /* ************************************************************************** */
 
-bool valide_corps_entree(OperatriceCorps &op,
-		Corps const *corps,
-		bool besoin_points,
-		bool besoin_prims, int index)
+bool valide_corps_entree(
+    OperatriceCorps &op, Corps const *corps, bool besoin_points, bool besoin_prims, int index)
 {
-	if (corps == nullptr) {
-		op.ajoute_avertissement("Le corps d'entrée de la prise à l'index ", index, " est nul");
-		return false;
-	}
+    if (corps == nullptr) {
+        op.ajoute_avertissement("Le corps d'entrée de la prise à l'index ", index, " est nul");
+        return false;
+    }
 
-	if (besoin_points && corps->points_pour_lecture().taille() == 0) {
-		op.ajoute_avertissement("Le corps d'entrée n'a pas de point");
-		return false;
-	}
+    if (besoin_points && corps->points_pour_lecture().taille() == 0) {
+        op.ajoute_avertissement("Le corps d'entrée n'a pas de point");
+        return false;
+    }
 
-	if (besoin_prims && corps->prims()->taille() == 0) {
-		op.ajoute_avertissement("Le corps d'entrée n'a pas de primitive");
-		return false;
-	}
+    if (besoin_prims && corps->prims()->taille() == 0) {
+        op.ajoute_avertissement("Le corps d'entrée n'a pas de primitive");
+        return false;
+    }
 
-	return true;
+    return true;
 }

@@ -54,24 +54,24 @@ void Fluide::ajourne_pour_nouveau_temps()
 	transfert_velocite();
 
 	/* Pour FLIP : sauvegarde les vélocités. */
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 	velocite_x_ancienne.copie(velocite_x);
 	velocite_y_ancienne.copie(velocite_y);
 	velocite_z_ancienne.copie(velocite_z);
-#else
+#    else
 	ancienne_velocites.copie(velocite);
-#endif
+#    endif
 
 	/* Fais toutes les étapes de non-advection standardes sur la grille. */
 	ajoute_acceleration();
 	construit_champs_distance();
 	etend_champs_velocite();
 	conditions_bordure();
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 	rend_imcompressible(velocite_x, velocite_y, velocite_z, drapeaux);
-#else
+#    else
 	rend_imcompressible(velocite, drapeaux);
-#endif
+#    endif
 	etend_champs_velocite();
 
 	/* Pour FLIP : soustraction des nouvelles vélocités des anciennes, et ajout
@@ -88,14 +88,14 @@ void Fluide::ajourne_pour_nouveau_temps()
 void Fluide::initialise()
 {
 	phi.initialise(res.x, res.y, res.z);
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 	velocite_x.initialise(res.x + 1, res.y, res.z);
 	velocite_y.initialise(res.x, res.y + 1, res.z);
 	velocite_z.initialise(res.x, res.y, res.z + 1);
-#else
+#    else
 	velocite.initialise(res.x, res.y, res.z);
 	ancienne_velocites.initialise(res.x, res.y, res.z);
-#endif
+#    endif
 }
 
 void Fluide::construit_grille_particule()
@@ -125,7 +125,7 @@ void Fluide::construit_grille_particule()
 void Fluide::transfert_velocite()
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
-#if 0
+#    if 0
 	auto const &min_domaine = domaine->min();
 	auto const &taille_domaine = domaine->taille();
 
@@ -142,7 +142,7 @@ void Fluide::transfert_velocite()
 		velocite.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z, p.vel);
 		drapeaux.valeur(pos_domaine.x, pos_domaine.y, pos_domaine.z, CELLULE_FLUIDE);
 	}
-#else
+#    else
 
 	boucle_parallele(tbb::blocked_range<long>(0, res.z),
 					 [&](tbb::blocked_range<long> const &plage)
@@ -170,18 +170,18 @@ void Fluide::transfert_velocite()
 						vel /= poids;
 					}
 
-#ifdef VELOCITE_SEPAREE
+#        ifdef VELOCITE_SEPAREE
 					velocite_x.valeur(index + 1, vel.x);
 					velocite_y.valeur(index + res.x, vel.y);
 					velocite_z.valeur(index + res.x * res.y, vel.z);
-#else
+#        else
 					velocite.valeur(index, vel);
-#endif
+#        endif
 				}
 			}
 		}
 	});
-#endif
+#    endif
 }
 
 void Fluide::ajoute_acceleration()
@@ -206,7 +206,7 @@ void Fluide::ajoute_acceleration()
 						continue;
 					}
 
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 					//auto vel_x = velocite_x.valeur(index + 1);
 					auto vel_y = velocite_y.valeur(index + res.x);
 					//auto vel_z = velocite_z.valeur(index + res.x * res.y);
@@ -216,11 +216,11 @@ void Fluide::ajoute_acceleration()
 					//velocite_x.valeur(index + 1, vel_x);
 					velocite_y.valeur(index + res.x, vel_y);
 					//velocite_z.valeur(index + res.x * res.y, vel_z);
-#else
+#    else
 					auto vel = velocite.valeur(index);
 					vel.y += gravite;
 					velocite.valeur(index, vel);
-#endif
+#    endif
 				}
 			}
 		}
@@ -235,13 +235,13 @@ void Fluide::conditions_bordure()
 	{
 		for (long y = plage.begin(); y < plage.end(); ++y) {
 			for (long x = 0; x < res.x; ++x) {
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 				velocite_z.valeur(x, y, 0, 0.0f);
 				velocite_z.valeur(x, y, res.z - 1, 0.0f);
-#else
+#    else
 				velocite.valeur(x, y, 0, dls::math::vec3f(0.0f));
 				velocite.valeur(x, y, res.z - 1, dls::math::vec3f(0.0f));
-#endif
+#    endif
 			}
 		}
 	});
@@ -251,13 +251,13 @@ void Fluide::conditions_bordure()
 	{
 		for (long z = plage.begin(); z < plage.end(); ++z) {
 			for (long x = 0; x < res.x; ++x) {
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 				velocite_y.valeur(x, 0, z, 0.0f);
 				velocite_y.valeur(x, res.y - 1, z, 0.0f);
-#else
+#    else
 				velocite.valeur(x, 0, z, dls::math::vec3f(0.0f));
 				velocite.valeur(x, res.y - 1, z, dls::math::vec3f(0.0f));
-#endif
+#    endif
 			}
 		}
 	});
@@ -267,13 +267,13 @@ void Fluide::conditions_bordure()
 	{
 		for (long z = plage.begin(); z < plage.end(); ++z) {
 			for (long y = 0; y < res.y; ++y) {
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 				velocite_x.valeur(0, y, z, 0.0f);
 				velocite_x.valeur(res.x - 1, y, z, 0.0f);
-#else
+#    else
 				velocite.valeur(0, y, z, dls::math::vec3f(0.0f));
 				velocite.valeur(res.x - 1, y, z, dls::math::vec3f(0.0f));
-#endif
+#    endif
 			}
 		}
 	});
@@ -290,13 +290,13 @@ void Fluide::soustrait_velocite()
 		for (long z = plage.begin(); z < plage.end(); ++z) {
 			for (long y = 0; y < res.y; ++y) {
 				for (long x = 0; x < res.x; ++x, ++index) {
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 					auto vel_x = velocite_x.valeur(index + 1) - velocite_x_ancienne.valeur(index + 1);
 					auto vel_y = velocite_y.valeur(index + res.x) - velocite_y_ancienne.valeur(index + res.x);
 					auto vel_z = velocite_z.valeur(index + res.x * res.y) - velocite_z_ancienne.valeur(index + res.x * res.y);
-#else
+#    else
 					//auto vel = velocite.valeur(index) - ancienne_velocites.valeur(index);
-#endif
+#    endif
 					/* Assigne la vélocité aux particules avoisinantes. */
 				}
 			}
@@ -467,7 +467,7 @@ void Fluide::construit_champs_distance()
 		}
 	}
 
-#ifdef DEBOGAGE_CHAMPS_DISTANCE
+#    ifdef DEBOGAGE_CHAMPS_DISTANCE
 	auto dist_max = -1.0f;
 
 	for (long z = 0; z < res.z; ++z) {
@@ -480,7 +480,7 @@ void Fluide::construit_champs_distance()
 
 	std::cerr << "Distance max (diagonale) " << distance_max << '\n';
 	std::cerr << "Distance max (calculée)  " << dist_max << '\n';
-#endif
+#    endif
 }
 
 void Fluide::etend_champs_velocite()
@@ -516,21 +516,21 @@ void Fluide::etend_champs_velocite()
 					/* calcule le gradient de phi pour savoir la direction du voxel
 					 * le plus proche. */
 
-#if 1
+#    if 1
 					auto const x0 = phi.valeur(index - 1);
 					auto const x1 = phi.valeur(index + 1);
 					auto const y0 = phi.valeur(index - res.x);
 					auto const y1 = phi.valeur(index + res.x);
 					auto const z0 = phi.valeur(index - decalage_z);
 					auto const z1 = phi.valeur(index + decalage_z);
-#else
+#    else
 					auto const x0 = phi.valeur(x - 1, y, z);
 					auto const x1 = phi.valeur(x + 1, y, z);
 					auto const y0 = phi.valeur(x, y - 1, z);
 					auto const y1 = phi.valeur(x, y + 1, z);
 					auto const z0 = phi.valeur(x, y, z - 1);
 					auto const z1 = phi.valeur(x, y, z + 1);
-#endif
+#    endif
 
 					auto const i = x1 - x0;
 					auto const j = y1 - y0;
@@ -540,7 +540,7 @@ void Fluide::etend_champs_velocite()
 					auto const xj = j / dh.y;
 					auto const xk = k / dh.z;
 
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 					auto const vel_x = velocite_x.valeur((x + 1 - xi) + (y - xj) * res.x + (z - xk) * decalage_z);
 					auto const vel_y = velocite_y.valeur((x - xi) + (y + 1 - xj) * res.x + (z - xk) * decalage_z);
 					auto const vel_z = velocite_z.valeur((x - xi) + (y - xj) * res.x + (z + 1 - xk) * decalage_z);
@@ -550,12 +550,12 @@ void Fluide::etend_champs_velocite()
 					velocite_x.valeur(index + 1, vel_x);
 					velocite_y.valeur(index + res.x, vel_y);
 					velocite_z.valeur(index + decalage_z, vel_z);
-#else
+#    else
 					velocite.valeur(index, velocite.valeur(
 										x - static_cast<long>(xi),
 										y - static_cast<long>(xj),
 										z - static_cast<long>(xk)));
-#endif
+#    endif
 				}
 			}
 		}
@@ -583,18 +583,18 @@ void Fluide::sauvegarde_velocite_PIC()
 			pos_domaine.y *= static_cast<float>(res.y);
 			pos_domaine.z *= static_cast<float>(res.z);
 
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 			auto index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
 			auto vel_x = velocite_x.valeur(index + 1);
 			auto vel_y = velocite_y.valeur(index + res.x);
 			auto vel_z = velocite_z.valeur(index + res.x * res.y);
 			p.vel_pic = dls::math::vec3f(vel_x, vel_y, vel_z);
-#else
+#    else
 			p.vel_pic = velocite.valeur(
 							static_cast<long>(pos_domaine.x),
 							static_cast<long>(pos_domaine.y),
 							static_cast<long>(pos_domaine.z));
-#endif
+#    endif
 		}
 	});
 }
@@ -626,21 +626,21 @@ void Fluide::advecte_particules()
 			pos_domaine.y *= static_cast<float>(res.y);
 			pos_domaine.z *= static_cast<float>(res.z);
 
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 			auto index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
 			auto vel_x = velocite_x.valeur(index + 1);
 			auto vel_y = velocite_y.valeur(index + res.x);
 			auto vel_z = velocite_z.valeur(index + res.x * res.y);
 
 			pos_domaine = (p.pos - min_domaine) - dls::math::vec3f(vel_x, vel_y, vel_z);
-#else
+#    else
 			auto vel = velocite.valeur(
 						   static_cast<long>(pos_domaine.x),
 						   static_cast<long>(pos_domaine.y),
 						   static_cast<long>(pos_domaine.z));
 
 			pos_domaine = (p.pos - min_domaine) - vel;
-#endif
+#    endif
 			pos_domaine.x /= taille_domaine.x;
 			pos_domaine.y /= taille_domaine.y;
 			pos_domaine.z /= taille_domaine.z;
@@ -649,20 +649,20 @@ void Fluide::advecte_particules()
 			pos_domaine.y *= static_cast<float>(res.y);
 			pos_domaine.z *= static_cast<float>(res.z);
 
-#ifdef VELOCITE_SEPAREE
+#    ifdef VELOCITE_SEPAREE
 			index = pos_domaine.x + pos_domaine.y * res.x + pos_domaine.z * res.x * res.y;
 			vel_x = velocite_x.valeur(index + 1);
 			vel_y = velocite_y.valeur(index + res.x);
 			vel_z = velocite_z.valeur(index + res.x * res.y);
 
 			p.pos += dls::math::vec3f(vel_x, vel_y, vel_z);
-#else
+#    else
 			vel = velocite.valeur(
 					  static_cast<long>(pos_domaine.x),
 					  static_cast<long>(pos_domaine.y),
 					  static_cast<long>(pos_domaine.z));
 			p.pos += vel;
-#endif
+#    endif
 		}
 	});
 }
@@ -937,7 +937,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 	//place fluid particles
 	//for each fluid geom in the frame, loop through voxels in the geom's AABB to place particles
 
-#if 1
+#    if 1
 	auto liquidvelocity = dls::math::vec3f(0.0f);
 	auto id = 0u;
 	auto lminf = dls::math::vec3f(std::floor(-1.0f), std::floor(-1.0f), std::floor(-1.0f));
@@ -976,7 +976,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 		}
 	});
 	std::cout << "Generé : " << m_liquidParticles.size() << " particules liquides\n" << std::endl;
-#else
+#    else
 	auto liquidCount = m_liquids.taille();
 
 	for (unsigned int l=0; l<liquidCount; ++l) {
@@ -1019,7 +1019,7 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 			});
 		}
 	}
-#endif
+#    endif
 
 	auto solidCount = m_solids.taille();
 	for (unsigned int l=0; l<solidCount; ++l) {

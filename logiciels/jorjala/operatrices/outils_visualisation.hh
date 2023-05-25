@@ -29,15 +29,13 @@
 struct Corps;
 struct Attribut;
 
-void dessine_boite(
-		Corps &corps,
-		Attribut *attr_C,
-		dls::math::vec3f const sommets[8],
-		dls::math::vec3f const &couleur);
+void dessine_boite(Corps &corps,
+                   Attribut *attr_C,
+                   dls::math::vec3f const sommets[8],
+                   dls::math::vec3f const &couleur);
 
-void dessine_boite(
-		Corps &corps,
-		Attribut *attr_C,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
-		dls::math::vec3f const &couleur);
+void dessine_boite(Corps &corps,
+                   Attribut *attr_C,
+                   dls::math::vec3f const &min,
+                   dls::math::vec3f const &max,
+                   dls::math::vec3f const &couleur);

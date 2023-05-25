@@ -30,22 +30,30 @@ Statistiques statistiques;
 
 void init_statistiques()
 {
-	statistiques.nombre_rayons_primaires = 0;
-	statistiques.test_entresections_triangles = 0;
-	statistiques.nombre_entresections_triangles = 0;
-	statistiques.test_entresections_boites = 0;
-	statistiques.test_entresections_volumes = 0;
+    statistiques.nombre_rayons_primaires = 0;
+    statistiques.test_entresections_triangles = 0;
+    statistiques.nombre_entresections_triangles = 0;
+    statistiques.test_entresections_boites = 0;
+    statistiques.test_entresections_volumes = 0;
 }
 
 void imprime_statistiques(std::ostream &os)
 {
-	os << "Nombre de rayons primaires                : " << statistiques.nombre_rayons_primaires << '\n';
-	os << "Nombre de tests d'entresections boites    : " << statistiques.test_entresections_boites << '\n';
-	os << "Nombre de tests d'entresections volumes   : " << statistiques.test_entresections_volumes << '\n';
-	os << "Nombre de tests d'entresections triangles : " << statistiques.test_entresections_triangles << '\n';
-	os << "Nombre d'entresections triangles          : " << statistiques.nombre_entresections_triangles << '\n';
-	os << "Pourcentage d'entresections               : " << statistiques.nombre_entresections_triangles * 100.0 / statistiques.test_entresections_triangles << '\n';
-	os << std::endl;
+    os << "Nombre de rayons primaires                : " << statistiques.nombre_rayons_primaires
+       << '\n';
+    os << "Nombre de tests d'entresections boites    : " << statistiques.test_entresections_boites
+       << '\n';
+    os << "Nombre de tests d'entresections volumes   : " << statistiques.test_entresections_volumes
+       << '\n';
+    os << "Nombre de tests d'entresections triangles : "
+       << statistiques.test_entresections_triangles << '\n';
+    os << "Nombre d'entresections triangles          : "
+       << statistiques.nombre_entresections_triangles << '\n';
+    os << "Pourcentage d'entresections               : "
+       << statistiques.nombre_entresections_triangles * 100.0 /
+              statistiques.test_entresections_triangles
+       << '\n';
+    os << std::endl;
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

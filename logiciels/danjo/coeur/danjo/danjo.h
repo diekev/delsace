@@ -43,78 +43,70 @@ class Manipulable;
 class RepondantBouton;
 
 struct DonneesInterface {
-	Manipulable *manipulable = nullptr;
-	RepondantBouton *repondant_bouton = nullptr;
-	ConteneurControles *conteneur = nullptr;
+    Manipulable *manipulable = nullptr;
+    RepondantBouton *repondant_bouton = nullptr;
+    ConteneurControles *conteneur = nullptr;
 };
 
 struct DonneesAction {
-	dls::chaine nom{};
-	dls::chaine attache{};
-	dls::chaine metadonnee{};
-	RepondantBouton *repondant_bouton = nullptr;
+    dls::chaine nom{};
+    dls::chaine attache{};
+    dls::chaine metadonnee{};
+    RepondantBouton *repondant_bouton = nullptr;
 
-	DonneesAction() = default;
-	DonneesAction(DonneesAction const &) = default;
-	DonneesAction &operator=(DonneesAction const &) = default;
+    DonneesAction() = default;
+    DonneesAction(DonneesAction const &) = default;
+    DonneesAction &operator=(DonneesAction const &) = default;
 };
 
 class GestionnaireInterface {
-	dls::dico_desordonne<dls::chaine, QMenu *> m_menus{};
-	dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
-	dls::tableau<QToolBar *> m_barres_outils{};
+    dls::dico_desordonne<dls::chaine, QMenu *> m_menus{};
+    dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
+    dls::tableau<QToolBar *> m_barres_outils{};
 
-	QWidget *m_parent_dialogue = nullptr;
+    QWidget *m_parent_dialogue = nullptr;
 
-	/* cache des controles pour ajourner l'interface */
-	dls::dico_desordonne<dls::chaine, ControlePropriete *> m_controles{};
+    /* cache des controles pour ajourner l'interface */
+    dls::dico_desordonne<dls::chaine, ControlePropriete *> m_controles{};
 
-public:
-	~GestionnaireInterface();
+  public:
+    ~GestionnaireInterface();
 
-	void parent_dialogue(QWidget *p);
+    void parent_dialogue(QWidget *p);
 
-	void ajourne_menu(const dls::chaine &nom);
+    void ajourne_menu(const dls::chaine &nom);
 
-	void recree_menu(
-			const dls::chaine &nom,
-			const dls::tableau<DonneesAction> &donnees_actions);
+    void recree_menu(const dls::chaine &nom, const dls::tableau<DonneesAction> &donnees_actions);
 
-	void ajourne_disposition(const dls::chaine &nom, int temps = 0);
+    void ajourne_disposition(const dls::chaine &nom, int temps = 0);
 
-	QMenu *compile_menu_texte(DonneesInterface &donnees, dls::chaine const &texte);
+    QMenu *compile_menu_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	QMenu *compile_menu_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+    QMenu *compile_menu_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 
-	QBoxLayout *compile_entreface_texte(
-			DonneesInterface &donnees,
-			dls::chaine const &texte,
-			int temps = 0);
+    QBoxLayout *compile_entreface_texte(DonneesInterface &donnees,
+                                        dls::chaine const &texte,
+                                        int temps = 0);
 
-	QBoxLayout *compile_entreface_fichier(
-			DonneesInterface &donnees,
-			dls::chaine const &texte,
-			int temps = 0);
+    QBoxLayout *compile_entreface_fichier(DonneesInterface &donnees,
+                                          dls::chaine const &texte,
+                                          int temps = 0);
 
-	void ajourne_entreface(Manipulable *manipulable);
+    void ajourne_entreface(Manipulable *manipulable);
 
-	void initialise_entreface_texte(
-			Manipulable *manipulable,
-			dls::chaine const &texte);
+    void initialise_entreface_texte(Manipulable *manipulable, dls::chaine const &texte);
 
-	void initialise_entreface_fichier(
-			Manipulable *manipulable,
-			dls::chaine const &fichier);
+    void initialise_entreface_fichier(Manipulable *manipulable, dls::chaine const &fichier);
 
-	QMenu *pointeur_menu(const dls::chaine &nom);
+    QMenu *pointeur_menu(const dls::chaine &nom);
 
-	QToolBar *compile_barre_outils_texte(DonneesInterface &donnees, dls::chaine const &texte);
+    QToolBar *compile_barre_outils_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	QToolBar *compile_barre_outils_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+    QToolBar *compile_barre_outils_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 
-	bool montre_dialogue_texte(DonneesInterface &donnees, dls::chaine const &texte);
+    bool montre_dialogue_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	bool montre_dialogue_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+    bool montre_dialogue_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 };
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
@@ -123,19 +115,15 @@ QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
  * Compile le script d'entreface contenu dans texte_entree, et retourne un
  * pointeur vers le QBoxLayout ainsi créé.
  */
-QBoxLayout *compile_entreface(
-		DonneesInterface &donnees,
-		const char *texte_entree,
-		int temps = 0);
+QBoxLayout *compile_entreface(DonneesInterface &donnees, const char *texte_entree, int temps = 0);
 
 /**
  * Compile le script d'entreface contenu dans le fichier dont le chemin est
  * spécifié, et retourne un pointeur vers le QBoxLayout ainsi créé.
  */
-QBoxLayout *compile_entreface(
-		DonneesInterface &donnees,
-		const std::filesystem::path &chemin_texte,
-		int temps = 0);
+QBoxLayout *compile_entreface(DonneesInterface &donnees,
+                              const std::filesystem::path &chemin_texte,
+                              int temps = 0);
 
 void compile_feuille_logique(const char *texte_entree);
 
@@ -146,4 +134,4 @@ void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 
-}  /* namespace danjo */
+} /* namespace danjo */

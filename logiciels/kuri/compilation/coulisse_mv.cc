@@ -32,6 +32,18 @@ bool CoulisseMV::cree_fichier_objet(Compilatrice &compilatrice,
         return false;
     }
 
+    /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées
+     * par l'adresse de l'infotype. */
+    POUR (repr_inter.globales) {
+        if (!it->est_info_type_de) {
+            continue;
+        }
+
+        auto type = it->est_info_type_de;
+        type->info_type = convertisseuse_noeud_code.cree_info_type_pour(const_cast<Type *>(type));
+        assert(type->info_type);
+    }
+
     if (!repr_inter.globales.est_vide()) {
         auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
             &espace, repr_inter.globales, fonction);

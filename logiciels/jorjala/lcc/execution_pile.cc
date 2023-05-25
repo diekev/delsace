@@ -24,12 +24,12 @@
 
 #include "execution_pile.hh"
 
-#include "biblinternes/bruit/outils.hh"
 #include "biblinternes/bruit/evaluation.hh"
+#include "biblinternes/bruit/outils.hh"
 #include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
-#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
@@ -38,8 +38,8 @@
 
 #include "corps/corps.h"
 
-#include "donnees_type.h"
 #include "code_inst.hh"
+#include "donnees_type.h"
 
 #include "wolika/echantillonnage.hh"
 
@@ -47,203 +47,203 @@ namespace lcc {
 
 static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
 {
-	dls::flux_chaine ss;
-	ss << vue_chaine;
+    dls::flux_chaine ss;
+    ss << vue_chaine;
 
-	float r;
-	ss >> r;
-	return r;
+    float r;
+    ss >> r;
+    return r;
 }
 
 static auto cosinus(float x)
 {
-	return std::cos(x);
+    return std::cos(x);
 }
 
 static auto sinus(float x)
 {
-	return std::sin(x);
+    return std::sin(x);
 }
 
 static auto tangeante(float x)
 {
-	return std::tan(x);
+    return std::tan(x);
 }
 
 static auto arccosinus(float x)
 {
-	return std::acos(x);
+    return std::acos(x);
 }
 
 static auto acos_sur(float x)
 {
-	return std::cos(dls::math::restreint(x, -1.0f, 1.0f));
+    return std::cos(dls::math::restreint(x, -1.0f, 1.0f));
 }
 
 static auto arcsinus(float x)
 {
-	return std::asin(x);
+    return std::asin(x);
 }
 
 static auto arctangeante(float x)
 {
-	return std::atan(x);
+    return std::atan(x);
 }
 
 static auto absolu(float x)
 {
-	return std::abs(x);
+    return std::abs(x);
 }
 
 static auto racine_carre(float x)
 {
-	return std::sqrt(x);
+    return std::sqrt(x);
 }
 
 static auto exponentiel(float x)
 {
-	return std::exp(x);
+    return std::exp(x);
 }
 
 static auto logarithme(float x)
 {
-	return std::log(x);
+    return std::log(x);
 }
 
 static auto sol(float x)
 {
-	return std::floor(x);
+    return std::floor(x);
 }
 
 static auto fraction(float x)
 {
-	return x - sol(x);
+    return x - sol(x);
 }
 
 static auto plafond(float x)
 {
-	return std::ceil(x);
+    return std::ceil(x);
 }
 
 static auto arrondis(float x)
 {
-	return std::round(x);
+    return std::round(x);
 }
 
 static auto nie(float x)
 {
-	return -x;
+    return -x;
 }
 
 static auto complement(float x)
 {
-	return 1.0f - x;
+    return 1.0f - x;
 }
 
 static auto ajoute(float x, float y)
 {
-	return x + y;
+    return x + y;
 }
 
 static auto soustrait(float x, float y)
 {
-	return x - y;
+    return x - y;
 }
 
 static auto multiplie(float x, float y)
 {
-	return x * y;
+    return x * y;
 }
 
 static auto divise(float x, float y)
 {
-	if ((x != 0.0f) && (y != 0.0f)) {
-		return x / y;
-	}
+    if ((x != 0.0f) && (y != 0.0f)) {
+        return x / y;
+    }
 
-	return 0.0f;
+    return 0.0f;
 }
 
 static auto modulo(float x, float y)
 {
-	return std::fmod(x, y);
+    return std::fmod(x, y);
 }
 
 static auto arctangeante2(float x, float y)
 {
-	return std::atan2(x, y);
+    return std::atan2(x, y);
 }
 
 static auto maximum(float x, float y)
 {
-	return std::max(x, y);
+    return std::max(x, y);
 }
 
 static auto minimum(float x, float y)
 {
-	return std::min(x, y);
+    return std::min(x, y);
 }
 
 static auto plus_grand_que(float x, float y)
 {
-	return (x > y) ? 1.0f : 0.0f;
+    return (x > y) ? 1.0f : 0.0f;
 }
 
 static auto plus_petit_que(float x, float y)
 {
-	return (x < y) ? 1.0f : 0.0f;
+    return (x < y) ? 1.0f : 0.0f;
 }
 
 static auto puissance(float x, float y)
 {
-	return std::pow(x, y);
+    return std::pow(x, y);
 }
 
 /* ****************************** comparaisons ****************************** */
 
 static auto sont_egaux(float x, float y)
 {
-	return (std::abs(x - y) <= std::numeric_limits<float>::epsilon()) ? 1.0f : 0.0f;
+    return (std::abs(x - y) <= std::numeric_limits<float>::epsilon()) ? 1.0f : 0.0f;
 }
 
 static auto sont_inegaux(float x, float y)
 {
-	return (std::abs(x - y) > std::numeric_limits<float>::epsilon()) ? 1.0f : 0.0f;
+    return (std::abs(x - y) > std::numeric_limits<float>::epsilon()) ? 1.0f : 0.0f;
 }
 
 static auto est_inferieure(float x, float y)
 {
-	return (x < y) ? 1.0f : 0.0f;
+    return (x < y) ? 1.0f : 0.0f;
 }
 
 static auto est_superieure(float x, float y)
 {
-	return (x > y) ? 1.0f : 0.0f;
+    return (x > y) ? 1.0f : 0.0f;
 }
 
 static auto est_inferieure_egale(float x, float y)
 {
-	return (x <= y) ? 1.0f : 0.0f;
+    return (x <= y) ? 1.0f : 0.0f;
 }
 
 static auto est_superieure_egale(float x, float y)
 {
-	return (x >= y) ? 1.0f : 0.0f;
+    return (x >= y) ? 1.0f : 0.0f;
 }
 
 static auto comp_et(float x, float y)
 {
-	return ((x != 0.0f) && (y != 0.0f)) ? 1.0f : 0.0f;
+    return ((x != 0.0f) && (y != 0.0f)) ? 1.0f : 0.0f;
 }
 
 static auto comp_ou(float x, float y)
 {
-	return ((x != 0.0f) || (y != 0.0f)) ? 1.0f : 0.0f;
+    return ((x != 0.0f) || (y != 0.0f)) ? 1.0f : 0.0f;
 }
 
 static auto comp_oux(float x, float y)
 {
-	return ((x != 0.0f) ^ (y != 0.0f)) ? 1.0f : 0.0f;
+    return ((x != 0.0f) ^ (y != 0.0f)) ? 1.0f : 0.0f;
 }
 
 /* ************************************************************************** */
@@ -279,1885 +279,1873 @@ static auto comp_oux(float x, float y)
  * - z combine (+ deep compositing)
  */
 
-static auto appel_fonction_math_double(
-		pile &pile_donnees,
-		pile const &pile_insts,
-		int &inst_courante,
-		std::function<float(float, float)> fonc)
+static auto appel_fonction_math_double(pile &pile_donnees,
+                                       pile const &pile_insts,
+                                       int &inst_courante,
+                                       std::function<float(float, float)> fonc)
 {
-	auto donnees_type = pile_insts.charge_type(inst_courante);
+    auto donnees_type = pile_insts.charge_type(inst_courante);
 
-	switch (donnees_type) {
-		default:
-		{
-			break;
-		}
-		case type_var::ENT32:
-		{
-			auto val0 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto res = fonc(static_cast<float>(val0), static_cast<float>(val1));
-			pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
-			break;
-		}
-		case type_var::DEC:
-		{
-			auto val0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto res = fonc(val0, val1);
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC2:
-		{
-			auto val0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto res = dls::math::vec2f();
+    switch (donnees_type) {
+        default:
+        {
+            break;
+        }
+        case type_var::ENT32:
+        {
+            auto val0 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto res = fonc(static_cast<float>(val0), static_cast<float>(val1));
+            pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
+            break;
+        }
+        case type_var::DEC:
+        {
+            auto val0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto res = fonc(val0, val1);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC2:
+        {
+            auto val0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto res = dls::math::vec2f();
 
-			res.x = fonc(val0.x, val1.x);
-			res.y = fonc(val0.y, val1.y);
+            res.x = fonc(val0.x, val1.x);
+            res.y = fonc(val0.y, val1.y);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC3:
-		{
-			auto val0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto res = dls::math::vec3f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC3:
+        {
+            auto val0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto res = dls::math::vec3f();
 
-			res.x = fonc(val0.x, val1.x);
-			res.y = fonc(val0.y, val1.y);
-			res.z = fonc(val0.z, val1.z);
+            res.x = fonc(val0.x, val1.x);
+            res.y = fonc(val0.y, val1.y);
+            res.z = fonc(val0.z, val1.z);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC4:
-		{
-			auto val0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto res = dls::math::vec4f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC4:
+        {
+            auto val0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto res = dls::math::vec4f();
 
-			res.x = fonc(val0.x, val1.x);
-			res.y = fonc(val0.y, val1.y);
-			res.z = fonc(val0.z, val1.z);
-			res.w = fonc(val0.w, val1.w);
+            res.x = fonc(val0.x, val1.x);
+            res.y = fonc(val0.y, val1.y);
+            res.z = fonc(val0.z, val1.z);
+            res.w = fonc(val0.w, val1.w);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT3:
-		{
-			auto val0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto res = dls::math::mat3x3f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT3:
+        {
+            auto val0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto res = dls::math::mat3x3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				for (auto j = 0ul; j < 3; ++j) {
-					res[i][j] = fonc(val0[i][j], val1[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                for (auto j = 0ul; j < 3; ++j) {
+                    res[i][j] = fonc(val0[i][j], val1[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT4:
-		{
-			auto val0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto val1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto res = dls::math::mat4x4f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT4:
+        {
+            auto val0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto val1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto res = dls::math::mat4x4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				for (auto j = 0ul; j < 4; ++j) {
-					res[i][j] = fonc(val0[i][j], val1[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                for (auto j = 0ul; j < 4; ++j) {
+                    res[i][j] = fonc(val0[i][j], val1[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::COULEUR:
-		{
-			auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::COULEUR:
+        {
+            auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
 
-			auto res = dls::phys::couleur32();
-			res.r = fonc(v0.r, v1.r);
-			res.v = fonc(v0.v, v1.v);
-			res.b = fonc(v0.b, v1.b);
-			res.a = v0.a;
+            auto res = dls::phys::couleur32();
+            res.r = fonc(v0.r, v1.r);
+            res.v = fonc(v0.v, v1.v);
+            res.b = fonc(v0.b, v1.b);
+            res.a = v0.a;
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-	}
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+    }
 }
 
-static auto appel_fonction_math_simple(
-		pile &pile_donnees,
-		pile const &pile_insts,
-		int &inst_courante,
-		std::function<float(float)> fonc)
+static auto appel_fonction_math_simple(pile &pile_donnees,
+                                       pile const &pile_insts,
+                                       int &inst_courante,
+                                       std::function<float(float)> fonc)
 {
-	auto donnees_type = pile_insts.charge_type(inst_courante);
+    auto donnees_type = pile_insts.charge_type(inst_courante);
 
-	switch (donnees_type) {
-		default:
-		{
-			break;
-		}
-		case type_var::ENT32:
-		{
-			auto val = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto res = fonc(static_cast<float>(val));
-			pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
-			break;
-		}
-		case type_var::DEC:
-		{
-			auto val = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto res = fonc(val);
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC2:
-		{
-			auto val = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto res = dls::math::vec2f();
+    switch (donnees_type) {
+        default:
+        {
+            break;
+        }
+        case type_var::ENT32:
+        {
+            auto val = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto res = fonc(static_cast<float>(val));
+            pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
+            break;
+        }
+        case type_var::DEC:
+        {
+            auto val = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto res = fonc(val);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC2:
+        {
+            auto val = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto res = dls::math::vec2f();
 
-			res.x = fonc(val.x);
-			res.y = fonc(val.y);
+            res.x = fonc(val.x);
+            res.y = fonc(val.y);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC3:
-		{
-			auto val = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto res = dls::math::vec3f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC3:
+        {
+            auto val = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto res = dls::math::vec3f();
 
-			res.x = fonc(val.x);
-			res.y = fonc(val.y);
-			res.z = fonc(val.z);
+            res.x = fonc(val.x);
+            res.y = fonc(val.y);
+            res.z = fonc(val.z);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC4:
-		{
-			auto val = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto res = dls::math::vec4f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC4:
+        {
+            auto val = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto res = dls::math::vec4f();
 
-			res.x = fonc(val.x);
-			res.y = fonc(val.y);
-			res.z = fonc(val.z);
-			res.w = fonc(val.w);
+            res.x = fonc(val.x);
+            res.y = fonc(val.y);
+            res.z = fonc(val.z);
+            res.w = fonc(val.w);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT3:
-		{
-			auto val = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto res = dls::math::mat3x3f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT3:
+        {
+            auto val = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto res = dls::math::mat3x3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				for (auto j = 0ul; j < 3; ++j) {
-					res[i][j] = fonc(val[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                for (auto j = 0ul; j < 3; ++j) {
+                    res[i][j] = fonc(val[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT4:
-		{
-			auto val = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto res = dls::math::mat4x4f();
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT4:
+        {
+            auto val = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto res = dls::math::mat4x4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				for (auto j = 0ul; j < 4; ++j) {
-					res[i][j] = fonc(val[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                for (auto j = 0ul; j < 4; ++j) {
+                    res[i][j] = fonc(val[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::COULEUR:
-		{
-			auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::COULEUR:
+        {
+            auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
 
-			auto res = dls::phys::couleur32();
-			res.r = fonc(v0.r);
-			res.v = fonc(v0.v);
-			res.b = fonc(v0.b);
-			res.a = v0.a;
+            auto res = dls::phys::couleur32();
+            res.r = fonc(v0.r);
+            res.v = fonc(v0.v);
+            res.b = fonc(v0.b);
+            res.a = v0.a;
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-	}
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+    }
 }
 
 static auto enligne(float v0, float v1, float v2)
 {
-	return dls::math::entrepolation_lineaire(v0, v1, v2);
+    return dls::math::entrepolation_lineaire(v0, v1, v2);
 }
 
 static auto restreint(float v0, float v1, float v2)
 {
-	return dls::math::restreint(v0, v1, v2);
+    return dls::math::restreint(v0, v1, v2);
 }
 
-static void appel_fonction_3_args(
-		pile &pile_donnees,
-		pile const &pile_insts,
-		int &inst_courante,
-		std::function<float(float, float, float)> fonc)
+static void appel_fonction_3_args(pile &pile_donnees,
+                                  pile const &pile_insts,
+                                  int &inst_courante,
+                                  std::function<float(float, float, float)> fonc)
 {
-	auto donnees_type = pile_insts.charge_type(inst_courante);
+    auto donnees_type = pile_insts.charge_type(inst_courante);
 
-	switch (donnees_type) {
-		default:
-		{
-			break;
-		}
-		case type_var::ENT32:
-		{
-			auto v0 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_entier(inst_courante, pile_insts);
+    switch (donnees_type) {
+        default:
+        {
+            break;
+        }
+        case type_var::ENT32:
+        {
+            auto v0 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_entier(inst_courante, pile_insts);
 
-			auto res = fonc(static_cast<float>(v0), static_cast<float>(v1), static_cast<float>(v2));
+            auto res = fonc(
+                static_cast<float>(v0), static_cast<float>(v1), static_cast<float>(v2));
 
-			pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
+            pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
 
-			break;
-		}
-		case type_var::DEC:
-		{
-			auto v0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            break;
+        }
+        case type_var::DEC:
+        {
+            auto v0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_decimal(inst_courante, pile_insts);
 
-			auto res = fonc(v0, v1, v2);
+            auto res = fonc(v0, v1, v2);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC2:
-		{
-			auto v0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC2:
+        {
+            auto v0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec2(inst_courante, pile_insts);
 
-			auto res = dls::math::vec2f();
+            auto res = dls::math::vec2f();
 
-			for (auto i = 0ul; i < 2; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i]);
-			}
+            for (auto i = 0ul; i < 2; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC3:
-		{
-			auto v0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC3:
+        {
+            auto v0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec3(inst_courante, pile_insts);
 
-			auto res = dls::math::vec3f();
+            auto res = dls::math::vec3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i]);
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC4:
-		{
-			auto v0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC4:
+        {
+            auto v0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec4(inst_courante, pile_insts);
 
-			auto res = dls::math::vec4f();
+            auto res = dls::math::vec4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i]);
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT3:
-		{
-			auto v0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT3:
+        {
+            auto v0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_mat3(inst_courante, pile_insts);
 
-			auto res = dls::math::mat3x3f();
+            auto res = dls::math::mat3x3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				for (auto j = 0ul; j < 3; ++j) {
-					res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                for (auto j = 0ul; j < 3; ++j) {
+                    res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT4:
-		{
-			auto v0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT4:
+        {
+            auto v0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_mat4(inst_courante, pile_insts);
 
-			auto res = dls::math::mat4x4f();
+            auto res = dls::math::mat4x4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				for (auto j = 0ul; j < 4; ++j) {
-					res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                for (auto j = 0ul; j < 4; ++j) {
+                    res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::COULEUR:
-		{
-			auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::COULEUR:
+        {
+            auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_couleur(inst_courante, pile_insts);
 
-			auto res = dls::phys::couleur32();
-			res.r = fonc(v0.r, v1.r, v2.r);
-			res.v = fonc(v0.v, v1.v, v2.v);
-			res.b = fonc(v0.b, v1.b, v2.b);
-			res.a = v0.a;
+            auto res = dls::phys::couleur32();
+            res.r = fonc(v0.r, v1.r, v2.r);
+            res.v = fonc(v0.v, v1.v, v2.v);
+            res.b = fonc(v0.b, v1.b, v2.b);
+            res.a = v0.a;
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-	}
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+    }
 }
 
 static auto hermite1(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<1>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<1>(v0, v1, v2, v3, v4);
 }
 
 static auto hermite2(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<2>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<2>(v0, v1, v2, v3, v4);
 }
 
 static auto hermite3(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<3>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<3>(v0, v1, v2, v3, v4);
 }
 
 static auto hermite4(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<4>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<4>(v0, v1, v2, v3, v4);
 }
 
 static auto hermite5(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<5>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<5>(v0, v1, v2, v3, v4);
 }
 
 static auto hermite6(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::entrepolation_fluide<6>(v0, v1, v2, v3, v4);
+    return dls::math::entrepolation_fluide<6>(v0, v1, v2, v3, v4);
 }
 
 static auto traduit(float v0, float v1, float v2, float v3, float v4)
 {
-	return dls::math::traduit(v0, v1, v2, v3, v4);
+    return dls::math::traduit(v0, v1, v2, v3, v4);
 }
 
-static void appel_fonction_5_args(
-		pile &pile_donnees,
-		pile const &pile_insts,
-		int &inst_courante,
-		std::function<float(float, float, float, float, float)> fonc)
+static void appel_fonction_5_args(pile &pile_donnees,
+                                  pile const &pile_insts,
+                                  int &inst_courante,
+                                  std::function<float(float, float, float, float, float)> fonc)
 {
-	auto donnees_type = pile_insts.charge_type(inst_courante);
+    auto donnees_type = pile_insts.charge_type(inst_courante);
 
-	switch (donnees_type) {
-		default:
-		{
-			break;
-		}
-		case type_var::ENT32:
-		{
-			auto v0 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_entier(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_entier(inst_courante, pile_insts);
+    switch (donnees_type) {
+        default:
+        {
+            break;
+        }
+        case type_var::ENT32:
+        {
+            auto v0 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_entier(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_entier(inst_courante, pile_insts);
 
-			auto res = fonc(static_cast<float>(v0), static_cast<float>(v1), static_cast<float>(v2), static_cast<float>(v3), static_cast<float>(v4));
+            auto res = fonc(static_cast<float>(v0),
+                            static_cast<float>(v1),
+                            static_cast<float>(v2),
+                            static_cast<float>(v3),
+                            static_cast<float>(v4));
 
-			pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
+            pile_donnees.stocke(inst_courante, pile_insts, static_cast<int>(res));
 
-			break;
-		}
-		case type_var::DEC:
-		{
-			auto v0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_decimal(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            break;
+        }
+        case type_var::DEC:
+        {
+            auto v0 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_decimal(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_decimal(inst_courante, pile_insts);
 
-			auto res = fonc(v0, v1, v2, v3, v4);
+            auto res = fonc(v0, v1, v2, v3, v4);
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC2:
-		{
-			auto v0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_vec2(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC2:
+        {
+            auto v0 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_vec2(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_vec2(inst_courante, pile_insts);
 
-			auto res = dls::math::vec2f();
+            auto res = dls::math::vec2f();
 
-			for (auto i = 0ul; i < 2; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
-			}
+            for (auto i = 0ul; i < 2; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC3:
-		{
-			auto v0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_vec3(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC3:
+        {
+            auto v0 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_vec3(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_vec3(inst_courante, pile_insts);
 
-			auto res = dls::math::vec3f();
+            auto res = dls::math::vec3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::VEC4:
-		{
-			auto v0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_vec4(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::VEC4:
+        {
+            auto v0 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_vec4(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_vec4(inst_courante, pile_insts);
 
-			auto res = dls::math::vec4f();
+            auto res = dls::math::vec4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                res[i] = fonc(v0[i], v1[i], v2[i], v3[i], v4[i]);
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT3:
-		{
-			auto v0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_mat3(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT3:
+        {
+            auto v0 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_mat3(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_mat3(inst_courante, pile_insts);
 
-			auto res = dls::math::mat3x3f();
+            auto res = dls::math::mat3x3f();
 
-			for (auto i = 0ul; i < 3; ++i) {
-				for (auto j = 0ul; j < 3; ++j) {
-					res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j], v3[i][j], v4[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 3; ++i) {
+                for (auto j = 0ul; j < 3; ++j) {
+                    res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j], v3[i][j], v4[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::MAT4:
-		{
-			auto v0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_mat4(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::MAT4:
+        {
+            auto v0 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_mat4(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_mat4(inst_courante, pile_insts);
 
-			auto res = dls::math::mat4x4f();
+            auto res = dls::math::mat4x4f();
 
-			for (auto i = 0ul; i < 4; ++i) {
-				for (auto j = 0ul; j < 4; ++j) {
-					res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j], v3[i][j], v4[i][j]);
-				}
-			}
+            for (auto i = 0ul; i < 4; ++i) {
+                for (auto j = 0ul; j < 4; ++j) {
+                    res[i][j] = fonc(v0[i][j], v1[i][j], v2[i][j], v3[i][j], v4[i][j]);
+                }
+            }
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-		case type_var::COULEUR:
-		{
-			auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v2 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v3 = pile_donnees.charge_couleur(inst_courante, pile_insts);
-			auto v4 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+        case type_var::COULEUR:
+        {
+            auto v0 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v1 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v2 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v3 = pile_donnees.charge_couleur(inst_courante, pile_insts);
+            auto v4 = pile_donnees.charge_couleur(inst_courante, pile_insts);
 
-			auto res = dls::phys::couleur32();
-			res.r = fonc(v0.r, v1.r, v2.r, v3.r, v4.r);
-			res.v = fonc(v0.v, v1.v, v2.v, v3.v, v4.v);
-			res.b = fonc(v0.b, v1.b, v2.b, v3.b, v4.b);
-			res.a = v0.a;
+            auto res = dls::phys::couleur32();
+            res.r = fonc(v0.r, v1.r, v2.r, v3.r, v4.r);
+            res.v = fonc(v0.v, v1.v, v2.v, v3.v, v4.v);
+            res.b = fonc(v0.b, v1.b, v2.b, v3.b, v4.b);
+            res.a = v0.a;
 
-			pile_donnees.stocke(inst_courante, pile_insts, res);
-			break;
-		}
-	}
+            pile_donnees.stocke(inst_courante, pile_insts, res);
+            break;
+        }
+    }
 }
 
-static auto charge_param_bruit(
-		bruit::parametres &params,
-		pile &pile_donnees,
-		pile const &insts,
-		int &inst_courante)
+static auto charge_param_bruit(bruit::parametres &params,
+                               pile &pile_donnees,
+                               pile const &insts,
+                               int &inst_courante)
 {
-	params.origine_bruit = pile_donnees.charge_vec3(inst_courante, insts);
-	params.taille_bruit = pile_donnees.charge_vec3(inst_courante, insts);
-	params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
-	params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
-	params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);
+    params.origine_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+    params.taille_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+    params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+    params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+    params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);
 }
 
-static auto charge_param_bruit_turb(
-		bruit::param_turbulence &params,
-		pile &pile_donnees,
-		pile const &insts,
-		int &inst_courante)
+static auto charge_param_bruit_turb(bruit::param_turbulence &params,
+                                    pile &pile_donnees,
+                                    pile const &insts,
+                                    int &inst_courante)
 {
-	params.octaves = pile_donnees.charge_decimal(inst_courante, insts);
-	params.gain = pile_donnees.charge_decimal(inst_courante, insts);
-	params.lacunarite = pile_donnees.charge_decimal(inst_courante, insts);
-	params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
+    params.octaves = pile_donnees.charge_decimal(inst_courante, insts);
+    params.gain = pile_donnees.charge_decimal(inst_courante, insts);
+    params.lacunarite = pile_donnees.charge_decimal(inst_courante, insts);
+    params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
 }
 
-auto cree_bruit(
-		ctx_local &ctx,
-		pile &pile_donnees,
-		pile const &insts,
-		int &inst_courante,
-		bruit::type type_bruit)
+auto cree_bruit(ctx_local &ctx,
+                pile &pile_donnees,
+                pile const &insts,
+                int &inst_courante,
+                bruit::type type_bruit)
 {
-	auto graine = pile_donnees.charge_entier(inst_courante, insts);
+    auto graine = pile_donnees.charge_entier(inst_courante, insts);
 
-	auto params = bruit::parametres();
-	charge_param_bruit(params, pile_donnees, insts, inst_courante);
+    auto params = bruit::parametres();
+    charge_param_bruit(params, pile_donnees, insts, inst_courante);
 
-	bruit::construit(type_bruit, params, graine);
+    bruit::construit(type_bruit, params, graine);
 
-	ctx.params_bruits.ajoute(params);
-	auto idx = ctx.params_bruits.taille() - 1;
+    ctx.params_bruits.ajoute(params);
+    auto idx = ctx.params_bruits.taille() - 1;
 
-	pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
+    pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
 }
 
-static auto evalue_bruit(
-		ctx_local &ctx,
-		pile &pile_donnees,
-		pile const &insts,
-		int &inst_courante)
+static auto evalue_bruit(ctx_local &ctx, pile &pile_donnees, pile const &insts, int &inst_courante)
 {
-	auto idx = pile_donnees.charge_entier(inst_courante, insts);
-	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+    auto idx = pile_donnees.charge_entier(inst_courante, insts);
+    auto pos = pile_donnees.charge_vec3(inst_courante, insts);
 
-	auto res = 0.0f;
-	auto deriv = dls::math::vec3f();
+    auto res = 0.0f;
+    auto deriv = dls::math::vec3f();
 
-	if (idx < ctx.params_bruits.taille()) {
-		auto const &params = ctx.params_bruits[idx];
-		res = bruit::evalue_derivee(params, pos, deriv);
-	}
+    if (idx < ctx.params_bruits.taille()) {
+        auto const &params = ctx.params_bruits[idx];
+        res = bruit::evalue_derivee(params, pos, deriv);
+    }
 
-	auto ptr_sortie = insts.charge_entier(inst_courante);
-	pile_donnees.stocke(ptr_sortie, res);
-	pile_donnees.stocke(ptr_sortie, deriv);
+    auto ptr_sortie = insts.charge_entier(inst_courante);
+    pile_donnees.stocke(ptr_sortie, res);
+    pile_donnees.stocke(ptr_sortie, deriv);
 }
 
-static auto evalue_bruit_turbulence(
-		ctx_local &ctx,
-		pile &pile_donnees,
-		pile const &insts,
-		int &inst_courante)
+static auto evalue_bruit_turbulence(ctx_local &ctx,
+                                    pile &pile_donnees,
+                                    pile const &insts,
+                                    int &inst_courante)
 {
-	auto idx = pile_donnees.charge_entier(inst_courante, insts);
-	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+    auto idx = pile_donnees.charge_entier(inst_courante, insts);
+    auto pos = pile_donnees.charge_vec3(inst_courante, insts);
 
-	auto params_turb = bruit::param_turbulence();
-	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
+    auto params_turb = bruit::param_turbulence();
+    charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
 
-	auto res = 0.0f;
-	auto deriv = dls::math::vec3f();
+    auto res = 0.0f;
+    auto deriv = dls::math::vec3f();
 
-	if (idx < ctx.params_bruits.taille()) {
-		auto const &params = ctx.params_bruits[idx];
-		res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
-	}
+    if (idx < ctx.params_bruits.taille()) {
+        auto const &params = ctx.params_bruits[idx];
+        res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
+    }
 
-	auto ptr_sortie = insts.charge_entier(inst_courante);
-	pile_donnees.stocke(ptr_sortie, res);
-	pile_donnees.stocke(ptr_sortie, deriv);
+    auto ptr_sortie = insts.charge_entier(inst_courante);
+    pile_donnees.stocke(ptr_sortie, res);
+    pile_donnees.stocke(ptr_sortie, deriv);
 }
 
-static dls::chaine const &cherche_chaine(
-		ctx_exec const &contexte,
-		ctx_local const &contexte_local,
-		int ptr_chaine)
+static dls::chaine const &cherche_chaine(ctx_exec const &contexte,
+                                         ctx_local const &contexte_local,
+                                         int ptr_chaine)
 {
-	auto decalage_chaine = contexte.chaines.taille();
+    auto decalage_chaine = contexte.chaines.taille();
 
-	if (ptr_chaine >= decalage_chaine) {
-		return contexte_local.chaines[ptr_chaine - decalage_chaine];
-	}
+    if (ptr_chaine >= decalage_chaine) {
+        return contexte_local.chaines[ptr_chaine - decalage_chaine];
+    }
 
-	return contexte.chaines[ptr_chaine];
+    return contexte.chaines[ptr_chaine];
 }
 
-void execute_pile(
-		ctx_exec &contexte,
-		ctx_local &contexte_local,
-		pile &pile_donnees,
-		pile const &insts,
-		int graine)
+void execute_pile(ctx_exec &contexte,
+                  ctx_local &contexte_local,
+                  pile &pile_donnees,
+                  pile const &insts,
+                  int graine)
 {
-	auto compteur = 0;
-	std::mt19937 gna(static_cast<unsigned long>(graine));
-
-	while (compteur != insts.taille()) {
-		auto inst = insts.charge_inst(compteur);
-
-		//std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
-
-		switch (inst) {
-			case code_inst::TERMINE:
-			{
-				return;
-			}
-			case code_inst::ASSIGNATION:
-			{
-				auto donnees_type = insts.charge_type(compteur);
-
-				switch (donnees_type) {
-					default:
-					{
-						break;
-					}
-					/* copie le pointeur du tableau ou de la chaine */
-					case type_var::CHAINE:
-					case type_var::TABLEAU:
-					case type_var::ENT32:
-					{
-						auto valeur = pile_donnees.charge_entier(compteur, insts);
-						pile_donnees.stocke(compteur, insts, valeur);
-						break;
-					}
-					case type_var::DEC:
-					case type_var::VEC2:
-					case type_var::VEC3:
-					case type_var::VEC4:
-					case type_var::MAT3:
-					case type_var::MAT4:
-					case type_var::COULEUR:
-					{
-						auto idx_orig = insts.charge_entier(compteur);
-						auto idx_dest = insts.charge_entier(compteur);
-
-						auto taille = static_cast<long>(sizeof(float)) * taille_type(donnees_type);
-
-						auto ptr_orig = pile_donnees.donnees() + idx_orig;
-						auto ptr_dest = pile_donnees.donnees() + idx_dest;
-
-						std::memcpy(ptr_dest, ptr_orig, static_cast<size_t>(taille));
-
-						break;
-					}
-				}
-
-				break;
-			}
-			case code_inst::IN_BRANCHE:
-			{
-				compteur = insts.charge_entier(compteur);
-				break;
-			}
-			case code_inst::IN_BRANCHE_CONDITION:
-			{
-				auto ptr = insts.charge_entier(compteur);
-				auto si_vrai = insts.charge_entier(compteur);
-				auto si_faux = insts.charge_entier(compteur);
-
-				auto val = pile_donnees.charge_decimal(ptr);
-
-				if (val != 0.0f) {
-					compteur = si_vrai;
-				}
-				else {
-					compteur = si_faux;
-				}
-
-				break;
-			}
-			case code_inst::IN_INCREMENTE:
-			{
-				auto type = insts.charge_entier(compteur);
-				static_cast<void>(type);
-
-				auto ptr = insts.charge_entier(compteur);
-
-				auto val = pile_donnees.charge_entier(ptr);
-				val += 1;
-				ptr -= 1;
-
-				pile_donnees.stocke(ptr, val);
-
-				break;
-			}
-			case code_inst::FN_ALEA_UNI:
-			{
-				auto v0 = pile_donnees.charge_decimal(compteur, insts);
-				auto v1 = pile_donnees.charge_decimal(compteur, insts);
-
-				std::uniform_real_distribution<float> dist(v0, v1);
-				pile_donnees.stocke(compteur, insts, dist(gna));
-
-				break;
-			}
-			case code_inst::FN_ALEA_NRM:
-			{
-				auto v0 = pile_donnees.charge_decimal(compteur, insts);
-				auto v1 = pile_donnees.charge_decimal(compteur, insts);
-
-				std::normal_distribution<float> dist(v0, v1);
-				pile_donnees.stocke(compteur, insts, dist(gna));
-
-				break;
-			}
-			case code_inst::FN_ECHANTILLONE_SPHERE:
-			{
-				auto g = static_cast<unsigned>(graine);
-				auto gna_loc = GNASimple(g);
-				auto res = echantillone_sphere<dls::math::vec3f>(gna_loc);
-				graine = static_cast<int>(g);
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::NIE:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, nie);
-				break;
-			}
-			case code_inst::FN_INVERSE:
-			{
-				auto donnees_type = insts.charge_type(compteur);
-
-				switch (donnees_type) {
-					default:
-					{
-						break;
-					}
-					case type_var::ENT32:
-					{
-						/* L'inverse d'un nombre entier est égal à zéro. */
-						++compteur;
-						pile_donnees.stocke(compteur, insts, 0);
-						break;
-					}
-					case type_var::DEC:
-					{
-						auto val = pile_donnees.charge_decimal(compteur, insts);
-						val = (val != 0.0f) ? 1.0f / val : 0.0f;
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::VEC2:
-					{
-						auto val = pile_donnees.charge_vec2(compteur, insts);
-
-						for (auto i = 0ul; i < 2; ++i) {
-							val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
-						}
-
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::VEC3:
-					{
-						auto val = pile_donnees.charge_vec3(compteur, insts);
-
-						for (auto i = 0ul; i < 3; ++i) {
-							val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
-						}
-
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::VEC4:
-					{
-						auto val = pile_donnees.charge_vec4(compteur, insts);
-
-						for (auto i = 0ul; i < 4; ++i) {
-							val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
-						}
-
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::MAT3:
-					{
-						auto val = pile_donnees.charge_mat3(compteur, insts);
-						val = inverse(val);
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::MAT4:
-					{
-						auto val = pile_donnees.charge_mat4(compteur, insts);
-						val = inverse(val);
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-					case type_var::COULEUR:
-					{
-						auto val = pile_donnees.charge_couleur(compteur, insts);
-
-						val.r = (val.r != 0.0f) ? 1.0f / val.r : 0.0f;
-						val.v = (val.v != 0.0f) ? 1.0f / val.v : 0.0f;
-						val.b = (val.b != 0.0f) ? 1.0f / val.b : 0.0f;
-
-						pile_donnees.stocke(compteur, insts, val);
-						break;
-					}
-				}
-
-				break;
-			}
-			case code_inst::FN_ENLIGNE:
-			{
-				appel_fonction_3_args(pile_donnees, insts, compteur, enligne);
-				break;
-			}
-			case code_inst::FN_RESTREINT:
-			{
-				appel_fonction_3_args(pile_donnees, insts, compteur, restreint);
-				break;
-			}
-			case code_inst::FN_TRADUIT:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, traduit);
-				break;
-			}
-			case code_inst::FN_HERMITE1:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite1);
-				break;
-			}
-			case code_inst::FN_HERMITE2:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite2);
-				break;
-			}
-			case code_inst::FN_HERMITE3:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite3);
-				break;
-			}
-			case code_inst::FN_HERMITE4:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite4);
-				break;
-			}
-			case code_inst::FN_HERMITE5:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite5);
-				break;
-			}
-			case code_inst::FN_HERMITE6:
-			{
-				appel_fonction_5_args(pile_donnees, insts, compteur, hermite6);
-				break;
-			}
-			case code_inst::FN_BASE_ORTHONORMALE:
-			{
-				auto vec = pile_donnees.charge_vec3(compteur, insts);
-
-				auto b0 = dls::math::vec3f(0.0f);
-				auto b1 = dls::math::vec3f(0.0f);
-
-				cree_base_orthonormale(vec, b0, b1);
-
-				auto ptr_sortie = insts.charge_entier(compteur);
-				pile_donnees.stocke(ptr_sortie, b0);
-				pile_donnees.stocke(ptr_sortie, b1);
-				break;
-			}
-			case code_inst::FN_COMBINE_VEC2:
-			{
-				dls::math::vec2f vec;
-				vec.x = pile_donnees.charge_decimal(compteur, insts);
-				vec.y = pile_donnees.charge_decimal(compteur, insts);
-
-				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_COMBINE_VEC3:
-			{
-				dls::math::vec3f vec;
-				vec.x = pile_donnees.charge_decimal(compteur, insts);
-				vec.y = pile_donnees.charge_decimal(compteur, insts);
-				vec.z = pile_donnees.charge_decimal(compteur, insts);
-
-				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_SEPARE_VEC2:
-			{
-				auto vec = pile_donnees.charge_vec2(compteur, insts);
-				/* les trois sorties sont l'une après l'autre donc on peut
-				 * simplement stocker le vecteur directement */
-				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_SEPARE_VEC3:
-			{
-				auto vec = pile_donnees.charge_vec3(compteur, insts);
-				/* les trois sorties sont l'une après l'autre donc on peut
-				 * simplement stocker le vecteur directement */
-				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_NORMALISE_VEC3:
-			{
-				auto vec = pile_donnees.charge_vec3(compteur, insts);
-				auto lng = 0.0f;
-				vec = normalise(vec, lng);
-
-				auto ptr_sortie = insts.charge_entier(compteur);
-				pile_donnees.stocke(ptr_sortie, vec);
-				pile_donnees.stocke(ptr_sortie, lng);
-				break;
-			}
-			case code_inst::FN_COMPLEMENT:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, complement);
-				break;
-			}
-			case code_inst::FN_PRODUIT_SCALAIRE_VEC3:
-			{
-				auto v0 = pile_donnees.charge_vec3(compteur, insts);
-				auto v1 = pile_donnees.charge_vec3(compteur, insts);
-
-				auto res = dls::math::produit_scalaire(v0, v1);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_LONGUEUR_VEC3:
-			{
-				auto v0 = pile_donnees.charge_vec3(compteur, insts);
-
-				auto res = dls::math::longueur(v0);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_PRODUIT_CROIX_VEC3:
-			{
-				auto v0 = pile_donnees.charge_vec3(compteur, insts);
-				auto v1 = pile_donnees.charge_vec3(compteur, insts);
-
-				auto res = dls::math::produit_croix(v0, v1);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_FRESNEL:
-			{
-				auto I = pile_donnees.charge_vec3(compteur, insts);
-				auto N = pile_donnees.charge_vec3(compteur, insts);
-				auto idr = pile_donnees.charge_decimal(compteur, insts);
-
-				auto res = fresnel(I, N, idr);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_REFLECHI:
-			{
-				auto I = pile_donnees.charge_vec3(compteur, insts);
-				auto N = pile_donnees.charge_vec3(compteur, insts);
-
-				auto res = reflechi(I, N);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_REFRACTE:
-			{
-				auto I = pile_donnees.charge_vec3(compteur, insts);
-				auto N = pile_donnees.charge_vec3(compteur, insts);
-				auto idr = pile_donnees.charge_decimal(compteur, insts);
-
-				auto res = refracte(I, N, idr);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_AJOUTE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, ajoute);
-				break;
-			}
-			case code_inst::FN_SOUSTRAIT:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, soustrait);
-				break;
-			}
-			case code_inst::FN_MULTIPLIE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, multiplie);
-				break;
-			}
-			case code_inst::FN_DIVISE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, divise);
-				break;
-			}
-			case code_inst::FN_MODULO:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, modulo);
-				break;
-			}
-			case code_inst::FN_COSINUS:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, cosinus);
-				break;
-			}
-			case code_inst::FN_SINUS:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, sinus);
-				break;
-			}
-			case code_inst::FN_TANGEANTE:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, tangeante);
-				break;
-			}
-			case code_inst::FN_ARCCOSINUS:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, arccosinus);
-				break;
-			}
-			case code_inst::FN_ARCSINUS:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, arcsinus);
-				break;
-			}
-			case code_inst::FN_ARCTANGEANTE:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, arctangeante);
-				break;
-			}
-			case code_inst::FN_ABSOLU:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, absolu);
-				break;
-			}
-			case code_inst::FN_RACINE_CARREE:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, racine_carre);
-				break;
-			}
-			case code_inst::FN_EXPONENTIEL:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, exponentiel);
-				break;
-			}
-			case code_inst::FN_LOGARITHME:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, logarithme);
-				break;
-			}
-			case code_inst::FN_FRACTION:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, fraction);
-				break;
-			}
-			case code_inst::FN_PLAFOND:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, plafond);
-				break;
-			}
-			case code_inst::FN_SOL:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, sol);
-				break;
-			}
-			case code_inst::FN_ARRONDIS:
-			{
-				appel_fonction_math_simple(pile_donnees, insts, compteur, arrondis);
-				break;
-			}
-			case code_inst::FN_ARCTAN2:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, arctangeante2);
-				break;
-			}
-			case code_inst::FN_MAX:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, maximum);
-				break;
-			}
-			case code_inst::FN_MIN:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, minimum);
-				break;
-			}
-			case code_inst::FN_PLUS_GRAND_QUE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, plus_grand_que);
-				break;
-			}
-			case code_inst::FN_PLUS_PETIT_QUE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, plus_petit_que);
-				break;
-			}
-			case code_inst::FN_EGALITE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, sont_egaux);
-				break;
-			}
-			case code_inst::FN_INEGALITE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, sont_inegaux);
-				break;
-			}
-			case code_inst::FN_SUPERIEUR:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, est_superieure);
-				break;
-			}
-			case code_inst::FN_INFERIEUR:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, est_inferieure);
-				break;
-			}
-			case code_inst::FN_SUPERIEUR_EGAL:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, est_superieure_egale);
-				break;
-			}
-			case code_inst::FN_INFERIEUR_EGAL:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, est_inferieure_egale);
-				break;
-			}
-			case code_inst::FN_COMP_OU:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, comp_ou);
-				break;
-			}
-			case code_inst::FN_COMP_ET:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, comp_et);
-				break;
-			}
-			case code_inst::FN_COMP_OUX:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, comp_oux);
-				break;
-			}
-			case code_inst::FN_PUISSANCE:
-			{
-				appel_fonction_math_double(pile_donnees, insts, compteur, puissance);
-				break;
-			}
-			case code_inst::ENT_VERS_DEC:
-			{
-				auto ent = pile_donnees.charge_entier(compteur, insts);
-				pile_donnees.stocke(compteur, insts, static_cast<float>(ent));
-				break;
-			}
-			case code_inst::DEC_VERS_ENT:
-			{
-				auto dec = pile_donnees.charge_decimal(compteur, insts);
-				pile_donnees.stocke(compteur, insts, static_cast<int>(dec));
-				break;
-			}
-			case code_inst::DEC_VERS_VEC2:
-			{
-				auto dec = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::math::vec2f(dec);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::ENT_VERS_VEC2:
-			{
-				auto ent = pile_donnees.charge_entier(compteur, insts);
-				auto res = dls::math::vec2f(static_cast<float>(ent));
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::DEC_VERS_VEC3:
-			{
-				auto dec = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::math::vec3f(dec);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::ENT_VERS_VEC3:
-			{
-				auto ent = pile_donnees.charge_entier(compteur, insts);
-				auto res = dls::math::vec3f(static_cast<float>(ent));
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::DEC_VERS_VEC4:
-			{
-				auto dec = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::math::vec4f(dec);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::ENT_VERS_VEC4:
-			{
-				auto ent = pile_donnees.charge_entier(compteur, insts);
-				auto res = dls::math::vec4f(static_cast<float>(ent));
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::DEC_VERS_COULEUR:
-			{
-				auto dec = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::phys::couleur32(dec, dec, dec, 1.0f);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::VEC3_VERS_COULEUR:
-			{
-				auto vec = pile_donnees.charge_vec3(compteur, insts);
-				auto res = dls::phys::couleur32(vec.x, vec.y, vec.z, 1.0f);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::COULEUR_VERS_VEC3:
-			{
-				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto res = dls::math::vec3f(clr.r, clr.v, clr.b);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_MULTIPLIE_MAT:
-			{
-				auto donnees_type = insts.charge_type(compteur);
-
-				if (donnees_type == type_var::MAT3) {
-					auto mat0 = pile_donnees.charge_mat3(compteur, insts);
-					auto mat1 = pile_donnees.charge_mat3(compteur, insts);
-					pile_donnees.stocke(compteur, insts, mat0 * mat1);
-				}
-				else if (donnees_type == type_var::MAT4) {
-					auto mat0 = pile_donnees.charge_mat4(compteur, insts);
-					auto mat1 = pile_donnees.charge_mat4(compteur, insts);
-					pile_donnees.stocke(compteur, insts, mat0 * mat1);
-				}
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_POINT:
-			{
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-
-				auto &ptr_corps = contexte.ptr_corps;
-				auto index = -1l;
-
-				ptr_corps.accede_ecriture([pos, &index](Corps *corps)
-				{
-					auto points = corps->points_pour_ecriture();
-					index = points.ajoute_point(pos);
-				});
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_PRIMITIVE:
-			{
-				auto type = pile_donnees.charge_entier(compteur, insts);
-				auto &ptr_corps = contexte.ptr_corps;
-				auto index = -1l;
-
-				ptr_corps.accede_ecriture([type, &index](Corps *corps)
-				{
-					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
-					index = poly->index;
-				});
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_PRIMITIVE_SOMMETS:
-			{
-				auto type = pile_donnees.charge_entier(compteur, insts);
-				auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
-				auto &ptr_corps = contexte.ptr_corps;
-				auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
-				auto index = -1l;
-
-				ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps)
-				{
-					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
-					index = poly->index;
-
-					for (auto const &v : tableau) {
-						corps->ajoute_sommet(poly, v);
-					}
-				});
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_SOMMET:
-			{
-				auto idx_prim = pile_donnees.charge_entier(compteur, insts);
-				auto idx_point = pile_donnees.charge_entier(compteur, insts);
-				auto &ptr_corps = contexte.ptr_corps;
-				auto idx_sommet = -1l;
-
-				ptr_corps.accede_ecriture([idx_prim, idx_point, &idx_sommet](Corps *corps)
-				{
-					auto prim = corps->prims()->prim(idx_prim);
-					auto poly = dynamic_cast<Polygone *>(prim);
-					idx_sommet = corps->ajoute_sommet(poly, idx_point);
-				});
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(idx_sommet));
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_SOMMETS:
-			{
-				auto idx_prim = pile_donnees.charge_entier(compteur, insts);
-				auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
-				auto &ptr_corps = contexte.ptr_corps;
-				auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
-				auto paire_tabl_idx = contexte_local.tableaux.cree_tableau();
-				auto &tabl_smt = paire_tabl_idx.first;
-
-				ptr_corps.accede_ecriture([idx_prim, &tableau, &tabl_smt](Corps *corps)
-				{
-					auto prim = corps->prims()->prim(idx_prim);
-					auto poly = dynamic_cast<Polygone *>(prim);
-
-					for (auto const &v : tableau) {
-						auto idx = corps->ajoute_sommet(poly, v);
-						tabl_smt.ajoute(static_cast<int>(idx));
-					}
-				});
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(paire_tabl_idx.second));
-
-				break;
-			}
-			case code_inst::FN_AJOUTE_LIGNE:
-			{
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-				auto dir = pile_donnees.charge_vec3(compteur, insts);
-				auto &ptr_corps = contexte.ptr_corps;
-				auto index = -1;
-
-				ptr_corps.accede_ecriture([&pos, &dir, &index](Corps *corps)
-				{
-					auto points = corps->points_pour_ecriture();
-					auto p0 = points.ajoute_point(pos);
-					auto p1 = points.ajoute_point(pos + dir);
-
-					auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
-					corps->ajoute_sommet(prim, p0);
-					corps->ajoute_sommet(prim, p1);
-
-					index = static_cast<int>(prim->index);
-				});
-
-				pile_donnees.stocke(compteur, insts, index);
-
-				break;
-			}
-			case code_inst::FN_POINTS_VOISINS:
-			{
-				auto idx_point = pile_donnees.charge_entier(compteur, insts);
-				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
-				auto &tableau = pair_tabl_idx.first;
-
-				if (idx_point < contexte.polyedre.sommets.taille()) {
-					auto sommet = contexte.polyedre.sommets[idx_point];
-					auto debut = sommet->arete;
-					auto fin = debut;
-
-					do {
-						auto voisin = debut->paire->sommet->label;
-						tableau.ajoute(static_cast<int>(voisin));
-						debut = suivante_autour_point(debut);
-					} while (debut != fin && debut != nullptr);
-				}
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
-				break;
-			}
-			case code_inst::FN_POINTS_VOISINS_RAYON:
-			{
-				auto idx_point = pile_donnees.charge_entier(compteur, insts);
-				auto rayon = pile_donnees.charge_decimal(compteur, insts);
-
-				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
-				auto &tableau = pair_tabl_idx.first;
-				auto const &arbre_kd = contexte.arbre_kd;
-
-				if (idx_point < arbre_kd.compte_points()) {
-					auto pos = arbre_kd.pos_point(idx_point);
-
-					arbre_kd.cherche_points(pos, rayon, [&](
-											int idx, dls::math::vec3f const &, float, float &)
-					{
-						tableau.ajoute(idx);
-					});
-				}
-
-				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
-				break;
-			}
-			case code_inst::FN_POINT:
-			{
-				auto idx_point = pile_donnees.charge_entier(compteur, insts);
-				auto res = dls::math::vec3f();
-
-				if (idx_point < contexte.polyedre.sommets.taille()) {
-					auto sommet = contexte.polyedre.sommets[idx_point];
-					res = sommet->p;
-				}
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_ATTRIBUT_DECIMAL:
-			{
-				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
-				auto idx_attr = pile_donnees.charge_entier(compteur, insts);
-				auto res = 0.0f;
-
-				auto chn = cherche_chaine(contexte, contexte_local, ptr_chn);
-				auto attr = contexte.corps->attribut(chn);
-
-				if (attr != nullptr) {
-					res = *attr->r32(idx_attr);
-				}
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_SATURE:
-			{
-				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto l   = pile_donnees.charge_decimal(compteur, insts);
-				auto fac = pile_donnees.charge_decimal(compteur, insts);
-
-				auto lum = dls::phys::couleur32(l, l, l, clr.a);
-
-				if (fac != 0.0f) {
-					lum = (1.0f - fac) * lum + clr * fac;
-				}
-
-				pile_donnees.stocke(compteur, insts, lum);
-				break;
-			}
-			case code_inst::FN_LUMINANCE:
-			{
-				auto clr = pile_donnees.charge_couleur(compteur, insts);
-
-				auto res = luminance(clr);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_CORPS_NOIR:
-			{
-				auto temp = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::phys::couleur_depuis_corps_noir(temp);
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_LONGUEUR_ONDE:
-			{
-				auto temp = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::phys::couleur_depuis_longueur_onde(temp);
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_CONTRASTE:
-			{
-				auto clr0 = pile_donnees.charge_couleur(compteur, insts);
-				auto clr1 = pile_donnees.charge_couleur(compteur, insts);
-
-				auto res = calcul_contraste_local(clr0, clr1);
-
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}				
-#define EVALUE_BRUIT(code_, type_) \
-			case code_inst::code_: \
-			{ \
-				cree_bruit(contexte_local, pile_donnees, insts, compteur, type_); \
-				break; \
-			}
-			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
-			EVALUE_BRUIT(FN_BRUIT_FLUX, bruit::type::FLUX)
-			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
-			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
-			EVALUE_BRUIT(FN_BRUIT_PERLIN, bruit::type::PERLIN)
-			EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::type::SIMPLEX)
-			EVALUE_BRUIT(FN_BRUIT_VALEUR, bruit::type::VALEUR)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::type::VORONOI_F1)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::type::VORONOI_F2)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::type::VORONOI_F3)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::type::VORONOI_F4)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::type::VORONOI_F1F2)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::type::VORONOI_CR)
+    auto compteur = 0;
+    std::mt19937 gna(static_cast<unsigned long>(graine));
+
+    while (compteur != insts.taille()) {
+        auto inst = insts.charge_inst(compteur);
+
+        // std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
+
+        switch (inst) {
+            case code_inst::TERMINE:
+            {
+                return;
+            }
+            case code_inst::ASSIGNATION:
+            {
+                auto donnees_type = insts.charge_type(compteur);
+
+                switch (donnees_type) {
+                    default:
+                    {
+                        break;
+                    }
+                    /* copie le pointeur du tableau ou de la chaine */
+                    case type_var::CHAINE:
+                    case type_var::TABLEAU:
+                    case type_var::ENT32:
+                    {
+                        auto valeur = pile_donnees.charge_entier(compteur, insts);
+                        pile_donnees.stocke(compteur, insts, valeur);
+                        break;
+                    }
+                    case type_var::DEC:
+                    case type_var::VEC2:
+                    case type_var::VEC3:
+                    case type_var::VEC4:
+                    case type_var::MAT3:
+                    case type_var::MAT4:
+                    case type_var::COULEUR:
+                    {
+                        auto idx_orig = insts.charge_entier(compteur);
+                        auto idx_dest = insts.charge_entier(compteur);
+
+                        auto taille = static_cast<long>(sizeof(float)) * taille_type(donnees_type);
+
+                        auto ptr_orig = pile_donnees.donnees() + idx_orig;
+                        auto ptr_dest = pile_donnees.donnees() + idx_dest;
+
+                        std::memcpy(ptr_dest, ptr_orig, static_cast<size_t>(taille));
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+            case code_inst::IN_BRANCHE:
+            {
+                compteur = insts.charge_entier(compteur);
+                break;
+            }
+            case code_inst::IN_BRANCHE_CONDITION:
+            {
+                auto ptr = insts.charge_entier(compteur);
+                auto si_vrai = insts.charge_entier(compteur);
+                auto si_faux = insts.charge_entier(compteur);
+
+                auto val = pile_donnees.charge_decimal(ptr);
+
+                if (val != 0.0f) {
+                    compteur = si_vrai;
+                }
+                else {
+                    compteur = si_faux;
+                }
+
+                break;
+            }
+            case code_inst::IN_INCREMENTE:
+            {
+                auto type = insts.charge_entier(compteur);
+                static_cast<void>(type);
+
+                auto ptr = insts.charge_entier(compteur);
+
+                auto val = pile_donnees.charge_entier(ptr);
+                val += 1;
+                ptr -= 1;
+
+                pile_donnees.stocke(ptr, val);
+
+                break;
+            }
+            case code_inst::FN_ALEA_UNI:
+            {
+                auto v0 = pile_donnees.charge_decimal(compteur, insts);
+                auto v1 = pile_donnees.charge_decimal(compteur, insts);
+
+                std::uniform_real_distribution<float> dist(v0, v1);
+                pile_donnees.stocke(compteur, insts, dist(gna));
+
+                break;
+            }
+            case code_inst::FN_ALEA_NRM:
+            {
+                auto v0 = pile_donnees.charge_decimal(compteur, insts);
+                auto v1 = pile_donnees.charge_decimal(compteur, insts);
+
+                std::normal_distribution<float> dist(v0, v1);
+                pile_donnees.stocke(compteur, insts, dist(gna));
+
+                break;
+            }
+            case code_inst::FN_ECHANTILLONE_SPHERE:
+            {
+                auto g = static_cast<unsigned>(graine);
+                auto gna_loc = GNASimple(g);
+                auto res = echantillone_sphere<dls::math::vec3f>(gna_loc);
+                graine = static_cast<int>(g);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::NIE:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, nie);
+                break;
+            }
+            case code_inst::FN_INVERSE:
+            {
+                auto donnees_type = insts.charge_type(compteur);
+
+                switch (donnees_type) {
+                    default:
+                    {
+                        break;
+                    }
+                    case type_var::ENT32:
+                    {
+                        /* L'inverse d'un nombre entier est égal à zéro. */
+                        ++compteur;
+                        pile_donnees.stocke(compteur, insts, 0);
+                        break;
+                    }
+                    case type_var::DEC:
+                    {
+                        auto val = pile_donnees.charge_decimal(compteur, insts);
+                        val = (val != 0.0f) ? 1.0f / val : 0.0f;
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::VEC2:
+                    {
+                        auto val = pile_donnees.charge_vec2(compteur, insts);
+
+                        for (auto i = 0ul; i < 2; ++i) {
+                            val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
+                        }
+
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::VEC3:
+                    {
+                        auto val = pile_donnees.charge_vec3(compteur, insts);
+
+                        for (auto i = 0ul; i < 3; ++i) {
+                            val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
+                        }
+
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::VEC4:
+                    {
+                        auto val = pile_donnees.charge_vec4(compteur, insts);
+
+                        for (auto i = 0ul; i < 4; ++i) {
+                            val[i] = (val[i] != 0.0f) ? 1.0f / val[i] : 0.0f;
+                        }
+
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::MAT3:
+                    {
+                        auto val = pile_donnees.charge_mat3(compteur, insts);
+                        val = inverse(val);
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::MAT4:
+                    {
+                        auto val = pile_donnees.charge_mat4(compteur, insts);
+                        val = inverse(val);
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                    case type_var::COULEUR:
+                    {
+                        auto val = pile_donnees.charge_couleur(compteur, insts);
+
+                        val.r = (val.r != 0.0f) ? 1.0f / val.r : 0.0f;
+                        val.v = (val.v != 0.0f) ? 1.0f / val.v : 0.0f;
+                        val.b = (val.b != 0.0f) ? 1.0f / val.b : 0.0f;
+
+                        pile_donnees.stocke(compteur, insts, val);
+                        break;
+                    }
+                }
+
+                break;
+            }
+            case code_inst::FN_ENLIGNE:
+            {
+                appel_fonction_3_args(pile_donnees, insts, compteur, enligne);
+                break;
+            }
+            case code_inst::FN_RESTREINT:
+            {
+                appel_fonction_3_args(pile_donnees, insts, compteur, restreint);
+                break;
+            }
+            case code_inst::FN_TRADUIT:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, traduit);
+                break;
+            }
+            case code_inst::FN_HERMITE1:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite1);
+                break;
+            }
+            case code_inst::FN_HERMITE2:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite2);
+                break;
+            }
+            case code_inst::FN_HERMITE3:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite3);
+                break;
+            }
+            case code_inst::FN_HERMITE4:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite4);
+                break;
+            }
+            case code_inst::FN_HERMITE5:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite5);
+                break;
+            }
+            case code_inst::FN_HERMITE6:
+            {
+                appel_fonction_5_args(pile_donnees, insts, compteur, hermite6);
+                break;
+            }
+            case code_inst::FN_BASE_ORTHONORMALE:
+            {
+                auto vec = pile_donnees.charge_vec3(compteur, insts);
+
+                auto b0 = dls::math::vec3f(0.0f);
+                auto b1 = dls::math::vec3f(0.0f);
+
+                cree_base_orthonormale(vec, b0, b1);
+
+                auto ptr_sortie = insts.charge_entier(compteur);
+                pile_donnees.stocke(ptr_sortie, b0);
+                pile_donnees.stocke(ptr_sortie, b1);
+                break;
+            }
+            case code_inst::FN_COMBINE_VEC2:
+            {
+                dls::math::vec2f vec;
+                vec.x = pile_donnees.charge_decimal(compteur, insts);
+                vec.y = pile_donnees.charge_decimal(compteur, insts);
+
+                pile_donnees.stocke(compteur, insts, vec);
+                break;
+            }
+            case code_inst::FN_COMBINE_VEC3:
+            {
+                dls::math::vec3f vec;
+                vec.x = pile_donnees.charge_decimal(compteur, insts);
+                vec.y = pile_donnees.charge_decimal(compteur, insts);
+                vec.z = pile_donnees.charge_decimal(compteur, insts);
+
+                pile_donnees.stocke(compteur, insts, vec);
+                break;
+            }
+            case code_inst::FN_SEPARE_VEC2:
+            {
+                auto vec = pile_donnees.charge_vec2(compteur, insts);
+                /* les trois sorties sont l'une après l'autre donc on peut
+                 * simplement stocker le vecteur directement */
+                pile_donnees.stocke(compteur, insts, vec);
+                break;
+            }
+            case code_inst::FN_SEPARE_VEC3:
+            {
+                auto vec = pile_donnees.charge_vec3(compteur, insts);
+                /* les trois sorties sont l'une après l'autre donc on peut
+                 * simplement stocker le vecteur directement */
+                pile_donnees.stocke(compteur, insts, vec);
+                break;
+            }
+            case code_inst::FN_NORMALISE_VEC3:
+            {
+                auto vec = pile_donnees.charge_vec3(compteur, insts);
+                auto lng = 0.0f;
+                vec = normalise(vec, lng);
+
+                auto ptr_sortie = insts.charge_entier(compteur);
+                pile_donnees.stocke(ptr_sortie, vec);
+                pile_donnees.stocke(ptr_sortie, lng);
+                break;
+            }
+            case code_inst::FN_COMPLEMENT:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, complement);
+                break;
+            }
+            case code_inst::FN_PRODUIT_SCALAIRE_VEC3:
+            {
+                auto v0 = pile_donnees.charge_vec3(compteur, insts);
+                auto v1 = pile_donnees.charge_vec3(compteur, insts);
+
+                auto res = dls::math::produit_scalaire(v0, v1);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_LONGUEUR_VEC3:
+            {
+                auto v0 = pile_donnees.charge_vec3(compteur, insts);
+
+                auto res = dls::math::longueur(v0);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_PRODUIT_CROIX_VEC3:
+            {
+                auto v0 = pile_donnees.charge_vec3(compteur, insts);
+                auto v1 = pile_donnees.charge_vec3(compteur, insts);
+
+                auto res = dls::math::produit_croix(v0, v1);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_FRESNEL:
+            {
+                auto I = pile_donnees.charge_vec3(compteur, insts);
+                auto N = pile_donnees.charge_vec3(compteur, insts);
+                auto idr = pile_donnees.charge_decimal(compteur, insts);
+
+                auto res = fresnel(I, N, idr);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_REFLECHI:
+            {
+                auto I = pile_donnees.charge_vec3(compteur, insts);
+                auto N = pile_donnees.charge_vec3(compteur, insts);
+
+                auto res = reflechi(I, N);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_REFRACTE:
+            {
+                auto I = pile_donnees.charge_vec3(compteur, insts);
+                auto N = pile_donnees.charge_vec3(compteur, insts);
+                auto idr = pile_donnees.charge_decimal(compteur, insts);
+
+                auto res = refracte(I, N, idr);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_AJOUTE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, ajoute);
+                break;
+            }
+            case code_inst::FN_SOUSTRAIT:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, soustrait);
+                break;
+            }
+            case code_inst::FN_MULTIPLIE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, multiplie);
+                break;
+            }
+            case code_inst::FN_DIVISE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, divise);
+                break;
+            }
+            case code_inst::FN_MODULO:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, modulo);
+                break;
+            }
+            case code_inst::FN_COSINUS:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, cosinus);
+                break;
+            }
+            case code_inst::FN_SINUS:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, sinus);
+                break;
+            }
+            case code_inst::FN_TANGEANTE:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, tangeante);
+                break;
+            }
+            case code_inst::FN_ARCCOSINUS:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, arccosinus);
+                break;
+            }
+            case code_inst::FN_ARCSINUS:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, arcsinus);
+                break;
+            }
+            case code_inst::FN_ARCTANGEANTE:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, arctangeante);
+                break;
+            }
+            case code_inst::FN_ABSOLU:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, absolu);
+                break;
+            }
+            case code_inst::FN_RACINE_CARREE:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, racine_carre);
+                break;
+            }
+            case code_inst::FN_EXPONENTIEL:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, exponentiel);
+                break;
+            }
+            case code_inst::FN_LOGARITHME:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, logarithme);
+                break;
+            }
+            case code_inst::FN_FRACTION:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, fraction);
+                break;
+            }
+            case code_inst::FN_PLAFOND:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, plafond);
+                break;
+            }
+            case code_inst::FN_SOL:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, sol);
+                break;
+            }
+            case code_inst::FN_ARRONDIS:
+            {
+                appel_fonction_math_simple(pile_donnees, insts, compteur, arrondis);
+                break;
+            }
+            case code_inst::FN_ARCTAN2:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, arctangeante2);
+                break;
+            }
+            case code_inst::FN_MAX:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, maximum);
+                break;
+            }
+            case code_inst::FN_MIN:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, minimum);
+                break;
+            }
+            case code_inst::FN_PLUS_GRAND_QUE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, plus_grand_que);
+                break;
+            }
+            case code_inst::FN_PLUS_PETIT_QUE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, plus_petit_que);
+                break;
+            }
+            case code_inst::FN_EGALITE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, sont_egaux);
+                break;
+            }
+            case code_inst::FN_INEGALITE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, sont_inegaux);
+                break;
+            }
+            case code_inst::FN_SUPERIEUR:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, est_superieure);
+                break;
+            }
+            case code_inst::FN_INFERIEUR:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, est_inferieure);
+                break;
+            }
+            case code_inst::FN_SUPERIEUR_EGAL:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, est_superieure_egale);
+                break;
+            }
+            case code_inst::FN_INFERIEUR_EGAL:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, est_inferieure_egale);
+                break;
+            }
+            case code_inst::FN_COMP_OU:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, comp_ou);
+                break;
+            }
+            case code_inst::FN_COMP_ET:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, comp_et);
+                break;
+            }
+            case code_inst::FN_COMP_OUX:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, comp_oux);
+                break;
+            }
+            case code_inst::FN_PUISSANCE:
+            {
+                appel_fonction_math_double(pile_donnees, insts, compteur, puissance);
+                break;
+            }
+            case code_inst::ENT_VERS_DEC:
+            {
+                auto ent = pile_donnees.charge_entier(compteur, insts);
+                pile_donnees.stocke(compteur, insts, static_cast<float>(ent));
+                break;
+            }
+            case code_inst::DEC_VERS_ENT:
+            {
+                auto dec = pile_donnees.charge_decimal(compteur, insts);
+                pile_donnees.stocke(compteur, insts, static_cast<int>(dec));
+                break;
+            }
+            case code_inst::DEC_VERS_VEC2:
+            {
+                auto dec = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::math::vec2f(dec);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::ENT_VERS_VEC2:
+            {
+                auto ent = pile_donnees.charge_entier(compteur, insts);
+                auto res = dls::math::vec2f(static_cast<float>(ent));
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::DEC_VERS_VEC3:
+            {
+                auto dec = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::math::vec3f(dec);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::ENT_VERS_VEC3:
+            {
+                auto ent = pile_donnees.charge_entier(compteur, insts);
+                auto res = dls::math::vec3f(static_cast<float>(ent));
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::DEC_VERS_VEC4:
+            {
+                auto dec = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::math::vec4f(dec);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::ENT_VERS_VEC4:
+            {
+                auto ent = pile_donnees.charge_entier(compteur, insts);
+                auto res = dls::math::vec4f(static_cast<float>(ent));
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::DEC_VERS_COULEUR:
+            {
+                auto dec = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::phys::couleur32(dec, dec, dec, 1.0f);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::VEC3_VERS_COULEUR:
+            {
+                auto vec = pile_donnees.charge_vec3(compteur, insts);
+                auto res = dls::phys::couleur32(vec.x, vec.y, vec.z, 1.0f);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::COULEUR_VERS_VEC3:
+            {
+                auto clr = pile_donnees.charge_couleur(compteur, insts);
+                auto res = dls::math::vec3f(clr.r, clr.v, clr.b);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_MULTIPLIE_MAT:
+            {
+                auto donnees_type = insts.charge_type(compteur);
+
+                if (donnees_type == type_var::MAT3) {
+                    auto mat0 = pile_donnees.charge_mat3(compteur, insts);
+                    auto mat1 = pile_donnees.charge_mat3(compteur, insts);
+                    pile_donnees.stocke(compteur, insts, mat0 * mat1);
+                }
+                else if (donnees_type == type_var::MAT4) {
+                    auto mat0 = pile_donnees.charge_mat4(compteur, insts);
+                    auto mat1 = pile_donnees.charge_mat4(compteur, insts);
+                    pile_donnees.stocke(compteur, insts, mat0 * mat1);
+                }
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_POINT:
+            {
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+
+                auto &ptr_corps = contexte.ptr_corps;
+                auto index = -1l;
+
+                ptr_corps.accede_ecriture([pos, &index](Corps *corps) {
+                    auto points = corps->points_pour_ecriture();
+                    index = points.ajoute_point(pos);
+                });
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(index));
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_PRIMITIVE:
+            {
+                auto type = pile_donnees.charge_entier(compteur, insts);
+                auto &ptr_corps = contexte.ptr_corps;
+                auto index = -1l;
+
+                ptr_corps.accede_ecriture([type, &index](Corps *corps) {
+                    auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
+                    index = poly->index;
+                });
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(index));
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_PRIMITIVE_SOMMETS:
+            {
+                auto type = pile_donnees.charge_entier(compteur, insts);
+                auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
+                auto &ptr_corps = contexte.ptr_corps;
+                auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
+                auto index = -1l;
+
+                ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps) {
+                    auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
+                    index = poly->index;
+
+                    for (auto const &v : tableau) {
+                        corps->ajoute_sommet(poly, v);
+                    }
+                });
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(index));
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_SOMMET:
+            {
+                auto idx_prim = pile_donnees.charge_entier(compteur, insts);
+                auto idx_point = pile_donnees.charge_entier(compteur, insts);
+                auto &ptr_corps = contexte.ptr_corps;
+                auto idx_sommet = -1l;
+
+                ptr_corps.accede_ecriture([idx_prim, idx_point, &idx_sommet](Corps *corps) {
+                    auto prim = corps->prims()->prim(idx_prim);
+                    auto poly = dynamic_cast<Polygone *>(prim);
+                    idx_sommet = corps->ajoute_sommet(poly, idx_point);
+                });
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(idx_sommet));
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_SOMMETS:
+            {
+                auto idx_prim = pile_donnees.charge_entier(compteur, insts);
+                auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
+                auto &ptr_corps = contexte.ptr_corps;
+                auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
+                auto paire_tabl_idx = contexte_local.tableaux.cree_tableau();
+                auto &tabl_smt = paire_tabl_idx.first;
+
+                ptr_corps.accede_ecriture([idx_prim, &tableau, &tabl_smt](Corps *corps) {
+                    auto prim = corps->prims()->prim(idx_prim);
+                    auto poly = dynamic_cast<Polygone *>(prim);
+
+                    for (auto const &v : tableau) {
+                        auto idx = corps->ajoute_sommet(poly, v);
+                        tabl_smt.ajoute(static_cast<int>(idx));
+                    }
+                });
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(paire_tabl_idx.second));
+
+                break;
+            }
+            case code_inst::FN_AJOUTE_LIGNE:
+            {
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+                auto dir = pile_donnees.charge_vec3(compteur, insts);
+                auto &ptr_corps = contexte.ptr_corps;
+                auto index = -1;
+
+                ptr_corps.accede_ecriture([&pos, &dir, &index](Corps *corps) {
+                    auto points = corps->points_pour_ecriture();
+                    auto p0 = points.ajoute_point(pos);
+                    auto p1 = points.ajoute_point(pos + dir);
+
+                    auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
+                    corps->ajoute_sommet(prim, p0);
+                    corps->ajoute_sommet(prim, p1);
+
+                    index = static_cast<int>(prim->index);
+                });
+
+                pile_donnees.stocke(compteur, insts, index);
+
+                break;
+            }
+            case code_inst::FN_POINTS_VOISINS:
+            {
+                auto idx_point = pile_donnees.charge_entier(compteur, insts);
+                auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+                auto &tableau = pair_tabl_idx.first;
+
+                if (idx_point < contexte.polyedre.sommets.taille()) {
+                    auto sommet = contexte.polyedre.sommets[idx_point];
+                    auto debut = sommet->arete;
+                    auto fin = debut;
+
+                    do {
+                        auto voisin = debut->paire->sommet->label;
+                        tableau.ajoute(static_cast<int>(voisin));
+                        debut = suivante_autour_point(debut);
+                    } while (debut != fin && debut != nullptr);
+                }
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+                break;
+            }
+            case code_inst::FN_POINTS_VOISINS_RAYON:
+            {
+                auto idx_point = pile_donnees.charge_entier(compteur, insts);
+                auto rayon = pile_donnees.charge_decimal(compteur, insts);
+
+                auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+                auto &tableau = pair_tabl_idx.first;
+                auto const &arbre_kd = contexte.arbre_kd;
+
+                if (idx_point < arbre_kd.compte_points()) {
+                    auto pos = arbre_kd.pos_point(idx_point);
+
+                    arbre_kd.cherche_points(
+                        pos, rayon, [&](int idx, dls::math::vec3f const &, float, float &) {
+                            tableau.ajoute(idx);
+                        });
+                }
+
+                pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+                break;
+            }
+            case code_inst::FN_POINT:
+            {
+                auto idx_point = pile_donnees.charge_entier(compteur, insts);
+                auto res = dls::math::vec3f();
+
+                if (idx_point < contexte.polyedre.sommets.taille()) {
+                    auto sommet = contexte.polyedre.sommets[idx_point];
+                    res = sommet->p;
+                }
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_ATTRIBUT_DECIMAL:
+            {
+                auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+                auto idx_attr = pile_donnees.charge_entier(compteur, insts);
+                auto res = 0.0f;
+
+                auto chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+                auto attr = contexte.corps->attribut(chn);
+
+                if (attr != nullptr) {
+                    res = *attr->r32(idx_attr);
+                }
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_SATURE:
+            {
+                auto clr = pile_donnees.charge_couleur(compteur, insts);
+                auto l = pile_donnees.charge_decimal(compteur, insts);
+                auto fac = pile_donnees.charge_decimal(compteur, insts);
+
+                auto lum = dls::phys::couleur32(l, l, l, clr.a);
+
+                if (fac != 0.0f) {
+                    lum = (1.0f - fac) * lum + clr * fac;
+                }
+
+                pile_donnees.stocke(compteur, insts, lum);
+                break;
+            }
+            case code_inst::FN_LUMINANCE:
+            {
+                auto clr = pile_donnees.charge_couleur(compteur, insts);
+
+                auto res = luminance(clr);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_CORPS_NOIR:
+            {
+                auto temp = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::phys::couleur_depuis_corps_noir(temp);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_LONGUEUR_ONDE:
+            {
+                auto temp = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::phys::couleur_depuis_longueur_onde(temp);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_CONTRASTE:
+            {
+                auto clr0 = pile_donnees.charge_couleur(compteur, insts);
+                auto clr1 = pile_donnees.charge_couleur(compteur, insts);
+
+                auto res = calcul_contraste_local(clr0, clr1);
+
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+#define EVALUE_BRUIT(code_, type_)                                                                \
+    case code_inst::code_:                                                                        \
+    {                                                                                             \
+        cree_bruit(contexte_local, pile_donnees, insts, compteur, type_);                         \
+        break;                                                                                    \
+    }
+                EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
+                EVALUE_BRUIT(FN_BRUIT_FLUX, bruit::type::FLUX)
+                EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
+                EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
+                EVALUE_BRUIT(FN_BRUIT_PERLIN, bruit::type::PERLIN)
+                EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::type::SIMPLEX)
+                EVALUE_BRUIT(FN_BRUIT_VALEUR, bruit::type::VALEUR)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::type::VORONOI_F1)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::type::VORONOI_F2)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::type::VORONOI_F3)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::type::VORONOI_F4)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::type::VORONOI_F1F2)
+                EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::type::VORONOI_CR)
 #undef EVALUE_BRUIT
-			case code_inst::FN_EVALUE_BRUIT:
-			{
-				evalue_bruit(contexte_local, pile_donnees, insts, compteur);
-				break;
-			}
-			case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
-			{
-				evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
-				break;
-			}
-			case code_inst::FN_ECHANTILLONE_IMAGE:
-			{
-				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
-				auto uv = pile_donnees.charge_vec2(compteur, insts);
-				auto res = dls::phys::couleur32();
+            case code_inst::FN_EVALUE_BRUIT:
+            {
+                evalue_bruit(contexte_local, pile_donnees, insts, compteur);
+                break;
+            }
+            case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
+            {
+                evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
+                break;
+            }
+            case code_inst::FN_ECHANTILLONE_IMAGE:
+            {
+                auto ptr_image = pile_donnees.charge_entier(compteur, insts);
+                auto uv = pile_donnees.charge_vec2(compteur, insts);
+                auto res = dls::phys::couleur32();
 
-				if (ptr_image < contexte.images.taille()) {
-					auto image = contexte.images[ptr_image];
-					auto calque = image->calque_pour_lecture("image");
-					auto tampon = extrait_grille_couleur(calque);
+                if (ptr_image < contexte.images.taille()) {
+                    auto image = contexte.images[ptr_image];
+                    auto calque = image->calque_pour_lecture("image");
+                    auto tampon = extrait_grille_couleur(calque);
 
-					res = wlk::echantillonne_lineaire(*tampon, uv.x, uv.y);
-				}
+                    res = wlk::echantillonne_lineaire(*tampon, uv.x, uv.y);
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_ECHANTILLONE_TRIPLAN:
-			{
-				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-				auto nor = pile_donnees.charge_vec3(compteur, insts);
-				auto res = dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_ECHANTILLONE_TRIPLAN:
+            {
+                auto ptr_image = pile_donnees.charge_entier(compteur, insts);
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+                auto nor = pile_donnees.charge_vec3(compteur, insts);
+                auto res = dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f);
 
-				auto angle_xy = abs(nor.z);
-				auto angle_xz = abs(nor.y);
-				auto angle_yz = abs(nor.x);
-				auto poids = angle_xy + angle_xz + angle_yz;
+                auto angle_xy = abs(nor.z);
+                auto angle_xz = abs(nor.y);
+                auto angle_yz = abs(nor.x);
+                auto poids = angle_xy + angle_xz + angle_yz;
 
-				if (poids != 0.0f && ptr_image < contexte.images.taille()) {
-					auto image = contexte.images[ptr_image];
-					auto calque = image->calque_pour_lecture("image");
-					auto tampon = extrait_grille_couleur(calque);
+                if (poids != 0.0f && ptr_image < contexte.images.taille()) {
+                    auto image = contexte.images[ptr_image];
+                    auto calque = image->calque_pour_lecture("image");
+                    auto tampon = extrait_grille_couleur(calque);
 
-					auto couleur_xy = wlk::echantillonne_lineaire(*tampon, pos.x, pos.y);
-					auto couleur_xz = wlk::echantillonne_lineaire(*tampon, pos.x, pos.z);
-					auto couleur_yz = wlk::echantillonne_lineaire(*tampon, pos.y, pos.z);
+                    auto couleur_xy = wlk::echantillonne_lineaire(*tampon, pos.x, pos.y);
+                    auto couleur_xz = wlk::echantillonne_lineaire(*tampon, pos.x, pos.z);
+                    auto couleur_yz = wlk::echantillonne_lineaire(*tampon, pos.y, pos.z);
 
-					res = (angle_xy * couleur_xy + angle_xz * couleur_xz + angle_yz * couleur_yz) / poids;
-				}
+                    res = (angle_xy * couleur_xy + angle_xz * couleur_xz + angle_yz * couleur_yz) /
+                          poids;
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_PROJECTION_SPHERIQUE:
-			{
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-				auto l = longueur(pos);
-				auto res = dls::math::vec2f(0.0f);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_PROJECTION_SPHERIQUE:
+            {
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+                auto l = longueur(pos);
+                auto res = dls::math::vec2f(0.0f);
 
-				if (l > 0.0f) {
-					if (pos.x != 0.0f || pos.y != 0.0f) {
-						res.x = (1.0f - std::atan2(pos.x, pos.y) * constantes<float>::PI_INV) / 2.0f;
-					}
+                if (l > 0.0f) {
+                    if (pos.x != 0.0f || pos.y != 0.0f) {
+                        res.x = (1.0f - std::atan2(pos.x, pos.y) * constantes<float>::PI_INV) /
+                                2.0f;
+                    }
 
-					res.y = 1.0f - acos_sur(pos.z / l) * constantes<float>::PI_INV;
-				}
+                    res.y = 1.0f - acos_sur(pos.z / l) * constantes<float>::PI_INV;
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_PROJECTION_CYLINDRIQUE:
-			{
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-				auto res = dls::math::vec2f(0.0f);
-				auto l = std::sqrt(pos.x * pos.x + pos.y * pos.y);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_PROJECTION_CYLINDRIQUE:
+            {
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+                auto res = dls::math::vec2f(0.0f);
+                auto l = std::sqrt(pos.x * pos.x + pos.y * pos.y);
 
-				if (l > 0.0f) {
-					res.x = (1.0f - (std::atan2(pos.x / l, pos.y / l) * constantes<float>::PI_INV)) * 0.5f;
-					res.y = (pos.z + 1.0f) * 0.5f;
-				}
+                if (l > 0.0f) {
+                    res.x = (1.0f -
+                             (std::atan2(pos.x / l, pos.y / l) * constantes<float>::PI_INV)) *
+                            0.5f;
+                    res.y = (pos.z + 1.0f) * 0.5f;
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_PROJECTION_CAMERA:
-			{
-				auto ptr_camera = pile_donnees.charge_entier(compteur, insts);
-				auto pos = pile_donnees.charge_vec3(compteur, insts);
-				auto res = dls::math::vec2f(0.0f);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_PROJECTION_CAMERA:
+            {
+                auto ptr_camera = pile_donnees.charge_entier(compteur, insts);
+                auto pos = pile_donnees.charge_vec3(compteur, insts);
+                auto res = dls::math::vec2f(0.0f);
 
-				if (ptr_camera < contexte.cameras.taille()) {
-					auto camera = contexte.cameras[ptr_camera];
-					auto p = camera->pos_ecran(dls::math::point3f(pos));
-					res.x = p.x / static_cast<float>(camera->largeur());
-					res.y = p.y / static_cast<float>(camera->hauteur());
-				}
+                if (ptr_camera < contexte.cameras.taille()) {
+                    auto camera = contexte.cameras[ptr_camera];
+                    auto p = camera->pos_ecran(dls::math::point3f(pos));
+                    res.x = p.x / static_cast<float>(camera->largeur());
+                    res.y = p.y / static_cast<float>(camera->hauteur());
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::CONSTRUIT_TABLEAU:
-			{
-				auto donnees_type = insts.charge_type(compteur);
-				auto nombre_donnees = insts.charge_entier(compteur);
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::CONSTRUIT_TABLEAU:
+            {
+                auto donnees_type = insts.charge_type(compteur);
+                auto nombre_donnees = insts.charge_entier(compteur);
 
-				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
-				auto &tableau = pair_tabl_idx.first;
+                auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+                auto &tableau = pair_tabl_idx.first;
 
-				tableau.reserve(nombre_donnees);
+                tableau.reserve(nombre_donnees);
 
-				switch (donnees_type) {
-					default:
-					{
-						break;
-					}
-					case type_var::ENT32:
-					{
-						for (auto i = 0; i < nombre_donnees; ++i) {
-							auto val = pile_donnees.charge_entier(compteur, insts);
-							tableau.ajoute(val);
-						}
-						break;
-					}
-					case type_var::DEC:
-					{
-						break;
-					}
-					case type_var::VEC2:
-					{
-						break;
-					}
-					case type_var::VEC3:
-					{
-						break;
-					}
-					case type_var::VEC4:
-					{
-						break;
-					}
-					case type_var::MAT3:
-					{
-						break;
-					}
-					case type_var::MAT4:
-					{
-						break;
-					}
-					case type_var::COULEUR:
-					{
-						break;
-					}
-				}
+                switch (donnees_type) {
+                    default:
+                    {
+                        break;
+                    }
+                    case type_var::ENT32:
+                    {
+                        for (auto i = 0; i < nombre_donnees; ++i) {
+                            auto val = pile_donnees.charge_entier(compteur, insts);
+                            tableau.ajoute(val);
+                        }
+                        break;
+                    }
+                    case type_var::DEC:
+                    {
+                        break;
+                    }
+                    case type_var::VEC2:
+                    {
+                        break;
+                    }
+                    case type_var::VEC3:
+                    {
+                        break;
+                    }
+                    case type_var::VEC4:
+                    {
+                        break;
+                    }
+                    case type_var::MAT3:
+                    {
+                        break;
+                    }
+                    case type_var::MAT4:
+                    {
+                        break;
+                    }
+                    case type_var::COULEUR:
+                    {
+                        break;
+                    }
+                }
 
-				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+                pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
 
-				break;
-			}
-			case code_inst::IN_INSERT_TABLEAU:
-			{
-				// ptr où se trouve le tableau
-				// type des données du tableau
-				// index où insérer
-				// ptr de la valeur à insérer
+                break;
+            }
+            case code_inst::IN_INSERT_TABLEAU:
+            {
+                // ptr où se trouve le tableau
+                // type des données du tableau
+                // index où insérer
+                // ptr de la valeur à insérer
 
-				auto ptr_tabl = insts.charge_entier(compteur);
-				auto type = insts.charge_type(compteur);
-				auto index = insts.charge_entier(compteur);
+                auto ptr_tabl = insts.charge_entier(compteur);
+                auto type = insts.charge_type(compteur);
+                auto index = insts.charge_entier(compteur);
 
-				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
+                auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
-				/* À FAIRE */
-				switch (type) {
-					default:
-					{
-						break;
-					}
-				}
+                /* À FAIRE */
+                switch (type) {
+                    default:
+                    {
+                        break;
+                    }
+                }
 
-				tableau[index] = pile_donnees.charge_entier(compteur, insts);
+                tableau[index] = pile_donnees.charge_entier(compteur, insts);
 
-				break;
-			}
-			case code_inst::IN_EXTRAIT_TABLEAU:
-			case code_inst::FN_EXTRAIT_CHAINE_TABL:
-			{
-				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
-				auto index = pile_donnees.charge_entier(compteur, insts);
-				auto res = 0;
+                break;
+            }
+            case code_inst::IN_EXTRAIT_TABLEAU:
+            case code_inst::FN_EXTRAIT_CHAINE_TABL:
+            {
+                auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
+                auto index = pile_donnees.charge_entier(compteur, insts);
+                auto res = 0;
 
-				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
+                auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
-				if (index < tableau.taille()) {
-					res = tableau[index];
-				}
+                if (index < tableau.taille()) {
+                    res = tableau[index];
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
+                pile_donnees.stocke(compteur, insts, res);
 
-				break;
-			}
-			case code_inst::FN_TAILLE_TABLEAU:
-			{
-				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
-				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
+                break;
+            }
+            case code_inst::FN_TAILLE_TABLEAU:
+            {
+                auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
+                auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
-				pile_donnees.stocke(compteur, insts, static_cast<int>(tableau.taille()));
-				break;
-			}
-			case code_inst::FN_EVALUE_COURBE_COULEUR:
-			{
-				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
-				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto res = dls::phys::couleur32();
+                pile_donnees.stocke(compteur, insts, static_cast<int>(tableau.taille()));
+                break;
+            }
+            case code_inst::FN_EVALUE_COURBE_COULEUR:
+            {
+                auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+                auto clr = pile_donnees.charge_couleur(compteur, insts);
+                auto res = dls::phys::couleur32();
 
-				if (ptr_courbe < contexte.courbes_couleur.taille()) {
-					auto &courbe = contexte.courbes_couleur[ptr_courbe];
-					res = evalue_courbe_couleur(*courbe, clr);
-				}
+                if (ptr_courbe < contexte.courbes_couleur.taille()) {
+                    auto &courbe = contexte.courbes_couleur[ptr_courbe];
+                    res = evalue_courbe_couleur(*courbe, clr);
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_EVALUE_COURBE_VALEUR:
-			{
-				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
-				auto vlr = pile_donnees.charge_decimal(compteur, insts);
-				auto res = 0.0f;
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_EVALUE_COURBE_VALEUR:
+            {
+                auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+                auto vlr = pile_donnees.charge_decimal(compteur, insts);
+                auto res = 0.0f;
 
-				if (ptr_courbe < contexte.courbes_valeur.taille()) {
-					auto &courbe = contexte.courbes_valeur[ptr_courbe];
-					res = evalue_courbe_bezier(*courbe, vlr);
-				}
+                if (ptr_courbe < contexte.courbes_valeur.taille()) {
+                    auto &courbe = contexte.courbes_valeur[ptr_courbe];
+                    res = evalue_courbe_bezier(*courbe, vlr);
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_EVALUE_RAMPE_COULEUR:
-			{
-				auto ptr_rampe = pile_donnees.charge_entier(compteur, insts);
-				auto vlr = pile_donnees.charge_decimal(compteur, insts);
-				auto res = dls::phys::couleur32();
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_EVALUE_RAMPE_COULEUR:
+            {
+                auto ptr_rampe = pile_donnees.charge_entier(compteur, insts);
+                auto vlr = pile_donnees.charge_decimal(compteur, insts);
+                auto res = dls::phys::couleur32();
 
-				if (ptr_rampe < contexte.rampes_couleur.taille()) {
-					auto &courbe = contexte.rampes_couleur[ptr_rampe];
-					res = evalue_rampe_couleur(*courbe, vlr);
-				}
+                if (ptr_rampe < contexte.rampes_couleur.taille()) {
+                    auto &courbe = contexte.rampes_couleur[ptr_rampe];
+                    res = evalue_rampe_couleur(*courbe, vlr);
+                }
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
-			case code_inst::FN_TAILLE_CHAINE:
-			{
-				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
-				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
-				auto taille_chaine = chn.taille();
-				pile_donnees.stocke(compteur, insts, static_cast<int>(taille_chaine));
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
+            case code_inst::FN_TAILLE_CHAINE:
+            {
+                auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+                auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+                auto taille_chaine = chn.taille();
+                pile_donnees.stocke(compteur, insts, static_cast<int>(taille_chaine));
 
-				break;
-			}
-			case code_inst::FN_MORCELLE_CHAINE:
-			{
-				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
-				auto ptr_sep = pile_donnees.charge_entier(compteur, insts);
+                break;
+            }
+            case code_inst::FN_MORCELLE_CHAINE:
+            {
+                auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+                auto ptr_sep = pile_donnees.charge_entier(compteur, insts);
 
-				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
-				auto &sep = cherche_chaine(contexte, contexte_local, ptr_sep);
+                auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+                auto &sep = cherche_chaine(contexte, contexte_local, ptr_sep);
 
-				auto morceaux = dls::morcelle(chn, sep);
+                auto morceaux = dls::morcelle(chn, sep);
 
-				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
-				auto &tableau = pair_tabl_idx.first;
+                auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+                auto &tableau = pair_tabl_idx.first;
 
-				for (auto i = 0; i < morceaux.taille(); ++i) {
-					auto idx_chn = contexte_local.chaines.taille();
-					contexte_local.chaines.ajoute(morceaux[i]);
-					tableau.ajoute(static_cast<int>(contexte.chaines.taille() + idx_chn));
-				}
+                for (auto i = 0; i < morceaux.taille(); ++i) {
+                    auto idx_chn = contexte_local.chaines.taille();
+                    contexte_local.chaines.ajoute(morceaux[i]);
+                    tableau.ajoute(static_cast<int>(contexte.chaines.taille() + idx_chn));
+                }
 
-				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+                pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
 
-				break;
-			}
-			case code_inst::FN_CHAINE_VERS_DECIMAL:
-			{
-				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
-				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
-				auto valeur = extrait_decimal(chn);
-				pile_donnees.stocke(compteur, insts, valeur);
-				break;
-			}
-			case code_inst::FN_PROJ_UV_SPHERE:
-			{
-				auto u = pile_donnees.charge_decimal(compteur, insts);
-				auto v = pile_donnees.charge_decimal(compteur, insts);
+                break;
+            }
+            case code_inst::FN_CHAINE_VERS_DECIMAL:
+            {
+                auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+                auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+                auto valeur = extrait_decimal(chn);
+                pile_donnees.stocke(compteur, insts, valeur);
+                break;
+            }
+            case code_inst::FN_PROJ_UV_SPHERE:
+            {
+                auto u = pile_donnees.charge_decimal(compteur, insts);
+                auto v = pile_donnees.charge_decimal(compteur, insts);
 
-				auto res = dls::math::vec3f();
-				res.x = std::cos(u) + std::sin(v);
-				res.y = std::cos(v);
-				res.z = std::sin(u) * std::sin(v);
+                auto res = dls::math::vec3f();
+                res.x = std::cos(u) + std::sin(v);
+                res.y = std::cos(v);
+                res.z = std::sin(u) * std::sin(v);
 
-				pile_donnees.stocke(compteur, insts, res);
-				break;
-			}
+                pile_donnees.stocke(compteur, insts, res);
+                break;
+            }
 #if 0
 			case code_inst::FN_CONCAT_CHAINE:
 			{
@@ -2174,8 +2162,8 @@ void execute_pile(
 				break;
 			}
 #endif
-		}
-	}
+        }
+    }
 }
 
-}  /* namespace lcc */
+} /* namespace lcc */

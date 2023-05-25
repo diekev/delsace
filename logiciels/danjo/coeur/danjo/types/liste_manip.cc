@@ -26,4 +26,4 @@
 
 namespace danjo {
 
-}  /* namespace danjo */
+} /* namespace danjo */

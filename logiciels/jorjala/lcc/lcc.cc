@@ -28,14 +28,14 @@ namespace lcc {
 
 void initialise(LCC &lcc)
 {
-	enregistre_fonctions_base(lcc.fonctions);
+    enregistre_fonctions_base(lcc.fonctions);
 }
 
 ContexteGenerationCode cree_contexte(LCC const &lcc)
 {
-	auto contexte = ContexteGenerationCode();
-	contexte.fonctions = lcc.fonctions;
-	return contexte;
+    auto contexte = ContexteGenerationCode();
+    contexte.fonctions = lcc.fonctions;
+    return contexte;
 }
 
-}  /* namespace lcc */
+} /* namespace lcc */

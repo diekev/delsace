@@ -31,72 +31,72 @@ namespace wlk {
 template <typename T>
 auto est_vide(wlk::grille_dense_3d<T> const &grille)
 {
-	for (auto i = 0; i < grille.nombre_elements(); ++i) {
-		if (grille.valeur(i) != T(0)) {
-			return false;
-		}
-	}
+    for (auto i = 0; i < grille.nombre_elements(); ++i) {
+        if (grille.valeur(i) != T(0)) {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 template <typename T>
 auto remplis_grille(wlk::grille_dense_3d<T> &grille, T valeur)
 {
-	for (auto i = 0; i < grille.nombre_elements(); ++i) {
-		grille.valeur(i) = valeur;
-	}
+    for (auto i = 0; i < grille.nombre_elements(); ++i) {
+        grille.valeur(i) = valeur;
+    }
 }
 
 template <typename T>
 auto extrait_min(grille_dense_2d<T> const &grille)
 {
-	auto min = std::numeric_limits<T>::max();
+    auto min = std::numeric_limits<T>::max();
 
-	for (auto i = 0; i < grille.nombre_elements(); ++i) {
-		auto v = grille.valeur(i);
+    for (auto i = 0; i < grille.nombre_elements(); ++i) {
+        auto v = grille.valeur(i);
 
-		if (v < min) {
-			min = v;
-		}
-	}
+        if (v < min) {
+            min = v;
+        }
+    }
 
-	return min;
+    return min;
 }
 
 template <typename T>
 auto extrait_max(grille_dense_2d<T> const &grille)
 {
-	auto max = -std::numeric_limits<T>::max();
+    auto max = -std::numeric_limits<T>::max();
 
-	for (auto i = 0; i < grille.nombre_elements(); ++i) {
-		auto v = grille.valeur(i);
+    for (auto i = 0; i < grille.nombre_elements(); ++i) {
+        auto v = grille.valeur(i);
 
-		if (v > max) {
-			max = v;
-		}
-	}
+        if (v > max) {
+            max = v;
+        }
+    }
 
-	return max;
+    return max;
 }
 
 template <typename T>
 auto extrait_min_max(grille_dense_2d<T> const &grille, T &min, T &max)
 {
-	min = std::numeric_limits<T>::max();
-	max = -std::numeric_limits<T>::max();
+    min = std::numeric_limits<T>::max();
+    max = -std::numeric_limits<T>::max();
 
-	for (auto i = 0; i < grille.nombre_elements(); ++i) {
-		auto v = grille.valeur(i);
+    for (auto i = 0; i < grille.nombre_elements(); ++i) {
+        auto v = grille.valeur(i);
 
-		if (v < min) {
-			min = v;
-		}
+        if (v < min) {
+            min = v;
+        }
 
-		if (v > max) {
-			max = v;
-		}
-	}
+        if (v > max) {
+            max = v;
+        }
+    }
 }
 
-}  /* namespace wlk */
+} /* namespace wlk */

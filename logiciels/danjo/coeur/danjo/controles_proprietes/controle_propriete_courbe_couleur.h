@@ -40,54 +40,56 @@ class QVBoxLayout;
 namespace danjo {
 
 class ControleProprieteCourbeCouleur final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	/* entreface */
-	QVBoxLayout *m_agencement_principal{};
-	QHBoxLayout *m_agencement_nombre{};
+    /* entreface */
+    QVBoxLayout *m_agencement_principal{};
+    QHBoxLayout *m_agencement_nombre{};
 
-	/* courbe */
-	QComboBox *m_selection_mode{};
-	QComboBox *m_selection_type{};
-	QCheckBox *m_utilise_table{};
-	ControleCourbeCouleur *m_controle_courbe{};
+    /* courbe */
+    QComboBox *m_selection_mode{};
+    QComboBox *m_selection_type{};
+    QCheckBox *m_utilise_table{};
+    ControleCourbeCouleur *m_controle_courbe{};
 
-	/* controle de la position X du point sélectionné */
-	QPushButton *m_bouton_echelle_x{};
-	ControleEchelleDecimale *m_echelle_x{};
-	ControleNombreDecimal *m_pos_x{};
+    /* controle de la position X du point sélectionné */
+    QPushButton *m_bouton_echelle_x{};
+    ControleEchelleDecimale *m_echelle_x{};
+    ControleNombreDecimal *m_pos_x{};
 
-	/* controle de la position Y du point sélectionné */
-	QPushButton *m_bouton_echelle_y{};
-	ControleEchelleDecimale *m_echelle_y{};
-	ControleNombreDecimal *m_pos_y{};
+    /* controle de la position Y du point sélectionné */
+    QPushButton *m_bouton_echelle_y{};
+    ControleEchelleDecimale *m_echelle_y{};
+    ControleNombreDecimal *m_pos_y{};
 
-	/* connexion */
-	CourbeCouleur *m_courbe{};
-	CourbeBezier *m_courbe_active{};
+    /* connexion */
+    CourbeCouleur *m_courbe{};
+    CourbeBezier *m_courbe_active{};
 
-public:
-	explicit ControleProprieteCourbeCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCourbeCouleur() override;
+  public:
+    explicit ControleProprieteCourbeCouleur(BasePropriete *p,
+                                            int temps,
+                                            QWidget *parent = nullptr);
+    ~ControleProprieteCourbeCouleur() override;
 
-	ControleProprieteCourbeCouleur(ControleProprieteCourbeCouleur const &) = default;
-	ControleProprieteCourbeCouleur &operator=(ControleProprieteCourbeCouleur const &) = default;
+    ControleProprieteCourbeCouleur(ControleProprieteCourbeCouleur const &) = default;
+    ControleProprieteCourbeCouleur &operator=(ControleProprieteCourbeCouleur const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-//	void ajourne_valeur_pointee(float valeur);
-	void montre_echelle_x();
-	void montre_echelle_y();
+  private Q_SLOTS:
+    //	void ajourne_valeur_pointee(float valeur);
+    void montre_echelle_x();
+    void montre_echelle_y();
 
-	void change_mode_courbe(int mode);
-	void change_type_courbe(int type);
-	void bascule_utilise_table(bool ouinon);
+    void change_mode_courbe(int mode);
+    void change_type_courbe(int type);
+    void bascule_utilise_table(bool ouinon);
 
-	void ajourne_position(float x, float y);
-	void ajourne_position_x(float v);
-	void ajourne_position_y(float v);
-	void ajourne_point_actif();
+    void ajourne_position(float x, float y);
+    void ajourne_position_x(float v);
+    void ajourne_position_y(float v);
+    void ajourne_point_actif();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

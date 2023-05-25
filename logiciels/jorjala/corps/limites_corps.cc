@@ -30,36 +30,36 @@
 
 static auto initialise_limites3f()
 {
-	auto limites = limites3f{};
-	limites.min = dls::math::vec3f( constantes<float>::INFINITE);
-	limites.max = dls::math::vec3f(-constantes<float>::INFINITE);
-	return limites;
+    auto limites = limites3f{};
+    limites.min = dls::math::vec3f(constantes<float>::INFINITE);
+    limites.max = dls::math::vec3f(-constantes<float>::INFINITE);
+    return limites;
 }
 
 limites3f calcule_limites_mondiales_corps(Corps const &corps)
 {
-	auto limites = initialise_limites3f();
+    auto limites = initialise_limites3f();
 
-	auto const &points = corps.points_pour_lecture();
+    auto const &points = corps.points_pour_lecture();
 
-	for (auto i = 0; i < points.taille(); ++i) {
-		auto point = points.point_monde(i);
-		dls::math::extrait_min_max(point, limites.min, limites.max);
-	}
+    for (auto i = 0; i < points.taille(); ++i) {
+        auto point = points.point_monde(i);
+        dls::math::extrait_min_max(point, limites.min, limites.max);
+    }
 
-	return limites;
+    return limites;
 }
 
 limites3f calcule_limites_locales_corps(const Corps &corps)
 {
-	auto limites = initialise_limites3f();
+    auto limites = initialise_limites3f();
 
-	auto const &points = corps.points_pour_lecture();
+    auto const &points = corps.points_pour_lecture();
 
-	for (auto i = 0; i < points.taille(); ++i) {
-		auto point = points.point_local(i);
-		dls::math::extrait_min_max(point, limites.min, limites.max);
-	}
+    for (auto i = 0; i < points.taille(); ++i) {
+        auto point = points.point_local(i);
+        dls::math::extrait_min_max(point, limites.min, limites.max);
+    }
 
-	return limites;
+    return limites;
 }

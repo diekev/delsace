@@ -28,30 +28,49 @@
 
 class QComboBox;
 class QGraphicsScene;
+class QMenu;
 class VueEditeurNoeud;
 
+namespace JJL {
+class Noeud;
+}
+
 class EditriceGraphe : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	QGraphicsScene *m_scene;
-	VueEditeurNoeud *m_vue;
+    QGraphicsScene *m_scene;
+    VueEditeurNoeud *m_vue;
 
-	QLineEdit *m_barre_chemin;
-	QComboBox *m_selecteur_graphe;
+    QLineEdit *m_barre_chemin;
+    QComboBox *m_selecteur_graphe;
 
-public:
-	explicit EditriceGraphe(Jorjala &jorjala, QWidget *parent = nullptr);
+    std::map<std::string, QMenu *> m_menus{};
 
-	EditriceGraphe(EditriceGraphe const &) = default;
-	EditriceGraphe &operator=(EditriceGraphe const &) = default;
+  public:
+    explicit EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	~EditriceGraphe() override;
+    EditriceGraphe(EditriceGraphe const &) = default;
+    EditriceGraphe &operator=(EditriceGraphe const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    ~EditriceGraphe() override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_etat(int evenement) override;
 
-private Q_SLOTS:
-	void sors_noeud();
-	void change_contexte(int index);
+    void ajourne_manipulable() override
+    {
+    }
+
+    void keyPressEvent(QKeyEvent *event) override;
+
+  private Q_SLOTS:
+    void sors_noeud();
+    void change_contexte(int index);
+
+  private:
+    QMenu *menu_pour_graphe();
+
+    QPointF transforme_position_evenement(QPoint pos) override;
+
+    void ajourne_sélecteur_graphe();
+    void affiche_informations_noeud(JJL::Noeud noeud);
 };

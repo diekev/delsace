@@ -85,12 +85,7 @@ if (AVEC_JORJALA)
 	install(
 		FILES ${STYLES}
 		DESTINATION jorjala/styles
-	)
-
-	install(
-		FILES ${ICONES}
-		DESTINATION jorjala/icones
-	)
+        )
 
 	install(
 		FILES fichiers/texte/texture_texte.png

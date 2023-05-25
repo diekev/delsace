@@ -27,6 +27,6 @@
 #include <QDialog>
 
 class Dialogue : public QDialog {
-public:
-	explicit Dialogue(QLayout *disposition, QWidget *parent = nullptr);
+  public:
+    explicit Dialogue(QLayout *disposition, QWidget *parent = nullptr);
 };

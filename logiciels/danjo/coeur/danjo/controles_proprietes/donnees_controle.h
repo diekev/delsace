@@ -32,33 +32,33 @@
 namespace danjo {
 
 enum {
-	AXIS_X,
-	AXIS_Y,
-	AXIS_Z,
+    AXIS_X,
+    AXIS_Y,
+    AXIS_Z,
 };
 
 struct DonneesControle {
-	void *pointeur = nullptr;
-	dls::chaine nom = "";
-	dls::chaine valeur_min = "";
-	dls::chaine valeur_max = "";
-	dls::chaine valeur_defaut = "";
-	dls::chaine precision = "";
-	dls::chaine pas = "";
-	dls::chaine infobulle = "";
-	dls::chaine filtres = "";
-	dls::chaine suffixe = "";
-	dls::tableau<std::pair<dls::chaine, dls::chaine>> valeur_enum{};
-	TypePropriete type = {};
-	etat_propriete etat = etat_propriete::VIERGE;
+    void *pointeur = nullptr;
+    dls::chaine nom = "";
+    dls::chaine valeur_min = "";
+    dls::chaine valeur_max = "";
+    dls::chaine valeur_defaut = "";
+    dls::chaine precision = "";
+    dls::chaine pas = "";
+    dls::chaine infobulle = "";
+    dls::chaine filtres = "";
+    dls::chaine suffixe = "";
+    dls::tableau<std::pair<dls::chaine, dls::chaine>> valeur_enum{};
+    TypePropriete type = {};
+    etat_propriete etat = etat_propriete::VIERGE;
 
-	bool initialisation = false;
+    bool initialisation = false;
 
-	DonneesControle() = default;
-	~DonneesControle() = default;
+    DonneesControle() = default;
+    ~DonneesControle() = default;
 
-	DonneesControle(DonneesControle const &) = default;
-	DonneesControle &operator=(DonneesControle const &) = default;
+    DonneesControle(DonneesControle const &) = default;
+    DonneesControle &operator=(DonneesControle const &) = default;
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

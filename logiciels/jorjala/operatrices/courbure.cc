@@ -43,125 +43,125 @@ using Vecteur = Eigen::Matrix<Scalaire, 3, 1>;
 /* ************************************************************************** */
 
 struct DonneesMaillage {
-	AccesseusePointLecture const &points;
-	Attribut *normaux{};
-	Attribut *courbure_min{};
-	Attribut *courbure_max{};
-	Attribut *direction_min{};
-	Attribut *direction_max{};
-	Attribut *var_geom{};
+    AccesseusePointLecture const &points;
+    Attribut *normaux{};
+    Attribut *courbure_min{};
+    Attribut *courbure_max{};
+    Attribut *direction_min{};
+    Attribut *direction_max{};
+    Attribut *var_geom{};
 };
 
 static auto converti_eigen(dls::math::vec3f const &v)
 {
-	return Vecteur(static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
+    return Vecteur(static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
 }
 
 static auto converti_depuis_eigen(Vecteur const &v)
 {
-	return dls::math::vec3f(static_cast<float>(v(0)), static_cast<float>(v(1)), static_cast<float>(v(2)));
+    return dls::math::vec3f(
+        static_cast<float>(v(0)), static_cast<float>(v(1)), static_cast<float>(v(2)));
 }
 
 /* ************************************************************************** */
 
 /* Cette classe définie le format des données d'entrées. */
 class GLSPoint {
-	Vecteur m_pos{};
-	Vecteur m_norm{};
+    Vecteur m_pos{};
+    Vecteur m_norm{};
 
-public:
-	enum {
-		Dim = 3
-	};
+  public:
+    enum { Dim = 3 };
 
-	using Scalar = ::Scalaire;
-	using VectorType = Eigen::Matrix<Scalaire, Dim, 1>;
-	using MatrixType = Eigen::Matrix<Scalaire, Dim, Dim>;
+    using Scalar = ::Scalaire;
+    using VectorType = Eigen::Matrix<Scalaire, Dim, 1>;
+    using MatrixType = Eigen::Matrix<Scalaire, Dim, Dim>;
 
-	MULTIARCH inline GLSPoint() = default;
+    MULTIARCH inline GLSPoint() = default;
 
-	MULTIARCH inline GLSPoint(DonneesMaillage const &mesh, long vx)
-		: m_pos(converti_eigen(mesh.points.point_local(vx)))
-	{
-		auto n = dls::math::vec3f();
-		extrait(mesh.normaux->r32(vx), n);
-		m_norm = converti_eigen(n);
-	}
+    MULTIARCH inline GLSPoint(DonneesMaillage const &mesh, long vx)
+        : m_pos(converti_eigen(mesh.points.point_local(vx)))
+    {
+        auto n = dls::math::vec3f();
+        extrait(mesh.normaux->r32(vx), n);
+        m_norm = converti_eigen(n);
+    }
 
-	MULTIARCH inline const VectorType &pos()    const
-	{
-		return m_pos;
-	}
+    MULTIARCH inline const VectorType &pos() const
+    {
+        return m_pos;
+    }
 
-	MULTIARCH inline const VectorType &normal() const
-	{
-		return m_norm;
-	}
+    MULTIARCH inline const VectorType &normal() const
+    {
+        return m_norm;
+    }
 };
 
 /* ************************************************************************** */
 
-using WeightFunc = Grenaille::DistWeightFunc<GLSPoint, Grenaille::SmoothWeightKernel<Scalaire> >;
+using WeightFunc = Grenaille::DistWeightFunc<GLSPoint, Grenaille::SmoothWeightKernel<Scalaire>>;
 
-using Fit = Basket<GLSPoint, WeightFunc, OrientedSphereFit, GLSParam,
-			   OrientedSphereScaleSpaceDer, GLSDer, GLSCurvatureHelper, GLSGeomVar>;
+using Fit = Basket<GLSPoint,
+                   WeightFunc,
+                   OrientedSphereFit,
+                   GLSParam,
+                   OrientedSphereScaleSpaceDer,
+                   GLSDer,
+                   GLSCurvatureHelper,
+                   GLSGeomVar>;
 
 /* ************************************************************************** */
 
 #undef ARBRE_KD
 
-static auto calcul_courbure(
-		ChefExecution *chef,
-		DonneesMaillage &donnees_maillage,
-		Scalaire radius)
+static auto calcul_courbure(ChefExecution *chef,
+                            DonneesMaillage &donnees_maillage,
+                            Scalaire radius)
 {
-	chef->demarre_evaluation("courbure, calcul");
+    chef->demarre_evaluation("courbure, calcul");
 
-	auto donnees_ret = DonneesCalculCourbure{};
+    auto donnees_ret = DonneesCalculCourbure{};
 
-	auto const r = Scalaire(2) * radius;
-	auto const r2 = r * r;
-	auto const nombre_sommets = donnees_maillage.points.taille();
+    auto const r = Scalaire(2) * radius;
+    auto const r2 = r * r;
+    auto const nombre_sommets = donnees_maillage.points.taille();
 
 #ifdef ARBRE_KD
-	auto arbre = arbre_3df();
-	arbre.construit_avec_fonction(
-				static_cast<int>(donnees_maillage.points.taille()),
-				[&](int idx)
-	{
-		return donnees_maillage.points.point_local(idx);
-	});
+    auto arbre = arbre_3df();
+    arbre.construit_avec_fonction(
+        static_cast<int>(donnees_maillage.points.taille()),
+        [&](int idx) { return donnees_maillage.points.point_local(idx); });
 #else
-	auto grille_points = GrillePoint::construit_avec_fonction(
-				[&](long idx)
-	{
-		return donnees_maillage.points.point_local(idx);
-	}, donnees_maillage.points.taille(), static_cast<float>(r));
+    auto grille_points = GrillePoint::construit_avec_fonction(
+        [&](long idx) { return donnees_maillage.points.point_local(idx); },
+        donnees_maillage.points.taille(),
+        static_cast<float>(r));
 #endif
 
-	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
-					 [&](tbb::blocked_range<long> const &plage)
-	{
-		for (auto i = plage.begin(); i < plage.end(); ++i) {
-			if (chef->interrompu()) {
-				break;
-			}
+    boucle_parallele(
+        tbb::blocked_range<long>(0, nombre_sommets), [&](tbb::blocked_range<long> const &plage) {
+            for (auto i = plage.begin(); i < plage.end(); ++i) {
+                if (chef->interrompu()) {
+                    break;
+                }
 
-			auto p0 = converti_eigen(donnees_maillage.points.point_local(i));
+                auto p0 = converti_eigen(donnees_maillage.points.point_local(i));
 
-			Fit fit;
-			fit.init(p0);
-			fit.setWeightFunc(WeightFunc(r));
+                Fit fit;
+                fit.init(p0);
+                fit.setWeightFunc(WeightFunc(r));
 
-			auto point = donnees_maillage.points.point_local(i);
+                auto point = donnees_maillage.points.point_local(i);
 
 #ifdef ARBRE_KD
-			arbre.cherche_points(point, static_cast<float>(r), [&](int idx, dls::math::vec3f const &, float dc, float &)
-			{
-				if (dc < static_cast<float>(r2)) {
-					fit.addNeighbor(GLSPoint(donnees_maillage, idx));
-				}
-			});
+                arbre.cherche_points(point,
+                                     static_cast<float>(r),
+                                     [&](int idx, dls::math::vec3f const &, float dc, float &) {
+                                         if (dc < static_cast<float>(r2)) {
+                                             fit.addNeighbor(GLSPoint(donnees_maillage, idx));
+                                         }
+                                     });
 #else
 			auto cellules = grille_points.cellules_autour(point, static_cast<float>(r));
 			auto c = GrillePoint::coord();
@@ -183,55 +183,64 @@ static auto calcul_courbure(
 			}
 #endif
 
-			fit.finalize();
+                fit.finalize();
 
-			if (fit.isReady()) {
-				if (!fit.isStable()) {
-					++donnees_ret.nombre_instable;
-				}
+                if (fit.isReady()) {
+                    if (!fit.isStable()) {
+                        ++donnees_ret.nombre_instable;
+                    }
 
-				assigne(donnees_maillage.direction_max->r32(i), converti_depuis_eigen(fit.GLSk1Direction()));
-				assigne(donnees_maillage.direction_min->r32(i), converti_depuis_eigen(fit.GLSk2Direction()));
-				assigne(donnees_maillage.courbure_max->r32(i), static_cast<float>(fit.GLSk1()));
-				assigne(donnees_maillage.courbure_min->r32(i), static_cast<float>(fit.GLSk2()));
-				assigne(donnees_maillage.var_geom->r32(i), static_cast<float>(fit.geomVar()));
-			}
-			else {
-				++donnees_ret.nombre_impossible;
+                    assigne(donnees_maillage.direction_max->r32(i),
+                            converti_depuis_eigen(fit.GLSk1Direction()));
+                    assigne(donnees_maillage.direction_min->r32(i),
+                            converti_depuis_eigen(fit.GLSk2Direction()));
+                    assigne(donnees_maillage.courbure_max->r32(i),
+                            static_cast<float>(fit.GLSk1()));
+                    assigne(donnees_maillage.courbure_min->r32(i),
+                            static_cast<float>(fit.GLSk2()));
+                    assigne(donnees_maillage.var_geom->r32(i), static_cast<float>(fit.geomVar()));
+                }
+                else {
+                    ++donnees_ret.nombre_impossible;
 
-				assigne(donnees_maillage.direction_max->r32(i), dls::math::vec3f(0.0f));
-				assigne(donnees_maillage.direction_min->r32(i), dls::math::vec3f(0.0f));
-				assigne(donnees_maillage.courbure_max->r32(i), std::numeric_limits<float>::quiet_NaN());
-				assigne(donnees_maillage.courbure_min->r32(i), std::numeric_limits<float>::quiet_NaN());
-				assigne(donnees_maillage.var_geom->r32(i), std::numeric_limits<float>::quiet_NaN());
-			}
-		}
+                    assigne(donnees_maillage.direction_max->r32(i), dls::math::vec3f(0.0f));
+                    assigne(donnees_maillage.direction_min->r32(i), dls::math::vec3f(0.0f));
+                    assigne(donnees_maillage.courbure_max->r32(i),
+                            std::numeric_limits<float>::quiet_NaN());
+                    assigne(donnees_maillage.courbure_min->r32(i),
+                            std::numeric_limits<float>::quiet_NaN());
+                    assigne(donnees_maillage.var_geom->r32(i),
+                            std::numeric_limits<float>::quiet_NaN());
+                }
+            }
 
-		auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
-		chef->indique_progression_parallele(delta / static_cast<float>(nombre_sommets));
-	});
+            auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
+            chef->indique_progression_parallele(delta / static_cast<float>(nombre_sommets));
+        });
 
-	return donnees_ret;
+    return donnees_ret;
 }
 
-DonneesCalculCourbure calcule_courbure(
-		ChefExecution *chef,
-		Corps &corps,
-		double rayon)
+DonneesCalculCourbure calcule_courbure(ChefExecution *chef, Corps &corps, double rayon)
 {
-	auto points_entree = corps.points_pour_lecture();
+    auto points_entree = corps.points_pour_lecture();
 
-	chef->demarre_evaluation("courbure, préparation attributs");
+    chef->demarre_evaluation("courbure, préparation attributs");
 
-	auto donnees_maillage = DonneesMaillage{points_entree};
-	donnees_maillage.normaux = corps.attribut("N");
-	donnees_maillage.courbure_min = corps.ajoute_attribut("courbure_min", type_attribut::R32, 1, portee_attr::POINT);
-	donnees_maillage.courbure_max = corps.ajoute_attribut("courbure_max", type_attribut::R32, 1, portee_attr::POINT);
-	donnees_maillage.direction_min = corps.ajoute_attribut("direction_min", type_attribut::R32, 3, portee_attr::POINT);
-	donnees_maillage.direction_max = corps.ajoute_attribut("direction_max", type_attribut::R32, 3, portee_attr::POINT);
-	donnees_maillage.var_geom = corps.ajoute_attribut("var_geom", type_attribut::R32, 1, portee_attr::POINT);
+    auto donnees_maillage = DonneesMaillage{points_entree};
+    donnees_maillage.normaux = corps.attribut("N");
+    donnees_maillage.courbure_min = corps.ajoute_attribut(
+        "courbure_min", type_attribut::R32, 1, portee_attr::POINT);
+    donnees_maillage.courbure_max = corps.ajoute_attribut(
+        "courbure_max", type_attribut::R32, 1, portee_attr::POINT);
+    donnees_maillage.direction_min = corps.ajoute_attribut(
+        "direction_min", type_attribut::R32, 3, portee_attr::POINT);
+    donnees_maillage.direction_max = corps.ajoute_attribut(
+        "direction_max", type_attribut::R32, 3, portee_attr::POINT);
+    donnees_maillage.var_geom = corps.ajoute_attribut(
+        "var_geom", type_attribut::R32, 1, portee_attr::POINT);
 
-	chef->indique_progression(100.0f);
+    chef->indique_progression(100.0f);
 
-	return calcul_courbure(chef, donnees_maillage, rayon);
+    return calcul_courbure(chef, donnees_maillage, rayon);
 }

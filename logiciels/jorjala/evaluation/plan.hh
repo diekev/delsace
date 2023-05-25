@@ -51,25 +51,25 @@ class Noeud;
 /* ************************************************************************** */
 
 struct Planifieuse {
-	struct Plan {
-		dls::tableau<NoeudReseau *> noeuds{};
+    struct Plan {
+        dls::tableau<NoeudReseau *> noeuds{};
 
-		const char *message = nullptr;
+        const char *message = nullptr;
 
-		int temps = 0;
-		bool est_animation = false;
-		bool est_pour_temps = false;
-		char pad[2];
-	};
+        int temps = 0;
+        bool est_animation = false;
+        bool est_pour_temps = false;
+        char pad[2];
+    };
 
-	/* NOTE : utilisation d'un pointeur car les plans doivent être valides dans
-	 * des threads séparés, donc on ne peut pas utiliser des plans temporaires.
-	 */
-	using PtrPlan = std::shared_ptr<Plan>;
+    /* NOTE : utilisation d'un pointeur car les plans doivent être valides dans
+     * des threads séparés, donc on ne peut pas utiliser des plans temporaires.
+     */
+    using PtrPlan = std::shared_ptr<Plan>;
 
-	PtrPlan requiers_plan_pour_scene(Reseau &reseau) const;
+    PtrPlan requiers_plan_pour_scene(Reseau &reseau) const;
 
-	PtrPlan requiers_plan_pour_noeud(Reseau &reseau, Noeud *noeud) const;
+    PtrPlan requiers_plan_pour_noeud(Reseau &reseau, Noeud *noeud) const;
 
-	PtrPlan requiers_plan_pour_nouveau_temps(Reseau &reseau, int temps, bool est_animation) const;
+    PtrPlan requiers_plan_pour_nouveau_temps(Reseau &reseau, int temps, bool est_animation) const;
 };

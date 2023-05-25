@@ -26,4 +26,4 @@
 
 namespace kdo {
 
-}  /* namespace kdo */
+} /* namespace kdo */

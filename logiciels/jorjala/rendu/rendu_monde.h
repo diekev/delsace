@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include <filesystem>
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/tableau.hh"
+#include <filesystem>
 
 namespace kdo {
 class Koudou;
 class Monde;
-}
+}  // namespace kdo
 
 class ContexteRendu;
 class TamponRendu;
@@ -40,40 +40,40 @@ class TamponRendu;
  * La classe RenduMonde contient la logique de rendu du monde de la scène 3D.
  */
 class RenduMonde {
-	TamponRendu *m_tampon = nullptr;
-	kdo::Monde *m_monde{};
+    TamponRendu *m_tampon = nullptr;
+    kdo::Monde *m_monde{};
 
-	dls::tableau<dls::math::vec3f> m_sommets{};
-	dls::tableau<unsigned int> m_index{};
+    dls::tableau<dls::math::vec3f> m_sommets{};
+    dls::tableau<unsigned int> m_index{};
 
-	/* Mémorisation des anciennes données. */
-	int m_ancien_type{};
-	std::filesystem::path m_ancien_chemin{};
+    /* Mémorisation des anciennes données. */
+    int m_ancien_type{};
+    std::filesystem::path m_ancien_chemin{};
 
-public:
-	/**
-	 * Construit une instance de RenduMonde. La construction implique la
-	 * création d'un tampon OpenGL, donc elle doit se faire dans un contexte
-	 * OpenGL valide.
-	 */
-	explicit RenduMonde(kdo::Koudou *koudou);
+  public:
+    /**
+     * Construit une instance de RenduMonde. La construction implique la
+     * création d'un tampon OpenGL, donc elle doit se faire dans un contexte
+     * OpenGL valide.
+     */
+    explicit RenduMonde(kdo::Koudou *koudou);
 
-	RenduMonde(RenduMonde const &) = default;
-	RenduMonde &operator=(RenduMonde const &) = default;
+    RenduMonde(RenduMonde const &) = default;
+    RenduMonde &operator=(RenduMonde const &) = default;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduMonde();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduMonde();
 
-	/**
-	 * Dessine le monde dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine le monde dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 
-	/**
-	 * Ajourne les données du tampon.
-	 */
-	void ajourne();
+    /**
+     * Ajourne les données du tampon.
+     */
+    void ajourne();
 };

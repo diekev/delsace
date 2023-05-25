@@ -31,61 +31,59 @@
 
 namespace erreur {
 
-void lance_erreur(
-		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
-		type_erreur type)
+void lance_erreur(const dls::chaine &quoi,
+                  const ContexteGenerationCode &contexte,
+                  const DonneesMorceaux &morceau,
+                  type_erreur type)
 {
-	auto const ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto const identifiant = morceau.genre;
-	auto const &chaine = morceau.chaine;
+    auto const ligne = static_cast<long>(morceau.ligne_pos >> 32);
+    auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
+    auto const identifiant = morceau.genre;
+    auto const &chaine = morceau.chaine;
 
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne_courante = module->tampon[ligne];
+    auto module = contexte.module(static_cast<size_t>(morceau.module));
+    auto ligne_courante = module->tampon[ligne];
 
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
-	ss << ligne_courante;
+    dls::flux_chaine ss;
+    ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+    ss << ligne_courante;
 
-	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, chaine);
-	ss << '\n';
+    lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
+    ss << '^';
+    lng::erreur::imprime_tilde(ss, chaine);
+    ss << '\n';
 
-	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
+    ss << quoi;
+    ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
-	throw erreur::frappe(ss.chn().c_str(), type);
+    throw erreur::frappe(ss.chn().c_str(), type);
 }
 
-void lance_erreur_plage(
-		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &premier_morceau,
-		const DonneesMorceaux &dernier_morceau,
-		type_erreur type)
+void lance_erreur_plage(const dls::chaine &quoi,
+                        const ContexteGenerationCode &contexte,
+                        const DonneesMorceaux &premier_morceau,
+                        const DonneesMorceaux &dernier_morceau,
+                        type_erreur type)
 {
-	auto const ligne = static_cast<long>(premier_morceau.ligne_pos >> 32);
-	auto const pos_premier = static_cast<long>(premier_morceau.ligne_pos & 0xffffffff);
-	auto const pos_dernier = static_cast<long>(dernier_morceau.ligne_pos & 0xffffffff);
+    auto const ligne = static_cast<long>(premier_morceau.ligne_pos >> 32);
+    auto const pos_premier = static_cast<long>(premier_morceau.ligne_pos & 0xffffffff);
+    auto const pos_dernier = static_cast<long>(dernier_morceau.ligne_pos & 0xffffffff);
 
-	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
-	auto ligne_courante = module->tampon[ligne];
+    auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
+    auto ligne_courante = module->tampon[ligne];
 
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
-	ss << ligne_courante;
+    dls::flux_chaine ss;
+    ss << "Erreur : ligne:" << ligne + 1 << ":\n";
+    ss << ligne_courante;
 
-	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
-	ss << '^';
-	lng::erreur::imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
-	ss << '\n';
+    lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
+    ss << '^';
+    lng::erreur::imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
+    ss << '\n';
 
-	ss << quoi;
+    ss << quoi;
 
-	throw erreur::frappe(ss.chn().c_str(), type);
+    throw erreur::frappe(ss.chn().c_str(), type);
 }
 
-}
+}  // namespace erreur
