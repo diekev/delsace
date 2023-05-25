@@ -3,7 +3,7 @@
 
 add_compile_definitions(_USE_MATH_DEFINES)
 
-add_compile_options(/bigobj)
+add_compile_options(/bigobj /utf-8)
 
 # Pour supprimer des drapeaux de compilation un peu trop stricts pour certaines
 # bibliothèques externes.
