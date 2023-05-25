@@ -323,6 +323,18 @@ static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
     return {};
 }
 
+/* Tente de déterminer la racine depuis le système. */
+static std::optional<kuri::chaine> détermine_chemin_exécutable()
+{
+    /* Tente de déterminer la racine depuis le système. */
+    char tampon[1024];
+    ssize_t len = readlink("/proc/self/exe", tampon, 1024);
+    if (len < 0) {
+        return {};
+    }
+    return kuri::chaine(&tampon[0], len);
+}
+
 /* Détermine le chemin racine d'exécution de Kuri. Ceci est nécessaire puisque les modules de la
  * bibliothèque standarde sont stockés à coté de l'exécutable.
  *
@@ -334,10 +346,8 @@ static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
  */
 static std::optional<kuri::chaine> determine_racine_execution_kuri()
 {
-    /* Tente de déterminer la racine depuis le système. */
-    char tampon[1024];
-    ssize_t len = readlink("/proc/self/exe", tampon, 1024);
-    if (len < 0) {
+    auto opt_chemin_executable = détermine_chemin_exécutable();
+    if (!opt_chemin_executable.has_value()) {
         std::cerr
             << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !\n";
         std::cerr << "Compilation avortée.\n";
@@ -346,7 +356,7 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
 
     /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
      * parent. */
-    auto chemin_executable = kuri::chaine(&tampon[0], len);
+    auto chemin_executable = opt_chemin_executable.value();
     auto racine = kuri::chemin_systeme(kuri::chemin_systeme(chemin_executable).chemin_parent());
 
     /* Vérifie que nous avons tous les dossiers. Si oui, nous sommes sans doute à la bonne adresse.
