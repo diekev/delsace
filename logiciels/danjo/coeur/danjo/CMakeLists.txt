@@ -25,39 +25,39 @@ set(INCLUSIONS
 	${INCLUSIONS_SYSTEMES}
 )
 
-qt5_wrap_cpp(
-	moc_headers
+set(ENTETES_POUR_QT
+    controles/action.h
+    controles/bouton.h
+    controles/controle_couleur.h
+    controles/controle_couleur_tsv.h
+    controles/controle_courbe_couleur.h
+    controles/controle_echelle_valeur.h
+    controles/controle_nombre_decimal.h
+    controles/controle_nombre_entier.h
+    controles/controle_rampe_couleur.h
+    controles/menu_filtrable.hh
 
-	controles/action.h
-	controles/bouton.h
-	controles/controle_couleur.h
-	controles/controle_couleur_tsv.h
-	controles/controle_courbe_couleur.h
-	controles/controle_echelle_valeur.h
-	controles/controle_nombre_decimal.h
-	controles/controle_nombre_entier.h
-	controles/controle_rampe_couleur.h
-	controles/menu_filtrable.hh
+    controles_proprietes/controle_propriete.h
+    controles_proprietes/controle_propriete_bool.h
+    controles_proprietes/controle_propriete_chaine.h
+    controles_proprietes/controle_propriete_couleur.h
+    controles_proprietes/controle_propriete_courbe_couleur.h
+    controles_proprietes/controle_propriete_courbe_valeur.h
+    controles_proprietes/controle_propriete_decimal.h
+    controles_proprietes/controle_propriete_entier.h
+    controles_proprietes/controle_propriete_enum.h
+    controles_proprietes/controle_propriete_fichier.h
+    controles_proprietes/controle_propriete_rampe_couleur.h
+    controles_proprietes/controle_propriete_liste.h
+    controles_proprietes/controle_propriete_liste_manip.hh
+    controles_proprietes/controle_propriete_vecteur.h
 
-	controles_proprietes/controle_propriete.h
-	controles_proprietes/controle_propriete_bool.h
-	controles_proprietes/controle_propriete_chaine.h
-	controles_proprietes/controle_propriete_couleur.h
-	controles_proprietes/controle_propriete_courbe_couleur.h
-	controles_proprietes/controle_propriete_courbe_valeur.h
-	controles_proprietes/controle_propriete_decimal.h
-	controles_proprietes/controle_propriete_entier.h
-	controles_proprietes/controle_propriete_enum.h
-	controles_proprietes/controle_propriete_fichier.h
-	controles_proprietes/controle_propriete_rampe_couleur.h
-	controles_proprietes/controle_propriete_liste.h
-	controles_proprietes/controle_propriete_liste_manip.hh
-	controles_proprietes/controle_propriete_vecteur.h
+    dialogues/dialogue_couleur.h
 
-	dialogues/dialogue_couleur.h
-
-	conteneur_controles.h
+    conteneur_controles.h
 )
+
+qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
 
 #NOTE: pour ici et plus bas (CMAKE_BUILD_TYPE MATCHES "Release"):
 # lors que nous compilons en mode Debug nous devons désactiver certains drapeaux
