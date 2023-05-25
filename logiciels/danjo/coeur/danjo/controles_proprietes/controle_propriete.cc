@@ -24,25 +24,22 @@
 
 #include "controle_propriete.h"
 
+#include "manipulable.h"
+
 namespace danjo {
 
-ControlePropriete::ControlePropriete(QWidget *parent)
-	: QWidget(parent)
-{}
-
-void ControlePropriete::proriete(Propriete *p)
+ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *parent)
+    : QWidget(parent), m_propriete(p), m_temps(temps)
 {
-	m_propriete = p;
-}
-
-void ControlePropriete::temps(int t)
-{
-	m_temps = t;
+    if (m_propriete) {
+        /* Les étiquettes n'ont pas de propriété. */
+        setToolTip(m_propriete->donnne_infobulle().c_str());
+    }
 }
 
 void ControlePropriete::emet_precontrole_change()
 {
-	Q_EMIT(precontrole_change());
+    Q_EMIT(precontrole_change());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

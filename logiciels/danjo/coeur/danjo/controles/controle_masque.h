@@ -29,36 +29,36 @@
 #include "types/courbe_bezier.h"
 
 struct CerceBezier {
-	dls::tableau<PointBezier> points{};
-	dls::tableau<Point> table{};
-	bool ferme = false;
-	char pad[3];
+    dls::tableau<PointBezier> points{};
+    dls::tableau<Point> table{};
+    bool ferme = false;
+    char pad[3];
 
-	Point min = {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()};
-	Point max = { std::numeric_limits<float>::max(),  std::numeric_limits<float>::max()};
+    Point min = {-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()};
+    Point max = {std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
 };
 
 class ControleMasque : public QWidget {
-	CerceBezier m_cerce{};
-	PointBezier *m_point_courant = nullptr;
-	int m_type_point = 0;
-	int pad = 0;
+    CerceBezier m_cerce{};
+    PointBezier *m_point_courant = nullptr;
+    int m_type_point = 0;
+    int pad = 0;
 
-public:
-	explicit ControleMasque(QWidget *parent = nullptr);
+  public:
+    explicit ControleMasque(QWidget *parent = nullptr);
 
-	ControleMasque(ControleMasque const &) = default;
-	ControleMasque &operator=(ControleMasque const &) = default;
+    ControleMasque(ControleMasque const &) = default;
+    ControleMasque &operator=(ControleMasque const &) = default;
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-	void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 };

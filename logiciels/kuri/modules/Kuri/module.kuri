@@ -867,6 +867,33 @@ mémoire_utilisée_tableau :: fonc (tableau: []$T) -> z64
     retourne tableau.taille * (taille_de(T) comme z64)
 }
 
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[]$T)
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        déloge(tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[]$T, rappel_déloge_élément: fonc(T)(rien))
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        rappel_déloge_élément(tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
+tableau_trouve_index_élément :: fonc (tableau: []$T, valeur: T) -> Optionnel(z64)
+{
+    pour tableau {
+        si it == valeur {
+            retourne index_it
+        }
+    }
+}
+
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> z64 #externe libc

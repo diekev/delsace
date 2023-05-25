@@ -29,35 +29,41 @@
 class ContexteRendu;
 class TamponRendu;
 
+namespace JJL {
+class Composite;
+}
+
 class RenduImage {
-	TamponRendu *m_tampon_image{};
-	TamponRendu *m_tampon_bordure{};
+    TamponRendu *m_tampon_image{};
+    TamponRendu *m_tampon_bordure{};
 
-public:
-	/**
-	 * Construit une instance de RenduImage. La construction implique la
-	 * création de tampons OpenGL, donc elle doit se faire dans un contexte
-	 * OpenGL valide.
-	 */
-	RenduImage();
+  public:
+    /**
+     * Construit une instance de RenduImage. La construction implique la
+     * création de tampons OpenGL, donc elle doit se faire dans un contexte
+     * OpenGL valide.
+     */
+    RenduImage();
 
-	RenduImage(RenduImage const &) = default;
-	RenduImage &operator=(RenduImage const &) = default;
+    RenduImage(RenduImage const &) = default;
+    RenduImage &operator=(RenduImage const &) = default;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduImage();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduImage();
 
-	void charge_image(const grille_couleur &image);
+    void charge_image(const grille_couleur &image);
 
-	/**
-	 * Dessine l'image dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine l'image dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 
-	void dessine_bordure(const ContexteRendu &contexte);
+    void dessine_bordure(const ContexteRendu &contexte);
+
+    void charge_composite(JJL::Composite composite);
 };
 
 TamponRendu *cree_tampon_image();

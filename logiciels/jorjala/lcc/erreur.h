@@ -34,24 +34,23 @@ struct ContexteGenerationCode;
 namespace erreur {
 
 enum class type_erreur : int {
-	NORMAL,
-	DECOUPAGE,
+    NORMAL,
+    DECOUPAGE,
 
-	AUCUNE_ERREUR,
+    AUCUNE_ERREUR,
 };
 
 using frappe = lng::erreur::frappe<type_erreur, dls::chaine>;
 
 [[noreturn]] void lance_erreur(const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
-		type_erreur type = type_erreur::NORMAL);
+                               const ContexteGenerationCode &contexte,
+                               const DonneesMorceaux &morceau,
+                               type_erreur type = type_erreur::NORMAL);
 
-[[noreturn]] void lance_erreur_plage(
-		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &premier_morceau,
-		const DonneesMorceaux &dernier_morceau,
-		type_erreur type = type_erreur::NORMAL);
+[[noreturn]] void lance_erreur_plage(const dls::chaine &quoi,
+                                     const ContexteGenerationCode &contexte,
+                                     const DonneesMorceaux &premier_morceau,
+                                     const DonneesMorceaux &dernier_morceau,
+                                     type_erreur type = type_erreur::NORMAL);
 
-}
+}  // namespace erreur

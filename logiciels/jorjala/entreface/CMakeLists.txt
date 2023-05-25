@@ -24,39 +24,50 @@ set(NOM_CIBLE jorjala_entreface)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_QT5_WIDGETS}
-	${INCLUSIONS_QT5_OPENGL}
+        ${INCLUSIONS_QT5_OPENGL}
+        ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
 	danjo
 	${BIBLIOTHEQUES_QT5_WIDGETS}
 	${BIBLIOTHEQUES_QT5_OPENGL}
-	${BIBLIOTHEQUES_OPENGL}
-	ego
-	bib_opengl
-	bib_texture
-	bib_outils
-	jorjala_coeur
-	jorjala_evaluation
+        ${BIBLIOTHEQUES_OPENGL}
+        ego
+        bib_opengl
+        bib_texture
+        bib_outils
+        bib_patrons
+        bib_vision
+#	jorjala_coeur
+#	jorjala_evaluation
+        jorjala_rendu
 )
 
 add_compile_options(-fPIC)
 
-qt5_wrap_cpp(
-	moc_headers
-
-	barre_progres.hh
-	base_editrice.h
-	editrice_arborescence.hh
-	editrice_ligne_temps.h
-	editrice_noeud.h
-	editrice_rendu.h
-	editrice_vue2d.h
-	editrice_vue3d.h
-	fenetre_principale.h
+set(ENTETES_POUR_QT
+    barre_progres.hh
+    base_editrice.h
+#   editrice_arborescence.hh
+    editrice_ligne_temps.h
+    editrice_noeud.h
+#   editrice_rendu.h
+    editrice_vue2d.h
+    editrice_vue3d.h
+    fenetre_principale.h
+    tache.h
 )
+
+qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+
+add_library(qt_jorjala_entreface ${moc_headers})
+target_include_directories(qt_jorjala_entreface PUBLIC "${INCLUSIONS}")
+
+desactive_drapeaux_compilation(qt_jorjala_entreface)
 
 set(NUANCEURS
 	opengl/nuanceurs/couleur.frag
@@ -232,45 +243,39 @@ set(FICHIERS_DANJO
 )
 
 add_library(${NOM_CIBLE} STATIC
-	graphe/item_noeud.h
-	graphe/vue_editrice_graphe.h
+        graphe/item_noeud.h
+        graphe/vue_editrice_graphe.h
 
-	opengl/rendu_image.h
-	opengl/rendu_manipulatrice_2d.h
-	opengl/rendu_manipulatrice.h
-	opengl/visionneur_scene.h
+        opengl/rendu_image.h
+        opengl/rendu_manipulatrice_2d.h
+        opengl/rendu_manipulatrice.h
+        opengl/visionneur_scene.h
 
-	barre_progres.hh
-	base_editrice.h
-	editrice_arborescence.hh
-	editrice_ligne_temps.h
-	editrice_noeud.h
-	editrice_proprietes.h
-	editrice_rendu.h
-	editrice_vue2d.h
-	editrice_vue3d.h
-	fenetre_principale.h
+        ${ENTETES_POUR_QT}
+        chef_execution.hh
+        gestion_entreface.hh
 
-	${moc_headers}
+        graphe/item_noeud.cc
+        graphe/vue_editrice_graphe.cc
 
-	graphe/item_noeud.cc
-	graphe/vue_editrice_graphe.cc
+        opengl/rendu_image.cc
+        opengl/rendu_manipulatrice_2d.cc
+        opengl/rendu_manipulatrice.cc
+        opengl/visionneur_scene.cc
 
-	opengl/rendu_image.cc
-	opengl/rendu_manipulatrice_2d.cc
-	opengl/rendu_manipulatrice.cc
-	opengl/visionneur_scene.cc
-
-	barre_progres.cc
-	base_editrice.cc
-	editrice_arborescence.cc
-	editrice_ligne_temps.cc
-	editrice_noeud.cc
-	editrice_proprietes.cc
-	editrice_rendu.cc
-	editrice_vue2d.cc
-	editrice_vue3d.cc
+        barre_progres.cc
+        base_editrice.cc
+        chef_execution.cc
+#	editrice_arborescence.cc
+        editrice_ligne_temps.cc
+        editrice_noeud.cc
+        editrice_proprietes.cc
+#	editrice_rendu.cc
+        editrice_vue2d.cc
+        editrice_vue3d.cc
 	fenetre_principale.cc
+        gestion_entreface.cc
+        tache.cc
 
 	${FICHIERS_DANJO}
 	${NUANCEURS}
@@ -278,7 +283,7 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES} qt_jorjala_entreface)
 
 install(
 	FILES ${FICHIERS_DANJO}

@@ -27,45 +27,107 @@
 #include "controle_propriete.h"
 
 class ControleEchelleDecimale;
+class ControleEchelleEntiere;
 class ControleNombreDecimal;
+class ControleNombreEntier;
 class QHBoxLayout;
 class QPushButton;
 
 namespace danjo {
 
-class ControleProprieteVec3 final : public ControlePropriete {
-	Q_OBJECT
+/* ************************************************************************* */
 
-	QHBoxLayout *m_agencement{};
-	ControleNombreDecimal *m_x{};
-	ControleNombreDecimal *m_y{};
-	ControleNombreDecimal *m_z{};
+class BaseControleProprieteVecteur : public ControlePropriete {
+    Q_OBJECT
 
-	QPushButton *m_bouton_animation{};
-	QPushButton *m_bouton_x{};
-	QPushButton *m_bouton_y{};
-	QPushButton *m_bouton_z{};
-	ControleEchelleDecimale *m_echelle_x{};
-	ControleEchelleDecimale *m_echelle_y{};
-	ControleEchelleDecimale *m_echelle_z{};
+  protected:
+    static constexpr int DIMENSIONS_MAX = 4;
+    int m_dimensions = 0;
 
-public:
-	explicit ControleProprieteVec3(QWidget *parent = nullptr);
-	~ControleProprieteVec3() override;
+    QHBoxLayout *m_agencement{};
+    QPushButton *m_bouton_animation{};
+    QPushButton *m_bouton_echelle_dim[DIMENSIONS_MAX]{};
 
-	ControleProprieteVec3(ControleProprieteVec3 const &) = default;
-	ControleProprieteVec3 &operator=(ControleProprieteVec3 const &) = default;
+  public:
+    BaseControleProprieteVecteur(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-	void finalise(const DonneesControle &donnees) override;
+    BaseControleProprieteVecteur(BaseControleProprieteVecteur const &) = default;
+    BaseControleProprieteVecteur &operator=(BaseControleProprieteVecteur const &) = default;
 
-private Q_SLOTS:
-	void ajourne_valeur_x(float valeur);
-	void ajourne_valeur_y(float valeur);
-	void ajourne_valeur_z(float valeur);
-	void montre_echelle_x();
-	void montre_echelle_y();
-	void montre_echelle_z();
-	void bascule_animation();
+  protected Q_SLOTS:
+    void montre_echelle_0();
+    void montre_echelle_1();
+    void montre_echelle_2();
+    void montre_echelle_3();
+
+  protected:
+    virtual void montre_echelle(int index) = 0;
 };
 
-}  /* namespace danjo */
+/* ************************************************************************* */
+
+class ControleProprieteVecteurDecimal final : public BaseControleProprieteVecteur {
+    Q_OBJECT
+
+    ControleNombreDecimal *m_dim[DIMENSIONS_MAX]{};
+    ControleEchelleDecimale *m_echelle[DIMENSIONS_MAX]{};
+
+  public:
+    explicit ControleProprieteVecteurDecimal(BasePropriete *p,
+                                             int temps,
+                                             QWidget *parent = nullptr);
+    ~ControleProprieteVecteurDecimal() override;
+
+    ControleProprieteVecteurDecimal(ControleProprieteVecteurDecimal const &) = default;
+    ControleProprieteVecteurDecimal &operator=(ControleProprieteVecteurDecimal const &) = default;
+
+    void finalise(const DonneesControle &donnees) override;
+
+  private Q_SLOTS:
+    void ajourne_valeur_0(float valeur);
+    void ajourne_valeur_1(float valeur);
+    void ajourne_valeur_2(float valeur);
+    void ajourne_valeur_3(float valeur);
+    void bascule_animation();
+
+  private:
+    void ajourne_valeur(int index, float valeur);
+    void montre_echelle(int index) override;
+
+    void ajourne_valeurs_controles();
+};
+
+/* ************************************************************************* */
+
+class ControleProprieteVecteurEntier final : public BaseControleProprieteVecteur {
+    Q_OBJECT
+
+    ControleNombreEntier *m_dim[DIMENSIONS_MAX]{};
+    ControleEchelleEntiere *m_echelle[DIMENSIONS_MAX]{};
+
+  public:
+    explicit ControleProprieteVecteurEntier(BasePropriete *p,
+                                            int temps,
+                                            QWidget *parent = nullptr);
+    ~ControleProprieteVecteurEntier() override;
+
+    ControleProprieteVecteurEntier(ControleProprieteVecteurEntier const &) = default;
+    ControleProprieteVecteurEntier &operator=(ControleProprieteVecteurEntier const &) = default;
+
+    void finalise(const DonneesControle &donnees) override;
+
+  private Q_SLOTS:
+    void ajourne_valeur_0(int valeur);
+    void ajourne_valeur_1(int valeur);
+    void ajourne_valeur_2(int valeur);
+    void ajourne_valeur_3(int valeur);
+    void bascule_animation();
+
+  private:
+    void ajourne_valeur(int index, int valeur);
+    void montre_echelle(int index) override;
+
+    void ajourne_valeurs_controles();
+};
+
+} /* namespace danjo */

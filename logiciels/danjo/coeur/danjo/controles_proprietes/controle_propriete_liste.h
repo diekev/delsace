@@ -38,41 +38,40 @@ namespace danjo {
 class ConteneurControles;
 
 class ControleProprieteListe final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
+    char pad[3];
 
-	/* entreface */
-	QHBoxLayout *m_agencement{};
-	QLineEdit *m_editeur_texte{};
-	QPushButton *m_bouton_liste{};
-	QMenu *m_liste{};
+    /* entreface */
+    QHBoxLayout *m_agencement{};
+    QLineEdit *m_editeur_texte{};
+    QPushButton *m_bouton_liste{};
+    QMenu *m_liste{};
 
-	/* connexion */
-	ConteneurControles *m_conteneur = nullptr;
-	dls::chaine m_attache = "";
-	dls::chaine *m_pointeur = nullptr;
+    /* connexion */
+    ConteneurControles *m_conteneur = nullptr;
+    dls::chaine m_attache = "";
 
-public:
-	explicit ControleProprieteListe(QWidget *parent = nullptr);
+  public:
+    explicit ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent = nullptr);
 
-	ControleProprieteListe(ControleProprieteListe const &) = default;
-	ControleProprieteListe &operator=(ControleProprieteListe const &) = default;
+    ControleProprieteListe(ControleProprieteListe const &) = default;
+    ControleProprieteListe &operator=(ControleProprieteListe const &) = default;
 
-	~ControleProprieteListe() override = default;
+    ~ControleProprieteListe() override = default;
 
-	void attache(const dls::chaine &attache);
+    void attache(const dls::chaine &attache);
 
-	void conteneur(ConteneurControles *conteneur);
+    void conteneur(ConteneurControles *conteneur);
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void montre_liste();
-	void repond_clique();
-	void texte_modifie();
-	void ajourne_liste();
-	void ajourne_valeur_pointee(const QString &valeur);
+  private Q_SLOTS:
+    void montre_liste();
+    void repond_clique();
+    void texte_modifie();
+    void ajourne_liste();
+    void ajourne_valeur_pointee(const QString &valeur);
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

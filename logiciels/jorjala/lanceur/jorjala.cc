@@ -29,39 +29,78 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFile>
+#include <QTimer>
 #pragma GCC diagnostic pop
 
-#include "coeur/jorjala.hh"
-#include "coeur/sauvegarde.h"
+#include "biblinternes/structures/chaine.hh"
 
 #include "entreface/fenetre_principale.h"
+#include "entreface/gestion_entreface.hh"
+
+#include "coeur/jorjala.hh"
 
 #include <iostream>
 
+/*
+
+  À FAIRE :
+
+  EditriceLigneTemps :
+    m_jorjala.ajourne_pour_nouveau_temps
+
+  VueEditeurNoeud :
+    genere_menu_noeuds_cycles
+
+  Visionneuse2D
+    m_jorjala.usine_operatrices
+    m_jorjala.lcc->fonctions.table.taille
+    m_jorjala.bdd.graphe_composites
+
+  EditriceVue3D
+    jorjala.type_manipulation_3d
+    jorjala.manipulatrice_3d
+    m_jorjala.bdd
+
+  VisionneurScene
+    cree_contexte_evaluation
+    m_jorjala.bdd.rendu
+
+  EditriceProprietes
+    noeud->type
+
+*/
+
 int main(int argc, char *argv[])
 {
-	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("delsace");
-	QCoreApplication::setApplicationName("jorjala");
+    std::optional<JJL::Jorjala> jorjala_initialisé = initialise_jorjala();
+    if (!jorjala_initialisé.has_value()) {
+        return 1;
+    }
 
-	QFile file("styles/main.qss");
+    JJL::Jorjala jorjala = jorjala_initialisé.value();
 
-	if (file.open(QFile::ReadOnly)) {
-		QString style_sheet = QLatin1String(file.readAll());
-		qApp->setStyleSheet(style_sheet);
-	}
+    QApplication a(argc, argv);
+    QCoreApplication::setOrganizationName("delsace");
+    QCoreApplication::setApplicationName("jorjala");
 
-	Jorjala jorjala;
-	jorjala.initialise();
+    QFile file("styles/main.qss");
 
-	FenetrePrincipale w(jorjala);
-	w.setWindowTitle(QCoreApplication::applicationName());
-	w.showMaximized();
+    if (file.open(QFile::ReadOnly)) {
+        QString style_sheet = QLatin1String(file.readAll());
+        qApp->setStyleSheet(style_sheet);
+    }
 
-	if (argc == 2) {
-		auto chemin = argv[1];
-		coeur::ouvre_projet(chemin, jorjala);
-	}
+    FenetrePrincipale w(jorjala);
+    w.setWindowTitle(QCoreApplication::applicationName());
+    w.showMaximized();
 
-	return a.exec();
+    if (argc == 2) {
+        appele_commande(jorjala, "ouvrir_fichier", argv[1]);
+    }
+
+    auto résultat = a.exec();
+
+    issitialise_jorjala(jorjala);
+
+    return résultat;
 }

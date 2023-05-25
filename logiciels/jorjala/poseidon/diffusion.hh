@@ -28,13 +28,12 @@
 
 namespace psn {
 
-void diffuse(
-		wlk::grille_dense_3d<float> &champs,
-		wlk::grille_dense_3d<float> &b,
-		wlk::grille_dense_3d<int> &drapeaux,
-		int iterations,
-		float precision,
-		float diffusion,
-		float dt);
+void diffuse(wlk::grille_dense_3d<float> &champs,
+             wlk::grille_dense_3d<float> &b,
+             wlk::grille_dense_3d<int> &drapeaux,
+             int iterations,
+             float precision,
+             float diffusion,
+             float dt);
 
-}  /* namespace psn */
+} /* namespace psn */

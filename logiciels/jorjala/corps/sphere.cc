@@ -24,12 +24,11 @@
 
 #include "sphere.hh"
 
-Sphere::Sphere(long idx, float r)
-	: idx_point(idx)
-	, rayon(r)
-{}
+Sphere::Sphere(long idx, float r) : idx_point(idx), rayon(r)
+{
+}
 
 type_primitive Sphere::type_prim() const
 {
-	return type_primitive::SPHERE;
+    return type_primitive::SPHERE;
 }

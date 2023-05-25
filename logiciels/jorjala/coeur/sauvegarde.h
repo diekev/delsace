@@ -33,15 +33,15 @@ namespace filesystem = std::filesystem;
 namespace coeur {
 
 enum erreur_fichier {
-	AUCUNE_ERREUR = 0,
-	NON_OUVERT,
-	NON_TROUVE,
-	CORROMPU,
-	INCONNU,
-	GREFFON_MANQUANT,
+    AUCUNE_ERREUR = 0,
+    NON_OUVERT,
+    NON_TROUVE,
+    CORROMPU,
+    INCONNU,
+    GREFFON_MANQUANT,
 };
 
 erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Jorjala const &jorjala);
 void ouvre_projet(filesystem::path const &chemin, Jorjala &jorjala);
 
-}  /* namespace coeur */
+} /* namespace coeur */

@@ -38,27 +38,27 @@
  * http://www.mprazak.info/posts/fuzzy-search-menu-in-qt/
  */
 class MenuFiltrable final : public QMenu {
-	Q_OBJECT
+    Q_OBJECT
 
-	dls::dico<QString, QAction *> m_actions{};
-	QMenu *m_menu_auxiliaire = nullptr;
+    dls::dico<QString, QAction *> m_actions{};
+    QMenu *m_menu_auxiliaire = nullptr;
 
-public:
-	MenuFiltrable(const QString &titre, QWidget *parent = nullptr);
+  public:
+    MenuFiltrable(const QString &titre, QWidget *parent = nullptr);
 
-	MenuFiltrable(MenuFiltrable const &) = default;
-	MenuFiltrable &operator=(MenuFiltrable const &) = default;
+    MenuFiltrable(MenuFiltrable const &) = default;
+    MenuFiltrable &operator=(MenuFiltrable const &) = default;
 
-protected:
-	void showEvent(QShowEvent *event) override;
+  protected:
+    void showEvent(QShowEvent *event) override;
 
-private:
-	/* Initialisation recursive du tableau d'actions depuis un menu et de ses
-	 * sous-menu. */
-	void init(QMenu *menu);
+  private:
+    /* Initialisation recursive du tableau d'actions depuis un menu et de ses
+     * sous-menu. */
+    void init(QMenu *menu);
 
-private Q_SLOTS:
-	void changement_texte(const QString &texte);
+  private Q_SLOTS:
+    void changement_texte(const QString &texte);
 
-	void evalue_predicats_action();
+    void evalue_predicats_action();
 };

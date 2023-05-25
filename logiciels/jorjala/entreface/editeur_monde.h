@@ -35,37 +35,37 @@ class QScrollArea;
 class QGridLayout;
 
 class VueMonde final : public danjo::Manipulable {
-	kdo::Monde *m_monde;
+    kdo::Monde *m_monde;
 
-public:
-	explicit VueMonde(kdo::Monde *monde);
+  public:
+    explicit VueMonde(kdo::Monde *monde);
 
-	VueMonde(VueMonde const &) = default;
-	VueMonde &operator=(VueMonde const &) = default;
+    VueMonde(VueMonde const &) = default;
+    VueMonde &operator=(VueMonde const &) = default;
 
-	void ajourne_donnees();
-	bool ajourne_proprietes() override;
+    void ajourne_donnees();
+    bool ajourne_proprietes() override;
 };
 
 class EditeurMonde final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueMonde *m_vue;
+    VueMonde *m_vue;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QGridLayout *m_glayout;
 
-public:
-	EditeurMonde(kdo::Koudou *koudou, QWidget *parent = nullptr);
+  public:
+    EditeurMonde(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
-	EditeurMonde(EditeurMonde const &) = default;
-	EditeurMonde &operator=(EditeurMonde const &) = default;
+    EditeurMonde(EditeurMonde const &) = default;
+    EditeurMonde &operator=(EditeurMonde const &) = default;
 
-	~EditeurMonde() override;
+    ~EditeurMonde() override;
 
-	void ajourne_etat(int /*evenement*/) override;
+    void ajourne_etat(int /*evenement*/) override;
 
-private Q_SLOTS:
-	void ajourne_monde();
+  private Q_SLOTS:
+    void ajourne_monde();
 };

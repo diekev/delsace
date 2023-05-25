@@ -37,52 +37,52 @@ class QGridLayout;
 /* ************************************************************************** */
 
 class VueMaterial {
-	danjo::Manipulable *m_persona_diffus;
-	danjo::Manipulable *m_persona_angle_vue;
-	danjo::Manipulable *m_persona_reflection;
-	danjo::Manipulable *m_persona_refraction;
-	danjo::Manipulable *m_persona_volume;
-	danjo::Manipulable *m_persona_emission;
+    danjo::Manipulable *m_persona_diffus;
+    danjo::Manipulable *m_persona_angle_vue;
+    danjo::Manipulable *m_persona_reflection;
+    danjo::Manipulable *m_persona_refraction;
+    danjo::Manipulable *m_persona_volume;
+    danjo::Manipulable *m_persona_emission;
 
-	kdo::Nuanceur *m_nuanceur;
+    kdo::Nuanceur *m_nuanceur;
 
-public:
-	explicit VueMaterial(kdo::Nuanceur *nuaceur);
-	~VueMaterial();
+  public:
+    explicit VueMaterial(kdo::Nuanceur *nuaceur);
+    ~VueMaterial();
 
-	/* pour faire taire cppcheck */
-	VueMaterial(VueMaterial const &) = delete;
-	VueMaterial &operator=(VueMaterial const &) = delete;
+    /* pour faire taire cppcheck */
+    VueMaterial(VueMaterial const &) = delete;
+    VueMaterial &operator=(VueMaterial const &) = delete;
 
-	void nuanceur(kdo::Nuanceur *nuanceur);
+    void nuanceur(kdo::Nuanceur *nuanceur);
 
-	void ajourne_donnees();
-	bool ajourne_proprietes();
+    void ajourne_donnees();
+    bool ajourne_proprietes();
 
-	danjo::Manipulable *persona() const;
+    danjo::Manipulable *persona() const;
 };
 
 /* ************************************************************************** */
 
 class EditeurMaterial final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueMaterial *m_vue = nullptr;
+    VueMaterial *m_vue = nullptr;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QGridLayout *m_glayout;
 
-public:
-	EditeurMaterial(kdo::Koudou *koudou, QWidget *parent = nullptr);
+  public:
+    EditeurMaterial(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
-	EditeurMaterial(EditeurMaterial const &) = default;
-	EditeurMaterial &operator=(EditeurMaterial const &) = default;
+    EditeurMaterial(EditeurMaterial const &) = default;
+    EditeurMaterial &operator=(EditeurMaterial const &) = default;
 
-	~EditeurMaterial() override;
+    ~EditeurMaterial() override;
 
-	void ajourne_etat(int /*evenement*/) override;
+    void ajourne_etat(int /*evenement*/) override;
 
-private Q_SLOTS:
-	void ajourne_material();
+  private Q_SLOTS:
+    void ajourne_material();
 };

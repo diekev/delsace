@@ -35,23 +35,21 @@ namespace danjo {
 class ControleCouleur;
 
 class ControleProprieteCouleur final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	char pad[3];
-	QHBoxLayout *m_agencement{};
-	ControleCouleur *m_controle_couleur{};
+    char pad[3];
+    QHBoxLayout *m_agencement{};
+    ControleCouleur *m_controle_couleur{};
 
-public:
-	explicit ControleProprieteCouleur(QWidget *parent = nullptr);
-	~ControleProprieteCouleur() override = default;
+  public:
+    explicit ControleProprieteCouleur(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteCouleur() override = default;
 
-	ControleProprieteCouleur(ControleProprieteCouleur const &) = default;
-	ControleProprieteCouleur &operator=(ControleProprieteCouleur const &) = default;
+    ControleProprieteCouleur(ControleProprieteCouleur const &) = default;
+    ControleProprieteCouleur &operator=(ControleProprieteCouleur const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
-
-private Q_SLOTS:
-	void ajourne_couleur();
+  private Q_SLOTS:
+    void ajourne_couleur();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

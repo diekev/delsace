@@ -27,8 +27,8 @@
 #include <cassert>
 
 #include <QApplication>
-#include <QLineEdit>
 #include <QKeyEvent>
+#include <QLineEdit>
 #include <QWidgetAction>
 
 #include "action.h"
@@ -37,28 +37,28 @@
 
 static bool correspondance_floue(const QString &entree, const QString &texte)
 {
-	/* Une entrée vide correspond à tous les textes. */
-	if (entree.isEmpty()) {
-		return true;
-	}
+    /* Une entrée vide correspond à tous les textes. */
+    if (entree.isEmpty()) {
+        return true;
+    }
 
-	/* Compte de caractères correspondants. */
-	auto compte = 0;
+    /* Compte de caractères correspondants. */
+    auto compte = 0;
 
-	for (const auto &c : texte) {
-		/* Essaye de correspondre un caractère simple depuis l'entrée. */
-		if (c == entree[compte]) {
-			++compte;
-		}
+    for (const auto &c : texte) {
+        /* Essaye de correspondre un caractère simple depuis l'entrée. */
+        if (c == entree[compte]) {
+            ++compte;
+        }
 
-		/* Si tous les caractères de l'entrée sont trouvés, retourne vrai. */
-		if (compte == entree.size()) {
-			return true;
-		}
-	}
+        /* Si tous les caractères de l'entrée sont trouvés, retourne vrai. */
+        if (compte == entree.size()) {
+            return true;
+        }
+    }
 
-	/* Tous les caractères de l'entrée n'ont pas été correspondus, retourne faux. */
-	return false;
+    /* Tous les caractères de l'entrée n'ont pas été correspondus, retourne faux. */
+    return false;
 }
 
 /* ************************************************************************** */
@@ -71,169 +71,166 @@ static bool correspondance_floue(const QString &entree, const QString &texte)
  * l'action à rechercher.
  */
 class FiltreEditeurMenu final : public QObject {
-	QWidget *m_cible;
+    QWidget *m_cible;
 
-public:
-	explicit FiltreEditeurMenu(QWidget *cible)
-		: QObject(cible)
-		, m_cible(cible)
-	{}
+  public:
+    explicit FiltreEditeurMenu(QWidget *cible) : QObject(cible), m_cible(cible)
+    {
+    }
 
-	FiltreEditeurMenu(FiltreEditeurMenu const &) = default;
-	FiltreEditeurMenu &operator=(FiltreEditeurMenu const &) = default;
+    FiltreEditeurMenu(FiltreEditeurMenu const &) = default;
+    FiltreEditeurMenu &operator=(FiltreEditeurMenu const &) = default;
 
-protected:
-	bool eventFilter(QObject *watched, QEvent *event) override
-	{
-		bool acceptee = false;
+  protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        bool acceptee = false;
 
-		if (event->type() == QEvent::KeyPress) {
-			auto evenement_cle = static_cast<QKeyEvent *>(event);
+        if (event->type() == QEvent::KeyPress) {
+            auto evenement_cle = static_cast<QKeyEvent *>(event);
 
-			if(
-					// moving in the child menu
-					evenement_cle->key() != Qt::Key_Down && evenement_cle->key() != Qt::Key_Up &&
-					// activation of selected item
-					evenement_cle->key() != Qt::Key_Enter && evenement_cle->key() != Qt::Key_Return &&
-					// first close this menu, then parent
-					evenement_cle->key() != Qt::Key_Escape) {
+            if (
+                // moving in the child menu
+                evenement_cle->key() != Qt::Key_Down && evenement_cle->key() != Qt::Key_Up &&
+                // activation of selected item
+                evenement_cle->key() != Qt::Key_Enter && evenement_cle->key() != Qt::Key_Return &&
+                // first close this menu, then parent
+                evenement_cle->key() != Qt::Key_Escape) {
 
-				QApplication::sendEvent(m_cible, evenement_cle);
+                QApplication::sendEvent(m_cible, evenement_cle);
 
-				acceptee = true;
-			}
-		}
+                acceptee = true;
+            }
+        }
 
-		// standard event processing
-		if (!acceptee) {
-			return QObject::eventFilter(watched, event);
-		}
+        // standard event processing
+        if (!acceptee) {
+            return QObject::eventFilter(watched, event);
+        }
 
-		return true;
-	}
+        return true;
+    }
 };
 
 /* ************************************************************************** */
 
-MenuFiltrable::MenuFiltrable(const QString &titre, QWidget *parent)
-	: QMenu(titre, parent)
+MenuFiltrable::MenuFiltrable(const QString &titre, QWidget *parent) : QMenu(titre, parent)
 {
-	connect(this, &MenuFiltrable::aboutToShow, this, &MenuFiltrable::evalue_predicats_action);
+    connect(this, &MenuFiltrable::aboutToShow, this, &MenuFiltrable::evalue_predicats_action);
 }
 
 void MenuFiltrable::init(QMenu *menu)
 {
-	const auto &acts = menu->actions();
+    const auto &acts = menu->actions();
 
-	for (const auto &act : acts) {
-		/* Évite l'éditeur de ligne. */
-		if (dynamic_cast<QWidgetAction *>(act) != nullptr) {
-			continue;
-		}
+    for (const auto &act : acts) {
+        /* Évite l'éditeur de ligne. */
+        if (dynamic_cast<QWidgetAction *>(act) != nullptr) {
+            continue;
+        }
 
-		/* Initialisation récursive. */
-		if (act->menu()) {
-			init(act->menu());
-		}
-		else {
-			m_actions.insere(std::make_pair(act->text(), act));
-		}
-	}
+        /* Initialisation récursive. */
+        if (act->menu()) {
+            init(act->menu());
+        }
+        else {
+            m_actions.insere(std::make_pair(act->text(), act));
+        }
+    }
 }
 
 void MenuFiltrable::changement_texte(const QString &texte)
 {
-	assert(m_menu_auxiliaire);
-	m_menu_auxiliaire->hide();
-	m_menu_auxiliaire->clear();
+    assert(m_menu_auxiliaire);
+    m_menu_auxiliaire->hide();
+    m_menu_auxiliaire->clear();
 
-	assert(actions().size() > 0);
-	auto wa = dynamic_cast<QWidgetAction *>(actions()[0]);
-	assert(wa != nullptr);
+    assert(actions().size() > 0);
+    auto wa = dynamic_cast<QWidgetAction *>(actions()[0]);
+    assert(wa != nullptr);
 
-	auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
-	assert(editeur_ligne != nullptr);
+    auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
+    assert(editeur_ligne != nullptr);
 
-	for (const auto &a : m_actions) {
-		if (correspondance_floue(texte, a.first)) {
-			auto act = m_menu_auxiliaire->addAction(a.first);
-			connect(act, &QAction::triggered, [a, this]()
-			{
-				a.second->triggered();
-				m_menu_auxiliaire->close();
-				close();
-			});
+    for (const auto &a : m_actions) {
+        if (correspondance_floue(texte, a.first)) {
+            auto act = m_menu_auxiliaire->addAction(a.first);
+            connect(act, &QAction::triggered, [a, this]() {
+                a.second->triggered();
+                m_menu_auxiliaire->close();
+                close();
+            });
 
-			if (m_menu_auxiliaire->actions().size() == 1) {
-				m_menu_auxiliaire->setActiveAction(act);
-			}
-		}
-	}
+            if (m_menu_auxiliaire->actions().size() == 1) {
+                m_menu_auxiliaire->setActiveAction(act);
+            }
+        }
+    }
 
-	if (!texte.isEmpty() && !m_menu_auxiliaire->actions().empty()) {
-		auto pos = editeur_ligne->mapToGlobal(editeur_ligne->pos());
-		pos.setX(pos.x() + editeur_ligne->width());
+    if (!texte.isEmpty() && !m_menu_auxiliaire->actions().empty()) {
+        auto pos = editeur_ligne->mapToGlobal(editeur_ligne->pos());
+        pos.setX(pos.x() + editeur_ligne->width());
 
-		m_menu_auxiliaire->popup(pos);
-	}
+        m_menu_auxiliaire->popup(pos);
+    }
 
-	editeur_ligne->setFocus();
+    editeur_ligne->setFocus();
 }
 
 void MenuFiltrable::evalue_predicats_action()
 {
-	for (auto action : actions()) {
-		auto action_dnj = dynamic_cast<danjo::Action *>(action);
+    for (auto action : actions()) {
+        auto action_dnj = dynamic_cast<danjo::Action *>(action);
 
-		if (action_dnj == nullptr) {
-			continue;
-		}
+        if (action_dnj == nullptr) {
+            continue;
+        }
 
-		action_dnj->evalue_predicat();
-	}
+        action_dnj->evalue_predicat();
+    }
 }
 
 void MenuFiltrable::showEvent(QShowEvent *event)
 {
-	if (this->actions().size() > 0) {
-		/* Obtiens le QWidgetAction, en présumant qu'il n'y en a qu'un. */
-		QWidgetAction *wa = nullptr;
-		{
-			auto action = actions()[0];
-			wa = dynamic_cast<QWidgetAction *>(actions()[0]);
+    if (this->actions().size() > 0) {
+        /* Obtiens le QWidgetAction, en présumant qu'il n'y en a qu'un. */
+        QWidgetAction *wa = nullptr;
+        {
+            auto action = actions()[0];
+            wa = dynamic_cast<QWidgetAction *>(actions()[0]);
 
-			if (wa == nullptr) {
-				wa = new QWidgetAction(this);
-				wa->setDefaultWidget(new QLineEdit());
+            if (wa == nullptr) {
+                wa = new QWidgetAction(this);
+                wa->setDefaultWidget(new QLineEdit());
 
-				insertAction(action, wa);
-			}
-		}
-		assert(wa != nullptr);
+                insertAction(action, wa);
+            }
+        }
+        assert(wa != nullptr);
 
-		/* Obtiens le QLineEdit depuis wa. */
-		auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
-		assert(editeur_ligne != nullptr);
+        /* Obtiens le QLineEdit depuis wa. */
+        auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
+        assert(editeur_ligne != nullptr);
 
-		connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuFiltrable::changement_texte);
+        connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuFiltrable::changement_texte);
 
-		/* Prépare l'éditeur de texte et capture le focus pour écouter les
-			 * frappes de clavier. */
-		editeur_ligne->clear();
-		editeur_ligne->setFocus();
+        /* Prépare l'éditeur de texte et capture le focus pour écouter les
+         * frappes de clavier. */
+        editeur_ligne->clear();
+        editeur_ligne->setFocus();
 
-		/* Initialisation recursive des actions. */
-		m_actions.efface();
-		init(this);
+        /* Initialisation recursive des actions. */
+        m_actions.efface();
+        init(this);
 
-		/* Initialisation du menu des items correspondantes. */
-		if (m_menu_auxiliaire == nullptr) {
-			m_menu_auxiliaire = new QMenu("", this);
-			m_menu_auxiliaire->installEventFilter(new FiltreEditeurMenu(editeur_ligne));
-		}
+        /* Initialisation du menu des items correspondantes. */
+        if (m_menu_auxiliaire == nullptr) {
+            m_menu_auxiliaire = new QMenu("", this);
+            m_menu_auxiliaire->installEventFilter(new FiltreEditeurMenu(editeur_ligne));
+        }
 
-		m_menu_auxiliaire->hide();
-	}
+        m_menu_auxiliaire->hide();
+    }
 
-	QMenu::showEvent(event);
+    QMenu::showEvent(event);
 }

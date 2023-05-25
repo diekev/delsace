@@ -31,22 +31,21 @@ struct Koudou;
 }
 
 class MoteurRenduKoudou final : public MoteurRendu {
-	kdo::Koudou *m_koudou = nullptr;
+    kdo::Koudou *m_koudou = nullptr;
 
-public:
-	MoteurRenduKoudou();
+  public:
+    MoteurRenduKoudou();
 
-	~MoteurRenduKoudou() override;
+    ~MoteurRenduKoudou() override;
 
-	MoteurRenduKoudou(MoteurRenduKoudou const &) = default;
-	MoteurRenduKoudou &operator=(MoteurRenduKoudou const &) = default;
+    MoteurRenduKoudou(MoteurRenduKoudou const &) = default;
+    MoteurRenduKoudou &operator=(MoteurRenduKoudou const &) = default;
 
-	const char *id() const override;
+    const char *id() const override;
 
-	void calcule_rendu(
-			StatistiquesRendu &stats,
-			float *tampon,
-			int hauteur,
-			int largeur,
-			bool rendu_final) override;
+    void calcule_rendu(StatistiquesRendu &stats,
+                       float *tampon,
+                       int hauteur,
+                       int largeur,
+                       bool rendu_final) override;
 };

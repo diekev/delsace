@@ -92,8 +92,9 @@ set(ENTETES
 	conteneur_controles.h
 	erreur.h
 	danjo.h
+        fournisseuse_icones.hh
 	manipulable.h
-	repondant_bouton.h
+        repondant_bouton.h
 )
 
 set(SOURCES
@@ -112,6 +113,7 @@ set(SOURCES
 	controles/controle_teinte_couleur.cc
 	controles/menu_filtrable.cc
 
+        controles_proprietes/commun.cc
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
 	controles_proprietes/controle_propriete_chaine.cc
@@ -150,6 +152,7 @@ set(SOURCES
 	dialogue.cc
 	erreur.cc
 	danjo.cc
+        fournisseuse_icones.cc
 	manipulable.cc
 	repondant_bouton.cc
 
@@ -168,6 +171,7 @@ set(SOURCES
 	controles/controle_teinte_couleur.h
 	controles/menu_filtrable.hh
 
+        controles_proprietes/commun.hh
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
 	controles_proprietes/controle_propriete_chaine.h

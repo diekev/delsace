@@ -5,9 +5,14 @@ CheminFichier :: struct {
     chn : chaine
 }
 
+copie_chemin :: fonc (chm: CheminFichier) -> CheminFichier
+{
+    retourne CheminFichier(copie_chaine(chm.chn))
+}
+
 new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
 {
-    chm.chn = copie_chaine(chn)
+    mémoire(chm) = copie_chemin(mémoire(chm))
     retourne vrai
 } @Python "new"
 
