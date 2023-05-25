@@ -554,8 +554,10 @@ struct TypeTuple : public TypeCompose {
 
 /* ************************************************************************** */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
     inline TypeRafine *Type::comme_##nom()                                                        \
     {                                                                                             \
@@ -573,7 +575,9 @@ struct TypeTuple : public TypeCompose {
 ENUMERE_TYPE(__DEFINIS_COMME_TYPE)
 
 #undef __DEFINIS_COMME_TYPE
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 inline TypeCompose *Type::comme_compose()
 {
