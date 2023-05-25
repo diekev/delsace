@@ -29,6 +29,20 @@ static kuri::chaine chaine_echappee(kuri::chaine_statique chn)
     return enchaineuse.chaine();
 }
 
+#ifndef _MSC_VER
+/* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
+static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base)
+{
+    for (int i = 0; i < nom_base.taille(); i++) {
+        if (nom_base.pointeur()[i] == '/') {
+            return "";
+        }
+    }
+
+    return "lib";
+}
+#endif
+
 kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base)
 {
 #ifdef _MSC_VER
@@ -48,8 +62,8 @@ kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base)
 #ifdef _MSC_VER
     return enchaine(nom_base, ".dll");
 #else
-    /* Pour Linux, nous préfixons avec "lib". */
-    return enchaine("lib", nom_base, ".so");
+    auto préfixe = préfixe_lib_pour_linux(nom_base);
+    return enchaine(préfixe, nom_base, ".so");
 #endif
 }
 
@@ -63,8 +77,8 @@ kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base)
 #ifdef _MSC_VER
     return enchaine(nom_base, ".lib");
 #else
-    /* Pour Linux, nous préfixons avec "lib". */
-    return enchaine("lib", nom_base, ".a");
+    auto préfixe = préfixe_lib_pour_linux(nom_base);
+    return enchaine(préfixe, nom_base, ".a");
 #endif
 }
 
@@ -437,6 +451,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     }
 
     /* Objet pour la liaison statique de la bibliothèque. */
+
     const auto fichier_objet = nom_bibliothèque_dynamique_pour("r16");
     const auto chemin_objet = chemin_de_base_pour_bibliothèque_r16(ArchitectureCible::X64) /
                               fichier_objet;
