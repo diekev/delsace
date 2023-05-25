@@ -293,7 +293,7 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
 
 #ifdef _MSC_VER
     /* NOTE : le nom de sortie doit être collé à "/Fo" */
-    enchaineuse << fichier_entrée << " /Fo" << fichier_sortie;
+    enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << fichier_sortie;
 #else
     enchaineuse << fichier_entrée << " -o " << fichier_sortie;
 #endif
@@ -304,17 +304,31 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     return enchaineuse.chaine();
 }
 
+static kuri::chaine_statique donne_compilateur_c()
+{
+#ifdef _MSC_VER
+    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
+    return "cl";
+#else
+    return COMPILATEUR_C_COULISSE_C;
+#endif
+}
+
+static kuri::chaine_statique donne_compilateur_cpp()
+{
+#ifdef _MSC_VER
+    // return chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
+    return "cl";
+#else
+    return COMPILATEUR_CXX_COULISSE_C;
+#endif
+}
+
 kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
                                          kuri::chaine_statique fichier_sortie)
 {
-#ifdef _MSC_VER
-    // kuri::chaine_statique compilateur = chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
-    kuri::chaine_statique compilateur = "cl";
-#else
-    kuri::chaine_statique compilateur = COMPILATEUR_C_COULISSE_C;
-#endif
-    return commande_pour_fichier_objet_impl(options, compilateur, fichier_entrée, fichier_sortie);
+    return commande_pour_fichier_objet_impl(options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
 }
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
@@ -324,14 +338,14 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     auto options_compilateur = options_pour_liaison(options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << COMPILATEUR_CXX_COULISSE_C << " ";
+    enchaineuse << donne_compilateur_cpp() << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
     }
 
     POUR (fichiers_entrée) {
-        enchaineuse << it << " ";
+    enchaineuse << '"' << it << "\" ";
     }
 
     /* Ajoute le fichier objet pour les r16. */
@@ -394,7 +408,7 @@ static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &
                                                     kuri::chaine_statique nom_sortie)
 {
     return commande_pour_fichier_objet_impl(
-        options, COMPILATEUR_CXX_COULISSE_C, nom_entree, nom_sortie);
+        options, donne_compilateur_cpp(), nom_entree, nom_sortie);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
@@ -404,11 +418,10 @@ static kuri::chaine commande_pour_bibliotheque_dynamique(kuri::chaine_statique n
                                                          ArchitectureCible architecture_cible)
 {
     Enchaineuse enchaineuse;
-    //  enchaineuse << chaine_echappee(COMPILATEUR_CXX_COULISSE_C);
-    enchaineuse << "cl";
+    enchaineuse << donne_compilateur_cpp();
 
 #ifdef _MSC_VER
-    enchaineuse << " /D_USRDLL /D_WINDLL " << nom_entree << " /link /DLL /OUT:" << nom_sortie;
+    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entree << "\"" << " /link /DLL /OUT:" << nom_sortie;
 #else
     enchaineuse << " -shared -fPIC ";
 
