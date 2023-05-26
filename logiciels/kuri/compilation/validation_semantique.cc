@@ -4929,7 +4929,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
     auto type_de_donnees = type2->comme_type_de_donnees();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
 
-    auto taille_tableau = 0l;
+    auto taille_tableau = int64_t(0);
 
     if (expression_taille) {
         auto res = evalue_expression(
