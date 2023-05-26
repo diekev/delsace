@@ -193,6 +193,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
         }
         m_noeud.définit_param_vec3(m_param, convertis_vecteur(valeur));
     }
+    void définit_valeur_vec3(dls::math::vec3i /*valeur*/) override
+    {
+        // À FAIRE
+    }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
         m_noeud.définit_param_couleur(m_param, convertis_couleur(valeur));
@@ -217,10 +221,15 @@ class EnveloppeParametre : public danjo::BasePropriete {
         // À FAIRE
         return {-10000, 10000};
     }
-    danjo::plage_valeur<float> plage_valeur_vecteur() const override
+    danjo::plage_valeur<float> plage_valeur_vecteur_décimal() const override
     {
         // À FAIRE
         return {-1000.0f, 1000.0f};
+    }
+    danjo::plage_valeur<int> plage_valeur_vecteur_entier() const override
+    {
+        // À FAIRE
+        return {-10000, 10000};
     }
     danjo::plage_valeur<float> plage_valeur_couleur() const override
     {
@@ -238,6 +247,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
         // À FAIRE
     }
     void ajoute_cle(const dls::math::vec3f &v, int temps) override
+    {
+        // À FAIRE
+    }
+    void ajoute_cle(const dls::math::vec3i &v, int temps) override
     {
         // À FAIRE
     }

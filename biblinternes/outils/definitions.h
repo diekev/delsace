@@ -47,7 +47,7 @@
 #define PROBABLE(x) (__builtin_expect((x), 1))
 #define IMPROBABLE(x) (__builtin_expect((x), 0))
 
-#ifdef __clang__
+#if defined(__clang__) || defined(__GNUC__)
 #    define REMBOURRE(x) \
         _Pragma("clang diagnostic push") \
         _Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \
