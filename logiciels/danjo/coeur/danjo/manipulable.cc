@@ -161,6 +161,10 @@ void Propriete::définit_valeur_vec3(dls::math::vec3f valeur_)
 {
     valeur = valeur_;
 }
+void Propriete::définit_valeur_vec3(dls::math::vec3i valeur_)
+{
+    valeur = valeur_;
+}
 void Propriete::définit_valeur_couleur(dls::phys::couleur32 valeur_)
 {
     valeur = valeur_;
@@ -184,9 +188,13 @@ plage_valeur<int> Propriete::plage_valeur_entier() const
 {
     return {valeur_min.i, valeur_max.i};
 }
-plage_valeur<float> Propriete::plage_valeur_vecteur() const
+plage_valeur<float> Propriete::plage_valeur_vecteur_décimal() const
 {
     return {valeur_min.f, valeur_max.f};
+}
+plage_valeur<int> Propriete::plage_valeur_vecteur_entier() const
+{
+    return {valeur_min.i, valeur_max.i};
 }
 plage_valeur<float> Propriete::plage_valeur_couleur() const
 {
@@ -209,6 +217,12 @@ void Propriete::ajoute_cle(const float v, int temps)
 void Propriete::ajoute_cle(const dls::math::vec3f &v, int temps)
 {
     assert(type() == TypePropriete::VECTEUR_DECIMAL);
+    ajoute_cle_impl(std::any(v), temps);
+}
+
+void Propriete::ajoute_cle(const dls::math::vec3i &v, int temps)
+{
+    assert(type() == TypePropriete::VECTEUR_ENTIER);
     ajoute_cle_impl(std::any(v), temps);
 }
 
