@@ -122,7 +122,7 @@ ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *
     CONNECT_VALEUR_CHANGEE(0, ajourne_valeur_0);
     CONNECT_VALEUR_CHANGEE(1, ajourne_valeur_1);
     CONNECT_VALEUR_CHANGEE(2, ajourne_valeur_2);
-    CONNECT_VALEUR_CHANGEE(2, ajourne_valeur_3);
+    CONNECT_VALEUR_CHANGEE(3, ajourne_valeur_3);
 
 #undef CONNECT_VALEUR_CHANGEE
 
@@ -154,7 +154,7 @@ ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *
     CONNECT_MONTRE_ECHELLE(0, montre_echelle_0);
     CONNECT_MONTRE_ECHELLE(1, montre_echelle_1);
     CONNECT_MONTRE_ECHELLE(2, montre_echelle_2);
-    CONNECT_MONTRE_ECHELLE(2, montre_echelle_3);
+    CONNECT_MONTRE_ECHELLE(3, montre_echelle_3);
 
 #undef CONNECT_MONTRE_ECHELLE
 
@@ -195,8 +195,6 @@ void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
     }
 
     ajourne_valeurs_controles();
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteVecteurDecimal::bascule_animation()
@@ -313,7 +311,7 @@ ControleProprieteVecteurEntier::ControleProprieteVecteurEntier(BasePropriete *p,
     CONNECT_VALEUR_CHANGEE(0, ajourne_valeur_0);
     CONNECT_VALEUR_CHANGEE(1, ajourne_valeur_1);
     CONNECT_VALEUR_CHANGEE(2, ajourne_valeur_2);
-    CONNECT_VALEUR_CHANGEE(2, ajourne_valeur_3);
+    CONNECT_VALEUR_CHANGEE(3, ajourne_valeur_3);
 
 #undef CONNECT_VALEUR_CHANGEE
 
@@ -345,7 +343,7 @@ ControleProprieteVecteurEntier::ControleProprieteVecteurEntier(BasePropriete *p,
     CONNECT_MONTRE_ECHELLE(0, montre_echelle_0);
     CONNECT_MONTRE_ECHELLE(1, montre_echelle_1);
     CONNECT_MONTRE_ECHELLE(2, montre_echelle_2);
-    CONNECT_MONTRE_ECHELLE(2, montre_echelle_3);
+    CONNECT_MONTRE_ECHELLE(3, montre_echelle_3);
 
 #undef CONNECT_MONTRE_ECHELLE
 
@@ -386,8 +384,6 @@ void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
     }
 
     ajourne_valeurs_controles();
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteVecteurEntier::bascule_animation()
