@@ -164,7 +164,7 @@ active_dependances(AVEC_SILVATHEQUE AVEC_DANJO)
 #active_dependances(AVEC_JORJALA REQUIERS_TBB)
 
 active_dependances(AVEC_KANBA REQUIERS_OPENGL)
-#active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
+active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 
