@@ -104,17 +104,17 @@ private:
 	const double bxsq;
 	/** This sets the current value being used to mark tested blocks
 		 * in the mask. */
-	unsigned int mv;
+	uint32_t mv;
 	/** The current size of the search list. */
 	int qu_size;
 	/** A pointer to the array of worklists. */
-	const unsigned int *wl;
+	const uint32_t *wl;
 	/** An pointer to the array holding the minimum distances
 		 * associated with the worklists. */
 	double *mrad;
 	/** This array is used during the cell computation to determine
 		 * which blocks have been considered. */
-	unsigned int *mask;
+	uint32_t *mask;
 	/** An array is used to store the queue of blocks to test
 		 * during the Voronoi cell computation. */
 	int *qu;
@@ -138,13 +138,13 @@ private:
 	bool compute_min_max_radius(int di,int dj,int dk,double fx,double fy,double fz,double gx,double gy,double gz,double& crs,double mrs);
 	bool compute_min_radius(int di,int dj,int dk,double fx,double fy,double fz,double mrs);
 	inline void add_to_mask(int ei,int ej,int ek,int *&qu_e);
-	inline void scan_bits_mask_add(unsigned int q,unsigned int *mijk,int ei,int ej,int ek,int *&qu_e);
+	inline void scan_bits_mask_add(uint32_t q,uint32_t *mijk,int ei,int ej,int ek,int *&qu_e);
 	inline void scan_all(int ijk,double x,double y,double z,int di,int dj,int dk,particle_record &w,double &mrs);
 	void add_list_memory(int*& qu_s,int*& qu_e);
 	/** Resets the mask in cases where the mask counter wraps
 		 * around. */
 	inline void reset_mask() {
-		for(unsigned int *mp(mask);mp<mask+hxyz;mp++) *mp=0;
+		for(uint32_t *mp(mask);mp<mask+hxyz;mp++) *mp=0;
 	}
 };
 

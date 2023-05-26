@@ -38,18 +38,18 @@ class Enriched_vertex_base : public Vb {
 
   private:
     /*! \brief An Id for the vertex*/
-    unsigned long m_Label;
+    uint64_t m_Label;
 
   public:
     /*! \brief Accessor
      * \param Label : The value to assign*/
-    void set_Label(unsigned long Label)
+    void set_Label(uint64_t Label)
     {
         m_Label = Label;
     }
     /*! \brief Accessor
      * \return The Label of the vertex*/
-    unsigned long get_Label()
+    uint64_t get_Label()
     {
         return m_Label;
     }
@@ -307,11 +307,11 @@ class Triangulation {
      * \param Label : The label of the point
      * \return The Vertex_handle of the point added
      */
-    Vertex_handle_tri add_new_pt(Point_3 p, unsigned long &Label)  // MT: suppression r�f�rence
+    Vertex_handle_tri add_new_pt(Point_3 p, uint64_t &Label)  // MT: suppression r�f�rence
     {
         // if the point is not a new one, we verify that the point has not already been added
         if (Label != 0xFFFFFFFF)
-            for (unsigned int i = 0; i != pts_point.size(); ++i)
+            for (uint32_t i = 0; i != pts_point.size(); ++i)
                 if (Label == pts_point[i])
                     // if the point is already in the triangulation, we return its handle
                     return pts_vertex[i];
@@ -330,7 +330,7 @@ class Triangulation {
      * \param Label1 : The label of the first point
      * \param Label2 : The label of the second point
      */
-    void add_segment(Point_3 &p1, Point_3 &p2, unsigned long &Label1, unsigned long &Label2)
+    void add_segment(Point_3 &p1, Point_3 &p2, uint64_t &Label1, uint64_t &Label2)
     {
         // we add the two points in the triangulation and store their handles in c1 and c2
         c1 = add_new_pt(p1, Label1);
@@ -349,13 +349,13 @@ class Triangulation {
      * \return The list of the triangles belonging to the result.
      * each triangle is defined by a list of three labels
      */
-    std::vector<std::vector<unsigned long>> get_triangles(bool inv_triangles, bool *IsExt)
+    std::vector<std::vector<uint64_t>> get_triangles(bool inv_triangles, bool *IsExt)
     {
         // init
         IsExt[0] = false;
         IsExt[1] = false;
         IsExt[2] = false;
-        std::vector<std::vector<unsigned long>> tris;
+        std::vector<std::vector<uint64_t>> tris;
         for (Face_iterator_tri fi = ct.faces_begin(); fi != ct.faces_end(); fi++)
             fi->set_OK(false);
 
@@ -398,7 +398,7 @@ class Triangulation {
             sfh.pop();
 
             if (f->get_Ext()) {
-                std::vector<unsigned long> tri;
+                std::vector<uint64_t> tri;
                 int i;
                 tri.push_back(f->vertex(0)->get_Label());
 
@@ -441,11 +441,11 @@ class Triangulation {
      * \return The list of the triangles belonging to the result.
      * each triangle is defined by a list of three labels
      */
-    std::vector<std::vector<unsigned long>> get_all_triangles(bool inv_triangles)
+    std::vector<std::vector<uint64_t>> get_all_triangles(bool inv_triangles)
     {
-        std::vector<std::vector<unsigned long>> tris;
+        std::vector<std::vector<uint64_t>> tris;
         for (Face_iterator_tri f = ct.faces_begin(); f != ct.faces_end(); f++) {
-            std::vector<unsigned long> tri;
+            std::vector<uint64_t> tri;
             tri.push_back(f->vertex(0)->get_Label());
             if (inv_triangles) {
                 tri.push_back(f->vertex(2)->get_Label());

@@ -25,9 +25,9 @@
 
 /* ************************************************************************** */
 
-long GestionnaireChainesAjoutees::ajoute(kuri::chaine chaine)
+int64_t GestionnaireChainesAjoutees::ajoute(kuri::chaine chaine)
 {
-    long decalage = nombre_total_de_lignes;
+    int64_t decalage = nombre_total_de_lignes;
 
     POUR (chaine) {
         nombre_total_de_lignes += (it == '\n');
@@ -226,7 +226,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
 
 /* ************************************************************************** */
 
-long Compilatrice::memoire_utilisee() const
+int64_t Compilatrice::memoire_utilisee() const
 {
     auto memoire = taille_de(Compilatrice);
 
@@ -562,12 +562,12 @@ Fichier *Compilatrice::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogra
     return resultat;
 }
 
-const Fichier *Compilatrice::fichier(long index) const
+const Fichier *Compilatrice::fichier(int64_t index) const
 {
     return sys_module->fichier(index);
 }
 
-Fichier *Compilatrice::fichier(long index)
+Fichier *Compilatrice::fichier(int64_t index)
 {
     return sys_module->fichier(index);
 }

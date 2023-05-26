@@ -622,7 +622,7 @@ struct Trie {
 
         Noeud *trouve_noeud_pour_type(Type const *type);
 
-        long taille() const;
+        int64_t taille() const;
 
         void ajoute(Noeud *noeud);
     };
@@ -789,7 +789,7 @@ struct Typeuse {
 
     inline Type *operator[](TypeBase type_base) const
     {
-        return types_communs[static_cast<long>(type_base)];
+        return types_communs[static_cast<int64_t>(type_base)];
     }
 
     void rassemble_statistiques(Statistiques &stats) const;

@@ -28,7 +28,7 @@ struct CanalPourChampsDeDistance {
     IMG_ParametresChampsDeDistance params;
 };
 
-inline long calcule_index(CanalPourChampsDeDistance &image, int i, int j)
+inline int64_t calcule_index(CanalPourChampsDeDistance &image, int i, int j)
 {
     return j * image.largeur + i;
 }
@@ -493,7 +493,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 
     auto h = std::min(1.0f / static_cast<float>(res_x), 1.0f / static_cast<float>(res_y));
 
-    const long nombre_de_pixels = long(res_x) * long(res_y);
+    const int64_t nombre_de_pixels = int64_t(res_x) * int64_t(res_y);
 
     float *donnees_sortie = image.donnees_sortie[0];
     const auto sx = image.largeur;
@@ -599,7 +599,7 @@ auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree, AdaptriceImage
         auto const calque_entree = entree.calque_pour_index(&entree, i);
 
         char *ptr_nom;
-        long taille_nom;
+        int64_t taille_nom;
         entree.nom_calque(&entree, calque_entree, &ptr_nom, &taille_nom);
 
         auto calque_sortie = sortie.cree_calque(&sortie, ptr_nom, taille_nom);

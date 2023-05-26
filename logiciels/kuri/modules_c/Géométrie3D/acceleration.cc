@@ -557,7 +557,7 @@ HierarchieBoiteEnglobante *cree_hierarchie_boite_englobante(const Maillage &mail
         maillage.indexPointsSommetsPolygone(i, temp_access_index_sommet.donnees());
 
         cos.redimensionne(nombre_de_sommets);
-        for (long j = 0; j < nombre_de_sommets; j++) {
+        for (int64_t j = 0; j < nombre_de_sommets; j++) {
             cos[j] = maillage.pointPourIndex(temp_access_index_sommet[j]);
         }
 
@@ -624,7 +624,7 @@ static void ajoute_boites_pour_limites(Maillage &maillage, const kuri::tableau<f
             maillage.ajouteUnPoint(sommet.x, sommet.y, sommet.z);
         }
 
-        for (long i = 0; i < 6; ++i) {
+        for (int64_t i = 0; i < 6; ++i) {
             int polygone[4];
 
             for (int j = 0; j < 4; j++) {

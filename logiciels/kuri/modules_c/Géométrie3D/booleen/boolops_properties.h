@@ -21,22 +21,22 @@
  * \typedef VertexId
  * \brief Vertex Id
  */
-typedef unsigned long   VertexId;
+typedef uint64_t   VertexId;
 
 /*!
  * \typedef HalfedgeId
  * \brief Halfedge Id
  */
-typedef unsigned long   HalfedgeId;
+typedef uint64_t   HalfedgeId;
 
 /*!
  * \typedef FacetId
  * \brief Facet Id
  */
-typedef unsigned long   FacetId;
+typedef uint64_t   FacetId;
 
 /*!
  * \typedef InterId
  * \brief Intersection Id
  */
-typedef unsigned long   InterId;
+typedef uint64_t   InterId;

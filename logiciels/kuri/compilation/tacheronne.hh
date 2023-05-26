@@ -34,7 +34,7 @@ enum class DrapeauxTacheronne : uint32_t {
         PEUT_TOUT_FAIRE = 0xfffffff,
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, unsigned int)
+DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, uint32_t)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux);
 
@@ -60,7 +60,7 @@ struct OrdonnanceuseTache {
 
     // Tiens trace du nombre maximal de tâches par file, afin de générer des statistiques.
     struct PiqueTailleFile {
-        long taches[OrdonnanceuseTache::NOMBRE_FILES];
+        int64_t taches[OrdonnanceuseTache::NOMBRE_FILES];
 
         PiqueTailleFile()
         {
@@ -96,7 +96,7 @@ struct OrdonnanceuseTache {
 
     Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     int enregistre_tacheronne(Badge<Tacheronne> badge);
 
@@ -111,7 +111,7 @@ struct OrdonnanceuseTache {
     void imprime_donnees_files(std::ostream &os);
 
   private:
-    long nombre_de_taches_en_attente() const;
+    int64_t nombre_de_taches_en_attente() const;
 };
 
 struct Tacheronne {

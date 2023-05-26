@@ -35,14 +35,14 @@ static const uint32_t crc32Lookup[8][256] =
 	//for (uint32_t i = 0; i <= 0xFF; i++)
 	//{
 	//  uint32_t crc = i;
-	//  for (unsigned int j = 0; j < 8; j++)
+	//  for (uint32_t j = 0; j < 8; j++)
 	//    crc = (crc >> 1) ^ ((crc & 1) * Polynomial);
 	//  crc32Lookup[0][i] = crc;
 	//}
 	// slicing-by-8 algorithm (from Intel):
 	// http://www.intel.com/technology/comms/perfnet/download/CRC_generators.pdf
 	// http://sourceforge.net/projects/slicing-by-8/
-	//for (unsigned int i = 0; i <= 0xFF; i++)
+	//for (uint32_t i = 0; i <= 0xFF; i++)
 	//{
 	//  crc32Lookup[1][i] = (crc32Lookup[0][i] >> 8) ^ crc32Lookup[0][crc32Lookup[0][i] & 0xFF];
 	//  crc32Lookup[2][i] = (crc32Lookup[1][i] >> 8) ^ crc32Lookup[0][crc32Lookup[1][i] & 0xFF];

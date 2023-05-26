@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,7 +20,7 @@ enum ResultatOperation {
 
 struct ImageIO {
     float *donnees;
-    long taille_donnees;
+    int64_t taille_donnees;
 
     int largeur;
     int hauteur;
@@ -31,8 +33,11 @@ enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image
 
 void IMG_detruit_image(struct ImageIO *image);
 
-void IMG_calcul_empreinte_floue(
-    const char *chemin, int composant_x, int composant_y, char *resultat, long *taille_resultat);
+void IMG_calcul_empreinte_floue(const char *chemin,
+                                int composant_x,
+                                int composant_y,
+                                char *resultat,
+                                int64_t *taille_resultat);
 
 /** Structure pour décrire la résolution d'une image.
  */
@@ -64,24 +69,27 @@ struct AdaptriceImage {
 
     /** Rappel pour créer un calque dans l'image. Ceci doit retourner le pointeur vers le
      * nouveau calque créer. */
-    void *(*cree_calque)(struct AdaptriceImage *, const char *nom, long taille_nom);
+    void *(*cree_calque)(struct AdaptriceImage *, const char *nom, int64_t taille_nom);
 
     /** Rappel pour obtenir le nom du calque passé en paramètre. */
     void (*nom_calque)(const struct AdaptriceImage *,
                        const void *calque,
                        char **nom,
-                       long *taille_nom);
+                       int64_t *taille_nom);
 
     /** Rappel pour obtenir le nom du canal passé en paramètre. */
     void (*nom_canal)(const struct AdaptriceImage *,
                       const void *canal,
                       char **nom,
-                      long *taille_nom);
+                      int64_t *taille_nom);
 
     /** Rappel pour ajouter un canal dans un calque retourner par `cree_calque`.
      *  Ceci doit retourner le pointeur vers le canal créé.
      */
-    void *(*ajoute_canal)(struct AdaptriceImage *, void *calque, const char *nom, long taille_nom);
+    void *(*ajoute_canal)(struct AdaptriceImage *,
+                          void *calque,
+                          const char *nom,
+                          int64_t taille_nom);
 
     /* Accès aux calques et canaux, et aux données de l'image. */
 
@@ -96,7 +104,7 @@ struct AdaptriceImage {
 
     /** Rappel pour accéder au calque à l'index donné. L'index est dans [0, nombre_de_calques), où
      * nombre_de_calques est la valeur retournée par `nombre_de_calques`. */
-    const void *(*calque_pour_index)(const struct AdaptriceImage *, long index);
+    const void *(*calque_pour_index)(const struct AdaptriceImage *, int64_t index);
 
     /** Rappel pour accéder au nombre de canal dans le calque donné. */
     int (*nombre_de_canaux)(const struct AdaptriceImage *, const void *calque);
@@ -104,7 +112,9 @@ struct AdaptriceImage {
     /** Rappel pour accéder au canal du calque à l'index donné.
      * L'index est dans [0, nombre_de_canaux), où nombre_de_canaux est la valeur retournée par
      * `nombre_de_canaux`. */
-    const void *(*canal_pour_index)(const struct AdaptriceImage *, const void *calque, long index);
+    const void *(*canal_pour_index)(const struct AdaptriceImage *,
+                                    const void *calque,
+                                    int64_t index);
 
     /** Rappel pour accéder aux données en lecture du canal. */
     const float *(*donnees_canal_pour_lecture)(const struct AdaptriceImage *, const void *canal);
@@ -114,11 +124,11 @@ struct AdaptriceImage {
 };
 
 enum ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
-                                                      long taille_chemin,
+                                                      int64_t taille_chemin,
                                                       struct AdaptriceImage *image);
 
 enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
-                                                      long taille_chemin,
+                                                      int64_t taille_chemin,
                                                       struct AdaptriceImage *image);
 
 // ----------------------------------------------------------------------------
@@ -126,7 +136,7 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
 
 struct ParametresSimulationGrain {
     /** Graine pour générer des nombres aléatoires et rendre le résultat unique. */
-    unsigned int graine;
+    uint32_t graine;
 
     /** Le nombre d'itérations de Monte-Carlo à effectuer pour générer le grain. */
     int iterations;

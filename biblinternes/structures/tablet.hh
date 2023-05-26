@@ -278,18 +278,18 @@ struct iteratrice_crue_inverse : public iteratrice_crue<T> {
 	}
 };
 
-template <class T, unsigned long TAILLE_INITIALE>
+template <class T, uint64_t TAILLE_INITIALE>
 class tablet {
 	T m_tablet[TAILLE_INITIALE];
 	T* m_memoire = m_tablet;
 
-	long m_alloue = static_cast<long>(TAILLE_INITIALE);
-	long m_taille = 0;
+	int64_t m_alloue = static_cast<int64_t>(TAILLE_INITIALE);
+	int64_t m_taille = 0;
 
 public:
 	tablet() = default;
 
-	explicit tablet(long taille_initiale)
+	explicit tablet(int64_t taille_initiale)
 	{
 		redimensionne(taille_initiale);
 	}
@@ -355,14 +355,14 @@ public:
 
     void ajoute(T const &t)
     {
-        assert(m_taille < std::numeric_limits<long>::max());
+        assert(m_taille < std::numeric_limits<int64_t>::max());
         garantie_capacite(m_taille + 1);
         m_memoire[m_taille++] = t;
     }
 
     void ajoute(T &&t)
     {
-        assert(m_taille < std::numeric_limits<long>::max());
+        assert(m_taille < std::numeric_limits<int64_t>::max());
         garantie_capacite(m_taille + 1);
         m_memoire[m_taille++] = std::move(t);
     }
@@ -372,37 +372,37 @@ public:
 		return m_taille == 0;
 	}
 
-	T &operator[](long i)
+	T &operator[](int64_t i)
 	{
 		assert(i>= 0 && i < m_taille);
 		return m_memoire[i];
 	}
 
-	const T &operator[](long i) const
+	const T &operator[](int64_t i) const
 	{
 		assert(i>= 0 && i < m_taille);
 		return m_memoire[i];
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
 		assert(m_taille >= 0);
 		return m_taille;
 	}
 
-	long capacite() const
+	int64_t capacite() const
 	{
-		assert(m_alloue >= static_cast<long>(TAILLE_INITIALE));
+		assert(m_alloue >= static_cast<int64_t>(TAILLE_INITIALE));
 		return m_alloue;
 	}
 
-	void redimensionne(long n)
+	void redimensionne(int64_t n)
 	{
 		garantie_capacite(n);
 		this->m_taille = n;
 	}
 
-	void reserve(long n)
+	void reserve(int64_t n)
 	{
 		garantie_capacite(n);
 	}
@@ -515,7 +515,7 @@ public:
 	}
 
 private:
-	void garantie_capacite(long cap)
+	void garantie_capacite(int64_t cap)
 	{
 		if (cap == 0) {
 			return;
@@ -525,7 +525,7 @@ private:
 			return;
 		}
 
-		assert(cap <= std::numeric_limits<long>::max() / 2);
+		assert(cap <= std::numeric_limits<int64_t>::max() / 2);
 
 		auto nouvelle_capacite = cap * 2;
 
@@ -578,7 +578,7 @@ template <typename T, size_t N, typename... Ts>
 auto cree_tablet(T arg, Ts &&... args)
 {
 	tablet<T, N> resultat;
-	resultat.reserve(1 + static_cast<long>(sizeof...(Ts)));
+	resultat.reserve(1 + static_cast<int64_t>(sizeof...(Ts)));
 	resultat.ajoute(arg);
 	((resultat.ajoute(args)), ...);
 	return resultat;

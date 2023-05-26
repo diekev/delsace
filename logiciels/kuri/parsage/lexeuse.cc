@@ -895,7 +895,7 @@ void Lexeuse::lexe_nombre()
 
 void Lexeuse::lexe_nombre_decimal()
 {
-    unsigned long long resultat_entier = 0;
+    uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
     auto debut_nombre = m_position_ligne;
     auto taille_texte = 0;
@@ -941,7 +941,7 @@ void Lexeuse::lexe_nombre_decimal()
         }
 
         resultat_entier *= 10;
-        resultat_entier += static_cast<unsigned long long>(c - '0');
+        resultat_entier += static_cast<uint64_t>(c - '0');
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
         this->pousse_caractere();
@@ -1066,7 +1066,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
-    unsigned long long resultat_entier = 0;
+    uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
@@ -1114,7 +1114,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
-    unsigned long long resultat_entier = 0;
+    uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
@@ -1155,7 +1155,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
     }
 
     if (nombre_de_chiffres == 8) {
-        unsigned int v = static_cast<unsigned>(resultat_entier);
+        uint32_t v = static_cast<unsigned>(resultat_entier);
         this->pousse_lexeme_reel(*reinterpret_cast<float *>(&v));
     }
     else {
@@ -1170,7 +1170,7 @@ void Lexeuse::lexe_nombre_binaire()
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
-    unsigned long long resultat_entier = 0;
+    uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
@@ -1215,7 +1215,7 @@ void Lexeuse::lexe_nombre_octal()
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
-    unsigned long long resultat_entier = 0;
+    uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
@@ -1318,7 +1318,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             }
 
             v <<= 4;
-            v |= static_cast<unsigned int>(c0);
+            v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
             this->pousse_caractere();
@@ -1356,7 +1356,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             }
 
             v <<= 4;
-            v |= static_cast<unsigned int>(c0);
+            v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
             this->pousse_caractere();
@@ -1470,7 +1470,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
     return v;
 }
 
-void Lexeuse::pousse_lexeme_entier(unsigned long long valeur)
+void Lexeuse::pousse_lexeme_entier(uint64_t valeur)
 {
     auto lexeme = Lexeme{};
     lexeme.genre = GenreLexeme::NOMBRE_ENTIER;

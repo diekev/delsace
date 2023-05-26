@@ -59,8 +59,8 @@ void GEO3D_cree_sphere_uv(AdaptriceMaillage *adaptrice,
 void GEO3D_cree_torus(AdaptriceMaillage *adaptrice,
                       const float rayon_mineur,
                       const float rayon_majeur,
-                      const long segment_mineur,
-                      const long segment_majeur,
+                      const int64_t segment_mineur,
+                      const int64_t segment_majeur,
                       const float centre_x,
                       const float centre_y,
                       const float centre_z)
@@ -82,8 +82,8 @@ void GEO3D_cree_torus(AdaptriceMaillage *adaptrice,
 void GEO3D_cree_grille(AdaptriceMaillage *adaptrice,
                        const float taille_x,
                        const float taille_y,
-                       const long lignes,
-                       const long colonnes,
+                       const int64_t lignes,
+                       const int64_t colonnes,
                        const float centre_x,
                        const float centre_y,
                        const float centre_z)
@@ -96,7 +96,7 @@ void GEO3D_cree_grille(AdaptriceMaillage *adaptrice,
  * Crée un cercle avec les paramètres spécifiés.
  */
 void GEO3D_cree_cercle(AdaptriceMaillage *adaptrice,
-                       const long segments,
+                       const int64_t segments,
                        const float rayon,
                        const float centre_x,
                        const float centre_y,
@@ -110,7 +110,7 @@ void GEO3D_cree_cercle(AdaptriceMaillage *adaptrice,
  * Crée un cylindre avec les paramètres spécifiés.
  */
 void GEO3D_cree_cylindre(AdaptriceMaillage *adaptrice,
-                         const long segments,
+                         const int64_t segments,
                          const float rayon_mineur,
                          const float rayon_majeur,
                          const float profondeur,
@@ -139,7 +139,7 @@ void GEO3D_cree_icosphere(AdaptriceMaillage *adaptrice,
 
 void GEO3D_importe_fichier_obj(AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin)
+                               int64_t taille_chemin)
 {
     geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
     geo::charge_fichier_OBJ(maillage, vers_std_string(chemin, taille_chemin));
@@ -147,7 +147,7 @@ void GEO3D_importe_fichier_obj(AdaptriceMaillage *adaptrice,
 
 void GEO3D_exporte_fichier_obj(AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin)
+                               int64_t taille_chemin)
 {
     geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
     geo::ecris_fichier_OBJ(maillage, vers_std_string(chemin, taille_chemin));
@@ -155,7 +155,7 @@ void GEO3D_exporte_fichier_obj(AdaptriceMaillage *adaptrice,
 
 void GEO3D_importe_fichier_stl(AdaptriceMaillage *adaptrice,
                                const char *chemin,
-                               long taille_chemin)
+                               int64_t taille_chemin)
 {
     geo::Maillage maillage = geo::Maillage::enveloppe(adaptrice);
     geo::charge_fichier_STL(maillage, vers_std_string(chemin, taille_chemin));

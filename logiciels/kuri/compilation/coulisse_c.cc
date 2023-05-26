@@ -141,10 +141,10 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "unsigned short";
                 }
                 else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "unsigned int";
+                    type_c.typedef_ = "uint32_t";
                 }
                 else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "unsigned long";
+                    type_c.typedef_ = "uint64_t";
                 }
 
                 break;
@@ -161,14 +161,14 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "int";
                 }
                 else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "long";
+                    type_c.typedef_ = "int64_t";
                 }
 
                 break;
             }
             case GenreType::TYPE_DE_DONNEES:
             {
-                type_c.typedef_ = "long";
+                type_c.typedef_ = "int64_t";
                 break;
             }
             case GenreType::REEL:
@@ -625,7 +625,7 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	)";
 
     /* déclaration des types de bases */
-    enchaineuse << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
+    enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
     enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
     enchaineuse << "typedef unsigned char bool;\n";
@@ -851,13 +851,13 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
 
                             if (type->est_entier_naturel()) {
                                 if (type->taille_octet == 1) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 4) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 8) {
                                     return enchaine(valeur_entiere, "UL");

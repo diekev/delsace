@@ -3,12 +3,12 @@
 
 #include "gerante_chaine.hh"
 
-long GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
+int64_t GeranteChaine::ajoute_chaine(const kuri::chaine &chaine)
 {
     return ajoute_chaine(kuri::chaine_statique(chaine));
 }
 
-long GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
+int64_t GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
 {
     if ((enchaineuse.tampon_courant->occupe + chaine.taille()) >= Enchaineuse::TAILLE_TAMPON) {
         enchaineuse.ajoute_tampon();
@@ -23,7 +23,7 @@ long GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
     return adresse | (chaine.taille() << 32);
 }
 
-kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
+kuri::chaine_statique GeranteChaine::chaine_pour_adresse(int64_t adresse) const
 {
     assert(adresse >= 0);
 
@@ -41,10 +41,10 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(long adresse) const
     }
 
     assert(tampon_courant);
-    return {&tampon_courant->donnees[adresse_naturelle], long(taille)};
+    return {&tampon_courant->donnees[adresse_naturelle], int64_t(taille)};
 }
 
-long GeranteChaine::memoire_utilisee() const
+int64_t GeranteChaine::memoire_utilisee() const
 {
     return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON;
 }
