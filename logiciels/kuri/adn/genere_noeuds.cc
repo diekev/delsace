@@ -1551,8 +1551,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
             os << "\t\t\t}\n";
         }
 
-        os << "\t\t\treturn nullptr;\n";
         os << "\t\t}\n";
+        os << "\t\treturn nullptr;\n";
         os << "\t}\n";
 
         const char *cree_monomorphisations = R"(
