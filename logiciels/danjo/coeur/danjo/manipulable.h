@@ -109,6 +109,7 @@ class BasePropriete {
     virtual void définit_valeur_décimal(float valeur) = 0;
     virtual void définit_valeur_bool(bool valeur) = 0;
     virtual void définit_valeur_vec3(dls::math::vec3f valeur) = 0;
+    virtual void définit_valeur_vec3(dls::math::vec3i valeur) = 0;
     virtual void définit_valeur_couleur(dls::phys::couleur32 valeur) = 0;
     virtual void définit_valeur_chaine(std::string const &valeur) = 0;
     virtual void définit_valeur_énum(std::string const &valeur) = 0;
@@ -116,13 +117,15 @@ class BasePropriete {
     /* Plage des valeurs. */
     virtual plage_valeur<float> plage_valeur_decimal() const = 0;
     virtual plage_valeur<int> plage_valeur_entier() const = 0;
-    virtual plage_valeur<float> plage_valeur_vecteur() const = 0;
+    virtual plage_valeur<float> plage_valeur_vecteur_décimal() const = 0;
+    virtual plage_valeur<int> plage_valeur_vecteur_entier() const = 0;
     virtual plage_valeur<float> plage_valeur_couleur() const = 0;
 
     /* Animation des valeurs. */
     virtual void ajoute_cle(const int v, int temps) = 0;
     virtual void ajoute_cle(const float v, int temps) = 0;
     virtual void ajoute_cle(const dls::math::vec3f &v, int temps) = 0;
+    virtual void ajoute_cle(const dls::math::vec3i &v, int temps) = 0;
     virtual void ajoute_cle(const dls::phys::couleur32 &v, int temps) = 0;
 
     virtual void supprime_animation() = 0;
@@ -208,6 +211,7 @@ struct Propriete : public BasePropriete {
     void définit_valeur_décimal(float valeur) override;
     void définit_valeur_bool(bool valeur) override;
     void définit_valeur_vec3(dls::math::vec3f valeur) override;
+    void définit_valeur_vec3(dls::math::vec3i valeur) override;
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override;
     void définit_valeur_chaine(std::string const &valeur) override;
     void définit_valeur_énum(std::string const &valeur) override;
@@ -215,13 +219,15 @@ struct Propriete : public BasePropriete {
     /* Plage des valeurs. */
     plage_valeur<float> plage_valeur_decimal() const override;
     plage_valeur<int> plage_valeur_entier() const override;
-    plage_valeur<float> plage_valeur_vecteur() const override;
+    plage_valeur<float> plage_valeur_vecteur_décimal() const override;
+    plage_valeur<int> plage_valeur_vecteur_entier() const override;
     plage_valeur<float> plage_valeur_couleur() const override;
 
     /* Animation des valeurs. */
     void ajoute_cle(const int v, int temps) override;
     void ajoute_cle(const float v, int temps) override;
     void ajoute_cle(const dls::math::vec3f &v, int temps) override;
+    void ajoute_cle(const dls::math::vec3i &v, int temps) override;
     void ajoute_cle(const dls::phys::couleur32 &v, int temps) override;
 
     bool possede_cle(int temps) const override;

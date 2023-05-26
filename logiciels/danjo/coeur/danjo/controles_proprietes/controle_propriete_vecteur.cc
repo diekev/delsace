@@ -173,7 +173,7 @@ ControleProprieteVecteurDecimal::~ControleProprieteVecteurDecimal()
 
 void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
 {
-    auto plage = m_propriete->plage_valeur_vecteur();
+    auto plage = m_propriete->plage_valeur_vecteur_décimal();
 
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->ajourne_plage(plage.min, plage.max);
@@ -364,7 +364,7 @@ ControleProprieteVecteurEntier::~ControleProprieteVecteurEntier()
 
 void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
 {
-    auto plage = m_propriete->plage_valeur_vecteur();
+    auto plage = m_propriete->plage_valeur_vecteur_entier();
 
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->ajourne_plage(plage.min, plage.max);
@@ -451,7 +451,7 @@ void ControleProprieteVecteurEntier::ajourne_valeurs_controles()
 
 void ControleProprieteVecteurEntier::ajourne_valeur(int index, int valeur)
 {
-    auto vec = dls::math::vec3f(0.0f);
+    auto vec = dls::math::vec3i(0);
     for (int i = 0; i < m_dimensions; i++) {
         vec[size_t(i)] = m_dim[size_t(i)]->valeur();
     }
