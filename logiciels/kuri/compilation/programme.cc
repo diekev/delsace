@@ -245,7 +245,7 @@ void Programme::change_de_phase(PhaseCompilation phase)
 
 int64_t Programme::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += fonctions().taille_memoire();
     memoire += types().taille_memoire();
     memoire += globales().taille_memoire();

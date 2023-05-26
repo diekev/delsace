@@ -32,9 +32,9 @@
  * Retourne la position de la fin de la prochaine ligne (caractère '\\n') dans
  * la chaîne délimitée par 'debut' et 'fin'.
  */
-static long trouve_fin_ligne(const char *debut, const char *fin)
+static int64_t trouve_fin_ligne(const char *debut, const char *fin)
 {
-	long pos = 0;
+    int64_t pos = 0;
 
 	while (debut != fin) {
 		++pos;
@@ -103,28 +103,28 @@ const char *tampon_source::fin() const noexcept
 	return &m_tampon[m_tampon.taille()];
 }
 
-dls::vue_chaine tampon_source::operator[](long i) const noexcept
+dls::vue_chaine tampon_source::operator[](int64_t i) const noexcept
 {
 	return m_lignes[i];
 }
 
-long tampon_source::nombre_lignes() const noexcept
+int64_t tampon_source::nombre_lignes() const noexcept
 {
 	return m_lignes.taille();
 }
 
-long tampon_source::taille_donnees() const noexcept
+int64_t tampon_source::taille_donnees() const noexcept
 {
     return m_tampon.taille() * taille_de(char) + nombre_lignes() * taille_de(dls::vue_chaine_compacte);
 }
 
 tampon_source tampon_source::sous_tampon(size_t debut, size_t fin) const
 {
-	auto pos = m_lignes[static_cast<long>(debut)].begin();
-	auto taille = 0l;
+    auto pos = m_lignes[static_cast<int64_t>(debut)].begin();
+    auto taille = int64_t(0);
 
 	for (auto i = debut; i < fin; ++i) {
-		taille += m_lignes[static_cast<long>(i)].taille();
+        taille += m_lignes[static_cast<int64_t>(i)].taille();
 	}
 
 	return tampon_source(dls::chaine(pos, taille));
@@ -143,13 +143,13 @@ void tampon_source::construit_lignes()
 
 	auto nombre_de_lignes = 0;
 
-	for (auto i = 0l; i < m_tampon.taille(); ++i) {
+    for (auto i = int64_t(0); i < m_tampon.taille(); ++i) {
 		nombre_de_lignes += m_tampon[i] == '\n';
 	}
 
 	m_lignes.reserve(nombre_de_lignes);
 
-	for (auto i = 0l; i < m_tampon.taille();) {
+    for (auto i = int64_t(0); i < m_tampon.taille();) {
 		auto pos = &m_tampon[i];
 		auto taille = trouve_fin_ligne(pos, this->fin());
 
