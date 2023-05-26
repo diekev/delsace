@@ -57,7 +57,7 @@ enum DrapeauxNoeud : uint32_t {
     IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 31),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, uint32_t)
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
 
 enum {
     /* instruction 'pour' */
@@ -112,7 +112,7 @@ enum GenreValeur : char {
     TRANSCENDANTALE = GAUCHE | DROITE,
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(GenreValeur, char)
+DEFINIS_OPERATEURS_DRAPEAU(GenreValeur)
 
 inline bool est_valeur_gauche(GenreValeur type_valeur)
 {

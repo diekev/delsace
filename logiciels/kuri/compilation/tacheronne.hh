@@ -34,7 +34,7 @@ enum class DrapeauxTacheronne : uint32_t {
         PEUT_TOUT_FAIRE = 0xfffffff,
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(DrapeauxTacheronne, uint32_t)
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTacheronne)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux);
 
