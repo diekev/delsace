@@ -83,7 +83,7 @@ std::ostream &operator<<(std::ostream &os, const chaine &chn)
     return os;
 }
 
-long distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2)
+int64_t distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2)
 {
     auto const m = chn1.taille();
     auto const n = chn2.taille();
@@ -96,7 +96,7 @@ long distance_levenshtein(chaine_statique const &chn1, chaine_statique const &ch
         return m;
     }
 
-    auto couts = tableau<long>(n + 1);
+    auto couts = tableau<int64_t>(n + 1);
 
     for (auto k = 0; k <= n; k++) {
         couts[k] = k;

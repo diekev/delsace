@@ -50,7 +50,7 @@ struct TransformationType {
     TypeTransformation type{};
     NoeudDeclarationEnteteFonction const *fonction{};
     Type const *type_cible = nullptr;
-    long index_membre = 0;
+    int64_t index_membre = 0;
 
     TransformationType() = default;
 
@@ -58,7 +58,7 @@ struct TransformationType {
     {
     }
 
-    TransformationType(TypeTransformation type_, Type const *type_cible_, long index_membre_)
+    TransformationType(TypeTransformation type_, Type const *type_cible_, int64_t index_membre_)
         : type(type_), type_cible(type_cible_), index_membre(index_membre_)
     {
     }

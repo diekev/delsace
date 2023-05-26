@@ -717,7 +717,7 @@ struct matrice {
 		}
 	}
 
-	constexpr T *operator[](long i)
+	constexpr T *operator[](int64_t i)
 	{
 		return donnees[i];
 	}

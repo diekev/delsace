@@ -383,7 +383,7 @@ struct GeneratriceCodeLLVM {
 
     void genere_code(const ProgrammeRepreInter &repr_inter);
 
-    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, long taille_chaine);
+    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
 };
 
 GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
@@ -644,7 +644,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
             auto const taille = type->comme_tableau_fixe()->taille;
 
-            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<unsigned long>(taille));
+            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
             break;
         }
         case GenreType::ENUM:
@@ -1261,7 +1261,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto index_reel = index_reel_pour_membre(
                 *accede->type->comme_pointeur()->type_pointe->comme_compose(),
-                static_cast<unsigned int>(index_membre));
+                static_cast<uint32_t>(index_membre));
 
             if (!type_pointe->est_pointeur()) {
                 auto index = std::vector<llvm::Value *>(2);
@@ -1480,7 +1480,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 }
 
 llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
-                                                        long taille_chaine)
+                                                        int64_t taille_chaine)
 {
     auto iter = valeurs_chaines_globales.valeur_ou(chaine, nullptr);
     if (iter) {

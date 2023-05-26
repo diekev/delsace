@@ -26,7 +26,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto donnees_char = reinterpret_cast<const char *>(donnees);
 
         dls::chaine texte;
-        texte.reserve(static_cast<long>(taille) + 1l);
+        texte.reserve(static_cast<int64_t>(taille) + 1l);
 
         for (auto i = 0ul; i < taille; ++i) {
             texte.ajoute(donnees_char[i]);
@@ -333,13 +333,13 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
     auto const max_lexemes = taille_tampon / sizeof(GenreLexeme);
 
     kuri::tableau<GenreLexeme> lexemes;
-    lexemes.reserve(static_cast<long>(max_lexemes));
+    lexemes.reserve(static_cast<int64_t>(max_lexemes));
 
     for (auto id : sequence_declaration_fonction) {
         lexemes.ajoute(id);
     }
 
-    for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
+    for (auto n = lexemes.taille(); n < static_cast<int64_t>(max_lexemes) - 1; ++n) {
         auto arbre = arbre_expression::arbre{};
         arbre.construit_expression();
 
@@ -402,13 +402,13 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
                                               static_cast<int>(GenreLexeme::INCONNU)};
 
     kuri::tableau<GenreLexeme> lexemes;
-    lexemes.reserve(static_cast<long>(max_lexemes));
+    lexemes.reserve(static_cast<int64_t>(max_lexemes));
 
     for (auto id : sequence_declaration_fonction) {
         lexemes.ajoute(id);
     }
 
-    for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
+    for (auto n = lexemes.taille(); n < static_cast<int64_t>(max_lexemes) - 1; ++n) {
         lexemes.ajoute(static_cast<GenreLexeme>(rng(device)));
     }
 

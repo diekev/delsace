@@ -104,12 +104,12 @@ struct ConstructriceRI {
     void rassemble_statistiques(Statistiques &stats);
 
     AtomeConstante *cree_constante_booleenne(bool valeur);
-    AtomeConstante *cree_constante_caractere(Type const *type, unsigned long long valeur);
-    AtomeConstante *cree_constante_entiere(Type const *type, unsigned long long valeur);
+    AtomeConstante *cree_constante_caractere(Type const *type, uint64_t valeur);
+    AtomeConstante *cree_constante_entiere(Type const *type, uint64_t valeur);
     AtomeConstante *cree_constante_type(Type const *pointeur_type);
     AtomeConstante *cree_constante_taille_de(Type const *pointeur_type);
-    AtomeConstante *cree_z32(unsigned long long valeur);
-    AtomeConstante *cree_z64(unsigned long long valeur);
+    AtomeConstante *cree_z32(uint64_t valeur);
+    AtomeConstante *cree_z64(uint64_t valeur);
     AtomeConstante *cree_constante_nulle(Type const *type);
     AtomeConstante *cree_constante_reelle(Type const *type, double valeur);
     AtomeConstante *cree_constante_structure(Type const *type,
@@ -120,7 +120,7 @@ struct ConstructriceRI {
         Type const *type, kuri::tableau<char> &&donnees_constantes);
     AtomeConstante *cree_constante_tableau_donnees_constantes(Type const *type,
                                                               char *pointeur,
-                                                              long taille);
+                                                              int64_t taille);
     AtomeGlobale *cree_globale(Type const *type,
                                AtomeConstante *initialisateur,
                                bool est_externe,
@@ -238,7 +238,7 @@ struct ConstructriceRI {
                            Atome *place);
 
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                            unsigned int index,
+                                            uint32_t index,
                                             Type const *pour_type);
     AtomeConstante *cree_info_type_defaut(unsigned index, Type const *pour_type);
     AtomeConstante *cree_info_type_entier(Type const *pour_type, bool est_relatif);

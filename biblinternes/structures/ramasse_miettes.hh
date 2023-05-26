@@ -58,7 +58,7 @@ public:
 		return m_miettes.defile();
 	}
 
-	long nombre_miettes() const
+	int64_t nombre_miettes() const
 	{
 		return m_miettes.taille();
 	}

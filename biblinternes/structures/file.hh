@@ -35,7 +35,7 @@ struct file {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	tableau<type_valeur> m_file{};
@@ -97,7 +97,7 @@ public:
 		return t;
 	}
 
-	tableau<type_valeur> defile(long compte)
+	tableau<type_valeur> defile(int64_t compte)
 	{
 		auto ret = tableau<type_valeur>(compte);
 
@@ -130,16 +130,16 @@ public:
     }
 };
 
-template <typename T, unsigned long N>
+template <typename T, uint64_t N>
 struct file_fixe {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	type_valeur m_file[N];
-	long m_taille = 0;
+	int64_t m_taille = 0;
 
 public:
 	file_fixe() = default;
@@ -196,7 +196,7 @@ struct file_priorite {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	using type_logeuse = memoire::logeuse_guardee<type_valeur>;
@@ -216,7 +216,7 @@ public:
 
 	type_taille taille() const
 	{
-		return static_cast<long>(m_file.size());
+		return static_cast<int64_t>(m_file.size());
 	}
 
 	type_reference_const haut() const

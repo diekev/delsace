@@ -29,7 +29,7 @@
 
 namespace dls {
 
-template <typename C, typename V, unsigned long N>
+template <typename C, typename V, uint64_t N>
 struct dico_fixe {
 	using type_valeur = paire<C, V>;
 	using type_pointeur = type_valeur*;
@@ -41,7 +41,7 @@ private:
 	type_valeur m_donnees[N];
 
 	template <typename PV, typename... PVs>
-	void construit_index(unsigned long &i, PV const &pv)
+	void construit_index(uint64_t &i, PV const &pv)
 	{
 		m_donnees[i++] = pv;
 	}
@@ -52,7 +52,7 @@ public:
 	{
 		static_assert(sizeof...(pvs) + 1 == N, "La taille de la liste n'est pas celle attendue");
 
-		unsigned long i = 0;
+		uint64_t i = 0;
 		construit_index(i, pv);
 		(construit_index(i, pvs), ...);
 	}

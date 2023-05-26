@@ -197,10 +197,10 @@ char *crypt(const char *key, const char *setting)
 #define __crypt_gensalt crypt_gensalt
 #endif
 
-char *__crypt_gensalt_rn(const char *prefix, unsigned long count,
+char *__crypt_gensalt_rn(const char *prefix, uint64_t count,
 	const char *input, int size, char *output, int output_size)
 {
-	char *(*use)(const char *_prefix, unsigned long _count,
+	char *(*use)(const char *_prefix, uint64_t _count,
 		const char *_input, int _size,
 		char *_output, int _output_size);
 
@@ -233,7 +233,7 @@ char *__crypt_gensalt_rn(const char *prefix, unsigned long count,
 	return use(prefix, count, input, size, output, output_size);
 }
 
-char *__crypt_gensalt_ra(const char *prefix, unsigned long count,
+char *__crypt_gensalt_ra(const char *prefix, uint64_t count,
 	const char *input, int size)
 {
 	char output[CRYPT_GENSALT_OUTPUT_SIZE];
@@ -254,7 +254,7 @@ char *__crypt_gensalt_ra(const char *prefix, unsigned long count,
 	return retval;
 }
 
-char *__crypt_gensalt(const char *prefix, unsigned long count,
+char *__crypt_gensalt(const char *prefix, uint64_t count,
 	const char *input, int size)
 {
 	static char output[CRYPT_GENSALT_OUTPUT_SIZE];
@@ -372,7 +372,7 @@ static void handle_timer(int signum)
 
 static void *run(void *arg)
 {
-	unsigned long count = 0;
+	uint64_t count = 0;
 	int i = 0;
 	void *data = NULL;
 	int size = 0x12345678;
@@ -406,7 +406,7 @@ int main(void)
 	struct itimerval it;
 	struct tms buf;
 	clock_t clk_tck, start_real, start_virtual, end_real, end_virtual;
-	unsigned long count;
+	uint64_t count;
 	void *data;
 	int size;
 	char *setting1, *setting2;

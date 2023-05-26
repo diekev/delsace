@@ -25,10 +25,10 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
         CU_VERIFIE_CONDITION(controleuse, !e.possede(elements[i]));
 
         e.insere(elements[i]);
-        CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<long>(i) + 1);
+        CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(i) + 1);
         CU_VERIFIE_CONDITION(controleuse, e.possede(elements[i]));
     }
-    CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<long>(nombre_d_elements));
+    CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements));
 
     e.efface();
     CU_VERIFIE_EGALITE(controleuse, e.taille(), 0l);
@@ -55,12 +55,12 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
     for (auto i = 0; i < nombre_d_elements; i++) {
         e.insere(i);
     }
-    CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<long>(nombre_d_elements));
+    CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements));
 
     for (auto i = 0; i < nombre_d_elements; i++) {
         e.supprime(i);
         CU_VERIFIE_CONDITION(controleuse, !e.possede(i));
-        CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<long>(nombre_d_elements - i - 1));
+        CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements - i - 1));
     }
     CU_VERIFIE_CONDITION(controleuse, e.est_vide());
 }
@@ -77,13 +77,13 @@ static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, ui
     auto gna = GNA(iteration);
     const auto nombre_d_elements = gna.uniforme(0, 1024);
 
-    auto tableau_controle = kuri::tableau<long>(nombre_d_elements);
+    auto tableau_controle = kuri::tableau<int64_t>(nombre_d_elements);
     for (int i = 0; i < nombre_d_elements; i++) {
-        tableau_controle[i] = gna.uniforme(std::numeric_limits<long>::min(),
-                                           std::numeric_limits<long>::max());
+        tableau_controle[i] = gna.uniforme(std::numeric_limits<int64_t>::min(),
+                                           std::numeric_limits<int64_t>::max());
     }
 
-    auto file = kuri::file<long>();
+    auto file = kuri::file<int64_t>();
 
     for (int i = 0; i < 2; i++) {
         for (auto v : tableau_controle) {
@@ -92,7 +92,7 @@ static void iteration_test_file(dls::test_unitaire::Controleuse &controleuse, ui
 
         CU_VERIFIE_CONDITION(controleuse, !file.est_vide());
         CU_VERIFIE_EGALITE(controleuse, file.taille(), tableau_controle.taille());
-        CU_VERIFIE_EGALITE(controleuse, file.taille(), static_cast<long>(nombre_d_elements));
+        CU_VERIFIE_EGALITE(controleuse, file.taille(), static_cast<int64_t>(nombre_d_elements));
 
         for (auto v : tableau_controle) {
             auto valeur_defilee = file.defile();

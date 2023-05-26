@@ -28,9 +28,9 @@ struct TableIdentifiant {
 
     IdentifiantCode *identifiant_pour_nouvelle_chaine(kuri::chaine const &nom);
 
-    long taille() const;
+    int64_t taille() const;
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
   private:
     IdentifiantCode *ajoute_identifiant(dls::vue_chaine_compacte const &nom);

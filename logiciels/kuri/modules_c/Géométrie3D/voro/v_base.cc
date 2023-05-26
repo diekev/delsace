@@ -34,10 +34,10 @@ voro_base::voro_base(int nx_,int ny_,int nz_,double boxx_,double boxy_,double bo
 	, zsp(1/boxz_)
 	, mrad(new double[wl_hgridcu*wl_seq_length])
 {
-	const unsigned int b1=1<<21,b2=1<<22,b3=1<<24,b4=1<<25,b5=1<<27,b6=1<<28;
+	const uint32_t b1=1<<21,b2=1<<22,b3=1<<24,b4=1<<25,b5=1<<27,b6=1<<28;
 	const double xstep=boxx/wl_fgrid,ystep=boxy/wl_fgrid,zstep=boxz/wl_fgrid;
 	int i,j,k,lx,ly,lz,q;
-	unsigned int f,*e=const_cast<unsigned int*> (wl);
+	uint32_t f,*e=const_cast<uint32_t*> (wl);
 	double xlo,ylo,zlo,xhi,yhi,zhi,minr,*radp=mrad;
 
 	for(zlo=0,zhi=zstep,lz=0;lz<wl_hgrid;zlo=zhi,zhi+=zstep,lz++) {

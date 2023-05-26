@@ -102,7 +102,7 @@ void cree_boite(Maillage &maillage,
 
     maillage.reserveNombreDePolygones(6);
 
-    for (long i = 0; i < 6; ++i) {
+    for (int64_t i = 0; i < 6; ++i) {
         maillage.ajouteUnPolygone(polygones[i], 4);
 
         if (attr_normaux) {
@@ -312,8 +312,8 @@ void cree_sphere_uv(Maillage &maillage,
 void cree_torus(Maillage &maillage,
                 const float rayon_mineur,
                 const float rayon_majeur,
-                const long segment_mineur,
-                const long segment_majeur,
+                const int64_t segment_mineur,
+                const int64_t segment_majeur,
                 const float centre_x,
                 const float centre_y,
                 const float centre_z)
@@ -322,7 +322,7 @@ void cree_torus(Maillage &maillage,
     auto const horizontal_angle_stride = constantes<float>::TAU /
                                          static_cast<float>(segment_mineur);
 
-    long f1 = 0, f2, f3, f4;
+    int64_t f1 = 0, f2, f3, f4;
     auto const tot_verts = segment_majeur * segment_mineur;
 
     maillage.reserveNombreDePoints(tot_verts);
@@ -330,10 +330,10 @@ void cree_torus(Maillage &maillage,
 
     int poly[4];
 
-    for (long i = 0; i < segment_majeur; ++i) {
+    for (int64_t i = 0; i < segment_majeur; ++i) {
         auto theta = vertical_angle_stride * static_cast<float>(i);
 
-        for (long j = 0; j < segment_mineur; ++j) {
+        for (int64_t j = 0; j < segment_mineur; ++j) {
             auto phi = horizontal_angle_stride * static_cast<float>(j);
 
             auto x = std::cos(theta) * (rayon_majeur + rayon_mineur * std::cos(phi));
@@ -388,8 +388,8 @@ void cree_torus(Maillage &maillage,
 void cree_grille(Maillage &maillage,
                  const float taille_x,
                  const float taille_y,
-                 const long lignes,
-                 const long colonnes,
+                 const int64_t lignes,
+                 const int64_t colonnes,
                  const float centre_x,
                  const float centre_y,
                  const float centre_z)
@@ -435,7 +435,7 @@ void cree_grille(Maillage &maillage,
     /* crée une copie pour le lambda */
     auto const tot_x = lignes;
 
-    auto index = [&tot_x](long x, long y) { return x + y * tot_x; };
+    auto index = [&tot_x](int64_t x, int64_t y) { return x + y * tot_x; };
 
     auto index_poly = 0;
 
@@ -458,7 +458,7 @@ void cree_grille(Maillage &maillage,
 /* ************************************************************************** */
 
 void cree_cercle(Maillage &maillage,
-                 const long segments,
+                 const int64_t segments,
                  const float rayon,
                  const float centre_x,
                  const float centre_y,
@@ -475,7 +475,7 @@ void cree_cercle(Maillage &maillage,
 
     maillage.ajouteUnPoint(point[0], point[1], point[2]);
 
-    for (long a = 0; a < segments; ++a, phi += phid) {
+    for (int64_t a = 0; a < segments; ++a, phi += phid) {
         /* Going this way ends up with normal(s) upward */
         point[0] = centre_x - rayon * std::sin(phi);
         point[2] = centre_z + rayon * std::cos(phi);
@@ -503,7 +503,7 @@ void cree_cercle(Maillage &maillage,
 /* ************************************************************************** */
 
 void cree_cylindre(Maillage &maillage,
-                   const long segments,
+                   const int64_t segments,
                    const float rayon_mineur,
                    const float rayon_majeur,
                    const float profondeur,

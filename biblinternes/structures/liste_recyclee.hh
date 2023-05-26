@@ -43,7 +43,7 @@ struct liste_recyclee {
 	ramasse_miette rm{};
 	noeud *premier = nullptr;
 	noeud *dernier = nullptr;
-	long m_taille = 0;
+	int64_t m_taille = 0;
 
 	~liste_recyclee()
 	{
@@ -110,7 +110,7 @@ struct liste_recyclee {
 		return premier == nullptr;
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
 		return m_taille;
 	}

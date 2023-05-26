@@ -577,7 +577,7 @@ class BoolPolyhedra {
                 for (std::set<InterId>::iterator i = TriCut.PtList.begin();
                      i != TriCut.PtList.end();
                      ++i) {
-                    T.add_new_pt(m_InterPts[*i], (unsigned long &)*i);  // MT: ajout cast
+                    T.add_new_pt(m_InterPts[*i], (uint64_t &)*i);  // MT: ajout cast
                 }
                 // add the intersection segments
                 for (int i = 0; i != (int)TriCut.CutList.size(); ++i) {
@@ -589,7 +589,7 @@ class BoolPolyhedra {
                 // get the triangles of the triangulation thay belong to the result
                 // and determine if the three neighboring facets belongs to the result (using
                 // IsExt[3])
-                std::vector<std::vector<unsigned long>> Tri_set = T.get_triangles(
+                std::vector<std::vector<uint64_t>> Tri_set = T.get_triangles(
                     (m_BOOP == MINUS && !TriCut.Facet_from_A) ? true : false, IsExt);
                 // add these triangles to the result
                 ppbuilder.add_triangle(Tri_set, he);
@@ -1353,7 +1353,7 @@ class BoolPolyhedra {
         bool point = false;    // true if a point is founded
         Point3d_exact pt;      // the point founded
         bool id = false;       // true if an Id is founded
-        unsigned long Id = 0;  // the Id founded // MT
+        uint64_t Id = 0;  // the Id founded // MT
 
         // each intersection is checked separately.
         // first intersection
@@ -1451,7 +1451,7 @@ class BoolPolyhedra {
      * \param I : A vector to store the Id of the two intersection points (the output segment)*/
     void Get_Segment(Info_Inter *inter, std::vector<InterId> &I)
     {
-        for (unsigned int i = 0; i != 4; ++i) {
+        for (uint32_t i = 0; i != 4; ++i) {
             // if the point have an Id
             if (inter[i].Id != 0xFFFFFFFF) {
                 // the Id is stored if it is not already done
@@ -1780,10 +1780,10 @@ class BoolPolyhedra {
             // add the intersection points to the triangulation
             for (std::set<InterId>::iterator i = TriCut.PtList.begin(); i != TriCut.PtList.end();
                  ++i) {
-                T.add_new_pt(m_InterPts[*i], (unsigned long &)*i);  // MT: ajout cast
+                T.add_new_pt(m_InterPts[*i], (uint64_t &)*i);  // MT: ajout cast
             }
             // get all the triangles of the triangulation
-            std::vector<std::vector<unsigned long>> Tri_set = T.get_all_triangles(
+            std::vector<std::vector<uint64_t>> Tri_set = T.get_all_triangles(
                 (m_BOOP == MINUS && !TriCut.Facet_from_A) ? true : false);
             // add these triangles to the result
             ppbuilder.add_triangle(Tri_set, he);

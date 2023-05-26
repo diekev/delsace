@@ -50,9 +50,9 @@ void Monomorphisations::ajoute(const tableau_items &items, NoeudExpression *noeu
     monomorphisations->ajoute({items, noeud});
 }
 
-long Monomorphisations::memoire_utilisee() const
+int64_t Monomorphisations::memoire_utilisee() const
 {
-    long memoire = 0;
+    int64_t memoire = 0;
     memoire += monomorphisations->taille() *
                (taille_de(NoeudExpression *) + taille_de(tableau_items));
 
@@ -91,7 +91,7 @@ void Monomorphisations::imprime(std::ostream &os) const
 static kuri::chaine_statique chaine_indentations(int indentations)
 {
     static std::string chaine = std::string(1024, '\t');
-    return {chaine.c_str(), static_cast<long>(indentations)};
+    return {chaine.c_str(), static_cast<int64_t>(indentations)};
 }
 
 void Monomorphisations::imprime(Enchaineuse &os, int indentations) const
