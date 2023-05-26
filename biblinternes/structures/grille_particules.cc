@@ -32,9 +32,9 @@ GrilleParticules::GrilleParticules(const dls::math::point3d &min, const dls::mat
 	, m_dim(max - min)
 	, m_distance(static_cast<double>(distance) * 10.0)
 {
-	m_res_x = std::max(1l, static_cast<int64_t>(m_dim.x / m_distance));
-	m_res_y = std::max(1l, static_cast<int64_t>(m_dim.y / m_distance));
-	m_res_z = std::max(1l, static_cast<int64_t>(m_dim.z / m_distance));
+    m_res_x = std::max(int64_t(1), static_cast<int64_t>(m_dim.x / m_distance));
+    m_res_y = std::max(int64_t(1), static_cast<int64_t>(m_dim.y / m_distance));
+    m_res_z = std::max(int64_t(1), static_cast<int64_t>(m_dim.z / m_distance));
 
 //	std::cerr << "Résolution Grille Particules : " << m_res_x << ", " << m_res_y << ", " << m_res_z << '\n';
 
@@ -135,9 +135,9 @@ int64_t GrilleParticules::calcul_index_pos(const dls::math::vec3f &point)
 	auto index_y = static_cast<int64_t>((py - m_min.y) / m_distance);
 	auto index_z = static_cast<int64_t>((pz - m_min.z) / m_distance);
 
-	index_x = dls::math::restreint(index_x, 0l, m_res_x - 1);
-	index_y = dls::math::restreint(index_y, 0l, m_res_y - 1);
-	index_z = dls::math::restreint(index_z, 0l, m_res_z - 1);
+    index_x = dls::math::restreint(index_x, int64_t(0), m_res_x - 1);
+    index_y = dls::math::restreint(index_y, int64_t(0), m_res_y - 1);
+    index_z = dls::math::restreint(index_z, int64_t(0), m_res_z - 1);
 
 	return index_x + index_y * m_res_x + index_z * m_res_x * m_res_y;
 }
