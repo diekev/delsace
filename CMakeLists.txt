@@ -40,6 +40,7 @@ option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
 option(AVEC_TESTS "Compiler les tests des bibliothèques internes" ON)
 option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
+option(AVEC_DEMON_REACT "Compiler le démon de compilation de projets React" OFF)
 
 option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
 
@@ -114,6 +115,7 @@ if(SEULEMENT_KURI)
     set(AVEC_SILVATHEQUE OFF)
     set(AVEC_TESTS OFF)
     set(AVEC_VULKAN OFF)
+    set(AVEC_DEMON_REACT OFF)
 
     # désactivation des bibliothèques internes non-requises
     set(REQUIERS_BIB_BRUIT OFF)
