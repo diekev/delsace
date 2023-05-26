@@ -72,17 +72,17 @@ public:
 	 * du tampon n'est effectuée, de sorte que si i n'est pas dans la
 	 * portée, le programme crashera.
 	 */
-	dls::vue_chaine operator[](long i) const noexcept;
+    dls::vue_chaine operator[](int64_t i) const noexcept;
 
 	/**
 	 * Retourne le nombre de ligne dans le tampon.
 	 */
-  long nombre_lignes() const noexcept;
+  int64_t nombre_lignes() const noexcept;
 
 	/**
 	 * Retourne la taille des données en octets du tampon.
 	 */
-  long taille_donnees() const noexcept;
+  int64_t taille_donnees() const noexcept;
 
 	tampon_source sous_tampon(size_t debut, size_t fin) const;
 

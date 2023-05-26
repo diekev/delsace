@@ -59,11 +59,11 @@ public:
 
 /* Fonctions communes de formattage d'erreurs. */
 template <typename Flux>
-void imprime_caractere_vide(Flux &os, const long nombre, const dls::vue_chaine &chaine)
+void imprime_caractere_vide(Flux &os, const int64_t nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (auto i = 0l; i < std::min(nombre, chaine.taille());) {
+     * de chaque point de code pour bien formater l'erreur. */
+    for (auto i = int64_t(0); i < std::min(nombre, chaine.taille());) {
 		if (chaine[i] == '\t') {
 			os << '\t';
 		}
@@ -78,14 +78,14 @@ void imprime_caractere_vide(Flux &os, const long nombre, const dls::vue_chaine &
 template <typename Flux>
 void imprime_tilde(Flux &os, const dls::vue_chaine &chaine)
 {
-	for (auto i = 0l; i < chaine.taille() - 1;) {
+    for (auto i = int64_t(0); i < chaine.taille() - 1;) {
 		os << '~';
 		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
 template <typename Flux>
-void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, long debut, long fin)
+void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
 {
 	for (auto i = debut; i < fin;) {
 		os << '~';
@@ -94,7 +94,7 @@ void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, long debut, long fin
 }
 
 template <typename Flux>
-void imprime_ligne_entre(Flux &os, const dls::vue_chaine &chaine, long debut, long fin)
+void imprime_ligne_entre(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
 {
 	for (auto i = debut; i < fin; ++i) {
 		os << chaine[i];

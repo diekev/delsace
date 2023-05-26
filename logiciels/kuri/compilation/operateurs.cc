@@ -646,7 +646,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
 
 void Operateurs::rassemble_statistiques(Statistiques &stats) const
 {
-    auto nombre_unaires = 0l;
+    auto nombre_unaires = int64_t(0);
     auto memoire_unaires = operateurs_unaires.taille_memoire();
 
     POUR (operateurs_unaires) {
@@ -654,7 +654,7 @@ void Operateurs::rassemble_statistiques(Statistiques &stats) const
         nombre_unaires += it.taille();
     }
 
-    auto nombre_binaires = 0l;
+    auto nombre_binaires = int64_t(0);
     auto memoire_binaires = operateurs_binaires.taille_memoire();
 
     POUR (operateurs_binaires) {

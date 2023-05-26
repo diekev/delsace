@@ -35,7 +35,7 @@ namespace dls::chrono {
  * Structure pour enrober les fonctions maintenant() et delta(temps) afin de
  * mieux controler leurs précisions (heure/minute/secondes...)
  */
-template <long D>
+template <int64_t D>
 struct compte_temps {
 private:
 	double m_temps = 0.0;
@@ -84,7 +84,7 @@ using compte_seconde = compte_temps<1000000>;
 using compte_minute = compte_temps<60000000>;
 using compte_heure = compte_temps<3600000000>;
 
-template <long N>
+template <int64_t N>
 struct chrono_rappel {
 private:
     compte_temps<N> chrono{};
@@ -112,7 +112,7 @@ using chrono_rappel_heure = chrono_rappel<3600000000>;
  * s'appele seulement 'metre' car avec l'espace de nom, cela donne
  * chrono::metre, forçant ainsi une bonne utilisation des espaces de nom.
  */
-template <long D>
+template <int64_t D>
 struct metre {
 private:
 	compte_temps<D> m_compteuse{false};

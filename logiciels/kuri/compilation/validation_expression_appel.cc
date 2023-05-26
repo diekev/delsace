@@ -510,7 +510,7 @@ static ResultatAppariement apparie_appel_pointeur(
     auto poids_args = 1.0;
 
     /* Validation des types passés en paramètre. */
-    for (auto i = 0l; i < slots.taille(); ++i) {
+    for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto index_param = std::min(i,
                                     static_cast<int64_t>(type_fonction->types_entrees.taille() - 1));
         auto slot = slots[i];
@@ -688,7 +688,7 @@ static ResultatAppariement apparie_appel_fonction(
         }
     }
 
-    for (auto i = 0l; i < slots.taille(); ++i) {
+    for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
         auto arg = param->valeur;
@@ -796,7 +796,7 @@ static ResultatAppariement apparie_appel_fonction(
     transformations_.reserve(static_cast<int>(transformations.taille()));
 
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
-    for (auto i = 0l; i < slots.taille(); ++i) {
+    for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
 

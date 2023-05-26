@@ -53,7 +53,7 @@ struct DonneesMorceau {
 	static constexpr type INCONNU = id_morceau::INCONNU;
 
 	dls::vue_chaine chaine;
-	unsigned long ligne_pos;
+    uint64_t ligne_pos;
 	id_morceau genre;
 };
 
