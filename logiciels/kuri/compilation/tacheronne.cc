@@ -111,7 +111,7 @@ void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
 
 int64_t OrdonnanceuseTache::nombre_de_taches_en_attente() const
 {
-    auto resultat = 0l;
+    auto resultat = int64_t(0);
     POUR (taches) {
         resultat += it.taille();
     }
@@ -163,7 +163,7 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
 
 int64_t OrdonnanceuseTache::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     POUR (pique_taille.taches) {
         memoire += it * taille_de(Tache);
     }

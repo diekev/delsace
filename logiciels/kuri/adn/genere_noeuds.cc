@@ -186,8 +186,8 @@ struct GeneratriceCodeCPP {
 
         // Calcul de l'étendue
         os << "struct Etendue {\n";
-        os << "\tlong pos_min = 0;\n";
-        os << "\tlong pos_max = 0;\n";
+        os << "\tint64_t pos_min = 0;\n";
+        os << "\tint64_t pos_max = 0;\n";
         os << "\n";
         os << "\tvoid fusionne(Etendue autre)\n";
         os << "\t{\n";
@@ -873,7 +873,7 @@ struct GeneratriceCodeCPP {
         os << "\tInfoType *cree_info_type_pour(Type *type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
-        os << "\tlong memoire_utilisee() const;\n";
+        os << "\tint64_t memoire_utilisee() const;\n";
 
         os << "};\n\n";
     }
@@ -1168,7 +1168,7 @@ struct GeneratriceCodeCPP {
         os << "int64_t ConvertisseuseNoeudCode::memoire_utilisee() const\n";
         os << "{\n";
 
-        os << "\tauto mem = 0l;\n";
+        os << "\tauto mem = int64_t(0);\n";
 
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
@@ -1381,7 +1381,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         os << "#include \"statistiques/statistiques.hh\"\n";
         os << "int64_t AllocatriceNoeud::nombre_noeuds() const\n";
         os << "{\n";
-        os << "\tauto nombre = 0l;\n";
+        os << "\tauto nombre = int64_t(0);\n";
         POUR (proteines_struct) {
             const auto nom_genre = it->accede_nom_genre();
             if (nom_genre.est_nul()) {
@@ -1445,7 +1445,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 
             const auto nom_comme = it->accede_nom_comme();
 
-            os << "auto memoire_" << nom_comme << " = 0l;\n";
+            os << "auto memoire_" << nom_comme << " = int64_t(0);\n";
             os << "pour_chaque_element(m_noeuds_" << nom_comme << ", [&](";
             os << it->nom() << " const &noeud) {\n";
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
@@ -1552,6 +1552,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         }
 
         os << "\t\t}\n";
+        os << "\t\treturn nullptr;\n";
         os << "\t}\n";
 
         const char *cree_monomorphisations = R"(
@@ -1569,7 +1570,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
         os << cree_monomorphisations;
 
         os << "\n";
-        os << "\tlong nombre_noeuds() const;\n\n";
+        os << "\tint64_t nombre_noeuds() const;\n\n";
 
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n";
 

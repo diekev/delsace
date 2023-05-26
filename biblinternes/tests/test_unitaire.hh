@@ -72,13 +72,13 @@ concept ConceptDecimal = std::is_floating_point<T>::value;
 
 class Controleuse {
   std::ostream &m_flux = std::cerr;
-  long m_total = 0;
+  int64_t m_total = 0;
 
   using fonction_test = void (*)(Controleuse &);
 
   dls::chaine m_proposition = "";
 
-  long m_taille_max_erreur = 0l;
+  int64_t m_taille_max_erreur = 0l;
 
   dls::tableau<fonction_test> m_fonctions = {};
   dls::tableau<dls::chaine> m_echecs = {};

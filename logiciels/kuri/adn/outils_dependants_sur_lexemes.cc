@@ -22,7 +22,7 @@ void imprime_erreur(SiteSource site, kuri::chaine message)
 
     /* La position ligne est en octet, il faut donc compter le nombre d'octets
      * de chaque point de code pour bien formater l'erreur. */
-    for (auto i = 0l; i < index_colonne;) {
+    for (auto i = int64_t(0); i < index_colonne;) {
         if (ligne_courante[i] == '\t') {
             enchaineuse << '\t';
         }

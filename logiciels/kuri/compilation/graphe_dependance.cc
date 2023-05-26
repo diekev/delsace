@@ -124,7 +124,7 @@ void GrapheDependance::connecte_noeuds(NoeudDependance &noeud1,
 
 void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += noeuds.memoire_utilisee();
 
     POUR_TABLEAU_PAGE (noeuds) {
