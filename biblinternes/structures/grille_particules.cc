@@ -32,9 +32,9 @@ GrilleParticules::GrilleParticules(const dls::math::point3d &min, const dls::mat
 	, m_dim(max - min)
 	, m_distance(static_cast<double>(distance) * 10.0)
 {
-	m_res_x = std::max(1l, static_cast<long>(m_dim.x / m_distance));
-	m_res_y = std::max(1l, static_cast<long>(m_dim.y / m_distance));
-	m_res_z = std::max(1l, static_cast<long>(m_dim.z / m_distance));
+	m_res_x = std::max(1l, static_cast<int64_t>(m_dim.x / m_distance));
+	m_res_y = std::max(1l, static_cast<int64_t>(m_dim.y / m_distance));
+	m_res_z = std::max(1l, static_cast<int64_t>(m_dim.z / m_distance));
 
 //	std::cerr << "Résolution Grille Particules : " << m_res_x << ", " << m_res_y << ", " << m_res_z << '\n';
 
@@ -50,7 +50,7 @@ void GrilleParticules::ajoute(const dls::math::vec3f &position)
 bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, float distance)
 {
 #if 1
-	dls::ensemble<long> indices;
+	dls::ensemble<int64_t> indices;
 
     for (auto dx = -distance; dx <= distance; dx += distance) {
         for (auto dy = -distance; dy <= distance; dy += distance) {
@@ -90,7 +90,7 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2, const float radius)
 {
 #if 1
-	dls::ensemble<long> indices;
+	dls::ensemble<int64_t> indices;
 	indices.insere(calcul_index_pos(v0));
 	indices.insere(calcul_index_pos(v1));
 	indices.insere(calcul_index_pos(v2));
@@ -125,15 +125,15 @@ bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::m
 	return false;
 }
 
-long GrilleParticules::calcul_index_pos(const dls::math::vec3f &point)
+int64_t GrilleParticules::calcul_index_pos(const dls::math::vec3f &point)
 {
 	auto px = dls::math::restreint(static_cast<double>(point.x), m_min.x, m_max.x);
 	auto py = dls::math::restreint(static_cast<double>(point.y), m_min.y, m_max.y);
 	auto pz = dls::math::restreint(static_cast<double>(point.z), m_min.z, m_max.z);
 
-	auto index_x = static_cast<long>((px - m_min.x) / m_distance);
-	auto index_y = static_cast<long>((py - m_min.y) / m_distance);
-	auto index_z = static_cast<long>((pz - m_min.z) / m_distance);
+	auto index_x = static_cast<int64_t>((px - m_min.x) / m_distance);
+	auto index_y = static_cast<int64_t>((py - m_min.y) / m_distance);
+	auto index_z = static_cast<int64_t>((pz - m_min.z) / m_distance);
 
 	index_x = dls::math::restreint(index_x, 0l, m_res_x - 1);
 	index_y = dls::math::restreint(index_y, 0l, m_res_y - 1);
@@ -148,7 +148,7 @@ GrillePoint::GrillePoint(float taille_cellule)
 	: m_taille_cellule(taille_cellule)
 {}
 
-GrillePoint GrillePoint::construit_avec_fonction(std::function<dls::math::vec3f (long)> points, long nombre_points, float taille_cellule)
+GrillePoint GrillePoint::construit_avec_fonction(std::function<dls::math::vec3f (int64_t)> points, int64_t nombre_points, float taille_cellule)
 {
 	auto grille = GrillePoint(taille_cellule);
 
@@ -200,27 +200,27 @@ GrillePoint::coord GrillePoint::pos_grille(const dls::math::vec3f &p) const
 	return dls::math::converti_type<int>(pp);
 }
 
-long GrillePoint::index_cellule(const dls::math::vec3f &p) const
+int64_t GrillePoint::index_cellule(const dls::math::vec3f &p) const
 {
 	return dls::math::calcul_index(pos_grille(p), m_resolution);
 }
 
-long GrillePoint::index_cellule(const GrillePoint::coord &c) const
+int64_t GrillePoint::index_cellule(const GrillePoint::coord &c) const
 {
 	return dls::math::calcul_index(c, m_resolution);
 }
 
-long GrillePoint::nombre_elements() const
+int64_t GrillePoint::nombre_elements() const
 {
 	return produit_interne(m_resolution);
 }
 
-GrillePoint::DonneesPoint *GrillePoint::debut_points(long idx)
+GrillePoint::DonneesPoint *GrillePoint::debut_points(int64_t idx)
 {
 	return &m_points[0] + m_index_cellules[idx];
 }
 
-GrillePoint::DonneesPoint *GrillePoint::fin_points(long idx)
+GrillePoint::DonneesPoint *GrillePoint::fin_points(int64_t idx)
 {
 	return &m_points[0] + m_index_cellules[idx + 1];
 }

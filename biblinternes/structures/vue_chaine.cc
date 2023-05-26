@@ -30,7 +30,7 @@ namespace dls {
 
 vue_chaine::vue_chaine(const char *ptr)
 	: m_ptr(ptr)
-	, m_taille(static_cast<long>(std::strlen(m_ptr)))
+	, m_taille(static_cast<int64_t>(std::strlen(m_ptr)))
 {}
 
 bool vue_chaine::est_vide() const

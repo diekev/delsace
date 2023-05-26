@@ -68,7 +68,7 @@ struct HachageSpatial {
 	/**
 	 * Retourne le nombre d'alvéoles présentes dans la table de hachage.
 	 */
-	long taille() const;
+	int64_t taille() const;
 };
 
 /**
