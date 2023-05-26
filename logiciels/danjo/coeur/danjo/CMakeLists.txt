@@ -57,7 +57,11 @@ set(ENTETES_POUR_QT
     conteneur_controles.h
 )
 
-qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+if(Qt6_FOUND)
+    qt_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+else()
+    qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+endif()
 
 #NOTE: pour ici et plus bas (CMAKE_BUILD_TYPE MATCHES "Release"):
 # lors que nous compilons en mode Debug nous devons désactiver certains drapeaux

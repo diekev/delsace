@@ -34,7 +34,7 @@ ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
 ajoute_sousdossier(AVEC_VULKAN vulkan)
-add_subdirectory(demon_react)
+ajoute_sousdossier(AVEC_DEMON_REACT demon_react)
 
 set(ICONES
 	fichiers/icones/icone_avertissement.png
