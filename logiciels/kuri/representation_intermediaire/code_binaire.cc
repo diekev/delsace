@@ -713,7 +713,7 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
 void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
-    for (auto decalage = 0l; decalage < chunk.compte;) {
+    for (auto decalage = int64_t(0); decalage < chunk.compte;) {
         decalage = desassemble_instruction(chunk, decalage, os);
     }
 }
