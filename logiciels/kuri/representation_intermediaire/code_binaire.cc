@@ -1384,7 +1384,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
     switch (valeur_constante->valeur.genre) {
         case AtomeValeurConstante::Valeur::Genre::NULLE:
         {
-            chunk.emets_constante(0l);
+            chunk.emets_constante(int64_t(0));
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::TYPE:

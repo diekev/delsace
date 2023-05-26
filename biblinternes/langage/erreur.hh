@@ -59,7 +59,7 @@ public:
 
 /* Fonctions communes de formattage d'erreurs. */
 template <typename Flux>
-void imprime_caractere_vide(Flux &os, const long nombre, const dls::vue_chaine &chaine)
+void imprime_caractere_vide(Flux &os, const int64_t nombre, const dls::vue_chaine &chaine)
 {
 	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
 	 * de chaque point de code pour bien formater l'erreur. */

@@ -30,7 +30,7 @@
 struct DonneesMorceau;
 
 namespace lng {
-struct tampon_source;
+class tampon_source;
 }
 
 namespace json {

@@ -129,7 +129,7 @@ void SystemeModule::rassemble_stats(Statistiques &stats) const
 
 int64_t SystemeModule::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += modules.memoire_utilisee();
     memoire += fichiers.memoire_utilisee();
 

@@ -38,11 +38,11 @@ inline constexpr int64_t calcule_memoire(int64_t nombre)
 }
 
 struct logeuse_memoire {
-	std::atomic_long memoire_consommee = 0;
-	std::atomic_long memoire_allouee = 0;
-	std::atomic_long nombre_allocations = 0;
-	std::atomic_long nombre_reallocations = 0;
-	std::atomic_long nombre_deallocations = 0;
+    std::atomic_int64_t memoire_consommee = 0;
+    std::atomic_int64_t memoire_allouee = 0;
+    std::atomic_int64_t nombre_allocations = 0;
+    std::atomic_int64_t nombre_reallocations = 0;
+    std::atomic_int64_t nombre_deallocations = 0;
 
 	logeuse_memoire() = default;
 
