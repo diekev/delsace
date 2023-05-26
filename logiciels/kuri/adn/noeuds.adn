@@ -201,7 +201,7 @@ struct NoeudExpressionLittéraleChaine : NoeudExpression {
     @comme littérale_chaine
     @code  NoeudCodeLittéraleChaine
 
-    long valeur [code copie]
+    int64_t valeur [code copie]
 }
 
 struct NoeudExpressionLittéraleCaractère : NoeudExpression {
