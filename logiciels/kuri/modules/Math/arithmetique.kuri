@@ -1,6 +1,7 @@
 // À FAIRE : implémente les fonctions suivantes avec notre langage
 
-libcmath :: #bibliothèque "m"
+// libcmath :: #bibliothèque "m"
+libcmath :: #bibliothèque "ucrt"
 
 sqrt :: fonc (v: r64) -> r64 #externe libcmath
 cos :: fonc (a : r64) -> r64 #externe libcmath
