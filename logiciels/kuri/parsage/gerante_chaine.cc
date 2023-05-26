@@ -20,10 +20,7 @@ int64_t GeranteChaine::ajoute_chaine(kuri::chaine_statique chaine)
 
     enchaineuse.ajoute(chaine);
 
-    auto result = int64_t((size_t(chaine.taille()) << 32) | (size_t(adresse) & 0xffffffff));
-
-    // std::cerr << __func__ << " : " << chaine << " taille " << chaine.taille() << " adresse " << result << '\n';
-    return (result);
+    return adresse | (chaine.taille() << 32);
 }
 
 kuri::chaine_statique GeranteChaine::chaine_pour_adresse(int64_t adresse) const
