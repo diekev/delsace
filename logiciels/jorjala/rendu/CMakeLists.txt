@@ -50,7 +50,7 @@ set(BIBLIOTHEQUES
 #	cycles_graph
 #	${OPENIMAGEIO_LIBRARY}
 #	extern_numaapi
-	dl
+        ${BIBLIOTHEQUE_DL}
 )
 
 add_library(${NOM_CIBLE} STATIC

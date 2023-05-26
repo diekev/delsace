@@ -16,7 +16,7 @@ set(BIBLIOTHEQUES
     kuri_compilation
     kuri_parsage
     kuri_representation_intermediaire
-    ${BILIOTHEQUE_CXX_FILESYSTEM}
+    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     bib_outils
     systeme_fichier
 )
@@ -92,7 +92,7 @@ if(AVEC_LLVM)
     )
 
 set(BIBLIOTHEQUES
-    ${BILIOTHEQUE_CXX_FILESYSTEM}
+    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     bib_outils
     bib_json
     kuri_structures

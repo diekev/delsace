@@ -43,8 +43,8 @@ set(BIBLIOTHEQUES
 	systeme_fichier
         # wolika
 	${BIBLIOTHEQUES_TBB}
-	stdc++fs
-        dl
+        ${BIBLIOTHEQUE_CXX_FILESYSTEM}
+        ${BIBLIOTHEQUE_DL}
 )
 
 add_compile_options(-fPIC)

@@ -164,7 +164,7 @@ active_dependances(AVEC_SILVATHEQUE AVEC_DANJO)
 #active_dependances(AVEC_JORJALA REQUIERS_TBB)
 
 active_dependances(AVEC_KANBA REQUIERS_OPENGL)
-#active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
+active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 
@@ -288,9 +288,13 @@ if(REQUIERS_QT)
     set(BIBLIOTHEQUES_QT "${BIBLIOTHEQUES_QT_CORE}" "${BIBLIOTHEQUES_QT_GUI}" "${BIBLIOTHEQUES_QT_OPENGL}" "${BIBLIOTHEQUES_QT_WIDGETS}" "${BIBLIOTHEQUES_QT_SQL}")
 endif()
 
-# À FAIRE : find_package
 if(REQUIERS_OPENGL)
-    set(BIBLIOTHEQUES_OPENGL GLEW GLU GL) #glut
+    set(OpenGL_GL_PREFERENCE "LEGACY")
+
+    find_package(GLEW REQUIRED)
+    find_package(OpenGL REQUIRED)
+
+    set(BIBLIOTHEQUES_OPENGL ${GLEW_LIBRARIES} OpenGL::GL OpenGL::GLU)
 endif()
 
 if(REQUIERS_TBB)
@@ -314,7 +318,7 @@ endif()
 
 # Si nous compilons avec g++ nous devons lier la bibliothèque stdc++fs pour pouvoir
 # utiliser filesystem.
-set(BILIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
+set(BIBLIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
 
 # dl n'est disponible que sur linux
 set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)

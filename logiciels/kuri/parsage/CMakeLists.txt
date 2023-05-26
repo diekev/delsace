@@ -11,7 +11,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
     kuri_statistiques
     kuri_structures
-    ${BILIOTHEQUE_CXX_FILESYSTEM}
+    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     langage
     bib_outils
     bib_moultfilage

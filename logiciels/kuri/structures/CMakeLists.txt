@@ -29,7 +29,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
     memoire
     bib_outils
-    ${BILIOTHEQUE_CXX_FILESYSTEM}
+    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
 )
 
 set(SOURCES
