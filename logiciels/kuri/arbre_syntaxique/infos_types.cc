@@ -5,7 +5,7 @@
 
 int64_t AllocatriceInfosType::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += infos_types.memoire_utilisee();
     memoire += infos_types_entiers.memoire_utilisee();
     memoire += infos_types_enums.memoire_utilisee();
