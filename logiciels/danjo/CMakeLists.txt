@@ -35,7 +35,7 @@ set(BIBLIOTHEQUES
 	bib_structures
 	bib_outils
 
-	stdc++fs
+        ${BIBLIOTHEQUE_CXX_FILESYSTEM}
 )
 
 # ------------------------------------------------------------------------------
