@@ -5,6 +5,9 @@ add_compile_definitions(_USE_MATH_DEFINES)
 
 add_compile_options(/bigobj /utf-8)
 
+# Pile de 2 Mo.
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:2097152")
+
 # Pour supprimer des drapeaux de compilation un peu trop stricts pour certaines
 # bibliothèques externes.
 macro(desactive_drapeaux_compilation cible)
