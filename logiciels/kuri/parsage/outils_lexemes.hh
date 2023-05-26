@@ -3,13 +3,15 @@
 
 #pragma once
 
-enum class GenreLexeme : unsigned int;
+#include <cstdint>
+
+enum class GenreLexeme : uint32_t;
 struct Lexeme;
 
 struct PositionLexeme {
-    long index_ligne = 0;
-    long numero_ligne = 0;
-    long pos = 0;
+    int64_t index_ligne = 0;
+    int64_t numero_ligne = 0;
+    int64_t pos = 0;
 };
 
 PositionLexeme position_lexeme(Lexeme const &lexeme);

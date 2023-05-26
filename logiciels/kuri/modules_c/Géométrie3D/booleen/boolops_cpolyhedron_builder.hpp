@@ -41,9 +41,9 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
 
     /*!
      * \typedef typename Indices
-     * \brief A list of indices (unsigned long) to describe a facet
+     * \brief A list of indices (uint64_t) to describe a facet
      */
-    typedef typename std::vector<unsigned long> Indices;
+    typedef typename std::vector<uint64_t> Indices;
 
     /*!
      * \typedef typename Builder
@@ -117,22 +117,22 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
      * \param T : The list of triangle to add. Each triangle is described as a list of three
      * indices \param he : First halfedge handle of the facet
      */
-    void add_triangle(std::vector<std::vector<unsigned long>> &T, Halfedge_handle &he)
+    void add_triangle(std::vector<std::vector<uint64_t>> &T, Halfedge_handle &he)
     {
         // For each triangle of the vector T...
-        for (unsigned int i = 0; i != T.size(); ++i) {
+        for (uint32_t i = 0; i != T.size(); ++i) {
             // we verify that the indices are valid.
             // if one of the indices equals to 0xFFFFFFFF, 0xFFFFFFFE or 0XFFFFFFFD, it means that
             // the corresponding vertex is respectively the first, the second or the third vertex
             // of the facet.
-            for (unsigned int j = 0; j != 3; ++j) {
+            for (uint32_t j = 0; j != 3; ++j) {
                 switch (T[i][j]) {
                     case 0xFFFFFFFF:
                         if (he->vertex()->Label != 0xFFFFFFFF) {
                             T[i][j] = he->vertex()->Label;
                         }
                         else {
-                            T[i][j] = static_cast<unsigned long>(m_Sorted_vertices.size());
+                            T[i][j] = static_cast<uint64_t>(m_Sorted_vertices.size());
                             he->vertex()->Label = T[i][j];
                             m_Sorted_vertices.push_back(he->vertex()->point());
                         }
@@ -142,7 +142,7 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
                             T[i][j] = he->next()->vertex()->Label;
                         }
                         else {
-                            T[i][j] = static_cast<unsigned long>(m_Sorted_vertices.size());
+                            T[i][j] = static_cast<uint64_t>(m_Sorted_vertices.size());
                             he->next()->vertex()->Label = T[i][j];
                             m_Sorted_vertices.push_back(he->next()->vertex()->point());
                         }
@@ -152,7 +152,7 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
                             T[i][j] = he->next()->next()->vertex()->Label;
                         }
                         else {
-                            T[i][j] = static_cast<unsigned long>(m_Sorted_vertices.size());
+                            T[i][j] = static_cast<uint64_t>(m_Sorted_vertices.size());
                             he->next()->next()->vertex()->Label = T[i][j];
                             m_Sorted_vertices.push_back(he->next()->next()->vertex()->point());
                         }
@@ -170,10 +170,10 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
      * \param p : The point to add
      * \param l : The corresponding label
      */
-    void add_vertex(Point3d p, unsigned long &l)  // MT: suppression référence
+    void add_vertex(Point3d p, uint64_t &l)  // MT: suppression référence
     {
         // The value of the label is updated
-        l = static_cast<unsigned long>(m_Sorted_vertices.size());
+        l = static_cast<uint64_t>(m_Sorted_vertices.size());
         // The vertex is added
         m_Sorted_vertices.push_back(p);
     }

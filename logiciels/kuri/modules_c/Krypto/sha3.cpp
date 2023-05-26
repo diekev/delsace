@@ -33,7 +33,7 @@ void SHA3::reset()
 /// constants and local helper functions
 namespace
 {
-const unsigned int Rounds = 24;
+const uint32_t Rounds = 24;
 const uint64_t XorMasks[Rounds] =
 {
 	0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
@@ -73,7 +73,7 @@ inline uint64_t swap(uint64_t x)
 }
 
 /// return x % 5 for 0 <= x <= 9
-unsigned int mod5(unsigned int x)
+uint32_t mod5(uint32_t x)
 {
 	if (x < 5)
 		return x;
@@ -93,18 +93,18 @@ void SHA3::processBlock(const void* data)
 
 	const uint64_t* data64 = (const uint64_t*) data;
 	// mix data into state
-	for (unsigned int i = 0; i < m_blockSize / 8; i++)
+	for (uint32_t i = 0; i < m_blockSize / 8; i++)
 		m_hash[i] ^= LITTLEENDIAN(data64[i]);
 
 	// re-compute state
-	for (unsigned int round = 0; round < Rounds; round++)
+	for (uint32_t round = 0; round < Rounds; round++)
 	{
 		// Theta
 		uint64_t coefficients[5];
-		for (unsigned int i = 0; i < 5; i++)
+		for (uint32_t i = 0; i < 5; i++)
 			coefficients[i] = m_hash[i] ^ m_hash[i + 5] ^ m_hash[i + 10] ^ m_hash[i + 15] ^ m_hash[i + 20];
 
-		for (unsigned int i = 0; i < 5; i++)
+		for (uint32_t i = 0; i < 5; i++)
 		{
 			uint64_t one = coefficients[mod5(i + 4)] ^ rotateLeft(coefficients[mod5(i + 1)], 1);
 			m_hash[i     ] ^= one;
@@ -145,7 +145,7 @@ void SHA3::processBlock(const void* data)
 		m_hash[ 1] = rotateLeft(last, 44);
 
 		// Chi
-		for (unsigned int j = 0; j < 25; j += 5)
+		for (uint32_t j = 0; j < 25; j += 5)
 		{
 			// temporaries
 			one = m_hash[j];
@@ -237,10 +237,10 @@ void SHA3::getHash(char *sortie)
 	static const char dec2hex[16 + 1] = "0123456789abcdef";
 
 	// number of significant elements in hash (uint64_t)
-	unsigned int hashLength = static_cast<unsigned>(m_bits / 64);
+	uint32_t hashLength = static_cast<unsigned>(m_bits / 64);
 
-	for (unsigned int i = 0; i < hashLength; i++)
-		for (unsigned int j = 0; j < 8; j++) // 64 bits => 8 bytes
+	for (uint32_t i = 0; i < hashLength; i++)
+		for (uint32_t j = 0; j < 8; j++) // 64 bits => 8 bytes
 		{
 			// convert a byte to hex
 			unsigned char oneByte = (unsigned char) (m_hash[i] >> (8 * j));
@@ -249,8 +249,8 @@ void SHA3::getHash(char *sortie)
 		}
 
 	// SHA3-224's last entry in m_hash provides only 32 bits instead of 64 bits
-	unsigned int remainder = static_cast<unsigned>(m_bits) - hashLength * 64;
-	unsigned int processed = 0;
+	uint32_t remainder = static_cast<unsigned>(m_bits) - hashLength * 64;
+	uint32_t processed = 0;
 	while (processed < remainder)
 	{
 		// convert a byte to hex

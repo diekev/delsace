@@ -103,22 +103,22 @@ struct AtomeValeurConstante : public AtomeConstante {
 
     struct Valeur {
         union {
-            unsigned long long valeur_entiere;
+            uint64_t valeur_entiere;
             double valeur_reelle;
             bool valeur_booleenne;
             struct {
                 char *pointeur;
-                long taille;
+                int64_t taille;
             } valeur_tdc;
             struct {
                 AtomeConstante **pointeur;
-                long taille;
-                long capacite;
+                int64_t taille;
+                int64_t capacite;
             } valeur_structure;
             struct {
                 AtomeConstante **pointeur;
-                long taille;
-                long capacite;
+                int64_t taille;
+                int64_t capacite;
             } valeur_tableau;
             Type const *type;
         };
@@ -155,7 +155,7 @@ struct AtomeValeurConstante : public AtomeConstante {
 
     Valeur valeur{};
 
-    AtomeValeurConstante(Type const *type_, unsigned long long valeur_) : AtomeValeurConstante()
+    AtomeValeurConstante(Type const *type_, uint64_t valeur_) : AtomeValeurConstante()
     {
         this->type = type_;
         this->valeur.genre = Valeur::Genre::ENTIERE;
@@ -201,7 +201,7 @@ struct AtomeValeurConstante : public AtomeConstante {
         valeur_tdc->permute(donnees_constantes);
     }
 
-    AtomeValeurConstante(Type const *type_, char *pointeur, long taille) : AtomeValeurConstante()
+    AtomeValeurConstante(Type const *type_, char *pointeur, int64_t taille) : AtomeValeurConstante()
     {
         this->type = type_;
         this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
@@ -359,7 +359,7 @@ struct AtomeFonction : public Atome {
     // Pour les exécutions
     Chunk chunk{};
 
-    long decalage_appel_init_globale = 0;
+    int64_t decalage_appel_init_globale = 0;
 
     struct DonneesFonctionExterne {
         kuri::tablet<ffi_type *, 6> types_entrees{};

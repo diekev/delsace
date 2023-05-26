@@ -44,7 +44,7 @@ dls::tableau<dls::math::vec3f> const &HachageSpatial::particules(dls::math::vec3
 	return m_tableau[empreinte];
 }
 
-long HachageSpatial::taille() const
+int64_t HachageSpatial::taille() const
 {
 	return m_tableau.taille();
 }

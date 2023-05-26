@@ -265,8 +265,8 @@ void fracture_maillage_voronoi(const ParametresFracture &params,
         maillage_a_fracturer, cellules, params, maillage_sortie);
 #else
     /* conversion des données */
-    long nombre_de_points = 0;
-    long nombre_de_polygones = 0;
+    int64_t nombre_de_points = 0;
+    int64_t nombre_de_polygones = 0;
     auto poly_index_offset = 0;
     for (auto &c : cellules) {
         nombre_de_points += c.totvert;

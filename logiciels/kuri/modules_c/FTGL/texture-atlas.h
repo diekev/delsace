@@ -18,6 +18,7 @@
 #ifndef __TEXTURE_ATLAS_H__
 #define __TEXTURE_ATLAS_H__
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "vec234.h"
@@ -93,7 +94,7 @@ typedef struct texture_atlas_t {
     /**
      * Texture identity (OpenGL)
      */
-    unsigned int id;
+    uint32_t id;
 
     /**
      * Atlas data

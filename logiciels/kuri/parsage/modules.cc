@@ -127,7 +127,7 @@ void SystemeModule::rassemble_stats(Statistiques &stats) const
     }
 }
 
-long SystemeModule::memoire_utilisee() const
+int64_t SystemeModule::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += modules.memoire_utilisee();

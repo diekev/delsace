@@ -185,7 +185,7 @@ bool Bibliotheque::charge(EspaceDeTravail *espace)
     return true;
 }
 
-long Bibliotheque::memoire_utilisee() const
+int64_t Bibliotheque::memoire_utilisee() const
 {
     auto memoire = symboles.memoire_utilisee();
     POUR_TABLEAU_PAGE (symboles) {
@@ -402,7 +402,7 @@ static bool est_fichier_elf(unsigned char tampon[4])
     return tampon[0] == 0x7f && tampon[1] == 0x45 && tampon[2] == 0x4c && tampon[3] == 0x46;
 }
 
-static long taille_fichier(int fd)
+static int64_t taille_fichier(int fd)
 {
     auto debut = lseek(fd, 0, SEEK_SET);
     auto fin = lseek(fd, 0, SEEK_END);
@@ -800,7 +800,7 @@ void GestionnaireBibliotheques::resoud_chemins_bibliotheque(EspaceDeTravail &esp
     }
 }
 
-long GestionnaireBibliotheques::memoire_utilisee() const
+int64_t GestionnaireBibliotheques::memoire_utilisee() const
 {
     auto memoire = bibliotheques.memoire_utilisee();
     POUR_TABLEAU_PAGE (bibliotheques) {

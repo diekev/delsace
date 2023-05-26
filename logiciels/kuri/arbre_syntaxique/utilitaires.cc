@@ -913,7 +913,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     expr_ref->substitution = assem->cree_litterale_entier(
                         expr_ref->lexeme,
                         decl_ref->type,
-                        static_cast<unsigned long>(decl_const->valeur_expression.entiere()));
+                        static_cast<uint64_t>(decl_const->valeur_expression.entiere()));
                     return;
                 }
 
@@ -982,7 +982,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (type_accede->est_tableau_fixe()) {
                 auto taille = type_accede->comme_tableau_fixe()->taille;
                 noeud->substitution = assem->cree_litterale_entier(
-                    noeud->lexeme, noeud->type, static_cast<unsigned long>(taille));
+                    noeud->lexeme, noeud->type, static_cast<uint64_t>(taille));
                 return;
             }
 
@@ -1653,7 +1653,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 expr_taille = assem->cree_litterale_entier(
                     inst->lexeme,
                     typeuse[TypeBase::Z64],
-                    static_cast<unsigned long>(taille_tableau));
+                    static_cast<uint64_t>(taille_tableau));
             }
             else {
                 expr_taille = assem->cree_reference_membre(
@@ -2429,21 +2429,21 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             if (N == DISCR_ENUM) {
                 auto valeur = valeur_enum(static_cast<TypeEnum *>(expression->type), expr->ident);
                 auto constante = assem->cree_litterale_entier(
-                    expr->lexeme, expression->type, static_cast<unsigned long>(valeur));
+                    expr->lexeme, expression->type, static_cast<uint64_t>(valeur));
                 comparaison.operande_droite = constante;
             }
             else if (N == DISCR_UNION) {
                 auto const type_union = discr->expression_discriminee->type->comme_union();
                 auto index = trouve_index_membre(type_union, expr->ident);
                 auto constante = assem->cree_litterale_entier(
-                    expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+                    expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;
             }
             else if (N == DISCR_UNION_ANONYME) {
                 auto const type_union = discr->expression_discriminee->type->comme_union();
                 auto index = trouve_index_membre(type_union, expr->type);
                 auto constante = assem->cree_litterale_entier(
-                    expr->lexeme, expression->type, static_cast<unsigned long>(index + 1));
+                    expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;
             }
             else {
@@ -3392,7 +3392,7 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
 
 NoeudExpressionLitteraleEntier *AssembleuseArbre::cree_litterale_entier(Lexeme const *lexeme,
                                                                         Type *type,
-                                                                        unsigned long valeur)
+                                                                        uint64_t valeur)
 {
     auto lit = cree_litterale_entier(lexeme);
     lit->type = type;

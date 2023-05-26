@@ -3264,7 +3264,7 @@ static inline bool est_puissance_de_2(T x)
     return (x != 0) && (x & (x - 1)) == 0;
 }
 
-static bool est_hors_des_limites(long valeur, Type *type)
+static bool est_hors_des_limites(int64_t valeur, Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3276,7 +3276,7 @@ static bool est_hors_des_limites(long valeur, Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return valeur > std::numeric_limits<unsigned int>::max();
+            return valeur > std::numeric_limits<uint32_t>::max();
         }
 
         // À FAIRE : trouve une bonne manière de détecter ceci
@@ -3302,7 +3302,7 @@ static bool est_hors_des_limites(long valeur, Type *type)
     return false;
 }
 
-static long valeur_min(Type *type)
+static int64_t valeur_min(Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3314,10 +3314,10 @@ static long valeur_min(Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return std::numeric_limits<unsigned int>::min();
+            return std::numeric_limits<uint32_t>::min();
         }
 
-        return std::numeric_limits<unsigned long>::min();
+        return std::numeric_limits<uint64_t>::min();
     }
 
     if (type->taille_octet == 1) {
@@ -3332,10 +3332,10 @@ static long valeur_min(Type *type)
         return std::numeric_limits<int>::min();
     }
 
-    return std::numeric_limits<long>::min();
+    return std::numeric_limits<int64_t>::min();
 }
 
-static unsigned long valeur_max(Type *type)
+static uint64_t valeur_max(Type *type)
 {
     if (type->est_entier_naturel()) {
         if (type->taille_octet == 1) {
@@ -3347,10 +3347,10 @@ static unsigned long valeur_max(Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return std::numeric_limits<unsigned int>::max();
+            return std::numeric_limits<uint32_t>::max();
         }
 
-        return std::numeric_limits<unsigned long>::max();
+        return std::numeric_limits<uint64_t>::max();
     }
 
     if (type->taille_octet == 1) {
@@ -3365,7 +3365,7 @@ static unsigned long valeur_max(Type *type)
         return std::numeric_limits<int>::max();
     }
 
-    return std::numeric_limits<long>::max();
+    return std::numeric_limits<int64_t>::max();
 }
 
 static int nombre_de_bits_pour_type(Type *type)
@@ -3385,10 +3385,10 @@ static int nombre_de_bits_pour_type(Type *type)
     }
 
     if (type->taille_octet == 4 || type->est_entier_constant()) {
-        return std::numeric_limits<unsigned int>::digits;
+        return std::numeric_limits<uint32_t>::digits;
     }
 
-    return std::numeric_limits<unsigned long>::digits;
+    return std::numeric_limits<uint64_t>::digits;
 }
 
 template <int N>
@@ -3411,9 +3411,9 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     membres.reserve(decl->bloc->expressions->taille());
     decl->bloc->reserve_membres(decl->bloc->expressions->taille());
 
-    long valeur_enum_min = std::numeric_limits<long>::max();
-    long valeur_enum_max = std::numeric_limits<long>::min();
-    long valeurs_legales = 0;
+    int64_t valeur_enum_min = std::numeric_limits<int64_t>::max();
+    int64_t valeur_enum_max = std::numeric_limits<int64_t>::min();
+    int64_t valeurs_legales = 0;
 
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
         if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
@@ -4677,7 +4677,7 @@ void ContexteValidationCode::rapporte_erreur_type_operation(const Type *type_gau
 
 void ContexteValidationCode::rapporte_erreur_acces_hors_limites(NoeudExpression *b,
                                                                 TypeTableauFixe *type_tableau,
-                                                                long index_acces)
+                                                                int64_t index_acces)
 {
     erreur::lance_erreur_acces_hors_limites(
         *espace, b, type_tableau->taille, type_tableau, index_acces);

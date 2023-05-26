@@ -137,7 +137,7 @@ static auto decoupe_tampon(lng::tampon_source const &tampon)
     auto fin_cas = 1ul;
 
     for (auto i = 0ul; i < tampon.nombre_lignes(); ++i) {
-        auto ligne = dls::chaine(tampon[static_cast<long>(i)]);
+        auto ligne = dls::chaine(tampon[static_cast<int64_t>(i)]);
 
         if (ligne.sous_chaine(0, 8) == "// Cas :") {
             debut_cas = i + 1;

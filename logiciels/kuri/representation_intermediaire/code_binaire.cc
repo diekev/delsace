@@ -59,7 +59,7 @@ void Chunk::emets(octet_t o)
     compte += 1;
 }
 
-void Chunk::agrandis_si_necessaire(long taille)
+void Chunk::agrandis_si_necessaire(int64_t taille)
 {
     if (capacite < compte + taille) {
         auto nouvelle_capacite = capacite < 8 ? 8 : capacite * 2;
@@ -467,46 +467,46 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
 
 /* ************************************************************************** */
 
-static long instruction_simple(const char *nom, long decalage, std::ostream &os)
+static int64_t instruction_simple(const char *nom, int64_t decalage, std::ostream &os)
 {
     os << nom << '\n';
     return decalage + 1;
 }
 
 template <typename T>
-static long instruction_1d(Chunk const &chunk, const char *nom, long decalage, std::ostream &os)
+static int64_t instruction_1d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
 {
     decalage += 1;
     auto index = *reinterpret_cast<T *>(&chunk.code[decalage]);
     os << nom << ' ' << index << '\n';
-    return decalage + static_cast<long>(sizeof(T));
+    return decalage + static_cast<int64_t>(sizeof(T));
 }
 
 template <typename T1, typename T2>
-static long instruction_2d(Chunk const &chunk, const char *nom, long decalage, std::ostream &os)
+static int64_t instruction_2d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
 {
     decalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
-    decalage += static_cast<long>(sizeof(T1));
+    decalage += static_cast<int64_t>(sizeof(T1));
     auto v2 = *reinterpret_cast<T2 *>(&chunk.code[decalage]);
     os << nom << ' ' << v1 << ", " << v2 << "\n";
-    return decalage + static_cast<long>(sizeof(T2));
+    return decalage + static_cast<int64_t>(sizeof(T2));
 }
 
 template <typename T1, typename T2, typename T3>
-static long instruction_3d(Chunk const &chunk, const char *nom, long decalage, std::ostream &os)
+static int64_t instruction_3d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
 {
     decalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
-    decalage += static_cast<long>(sizeof(T1));
+    decalage += static_cast<int64_t>(sizeof(T1));
     auto v2 = *reinterpret_cast<T2 *>(&chunk.code[decalage]);
-    decalage += static_cast<long>(sizeof(T2));
+    decalage += static_cast<int64_t>(sizeof(T2));
     auto v3 = *reinterpret_cast<T3 *>(&chunk.code[decalage]);
     os << nom << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
-    return decalage + static_cast<long>(sizeof(T3));
+    return decalage + static_cast<int64_t>(sizeof(T3));
 }
 
-long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os)
+int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os)
 {
     os << std::setfill('0') << std::setw(4) << decalage << ' ';
 
@@ -552,14 +552,14 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 }
                 case CONSTANTE_ENTIER_RELATIF | BITS_64:
                 {
-                    LIS_CONSTANTE(long);
+                    LIS_CONSTANTE(int64_t);
                     os << " z64";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_8:
                 {
                     // erreur de compilation pour transtype inutile avec drapeaux stricts
-                    os << static_cast<long>(chunk.code[decalage]);
+                    os << static_cast<int64_t>(chunk.code[decalage]);
                     decalage += 1;
                     os << " n8";
                     break;
@@ -572,13 +572,13 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_32:
                 {
-                    LIS_CONSTANTE(unsigned int);
+                    LIS_CONSTANTE(uint32_t);
                     os << " n32";
                     break;
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_64:
                 {
-                    LIS_CONSTANTE(unsigned long);
+                    LIS_CONSTANTE(uint64_t);
                     os << " n64";
                     break;
                 }
@@ -662,18 +662,18 @@ long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os
         }
         case OP_VERIFIE_CIBLE_APPEL:
         {
-            return instruction_2d<int, long>(
+            return instruction_2d<int, int64_t>(
                 chunk, chaine_code_operation(instruction), decalage, os);
         }
         case OP_ALLOUE:
         {
             decalage += 1;
             auto v1 = *reinterpret_cast<Type **>(&chunk.code[decalage]);
-            decalage += static_cast<long>(sizeof(Type *));
+            decalage += static_cast<int64_t>(sizeof(Type *));
             auto v2 = *reinterpret_cast<IdentifiantCode **>(&chunk.code[decalage]);
             os << chaine_code_operation(instruction) << ' ' << chaine_type(v1) << ", " << v2
                << "\n";
-            return decalage + static_cast<long>(sizeof(IdentifiantCode *));
+            return decalage + static_cast<int64_t>(sizeof(IdentifiantCode *));
         }
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
@@ -1383,7 +1383,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             // utilisation du pointeur directement au lieu de l'index car la table de type
             // n'est pas implémentée, et il y a des concurrences critiques entre les
             // métaprogrammes
-            chunk.emets_constante(reinterpret_cast<long>(valeur_constante->valeur.type));
+            chunk.emets_constante(reinterpret_cast<int64_t>(valeur_constante->valeur.type));
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
@@ -1405,10 +1405,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<unsigned short>(valeur_entiere));
                 }
                 else if (type->taille_octet == 4) {
-                    chunk.emets_constante(static_cast<unsigned int>(valeur_entiere));
+                    chunk.emets_constante(static_cast<uint32_t>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(static_cast<unsigned long>(valeur_entiere));
+                    chunk.emets_constante(static_cast<uint64_t>(valeur_entiere));
                 }
             }
             else if (type->genre == GenreType::ENTIER_RELATIF) {
@@ -1422,7 +1422,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<int>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(static_cast<long>(valeur_entiere));
+                    chunk.emets_constante(static_cast<int64_t>(valeur_entiere));
                 }
             }
             else if (type->est_reel()) {
@@ -1453,7 +1453,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
         case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
         {
             AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
-            const long taille = valeur_constante->valeur.valeur_tableau.taille;
+            const int64_t taille = valeur_constante->valeur.valeur_tableau.taille;
 
             for (auto i = 0; i < taille; i++) {
                 genere_code_binaire_pour_constante(pointeur[i], chunk);
@@ -1558,7 +1558,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             switch (valeur_constante->valeur.genre) {
                 case AtomeValeurConstante::Valeur::Genre::NULLE:
                 {
-                    *reinterpret_cast<unsigned long *>(donnees) = 0;
+                    *reinterpret_cast<uint64_t *>(donnees) = 0;
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TYPE:
@@ -1566,13 +1566,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     // utilisation du pointeur directement au lieu de l'index car la table de type
                     // n'est pas implémentée, et il y a des concurrences critiques entre les
                     // métaprogrammes
-                    *reinterpret_cast<long *>(donnees) = reinterpret_cast<long>(
+                    *reinterpret_cast<int64_t *>(donnees) = reinterpret_cast<int64_t>(
                         valeur_constante->valeur.type);
                     break;
                 }
                 case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
                 {
-                    *reinterpret_cast<unsigned int *>(
+                    *reinterpret_cast<uint32_t *>(
                         donnees) = valeur_constante->valeur.type->taille_octet;
                     break;
                 }
@@ -1591,12 +1591,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 donnees) = static_cast<unsigned short>(valeur_entiere);
                         }
                         else if (type->taille_octet == 4) {
-                            *reinterpret_cast<unsigned int *>(donnees) = static_cast<unsigned int>(
+                            *reinterpret_cast<uint32_t *>(donnees) = static_cast<uint32_t>(
                                 valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {
-                            *reinterpret_cast<unsigned long *>(
-                                donnees) = static_cast<unsigned long>(valeur_entiere);
+                            *reinterpret_cast<uint64_t *>(
+                                donnees) = static_cast<uint64_t>(valeur_entiere);
                         }
                     }
                     else if (type->genre == GenreType::ENTIER_RELATIF) {
@@ -1611,7 +1611,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {
-                            *reinterpret_cast<long *>(donnees) = static_cast<long>(valeur_entiere);
+                            *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(valeur_entiere);
                         }
                     }
                     else if (type->genre == GenreType::ENTIER_CONSTANT) {
@@ -1702,7 +1702,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto donnees_ = donnees_executions->donnees_globales.donnees() +
                                             decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
-                            *reinterpret_cast<long *>(donnees_ + 8) = taille_chaine;
+                            *reinterpret_cast<int64_t *>(donnees_ + 8) = taille_chaine;
                         }
                         else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
                             auto valeur_tableau = static_cast<AtomeValeurConstante *>(
@@ -1745,7 +1745,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto donnees_ = donnees_executions->donnees_globales.donnees() +
                                             decalage + static_cast<int>(decalage_membre);
-                            *reinterpret_cast<long *>(donnees_ + 8) = taille;
+                            *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
                         }
                         else {
                             genere_code_binaire_pour_initialisation_globale(
@@ -1826,7 +1826,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         {
             // l'adresse pour les pointeurs de fonctions
             if (pour_operande) {
-                chunk.emets_constante(reinterpret_cast<long>(atome));
+                chunk.emets_constante(reinterpret_cast<int64_t>(atome));
             }
 
             break;

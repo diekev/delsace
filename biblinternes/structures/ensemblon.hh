@@ -28,13 +28,13 @@
 
 namespace dls {
 
-template <typename T, unsigned long TAILLE_INITIALE, typename Comparaison = std::less<T>>
+template <typename T, uint64_t TAILLE_INITIALE, typename Comparaison = std::less<T>>
 struct ensemblon {
 private:
 	T m_ensemblon[TAILLE_INITIALE];
 	dls::ensemble<T, Comparaison> m_ensemble{};
 
-	long m_taille = 0;
+	int64_t m_taille = 0;
 
 public:
 	ensemblon() = default;
@@ -63,7 +63,7 @@ public:
 
 	bool est_stocke_dans_classe() const
 	{
-		return m_taille <= static_cast<long>(TAILLE_INITIALE);
+		return m_taille <= static_cast<int64_t>(TAILLE_INITIALE);
 	}
 
 	void permute(ensemblon &autre)
@@ -110,7 +110,7 @@ public:
 		}
 
 		if (est_stocke_dans_classe()) {
-			if (m_taille + 1 <= static_cast<long>(TAILLE_INITIALE)) {
+			if (m_taille + 1 <= static_cast<int64_t>(TAILLE_INITIALE)) {
 				m_ensemblon[m_taille] = valeur;
 				m_taille += 1;
 				return;
@@ -140,7 +140,7 @@ public:
 		return m_ensemble.trouve(valeur) != m_ensemble.fin();
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
 		return m_taille;
 	}
@@ -180,7 +180,7 @@ enum class DecisionIteration {
 	Continue
 };
 
-template <typename T, unsigned long TAILLE_INITIALE, typename Rappel, typename Comparaison = std::less<T>>
+template <typename T, uint64_t TAILLE_INITIALE, typename Rappel, typename Comparaison = std::less<T>>
 void pour_chaque_element(ensemblon<T, TAILLE_INITIALE, Comparaison> const &ens, Rappel rappel)
 {
 	if (ens.est_stocke_dans_classe()) {

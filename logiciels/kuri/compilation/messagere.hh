@@ -22,7 +22,7 @@ struct Messagere {
     tableau_page<MessageTypageCodeTermine> messages_typage_code{};
     tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
 
-    long pic_de_message = 0;
+    int64_t pic_de_message = 0;
 
     bool interception_commencee = false;
 
@@ -46,7 +46,7 @@ struct Messagere {
     Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
     Message *ajoute_message_phase_compilation(EspaceDeTravail *espace);
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 
     inline bool possede_message() const
     {

@@ -10,12 +10,12 @@ extern "C" {
 /* Structures contenant des fonctions de rappels pour déléguer certaines choses au programme client
  * comme l'allocation de mémoire. */
 struct ContexteKuri {
-    void *(*loge_memoire)(struct ContexteKuri *ctx, unsigned long taille);
+    void *(*loge_memoire)(struct ContexteKuri *ctx, uint64_t taille);
     void *(*reloge_memoire)(struct ContexteKuri *ctx,
                             void *ancien_pointeur,
-                            unsigned long ancienne_taille,
-                            unsigned long nouvelle_taille);
-    void (*deloge_memoire)(struct ContexteKuri *ctx, void *ancien_pointeur, unsigned long taille);
+                            uint64_t ancienne_taille,
+                            uint64_t nouvelle_taille);
+    void (*deloge_memoire)(struct ContexteKuri *ctx, void *ancien_pointeur, uint64_t taille);
 };
 
 #ifdef __cplusplus
@@ -32,7 +32,7 @@ T *kuri_loge(ContexteKuri *ctx_kuri, Args &&...args)
 }
 
 template <typename T>
-T *kuri_reloge(ContexteKuri *ctx, T *objet, unsigned long nouvelle_taille)
+T *kuri_reloge(ContexteKuri *ctx, T *objet, uint64_t nouvelle_taille)
 {
     void *nouveau_pointeur = ctx->reloge_memoire(ctx, objet, sizeof(T), nouvelle_taille);
     return static_cast<T *>(nouveau_pointeur);

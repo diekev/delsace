@@ -1042,7 +1042,7 @@ RésultatMonomorphisation détermine_monomorphisation(
 #endif
 
     for (auto i = 0l; i < arguments_reçus.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<long>(entête->params.taille() - 1));
+        auto index_arg = std::min(i, static_cast<int64_t>(entête->params.taille() - 1));
         auto param = entête->parametre_entree(index_arg);
         auto slot = arguments_reçus[i];
 
