@@ -474,7 +474,10 @@ static int64_t instruction_simple(const char *nom, int64_t decalage, std::ostrea
 }
 
 template <typename T>
-static int64_t instruction_1d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
+static int64_t instruction_1d(Chunk const &chunk,
+                              const char *nom,
+                              int64_t decalage,
+                              std::ostream &os)
 {
     decalage += 1;
     auto index = *reinterpret_cast<T *>(&chunk.code[decalage]);
@@ -483,7 +486,10 @@ static int64_t instruction_1d(Chunk const &chunk, const char *nom, int64_t decal
 }
 
 template <typename T1, typename T2>
-static int64_t instruction_2d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
+static int64_t instruction_2d(Chunk const &chunk,
+                              const char *nom,
+                              int64_t decalage,
+                              std::ostream &os)
 {
     decalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
@@ -494,7 +500,10 @@ static int64_t instruction_2d(Chunk const &chunk, const char *nom, int64_t decal
 }
 
 template <typename T1, typename T2, typename T3>
-static int64_t instruction_3d(Chunk const &chunk, const char *nom, int64_t decalage, std::ostream &os)
+static int64_t instruction_3d(Chunk const &chunk,
+                              const char *nom,
+                              int64_t decalage,
+                              std::ostream &os)
 {
     decalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
@@ -1408,7 +1417,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<uint32_t>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(static_cast<uint64_t>(valeur_entiere));
+                    chunk.emets_constante(valeur_entiere);
                 }
             }
             else if (type->genre == GenreType::ENTIER_RELATIF) {
@@ -1595,8 +1604,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {
-                            *reinterpret_cast<uint64_t *>(
-                                donnees) = static_cast<uint64_t>(valeur_entiere);
+                            *reinterpret_cast<uint64_t *>(donnees) = valeur_entiere;
                         }
                     }
                     else if (type->genre == GenreType::ENTIER_RELATIF) {
@@ -1611,7 +1619,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {
-                            *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(valeur_entiere);
+                            *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(
+                                valeur_entiere);
                         }
                     }
                     else if (type->genre == GenreType::ENTIER_CONSTANT) {
