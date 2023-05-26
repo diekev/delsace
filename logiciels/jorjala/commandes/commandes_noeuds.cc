@@ -798,7 +798,7 @@ class CommandeSupprimeSelection final : public CommandeJorjala {
 
 		graphe->noeud_actif = nullptr;
 
-        jorjala.notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
+        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ);
 
 		if (besoin_execution) {
 			if (graphe->noeud_parent.type == type_noeud::NUANCEUR) {

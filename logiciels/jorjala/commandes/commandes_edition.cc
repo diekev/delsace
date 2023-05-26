@@ -40,7 +40,6 @@
 #include "commande_jorjala.hh"
 
 //#include "coeur/composite.h"
-//#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
 //#include "coeur/nuanceur.hh"
 //#include "coeur/operatrice_image.h"

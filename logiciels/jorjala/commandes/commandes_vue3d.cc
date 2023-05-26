@@ -167,7 +167,7 @@ class CommandeSurvoleScene : public CommandeJorjala {
 		manipulatrice->entresecte(orig, dir);
 
 		if (etat != manipulatrice->etat()) {
-			jorjala->notifie_observatrices(type_evenement::camera_3d | type_evenement::modifie);
+			jorjala->notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
 		}
 
 #endif
@@ -261,7 +261,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 		jorjala->manipulatrice_3d->rotation(jorjala->manipulatrice_3d->rotation());
 		jorjala->manipulatrice_3d->taille(jorjala->manipulatrice_3d->taille());
 
-		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
+		jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
 
 		return EXECUTION_COMMANDE_MODALE;
 #    endif
@@ -339,7 +339,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 		 * de la transformation de l'objet. */
 		jorjala->ajourne_pour_nouveau_temps("fin manipulation déplacement");
 
-		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::manipule);
+		jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
 #    endif
     }
 

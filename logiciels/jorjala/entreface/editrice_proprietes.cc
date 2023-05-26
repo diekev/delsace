@@ -42,7 +42,6 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/conversion_types.hh"
-#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
 
 /* ------------------------------------------------------------------------- */
@@ -363,25 +362,25 @@ EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     m_disposition_widget->addWidget(m_conteneur_disposition);
 }
 
-void EditriceProprietes::ajourne_etat(int evenement)
+void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
 {
-    auto creation = (evenement == (type_evenement::noeud | type_evenement::selectionne));
-    creation |= (evenement == (type_evenement::noeud | type_evenement::ajoute));
-    creation |= (evenement == (type_evenement::noeud | type_evenement::enleve));
-    creation |= (evenement == (type_evenement::temps | type_evenement::modifie));
-    creation |= (evenement == (type_evenement::propriete | type_evenement::ajoute));
-    creation |= (evenement == (type_evenement::objet | type_evenement::manipule));
-    creation |= (evenement == (type_evenement::rafraichissement));
+    auto creation = (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ));
+    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
+    creation |= (évènement == (JJL::TypeEvenement::PROPRIÉTÉ | JJL::TypeEvenement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ));
+    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
 
     /* n'ajourne pas durant les animation */
-    if (evenement == (type_evenement::temps | type_evenement::modifie)) {
+    if (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ)) {
         if (m_jorjala.animation_en_cours()) {
             return;
         }
     }
 
     /* ajourne l'entreface d'avertissement */
-    auto creation_avert = (evenement == (type_evenement::image | type_evenement::traite));
+    auto creation_avert = (évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ));
 
     if (!(creation | creation_avert)) {
         return;

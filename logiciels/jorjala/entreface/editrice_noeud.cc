@@ -40,13 +40,12 @@
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "graphe/item_noeud.h"
 #include "graphe/vue_editrice_graphe.h"
-
-#include "coeur/evenement.h"
 
 #include "coeur/jorjala.hh"
 
@@ -86,13 +85,13 @@ EditriceGraphe::~EditriceGraphe()
     delete m_scene;
 }
 
-void EditriceGraphe::ajourne_etat(int evenement)
+void EditriceGraphe::ajourne_état(JJL::TypeEvenement évènement)
 {
-    auto creation = (categorie_evenement(type_evenement(evenement)) == type_evenement::noeud);
-    creation |= (evenement == (type_evenement::image | type_evenement::traite));
-    creation |= (evenement == (type_evenement::objet | type_evenement::ajoute));
-    creation |= (evenement == (type_evenement::objet | type_evenement::enleve));
-    creation |= (evenement == (type_evenement::rafraichissement));
+    auto creation = ((évènement & JJL::TypeEvenement::NOEUD) == JJL::TypeEvenement::NOEUD);
+    creation |= (évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ));
+    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
 
     if (!creation) {
         return;

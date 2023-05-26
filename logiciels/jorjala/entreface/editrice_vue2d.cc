@@ -301,13 +301,11 @@ EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addWidget(m_vue);
 }
 
-void EditriceVue2D::ajourne_etat(int evenement)
+void EditriceVue2D::ajourne_état(JJL::TypeEvenement évènement)
 {
-    auto chargement = evenement ==
-                      static_cast<int>(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
-    chargement |= (evenement ==
-                   static_cast<int>(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
-    chargement |= (evenement == static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto chargement = évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
+    chargement |= (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
+    chargement |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
 
     if (chargement) {
         auto graphe_cmp = m_jorjala.trouve_graphe_pour_chemin("/cmp");

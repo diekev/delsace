@@ -57,7 +57,7 @@ class EditriceLigneTemps : public BaseEditrice {
     EditriceLigneTemps(EditriceLigneTemps const &) = default;
     EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
 
-    void ajourne_etat(int event) override;
+    void ajourne_état(JJL::TypeEvenement évènement) override;
 
     void ajourne_manipulable() override
     {
