@@ -282,9 +282,9 @@ if(REQUIERS_OPENGL)
     set(BIBLIOTHEQUES_OPENGL GLEW GLU GL) #glut
 endif()
 
-# À FAIRE : find_package
 if(REQUIERS_TBB)
-    set(BIBLIOTHEQUES_TBB tbb)
+    find_package(TBB REQUIRED)
+    set(BIBLIOTHEQUES_TBB TBB::tbb)
 endif()
 
 add_definitions(-DAVEC_JPEG)
