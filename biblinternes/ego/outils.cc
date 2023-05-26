@@ -23,7 +23,9 @@
 
 #include "outils.h"
 
-#include <execinfo.h>  /* for backtrace() */
+#ifndef _MSC_VER
+#    include <execinfo.h>  /* for backtrace() */
+#endif
 #include <fstream>
 #include <GL/glew.h>
 #include <iostream>
@@ -36,8 +38,10 @@ EGO_VERSION_NAMESPACE_BEGIN
 namespace util {
 
 /* Adapted from Blender. */
-static void system_backtrace(std::ostream &os)
+static void system_backtrace(std::ostream &/*os*/)
 {
+// à faire : version pour windows
+#ifndef _MSC_VER
 	constexpr auto SIZE = 100;
 
 	void *buffer[SIZE];
@@ -49,6 +53,7 @@ static void system_backtrace(std::ostream &os)
 	}
 
 	free(strings);
+#endif
 }
 
 void gl_check_errors(const dls::chaine &message,
