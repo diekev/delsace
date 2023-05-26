@@ -69,7 +69,7 @@ enum etat_propriete : char {
     EST_VERROUILLEE = (1 << 4),
 };
 
-DEFINIS_OPERATEURS_DRAPEAU(etat_propriete, unsigned short)
+DEFINIS_OPERATEURS_DRAPEAU(etat_propriete)
 
 template <typename T>
 struct plage_valeur {

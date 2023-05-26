@@ -66,7 +66,7 @@ enum class FonctionnalitéLangage : uint16_t {
     /* Le fichier contient des directives #pré_exécutable. */
     PRÉ_EXÉCUTABLE = (1 << 9),
 };
-DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage, uint16_t)
+DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
 struct Fichier {
     double temps_analyse = 0.0;

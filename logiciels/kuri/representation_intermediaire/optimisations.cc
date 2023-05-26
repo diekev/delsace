@@ -352,7 +352,7 @@ enum class SubstitutDans : int {
     TOUT = (CHARGE | VALEUR_STOCKEE | ADRESSE_STOCKEE),
 };
 
-DEFINIS_OPERATEURS_DRAPEAU(SubstitutDans, int)
+DEFINIS_OPERATEURS_DRAPEAU(SubstitutDans)
 
 struct Substitutrice {
   private:
