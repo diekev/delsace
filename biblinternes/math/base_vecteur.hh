@@ -25,12 +25,16 @@
 #include "swizzler.hh"
 
 /* Clang se plaint des structures anonymes dans les unions. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+#ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#    pragma clang diagnostic ignored "-Wnested-anon-types"
+#endif
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
+#ifdef __GNUC__
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 
 namespace dls::math {
 
@@ -657,6 +661,10 @@ struct base_vecteur<T, 4, enveloppe_swizzler> {
 }  /* namespace detail */
 }  /* namespace dls::math */
 
-#pragma GCC diagnostic pop
+#ifdef __GNUC__
+#    pragma GCC diagnostic pop
+#endif
 
-#pragma clang diagnostic pop
+#ifdef __GNUC__
+#    pragma clang diagnostic pop
+#endif

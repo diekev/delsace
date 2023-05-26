@@ -50,7 +50,7 @@ int64_t TableIdentifiant::taille() const
 
 int64_t TableIdentifiant::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += identifiants.memoire_utilisee();
     memoire += table.taille() *
                (taille_de(dls::vue_chaine_compacte) + taille_de(IdentifiantCode *));

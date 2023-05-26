@@ -78,14 +78,14 @@ void imprime_caractere_vide(Flux &os, const int64_t nombre, const dls::vue_chain
 template <typename Flux>
 void imprime_tilde(Flux &os, const dls::vue_chaine &chaine)
 {
-	for (auto i = 0l; i < chaine.taille() - 1;) {
+    for (auto i = int64_t(0); i < chaine.taille() - 1;) {
 		os << '~';
 		i += lng::decalage_pour_caractere(chaine, i);
 	}
 }
 
 template <typename Flux>
-void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, long debut, long fin)
+void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
 {
 	for (auto i = debut; i < fin;) {
 		os << '~';
@@ -94,7 +94,7 @@ void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, long debut, long fin
 }
 
 template <typename Flux>
-void imprime_ligne_entre(Flux &os, const dls::vue_chaine &chaine, long debut, long fin)
+void imprime_ligne_entre(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
 {
 	for (auto i = debut; i < fin; ++i) {
 		os << chaine[i];

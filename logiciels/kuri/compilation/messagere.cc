@@ -105,7 +105,7 @@ Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 
 int64_t Messagere::memoire_utilisee() const
 {
-    auto memoire = 0l;
+    auto memoire = int64_t(0);
     memoire += messages_fichiers.memoire_utilisee();
     memoire += messages_modules.memoire_utilisee();
     memoire += messages_typage_code.memoire_utilisee();

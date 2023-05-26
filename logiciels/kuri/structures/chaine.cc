@@ -98,11 +98,11 @@ int64_t distance_levenshtein(chaine_statique const &chn1, chaine_statique const 
 
     auto couts = tableau<int64_t>(n + 1);
 
-    for (auto k = 0; k <= n; k++) {
+    for (auto k = int64_t(0); k <= n; k++) {
         couts[k] = k;
     }
 
-    for (auto i = 0l; i < chn1.taille(); ++i) {
+    for (auto i = int64_t(0); i < chn1.taille(); ++i) {
         couts[0] = i + 1;
         auto coin = i;
 
