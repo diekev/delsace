@@ -120,13 +120,13 @@ public:
 		x.ajourne(ptr, taille() + 1);
 	}
 
-	T operator[](long idx)
+	T operator[](int64_t idx)
 	{
 		assert(idx >= 0 && idx < 65536);
 		return donnees()[idx];
 	}
 
-	T operator[](long idx) const
+	T operator[](int64_t idx) const
 	{
 		assert(idx >= 0 && idx < 65536);
 		return donnees()[idx];

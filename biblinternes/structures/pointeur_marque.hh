@@ -60,7 +60,7 @@ public:
 		ajourne(pointeur_, marque_);
 	}
 
-	inline void ajourne(T *pointeur_, long marque_ = 0)
+	inline void ajourne(T *pointeur_, int64_t marque_ = 0)
 	{
 		comme_pointeur = pointeur_;
 		comme_bits |= static_cast<uintptr_t>(marque_) << 48l;

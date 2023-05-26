@@ -33,9 +33,9 @@ class GrilleParticules {
 	dls::math::point3d m_min{};
 	dls::math::point3d m_max{};
 	dls::math::point3d m_dim{};
-	long m_res_x{};
-	long m_res_y{};
-	long m_res_z{};
+	int64_t m_res_x{};
+	int64_t m_res_y{};
+	int64_t m_res_z{};
 	double m_distance{};
 
 	dls::tableau<dls::tableau<dls::math::vec3f>> m_grille{};
@@ -53,7 +53,7 @@ public:
 			dls::math::vec3f const &v2,
 			const float radius);
 
-	long calcul_index_pos(dls::math::vec3f const &point);
+	int64_t calcul_index_pos(dls::math::vec3f const &point);
 };
 
 /* ************************************************************************** */
@@ -61,11 +61,11 @@ public:
 struct GrillePoint {
 	struct DonneesPoint {
 		dls::math::vec3f pos{};
-		long idx{};
+		int64_t idx{};
 
 		DonneesPoint() = default;
 
-		DonneesPoint(dls::math::vec3f const &p, long i)
+		DonneesPoint(dls::math::vec3f const &p, int64_t i)
 			: pos(p)
 			, idx(i)
 		{}
@@ -89,21 +89,21 @@ public:
 	GrillePoint(float taille_cellule);
 
 	static GrillePoint construit_avec_fonction(
-			std::function<dls::math::vec3f(long)> points,
-			long nombre_points,
+			std::function<dls::math::vec3f(int64_t)> points,
+			int64_t nombre_points,
 			float taille_cellule);
 
 	coord pos_grille(dls::math::vec3f const &p) const;
 
-	long index_cellule(dls::math::vec3f const &p) const;
+	int64_t index_cellule(dls::math::vec3f const &p) const;
 
-	long index_cellule(coord const &c) const;
+	int64_t index_cellule(coord const &c) const;
 
-	long nombre_elements() const;
+	int64_t nombre_elements() const;
 
-	DonneesPoint *debut_points(long idx);
+	DonneesPoint *debut_points(int64_t idx);
 
-	DonneesPoint *fin_points(long idx);
+	DonneesPoint *fin_points(int64_t idx);
 
 	bloc cellules_autour(dls::math::vec3f const &p, float rayon);
 };

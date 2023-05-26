@@ -37,7 +37,7 @@ struct ValeurExpression {
     {
     }
 
-    ValeurExpression(unsigned int e) : v(static_cast<int64_t>(e))
+    ValeurExpression(uint32_t e) : v(static_cast<int64_t>(e))
     {
     }
 

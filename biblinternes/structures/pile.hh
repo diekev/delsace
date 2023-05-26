@@ -33,7 +33,7 @@ struct pile {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	dls::tableau<type_valeur> m_pile{};
@@ -79,12 +79,12 @@ public:
 	}
 };
 
-template <typename T, unsigned long N>
+template <typename T, uint64_t N>
 struct pile_fixe {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	type_valeur m_pile[N];

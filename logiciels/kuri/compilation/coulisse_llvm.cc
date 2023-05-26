@@ -1261,7 +1261,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto index_reel = index_reel_pour_membre(
                 *accede->type->comme_pointeur()->type_pointe->comme_compose(),
-                static_cast<unsigned int>(index_membre));
+                static_cast<uint32_t>(index_membre));
 
             if (!type_pointe->est_pointeur()) {
                 auto index = std::vector<llvm::Value *>(2);

@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace dls {
 
 template <typename T>
@@ -33,7 +35,7 @@ struct plage_continue {
 	using type_pointeur = T*;
 	using type_reference_const = T const&;
 	using type_pointeur_const = T const*;
-	using type_difference = long;
+	using type_difference = int64_t;
 
 private:
 	type_pointeur m_debut{};

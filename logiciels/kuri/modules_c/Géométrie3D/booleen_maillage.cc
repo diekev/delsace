@@ -176,7 +176,7 @@ void subdivise_polyedre(EnrichedPolyhedron &polyedre)
         // We subdivide the facet if it is not already done
         if (!(pFacet->Issub)) {
             Halfedge_handle pHE = pFacet->facet_begin();
-            for (unsigned int i = 0; i != 5; i++) {
+            for (uint32_t i = 0; i != 5; i++) {
                 if (!pHE->Isnew) {
                     // each edge is splited in its center
                     Vcenter = Vector3(0.0, 0.0, 0.0);

@@ -99,14 +99,14 @@ static void enleve_lien(volatile ListeChainee *liste, void *vlien)
 	}
 }
 
-inline long taille_alignee(long taille)
+inline int64_t taille_alignee(int64_t taille)
 {
 	return (taille + 3) & (~3);
 }
 
 struct EnteteMemoire {
 	const char *message = nullptr;
-	long taille = 0;
+	int64_t taille = 0;
 
 	EnteteMemoire *suivant = nullptr;
 	EnteteMemoire *precedent = nullptr;
@@ -135,7 +135,7 @@ static void imprime_blocs_memoire()
 	}
 }
 
-void *logeuse_memoire::loge_generique(const char *message, long taille)
+void *logeuse_memoire::loge_generique(const char *message, int64_t taille)
 {
 #ifndef PROTEGE_MEMOIRE
 	return malloc(static_cast<size_t>(taille));
@@ -160,7 +160,7 @@ void *logeuse_memoire::loge_generique(const char *message, long taille)
 #endif
 }
 
-void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long ancienne_taille, long nouvelle_taille)
+void *logeuse_memoire::reloge_generique(const char *message, void *ptr, int64_t ancienne_taille, int64_t nouvelle_taille)
 {
 #ifndef PROTEGE_MEMOIRE
 	return realloc(ptr, static_cast<size_t>(nouvelle_taille));
@@ -211,7 +211,7 @@ void *logeuse_memoire::reloge_generique(const char *message, void *ptr, long anc
 #endif
 }
 
-void logeuse_memoire::deloge_generique(const char *message, void *ptr, long taille)
+void logeuse_memoire::deloge_generique(const char *message, void *ptr, int64_t taille)
 {
 #ifndef PROTEGE_MEMOIRE
 	free(ptr);
@@ -243,37 +243,37 @@ void logeuse_memoire::deloge_generique(const char *message, void *ptr, long tail
 
 /* ************************************************************************** */
 
-long allouee()
+int64_t allouee()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.memoire_allouee.load();
 }
 
-long consommee()
+int64_t consommee()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.memoire_consommee.load();
 }
 
-long nombre_allocations()
+int64_t nombre_allocations()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.nombre_allocations.load();
 }
 
-long nombre_reallocations()
+int64_t nombre_reallocations()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.nombre_reallocations.load();
 }
 
-long nombre_deallocations()
+int64_t nombre_deallocations()
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.nombre_deallocations.load();
 }
 
-std::string formate_taille(long octets)
+std::string formate_taille(int64_t octets)
 {
 	std::stringstream ss;
 

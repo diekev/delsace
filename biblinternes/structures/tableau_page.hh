@@ -30,7 +30,7 @@ template <typename T, size_t TAILLE_PAGE = 128>
 struct tableau_page {
 	struct page {
 		T *donnees = nullptr;
-		long occupe = 0;
+		int64_t occupe = 0;
 
 		T *begin()
 		{
@@ -55,7 +55,7 @@ struct tableau_page {
 
 	dls::tableau<page> pages{};
 	page *page_courante = nullptr;
-	long nombre_elements = 0;
+	int64_t nombre_elements = 0;
 
 	tableau_page()
 	{
@@ -104,44 +104,44 @@ struct tableau_page {
 		return ptr;
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
 		return nombre_elements;
 	}
 
-	long memoire_utilisee() const
+	int64_t memoire_utilisee() const
 	{
-		return pages.taille() * static_cast<long>(TAILLE_PAGE * sizeof(T) + sizeof(page));
+		return pages.taille() * static_cast<int64_t>(TAILLE_PAGE * sizeof(T) + sizeof(page));
 	}
 
-	T &a_l_index(long index)
-	{
-		return this->operator[](index);
-	}
-
-	T const &a_l_index(long index) const
+	T &a_l_index(int64_t index)
 	{
 		return this->operator[](index);
 	}
 
-	T &operator[](long i)
+	T const &a_l_index(int64_t index) const
+	{
+		return this->operator[](index);
+	}
+
+	T &operator[](int64_t i)
 	{
 		assert(i >= 0);
 		assert(i < taille());
 
-		auto idx_page = i / static_cast<long>(TAILLE_PAGE);
-		auto idx_elem = i % static_cast<long>(TAILLE_PAGE);
+		auto idx_page = i / static_cast<int64_t>(TAILLE_PAGE);
+		auto idx_elem = i % static_cast<int64_t>(TAILLE_PAGE);
 
 		return pages[idx_page].donnees[idx_elem];
 	}
 
-	T const &operator[](long i) const
+	T const &operator[](int64_t i) const
 	{
 		assert(i >= 0);
 		assert(i < taille());
 
-		auto idx_page = i / static_cast<long>(TAILLE_PAGE);
-		auto idx_elem = i % static_cast<long>(TAILLE_PAGE);
+		auto idx_page = i / static_cast<int64_t>(TAILLE_PAGE);
+		auto idx_elem = i % static_cast<int64_t>(TAILLE_PAGE);
 
 		return pages[idx_page].donnees[idx_elem];
 	}

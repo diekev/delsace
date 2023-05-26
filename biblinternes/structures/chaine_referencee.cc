@@ -26,7 +26,7 @@
 
 namespace dls {
 
-reference_chaine::__detentrice::__detentrice(const char *str, long taille)
+reference_chaine::__detentrice::__detentrice(const char *str, int64_t taille)
 	: m_chaine(str)
 	, m_taille(taille)
 {}
@@ -36,12 +36,12 @@ const char *reference_chaine::__detentrice::c_str() const
 	return m_chaine;
 }
 
-long reference_chaine::__detentrice::taille() const
+int64_t reference_chaine::__detentrice::taille() const
 {
 	return m_taille;
 }
 
-unsigned int reference_chaine::__detentrice::empreinte() const
+uint32_t reference_chaine::__detentrice::empreinte() const
 {
 	return m_empreinte;
 }
@@ -63,18 +63,18 @@ int reference_chaine::__detentrice::compte_ref()
 
 /* ************************************************************************** */
 
-reference_chaine::__detentrice *reference_chaine::alloc_detentrice(const char *str, long taille)
+reference_chaine::__detentrice *reference_chaine::alloc_detentrice(const char *str, int64_t taille)
 {
 	return new __detentrice(str, taille);
 }
 
 reference_chaine::reference_chaine(const char *str)
-	: reference_chaine(str, static_cast<long>(std::strlen(str)))
+	: reference_chaine(str, static_cast<int64_t>(std::strlen(str)))
 {}
 
-reference_chaine::reference_chaine(const char *str, long taille)
+reference_chaine::reference_chaine(const char *str, int64_t taille)
 {
-	if (str && taille && taille <= std::numeric_limits<unsigned int>::max()) {
+	if (str && taille && taille <= std::numeric_limits<uint32_t>::max()) {
 		m_taille = taille;
 		//_empreinte = calcule_empreinte(str);
 		/* garde un pointeur vers la chaine littérale */
@@ -113,12 +113,12 @@ const char *reference_chaine::c_str() const
 	return (detentrice() != nullptr) ? detentrice()->c_str() : m_donnees_si_chars;
 }
 
-long reference_chaine::taille() const
+int64_t reference_chaine::taille() const
 {
 	return (detentrice() != nullptr) ? detentrice()->taille() : m_taille;
 }
 
-unsigned int reference_chaine::empreinte() const
+uint32_t reference_chaine::empreinte() const
 {
 	return (detentrice() != nullptr) ? detentrice()->empreinte() : m_empreinte;
 }
@@ -135,7 +135,7 @@ const reference_chaine::__detentrice *reference_chaine::detentrice() const
 
 /* ************************************************************************** */
 
-detentrice_chaine::detentrice_chaine(const char *str, long taille)
+detentrice_chaine::detentrice_chaine(const char *str, int64_t taille)
 	: reference_chaine()
 {
 	if (str && taille) {

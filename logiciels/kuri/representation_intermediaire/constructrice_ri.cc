@@ -3436,7 +3436,7 @@ void ConstructriceRI::genere_ri_pour_initialisation_globales(
 }
 
 void ConstructriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                                         unsigned int index,
+                                                         uint32_t index,
                                                          Type const *pour_type)
 {
     assert(valeurs.taille() >= 3);

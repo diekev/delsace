@@ -52,8 +52,8 @@ struct type_strict {
 	}
 };
 
-using type_ligne = type_strict<long, 0>;
-using type_colonne = type_strict<long, 1>;
+using type_ligne = type_strict<int64_t, 0>;
+using type_colonne = type_strict<int64_t, 1>;
 
 /* ****************************************************************** */
 
@@ -64,8 +64,8 @@ struct matrice_eparse {
 	struct noeud {
 		noeud *prec = nullptr;
 		noeud *suiv = nullptr;
-		long ligne = 0;
-		long colonne = 0;
+		int64_t ligne = 0;
+		int64_t colonne = 0;
 		type_valeur valeur{};
 
 		noeud() = default;
@@ -111,7 +111,7 @@ struct matrice_eparse {
 	}
 
 private:
-	noeud *trouve_noeud(long ligne, long colonne)
+	noeud *trouve_noeud(int64_t ligne, int64_t colonne)
 	{
 		auto n = this->premier;
 
@@ -126,7 +126,7 @@ private:
 		return n;
 	}
 
-	noeud *insere_noeud(long ligne, long colonne)
+	noeud *insere_noeud(int64_t ligne, int64_t colonne)
 	{
 		auto n = memoire::loge<noeud>("matrice_eparse::noeud");
 		n->ligne = ligne;
@@ -151,7 +151,7 @@ struct matrice_colonne_eparse {
 	using type_valeur = T;
 
 	struct noeud {
-		long colonne = 0;
+		int64_t colonne = 0;
 		type_valeur valeur{};
 
 		noeud() = default;
@@ -159,8 +159,8 @@ struct matrice_colonne_eparse {
 		COPIE_CONSTRUCT(noeud);
 	};
 
-	long nombre_lignes = 0;
-	long nombre_colonnes = 0;
+	int64_t nombre_lignes = 0;
+	int64_t nombre_colonnes = 0;
 
 	dls::tableau<noeud *> noeuds{};
 	dls::tableau<dls::tableau<noeud *>> lignes{};
@@ -217,7 +217,7 @@ struct matrice_colonne_eparse {
 	}
 
 private:
-	noeud *trouve_noeud(long ligne, long colonne)
+	noeud *trouve_noeud(int64_t ligne, int64_t colonne)
 	{
 		auto &l = lignes[ligne];
 
@@ -230,7 +230,7 @@ private:
 		return nullptr;
 	}
 
-	noeud *insere_noeud(long ligne, long colonne)
+	noeud *insere_noeud(int64_t ligne, int64_t colonne)
 	{
 		auto n = memoire::loge<noeud>("matrice_colonne_eparse::noeud");
 		n->colonne = colonne;

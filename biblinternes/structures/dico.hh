@@ -61,14 +61,14 @@ public:
 		m_dico.insert(valeur);
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
-		return static_cast<long>(m_dico.size());
+		return static_cast<int64_t>(m_dico.size());
 	}
 
-	long compte(_Key const &cle) const
+	int64_t compte(_Key const &cle) const
 	{
-		return static_cast<long>(m_dico.count(cle));
+		return static_cast<int64_t>(m_dico.count(cle));
 	}
 
 	void efface()

@@ -120,12 +120,12 @@ class CPolyhedron_from_polygon_builder_3 : public CGAL::Modifier_base<HDS> {
     void add_triangle(std::vector<std::vector<uint64_t>> &T, Halfedge_handle &he)
     {
         // For each triangle of the vector T...
-        for (unsigned int i = 0; i != T.size(); ++i) {
+        for (uint32_t i = 0; i != T.size(); ++i) {
             // we verify that the indices are valid.
             // if one of the indices equals to 0xFFFFFFFF, 0xFFFFFFFE or 0XFFFFFFFD, it means that
             // the corresponding vertex is respectively the first, the second or the third vertex
             // of the facet.
-            for (unsigned int j = 0; j != 3; ++j) {
+            for (uint32_t j = 0; j != 3; ++j) {
                 switch (T[i][j]) {
                     case 0xFFFFFFFF:
                         if (he->vertex()->Label != 0xFFFFFFFF) {

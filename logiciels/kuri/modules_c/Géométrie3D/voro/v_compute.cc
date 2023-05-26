@@ -42,7 +42,7 @@ voro_compute<c_class>::voro_compute(c_class &con_, int hx_, int hy_, int hz_)
 	, qu_size(3*(3+hxy+hz*(hx+hy)))
 	, wl(con_.wl)
 	, mrad(con_.mrad)
-	, mask(new unsigned int[hxyz])
+	, mask(new uint32_t[hxyz])
 	, qu(new int[qu_size])
 	, qu_l(qu+qu_size)
 {
@@ -105,7 +105,7 @@ void voro_compute<c_class>::find_voronoi_cell(double x, double y, double z, int 
 	double qx=0, qy=0, qz=0, rs;
 	int i, j, k, di, dj, dk, ei, ej, ek, f, g, disp;
 	double fx, fy, fz, mxs, mys, mzs, *radp;
-	unsigned int q, *e, *mijk;
+	uint32_t q, *e, *mijk;
 
 	// Init setup for parameters to return
 	w.ijk=-1;mrs=large_number;
@@ -118,7 +118,7 @@ void voro_compute<c_class>::find_voronoi_cell(double x, double y, double z, int 
 	// Now compute the fractional position of the particle within its
 	// region and store it in (fx, fy, fz). We use this to compute an index
 	// (di, dj, dk) of which subregion the particle is within.
-	unsigned int m1, m2;
+	uint32_t m1, m2;
 	con.frac_pos(x, y, z, ci, cj, ck, fx, fy, fz);
 	di=int(fx*xsp*wl_fgrid);
 	dj=int(fy*ysp*wl_fgrid);
@@ -180,7 +180,7 @@ void voro_compute<c_class>::find_voronoi_cell(double x, double y, double z, int 
 	// point at the right offsets
 	ijk=di+wl_hgrid*(dj+wl_hgrid*dk);
 	radp=mrad+ijk*wl_seq_length;
-	e=(const_cast<unsigned int*> (wl))+ijk*wl_seq_length;
+	e=(const_cast<uint32_t*> (wl))+ijk*wl_seq_length;
 
 	// Read in how many items in the worklist can be tested without having to
 	// worry about writing to the mask
@@ -363,7 +363,7 @@ void voro_compute<c_class>::find_voronoi_cell(double x, double y, double z, int 
 template<class c_class>
 inline void voro_compute<c_class>::add_to_mask(int ei, int ej, int ek, int *&qu_e)
 {
-	unsigned int *mijk=mask+ei+hx*(ej+hy*ek);
+	uint32_t *mijk=mask+ei+hx*(ej+hy*ek);
 
 	if (ek>0) {
 		if (*(mijk-hxy)!=mv) {
@@ -449,9 +449,9 @@ inline void voro_compute<c_class>::add_to_mask(int ei, int ej, int ek, int *&qu_
  * \param[in, out] qu_e a pointer to the end of the queue.
  */
 template<class c_class>
-inline void voro_compute<c_class>::scan_bits_mask_add(unsigned int q, unsigned int *mijk, int ei, int ej, int ek, int *&qu_e)
+inline void voro_compute<c_class>::scan_bits_mask_add(uint32_t q, uint32_t *mijk, int ei, int ej, int ek, int *&qu_e)
 {
-	const unsigned int b1=1<<21, b2=1<<22, b3=1<<24, b4=1<<25, b5=1<<27, b6=1<<28;
+	const uint32_t b1=1<<21, b2=1<<22, b3=1<<24, b4=1<<25, b5=1<<27, b6=1<<28;
 	if ((q&b2)==b2) {
 		if (ei>0) {
 			*(mijk-1)=mv;
@@ -552,7 +552,7 @@ bool voro_compute<c_class>::compute_cell(v_cell &c, int ijk, int s, int ci, int 
 	double xlo, ylo, zlo, xhi, yhi, zhi, x2, y2, z2, rs;
 	int i, j, k, di, dj, dk, ei, ej, ek, f, g, l, disp;
 	double fx, fy, fz, gxs, gys, gzs, *radp;
-	unsigned int q, *e, *mijk;
+	uint32_t q, *e, *mijk;
 
 	if (!con.initialize_voronoicell(c, ijk, s, ci, cj, ck, i, j, k, x, y, z, disp)) {
 		return false;
@@ -594,7 +594,7 @@ bool voro_compute<c_class>::compute_cell(v_cell &c, int ijk, int s, int ci, int 
 	// Now compute the fractional position of the particle within its
 	// region and store it in (fx, fy, fz). We use this to compute an index
 	// (di, dj, dk) of which subregion the particle is within.
-	unsigned int m1, m2;
+	uint32_t m1, m2;
 
 	con.frac_pos(x, y, z, ci, cj, ck, fx, fy, fz);
 
@@ -636,7 +636,7 @@ bool voro_compute<c_class>::compute_cell(v_cell &c, int ijk, int s, int ci, int 
 	// point at the right offsets
 	ijk=di+wl_hgrid*(dj+wl_hgrid*dk);
 	radp=mrad+ijk*wl_seq_length;
-	e=(const_cast<unsigned int*> (wl))+ijk*wl_seq_length;
+	e=(const_cast<uint32_t*> (wl))+ijk*wl_seq_length;
 
 	// Read in how many items in the worklist can be tested without having to
 	// worry about writing to the mask

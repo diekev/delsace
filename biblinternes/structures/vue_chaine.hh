@@ -33,21 +33,21 @@ namespace dls {
 struct vue_chaine {
 private:
   char const *m_ptr = nullptr;
-  long m_taille = 0;
+  int64_t m_taille = 0;
 
 public:
-  template <unsigned long N>
+  template <uint64_t N>
   vue_chaine(char const (&c)[N]) : m_ptr(&c[0]), m_taille(N) {}
 
   vue_chaine() = default;
 
   vue_chaine(char const *ptr);
 
-  vue_chaine(char const *ptr, long taille) : m_ptr(ptr), m_taille(taille) {}
+  vue_chaine(char const *ptr, int64_t taille) : m_ptr(ptr), m_taille(taille) {}
 
-  char const &operator[](long idx) const { return m_ptr[idx]; }
+  char const &operator[](int64_t idx) const { return m_ptr[idx]; }
 
-  long taille() const { return m_taille; }
+  int64_t taille() const { return m_taille; }
 
   bool est_vide() const;
 

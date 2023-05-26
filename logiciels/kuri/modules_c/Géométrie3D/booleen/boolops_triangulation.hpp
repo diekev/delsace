@@ -311,7 +311,7 @@ class Triangulation {
     {
         // if the point is not a new one, we verify that the point has not already been added
         if (Label != 0xFFFFFFFF)
-            for (unsigned int i = 0; i != pts_point.size(); ++i)
+            for (uint32_t i = 0; i != pts_point.size(); ++i)
                 if (Label == pts_point[i])
                     // if the point is already in the triangulation, we return its handle
                     return pts_vertex[i];

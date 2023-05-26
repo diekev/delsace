@@ -1155,7 +1155,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
     }
 
     if (nombre_de_chiffres == 8) {
-        unsigned int v = static_cast<unsigned>(resultat_entier);
+        uint32_t v = static_cast<unsigned>(resultat_entier);
         this->pousse_lexeme_reel(*reinterpret_cast<float *>(&v));
     }
     else {
@@ -1318,7 +1318,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             }
 
             v <<= 4;
-            v |= static_cast<unsigned int>(c0);
+            v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
             this->pousse_caractere();
@@ -1356,7 +1356,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             }
 
             v <<= 4;
-            v |= static_cast<unsigned int>(c0);
+            v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
             this->pousse_caractere();

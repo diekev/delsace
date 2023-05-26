@@ -173,7 +173,7 @@ struct drapeau_pour_constante<unsigned short> {
 };
 
 template <>
-struct drapeau_pour_constante<unsigned int> {
+struct drapeau_pour_constante<uint32_t> {
     static constexpr octet_t valeur = CONSTANTE_ENTIER_NATUREL | BITS_32;
 };
 

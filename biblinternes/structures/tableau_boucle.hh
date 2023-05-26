@@ -38,11 +38,11 @@ struct tableau_boucle {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	tableau<type_valeur> m_tabl{};
-	long m_index = 0;
+	int64_t m_index = 0;
 
 public:
 	tableau_boucle() = default;

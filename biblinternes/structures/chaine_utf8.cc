@@ -157,7 +157,7 @@ utf8::type_taille utf8::taille() const
 	return m_donnees.taille();
 }
 
-utf8::type_valeur utf8::operator[](long i) const
+utf8::type_valeur utf8::operator[](int64_t i) const
 {
 	return m_donnees[i];
 }

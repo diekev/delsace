@@ -75,7 +75,7 @@ struct FilExecution {
     }
 };
 
-unsigned int EXETRON_nombre_fils_materiel()
+uint32_t EXETRON_nombre_fils_materiel()
 {
     return std::thread::hardware_concurrency();
 }

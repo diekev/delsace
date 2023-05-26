@@ -35,7 +35,7 @@ struct liste {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 	using type_liste = std::list<T, memoire::logeuse_guardee<T>>;
 	using iteratrice = typename type_liste::iterator;
 	using const_iteratrice = typename type_liste::const_iterator;

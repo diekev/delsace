@@ -35,7 +35,7 @@ private:
 	pointeur_marque_haut<char const> m_ptr{};
 
 public:
-	template <unsigned long N>
+	template <uint64_t N>
 	vue_chaine_compacte(char const (&c)[N])
 		: m_ptr(&c[0], N)
 	{}
@@ -44,16 +44,16 @@ public:
 
 	vue_chaine_compacte(char const *ptr);
 
-	inline vue_chaine_compacte(char const *ptr, long taille)
+	inline vue_chaine_compacte(char const *ptr, int64_t taille)
 		: m_ptr(ptr, static_cast<int>(taille))
 	{}
 
-	inline char const &operator[](long idx) const
+	inline char const &operator[](int64_t idx) const
 	{
 		return pointeur()[idx];
 	}
 
-	inline long taille() const
+	inline int64_t taille() const
 	{
 		return m_ptr.marque();
 	}

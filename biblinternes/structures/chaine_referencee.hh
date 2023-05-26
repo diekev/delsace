@@ -45,21 +45,21 @@ protected:
 		/* pointeur vers une chaine partagée */
 		char const *m_chaine = nullptr;
 
-		long m_taille = 0;
+		int64_t m_taille = 0;
 
-		unsigned int m_empreinte = 0;
+		uint32_t m_empreinte = 0;
 
 		std::atomic<int> m_compte_ref = 0;
 
 		__detentrice() = default;
 
-		__detentrice(char const *str, long taille);
+		__detentrice(char const *str, int64_t taille);
 
 		char const *c_str() const;
 
-		long taille() const;
+		int64_t taille() const;
 
-		unsigned int empreinte() const;
+		uint32_t empreinte() const;
 
 		void reference();
 
@@ -77,12 +77,12 @@ protected:
 	};
 
 	/* également utiliser pour déterminer si la chaine est littérale ou non */
-	long m_taille = 0;
+	int64_t m_taille = 0;
 
 	/* stocke l'empreinte pour éviter de toujours la recalculer */
-	unsigned int m_empreinte = 0;
+	uint32_t m_empreinte = 0;
 
-	static __detentrice *alloc_detentrice(char const *str, long taille);
+	static __detentrice *alloc_detentrice(char const *str, int64_t taille);
 
 	static __detentrice *singletonEmptyString__detentrice;
 
@@ -91,7 +91,7 @@ public:
 
 	reference_chaine(char const *str);
 
-	reference_chaine(char const *str, long taille);
+	reference_chaine(char const *str, int64_t taille);
 
 	reference_chaine(reference_chaine const &src);
 
@@ -100,9 +100,9 @@ public:
 	/* accès */
 	char const *c_str() const;
 
-	long taille() const;
+	int64_t taille() const;
 
-	unsigned int empreinte() const;
+	uint32_t empreinte() const;
 
 	__detentrice *detentrice();
 
@@ -116,7 +116,7 @@ public:
  * possède la chaine et la référence ne fait que pointer vers elle.
  */
 struct detentrice_chaine : public reference_chaine {
-	detentrice_chaine(char const *str, long taille);
+	detentrice_chaine(char const *str, int64_t taille);
 
 	detentrice_chaine(reference_chaine const &src);
 };

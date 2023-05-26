@@ -28,7 +28,7 @@
 
 namespace dls {
 
-template <typename T, unsigned long N>
+template <typename T, uint64_t N>
 struct tableau_fixe {
 	using type_valeur = T;
 	using type_pointeur = type_valeur*;
@@ -42,7 +42,7 @@ private:
 	type_valeur m_donnees[N];
 
 	template <typename PV, typename... PVs>
-	void construit_index(unsigned long &i, PV const &pv)
+	void construit_index(uint64_t &i, PV const &pv)
 	{
 		m_donnees[i++] = pv;
 	}
@@ -55,7 +55,7 @@ public:
 	{
 		static_assert(sizeof...(ts) + 1 == N, "La taille de la liste n'est pas celle attendue");
 
-		unsigned long i = 0;
+		uint64_t i = 0;
 		construit_index(i, t);
 		(construit_index(i, ts), ...);
 	}

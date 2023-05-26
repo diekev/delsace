@@ -572,7 +572,7 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
                 }
                 case CONSTANTE_ENTIER_NATUREL | BITS_32:
                 {
-                    LIS_CONSTANTE(unsigned int);
+                    LIS_CONSTANTE(uint32_t);
                     os << " n32";
                     break;
                 }
@@ -1405,7 +1405,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<unsigned short>(valeur_entiere));
                 }
                 else if (type->taille_octet == 4) {
-                    chunk.emets_constante(static_cast<unsigned int>(valeur_entiere));
+                    chunk.emets_constante(static_cast<uint32_t>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
                     chunk.emets_constante(static_cast<uint64_t>(valeur_entiere));
@@ -1572,7 +1572,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 }
                 case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
                 {
-                    *reinterpret_cast<unsigned int *>(
+                    *reinterpret_cast<uint32_t *>(
                         donnees) = valeur_constante->valeur.type->taille_octet;
                     break;
                 }
@@ -1591,7 +1591,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 donnees) = static_cast<unsigned short>(valeur_entiere);
                         }
                         else if (type->taille_octet == 4) {
-                            *reinterpret_cast<unsigned int *>(donnees) = static_cast<unsigned int>(
+                            *reinterpret_cast<uint32_t *>(donnees) = static_cast<uint32_t>(
                                 valeur_entiere);
                         }
                         else if (type->taille_octet == 8) {

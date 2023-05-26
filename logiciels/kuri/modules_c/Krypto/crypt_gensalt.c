@@ -42,8 +42,8 @@ char *_crypt_gensalt_traditional_rn(const char *prefix, uint64_t count,
 		return NULL;
 	}
 
-	output[0] = (char)_crypt_itoa64[(unsigned int)input[0] & 0x3f];
-	output[1] = (char)_crypt_itoa64[(unsigned int)input[1] & 0x3f];
+	output[0] = (char)_crypt_itoa64[(uint32_t)input[0] & 0x3f];
+	output[1] = (char)_crypt_itoa64[(uint32_t)input[1] & 0x3f];
 	output[2] = '\0';
 
 	return output;
