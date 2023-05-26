@@ -48,7 +48,7 @@ enum type_evenement : int {
     manipule = (6 << 8),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
+DEFINIS_OPERATEURS_DRAPEAU(type_evenement, int)
 
 constexpr auto action_evenement(type_evenement evenement) -> type_evenement
 {

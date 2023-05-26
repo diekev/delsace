@@ -69,7 +69,7 @@
 	x(x &&) = default; \
 	x &operator=(x &&) = default
 
-#define DEFINIE_OPERATEURS_DRAPEAU(_type_drapeau_, _type_) \
+#define DEFINIS_OPERATEURS_DRAPEAU(_type_drapeau_, _type_) \
 	inline constexpr auto operator&(_type_drapeau_ lhs, _type_drapeau_ rhs) \
 	{ \
 		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) & static_cast<_type_>(rhs)); \
