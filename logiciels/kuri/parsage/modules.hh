@@ -31,6 +31,7 @@ struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDirectivePreExecutable;
+struct NoeudExpression;
 struct SiteSource;
 struct Statistiques;
 
@@ -40,6 +41,32 @@ enum class SourceFichier : unsigned char {
     /* Le fichier vient d'une instruction "ajoute_chaine_*". */
     CHAINE_AJOUTEE,
 };
+
+/* Énum drapeau pour définir quelles fonctionnalités du langage sont présentes dans un fichier afin
+ * d'aider à diriger la compilation du fichier. */
+enum class FonctionnalitéLangage : uint16_t {
+    /* Le fichier contient des instructions de chargement de fichiers. */
+    CHARGE = (1 << 0),
+    /* Le fichier contient des imports. */
+    IMPORTE = (1 << 1),
+    /* Le fichier contient des directives #exécute. */
+    EXÉCUTE = (1 << 2),
+    /* Le fichier contient des directives #ajoute_init. */
+    AJOUTE_INIT = (1 << 3),
+    /* Le fichier contient des directives #ajoute_fini. */
+    AJOUTE_FINI = (1 << 4),
+    /* Le fichier contient des directives #assert. */
+    ASSERT = (1 << 5),
+    /* Le fichier contient des directives #test. */
+    TEST = (1 << 6),
+    /* Le fichier contient des directives #si. */
+    SI_STATIQUE = (1 << 7),
+    /* Le fichier contient des directives #cuisine. */
+    CUISINE = (1 << 8),
+    /* Le fichier contient des directives #pré_exécutable. */
+    PRÉ_EXÉCUTABLE = (1 << 9),
+};
+DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
 struct Fichier {
     double temps_analyse = 0.0;
@@ -72,6 +99,15 @@ struct Fichier {
 
     /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t decalage_fichier = 0;
+
+    /* Mis en place par la Syntaxeuse, c'est la liste de toutes les déclarations dans le bloc
+     * global du module à valider impérativement (sans attendre que quelque chose d'autre le
+     * requiers). Nous avons ça car les fichiers n'ont pas de blocs propres alors que le
+     * GestionnaireCode doit savoir pour chaque fichier quels sont les noeuds à valider
+     * impérativement. */
+    kuri::tableau<NoeudExpression *, int> noeuds_à_valider{};
+
+    FonctionnalitéLangage fonctionnalités_utilisées{};
 
     Fichier() = default;
 
