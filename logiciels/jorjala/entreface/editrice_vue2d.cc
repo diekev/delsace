@@ -30,16 +30,20 @@
 #include <cassert>
 #include <iostream>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QApplication>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWheelEvent>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"

@@ -26,11 +26,13 @@
 
 #include "danjo/danjo.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QCoreApplication>
 #include <QCursor>
 #include <QDockWidget>
@@ -42,7 +44,9 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QStatusBar>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"

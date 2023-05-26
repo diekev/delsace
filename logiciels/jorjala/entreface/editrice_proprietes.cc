@@ -28,16 +28,20 @@
 #include "danjo/controles_proprietes/donnees_controle.h"
 #include "danjo/danjo.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QFrame>
 #include <QLabel>
 #include <QScrollArea>
 #include <QVBoxLayout>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
