@@ -28,20 +28,20 @@
 
 namespace lng {
 
-inline bool entre(unsigned char c, unsigned char a, unsigned char b)
+inline bool entre(uint8_t c, uint8_t a, uint8_t b)
 {
 	return c >= a && c <= b;
 }
 
 int nombre_octets(const char *sequence)
 {
-	const auto s0 = static_cast<unsigned char>(sequence[0]);
+    const auto s0 = static_cast<uint8_t>(sequence[0]);
 
 	if (entre(s0, 0x00, 0x7F)) {
 		return 1;
 	}
 
-	const auto s1 = static_cast<unsigned char>(sequence[1]);
+    const auto s1 = static_cast<uint8_t>(sequence[1]);
 
 	if (entre(s0, 0xC2, 0xDF)) {
 		if (!entre(s1, 0x80, 0xBF)) {
@@ -64,7 +64,7 @@ int nombre_octets(const char *sequence)
 			return 0;
 		}
 
-		const auto s2 = static_cast<unsigned char>(sequence[2]);
+        const auto s2 = static_cast<uint8_t>(sequence[2]);
 
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
@@ -86,13 +86,13 @@ int nombre_octets(const char *sequence)
 			return 0;
 		}
 
-		const auto s2 = static_cast<unsigned char>(sequence[2]);
+        const auto s2 = static_cast<uint8_t>(sequence[2]);
 
 		if (!entre(s2, 0x80, 0xBF)) {
 			return 0;
 		}
 
-		const auto s3 = static_cast<unsigned char>(sequence[3]);
+        const auto s3 = static_cast<uint8_t>(sequence[3]);
 
 		if (!entre(s3, 0x80, 0xBF)) {
 			return 0;
@@ -104,9 +104,9 @@ int nombre_octets(const char *sequence)
 	return 0;
 }
 
-long decalage_pour_caractere(dls::vue_chaine const &chaine, long i)
+int64_t decalage_pour_caractere(dls::vue_chaine const &chaine, int64_t i)
 {
-	auto decalage = 0l;
+    auto decalage = int64_t(0);
 	auto n = nombre_octets(&chaine[i]);
 
 	while (n == 0 && i < chaine.taille()) {
@@ -157,27 +157,27 @@ dls::chaine supprime_accents(dls::chaine const &chaine)
 
 int converti_utf32(const char *sequence, int n)
 {
-	auto const s0 = static_cast<unsigned char>(sequence[0]);
+    auto const s0 = static_cast<uint8_t>(sequence[0]);
 
 	if (n == 1) {
 		return static_cast<int>(s0) & 0b01111111;
 	}
 
-	auto const s1 = static_cast<unsigned char>(sequence[1]);
+    auto const s1 = static_cast<uint8_t>(sequence[1]);
 
 	if (n == 2) {
 		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
 		return valeur;
 	}
 
-	auto const s2 = static_cast<unsigned char>(sequence[2]);
+    auto const s2 = static_cast<uint8_t>(sequence[2]);
 
 	if (n == 3) {
 		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
 		return valeur;
 	}
 
-	auto const s3 = static_cast<unsigned char>(sequence[3]);
+    auto const s3 = static_cast<uint8_t>(sequence[3]);
 
 	if (n == 4) {
 		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
@@ -193,18 +193,18 @@ int converti_utf32(const char *sequence, int n)
  *
  * Note: nous présumons que les substituts sont traités séparement.
  */
-int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence)
+int point_de_code_vers_utf8(uint32_t point_de_code, uint8_t *sequence)
 {
 	/* caractère ASCII */
 	if (point_de_code <= 0x7F) {
-		sequence[0] = static_cast<unsigned char>(point_de_code);
+        sequence[0] = static_cast<uint8_t>(point_de_code);
 		return 1;
 	}
 
 	/* Plan universel. */
 	if (point_de_code <= 0x7FF) {
-		sequence[0] = static_cast<unsigned char>((point_de_code >> 6) + 192);
-		sequence[1] = static_cast<unsigned char>((point_de_code & 63) + 128);
+        sequence[0] = static_cast<uint8_t>((point_de_code >> 6) + 192);
+        sequence[1] = static_cast<uint8_t>((point_de_code & 63) + 128);
 		return 2;
 	}
 
@@ -214,18 +214,18 @@ int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence)
 	}
 
 	if (point_de_code <= 0xFFFF) {
-		sequence[0] = static_cast<unsigned char>((point_de_code >> 12) + 224);
-		sequence[1] = static_cast<unsigned char>(((point_de_code >> 6) & 63) + 128);
-		sequence[2] = static_cast<unsigned char>((point_de_code & 63) + 128);
+        sequence[0] = static_cast<uint8_t>((point_de_code >> 12) + 224);
+        sequence[1] = static_cast<uint8_t>(((point_de_code >> 6) & 63) + 128);
+        sequence[2] = static_cast<uint8_t>((point_de_code & 63) + 128);
 		return 3;
 	}
 
 	/* ceci n'est pas nécessaire si nous savons que le point de code est valide */
 	if (point_de_code <= 0x10FFFF) {
-		sequence[0] = static_cast<unsigned char>((point_de_code >> 18) + 240);
-		sequence[1] = static_cast<unsigned char>(((point_de_code >> 12) & 63) + 128);
-		sequence[2] = static_cast<unsigned char>(((point_de_code >> 6) & 63) + 128);
-		sequence[3] = static_cast<unsigned char>((point_de_code & 63) + 128);
+        sequence[0] = static_cast<uint8_t>((point_de_code >> 18) + 240);
+        sequence[1] = static_cast<uint8_t>(((point_de_code >> 12) & 63) + 128);
+        sequence[2] = static_cast<uint8_t>(((point_de_code >> 6) & 63) + 128);
+        sequence[3] = static_cast<uint8_t>((point_de_code & 63) + 128);
 		return 4;
 	}
 
@@ -233,7 +233,7 @@ int point_de_code_vers_utf8(unsigned int point_de_code, unsigned char *sequence)
 	return 0;
 }
 
-int sequence_aleatoire(GNA &gna, unsigned char *sequence, int taille_max)
+int sequence_aleatoire(GNA &gna, uint8_t *sequence, int taille_max)
 {
     if (taille_max == 0) {
         return 0;
@@ -248,48 +248,48 @@ int sequence_aleatoire(GNA &gna, unsigned char *sequence, int taille_max)
     switch (taille) {
         case 1:
         {
-            sequence[0] = static_cast<unsigned char>(gna.uniforme(0x0, 0x7F));
+            sequence[0] = static_cast<uint8_t>(gna.uniforme(0x0, 0x7F));
             break;
         }
         case 2:
         {
-            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xC2, 0xDF));
-            sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            sequence[0] = static_cast<uint8_t>(gna.uniforme(0xC2, 0xDF));
+            sequence[1] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
             break;
         }
         case 3:
         {
-            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xE0, 0xEF));
+            sequence[0] = static_cast<uint8_t>(gna.uniforme(0xE0, 0xEF));
 
             if (sequence[0] == 0xE0) {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0xA0, 0xBF));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0xA0, 0xBF));
             }
             else if (sequence[0] == 0xED) {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0x9F));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0x80, 0x9F));
             }
             else {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
             }
 
-            sequence[2] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            sequence[2] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
             break;
         }
         case 4:
         {
-            sequence[0] = static_cast<unsigned char>(gna.uniforme(0xF0, 0xF4));
+            sequence[0] = static_cast<uint8_t>(gna.uniforme(0xF0, 0xF4));
 
             if (sequence[0] == 0xF0) {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x90, 0xBF));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0x90, 0xBF));
             }
             else if (sequence[0] == 0xF4) {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0x8F));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0x80, 0x8F));
             }
             else {
-                sequence[1] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+                sequence[1] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
             }
 
-            sequence[2] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
-            sequence[3] = static_cast<unsigned char>(gna.uniforme(0x80, 0xBF));
+            sequence[2] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
+            sequence[3] = static_cast<uint8_t>(gna.uniforme(0x80, 0xBF));
             break;
         }
     }
