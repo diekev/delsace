@@ -28,7 +28,7 @@
 
 namespace dls::num {
 
-unsigned nombre_chiffre_base_10(unsigned long v)
+unsigned nombre_chiffre_base_10(uint64_t v)
 {
 	unsigned resultat = 0;
 
@@ -40,7 +40,7 @@ unsigned nombre_chiffre_base_10(unsigned long v)
 	return resultat;
 }
 
-unsigned nombre_chiffre_base_10_opt(unsigned long v)
+unsigned nombre_chiffre_base_10_opt(uint64_t v)
 {
 	unsigned resultat = 1;
 
@@ -66,7 +66,7 @@ unsigned nombre_chiffre_base_10_opt(unsigned long v)
 	}
 }
 
-unsigned nombre_chiffre_base_10_pro(unsigned long v)
+unsigned nombre_chiffre_base_10_pro(uint64_t v)
 {
 	unsigned resultat = 1;
 
@@ -92,7 +92,7 @@ unsigned nombre_chiffre_base_10_pro(unsigned long v)
 	}
 }
 
-int nombre_de_chiffres(long nombre)
+int nombre_de_chiffres(int64_t nombre)
 {
 	if (nombre == 0) {
 		return 1;

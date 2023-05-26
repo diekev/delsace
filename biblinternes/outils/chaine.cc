@@ -66,7 +66,7 @@ tableau<chaine> morcelle(chaine const &texte, chaine const &delimitrice)
 	return results;
 }
 
-chaine garnis_chaine(chaine const &chn, long taille)
+chaine garnis_chaine(chaine const &chn, int64_t taille)
 {
 	auto garniture = chaine(taille, '0');
 	garniture += chn;
@@ -94,21 +94,21 @@ chaine chaine_depuis_entier(int nombre)
 	return ss.chn();
 }
 
-chaine premier_n_caracteres(chaine const &chn, long n)
+chaine premier_n_caracteres(chaine const &chn, int64_t n)
 {
 	return chn.sous_chaine(0, n);
 }
 
-chaine dernier_n_caracteres(chaine const &chn, long n)
+chaine dernier_n_caracteres(chaine const &chn, int64_t n)
 {
 	return chn.sous_chaine(chn.taille() - n, n);
 }
 
-long compte(const chaine &str, char c)
+int64_t compte(const chaine &str, char c)
 {
-	auto count = 0l;
-	auto index = 0l;
-	auto prev =  0l;
+    auto count = int64_t(0);
+    auto index = int64_t(0);
+    auto prev =  int64_t(0);
 
 	while ((index = str.trouve(c, prev)) != dls::chaine::npos) {
 		++count;
@@ -118,13 +118,13 @@ long compte(const chaine &str, char c)
 	return count;
 }
 
-long compte_commun(const chaine &rhs, const chaine &lhs)
+int64_t compte_commun(const chaine &rhs, const chaine &lhs)
 {
 	if (rhs.taille() != lhs.taille()) {
 		return 0;
 	}
 
-	auto match = 0;
+    auto match = int64_t(0);
 
 	for (const auto &i : outils::plage(rhs.taille())) {
 		if (rhs[i] == lhs[i]) {
@@ -137,7 +137,7 @@ long compte_commun(const chaine &rhs, const chaine &lhs)
 
 void remplace_souschaine(chaine &str, const chaine &substr, const chaine &rep)
 {
-	long index = 0;
+    int64_t index = 0;
 
 	while (true) {
 		/* Locate the substring to replace. */
@@ -155,7 +155,7 @@ void remplace_souschaine(chaine &str, const chaine &substr, const chaine &rep)
 	}
 }
 
-long distance_levenshtein(
+int64_t distance_levenshtein(
 			dls::vue_chaine_compacte const &chn1,
 			dls::vue_chaine_compacte const &chn2)
 {
@@ -170,13 +170,13 @@ long distance_levenshtein(
 		return m;
 	}
 
-	auto couts = dls::tableau<long>(n + 1);
+    auto couts = dls::tableau<int64_t>(n + 1);
 
-	for (auto k = 0; k <= n; k++) {
+    for (auto k = int64_t(0); k <= n; k++) {
 		couts[k] = k;
 	}
 
-	for (auto i = 0l; i < chn1.taille(); ++i) {
+    for (auto i = int64_t(0); i < chn1.taille(); ++i) {
 		couts[0] = i + 1;
 		auto coin = i;
 
