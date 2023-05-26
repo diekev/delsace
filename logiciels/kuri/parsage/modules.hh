@@ -31,6 +31,7 @@ struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDirectivePreExecutable;
+struct NoeudExpression;
 struct SiteSource;
 struct Statistiques;
 
@@ -72,6 +73,13 @@ struct Fichier {
 
     /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t decalage_fichier = 0;
+
+    /* Mis en place par la Syntaxeuse, c'est la liste de toutes les déclarations dans le bloc
+     * global du module à valider impérativement (sans attendre que quelque chose d'autre le
+     * requiers). Nous avons ça car les fichiers n'ont pas de blocs propres alors que le
+     * GestionnaireCode doit savoir pour chaque fichier quels sont les noeuds à valider
+     * impérativement. */
+    kuri::tableau<NoeudExpression *, int> noeuds_à_valider{};
 
     Fichier() = default;
 

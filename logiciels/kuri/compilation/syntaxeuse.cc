@@ -2895,7 +2895,7 @@ void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
         return;
     }
 
-    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+    m_fichier->noeuds_à_valider.ajoute(noeud);
 }
 
 bool Syntaxeuse::ignore_point_virgule_implicite()
