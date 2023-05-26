@@ -27,7 +27,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-    dl
+    ${BIBLIOTHEQUE_DL}
         jorjala_coeur
 #	jorjala_commandes
 #	jorjala_corps

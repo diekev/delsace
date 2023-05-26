@@ -40,6 +40,7 @@ option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
 option(AVEC_TESTS "Compiler les tests des bibliothèques internes" ON)
 option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
+option(AVEC_DEMON_REACT "Compiler le démon de compilation de projets React" OFF)
 
 option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
 
@@ -114,6 +115,7 @@ if(SEULEMENT_KURI)
     set(AVEC_SILVATHEQUE OFF)
     set(AVEC_TESTS OFF)
     set(AVEC_VULKAN OFF)
+    set(AVEC_DEMON_REACT OFF)
 
     # désactivation des bibliothèques internes non-requises
     set(REQUIERS_BIB_BRUIT OFF)
@@ -164,7 +166,7 @@ active_dependances(AVEC_SILVATHEQUE AVEC_DANJO)
 #active_dependances(AVEC_JORJALA REQUIERS_TBB)
 
 active_dependances(AVEC_KANBA REQUIERS_OPENGL)
-#active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
+active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 
@@ -267,24 +269,39 @@ if(AVEC_DEPLOIE)
 endif(AVEC_DEPLOIE)
 
 if(REQUIERS_QT)
-    find_package(Qt5 REQUIRED COMPONENTS Core Gui OpenGL Widgets Sql)
-    set(BIBLIOTHEQUES_QT_CORE Qt5::Core)
-    set(BIBLIOTHEQUES_QT_GUI Qt5::Gui)
-    set(BIBLIOTHEQUES_QT_OPENGL Qt5::OpenGL)
-    set(BIBLIOTHEQUES_QT_WIDGETS Qt5::Widgets)
-    set(BIBLIOTHEQUES_QT_SQL Qt5::Sql)
+    find_package(Qt6 COMPONENTS Core Gui OpenGL Widgets Sql)
+
+    if(Qt6_FOUND)
+        set(BIBLIOTHEQUES_QT5_CORE Qt::Core)
+        set(BIBLIOTHEQUES_QT5_GUI Qt::Gui)
+        set(BIBLIOTHEQUES_QT5_OPENGL Qt::OpenGL)
+        set(BIBLIOTHEQUES_QT5_WIDGETS Qt::Widgets)
+        set(BIBLIOTHEQUES_QT5_SQL Qt::Sql)
+    else()
+        # Teste QT 5 sinon.
+        find_package(Qt5 REQUIRED COMPONENTS Core Gui OpenGL Widgets Sql)
+        set(BIBLIOTHEQUES_QT_CORE Qt5::Core)
+        set(BIBLIOTHEQUES_QT_GUI Qt5::Gui)
+        set(BIBLIOTHEQUES_QT_OPENGL Qt5::OpenGL)
+        set(BIBLIOTHEQUES_QT_WIDGETS Qt5::Widgets)
+        set(BIBLIOTHEQUES_QT_SQL Qt5::Sql)
+    endif()
 
     set(BIBLIOTHEQUES_QT "${BIBLIOTHEQUES_QT_CORE}" "${BIBLIOTHEQUES_QT_GUI}" "${BIBLIOTHEQUES_QT_OPENGL}" "${BIBLIOTHEQUES_QT_WIDGETS}" "${BIBLIOTHEQUES_QT_SQL}")
 endif()
 
-# À FAIRE : find_package
 if(REQUIERS_OPENGL)
-    set(BIBLIOTHEQUES_OPENGL GLEW GLU GL) #glut
+    set(OpenGL_GL_PREFERENCE "LEGACY")
+
+    find_package(GLEW REQUIRED)
+    find_package(OpenGL REQUIRED)
+
+    set(BIBLIOTHEQUES_OPENGL ${GLEW_LIBRARIES} OpenGL::GL OpenGL::GLU)
 endif()
 
-# À FAIRE : find_package
 if(REQUIERS_TBB)
-    set(BIBLIOTHEQUES_TBB tbb)
+    find_package(TBB REQUIRED)
+    set(BIBLIOTHEQUES_TBB TBB::tbb)
 endif()
 
 add_definitions(-DAVEC_JPEG)
@@ -303,7 +320,7 @@ endif()
 
 # Si nous compilons avec g++ nous devons lier la bibliothèque stdc++fs pour pouvoir
 # utiliser filesystem.
-set(BILIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
+set(BIBLIOTHEQUE_CXX_FILESYSTEM $<$<CXX_COMPILER_ID:GNU>:stdc++fs>)
 
 # dl n'est disponible que sur linux
 set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
