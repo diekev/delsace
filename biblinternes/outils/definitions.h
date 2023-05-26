@@ -33,8 +33,13 @@
 #	define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
 #endif
 
-#define ENLIGNE_TOUJOURS [[ gnu::always_inline ]]
-#define ENLIGNE_JAMAIS   [[ gnu::noinline ]]
+#ifdef _MSC_VER
+#    define ENLIGNE_TOUJOURS inline
+#    define ENLIGNE_JAMAIS   __declspec(noinline)
+#else
+#    define ENLIGNE_TOUJOURS [[ gnu::always_inline ]]
+#    define ENLIGNE_JAMAIS   [[ gnu::noinline ]]
+#endif
 
 #define INUTILISE(x) static_cast<void>(x)
 
