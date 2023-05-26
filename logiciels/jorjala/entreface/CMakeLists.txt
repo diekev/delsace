@@ -60,7 +60,11 @@ set(ENTETES_POUR_QT
     tache.h
 )
 
-qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+if(Qt6_FOUND)
+    qt_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+else()
+    qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+endif()
 
 add_library(qt_jorjala_entreface "${moc_headers}")
 target_include_directories(qt_jorjala_entreface PUBLIC "${INCLUSIONS}")
