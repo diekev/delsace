@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #define CONCATENE_IMPL(s1, s2) s1##s2
 #define CONCATENE(s1, s2) CONCATENE_IMPL(s1, s2)
 
@@ -69,7 +71,7 @@
 	x(x &&) = default; \
 	x &operator=(x &&) = default
 
-#define DEFINIE_OPERATEURS_DRAPEAU(_type_drapeau_, _type_) \
+#define DEFINIS_OPERATEURS_DRAPEAU_IMPL(_type_drapeau_, _type_) \
 	inline constexpr auto operator&(_type_drapeau_ lhs, _type_drapeau_ rhs) \
 	{ \
 		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) & static_cast<_type_>(rhs)); \
@@ -102,6 +104,9 @@
 	{ \
 		return (lhs = lhs ^ rhs); \
 	}
+
+#define DEFINIS_OPERATEURS_DRAPEAU(_type_drapeau_) \
+    DEFINIS_OPERATEURS_DRAPEAU_IMPL(_type_drapeau_, std::underlying_type_t<_type_drapeau_>)
 
 #define taille_de(x) static_cast<int64_t>(sizeof(x))
 
