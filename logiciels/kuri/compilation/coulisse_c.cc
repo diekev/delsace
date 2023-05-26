@@ -599,6 +599,7 @@ void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
 static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
+    enchaineuse << "#include <stdint.h>\n";
 
     enchaineuse <<
         R"(
