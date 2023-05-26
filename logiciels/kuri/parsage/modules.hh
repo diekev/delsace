@@ -42,6 +42,32 @@ enum class SourceFichier : unsigned char {
     CHAINE_AJOUTEE,
 };
 
+/* Énum drapeau pour définir quelles fonctionnalités du langage sont présentes dans un fichier afin
+ * d'aider à diriger la compilation du fichier. */
+enum class FonctionnalitéLangage : uint16_t {
+    /* Le fichier contient des instructions de chargement de fichiers. */
+    CHARGE = (1 << 0),
+    /* Le fichier contient des imports. */
+    IMPORTE = (1 << 1),
+    /* Le fichier contient des directives #exécute. */
+    EXÉCUTE = (1 << 2),
+    /* Le fichier contient des directives #ajoute_init. */
+    AJOUTE_INIT = (1 << 3),
+    /* Le fichier contient des directives #ajoute_fini. */
+    AJOUTE_FINI = (1 << 4),
+    /* Le fichier contient des directives #assert. */
+    ASSERT = (1 << 5),
+    /* Le fichier contient des directives #test. */
+    TEST = (1 << 6),
+    /* Le fichier contient des directives #si. */
+    SI_STATIQUE = (1 << 7),
+    /* Le fichier contient des directives #cuisine. */
+    CUISINE = (1 << 8),
+    /* Le fichier contient des directives #pré_exécutable. */
+    PRÉ_EXÉCUTABLE = (1 << 9),
+};
+DEFINIE_OPERATEURS_DRAPEAU(FonctionnalitéLangage, uint16_t)
+
 struct Fichier {
     double temps_analyse = 0.0;
     double temps_chargement = 0.0;
@@ -80,6 +106,8 @@ struct Fichier {
      * GestionnaireCode doit savoir pour chaque fichier quels sont les noeuds à valider
      * impérativement. */
     kuri::tableau<NoeudExpression *, int> noeuds_à_valider{};
+
+    FonctionnalitéLangage fonctionnalités_utilisées{};
 
     Fichier() = default;
 
