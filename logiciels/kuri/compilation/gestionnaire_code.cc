@@ -899,6 +899,16 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier->fut_parse);
     auto espace = unite->espace;
     TACHE_TERMINEE(PARSAGE, true);
+
+    POUR (unite->fichier->noeuds_à_valider) {
+        /* Nous avons sans doute déjà requis le typage de ce noeud.
+         * À FAIRE : attend que tous les fichiers connus sont syntaxé avant de requerir un
+         * quelconque typage. */
+        if (it->unite) {
+            continue;
+        }
+        requiers_typage(espace, it);
+    }
 }
 
 static bool noeud_requiers_generation_ri(NoeudExpression *noeud)

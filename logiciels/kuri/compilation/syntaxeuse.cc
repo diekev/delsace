@@ -559,6 +559,7 @@ void Syntaxeuse::analyse_une_chose()
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
         requiers_typage(noeud);
+        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
 
         consomme();
     }
@@ -575,6 +576,7 @@ void Syntaxeuse::analyse_une_chose()
         noeud->expression = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_courant());
 
         requiers_typage(noeud);
+        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CHARGE;
 
         consomme();
     }
@@ -989,9 +991,16 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
 
                 if (directive == ID::test) {
+                    m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::TEST;
                     noeud->expression = analyse_bloc();
                 }
                 else {
+                    if (directive == ID::execute) {
+                        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::EXÉCUTE;
+                    }
+                    else if (directive == ID::assert_) {
+                        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::ASSERT;
+                    }
                     noeud->expression = analyse_expression(
                         {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
                 }
@@ -1003,12 +1012,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             }
             else if (directive == ID::si) {
                 return analyse_instruction_si_statique(lexeme);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
             }
             else if (directive == ID::cuisine) {
                 auto noeud = m_tacheronne.assembleuse->cree_cuisine(lexeme);
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CUISINE;
                 return noeud;
             }
             else if (directive == ID::dependance_bibliotheque) {
@@ -1036,6 +1047,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_INIT;
                 return noeud;
             }
             else if (directive == ID::ajoute_fini) {
@@ -1043,6 +1055,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
                 return noeud;
             }
             else if (directive == ID::pre_executable) {
@@ -1050,6 +1063,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud->ident = directive;
                 noeud->expression = analyse_expression(
                     {}, GenreLexeme::DIRECTIVE, GenreLexeme::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::PRÉ_EXÉCUTABLE;
                 return noeud;
             }
             else {
@@ -2895,7 +2909,7 @@ void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
         return;
     }
 
-    m_compilatrice.gestionnaire_code->requiers_typage(m_unite->espace, noeud);
+    m_fichier->noeuds_à_valider.ajoute(noeud);
 }
 
 bool Syntaxeuse::ignore_point_virgule_implicite()
