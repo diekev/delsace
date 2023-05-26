@@ -1451,7 +1451,7 @@ class BoolPolyhedra {
      * \param I : A vector to store the Id of the two intersection points (the output segment)*/
     void Get_Segment(Info_Inter *inter, std::vector<InterId> &I)
     {
-        for (unsigned int i = 0; i != 4; ++i) {
+        for (uint32_t i = 0; i != 4; ++i) {
             // if the point have an Id
             if (inter[i].Id != 0xFFFFFFFF) {
                 // the Id is stored if it is not already done

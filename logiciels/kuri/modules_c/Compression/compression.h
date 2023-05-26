@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #else
@@ -15,20 +17,18 @@ struct ContexteCompression {
     /**
      * Définis la taille du stockage temporaire qui sera utilisé par la bibliothèque.
      */
-    unsigned int (*taille_stockage_temporaire)(struct ContexteCompression *);
+    uint32_t (*taille_stockage_temporaire)(struct ContexteCompression *);
 
     /**
      * Retourne un pointeur vers le stockage temporaire à utiliser. Chaque invocation de ce rappel
      * doit retourner un stockage différent.
      */
-    unsigned char *(*cree_stockage_temporaire)(struct ContexteCompression *, unsigned int taille);
+    unsigned char *(*cree_stockage_temporaire)(struct ContexteCompression *, uint32_t taille);
 
     /**
      * Détruit le stockage temporaire créé via cree_stockage_temporaire.
      */
-    void (*detruit_stockage_temporaire)(struct ContexteCompression *,
-                                        unsigned char *,
-                                        unsigned int);
+    void (*detruit_stockage_temporaire)(struct ContexteCompression *, unsigned char *, uint32_t);
 
     /**
      * Un pointeur vers des données utilisateur possibles, qui peut être mis en place par
@@ -45,12 +45,12 @@ struct FluxCompression {
     /**
      * Lis max quantité de données depuis le flux, et retourne la quantité lue.
      */
-    unsigned int (*lis)(struct FluxCompression *, unsigned int max, unsigned char *donnees);
+    uint32_t (*lis)(struct FluxCompression *, uint32_t max, unsigned char *donnees);
 
     /**
      * Écris max quantité de données depuis le flux, et retourne la quantité lue.
      */
-    unsigned int (*ecris)(struct FluxCompression *, unsigned int max, unsigned char *donnees);
+    uint32_t (*ecris)(struct FluxCompression *, uint32_t max, unsigned char *donnees);
 
     /**
      * Doit retourner vrai si le flux possede une erreur.

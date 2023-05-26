@@ -349,7 +349,7 @@ void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
     }
 }
 
-void imprime_contenu_programme(const Programme &programme, unsigned int quoi, std::ostream &os)
+void imprime_contenu_programme(const Programme &programme, uint32_t quoi, std::ostream &os)
 {
     if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_TYPES) != 0) {
         os << "Types dans le programme...\n";
@@ -377,7 +377,7 @@ void imprime_contenu_programme(const Programme &programme, unsigned int quoi, st
 // RepresentationIntermediaireProgramme
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme,
-                               unsigned int quoi,
+                               uint32_t quoi,
                                std::ostream &os)
 {
     if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_TYPES) != 0) {

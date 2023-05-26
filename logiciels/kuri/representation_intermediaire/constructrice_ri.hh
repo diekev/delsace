@@ -238,7 +238,7 @@ struct ConstructriceRI {
                            Atome *place);
 
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                            unsigned int index,
+                                            uint32_t index,
                                             Type const *pour_type);
     AtomeConstante *cree_info_type_defaut(unsigned index, Type const *pour_type);
     AtomeConstante *cree_info_type_entier(Type const *pour_type, bool est_relatif);

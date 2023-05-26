@@ -74,7 +74,7 @@ static void init_lambdas(const ParamatresGrain &params, float lambdas[MAX_NIVEAU
     }
 }
 
-static unsigned int poisson(const float u, const float lambda)
+static uint32_t poisson(const float u, const float lambda)
 {
     /* Inverse transform sampling */
     auto prod = std::exp(-lambda);
@@ -158,7 +158,7 @@ static float simule_grain_pour_coordonnees(DonneesCanal<ParamatresGrain> &canal,
 }
 
 static void simule_grain_image(DonneesCanal<ParamatresGrain> &image,
-                               const unsigned int graine,
+                               const uint32_t graine,
                                const int iterations)
 {
     auto const res_x = image.largeur;

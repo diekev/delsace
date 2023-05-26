@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-enum class GenreLexeme : unsigned int;
+enum class GenreLexeme : uint32_t;
 struct Lexeme;
 
 struct PositionLexeme {

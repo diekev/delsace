@@ -153,7 +153,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_BINAIRE_POUR_TYPE(op, unsigned char)                                                       \
     else OP_BINAIRE_POUR_TYPE(op, unsigned short) else OP_BINAIRE_POUR_TYPE(                      \
-        op, unsigned int) else OP_BINAIRE_POUR_TYPE(op, uint64_t)
+        op, uint32_t) else OP_BINAIRE_POUR_TYPE(op, uint64_t)
 
 #define OP_BINAIRE_REEL(op)                                                                       \
     auto taille = LIS_4_OCTETS();                                                                 \
@@ -241,7 +241,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
                 os << *reinterpret_cast<unsigned short *>(pointeur);
             }
             else if (type->taille_octet == 4) {
-                os << *reinterpret_cast<unsigned int *>(pointeur);
+                os << *reinterpret_cast<uint32_t *>(pointeur);
             }
             else if (type->taille_octet == 8) {
                 os << *reinterpret_cast<uint64_t *>(pointeur);
@@ -788,14 +788,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     auto taille_type_retour = type_fonction->type_sortie->taille_octet;
 
     if (taille_type_retour != 0) {
-        if (taille_type_retour <= static_cast<unsigned int>(taille_argument)) {
+        if (taille_type_retour <= static_cast<uint32_t>(taille_argument)) {
             memcpy(pointeur_arguments, pointeur_pile, taille_type_retour);
         }
         else {
-            memcpy(pointeur_arguments, pointeur_pile, static_cast<unsigned int>(taille_argument));
-            memcpy(pointeur_arguments + static_cast<unsigned int>(taille_argument),
-                   pointeur_pile + static_cast<unsigned int>(taille_argument),
-                   taille_type_retour - static_cast<unsigned int>(taille_argument));
+            memcpy(pointeur_arguments, pointeur_pile, static_cast<uint32_t>(taille_argument));
+            memcpy(pointeur_arguments + static_cast<uint32_t>(taille_argument),
+                   pointeur_pile + static_cast<uint32_t>(taille_argument),
+                   taille_type_retour - static_cast<uint32_t>(taille_argument));
         }
     }
 
@@ -842,7 +842,7 @@ inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel
         }
         case CONSTANTE_ENTIER_NATUREL | BITS_32:
         {
-            EMPILE_CONSTANTE(unsigned int)
+            EMPILE_CONSTANTE(uint32_t)
         }
         case CONSTANTE_ENTIER_NATUREL | BITS_64:
         {
@@ -1168,14 +1168,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, unsigned int, uint64_t)
+                FAIS_TRANSTYPE_AUGMENTE(unsigned char, unsigned short, uint32_t, uint64_t)
                 break;
             }
             case OP_DIMINUE_NATUREL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
-                FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, unsigned int, uint64_t)
+                FAIS_TRANSTYPE_DIMINUE(unsigned char, unsigned short, uint32_t, uint64_t)
                 break;
             }
             case OP_AUGMENTE_RELATIF:

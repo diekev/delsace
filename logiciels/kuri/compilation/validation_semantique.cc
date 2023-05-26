@@ -3283,7 +3283,7 @@ static bool est_hors_des_limites(int64_t valeur, Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return valeur > std::numeric_limits<unsigned int>::max();
+            return valeur > std::numeric_limits<uint32_t>::max();
         }
 
         // À FAIRE : trouve une bonne manière de détecter ceci
@@ -3321,7 +3321,7 @@ static int64_t valeur_min(Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return std::numeric_limits<unsigned int>::min();
+            return std::numeric_limits<uint32_t>::min();
         }
 
         return std::numeric_limits<uint64_t>::min();
@@ -3354,7 +3354,7 @@ static uint64_t valeur_max(Type *type)
         }
 
         if (type->taille_octet == 4) {
-            return std::numeric_limits<unsigned int>::max();
+            return std::numeric_limits<uint32_t>::max();
         }
 
         return std::numeric_limits<uint64_t>::max();
@@ -3392,7 +3392,7 @@ static int nombre_de_bits_pour_type(Type *type)
     }
 
     if (type->taille_octet == 4 || type->est_entier_constant()) {
-        return std::numeric_limits<unsigned int>::digits;
+        return std::numeric_limits<uint32_t>::digits;
     }
 
     return std::numeric_limits<uint64_t>::digits;

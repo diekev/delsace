@@ -15,7 +15,7 @@ struct ContexteKuri;
 
 struct FilExecution;
 
-unsigned int EXETRON_nombre_fils_materiel();
+uint32_t EXETRON_nombre_fils_materiel();
 
 struct FilExecution *EXETRON_cree_fil(struct ContexteKuri *ctx_kuri,
                                       void (*rappel)(void *),

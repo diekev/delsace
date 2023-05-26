@@ -237,7 +237,7 @@ enum {
     IMPRIME_GLOBALES = 4,
 };
 
-void imprime_contenu_programme(Programme const &programme, unsigned int quoi, std::ostream &os);
+void imprime_contenu_programme(Programme const &programme, uint32_t quoi, std::ostream &os);
 
 /* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
  * tous les types utilisées. */
@@ -251,7 +251,7 @@ struct ProgrammeRepreInter {
 };
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme,
-                               unsigned int quoi,
+                               uint32_t quoi,
                                std::ostream &os);
 
 ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme);

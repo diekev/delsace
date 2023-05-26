@@ -232,7 +232,7 @@ static void construit_nom_enums(ListeLexemes &lexemes)
 
 static void genere_enum(const ListeLexemes &lexemes, std::ostream &os)
 {
-    os << "enum class GenreLexeme : unsigned int {\n";
+    os << "enum class GenreLexeme : uint32_t {\n";
     POUR (lexemes.lexemes) {
         os << "\t" << it.nom_enum_sans_accent << ",\n";
     }
@@ -531,7 +531,7 @@ inline GenreLexeme lexeme_pour_chaine(dls::vue_chaine_compacte chn)
 
         if (remplace(ligne,
                      "unsigned int hval = len;",
-                     "unsigned int hval = static_cast<unsigned int>(len);")) {
+                     "uint32_t hval = static_cast<uint32_t>(len);")) {
             os << ligne << '\n';
             continue;
         }

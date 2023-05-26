@@ -728,7 +728,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                 valeur = static_cast<uint64_t>(*reinterpret_cast<unsigned short *>(pointeur));
             }
             else if (type->taille_octet == 4) {
-                valeur = static_cast<uint64_t>(*reinterpret_cast<unsigned int *>(pointeur));
+                valeur = static_cast<uint64_t>(*reinterpret_cast<uint32_t *>(pointeur));
             }
             else if (type->taille_octet == 8) {
                 valeur = *reinterpret_cast<uint64_t *>(pointeur);

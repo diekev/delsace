@@ -136,7 +136,7 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
 
 struct ParametresSimulationGrain {
     /** Graine pour générer des nombres aléatoires et rendre le résultat unique. */
-    unsigned int graine;
+    uint32_t graine;
 
     /** Le nombre d'itérations de Monte-Carlo à effectuer pour générer le grain. */
     int iterations;

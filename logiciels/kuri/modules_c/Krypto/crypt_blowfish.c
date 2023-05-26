@@ -64,7 +64,7 @@
 #define BF_SCALE			0
 #endif
 
-typedef unsigned int BF_word;
+typedef uint32_t BF_word;
 typedef signed int BF_word_signed;
 
 /* Number of Blowfish rounds, this is also hardcoded into a few places */
@@ -376,7 +376,7 @@ static unsigned char BF_atoi64[0x60] = {
 #define BF_safe_atoi64(dst, src) \
 { \
 	tmp = (unsigned char)(src); \
-	if ((unsigned int)(tmp -= 0x20) >= 0x60) return -1; \
+	if ((uint32_t)(tmp -= 0x20) >= 0x60) return -1; \
 	tmp = BF_atoi64[tmp]; \
 	if (tmp > 63) return -1; \
 	(dst) = tmp; \
@@ -387,7 +387,7 @@ static int BF_decode(BF_word *dst, const char *src, int size)
 	unsigned char *dptr = (unsigned char *)dst;
 	unsigned char *end = dptr + size;
 	const unsigned char *sptr = (const unsigned char *)src;
-	unsigned int tmp, c1, c2, c3, c4;
+	uint32_t tmp, c1, c2, c3, c4;
 
 	do {
 		BF_safe_atoi64(c1, *sptr++);
@@ -411,7 +411,7 @@ static void BF_encode(char *dst, const BF_word *src, int size)
 	const unsigned char *sptr = (const unsigned char *)src;
 	const unsigned char *end = sptr + size;
 	unsigned char *dptr = (unsigned char *)dst;
-	unsigned int c1, c2;
+	uint32_t c1, c2;
 
 	do {
 		c1 = *sptr++;
@@ -544,7 +544,7 @@ static void BF_set_key(const char *key, BF_key expanded, BF_key initial,
     unsigned char flags)
 {
 	const char *ptr = key;
-	unsigned int bug, i, j;
+	uint32_t bug, i, j;
 	BF_word safety, sign, diff, tmp[2];
 
 /*
@@ -582,7 +582,7 @@ static void BF_set_key(const char *key, BF_key expanded, BF_key initial,
  * Prefix "$2x$": bug = 1, safety = 0
  * Prefix "$2y$": bug = 0, safety = 0
  */
-	bug = (unsigned int)flags & 1;
+	bug = (uint32_t)flags & 1;
 	safety = ((BF_word)flags & 2) << 15;
 
 	sign = diff = 0;
@@ -675,7 +675,7 @@ static char *BF_crypt(const char *key, const char *setting,
 	if (setting[0] != '$' ||
 	    setting[1] != '2' ||
 	    setting[2] < 'a' || setting[2] > 'z' ||
-	    !flags_by_subtype[(unsigned int)(unsigned char)setting[2] - 'a'] ||
+	    !flags_by_subtype[(uint32_t)(unsigned char)setting[2] - 'a'] ||
 	    setting[3] != '$' ||
 	    setting[4] < '0' || setting[4] > '3' ||
 	    setting[5] < '0' || setting[5] > '9' ||
@@ -693,7 +693,7 @@ static char *BF_crypt(const char *key, const char *setting,
 	BF_swap(data.binary.salt, 4);
 
 	BF_set_key(key, data.expanded_key, data.ctx.P,
-	    flags_by_subtype[(unsigned int)(unsigned char)setting[2] - 'a']);
+	    flags_by_subtype[(uint32_t)(unsigned char)setting[2] - 'a']);
 
 	memcpy(data.ctx.S, BF_init_state.S, sizeof(data.ctx.S));
 
@@ -843,8 +843,8 @@ char *_crypt_blowfish_rn(const char *key, const char *setting,
  */
 	memcpy(buf.s, test_setting, sizeof(buf.s));
 	if (retval) {
-		unsigned int flags = flags_by_subtype[
-		    (unsigned int)(unsigned char)setting[2] - 'a'];
+		uint32_t flags = flags_by_subtype[
+		    (uint32_t)(unsigned char)setting[2] - 'a'];
 		test_hash = test_hashes[flags & 1];
 		buf.s[2] = setting[2];
 	}

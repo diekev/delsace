@@ -141,7 +141,7 @@ struct ConvertisseuseTypeC {
                     type_c.typedef_ = "unsigned short";
                 }
                 else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "unsigned int";
+                    type_c.typedef_ = "uint32_t";
                 }
                 else if (type->taille_octet == 8) {
                     type_c.typedef_ = "uint64_t";
@@ -851,13 +851,13 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
 
                             if (type->est_entier_naturel()) {
                                 if (type->taille_octet == 1) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 4) {
-                                    return enchaine(static_cast<unsigned int>(valeur_entiere));
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
                                 else if (type->taille_octet == 8) {
                                     return enchaine(valeur_entiere, "UL");
