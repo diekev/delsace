@@ -21,7 +21,7 @@ namespace kuri {
 struct chaine;
 }
 
-enum DrapeauxNoeud : unsigned int {
+enum DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                          // decl var
     EST_EXTERNE = (1 << 1),                      // decl var, decl fonction
@@ -57,7 +57,7 @@ enum DrapeauxNoeud : unsigned int {
     IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 31),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, unsigned int)
+DEFINIE_OPERATEURS_DRAPEAU(DrapeauxNoeud, uint32_t)
 
 enum {
     /* instruction 'pour' */

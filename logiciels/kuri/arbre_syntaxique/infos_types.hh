@@ -60,7 +60,7 @@ struct InfoTypeMembreStructure {
 
     kuri::chaine_statique nom{};
     InfoType *info = nullptr;
-    long decalage = 0;  // décalage en octets dans la structure
+    int64_t decalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
     kuri::tableau<const Annotation *> annotations{};
 };
@@ -76,7 +76,7 @@ struct InfoTypeUnion : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tableau<InfoTypeMembreStructure *> membres{};
     InfoType *type_le_plus_grand = nullptr;
-    long decalage_index = 0;
+    int64_t decalage_index = 0;
     bool est_sure = false;
     kuri::tableau<const Annotation *> annotations{};
 };
@@ -112,5 +112,5 @@ struct AllocatriceInfosType {
     tableau_page<InfoTypeUnion> infos_types_unions{};
     tableau_page<InfoTypeOpaque> infos_types_opaques{};
 
-    long memoire_utilisee() const;
+    int64_t memoire_utilisee() const;
 };

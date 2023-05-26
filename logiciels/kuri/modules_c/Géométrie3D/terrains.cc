@@ -740,7 +740,7 @@ struct erodeuse {
             for (auto x = 1; x < nx - 1; ++x) {
                 auto index = rock.calcul_index(dls::math::vec2i(x, y));
 
-                long voisins[4] = {index - 1, index + 1, index - nx, index + nx};
+                int64_t voisins[4] = {index - 1, index + 1, index - nx, index + nx};
 
                 for (auto i = 0; i < 4; ++i) {
                     auto dw = height.valeur(voisins[i]) - height.valeur(index);
@@ -1062,7 +1062,7 @@ struct DelegueTraverse {
 
         auto cos = kuri::tableau<dls::math::vec3f>();
         cos.redimensionne(nombre_de_sommets);
-        for (long j = 0; j < nombre_de_sommets; j++) {
+        for (int64_t j = 0; j < nombre_de_sommets; j++) {
             cos[j] = maillage.pointPourIndex(temp_access_index_sommet[j]);
         }
 
@@ -1072,7 +1072,7 @@ struct DelegueTraverse {
         auto touche = false;
         auto distance = 0.0;
 
-        for (long j = 2; j < nombre_de_sommets; j++) {
+        for (int64_t j = 2; j < nombre_de_sommets; j++) {
             auto v2 = dls::math::converti_type_point<double>(cos[j]);
 
             if (entresecte_triangle(v0, v1, v2, rayon, distance)) {

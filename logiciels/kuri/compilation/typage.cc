@@ -430,33 +430,33 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     : graphe_(g), operateurs_(o)
 {
     /* initialise les types communs */
-    types_communs.redimensionne(static_cast<long>(TypeBase::TOTAL));
+    types_communs.redimensionne(static_cast<int64_t>(TypeBase::TOTAL));
 
     type_eini = TypeCompose::cree_eini();
     type_chaine = TypeCompose::cree_chaine();
 
-    types_communs[static_cast<long>(TypeBase::N8)] = cree_type_pour_lexeme(GenreLexeme::N8);
-    types_communs[static_cast<long>(TypeBase::N16)] = cree_type_pour_lexeme(GenreLexeme::N16);
-    types_communs[static_cast<long>(TypeBase::N32)] = cree_type_pour_lexeme(GenreLexeme::N32);
-    types_communs[static_cast<long>(TypeBase::N64)] = cree_type_pour_lexeme(GenreLexeme::N64);
-    types_communs[static_cast<long>(TypeBase::Z8)] = cree_type_pour_lexeme(GenreLexeme::Z8);
-    types_communs[static_cast<long>(TypeBase::Z16)] = cree_type_pour_lexeme(GenreLexeme::Z16);
-    types_communs[static_cast<long>(TypeBase::Z32)] = cree_type_pour_lexeme(GenreLexeme::Z32);
-    types_communs[static_cast<long>(TypeBase::Z64)] = cree_type_pour_lexeme(GenreLexeme::Z64);
-    types_communs[static_cast<long>(TypeBase::R16)] = cree_type_pour_lexeme(GenreLexeme::R16);
-    types_communs[static_cast<long>(TypeBase::R32)] = cree_type_pour_lexeme(GenreLexeme::R32);
-    types_communs[static_cast<long>(TypeBase::R64)] = cree_type_pour_lexeme(GenreLexeme::R64);
-    types_communs[static_cast<long>(TypeBase::EINI)] = type_eini;
-    types_communs[static_cast<long>(TypeBase::CHAINE)] = type_chaine;
-    types_communs[static_cast<long>(TypeBase::RIEN)] = cree_type_pour_lexeme(GenreLexeme::RIEN);
-    types_communs[static_cast<long>(TypeBase::BOOL)] = cree_type_pour_lexeme(GenreLexeme::BOOL);
-    types_communs[static_cast<long>(TypeBase::OCTET)] = cree_type_pour_lexeme(GenreLexeme::OCTET);
-    types_communs[static_cast<long>(TypeBase::ENTIER_CONSTANT)] = Type::cree_entier_constant();
+    types_communs[static_cast<int64_t>(TypeBase::N8)] = cree_type_pour_lexeme(GenreLexeme::N8);
+    types_communs[static_cast<int64_t>(TypeBase::N16)] = cree_type_pour_lexeme(GenreLexeme::N16);
+    types_communs[static_cast<int64_t>(TypeBase::N32)] = cree_type_pour_lexeme(GenreLexeme::N32);
+    types_communs[static_cast<int64_t>(TypeBase::N64)] = cree_type_pour_lexeme(GenreLexeme::N64);
+    types_communs[static_cast<int64_t>(TypeBase::Z8)] = cree_type_pour_lexeme(GenreLexeme::Z8);
+    types_communs[static_cast<int64_t>(TypeBase::Z16)] = cree_type_pour_lexeme(GenreLexeme::Z16);
+    types_communs[static_cast<int64_t>(TypeBase::Z32)] = cree_type_pour_lexeme(GenreLexeme::Z32);
+    types_communs[static_cast<int64_t>(TypeBase::Z64)] = cree_type_pour_lexeme(GenreLexeme::Z64);
+    types_communs[static_cast<int64_t>(TypeBase::R16)] = cree_type_pour_lexeme(GenreLexeme::R16);
+    types_communs[static_cast<int64_t>(TypeBase::R32)] = cree_type_pour_lexeme(GenreLexeme::R32);
+    types_communs[static_cast<int64_t>(TypeBase::R64)] = cree_type_pour_lexeme(GenreLexeme::R64);
+    types_communs[static_cast<int64_t>(TypeBase::EINI)] = type_eini;
+    types_communs[static_cast<int64_t>(TypeBase::CHAINE)] = type_chaine;
+    types_communs[static_cast<int64_t>(TypeBase::RIEN)] = cree_type_pour_lexeme(GenreLexeme::RIEN);
+    types_communs[static_cast<int64_t>(TypeBase::BOOL)] = cree_type_pour_lexeme(GenreLexeme::BOOL);
+    types_communs[static_cast<int64_t>(TypeBase::OCTET)] = cree_type_pour_lexeme(GenreLexeme::OCTET);
+    types_communs[static_cast<int64_t>(TypeBase::ENTIER_CONSTANT)] = Type::cree_entier_constant();
 
-    for (auto i = static_cast<long>(TypeBase::N8);
-         i <= static_cast<long>(TypeBase::ENTIER_CONSTANT);
+    for (auto i = static_cast<int64_t>(TypeBase::N8);
+         i <= static_cast<int64_t>(TypeBase::ENTIER_CONSTANT);
          ++i) {
-        if (i == static_cast<long>(TypeBase::EINI) || i == static_cast<long>(TypeBase::CHAINE)) {
+        if (i == static_cast<int64_t>(TypeBase::EINI) || i == static_cast<int64_t>(TypeBase::CHAINE)) {
             continue;
         }
 
@@ -469,10 +469,10 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     // définir les opérateurs pour les pointeurs
     auto ptr_nul = types_pointeurs->ajoute_element(nullptr);
 
-    types_communs[static_cast<long>(TypeBase::PTR_NUL)] = ptr_nul;
+    types_communs[static_cast<int64_t>(TypeBase::PTR_NUL)] = ptr_nul;
 
     for (auto &donnees : donnees_types_communs) {
-        auto const idx = static_cast<long>(donnees.val_enum);
+        auto const idx = static_cast<int64_t>(donnees.val_enum);
         auto type = this->type_pour_lexeme(donnees.dt[1]);
 
         if (donnees.dt[0] == GenreLexeme::TABLEAU) {
@@ -499,16 +499,16 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
 
     auto membres_eini = kuri::tableau<TypeCompose::Membre, int>();
     membres_eini.ajoute(
-        {nullptr, types_communs[static_cast<long>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
+        {nullptr, types_communs[static_cast<int64_t>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
     type_eini->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
     auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
     membres_chaine.ajoute(
-        {nullptr, types_communs[static_cast<long>(TypeBase::PTR_Z8)], ID::pointeur, 0});
+        {nullptr, types_communs[static_cast<int64_t>(TypeBase::PTR_Z8)], ID::pointeur, 0});
     membres_chaine.ajoute(
-        {nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
+        {nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
     type_chaine->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
 
@@ -557,67 +557,67 @@ Type *Typeuse::type_pour_lexeme(GenreLexeme lexeme)
     switch (lexeme) {
         case GenreLexeme::BOOL:
         {
-            return types_communs[static_cast<long>(TypeBase::BOOL)];
+            return types_communs[static_cast<int64_t>(TypeBase::BOOL)];
         }
         case GenreLexeme::OCTET:
         {
-            return types_communs[static_cast<long>(TypeBase::OCTET)];
+            return types_communs[static_cast<int64_t>(TypeBase::OCTET)];
         }
         case GenreLexeme::N8:
         {
-            return types_communs[static_cast<long>(TypeBase::N8)];
+            return types_communs[static_cast<int64_t>(TypeBase::N8)];
         }
         case GenreLexeme::Z8:
         {
-            return types_communs[static_cast<long>(TypeBase::Z8)];
+            return types_communs[static_cast<int64_t>(TypeBase::Z8)];
         }
         case GenreLexeme::N16:
         {
-            return types_communs[static_cast<long>(TypeBase::N16)];
+            return types_communs[static_cast<int64_t>(TypeBase::N16)];
         }
         case GenreLexeme::Z16:
         {
-            return types_communs[static_cast<long>(TypeBase::Z16)];
+            return types_communs[static_cast<int64_t>(TypeBase::Z16)];
         }
         case GenreLexeme::N32:
         {
-            return types_communs[static_cast<long>(TypeBase::N32)];
+            return types_communs[static_cast<int64_t>(TypeBase::N32)];
         }
         case GenreLexeme::Z32:
         {
-            return types_communs[static_cast<long>(TypeBase::Z32)];
+            return types_communs[static_cast<int64_t>(TypeBase::Z32)];
         }
         case GenreLexeme::N64:
         {
-            return types_communs[static_cast<long>(TypeBase::N64)];
+            return types_communs[static_cast<int64_t>(TypeBase::N64)];
         }
         case GenreLexeme::Z64:
         {
-            return types_communs[static_cast<long>(TypeBase::Z64)];
+            return types_communs[static_cast<int64_t>(TypeBase::Z64)];
         }
         case GenreLexeme::R16:
         {
-            return types_communs[static_cast<long>(TypeBase::R16)];
+            return types_communs[static_cast<int64_t>(TypeBase::R16)];
         }
         case GenreLexeme::R32:
         {
-            return types_communs[static_cast<long>(TypeBase::R32)];
+            return types_communs[static_cast<int64_t>(TypeBase::R32)];
         }
         case GenreLexeme::R64:
         {
-            return types_communs[static_cast<long>(TypeBase::R64)];
+            return types_communs[static_cast<int64_t>(TypeBase::R64)];
         }
         case GenreLexeme::CHAINE:
         {
-            return types_communs[static_cast<long>(TypeBase::CHAINE)];
+            return types_communs[static_cast<int64_t>(TypeBase::CHAINE)];
         }
         case GenreLexeme::EINI:
         {
-            return types_communs[static_cast<long>(TypeBase::EINI)];
+            return types_communs[static_cast<int64_t>(TypeBase::EINI)];
         }
         case GenreLexeme::RIEN:
         {
-            return types_communs[static_cast<long>(TypeBase::RIEN)];
+            return types_communs[static_cast<int64_t>(TypeBase::RIEN)];
         }
         case GenreLexeme::TYPE_DE_DONNEES:
         {
@@ -717,7 +717,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
     membres.ajoute(
         {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
-    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 0});
+    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 0});
 
     auto type = types_tableaux_fixes_->ajoute_element(type_pointe, taille, std::move(membres));
 
@@ -745,8 +745,8 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
 
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
+    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_tableaux_dynamiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -772,8 +772,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({nullptr, types_communs[static_cast<long>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
+    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_variadiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -2026,7 +2026,7 @@ Trie::Noeud *Trie::StockageEnfants::trouve_noeud_pour_type(const Type *type)
     return nullptr;
 }
 
-long Trie::StockageEnfants::taille() const
+int64_t Trie::StockageEnfants::taille() const
 {
     if (enfants.taille() >= TAILLE_MAX_ENFANTS_TABLET && table.taille() != 0) {
         return table.taille();

@@ -35,7 +35,7 @@ void Enchaineuse::ajoute_inverse(const kuri::chaine_statique &chn)
     }
 }
 
-void Enchaineuse::ajoute(const char *c_str, long N)
+void Enchaineuse::ajoute(const char *c_str, int64_t N)
 {
     auto tampon = tampon_courant;
 
@@ -58,7 +58,7 @@ void Enchaineuse::ajoute(const char *c_str, long N)
             ajoute_tampon();
             tampon = tampon_courant;
 
-            auto taille_ecrite = std::min(taille_a_ecrire, static_cast<long>(TAILLE_TAMPON));
+            auto taille_ecrite = std::min(taille_a_ecrire, static_cast<int64_t>(TAILLE_TAMPON));
 
             memcpy(&tampon->donnees[0], c_str + decalage, static_cast<size_t>(taille_ecrite));
             tampon->occupe += static_cast<int>(taille_ecrite);
@@ -121,7 +121,7 @@ int Enchaineuse::nombre_tampons_alloues() const
     return nombre_tampons() - 1;
 }
 
-long Enchaineuse::taille_chaine() const
+int64_t Enchaineuse::taille_chaine() const
 {
     auto taille = 0l;
     auto tampon = &m_tampon_base;

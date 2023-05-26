@@ -10,7 +10,7 @@
 
 namespace kuri {
 
-template <typename T, typename TypeIndex = long>
+template <typename T, typename TypeIndex = int64_t>
 struct tableau {
   private:
     T *pointeur = nullptr;

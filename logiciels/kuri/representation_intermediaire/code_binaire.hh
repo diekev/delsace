@@ -158,7 +158,7 @@ struct drapeau_pour_constante<int> {
 };
 
 template <>
-struct drapeau_pour_constante<long> {
+struct drapeau_pour_constante<int64_t> {
     static constexpr octet_t valeur = CONSTANTE_ENTIER_RELATIF | BITS_64;
 };
 
@@ -173,12 +173,12 @@ struct drapeau_pour_constante<unsigned short> {
 };
 
 template <>
-struct drapeau_pour_constante<unsigned int> {
+struct drapeau_pour_constante<uint32_t> {
     static constexpr octet_t valeur = CONSTANTE_ENTIER_NATUREL | BITS_32;
 };
 
 template <>
-struct drapeau_pour_constante<unsigned long> {
+struct drapeau_pour_constante<uint64_t> {
     static constexpr octet_t valeur = CONSTANTE_ENTIER_NATUREL | BITS_64;
 };
 
@@ -205,8 +205,8 @@ struct Locale {
 
 struct Chunk {
     octet_t *code = nullptr;
-    long compte = 0;
-    long capacite = 0;
+    int64_t compte = 0;
+    int64_t capacite = 0;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
@@ -229,10 +229,10 @@ struct Chunk {
     template <typename T>
     void emets(T v)
     {
-        agrandis_si_necessaire(static_cast<long>(sizeof(T)));
+        agrandis_si_necessaire(static_cast<int64_t>(sizeof(T)));
         auto ptr = reinterpret_cast<T *>(&code[compte]);
         *ptr = v;
-        compte += static_cast<long>(sizeof(T));
+        compte += static_cast<int64_t>(sizeof(T));
     }
 
     template <typename T>
@@ -244,7 +244,7 @@ struct Chunk {
         emets(v);
     }
 
-    void agrandis_si_necessaire(long taille);
+    void agrandis_si_necessaire(int64_t taille);
 
     int emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,
@@ -295,7 +295,7 @@ struct Chunk {
 };
 
 void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
-long desassemble_instruction(Chunk const &chunk, long decalage, std::ostream &os);
+int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;

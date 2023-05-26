@@ -14,7 +14,7 @@ struct file {
     using type_valeur = T;
     using type_reference = T &;
     using type_reference_const = T const &;
-    using type_taille = long;
+    using type_taille = int64_t;
 
   private:
     tableau<type_valeur> m_file{};
@@ -76,7 +76,7 @@ struct file {
         return t;
     }
 
-    tableau<type_valeur> defile(long compte)
+    tableau<type_valeur> defile(int64_t compte)
     {
         auto ret = tableau<type_valeur>(compte);
 

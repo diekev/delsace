@@ -38,7 +38,7 @@ struct Triangle {
     type_vec v1 = type_vec(0.0f, 0.0f, 0.0f);
     type_vec v2 = type_vec(0.0f, 0.0f, 0.0f);
 
-    long index_orig = 0;
+    int64_t index_orig = 0;
 
     float aire = 0.0f;
 
@@ -125,7 +125,7 @@ static dls::tableau<Triangle> convertis_maillage_triangles(Maillage const &surfa
         Triangle triangle;
         surface.pointPourSommetPolygones(i, 0, triangle.v0);
 
-        for (long j = 2; j < surface.nombreDeSommetsPolygone(i); ++j) {
+        for (int64_t j = 2; j < surface.nombreDeSommetsPolygone(i); ++j) {
 
             surface.pointPourSommetPolygones(i, j - 1, triangle.v1);
             surface.pointPourSommetPolygones(i, j, triangle.v2);
@@ -172,7 +172,7 @@ static void ajoute_triangle_boite(BoiteTriangle *boite,
                                   dls::math::vec3f const &v0,
                                   dls::math::vec3f const &v1,
                                   dls::math::vec3f const &v2,
-                                  long index)
+                                  int64_t index)
 {
     auto triangle = Triangle{v0, v1, v2, index};
     triangle.aire = calcule_aire(triangle);
@@ -345,7 +345,7 @@ static DonneesAiresTriangles calcule_donnees_aires(dls::tableau<Triangle> const 
 
 struct PointCree {
     dls::math::vec3f position;
-    long index_triangle;
+    int64_t index_triangle;
     float rayon;
 };
 
@@ -364,7 +364,7 @@ static CouverturePonctuelle determine_couverture_ponctuelle(
         {
             auto const distance = params.distance_minimale;
             auto const aire_cercle = constantes<float>::PI * (distance * distance);
-            auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) /
+            auto const nombre_points = static_cast<int64_t>((aire_totale * DENSITE_CERCLE) /
                                                          aire_cercle);
             resultat.distance_minimale = distance;
             resultat.nombre_requis = nombre_points;
@@ -538,7 +538,7 @@ void distribue_particules_sur_surface(ParametreDistributionParticules const &par
 
     auto const graine = params.graine;
 
-    auto gna = GNA(static_cast<unsigned long>(graine));
+    auto gna = GNA(static_cast<uint64_t>(graine));
 
     auto grille_particule = GrilleParticules(dls::math::point3d(donnees_aires.limites_min),
                                              dls::math::point3d(donnees_aires.limites_max),
@@ -838,7 +838,7 @@ static dls::tableau<int> trouve_points_voisins(arbre_3df const &points,
 {
     dls::tableau<int> resultat;
     points.cherche_points(
-        point, radius, [&](long index, dls::math::vec3f const &, float, float &) {
+        point, radius, [&](int64_t index, dls::math::vec3f const &, float, float &) {
             if (index == index_point) {
                 return;
             }
@@ -906,7 +906,7 @@ void construit_maillage_alpha(Maillage const &points,
     }
 
     auto arbre = arbre_3df();
-    arbre.construit_avec_fonction(points.nombreDePoints(), [&](long i) -> dls::math::vec3f {
+    arbre.construit_avec_fonction(points.nombreDePoints(), [&](int64_t i) -> dls::math::vec3f {
         return points.pointPourIndex(i);
     });
 

@@ -51,7 +51,7 @@ kuri::chaine supprime_accents(kuri::chaine_statique avec_accent)
     remplace(std_string, "È", "E");
     remplace(std_string, "Ê", "E");
 
-    return kuri::chaine(std_string.c_str(), static_cast<long>(std_string.size()));
+    return kuri::chaine(std_string.c_str(), static_cast<int64_t>(std_string.size()));
 }
 
 void inclus_systeme(std::ostream &os, kuri::chaine_statique fichier)

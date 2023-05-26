@@ -81,14 +81,14 @@ public:
 		m_ensemble.insert(valeur);
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
-		return static_cast<long>(m_ensemble.size());
+		return static_cast<int64_t>(m_ensemble.size());
 	}
 
-	long compte(Cle const &valeur) const
+	int64_t compte(Cle const &valeur) const
 	{
-		return static_cast<long>(m_ensemble.count(valeur));
+		return static_cast<int64_t>(m_ensemble.count(valeur));
 	}
 
 	iteratrice trouve(Cle const &valeur)

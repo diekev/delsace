@@ -17,7 +17,7 @@ TempsSysteme maintenant_systeme()
     return temps;
 }
 
-bool est_annee_bissextile(long annee)
+bool est_annee_bissextile(int64_t annee)
 {
     if (annee % 100 == 0) {
         if (annee % 400 == 0) {

@@ -43,12 +43,12 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(kuri::chaine
     return ajoute_identifiant(vue_nom);
 }
 
-long TableIdentifiant::taille() const
+int64_t TableIdentifiant::taille() const
 {
     return table.taille();
 }
 
-long TableIdentifiant::memoire_utilisee() const
+int64_t TableIdentifiant::memoire_utilisee() const
 {
     auto memoire = 0l;
     memoire += identifiants.memoire_utilisee();

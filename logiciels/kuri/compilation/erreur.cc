@@ -299,9 +299,9 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
 
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression *b,
-                                     long taille_tableau,
+                                     int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     long index_acces)
+                                     int64_t index_acces)
 {
     espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
@@ -317,7 +317,7 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
 }
 
 struct CandidatMembre {
-    long distance = 0;
+    int64_t distance = 0;
     kuri::chaine_statique chaine = "";
 };
 

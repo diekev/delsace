@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace geo {
 
 class Maillage;
@@ -35,8 +37,8 @@ void cree_sphere_uv(Maillage &maillage,
 void cree_torus(Maillage &maillage,
                 const float rayon_mineur,
                 const float rayon_majeur,
-                const long segment_mineur,
-                const long segment_majeur,
+                const int64_t segment_mineur,
+                const int64_t segment_majeur,
                 const float centre_x = 0.0f,
                 const float centre_y = 0.0f,
                 const float centre_z = 0.0f);
@@ -47,8 +49,8 @@ void cree_torus(Maillage &maillage,
 void cree_grille(Maillage &maillage,
                  const float taille_x,
                  const float taille_y,
-                 const long lignes,
-                 const long colonnes,
+                 const int64_t lignes,
+                 const int64_t colonnes,
                  const float centre_x = 0.0f,
                  const float centre_y = 0.0f,
                  const float centre_z = 0.0f);
@@ -57,7 +59,7 @@ void cree_grille(Maillage &maillage,
  * Crée un cercle avec les paramètres spécifiés.
  */
 void cree_cercle(Maillage &maillage,
-                 const long segments,
+                 const int64_t segments,
                  const float rayon,
                  const float centre_x = 0.0f,
                  const float centre_y = 0.0f,
@@ -67,7 +69,7 @@ void cree_cercle(Maillage &maillage,
  * Crée un cylindre avec les paramètres spécifiés.
  */
 void cree_cylindre(Maillage &maillage,
-                   const long segments,
+                   const int64_t segments,
                    const float rayon_mineur,
                    const float rayon_majeur,
                    const float profondeur,
