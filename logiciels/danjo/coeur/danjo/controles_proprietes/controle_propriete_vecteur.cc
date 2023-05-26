@@ -195,8 +195,6 @@ void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
     }
 
     ajourne_valeurs_controles();
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteVecteurDecimal::bascule_animation()
@@ -386,8 +384,6 @@ void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
     }
 
     ajourne_valeurs_controles();
-
-    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteVecteurEntier::bascule_animation()
