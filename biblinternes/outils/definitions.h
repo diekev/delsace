@@ -47,11 +47,15 @@
 #define PROBABLE(x) (__builtin_expect((x), 1))
 #define IMPROBABLE(x) (__builtin_expect((x), 0))
 
-#define REMBOURRE(x) \
-	_Pragma("clang diagnostic push") \
-	_Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \
-	char VARIABLE_ANONYME(_pad)[x] \
-	_Pragma("clang diagnostic pop")
+#ifdef __clang__
+#    define REMBOURRE(x) \
+        _Pragma("clang diagnostic push") \
+        _Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \
+        char VARIABLE_ANONYME(_pad)[x] \
+        _Pragma("clang diagnostic pop")
+#else
+#    define REMBOURRE(x)
+#endif
 
 #define COPIE_CONSTRUCT(x) \
 	x(x const &) = default; \
@@ -99,7 +103,7 @@
 		return (lhs = lhs ^ rhs); \
 	}
 
-#define taille_de(x) static_cast<long>(sizeof(x))
+#define taille_de(x) static_cast<int64_t>(sizeof(x))
 
 #define POINTEUR_NUL(Type) \
 	static inline Type *nul() \
