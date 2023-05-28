@@ -199,12 +199,12 @@ void Lexeuse::performe_lexage()
 #define POUSSE_CARACTERE(id)                                                                      \
     this->enregistre_pos_mot();                                                                   \
     this->ajoute_caractère();                                                                     \
-    this->pousse_mot(id);                                                                         \
+    this->ajoute_mot(id);                                                                         \
     this->avance_fixe<1>();
 
 #define POUSSE_MOT_SI_NECESSAIRE                                                                  \
     if (m_taille_mot_courant != 0) {                                                              \
-        this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));                                \
+        this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));                                \
     }
 
 #define CAS_CARACTERE(c, id)                                                                      \
@@ -223,7 +223,7 @@ void Lexeuse::performe_lexage()
             this->enregistre_pos_mot();                                                           \
             this->ajoute_caractère();                                                             \
             this->ajoute_caractère();                                                             \
-            this->pousse_mot(id_avec_egal);                                                       \
+            this->ajoute_mot(id_avec_egal);                                                       \
             this->avance_fixe<2>();                                                               \
         }                                                                                         \
         else {                                                                                    \
@@ -237,7 +237,7 @@ void Lexeuse::performe_lexage()
         this->enregistre_pos_mot();                                                               \
         this->ajoute_caractère();                                                                 \
         this->ajoute_caractère();                                                                 \
-        this->pousse_mot(id);                                                                     \
+        this->ajoute_mot(id);                                                                     \
         this->avance_fixe<2>();                                                                   \
         break;                                                                                    \
     }
@@ -248,7 +248,7 @@ void Lexeuse::performe_lexage()
         this->ajoute_caractère();                                                                 \
         this->ajoute_caractère();                                                                 \
         this->ajoute_caractère();                                                                 \
-        this->pousse_mot(id);                                                                     \
+        this->ajoute_mot(id);                                                                     \
         this->avance_fixe<3>();                                                                   \
         break;                                                                                    \
     }
@@ -301,13 +301,13 @@ void Lexeuse::performe_lexage()
                             case ESPACE_INSECABLE_SANS_CHASSE:
                             {
                                 if (m_taille_mot_courant != 0) {
-                                    this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
+                                    this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
                                 }
 
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                                     this->enregistre_pos_mot();
                                     this->ajoute_caractère(nombre_octet);
-                                    this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
+                                    this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
                                 }
 
                                 this->avance(nombre_octet);
@@ -317,7 +317,7 @@ void Lexeuse::performe_lexage()
                             case GUILLEMET_OUVRANT:
                             {
                                 if (m_taille_mot_courant != 0) {
-                                    this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
+                                    this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
                                 }
 
                                 /* Saute le premier guillemet si nécessaire. */
@@ -360,7 +360,7 @@ void Lexeuse::performe_lexage()
 
                                 this->avance(nombre_octet);
 
-                                this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
+                                this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
                                 break;
                             }
                             default:
@@ -394,7 +394,7 @@ void Lexeuse::performe_lexage()
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
                         this->avance_fixe<1>();
-                        this->pousse_lexeme_entier(v);
+                        this->ajoute_lexeme_entier(v);
                         break;
                     }
 
@@ -424,7 +424,7 @@ void Lexeuse::performe_lexage()
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
                         this->avance_fixe<1>();
-                        this->pousse_lexeme_entier(v);
+                        this->ajoute_lexeme_entier(v);
                         break;
                     }
 
@@ -449,14 +449,14 @@ void Lexeuse::performe_lexage()
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère();
-                    this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
+                    this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
                 }
 
                 if (this->caractère_courant() == '\n') {
                     if (doit_ajouter_point_virgule(m_dernier_id)) {
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
-                        this->pousse_mot(GenreLexeme::POINT_VIRGULE);
+                        this->ajoute_mot(GenreLexeme::POINT_VIRGULE);
                     }
 
                     ++m_debut;
@@ -511,7 +511,7 @@ void Lexeuse::performe_lexage()
 
                 this->avance_fixe<1>();
 
-                this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
+                this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
                 break;
             }
             case '\'':
@@ -544,7 +544,7 @@ void Lexeuse::performe_lexage()
                 }
 
                 this->avance_fixe<1>();
-                this->pousse_mot(GenreLexeme::CARACTERE, valeur);
+                this->ajoute_mot(GenreLexeme::CARACTERE, valeur);
                 break;
             }
                 CAS_CARACTERE('~', GenreLexeme::TILDE)
@@ -677,7 +677,7 @@ void Lexeuse::performe_lexage()
     }
 
     if (m_taille_mot_courant != 0) {
-        this->pousse_mot(lexeme_pour_chaine(this->mot_courant()));
+        this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
     }
 
 #undef CAS_CARACTERE
@@ -770,7 +770,7 @@ void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int
     m_rappel_erreur(site, quoi);
 }
 
-void Lexeuse::pousse_mot(GenreLexeme identifiant)
+void Lexeuse::ajoute_mot(GenreLexeme identifiant)
 {
     Lexeme lexeme = {mot_courant(),
                      {0ul},
@@ -784,7 +784,7 @@ void Lexeuse::pousse_mot(GenreLexeme identifiant)
     m_dernier_id = identifiant;
 }
 
-void Lexeuse::pousse_mot(GenreLexeme identifiant, unsigned valeur)
+void Lexeuse::ajoute_mot(GenreLexeme identifiant, unsigned valeur)
 {
     m_donnees->lexemes.ajoute({mot_courant(),
                                {valeur},
@@ -809,7 +809,7 @@ void Lexeuse::lexe_commentaire()
     }
 
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-        this->pousse_mot(GenreLexeme::COMMENTAIRE);
+        this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
 
     /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
@@ -854,7 +854,7 @@ void Lexeuse::lexe_commentaire_bloc()
     }
 
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-        this->pousse_mot(GenreLexeme::COMMENTAIRE);
+        this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
 
     /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
@@ -953,7 +953,7 @@ void Lexeuse::lexe_nombre_decimal()
                 "constante entière trop grande", debut_nombre, debut_nombre, taille_texte);
         }
 
-        this->pousse_lexeme_entier(resultat_entier);
+        this->ajoute_lexeme_entier(resultat_entier);
         return;
     }
 
@@ -1056,7 +1056,7 @@ void Lexeuse::lexe_nombre_decimal()
         part_entiere *= std::pow(10.0, part_fracionnelle[1]);
     }
 
-    this->pousse_lexeme_reel(part_entiere);
+    this->ajoute_lexeme_reel(part_entiere);
 }
 
 void Lexeuse::lexe_nombre_hexadecimal()
@@ -1104,7 +1104,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->pousse_lexeme_entier(resultat_entier);
+    this->ajoute_lexeme_entier(resultat_entier);
 }
 
 void Lexeuse::lexe_nombre_reel_hexadecimal()
@@ -1156,10 +1156,10 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 
     if (nombre_de_chiffres == 8) {
         uint32_t v = static_cast<unsigned>(resultat_entier);
-        this->pousse_lexeme_reel(*reinterpret_cast<float *>(&v));
+        this->ajoute_lexeme_reel(*reinterpret_cast<float *>(&v));
     }
     else {
-        this->pousse_lexeme_reel(*reinterpret_cast<double *>(&resultat_entier));
+        this->ajoute_lexeme_reel(*reinterpret_cast<double *>(&resultat_entier));
     }
 }
 
@@ -1205,7 +1205,7 @@ void Lexeuse::lexe_nombre_binaire()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->pousse_lexeme_entier(resultat_entier);
+    this->ajoute_lexeme_entier(resultat_entier);
 }
 
 void Lexeuse::lexe_nombre_octal()
@@ -1247,7 +1247,7 @@ void Lexeuse::lexe_nombre_octal()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->pousse_lexeme_entier(resultat_entier);
+    this->ajoute_lexeme_entier(resultat_entier);
 }
 
 static int hex_depuis_char(char c)
@@ -1470,7 +1470,7 @@ unsigned Lexeuse::lexe_caractère_litteral(kuri::chaine *chaine)
     return v;
 }
 
-void Lexeuse::pousse_lexeme_entier(uint64_t valeur)
+void Lexeuse::ajoute_lexeme_entier(uint64_t valeur)
 {
     auto lexeme = Lexeme{};
     lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
@@ -1486,7 +1486,7 @@ void Lexeuse::pousse_lexeme_entier(uint64_t valeur)
     m_dernier_id = GenreLexeme::NOMBRE_ENTIER;
 }
 
-void Lexeuse::pousse_lexeme_reel(double valeur)
+void Lexeuse::ajoute_lexeme_reel(double valeur)
 {
     auto lexeme = Lexeme{};
     lexeme.genre = GenreLexeme::NOMBRE_REEL;

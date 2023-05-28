@@ -95,8 +95,8 @@ struct Lexeuse {
         m_taille_mot_courant += n;
     }
 
-    void pousse_mot(GenreLexeme identifiant);
-    void pousse_mot(GenreLexeme identifiant, unsigned valeur);
+    void ajoute_mot(GenreLexeme identifiant);
+    void ajoute_mot(GenreLexeme identifiant, unsigned valeur);
 
     ENLIGNE_TOUJOURS void enregistre_pos_mot()
     {
@@ -117,6 +117,6 @@ struct Lexeuse {
 
     unsigned lexe_caractère_litteral(kuri::chaine *chaine);
 
-    void pousse_lexeme_entier(uint64_t valeur);
-    void pousse_lexeme_reel(double valeur);
+    void ajoute_lexeme_entier(uint64_t valeur);
+    void ajoute_lexeme_reel(double valeur);
 };
