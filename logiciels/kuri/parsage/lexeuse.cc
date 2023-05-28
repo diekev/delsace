@@ -36,7 +36,7 @@ enum {
     CARACTERE_CHIFFRE_DECIMAL = (1 << 3),
 };
 
-static constexpr auto table_drapeaux_caracteres = [] {
+static constexpr auto table_drapeaux_caractères = [] {
     std::array<short, 256> t{};
 
     for (auto i = 0u; i < 256; ++i) {
@@ -89,25 +89,25 @@ static constexpr auto table_drapeaux_caracteres = [] {
 
 inline static bool peut_suivre_zero(char c)
 {
-    return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] &
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
             CARACTERE_PEUT_SUIVRE_ZERO) != 0;
 }
 
 inline static bool peut_suivre_chiffre(char c)
 {
-    return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] &
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
             CARACTERE_PEUT_SUIVRE_CHIFFRE) != 0;
 }
 
-inline static bool est_caractere_octal(char c)
+inline static bool est_caractère_octal(char c)
 {
-    return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_OCTAL) !=
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & CARACTERE_CHIFFRE_OCTAL) !=
            0;
 }
 
-inline static bool est_caractere_decimal(char c)
+inline static bool est_caractère_decimal(char c)
 {
-    return (table_drapeaux_caracteres[static_cast<unsigned char>(c)] &
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
             CARACTERE_CHIFFRE_DECIMAL) != 0;
 }
 
@@ -175,7 +175,7 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 
 /* ************************************************************************** */
 
-static int longueur_utf8_depuis_premier_caractere[] = {
+static int longueur_utf8_depuis_premier_caractère[] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -219,7 +219,7 @@ void Lexeuse::performe_lexage()
     case c:                                                                                       \
     {                                                                                             \
         POUSSE_MOT_SI_NECESSAIRE                                                                  \
-        if (this->caractere_voisin(1) == '=') {                                                   \
+        if (this->caractère_voisin(1) == '=') {                                                   \
             this->enregistre_pos_mot();                                                           \
             this->ajoute_caractère();                                                             \
             this->ajoute_caractère();                                                             \
@@ -233,7 +233,7 @@ void Lexeuse::performe_lexage()
     }
 
 #define APPARIE_SUIVANT(c, id)                                                                    \
-    if (this->caractere_voisin(1) == c) {                                                         \
+    if (this->caractère_voisin(1) == c) {                                                         \
         this->enregistre_pos_mot();                                                               \
         this->ajoute_caractère();                                                                 \
         this->ajoute_caractère();                                                                 \
@@ -243,7 +243,7 @@ void Lexeuse::performe_lexage()
     }
 
 #define APPARIE_2_SUIVANTS(c1, c2, id)                                                            \
-    if (this->caractere_voisin(1) == c1 && this->caractere_voisin(2) == c2) {                     \
+    if (this->caractère_voisin(1) == c1 && this->caractère_voisin(2) == c2) {                     \
         this->enregistre_pos_mot();                                                               \
         this->ajoute_caractère();                                                                 \
         this->ajoute_caractère();                                                                 \
@@ -256,7 +256,7 @@ void Lexeuse::performe_lexage()
     m_taille_mot_courant = 0;
 
     while (!this->fini()) {
-        switch (this->caractere_courant()) {
+        switch (this->caractère_courant()) {
             default:
             {
                 if (m_taille_mot_courant == 0) {
@@ -264,7 +264,7 @@ void Lexeuse::performe_lexage()
                 }
 
                 auto nombre_octet =
-                    longueur_utf8_depuis_premier_caractere[static_cast<unsigned char>(m_debut[0])];
+                    longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(m_debut[0])];
 
                 switch (nombre_octet) {
                     case 1:
@@ -389,7 +389,7 @@ void Lexeuse::performe_lexage()
             {
                 if (m_taille_mot_courant == 0) {
                     if (!peut_suivre_zero(m_debut[1])) {
-                        auto v = static_cast<unsigned>(this->caractere_courant() - '0');
+                        auto v = static_cast<unsigned>(this->caractère_courant() - '0');
 
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
@@ -419,7 +419,7 @@ void Lexeuse::performe_lexage()
             {
                 if (m_taille_mot_courant == 0) {
                     if (!peut_suivre_chiffre(m_debut[1])) {
-                        auto v = static_cast<unsigned>(this->caractere_courant() - '0');
+                        auto v = static_cast<unsigned>(this->caractère_courant() - '0');
 
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
@@ -452,7 +452,7 @@ void Lexeuse::performe_lexage()
                     this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
                 }
 
-                if (this->caractere_courant() == '\n') {
+                if (this->caractère_courant() == '\n') {
                     if (doit_ajouter_point_virgule(m_dernier_id)) {
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
@@ -496,7 +496,7 @@ void Lexeuse::performe_lexage()
                 }
 
                 while (!this->fini()) {
-                    if (this->caractere_courant() == '"' && this->caractere_voisin(-1) != '\\') {
+                    if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
                         break;
                     }
 
@@ -529,9 +529,9 @@ void Lexeuse::performe_lexage()
                     this->enregistre_pos_mot();
                 }
 
-                auto valeur = this->lexe_caractere_litteral(nullptr);
+                auto valeur = this->lexe_caractère_litteral(nullptr);
 
-                if (this->caractere_courant() != '\'') {
+                if (this->caractère_courant() != '\'') {
                     rapporte_erreur("attendu une apostrophe",
                                     m_position_ligne,
                                     m_position_ligne,
@@ -568,7 +568,7 @@ void Lexeuse::performe_lexage()
             {
                 POUSSE_MOT_SI_NECESSAIRE
 
-                if (this->caractere_voisin(1) == '/') {
+                if (this->caractère_voisin(1) == '/') {
                     rapporte_erreur("fin de commentaire bloc en dehors d'un commentaire",
                                     m_position_ligne,
                                     m_position_ligne,
@@ -583,12 +583,12 @@ void Lexeuse::performe_lexage()
             {
                 POUSSE_MOT_SI_NECESSAIRE
 
-                if (this->caractere_voisin(1) == '*') {
+                if (this->caractère_voisin(1) == '*') {
                     lexe_commentaire_bloc();
                     break;
                 }
 
-                if (this->caractere_voisin(1) == '/') {
+                if (this->caractère_voisin(1) == '/') {
                     lexe_commentaire();
                     break;
                 }
@@ -726,7 +726,7 @@ void Lexeuse::performe_lexage()
             chaine.reserve(it.chaine.taille());
 
             while (m_debut != fin_chaine) {
-                this->lexe_caractere_litteral(&chaine);
+                this->lexe_caractère_litteral(&chaine);
             }
 
             it.index_chaine = gerante_chaine->ajoute_chaine(chaine);
@@ -739,7 +739,7 @@ void Lexeuse::performe_lexage()
 void Lexeuse::avance(int n)
 {
     for (int i = 0; i < n; ++i) {
-        if (this->caractere_courant() == '\n') {
+        if (this->caractère_courant() == '\n') {
             ++m_compte_ligne;
             m_position_ligne = 0;
         }
@@ -803,7 +803,7 @@ void Lexeuse::lexe_commentaire()
     }
 
     /* ignore commentaire */
-    while (this->caractere_courant() != '\n') {
+    while (this->caractère_courant() != '\n') {
         this->avance_fixe<1>();
         this->ajoute_caractère();
     }
@@ -830,14 +830,14 @@ void Lexeuse::lexe_commentaire_bloc()
     auto compte_blocs = 0;
 
     while (!this->fini()) {
-        if (this->caractere_courant() == '/' && this->caractere_voisin(1) == '*') {
+        if (this->caractère_courant() == '/' && this->caractère_voisin(1) == '*') {
             this->avance(2);
             this->ajoute_caractère(2);
             compte_blocs += 1;
             continue;
         }
 
-        if (this->caractere_courant() == '*' && this->caractere_voisin(1) == '/') {
+        if (this->caractère_courant() == '*' && this->caractère_voisin(1) == '/') {
             this->avance(2);
             this->ajoute_caractère(2);
 
@@ -866,8 +866,8 @@ void Lexeuse::lexe_nombre()
 {
     this->enregistre_pos_mot();
 
-    if (this->caractere_courant() == '0') {
-        auto c = this->caractere_voisin();
+    if (this->caractère_courant() == '0') {
+        auto c = this->caractère_voisin();
 
         if (c == 'b' || c == 'B') {
             lexe_nombre_binaire();
@@ -904,7 +904,7 @@ void Lexeuse::lexe_nombre_decimal()
     auto exposant_negatif = false;
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
         taille_texte += 1;
 
         if (!lng::est_nombre_decimal(c)) {
@@ -920,7 +920,7 @@ void Lexeuse::lexe_nombre_decimal()
 
             // gère triple points
             if (c == '.') {
-                if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
+                if (this->caractère_voisin() == '.' && this->caractère_voisin(2) == '.') {
                     break;
                 }
 
@@ -962,7 +962,7 @@ void Lexeuse::lexe_nombre_decimal()
     int nombre_chiffres[2] = {0, 0};
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
 
         if (!peut_suivre_chiffre(c)) {
             break;
@@ -976,7 +976,7 @@ void Lexeuse::lexe_nombre_decimal()
 
         // gère triple points
         if (c == '.') {
-            if (this->caractere_voisin() == '.' && this->caractere_voisin(2) == '.') {
+            if (this->caractère_voisin() == '.' && this->caractère_voisin(2) == '.') {
                 break;
             }
 
@@ -1070,11 +1070,11 @@ void Lexeuse::lexe_nombre_hexadecimal()
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
         auto chiffre = 0u;
         fin_texte += 1;
 
-        if (est_caractere_decimal(c)) {
+        if (est_caractère_decimal(c)) {
             chiffre = static_cast<unsigned>(c - '0');
         }
         else if ('a' <= c && c <= 'f') {
@@ -1118,11 +1118,11 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
         auto chiffre = 0u;
         fin_texte += 1;
 
-        if (est_caractere_decimal(c)) {
+        if (est_caractère_decimal(c)) {
             chiffre = static_cast<unsigned>(c - '0');
         }
         else if ('a' <= c && c <= 'f') {
@@ -1174,7 +1174,7 @@ void Lexeuse::lexe_nombre_binaire()
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
         auto chiffre = 0u;
         fin_texte += 1;
 
@@ -1219,11 +1219,11 @@ void Lexeuse::lexe_nombre_octal()
     unsigned nombre_de_chiffres = 0;
 
     while (!fini()) {
-        auto c = this->caractere_courant();
+        auto c = this->caractère_courant();
         auto chiffre = 0u;
         fin_texte += 1;
 
-        if (est_caractere_octal(c)) {
+        if (est_caractère_octal(c)) {
             chiffre = static_cast<unsigned>(c - '0');
         }
         else if (c == '_') {
@@ -1252,7 +1252,7 @@ void Lexeuse::lexe_nombre_octal()
 
 static int hex_depuis_char(char c)
 {
-    if (est_caractere_decimal(c)) {
+    if (est_caractère_decimal(c)) {
         return c - '0';
     }
 
@@ -1283,9 +1283,9 @@ static int hex_depuis_char(char c)
  * un nombre hexadécimal \Unnnnnnnn : insère un caractère Unicode sur 32-bits, où n est un nombre
  * hexadécimal \xnn       : insère une valeur hexadécimale, où n est un nombre hexadécimal
  */
-unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
+unsigned Lexeuse::lexe_caractère_litteral(kuri::chaine *chaine)
 {
-    auto c = this->caractere_courant();
+    auto c = this->caractère_courant();
     this->avance_fixe<1>();
     this->ajoute_caractère();
 
@@ -1299,14 +1299,14 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
         return v;
     }
 
-    c = this->caractere_courant();
+    c = this->caractère_courant();
     this->avance_fixe<1>();
     this->ajoute_caractère();
 
     if (c == 'u') {
         auto debut_texte = m_position_ligne;
         for (auto j = 0; j < 4; ++j) {
-            auto n = this->caractere_courant();
+            auto n = this->caractère_courant();
 
             auto c0 = hex_depuis_char(n);
 
@@ -1344,7 +1344,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
     if (c == 'U') {
         auto debut_texte = m_position_ligne;
         for (auto j = 0; j < 8; ++j) {
-            auto n = this->caractere_courant();
+            auto n = this->caractère_courant();
 
             auto c0 = hex_depuis_char(n);
 
@@ -1412,7 +1412,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
     else if (c == 'x') {
         auto debut_texte = m_position_ligne;
         for (auto j = 0; j < 2; ++j) {
-            auto n = this->caractere_courant();
+            auto n = this->caractère_courant();
 
             auto c0 = hex_depuis_char(n);
 
@@ -1433,7 +1433,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
     else if (c == 'd') {
         auto debut_texte = m_position_ligne;
         for (auto j = 0; j < 3; ++j) {
-            auto n = this->caractere_courant();
+            auto n = this->caractère_courant();
 
             if (n < '0' || n > '9') {
                 rapporte_erreur("\\d doit prendre 3 chiffres décimaux",

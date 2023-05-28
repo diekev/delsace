@@ -76,12 +76,12 @@ struct Lexeuse {
 
     void avance(int n = 1);
 
-    ENLIGNE_TOUJOURS char caractere_courant() const
+    ENLIGNE_TOUJOURS char caractère_courant() const
     {
         return *m_debut;
     }
 
-    ENLIGNE_TOUJOURS char caractere_voisin(int n = 1) const
+    ENLIGNE_TOUJOURS char caractère_voisin(int n = 1) const
     {
         return *(m_debut + n);
     }
@@ -115,7 +115,7 @@ struct Lexeuse {
     void lexe_nombre_octal();
     void lexe_nombre_reel_hexadecimal();
 
-    unsigned lexe_caractere_litteral(kuri::chaine *chaine);
+    unsigned lexe_caractère_litteral(kuri::chaine *chaine);
 
     void pousse_lexeme_entier(uint64_t valeur);
     void pousse_lexeme_reel(double valeur);
