@@ -90,7 +90,7 @@ struct Lexeuse {
 
     void rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max);
 
-    ENLIGNE_TOUJOURS void pousse_caractere(int n = 1)
+    ENLIGNE_TOUJOURS void ajoute_caractère(int n = 1)
     {
         m_taille_mot_courant += n;
     }

@@ -24,7 +24,7 @@
  *
  * - dans les profiles, identifiant_pour_chaine se montre, notamment pour la comparaison des
  * chaines nous pourrions revoir la structure vue_chaine_compacte, pour y ajouter une empreinte que
- * nous calculerions lors du lexage pousse_caractere pourrait ajourner l'empreinte
+ * nous calculerions lors du lexage ajoute_caractère pourrait ajourner l'empreinte
  */
 
 /* ************************************************************************** */
@@ -198,7 +198,7 @@ void Lexeuse::performe_lexage()
 {
 #define POUSSE_CARACTERE(id)                                                                      \
     this->enregistre_pos_mot();                                                                   \
-    this->pousse_caractere();                                                                     \
+    this->ajoute_caractère();                                                                     \
     this->pousse_mot(id);                                                                         \
     this->avance_fixe<1>();
 
@@ -221,8 +221,8 @@ void Lexeuse::performe_lexage()
         POUSSE_MOT_SI_NECESSAIRE                                                                  \
         if (this->caractere_voisin(1) == '=') {                                                   \
             this->enregistre_pos_mot();                                                           \
-            this->pousse_caractere();                                                             \
-            this->pousse_caractere();                                                             \
+            this->ajoute_caractère();                                                             \
+            this->ajoute_caractère();                                                             \
             this->pousse_mot(id_avec_egal);                                                       \
             this->avance_fixe<2>();                                                               \
         }                                                                                         \
@@ -235,8 +235,8 @@ void Lexeuse::performe_lexage()
 #define APPARIE_SUIVANT(c, id)                                                                    \
     if (this->caractere_voisin(1) == c) {                                                         \
         this->enregistre_pos_mot();                                                               \
-        this->pousse_caractere();                                                                 \
-        this->pousse_caractere();                                                                 \
+        this->ajoute_caractère();                                                                 \
+        this->ajoute_caractère();                                                                 \
         this->pousse_mot(id);                                                                     \
         this->avance_fixe<2>();                                                                   \
         break;                                                                                    \
@@ -245,9 +245,9 @@ void Lexeuse::performe_lexage()
 #define APPARIE_2_SUIVANTS(c1, c2, id)                                                            \
     if (this->caractere_voisin(1) == c1 && this->caractere_voisin(2) == c2) {                     \
         this->enregistre_pos_mot();                                                               \
-        this->pousse_caractere();                                                                 \
-        this->pousse_caractere();                                                                 \
-        this->pousse_caractere();                                                                 \
+        this->ajoute_caractère();                                                                 \
+        this->ajoute_caractère();                                                                 \
+        this->ajoute_caractère();                                                                 \
         this->pousse_mot(id);                                                                     \
         this->avance_fixe<3>();                                                                   \
         break;                                                                                    \
@@ -269,7 +269,7 @@ void Lexeuse::performe_lexage()
                 switch (nombre_octet) {
                     case 1:
                     {
-                        this->pousse_caractere();
+                        this->ajoute_caractère();
                         this->avance_fixe<1>();
                         break;
                     }
@@ -306,7 +306,7 @@ void Lexeuse::performe_lexage()
 
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                                     this->enregistre_pos_mot();
-                                    this->pousse_caractere(nombre_octet);
+                                    this->ajoute_caractère(nombre_octet);
                                     this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
                                 }
 
@@ -323,7 +323,7 @@ void Lexeuse::performe_lexage()
                                 /* Saute le premier guillemet si nécessaire. */
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                                     this->enregistre_pos_mot();
-                                    this->pousse_caractere(nombre_octet);
+                                    this->ajoute_caractère(nombre_octet);
                                     this->avance(nombre_octet);
                                 }
                                 else {
@@ -350,12 +350,12 @@ void Lexeuse::performe_lexage()
                                     }
 
                                     this->avance(nombre_octet);
-                                    this->pousse_caractere(nombre_octet);
+                                    this->ajoute_caractère(nombre_octet);
                                 }
 
                                 /* Saute le dernier guillemet si nécessaire. */
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                                    this->pousse_caractere(nombre_octet);
+                                    this->ajoute_caractère(nombre_octet);
                                 }
 
                                 this->avance(nombre_octet);
@@ -392,7 +392,7 @@ void Lexeuse::performe_lexage()
                         auto v = static_cast<unsigned>(this->caractere_courant() - '0');
 
                         this->enregistre_pos_mot();
-                        this->pousse_caractere();
+                        this->ajoute_caractère();
                         this->avance_fixe<1>();
                         this->pousse_lexeme_entier(v);
                         break;
@@ -401,7 +401,7 @@ void Lexeuse::performe_lexage()
                     this->lexe_nombre();
                 }
                 else {
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                     this->avance_fixe<1>();
                 }
 
@@ -422,7 +422,7 @@ void Lexeuse::performe_lexage()
                         auto v = static_cast<unsigned>(this->caractere_courant() - '0');
 
                         this->enregistre_pos_mot();
-                        this->pousse_caractere();
+                        this->ajoute_caractère();
                         this->avance_fixe<1>();
                         this->pousse_lexeme_entier(v);
                         break;
@@ -431,7 +431,7 @@ void Lexeuse::performe_lexage()
                     this->lexe_nombre();
                 }
                 else {
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                     this->avance_fixe<1>();
                 }
 
@@ -448,14 +448,14 @@ void Lexeuse::performe_lexage()
 
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                     this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
                 }
 
                 if (this->caractere_courant() == '\n') {
                     if (doit_ajouter_point_virgule(m_dernier_id)) {
                         this->enregistre_pos_mot();
-                        this->pousse_caractere();
+                        this->ajoute_caractère();
                         this->pousse_mot(GenreLexeme::POINT_VIRGULE);
                     }
 
@@ -487,7 +487,7 @@ void Lexeuse::performe_lexage()
                 /* Saute le premier guillemet si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                     this->avance_fixe<1>();
                 }
                 else {
@@ -501,12 +501,12 @@ void Lexeuse::performe_lexage()
                     }
 
                     this->avance();
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                 }
 
                 /* Saute le dernier guillemet si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                 }
 
                 this->avance_fixe<1>();
@@ -521,7 +521,7 @@ void Lexeuse::performe_lexage()
                 /* Saute la première apostrophe si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                     this->avance_fixe<1>();
                 }
                 else {
@@ -540,7 +540,7 @@ void Lexeuse::performe_lexage()
 
                 /* Saute la dernière apostrophe si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->pousse_caractere();
+                    this->ajoute_caractère();
                 }
 
                 this->avance_fixe<1>();
@@ -805,7 +805,7 @@ void Lexeuse::lexe_commentaire()
     /* ignore commentaire */
     while (this->caractere_courant() != '\n') {
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
@@ -824,7 +824,7 @@ void Lexeuse::lexe_commentaire_bloc()
     }
 
     this->avance_fixe<2>();
-    this->pousse_caractere(2);
+    this->ajoute_caractère(2);
 
     // permet d'avoir des blocs de commentaires nichés
     auto compte_blocs = 0;
@@ -832,14 +832,14 @@ void Lexeuse::lexe_commentaire_bloc()
     while (!this->fini()) {
         if (this->caractere_courant() == '/' && this->caractere_voisin(1) == '*') {
             this->avance(2);
-            this->pousse_caractere(2);
+            this->ajoute_caractère(2);
             compte_blocs += 1;
             continue;
         }
 
         if (this->caractere_courant() == '*' && this->caractere_voisin(1) == '/') {
             this->avance(2);
-            this->pousse_caractere(2);
+            this->ajoute_caractère(2);
 
             if (compte_blocs == 0) {
                 break;
@@ -849,7 +849,7 @@ void Lexeuse::lexe_commentaire_bloc()
         }
         else {
             this->avance(1);
-            this->pousse_caractere();
+            this->ajoute_caractère();
         }
     }
 
@@ -910,7 +910,7 @@ void Lexeuse::lexe_nombre_decimal()
         if (!lng::est_nombre_decimal(c)) {
             if (c == '_') {
                 this->avance_fixe<1>();
-                this->pousse_caractere();
+                this->ajoute_caractère();
                 continue;
             }
 
@@ -926,14 +926,14 @@ void Lexeuse::lexe_nombre_decimal()
 
                 point_trouve = true;
                 this->avance_fixe<1>();
-                this->pousse_caractere();
+                this->ajoute_caractère();
                 break;
             }
 
             if (c == 'e') {
                 exposant_trouve = true;
                 this->avance_fixe<1>();
-                this->pousse_caractere();
+                this->ajoute_caractère();
                 break;
             }
 
@@ -944,7 +944,7 @@ void Lexeuse::lexe_nombre_decimal()
         resultat_entier += static_cast<uint64_t>(c - '0');
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (!point_trouve && !exposant_trouve) {
@@ -970,7 +970,7 @@ void Lexeuse::lexe_nombre_decimal()
 
         if (c == '_') {
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
 
@@ -996,7 +996,7 @@ void Lexeuse::lexe_nombre_decimal()
 
             exposant_trouve = true;
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
 
@@ -1007,7 +1007,7 @@ void Lexeuse::lexe_nombre_decimal()
 
             exposant_negatif = true;
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
 
@@ -1019,7 +1019,7 @@ void Lexeuse::lexe_nombre_decimal()
         nombre_chiffres[exposant_trouve] += 1;
 
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (nombre_chiffres[0] != 0) {
@@ -1062,7 +1062,7 @@ void Lexeuse::lexe_nombre_decimal()
 void Lexeuse::lexe_nombre_hexadecimal()
 {
     this->avance_fixe<2>();
-    this->pousse_caractere(2);
+    this->ajoute_caractère(2);
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
@@ -1085,7 +1085,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
         }
         else if (c == '_') {
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
         else {
@@ -1096,7 +1096,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
         resultat_entier += chiffre;
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (nombre_de_chiffres > 16) {
@@ -1110,7 +1110,7 @@ void Lexeuse::lexe_nombre_hexadecimal()
 void Lexeuse::lexe_nombre_reel_hexadecimal()
 {
     this->avance_fixe<2>();
-    this->pousse_caractere(2);
+    this->ajoute_caractère(2);
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
@@ -1133,7 +1133,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
         }
         else if (c == '_') {
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
         else {
@@ -1144,7 +1144,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
         resultat_entier += chiffre;
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (nombre_de_chiffres % 8 != 0 || nombre_de_chiffres > 16) {
@@ -1166,7 +1166,7 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 void Lexeuse::lexe_nombre_binaire()
 {
     this->avance_fixe<2>();
-    this->pousse_caractere(2);
+    this->ajoute_caractère(2);
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
@@ -1186,7 +1186,7 @@ void Lexeuse::lexe_nombre_binaire()
         }
         else if (c == '_') {
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
         else {
@@ -1197,7 +1197,7 @@ void Lexeuse::lexe_nombre_binaire()
         resultat_entier += chiffre;
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (nombre_de_chiffres > 64) {
@@ -1211,7 +1211,7 @@ void Lexeuse::lexe_nombre_binaire()
 void Lexeuse::lexe_nombre_octal()
 {
     this->avance_fixe<2>();
-    this->pousse_caractere(2);
+    this->ajoute_caractère(2);
     auto debut_texte = m_position_ligne;
     auto fin_texte = m_position_ligne;
 
@@ -1228,7 +1228,7 @@ void Lexeuse::lexe_nombre_octal()
         }
         else if (c == '_') {
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
             continue;
         }
         else {
@@ -1239,7 +1239,7 @@ void Lexeuse::lexe_nombre_octal()
         resultat_entier += chiffre;
         nombre_de_chiffres += 1;
         this->avance_fixe<1>();
-        this->pousse_caractere();
+        this->ajoute_caractère();
     }
 
     if (nombre_de_chiffres > 22) {
@@ -1287,7 +1287,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 {
     auto c = this->caractere_courant();
     this->avance_fixe<1>();
-    this->pousse_caractere();
+    this->ajoute_caractère();
 
     auto v = static_cast<unsigned>(c);
 
@@ -1301,7 +1301,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
 
     c = this->caractere_courant();
     this->avance_fixe<1>();
-    this->pousse_caractere();
+    this->ajoute_caractère();
 
     if (c == 'u') {
         auto debut_texte = m_position_ligne;
@@ -1321,7 +1321,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
         }
 
         unsigned char sequence[4];
@@ -1359,7 +1359,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             v |= static_cast<uint32_t>(c0);
 
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
         }
 
         unsigned char sequence[4];
@@ -1427,7 +1427,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             v |= static_cast<unsigned>(c0);
 
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
         }
     }
     else if (c == 'd') {
@@ -1446,7 +1446,7 @@ unsigned Lexeuse::lexe_caractere_litteral(kuri::chaine *chaine)
             v += static_cast<unsigned>(n - '0');
 
             this->avance_fixe<1>();
-            this->pousse_caractere();
+            this->ajoute_caractère();
         }
 
         if (v > 255) {
