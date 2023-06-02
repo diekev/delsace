@@ -51,6 +51,11 @@ ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive 
     return AbcKuri::cree_archive(ctx_kuri, ctx);
 }
 
+ArchiveCache *ABC_cree_archive_pour_ecriture(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+{
+    return AbcKuri::cree_archive_export(ctx_kuri, ctx);
+}
+
 void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
 {
     AbcKuri::detruit_archive(ctx, archive);

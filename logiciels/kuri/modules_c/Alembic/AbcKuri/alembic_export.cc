@@ -218,6 +218,7 @@ static void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse,
 }
 
 EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                              ContexteEcritureCache *contexte,
                                               LectriceCache *lectrice,
                                               EcrivainCache *parent)
 {
