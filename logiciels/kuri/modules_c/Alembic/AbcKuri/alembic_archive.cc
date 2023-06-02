@@ -163,6 +163,9 @@ void detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
 
 static void passe_nom_via_contexte(ContexteTraverseArchive *ctx, const std::string &nom)
 {
+    if (!ctx->extrait_nom_courant) {
+        return;
+    }
     ctx->extrait_nom_courant(ctx, nom.c_str(), nom.size());
 }
 
@@ -178,38 +181,22 @@ static void abc_traverse_hierarchie(ContexteTraverseArchive *ctx,
 
     if (AbcGeom::IXform::matches(header)) {
         AbcGeom::IXform xform(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, xform.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, xform.getFullName());
         next_object = xform;
     }
     else if (AbcGeom::ISubD::matches(header)) {
         AbcGeom::ISubD subd(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, subd.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, subd.getFullName());
         next_object = subd;
     }
     else if (AbcGeom::IPolyMesh::matches(header)) {
         AbcGeom::IPolyMesh mesh(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, mesh.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, mesh.getFullName());
         next_object = mesh;
     }
     else if (AbcGeom::ICurves::matches(header)) {
         AbcGeom::ICurves curves(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, curves.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, curves.getFullName());
         next_object = curves;
     }
     else if (AbcGeom::IFaceSet::matches(header)) {
@@ -217,56 +204,34 @@ static void abc_traverse_hierarchie(ContexteTraverseArchive *ctx,
     }
     else if (AbcGeom::IPoints::matches(header)) {
         AbcGeom::IPoints points(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, points.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, points.getFullName());
         next_object = points;
     }
     else if (AbcGeom::INuPatch::matches(header)) {
         AbcGeom::INuPatch nurbs(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, nurbs.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, nurbs.getFullName());
         next_object = nurbs;
     }
     else if (AbcGeom::ILight::matches(header)) {
         AbcGeom::ILight lumiere(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, lumiere.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, lumiere.getFullName());
         next_object = lumiere;
     }
     else if (AbcGeom::ICamera::matches(header)) {
         AbcGeom::ICamera camera(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, camera.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, camera.getFullName());
         next_object = camera;
     }
     else if (AbcMaterial::IMaterial::matches(header)) {
         AbcMaterial::IMaterial materiau(parent, header.getName());
-
-        if (ctx->extrait_nom_courant) {
-            passe_nom_via_contexte(ctx, materiau.getFullName());
-        }
-
+        passe_nom_via_contexte(ctx, materiau.getFullName());
         next_object = materiau;
     }
     else {
         next_object = parent.getChild(header.getName());
 
         if (next_object.isInstanceRoot()) {
-            if (ctx->extrait_nom_courant) {
-                passe_nom_via_contexte(ctx, next_object.getFullName());
-            }
+            passe_nom_via_contexte(ctx, next_object.getFullName());
         }
     }
 
