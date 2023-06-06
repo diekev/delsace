@@ -4,16 +4,7 @@
 a.out
 gmon.out
 test.db
-*.a
-*.so
-*.so*
 config.json
-
-logiciels/kuri/modules/OpenVDB/lib/x86_64-linux-gnu/bin
-
-logiciels/kuri/modules/Aléa/*.h
-logiciels/kuri/modules/FTGL/*.h
-logiciels/kuri/modules/Image/*.h
 
 logiciels/kuri/arbre_syntaxique/allocatrice.cc
 logiciels/kuri/arbre_syntaxique/allocatrice.hh
