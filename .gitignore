@@ -39,7 +39,6 @@ logiciels/kuri/parsage/lexemes.cc
 logiciels/kuri/parsage/lexemes.hh
 
 logiciels/kuri/modules/OpenVDB/interface_openvdb_kuri.kuri
-logiciels/kuri/modules/Géométrie3D/interface_geometrie3d.kuri
 
 .chaines_ajoutées
 .vscode/
