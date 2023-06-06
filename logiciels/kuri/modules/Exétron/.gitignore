@@ -1,1 +1,5 @@
 interface_exétron.kuri
+
+*.a
+*.so
+*.so*

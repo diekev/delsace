@@ -1,1 +1,5 @@
 interface_geometrie3d.kuri
+
+*.a
+*.so
+*.so*
