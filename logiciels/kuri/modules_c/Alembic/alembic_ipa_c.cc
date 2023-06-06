@@ -130,19 +130,21 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri,
 // ABC_est_constant
 
 EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                                  ContexteEcritureCache *contexte,
                                                   LectriceCache *lectrice,
                                                   EcrivainCache *parent)
 {
-    return AbcKuri::cree_ecrivain_cache_depuis_ref(ctx, lectrice, parent);
+    return AbcKuri::cree_ecrivain_cache_depuis_ref(ctx, contexte, lectrice, parent);
 }
 
 EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx,
+                                       ContexteEcritureCache *contexte,
                                        EcrivainCache *parent,
                                        const char *nom,
                                        size_t taille_nom,
                                        eTypeObjetAbc type_objet)
 {
-    return AbcKuri::cree_ecrivain_cache(ctx, parent, nom, taille_nom, type_objet);
+    return AbcKuri::cree_ecrivain_cache(ctx, contexte, parent, nom, taille_nom, type_objet);
 }
 
 EcrivainCache *ABC_cree_instance(ContexteKuri *ctx,

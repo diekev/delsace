@@ -271,6 +271,7 @@ EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
 }
 
 EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
+                                   ContexteEcritureCache *contexte,
                                    EcrivainCache *parent,
                                    const char *nom,
                                    size_t taille_nom,
