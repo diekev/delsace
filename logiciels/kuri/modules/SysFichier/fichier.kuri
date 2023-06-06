@@ -122,7 +122,7 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: Rais
     retourne ouvre_fichier(chemin, raison, 0o644)
 }
 
-ferme :: fonc (fichier: *Fichier) -> ErreurFichier
+ferme :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
 {
     retourne système_ferme(fichier.desc)
 }
@@ -409,7 +409,7 @@ TypeVerrou :: énum {
     Exclusif
 }
 
-verrouille :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> bool
+verrouille :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> Optionnel(ErreurFichier)
 {
     retourne système_verrouille_fichier(fichier, verrou)
 }

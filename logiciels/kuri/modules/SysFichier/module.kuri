@@ -51,7 +51,7 @@ ferme_fichier
 
  */
 
-espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
+espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
 {
     retourne système_espace_disque_disponible(chemin)
 }
@@ -98,34 +98,34 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
 
 // -----------------------------------------------------------------------
 
-chemin_courant :: fonc() -> CheminFichier
+chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_courant()
 }
 
-chemin_courant :: fonc(chemin : CheminFichier) -> ErreurFichier
+chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
 {
 	retourne système_chemin_courant(chemin)
 }
 
-chemin_répertoire_personnel :: fonc () -> CheminFichier
+chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
 {
     retourne système_chemin_répertoire_personnel()
 }
 
-chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
+chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_véritable(chemin)
 }
 
 // À FAIRE : mettre à la corbeille, trouver le chemin vers HOME/TMP
 
-renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
+renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> Optionnel(ErreurFichier)
 {
 	retourne système_renomme(orig, dest)
 }
 
-supprime :: fonc(chm : &CheminFichier) -> z32
+supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_supprime(chm)
 }
