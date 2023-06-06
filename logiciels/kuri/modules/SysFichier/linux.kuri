@@ -21,7 +21,6 @@ opérateur != :: fonc (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
 ErreurFichier :: erreur {
     Inconnue
 
-    ÉcriturePeutBloquer
     EntréeSortie
     EntréeSortieSpéciale
     EspaceDisqueInexistant
@@ -36,15 +35,13 @@ ErreurFichier :: erreur {
     FichierTropPetit
     ImageEnLecture
     InterrompuParSignal
-    LecturePeutBloquer
-    LectureSurDossier
     LimiteOuvertureFichierAtteinte
     MauvaisEspaceAdressage
     MatérielInconnu
     MémoireInsuffisante
     NomTropGrand
-    OuverturePeutBloquer
-    OuvertureDossier
+    ActionPeutBloquer
+    ActionImpossibleSurDossier
     PaireNonRenseigné
     PasDansUnDossier
     PermissionNonAccordé
@@ -52,6 +49,100 @@ ErreurFichier :: erreur {
     SynchronisationImpossiblePourFichier
     TropDeLiensSymboliques
     ValeurInvalide
+}
+
+initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
+{
+    résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier
+
+    pour & résultat {
+        it = ErreurFichier.Inconnue
+    }
+
+    // système_chemin_courant : Search permission is denied for one of the components of path.  (See also path_resolution(7).)
+    résultat[EACCES] = ErreurFichier.PermissionNonAccordé
+    // système_chemin_courant : path points outside your accessible address space.
+    résultat[EFAULT] = ErreurFichier.MauvaisEspaceAdressage
+    // système_chemin_courant : An I/O error occurred.
+    résultat[EIO] = ErreurFichier.EntréeSortie
+    // système_chemin_courant : Too many symbolic links were encountered in resolving path.
+    // système_ouvre : dépend du drapeau
+    résultat[ELOOP] = ErreurFichier.TropDeLiensSymboliques
+    // système_chemin_courant : path is too long.
+    résultat[ENAMETOOLONG] = ErreurFichier.NomTropGrand
+    // système_chemin_courant : The directory specified in path does not exist.
+    // système_ouvre : dépend du drapeau
+    résultat[ENOENT] = ErreurFichier.FichierInexistant
+    // système_chemin_courant : Insufficient kernel memory was available.
+    // système_ouvre : dépend du type de fichier
+    résultat[ENOMEM] = ErreurFichier.MémoireInsuffisante
+    // système_chemin_courant : A component of path is not a directory.
+    résultat[ENOTDIR] = ErreurFichier.PasDansUnDossier
+    // système_ouvre : dépend du drapeau
+    // À FAIRE : système_synchronise : SynchronisationImpossiblePourFichier
+    // À FAIRE : système_synchronise_données : SynchronisationImpossiblePourFichier
+    // système_positionne_fichier : le paramètre « où » est invalide
+    résultat[EINVAL] = ErreurFichier.ValeurInvalide
+    // système_ouvre : dépend du drapeau
+    // À FAIRE : système_synchronise : SynchronisationImpossiblePourFichier
+    // À FAIRE : système_synchronise_données : SynchronisationImpossiblePourFichier
+    résultat[EROFS] = ErreurFichier.FichierEstLectureSeul
+    // système_synchronise : ErreurFichier.EspaceDisqueInexistant
+    résultat[ENOSPC] = ErreurFichier.EspaceDisqueInsuffisant
+    // système_ouvre : dépend du drapeau
+    résultat[EWOULDBLOCK] = ErreurFichier.ActionPeutBloquer
+    // À FAIRE : peut-être une erreur séparée ? C'est la même valeur que pour EWOULDBLOCK
+    résultat[EAGAIN] = ErreurFichier.ActionPeutBloquer
+    résultat[EINTR] = ErreurFichier.InterrompuParSignal
+    // système_ouvre : dépend du drapeau
+    résultat[EPERM] = ErreurFichier.PermissionNonAccordé
+    // système_ouvre : Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
+    résultat[EISDIR] = ErreurFichier.ActionImpossibleSurDossier
+    // À FAIRE
+    résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale // système_ouvre dépend du type de fichier
+    résultat[ENXIO] = ErreurFichier.FichierTropPetit // système_positionne_fichier où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
+    // À FAIRE
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropGrand // système_ouvre
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropPetit // système_positionne_fichier
+
+    // système_ouvre
+    résultat[EDQUOT] = ErreurFichier.EspaceDisqueInsuffisant // O_CREAT
+    résultat[EEXIST] = ErreurFichier.FichierExisteDéjà // O_CREAT & O_EXCL
+    résultat[EFBIG] = ErreurFichier.FichierTropGrand
+    résultat[EMFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte
+    résultat[ENFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte
+    résultat[ENODEV] = ErreurFichier.MatérielInconnu
+    résultat[EOPNOTSUPP] = ErreurFichier.FichierTemporaireNonSupporté
+    résultat[ETXTBSY] = ErreurFichier.ImageEnLecture // dépend du drapeau
+
+    // système_ferme
+    résultat[EBADF] = ErreurFichier.FichierInvalide
+
+    // système_écris
+    résultat[EDESTADDRREQ] = ErreurFichier.PaireNonRenseigné
+    // À FAIRE : pas assez général
+    résultat[EPIPE] = ErreurFichier.PipeFerméPourÉcriture
+
+    // système_positionne_fichier
+    résultat[ESPIPE] = ErreurFichier.FichierEstPipe
+
+    // système_crée_dossier  
+    résultat[EMLINK] = ErreurFichier.TropDeLiensSymboliques
+
+    retourne résultat
+}
+
+tableau_correspondances_erreur_fichier_errno := initialise_tableau_correspondances()
+
+convertis_errno_en_erreur_fichier :: fonc () -> ErreurFichier
+{
+    err := lis_errno()
+
+    si err < 0 || err >= NOMBRE_VALEUR_ERRNO {
+        retourne ErreurFichier.Inconnue
+    }
+
+    retourne tableau_correspondances_erreur_fichier_errno[err]
 }
 
 RésultatOpérationFichier :: union {
@@ -95,35 +186,7 @@ système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, p
     // À FAIRE : certaine valeur dépendent des drapeaux (création, écriture, ...)
     // il faudra atomiser l'interface, la préciser pour savoir quoi faire
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EACCES       { retourne ErreurFichier.PermissionNonAccordé; }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; } // O_CREAT
-            EEXIST       { retourne ErreurFichier.FichierExisteDéjà; } // O_CREAT & O_EXCL
-            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
-            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
-            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
-            EINVAL       { retourne ErreurFichier.ValeurInvalide; } // dépend du drapeau
-            EISDIR       { retourne ErreurFichier.OuvertureDossier; } // Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
-            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques; } // dépend du drapeau
-            EMFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
-            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand; }
-            ENFILE       { retourne ErreurFichier.LimiteOuvertureFichierAtteinte; }
-            ENODEV       { retourne ErreurFichier.MatérielInconnu; }
-            ENOENT       { retourne ErreurFichier.FichierInexistant; } // dépend du drapeau
-            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante; } // dépend du type de fichier
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
-            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier; }
-            ENXIO        { retourne ErreurFichier.EntréeSortieSpéciale; } // dépend du type de fichier
-            EOPNOTSUPP   { retourne ErreurFichier.FichierTemporaireNonSupporté; }
-            EOVERFLOW    { retourne ErreurFichier.FichierTropGrand; }
-            EPERM        { retourne ErreurFichier.PermissionNonAccordé; } // dépend du drapeau
-            EROFS        { retourne ErreurFichier.FichierEstLectureSeul; } // dépend du drapeau
-            ETXTBSY      { retourne ErreurFichier.ImageEnLecture; } // dépend du drapeau
-            EWOULDBLOCK  { retourne ErreurFichier.OuverturePeutBloquer; } // dépend du drapeau
-            sinon        { retourne ErreurFichier.Inconnue }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat
@@ -134,16 +197,7 @@ système_ferme :: fonc (fd: TypePoignéeFichier) -> ErreurFichier
     résultat := close(fd comme z32)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EBADF        { retourne ErreurFichier.FichierInvalide; }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
-            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
-            EIO          { retourne ErreurFichier.EntréeSortie; }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            sinon        { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne 0 comme ErreurFichier
@@ -154,17 +208,7 @@ système_synchronise :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFic
     résultat := fsync(fd comme z32)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EBADF        { retourne ErreurFichier.FichierInvalide; }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
-            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
-            EIO          { retourne ErreurFichier.EntréeSortie; }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
-            sinon        { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat
@@ -175,17 +219,7 @@ système_synchronise_données :: fonc (fd: TypePoignéeFichier) -> RésultatOpé
     résultat := fdatasync(fd comme z32)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EBADF        { retourne ErreurFichier.FichierInvalide; }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
-            EINVAL       { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
-            EIO          { retourne ErreurFichier.EntréeSortie; }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            EROFS        { retourne ErreurFichier.SynchronisationImpossiblePourFichier; }
-            sinon        { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat
@@ -196,24 +230,7 @@ système_écris :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> Ré
     résultat := write(fd comme z32, ptr, taille)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EAGAIN       { retourne ErreurFichier.ÉcriturePeutBloquer; }
-            EWOULDBLOCK  { retourne ErreurFichier.ÉcriturePeutBloquer; }
-            EBADF        { retourne ErreurFichier.FichierInvalide; }
-            EDESTADDRREQ { retourne ErreurFichier.PaireNonRenseigné; }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant; }
-            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage; }
-            EFBIG        { retourne ErreurFichier.FichierTropGrand; }
-            EINTR        { retourne ErreurFichier.InterrompuParSignal; }
-            EINVAL       { retourne ErreurFichier.ValeurInvalide; }
-            EIO          { retourne ErreurFichier.EntréeSortie; }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            EPERM        { retourne ErreurFichier.PermissionNonAccordé; }
-            EPIPE        { retourne ErreurFichier.PipeFerméPourÉcriture; }
-            sinon        { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat
@@ -229,19 +246,7 @@ système_lis :: fonc (fd: TypePoignéeFichier, ptr:  *z8, taille: z64) -> Résul
     résultat := read(fd comme z32, ptr, taille comme n64)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EAGAIN      { retourne ErreurFichier.LecturePeutBloquer; }
-            EWOULDBLOCK { retourne ErreurFichier.LecturePeutBloquer; }
-            EBADF       { retourne ErreurFichier.FichierInvalide; }
-            EFAULT      { retourne ErreurFichier.MauvaisEspaceAdressage; }
-            EINTR       { retourne ErreurFichier.InterrompuParSignal; }
-            EINVAL      { retourne ErreurFichier.ValeurInvalide; }
-            EIO         { retourne ErreurFichier.EntréeSortie; }
-            EISDIR      { retourne ErreurFichier.LectureSurDossier; }
-            sinon       { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat
@@ -273,16 +278,7 @@ système_positionne_fichier :: fonc (fd: TypePoignéeFichier, position: Position
     résultat := lseek(fd comme z32, décalage, où)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EBADF       { retourne ErreurFichier.FichierInvalide; }
-            EINVAL      { retourne ErreurFichier.ValeurInvalide; } // où est invalide
-            ENXIO       { retourne ErreurFichier.FichierTropPetit; } // où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
-            EOVERFLOW   { retourne ErreurFichier.FichierTropPetit; }
-            ESPIPE      { retourne ErreurFichier.FichierEstPipe; }
-            sinon       { retourne ErreurFichier.Inconnue; }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne résultat comme z32
@@ -336,24 +332,7 @@ crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> ErreurFich
     résultat := symlink(chn_c_cible, chn_c_chemin_lien)
 
     si résultat == -1 {
-        err := lis_errno()
-
-        discr err {
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
-            EEXIST       { retourne ErreurFichier.FichierExisteDéjà }
-            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
-            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
-            EIO          { retourne ErreurFichier.EntréeSortie; }
-            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
-            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
-            ENOENT       { retourne ErreurFichier.FichierInexistant }
-            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
-            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
-            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
-            sinon        { retourne ErreurFichier.Inconnue }
-        }
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     retourne 0 comme ErreurFichier
@@ -368,28 +347,16 @@ système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> ErreurFich
     résultat := mkdir(ptr_chemin, mode)
 
     si résultat == -1 {
-        err := lis_errno()
+        err := convertis_errno_en_erreur_fichier()
 
-        discr err {
-            EACCES       { retourne ErreurFichier.PermissionNonAccordé }
-            EDQUOT       { retourne ErreurFichier.EspaceDisqueInsuffisant }
-            /* ignore si le dossier existe déjà, vérifier si le dossier existe
-             * avant d'appeler cette fonction peut laisser la porte ouverte à des
-             * pirates pour créer leur propre dossier */
-            EEXIST       { retourne 0 comme ErreurFichier }
-            EFAULT       { retourne ErreurFichier.MauvaisEspaceAdressage }
-            EINVAL       { retourne ErreurFichier.ValeurInvalide}
-            ELOOP        { retourne ErreurFichier.TropDeLiensSymboliques }
-            EMLINK       { retourne ErreurFichier.TropDeLiensSymboliques }
-            ENAMETOOLONG { retourne ErreurFichier.NomTropGrand }
-            ENOENT       { retourne ErreurFichier.FichierInexistant }
-            ENOMEM       { retourne ErreurFichier.MémoireInsuffisante }
-            ENOSPC       { retourne ErreurFichier.EspaceDisqueInexistant; }
-            ENOTDIR      { retourne ErreurFichier.PasDansUnDossier }
-            EPERM        { retourne ErreurFichier.PermissionNonAccordé }
-            EROFS        { retourne ErreurFichier.FichierEstLectureSeul }
-            sinon        { retourne ErreurFichier.Inconnue }
+        /* ignore si le dossier existe déjà, vérifier si le dossier existe
+         * avant d'appeler cette fonction peut laisser la porte ouverte à des
+         * pirates pour créer leur propre dossier */
+        si err == ErreurFichier.FichierExisteDéjà {
+            retourne 0 comme ErreurFichier
         }
+        
+        retourne err
     }
 
     retourne 0 comme ErreurFichier
@@ -615,45 +582,7 @@ système_chemin_courant :: fonc(chemin : CheminFichier) -> ErreurFichier
         retourne 0 comme ErreurFichier
     }
 
-    err := lis_errno()
-
-    discr err {
-        EACCES {
-            // Search permission is denied for one of the components of path.  (See also path_resolution(7).)
-            retourne ErreurFichier.PermissionNonAccordé
-        }
-        EFAULT {
-            // path points outside your accessible address space.
-            retourne ErreurFichier.MauvaisEspaceAdressage
-        }
-        EIO {
-            // An I/O error occurred.
-            retourne ErreurFichier.EntréeSortie
-        }
-        ELOOP {
-            // Too many symbolic links were encountered in resolving path.
-            retourne ErreurFichier.TropDeLiensSymboliques
-        }
-        ENAMETOOLONG {
-            // path is too long.
-            retourne ErreurFichier.NomTropGrand
-        }
-        ENOENT {
-            // The directory specified in path does not exist.
-            retourne ErreurFichier.FichierInexistant
-        }
-        ENOMEM {
-            // Insufficient kernel memory was available.
-            retourne ErreurFichier.MémoireInsuffisante
-        }
-        ENOTDIR {
-            // A component of path is not a directory.
-            retourne ErreurFichier.PasDansUnDossier
-        }
-        sinon {
-            retourne ErreurFichier.Inconnue
-        }
-    }
+    retourne convertis_errno_en_erreur_fichier()
 }
 
 système_chemin_répertoire_personnel :: fonc () -> CheminFichier
