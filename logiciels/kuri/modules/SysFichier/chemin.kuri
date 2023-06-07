@@ -299,7 +299,7 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
 
 est_absolu :: fonc (chm: CheminFichier) -> bool
 {
-    retourne système_est_chemin_absolu()
+    retourne système_est_chemin_absolu(chm)
 }
 
 est_relatif :: fonc (chm: CheminFichier) -> bool
