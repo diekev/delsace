@@ -52,6 +52,7 @@ ErreurFichier :: erreur {
     ÀCourtDeVerrouxDeFichier
     OpérationImpossiblePourLeSystème
     TamponSortieTropPetit
+    NEstPasUnDossier
 }
 
 initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
