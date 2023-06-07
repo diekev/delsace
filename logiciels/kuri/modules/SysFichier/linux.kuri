@@ -2,6 +2,7 @@ importe Chaine
 importe Fondation
 importe GlibC
 importe POSIX
+importe Temps
 
 TypePoignéeFichier :: #opaque z32
 
@@ -516,17 +517,280 @@ système_chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichi
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
-système_chemin_répertoire_personnel :: fonc () -> CheminFichier
-{
-    via_environnement := chaine_environnement("HOME")
+/* ------------------------------------------------------------------------- */
+/** Accès à des dossiers clé du système pour l'utilisateur.
+ * \{ */
 
+système_chemin_pour_variable_environnement :: fonc (variable: chaine) -> Optionnel(CheminFichier)
+{
+    via_environnement := chaine_environnement(variable)
     si via_environnement {
         retourne CheminFichier(via_environnement)
     }
-
-    // À FAIRE : erreur
-    retourne CheminFichier()
 }
+
+/* Retourne le chemin vers le dossier personnel de l'utilisateur. */
+système_chemin_répertoire_personnel :: fonc () -> CheminFichier
+{
+    // À FAIRE : erreur
+    retourne système_chemin_pour_variable_environnement("HOME").valeur_ou(CheminFichier())
+}
+
+/* Chemin vers le dossier de données des programmes de l'utilisateur.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemin_pour_dossier_données_utilisateur :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_utilisateur_ou_replis("XDG_DATA_HOME", ".local/share/")
+}
+
+/* Chemin vers le dossier de configuration des programmes de l'utilisateur.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemin_pour_dossier_configuration_utilisateur :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".local/config/")
+}
+
+/* Chemin vers le dossier de données d'état des programmes de l'utilisateur.
+ * Ces états sont les données des programmes devant persister entre chaque
+ * lancement du programme.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemin_pour_dossier_état_utilisateur :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_utilisateur_ou_replis("XDG_STATE_HOME", ".local/state/")
+}
+
+/* Chemin vers le dossier de cache des programmes de l'utilisateur.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemin_pour_dossier_cache_utilisateur :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_utilisateur_ou_replis("XDG_CACHE_HOME", ".cache/")
+}
+
+/* Chemin vers le dossier de runtime des programmes de l'utilisateur.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemin_pour_dossier_runtime_utilisateur :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_pour_variable_environnement("XDG_RUNTIME_DIR")
+}
+
+/* Retourne le chemin contenu dans la variable d'environnement ou celui
+ * correspondant à $HOME/replis si la variable est nulle ou invalide. */
+système_chemin_utilisateur_ou_replis :: fonc (variable: chaine, replis: chaine) -> Optionnel(CheminFichier)
+{
+    chemin_potentiel := système_chemin_pour_variable_environnement(variable)
+    si chemin_potentiel.possède_valeur() {
+        chemin := chemin_potentiel.Quelque
+
+        /* Le chemin doit être absolu, sinon selon la spécification nous pouvons l'ignorer. */
+        si chemin.est_absolu() {
+            retourne chemin
+        }
+    }
+
+    /* Aucun chemin dans la variable, replions-nous sur $HOME/replis */
+    chemin_maison := système_chemin_répertoire_personnel()
+    si chemin_maison.chn {
+        retourne chemin_maison / replis
+    }
+}
+
+/* Retourne le chemin vers la corbeille de l'utilisateur. */
+système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
+{
+    /* Tente d'abord avec XDG_DATA_HOME.
+     * Nous n'utilisons pas système_chemin_pour_dossier_données_utilisateur
+     * afin de pouvoir tester la variable d'environnement et le replis
+     * séparément. */
+	xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME")
+    si xdg_data_home.possède_valeur() {
+        chemin_données := xdg_data_home.Quelque
+        diffère détruit_chemin(chemin_données)
+
+        chemin_potentiel := chemin_données / "Trash"
+        si est_un_dossier(chemin_potentiel) {
+            retourne chemin_potentiel
+        }
+
+        détruit_chemin(chemin_potentiel)
+    }
+
+    /* Tente le replis de XDG_DATA_HOME. */
+    chemin_maison := système_chemin_répertoire_personnel()
+    saufsi chemin_maison.chn {
+        retourne
+    }
+
+    diffère détruit_chemin(chemin_maison)
+
+	chemin_potentiel := chemin_maison / ".local/share/Trash";
+    si est_un_dossier(chemin_potentiel) {
+        retourne chemin_potentiel
+    }
+
+    détruit_chemin(chemin_potentiel)
+
+    /* Tente un dernier coup avec $HOME/.trash. */
+	chemin_potentiel = chemin_maison / ".trash";
+    si est_un_dossier(chemin_potentiel) {
+        retourne chemin_potentiel
+    }
+
+    détruit_chemin(chemin_potentiel)
+}
+
+/* \} */
+
+/* ------------------------------------------------------------------------- */
+/** Accès à des chemins clé du système.
+ * \{ */
+
+/* Retourne le chemin vers le dossier temporaire du système. Le chemin est logé
+ * dans la mémoire, et doit être délogé par la fonction d'appel. */
+système_chemin_dossier_temporaire :: fonc () -> CheminFichier
+{
+    retourne CheminFichier(copie_chaine("/tmp"))
+}
+
+/* Chemins possibles où mettre les données des programmes.
+ * Les chemins sont copiés et doivent être détruit par la fonction d'appel.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemins_système_de_données :: fonc () -> Optionnel([]CheminFichier)
+{
+    retourne système_chemins_système_pour_variable("XDG_DATA_DIRS")
+}
+
+/* Chemins possibles où mettre les configurations des programmes.
+ * Les chemins sont copiés et doivent être détruit par la fonction d'appel.
+ * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
+système_chemins_système_de_configuration :: fonc () -> Optionnel([]CheminFichier)
+{
+    retourne système_chemins_système_pour_variable("XDG_CONFIG_DIRS")
+}
+
+/* Retourne les chemins contenus dans la variable d'environnement donnée.
+ * Les chemins sont copiés et doivent être détruit par la fonction d'appel. */
+système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel([]CheminFichier)
+{
+    chemins := chaine_environnement(variable)
+    saufsi chemins {
+        retourne
+    }
+    diffère déloge(chemins)
+
+    morceaux := divise(chemins, ':')
+
+    résultat : []CheminFichier
+    tableau_réserve(*résultat, morceaux.taille)
+
+    pour morceaux {
+        tableau_ajoute(*résultat, CheminFichier(copie_chaine(it)))
+    }
+
+    retourne résultat
+}
+
+/* \} */
+
+/* ------------------------------------------------------------------------- */
+/** Déplace un fichier vers la corbeille de l'utilisateur.
+ * \{ */
+
+système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
+{
+    saufsi fichier_existe(chemin) {
+        retourne ErreurFichier.FichierInexistant
+    } 
+
+    chemin_corbeille_opt := système_chemin_pour_corbeille()
+    saufsi chemin_corbeille_opt.possède_valeur() {
+        retourne ErreurFichier.FichierInexistant
+    }
+
+    chemin_corbeille := chemin_corbeille_opt.Quelque
+
+    chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin)
+    diffère détruit_chemin(chemin_destination)
+
+    nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension())
+    chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info
+    diffère détruit_chemin(chemin_fichier_info)
+    déloge(nom_fichier_info)
+
+    /* Écris le fichier d'information avant de déplacer le fichier dans la
+     * corbeille afin de s'assurer que nous avons l'espace disque nécessaire.
+     */
+    discr système_écris_fichier_info_corbeille(chemin_fichier_info, chemin) {
+        Quelque(err) {
+            /* Une erreur est survenue. */
+            retourne err
+        }
+        sinon {}
+    }
+
+    /* Tente de déplacer le fichier dans la corbeille. */
+    discr système_renomme(chemin, chemin_destination) {
+        Quelque(err) {
+            /* Échec, supprimons le fichier d'information. Nous ignorons
+             * l'erreur potentielle; puisque nous en avons déjà une, gérer ce
+             * cas n'est pas évident. */
+            _ := système_supprime(chemin_fichier_info)
+
+            retourne err
+        }
+        sinon {}
+    }
+}
+
+/* Génère le chemin de destination, dans la corbeille, pour le chemin_à_supprimer. */
+système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFichier, chemin_à_supprimer: CheminFichier) -> CheminFichier
+{
+    nom_fichier := chemin_à_supprimer.nom_fichier()
+    extension := chemin_à_supprimer.extension()
+
+    chemin_destination := chemin_corbeille / "files" / chemin_à_supprimer.nom_fichier_avec_extension()
+
+    /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
+    index := 1
+    tantque fichier_existe(chemin_destination) {
+        détruit_chemin(chemin_destination)
+
+        nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, index, extension)
+        chemin_destination = chemin_corbeille / "files" / nom_fichier_destination
+        déloge(nom_fichier_destination)
+
+        index += 1
+    }
+
+    retourne chemin_destination
+}
+
+/* Écris le fichier d'information permettant de savoir d'où vient le fichier supprimé,
+ * afin de pouvoir le restaurer. */
+système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichier, chemin_à_supprimer: CheminFichier) -> Optionnel(ErreurFichier)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "[Trash Info]\n")
+    // À FAIRE : encode les caractères unicode au format %HexHex
+    ajoute_au_tampon(*enchaineuse, "Path=", chemin_à_supprimer, "\n")
+    ajoute_au_tampon(*enchaineuse, "DeletionDate=")
+    formatte(hui_système(), *enchaineuse, "%A-%M-%JT%h:%m:%s")
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    discr copie_enchaineuse_fichier(*enchaineuse, chemin_fichier_info) {
+        Quelque(err) {
+            si err != 0 comme ErreurFichier {
+                /* Une erreur est survenue. */
+                retourne err
+            }
+        }
+        sinon {}
+    }
+}
+
+/* \} */
 
 système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
