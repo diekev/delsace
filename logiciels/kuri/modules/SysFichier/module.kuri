@@ -4,7 +4,9 @@ importe Structures
 charge "chemin"
 charge "exploratrice"
 charge "fichier"
+charge "fichier_paginé_mémoire"
 charge "linux"
+charge "liste_entrées_dossier"
 charge "requête"
 
 /*
