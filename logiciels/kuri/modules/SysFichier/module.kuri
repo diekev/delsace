@@ -51,6 +51,48 @@ ferme_fichier
 
  */
 
+// ----------------------------------------------------------
+// Toutes les erreurs possibles.
+
+ErreurFichier :: erreur {
+    Inconnue
+
+    EntréeSortie
+    EntréeSortieSpéciale
+    EspaceDisqueInexistant
+    EspaceDisqueInsuffisant
+    FichierEstLectureSeul
+    FichierEstPipe
+    FichierExisteDéjà
+    FichierInexistant
+    FichierInvalide
+    FichierTemporaireNonSupporté
+    FichierTropGrand
+    FichierTropPetit
+    ImageEnLecture
+    InterrompuParSignal
+    LimiteOuvertureFichierAtteinte
+    MauvaisEspaceAdressage
+    MatérielInconnu
+    MémoireInsuffisante
+    NomTropGrand
+    ActionPeutBloquer
+    ActionImpossibleSurDossier
+    PaireNonRenseigné
+    PasDansUnDossier
+    PermissionNonAccordé
+    PipeFerméPourÉcriture
+    SynchronisationImpossiblePourFichier
+    TropDeLiensSymboliques
+    ValeurInvalide
+    ÀCourtDeVerrouxDeFichier
+    OpérationImpossiblePourLeSystème
+    TamponSortieTropPetit
+    NEstPasUnDossier
+}
+
+// ----------------------------------------------------------
+
 espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
 {
     retourne système_espace_disque_disponible(chemin)

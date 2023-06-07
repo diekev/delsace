@@ -15,46 +15,6 @@ opérateur != :: fonc (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
     retourne (p0 comme z32) != (p1 comme z32)
 }
 
-// ----------------------------------------------------------
-// Toutes les erreurs possibles ; symétries de celles d'errno
-
-ErreurFichier :: erreur {
-    Inconnue
-
-    EntréeSortie
-    EntréeSortieSpéciale
-    EspaceDisqueInexistant
-    EspaceDisqueInsuffisant
-    FichierEstLectureSeul
-    FichierEstPipe
-    FichierExisteDéjà
-    FichierInexistant
-    FichierInvalide
-    FichierTemporaireNonSupporté
-    FichierTropGrand
-    FichierTropPetit
-    ImageEnLecture
-    InterrompuParSignal
-    LimiteOuvertureFichierAtteinte
-    MauvaisEspaceAdressage
-    MatérielInconnu
-    MémoireInsuffisante
-    NomTropGrand
-    ActionPeutBloquer
-    ActionImpossibleSurDossier
-    PaireNonRenseigné
-    PasDansUnDossier
-    PermissionNonAccordé
-    PipeFerméPourÉcriture
-    SynchronisationImpossiblePourFichier
-    TropDeLiensSymboliques
-    ValeurInvalide
-    ÀCourtDeVerrouxDeFichier
-    OpérationImpossiblePourLeSystème
-    TamponSortieTropPetit
-    NEstPasUnDossier
-}
-
 initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
 {
     résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier
