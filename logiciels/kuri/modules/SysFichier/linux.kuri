@@ -847,3 +847,17 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
 
     retourne résultat
 }
+
+système_est_chemin_absolu :: fonc (chm: CheminFichier) -> bool
+{
+    saufsi chm.chn {
+        retourne faux
+    }
+
+    premier_caractère := chm.chn[0]
+    si premier_caractère != système_séparateur_chemin_préféré() && premier_caractère != '~' {
+        retourne faux
+    }
+
+    retourne vrai
+}
