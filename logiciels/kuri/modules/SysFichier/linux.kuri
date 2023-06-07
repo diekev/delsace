@@ -564,17 +564,16 @@ système_supprime :: fonc(chm : CheminFichier) -> Optionnel(ErreurFichier)
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
-système_chemin_exécutable :: fonc () -> CheminFichier
+système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
     résultat : CheminFichier
 
     TAILLE_TAMPON_READLINK :: 1024
     tampon: [TAILLE_TAMPON_READLINK]z8
 
-    // À FAIRE : erreur
     lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
     si lus < 0 {
-        retourne résultat
+        retourne convertis_errno_en_erreur_fichier()
     }
 
     chn := loge_chaine(lus)
