@@ -285,52 +285,59 @@ nombre_de_jours_entre :: fonc (date1: Date, date2: Date) -> z32
 */
 formatte :: fonc (date: &Date, format: chaine) -> chaine
 {
-    i : z64 = 0
-
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
+
+    formatte(date, *enchaineuse, format)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+formatte :: fonc (date: Date, enchaineuse: *Enchaineuse, format: chaine)
+{
+    i : z64 = 0
 
     tantque i < format.taille {
         si format[i] != '%' {
             chn := construit_chaine(*format[i], 1)
-            ajoute_au_tampon(*enchaineuse, chn)
+            ajoute_au_tampon(enchaineuse, chn)
         }
         sinon {
             i += 1
 
             discr format[i] {
                 'A' {
-                    ajoute_au_tampon(*enchaineuse, date.année)
+                    ajoute_au_tampon(enchaineuse, date.année)
                 }
                 'M' {
                     si (date.mois) < 10 {
-                        ajoute_au_tampon(*enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.mois)
+                    ajoute_au_tampon(enchaineuse, date.mois)
                 }
                 'J' {
                     si (date.jour) < 10 {
-                        ajoute_au_tampon(*enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.jour)
+                    ajoute_au_tampon(enchaineuse, date.jour)
                 }
                 'h' {
                     si (date.heure) < 10 {
-                        ajoute_au_tampon(*enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.heure)
+                    ajoute_au_tampon(enchaineuse, date.heure)
                 }
                 'm' {
                     si (date.minute) < 10 {
-                        ajoute_au_tampon(*enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.minute)
+                    ajoute_au_tampon(enchaineuse, date.minute)
                 }
                 's' {
                     si (date.seconde) < 10 {
-                        ajoute_au_tampon(*enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0')
                     }
-                    ajoute_au_tampon(*enchaineuse, date.seconde)
+                    ajoute_au_tampon(enchaineuse, date.seconde)
                 }
                 sinon {
                     continue
@@ -340,8 +347,6 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
 
         i += 1
     }
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
