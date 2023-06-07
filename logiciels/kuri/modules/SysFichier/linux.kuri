@@ -61,6 +61,7 @@ initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFich
     // système_ouvre : dépend du drapeau
     résultat[EPERM] = ErreurFichier.PermissionNonAccordé
     // système_ouvre : Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
+    // rename : newpath is an existing directory, but oldpath is not a directory
     résultat[EISDIR] = ErreurFichier.ActionImpossibleSurDossier
     // À FAIRE
     résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale // système_ouvre dépend du type de fichier
@@ -101,6 +102,22 @@ initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFich
 
     // système_chemin_courant : la taille du nom de fichier est plus grande que le tampon donnée
     résultat[ERANGE] = ErreurFichier.TamponSortieTropPetit
+
+    // rename
+    // The rename fails because oldpath or newpath is a directory that is in use
+    // by some process (perhaps as current working directory, or as root directory,
+    // or because it was open for reading) or is in use by the system (for example
+    // as mount point), while the system considers this an error.  (Note that there
+    // is no requirement to return EBUSY in such cases—there is nothing wrong with
+    // doing the rename anyway—but it is allowed to return EBUSY if the system
+    // cannot otherwise handle such situations.)
+    résultat[EBUSY] = ErreurFichier.DossierUtiliséParQuelqueAutreProcessus
+    résultat[ENOTEMPTY] = ErreurFichier.DossierNonVide
+    // oldpath  and  newpath  are  not  on  the  same mounted filesystem.  (Linux
+    // permits a filesystem to be mounted at multiple points, but rename() does
+    // not work across different mount points, even if the same filesystem is
+    // mounted on both.)
+    résultat[EXDEV] = ErreurFichier.DifférentSystèmeFichier
 
     retourne résultat
 }

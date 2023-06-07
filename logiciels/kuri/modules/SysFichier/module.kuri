@@ -91,6 +91,9 @@ ErreurFichier :: erreur {
     OpérationImpossiblePourLeSystème
     TamponSortieTropPetit
     NEstPasUnDossier
+    DossierUtiliséParQuelqueAutreProcessus
+    DossierNonVide
+    DifférentSystèmeFichier
 }
 
 // ----------------------------------------------------------
