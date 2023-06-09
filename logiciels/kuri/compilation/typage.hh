@@ -174,7 +174,7 @@ enum {
     POSSEDE_TYPE_TABLEAU_DYNAMIQUE = 128,
     POSSEDE_TYPE_TYPE_DE_DONNEES = 256,
     CODE_BINAIRE_TYPE_FUT_GENERE = 512,
-    TYPE_EST_NORMALISE = 1024,
+    /* DISPONIBLE = 1024, */
     TYPE_POSSEDE_OPERATEURS_DE_BASE = 2048,
     UNITE_POUR_INITIALISATION_FUT_CREE = 4096,
 };
@@ -815,8 +815,6 @@ inline bool est_type_entier(Type const *type)
 }
 
 bool est_type_booleen_implicite(Type *type);
-
-Type *normalise_type(Typeuse &typeuse, Type *type);
 
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
 
