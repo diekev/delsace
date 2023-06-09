@@ -28,6 +28,10 @@
 
 #include "representation_intermediaire/constructrice_ri.hh"
 
+/* Défini si les structures doivent avoir des membres explicites. Sinon, le code généré utilisera
+ * des tableaux d'octets pour toutes les structures. */
+#define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+
 /* ************************************************************************** */
 
 enum {
@@ -243,7 +247,7 @@ struct ConvertisseuseTypeC {
                 auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
 
                 if (type_union->est_anonyme) {
-                    type_c.typedef_ = enchaine("struct ", nom_union, type_union);
+                    type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
                 }
                 else {
                     auto decl = type_union->decl;
@@ -252,7 +256,8 @@ struct ConvertisseuseTypeC {
                         type_c.typedef_ = broyeuse.nom_broye_type(type_le_plus_grand);
                     }
                     else if (type_union->decl && type_union->decl->est_monomorphisation) {
-                        type_c.typedef_ = enchaine("struct ", nom_union, type_union);
+                        type_c.typedef_ = enchaine(
+                            "struct ", nom_union, type_union->type_structure);
                     }
                     else {
                         type_c.typedef_ = enchaine("struct ", nom_union);
@@ -453,11 +458,21 @@ struct ConvertisseuseTypeC {
 
             enchaineuse << "typedef struct " << nom_broye << " {\n";
 
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            enchaineuse << "  union {\n";
+            enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
+            enchaineuse << "  struct {\n";
+#endif
             auto index_membre = 0;
             for (auto &membre : type_tuple->membres) {
                 enchaineuse << broyeuse.nom_broye_type(membre.type) << " _" << index_membre++
                             << ";\n";
             }
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            enchaineuse << "};\n";  // struct
+            enchaineuse << "};\n";  // union
+#endif
 
             enchaineuse << "} " << nom_broye << ";\n";
         }
@@ -496,10 +511,21 @@ struct ConvertisseuseTypeC {
                 auto const &nom_broye = broyeuse.nom_broye_type(type);
                 enchaineuse << "typedef struct Tableau_" << nom_broye;
                 enchaineuse << "{\n\t";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+                enchaineuse << "  union {\n";
+                enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
+                enchaineuse << "  struct {\n";
+#endif
                 enchaineuse << broyeuse.nom_broye_type(type_pointe) << " *pointeur;";
                 enchaineuse << "\n\tlong taille;\n"
-                            << "\tlong " << broyeuse.broye_nom_simple(ID::capacite)
-                            << ";\n} Tableau_" << nom_broye << ";\n\n";
+                            << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+                enchaineuse << "};\n";  // struct
+                enchaineuse << "};\n";  // union
+#endif
+                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
             }
         }
         else if (type->est_opaque()) {
@@ -551,6 +577,12 @@ void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
         enchaineuse << "{\n";
     }
 
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "union {\n";
+    enchaineuse << "  unsigned char d[" << type_compose->taille_octet << "];\n";
+    enchaineuse << "  struct {\n ";
+#endif
+
     POUR (type_compose->membres) {
         if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
             continue;
@@ -568,6 +600,10 @@ void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
         }
     }
 
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "};\n";  // struct
+    enchaineuse << "};\n";  // union
+#endif
     enchaineuse << "} ";
 
     if (type_compose->decl) {
@@ -604,14 +640,14 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse <<
         R"(
 #define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
-	static KsKuriInfoFonctionTraceAppel mon_info = { { .pointeur = _nom_fonction, .taille = _taille_nom }, { .pointeur = _fichier, .taille = _taille_fichier }, _pointeur_fonction }; \
+    static KsKuriInfoFonctionTraceAppel mon_info = { .nom = { .pointeur = _nom_fonction, .taille = _taille_nom }, .fichier = { .pointeur = _fichier, .taille = _taille_fichier }, .adresse = _pointeur_fonction }; \
 	KsKuriTraceAppel ma_trace = { 0 }; \
 	ma_trace.info_fonction = &mon_info; \
  ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
  ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
-	static KsKuriInfoAppelTraceAppel info_appel##_index = { _ligne, _colonne, { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
+    static KsKuriInfoAppelTraceAppel info_appel##_index = { .ligne = _ligne, .colonne = _colonne, .texte = { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
 	ma_trace.info_appel = &info_appel##_index; \
  __contexte_fil_principal.trace_appel = &ma_trace;
 
@@ -626,8 +662,16 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 	)";
 
     /* déclaration des types de bases */
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "typedef struct chaine { union { unsigned char d[16]; struct { char *pointeur; "
+                   "int64_t taille; };}; } chaine;\n";
+    enchaineuse << "typedef struct eini { union { unsigned char d[16]; struct { void *pointeur; "
+                   "struct KuriInfoType *info; };}; } eini;\n";
+#else
     enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
+#endif
     enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
     enchaineuse << "typedef unsigned char bool;\n";
     enchaineuse << "#endif\n";
@@ -1500,14 +1544,27 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
 
             assert(valeur_accede != "");
 
-            auto type_pointeur = inst_acces->accede->type->comme_pointeur();
+            auto type_accede = inst_acces->accede->type;
+            auto type_pointe = Type::nul();
+            if (type_accede->est_pointeur()) {
+                type_pointe = type_accede->comme_pointeur()->type_pointe;
+            }
+            else if (type_accede->est_reference()) {
+                type_pointe = type_accede->comme_reference()->type_pointe;
+            }
 
-            auto type_pointe = type_pointeur->type_pointe;
             if (type_pointe->est_opaque()) {
                 type_pointe = type_pointe->comme_opaque()->type_opacifie;
             }
 
             auto type_compose = static_cast<TypeCompose *>(type_pointe);
+
+            /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
+             * + index. */
+            if (type_compose->est_union()) {
+                type_compose = type_compose->comme_union()->type_structure;
+            }
+
             auto index_membre = static_cast<int>(
                 static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
 
@@ -1520,6 +1577,11 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
 
             auto const &membre = type_compose->membres[index_membre];
 
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            auto nom_type = broyeuse.nom_broye_type(membre.type);
+            valeur_accede = enchaine(
+                "&(*(", nom_type, " *)", valeur_accede, "d[", membre.decalage, "])");
+#else
             /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
             if (membre.nom == ID::chaine_vide) {
                 valeur_accede = enchaine(valeur_accede, "membre_invisible");
@@ -1530,6 +1592,7 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
             else {
                 valeur_accede = enchaine(valeur_accede, broyeuse.broye_nom_simple(membre.nom));
             }
+#endif
 
             table_valeurs.insere(inst_acces, valeur_accede);
             break;
