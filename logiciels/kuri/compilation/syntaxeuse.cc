@@ -1237,6 +1237,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         }
         case GenreLexeme::DECLARATION_CONSTANTE:
         {
+            if (!gauche->est_reference_declaration()) {
+                rapporte_erreur("Attendu une référence à une déclaration à gauche de « :: »");
+                return nullptr;
+            }
+
             consomme();
 
             m_est_declaration_type_opaque = false;

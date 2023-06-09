@@ -799,7 +799,13 @@ struct Typeuse {
 
 /* ************************************************************************** */
 
-kuri::chaine chaine_type(Type const *type);
+/* Retourne une chaine correspondant au nom du type.
+ *
+ * Si ajoute ajoute_nom_paramètres_polymorphiques est vrai, alors pour les types provenant d'une
+ * monomorphisation, ceci ajoute les noms des paramètres avant les valeurs. C'est-à-dire, pour une
+ * monomorphisation « Vec3(r32) » retourne « Vec3(T: r32) ».
+ */
+kuri::chaine chaine_type(Type const *type, bool ajoute_nom_paramètres_polymorphiques = true);
 
 Type *type_dereference_pour(Type const *type);
 
