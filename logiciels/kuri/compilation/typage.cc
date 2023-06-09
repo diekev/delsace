@@ -1153,7 +1153,9 @@ NoeudDeclaration *Typeuse::decl_pour_info_type(InfoType const *info_type)
 
 /* ************************************************************************** */
 
-static void chaine_type_structure(Enchaineuse &enchaineuse, const TypeStructure *type_structure)
+static void chaine_type_structure(Enchaineuse &enchaineuse,
+                                  const TypeStructure *type_structure,
+                                  bool ajoute_nom_paramètres_polymorphiques)
 {
     enchaineuse << type_structure->nom->nom;
     auto decl = type_structure->decl;
@@ -1161,7 +1163,10 @@ static void chaine_type_structure(Enchaineuse &enchaineuse, const TypeStructure 
     if (decl->est_monomorphisation) {
         POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
             enchaineuse << virgule;
-            enchaineuse << it->ident->nom << ": ";
+
+            if (ajoute_nom_paramètres_polymorphiques) {
+                enchaineuse << it->ident->nom << ": ";
+            }
 
             if (it->type->est_type_de_donnees()) {
                 enchaineuse << chaine_type(it->type->comme_type_de_donnees()->type_connu);
@@ -1184,7 +1189,9 @@ static void chaine_type_structure(Enchaineuse &enchaineuse, const TypeStructure 
     }
 }
 
-static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
+static void chaine_type(Enchaineuse &enchaineuse,
+                        const Type *type,
+                        bool ajoute_nom_paramètres_polymorphiques)
 {
     if (type == nullptr) {
         enchaineuse.ajoute("nul");
@@ -1295,7 +1302,9 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
         case GenreType::REFERENCE:
         {
             enchaineuse.ajoute("&");
-            chaine_type(enchaineuse, static_cast<TypeReference const *>(type)->type_pointe);
+            chaine_type(enchaineuse,
+                        static_cast<TypeReference const *>(type)->type_pointe,
+                        ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::POINTEUR:
@@ -1306,7 +1315,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             }
             else {
                 enchaineuse.ajoute("*");
-                chaine_type(enchaineuse, type_pointe);
+                chaine_type(enchaineuse, type_pointe, ajoute_nom_paramètres_polymorphiques);
             }
             return;
         }
@@ -1319,7 +1328,8 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
                 return;
             }
 
-            chaine_type_structure(enchaineuse, type_structure);
+            chaine_type_structure(
+                enchaineuse, type_structure, ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::STRUCTURE:
@@ -1331,13 +1341,16 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
                 return;
             }
 
-            chaine_type_structure(enchaineuse, type_structure);
+            chaine_type_structure(
+                enchaineuse, type_structure, ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
         {
             enchaineuse.ajoute("[]");
-            chaine_type(enchaineuse, static_cast<TypeTableauDynamique const *>(type)->type_pointe);
+            chaine_type(enchaineuse,
+                        static_cast<TypeTableauDynamique const *>(type)->type_pointe,
+                        ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::TABLEAU_FIXE:
@@ -1345,13 +1358,15 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             auto type_tabl = static_cast<TypeTableauFixe const *>(type);
 
             enchaineuse << "[" << type_tabl->taille << "]";
-            chaine_type(enchaineuse, type_tabl->type_pointe);
+            chaine_type(enchaineuse, type_tabl->type_pointe, ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::VARIADIQUE:
         {
             enchaineuse << "...";
-            chaine_type(enchaineuse, static_cast<TypeVariadique const *>(type)->type_pointe);
+            chaine_type(enchaineuse,
+                        static_cast<TypeVariadique const *>(type)->type_pointe,
+                        ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::FONCTION:
@@ -1364,7 +1379,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
 
             POUR (type_fonc->types_entrees) {
                 enchaineuse << virgule;
-                chaine_type(enchaineuse, it);
+                chaine_type(enchaineuse, it, ajoute_nom_paramètres_polymorphiques);
                 virgule = ',';
             }
 
@@ -1374,7 +1389,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             enchaineuse << ')';
 
             enchaineuse << '(';
-            chaine_type(enchaineuse, type_fonc->type_sortie);
+            chaine_type(enchaineuse, type_fonc->type_sortie, ajoute_nom_paramètres_polymorphiques);
             enchaineuse << ')';
             return;
         }
@@ -1411,7 +1426,8 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             auto type_opaque = static_cast<TypeOpaque const *>(type);
             enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
             enchaineuse << "(";
-            chaine_type(enchaineuse, type_opaque->type_opacifie);
+            chaine_type(
+                enchaineuse, type_opaque->type_opacifie, ajoute_nom_paramètres_polymorphiques);
             enchaineuse << ")";
             return;
         }
@@ -1423,7 +1439,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
             auto virgule = '(';
             POUR (type_tuple->membres) {
                 enchaineuse << virgule;
-                chaine_type(enchaineuse, it.type);
+                chaine_type(enchaineuse, it.type, ajoute_nom_paramètres_polymorphiques);
                 virgule = ',';
             }
 
@@ -1433,10 +1449,10 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type)
     }
 }
 
-kuri::chaine chaine_type(const Type *type)
+kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorphiques)
 {
     Enchaineuse enchaineuse;
-    chaine_type(enchaineuse, type);
+    chaine_type(enchaineuse, type, ajoute_nom_paramètres_polymorphiques);
     return enchaineuse.chaine();
 }
 
@@ -1765,7 +1781,7 @@ static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
     return enchaineuse.chaine();
 }
 
-static kuri::chaine nom_hierarchique(NoeudBloc *bloc, IdentifiantCode const *ident)
+static kuri::chaine nom_hierarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
 {
     auto const noms = noms_hierarchie(bloc);
 
@@ -1775,7 +1791,7 @@ static kuri::chaine nom_hierarchique(NoeudBloc *bloc, IdentifiantCode const *ide
         enchaineuse.ajoute(noms[i]);
         enchaineuse.ajoute(".");
     }
-    enchaineuse.ajoute(ident ? ident->nom : "anonyme");
+    enchaineuse.ajoute(ident);
 
     return enchaineuse.chaine();
 }
@@ -1796,7 +1812,8 @@ kuri::chaine_statique TypeStructure::nom_hierarchique()
         return nom_hierarchique_;
     }
 
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
+                                           chaine_type(this, false));
     return nom_hierarchique_;
 }
 
@@ -1816,7 +1833,8 @@ kuri::chaine_statique TypeUnion::nom_hierarchique()
         return nom_hierarchique_;
     }
 
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
+                                           chaine_type(this, false));
     return nom_hierarchique_;
 }
 
@@ -1836,7 +1854,8 @@ kuri::chaine_statique TypeEnum::nom_hierarchique()
         return nom_hierarchique_;
     }
 
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr, nom);
+    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
+                                           chaine_type(this, false));
     return nom_hierarchique_;
 }
 
@@ -1856,7 +1875,7 @@ kuri::chaine_statique TypeOpaque::nom_hierarchique()
         return nom_hierarchique_;
     }
 
-    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, ident);
+    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, chaine_type(this));
     return nom_hierarchique_;
 }
 
