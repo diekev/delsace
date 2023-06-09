@@ -24,13 +24,17 @@
 
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QGLWidget>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
@@ -92,7 +96,7 @@ class EditriceVue2D : public BaseEditrice {
     EditriceVue2D(EditriceVue2D const &) = default;
     EditriceVue2D &operator=(EditriceVue2D const &) = default;
 
-    void ajourne_etat(int event) override;
+    void ajourne_état(JJL::TypeEvenement évènement) override;
 
     void ajourne_manipulable() override
     {

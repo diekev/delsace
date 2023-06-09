@@ -4,7 +4,9 @@ importe Structures
 charge "chemin"
 charge "exploratrice"
 charge "fichier"
+charge "fichier_paginé_mémoire"
 charge "linux"
+charge "liste_entrées_dossier"
 charge "requête"
 
 /*
@@ -51,7 +53,52 @@ ferme_fichier
 
  */
 
-espace_disque_disponible :: fonc (chemin: &CheminFichier) -> n64
+// ----------------------------------------------------------
+// Toutes les erreurs possibles.
+
+ErreurFichier :: erreur {
+    Inconnue
+
+    EntréeSortie
+    EntréeSortieSpéciale
+    EspaceDisqueInexistant
+    EspaceDisqueInsuffisant
+    FichierEstLectureSeul
+    FichierEstPipe
+    FichierExisteDéjà
+    FichierInexistant
+    FichierInvalide
+    FichierTemporaireNonSupporté
+    FichierTropGrand
+    FichierTropPetit
+    ImageEnLecture
+    InterrompuParSignal
+    LimiteOuvertureFichierAtteinte
+    MauvaisEspaceAdressage
+    MatérielInconnu
+    MémoireInsuffisante
+    NomTropGrand
+    ActionPeutBloquer
+    ActionImpossibleSurDossier
+    PaireNonRenseigné
+    PasDansUnDossier
+    PermissionNonAccordé
+    PipeFerméPourÉcriture
+    SynchronisationImpossiblePourFichier
+    TropDeLiensSymboliques
+    ValeurInvalide
+    ÀCourtDeVerrouxDeFichier
+    OpérationImpossiblePourLeSystème
+    TamponSortieTropPetit
+    NEstPasUnDossier
+    DossierUtiliséParQuelqueAutreProcessus
+    DossierNonVide
+    DifférentSystèmeFichier
+}
+
+// ----------------------------------------------------------
+
+espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
 {
     retourne système_espace_disque_disponible(chemin)
 }
@@ -98,34 +145,32 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
 
 // -----------------------------------------------------------------------
 
-chemin_courant :: fonc() -> CheminFichier
+chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_courant()
 }
 
-chemin_courant :: fonc(chemin : CheminFichier) -> ErreurFichier
+chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
 {
 	retourne système_chemin_courant(chemin)
 }
 
-chemin_répertoire_personnel :: fonc () -> CheminFichier
+chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
 {
     retourne système_chemin_répertoire_personnel()
 }
 
-chemin_véritable :: fonc (chemin: CheminFichier) -> CheminFichier
+chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_véritable(chemin)
 }
 
-// À FAIRE : mettre à la corbeille, trouver le chemin vers HOME/TMP
-
-renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
+renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> Optionnel(ErreurFichier)
 {
 	retourne système_renomme(orig, dest)
 }
 
-supprime :: fonc(chm : &CheminFichier) -> z32
+supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_supprime(chm)
 }
@@ -133,20 +178,12 @@ supprime :: fonc(chm : &CheminFichier) -> z32
 /*
 
     Opération sur les chemins de fichiers :
-    - trouve le nom du dossier
-    - trouve le nom du fichier
-    - trouve l'extension
     - remplace l'extension
-    - chemin relatif (crée_chemin_relatif, est_chemin_relatif, est_relatif_à)
-    - chemin absolu (crée_chemin_absolu, est_chemin_absolu)
-    - chemins sont équivalents
-    - normalisation de chemin
+    - chemin relatif (est_relatif_à)
     - crée un nom sûr (pour éviter les problèmes sur Windows dûs à des noms réservés)
     - ajout d'un suffixe avant l'extension (manipulations générales)
 
     - détermine une séquence de fichier (a001.ext, a0002.ext, etc.)
-        -- séquence d'images
-        -- séquence de caches
         -- séquence UDIM
         -- avoir un système de token pour définir où se trouve la quantité à trouver
             -- mon_image.<UDIM>.ext
