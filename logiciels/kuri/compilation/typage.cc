@@ -450,13 +450,15 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     types_communs[static_cast<int64_t>(TypeBase::CHAINE)] = type_chaine;
     types_communs[static_cast<int64_t>(TypeBase::RIEN)] = cree_type_pour_lexeme(GenreLexeme::RIEN);
     types_communs[static_cast<int64_t>(TypeBase::BOOL)] = cree_type_pour_lexeme(GenreLexeme::BOOL);
-    types_communs[static_cast<int64_t>(TypeBase::OCTET)] = cree_type_pour_lexeme(GenreLexeme::OCTET);
+    types_communs[static_cast<int64_t>(TypeBase::OCTET)] = cree_type_pour_lexeme(
+        GenreLexeme::OCTET);
     types_communs[static_cast<int64_t>(TypeBase::ENTIER_CONSTANT)] = Type::cree_entier_constant();
 
     for (auto i = static_cast<int64_t>(TypeBase::N8);
          i <= static_cast<int64_t>(TypeBase::ENTIER_CONSTANT);
          ++i) {
-        if (i == static_cast<int64_t>(TypeBase::EINI) || i == static_cast<int64_t>(TypeBase::CHAINE)) {
+        if (i == static_cast<int64_t>(TypeBase::EINI) ||
+            i == static_cast<int64_t>(TypeBase::CHAINE)) {
             continue;
         }
 
@@ -746,7 +748,8 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute(
+        {nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_tableaux_dynamiques_->ajoute_element(type_pointe, std::move(membres));
 
@@ -773,7 +776,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     auto membres = kuri::tableau<TypeCompose::Membre, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
-    membres.ajoute({nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
+    membres.ajoute(
+        {nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::capacite, 16});
 
     auto type = types_variadiques_->ajoute_element(type_pointe, std::move(membres));
 

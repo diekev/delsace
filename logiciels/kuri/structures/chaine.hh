@@ -286,7 +286,8 @@ public:
     }
 
     template <typename T>
-    void reloge_tableau(const char *ident, T *&ptr, int64_t ancienne_taille, int64_t nouvelle_taille);
+    void reloge_tableau(const char *ident, T *&ptr, int64_t ancienne_taille, int64_t
+nouvelle_taille);
 
     template <typename T>
     void deloge_tableau(T *&ptr, int64_t taille);

@@ -7,7 +7,8 @@
 #include "../structures/ensemble.hh"
 #include "../structures/file.hh"
 
-static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse, uint32_t iteration)
+static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse,
+                                    uint32_t iteration)
 {
     auto gna = GNA(iteration);
     const auto nombre_d_elements = gna.uniforme(0, 1024);
@@ -60,7 +61,8 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
     for (auto i = 0; i < nombre_d_elements; i++) {
         e.supprime(i);
         CU_VERIFIE_CONDITION(controleuse, !e.possede(i));
-        CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements - i - 1));
+        CU_VERIFIE_EGALITE(
+            controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements - i - 1));
     }
     CU_VERIFIE_CONDITION(controleuse, e.est_vide());
 }

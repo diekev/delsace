@@ -201,7 +201,8 @@ struct AtomeValeurConstante : public AtomeConstante {
         valeur_tdc->permute(donnees_constantes);
     }
 
-    AtomeValeurConstante(Type const *type_, char *pointeur, int64_t taille) : AtomeValeurConstante()
+    AtomeValeurConstante(Type const *type_, char *pointeur, int64_t taille)
+        : AtomeValeurConstante()
     {
         this->type = type_;
         this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
