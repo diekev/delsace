@@ -34,25 +34,25 @@ template <int TypeAttribut>
 struct SelectriceClasseAttribut;
 
 #define FLUX_VALEUR(type, nom)                                                                    \
-    type lis_##nom(int64_t index) const                                                              \
+    type lis_##nom(int64_t index) const                                                           \
     {                                                                                             \
         type v;                                                                                   \
         this->lis_##nom##_pour_index(this->donnees_utilisateur, index, &v);                       \
         return v;                                                                                 \
     }                                                                                             \
-    void ecris_##nom(int64_t index, type v) const                                                    \
+    void ecris_##nom(int64_t index, type v) const                                                 \
     {                                                                                             \
         this->ecris_##nom##_a_l_index(this->donnees_utilisateur, index, v);                       \
     }
 
 #define FLUX_VECTEUR(type, nom)                                                                   \
-    type lis_##nom(int64_t index) const                                                              \
+    type lis_##nom(int64_t index) const                                                           \
     {                                                                                             \
         type v;                                                                                   \
         this->lis_##nom##_pour_index(this->donnees_utilisateur, index, v);                        \
         return v;                                                                                 \
     }                                                                                             \
-    void ecris_##nom(int64_t index, type v) const                                                    \
+    void ecris_##nom(int64_t index, type v) const                                                 \
     {                                                                                             \
         this->ecris_##nom##_a_l_index(this->donnees_utilisateur, index, v);                       \
     }
@@ -67,7 +67,7 @@ struct SelectriceClasseAttribut;
         op(type, nom);                                                                            \
         void copie(kuri::tableau<type> const &valeurs)                                            \
         {                                                                                         \
-            for (int64_t i = 0; i < valeurs.taille(); i++) {                                         \
+            for (int64_t i = 0; i < valeurs.taille(); i++) {                                      \
                 ecris_##nom(i, valeurs[i]);                                                       \
             }                                                                                     \
         }                                                                                         \
@@ -120,8 +120,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->ajoute_attribut_sur_points) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->ajoute_attribut_sur_points(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->ajoute_attribut_sur_points(this->donnees,
+                                         TypeAttribut,
+                                         nom.c_str(),
+                                         static_cast<int64_t>(nom.size()),
+                                         &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -134,8 +137,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->accede_attribut_sur_points) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->accede_attribut_sur_points(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->accede_attribut_sur_points(this->donnees,
+                                         TypeAttribut,
+                                         nom.c_str(),
+                                         static_cast<int64_t>(nom.size()),
+                                         &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -173,8 +179,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->ajoute_attribut_sur_polygones) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->ajoute_attribut_sur_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->ajoute_attribut_sur_polygones(this->donnees,
+                                            TypeAttribut,
+                                            nom.c_str(),
+                                            static_cast<int64_t>(nom.size()),
+                                            &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -187,8 +196,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->accede_attribut_sur_polygones) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->accede_attribut_sur_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->accede_attribut_sur_polygones(this->donnees,
+                                            TypeAttribut,
+                                            nom.c_str(),
+                                            static_cast<int64_t>(nom.size()),
+                                            &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -204,8 +216,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->ajoute_attribut_sur_sommets_polygones) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->ajoute_attribut_sur_sommets_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->ajoute_attribut_sur_sommets_polygones(this->donnees,
+                                                    TypeAttribut,
+                                                    nom.c_str(),
+                                                    static_cast<int64_t>(nom.size()),
+                                                    &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -218,8 +233,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->accede_attribut_sur_sommets_polygones) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->accede_attribut_sur_sommets_polygones(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->accede_attribut_sur_sommets_polygones(this->donnees,
+                                                    TypeAttribut,
+                                                    nom.c_str(),
+                                                    static_cast<int64_t>(nom.size()),
+                                                    &adaptrice);
         if (!adaptrice) {
             return {};
         }
@@ -247,8 +265,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->ajoute_attribut_sur_maillage) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->ajoute_attribut_sur_maillage(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->ajoute_attribut_sur_maillage(this->donnees,
+                                           TypeAttribut,
+                                           nom.c_str(),
+                                           static_cast<int64_t>(nom.size()),
+                                           &adaptrice);
         return ClasseAttribut::enveloppe(&adaptrice);
     }
 
@@ -261,8 +282,11 @@ class Maillage : public AdaptriceMaillage {
         if (!this->accede_attribut_sur_maillage) {
             return ClasseAttribut::enveloppe(&adaptrice);
         }
-        this->accede_attribut_sur_maillage(
-            this->donnees, TypeAttribut, nom.c_str(), static_cast<int64_t>(nom.size()), &adaptrice);
+        this->accede_attribut_sur_maillage(this->donnees,
+                                           TypeAttribut,
+                                           nom.c_str(),
+                                           static_cast<int64_t>(nom.size()),
+                                           &adaptrice);
         if (!adaptrice) {
             return {};
         }

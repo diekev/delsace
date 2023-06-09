@@ -30,8 +30,8 @@ features for CPU and GPU profiling:
 #ifndef APP_PERF
 #define APP_PERF
 
-#include <stdio.h>
 #include "gvdb_types.h"
+#include <stdio.h>
 
 //----------------- PERFORMANCE MARKERS
 

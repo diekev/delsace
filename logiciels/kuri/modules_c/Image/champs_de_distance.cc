@@ -221,8 +221,10 @@ void navigation_estime_ex(CanalPourChampsDeDistance &image,
         for (auto l = 0; l < sy; ++l) {
             for (auto c = 0; c < sx; ++c, ++index) {
                 auto p = nearest_point[l][c];
-                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
-                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
+                gradient_x[index] = static_cast<float>(p.x - c) /
+                                    static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) /
+                                    static_cast<float>(image.hauteur);
             }
         }
     }
@@ -443,8 +445,10 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
                 }
 
                 auto const index = calcule_index(image, c, l);
-                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
-                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
+                gradient_x[index] = static_cast<float>(p.x - c) /
+                                    static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) /
+                                    static_cast<float>(image.hauteur);
             }
         }
     }
@@ -575,8 +579,10 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
         for (auto l = 0; l < sy; ++l) {
             for (auto c = 0; c < sx; ++c, ++index) {
                 auto p = grille1[l][c];
-                gradient_x[index] = static_cast<float>(p.x - c) / static_cast<float>(image.largeur);
-                gradient_y[index] = static_cast<float>(p.y - l) / static_cast<float>(image.hauteur);
+                gradient_x[index] = static_cast<float>(p.x - c) /
+                                    static_cast<float>(image.largeur);
+                gradient_y[index] = static_cast<float>(p.y - l) /
+                                    static_cast<float>(image.hauteur);
             }
         }
     }
@@ -585,7 +591,9 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
 } /* namespace generique */
 
 template <typename TypeParametres>
-auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree, AdaptriceImage &sortie, IMG_ParametresChampsDeDistance const &params)
+auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree,
+                                    AdaptriceImage &sortie,
+                                    IMG_ParametresChampsDeDistance const &params)
 {
     dls::tableau<CanalPourChampsDeDistance> canaux;
 
@@ -614,9 +622,7 @@ auto extrait_canaux_et_cree_sorties(const AdaptriceImage &entree, AdaptriceImage
             canal_entree = entree.canal_pour_index(&entree, calque_entree, 0);
         }
 
-        auto const donnees_canal_entree = entree.donnees_canal_pour_lecture(&entree,
-                                                                            canal_entree);
-
+        auto const donnees_canal_entree = entree.donnees_canal_pour_lecture(&entree, canal_entree);
 
         CanalPourChampsDeDistance donnees;
         donnees.hauteur = desc.hauteur;
