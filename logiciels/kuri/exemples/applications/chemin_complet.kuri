@@ -23,7 +23,10 @@ principale :: fonc () -> z32
         retourne 0
     }
 
-    chemin_courant := chemin_courant()
+    chemin_courant := tente chemin_courant() piège err {
+        imprime("Impossible de déterminer le chemin courant : %\n", err)
+        retourne 1
+    }
     diffère déloge(chemin_courant.chn)
 
     chm_abs := crée_chemin_absolu(chemin_courant, chm)

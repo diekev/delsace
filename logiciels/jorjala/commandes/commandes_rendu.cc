@@ -191,7 +191,7 @@ public:
 					jorjala->chemin_sortie,
 					jorjala->temps_courant);
 
-		jorjala->notifie_observatrices(type_evenement::image | type_evenement::traite);
+		jorjala->notifie_observatrices(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -243,14 +243,14 @@ public:
 			}
 
 			jorjala->notifie_observatrices(
-						type_evenement::image | type_evenement::traite);
+						JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
 		}
 
 		jorjala->temps_courant = temps_originale;
 
 		jorjala->ajourne_pour_nouveau_temps("fin commande rendu séquence");
 
-		jorjala->notifie_observatrices(type_evenement::temps | type_evenement::modifie);
+		jorjala->notifie_observatrices(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

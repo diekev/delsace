@@ -95,7 +95,24 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
         tampon_courant = tampon_courant.suivant
     }
 
+	/* À FAIRE : supprime ceci, utilise Optionnel. */
     retourne 0 comme ErreurFichier
+}
+
+copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFichier) -> Optionnel(ErreurFichier)
+{
+    raison : RaisonOuvertureFichier
+    raison.Écriture = vrai
+    raison.Création = vrai
+    raison.Troncage = vrai
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
+        retourne err
+    }
+
+    diffère { _ := ferme(*fichier) }
+
+    retourne copie_enchaineuse_fichier(enchaineuse, *fichier)
 }
 
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
