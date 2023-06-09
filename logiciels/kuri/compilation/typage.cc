@@ -109,7 +109,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
     type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
-    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -127,7 +127,7 @@ Type *Type::cree_reel(unsigned taille_octet)
     type->genre = GenreType::REEL;
     type->taille_octet = taille_octet;
     type->alignement = taille_octet;
-    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -136,7 +136,7 @@ Type *Type::cree_rien()
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::RIEN;
     type->taille_octet = 0;
-    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -146,7 +146,7 @@ Type *Type::cree_bool()
     type->genre = GenreType::BOOL;
     type->taille_octet = 1;
     type->alignement = 1;
-    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -156,7 +156,7 @@ Type *Type::cree_octet()
     type->genre = GenreType::OCTET;
     type->taille_octet = 1;
     type->alignement = 1;
-    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
 
@@ -233,7 +233,6 @@ TypeCompose *TypeCompose::cree_eini()
     type->genre = GenreType::EINI;
     type->taille_octet = 16;
     type->alignement = 8;
-    type->drapeaux = (TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -243,7 +242,6 @@ TypeCompose *TypeCompose::cree_chaine()
     type->genre = GenreType::CHAINE;
     type->taille_octet = 16;
     type->alignement = 8;
-    type->drapeaux = (TYPE_EST_NORMALISE);
     return type;
 }
 
@@ -504,7 +502,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
         {nullptr, types_communs[static_cast<int64_t>(TypeBase::PTR_RIEN)], ID::pointeur, 0});
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
-    type_eini->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
+    type_eini->drapeaux |= (TYPE_FUT_VALIDE);
 
     auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
     membres_chaine.ajoute(
@@ -512,11 +510,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     membres_chaine.ajoute(
         {nullptr, types_communs[static_cast<int64_t>(TypeBase::Z64)], ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
-    type_chaine->drapeaux |= (TYPE_FUT_VALIDE | TYPE_EST_NORMALISE);
-
-    POUR (types_communs) {
-        it->drapeaux |= TYPE_EST_NORMALISE;
-    }
+    type_chaine->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
 Typeuse::~Typeuse()
@@ -1532,98 +1526,6 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
                                  UNITE_POUR_INITIALISATION_FUT_CREE);
 
     typeuse.graphe_->connecte_type_type(this, type_structure);
-}
-
-/* Pour la génération de RI, les types doivent être normalisés afin de se rapprocher de la manière
- * dont ceux-ci sont « représenter » dans la machine. Ceci se fait en :
- * - remplaçant les références par des pointeurs
- * - convertissant les unions en leurs « types machines » : une structure pour les unions sûres, le
- * type le plus grand pour les sûres
- */
-Type *normalise_type(Typeuse &typeuse, Type *type)
-{
-    if (type == nullptr) {
-        return type;
-    }
-
-    auto resultat = type;
-
-    if (type->genre == GenreType::POINTEUR) {
-        auto type_pointeur = type->comme_pointeur();
-        auto type_normalise = normalise_type(typeuse, type_pointeur->type_pointe);
-
-        if (type_normalise != type_pointeur) {
-            resultat = typeuse.type_pointeur_pour(type_pointeur->type_pointe, false);
-        }
-    }
-    else if (type->genre == GenreType::UNION) {
-        auto type_union = type->comme_union();
-
-        if (type_union->est_nonsure) {
-            resultat = type_union->type_le_plus_grand;
-        }
-        else {
-            resultat = type_union->type_structure;
-        }
-    }
-    else if (type->genre == GenreType::TABLEAU_FIXE) {
-        auto type_tableau_fixe = type->comme_tableau_fixe();
-        resultat = normalise_type(typeuse, type_tableau_fixe->type_pointe);
-        resultat = typeuse.type_tableau_fixe(type_tableau_fixe->type_pointe,
-                                             type_tableau_fixe->taille);
-    }
-    else if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-        auto type_tableau_dyn = type->comme_tableau_dynamique();
-        auto type_normalise = normalise_type(typeuse, type_tableau_dyn->type_pointe);
-
-        if (type_normalise != type_tableau_dyn->type_pointe) {
-            resultat = typeuse.type_tableau_dynamique(type_tableau_dyn->type_pointe);
-        }
-    }
-    else if (type->genre == GenreType::VARIADIQUE) {
-        auto type_variadique = type->comme_variadique();
-        auto type_normalise = normalise_type(typeuse, type_variadique->type_pointe);
-
-        if (type_normalise != type_variadique) {
-            resultat = typeuse.type_variadique(type_variadique->type_pointe);
-        }
-    }
-    else if (type->genre == GenreType::REFERENCE) {
-        auto type_reference = type->comme_reference();
-        auto type_normalise = normalise_type(typeuse, type_reference->type_pointe);
-        resultat = typeuse.type_pointeur_pour(type_normalise, false);
-    }
-    else if (type->genre == GenreType::FONCTION) {
-        auto type_fonction = type->comme_fonction();
-
-        auto types_entrees = kuri::tablet<Type *, 6>();
-        types_entrees.reserve(type_fonction->types_entrees.taille());
-
-        POUR (type_fonction->types_entrees) {
-            types_entrees.ajoute(normalise_type(typeuse, it));
-        }
-
-        auto type_sortie = normalise_type(typeuse, type_fonction->type_sortie);
-        resultat = typeuse.type_fonction(types_entrees, type_sortie, false);
-    }
-    else if (type->genre == GenreType::TUPLE) {
-        auto type_tuple = type->comme_tuple();
-
-        auto types_membres = kuri::tablet<TypeCompose::Membre, 6>();
-
-        POUR (type_tuple->membres) {
-            types_membres.ajoute({nullptr, normalise_type(typeuse, it.type)});
-        }
-
-        resultat = typeuse.cree_tuple(types_membres);
-    }
-
-    // À FAIRE: comprends pourquoi ceci peut-être nul...
-    if (resultat) {
-        resultat->drapeaux |= TYPE_EST_NORMALISE;
-    }
-
-    return resultat;
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
