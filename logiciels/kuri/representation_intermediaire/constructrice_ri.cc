@@ -84,8 +84,7 @@ AtomeFonction *ConstructriceRI::genere_fonction_init_globales_et_appel(
     return genere_fonction_init_globales_et_appel(globales, fonction_pour);
 }
 
-AtomeConstante *ConstructriceRI::cree_constante_entiere(Type const *type,
-                                                        uint64_t valeur)
+AtomeConstante *ConstructriceRI::cree_constante_entiere(Type const *type, uint64_t valeur)
 {
     return atomes_constante.ajoute_element(type, valeur);
 }
@@ -200,8 +199,7 @@ AtomeConstante *ConstructriceRI::cree_constante_booleenne(bool valeur)
     return atomes_constante.ajoute_element(m_compilatrice.typeuse[TypeBase::BOOL], valeur);
 }
 
-AtomeConstante *ConstructriceRI::cree_constante_caractere(Type const *type,
-                                                          uint64_t valeur)
+AtomeConstante *ConstructriceRI::cree_constante_caractere(Type const *type, uint64_t valeur)
 {
     auto atome = atomes_constante.ajoute_element(type, valeur);
     atome->valeur.genre = AtomeValeurConstante::Valeur::Genre::CARACTERE;
