@@ -12,7 +12,14 @@ TypeFichier :: énum {
 
 découvre_type_fichier :: fonc (chemin: CheminFichier) -> Optionnel(TypeFichier)
 {
-    retourne système_découvre_type_fichier(chemin)
+    discr système_découvre_type_fichier(chemin) {
+        Ok(valeur) {
+            retourne valeur
+        }
+        sinon {
+            retourne
+        }
+    }
 }
 
 fichier_existe :: fonc(chemin : CheminFichier) -> bool

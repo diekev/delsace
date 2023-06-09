@@ -1,4 +1,5 @@
 importe Chaine
+importe SysFichier
 importe Couleur
 importe Fondation
 importe Math
@@ -148,9 +149,27 @@ premier_pixel_ligne :: fonc (image: ImageIO, y: z32, $T: type_de_données) -> *T
     retourne *image.donnees[décalage] comme *T
 }
 
-écris_image :: fonc (chemin: chaine, image: ImageIO)
+ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperation)
 {
-    _ := IMG_ecris_image(crée_chaine_c_temp(chemin) comme *z8, *image)
+    chn_c := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c)
+
+    image : ImageIO
+    résultat := IMG_ouvre_image(chn_c comme *z8, *image)
+
+    si résultat != ResultatOperation.OK {
+        retourne résultat
+    }
+
+    retourne image
+}
+
+écris_image :: fonc (chemin: CheminFichier, image: ImageIO)
+{
+    chn_c_sortie := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c_sortie)
+
+    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
 }
 
 calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine

@@ -16,6 +16,8 @@ extern "C" {
  */
 struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri,
                                       struct ContexteOuvertureArchive *ctx);
+struct ArchiveCache *ABC_cree_archive_pour_ecriture(struct ContexteKuri *ctx_kuri,
+                                                    struct ContexteOuvertureArchive *ctx);
 void ABC_detruit_archive(struct ContexteKuri *ctx, struct ArchiveCache *archive);
 
 void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,

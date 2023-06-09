@@ -83,7 +83,7 @@ principale :: fonc () -> z32
         retourne 1
     }
 
-    diffère { _ := tente ferme(*serveur) piège nonatteignable }
+    diffère { _ := ferme(*serveur) }
 
     boucle {
         addr : sockaddr_in // Adresse du connecté

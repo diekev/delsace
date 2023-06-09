@@ -42,7 +42,7 @@ lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine
 
         réponse = lis_tout(*fichier)
 
-        _ = tente ferme(*fichier)
+        _ := ferme(*fichier)
     }
 
     retourne réponse

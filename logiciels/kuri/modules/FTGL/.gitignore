@@ -1,0 +1,5 @@
+interface_ftgl.kuri
+
+*.a
+*.so
+*.so*

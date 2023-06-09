@@ -12,10 +12,12 @@ struct LectriceCache;
 namespace AbcKuri {
 
 EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                              ContexteEcritureCache *contexte,
                                               LectriceCache *lectrice,
                                               EcrivainCache *parent);
 
 EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
+                                   ContexteEcritureCache *contexte,
                                    EcrivainCache *parent,
                                    const char *nom,
                                    uint64_t taille_nom,

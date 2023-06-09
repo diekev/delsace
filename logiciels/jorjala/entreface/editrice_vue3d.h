@@ -24,13 +24,17 @@
 
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QGLWidget>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "base_editrice.h"
 
@@ -90,7 +94,7 @@ class EditriceVue3D : public BaseEditrice {
     EditriceVue3D(EditriceVue3D const &) = default;
     EditriceVue3D &operator=(EditriceVue3D const &) = default;
 
-    void ajourne_etat(int event) override;
+    void ajourne_état(JJL::TypeEvenement évènement) override;
 
     void ajourne_manipulable() override
     {

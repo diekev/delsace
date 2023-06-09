@@ -26,22 +26,25 @@
 
 #include "editrice_vue3d.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QApplication>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QToolButton>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "coeur/evenement.h"
 //#include "coeur/manipulatrice.h"
 //#include "coeur/operatrice_image.h"
 //#include "coeur/rendu.hh"
@@ -235,21 +238,22 @@ EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addLayout(disp_widgets);
 }
 
-void EditriceVue3D::ajourne_etat(int evenement)
+void EditriceVue3D::ajourne_état(JJL::TypeEvenement évènement)
 {
-    auto reconstruit_scene = evenement == (type_evenement::objet | type_evenement::ajoute);
-    auto const camera_modifie = evenement == (type_evenement::camera_3d | type_evenement::modifie);
+    auto reconstruit_scene = évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+    auto const camera_modifie = évènement ==
+                                (JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
 
     auto ajourne = camera_modifie | reconstruit_scene;
     // L'affichage des informations des noeuds nous fait tout redessiner... (il nous faudrait une
     // mise en tampon des données de dessin).
-    // ajourne |= evenement == (type_evenement::noeud | type_evenement::selectionne);
-    ajourne |= evenement == (type_evenement::noeud | type_evenement::enleve);
-    ajourne |= evenement == (type_evenement::image | type_evenement::traite);
-    ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
-    ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
-    ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
-    ajourne |= evenement == (type_evenement::rafraichissement);
+    // ajourne |= evenement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::TRAITÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
+    ajourne |= évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT);
 
 #if 0
     ajourne_combo_box(m_selecteur_rendu,

@@ -251,6 +251,38 @@ struct ConvertisseuseExportPolyMesh {
     void (*coins_pour_polygone)(struct ConvertisseuseExportPolyMesh *, uint64_t, int *);
 };
 
+struct ConvertisseuseExportSubD {
+    void *donnees;
+};
+
+struct ConvertisseuseExportPoints {
+    void *donnees;
+};
+
+struct ConvertisseuseExportCourbes {
+    void *donnees;
+};
+
+struct ConvertisseuseExportNurbs {
+    void *donnees;
+};
+
+struct ConvertisseuseExportXform {
+    void *donnees;
+};
+
+struct ConvertisseuseExportFaceSet {
+    void *donnees;
+};
+
+struct ConvertisseuseExportLumiere {
+    void *donnees;
+};
+
+struct ConvertisseuseExportCamera {
+    void *donnees;
+};
+
 struct ConvertisseuseExportMateriau {
     void *donnees;
 
@@ -282,6 +314,28 @@ struct ConvertisseuseExportMateriau {
                                 uint64_t,
                                 const char **,
                                 uint64_t *);
+};
+
+struct ContexteEcritureCache {
+    void (*initialise_convertisseuse_polymesh)(struct ConvertisseuseExportPolyMesh *);
+
+    void (*initialise_convertisseuse_subd)(struct ConvertisseuseExportSubD *);
+
+    void (*initialise_convertisseuse_points)(struct ConvertisseuseExportPoints *);
+
+    void (*initialise_convertisseuse_courbes)(struct ConvertisseuseExportCourbes *);
+
+    void (*initialise_convertisseuse_nurbs)(struct ConvertisseuseExportNurbs *);
+
+    void (*initialise_convertisseuse_xform)(struct ConvertisseuseExportXform *);
+
+    void (*initialise_convertisseuse_face_set)(struct ConvertisseuseExportFaceSet *);
+
+    void (*initialise_convertisseuse_lumiere)(struct ConvertisseuseExportLumiere *);
+
+    void (*initialise_convertisseuse_camera)(struct ConvertisseuseExportCamera *);
+
+    void (*initialise_convertisseuse_materiau)(struct ConvertisseuseExportMateriau *);
 };
 
 typedef enum eAbcPortee {

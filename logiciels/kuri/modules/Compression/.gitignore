@@ -1,0 +1,5 @@
+interface_compression.kuri
+
+*.a
+*.so
+*.so*

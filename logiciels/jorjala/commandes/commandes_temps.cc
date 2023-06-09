@@ -31,7 +31,6 @@
 #include "commande_jorjala.hh"
 
 //#include "coeur/composite.h"
-//#include "coeur/evenement.h"
 //#include "coeur/tache.h"
 
 #include "coeur/jorjala.hh"
@@ -66,8 +65,8 @@ static void anime_image(JJL::Jorjala &jorjala)
         }
 
         /* notifie depuis le thread principal. */
-        // jorjala.notifiant_thread->signal_proces(type_evenement::temps |
-        // type_evenement::modifie);
+        // jorjala.notifiant_thread->signal_proces(JJL::TypeEvenement::TEMPS |
+        // JJL::TypeEvenement::MODIFIÉ);
 
         auto value = jorjala.temps_courant();
         ++value;

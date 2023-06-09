@@ -24,13 +24,17 @@
 
 #include "commandes_edition.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QKeyEvent>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "danjo/danjo.h"
 #include "danjo/manipulable.h"
@@ -40,7 +44,6 @@
 #include "commande_jorjala.hh"
 
 //#include "coeur/composite.h"
-//#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
 //#include "coeur/nuanceur.hh"
 //#include "coeur/operatrice_image.h"

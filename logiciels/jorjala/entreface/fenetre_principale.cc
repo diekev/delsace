@@ -26,11 +26,13 @@
 
 #include "danjo/danjo.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QCoreApplication>
 #include <QCursor>
 #include <QDockWidget>
@@ -42,7 +44,9 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QStatusBar>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
@@ -341,7 +345,7 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
         auto event_jjl = static_cast<EvenementJorjala *>(event);
 
         for (auto editrice : m_editrices) {
-            editrice->ajourne_etat(static_cast<int>(event_jjl->pour_quoi()));
+            editrice->ajourne_état(event_jjl->pour_quoi());
         }
 
         return true;
@@ -412,7 +416,7 @@ QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom,
 
     if (editrice) {
         m_editrices.push_back(editrice);
-        editrice->ajourne_etat(static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
+        editrice->ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
         dock->setWidget(editrice);
     }
     dock->setAllowedAreas(Qt::AllDockWidgetAreas);

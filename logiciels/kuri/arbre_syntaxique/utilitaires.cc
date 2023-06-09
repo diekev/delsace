@@ -1835,6 +1835,10 @@ void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
         /* Substitue #corps_boucle par le bloc. */
         if (it->est_directive_corps_boucle()) {
             it->substitution = inst->bloc;
+            /* Le nouveau bloc parent du bloc originel de la boucle doit être le bloc parent de
+             * l'instruction qu'il remplace pour que les instructions « diffère » fonctionnent
+             * proprement. */
+            inst->bloc->bloc_parent = it->bloc_parent;
             continue;
         }
     }

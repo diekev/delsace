@@ -29,10 +29,14 @@
 #    include <any>
 #    include <optional>
 
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wold-style-cast"
+#    if defined(__GNUC__)
+#        pragma GCC diagnostic push
+#        pragma GCC diagnostic ignored "-Wold-style-cast"
+#    endif
 #    include "ipa/jorjala.hh"
-#    pragma GCC pop
+#    if defined(__GNUC__)
+#        pragma GCC pop
+#    endif
 
 namespace danjo {
 class ConteneurControles;

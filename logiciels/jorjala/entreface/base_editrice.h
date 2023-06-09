@@ -26,11 +26,10 @@
 
 #include "danjo/conteneur_controles.h"
 
-#include "biblinternes/patrons_conception/observation.hh"
-
 namespace JJL {
 class Jorjala;
-}
+enum class TypeEvenement : unsigned int;
+}  // namespace JJL
 
 class QFrame;
 class QHBoxLayout;
@@ -39,7 +38,7 @@ class QVBoxLayout;
 class QPoint;
 class QPointF;
 
-class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
+class BaseEditrice : public danjo::ConteneurControles {
     Q_OBJECT
 
   protected:
@@ -61,6 +60,8 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
 
     void actif(bool ouinon);
     void rend_actif();
+
+    virtual void ajourne_état(JJL::TypeEvenement évènement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
 

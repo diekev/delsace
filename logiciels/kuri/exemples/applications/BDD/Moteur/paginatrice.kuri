@@ -21,7 +21,7 @@ ouvre_paginatrice :: fonc (chemin: CheminFichier) -> *Paginatrice
     paginatrice := loge(Paginatrice)
     paginatrice.utilise_stockage_disque = vrai
     paginatrice.fichier = fichier
-    paginatrice.taille_fichier = taille_fichier(*fichier)
+    paginatrice.taille_fichier = détermine_taille_fichier(*fichier)
     retourne paginatrice
 }
 
