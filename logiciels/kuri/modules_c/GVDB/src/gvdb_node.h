@@ -33,10 +33,9 @@ struct ALIGN(16) GVDB_API Node {
     Vector3DI mValue;   // Value in Atlas		12 byte
     Vector3DF mVRange;  // Value min, max, ave	12 byte
     uint64 mParent;     // Parent ID			8 byte	Pool0 reference
-    uint64
-        mChildList;  // Child List			8 byte	Pool1 reference ?#ifdef USE_BITMASKS
-    uint64 mMask;    // Start of BITMASK.	8 byte
-                     // HEADER TOTAL			64 bytes
+    uint64 mChildList;  // Child List			8 byte	Pool1 reference ?#ifdef USE_BITMASKS
+    uint64 mMask;       // Start of BITMASK.	8 byte
+                        // HEADER TOTAL			64 bytes
 };
 
 };  // namespace nvdb

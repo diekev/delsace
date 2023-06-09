@@ -1635,9 +1635,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (type_itere->est_tableau_fixe()) {
                 auto taille_tableau = type_itere->comme_tableau_fixe()->taille;
                 expr_taille = assem->cree_litterale_entier(
-                    inst->lexeme,
-                    typeuse[TypeBase::Z64],
-                    static_cast<uint64_t>(taille_tableau));
+                    inst->lexeme, typeuse[TypeBase::Z64], static_cast<uint64_t>(taille_tableau));
             }
             else {
                 expr_taille = assem->cree_reference_membre(

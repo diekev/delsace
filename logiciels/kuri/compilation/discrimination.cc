@@ -39,7 +39,8 @@ static const TypeCompose::Membre *trouve_membre(TypeCompose const *type, Type co
     return nullptr;
 }
 
-static inline int64_t trouve_index_membre(TypeCompose const *type, TypeCompose::Membre const *membre)
+static inline int64_t trouve_index_membre(TypeCompose const *type,
+                                          TypeCompose::Membre const *membre)
 {
     return (membre - &type->membres[0]);
 }
