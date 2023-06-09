@@ -299,8 +299,8 @@ class GVDB_API Camera3D : public PivotX {
   public:
     eProjection mProjType;  // Projection type
 
-    // Camera Parameters									// NOTE: Pivot maintains camera from and
-    // orientation
+    // Camera Parameters									// NOTE: Pivot maintains camera from
+    // and orientation
     float mDolly;  // Camera to distance
     float mOrbitDist;
     float mFov, mAspect;                  // Camera field-of-view
