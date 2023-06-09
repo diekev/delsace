@@ -163,3 +163,5 @@ ENOTRECOVERABLE :: 131 /* State not recoverable */
 ERFKILL         :: 132 /* Operation not possible due to RF-kill */
 
 EHWPOISON       :: 133 /* Memory page has hardware error */
+
+NOMBRE_VALEUR_ERRNO :: 134

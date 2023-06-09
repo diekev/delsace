@@ -114,3 +114,34 @@ pour_chaque_chemin :: fonc (chemin : CheminFichier, données: *$T, rappel: fonc(
         }
     }
 }
+
+/* ------------------------------------------------------------------------- */
+
+opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
+{
+    // À FAIRE : cas pour ExploratriceFichier temporaire 
+    // diffère détruit(exploratrice)
+
+    exploratrice := crée_exploratrice_fichier(exploratrice.racine)
+    index := 0
+
+    tantque !exploratrice.exploration_finie() {
+        chemin : CheminFichier
+        discr exploratrice.chemin_suivant() {
+            Quelque(chm) {
+                chemin = chm
+            }
+            sinon {
+                continue
+            }
+        }
+
+        `it = chemin
+        `index_it = index
+        
+        index += 1
+        diffère détruit_chemin(chemin)
+
+        #corps_boucle
+    }
+}
