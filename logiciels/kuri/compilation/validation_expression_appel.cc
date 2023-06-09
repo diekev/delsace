@@ -511,8 +511,8 @@ static ResultatAppariement apparie_appel_pointeur(
 
     /* Validation des types passés en paramètre. */
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
-        auto index_param = std::min(i,
-                                    static_cast<int64_t>(type_fonction->types_entrees.taille() - 1));
+        auto index_param = std::min(
+            i, static_cast<int64_t>(type_fonction->types_entrees.taille() - 1));
         auto slot = slots[i];
         auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
         auto type_enf = slot->type;

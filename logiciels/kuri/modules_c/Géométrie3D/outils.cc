@@ -135,7 +135,9 @@ void Maillage::ajouteAuGroupe(void *poignee_groupe, int64_t index) const
     this->ajoute_au_groupe(poignee_groupe, index);
 }
 
-void Maillage::ajoutePlageAuGroupe(void *poignee_groupe, int64_t index_debut, int64_t index_fin) const
+void Maillage::ajoutePlageAuGroupe(void *poignee_groupe,
+                                   int64_t index_debut,
+                                   int64_t index_fin) const
 {
     this->ajoute_plage_au_groupe(poignee_groupe, index_debut, index_fin);
 }

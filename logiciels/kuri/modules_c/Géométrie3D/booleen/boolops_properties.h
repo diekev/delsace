@@ -2,8 +2,8 @@
 // All rights reserved.
 //
 // This file is part of MEPP2; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published 
-// by the Free Software Foundation; either version 3 of the License, 
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 3 of the License,
 // or (at your option) any later version.
 //
 // This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
@@ -21,22 +21,22 @@
  * \typedef VertexId
  * \brief Vertex Id
  */
-typedef uint64_t   VertexId;
+typedef uint64_t VertexId;
 
 /*!
  * \typedef HalfedgeId
  * \brief Halfedge Id
  */
-typedef uint64_t   HalfedgeId;
+typedef uint64_t HalfedgeId;
 
 /*!
  * \typedef FacetId
  * \brief Facet Id
  */
-typedef uint64_t   FacetId;
+typedef uint64_t FacetId;
 
 /*!
  * \typedef InterId
  * \brief Intersection Id
  */
-typedef uint64_t   InterId;
+typedef uint64_t InterId;

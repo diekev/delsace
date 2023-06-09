@@ -10,8 +10,8 @@
 #ifndef DEF_VOL_3D
 #define DEF_VOL_3D
 
-#include "gvdb_volume_base.h"
 #include "gvdb_allocator.h"
+#include "gvdb_volume_base.h"
 
 namespace nvdb {
 

@@ -12,9 +12,9 @@
 #ifndef OBJAR_READER
 #define OBJAR_READER
 
+#include <GL/glew.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/glew.h>
 
 #include "gvdb_model.h"
 using namespace nvdb;

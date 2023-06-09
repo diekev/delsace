@@ -399,7 +399,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
     std::random_device device{};
     std::uniform_int_distribution<uint16_t> rng{static_cast<int>(GenreLexeme::EXCLAMATION),
-                                              static_cast<int>(GenreLexeme::INCONNU)};
+                                                static_cast<int>(GenreLexeme::INCONNU)};
 
     kuri::tableau<GenreLexeme> lexemes;
     lexemes.reserve(static_cast<int64_t>(max_lexemes));

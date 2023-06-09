@@ -365,7 +365,7 @@ static CouverturePonctuelle determine_couverture_ponctuelle(
             auto const distance = params.distance_minimale;
             auto const aire_cercle = constantes<float>::PI * (distance * distance);
             auto const nombre_points = static_cast<int64_t>((aire_totale * DENSITE_CERCLE) /
-                                                         aire_cercle);
+                                                            aire_cercle);
             resultat.distance_minimale = distance;
             resultat.nombre_requis = nombre_points;
             break;

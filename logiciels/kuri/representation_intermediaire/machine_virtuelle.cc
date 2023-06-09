@@ -111,7 +111,7 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
     (frame->pointeur += 4)
 
 #define LIS_8_OCTETS()                                                                            \
-    *reinterpret_cast<int64_t *>(frame->pointeur);                                                   \
+    *reinterpret_cast<int64_t *>(frame->pointeur);                                                \
     (frame->pointeur += 8)
 
 #define LIS_POINTEUR(type)                                                                        \
@@ -1263,7 +1263,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             empile(site, static_cast<int>(v));                                                    \
         }                                                                                         \
         else if (taille_vers == 8) {                                                              \
-            empile(site, static_cast<int64_t>(v));                                                   \
+            empile(site, static_cast<int64_t>(v));                                                \
         }                                                                                         \
     }
 
