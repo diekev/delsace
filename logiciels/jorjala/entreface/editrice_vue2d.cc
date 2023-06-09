@@ -30,16 +30,20 @@
 #include <cassert>
 #include <iostream>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QApplication>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWheelEvent>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"
@@ -301,13 +305,11 @@ EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addWidget(m_vue);
 }
 
-void EditriceVue2D::ajourne_etat(int evenement)
+void EditriceVue2D::ajourne_état(JJL::TypeEvenement évènement)
 {
-    auto chargement = evenement ==
-                      static_cast<int>(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
-    chargement |= (evenement ==
-                   static_cast<int>(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
-    chargement |= (evenement == static_cast<int>(JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto chargement = évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
+    chargement |= (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
+    chargement |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
 
     if (chargement) {
         auto graphe_cmp = m_jorjala.trouve_graphe_pour_chemin("/cmp");
