@@ -1269,8 +1269,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto index_membre = static_cast<int>(
                 static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
 
-            auto type_pointeur = membre->accede->type->comme_pointeur();
-            auto type_compose = static_cast<TypeCompose *>(type_pointeur->type_pointe);
+            auto type_compose = static_cast<TypeCompose *>(
+                type_dereference_pour(membre->accede->type));
+
+            if (type_compose->est_union()) {
+                type_compose = type_compose->comme_union()->type_structure;
+            }
 
             auto decalage = type_compose->membres[index_membre].decalage;
             genere_code_binaire_pour_atome(membre->accede, chunk, true);
