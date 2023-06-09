@@ -363,10 +363,6 @@ InstructionAllocation *ConstructriceRI::cree_allocation(NoeudExpression *site_,
                                                         bool cree_seulement)
 {
     /* le résultat d'une instruction d'allocation est l'adresse de la variable. */
-    type = normalise_type(m_compilatrice.typeuse, const_cast<Type *>(type));
-    assert_rappel(type == nullptr || (type->drapeaux & TYPE_EST_NORMALISE) != 0, [=]() {
-        std::cerr << "Le type '" << chaine_type(type) << "' n'est pas normalisé\n";
-    });
     auto type_pointeur = m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(type),
                                                                    false);
     auto inst = insts_allocation.ajoute_element(site_, type_pointeur, ident);
@@ -406,7 +402,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
                                                        Atome *valeur,
                                                        bool cree_seulement)
 {
-    assert_rappel(ou->type->genre == GenreType::POINTEUR, [&]() {
+    assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->est_reference(), [&]() {
         std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n';
         erreur::imprime_site(*m_espace, site_);
     });
@@ -431,9 +427,6 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
 #endif
 
     auto type = valeur->type;
-    // assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" <<
-    // chaine_type(type) << "' n'est pas normalisé\n"; });
-
     auto inst = insts_stocke_memoire.ajoute_element(site_, type, ou, valeur);
 
     if (!cree_seulement) {
@@ -453,7 +446,6 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_,
             std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
             erreur::imprime_site(*m_espace, site_);
         });
-    auto type_pointeur = ou->type->comme_pointeur();
 
     assert_rappel(
         ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE,
@@ -462,10 +454,7 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_,
                       << ".\n";
         });
 
-    auto type = type_pointeur->type_pointe;
-    // assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" <<
-    // chaine_type(type) << "' n'est pas normalisé\n"; });
-
+    auto type = type_dereference_pour(ou->type);
     auto inst = insts_charge_memoire.ajoute_element(site_, type, ou);
 
     if (!cree_seulement) {
@@ -574,9 +563,6 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(NoeudExpression *site_
     auto type = m_compilatrice.typeuse.type_pointeur_pour(type_dereference_pour(type_pointe),
                                                           false);
 
-    // assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" <<
-    // chaine_type(type) << "' n'est pas normalisé\n"; });
-
     auto inst = insts_accede_index.ajoute_element(site_, type, accede, index);
     fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -590,9 +576,8 @@ InstructionAccedeMembre *ConstructriceRI::cree_reference_membre(NoeudExpression 
     assert_rappel(accede->type->genre == GenreType::POINTEUR ||
                       accede->type->genre == GenreType::REFERENCE,
                   [=]() { std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
-    auto type_pointeur = accede->type->comme_pointeur();
 
-    auto type_pointe = type_pointeur->type_pointe;
+    auto type_pointe = type_dereference_pour(accede->type);
     if (type_pointe->est_opaque()) {
         type_pointe = type_pointe->comme_opaque()->type_opacifie;
     }
@@ -601,16 +586,16 @@ InstructionAccedeMembre *ConstructriceRI::cree_reference_membre(NoeudExpression 
         std::cerr << "Type accédé : '" << chaine_type(type_pointe) << "'\n";
         erreur::imprime_site(*espace(), site_);
     });
-    assert_rappel(type_pointe->genre != GenreType::UNION,
-                  [=]() { std::cerr << "Type accédé : '" << chaine_type(type_pointe) << "'\n"; });
 
     auto type_compose = static_cast<TypeCompose *>(type_pointe);
+    if (type_compose->est_union()) {
+        type_compose = type_compose->comme_union()->type_structure;
+    }
+
     auto type = type_compose->membres[index].type;
 
     /* nous retournons un pointeur vers le membre */
     type = m_compilatrice.typeuse.type_pointeur_pour(type, false);
-    // assert_rappel((type->drapeaux & TYPE_EST_NORMALISE) != 0, [=](){ std::cerr << "Le type '" <<
-    // chaine_type(type) << "' n'est pas normalisé\n"; });
 
     auto inst = insts_accede_membre.ajoute_element(
         site_, type, accede, cree_z64(static_cast<unsigned>(index)));
@@ -2507,13 +2492,11 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         if (type_union->membres.taille() == 2) {
             if (type_union->membres[0].type->genre == GenreType::ERREUR) {
                 gen_tente.type_piege = type_union->membres[0].type;
-                gen_tente.type_variable = normalise_type(m_compilatrice.typeuse,
-                                                         type_union->membres[1].type);
+                gen_tente.type_variable = type_union->membres[1].type;
             }
             else {
                 gen_tente.type_piege = type_union->membres[1].type;
-                gen_tente.type_variable = normalise_type(m_compilatrice.typeuse,
-                                                         type_union->membres[0].type);
+                gen_tente.type_variable = type_union->membres[0].type;
                 index_membre_erreur = 1;
             }
         }
@@ -2625,15 +2608,11 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
     auto type_membre = type_union->membres[index_membre].type;
 
     if (type_union->est_nonsure) {
-        if (type_membre != type_union->type_le_plus_grand) {
-            ptr_union = cree_transtype(
-                noeud,
-                m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
-                ptr_union,
-                TypeTranstypage::BITS);
-            ptr_union->est_chargeable = true;
-        }
-
+        ptr_union = cree_transtype(noeud,
+                                   m_compilatrice.typeuse.type_pointeur_pour(type_membre, false),
+                                   ptr_union,
+                                   TypeTranstypage::BITS);
+        ptr_union->est_chargeable = true;
         empile_valeur(ptr_union);
         return;
     }

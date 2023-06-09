@@ -3533,8 +3533,7 @@ static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
     if (!type->fonction_init) {
         auto type_param = typeuse.type_pointeur_pour(type);
         if (type->est_union() && !type->comme_union()->est_nonsure) {
-            auto type_normalise = normalise_type(typeuse, type);
-            type_param = typeuse.type_pointeur_pour(type_normalise, false, false);
+            type_param = typeuse.type_pointeur_pour(type, false, false);
         }
 
         auto types_entrees = kuri::tablet<Type *, 6>();
