@@ -216,7 +216,7 @@ détruit :: fonc (liste: *EnsembleDeModules)
 ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
 {
     saufsi module {
-        /* Permet d'avoir un module nul, si par exmple il est
+        /* Permet d'avoir un module nul, si par exemple il est
          * retourné via `compilatrice_module_pour_type` pour un
          * type de base. */
         retourne
