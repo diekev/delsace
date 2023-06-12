@@ -163,12 +163,17 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
  * chemin_cible = "/home/kevin/Vidéos"
  *
  * retourne "../Vidéos"
- * 
- * À FAIRE : vérifie que les chemins sont absolus.
- * À FAIRE : vérifie que le chemin_racine est un dossier.
  */
-chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> CheminFichier
+chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
+    saufsi est_un_dossier(chemin_racine) {
+        retourne ErreurFichier.NEstPasUnDossier
+    }
+
+    saufsi est_absolu(chemin_cible) && est_absolu(chemin_racine) {
+        retourne ErreurFichier.CheminNonAbsolu
+    }
+
     pile_racine := divise_et_empile_chemin(chemin_racine)
     diffère détruit(pile_racine)
 

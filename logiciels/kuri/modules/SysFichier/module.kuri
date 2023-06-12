@@ -94,6 +94,7 @@ ErreurFichier :: erreur {
     DossierUtiliséParQuelqueAutreProcessus
     DossierNonVide
     DifférentSystèmeFichier
+    CheminNonAbsolu
 }
 
 // ----------------------------------------------------------

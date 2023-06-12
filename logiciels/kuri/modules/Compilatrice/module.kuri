@@ -230,7 +230,7 @@ ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
     ensemble_ajoute(*liste.modules, module)
 }
 
-génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *Enchaineuse)
+génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *Enchaineuse) -> bool
 {
     pour liste.modules {
         chemin_module := compilatrice_chemin_module(it)
@@ -242,8 +242,16 @@ génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *
 
         /* Essaie un chemin relatif au fichier principal de compilation. */
         tmp_chemin_module := CheminFichier(chemin_module)
-        chemin_relatif := tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation)
-        diffère détruit_chemin(chemin_relatif)
-        ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n")
+        discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
+            Ok(chemin_relatif) {
+                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n")
+                détruit_chemin(chemin_relatif)
+            }
+            sinon {
+                retourne faux
+            }
+        }
     }
+
+    retourne vrai
 }
