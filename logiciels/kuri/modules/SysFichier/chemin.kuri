@@ -233,6 +233,14 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
     retourne CheminFichier(résultat)
 }
 
+/* Retourne vrai si le \a chemin_cible est relatif au \a chemin_racine. */
+est_chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> bool
+{
+    absolu := crée_chemin_absolu(chemin_racine, chemin_cible)
+    diffère détruit_chemin(absolu)
+    retourne fichier_existe(absolu)
+}
+
 opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
     retourne chemin1.chn == chemin2.chn
