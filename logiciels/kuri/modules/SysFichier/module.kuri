@@ -94,6 +94,7 @@ ErreurFichier :: erreur {
     DossierUtiliséParQuelqueAutreProcessus
     DossierNonVide
     DifférentSystèmeFichier
+    CheminNonAbsolu
 }
 
 // ----------------------------------------------------------
@@ -179,7 +180,6 @@ supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)
 
     Opération sur les chemins de fichiers :
     - remplace l'extension
-    - chemin relatif (est_relatif_à)
     - crée un nom sûr (pour éviter les problèmes sur Windows dûs à des noms réservés)
     - ajout d'un suffixe avant l'extension (manipulations générales)
 
