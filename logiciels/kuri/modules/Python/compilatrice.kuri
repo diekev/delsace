@@ -620,16 +620,18 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
 }
 
-génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> chaine
+génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> Optionnel(chaine)
 {
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
-    génère_interface_python(compilatrice, *enchaineuse)
+    saufsi génère_interface_python(compilatrice, *enchaineuse) {
+        retourne
+    }
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse)
+génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, enchaineuse: *Enchaineuse) -> bool
 {
     /* Garantie la présence des modules pour les types, puisque certains types ne sont inclus que via des membres d'autres types. */
     pour compilatrice.système_type.types {
@@ -641,7 +643,9 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
     ajoute_au_tampon(enchaineuse, "importe Fondation\n")
     ajoute_au_tampon(enchaineuse, "importe Python\n")
 
-    génère_instructions_importe(*compilatrice.modules_kuri_à_importer, enchaineuse)
+    saufsi génère_instructions_importe(*compilatrice.modules_kuri_à_importer, enchaineuse) {
+        retourne faux
+    }
 
     module := compilatrice.module
 
@@ -658,11 +662,16 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
     }
 
     génère_initialisation_module(enchaineuse, module, compilatrice.système_type.types)
+    retourne vrai
 }
 
 génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: *EspaceDeTravail)
 {
-    source := compilatrice.génère_interface_python()
-    diffère déloge(source)
-    ajoute_chaine_à_la_compilation(espace, source)
+    discr compilatrice.génère_interface_python() {
+        Quelque(source) {
+            diffère déloge(source)
+            ajoute_chaine_à_la_compilation(espace, source)
+        }
+        sinon {}
+    }
 }

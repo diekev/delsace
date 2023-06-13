@@ -1325,6 +1325,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto type_feuille = premiere_feuille->type;
 
+            if (type_feuille->est_rien()) {
+                espace->rapporte_erreur(
+                    premiere_feuille,
+                    "Impossible d'avoir un élément de type « rien » dans un tableau");
+                return CodeRetourValidation::Erreur;
+            }
+
             if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
                 type_feuille = m_compilatrice.typeuse[TypeBase::Z32];
                 transtype_si_necessaire(
