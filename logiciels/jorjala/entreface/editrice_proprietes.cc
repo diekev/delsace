@@ -216,28 +216,33 @@ class EnveloppeParametre : public danjo::BasePropriete {
     /* Plage des valeurs. */
     danjo::plage_valeur<float> plage_valeur_decimal() const override
     {
-        // À FAIRE
-        return {-1000.0f, 1000.0f};
+        auto limites = m_param.limites_valeur_réel();
+        return {limites.min(), limites.max()};
     }
     danjo::plage_valeur<int> plage_valeur_entier() const override
     {
-        // À FAIRE
-        return {-10000, 10000};
+        auto limites = m_param.limites_valeur_entier();
+        return {limites.min(), limites.max()};
     }
     danjo::plage_valeur<float> plage_valeur_vecteur_décimal() const override
     {
-        // À FAIRE
-        return {-1000.0f, 1000.0f};
+        if (m_param.type() == JJL::TypeParametre::VEC2) {
+            auto limites = m_param.limites_valeur_vec2();
+            return {limites.min(), limites.max()};
+        }
+        auto limites = m_param.limites_valeur_vec3();
+        return {limites.min(), limites.max()};
     }
     danjo::plage_valeur<int> plage_valeur_vecteur_entier() const override
     {
-        // À FAIRE
-        return {-10000, 10000};
+        // À FAIRE : vecteur nombre entier
+        auto limites = m_param.limites_valeur_entier();
+        return {limites.min(), limites.max()};
     }
     danjo::plage_valeur<float> plage_valeur_couleur() const override
     {
-        // À FAIRE
-        return {-1000.0f, 1000.0f};
+        auto limites = m_param.limites_valeur_couleur();
+        return {limites.min(), limites.max()};
     }
 
     /* Animation des valeurs. */
