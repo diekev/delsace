@@ -1421,10 +1421,13 @@ static void chaine_type(Enchaineuse &enchaineuse,
         {
             auto type_opaque = static_cast<TypeOpaque const *>(type);
             enchaineuse << static_cast<TypeOpaque const *>(type)->ident->nom;
-            enchaineuse << "(";
-            chaine_type(
-                enchaineuse, type_opaque->type_opacifie, ajoute_nom_paramètres_polymorphiques);
-            enchaineuse << ")";
+
+            if (ajoute_nom_paramètres_polymorphiques) {
+                enchaineuse << "(";
+                chaine_type(
+                    enchaineuse, type_opaque->type_opacifie, ajoute_nom_paramètres_polymorphiques);
+                enchaineuse << ")";
+            }
             return;
         }
         case GenreType::TUPLE:
@@ -1779,7 +1782,7 @@ kuri::chaine_statique TypeOpaque::nom_hierarchique()
         return nom_hierarchique_;
     }
 
-    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, chaine_type(this));
+    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, chaine_type(this, false));
     return nom_hierarchique_;
 }
 

@@ -162,7 +162,8 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
 
     résultat.ajoute("-c");
 
-    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+    if (options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE ||
+        options.code_independent_de_position) {
         /* Un fichier objet pour une bibliothèque dynamique doit compiler du code indépendant de la
          * position. */
         résultat.ajoute("-fPIC");
@@ -429,8 +430,8 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 
     OptionsDeCompilation options;
     options.architecture = architecture_cible;
-    /* À FAIRE : pour -fPIC... */
-    options.resultat = ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE;
+    options.resultat = ResultatCompilation::FICHIER_OBJET;
+    options.code_independent_de_position = true;
 
     const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
 
