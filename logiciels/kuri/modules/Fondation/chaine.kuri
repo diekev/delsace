@@ -87,17 +87,6 @@ chaine_depuis_tableau_octets :: fonc (données: []octet) -> chaine
     retourne construit_chaine(données.pointeur comme *z8, données.taille)
 }
 
-calcule_empreinte :: fonc(chn : chaine) -> n64
-{
-    empreinte : n64 = 5381
-
-    pour c dans chn {
-        empreinte = ((empreinte << 5) + empreinte) + c comme n64
-    }
-
-	retourne empreinte
-}
-
 // execute une fonction pour chaque ligne du texte d'entrée
 pour_chaque_ligne :: fonc(texte : chaine, donnees : $T, rappel : fonc(chaine, T)(rien)) -> rien
 {

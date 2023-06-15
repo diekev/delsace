@@ -158,30 +158,21 @@ imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *
 
 table_des_chaines : Table(TypeChaineInternée, *ChaineInternée)
 
-// Empreinte DJB2
 calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 {
-    empreinte : n64 = 5381
-
     discr type_chaine {
         chn_native {
             chn_utf32 := crée_chaine_utf32(type_chaine.chn_native)
-            pour chn_utf32.points_de_code {
-                /* empreinte * 33 + c */
-                empreinte = ((empreinte << 5) + empreinte) + it comme n64
-            }
-            détruit_chaine(chn_utf32)
+            diffère détruit_chaine(chn_utf32)
+            retourne calcule_empreinte_djb2(chn_utf32)
         }
         chn_utf32 {
-            pour type_chaine.chn_utf32.points_de_code {
-                /* empreinte * 33 + c */
-                empreinte = ((empreinte << 5) + empreinte) + it comme n64
-            }
+            retourne calcule_empreinte_djb2(type_chaine.chn_utf32)
         }
         sinon {}
     }
 
-    retourne empreinte
+    retourne 0
 }
 
 crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
