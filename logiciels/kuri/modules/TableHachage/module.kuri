@@ -114,3 +114,149 @@ chaque_noeud :: corout(table : *TableHachage) -> *NoeudTableHachage
         }
     }
 }
+
+// --------------------------------------------------------------
+
+// À FAIRE : il nous faudrait une manière de passer la fonction de hachage
+//           nous ne pouvons pas accéder à la fonction de hachage depuis un module séparé
+Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données, $Fonction: fonc(TypeClé)(n64)) {
+    clés: []TypeClé
+    valeurs: []TypeValeur
+    occupés: []bool
+    empreintes: []n64
+
+    capacité: z64
+    nombre_éléments: z64
+
+    TAILLE_MIN :: 32
+}
+
+alloue :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction), taille: z64)
+{
+    // À FAIRE: allocatrice comme membre de la table
+    table.capacité = taille
+
+    table.clés = loge_tableau(TypeClé, taille)
+    table.valeurs = loge_tableau(TypeValeur, taille)
+    table.occupés = loge_tableau(bool, taille)
+    table.empreintes = loge_tableau(n64, taille)
+
+    table.clés.taille = taille
+    table.valeurs.taille = taille
+    table.occupés.taille = taille
+    table.empreintes.taille = taille
+
+    pour & table.occupés {
+        it = faux
+    }
+}
+
+détruit :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction))
+{
+    déloge(table.clés)
+    déloge(table.occupés)
+    déloge(table.valeurs)
+    déloge(table.empreintes)
+    table.capacité = 0
+    table.nombre_éléments = 0
+}
+
+agrandis :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction))
+{
+    vieilles_clés := table.clés
+    vieilles_occupés := table.occupés
+    vieilles_valeurs := table.valeurs
+    vieilles_empreintes := table.empreintes
+
+    nouvelle_taille := table.capacité * 2
+
+    si nouvelle_taille < Table(TypeClé, TypeValeur, Fonction).TAILLE_MIN {
+        nouvelle_taille = Table(TypeClé, TypeValeur, Fonction).TAILLE_MIN
+    }
+
+    alloue(table, nouvelle_taille)
+
+    pour vieilles_occupés {
+        si it {
+            insère(table, vieilles_clés[index_it], vieilles_valeurs[index_it])
+        }
+    }
+
+    déloge(vieilles_clés)
+    déloge(vieilles_occupés)
+    déloge(vieilles_valeurs)
+    déloge(vieilles_empreintes)
+}
+
+insère :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction), clé: TypeClé, valeur: TypeValeur)
+{
+    empreinte := Fonction(clé)
+    index := trouve_index(table, clé, empreinte)
+
+    si index == -1 {
+        si table.nombre_éléments * 2 >= table.capacité {
+            agrandis(table)
+        }
+
+        index = (empreinte % table.capacité comme n64) comme z64
+
+        tantque table.occupés[index] {
+            index += 1
+
+            si index >= table.capacité {
+                index = 0
+            }
+        }
+
+        table.nombre_éléments += 1
+    }
+
+    table.occupés[index] = vrai
+    table.empreintes[index] = empreinte
+    table.clés[index] = clé
+    table.valeurs[index] = valeur
+}
+
+trouve :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction), clé: TypeClé) -> TypeValeur | bool
+{
+    empreinte := Fonction(clé)
+    index := trouve_index(table, clé, empreinte)
+
+    si index == -1 {
+        retourne faux
+    }
+
+    retourne table.valeurs[index]
+}
+
+possède :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction), clé: TypeClé) -> bool
+{
+    empreinte := Fonction(clé)
+    index := trouve_index(table, clé, empreinte)
+    retourne index != -1
+}
+
+trouve_index :: fonc (table: *Table($TypeClé, $TypeValeur, $Fonction), clé: TypeClé, empreinte: n64) -> z64
+{
+    saufsi table.capacité {
+        retourne -1
+    }
+
+    index := (empreinte % table.capacité comme n64) comme z64
+
+    tantque table.occupés[index] {
+        si table.empreintes[index] == empreinte {
+            si table.clés[index] == clé {
+                retourne index
+            }
+        }
+
+        index += 1
+
+        si index >= table.capacité {
+            index = 0
+        }
+    }
+
+    retourne -1
+}
