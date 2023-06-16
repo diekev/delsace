@@ -69,15 +69,15 @@ inverse_matrice_sans_échelle :: fonc (mat: *Mat4r) -> Mat4r
     retourne résultat
 }
 
-matrice_de_visé :: fonc (pos: *Vec3, cible: *Vec3, haut: *Vec3) -> Mat4r
+matrice_de_visé :: fonc (pos: Vec3, cible: Vec3, haut: Vec3) -> Mat4r
 {
-    dir_avant := mémoire(cible) - mémoire(pos)
-    dir_avant = normalise(*dir_avant)
+    dir_avant := cible - pos
+    dir_avant = normalise(dir_avant)
 
-    dir_droite := produit_vectoriel(*dir_avant, haut)
-    dir_droite = normalise(*dir_droite)
+    dir_droite := produit_vectoriel(dir_avant, haut)
+    dir_droite = normalise(dir_droite)
 
-    dir_haut := produit_vectoriel(*dir_droite, *dir_avant)
+    dir_haut := produit_vectoriel(dir_droite, dir_avant)
 
     résultat := construit_identité_mat4r()
 
@@ -93,9 +93,9 @@ matrice_de_visé :: fonc (pos: *Vec3, cible: *Vec3, haut: *Vec3) -> Mat4r
 	résultat.m[1][2] = -dir_avant.y;
 	résultat.m[2][2] = -dir_avant.z;
 
-	résultat.m[3][0] = -produit_scalaire(dir_droite, mémoire(pos));
-	résultat.m[3][1] = -produit_scalaire(dir_haut, mémoire(pos));
-	résultat.m[3][2] =  produit_scalaire(dir_avant, mémoire(pos));
+	résultat.m[3][0] = -produit_scalaire(dir_droite, pos);
+	résultat.m[3][1] = -produit_scalaire(dir_haut, pos);
+	résultat.m[3][2] =  produit_scalaire(dir_avant, pos);
 
     retourne résultat
 }

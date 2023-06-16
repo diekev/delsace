@@ -233,7 +233,7 @@ pivote :: fonc (v: Vec3, q: Quaternion) -> Vec3
     /* Extrait la partie scalaire du quaternion. */
     s := q.poids
 
-	retourne 2.0 * produit_scalaire(u, v) * u + (s * s - produit_scalaire(u, u)) * v + 2.0 * s * produit_vectoriel(*u, *v)
+	retourne 2.0 * produit_scalaire(u, v) * u + (s * s - produit_scalaire(u, u)) * v + 2.0 * s * produit_vectoriel(u, v)
 	*/
 
 	q = normalise(q)
