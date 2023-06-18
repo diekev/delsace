@@ -410,7 +410,7 @@ calcul_uv_capmat :: fonc (I: Vec3, N: Vec3, inversé: bool) -> Vec2
     b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x);
     b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
+    uv_capmat := Vec2( x = produit_scalaire(b1, N), y = produit_scalaire(b2, N) )
 
     si inversé {
         uv_capmat.x = -uv_capmat.x;
