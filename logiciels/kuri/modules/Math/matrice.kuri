@@ -39,7 +39,7 @@ matrice_projection :: fonc (
 
 // retourne l'inverse d'une matrice qui n'a pas d'échelle
 // utile pour les matrices de projection
-inverse_matrice_sans_échelle :: fonc (mat: *Mat4r) -> Mat4r
+inverse_matrice_sans_échelle :: fonc (mat: Mat4r) -> Mat4r
 {
     résultat := construit_mat4r_neutre()
 
@@ -312,9 +312,9 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
 	retourne vrai
 }
 
-inverse :: fonc (mat: *Mat4r) -> Mat4r
+inverse :: fonc (mat: Mat4r) -> Mat4r
 {
-    résultat := mémoire(mat)
+    résultat := mat
 
     si !inverse_impl(*résultat) {
         retourne construit_mat4r_neutre()
