@@ -272,6 +272,16 @@ point_d_intersection :: fonc (o1: Point2D, p1: Point2D, o2: Point2D, p2: Point2D
     retourne vrai, résultat
 }
 
+périmètre_cercle :: fonc (rayon: $T) -> T
+{
+    retourne Constantes(T).PI * rayon * 2.0
+}
+
+aire_cercle :: fonc (rayon: $T) -> T
+{
+    retourne Constantes(T).PI * rayon * rayon
+}
+
 /*
 
     triangle_depuis_angles_et_longueurs
