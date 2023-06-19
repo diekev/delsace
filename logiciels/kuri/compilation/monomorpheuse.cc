@@ -477,6 +477,11 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_opaque(
     const NoeudExpression *site,
     const Type *type_reçu)
 {
+    if (!type_reçu->est_opaque()) {
+        erreur_genre_type(site, type_reçu, "n'est pas un type opaque");
+        return;
+    }
+
     auto type_opaque = type_reçu->comme_opaque();
 
     for (int i = 0; i < construction->parametres.taille(); i++) {

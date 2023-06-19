@@ -12,11 +12,11 @@ copie_chemin :: fonc (chm: CheminFichier) -> CheminFichier
 
 new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
 {
-    mémoire(chm) = copie_chemin(mémoire(chm))
+    chm.chn = copie_chaine(chn)
     retourne vrai
 } @Python "new"
 
-new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
+str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
 {
     retourne copie_chaine(chm.chn)
 } @Python "str"

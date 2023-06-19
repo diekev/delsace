@@ -33,6 +33,11 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
+std::optional<JJL::CheminFichier> crée_chemin_fichier(JJL::Chaine chaine)
+{
+    return JJL::CheminFichier::construit(chaine);
+}
+
 /* ************************************************************************** */
 
 class CommandeOuvrir final : public CommandeJorjala {
@@ -53,9 +58,14 @@ class CommandeOuvrir final : public CommandeJorjala {
             }
         }
 
+        auto opt_chemin_fichier = crée_chemin_fichier(chemin_projet.c_str());
+        if (!opt_chemin_fichier.has_value()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         /* À FAIRE : erreur de lecture. */
         jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
-        jorjala.lis_projet(chemin_projet.c_str());
+        jorjala.lis_projet(opt_chemin_fichier.value());
         jorjala.restaure_curseur_application();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
@@ -64,7 +74,7 @@ class CommandeOuvrir final : public CommandeJorjala {
 
 /* ************************************************************************** */
 
-static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::Chaine chemin)
+static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::CheminFichier chemin)
 {
     jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
     jorjala.sauvegarde_projet(chemin);
@@ -74,10 +84,15 @@ static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::Chaine chemin)
 static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 {
     auto const &chemin_projet = affiche_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
-
-    if (chemin_projet != "") {
-        sauve_fichier_sous(jorjala, chemin_projet.c_str());
+    if (chemin_projet == "") {
+        return;
     }
+    auto opt_chemin_fichier = crée_chemin_fichier(chemin_projet.c_str());
+    if (!opt_chemin_fichier.has_value()) {
+        return;
+    }
+
+    sauve_fichier_sous(jorjala, opt_chemin_fichier.value());
 }
 
 class CommandeSauvegarder final : public CommandeJorjala {
@@ -85,7 +100,11 @@ class CommandeSauvegarder final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
-            sauve_fichier_sous(jorjala, jorjala.chemin_fichier_projet());
+            auto opt_chemin_fichier = crée_chemin_fichier(jorjala.chemin_fichier_projet());
+            if (!opt_chemin_fichier.has_value()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+            sauve_fichier_sous(jorjala, opt_chemin_fichier.value());
         }
         else {
             sauve_fichier_sous(jorjala);
@@ -124,9 +143,14 @@ class CommandeSauvegarderRessource final : public CommandeJorjala {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
+        auto opt_chemin_fichier = crée_chemin_fichier(chemin_projet.c_str());
+        if (!opt_chemin_fichier.has_value()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         /* À FAIRE : erreur de lecture. */
         jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
-        jorjala.sauvegarde_ressource_jorjala(chemin_projet.c_str());
+        jorjala.sauvegarde_ressource_jorjala(opt_chemin_fichier.value());
         jorjala.restaure_curseur_application();
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -151,9 +175,14 @@ class CommandeLectureRessource final : public CommandeJorjala {
             }
         }
 
+        auto opt_chemin_fichier = crée_chemin_fichier(chemin_projet.c_str());
+        if (!opt_chemin_fichier.has_value()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         /* À FAIRE : erreur de lecture. */
         jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
-        jorjala.lis_ressource_jorjala(chemin_projet.c_str());
+        jorjala.lis_ressource_jorjala(opt_chemin_fichier.value());
         jorjala.restaure_curseur_application();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;

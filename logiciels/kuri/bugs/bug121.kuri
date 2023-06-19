@@ -1,0 +1,18 @@
+/* Crash si un type polymorphique n'a pas ses paramètres dans une déclaration
+ * de fonction. */
+
+importe Fondation
+importe Math
+
+/* Degrés est polymorphique, mais la fonction n'est pas noté comme tel. */
+imprime_degrés :: fonc (d: Degrés)
+{
+    imprime("%\n", d)
+}
+
+principale :: fonc () -> z32
+{
+    d: Degrés(r32)
+    imprime_degrés(d)
+    retourne 0
+}
