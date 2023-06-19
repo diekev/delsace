@@ -1816,8 +1816,12 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         os << ";\n";
     }
 
-    vide_enchaineuse_dans_fichier(coulisse, os);
-    os << "#include \"compilation_kuri.h\"\n";
+    /* Vide l'enchaineuse sauf si nous compilons un fichier objet car nous devons n'avoir qu'un
+     * seul fichier "*.o". */
+    if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
+        os << "#include \"compilation_kuri.h\"\n";
+    }
 
     /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
      * fichiers. */
@@ -1834,8 +1838,10 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         genere_code_fonction(it, os);
         nombre_instructions += nombre_effectif_d_instructions(*it);
 
-        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
-        if (nombre_instructions > nombre_instructions_max_par_fichier) {
+        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions, sauf si nous
+         * compilons un fichier objet car nous devons n'avoir qu'un seul fichier "*.o". */
+        if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET &&
+            nombre_instructions > nombre_instructions_max_par_fichier) {
             vide_enchaineuse_dans_fichier(coulisse, os);
             os << "#include \"compilation_kuri.h\"\n";
             nombre_instructions = 0;
@@ -2100,8 +2106,12 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
-        auto commande = commande_pour_fichier_objet(
-            espace.options, it.chemin_fichier, it.chemin_fichier_objet);
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
+
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
