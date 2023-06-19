@@ -128,21 +128,21 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::BOOL:
             {
-                type_c.typedef_ = "unsigned char";
+                type_c.typedef_ = "uint8_t";
                 break;
             }
             case GenreType::OCTET:
             {
-                type_c.typedef_ = "unsigned char";
+                type_c.typedef_ = "uint8_t";
                 break;
             }
             case GenreType::ENTIER_NATUREL:
             {
                 if (type->taille_octet == 1) {
-                    type_c.typedef_ = "unsigned char";
+                    type_c.typedef_ = "uint8_t";
                 }
                 else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "unsigned short";
+                    type_c.typedef_ = "uint16_t";
                 }
                 else if (type->taille_octet == 4) {
                     type_c.typedef_ = "uint32_t";
@@ -156,13 +156,13 @@ struct ConvertisseuseTypeC {
             case GenreType::ENTIER_RELATIF:
             {
                 if (type->taille_octet == 1) {
-                    type_c.typedef_ = "char";
+                    type_c.typedef_ = "int8_t";
                 }
                 else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "short";
+                    type_c.typedef_ = "int16_t";
                 }
                 else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "int";
+                    type_c.typedef_ = "int32_t";
                 }
                 else if (type->taille_octet == 8) {
                     type_c.typedef_ = "int64_t";
@@ -178,7 +178,7 @@ struct ConvertisseuseTypeC {
             case GenreType::REEL:
             {
                 if (type->taille_octet == 2) {
-                    type_c.typedef_ = "unsigned short";
+                    type_c.typedef_ = "uint16_t";
                 }
                 else if (type->taille_octet == 4) {
                     type_c.typedef_ = "float";
@@ -673,11 +673,11 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
 #endif
     enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
-    enchaineuse << "typedef unsigned char bool;\n";
+    enchaineuse << "typedef uint8_t bool;\n";
     enchaineuse << "#endif\n";
-    enchaineuse << "typedef unsigned char octet;\n";
+    enchaineuse << "typedef uint8_t octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef char ** KPKPKsz8;\n";
+    enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
