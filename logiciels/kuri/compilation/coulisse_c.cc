@@ -104,10 +104,14 @@ struct ConvertisseuseTypeC {
 
         switch (type->genre) {
             case GenreType::POLYMORPHIQUE:
-            case GenreType::ENTIER_CONSTANT:
             {
                 /* Aucun typedef. */
                 return;
+            }
+            case GenreType::ENTIER_CONSTANT:
+            {
+                type_c.typedef_ = "int32_t";
+                break;
             }
             case GenreType::ERREUR:
             case GenreType::ENUM:
