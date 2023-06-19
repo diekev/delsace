@@ -1,0 +1,245 @@
+importe Fondation
+
+Heure :: #opaque n32
+
+Watt :: #opaque n32
+KiloWatt :: #opaque n32
+MégaWatt :: #opaque n32
+
+Gramme :: #opaque n32
+KiloGramme :: #opaque n32
+
+Tonne :: #opaque n32
+MégaTonne :: #opaque n32
+GigaTonne :: #opaque n32
+
+Mètre :: r32
+Kilogramme :: r32
+KiloGramme :: r32
+Joules :: r32
+
+MWh :: r64
+MW :: r64
+TWh :: r64
+
+Wh :: r64
+wh_kg :: r64
+kg :: r64
+wH_L :: r64
+
+WattHeure :: #opaque r32
+
+Centimètre :: #opaque z32
+CentiMètre :: r32
+Pouce :: #opaque z32
+
+Poids :: #opaque r32
+Surface :: #opaque r32
+Volume :: #opaque r32
+Pression :: #opaque r32
+
+Masse :: #opaque r64
+
+/* La masse solaire est l'unité de mesure de base pour les objets stellaire.
+ * Elle correspond à une proportion de la masse du Soleil. */
+MasseSolaire :: #opaque Masse
+
+vers_kilogramme :: fonc (ms: MasseSolaire)
+{
+    // 1.9891e30 kg pour la masse du soleil
+    retourne 1.9891 * ms
+}
+
+/* Type représentant l'âge d'un objet dans l'univers. */
+ÂgeUniversel :: #opaque r64
+
+Parsec :: #opaque r64
+
+vers_pouces :: fonc (cm: Centimètre) -> Pouce
+{
+    dmm := (cm comme z32) * 100
+    retourne Pouce(dmm / 254)
+}
+
+vers_watt_heure :: fonc (joules: Joules) -> WattHeure
+{
+    retourne WattHeure(joules / 3_600.0)
+}
+
+wh_en_joules :: fonc (quantité: Wh) -> Joules
+{
+    retourne (quantité comme r32) * 3600.0
+}
+
+imprime_watt_heure :: fonc (enchaineuse: *Enchaineuse, wh: *WattHeure)
+{
+    v := mémoire(wh) comme r32
+
+    unités := [
+        "Wh", "KWh", "MWh", "GWh", "TWh", "PWh"
+    ]
+
+    exposant := 0
+
+    tantque v > 1_000.0 && exposant < unités.taille {
+        v /= 1_000.0
+        exposant += 1
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "% %", v, unités[exposant])
+} @FormattageImpression
+
+converti_péta_joule_kilo_watt_heure :: fonc (pj: r64) -> r64
+{
+    retourne pj * (100_000_000.0) / 0.36
+}
+
+/*
+
+    Préfixes Grand -> Petit
+
+    yotta
+    zetta
+    exa
+    péta
+    téra
+    giga
+    méga
+    kilo
+    hecto
+    déca
+    --
+    déci
+    centi
+    milli
+    micro
+    nano
+    pico
+    femto
+    atto
+    zepto
+    yocto
+
+    Unité
+
+    - gramme
+    - tonne
+    - watt
+    - wattheure
+
+    Yotta :: #opaque $T
+    Zetta :: #opaque $T
+
+    avoir un système pour passer d'un préfixe à un autre
+
+    UnitéSI :: struct ($T: type_de_données) {
+        Préfixe
+        v: T
+    }
+
+    exposant_pour_préfixe :: fonc (préfixe: $T) -> z32
+    {
+        retourne 0
+    }
+
+    Par :: struct ($T, $T1, $T2) {
+        v: T
+    }
+
+    opérateur / :: fonc (Mètre, Seconde) -> Par(Mètre, Seconde)
+
+    opérateur * :: fonc (MètreParSeconde, Seconde) -> Mètre
+
+ */
+
+/*
+UnitéRationnelle :: struct ($T: type_de_données, $T1: type_de_données, $T2: type_de_données) {
+    TypeNominatif :: T1
+    TypeDénominatif :: T2
+
+    valeur: T
+}
+
+Mètre :: #opaque $T
+KiloMètre :: #opaque $T
+Seconde :: #opaque $T
+Heure :: #opaque $T
+
+convertis :: fonc (valeur: UnitéRationnelle($T, $T1, $T2), $T3: type_de_données, $T4: type_de_données) -> UnitéRationnelle($T, $T3, $T4)
+{
+    résultat : UnitéRationnelle($T, $T3, $T4)
+    résultat.valeur = valeur.valeur
+
+    si T1 == T3 && T2 == T4 {
+        retourne résultat
+    }
+
+    si T1 == Mètre(T) && T3 == KiloMètre(T) {
+        résultat.valeur = résultat.valeur / 1000.0
+    }
+    sinon si T1 == KiloMètre(T) && T3 == Mètre(T) {
+        résultat.valeur = résultat.valeur * 1000.0
+    }
+
+    si T2 == Seconde(T) && T4 == Heure(T) {
+        résultat.valeur = résultat.valeur * 3600.0
+    }
+    sinon si T2 == Heure(T) && T4 == Seconde(T) {
+        résultat.valeur = résultat.valeur / 3600.0
+    }
+
+    retourne résultat
+}
+*/
+// MètreParSeconde :: #opaque UnitéRationnelle($T, Mètre(T), Seconde(T))
+// KiloMètreParHeure :: #opaque UnitéRationnelle($T, KiloMètre(T), Heure(T))
+
+test_unité_rationnnelle :: fonc ()
+{
+    ms : UnitéRationnelle(r32, Mètre(r32), Seconde(r32))
+    ms.valeur = 1.0
+
+    kmh := convertis(ms, KiloMètre(r32), Heure(r32))
+
+    imprime("% m/s = % km/h\n", ms.valeur, kmh.valeur)
+
+    ms = convertis(kmh, Mètre(r32), Seconde(r32))
+    imprime("% km/h = % m/s\n", kmh.valeur, ms.valeur)
+}
+
+/*
+    SI :
+        Masse (kilogramme)
+        Temps (seconde)
+        Longueur (mètre)
+        Température (kelvin)
+        IntensitéÉlectrique (ampère)
+        QuantitéDeMatière (mol)
+        IntensitéLumineuse (candela)
+
+    Autres :
+        - Angle : degrée/radian
+        - Angle solide : stéradian
+        - ...
+
+    - système de conversion d'un type à l'autre (Celsius -> Kelvin)
+    - système de conversion d'une grandeur à l'autre (Nano -> Kilo)
+    - système de composition (m / s)
+    - système de suffixe comme en C++ ? (opérateur ""_m :: fonc () -> Mètre
+        - 50_m / 1_s
+
+    Angle :: #opaque
+
+    Degré :: #opaque Angle
+    Radian :: #opaque Angle
+
+    opérateur comme Degré :: fonc (rad: Radian)
+    {
+    }
+
+    opérateur comme Radian :: fonc (deg: Degré)
+    {
+
+    }
+
+ */
