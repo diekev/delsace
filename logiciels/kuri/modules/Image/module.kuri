@@ -194,8 +194,6 @@ calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y:
 
 // tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C
 
-PI :: 3.14159265358979323846
-
 ErreurHachage :: erreur {
     NombreDeComposantXTropPetit
     NombreDeComposantXTropGrand
@@ -306,8 +304,8 @@ multiplyBasisFunction :: fonc (
             fraction_largeur := x comme r32 / image.largeur comme r32
             fraction_hauteur := y comme r32 / image.hauteur comme r32
 
-            cos_composant_x := cosinus(PI * composant_x comme r32 * fraction_largeur)
-            cos_composant_y := cosinus(PI * composant_y comme r32 * fraction_hauteur)
+            cos_composant_x := cosinus(Constantes(r32).PI * composant_x comme r32 * fraction_largeur)
+            cos_composant_y := cosinus(Constantes(r32).PI * composant_y comme r32 * fraction_hauteur)
 
             base := cos_composant_x * cos_composant_y
 
