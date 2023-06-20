@@ -200,7 +200,7 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 // Encodage de données séquentielles par différence (delta).
 // https://fr.wikipedia.org/wiki/Codage_diff%C3%A9rentiel
 
-encode_différence :: fonc (données: []$T)
+encode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent : T
 
@@ -212,7 +212,27 @@ encode_différence :: fonc (données: []$T)
     }
 }
 
-décode_différence :: fonc (données: []$T)
+encode_par_différence :: fonc (données: []$T) -> []T
+{
+    résultat : []T
+
+    saufsi données {
+        retourne résultat
+    }
+
+    tableau_redimensionne(résultat, données.taille)
+
+    précédent : T
+
+    pour données {
+        résultat[index_it] = it - précédent
+        précédent = it
+    }
+
+    retourne résultat
+}
+
+décode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent : T
 
@@ -220,6 +240,92 @@ décode_différence :: fonc (données: []$T)
         it += précédent
         précédent = it
     }
+}
+
+décode_par_différence :: fonc (données: []$T) -> []T
+{
+    résultat : []T
+
+    saufsi données {
+        retourne résultat
+    }
+
+    tableau_redimensionne(résultat, données.taille)
+
+    précédent : T
+
+    pour données {
+        temp := it + précédent
+        résultat[index_it] = temp
+        précédent = temp
+    }
+
+    retourne résultat
+}
+
+// -------------------------------------------------------------------
+// Encodage de données séquentielles par plage.
+// https://fr.wikipedia.org/wiki/Codage_par_plages
+
+encode_par_plages :: fonc (données: []$T) -> []T
+{
+    résultat: []T
+    saufsi données {
+        retourne résultat
+    }
+
+    tableau_réserve(*résultat, données.taille)
+
+    dernière_valeur := données[0]
+    occurences : T = 1
+
+    tableau_ajoute(*résultat, dernière_valeur)
+
+    pour 1 ... données.taille - 1 {
+        valeur := données[it]
+
+        si valeur != dernière_valeur {
+            tableau_ajoute(*résultat, occurences)
+
+            dernière_valeur = valeur
+            occurences = 1
+            tableau_ajoute(*résultat, valeur)
+            continue
+        }
+
+        occurences += 1
+    }
+
+    /* Occurence de la dernière valeur. */
+    tableau_ajoute(*résultat, occurences)
+
+    retourne résultat
+}
+
+décode_par_plages :: fonc (données: []$T) -> []T
+{
+    résultat : []T
+
+    saufsi données {
+        retourne résultat
+    }
+
+    tableau_réserve(*résultat, données.taille)
+
+    index := 0
+
+    tantque index < données.taille {
+        valeur := données[index]
+        compte := données[index + 1]
+
+        pour compte {
+            tableau_ajoute(*résultat, valeur)
+        }
+
+        index += 2
+    }
+
+    retourne résultat
 }
 
 // -------------------------------------------------------------------
