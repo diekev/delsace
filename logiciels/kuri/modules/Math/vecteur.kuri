@@ -249,22 +249,22 @@ opérateur * :: fonc (v1: Vec3, v: r32) -> Vec3
 
 opérateur / :: fonc (v1: Vec3, v2: Vec3) -> Vec3
 {
-    résultat : Vec3
+    résultat : Vec3 = v1
     divise_vn_vn(*résultat.x, *v2.x, 3)
     retourne résultat
 }
 
 opérateur / :: fonc (v1: Vec3, v: r32) -> Vec3
 {
-    résultat : Vec3
+    résultat : Vec3 = v1
     divise_vn_s(*résultat.x, v, 3)
     retourne résultat
 }
 
 opérateur / :: fonc (v: r32, v1: Vec3) -> Vec3
 {
-    résultat : Vec3
-    réciproque_vn_s(*résultat.x, 3)
+    résultat : Vec3 = v1
+    réciproque_vn_s(*résultat.x, v, 3)
     retourne résultat
 }
 
@@ -465,7 +465,7 @@ opérateur * :: fonc (v1: Vec4, v2: Vec4) -> Vec4
 
 opérateur * :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4
+    résultat : Vec4 = v1
     si v != 0.0 {
         résultat = v1
         multiplie_vn_s(*résultat.x, v, 4)
@@ -475,22 +475,22 @@ opérateur * :: fonc (v1: Vec4, v: r32) -> Vec4
 
 opérateur / :: fonc (v1: Vec4, v2: Vec4) -> Vec4
 {
-    résultat : Vec4
+    résultat : Vec4 = v1
     divise_vn_vn(*résultat.x, *v2.x, 4)
     retourne résultat
 }
 
 opérateur / :: fonc (v1: Vec4, v: r32) -> Vec4
 {
-    résultat : Vec4
+    résultat : Vec4 = v1
     divise_vn_s(*résultat.x, v, 4)
     retourne résultat
 }
 
 opérateur / :: fonc (v: r32, v1: Vec4) -> Vec4
 {
-    résultat : Vec4
-    réciproque_vn_s(*résultat.x, 4)
+    résultat : Vec4 = v1
+    réciproque_vn_s(*résultat.x, v, 4)
     retourne résultat
 }
 
