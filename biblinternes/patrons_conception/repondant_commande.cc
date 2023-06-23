@@ -44,12 +44,12 @@ bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCom
 	std::cerr << "\ty : " << donnees_commande.y << '\n';
 #endif
 
-	auto donnees = donnees_commande;
+    auto donnees = donnees_commande;
 	auto commande = m_usine_commande.trouve_commande(categorie, donnees);
 
 	if (commande == nullptr) {
 		return false;
-	}
+    }
 
 	auto resultat = commande->execute(m_pointeur, donnees);
 
@@ -91,6 +91,7 @@ void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chain
 
 	DonneesCommande donnees;
 	donnees.metadonnee = metadonnee;
+    donnees.identifiant = identifiant;
 
 	commande->execute(m_pointeur, donnees);
 

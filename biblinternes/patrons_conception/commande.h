@@ -43,6 +43,7 @@ struct DonneesCommande {
 	float x = 0;
 	float y = 0;
 	dls::chaine metadonnee = "";
+    dls::chaine identifiant{};
 
 	DonneesCommande() = default;
 };
@@ -65,6 +66,7 @@ struct DescriptionCommande {
 
 	dls::chaine categorie{};
 	dls::chaine metadonnee{};
+    mutable dls::chaine identifiant{};
 	int souris = 0;
 	int modificateur = 0;
 	int cle = 0;

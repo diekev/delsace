@@ -55,7 +55,7 @@ void UsineCommande::enregistre_type(dls::chaine const &nom, DescriptionCommande 
 {
 	auto const iter = m_tableau.trouve(nom);
 	assert(iter == m_tableau.fin());
-
+    description.identifiant = nom;
 	m_tableau[nom] = description;
 }
 
@@ -99,6 +99,10 @@ Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCo
 		if (donnees_commande.metadonnee == "") {
 			donnees_commande.metadonnee = desc.metadonnee;
 		}
+
+        if (donnees_commande.identifiant == "") {
+            donnees_commande.identifiant = desc.identifiant;
+        }
 
 		return desc.construction_commande();
 	}
