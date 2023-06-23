@@ -19,6 +19,34 @@ FichierPaginéMémoire :: struct {
     dernière_page: *Page
 }
 
+détruit_fichier :: fonc (fichier: *FichierPaginéMémoire)
+{
+    déloge_toutes_les_pages(fichier)
+}
+
+aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> []octet
+{
+    nombre_de_pages := nombre_de_pages_dans_liste(fichier.première_page)
+    taille_octet := nombre_de_pages * TAILLE_PAGE
+
+    résultat : []octet
+    tableau_redimensionne(résultat, taille_octet)
+
+    dst := résultat.pointeur
+
+    page := fichier.première_page
+    tantque page != nul {
+        src := *page.données[0]
+
+        copie_mem_nonsur(src = src, dst = dst, taille = TAILLE_PAGE)
+
+        page = page.page_suivante
+        dst += TAILLE_PAGE
+    }
+
+    retourne résultat
+}
+
 // ----------------------------------------------------------------------------
 
 /* Insère une page dans la liste chainée après le lien. */
@@ -53,6 +81,9 @@ déloge_toutes_les_pages :: fonc (fichier: *FichierPaginéMémoire)
         déloge(page)
         page = page_suivante
     }
+
+    fichier.première_page = nul
+    fichier.dernière_page = nul
 }
 
 ajoute_page :: fonc (fichier: *FichierPaginéMémoire) -> *FichierPaginéMémoire.Page
