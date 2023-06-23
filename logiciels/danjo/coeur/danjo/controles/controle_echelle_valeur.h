@@ -46,6 +46,9 @@ class ControleEchelleDecimale : public BaseControle {
                                      QPushButton *bouton_affichage,
                                      QWidget *parent = nullptr);
 
+    ControleEchelleDecimale(ControleEchelleDecimale const &) = default;
+    ControleEchelleDecimale &operator=(ControleEchelleDecimale const &) = default;
+
     void paintEvent(QPaintEvent *event) override;
 
     RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
@@ -77,6 +80,9 @@ class ControleEchelleEntiere : public BaseControle {
     explicit ControleEchelleEntiere(ControleNombreEntier *controle_modifié,
                                     QPushButton *bouton_affichage,
                                     QWidget *parent = nullptr);
+
+    ControleEchelleEntiere(ControleEchelleEntiere const &) = default;
+    ControleEchelleEntiere &operator=(ControleEchelleEntiere const &) = default;
 
     void paintEvent(QPaintEvent *event) override;
 
