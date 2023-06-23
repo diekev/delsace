@@ -43,10 +43,14 @@ namespace JJL {
 class Jorjala;
 }
 
+class QLabel;
+
 class FenetrePrincipale : public QMainWindow {
     Q_OBJECT
 
     JJL::Jorjala &m_jorjala;
+
+    QLabel *m_texte_état = nullptr;
 
     BarreDeProgres *m_barre_progres = nullptr;
     QToolBar *m_barre_outil = nullptr;
@@ -58,6 +62,8 @@ class FenetrePrincipale : public QMainWindow {
 
     FenetrePrincipale(FenetrePrincipale const &) = default;
     FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+
+    void définit_texte_état(const QString &texte);
 
   public Q_SLOTS:
     void image_traitee();

@@ -477,12 +477,18 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
     m_conteneur_avertissements->show();
 }
 
+#undef DEBOGUE_EVENEMENTS
+
 void EditriceProprietes::ajourne_manipulable()
 {
     auto graphe = m_jorjala.graphe();
     if (graphe == nullptr) {
         return;
     }
+
+#ifdef DEBOGUE_EVENEMENTS
+    std::cerr << "---------- " << __func__ << " !\n";
+#endif
 
     auto requête = JJL::RequeteEvaluation({});
     requête.raison(JJL::RaisonEvaluation::PARAMETRE_CHANGÉ);
@@ -495,18 +501,23 @@ void EditriceProprietes::ajourne_manipulable()
 
 void EditriceProprietes::debute_changement_controle()
 {
-#if 0
+#ifdef DEBOGUE_EVENEMENTS
     std::cerr << "---- " << __func__ << " !\n";
-	m_jorjala.empile_etat();
 #endif
+
+    auto graphe = m_jorjala.graphe();
+    auto noeud = graphe.noeud_actif();
+
+    m_jorjala.prépare_pour_changement_paramètre(graphe, noeud);
 }
 
 void EditriceProprietes::termine_changement_controle()
 {
-#if 0
+#ifdef DEBOGUE_EVENEMENTS
     std::cerr << "---- " << __func__ << " !\n";
-    m_jorjala.empile_etat();
 #endif
+
+    m_jorjala.soumets_changement();
 }
 
 static void copie_liste(JJL::tableau<JJL_Chaine, JJL::Chaine> liste,

@@ -40,6 +40,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QSettings>
@@ -143,6 +144,12 @@ static void titre_application(void *donnees, JJL::Chaine titre)
     données_programme->fenetre_principale->setWindowTitle(titre.vers_std_string().c_str());
 }
 
+static void texte_état_application(void *données, JJL::Chaine texte)
+{
+    auto données_programme = static_cast<DonnéesProgramme *>(données);
+    données_programme->fenetre_principale->définit_texte_état(texte.vers_std_string().c_str());
+}
+
 static void tache_demaree(void *donnees)
 {
     auto données_programme = static_cast<DonnéesProgramme *>(donnees);
@@ -198,6 +205,8 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
         reinterpret_cast<void *>(detail::tache_demaree));
     gestionnaire_jjl.définit_rappel_tâche_terminée(
         reinterpret_cast<void *>(detail::tache_terminee));
+    gestionnaire_jjl.définit_rappel_texte_état_logiciel(
+        reinterpret_cast<void *>(detail::texte_état_application));
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
@@ -251,7 +260,8 @@ enum {
 };
 
 FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
-    : QMainWindow(parent), m_jorjala(jorjala), m_barre_progres(new BarreDeProgres(m_jorjala, this))
+    : QMainWindow(parent), m_jorjala(jorjala),
+      m_barre_progres(new BarreDeProgres(m_jorjala, this)), m_texte_état(new QLabel("", this))
 {
     initialise_evenements(m_jorjala, this);
     initialise_chef_execution(m_jorjala, this);
@@ -261,6 +271,9 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 
     genere_barre_menu();
     genere_menu_prereglages();
+
+    statusBar()->addWidget(m_texte_état);
+    définit_texte_état("");
 
     statusBar()->addWidget(m_barre_progres);
     m_barre_progres->setVisible(false);
@@ -461,4 +474,10 @@ void FenetrePrincipale::evaluation_debutee(const QString &message, int execution
     m_barre_progres->ajourne_valeur(0);
     m_barre_progres->setVisible(true);
     m_barre_progres->ajourne_message(message, execution, total);
+}
+
+void FenetrePrincipale::définit_texte_état(const QString &texte)
+{
+    m_texte_état->setVisible(texte != "");
+    m_texte_état->setText(texte);
 }

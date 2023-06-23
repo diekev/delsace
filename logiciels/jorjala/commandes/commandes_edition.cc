@@ -238,22 +238,15 @@ class CommandeDefait final : public CommandeJorjala {
   public:
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        return !jorjala.pile_defait.est_vide();
-#else
-        return false;
-#endif
+        return jorjala.possède_changement_à_défaire();
     }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        jorjala.defait();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
-#endif
-
+        jorjala.défait_changement();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -264,22 +257,15 @@ class CommandeRefait final : public CommandeJorjala {
   public:
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        return !jorjala.pile_refait.est_vide();
-#else
-        return false;
-#endif
+        return jorjala.possède_changement_à_refaire();
     }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        jorjala.refait();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
-#endif
-
+        jorjala.refait_changement();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -349,11 +335,12 @@ void enregistre_commandes_edition(UsineCommande &usine)
 
     usine.enregistre_type(
         "défait",
-        description_commande<CommandeDefait>("", 0, Qt::Modifier::CTRL, Qt::Key_Z, false));
+        description_commande<CommandeDefait>("", 0, Qt::Modifier::CTRL, Qt::Key_Z, false, false));
 
-    usine.enregistre_type("refait",
-                          description_commande<CommandeRefait>(
-                              "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false));
+    usine.enregistre_type(
+        "refait",
+        description_commande<CommandeRefait>(
+            "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false, false));
 
     usine.enregistre_type(
         "renomme", description_commande<CommandeRenomme>("graphe", 0, 0, Qt::Key_F2, false));

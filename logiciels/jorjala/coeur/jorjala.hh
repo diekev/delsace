@@ -232,21 +232,6 @@ struct Jorjala : public Sujette {
     Reseau reseau{};
 
     void ajourne_pour_nouveau_temps(const char *message);
-
-    struct EtatLogiciel {
-        BaseDeDonnees bdd{};
-    };
-
-    dls::pile<EtatLogiciel> pile_defait{};
-    dls::pile<EtatLogiciel> pile_refait{};
-
-    EtatLogiciel etat_courant();
-
-    void empile_etat();
-
-    void defait();
-
-    void refait();
 };
 
 inline Jorjala *extrait_jorjala(std::any const &any)
