@@ -68,7 +68,7 @@ Commande *UsineCommande::operator()(dls::chaine const &nom)
 
 	DescriptionCommande const &desc = iter->second;
 
-	return desc.construction_commande();
+    return desc.construction_commande(desc);
 }
 
 Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCommande &donnees_commande)
@@ -104,7 +104,7 @@ Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCo
             donnees_commande.identifiant = desc.identifiant;
         }
 
-		return desc.construction_commande();
+        return desc.construction_commande(desc);
 	}
 
 	return nullptr;
