@@ -493,11 +493,19 @@ void EditriceProprietes::ajourne_manipulable()
     m_jorjala.requiers_évaluation(requête);
 }
 
-void EditriceProprietes::precontrole_change()
+void EditriceProprietes::debute_changement_controle()
 {
 #if 0
-	std::cerr << "---- Précontrole changé !\n";
+    std::cerr << "---- " << __func__ << " !\n";
 	m_jorjala.empile_etat();
+#endif
+}
+
+void EditriceProprietes::termine_changement_controle()
+{
+#if 0
+    std::cerr << "---- " << __func__ << " !\n";
+    m_jorjala.empile_etat();
 #endif
 }
 

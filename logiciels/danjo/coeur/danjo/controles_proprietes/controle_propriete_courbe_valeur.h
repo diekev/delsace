@@ -50,13 +50,13 @@ class ControleProprieteCourbeValeur final : public ControlePropriete {
 
     /* controle de la position X du point sélectionné */
     QPushButton *m_bouton_echelle_x{};
-    ControleEchelleDecimale *m_echelle_x{};
     ControleNombreDecimal *m_pos_x{};
+    ControleEchelleDecimale *m_echelle_x{};
 
     /* controle de la position Y du point sélectionné */
     QPushButton *m_bouton_echelle_y{};
-    ControleEchelleDecimale *m_echelle_y{};
     ControleNombreDecimal *m_pos_y{};
+    ControleEchelleDecimale *m_echelle_y{};
 
     /* connexion */
     CourbeBezier *m_courbe{};
@@ -71,10 +71,6 @@ class ControleProprieteCourbeValeur final : public ControlePropriete {
     void finalise(const DonneesControle &donnees) override;
 
   private Q_SLOTS:
-    //	void ajourne_valeur_pointee(float valeur);
-    void montre_echelle_x();
-    void montre_echelle_y();
-
     void bascule_utilise_table(bool ouinon);
 
     void ajourne_position(float x, float y);

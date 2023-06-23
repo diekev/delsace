@@ -57,7 +57,9 @@ class EditriceProprietes : public BaseEditrice {
 
     void reinitialise_entreface(bool creation_avert);
 
-    void precontrole_change() override;
+    void debute_changement_controle() override;
+
+    void termine_changement_controle() override;
 
   private:
     void ajoute_avertissements(JJL::Noeud &noeud);

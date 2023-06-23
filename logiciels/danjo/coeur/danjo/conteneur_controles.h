@@ -53,7 +53,11 @@ class ConteneurControles : public QWidget {
      */
     virtual void ajourne_manipulable() = 0;
 
-    virtual void precontrole_change()
+    virtual void debute_changement_controle()
+    {
+    }
+
+    virtual void termine_changement_controle()
     {
     }
 

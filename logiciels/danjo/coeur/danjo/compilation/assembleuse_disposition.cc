@@ -320,14 +320,19 @@ void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle con
         }
 
         QObject::connect(controle,
-                         &ControlePropriete::precontrole_change,
+                         &ControlePropriete::debute_changement_controle,
                          m_conteneur,
-                         &ConteneurControles::precontrole_change);
+                         &ConteneurControles::debute_changement_controle);
 
         QObject::connect(controle,
                          &ControlePropriete::controle_change,
                          m_conteneur,
                          &ConteneurControles::ajourne_manipulable);
+
+        QObject::connect(controle,
+                         &ControlePropriete::termine_changement_controle,
+                         m_conteneur,
+                         &ConteneurControles::termine_changement_controle);
     }
 }
 
