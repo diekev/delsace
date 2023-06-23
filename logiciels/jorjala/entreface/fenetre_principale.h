@@ -50,9 +50,8 @@ class FenetrePrincipale : public QMainWindow {
 
     JJL::Jorjala &m_jorjala;
 
-    QLabel *m_texte_état = nullptr;
-
     BarreDeProgres *m_barre_progres = nullptr;
+    QLabel *m_texte_état = nullptr;
     QToolBar *m_barre_outil = nullptr;
 
     QVector<BaseEditrice *> m_editrices{};
