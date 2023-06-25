@@ -51,11 +51,6 @@ ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive 
     return AbcKuri::cree_archive(ctx_kuri, ctx);
 }
 
-ArchiveCache *ABC_cree_archive_pour_ecriture(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
-{
-    return AbcKuri::cree_archive_export(ctx_kuri, ctx);
-}
-
 void ABC_detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
 {
     AbcKuri::detruit_archive(ctx, archive);
@@ -129,35 +124,50 @@ void ABC_lis_objet(ContexteKuri *ctx_kuri,
 
 // ABC_est_constant
 
-EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
-                                                  ContexteEcritureCache *contexte,
-                                                  LectriceCache *lectrice,
-                                                  EcrivainCache *parent)
+AutriceArchive *ABC_cree_autrice_archive(ContexteKuri *ctx_kuri,
+                                         ContexteCreationArchive *ctx,
+                                         ContexteEcritureCache *ctx_écriture)
 {
-    return AbcKuri::cree_ecrivain_cache_depuis_ref(ctx, contexte, lectrice, parent);
+    return AbcKuri::crée_autrice_archive(ctx_kuri, ctx, ctx_écriture);
+}
+
+void ABC_detruit_autrice(ContexteKuri *ctx, AutriceArchive *autrice)
+{
+    AbcKuri::détruit_autrice(ctx, autrice);
+}
+
+EcrivainCache *ABC_cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
+                                                  AutriceArchive *autrice,
+                                                  LectriceCache *lectrice,
+                                                  EcrivainCache *parent,
+                                                  void *données)
+{
+    return AbcKuri::cree_ecrivain_cache_depuis_ref(ctx, autrice, lectrice, parent, données);
 }
 
 EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx,
-                                       ContexteEcritureCache *contexte,
+                                       AutriceArchive *autrice,
                                        EcrivainCache *parent,
                                        const char *nom,
-                                       size_t taille_nom,
+                                       uint64_t taille_nom,
+                                       void *données,
                                        eTypeObjetAbc type_objet)
 {
-    return AbcKuri::cree_ecrivain_cache(ctx, contexte, parent, nom, taille_nom, type_objet);
+    return AbcKuri::cree_ecrivain_cache(
+        ctx, autrice, parent, nom, taille_nom, données, type_objet);
 }
 
 EcrivainCache *ABC_cree_instance(ContexteKuri *ctx,
                                  EcrivainCache *instance,
                                  const char *nom,
-                                 size_t taille_nom)
+                                 uint64_t taille_nom)
 {
     return AbcKuri::cree_instance(ctx, instance, nom, taille_nom);
 }
 
-void ABC_ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain)
+void ABC_ecris_donnees(AutriceArchive *autrice)
 {
-    AbcKuri::ecris_objet(ctx, ecrivain);
+    AbcKuri::écris_données(autrice);
 }
 
 void ABC_lis_attributs(ContexteKuri *ctx_kuri,

@@ -416,10 +416,6 @@ LectriceCache *cree_lectrice_cache(ContexteKuri *ctx_kuri,
         return nullptr;
     }
 
-    if (!archive->est_lecture()) {
-        return nullptr;
-    }
-
     auto &iarchive = archive->iarchive();
 
     if (!iarchive.valid()) {

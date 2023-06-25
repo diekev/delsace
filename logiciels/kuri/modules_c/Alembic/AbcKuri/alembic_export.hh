@@ -3,24 +3,83 @@
 
 #pragma once
 
+#include "../alembic.h"
 #include "../alembic_types.h"
 
 struct ContexteKuri;
-struct EcrivainCache;
 struct LectriceCache;
+
+struct EcrivainCache {
+    EcrivainCache *m_parent = nullptr;
+    std::vector<EcrivainCache *> m_enfants{};
+
+    template <typename T>
+    static EcrivainCache *cree(ContexteKuri *ctx,
+                               AutriceArchive *autrice,
+                               EcrivainCache *parent,
+                               void *données,
+                               const std::string &nom);
+
+    static EcrivainCache *cree_instance(ContexteKuri *ctx,
+                                        EcrivainCache *instance,
+                                        const std::string &nom)
+    {
+        // À FAIRE
+        return nullptr;
+    }
+
+    template <typename TypeObjetAlembic>
+    bool est_un() const
+    {
+        return TypeObjetAlembic::matches(oobject().getHeader());
+    }
+
+    virtual ~EcrivainCache() = default;
+
+    virtual Alembic::AbcGeom::OObject oobject() = 0;
+    virtual Alembic::AbcGeom::OObject oobject() const = 0;
+
+    virtual void écris_données() = 0;
+
+  protected:
+    void définit_parent(EcrivainCache *parent)
+    {
+        m_parent = parent;
+        parent->m_enfants.push_back(this);
+    }
+};
+
+/* ÉcrivainCache factice pour représenter la racine de l'archive. */
+class RacineAutriceCache final : public EcrivainCache {
+    AutriceArchive *m_autrice = nullptr;
+
+  public:
+    explicit RacineAutriceCache(AutriceArchive &autrice);
+
+    void écris_données() override
+    {
+        /* Rien à faire pour la racine. */
+    }
+
+    Alembic::AbcGeom::OObject oobject() override;
+
+    Alembic::AbcGeom::OObject oobject() const override;
+};
 
 namespace AbcKuri {
 
 EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
-                                              ContexteEcritureCache *contexte,
+                                              AutriceArchive *autrice,
                                               LectriceCache *lectrice,
-                                              EcrivainCache *parent);
+                                              EcrivainCache *parent,
+                                              void *données);
 
 EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
-                                   ContexteEcritureCache *contexte,
+                                   AutriceArchive *autrice,
                                    EcrivainCache *parent,
                                    const char *nom,
                                    uint64_t taille_nom,
+                                   void *données,
                                    eTypeObjetAbc type_objet);
 
 EcrivainCache *cree_instance(ContexteKuri *ctx,
@@ -28,6 +87,6 @@ EcrivainCache *cree_instance(ContexteKuri *ctx,
                              const char *nom,
                              uint64_t taille_nom);
 
-void ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain);
+void detruit_ecrivain(ContexteKuri *ctx_kuri, EcrivainCache *ecrivain);
 
 }  // namespace AbcKuri

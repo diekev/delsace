@@ -16,8 +16,7 @@ extern "C" {
  */
 struct ArchiveCache *ABC_cree_archive(struct ContexteKuri *ctx_kuri,
                                       struct ContexteOuvertureArchive *ctx);
-struct ArchiveCache *ABC_cree_archive_pour_ecriture(struct ContexteKuri *ctx_kuri,
-                                                    struct ContexteOuvertureArchive *ctx);
+
 void ABC_detruit_archive(struct ContexteKuri *ctx, struct ArchiveCache *archive);
 
 void ABC_traverse_archive(struct ContexteKuri *ctx_kuri,
@@ -39,6 +38,22 @@ void ABC_lis_attributs(struct ContexteKuri *ctx_kuri,
                        struct LectriceCache *lectrice,
                        struct ConvertisseuseImportAttributs *convertisseuse,
                        double temps);
+
+struct AutriceArchive *ABC_cree_autrice_archive(struct ContexteKuri *ctx_kuri,
+                                                struct ContexteCreationArchive *ctx,
+                                                struct ContexteEcritureCache *ctx_ecriture);
+
+void ABC_detruit_autrice(struct ContexteKuri *ctx, struct AutriceArchive *autrice);
+
+struct EcrivainCache *ABC_cree_ecrivain_cache(struct ContexteKuri *ctx,
+                                              struct AutriceArchive *archive,
+                                              struct EcrivainCache *parent,
+                                              const char *nom,
+                                              uint64_t taille_nom,
+                                              void *données,
+                                              enum eTypeObjetAbc type_objet);
+
+void ABC_ecris_donnees(struct AutriceArchive *autrice);
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,7 @@
 
 #include "../../InterfaceCKuri/contexte_kuri.hh"
 
+#include "alembic_archive.hh"
 #include "alembic_import.hh"
 #include "utilitaires.hh"
 
@@ -15,108 +16,88 @@
 
 using namespace Alembic;
 
-struct EcrivainCache {
-    std::variant<AbcGeom::OCamera,
-                 AbcGeom::OCurves,
-                 AbcGeom::OFaceSet,
-                 AbcGeom::OLight,
-                 AbcGeom::ONuPatch,
-                 AbcGeom::OPoints,
-                 AbcGeom::OPolyMesh,
-                 AbcGeom::OSubD,
-                 AbcGeom::OXform,
-                 AbcMaterial::OMaterial>
-        o_schema_object{};
-
-    template <typename T>
-    static EcrivainCache *cree(ContexteKuri *ctx, EcrivainCache *parent, const std::string &nom)
-    {
-        auto ecrivain = kuri_loge<EcrivainCache>(ctx);
-
-        if (parent) {
-            ecrivain->o_schema_object = T(parent->oobject(), nom);
-        }
-        else {
-            ecrivain->o_schema_object = T({}, nom);
-        }
-
-        return ecrivain;
-    }
-
-    static EcrivainCache *cree_instance(ContexteKuri *ctx,
-                                        EcrivainCache *instance,
-                                        const std::string &nom)
-    {
-        auto ecrivain = kuri_loge<EcrivainCache>(ctx);
-        // À FAIRE
-        return ecrivain;
-    }
-
-    template <typename T>
-    bool est_un() const
-    {
-        return std::holds_alternative<T>(o_schema_object);
-    }
-
-    template <typename T>
-    T &comme()
-    {
-        return std::get<T>(o_schema_object);
-    }
-
-    AbcGeom::OObject oobject()
-    {
-        if (est_un<AbcGeom::OPolyMesh>()) {
-            return std::get<AbcGeom::OPolyMesh>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OSubD>()) {
-            return std::get<AbcGeom::OSubD>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OPoints>()) {
-            return std::get<AbcGeom::OPoints>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::ONuPatch>()) {
-            return std::get<AbcGeom::ONuPatch>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OCurves>()) {
-            return std::get<AbcGeom::OCurves>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OXform>()) {
-            return std::get<AbcGeom::OXform>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OCamera>()) {
-            return std::get<AbcGeom::OCamera>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OFaceSet>()) {
-            return std::get<AbcGeom::OFaceSet>(o_schema_object);
-        }
-
-        if (est_un<AbcGeom::OLight>()) {
-            return std::get<AbcGeom::OLight>(o_schema_object);
-        }
-
-        if (est_un<AbcMaterial::OMaterial>()) {
-            return std::get<AbcMaterial::OMaterial>(o_schema_object);
-        }
-
-        return {};
-    }
-};
+/* ------------------------------------------------------------------------- */
+/** \nom Écriture des objets Alembic depuis leurs convertisseuse.
+ * \{ */
 
 namespace AbcKuri {
 
-static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse,
-                                EcrivainCache *ecrivain)
+static void écris_données(AbcGeom::OXform &o_xform, ConvertisseuseExportXform *convertisseuse)
 {
-    auto &omateriau = ecrivain->comme<AbcMaterial::OMaterial>();
-    auto schema = omateriau.getSchema();
+    auto &schema = o_xform.getSchema();
+
+    double données[4][4];
+    double *matrice = &données[0][0];
+    convertisseuse->donne_matrice(convertisseuse, matrice);
+
+    Abc::M44d matrice_export = Abc::M44d(données);
+
+    AbcGeom::XformSample sample;
+    sample.setMatrix(matrice_export);
+    sample.setInheritsXforms(convertisseuse->doit_hériter_matrice_parent(convertisseuse));
+    schema.set(sample);
+}
+
+static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
+                          ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
+
+    if (nombre_de_points == 0) {
+        return;
+    }
+
+    /* Exporte les positions. */
+    std::vector<Imath::V3f> positions;
+    positions.resize(nombre_de_points);
+
+    for (size_t i = 0; i < nombre_de_points; i++) {
+        Imath::V3f &pos = positions[i];
+        convertisseuse->point_pour_index(convertisseuse, i, &pos.x, &pos.y, &pos.z);
+    }
+
+    /* Exporte les polygones. */
+    const size_t nombre_de_polygones = convertisseuse->nombre_de_polygones(convertisseuse);
+    std::vector<int> face_counts;
+    face_counts.resize(nombre_de_polygones);
+
+    size_t nombre_de_coins = 0;
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        face_counts[i] = convertisseuse->nombre_de_coins_polygone(convertisseuse, i);
+        nombre_de_coins += static_cast<size_t>(face_counts[i]);
+    }
+
+    std::vector<int> face_indices;
+    face_indices.resize(nombre_de_coins);
+
+    size_t decalage = 0;
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        const int face_count = face_counts[i];
+        convertisseuse->coins_pour_polygone(convertisseuse, i, &face_indices[decalage]);
+        decalage += static_cast<size_t>(face_count);
+    }
+
+    /* Exporte vers Alembic */
+    auto &schema = o_poly_mesh.getSchema();
+
+    AbcGeom::OPolyMeshSchema::Sample sample;
+    sample.setPositions(positions);
+    sample.setFaceCounts(face_counts);
+    sample.setFaceIndices(face_indices);
+
+    schema.set(sample);
+}
+
+static void écris_données(AbcGeom::OSubD & /*o_points*/,
+                          ConvertisseuseExportSubD * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+static void écris_données(AbcMaterial::OMaterial &omateriau,
+                          ConvertisseuseExportMateriau *convertisseuse)
+{
+    auto &schema = omateriau.getSchema();
 
     const auto cible = string_depuis_rappel(convertisseuse, convertisseuse->nom_cible);
     const auto type_nuanceur = string_depuis_rappel(convertisseuse, convertisseuse->type_nuanceur);
@@ -166,159 +147,237 @@ static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse,
     // À FAIRE: paramètre du noeud
 }
 
-static void abc_export_poly_mesh(ConvertisseuseExportPolyMesh *convertisseuse,
-                                 EcrivainCache *ecrivain)
+static void écris_données(AbcGeom::OCamera & /*o_camera*/,
+                          ConvertisseuseExportCamera * /*convertisseuse*/)
 {
-    const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
+    // À FAIRE
+}
 
-    if (nombre_de_points == 0) {
-        return;
+static void écris_données(AbcGeom::OCurves & /*o_curves*/,
+                          ConvertisseuseExportCourbes * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+static void écris_données(AbcGeom::OFaceSet & /*o_faceset*/,
+                          ConvertisseuseExportFaceSet * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+static void écris_données(AbcGeom::OLight & /*o_light*/,
+                          ConvertisseuseExportLumiere * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+static void écris_données(AbcGeom::ONuPatch & /*o_nupatch*/,
+                          ConvertisseuseExportNurbs * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+static void écris_données(AbcGeom::OPoints & /*o_points*/,
+                          ConvertisseuseExportPoints * /*convertisseuse*/)
+{
+    // À FAIRE
+}
+
+}  // namespace AbcKuri
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ÉcrivainCache.
+ * \{ */
+
+RacineAutriceCache::RacineAutriceCache(AutriceArchive &autrice) : m_autrice(&autrice)
+{
+}
+
+Abc::OObject RacineAutriceCache::oobject()
+{
+    return m_autrice->racine_ecriture();
+}
+
+Abc::OObject RacineAutriceCache::oobject() const
+{
+    return m_autrice->racine_ecriture();
+}
+
+template <typename TypeObjetAlembic>
+struct DonnéesEcrivainCache;
+
+#define DEFINIS_DONNEES_ECRIVAIN(TypeObjet, TypeConvertisseuse, fonction_init)                    \
+    template <>                                                                                   \
+    struct DonnéesEcrivainCache<TypeObjet> {                                                      \
+        using type_objet_alembic = TypeObjet;                                                     \
+        using type_convertisseuse = TypeConvertisseuse;                                           \
+        static void init_convertisseuse(AutriceArchive *autrice,                                  \
+                                        type_convertisseuse *convertisseuse)                      \
+        {                                                                                         \
+            autrice->ctx_écriture.fonction_init(convertisseuse);                                  \
+        }                                                                                         \
     }
 
-    /* Exporte les positions. */
-    std::vector<Imath::V3f> positions;
-    positions.resize(nombre_de_points);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OCamera,
+                         ConvertisseuseExportCamera,
+                         initialise_convertisseuse_camera);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OCurves,
+                         ConvertisseuseExportCourbes,
+                         initialise_convertisseuse_courbes);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OFaceSet,
+                         ConvertisseuseExportFaceSet,
+                         initialise_convertisseuse_face_set);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OLight,
+                         ConvertisseuseExportLumiere,
+                         initialise_convertisseuse_lumiere);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::ONuPatch,
+                         ConvertisseuseExportNurbs,
+                         initialise_convertisseuse_nurbs);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OPoints,
+                         ConvertisseuseExportPoints,
+                         initialise_convertisseuse_points);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OPolyMesh,
+                         ConvertisseuseExportPolyMesh,
+                         initialise_convertisseuse_polymesh);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OSubD, ConvertisseuseExportSubD, initialise_convertisseuse_subd);
+DEFINIS_DONNEES_ECRIVAIN(AbcGeom::OXform,
+                         ConvertisseuseExportXform,
+                         initialise_convertisseuse_xform);
+DEFINIS_DONNEES_ECRIVAIN(AbcMaterial::OMaterial,
+                         ConvertisseuseExportMateriau,
+                         initialise_convertisseuse_materiau);
 
-    for (size_t i = 0; i < nombre_de_points; i++) {
-        Imath::V3f &pos = positions[i];
-        convertisseuse->point_pour_index(convertisseuse, i, &pos.x, &pos.y, &pos.z);
+#undef DEFINIS_DONNEES_ECRIVAIN
+
+template <typename TypeObjetAlembic>
+struct EcrivainType : public EcrivainCache {
+    using données_écrivain = DonnéesEcrivainCache<TypeObjetAlembic>;
+    using type_objet_alembic = typename données_écrivain::type_objet_alembic;
+    using type_convertisseuse = typename données_écrivain::type_convertisseuse;
+
+    type_objet_alembic o_schema_object;
+    type_convertisseuse convertisseuse;
+
+    EcrivainType(AutriceArchive *autrice,
+                 EcrivainCache *parent,
+                 void *données,
+                 const std::string &nom)
+    {
+        o_schema_object = type_objet_alembic(parent->oobject(), nom);
+        définit_parent(parent);
+        données_écrivain::init_convertisseuse(autrice, &convertisseuse);
+        convertisseuse.donnees = données;
     }
 
-    /* Exporte les polygones. */
-    const size_t nombre_de_polygones = convertisseuse->nombre_de_polygones(convertisseuse);
-    std::vector<int> face_counts;
-    face_counts.resize(nombre_de_polygones);
-
-    size_t nombre_de_coins = 0;
-    for (size_t i = 0; i < nombre_de_polygones; i++) {
-        face_counts[i] = convertisseuse->nombre_de_coins_polygone(convertisseuse, i);
-        nombre_de_coins += static_cast<size_t>(face_counts[i]);
+    void écris_données() override
+    {
+        AbcKuri::écris_données(o_schema_object, &convertisseuse);
     }
 
-    std::vector<int> face_indices;
-    face_indices.resize(nombre_de_coins);
-
-    size_t decalage = 0;
-    for (size_t i = 0; i < nombre_de_polygones; i++) {
-        const int face_count = face_counts[i];
-        convertisseuse->coins_pour_polygone(convertisseuse, i, &face_indices[decalage]);
-        decalage += static_cast<size_t>(face_count);
+    AbcGeom::OObject oobject() override
+    {
+        return o_schema_object;
     }
 
-    /* Exporte vers Alembic */
-    auto &o_poly_mesh = ecrivain->comme<AbcGeom::OPolyMesh>();
-    auto &schema = o_poly_mesh.getSchema();
+    AbcGeom::OObject oobject() const override
+    {
+        return o_schema_object;
+    }
+};
 
-    AbcGeom::OPolyMeshSchema::Sample sample;
-    sample.setPositions(positions);
-    sample.setFaceCounts(face_counts);
-    sample.setFaceIndices(face_indices);
+template <typename T>
+EcrivainCache *EcrivainCache::cree(ContexteKuri *ctx,
+                                   AutriceArchive *autrice,
+                                   EcrivainCache *parent,
+                                   void *données,
+                                   const std::string &nom)
+{
+    auto ecrivain = kuri_loge<EcrivainType<T>>(ctx, autrice, parent, données, nom);
+    return ecrivain;
+}
 
-    schema.set(sample);
+#define DONNES_OOBJECT(TypeAlembic, ecrivain)                                                     \
+    static_cast<EcrivainType<TypeAlembic> *>(ecrivain)->o_schema_object
+
+/** \} */
+
+namespace AbcKuri {
+
+static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse,
+                                EcrivainCache *ecrivain)
+{
+    auto &omateriau = DONNES_OOBJECT(AbcMaterial::OMaterial, ecrivain);
 }
 
 EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
-                                              ContexteEcritureCache *contexte,
+                                              AutriceArchive *autrice,
                                               LectriceCache *lectrice,
-                                              EcrivainCache *parent)
+                                              EcrivainCache *parent,
+                                              void *données)
 {
-    if (AbcGeom::IPolyMesh::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OPolyMesh>(ctx, parent, lectrice->iobject.getName());
+    if (parent == nullptr) {
+        parent = autrice->racine;
     }
 
-    if (AbcGeom::ISubD::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OSubD>(ctx, parent, lectrice->iobject.getName());
+#define GERE_CAS(TypeClasseEntree, TypeClasseSortie)                                              \
+    if (TypeClasseEntree::matches(lectrice->iobject.getHeader())) {                               \
+        return EcrivainCache::cree<TypeClasseSortie>(                                             \
+            ctx, autrice, parent, données, lectrice->iobject.getName());                          \
     }
 
-    if (AbcGeom::IPoints::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OPoints>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::INuPatch::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::ONuPatch>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::ICurves::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OCurves>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::IXform::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OXform>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::ICamera::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OCamera>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::IFaceSet::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OFaceSet>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcGeom::ILight::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcGeom::OLight>(ctx, parent, lectrice->iobject.getName());
-    }
-
-    if (AbcMaterial::IMaterial::matches(lectrice->iobject.getHeader())) {
-        return EcrivainCache::cree<AbcMaterial::OMaterial>(
-            ctx, parent, lectrice->iobject.getName());
-    }
+    GERE_CAS(AbcGeom::IPolyMesh, AbcGeom::OPolyMesh)
+    GERE_CAS(AbcGeom::ISubD, AbcGeom::OSubD)
+    GERE_CAS(AbcGeom::IPoints, AbcGeom::OPoints)
+    GERE_CAS(AbcGeom::INuPatch, AbcGeom::ONuPatch)
+    GERE_CAS(AbcGeom::ICurves, AbcGeom::OCurves)
+    GERE_CAS(AbcGeom::ICamera, AbcGeom::OCamera)
+    GERE_CAS(AbcGeom::IFaceSet, AbcGeom::OFaceSet)
+    GERE_CAS(AbcGeom::ILight, AbcGeom::OLight)
+    GERE_CAS(AbcMaterial::IMaterial, AbcMaterial::OMaterial)
 
     {
         /* Instance. */
     }
 
+#undef GERE_CAS
+
     return nullptr;
 }
 
 EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
-                                   ContexteEcritureCache *contexte,
+                                   AutriceArchive *autrice,
                                    EcrivainCache *parent,
                                    const char *nom,
-                                   size_t taille_nom,
+                                   uint64_t taille_nom,
+                                   void *données,
                                    eTypeObjetAbc type_objet)
 {
-    switch (type_objet) {
-        case eTypeObjetAbc::CAMERA:
-        {
-            return EcrivainCache::cree<AbcGeom::OCamera>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::COURBES:
-        {
-            return EcrivainCache::cree<AbcGeom::OCurves>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::FACE_SET:
-        {
-            return EcrivainCache::cree<AbcGeom::OFaceSet>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::LUMIERE:
-        {
-            return EcrivainCache::cree<AbcGeom::OLight>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::MATERIAU:
-        {
-            return EcrivainCache::cree<AbcMaterial::OMaterial>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::NURBS:
-        {
-            return EcrivainCache::cree<AbcGeom::ONuPatch>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::POINTS:
-        {
-            return EcrivainCache::cree<AbcGeom::OPoints>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::POLY_MESH:
-        {
-            return EcrivainCache::cree<AbcGeom::OPolyMesh>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::SUBD:
-        {
-            return EcrivainCache::cree<AbcGeom::OSubD>(ctx, parent, {nom, taille_nom});
-        }
-        case eTypeObjetAbc::XFORM:
-        {
-            return EcrivainCache::cree<AbcGeom::OXform>(ctx, parent, {nom, taille_nom});
-        }
+    if (parent == nullptr) {
+        parent = autrice->racine;
     }
+
+#define GERE_CAS(TypeObjet, TypeClasse)                                                           \
+    case eTypeObjetAbc::TypeObjet:                                                                \
+    {                                                                                             \
+        return EcrivainCache::cree<TypeClasse>(ctx, autrice, parent, données, {nom, taille_nom}); \
+    }
+
+    switch (type_objet) {
+        GERE_CAS(CAMERA, AbcGeom::OCamera)
+        GERE_CAS(COURBES, AbcGeom::OCurves)
+        GERE_CAS(FACE_SET, AbcGeom::OFaceSet)
+        GERE_CAS(LUMIERE, AbcGeom::OLight)
+        GERE_CAS(MATERIAU, AbcMaterial::OMaterial)
+        GERE_CAS(NURBS, AbcGeom::ONuPatch)
+        GERE_CAS(POINTS, AbcGeom::OPoints)
+        GERE_CAS(POLY_MESH, AbcGeom::OPolyMesh)
+        GERE_CAS(SUBD, AbcGeom::OSubD)
+        GERE_CAS(XFORM, AbcGeom::OXform)
+    }
+
+#undef GERE_CAS
 
     return nullptr;
 }
@@ -331,48 +390,9 @@ EcrivainCache *cree_instance(ContexteKuri *ctx,
     return EcrivainCache::cree_instance(ctx, instance, {nom, taille_nom});
 }
 
-void ecris_objet(ContexteKuri *ctx, EcrivainCache *ecrivain)
+void detruit_ecrivain(ContexteKuri *ctx_kuri, EcrivainCache *ecrivain)
 {
-    if (ecrivain->est_un<AbcGeom::OPolyMesh>()) {
-        abc_export_poly_mesh(nullptr, ecrivain);
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OSubD>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OPoints>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::ONuPatch>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OCurves>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OXform>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OCamera>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OFaceSet>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcGeom::OLight>()) {
-        return;
-    }
-
-    if (ecrivain->est_un<AbcMaterial::OMaterial>()) {
-        return;
-    }
+    kuri_deloge(ctx_kuri, ecrivain);
 }
 
 }  // namespace AbcKuri

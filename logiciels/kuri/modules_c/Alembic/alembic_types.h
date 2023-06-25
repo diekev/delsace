@@ -14,7 +14,9 @@ typedef unsigned short r16;
 #endif
 
 struct ArchiveCache;
+struct AutriceArchive;
 struct ContexteKuri;
+struct EcrivainCache;
 struct LectriceCache;
 
 // --------------------------------------------------------------
@@ -52,6 +54,38 @@ struct ContexteOuvertureArchive {
     /* Rappels pour les erreurs, afin de savoir ce qui s'est passé. */
     void (*erreur_aucun_chemin)(struct ContexteOuvertureArchive *ctx);
     void (*erreur_archive_invalide)(struct ContexteOuvertureArchive *ctx);
+
+    /* Les données utilisateur du contexte. */
+    void *donnees_utilisateur;
+};
+
+/* Paramètres pour la bonne création d'une archive Alembic. */
+struct ContexteCreationArchive {
+    /* Accède au chemin. */
+    void (*donne_chemin)(struct ContexteCreationArchive *ctx,
+                         const char **pointeur,
+                         uint64_t *taille);
+
+    /* Pour les erreurs venant d'Alembic. */
+    eAbcPoliceErreur (*police_erreur)(struct ContexteCreationArchive *ctx);
+
+    /* Rappels pour les erreurs, afin de savoir ce qui s'est passé. */
+    void (*erreur_aucun_chemin)(struct ContexteCreationArchive *ctx);
+
+    /* Pour les métadonnées. */
+
+    /* Accède au nom de l'application qui a crée l'archive. */
+    void (*donne_nom_application)(struct ContexteCreationArchive *ctx,
+                                  const char **pointeur,
+                                  uint64_t *taille);
+
+    /* Accède à la description de l'archive. */
+    void (*donne_description)(struct ContexteCreationArchive *ctx,
+                              const char **pointeur,
+                              uint64_t *taille);
+
+    /* Doit retourner le nombre de frames par secondes. */
+    float (*donne_frames_par_seconde)(struct ContexteCreationArchive *ctx);
 
     /* Les données utilisateur du contexte. */
     void *donnees_utilisateur;
@@ -240,7 +274,7 @@ typedef struct AbcOptionsExport {
 } AbcOptionsExport;
 
 struct ConvertisseuseExportPolyMesh {
-    void *donnnees;
+    void *donnees;
     uint64_t (*nombre_de_points)(struct ConvertisseuseExportPolyMesh *);
     void (*point_pour_index)(
         struct ConvertisseuseExportPolyMesh *, uint64_t, float *, float *, float *);
@@ -267,7 +301,17 @@ struct ConvertisseuseExportNurbs {
     void *donnees;
 };
 
+/** Convertisseuse pour exporter une transformation vers Alembic. */
 struct ConvertisseuseExportXform {
+    /** Donne la matrice de transformation à écrire. L'adresse passée est celle d'une matrice de 4
+     * lignes et de 4 colonnes représenter de manière contigüe en mémoire (double[16]). */
+    void (*donne_matrice)(struct ConvertisseuseExportXform *, double *);
+
+    /** Doit retouner vrai si la matrice écrite se concatène à celle de son parent. */
+    bool (*doit_hériter_matrice_parent)(struct ConvertisseuseExportXform *);
+
+    /** Données utilisateur de la convertisseuse. Les clients peuvent l'utiliser pour stocker leurs
+     * données relatives à cette transformation. */
     void *donnees;
 };
 
