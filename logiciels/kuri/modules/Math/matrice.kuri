@@ -145,7 +145,7 @@ matrice_translation :: fonc (v : Vec3) -> Mat4r
     retourne matrice_translation(v.x, v.y, v.z)
 }
 
-matrice_échelle :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
+matrice_échelle :: fonc (x: r32, y: r32, z: r32) -> Mat4r
 {
     résultat := construit_mat4r_neutre()
 
@@ -159,6 +159,11 @@ matrice_échelle :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
 matrice_échelle :: fonc (v : Vec3) -> Mat4r
 {
     retourne matrice_échelle(v.x, v.y, v.z)
+}
+
+matrice_échelle :: fonc (v: r32) -> Mat4r
+{
+    retourne matrice_échelle(v, v, v)
 }
 
 multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
