@@ -108,12 +108,15 @@ void BaseControle::mouseReleaseEvent(QMouseEvent *event)
     gère_fin_clique_souris(event);
     update();
 
-    if (m_en_édition_du_à_clique_souris) {
+    /* Si m_premier_changement est vrai, nous avons cliquer sans bouger la souris, n'envoyons pas
+     * de signal. */
+    if (m_en_édition_du_à_clique_souris && !m_premier_changement) {
         Q_EMIT(termine_changement_controle());
     }
 
     m_souris_pressée = false;
     m_en_édition_du_à_clique_souris = false;
+    m_premier_changement = false;
 
     event->accept();
 }
