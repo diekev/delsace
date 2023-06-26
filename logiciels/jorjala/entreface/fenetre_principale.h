@@ -77,15 +77,13 @@ class FenetrePrincipale : public QMainWindow {
     void evaluation_debutee(const QString &message, int execution, int total);
 
   private:
-    QDockWidget *ajoute_dock(QString const &nom,
-                             int type,
-                             int aire,
-                             QDockWidget *premier = nullptr);
     void genere_barre_menu();
     void genere_menu_prereglages();
     void charge_reglages();
     void ecrit_reglages() const;
     void closeEvent(QCloseEvent *) override;
+
+    void construit_interface_depuis_jorjala();
 
     bool eventFilter(QObject *, QEvent *) override;
 };

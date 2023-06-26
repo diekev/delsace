@@ -40,11 +40,14 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QSettings>
+#include <QSplitter>
 #include <QStatusBar>
+#include <QVBoxLayout>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
@@ -278,22 +281,9 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
     statusBar()->addWidget(m_barre_progres);
     m_barre_progres->setVisible(false);
 
-    auto dock_vue2D = ajoute_dock("Vue 2D", EDITRICE_VUE2D, Qt::LeftDockWidgetArea);
-    ajoute_dock("Vue 3D", EDITRICE_VUE3D, Qt::LeftDockWidgetArea, dock_vue2D);
-    dock_vue2D->raise();
-
-    ajoute_dock("Grapĥe", EDITRICE_GRAPHE, Qt::LeftDockWidgetArea);
-
-    auto dock_arbre = ajoute_dock("Arborescence", EDITRICE_ARBORESCENCE, Qt::RightDockWidgetArea);
-    ajoute_dock("Propriétés", EDITRICE_PROPRIETE, Qt::RightDockWidgetArea, dock_arbre);
-    dock_arbre->raise();
-
-    ajoute_dock("Rendu", EDITRICE_RENDU, Qt::RightDockWidgetArea);
-    ajoute_dock("Ligne Temps", EDITRICE_LIGNE_TEMPS, Qt::RightDockWidgetArea);
-
     charge_reglages();
 
-    setCentralWidget(nullptr);
+    construit_interface_depuis_jorjala();
 
     /* Nous utilisons un eventFilter pour filtrer les évènements de Jorjala, car
      * surcharger QMainWindow::event() nous fait perdre la capacité de
@@ -352,6 +342,128 @@ void FenetrePrincipale::closeEvent(QCloseEvent *)
     ecrit_reglages();
 }
 
+static QLayout *qlayout_depuis_disposition(JJL::Disposition disposition)
+{
+    switch (disposition.direction()) {
+        case JJL::DirectionDisposition::HORIZONTAL:
+        {
+            return new QHBoxLayout();
+        }
+        case JJL::DirectionDisposition::VERTICAL:
+        {
+            return new QVBoxLayout();
+        }
+    }
+    return nullptr;
+}
+
+static Qt::Orientation donne_orientation_qsplitter_disposition(JJL::Disposition disposition)
+{
+    switch (disposition.direction()) {
+        case JJL::DirectionDisposition::HORIZONTAL:
+        {
+            return Qt::Horizontal;
+        }
+        case JJL::DirectionDisposition::VERTICAL:
+        {
+            return Qt::Vertical;
+        }
+    }
+    return Qt::Vertical;
+}
+
+static BaseEditrice *qéditrice_depuis_éditrice(JJL::Jorjala &jorjala, JJL::Editrice éditrice)
+{
+    switch (éditrice.type()) {
+        case JJL::TypeEditrice::GRAPHE:
+            return new EditriceGraphe(jorjala);
+        case JJL::TypeEditrice::PROPRIÉTÉS_NOEUDS:
+            return new EditriceProprietes(jorjala);
+        case JJL::TypeEditrice::LIGNE_TEMPS:
+            return new EditriceLigneTemps(jorjala);
+        case JJL::TypeEditrice::RENDU:
+            // return new EditriceRendu(jorjala);
+            return nullptr;
+        case JJL::TypeEditrice::VUE_2D:
+            return new EditriceVue2D(jorjala);
+        case JJL::TypeEditrice::VUE_3D:
+            return new EditriceVue3D(jorjala);
+        case JJL::TypeEditrice::ARBORESCENCE:
+            // return new EditriceArborescence(m_jorjala);
+            return nullptr;
+    }
+
+    return nullptr;
+}
+
+static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
+                                             JJL::Disposition région,
+                                             QVector<BaseEditrice *> &éditrices);
+
+static void génère_interface_région(JJL::Jorjala &jorjala,
+                                    JJL::RegionInterface &région,
+                                    QSplitter *layout,
+                                    QVector<BaseEditrice *> &éditrices)
+{
+    auto qwidget_région = new QWidget();
+    layout->addWidget(qwidget_région);
+
+    auto qwidget_région_layout = new QVBoxLayout();
+    qwidget_région_layout->setMargin(0);
+    qwidget_région->setLayout(qwidget_région_layout);
+
+    if (région.type() == JJL::TypeRegion::CONTENEUR_ÉDITRICE) {
+        auto qtab_widget = new QTabWidget(qwidget_région);
+        qwidget_région_layout->addWidget(qtab_widget);
+
+        for (auto éditrice : région.éditrices()) {
+            auto qéditrice = qéditrice_depuis_éditrice(jorjala, éditrice);
+            if (!qéditrice) {
+                continue;
+            }
+
+            éditrices.push_back(qéditrice);
+            qéditrice->ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
+
+            qtab_widget->addTab(qéditrice, éditrice.nom().vers_std_string().c_str());
+        }
+    }
+    else {
+        auto widget = génère_interface_disposition(jorjala, région.disposition(), éditrices);
+        qwidget_région_layout->addWidget(widget);
+    }
+}
+
+static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
+                                             JJL::Disposition disposition,
+                                             QVector<BaseEditrice *> &éditrices)
+{
+    auto qsplitter = new QSplitter();
+    qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
+
+    for (auto région : disposition.régions()) {
+        génère_interface_région(jorjala, région, qsplitter, éditrices);
+    }
+
+    auto qlayout = qlayout_depuis_disposition(disposition);
+    qlayout->setMargin(0);
+    qlayout->addWidget(qsplitter);
+
+    auto qwidget = new QWidget();
+    qwidget->setLayout(qlayout);
+
+    return qwidget;
+}
+
+void FenetrePrincipale::construit_interface_depuis_jorjala()
+{
+    auto interface = m_jorjala.donne_interface();
+    auto disposition = interface.disposition();
+
+    auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_editrices);
+    setCentralWidget(qwidget);
+}
+
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 {
     if (event->type() == EvenementJorjala::id_type_qt) {
@@ -391,56 +503,6 @@ void FenetrePrincipale::genere_menu_prereglages()
     m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees,
                                                                "entreface/menu_prereglage.jo");
     addToolBar(Qt::TopToolBarArea, m_barre_outil);
-}
-
-QDockWidget *FenetrePrincipale::ajoute_dock(QString const &nom,
-                                            int type,
-                                            int aire,
-                                            QDockWidget *premier)
-{
-    BaseEditrice *editrice = nullptr;
-
-    switch (type) {
-        case EDITRICE_GRAPHE:
-            editrice = new EditriceGraphe(m_jorjala);
-            break;
-        case EDITRICE_PROPRIETE:
-            editrice = new EditriceProprietes(m_jorjala);
-            break;
-        case EDITRICE_LIGNE_TEMPS:
-            editrice = new EditriceLigneTemps(m_jorjala);
-            break;
-        case EDITRICE_RENDU:
-            // editrice = new EditriceRendu(m_jorjala);
-            break;
-        case EDITRICE_VUE2D:
-            editrice = new EditriceVue2D(m_jorjala);
-            break;
-        case EDITRICE_VUE3D:
-            editrice = new EditriceVue3D(m_jorjala);
-            break;
-        case EDITRICE_ARBORESCENCE:
-            // editrice = new EditriceArborescence(m_jorjala);
-            break;
-    }
-
-    auto dock = new QDockWidget(nom, this);
-    dock->setAttribute(Qt::WA_DeleteOnClose);
-
-    if (editrice) {
-        m_editrices.push_back(editrice);
-        editrice->ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
-        dock->setWidget(editrice);
-    }
-    dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-    addDockWidget(static_cast<Qt::DockWidgetArea>(aire), dock);
-
-    if (premier) {
-        tabifyDockWidget(premier, dock);
-    }
-
-    return dock;
 }
 
 void FenetrePrincipale::image_traitee()
