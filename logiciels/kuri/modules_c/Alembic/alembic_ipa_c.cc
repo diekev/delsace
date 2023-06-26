@@ -158,11 +158,13 @@ EcrivainCache *ABC_cree_ecrivain_cache(ContexteKuri *ctx,
 }
 
 EcrivainCache *ABC_cree_instance(ContexteKuri *ctx,
-                                 EcrivainCache *instance,
+                                 AutriceArchive *autrice,
+                                 EcrivainCache *parent,
+                                 EcrivainCache *origine,
                                  const char *nom,
                                  uint64_t taille_nom)
 {
-    return AbcKuri::cree_instance(ctx, instance, nom, taille_nom);
+    return AbcKuri::crée_instance(ctx, autrice, parent, origine, nom, taille_nom);
 }
 
 void ABC_ecris_donnees(AutriceArchive *autrice)

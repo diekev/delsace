@@ -53,6 +53,15 @@ struct EcrivainCache *ABC_cree_ecrivain_cache(struct ContexteKuri *ctx,
                                               void *données,
                                               enum eTypeObjetAbc type_objet);
 
+/** Crée une instance de `origine` comme enfant de `parent`. Retourne nul s'il est impossible de
+ * créer une telle instance. */
+struct EcrivainCache *ABC_cree_instance(struct ContexteKuri *ctx,
+                                        struct AutriceArchive *archive,
+                                        struct EcrivainCache *parent,
+                                        struct EcrivainCache *origine,
+                                        const char *nom,
+                                        uint64_t taille_nom);
+
 void ABC_ecris_donnees(struct AutriceArchive *autrice);
 
 #ifdef __cplusplus

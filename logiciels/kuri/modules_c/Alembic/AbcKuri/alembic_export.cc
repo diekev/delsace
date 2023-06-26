@@ -305,12 +305,6 @@ EcrivainCache *EcrivainCache::cree(ContexteKuri *ctx,
 
 namespace AbcKuri {
 
-static void abc_export_materiau(ConvertisseuseExportMateriau *convertisseuse,
-                                EcrivainCache *ecrivain)
-{
-    auto &omateriau = DONNES_OOBJECT(AbcMaterial::OMaterial, ecrivain);
-}
-
 EcrivainCache *cree_ecrivain_cache_depuis_ref(ContexteKuri *ctx,
                                               AutriceArchive *autrice,
                                               LectriceCache *lectrice,
@@ -382,12 +376,55 @@ EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
     return nullptr;
 }
 
-EcrivainCache *cree_instance(ContexteKuri *ctx,
-                             EcrivainCache *instance,
+class ÉcrivainInstance final : public EcrivainCache {
+  public:
+    static ÉcrivainInstance *crée(ContexteKuri *ctx_kuri,
+                                  EcrivainCache *parent,
+                                  EcrivainCache *origine,
+                                  std::string const &nom)
+    {
+        auto oobject_parent = parent->oobject();
+        auto oobject_origine = origine->oobject();
+
+        if (!oobject_parent.addChildInstance(oobject_origine, nom)) {
+            return nullptr;
+        }
+
+        auto résultat = kuri_loge<ÉcrivainInstance>(ctx_kuri);
+        résultat->définit_parent(parent);
+        return résultat;
+    }
+
+    void écris_données() override
+    {
+        /* Rien à faire, simplement créer les instances suffit. */
+    }
+
+    AbcGeom::OObject oobject() override
+    {
+        /* Il n'y a pas d'OObject pour les instances. */
+        return {};
+    }
+
+    AbcGeom::OObject oobject() const override
+    {
+        /* Il n'y a pas d'OObject pour les instances. */
+        return {};
+    }
+};
+
+EcrivainCache *crée_instance(ContexteKuri *ctx,
+                             AutriceArchive *autrice,
+                             EcrivainCache *parent,
+                             EcrivainCache *origine,
                              const char *nom,
                              size_t taille_nom)
 {
-    return EcrivainCache::cree_instance(ctx, instance, {nom, taille_nom});
+    if (parent == nullptr) {
+        parent = autrice->racine;
+    }
+
+    return ÉcrivainInstance::crée(ctx, parent, origine, {nom, taille_nom});
 }
 
 void detruit_ecrivain(ContexteKuri *ctx_kuri, EcrivainCache *ecrivain)

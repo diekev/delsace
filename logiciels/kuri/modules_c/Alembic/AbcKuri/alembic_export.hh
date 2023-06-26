@@ -20,14 +20,6 @@ struct EcrivainCache {
                                void *données,
                                const std::string &nom);
 
-    static EcrivainCache *cree_instance(ContexteKuri *ctx,
-                                        EcrivainCache *instance,
-                                        const std::string &nom)
-    {
-        // À FAIRE
-        return nullptr;
-    }
-
     template <typename TypeObjetAlembic>
     bool est_un() const
     {
@@ -82,8 +74,10 @@ EcrivainCache *cree_ecrivain_cache(ContexteKuri *ctx,
                                    void *données,
                                    eTypeObjetAbc type_objet);
 
-EcrivainCache *cree_instance(ContexteKuri *ctx,
-                             EcrivainCache *instance,
+EcrivainCache *crée_instance(ContexteKuri *ctx,
+                             AutriceArchive *autrice,
+                             EcrivainCache *parent,
+                             EcrivainCache *origine,
                              const char *nom,
                              uint64_t taille_nom);
 

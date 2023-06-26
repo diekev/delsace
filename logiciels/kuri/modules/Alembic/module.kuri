@@ -70,4 +70,13 @@ crée_écrivain_objet_racine :: fonc (autrice: *AutriceArchive, nom: chaine, typ
     retourne crée_écrivain_objet(autrice, nul, nom, type_objet, données)
 }
 
+crée_écrivain_instance :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, origine: *EcrivainCache, nom: chaine) -> Optionnel(*EcrivainCache)
+{
+    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.pointeur, nom.taille comme n64)
+    saufsi résultat {
+        retourne
+    }
+    retourne résultat
+}
+
 /** \} */
