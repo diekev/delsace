@@ -221,6 +221,15 @@ EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent)
 
 void EditriceAttributs::ajourne_état(JJL::TypeEvenement évènement)
 {
+    auto creation = (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ));
+    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+
+    if (!creation) {
+        return;
+    }
+
     auto noeud = donne_noeud_corps_actif(m_jorjala);
     if (!noeud) {
         définit_visibilité_table(false);
