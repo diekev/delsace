@@ -65,6 +65,7 @@
 #include "editrice_noeud.h"
 #include "editrice_proprietes.h"
 //#include "editrice_rendu.h"
+#include "editrice_attributs.hh"
 #include "editrice_vue2d.h"
 #include "editrice_vue3d.h"
 #include "gestion_entreface.hh"
@@ -391,6 +392,8 @@ static BaseEditrice *qéditrice_depuis_éditrice(JJL::Jorjala &jorjala, JJL::Edi
         case JJL::TypeEditrice::ARBORESCENCE:
             // return new EditriceArborescence(m_jorjala);
             return nullptr;
+        case JJL::TypeEditrice::ATTRIBUTS:
+            return new EditriceAttributs(jorjala);
     }
 
     return nullptr;

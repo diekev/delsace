@@ -51,6 +51,7 @@ set(ENTETES_POUR_QT
     barre_progres.hh
     base_editrice.h
 #   editrice_arborescence.hh
+    editrice_attributs.hh
     editrice_ligne_temps.h
     editrice_noeud.h
 #   editrice_rendu.h
@@ -270,6 +271,7 @@ add_library(${NOM_CIBLE} STATIC
         base_editrice.cc
         chef_execution.cc
 #	editrice_arborescence.cc
+        editrice_attributs.cc
         editrice_ligne_temps.cc
         editrice_noeud.cc
         editrice_proprietes.cc
