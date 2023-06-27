@@ -59,6 +59,7 @@ set(ENTETES_POUR_QT
     editrice_vue3d.h
     fenetre_principale.h
     tache.h
+    vue_region.hh
 )
 
 if(Qt6_FOUND)
@@ -281,6 +282,7 @@ add_library(${NOM_CIBLE} STATIC
 	fenetre_principale.cc
         gestion_entreface.cc
         tache.cc
+        vue_region.cc
 
 	${FICHIERS_DANJO}
 	${NUANCEURS}

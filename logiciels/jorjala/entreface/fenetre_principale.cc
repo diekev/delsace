@@ -60,16 +60,9 @@
 
 #include "barre_progres.hh"
 #include "chef_execution.hh"
-//#include "editrice_arborescence.hh"
-#include "editrice_ligne_temps.h"
-#include "editrice_noeud.h"
-#include "editrice_proprietes.h"
-//#include "editrice_rendu.h"
-#include "editrice_attributs.hh"
-#include "editrice_vue2d.h"
-#include "editrice_vue3d.h"
 #include "gestion_entreface.hh"
 #include "tache.h"
+#include "vue_region.hh"
 
 /* ------------------------------------------------------------------------- */
 
@@ -373,40 +366,14 @@ static Qt::Orientation donne_orientation_qsplitter_disposition(JJL::Disposition 
     return Qt::Vertical;
 }
 
-static BaseEditrice *qéditrice_depuis_éditrice(JJL::Jorjala &jorjala, JJL::Editrice éditrice)
-{
-    switch (éditrice.type()) {
-        case JJL::TypeEditrice::GRAPHE:
-            return new EditriceGraphe(jorjala);
-        case JJL::TypeEditrice::PROPRIÉTÉS_NOEUDS:
-            return new EditriceProprietes(jorjala);
-        case JJL::TypeEditrice::LIGNE_TEMPS:
-            return new EditriceLigneTemps(jorjala);
-        case JJL::TypeEditrice::RENDU:
-            // return new EditriceRendu(jorjala);
-            return nullptr;
-        case JJL::TypeEditrice::VUE_2D:
-            return new EditriceVue2D(jorjala);
-        case JJL::TypeEditrice::VUE_3D:
-            return new EditriceVue3D(jorjala);
-        case JJL::TypeEditrice::ARBORESCENCE:
-            // return new EditriceArborescence(m_jorjala);
-            return nullptr;
-        case JJL::TypeEditrice::ATTRIBUTS:
-            return new EditriceAttributs(jorjala);
-    }
-
-    return nullptr;
-}
-
 static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
                                              JJL::Disposition région,
-                                             QVector<BaseEditrice *> &éditrices);
+                                             QVector<VueRegion *> &régions);
 
 static void génère_interface_région(JJL::Jorjala &jorjala,
                                     JJL::RegionInterface &région,
                                     QSplitter *layout,
-                                    QVector<BaseEditrice *> &éditrices)
+                                    QVector<VueRegion *> &régions)
 {
     auto qwidget_région = new QWidget();
     layout->addWidget(qwidget_région);
@@ -416,36 +383,25 @@ static void génère_interface_région(JJL::Jorjala &jorjala,
     qwidget_région->setLayout(qwidget_région_layout);
 
     if (région.type() == JJL::TypeRegion::CONTENEUR_ÉDITRICE) {
-        auto qtab_widget = new QTabWidget(qwidget_région);
-        qwidget_région_layout->addWidget(qtab_widget);
-
-        for (auto éditrice : région.éditrices()) {
-            auto qéditrice = qéditrice_depuis_éditrice(jorjala, éditrice);
-            if (!qéditrice) {
-                continue;
-            }
-
-            éditrices.push_back(qéditrice);
-            qéditrice->ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
-
-            qtab_widget->addTab(qéditrice, éditrice.nom().vers_std_string().c_str());
-        }
+        auto vue_région = new VueRegion(jorjala, région, qwidget_région);
+        régions.append(vue_région);
+        qwidget_région_layout->addWidget(vue_région);
     }
     else {
-        auto widget = génère_interface_disposition(jorjala, région.disposition(), éditrices);
+        auto widget = génère_interface_disposition(jorjala, région.disposition(), régions);
         qwidget_région_layout->addWidget(widget);
     }
 }
 
 static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
                                              JJL::Disposition disposition,
-                                             QVector<BaseEditrice *> &éditrices)
+                                             QVector<VueRegion *> &régions)
 {
     auto qsplitter = new QSplitter();
     qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
 
     for (auto région : disposition.régions()) {
-        génère_interface_région(jorjala, région, qsplitter, éditrices);
+        génère_interface_région(jorjala, région, qsplitter, régions);
     }
 
     auto qlayout = qlayout_depuis_disposition(disposition);
@@ -463,8 +419,10 @@ void FenetrePrincipale::construit_interface_depuis_jorjala()
     auto interface = m_jorjala.donne_interface();
     auto disposition = interface.disposition();
 
-    auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_editrices);
+    auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_régions);
     setCentralWidget(qwidget);
+
+    m_jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
 }
 
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
@@ -472,8 +430,8 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
     if (event->type() == EvenementJorjala::id_type_qt) {
         auto event_jjl = static_cast<EvenementJorjala *>(event);
 
-        for (auto editrice : m_editrices) {
-            editrice->ajourne_état(event_jjl->pour_quoi());
+        for (auto région : m_régions) {
+            région->ajourne_éditrice_active(event_jjl->pour_quoi());
         }
 
         return true;

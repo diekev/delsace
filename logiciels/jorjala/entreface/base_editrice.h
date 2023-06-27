@@ -61,6 +61,11 @@ class BaseEditrice : public danjo::ConteneurControles {
     void actif(bool ouinon);
     void rend_actif();
 
+    std::string donne_identifiant() const
+    {
+        return identifiant;
+    }
+
     virtual void ajourne_état(JJL::TypeEvenement évènement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;

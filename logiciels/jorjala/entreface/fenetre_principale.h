@@ -37,7 +37,7 @@
 #endif
 
 class BarreDeProgres;
-class BaseEditrice;
+class VueRegion;
 
 namespace JJL {
 class Jorjala;
@@ -54,7 +54,7 @@ class FenetrePrincipale : public QMainWindow {
     QLabel *m_texte_état = nullptr;
     QToolBar *m_barre_outil = nullptr;
 
-    QVector<BaseEditrice *> m_editrices{};
+    QVector<VueRegion *> m_régions{};
 
   public:
     explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
