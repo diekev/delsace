@@ -158,19 +158,6 @@ void MoteurRenduOpenGL::calcule_rendu(
     glDeleteRenderbuffers(1, &tampon_prof);
 
     glViewport(taille_original[0], taille_original[1], taille_original[2], taille_original[3]);
-
-    /* Inverse la direction de l'image */
-    for (int x = 0; x < largeur * 4; x += 4) {
-        for (int y = 0; y < hauteur / 2; ++y) {
-            auto idx0 = x + largeur * y * 4;
-            auto idx1 = x + largeur * (hauteur - y - 1) * 4;
-
-            std::swap(tampon[idx0 + 0], tampon[idx1 + 0]);
-            std::swap(tampon[idx0 + 1], tampon[idx1 + 1]);
-            std::swap(tampon[idx0 + 2], tampon[idx1 + 2]);
-            std::swap(tampon[idx0 + 3], tampon[idx1 + 3]);
-        }
-    }
 }
 
 ContexteRendu MoteurRenduOpenGL::crée_contexte_rendu()
