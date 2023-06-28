@@ -95,9 +95,9 @@ static void extrait_points_polygone(JJL::Corps corps,
         auto i1 = polygone.sommet_pour_index(ip - 1);
         auto i2 = polygone.sommet_pour_index(ip);
 
-        auto p0 = corps.point_pour_index(i0);
-        auto p1 = corps.point_pour_index(i1);
-        auto p2 = corps.point_pour_index(i2);
+        auto p0 = corps.donne_point_local(i0);
+        auto p1 = corps.donne_point_local(i1);
+        auto p2 = corps.donne_point_local(i2);
 
         points[décalage_triangle] = convertis_point(p0);
         points[décalage_triangle + 1] = convertis_point(p1);
@@ -121,8 +121,8 @@ static void extrait_points_courbe(JJL::Corps corps,
         auto i0 = courbe.sommet_pour_index(ip);
         auto i1 = courbe.sommet_pour_index(ip + 1);
 
-        auto p0 = corps.point_pour_index(i0);
-        auto p1 = corps.point_pour_index(i1);
+        auto p0 = corps.donne_point_local(i0);
+        auto p1 = corps.donne_point_local(i1);
 
         points[décalage_segment] = convertis_point(p0);
         points[décalage_segment + 1] = convertis_point(p1);
@@ -733,7 +733,7 @@ void ExtractriceCorpsPoints::extrait_points(dls::tableau<dls::math::vec3f> &poin
     if (m_nombre_de_points == m_corps.nombre_de_points()) {
         /* Copie tous les points. */
         for (auto i = 0; i < m_corps.nombre_de_points(); i++) {
-            points[i] = convertis_point(m_corps.point_pour_index(i));
+            points[i] = convertis_point(m_corps.donne_point_local(i));
         }
     }
     else {
@@ -744,7 +744,7 @@ void ExtractriceCorpsPoints::extrait_points(dls::tableau<dls::math::vec3f> &poin
             if (points_utilisés[i]) {
                 continue;
             }
-            points[décalage_point++] = convertis_point(m_corps.point_pour_index(i));
+            points[décalage_point++] = convertis_point(m_corps.donne_point_local(i));
         }
     }
 }

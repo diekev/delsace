@@ -295,7 +295,7 @@ QVariant ModèleTableAttribut::data(const QModelIndex &index, int role) const
     if (m_domaine == DOMAINE_POINT) {
         if (colonne < 3) {
             /* Nous devons afficher les valeurs des points. */
-            auto point = m_corps.point_pour_index(index.row());
+            auto point = m_corps.donne_point_local(index.row());
 
             if (colonne == 0) {
                 return QString::number(static_cast<double>(point.x()));

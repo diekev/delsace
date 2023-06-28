@@ -466,6 +466,19 @@ dls::math::mat4x4f matf_depuis_matd(dls::math::mat4x4d const &m)
 	return ret;
 }
 
+dls::math::mat4x4d matd_depuis_matf(dls::math::mat4x4f const &m)
+{
+    auto ret = dls::math::mat4x4d{};
+
+    for (auto i = 0ul; i < 4; ++i) {
+        for (auto j = 0ul; j < 4; ++j) {
+            ret[i][j] = static_cast<double>(m[i][j]);
+        }
+    }
+
+    return ret;
+}
+
 //void fovToPerspective(float fovy, float aspect, float zNear, dls::math::vec2f &xBounds, dls::math::vec2f &yBounds)
 //{
 //	yBounds[1] = zNear * std::tan(fovy*constantes<float>::PI/360.0f);

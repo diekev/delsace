@@ -117,16 +117,15 @@ void MoteurRenduOpenGL::calcule_rendu(
 
     for (auto objet_à_rendre : m_objets_à_rendre) {
         auto objet_rendu = m_delegue->objet(objet_à_rendre.index_délégué);
-        // auto objet = objet_rendu.objet;
+        auto objet = objet_rendu.objet;
+        auto corps = objet.accède_corps();
 
         /* À FAIRE : matrice pour chaque objet */
         // pile.ajoute(objet->transformation.matrice());
         pile.ajoute(dls::math::mat4x4d(1.0));
 
         if (objet_rendu.matrices.taille() == 0) {
-            /* À FAIRE : matrice pour chaque corps */
-            // pile.ajoute(corps.transformation.matrice());
-            pile.ajoute(dls::math::mat4x4d(1.0));
+            pile.ajoute(math::matd_depuis_matf(convertis_matrice(corps.matrice())));
         }
 
         contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
