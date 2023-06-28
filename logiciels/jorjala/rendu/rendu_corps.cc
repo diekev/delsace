@@ -709,7 +709,7 @@ void RenduCorps::extrait_données_primitives(long nombre_de_prims,
     if (points_segment.taille() != 0) {
         m_tampon_segments = cree_tampon_segments(est_instance);
         remplis_tampon_principal(m_tampon_segments, "sommets", points_segment);
-        remplis_tampon_extra(m_tampon_segments, "couleur_sommet", points_segment);
+        remplis_tampon_extra(m_tampon_segments, "couleur_sommet", couleurs_segment);
         auto programme = m_tampon_segments->programme();
         programme->active();
         programme->uniforme("possede_couleur_sommet", 1);
