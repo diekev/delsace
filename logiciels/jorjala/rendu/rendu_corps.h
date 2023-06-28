@@ -78,4 +78,12 @@ class RenduCorps {
      * Dessine le maillage dans le contexte spécifié.
      */
     void dessine(StatistiquesRendu &stats, ContexteRendu const &contexte);
+
+  private:
+    void extrait_données_primitives(long nombre_de_prims,
+                                    bool est_instance,
+                                    dls::tableau<char> &points_utilisés);
+    void extrait_données_points(long nombre_de_prims,
+                                bool est_instance,
+                                dls::tableau<char> &points_utilisés);
 };

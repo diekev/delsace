@@ -54,6 +54,7 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
+        extraction_données_corps.cc
 	moteur_rendu.cc
         # moteur_rendu_cycles.cc
         # moteur_rendu_koudou.cc
@@ -62,6 +63,7 @@ add_library(${NOM_CIBLE} STATIC
 	rendu_corps.cc
 	rendu_lumiere.cc
 
+        extraction_données_corps.hh
         # cycles.hh
 	moteur_rendu.hh
         # moteur_rendu_cycles.hh

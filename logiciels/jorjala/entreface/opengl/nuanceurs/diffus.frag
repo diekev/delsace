@@ -4,7 +4,7 @@ layout(location = 0) out vec4 couleur_sortie;
 
 smooth in vec3 normal;
 smooth in vec3 sommet;
-smooth in vec3 couleur;
+smooth in vec4 couleur;
 smooth in vec2 UV;
 smooth in mat4 mat;
 
@@ -148,14 +148,14 @@ void main()
 		couleur_sortie = projection_triplanaire(sommet);
 	}
 	else if (methode == 2) {
-		couleur_sortie = projection_camera((mat * vec4(sommet, 1.0)).xyz);
+                couleur_sortie = projection_camera((mat * vec4(sommet, 1.0)).xyz);
 	}
 	else if (methode == 3) {
 		couleur_sortie = projection_cubique(sommet);
 	}
 	else if (methode == 4) {
 		couleur_sortie = projection_cylindrique(sommet);
-	}
+        }
 	else if (methode == 5) {
 		couleur_sortie = projection_sherique(sommet);
 	}
@@ -165,7 +165,7 @@ void main()
 	else {
 		vec3 normal_normalise = normalize(normal);
 		float w = 0.5 * (1.0 + dot(normal_normalise, vec3(1.0, 1.0, 1.0)));
-		vec3 couleur_diffuse = w * couleur + (1.0 - w) * (couleur * 0.3);
-		couleur_sortie = vec4(couleur_diffuse, 1.0);
+                vec4 couleur_diffuse = w * couleur + (1.0 - w) * (couleur * 0.3);
+                couleur_sortie = vec4(couleur_diffuse.xyz, 1.0);
 	}
 }

@@ -45,6 +45,8 @@
 #include "wolika/grille_eparse.hh"
 #include "wolika/iteration.hh"
 
+#include "extraction_données_corps.hh"
+
 /* ************************************************************************** */
 
 static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
@@ -93,128 +95,53 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 /* ************************************************************************** */
 
-void ajoute_polygone_surface(JJL::PrimitivePolygone &polygone,
-                             JJL::Corps liste_points,
-                             Attribut const *attr_normaux,
-                             Attribut const *attr_couleurs,
-                             dls::tableau<dls::math::vec3f> &points,
-                             dls::tableau<dls::math::vec3f> &normaux,
-                             dls::tableau<dls::math::vec3f> &couleurs)
+template <typename T>
+struct nombre_de_dimensions;
+
+template <>
+struct nombre_de_dimensions<dls::math::vec2f> {
+    static constexpr int valeur = 2;
+};
+
+template <>
+struct nombre_de_dimensions<dls::math::vec3f> {
+    static constexpr int valeur = 3;
+};
+
+template <>
+struct nombre_de_dimensions<dls::phys::couleur32> {
+    static constexpr int valeur = 4;
+};
+
+template <typename T>
+static void remplis_tampon_principal(TamponRendu *tampon,
+                                     dls::chaine const &nom,
+                                     dls::tableau<T> &valeurs)
 {
-    for (long i = 2; i < polygone.nombre_de_sommets(); ++i) {
-        /* À FAIRE : point local, quand nous aurons des matrices pour les corps. */
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = nom;
+    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
+    parametres_tampon.pointeur_sommets = valeurs.donnees();
+    parametres_tampon.taille_octet_sommets = static_cast<size_t>(valeurs.taille()) * sizeof(T);
+    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
 
-        auto p0 = liste_points.point_pour_index(polygone.sommet_pour_index(0));
-        auto p1 = liste_points.point_pour_index(polygone.sommet_pour_index(i - 1));
-        auto p2 = liste_points.point_pour_index(polygone.sommet_pour_index(i));
-
-        points.ajoute(convertis_point(p0));
-        points.ajoute(convertis_point(p1));
-        points.ajoute(convertis_point(p2));
-
-        //		points.ajoute(liste_points.point_local(polygone->index_point(0)));
-        //		points.ajoute(liste_points.point_local(polygone->index_point(i - 1)));
-        //		points.ajoute(liste_points.point_local(polygone->index_point(i)));
-
-        if (attr_normaux) {
-#if 0
-            auto idx = normaux.taille();
-            normaux.redimensionne(idx + 3);
-
-            if (attr_normaux->portee == portee_attr::POINT) {
-                extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
-                extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
-                extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
-            }
-            else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-                extrait(attr_normaux->r32(polygone->index), normaux[idx]);
-                extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
-                extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
-            }
-            else if (attr_normaux->portee == portee_attr::CORPS) {
-                extrait(attr_normaux->r32(0), normaux[idx]);
-                extrait(attr_normaux->r32(0), normaux[idx + 1]);
-                extrait(attr_normaux->r32(0), normaux[idx + 2]);
-            }
-#endif
-        }
-        else {
-            auto normal = polygone.calcule_normal(liste_points);
-            auto idx = normaux.taille();
-            normaux.redimensionne(idx + 3);
-            normaux[idx] = convertis_vecteur(normal);
-            normaux[idx + 1] = convertis_vecteur(normal);
-            normaux[idx + 2] = convertis_vecteur(normal);
-        }
-
-        /*if (attr_couleurs) {
-            auto idx = couleurs.taille();
-            couleurs.redimensionne(idx + 3);
-
-            if (attr_couleurs->portee == portee_attr::POINT) {
-                extrait(attr_couleurs->r32(polygone->index_point(0)), couleurs[idx]);
-                extrait(attr_couleurs->r32(polygone->index_point(i - 1)), couleurs[idx + 1]);
-                extrait(attr_couleurs->r32(polygone->index_point(i)), couleurs[idx + 2]);
-            }
-            else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-                extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
-                extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
-                extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 2]);
-            }
-            else if (attr_couleurs->portee == portee_attr::VERTEX) {
-                extrait(attr_couleurs->r32(polygone->index_sommet(0)), couleurs[idx]);
-                extrait(attr_couleurs->r32(polygone->index_sommet(i - 1)), couleurs[idx + 1]);
-                extrait(attr_couleurs->r32(polygone->index_sommet(i)), couleurs[idx + 2]);
-            }
-            else if (attr_couleurs->portee == portee_attr::CORPS) {
-                extrait(attr_couleurs->r32(0), couleurs[idx]);
-                extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
-                extrait(attr_couleurs->r32(0), couleurs[idx + 2]);
-            }
-        }
-        else*/
-        {
-            couleurs.ajoute(dls::math::vec3f(0.8f));
-            couleurs.ajoute(dls::math::vec3f(0.8f));
-            couleurs.ajoute(dls::math::vec3f(0.8f));
-        }
-    }
+    tampon->remplie_tampon(parametres_tampon);
 }
 
-void ajoute_polygone_segment(Polygone *polygone,
-                             AccesseusePointLecture const &liste_points,
-                             Attribut const *attr_couleurs,
-                             dls::tableau<dls::math::vec3f> &points,
-                             dls::tableau<dls::math::vec3f> &couleurs)
+template <typename T>
+static void remplis_tampon_extra(TamponRendu *tampon,
+                                 dls::chaine const &nom,
+                                 dls::tableau<T> &valeurs)
 {
-#if 0
-	for (long i = 0; i < polygone->nombre_segments(); ++i) {
-		points.ajoute(liste_points.point_local(polygone->index_point(i)));
-		points.ajoute(liste_points.point_local(polygone->index_point(i + 1)));
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = nom;
+    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
+    parametres_tampon.pointeur_donnees_extra = valeurs.donnees();
+    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(valeurs.taille()) *
+                                                   sizeof(T);
+    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
 
-		if (attr_couleurs) {
-			auto idx = couleurs.taille();
-			couleurs.redimensionne(idx + 2);
-
-			if (attr_couleurs->portee == portee_attr::POINT) {
-				extrait(attr_couleurs->r32(polygone->index_point(0)), couleurs[idx]);
-				extrait(attr_couleurs->r32(polygone->index_point(i + 1)), couleurs[idx + 1]);
-			}
-			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-				extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
-				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
-			}
-			else if (attr_couleurs->portee == portee_attr::CORPS) {
-				extrait(attr_couleurs->r32(0), couleurs[idx]);
-				extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
-			}
-		}
-		else {
-			couleurs.ajoute(dls::math::vec3f(0.8f));
-			couleurs.ajoute(dls::math::vec3f(0.8f));
-		}
-	}
-#endif
+    tampon->remplie_tampon_extra(parametres_tampon);
 }
 
 static dls::math::vec3f points_cercle_XZ[32] = {
@@ -645,10 +572,10 @@ RenduCorps::~RenduCorps()
 void RenduCorps::initialise(ContexteRendu const &contexte,
                             dls::tableau<dls::math::mat4x4f> &matrices)
 {
-    auto est_instance = matrices.taille() != 0;
+    auto const est_instance = matrices.taille() != 0;
 
-    auto nombre_de_points = m_corps.nombre_de_points();
-    auto nombre_de_prims = m_corps.nombre_de_primitives();
+    auto const nombre_de_points = m_corps.nombre_de_points();
+    auto const nombre_de_prims = m_corps.nombre_de_primitives();
 
     if (nombre_de_points == 0l && nombre_de_prims == 0l) {
         return;
@@ -658,224 +585,31 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
 
     dls::tableau<char> point_utilise(nombre_de_points, 0);
 
-    if (nombre_de_prims != 0l) {
-        /* À FAIRE. */
-        //		auto attr_N = m_corps->attribut("N");
-        //		auto attr_C = m_corps->attribut("C");
-        dls::tableau<dls::math::vec3f> points_polys;
-        dls::tableau<dls::math::vec3f> points_segment;
-        dls::tableau<dls::math::vec3f> normaux;
-        dls::tableau<dls::math::vec3f> couleurs_polys;
-        dls::tableau<dls::math::vec3f> couleurs_segment;
+    extrait_données_primitives(nombre_de_prims, est_instance, point_utilise);
+    extrait_données_points(nombre_de_prims, est_instance, point_utilise);
 
-        for (auto ip = 0; ip < nombre_de_prims; ++ip) {
-            auto prim = m_corps.primitive_pour_index(ip);
-
-            switch (prim.type()) {
-                case JJL::TypePrimitive::POLYGONE:
-                {
-                    auto polygone = transtype<JJL::PrimitivePolygone>(prim);
-                    m_stats.nombre_polygones += 1;
-
-                    ajoute_polygone_surface(polygone,
-                                            m_corps,
-                                            nullptr,
-                                            nullptr,
-                                            points_polys,
-                                            normaux,
-                                            couleurs_polys);
-
-                    for (auto i = 0; i < polygone.nombre_de_sommets(); ++i) {
-                        point_utilise[polygone.sommet_pour_index(i)] = 1;
-                    }
-
-                    break;
-                }
-                case JJL::TypePrimitive::COURBE:
-                {
-#if 0
-                else if (polygone->type == type_polygone::OUVERT) {
-                    stats.nombre_polylignes += 1;
-                    ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
-                }
-#endif
-                    break;
-                }
-                case JJL::TypePrimitive::VOLUME:
-                {
-                    break;
-                }
-            }
-
-#if 0
-            if (prim.type() == JJL::TypePrimitive::POLYGONE) {
-			}
-			else if (prim->type_prim() == type_primitive::SPHERE) {
-				auto sphere = dynamic_cast<Sphere *>(prim);
-				ajoute_primitive_sphere(sphere, liste_points, attr_C, points_segment, couleurs_segment);
-			}
-			else if (prim->type_prim() == type_primitive::VOLUME) {
-				if (m_tampon_volume == nullptr) {
-					stats.nombre_volumes += 1;
-					m_tampon_volume = cree_tampon_volume(dynamic_cast<Volume *>(prim), contexte.vue());
-				}
-			}
-#endif
-        }
-
-        if (points_polys.taille() != 0) {
-            m_tampon_polygones = cree_tampon_surface(false, est_instance);
-
-            ParametresTampon parametres_tampon;
-            parametres_tampon.attribut = "sommets";
-            parametres_tampon.dimension_attribut = 3;
-            parametres_tampon.pointeur_sommets = points_polys.donnees();
-            parametres_tampon.taille_octet_sommets = static_cast<size_t>(points_polys.taille()) *
-                                                     sizeof(dls::math::vec3f);
-            parametres_tampon.elements = static_cast<size_t>(points_polys.taille());
-
-            m_tampon_polygones->remplie_tampon(parametres_tampon);
-
-            if (normaux.taille() != 0) {
-                parametres_tampon.attribut = "normaux";
-                parametres_tampon.dimension_attribut = 3;
-                parametres_tampon.pointeur_donnees_extra = normaux.donnees();
-                parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                   normaux.taille()) *
-                                                               sizeof(dls::math::vec3f);
-                parametres_tampon.elements = static_cast<size_t>(normaux.taille());
-
-                m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
-            }
-
-            if (couleurs_polys.taille() != 0) {
-                parametres_tampon.attribut = "couleurs";
-                parametres_tampon.dimension_attribut = 3;
-                parametres_tampon.pointeur_donnees_extra = couleurs_polys.donnees();
-                parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                   couleurs_polys.taille()) *
-                                                               sizeof(dls::math::vec3f);
-                parametres_tampon.elements = static_cast<size_t>(couleurs_polys.taille());
-
-                m_tampon_polygones->remplie_tampon_extra(parametres_tampon);
-            }
-        }
-
-        if (points_segment.taille() != 0) {
-            m_tampon_segments = cree_tampon_segments(est_instance);
-
-            ParametresTampon parametres_tampon;
-            parametres_tampon.attribut = "sommets";
-            parametres_tampon.dimension_attribut = 3;
-            parametres_tampon.pointeur_sommets = points_segment.donnees();
-            parametres_tampon.taille_octet_sommets = static_cast<size_t>(points_segment.taille()) *
-                                                     sizeof(dls::math::vec3f);
-            parametres_tampon.elements = static_cast<size_t>(points_segment.taille());
-
-            m_tampon_segments->remplie_tampon(parametres_tampon);
-
-            if (couleurs_segment.taille() != 0) {
-                parametres_tampon.attribut = "couleur_sommet";
-                parametres_tampon.dimension_attribut = 3;
-                parametres_tampon.pointeur_donnees_extra = couleurs_segment.donnees();
-                parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                   couleurs_segment.taille()) *
-                                                               sizeof(dls::math::vec3f);
-                parametres_tampon.elements = static_cast<size_t>(couleurs_segment.taille());
-
-                m_tampon_segments->remplie_tampon_extra(parametres_tampon);
-
-                auto programme = m_tampon_segments->programme();
-                programme->active();
-                programme->uniforme("possede_couleur_sommet", 1);
-                programme->desactive();
-            }
-        }
-    }
-
-    if (m_tampon_segments || m_tampon_polygones) {
+    if (!est_instance) {
         return;
-    }
-
-    dls::tableau<dls::math::vec3f> points;
-    dls::tableau<dls::math::vec3f> couleurs;
-    points.reserve(nombre_de_points);
-    couleurs.reserve(nombre_de_points);
-
-    // auto attr_C = m_corps->attribut("C");
-
-    for (auto i = 0; i < nombre_de_points; ++i) {
-        if (point_utilise[i]) {
-            continue;
-        }
-
-        // À FAIRE : point local
-        points.ajoute(convertis_point(m_corps.point_pour_index(i)));
-
-        //        if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
-        //            auto idx = couleurs.taille();
-        //            couleurs.redimensionne(idx + 1);
-        //            extrait(attr_C->r32(i), couleurs[idx]);
-        //        }
     }
 
     auto parametres_tampon_instance = ParametresTampon{};
+    parametres_tampon_instance.attribut = "matrices_instances";
+    parametres_tampon_instance.dimension_attribut = 4;
+    parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
+    parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
+                                                                matrices.taille()) *
+                                                            sizeof(dls::math::mat4x4f);
+    parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
 
-    if (est_instance) {
-        parametres_tampon_instance.attribut = "matrices_instances";
-        parametres_tampon_instance.dimension_attribut = 4;
-        parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
-        parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                    matrices.taille()) *
-                                                                sizeof(dls::math::mat4x4f);
-        parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
-
-        if (m_tampon_segments) {
-            m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
-        }
-
-        if (m_tampon_polygones) {
-            m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
-        }
+    if (m_tampon_segments) {
+        m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
     }
 
-    if (points.est_vide()) {
-        return;
+    if (m_tampon_polygones) {
+        m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
     }
 
-    m_tampon_points = cree_tampon_segments(est_instance);
-
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = points.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.elements = static_cast<size_t>(points.taille());
-
-    ParametresDessin parametres_dessin;
-    parametres_dessin.taille_point(2.0);
-    parametres_dessin.type_dessin(GL_POINTS);
-    m_tampon_points->parametres_dessin(parametres_dessin);
-
-    m_tampon_points->remplie_tampon(parametres_tampon);
-
-    if (couleurs.taille() != 0l) {
-        parametres_tampon.attribut = "couleur_sommet";
-        parametres_tampon.dimension_attribut = 3;
-        parametres_tampon.pointeur_donnees_extra = couleurs.donnees();
-        parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(couleurs.taille()) *
-                                                       sizeof(dls::math::vec3f);
-        parametres_tampon.elements = static_cast<size_t>(couleurs.taille());
-
-        m_tampon_points->remplie_tampon_extra(parametres_tampon);
-        auto programme = m_tampon_points->programme();
-        programme->active();
-        programme->uniforme("possede_couleur_sommet", 1);
-        programme->desactive();
-    }
-
-    if (est_instance) {
+    if (m_tampon_points) {
         m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
     }
 }
@@ -927,4 +661,86 @@ void RenduCorps::dessine(StatistiquesRendu &stats, ContexteRendu const &contexte
         m_tampon_volume->dessine(contexte);
         glDisable(GL_BLEND);
     }
+}
+
+void RenduCorps::extrait_données_primitives(long nombre_de_prims,
+                                            bool est_instance,
+                                            dls::tableau<char> &points_utilisés)
+{
+    if (nombre_de_prims == 0l) {
+        return;
+    }
+
+    auto données = DonnéesTampon();
+
+    if (m_corps.ne_contient_que_des_primitives_de_type(JJL::TypePrimitive::POLYGONE)) {
+        auto extractrice = ExtractriceCorpsPolygonesSeuls(m_corps);
+        extractrice.extrait_données(données, points_utilisés);
+        m_stats.nombre_polygones = extractrice.donne_nombre_de_polygones();
+    }
+    else if (m_corps.ne_contient_que_des_primitives_de_type(JJL::TypePrimitive::COURBE)) {
+        auto extractrice = ExtractriceCorpsCourbesSeules(m_corps);
+        extractrice.extrait_données(données, points_utilisés);
+        m_stats.nombre_polylignes = extractrice.donne_nombre_de_courbes();
+    }
+    else if (m_corps.ne_contient_que_des_primitives_de_type(JJL::TypePrimitive::VOLUME)) {
+        /* À FAIRE : volumes. */
+    }
+    else {
+        auto extractrice = ExtractriceCorpsMixte(m_corps);
+        extractrice.extrait_données(données, points_utilisés);
+        m_stats.nombre_polygones = extractrice.donne_nombre_de_polygones();
+        m_stats.nombre_polylignes = extractrice.donne_nombre_de_courbes();
+    }
+
+    dls::tableau<dls::math::vec3f> &points_polys = données.points_polys;
+    dls::tableau<dls::math::vec3f> &points_segment = données.points_segments;
+    dls::tableau<dls::math::vec3f> &normaux = données.normaux;
+    dls::tableau<dls::phys::couleur32> &couleurs_polys = données.couleurs_polys;
+    dls::tableau<dls::phys::couleur32> &couleurs_segment = données.couleurs_segments;
+
+    if (points_polys.taille() != 0) {
+        m_tampon_polygones = cree_tampon_surface(false, est_instance);
+        remplis_tampon_principal(m_tampon_polygones, "sommets", points_polys);
+        remplis_tampon_extra(m_tampon_polygones, "normaux", normaux);
+        remplis_tampon_extra(m_tampon_polygones, "couleurs", couleurs_polys);
+    }
+
+    if (points_segment.taille() != 0) {
+        m_tampon_segments = cree_tampon_segments(est_instance);
+        remplis_tampon_principal(m_tampon_segments, "sommets", points_segment);
+        remplis_tampon_extra(m_tampon_segments, "couleur_sommet", points_segment);
+        auto programme = m_tampon_segments->programme();
+        programme->active();
+        programme->uniforme("possede_couleur_sommet", 1);
+        programme->desactive();
+    }
+}
+
+void RenduCorps::extrait_données_points(long nombre_de_prims,
+                                        bool est_instance,
+                                        dls::tableau<char> &points_utilisés)
+{
+    DonnéesTampon données;
+
+    ExtractriceCorpsPoints extractrice(m_corps);
+    extractrice.extrait_données(données, points_utilisés);
+
+    if (données.points.taille() == 0) {
+        return;
+    }
+
+    m_tampon_points = cree_tampon_segments(est_instance);
+    remplis_tampon_principal(m_tampon_points, "sommets", données.points);
+    remplis_tampon_extra(m_tampon_points, "couleur_sommet", données.couleurs);
+
+    ParametresDessin parametres_dessin;
+    parametres_dessin.taille_point(2.0);
+    parametres_dessin.type_dessin(GL_POINTS);
+    m_tampon_points->parametres_dessin(parametres_dessin);
+
+    auto programme = m_tampon_points->programme();
+    programme->active();
+    programme->uniforme("possede_couleur_sommet", 1);
+    programme->desactive();
 }
