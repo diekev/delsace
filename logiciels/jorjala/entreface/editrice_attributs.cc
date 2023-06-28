@@ -232,7 +232,13 @@ void EditriceAttributs::ajourne_état(JJL::TypeEvenement évènement)
 
     auto noeud = donne_noeud_corps_actif(m_jorjala);
     if (!noeud) {
+        m_noeud = {};
         définit_visibilité_table(false);
+        return;
+    }
+
+    if (m_noeud.has_value() &&
+        noeud->poignee() == reinterpret_cast<JJL_NoeudCorps *>(m_noeud.value().poignee())) {
         return;
     }
 
@@ -240,9 +246,12 @@ void EditriceAttributs::ajourne_état(JJL::TypeEvenement évènement)
     auto corps = noeud_corps.donne_corps();
 
     if (!corps) {
+        m_noeud = {};
         définit_visibilité_table(false);
         return;
     }
+
+    m_noeud = noeud;
 
     auto attributs = (m_domaine == DOMAINE_POINT) ? corps.liste_des_attributs_points() :
                                                     corps.liste_des_attributs_primitives();
@@ -298,6 +307,8 @@ void EditriceAttributs::ajourne_pour_changement_domaine(int domaine)
 {
     m_domaine = domaine;
     ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
+    /* Invalide le cache. */
+    m_noeud = {};
 }
 
 /** \} */

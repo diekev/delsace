@@ -3,7 +3,11 @@
 
 #pragma once
 
+#include <optional>
+
 #include "base_editrice.h"
+
+#include "coeur/jorjala.hh"
 
 class QComboBox;
 class QLabel;
@@ -16,6 +20,8 @@ class EditriceAttributs : public BaseEditrice {
     QLabel *m_label_pour_noeud_manquant = nullptr;
     QComboBox *m_sélecteur_domaine = nullptr;
     int m_domaine = 0;
+
+    std::optional<JJL::Noeud> m_noeud{};
 
   public:
     explicit EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
