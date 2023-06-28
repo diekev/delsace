@@ -179,10 +179,6 @@ static void extrait_attribut_primitive(JJL::PrimitivePolygone polygone,
     auto valeur = convertisseuse_valeur.donne_valeur_pour_index<T>(i);
 
     for (long ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
-        auto i0 = polygone.sommet_pour_index(0);
-        auto i1 = polygone.sommet_pour_index(ip - 1);
-        auto i2 = polygone.sommet_pour_index(ip);
-
         données_sortie[décalage_triangle] = valeur;
         données_sortie[décalage_triangle + 1] = valeur;
         données_sortie[décalage_triangle + 2] = valeur;
@@ -200,9 +196,6 @@ static void extrait_attribut_primitive(JJL::PrimitiveCourbe courbe,
     auto valeur = convertisseuse_valeur.donne_valeur_pour_index<T>(i);
 
     for (long ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
-        auto i0 = courbe.sommet_pour_index(ip);
-        auto i1 = courbe.sommet_pour_index(ip + 1);
-
         données_sortie[décalage_segment] = valeur;
         données_sortie[décalage_segment + 1] = valeur;
         décalage_segment += 2;
