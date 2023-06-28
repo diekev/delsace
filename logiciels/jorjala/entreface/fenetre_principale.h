@@ -59,8 +59,8 @@ class FenetrePrincipale : public QMainWindow {
   public:
     explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    FenetrePrincipale(FenetrePrincipale const &) = default;
-    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    FenetrePrincipale(FenetrePrincipale const &) = delete;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = delete;
 
     void définit_texte_état(const QString &texte);
 

@@ -55,8 +55,8 @@ class MoteurRenduOpenGL final : public MoteurRendu {
 
     ~MoteurRenduOpenGL() override;
 
-    MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
-    MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
+    MoteurRenduOpenGL(MoteurRenduOpenGL const &) = delete;
+    MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = delete;
 
     const char *id() const override;
 

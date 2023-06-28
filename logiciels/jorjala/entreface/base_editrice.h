@@ -55,8 +55,8 @@ class BaseEditrice : public danjo::ConteneurControles {
                           JJL::Jorjala &jorjala,
                           QWidget *parent = nullptr);
 
-    BaseEditrice(BaseEditrice const &) = default;
-    BaseEditrice &operator=(BaseEditrice const &) = default;
+    BaseEditrice(BaseEditrice const &) = delete;
+    BaseEditrice &operator=(BaseEditrice const &) = delete;
 
     void actif(bool ouinon);
     void rend_actif();

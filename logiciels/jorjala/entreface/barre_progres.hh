@@ -49,8 +49,8 @@ class BarreDeProgres : public QWidget {
   public:
     explicit BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    BarreDeProgres(BarreDeProgres const &) = default;
-    BarreDeProgres &operator=(BarreDeProgres const &) = default;
+    BarreDeProgres(BarreDeProgres const &) = delete;
+    BarreDeProgres &operator=(BarreDeProgres const &) = delete;
 
     void ajourne_valeur(int valeur);
 

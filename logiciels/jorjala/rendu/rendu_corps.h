@@ -63,8 +63,8 @@ class RenduCorps {
      */
     explicit RenduCorps(JJL::Corps &corps);
 
-    RenduCorps(RenduCorps const &) = default;
-    RenduCorps &operator=(RenduCorps const &) = default;
+    RenduCorps(RenduCorps const &) = delete;
+    RenduCorps &operator=(RenduCorps const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et
