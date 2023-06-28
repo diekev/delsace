@@ -61,7 +61,7 @@ static BaseEditrice *qéditrice_depuis_éditrice(JJL::Jorjala &jorjala, JJL::Edi
 /** \name ActionAjoutEditrice.
  * \{ */
 
-ActionAjoutEditrice::ActionAjoutEditrice(QString texte) : QAction(texte)
+ActionAjoutEditrice::ActionAjoutEditrice(QString texte, QObject *parent) : QAction(texte, parent)
 {
     connect(this, &QAction::triggered, this, &ActionAjoutEditrice::sur_declenchage);
 }
@@ -99,7 +99,7 @@ VueRegion::VueRegion(JJL::Jorjala &jorjala, JJL::RegionInterface région, QWidge
 
 #define AJOUTE_ACTION(type_jorjala)                                                               \
     action = new ActionAjoutEditrice(                                                             \
-        JJL::nom_pour_type_éditrice(type_jorjala).vers_std_string().c_str());                     \
+        JJL::nom_pour_type_éditrice(type_jorjala).vers_std_string().c_str(), this);               \
     m_menu_liste_éditrices->addAction(action);                                                    \
     action->setData(QVariant(int(type_jorjala)));                                                 \
     connect(action, &ActionAjoutEditrice::ajoute_editrice, this, &VueRegion::sur_ajout_editrice);

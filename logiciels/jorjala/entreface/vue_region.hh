@@ -29,7 +29,7 @@ class ActionAjoutEditrice final : public QAction {
     Q_OBJECT
 
   public:
-    ActionAjoutEditrice(QString texte);
+    explicit ActionAjoutEditrice(QString texte, QObject *parent = nullptr);
 
   private Q_SLOTS:
     void sur_declenchage();
