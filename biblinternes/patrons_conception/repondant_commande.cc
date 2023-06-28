@@ -43,6 +43,9 @@ bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCom
 	std::cerr << "\tx : " << donnees_commande.x << '\n';
 	std::cerr << "\ty : " << donnees_commande.y << '\n';
 #endif
+    if (m_commande_modale) {
+        return false;
+    }
 
     auto donnees = donnees_commande;
 	auto commande = m_usine_commande.trouve_commande(categorie, donnees);
