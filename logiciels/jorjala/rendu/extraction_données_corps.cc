@@ -29,7 +29,7 @@ bool AccesseuseAttribut::donne_valeur_pour_index<bool>(int index)
 template <>
 int AccesseuseAttribut::donne_valeur_pour_index<int>(int index)
 {
-    return m_attribut.réel_pour_index(index);
+    return m_attribut.entier_pour_index(index);
 }
 
 template <>
