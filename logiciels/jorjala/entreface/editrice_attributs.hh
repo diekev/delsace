@@ -11,12 +11,12 @@
 
 class QComboBox;
 class QLabel;
-class QTableWidget;
+class QTableView;
 
 class EditriceAttributs : public BaseEditrice {
     Q_OBJECT
 
-    QTableWidget *m_table = nullptr;
+    QTableView *m_table = nullptr;
     QLabel *m_label_pour_noeud_manquant = nullptr;
     QComboBox *m_sélecteur_domaine = nullptr;
     int m_domaine = 0;

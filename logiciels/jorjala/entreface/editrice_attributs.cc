@@ -13,7 +13,7 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QTableWidget>
+#include <QTableView>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
@@ -62,7 +62,7 @@ static int nombre_de_colonnes_pour_type_attribut(const JJL::TypeAttribut type)
     return 0;
 }
 
-static void accumule_nom_attribut(QStringList &liste,
+static void accumule_nom_attribut(dls::tableau<QString> &liste,
                                   JJL::TypeAttribut type,
                                   std::string const &nom)
 {
@@ -70,119 +70,252 @@ static void accumule_nom_attribut(QStringList &liste,
         case JJL::TypeAttribut::BOOL:
         case JJL::TypeAttribut::ENTIER:
         case JJL::TypeAttribut::RÉEL:
-            liste.append(nom.c_str());
+            liste.ajoute(nom.c_str());
             break;
         case JJL::TypeAttribut::VEC2:
-            liste.append((nom + ".x").c_str());
-            liste.append((nom + ".y").c_str());
+            liste.ajoute((nom + ".x").c_str());
+            liste.ajoute((nom + ".y").c_str());
             break;
         case JJL::TypeAttribut::VEC3:
-            liste.append((nom + ".x").c_str());
-            liste.append((nom + ".y").c_str());
-            liste.append((nom + ".z").c_str());
+            liste.ajoute((nom + ".x").c_str());
+            liste.ajoute((nom + ".y").c_str());
+            liste.ajoute((nom + ".z").c_str());
             break;
         case JJL::TypeAttribut::VEC4:
-            liste.append((nom + ".x").c_str());
-            liste.append((nom + ".y").c_str());
-            liste.append((nom + ".z").c_str());
-            liste.append((nom + ".w").c_str());
+            liste.ajoute((nom + ".x").c_str());
+            liste.ajoute((nom + ".y").c_str());
+            liste.ajoute((nom + ".z").c_str());
+            liste.ajoute((nom + ".w").c_str());
             break;
         case JJL::TypeAttribut::COULEUR:
-            liste.append((nom + ".r").c_str());
-            liste.append((nom + ".v").c_str());
-            liste.append((nom + ".b").c_str());
-            liste.append((nom + ".a").c_str());
+            liste.ajoute((nom + ".r").c_str());
+            liste.ajoute((nom + ".v").c_str());
+            liste.ajoute((nom + ".b").c_str());
+            liste.ajoute((nom + ".a").c_str());
             break;
     }
 }
 
-static void remplis_table_avec_attribut(QTableWidget *table,
-                                        JJL::Attribut attribut,
-                                        const int nombre_de_valeurs,
-                                        const int index_colonne)
+static QString qstring_pour_attribut(JJL::Attribut attribut, const int ligne, const int dimension)
 {
     switch (attribut.type()) {
         case JJL::TypeAttribut::BOOL:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.bool_pour_index(i);
-                table->setCellWidget(i, index_colonne, new QLabel(v ? "vrai" : "faux"));
-            }
-            break;
+            auto v = attribut.bool_pour_index(ligne);
+            return v ? "vrai" : "faux";
         }
         case JJL::TypeAttribut::ENTIER:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.entier_pour_index(i);
-                auto chn_v = QString::number(v);
-                table->setCellWidget(i, index_colonne, new QLabel(chn_v));
-            }
-            break;
+            auto v = attribut.entier_pour_index(ligne);
+            return QString::number(v);
         }
         case JJL::TypeAttribut::RÉEL:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.réel_pour_index(i);
-                auto chn_v = QString::number(v);
-                table->setCellWidget(i, index_colonne, new QLabel(chn_v));
-            }
-            break;
+            auto v = attribut.réel_pour_index(ligne);
+            return QString::number(v);
         }
         case JJL::TypeAttribut::VEC2:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.vec2_pour_index(i);
-                auto chn_vx = QString::number(v.x());
-                auto chn_vy = QString::number(v.y());
-                table->setCellWidget(i, index_colonne, new QLabel(chn_vx));
-                table->setCellWidget(i, index_colonne + 1, new QLabel(chn_vy));
+            auto v = attribut.vec2_pour_index(ligne);
+            if (dimension == 0) {
+                return QString::number(v.x());
             }
-            break;
+            return QString::number(v.y());
         }
         case JJL::TypeAttribut::VEC3:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.vec3_pour_index(i);
-                auto chn_vx = QString::number(v.x());
-                auto chn_vy = QString::number(v.y());
-                auto chn_vz = QString::number(v.z());
-                table->setCellWidget(i, index_colonne, new QLabel(chn_vx));
-                table->setCellWidget(i, index_colonne + 1, new QLabel(chn_vy));
-                table->setCellWidget(i, index_colonne + 2, new QLabel(chn_vz));
+            auto v = attribut.vec3_pour_index(ligne);
+            if (dimension == 0) {
+                return QString::number(v.x());
             }
-            break;
+            if (dimension == 1) {
+                return QString::number(v.y());
+            }
+            return QString::number(v.z());
         }
         case JJL::TypeAttribut::VEC4:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.vec4_pour_index(i);
-                auto chn_vx = QString::number(v.x());
-                auto chn_vy = QString::number(v.y());
-                auto chn_vz = QString::number(v.z());
-                auto chn_vw = QString::number(v.w());
-                table->setCellWidget(i, index_colonne, new QLabel(chn_vx));
-                table->setCellWidget(i, index_colonne + 1, new QLabel(chn_vy));
-                table->setCellWidget(i, index_colonne + 2, new QLabel(chn_vz));
-                table->setCellWidget(i, index_colonne + 3, new QLabel(chn_vw));
+            auto v = attribut.vec4_pour_index(ligne);
+            if (dimension == 0) {
+                return QString::number(v.x());
             }
-            break;
+            if (dimension == 1) {
+                return QString::number(v.y());
+            }
+            if (dimension == 2) {
+                return QString::number(v.z());
+            }
+            return QString::number(v.w());
         }
         case JJL::TypeAttribut::COULEUR:
         {
-            for (int i = 0; i < nombre_de_valeurs; i++) {
-                auto v = attribut.couleur_pour_index(i);
-                auto chn_vx = QString::number(v.r());
-                auto chn_vy = QString::number(v.v());
-                auto chn_vz = QString::number(v.b());
-                auto chn_vw = QString::number(v.a());
-                table->setCellWidget(i, index_colonne, new QLabel(chn_vx));
-                table->setCellWidget(i, index_colonne + 1, new QLabel(chn_vy));
-                table->setCellWidget(i, index_colonne + 2, new QLabel(chn_vz));
-                table->setCellWidget(i, index_colonne + 3, new QLabel(chn_vw));
+            auto v = attribut.couleur_pour_index(ligne);
+            if (dimension == 0) {
+                return QString::number(v.r());
             }
-            break;
+            if (dimension == 1) {
+                return QString::number(v.v());
+            }
+            if (dimension == 2) {
+                return QString::number(v.b());
+            }
+            return QString::number(v.a());
         }
     }
+
+    return QString("N/A");
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QAbstractTableModel pour afficher les attributs.
+ * \{ */
+
+#define DOMAINE_POINT 0
+#define DOMAINE_PRIMITIVE 1
+
+class ModèleTableAttribut final : public QAbstractTableModel {
+    int m_domaine;
+    mutable JJL::Corps m_corps;
+
+    dls::tableau<JJL::Attribut> m_attributs{};
+    dls::tableau<QString> m_noms_colonnes{};
+    dls::tableau<int> m_index_colonne_vers_index_attribut{};
+    dls::tableau<int> m_index_colonne_vers_dimension_valeur{};
+
+  public:
+    ModèleTableAttribut(JJL::Corps corps, int domaine);
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    QVariant headerData(int section,
+                        Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+  private:
+    JJL::tableau<JJL_Attribut *, JJL::Attribut> donne_liste_attribut()
+    {
+        if (m_domaine == DOMAINE_POINT) {
+            return m_corps.liste_des_attributs_points();
+        }
+
+        return m_corps.liste_des_attributs_primitives();
+    }
+};
+
+ModèleTableAttribut::ModèleTableAttribut(JJL::Corps corps, int domaine)
+    : QAbstractTableModel(), m_corps(corps), m_domaine(domaine)
+{
+    if (m_domaine == DOMAINE_POINT) {
+        m_noms_colonnes.ajoute("P.x");
+        m_noms_colonnes.ajoute("P.y");
+        m_noms_colonnes.ajoute("P.z");
+    }
+
+    auto attributs = donne_liste_attribut();
+    int nombre_de_colonnes = 0;
+
+    for (auto attribut : attributs) {
+        nombre_de_colonnes += nombre_de_colonnes_pour_type_attribut(attribut.type());
+    }
+
+    m_noms_colonnes.reserve(m_noms_colonnes.taille() + nombre_de_colonnes);
+    m_index_colonne_vers_index_attribut.reserve(nombre_de_colonnes);
+    m_index_colonne_vers_dimension_valeur.reserve(nombre_de_colonnes);
+
+    int index_attribut = 0;
+    for (auto attribut : attributs) {
+        accumule_nom_attribut(m_noms_colonnes, attribut.type(), attribut.nom().vers_std_string());
+
+        const int colonnes_pour_attribut = nombre_de_colonnes_pour_type_attribut(attribut.type());
+
+        for (int i = 0; i < colonnes_pour_attribut; i++) {
+            m_index_colonne_vers_index_attribut.ajoute(index_attribut);
+            m_index_colonne_vers_dimension_valeur.ajoute(i);
+        }
+
+        m_attributs.ajoute(attribut);
+        index_attribut += 1;
+    }
+}
+
+int ModèleTableAttribut::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) {
+        /* Retourne 0 si le parent est valide.
+         * https://doc.qt.io/qt-6/qabstractitemmodel.html#rowCount */
+        return 0;
+    }
+
+    if (m_domaine == DOMAINE_POINT) {
+        return m_corps.nombre_de_points();
+    }
+
+    return m_corps.nombre_de_primitives();
+}
+
+int ModèleTableAttribut::columnCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) {
+        /* Retourne 0 si le parent est valide.
+         * https://doc.qt.io/qt-6/qabstractitemmodel.html#columnCount */
+        return 0;
+    }
+
+    return m_noms_colonnes.taille();
+}
+
+QVariant ModèleTableAttribut::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role != Qt::DisplayRole) {
+        return {};
+    }
+
+    if (orientation == Qt::Orientation::Horizontal) {
+        return m_noms_colonnes[section];
+    }
+
+    return QString::number(section);
+}
+
+QVariant ModèleTableAttribut::data(const QModelIndex &index, int role) const
+{
+    /* https://doc.qt.io/qt-6/qt.html#ItemDataRole-enum */
+    if (role != Qt::DisplayRole) {
+        return {};
+    }
+
+    int colonne = index.column();
+
+    if (m_domaine == DOMAINE_POINT) {
+        if (colonne < 3) {
+            /* Nous devons afficher les valeurs des points. */
+            auto point = m_corps.point_pour_index(index.row());
+
+            if (colonne == 0) {
+                return QString::number(point.x());
+            }
+
+            if (colonne == 1) {
+                return QString::number(point.y());
+            }
+
+            return QString::number(point.z());
+        }
+
+        /* Nous sommes en dehors des points, ajust l'index pour n'inclure que les attributs. */
+        colonne -= 3;
+    }
+
+    const int index_attribut = m_index_colonne_vers_index_attribut[colonne];
+    const int dimension = m_index_colonne_vers_dimension_valeur[colonne];
+
+    return qstring_pour_attribut(m_attributs[index_attribut], index.row(), dimension);
 }
 
 /** \} */
@@ -191,11 +324,8 @@ static void remplis_table_avec_attribut(QTableWidget *table,
 /** \name ÉditriceAttributs
  * \{ */
 
-#define DOMAINE_POINT 0
-#define DOMAINE_PRIMITIVE 1
-
 EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("attributs", jorjala, parent), m_table(new QTableWidget(this)),
+    : BaseEditrice("attributs", jorjala, parent), m_table(new QTableView(this)),
       m_label_pour_noeud_manquant(new QLabel("Aucun noeud actif", this)),
       m_sélecteur_domaine(new QComboBox(this))
 {
@@ -253,46 +383,7 @@ void EditriceAttributs::ajourne_état(JJL::TypeEvenement évènement)
 
     m_noeud = noeud;
 
-    auto attributs = (m_domaine == DOMAINE_POINT) ? corps.liste_des_attributs_points() :
-                                                    corps.liste_des_attributs_primitives();
-
-    auto nombre_de_valeurs = (m_domaine == DOMAINE_POINT) ? corps.nombre_de_points() :
-                                                            corps.nombre_de_primitives();
-
-    QStringList titres_colonnes;
-    if (m_domaine == DOMAINE_POINT) {
-        accumule_nom_attribut(titres_colonnes, JJL::TypeAttribut::VEC3, "P");
-    }
-    for (auto attribut : attributs) {
-        accumule_nom_attribut(titres_colonnes, attribut.type(), attribut.nom().vers_std_string());
-    }
-
-    m_table->clear();
-    m_table->setColumnCount(titres_colonnes.size());
-    m_table->setHorizontalHeaderLabels(titres_colonnes);
-    m_table->setRowCount(nombre_de_valeurs);
-
-    int index_colonne = 0;
-    if (m_domaine == DOMAINE_POINT) {
-        for (int i = 0; i < corps.nombre_de_points(); i++) {
-            auto point = corps.point_pour_index(i);
-
-            auto chn_x = QString::number(point.x());
-            auto chn_y = QString::number(point.x());
-            auto chn_z = QString::number(point.x());
-
-            m_table->setCellWidget(i, 0, new QLabel(chn_x));
-            m_table->setCellWidget(i, 1, new QLabel(chn_y));
-            m_table->setCellWidget(i, 2, new QLabel(chn_z));
-        }
-
-        index_colonne = 3;
-    }
-
-    for (auto attribut : attributs) {
-        remplis_table_avec_attribut(m_table, attribut, nombre_de_valeurs, index_colonne);
-        index_colonne += nombre_de_colonnes_pour_type_attribut(attribut.type());
-    }
+    m_table->setModel(new ModèleTableAttribut(corps, m_domaine));
 
     définit_visibilité_table(true);
 }
@@ -306,9 +397,9 @@ void EditriceAttributs::définit_visibilité_table(bool est_visible)
 void EditriceAttributs::ajourne_pour_changement_domaine(int domaine)
 {
     m_domaine = domaine;
-    ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
     /* Invalide le cache. */
     m_noeud = {};
+    ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
 }
 
 /** \} */
