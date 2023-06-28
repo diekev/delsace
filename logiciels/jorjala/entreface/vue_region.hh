@@ -56,6 +56,9 @@ class VueRegion final : public QTabWidget {
   public:
     VueRegion(JJL::Jorjala &jorjala, JJL::RegionInterface région, QWidget *parent = nullptr);
 
+    VueRegion(VueRegion const &) = delete;
+    VueRegion &operator=(VueRegion const &) = delete;
+
     /** Transmet l'évènement à l'éditrice courante. */
     void ajourne_éditrice_active(JJL::TypeEvenement évènement);
 

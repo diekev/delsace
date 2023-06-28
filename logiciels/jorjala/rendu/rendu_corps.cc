@@ -663,7 +663,7 @@ void RenduCorps::dessine(StatistiquesRendu &stats, ContexteRendu const &contexte
     }
 }
 
-void RenduCorps::extrait_données_primitives(long nombre_de_prims,
+void RenduCorps::extrait_données_primitives(int64_t nombre_de_prims,
                                             bool est_instance,
                                             dls::tableau<char> &points_utilisés)
 {
@@ -717,7 +717,7 @@ void RenduCorps::extrait_données_primitives(long nombre_de_prims,
     }
 }
 
-void RenduCorps::extrait_données_points(long nombre_de_prims,
+void RenduCorps::extrait_données_points(int64_t nombre_de_prims,
                                         bool est_instance,
                                         dls::tableau<char> &points_utilisés)
 {

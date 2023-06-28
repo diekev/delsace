@@ -17,47 +17,48 @@ struct AccesseuseAttribut {
     }
 
     template <typename T>
-    T donne_valeur_pour_index(int index);
+    T donne_valeur_pour_index(int64_t index);
 };
 
 template <>
-bool AccesseuseAttribut::donne_valeur_pour_index<bool>(int index)
+bool AccesseuseAttribut::donne_valeur_pour_index<bool>(int64_t index)
 {
     return m_attribut.bool_pour_index(index);
 }
 
 template <>
-int AccesseuseAttribut::donne_valeur_pour_index<int>(int index)
+int AccesseuseAttribut::donne_valeur_pour_index<int>(int64_t index)
 {
     return m_attribut.entier_pour_index(index);
 }
 
 template <>
-float AccesseuseAttribut::donne_valeur_pour_index<float>(int index)
+float AccesseuseAttribut::donne_valeur_pour_index<float>(int64_t index)
 {
     return m_attribut.réel_pour_index(index);
 }
 
 template <>
-dls::math::vec2f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec2f>(int index)
+dls::math::vec2f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec2f>(int64_t index)
 {
     return convertis_vecteur(m_attribut.vec2_pour_index(index));
 }
 
 template <>
-dls::math::vec3f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec3f>(int index)
+dls::math::vec3f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec3f>(int64_t index)
 {
     return convertis_vecteur(m_attribut.vec3_pour_index(index));
 }
 
 template <>
-dls::math::vec4f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec4f>(int index)
+dls::math::vec4f AccesseuseAttribut::donne_valeur_pour_index<dls::math::vec4f>(int64_t index)
 {
     return convertis_vecteur(m_attribut.vec4_pour_index(index));
 }
 
 template <>
-dls::phys::couleur32 AccesseuseAttribut::donne_valeur_pour_index<dls::phys::couleur32>(int index)
+dls::phys::couleur32 AccesseuseAttribut::donne_valeur_pour_index<dls::phys::couleur32>(
+    int64_t index)
 {
     return convertis_couleur(m_attribut.couleur_pour_index(index));
 }
@@ -85,11 +86,11 @@ static std::optional<JJL::Attribut> donne_attribut(
 static void extrait_points_polygone(JJL::Corps corps,
                                     JJL::PrimitivePolygone polygone,
                                     dls::tableau<dls::math::vec3f> &points,
-                                    long &décalage_triangle,
+                                    int64_t &décalage_triangle,
                                     dls::tableau<char> &points_utilisés)
 {
 
-    for (long ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
+    for (int64_t ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
         auto i0 = polygone.sommet_pour_index(0);
         auto i1 = polygone.sommet_pour_index(ip - 1);
         auto i2 = polygone.sommet_pour_index(ip);
@@ -112,11 +113,11 @@ static void extrait_points_polygone(JJL::Corps corps,
 static void extrait_points_courbe(JJL::Corps corps,
                                   JJL::PrimitiveCourbe courbe,
                                   dls::tableau<dls::math::vec3f> &points,
-                                  long &décalage_segment,
+                                  int64_t &décalage_segment,
                                   dls::tableau<char> &points_utilisés)
 {
 
-    for (long ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
+    for (int64_t ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
         auto i0 = courbe.sommet_pour_index(ip);
         auto i1 = courbe.sommet_pour_index(ip + 1);
 
@@ -136,9 +137,9 @@ template <typename T>
 static void extrait_attribut_point(JJL::PrimitivePolygone polygone,
                                    AccesseuseAttribut &convertisseuse_valeur,
                                    dls::tableau<T> &données_sortie,
-                                   long &décalage_triangle)
+                                   int64_t &décalage_triangle)
 {
-    for (long ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
+    for (int64_t ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
         auto i0 = polygone.sommet_pour_index(0);
         auto i1 = polygone.sommet_pour_index(ip - 1);
         auto i2 = polygone.sommet_pour_index(ip);
@@ -156,9 +157,9 @@ template <typename T>
 static void extrait_attribut_point(JJL::PrimitiveCourbe courbe,
                                    AccesseuseAttribut &convertisseuse_valeur,
                                    dls::tableau<T> &données_sortie,
-                                   long &décalage_segment)
+                                   int64_t &décalage_segment)
 {
-    for (long ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
+    for (int64_t ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
         auto i0 = courbe.sommet_pour_index(ip);
         auto i1 = courbe.sommet_pour_index(ip + 1);
 
@@ -172,13 +173,13 @@ static void extrait_attribut_point(JJL::PrimitiveCourbe courbe,
 template <typename T>
 static void extrait_attribut_primitive(JJL::PrimitivePolygone polygone,
                                        AccesseuseAttribut &convertisseuse_valeur,
-                                       int i,
+                                       int64_t i,
                                        dls::tableau<T> &données_sortie,
-                                       long &décalage_triangle)
+                                       int64_t &décalage_triangle)
 {
     auto valeur = convertisseuse_valeur.donne_valeur_pour_index<T>(i);
 
-    for (long ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
+    for (int64_t ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
         données_sortie[décalage_triangle] = valeur;
         données_sortie[décalage_triangle + 1] = valeur;
         données_sortie[décalage_triangle + 2] = valeur;
@@ -189,13 +190,13 @@ static void extrait_attribut_primitive(JJL::PrimitivePolygone polygone,
 template <typename T>
 static void extrait_attribut_primitive(JJL::PrimitiveCourbe courbe,
                                        AccesseuseAttribut &convertisseuse_valeur,
-                                       int i,
+                                       int64_t i,
                                        dls::tableau<T> &données_sortie,
-                                       long &décalage_segment)
+                                       int64_t &décalage_segment)
 {
     auto valeur = convertisseuse_valeur.donne_valeur_pour_index<T>(i);
 
-    for (long ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
+    for (int64_t ip = 0; ip < courbe.nombre_de_sommets() - 1; ++ip) {
         données_sortie[décalage_segment] = valeur;
         données_sortie[décalage_segment + 1] = valeur;
         décalage_segment += 2;
@@ -205,11 +206,11 @@ static void extrait_attribut_primitive(JJL::PrimitiveCourbe courbe,
 static void extrait_normal_polygone(JJL::Corps corps,
                                     JJL::PrimitivePolygone polygone,
                                     dls::tableau<dls::math::vec3f> &normaux,
-                                    long &décalage_triangle)
+                                    int64_t &décalage_triangle)
 {
     auto normal = polygone.calcule_normal(corps);
 
-    for (long ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
+    for (int64_t ip = 2; ip < polygone.nombre_de_sommets(); ++ip) {
         normaux[décalage_triangle] = convertis_vecteur(normal);
         normaux[décalage_triangle + 1] = convertis_vecteur(normal);
         normaux[décalage_triangle + 2] = convertis_vecteur(normal);
@@ -254,11 +255,11 @@ void ExtractriceCorpsPolygonesSeuls::extrait_données(DonnéesTampon &données,
     extrait_couleurs_triangles(données.couleurs_polys, nombre_de_triangles);
 }
 
-long ExtractriceCorpsPolygonesSeuls::calcule_nombre_de_triangles()
+int64_t ExtractriceCorpsPolygonesSeuls::calcule_nombre_de_triangles()
 {
-    long résultat = 0;
+    int64_t résultat = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto polygone = transtype<JJL::PrimitivePolygone>(prim);
         résultat += polygone.nombre_de_sommets() - 2;
@@ -269,14 +270,14 @@ long ExtractriceCorpsPolygonesSeuls::calcule_nombre_de_triangles()
 
 void ExtractriceCorpsPolygonesSeuls::extrait_points_triangles(
     dls::tableau<dls::math::vec3f> &points,
-    const long nombre_de_triangles,
+    const int64_t nombre_de_triangles,
     dls::tableau<char> &points_utilisés)
 {
     points.redimensionne(nombre_de_triangles * 3);
 
-    long décalage_triangle = 0;
+    int64_t décalage_triangle = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto polygone = transtype<JJL::PrimitivePolygone>(prim);
         extrait_points_polygone(m_corps, polygone, points, décalage_triangle, points_utilisés);
@@ -284,7 +285,7 @@ void ExtractriceCorpsPolygonesSeuls::extrait_points_triangles(
 }
 
 void ExtractriceCorpsPolygonesSeuls::extrait_normaux_triangles(
-    dls::tableau<dls::math::vec3f> &normaux, const long nombre_de_triangles)
+    dls::tableau<dls::math::vec3f> &normaux, const int64_t nombre_de_triangles)
 {
     normaux.redimensionne(nombre_de_triangles * 3);
 
@@ -302,9 +303,9 @@ void ExtractriceCorpsPolygonesSeuls::extrait_normaux_triangles(
         return;
     }
 
-    long décalage_triangle = 0;
+    int64_t décalage_triangle = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto polygone = transtype<JJL::PrimitivePolygone>(prim);
         extrait_normal_polygone(m_corps, polygone, normaux, décalage_triangle);
@@ -312,7 +313,7 @@ void ExtractriceCorpsPolygonesSeuls::extrait_normaux_triangles(
 }
 
 void ExtractriceCorpsPolygonesSeuls::extrait_couleurs_triangles(
-    dls::tableau<dls::phys::couleur32> &couleurs, const long nombre_de_triangles)
+    dls::tableau<dls::phys::couleur32> &couleurs, const int64_t nombre_de_triangles)
 {
     couleurs.redimensionne(nombre_de_triangles * 3);
 
@@ -337,10 +338,10 @@ template <typename T>
 void ExtractriceCorpsPolygonesSeuls::remplis_tampon_depuis_attribut_point(
     JJL::Attribut attribut, dls::tableau<T> &données_sortie)
 {
-    long décalage_triangle = 0;
+    int64_t décalage_triangle = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto polygone = transtype<JJL::PrimitivePolygone>(prim);
         extrait_attribut_point(polygone, convertisseuse_valeur, données_sortie, décalage_triangle);
@@ -351,10 +352,10 @@ template <typename T>
 void ExtractriceCorpsPolygonesSeuls::remplis_tampon_depuis_attribut_primitive(
     JJL::Attribut attribut, dls::tableau<T> &données_sortie)
 {
-    long décalage_triangle = 0;
+    int64_t décalage_triangle = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto polygone = transtype<JJL::PrimitivePolygone>(prim);
         extrait_attribut_primitive(
@@ -384,11 +385,11 @@ void ExtractriceCorpsCourbesSeules::extrait_données(DonnéesTampon &données,
     extrait_couleurs_segments(données.couleurs_segments, nombre_de_segments);
 }
 
-long ExtractriceCorpsCourbesSeules::calcule_nombre_de_segments()
+int64_t ExtractriceCorpsCourbesSeules::calcule_nombre_de_segments()
 {
-    long résultat = 0;
+    int64_t résultat = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto courbe = transtype<JJL::PrimitiveCourbe>(prim);
         résultat += courbe.nombre_de_sommets() - 1;
@@ -398,14 +399,14 @@ long ExtractriceCorpsCourbesSeules::calcule_nombre_de_segments()
 }
 
 void ExtractriceCorpsCourbesSeules::extrait_points_segments(dls::tableau<dls::math::vec3f> &points,
-                                                            const long nombre_de_segments,
+                                                            const int64_t nombre_de_segments,
                                                             dls::tableau<char> &points_utilisés)
 {
     points.redimensionne(nombre_de_segments * 2);
 
-    long décalage_segment = 0;
+    int64_t décalage_segment = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto courbe = transtype<JJL::PrimitiveCourbe>(prim);
         extrait_points_courbe(m_corps, courbe, points, décalage_segment, points_utilisés);
@@ -413,7 +414,7 @@ void ExtractriceCorpsCourbesSeules::extrait_points_segments(dls::tableau<dls::ma
 }
 
 void ExtractriceCorpsCourbesSeules::extrait_couleurs_segments(
-    dls::tableau<dls::phys::couleur32> &couleurs, const long nombre_de_segments)
+    dls::tableau<dls::phys::couleur32> &couleurs, const int64_t nombre_de_segments)
 {
     couleurs.redimensionne(nombre_de_segments * 3);
 
@@ -438,10 +439,10 @@ template <typename T>
 void ExtractriceCorpsCourbesSeules::remplis_tampon_depuis_attribut_point(
     JJL::Attribut attribut, dls::tableau<T> &données_sortie)
 {
-    long décalage_segment = 0;
+    int64_t décalage_segment = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto courbe = transtype<JJL::PrimitiveCourbe>(prim);
         extrait_attribut_point(courbe, convertisseuse_valeur, données_sortie, décalage_segment);
@@ -452,10 +453,10 @@ template <typename T>
 void ExtractriceCorpsCourbesSeules::remplis_tampon_depuis_attribut_primitive(
     JJL::Attribut attribut, dls::tableau<T> &données_sortie)
 {
-    long décalage_segment = 0;
+    int64_t décalage_segment = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         auto courbe = transtype<JJL::PrimitiveCourbe>(prim);
         extrait_attribut_primitive(
@@ -485,7 +486,7 @@ void ExtractriceCorpsMixte::extrait_données(DonnéesTampon &données,
 
 void ExtractriceCorpsMixte::calcule_compte_primitives()
 {
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
 
         switch (prim.type()) {
@@ -519,10 +520,10 @@ void ExtractriceCorpsMixte::extrait_points(dls::tableau<dls::math::vec3f> &point
     points_polys.redimensionne(m_nombre_de_triangles * 3);
     points_segments.redimensionne(m_nombre_de_segments * 2);
 
-    long décalage_points_polys = 0;
-    long décalage_points_segments = 0;
+    int64_t décalage_points_polys = 0;
+    int64_t décalage_points_segments = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
 
         switch (prim.type()) {
@@ -574,9 +575,9 @@ void ExtractriceCorpsMixte::extrait_normaux(dls::tableau<dls::math::vec3f> &norm
         return;
     }
 
-    long décalage_triangle = 0;
+    int64_t décalage_triangle = 0;
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
         if (prim.type() != JJL::TypePrimitive::POLYGONE) {
             continue;
@@ -616,11 +617,11 @@ void ExtractriceCorpsMixte::remplis_tampon_depuis_attribut_point(JJL::Attribut a
                                                                  dls::tableau<T> &données_polys,
                                                                  dls::tableau<T> &données_segments)
 {
-    long décalage_triangle = 0;
-    long décalage_segment = 0;
+    int64_t décalage_triangle = 0;
+    int64_t décalage_segment = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
 
         switch (prim.type()) {
@@ -655,11 +656,11 @@ template <typename T>
 void ExtractriceCorpsMixte::remplis_tampon_depuis_attribut_primitive(
     JJL::Attribut attribut, dls::tableau<T> &données_polys, dls::tableau<T> &données_segments)
 {
-    long décalage_triangle = 0;
-    long décalage_segment = 0;
+    int64_t décalage_triangle = 0;
+    int64_t décalage_segment = 0;
     auto convertisseuse_valeur = AccesseuseAttribut(attribut);
 
-    for (long i = 0; i < m_corps.nombre_de_primitives(); i++) {
+    for (int64_t i = 0; i < m_corps.nombre_de_primitives(); i++) {
         auto prim = m_corps.primitive_pour_index(i);
 
         switch (prim.type()) {
@@ -708,13 +709,13 @@ void ExtractriceCorpsPoints::extrait_données(DonnéesTampon &données,
     extrait_couleurs(données.couleurs, points_utilisés);
 }
 
-long ExtractriceCorpsPoints::calcule_compte_points(dls::tableau<char> &points_utilisés)
+int64_t ExtractriceCorpsPoints::calcule_compte_points(dls::tableau<char> &points_utilisés)
 {
     if (m_corps.nombre_de_primitives() == 0) {
         return m_corps.nombre_de_points();
     }
 
-    long résultat = 0;
+    int64_t résultat = 0;
 
     for (auto i : points_utilisés) {
         résultat += bool(i);
@@ -737,7 +738,7 @@ void ExtractriceCorpsPoints::extrait_points(dls::tableau<dls::math::vec3f> &poin
     }
     else {
         /* Ne copie que les points inutilisés. */
-        long décalage_point = 0;
+        int64_t décalage_point = 0;
 
         for (auto i = 0; i < m_corps.nombre_de_points(); i++) {
             if (points_utilisés[i]) {
@@ -777,7 +778,7 @@ void ExtractriceCorpsPoints::remplis_tampon_depuis_attribut_point(
     }
     else {
         /* Ne copie que les points inutilisés. */
-        long décalage_point = 0;
+        int64_t décalage_point = 0;
 
         for (auto i = 0; i < m_corps.nombre_de_points(); i++) {
             if (points_utilisés[i]) {

@@ -14,15 +14,15 @@
  * \{ */
 
 struct DonnéesTampon {
-    dls::tableau<dls::math::vec3f> points;
-    dls::tableau<dls::phys::couleur32> couleurs;
+    dls::tableau<dls::math::vec3f> points{};
+    dls::tableau<dls::phys::couleur32> couleurs{};
 
-    dls::tableau<dls::math::vec3f> points_polys;
-    dls::tableau<dls::math::vec3f> normaux;
-    dls::tableau<dls::phys::couleur32> couleurs_polys;
+    dls::tableau<dls::math::vec3f> points_polys{};
+    dls::tableau<dls::math::vec3f> normaux{};
+    dls::tableau<dls::phys::couleur32> couleurs_polys{};
 
-    dls::tableau<dls::math::vec3f> points_segments;
-    dls::tableau<dls::phys::couleur32> couleurs_segments;
+    dls::tableau<dls::math::vec3f> points_segments{};
+    dls::tableau<dls::phys::couleur32> couleurs_segments{};
 };
 
 /** \} */
@@ -40,23 +40,23 @@ class ExtractriceCorpsPolygonesSeuls {
 
     void extrait_données(DonnéesTampon &données, dls::tableau<char> &points_utilisés);
 
-    long donne_nombre_de_polygones()
+    int64_t donne_nombre_de_polygones()
     {
         return m_corps.nombre_de_primitives();
     }
 
   private:
-    long calcule_nombre_de_triangles();
+    int64_t calcule_nombre_de_triangles();
 
     void extrait_points_triangles(dls::tableau<dls::math::vec3f> &points,
-                                  const long nombre_de_triangles,
+                                  const int64_t nombre_de_triangles,
                                   dls::tableau<char> &points_utilisés);
 
     void extrait_normaux_triangles(dls::tableau<dls::math::vec3f> &normaux,
-                                   const long nombre_de_triangles);
+                                   const int64_t nombre_de_triangles);
 
     void extrait_couleurs_triangles(dls::tableau<dls::phys::couleur32> &couleurs,
-                                    const long nombre_de_triangles);
+                                    const int64_t nombre_de_triangles);
 
     template <typename T>
     void remplis_tampon_depuis_attribut_point(JJL::Attribut attribut,
@@ -82,20 +82,20 @@ class ExtractriceCorpsCourbesSeules {
 
     void extrait_données(DonnéesTampon &données, dls::tableau<char> &points_utilisés);
 
-    long donne_nombre_de_courbes()
+    int64_t donne_nombre_de_courbes()
     {
         return m_corps.nombre_de_primitives();
     }
 
   private:
-    long calcule_nombre_de_segments();
+    int64_t calcule_nombre_de_segments();
 
     void extrait_points_segments(dls::tableau<dls::math::vec3f> &points,
-                                 const long nombre_de_segments,
+                                 const int64_t nombre_de_segments,
                                  dls::tableau<char> &points_utilisés);
 
     void extrait_couleurs_segments(dls::tableau<dls::phys::couleur32> &couleurs,
-                                   const long nombre_de_segments);
+                                   const int64_t nombre_de_segments);
 
     template <typename T>
     void remplis_tampon_depuis_attribut_point(JJL::Attribut attribut,
@@ -115,22 +115,22 @@ class ExtractriceCorpsCourbesSeules {
 /** Extraction des données de rendu depuis un corps composé de plusieurs types de primitives. */
 class ExtractriceCorpsMixte {
     JJL::Corps m_corps;
-    long m_nombre_de_segments = 0;
-    long m_nombre_de_triangles = 0;
-    long m_nombre_de_polygones = 0;
-    long m_nombre_de_courbes = 0;
+    int64_t m_nombre_de_segments = 0;
+    int64_t m_nombre_de_triangles = 0;
+    int64_t m_nombre_de_polygones = 0;
+    int64_t m_nombre_de_courbes = 0;
 
   public:
     ExtractriceCorpsMixte(JJL::Corps corps);
 
     void extrait_données(DonnéesTampon &données, dls::tableau<char> &points_utilisés);
 
-    long donne_nombre_de_polygones() const
+    int64_t donne_nombre_de_polygones() const
     {
         return m_nombre_de_polygones;
     }
 
-    long donne_nombre_de_courbes() const
+    int64_t donne_nombre_de_courbes() const
     {
         return m_nombre_de_courbes;
     }
@@ -167,7 +167,7 @@ class ExtractriceCorpsMixte {
 /** Extraction des données des non-utilisés du corps. */
 class ExtractriceCorpsPoints {
     JJL::Corps m_corps;
-    long m_nombre_de_points = 0;
+    int64_t m_nombre_de_points = 0;
 
   public:
     ExtractriceCorpsPoints(JJL::Corps corps);
@@ -175,7 +175,7 @@ class ExtractriceCorpsPoints {
     void extrait_données(DonnéesTampon &données, dls::tableau<char> &points_utilisés);
 
   private:
-    long calcule_compte_points(dls::tableau<char> &points_utilisés);
+    int64_t calcule_compte_points(dls::tableau<char> &points_utilisés);
 
     void extrait_points(dls::tableau<dls::math::vec3f> &points,
                         dls::tableau<char> &points_utilisés);

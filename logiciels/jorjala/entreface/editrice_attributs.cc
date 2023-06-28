@@ -112,54 +112,54 @@ static QString qstring_pour_attribut(JJL::Attribut attribut, const int ligne, co
         case JJL::TypeAttribut::RÉEL:
         {
             auto v = attribut.réel_pour_index(ligne);
-            return QString::number(v);
+            return QString::number(static_cast<double>(v));
         }
         case JJL::TypeAttribut::VEC2:
         {
             auto v = attribut.vec2_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(v.x());
+                return QString::number(static_cast<double>(v.x()));
             }
-            return QString::number(v.y());
+            return QString::number(static_cast<double>(v.y()));
         }
         case JJL::TypeAttribut::VEC3:
         {
             auto v = attribut.vec3_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(v.x());
+                return QString::number(static_cast<double>(v.x()));
             }
             if (dimension == 1) {
-                return QString::number(v.y());
+                return QString::number(static_cast<double>(v.y()));
             }
-            return QString::number(v.z());
+            return QString::number(static_cast<double>(v.z()));
         }
         case JJL::TypeAttribut::VEC4:
         {
             auto v = attribut.vec4_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(v.x());
+                return QString::number(static_cast<double>(v.x()));
             }
             if (dimension == 1) {
-                return QString::number(v.y());
+                return QString::number(static_cast<double>(v.y()));
             }
             if (dimension == 2) {
-                return QString::number(v.z());
+                return QString::number(static_cast<double>(v.z()));
             }
-            return QString::number(v.w());
+            return QString::number(static_cast<double>(v.w()));
         }
         case JJL::TypeAttribut::COULEUR:
         {
             auto v = attribut.couleur_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(v.r());
+                return QString::number(static_cast<double>(v.r()));
             }
             if (dimension == 1) {
-                return QString::number(v.v());
+                return QString::number(static_cast<double>(v.v()));
             }
             if (dimension == 2) {
-                return QString::number(v.b());
+                return QString::number(static_cast<double>(v.b()));
             }
-            return QString::number(v.a());
+            return QString::number(static_cast<double>(v.a()));
         }
     }
 
@@ -176,8 +176,8 @@ static QString qstring_pour_attribut(JJL::Attribut attribut, const int ligne, co
 #define DOMAINE_PRIMITIVE 1
 
 class ModèleTableAttribut final : public QAbstractTableModel {
-    int m_domaine;
     mutable JJL::Corps m_corps;
+    int m_domaine;
 
     dls::tableau<JJL::Attribut> m_attributs{};
     dls::tableau<QString> m_noms_colonnes{};
@@ -253,10 +253,10 @@ int ModèleTableAttribut::rowCount(const QModelIndex &parent) const
     }
 
     if (m_domaine == DOMAINE_POINT) {
-        return m_corps.nombre_de_points();
+        return static_cast<int>(m_corps.nombre_de_points());
     }
 
-    return m_corps.nombre_de_primitives();
+    return static_cast<int>(m_corps.nombre_de_primitives());
 }
 
 int ModèleTableAttribut::columnCount(const QModelIndex &parent) const
@@ -267,7 +267,7 @@ int ModèleTableAttribut::columnCount(const QModelIndex &parent) const
         return 0;
     }
 
-    return m_noms_colonnes.taille();
+    return static_cast<int>(m_noms_colonnes.taille());
 }
 
 QVariant ModèleTableAttribut::headerData(int section, Qt::Orientation orientation, int role) const
@@ -298,14 +298,14 @@ QVariant ModèleTableAttribut::data(const QModelIndex &index, int role) const
             auto point = m_corps.point_pour_index(index.row());
 
             if (colonne == 0) {
-                return QString::number(point.x());
+                return QString::number(static_cast<double>(point.x()));
             }
 
             if (colonne == 1) {
-                return QString::number(point.y());
+                return QString::number(static_cast<double>(point.y()));
             }
 
-            return QString::number(point.z());
+            return QString::number(static_cast<double>(point.z()));
         }
 
         /* Nous sommes en dehors des points, ajust l'index pour n'inclure que les attributs. */
