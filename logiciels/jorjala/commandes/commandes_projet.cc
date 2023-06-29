@@ -202,6 +202,13 @@ class CommandeNouveauProjet final : public CommandeJorjala {
   public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
+        auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
+        auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+
+        if (!données_programme->demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         jorjala.réinitialise_pour_lecture_projet();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
