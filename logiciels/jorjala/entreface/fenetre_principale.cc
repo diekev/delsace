@@ -33,6 +33,7 @@
 #    pragma GCC diagnostic ignored "-Weffc++"
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
+#include <QCloseEvent>
 #include <QCoreApplication>
 #include <QCursor>
 #include <QDockWidget>
@@ -331,9 +332,15 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
     gestionnaire_danjo(m_jorjala)->recree_menu("Projets Récents", donnees_actions);
 }
 
-void FenetrePrincipale::closeEvent(QCloseEvent *)
+void FenetrePrincipale::closeEvent(QCloseEvent *event)
 {
+    if (!demande_permission_avant_de_fermer()) {
+        event->ignore();
+        return;
+    }
+
     ecrit_reglages();
+    event->accept();
 }
 
 static QLayout *qlayout_depuis_disposition(JJL::Disposition disposition)
@@ -423,6 +430,33 @@ void FenetrePrincipale::construit_interface_depuis_jorjala()
     setCentralWidget(qwidget);
 
     m_jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+}
+
+bool FenetrePrincipale::demande_permission_avant_de_fermer()
+{
+    if (!m_jorjala.possède_changement()) {
+        /* Rien ne fut changé, nous pouvons fermer automatiquement. */
+        return true;
+    }
+
+    const QMessageBox::StandardButton ret = QMessageBox::warning(
+        this,
+        tr("Fermeture Jorjala"),
+        tr("Le document fut modifié.\n"
+           "Voulez-vous sauvegarder les changements ?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+    switch (ret) {
+        case QMessageBox::Save:
+            appele_commande(m_jorjala, "sauvegarder", "");
+            return true;
+        case QMessageBox::Cancel:
+            return false;
+        default:
+            break;
+    }
+
+    return true;
 }
 
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)

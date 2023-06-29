@@ -85,5 +85,7 @@ class FenetrePrincipale : public QMainWindow {
 
     void construit_interface_depuis_jorjala();
 
+    bool demande_permission_avant_de_fermer();
+
     bool eventFilter(QObject *, QEvent *) override;
 };
