@@ -42,6 +42,11 @@ std::optional<JJL::CheminFichier> crée_chemin_fichier(JJL::Chaine chaine)
 
 class CommandeOuvrir final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
@@ -104,6 +109,11 @@ static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 
 class CommandeSauvegarder final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
@@ -125,6 +135,11 @@ class CommandeSauvegarder final : public CommandeJorjala {
 
 class CommandeSauvegarderSous final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         sauve_fichier_sous(jorjala);
@@ -136,6 +151,11 @@ class CommandeSauvegarderSous final : public CommandeJorjala {
 
 class CommandeSauvegarderRessource final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala,
                                  dls::chaine const & /*metadonnee*/) override
     {
@@ -167,6 +187,11 @@ class CommandeSauvegarderRessource final : public CommandeJorjala {
 
 class CommandeLectureRessource final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         dls::chaine chemin_projet;
@@ -200,6 +225,11 @@ class CommandeLectureRessource final : public CommandeJorjala {
 
 class CommandeNouveauProjet final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();

@@ -160,6 +160,11 @@ static bool ecris_image(
 
 class CommandeRenduImage final : public CommandeJorjala {
 public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+      return ModeInsertionHistorique::IGNORE;
+    }
+
 	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
 		if (jorjala->nom_calque_sortie == "") {
@@ -201,6 +206,11 @@ public:
 
 class CommandeRenduSequence final : public CommandeJorjala {
 public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+      return ModeInsertionHistorique::IGNORE;
+    }
+
 	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
 		auto const temps_originale = jorjala->temps_courant;

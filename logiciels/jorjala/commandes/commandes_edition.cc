@@ -59,6 +59,11 @@
 
 class CommandeAjouterPropriete final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         auto gestionnaire = gestionnaire_danjo(jorjala);
@@ -112,6 +117,11 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
 
 class CommandeAjouterComposite final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         jorjala.crée_racine_composite("composite");
@@ -124,6 +134,11 @@ class CommandeAjouterComposite final : public CommandeJorjala {
 
 class CommandeAjouterNuanceur final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -140,6 +155,11 @@ class CommandeAjouterNuanceur final : public CommandeJorjala {
 
 class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -156,6 +176,11 @@ class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
 /* ************************************************************************** */
 
 struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -220,6 +245,11 @@ struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
 
 class CommandeAjouterRendu final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -236,6 +266,11 @@ class CommandeAjouterRendu final : public CommandeJorjala {
 
 class CommandeDefait final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
         INUTILISE(metadonnee);
@@ -255,6 +290,11 @@ class CommandeDefait final : public CommandeJorjala {
 
 class CommandeRefait final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
         INUTILISE(metadonnee);
@@ -274,6 +314,11 @@ class CommandeRefait final : public CommandeJorjala {
 
 class CommandeRenomme final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
         INUTILISE(metadonnee);
