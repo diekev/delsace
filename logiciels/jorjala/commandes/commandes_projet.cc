@@ -213,17 +213,18 @@ class CommandeNouveauProjet final : public CommandeJorjala {
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
-                          description_commande<CommandeOuvrir>("projet", 0, 0, 0, false));
+                          description_commande<CommandeOuvrir>("projet", 0, 0, 0, false, false));
 
-    usine.enregistre_type("sauvegarder",
-                          description_commande<CommandeSauvegarder>("projet", 0, 0, 0, false));
+    usine.enregistre_type(
+        "sauvegarder", description_commande<CommandeSauvegarder>("projet", 0, 0, 0, false, false));
 
-    usine.enregistre_type("sauvegarder_sous",
-                          description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false));
+    usine.enregistre_type(
+        "sauvegarder_sous",
+        description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false, false));
 
     usine.enregistre_type(
         "sauvegarder_ressource_sous",
-        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false));
+        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false, false));
 
     usine.enregistre_type(
         "ouvrir_ressource",
