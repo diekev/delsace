@@ -104,6 +104,15 @@ DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
     return static_cast<DonnéesProgramme *>(données_programme.données());
 }
 
+bool DonnéesProgramme::demande_permission_avant_de_fermer()
+{
+    if (!rappel_demande_permission_avant_de_fermer) {
+        return true;
+    }
+
+    return rappel_demande_permission_avant_de_fermer(this);
+}
+
 RepondantCommande *repondant_commande(JJL::Jorjala &jorjala)
 {
     auto données = accède_données_programme(jorjala);

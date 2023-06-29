@@ -182,6 +182,13 @@ bool doit_interrompre_chef(void *données)
     return static_cast<ChefExecution *>(données)->interrompu();
 }
 
+/* ------------------------------------------------------------------------- */
+
+bool rappel_demande_permission_avant_de_fermer(DonnéesProgramme *données)
+{
+    return données->fenetre_principale->demande_permission_avant_de_fermer();
+}
+
 }  // namespace detail
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
@@ -208,6 +215,8 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
+    données_programme->rappel_demande_permission_avant_de_fermer =
+        detail::rappel_demande_permission_avant_de_fermer;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
     données_programme->task_notifier = memoire::loge<TaskNotifier>("TaskNotifier",
                                                                    fenetre_principale);

@@ -44,6 +44,13 @@ class CommandeOuvrir final : public CommandeJorjala {
   public:
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
+        auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
+        auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+
+        if (!données_programme->demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         dls::chaine chemin_projet = "";
         if (!donnees.metadonnee.est_vide()) {
             /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes

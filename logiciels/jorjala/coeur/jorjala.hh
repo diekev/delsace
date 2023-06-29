@@ -58,6 +58,9 @@ struct DonnéesProgramme {
     UsineCommande *usine_commande = nullptr;
     RepondantCommande *repondant_commande = nullptr;
     TaskNotifier *task_notifier = nullptr;
+
+    bool (*rappel_demande_permission_avant_de_fermer)(DonnéesProgramme *données);
+    bool demande_permission_avant_de_fermer();
 };
 
 std::optional<JJL::Jorjala> initialise_jorjala();

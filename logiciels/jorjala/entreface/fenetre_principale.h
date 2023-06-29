@@ -76,6 +76,12 @@ class FenetrePrincipale : public QMainWindow {
     void tache_terminee();
     void evaluation_debutee(const QString &message, int execution, int total);
 
+    /** Si des changements existe dans la session courante, affiche une boîte de dialogue pour
+     * demander à l'utilisateur si les changments doivent être sauvegardés ou non.
+     * Retourne faux si l'utilisateur demande d'annuler. Si l'on retourne vrai, nous pouvons
+     * continuer de faire ce que nous voulions. */
+    bool demande_permission_avant_de_fermer();
+
   private:
     void genere_barre_menu();
     void genere_menu_prereglages();
@@ -84,8 +90,6 @@ class FenetrePrincipale : public QMainWindow {
     void closeEvent(QCloseEvent *) override;
 
     void construit_interface_depuis_jorjala();
-
-    bool demande_permission_avant_de_fermer();
 
     bool eventFilter(QObject *, QEvent *) override;
 };
