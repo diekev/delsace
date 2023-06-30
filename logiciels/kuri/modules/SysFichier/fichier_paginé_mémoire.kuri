@@ -266,6 +266,35 @@ va_sur_page_suivante :: fonc (sérialiseuse: *SérialiseuseFichier)
     sérialiseuse.page_courante = page
 }
 
+/* Retourne la position depuis le début du fichier pour le décalage en octets
+ * ou rien si le décalage est hors des bornes du fichiers. */
+donne_position_au_décalage :: fonc (sérialiseuse: *SérialiseuseFichier, décalage: z64) -> Optionnel(SérialiseuseFichier.Position)
+{
+    page := sérialiseuse.fichier.première_page
+
+    saufsi page {
+        retourne
+    }
+
+    tantque décalage >= TAILLE_PAGE {
+        décalage -= TAILLE_PAGE
+        page = page.page_suivante
+
+        saufsi page {
+            arrête
+        }
+    }
+
+    si décalage >= TAILLE_PAGE {
+        retourne
+    }
+
+    résultat: SérialiseuseFichier.Position
+    résultat.page_courante = page
+    résultat.curseur = *page.données[décalage]
+    retourne résultat
+}
+
 position_courante :: fonc (sérialiseuse: *SérialiseuseFichier) -> SérialiseuseFichier.Position
 {
     // À FAIRE(langage) : empl ne fonctionne pas, avertissements dans la coulisse C
