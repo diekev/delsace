@@ -1,4 +1,5 @@
 importe Fondation
+importe Math /* Pour min. */
 
 /* À FAIRE : paramétrise */
 TAILLE_PAGE :: 4096
@@ -176,27 +177,34 @@ crée_sérialiseuse :: fonc (fichier: *FichierPaginéMémoire) -> SérialiseuseF
 
 sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
 {
+    si valeur.taille == 0 {
+        retourne
+    }
+
     espace_libre := espace_libre_page_courante(sérialiseuse)
 
     si espace_libre >= valeur.taille {
         écris_données_au_curseur(sérialiseuse, valeur)
+        retourne
     }
-    sinon {
-        ancienne_taille := valeur.taille
-        
-        taille_sure := espace_libre
-        valeur.taille = taille_sure
+
+    taille_à_écrire := valeur.taille
+    taille_sure := espace_libre
+    décalage : z64 = 0
+
+    tantque taille_à_écrire != 0 {
+        valeur.pointeur += décalage
+        valeur.taille = min(taille_sure, taille_à_écrire)
         
         écris_données_au_curseur(sérialiseuse, valeur)
 
-        va_sur_page_suivante(sérialiseuse)
+        taille_à_écrire -= valeur.taille
+        décalage = valeur.taille
 
-        taille_restante := ancienne_taille - taille_sure
-
-        valeur.pointeur += taille_sure
-        valeur.taille = taille_restante
-
-        écris_données_au_curseur(sérialiseuse, valeur)
+        si sérialiseuse.page_courante.occupé == TAILLE_PAGE {
+            va_sur_page_suivante(sérialiseuse)
+            taille_sure = TAILLE_PAGE
+        }
     }
 }
 
