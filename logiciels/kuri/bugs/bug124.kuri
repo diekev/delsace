@@ -1,0 +1,18 @@
+/* Aucune itération si les boucles se font sur des entiers naturels.
+ * Voir note dans Audio.
+ */
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    itérations : n32 = 10
+    compteur := 0
+
+    pour itérations {
+        compteur += 1
+    }
+
+    assert(compteur == 10)
+    retourne 0
+}
