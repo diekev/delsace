@@ -433,6 +433,8 @@ static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
 void FenetrePrincipale::construit_interface_depuis_jorjala()
 {
     auto interface = m_jorjala.donne_interface();
+    m_régions.clear();
+
     auto disposition = interface.disposition();
 
     auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_régions);
@@ -470,17 +472,22 @@ bool FenetrePrincipale::demande_permission_avant_de_fermer()
 
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 {
-    if (event->type() == EvenementJorjala::id_type_qt) {
-        auto event_jjl = static_cast<EvenementJorjala *>(event);
+    if (event->type() != EvenementJorjala::id_type_qt) {
+        return QWidget::eventFilter(object, event);
+    }
 
-        for (auto région : m_régions) {
-            région->ajourne_éditrice_active(event_jjl->pour_quoi());
-        }
+    auto event_jjl = static_cast<EvenementJorjala *>(event);
 
+    if (event_jjl->pour_quoi() == (JJL::TypeEvenement::PROJET | JJL::TypeEvenement::OUVERT)) {
+        construit_interface_depuis_jorjala();
         return true;
     }
 
-    return QWidget::eventFilter(object, event);
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(event_jjl->pour_quoi());
+    }
+
+    return true;
 }
 
 void FenetrePrincipale::genere_barre_menu()
