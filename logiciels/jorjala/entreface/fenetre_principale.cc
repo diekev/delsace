@@ -256,16 +256,6 @@ static const char *chemins_scripts[] = {
     "entreface/menu_debogage.jo",
 };
 
-enum {
-    EDITRICE_ARBORESCENCE,
-    EDITRICE_PROPRIETE,
-    EDITRICE_GRAPHE,
-    EDITRICE_LIGNE_TEMPS,
-    EDITRICE_RENDU,
-    EDITRICE_VUE2D,
-    EDITRICE_VUE3D,
-};
-
 FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
     : QMainWindow(parent), m_jorjala(jorjala),
       m_barre_progres(new BarreDeProgres(m_jorjala, this)), m_texte_état(new QLabel("", this))
