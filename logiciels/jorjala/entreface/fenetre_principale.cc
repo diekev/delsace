@@ -55,6 +55,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/jorjala.hh"
@@ -435,6 +436,26 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
     return true;
 }
 
+void FenetrePrincipale::keyPressEvent(QKeyEvent *event)
+{
+    DonneesCommande donnees;
+    donnees.cle = event->key();
+    donnees.modificateur = static_cast<int>(event->modifiers());
+
+    auto répondant_commande = donne_repondant_commande(m_jorjala);
+
+    /* Nous gérons les commandes de projet et de catégories. */
+    const dls::chaine catégories[] = {"projet", ""};
+    for (auto const &catégorie : catégories) {
+        if (!répondant_commande->appele_commande(catégorie, donnees)) {
+            continue;
+        }
+
+        event->accept();
+        return;
+    }
+}
+
 void FenetrePrincipale::genere_barre_menu()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
@@ -445,7 +466,8 @@ void FenetrePrincipale::genere_barre_menu()
         menuBar()->addMenu(menu);
     }
 
-    auto menu_fichiers_recents = donne_gestionnaire_danjo(m_jorjala)->pointeur_menu("Projets Récents");
+    auto menu_fichiers_recents = donne_gestionnaire_danjo(m_jorjala)->pointeur_menu(
+        "Projets Récents");
     connect(menu_fichiers_recents,
             SIGNAL(aboutToShow()),
             this,

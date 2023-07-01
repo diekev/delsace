@@ -92,4 +92,6 @@ class FenetrePrincipale : public QMainWindow {
     void construit_interface_depuis_jorjala();
 
     bool eventFilter(QObject *, QEvent *) override;
+
+    void keyPressEvent(QKeyEvent *) override;
 };
