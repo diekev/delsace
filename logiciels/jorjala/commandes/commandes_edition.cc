@@ -66,7 +66,7 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
-        auto gestionnaire = gestionnaire_danjo(jorjala);
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
         auto graphe = jorjala.graphe();
 
         if (graphe.noeud_actif() == nullptr) {
@@ -335,7 +335,7 @@ class CommandeRenomme final : public CommandeJorjala {
             "nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud.nom().vers_std_string());
 
         auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
-        auto gestionnaire = gestionnaire_danjo(jorjala);
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
 
         auto ok = gestionnaire->montre_dialogue_fichier(donnees_entreface,
                                                         "entreface/dialogue_renommage.jo");

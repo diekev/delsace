@@ -88,7 +88,7 @@ std::optional<JJL::Jorjala> initialise_jorjala()
 
 void issitialise_jorjala(JJL::Jorjala &jorjala)
 {
-    auto données_programme = accède_données_programme(jorjala);
+    auto données_programme = donne_données_programme(jorjala);
 
     memoire::deloge("UsineCommande", données_programme->usine_commande);
     memoire::deloge("RepondantCommande", données_programme->repondant_commande);
@@ -98,20 +98,20 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
     JJL::détruit_instance_jorjala(jorjala);
 }
 
-DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
+DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala)
 {
     return static_cast<DonnéesProgramme *>(jorjala.données_programme());
 }
 
-RepondantCommande *repondant_commande(JJL::Jorjala &jorjala)
+RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala)
 {
-    auto données = accède_données_programme(jorjala);
+    auto données = donne_données_programme(jorjala);
     return données->repondant_commande;
 }
 
-danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala)
+danjo::GestionnaireInterface *donne_gestionnaire_danjo(JJL::Jorjala &jorjala)
 {
-    auto données = accède_données_programme(jorjala);
+    auto données = donne_données_programme(jorjala);
     return données->gestionnaire_danjo;
 }
 
@@ -121,7 +121,7 @@ danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala,
 {
     danjo::DonneesInterface résultat{};
     résultat.conteneur = nullptr;
-    résultat.repondant_bouton = repondant_commande(jorjala);
+    résultat.repondant_bouton = donne_repondant_commande(jorjala);
     résultat.manipulable = manipulable;
     return résultat;
 }

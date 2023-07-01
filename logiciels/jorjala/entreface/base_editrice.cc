@@ -106,7 +106,7 @@ void BaseEditrice::mousePressEvent(QMouseEvent *event)
 
     auto const position = transforme_position_evenement(event->pos());
     auto donnees = donnees_commande_depuis_event(event, position);
-    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+    donne_repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
 }
 
 void BaseEditrice::keyPressEvent(QKeyEvent *event)
@@ -114,7 +114,7 @@ void BaseEditrice::keyPressEvent(QKeyEvent *event)
     rend_actif();
     DonneesCommande donnees;
     donnees.cle = event->key();
-    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+    donne_repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
 }
 
 void BaseEditrice::wheelEvent(QWheelEvent *event)
@@ -129,7 +129,7 @@ void BaseEditrice::wheelEvent(QWheelEvent *event)
     donnees.double_clique = true;
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+    donne_repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
 }
 
 void BaseEditrice::mouseMoveEvent(QMouseEvent *event)
@@ -140,7 +140,7 @@ void BaseEditrice::mouseMoveEvent(QMouseEvent *event)
 
     auto const position = transforme_position_evenement(event->pos());
     auto donnees = donnees_commande_depuis_event(event, position);
-    repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
+    donne_repondant_commande(m_jorjala)->ajourne_commande_modale(donnees);
 }
 
 void BaseEditrice::mouseDoubleClickEvent(QMouseEvent *event)
@@ -150,7 +150,7 @@ void BaseEditrice::mouseDoubleClickEvent(QMouseEvent *event)
     auto const position = transforme_position_evenement(event->pos());
     auto donnees = donnees_commande_depuis_event(event, position);
     donnees.double_clique = true;
-    repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
+    donne_repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees);
 }
 
 void BaseEditrice::mouseReleaseEvent(QMouseEvent *event)
@@ -159,7 +159,7 @@ void BaseEditrice::mouseReleaseEvent(QMouseEvent *event)
 
     auto const position = transforme_position_evenement(event->pos());
     auto donnees = donnees_commande_depuis_event(event, position);
-    repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
+    donne_repondant_commande(m_jorjala)->acheve_commande_modale(donnees);
 }
 
 QPointF BaseEditrice::transforme_position_evenement(QPoint pos)

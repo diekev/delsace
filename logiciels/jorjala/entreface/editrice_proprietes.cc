@@ -419,7 +419,7 @@ void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
     }
 
     danjo::Manipulable manipulable;
-    auto repondant = repondant_commande(m_jorjala);
+    auto repondant = donne_repondant_commande(m_jorjala);
 
     auto disposition = crée_disposition_paramètres(&manipulable, repondant, this, noeud);
     if (disposition == nullptr) {

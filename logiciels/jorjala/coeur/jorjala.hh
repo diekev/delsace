@@ -69,11 +69,11 @@ inline JJL::Jorjala extrait_jorjala(std::any const &any)
     return std::any_cast<JJL::Jorjala>(any);
 }
 
-DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala);
+DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala);
 
-RepondantCommande *repondant_commande(JJL::Jorjala &jorjala);
+RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala);
 
-danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala);
+danjo::GestionnaireInterface *donne_gestionnaire_danjo(JJL::Jorjala &jorjala);
 
 danjo::DonneesInterface cree_donnees_interface_danjo(
     JJL::Jorjala &jorjala,

@@ -185,14 +185,14 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
                                                                      *fenetre_principale);
     jorjala.définit_gestionnaire_fenêtre(gestionnaire_fenêtre);
 
-    auto données_programme = accède_données_programme(jorjala);
+    auto données_programme = donne_données_programme(jorjala);
     données_programme->task_notifier = gestionnaire_fenêtre->donne_task_notifier();
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
 }
 
 static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
 {
-    auto données_programme = accède_données_programme(jorjala);
+    auto données_programme = donne_données_programme(jorjala);
 
     /* À FAIRE : libère la mémoire. */
     auto chef = memoire::loge<ChefExecution>(
@@ -271,7 +271,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
 
     danjo::DonneesAction donnees{};
     donnees.attache = "ouvrir_fichier";
-    donnees.repondant_bouton = repondant_commande(m_jorjala);
+    donnees.repondant_bouton = donne_repondant_commande(m_jorjala);
 
     for (auto fichier_recent : m_jorjala.fichiers_récents()) {
         auto string_fichier_recent = fichier_recent.vers_std_string();
@@ -283,7 +283,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
         donnees_actions.ajoute(donnees);
     }
 
-    gestionnaire_danjo(m_jorjala)->recree_menu("Projets Récents", donnees_actions);
+    donne_gestionnaire_danjo(m_jorjala)->recree_menu("Projets Récents", donnees_actions);
 }
 
 void FenetrePrincipale::closeEvent(QCloseEvent *event)
@@ -438,14 +438,14 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 void FenetrePrincipale::genere_barre_menu()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
-    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
 
     for (auto const &chemin : chemins_scripts) {
         auto menu = gestionnaire->compile_menu_fichier(donnees, chemin);
         menuBar()->addMenu(menu);
     }
 
-    auto menu_fichiers_recents = gestionnaire_danjo(m_jorjala)->pointeur_menu("Projets Récents");
+    auto menu_fichiers_recents = donne_gestionnaire_danjo(m_jorjala)->pointeur_menu("Projets Récents");
     connect(menu_fichiers_recents,
             SIGNAL(aboutToShow()),
             this,
@@ -455,7 +455,7 @@ void FenetrePrincipale::genere_barre_menu()
 void FenetrePrincipale::genere_menu_prereglages()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
-    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
     m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees,
                                                                "entreface/menu_prereglage.jo");
     addToolBar(Qt::TopToolBarArea, m_barre_outil);
