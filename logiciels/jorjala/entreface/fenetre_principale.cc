@@ -131,7 +131,7 @@ static void change_curseur(void *donnees, JJL::TypeCurseur curseur)
     QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
 }
 
-static void restaure_curseur(void *donnees, JJL::TypeCurseur curseur)
+static void restaure_curseur(void *donnees)
 {
     QGuiApplication::restoreOverrideCursor();
 }
@@ -196,22 +196,14 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     EvenementJorjala::id_type_qt = static_cast<QEvent::Type>(QEvent::registerEventType());
 
     auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-    gestionnaire_jjl.définit_rappel_notification(
-        reinterpret_cast<void *>(detail::notifie_observatrices));
-    gestionnaire_jjl.définit_rappel_notifie_erreur(
-        reinterpret_cast<void *>(detail::notifie_erreur));
-    gestionnaire_jjl.définit_rappel_change_curseur(
-        reinterpret_cast<void *>(detail::change_curseur));
-    gestionnaire_jjl.définit_rappel_restaure_curseur(
-        reinterpret_cast<void *>(detail::restaure_curseur));
-    gestionnaire_jjl.définit_rappel_titre_application(
-        reinterpret_cast<void *>(detail::titre_application));
-    gestionnaire_jjl.définit_rappel_tâche_démarrée(
-        reinterpret_cast<void *>(detail::tache_demaree));
-    gestionnaire_jjl.définit_rappel_tâche_terminée(
-        reinterpret_cast<void *>(detail::tache_terminee));
-    gestionnaire_jjl.définit_rappel_texte_état_logiciel(
-        reinterpret_cast<void *>(detail::texte_état_application));
+    gestionnaire_jjl.notifie_observatrices(detail::notifie_observatrices);
+    gestionnaire_jjl.notifie_erreur(detail::notifie_erreur);
+    gestionnaire_jjl.change_curseur(detail::change_curseur);
+    gestionnaire_jjl.restaure_curseur(detail::restaure_curseur);
+    gestionnaire_jjl.définit_titre_application(detail::titre_application);
+    gestionnaire_jjl.notifie_tâche_démarrée(detail::tache_demaree);
+    gestionnaire_jjl.notifie_tâche_terminée(detail::tache_terminee);
+    gestionnaire_jjl.définit_texte_état_logiciel(detail::texte_état_application);
 
     auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
     données_programme->fenetre_principale = fenetre_principale;
@@ -234,14 +226,10 @@ static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *
     auto chef_jjl = jorjala.chef_exécution();
     chef_jjl.données(chef);
 
-    chef_jjl.définit_rappel_doit_interrompre(
-        reinterpret_cast<void *>(detail::doit_interrompre_chef));
-    chef_jjl.définit_rappel_rapporte_progression(
-        reinterpret_cast<void *>(detail::rapporte_progression_chef));
-    chef_jjl.définit_rappel_rapporte_progression_parallèle(
-        reinterpret_cast<void *>(detail::rapporte_progression_parallele_chef));
-    chef_jjl.définit_rappel_démarre_évaluation(
-        reinterpret_cast<void *>(detail::rapporte_démarre_évaluation));
+    chef_jjl.rappel_doit_interrompre(detail::doit_interrompre_chef);
+    chef_jjl.rappel_rapporte_progression(detail::rapporte_progression_chef);
+    chef_jjl.rappel_rapporte_progression_parallèle(detail::rapporte_progression_parallele_chef);
+    chef_jjl.rappel_démarre_évaluation(detail::rapporte_démarre_évaluation);
 }
 
 /* ------------------------------------------------------------------------- */
