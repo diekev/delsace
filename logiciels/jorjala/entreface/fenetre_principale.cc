@@ -477,6 +477,7 @@ void FenetrePrincipale::genere_barre_menu()
 void FenetrePrincipale::genere_menu_prereglages()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    donnees.parent_barre_outils = this;
     auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
     m_barre_outil = gestionnaire->compile_barre_outils_fichier(donnees,
                                                                "entreface/menu_prereglage.jo");

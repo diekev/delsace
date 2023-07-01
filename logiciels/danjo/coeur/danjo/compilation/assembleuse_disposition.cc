@@ -674,7 +674,7 @@ void AssembleurDisposition::ajoute_barre_outils()
         delete m_barre_outils;
     }
 
-    m_barre_outils = new QToolBar;
+    m_barre_outils = new QToolBar(m_donnees.parent_barre_outils);
 }
 
 QToolBar *AssembleurDisposition::barre_outils() const
