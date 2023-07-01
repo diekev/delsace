@@ -300,7 +300,12 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         return nullptr;
     }
 
-    danjo::AssembleurDisposition assembleuse(manipulable, repondant_bouton, conteneur);
+    danjo::DonneesInterface données_interface{};
+    données_interface.manipulable = manipulable;
+    données_interface.repondant_bouton = repondant_bouton;
+    données_interface.conteneur = conteneur;
+
+    danjo::AssembleurDisposition assembleuse(données_interface);
 
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
