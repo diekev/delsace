@@ -2,12 +2,14 @@ QToolBar QToolButton
 {
     background-color: rgb(127, 127, 127);
     color: rgb(240, 240, 240);
+    border: 1px;
 }
 
 QWidget
 {
     background-color: rgb(127, 127, 127);
     color: rgb(240, 240, 240);
+    border: 0px;
 }
 
 QPushButton
@@ -28,6 +30,11 @@ QWidget:disabled
     color: rgb(164, 164, 164);
 }
 
+QFrame
+{
+    border: 1px solid rgb(127, 127, 127);
+}
+
 QFrame[state="on"]
 {
     border: 1px solid #52b1ee;
@@ -35,17 +42,19 @@ QFrame[state="on"]
 
 QFrame[state="off"]
 {
-    border: 1px solid rgb(98, 98, 98);
+    border: 1px solid rgb(127, 127, 127);
 }
 
 QSpinBox
 {
     background-color: rgb(98, 98, 98);
+    border: 1px solid rgb(98, 98, 98);
 }
 
 QDoubleSpinBox
 {
     background-color: rgb(98, 98, 98);
+    border: 1px solid rgb(98, 98, 98);
 }
 
 QStatusBar
@@ -163,6 +172,11 @@ QMenu::title
     background: rgb(113, 113, 113);
 }
 
+QMenuBar::item
+{
+    background-color: rgb(127, 127, 127);
+}
+
 QMenuBar::item:selected
 {
     background-color: rgb(127, 127, 127);
@@ -184,4 +198,8 @@ QHeaderView::section {
     color: white;
     padding-left: 4px;
     border: 1px solid #6c6c6c;
+}
+
+QSplitter::handle {
+    background-color: rgb(105, 105, 105);
 }
