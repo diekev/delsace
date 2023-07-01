@@ -165,22 +165,16 @@ class GestionnaireInterface final : public JJL::GestionnaireFenetre {
         m_task_notifier->signale_fin_tache();
     }
 
+    virtual bool demande_permission_avant_de_fermer() override
+    {
+        return m_fenêtre_principale.demande_permission_avant_de_fermer();
+    }
+
     TaskNotifier *donne_task_notifier()
     {
         return m_task_notifier;
     }
 };
-
-namespace detail {
-
-/* ------------------------------------------------------------------------- */
-
-bool rappel_demande_permission_avant_de_fermer(DonnéesProgramme *données)
-{
-    return données->fenetre_principale->demande_permission_avant_de_fermer();
-}
-
-}  // namespace detail
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
 {
@@ -194,8 +188,6 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     auto données_programme = accède_données_programme(jorjala);
     données_programme->task_notifier = gestionnaire_fenêtre->donne_task_notifier();
     données_programme->fenetre_principale = fenetre_principale;
-    données_programme->rappel_demande_permission_avant_de_fermer =
-        detail::rappel_demande_permission_avant_de_fermer;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
 }
 
