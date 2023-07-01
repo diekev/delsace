@@ -244,14 +244,17 @@ class CommandeNouveauProjet final : public CommandeJorjala {
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
-                          description_commande<CommandeOuvrir>("projet", 0, 0, 0, false, false));
+                          description_commande<CommandeOuvrir>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_O, false, false));
 
-    usine.enregistre_type(
-        "sauvegarder", description_commande<CommandeSauvegarder>("projet", 0, 0, 0, false, false));
+    usine.enregistre_type("sauvegarder",
+                          description_commande<CommandeSauvegarder>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_S, false, false));
 
     usine.enregistre_type(
         "sauvegarder_sous",
-        description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false, false));
+        description_commande<CommandeSauvegarderSous>(
+            "projet", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_S, false, false));
 
     usine.enregistre_type(
         "sauvegarder_ressource_sous",
@@ -262,7 +265,8 @@ void enregistre_commandes_projet(UsineCommande &usine)
         description_commande<CommandeLectureRessource>("projet", 0, 0, 0, false));
 
     usine.enregistre_type("nouveau_projet",
-                          description_commande<CommandeNouveauProjet>("projet", 0, 0, 0, false));
+                          description_commande<CommandeNouveauProjet>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_N, false));
 }
 
 #pragma clang diagnostic pop
