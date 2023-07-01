@@ -116,6 +116,7 @@ void BaseEditrice::keyPressEvent(QKeyEvent *event)
     rend_actif();
     DonneesCommande donnees;
     donnees.cle = event->key();
+    donnees.modificateur = static_cast<int>(event->modifiers());
     if (donne_repondant_commande(m_jorjala)->appele_commande(this->identifiant, donnees)) {
         event->accept();
     }
