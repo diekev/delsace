@@ -57,7 +57,7 @@ static void enregistre_commandes(UsineCommande &usine_commande)
 static void initialise_données_programme(DonnéesProgramme *données_programme,
                                          JJL::Jorjala &jorjala)
 {
-    jorjala.crée_gestionnaire_fenêtre(données_programme);
+    jorjala.données_programme(données_programme);
 
     données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>(
         "danjo::GestionnaireInterface");
@@ -100,8 +100,7 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
 
 DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
 {
-    auto données_programme = jorjala.gestionnaire_fenêtre();
-    return static_cast<DonnéesProgramme *>(données_programme.données());
+    return static_cast<DonnéesProgramme *>(jorjala.données_programme());
 }
 
 bool DonnéesProgramme::demande_permission_avant_de_fermer()

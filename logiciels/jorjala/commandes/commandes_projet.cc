@@ -49,8 +49,7 @@ class CommandeOuvrir final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-        auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+        auto données_programme = accède_données_programme(jorjala);
 
         if (!données_programme->demande_permission_avant_de_fermer()) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -232,8 +231,7 @@ class CommandeNouveauProjet final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto gestionnaire_jjl = jorjala.gestionnaire_fenêtre();
-        auto données_programme = static_cast<DonnéesProgramme *>(gestionnaire_jjl.données());
+        auto données_programme = accède_données_programme(jorjala);
 
         if (!données_programme->demande_permission_avant_de_fermer()) {
             return EXECUTION_COMMANDE_ECHOUEE;
