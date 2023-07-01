@@ -46,13 +46,11 @@ struct DonneesInterface;
 }  // namespace danjo
 
 class BaseEditrice;
-class FenetrePrincipale;
 class RepondantCommande;
 class TaskNotifier;
 class UsineCommande;
 
 struct DonnéesProgramme {
-    FenetrePrincipale *fenetre_principale = nullptr;
     BaseEditrice *editrice_active = nullptr;
     danjo::GestionnaireInterface *gestionnaire_danjo = nullptr;
     UsineCommande *usine_commande = nullptr;

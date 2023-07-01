@@ -187,7 +187,6 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
 
     auto données_programme = accède_données_programme(jorjala);
     données_programme->task_notifier = gestionnaire_fenêtre->donne_task_notifier();
-    données_programme->fenetre_principale = fenetre_principale;
     données_programme->gestionnaire_danjo->parent_dialogue(fenetre_principale);
 }
 
