@@ -128,44 +128,44 @@ class GestionnaireInterface final : public JJL::GestionnaireFenetre {
         QCoreApplication::postEvent(&m_fenêtre_principale, event);
     }
 
-    virtual void notifie_erreur(JJL::Chaine message) override
+    void notifie_erreur(JJL::Chaine message) override
     {
         QMessageBox boite_message;
         boite_message.critical(&m_fenêtre_principale, "Erreur", message.vers_std_string().c_str());
         boite_message.setFixedSize(500, 200);
     }
 
-    virtual void change_curseur(JJL::TypeCurseur curseur) override
+    void change_curseur(JJL::TypeCurseur curseur) override
     {
         QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
     }
 
-    virtual void restaure_curseur() override
+    void restaure_curseur() override
     {
         QGuiApplication::restoreOverrideCursor();
     }
 
-    virtual void définit_titre_application(JJL::Chaine titre) override
+    void définit_titre_application(JJL::Chaine titre) override
     {
         m_fenêtre_principale.setWindowTitle(titre.vers_std_string().c_str());
     }
 
-    virtual void définit_texte_état_logiciel(JJL::Chaine texte) override
+    void définit_texte_état_logiciel(JJL::Chaine texte) override
     {
         m_fenêtre_principale.définit_texte_état(texte.vers_std_string().c_str());
     }
 
-    virtual void notifie_tâche_démarrée() override
+    void notifie_tâche_démarrée() override
     {
         m_task_notifier->signale_debut_evaluation("", 0, 0);
     }
 
-    virtual void notifie_tâche_terminée() override
+    void notifie_tâche_terminée() override
     {
         m_task_notifier->signale_fin_tache();
     }
 
-    virtual bool demande_permission_avant_de_fermer() override
+    bool demande_permission_avant_de_fermer() override
     {
         return m_fenêtre_principale.demande_permission_avant_de_fermer();
     }
