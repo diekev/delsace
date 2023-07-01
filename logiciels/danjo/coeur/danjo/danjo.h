@@ -47,6 +47,7 @@ struct DonneesInterface {
     RepondantBouton *repondant_bouton = nullptr;
     ConteneurControles *conteneur = nullptr;
     QWidget *parent_barre_outils = nullptr;
+    QWidget *parent_menu = nullptr;
 };
 
 struct DonneesAction {

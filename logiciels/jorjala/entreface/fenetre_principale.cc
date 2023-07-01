@@ -459,6 +459,7 @@ void FenetrePrincipale::keyPressEvent(QKeyEvent *event)
 void FenetrePrincipale::genere_barre_menu()
 {
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
+    donnees.parent_menu = menuBar();
     auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
 
     for (auto const &chemin : chemins_scripts) {

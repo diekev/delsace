@@ -540,7 +540,7 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
         return;
     }
 
-    auto menu = new MenuFiltrable(nom.c_str());
+    auto menu = new MenuFiltrable(nom.c_str(), m_donnees.parent_menu);
 
     if (!m_pile_menus.est_vide()) {
         m_pile_menus.haut()->addMenu(menu);
