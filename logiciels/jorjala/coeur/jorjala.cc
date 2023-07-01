@@ -120,7 +120,7 @@ danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala,
                                                      danjo::ConteneurControles *conteneur)
 {
     danjo::DonneesInterface résultat{};
-    résultat.conteneur = nullptr;
+    résultat.conteneur = conteneur;
     résultat.repondant_bouton = donne_repondant_commande(jorjala);
     résultat.manipulable = manipulable;
     return résultat;
