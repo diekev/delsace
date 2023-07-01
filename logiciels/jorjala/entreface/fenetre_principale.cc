@@ -279,9 +279,7 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
 
     construit_interface_depuis_jorjala();
 
-    /* Nous utilisons un eventFilter pour filtrer les évènements de Jorjala, car
-     * surcharger QMainWindow::event() nous fait perdre la capacité de
-     * redimensionner les dock widgets. */
+    /* Afin d'utiliser eventFilter pour filtrer les évènements de Jorjala. */
     qApp->installEventFilter(this);
 }
 
