@@ -32,6 +32,8 @@
 #    if defined(__GNUC__)
 #        pragma GCC diagnostic push
 #        pragma GCC diagnostic ignored "-Wold-style-cast"
+#        pragma GCC diagnostic ignored "-Wcast-function-type"
+#        pragma GCC diagnostic ignored "-Weffc++"
 #    endif
 #    include "ipa/jorjala.hh"
 #    if defined(__GNUC__)
