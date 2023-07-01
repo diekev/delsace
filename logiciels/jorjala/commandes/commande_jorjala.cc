@@ -21,9 +21,7 @@ int CommandeJorjala::execute(const std::any &pointeur, const DonneesCommande &do
     switch (résultat) {
         case EXECUTION_COMMANDE_MODALE:
         {
-            if (ajoute_à_l_historique) {
-                jorjala.change_curseur_application(type_curseur_modal());
-            }
+            jorjala.change_curseur_application(type_curseur_modal());
             break;
         }
         case EXECUTION_COMMANDE_ECHOUEE:
