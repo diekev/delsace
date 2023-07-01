@@ -67,25 +67,27 @@ bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCom
 	return true;
 }
 
-void RepondantCommande::ajourne_commande_modale(DonneesCommande const &donnees_commande)
+bool RepondantCommande::ajourne_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
-		return;
+        return false;
 	}
 
 	m_commande_modale->ajourne_execution_modale(m_pointeur, donnees_commande);
+    return true;
 }
 
-void RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_commande)
+bool RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
-		return;
+        return false;
 	}
 
 	m_commande_modale->termine_execution_modale(m_pointeur, donnees_commande);
 
 	delete m_commande_modale;
 	m_commande_modale = nullptr;
+    return true;
 }
 
 void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
