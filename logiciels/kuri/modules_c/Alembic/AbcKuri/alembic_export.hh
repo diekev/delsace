@@ -48,6 +48,9 @@ class RacineAutriceCache final : public EcrivainCache {
   public:
     explicit RacineAutriceCache(AutriceArchive &autrice);
 
+    RacineAutriceCache(RacineAutriceCache const &) = delete;
+    RacineAutriceCache &operator=(RacineAutriceCache const &) = delete;
+
     void écris_données() override
     {
         /* Rien à faire pour la racine. */

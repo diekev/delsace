@@ -257,8 +257,8 @@ struct EcrivainType : public EcrivainCache {
     using type_objet_alembic = typename données_écrivain::type_objet_alembic;
     using type_convertisseuse = typename données_écrivain::type_convertisseuse;
 
-    type_objet_alembic o_schema_object;
-    type_convertisseuse convertisseuse;
+    type_objet_alembic o_schema_object{};
+    type_convertisseuse convertisseuse{};
 
     EcrivainType(AutriceArchive *autrice,
                  EcrivainCache *parent,

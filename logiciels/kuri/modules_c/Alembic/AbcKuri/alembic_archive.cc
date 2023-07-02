@@ -150,7 +150,7 @@ static void initialise_metadonnées(ContexteCreationArchive *ctx, Abc::MetaData 
 
     if (ctx->donne_frames_par_seconde) {
         auto fps = ctx->donne_frames_par_seconde(ctx);
-        if (fps != 0.0) {
+        if (fps != 0.0f) {
             abc_metadata.set("FramesPerTimeUnit", std::to_string(fps));
         }
     }
