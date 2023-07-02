@@ -241,6 +241,30 @@ class CommandeNouveauProjet final : public CommandeJorjala {
 
 /* ************************************************************************** */
 
+class CommandeExportAlembic final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        dls::chaine chemin = affiche_dialogue(FICHIER_SAUVEGARDE, "*.abc");
+        if (chemin.est_vide()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        auto opt_chemin_fichier = crée_chemin_fichier(chemin.c_str());
+        if (!opt_chemin_fichier.has_value()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+        jorjala.exporte_vers_alembic(opt_chemin_fichier.value());
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
@@ -267,6 +291,10 @@ void enregistre_commandes_projet(UsineCommande &usine)
     usine.enregistre_type("nouveau_projet",
                           description_commande<CommandeNouveauProjet>(
                               "projet", 0, Qt::Modifier::CTRL, Qt::Key_N, false));
+
+    usine.enregistre_type(
+        "export_alembic",
+        description_commande<CommandeExportAlembic>("projet", 0, 0, 0, false, false));
 }
 
 #pragma clang diagnostic pop
