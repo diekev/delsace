@@ -262,8 +262,8 @@ void cree_sphere_uv(Maillage &maillage,
     poly[0] = 0;
 
     for (auto i = 0; i < resolution_u; ++i) {
-        poly[1] = i * (resolution_v - 1);
-        poly[2] = (i + 1) * (resolution_v - 1);
+        poly[1] = (i + 1) * (resolution_v - 1);
+        poly[2] = i * (resolution_v - 1);
 
         poly[1] %= nombre_points;
         poly[2] %= nombre_points;
