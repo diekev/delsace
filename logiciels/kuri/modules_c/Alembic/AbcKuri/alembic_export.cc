@@ -3,6 +3,7 @@
 
 #include "alembic_export.hh"
 
+#include <numeric>
 #include <optional>
 #include <variant>
 
@@ -373,14 +374,12 @@ static void écris_attributs(AbcExportriceAttribut *exportrice,
     }
 }
 
+template <typename TypeConvertisseuse>
 static std::optional<DonnéesÉcritureAttribut> donne_attribut_standard(
     eTypeDoneesAttributAbc const type_attendu,
-    ConvertisseuseExportPolyMesh *convertisseuse,
-    void *(*fonction)(ConvertisseuseExportPolyMesh *,
-                      char **,
-                      int64_t *,
-                      eAbcDomaineAttribut *,
-                      eTypeDoneesAttributAbc *))
+    TypeConvertisseuse *convertisseuse,
+    void *(*fonction)(
+        TypeConvertisseuse *, char **, int64_t *, eAbcDomaineAttribut *, eTypeDoneesAttributAbc *))
 {
     if (!fonction) {
         return {};
@@ -469,12 +468,13 @@ static void donne_attribut_standard_normaux(
     attributs_standards.push_back(opt_normaux.value());
 }
 
+template <typename TypeConvertisseuse, typename TypeAttributsStandard>
 static void donne_attribut_standard_vélocité(
     AbcExportriceAttribut *exportrice,
     InformationsDomaines const &informations_domaines,
-    AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+    TypeAttributsStandard &attributs_standard_poly_mesh,
     std::vector<DonnéesÉcritureAttribut> &attributs_standards,
-    ConvertisseuseExportPolyMesh *convertisseuse)
+    TypeConvertisseuse *convertisseuse)
 {
     auto opt_vélocité = donne_attribut_standard(
         ATTRIBUT_TYPE_VEC3_R32, convertisseuse, convertisseuse->donne_attribut_standard_velocite);
@@ -495,6 +495,37 @@ static void donne_attribut_standard_vélocité(
     }
 
     attributs_standard_poly_mesh.données_vélocité = opt_vélocité.value();
+
+    attributs_standards.push_back(opt_vélocité.value());
+}
+
+template <typename TypeConvertisseuse, typename TypeAttributsStandard>
+static void donne_attribut_standard_rayons(
+    AbcExportriceAttribut *exportrice,
+    InformationsDomaines const &informations_domaines,
+    TypeAttributsStandard &attributs_standard_poly_mesh,
+    std::vector<DonnéesÉcritureAttribut> &attributs_standards,
+    TypeConvertisseuse *convertisseuse)
+{
+    auto opt_vélocité = donne_attribut_standard(
+        ATTRIBUT_TYPE_R32, convertisseuse, convertisseuse->donne_attribut_standard_velocite);
+
+    if (!opt_vélocité.has_value()) {
+        return;
+    }
+
+    if (opt_vélocité->domaine != POINT) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.rayons = extrait_données_attribut<ATTRIBUT_TYPE_R32>(
+        exportrice, informations_domaines, opt_vélocité.value());
+
+    if (attributs_standard_poly_mesh.rayons.empty()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.données_rayons = opt_vélocité.value();
 
     attributs_standards.push_back(opt_vélocité.value());
 }
@@ -832,11 +863,141 @@ static void écris_données(AbcGeom::ONuPatch & /*o_nupatch*/,
     // À FAIRE
 }
 
-static void écris_données(AbcGeom::OPoints & /*o_points*/,
-                          TableAttributsExportés *& /*table_attributs*/,
-                          ConvertisseuseExportPoints * /*convertisseuse*/)
+struct AttributsStandarsPoints {
+    DonnéesÉcritureAttribut données_vélocité{};
+    std::vector<Imath::V3f> vélocité{};
+
+    DonnéesÉcritureAttribut données_rayons{};
+    std::vector<float> rayons{};
+
+    DonnéesÉcritureAttribut données_ids{};
+    std::vector<uint64_t> ids{};
+};
+
+static void donne_attribut_standard_ids(AbcExportriceAttribut *exportrice,
+                                        InformationsDomaines const &informations_domaines,
+                                        AttributsStandarsPoints &attributs_standard_poly_mesh,
+                                        std::vector<DonnéesÉcritureAttribut> &attributs_standards,
+                                        ConvertisseuseExportPoints *convertisseuse)
 {
-    // À FAIRE
+    auto opt_attribut = donne_attribut_standard(
+        ATTRIBUT_TYPE_N64, convertisseuse, convertisseuse->donne_attribut_standard_velocite);
+
+    if (!opt_attribut.has_value()) {
+        return;
+    }
+
+    if (opt_attribut->domaine != POINT) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.ids = extrait_données_attribut<ATTRIBUT_TYPE_N64>(
+        exportrice, informations_domaines, opt_attribut.value());
+
+    if (attributs_standard_poly_mesh.ids.empty()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.données_ids = opt_attribut.value();
+
+    attributs_standards.push_back(opt_attribut.value());
+}
+
+static std::optional<AttributsStandarsPoints> écris_attributs(
+    AbcGeom::OPoints &o_points,
+    TableAttributsExportés *&table_attributs,
+    ConvertisseuseExportPoints *convertisseuse,
+    InformationsDomaines const &informations_domaines)
+{
+    if (!convertisseuse->initialise_exportrice_attribut) {
+        return {};
+    }
+
+    AbcExportriceAttribut exportrice;
+    convertisseuse->initialise_exportrice_attribut(convertisseuse, &exportrice);
+
+    auto &schema = o_points.getSchema();
+
+    if (!table_attributs) {
+        table_attributs = new TableAttributsExportés;
+        table_attributs->prop = schema.getArbGeomParams();
+    }
+
+    AttributsStandarsPoints résultat{};
+    std::vector<DonnéesÉcritureAttribut> attributs_standards;
+
+    donne_attribut_standard_rayons(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_ids(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_vélocité(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+
+    écris_attributs(&exportrice,
+                    convertisseuse->donnees,
+                    table_attributs,
+                    informations_domaines,
+                    attributs_standards);
+
+    return résultat;
+}
+
+static void écris_données(AbcGeom::OPoints &o_points,
+                          TableAttributsExportés *&table_attributs,
+                          ConvertisseuseExportPoints *convertisseuse)
+{
+    std::vector<Imath::V3f> positions = donne_positions(convertisseuse);
+    if (positions.empty()) {
+        return;
+    }
+
+    InformationsDomaines informations_domaines{};
+    informations_domaines.type_objet = eTypeObjetAbc::POINTS;
+    informations_domaines.supporte_domaine[OBJET] = true;
+    informations_domaines.supporte_domaine[POINT] = true;
+    informations_domaines.supporte_domaine[PRIMITIVE] = false;
+    informations_domaines.supporte_domaine[POINT_PRIMITIVE] = false;
+    informations_domaines.taille_domaine[OBJET] = 1;
+    informations_domaines.taille_domaine[POINT] = int(positions.size());
+    informations_domaines.taille_domaine[PRIMITIVE] = 0;
+    informations_domaines.taille_domaine[POINT_PRIMITIVE] = 0;
+
+    auto opt_attr_std = écris_attributs(
+        o_points, table_attributs, convertisseuse, informations_domaines);
+
+    /* Exporte vers Alembic */
+    auto &schema = o_points.getSchema();
+
+    AbcGeom::OPointsSchema::Sample sample;
+    sample.setPositions(positions);
+
+    if (opt_attr_std.has_value()) {
+        if (!opt_attr_std->vélocité.empty()) {
+            sample.setVelocities(opt_attr_std->vélocité);
+        }
+
+        if (!opt_attr_std->ids.empty()) {
+            sample.setIds(opt_attr_std->ids);
+        }
+        else {
+            std::vector<uint64_t> ids(positions.size());
+            std::iota(ids.begin(), ids.end(), uint64_t(0));
+            sample.setIds(ids);
+        }
+
+        if (!opt_attr_std->rayons.empty()) {
+            AbcGeom::OFloatGeomParam::Sample widths_sample;
+            widths_sample.setVals(opt_attr_std->rayons);
+            widths_sample.setScope(
+                donne_domaine_pour_alembic(opt_attr_std->données_rayons.domaine, POINTS));
+
+            sample.setWidths(widths_sample);
+        }
+    }
+
+    sample.setSelfBounds(donne_limites_géométrique(convertisseuse, positions));
+
+    schema.set(sample);
 }
 
 }  // namespace AbcKuri

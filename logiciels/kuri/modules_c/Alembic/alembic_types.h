@@ -473,7 +473,7 @@ struct ConvertisseuseExportPolyMesh {
 
     /** Doit retourner un pointeur vers l'attribut standard pour les UVs du maillage ainsi que les
      * métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC2`, l'attribut
-     * ne sera pas exporter comme attribut standard.
+     * ne sera pas exporté comme attribut standard.
      */
     void *(*donne_attribut_standard_uv)(struct ConvertisseuseExportPolyMesh *,
                                         char **r_nom,
@@ -483,7 +483,7 @@ struct ConvertisseuseExportPolyMesh {
 
     /** Doit retourner un pointeur vers l'attribut standard pour la vélocité du maillage ainsi que
      * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC3`, et le
-     * domain `POINT`, l'attribut ne sera pas exporter comme attribut standard.
+     * domaine `POINT`, l'attribut ne sera pas exporté comme attribut standard.
      */
     void *(*donne_attribut_standard_velocite)(struct ConvertisseuseExportPolyMesh *,
                                               char **r_nom,
@@ -493,7 +493,7 @@ struct ConvertisseuseExportPolyMesh {
 
     /** Doit retourner un pointeur vers l'attribut standard pour les normaux du maillage ainsi que
      * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC3` ou
-     * `NOR3`, et le domain `POINT`, l'attribut ne sera pas exporter comme attribut standard.
+     * `NOR3`, et le domaine `POINT`, l'attribut ne sera pas exporté comme attribut standard.
      */
     void *(*donne_attribut_standard_normaux)(struct ConvertisseuseExportPolyMesh *,
                                              char **r_nom,
@@ -508,6 +508,53 @@ struct ConvertisseuseExportSubD {
 
 struct ConvertisseuseExportPoints {
     void *donnees;
+
+    uint64_t (*nombre_de_points)(struct ConvertisseuseExportPoints *);
+
+    void (*point_pour_index)(
+        struct ConvertisseuseExportPoints *, uint64_t, float *, float *, float *);
+
+    /** Optionnel, doit fournir les limites géométriques du maillage. Si absent, les limites seront
+     * calculer selon les points. \a r_min et \a r_max pointent vers des float[3]. */
+    void (*donne_limites_geometriques)(struct ConvertisseuseExportPoints *,
+                                       float *r_min,
+                                       float *r_max);
+
+    /** Si ce rappel est présent, les attributs sont exportés, et ce rappel doit initialiser
+     * l'exportrice d'attributs. */
+    void (*initialise_exportrice_attribut)(struct ConvertisseuseExportPoints *,
+                                           struct AbcExportriceAttribut *);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour les rayons des points ainsi que
+     * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `R32`,
+     * l'attribut ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_rayon)(struct ConvertisseuseExportPolyMesh *,
+                                           char **r_nom,
+                                           int64_t *r_taille_nom,
+                                           enum eAbcDomaineAttribut *r_domaine,
+                                           enum eTypeDoneesAttributAbc *r_type_des_donnees);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour la vélocité des points ainsi que
+     * les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `VEC3`,
+     * l'attribut ne sera pas exporté comme attribut standard.
+     */
+    void *(*donne_attribut_standard_velocite)(struct ConvertisseuseExportPoints *,
+                                              char **r_nom,
+                                              int64_t *r_taille_nom,
+                                              enum eAbcDomaineAttribut *r_domaine,
+                                              enum eTypeDoneesAttributAbc *r_type_des_donnees);
+
+    /** Doit retourner un pointeur vers l'attribut standard pour les identifiants des points ainsi
+     * que les métadonnées dudit attribut, s'il existe. Si le type de données n'est pas `N64`
+     * l'attribut ne sera pas exporté comme attribut standard. Cette attribut ne doit être présent
+     * que si les points ont changé de topologie, ou pour la première image.
+     */
+    void *(*donne_attribut_standard_ids)(struct ConvertisseuseExportPoints *,
+                                         char **r_nom,
+                                         int64_t *r_taille_nom,
+                                         enum eAbcDomaineAttribut *r_domaine,
+                                         enum eTypeDoneesAttributAbc *r_type_des_donnees);
 };
 
 struct ConvertisseuseExportCourbes {
