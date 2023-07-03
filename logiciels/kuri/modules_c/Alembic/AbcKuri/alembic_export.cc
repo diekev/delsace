@@ -161,6 +161,48 @@ static AbcGeom::GeometryScope donne_domaine_pour_alembic(const eAbcDomaineAttrib
     return AbcGeom::kUnknownScope;
 }
 
+#define IMPRIME_VALEUR_ERR(valeur) std::cerr << #valeur << " : " << valeur << '\n'
+
+template <eTypeDoneesAttributAbc type>
+static auto extrait_données_attribut(AbcExportriceAttribut *exportrice,
+                                     InformationsDomaines const &informations_domaines,
+                                     DonnéesÉcritureAttribut const &données_attribut)
+{
+    using ConvertisseuseValeur = ConvertisseuseTypeValeurExport<type>;
+    using type_abc = typename ConvertisseuseValeur::type_abc;
+    using type_param = typename ConvertisseuseValeur::type_param_abc;
+    using sample_type = typename type_param::Sample;
+    std::vector<type_abc> résultat;
+
+    if (!ConvertisseuseValeur::export_valeur_est_supporté(exportrice)) {
+        return résultat;
+    }
+
+    const int taille_domaine = informations_domaines.taille_domaine[données_attribut.domaine];
+
+    auto const opt_indexage_domaine =
+        informations_domaines.indexage_domaine[données_attribut.domaine];
+    if (opt_indexage_domaine.has_value()) {
+        auto const &indexage = opt_indexage_domaine.value();
+        résultat.resize(indexage.size());
+
+        for (size_t i = 0; i < indexage.size(); i++) {
+            auto const index_source = indexage[i];
+            résultat[i] = ConvertisseuseValeur::donne_valeur(
+                exportrice, données_attribut.attribut, index_source);
+        }
+    }
+    else {
+        résultat.resize(static_cast<size_t>(taille_domaine));
+        for (size_t i = 0; i < static_cast<size_t>(taille_domaine); i++) {
+            résultat[i] = ConvertisseuseValeur::donne_valeur(
+                exportrice, données_attribut.attribut, static_cast<int>(i));
+        }
+    }
+
+    return résultat;
+}
+
 template <eTypeDoneesAttributAbc type>
 static void écris_attribut(AbcExportriceAttribut *exportrice,
                            TableAttributsExportés *table_attributs,
@@ -181,30 +223,11 @@ static void écris_attribut(AbcExportriceAttribut *exportrice,
     using type_param = typename ConvertisseuseValeur::type_param_abc;
     using sample_type = typename type_param::Sample;
 
-    if (!ConvertisseuseValeur::export_valeur_est_supporté(exportrice)) {
+    std::vector<type_abc> résultat = extrait_données_attribut<type>(
+        exportrice, informations_domaines, données_attribut);
+
+    if (résultat.empty()) {
         return;
-    }
-
-    std::vector<type_abc> résultat;
-
-    auto const opt_indexage_domaine =
-        informations_domaines.indexage_domaine[données_attribut.domaine];
-    if (opt_indexage_domaine.has_value()) {
-        auto const &indexage = opt_indexage_domaine.value();
-        résultat.resize(indexage.size());
-
-        for (size_t i = 0; i < indexage.size(); i++) {
-            auto const index_source = indexage[i];
-            résultat[i] = ConvertisseuseValeur::donne_valeur(
-                exportrice, données_attribut.attribut, index_source);
-        }
-    }
-    else {
-        résultat.resize(static_cast<size_t>(taille_domaine));
-        for (size_t i = 0; i < static_cast<size_t>(taille_domaine); i++) {
-            résultat[i] = ConvertisseuseValeur::donne_valeur(
-                exportrice, données_attribut.attribut, static_cast<int>(i));
-        }
     }
 
     try {
@@ -298,10 +321,23 @@ static void écris_attribut(AbcExportriceAttribut *exportrice,
 #undef GERE_CAS
 }
 
+static bool est_attribut_standard(std::vector<DonnéesÉcritureAttribut> const &attributs_standards,
+                                  DonnéesÉcritureAttribut const &attribut)
+{
+    for (auto const &attribut_standard : attributs_standards) {
+        if (attribut_standard.attribut == attribut.attribut) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static void écris_attributs(AbcExportriceAttribut *exportrice,
                             void *donnees_utilisateur,
                             TableAttributsExportés *table_attributs,
-                            InformationsDomaines const &informations_domaines)
+                            InformationsDomaines const &informations_domaines,
+                            std::vector<DonnéesÉcritureAttribut> const &attributs_standards)
 {
     const int nombre_d_attributs = exportrice->donne_nombre_attributs_a_exporter(
         donnees_utilisateur);
@@ -327,18 +363,150 @@ static void écris_attributs(AbcExportriceAttribut *exportrice,
         données_attribut.domaine = domaine;
         données_attribut.attribut = attribut;
 
+        /* Les attributs standards sont écrits séparément. */
+        if (est_attribut_standard(attributs_standards, données_attribut)) {
+            continue;
+        }
+
         écris_attribut(
             exportrice, table_attributs, informations_domaines, données_attribut, type_données);
     }
 }
 
-static void écris_attributs(AbcGeom::OPolyMesh &o_poly_mesh,
-                            TableAttributsExportés *&table_attributs,
-                            ConvertisseuseExportPolyMesh *convertisseuse,
-                            InformationsDomaines const &informations_domaines)
+static std::optional<DonnéesÉcritureAttribut> donne_attribut_standard(
+    eTypeDoneesAttributAbc const type_attendu,
+    ConvertisseuseExportPolyMesh *convertisseuse,
+    void *(*fonction)(ConvertisseuseExportPolyMesh *,
+                      char **,
+                      int64_t *,
+                      eAbcDomaineAttribut *,
+                      eTypeDoneesAttributAbc *))
+{
+    if (!fonction) {
+        return {};
+    }
+
+    char *nom;
+    int64_t taille_nom;
+    eAbcDomaineAttribut domaine;
+    eTypeDoneesAttributAbc type_données;
+    void *attribut = fonction(convertisseuse, &nom, &taille_nom, &domaine, &type_données);
+
+    if (!attribut) {
+        return {};
+    }
+
+    if (type_attendu != type_données) {
+        return {};
+    }
+
+    DonnéesÉcritureAttribut données_attribut;
+    données_attribut.nom = std::string(nom, static_cast<size_t>(taille_nom));
+    données_attribut.domaine = domaine;
+    données_attribut.attribut = attribut;
+
+    return données_attribut;
+}
+
+struct AttributsStandardPolyMesh {
+    DonnéesÉcritureAttribut données_uvs{};
+    std::vector<Imath::V2f> uvs{};
+    DonnéesÉcritureAttribut données_vélocité{};
+    std::vector<Imath::V3f> vélocité{};
+    DonnéesÉcritureAttribut données_normaux{};
+    std::vector<Imath::V3f> normaux{};
+};
+
+static void donne_attribut_standard_uv(AbcExportriceAttribut *exportrice,
+                                       InformationsDomaines const &informations_domaines,
+                                       AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+                                       std::vector<DonnéesÉcritureAttribut> &attributs_standards,
+                                       ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    auto opt_uv = donne_attribut_standard(
+        ATTRIBUT_TYPE_VEC2_R32, convertisseuse, convertisseuse->donne_attribut_standard_uv);
+
+    if (!opt_uv.has_value()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.uvs = extrait_données_attribut<ATTRIBUT_TYPE_VEC2_R32>(
+        exportrice, informations_domaines, opt_uv.value());
+
+    if (attributs_standard_poly_mesh.uvs.empty()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.données_uvs = opt_uv.value();
+
+    attributs_standards.push_back(opt_uv.value());
+}
+
+static void donne_attribut_standard_normaux(
+    AbcExportriceAttribut *exportrice,
+    InformationsDomaines const &informations_domaines,
+    AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+    std::vector<DonnéesÉcritureAttribut> &attributs_standards,
+    ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    auto opt_normaux = donne_attribut_standard(ATTRIBUT_TYPE_NORMAL3_R32,
+                                               convertisseuse,
+                                               convertisseuse->donne_attribut_standard_normaux);
+
+    if (!opt_normaux.has_value()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.normaux = extrait_données_attribut<ATTRIBUT_TYPE_NORMAL3_R32>(
+        exportrice, informations_domaines, opt_normaux.value());
+
+    if (attributs_standard_poly_mesh.normaux.empty()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.données_normaux = opt_normaux.value();
+
+    attributs_standards.push_back(opt_normaux.value());
+}
+
+static void donne_attribut_standard_vélocité(
+    AbcExportriceAttribut *exportrice,
+    InformationsDomaines const &informations_domaines,
+    AttributsStandardPolyMesh &attributs_standard_poly_mesh,
+    std::vector<DonnéesÉcritureAttribut> &attributs_standards,
+    ConvertisseuseExportPolyMesh *convertisseuse)
+{
+    auto opt_vélocité = donne_attribut_standard(
+        ATTRIBUT_TYPE_VEC3_R32, convertisseuse, convertisseuse->donne_attribut_standard_velocite);
+
+    if (!opt_vélocité.has_value()) {
+        return;
+    }
+
+    if (opt_vélocité->domaine != POINT) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.vélocité = extrait_données_attribut<ATTRIBUT_TYPE_VEC3_R32>(
+        exportrice, informations_domaines, opt_vélocité.value());
+
+    if (attributs_standard_poly_mesh.vélocité.empty()) {
+        return;
+    }
+
+    attributs_standard_poly_mesh.données_vélocité = opt_vélocité.value();
+
+    attributs_standards.push_back(opt_vélocité.value());
+}
+
+static std::optional<AttributsStandardPolyMesh> écris_attributs(
+    AbcGeom::OPolyMesh &o_poly_mesh,
+    TableAttributsExportés *&table_attributs,
+    ConvertisseuseExportPolyMesh *convertisseuse,
+    InformationsDomaines const &informations_domaines)
 {
     if (!convertisseuse->initialise_exportrice_attribut) {
-        return;
+        return {};
     }
 
     AbcExportriceAttribut exportrice;
@@ -351,7 +519,56 @@ static void écris_attributs(AbcGeom::OPolyMesh &o_poly_mesh,
         table_attributs->prop = schema.getArbGeomParams();
     }
 
-    écris_attributs(&exportrice, convertisseuse->donnees, table_attributs, informations_domaines);
+    AttributsStandardPolyMesh résultat{};
+    std::vector<DonnéesÉcritureAttribut> attributs_standards;
+
+    donne_attribut_standard_uv(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_normaux(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+    donne_attribut_standard_vélocité(
+        &exportrice, informations_domaines, résultat, attributs_standards, convertisseuse);
+
+    écris_attributs(&exportrice,
+                    convertisseuse->donnees,
+                    table_attributs,
+                    informations_domaines,
+                    attributs_standards);
+
+    return résultat;
+}
+
+/* Retourne les limites géométriques depuis la fonction de rappel si renseignée dans la
+ * convertisseuse, ou calcule-les depuis les positions. */
+template <typename TypeConvertisseuse>
+static Imath::Box3d donne_limites_géométrique(TypeConvertisseuse *convertisseuse,
+                                              std::vector<Imath::V3f> const &positions)
+{
+    float min[3] = {std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max()};
+
+    float max[3] = {-std::numeric_limits<float>::max(),
+                    -std::numeric_limits<float>::max(),
+                    -std::numeric_limits<float>::max()};
+
+    if (convertisseuse->donne_limites_geometriques) {
+        convertisseuse->donne_limites_geometriques(convertisseuse, min, max);
+        return Imath::Box3d(Imath::V3d(double(min[0]), double(min[1]), double(min[2])),
+                            Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
+    }
+
+    for (auto point : positions) {
+        min[0] = std::min(min[0], point.x);
+        min[1] = std::min(min[1], point.y);
+        min[2] = std::min(min[2], point.z);
+        max[0] = std::max(max[0], point.x);
+        max[1] = std::max(max[1], point.y);
+        max[2] = std::max(max[2], point.z);
+    }
+
+    return Imath::Box3d(Imath::V3d(double(min[0]), double(min[1]), double(min[2])),
+                        Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
 }
 
 static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
@@ -400,7 +617,7 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
         auto nombre_de_coins_polygone = face_counts[i];
 
         auto index_source = index_alembic + nombre_de_coins_polygone - 1;
-        for (size_t j = 0; j < nombre_de_coins; j++) {
+        for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
             indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
         }
     }
@@ -425,9 +642,10 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
     informations_domaines.taille_domaine[OBJET] = 1;
     informations_domaines.taille_domaine[POINT] = int(positions.size());
     informations_domaines.taille_domaine[PRIMITIVE] = int(face_counts.size());
-    informations_domaines.taille_domaine[POINT_PRIMITIVE] = int(indexage_coins_polygones.size());
+    informations_domaines.taille_domaine[POINT_PRIMITIVE] = int(nombre_de_coins);
 
-    écris_attributs(o_poly_mesh, table_attributs, convertisseuse, informations_domaines);
+    auto opt_attr_std = écris_attributs(
+        o_poly_mesh, table_attributs, convertisseuse, informations_domaines);
 
     /* Exporte vers Alembic */
     auto &schema = o_poly_mesh.getSchema();
@@ -436,6 +654,32 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
     sample.setPositions(positions);
     sample.setFaceCounts(face_counts);
     sample.setFaceIndices(face_indices);
+
+    if (opt_attr_std.has_value()) {
+        if (!opt_attr_std->vélocité.empty()) {
+            sample.setVelocities(opt_attr_std->vélocité);
+        }
+
+        if (!opt_attr_std->uvs.empty()) {
+            AbcGeom::OV2fGeomParam::Sample uvs_sample;
+            uvs_sample.setVals(opt_attr_std->uvs);
+            uvs_sample.setScope(
+                donne_domaine_pour_alembic(opt_attr_std->données_uvs.domaine, POLY_MESH));
+
+            sample.setUVs(uvs_sample);
+        }
+
+        if (!opt_attr_std->normaux.empty()) {
+            AbcGeom::ON3fGeomParam::Sample normals_sample;
+            normals_sample.setVals(opt_attr_std->normaux);
+            normals_sample.setScope(
+                donne_domaine_pour_alembic(opt_attr_std->données_normaux.domaine, POLY_MESH));
+
+            sample.setNormals(normals_sample);
+        }
+    }
+
+    sample.setSelfBounds(donne_limites_géométrique(convertisseuse, positions));
 
     schema.set(sample);
 }
