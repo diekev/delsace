@@ -538,6 +538,101 @@ static std::optional<AttributsStandardPolyMesh> écris_attributs(
     return résultat;
 }
 
+template <typename TypeConvertisseuse>
+static std::vector<Imath::V3f> donne_positions(TypeConvertisseuse *convertisseuse)
+{
+    if (!convertisseuse->nombre_de_points || !convertisseuse->point_pour_index) {
+        return {};
+    }
+
+    const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
+    if (nombre_de_points == 0) {
+        return {};
+    }
+
+    std::vector<Imath::V3f> positions;
+    positions.resize(nombre_de_points);
+
+    for (size_t i = 0; i < nombre_de_points; i++) {
+        Imath::V3f &pos = positions[i];
+        convertisseuse->point_pour_index(convertisseuse, i, &pos.x, &pos.y, &pos.z);
+    }
+
+    return positions;
+}
+
+template <typename TypeConvertisseuse>
+static std::vector<int> donne_compte_de_sommets_par_polygones(TypeConvertisseuse *convertisseuse,
+                                                              size_t &r_nombre_de_coins)
+{
+    if (!convertisseuse->nombre_de_coins_polygone || !convertisseuse->nombre_de_polygones) {
+        r_nombre_de_coins = 0;
+        return {};
+    }
+
+    const size_t nombre_de_polygones = convertisseuse->nombre_de_polygones(convertisseuse);
+    std::vector<int> face_counts;
+    face_counts.resize(nombre_de_polygones);
+
+    size_t nombre_de_coins = 0;
+    for (size_t i = 0; i < nombre_de_polygones; i++) {
+        face_counts[i] = convertisseuse->nombre_de_coins_polygone(convertisseuse, i);
+        nombre_de_coins += static_cast<size_t>(face_counts[i]);
+    }
+
+    r_nombre_de_coins = nombre_de_coins;
+    return face_counts;
+}
+
+template <typename TypeConvertisseuse>
+static std::vector<int> donne_index_points_par_polygone(TypeConvertisseuse *convertisseuse,
+                                                        std::vector<int> const &face_counts,
+                                                        const size_t nombre_de_coins)
+{
+    if (!convertisseuse->coins_pour_polygone) {
+        return {};
+    }
+
+    std::vector<int> face_indices;
+    face_indices.resize(nombre_de_coins);
+
+    size_t decalage = 0;
+    for (size_t i = 0; i < face_counts.size(); i++) {
+        const int face_count = face_counts[i];
+        convertisseuse->coins_pour_polygone(convertisseuse, i, &face_indices[decalage]);
+        decalage += static_cast<size_t>(face_count);
+    }
+
+    return face_indices;
+}
+
+/* Construit l'indexage de correction pour que les données des coins sont dans la bon ordre
+ * pour Alembic.
+ * À FAIRE : paramétrise
+ * typedef enum eAbcIndexagePolygone {
+ *     HORAIRE,
+ *     ANTIHORAIRE,
+ * } eAbcIndexagePolygone;
+ */
+static std::vector<int> construit_indexage_coins_polygones(std::vector<int> const &face_counts,
+                                                           const size_t nombre_de_coins)
+{
+    std::vector<int> indexage_coins_polygones;
+    indexage_coins_polygones.resize(nombre_de_coins);
+
+    auto index_alembic = 0;
+    for (size_t i = 0; i < face_counts.size(); i++) {
+        auto nombre_de_coins_polygone = face_counts[i];
+
+        auto index_source = index_alembic + nombre_de_coins_polygone - 1;
+        for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
+            indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
+        }
+    }
+
+    return indexage_coins_polygones;
+}
+
 /* Retourne les limites géométriques depuis la fonction de rappel si renseignée dans la
  * convertisseuse, ou calcule-les depuis les positions. */
 template <typename TypeConvertisseuse>
@@ -558,7 +653,7 @@ static Imath::Box3d donne_limites_géométrique(TypeConvertisseuse *convertisseu
                             Imath::V3d(double(max[0]), double(max[1]), double(max[2])));
     }
 
-    for (auto point : positions) {
+    for (auto const &point : positions) {
         min[0] = std::min(min[0], point.x);
         min[1] = std::min(min[1], point.y);
         min[2] = std::min(min[2], point.z);
@@ -575,62 +670,20 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
                           TableAttributsExportés *&table_attributs,
                           ConvertisseuseExportPolyMesh *convertisseuse)
 {
-    const size_t nombre_de_points = convertisseuse->nombre_de_points(convertisseuse);
-
-    if (nombre_de_points == 0) {
+    std::vector<Imath::V3f> positions = donne_positions(convertisseuse);
+    if (positions.empty()) {
         return;
     }
 
-    /* Exporte les positions. */
-    std::vector<Imath::V3f> positions;
-    positions.resize(nombre_de_points);
-
-    for (size_t i = 0; i < nombre_de_points; i++) {
-        Imath::V3f &pos = positions[i];
-        convertisseuse->point_pour_index(convertisseuse, i, &pos.x, &pos.y, &pos.z);
-    }
-
-    /* Exporte les polygones. */
-    const size_t nombre_de_polygones = convertisseuse->nombre_de_polygones(convertisseuse);
-    std::vector<int> face_counts;
-    face_counts.resize(nombre_de_polygones);
-
     size_t nombre_de_coins = 0;
-    for (size_t i = 0; i < nombre_de_polygones; i++) {
-        face_counts[i] = convertisseuse->nombre_de_coins_polygone(convertisseuse, i);
-        nombre_de_coins += static_cast<size_t>(face_counts[i]);
-    }
+    const std::vector<int> face_counts = donne_compte_de_sommets_par_polygones(convertisseuse,
+                                                                               nombre_de_coins);
 
-    /* Construit l'indexage de correction pour que les données des coins sont dans la bon ordre
-     * pour Alembic.
-     * À FAIRE : paramétrise
-     * typedef enum eAbcIndexagePolygone {
-     *     HORAIRE,
-     *     ANTIHORAIRE,
-     * } eAbcIndexagePolygone;
-     */
-    std::vector<int> indexage_coins_polygones;
-    indexage_coins_polygones.resize(nombre_de_coins);
+    const std::vector<int> indexage_coins_polygones = construit_indexage_coins_polygones(
+        face_counts, nombre_de_coins);
 
-    auto index_alembic = 0;
-    for (size_t i = 0; i < nombre_de_polygones; i++) {
-        auto nombre_de_coins_polygone = face_counts[i];
-
-        auto index_source = index_alembic + nombre_de_coins_polygone - 1;
-        for (size_t j = 0; j < nombre_de_coins_polygone; j++) {
-            indexage_coins_polygones[static_cast<size_t>(index_alembic++)] = index_source--;
-        }
-    }
-
-    std::vector<int> face_indices;
-    face_indices.resize(nombre_de_coins);
-
-    size_t decalage = 0;
-    for (size_t i = 0; i < nombre_de_polygones; i++) {
-        const int face_count = face_counts[i];
-        convertisseuse->coins_pour_polygone(convertisseuse, i, &face_indices[decalage]);
-        decalage += static_cast<size_t>(face_count);
-    }
+    const std::vector<int> face_indices = donne_index_points_par_polygone(
+        convertisseuse, face_counts, nombre_de_coins);
 
     InformationsDomaines informations_domaines;
     informations_domaines.type_objet = eTypeObjetAbc::POLY_MESH;
@@ -684,11 +737,10 @@ static void écris_données(AbcGeom::OPolyMesh &o_poly_mesh,
     schema.set(sample);
 }
 
-static void écris_données(AbcGeom::OSubD & /*o_points*/,
+static void écris_données(AbcGeom::OSubD & /*o_subd*/,
                           TableAttributsExportés *& /*table_attributs*/,
                           ConvertisseuseExportSubD * /*convertisseuse*/)
 {
-    // À FAIRE
 }
 
 static void écris_données(AbcMaterial::OMaterial &omateriau,
