@@ -2680,12 +2680,12 @@ void NoeudBloc::fusionne_membres(NoeudBloc *de)
     }
 }
 
-NoeudDeclaration *NoeudBloc::membre_pour_index(int index)
+NoeudDeclaration *NoeudBloc::membre_pour_index(int index) const
 {
     return membres->a(index);
 }
 
-NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche)
+NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
@@ -2702,7 +2702,7 @@ NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr)
+NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;

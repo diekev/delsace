@@ -9,14 +9,14 @@
 #include "espace_de_travail.hh"
 #include "parsage/modules.hh"
 
-NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *ident)
+NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident)
 {
     return bloc->declaration_pour_ident(ident);
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    IdentifiantCode const *ident,
-                                   NoeudBloc *bloc_final)
+                                   NoeudBloc const *bloc_final)
 {
     auto bloc_courant = bloc;
 
@@ -31,9 +31,9 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    NoeudDeclaration const *decl,
-                                   NoeudBloc *bloc_final)
+                                   NoeudBloc const *bloc_final)
 {
     auto bloc_courant = bloc;
 
@@ -49,7 +49,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
+NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
@@ -74,7 +74,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc *bloc,
 }
 
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
-                                   NoeudBloc *bloc,
+                                   NoeudBloc const *bloc,
                                    IdentifiantCode const *ident)
 {
     auto bloc_courant = bloc;
@@ -93,7 +93,7 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declara
 }
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
-                                             NoeudBloc *bloc,
+                                             NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
@@ -108,7 +108,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
 
 void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
-                                             NoeudBloc *bloc,
+                                             NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
