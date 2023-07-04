@@ -14,11 +14,13 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc *bloc, IdentifiantCode const *
     return bloc->declaration_pour_ident(ident);
 }
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc, IdentifiantCode const *ident)
+NoeudDeclaration *trouve_dans_bloc(NoeudBloc *bloc,
+                                   IdentifiantCode const *ident,
+                                   NoeudBloc *bloc_final)
 {
     auto bloc_courant = bloc;
 
-    while (bloc_courant != nullptr) {
+    while (bloc_courant != bloc_final) {
         auto it = trouve_dans_bloc_seul(bloc_courant, ident);
         if (it) {
             return it;

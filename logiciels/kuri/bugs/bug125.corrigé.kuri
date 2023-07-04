@@ -1,4 +1,4 @@
-/* Collision de symboles entre les valeurs capturées via discr est les symboles
+/* Collision de symboles entre les valeurs capturées via discr et les symboles
  * globaux. */
 
 importe Fondation
