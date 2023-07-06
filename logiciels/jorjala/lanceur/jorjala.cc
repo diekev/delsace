@@ -92,6 +92,7 @@ static const OptionThème options_theme[] = {
     {"$COULEUR_BOUTON_PRESSE$", "rgb(90, 90, 90)"},
     {"$COULEUR_BOUTON_SURVOL$", "rgb(160, 160, 160)"},
     {"$RAYON_BORDURE_BOUTON$", "5px"},
+    {"$TAILLE_SPLITTER$", "3px"},
 };
 
 static std::optional<QString> donne_feuille_de_style()

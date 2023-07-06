@@ -358,4 +358,14 @@ QSplitter::handle
     background-color: $COULEUR_SPLITTER$;
 }
 
+QSplitter::handle:horizontal
+{
+    width: $TAILLE_SPLITTER$;
+}
+
+QSplitter::handle:vertical
+{
+    height: $TAILLE_SPLITTER$;
+}
+
 /** \} */
