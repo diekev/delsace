@@ -249,16 +249,10 @@ class CommandeExportAlembic final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        dls::chaine chemin = affiche_dialogue(FICHIER_SAUVEGARDE, "*.abc");
-        if (chemin.est_vide()) {
+        if (!jorjala.exporte_vers_alembic()) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto opt_chemin_fichier = crée_chemin_fichier(chemin.c_str());
-        if (!opt_chemin_fichier.has_value()) {
-            return EXECUTION_COMMANDE_ECHOUEE;
-        }
-        jorjala.exporte_vers_alembic(opt_chemin_fichier.value());
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
