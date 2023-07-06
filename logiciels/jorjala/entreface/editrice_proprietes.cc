@@ -58,8 +58,10 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
                 return danjo::TypePropriete::LISTE;
             }
             return danjo::TypePropriete::CHAINE_CARACTERE;
-        case JJL::TypeParametre::CHEMIN_FICHIER:
+        case JJL::TypeParametre::CHEMIN_FICHIER_ENTRÉE:
             return danjo::TypePropriete::FICHIER_ENTREE;
+        case JJL::TypeParametre::CHEMIN_FICHIER_SORTIE:
+            return danjo::TypePropriete::FICHIER_SORTIE;
         case JJL::TypeParametre::NOMBRE_ENTIER:
             return danjo::TypePropriete::ENTIER;
         case JJL::TypeParametre::NOMBRE_RÉEL:
