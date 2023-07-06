@@ -357,6 +357,8 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 }
 
 /* ------------------------------------------------------------------------- */
+/** \name EditriceProprietes
+ * \{ */
 
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("propriétés", jorjala, parent), m_widget(new QWidget()),
@@ -655,3 +657,50 @@ void EditriceProprietes::onglet_dossier_change(int index)
 	}
 #endif
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name EditriceProprietes
+ * \{ */
+
+EditriceProprietesNoeudDialogue::EditriceProprietesNoeudDialogue(JJL::Noeud &noeud,
+                                                                 QWidget *parent)
+    : danjo::ConteneurControles(parent), m_widget(new QWidget()),
+      m_conteneur_avertissements(new QWidget()), m_conteneur_disposition(new QWidget()),
+      m_scroll(new QScrollArea()), m_disposition(new QVBoxLayout(this)),
+      m_disposition_widget(new QVBoxLayout(m_widget))
+{
+    QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    m_widget->setSizePolicy(size_policy);
+
+    m_scroll->setWidget(m_widget);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scroll->setWidgetResizable(true);
+
+    /* Cache le cadre du scroll area. */
+    m_scroll->setFrameStyle(0);
+
+    m_disposition_widget->addWidget(m_conteneur_avertissements);
+    m_disposition_widget->addWidget(m_conteneur_disposition);
+
+    m_disposition->addWidget(m_scroll);
+
+    if (noeud == nullptr) {
+        return;
+    }
+
+    danjo::Manipulable manipulable;
+    auto disposition = crée_disposition_paramètres(&manipulable, nullptr, this, noeud);
+    if (disposition) {
+        // À FAIRE
+        // gestionnaire->ajourne_entreface(manipulable);
+        m_conteneur_disposition->setLayout(disposition);
+    }
+}
+
+void EditriceProprietesNoeudDialogue::ajourne_manipulable()
+{
+}
+
+/** \} */

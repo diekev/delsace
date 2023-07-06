@@ -62,6 +62,7 @@
 
 #include "barre_progres.hh"
 #include "chef_execution.hh"
+#include "dialogues.hh"
 #include "gestion_entreface.hh"
 #include "tache.h"
 #include "vue_region.hh"
@@ -174,6 +175,19 @@ class GestionnaireInterface final : public JJL::GestionnaireFenetre {
     TaskNotifier *donne_task_notifier()
     {
         return m_task_notifier;
+    }
+
+    JJL::CodeFemetureDialogue affiche_dialogue_pour_propriétés_noeud(JJL::Noeud noeud) override
+    {
+        auto dialogue = DialogueProprietesNoeud(noeud, &m_fenêtre_principale);
+        dialogue.show();
+        auto ok = dialogue.exec();
+
+        if (ok == QDialog::Accepted) {
+            return JJL::CodeFemetureDialogue::OK;
+        }
+
+        return JJL::CodeFemetureDialogue::ANNULÉ;
     }
 };
 

@@ -258,6 +258,7 @@ add_library(${NOM_CIBLE} STATIC
 
         ${ENTETES_POUR_QT}
         chef_execution.hh
+        dialogues.hh
         gestion_entreface.hh
 
         graphe/item_noeud.cc
@@ -271,6 +272,7 @@ add_library(${NOM_CIBLE} STATIC
         barre_progres.cc
         base_editrice.cc
         chef_execution.cc
+        dialogues.cc
 #	editrice_arborescence.cc
         editrice_attributs.cc
         editrice_ligne_temps.cc
