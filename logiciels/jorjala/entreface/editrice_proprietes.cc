@@ -438,7 +438,7 @@ void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
 
 void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 {
-    /* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est
+    /* Qt ne permet d'extraire la disposition d'un widget que si celle-ci est
      * assignée à un autre widget. Donc pour détruire la disposition précédente
      * nous la reparentons à un widget temporaire qui la détruira dans son
      * destructeur. */
