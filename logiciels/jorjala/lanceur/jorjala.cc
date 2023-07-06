@@ -74,6 +74,19 @@
 
 */
 
+static std::optional<QString> donne_feuille_de_style()
+{
+    QFile file("styles/main.qss");
+    if (!file.open(QFile::ReadOnly)) {
+        return {};
+    }
+
+    QString feuille_de_style = file.readAll();
+    file.close();
+
+    return feuille_de_style;
+}
+
 int main(int argc, char *argv[])
 {
     std::optional<JJL::Jorjala> jorjala_initialisé = initialise_jorjala();
@@ -87,11 +100,9 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("delsace");
     QCoreApplication::setApplicationName("jorjala");
 
-    QFile file("styles/main.qss");
-
-    if (file.open(QFile::ReadOnly)) {
-        QString style_sheet = QLatin1String(file.readAll());
-        qApp->setStyleSheet(style_sheet);
+    const auto opt_feuille_de_style = donne_feuille_de_style();
+    if (opt_feuille_de_style.has_value()) {
+        qApp->setStyleSheet(opt_feuille_de_style.value());
     }
 
     FenetrePrincipale w(jorjala);
