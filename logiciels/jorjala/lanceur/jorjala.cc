@@ -74,6 +74,25 @@
 
 */
 
+struct OptionThème {
+    QString clé{};
+    QString valeur{};
+};
+
+static const OptionThème options_theme[] = {
+    {"$COULEUR_ARRIERE_PLAN_WIDGET$", "rgb(127, 127, 127)"},
+    {"$COULEUR_ARRIERE_PLAN_CONTROLE$", "rgb(40, 40, 40)"},
+    {"$COULEUR_SPLITTER$", "rgb(105, 105, 105)"},
+    {"$COULEUR_TEXTE$", "rgb(240, 240, 240)"},
+    {"$COULEUR_BORDURE$", "rgb(164, 164, 164)"},
+    {"$MARGE_CONTROLE$", "5px"},
+    /* Bouton (QPushButton). */
+    {"$COULEUR_BOUTON$", "rgb(150, 150, 150)"},
+    {"$COULEUR_BOUTON_PRESSE$", "rgb(90, 90, 90)"},
+    {"$COULEUR_BOUTON_SURVOL$", "rgb(160, 160, 160)"},
+    {"$RAYON_BORDURE_BOUTON$", "5px"},
+};
+
 static std::optional<QString> donne_feuille_de_style()
 {
     QFile file("styles/main.qss");
@@ -83,6 +102,10 @@ static std::optional<QString> donne_feuille_de_style()
 
     QString feuille_de_style = file.readAll();
     file.close();
+
+    for (auto const &option_theme : options_theme) {
+        feuille_de_style.replace(option_theme.clé, option_theme.valeur);
+    }
 
     return feuille_de_style;
 }

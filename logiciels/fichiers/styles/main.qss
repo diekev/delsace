@@ -1,38 +1,121 @@
-QToolBar QToolButton
+/* ------------------------------------------------------------------------- */
+/** \name QMainWindow
+* \{ */
+
+QMainWindow::separator
 {
-    background-color: rgb(127, 127, 127);
-    color: rgb(240, 240, 240);
-    border: 1px;
+    background: rgb(105, 105, 105);
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QWidget
+* \{ */
 
 QWidget
 {
-    background-color: rgb(127, 127, 127);
-    color: rgb(240, 240, 240);
+    background-color: $COULEUR_ARRIERE_PLAN_WIDGET$;
+    color: $COULEUR_TEXTE$;
     border: 0px;
-}
-
-QPushButton
-{
-    background-color: rgb(127, 127, 127);
-    border: 1px solid rgb(164, 164, 164);
-}
-
-QComboBox
-{
-    background-color: rgb(127, 127, 127);
-    border: 1px solid rgb(164, 164, 164);
-    color: rgb(240, 240, 240);
 }
 
 QWidget:disabled
 {
-    color: rgb(164, 164, 164);
+    color: $COULEUR_BORDURE$;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QToolBar
+* \{ */
+
+QToolBar QToolButton
+{
+    background-color: $COULEUR_ARRIERE_PLAN_WIDGET$;
+    color: $COULEUR_TEXTE$;
+    border: 1px;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QPushButton
+* \{ */
+
+QPushButton
+{
+    background-color: $COULEUR_BOUTON$;
+    border-radius: $RAYON_BORDURE_BOUTON$;
+    border: 1px solid $COULEUR_BORDURE$;
+    padding: $MARGE_CONTROLE$;
+}
+
+QPushButton:pressed
+{
+    background-color: $COULEUR_BOUTON_PRESSE$;
+}
+
+QPushButton:hover:!pressed
+{
+    background-color: $COULEUR_BOUTON_SURVOL$;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QComboBox
+* \{ */
+
+QComboBox
+{
+    background-color: $COULEUR_BOUTON$;
+    border-radius: $RAYON_BORDURE_BOUTON$;
+    border: 1px solid $COULEUR_BORDURE$;
+    padding: $MARGE_CONTROLE$;
+}
+
+QComboBox:hover
+{
+    background-color: $COULEUR_BOUTON_SURVOL$;
+}
+
+QComboBox::drop-down
+{
+    border: none;
+}
+
+QComboBox::down-arrow
+{
+    image: url(/home/kevin/Down-Arrow-PNG-Image.png);
+    width: 14px;
+    height: 14px;
+    padding-right: 10px;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QLineEdit
+* \{ */
+
+QLineEdit
+{
+    background-color: $COULEUR_ARRIERE_PLAN_CONTROLE$;
+    border: 1px solid $COULEUR_BORDURE$;
+    padding: $MARGE_CONTROLE$;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QFrame
+* \{ */
 
 QFrame
 {
-    border: 1px solid rgb(127, 127, 127);
+    border: 1px solid $COULEUR_ARRIERE_PLAN_WIDGET$;
 }
 
 QFrame[state="on"]
@@ -42,27 +125,53 @@ QFrame[state="on"]
 
 QFrame[state="off"]
 {
-    border: 1px solid rgb(127, 127, 127);
+    border: 1px solid $COULEUR_ARRIERE_PLAN_WIDGET$;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QSpinBox
+* \{ */
 
 QSpinBox
 {
-    background-color: rgb(98, 98, 98);
-    border: 1px solid rgb(98, 98, 98);
+    background-color: $COULEUR_ARRIERE_PLAN_CONTROLE$;
+    border: 1px solid $COULEUR_BORDURE$;
+    color: $COULEUR_TEXTE$;
+    padding: $MARGE_CONTROLE$;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QDoubleSpinBox
+* \{ */
 
 QDoubleSpinBox
 {
-    background-color: rgb(98, 98, 98);
-    border: 1px solid rgb(98, 98, 98);
+    background-color: $COULEUR_ARRIERE_PLAN_CONTROLE$;
+    border: 1px solid $COULEUR_BORDURE$;
+    color: $COULEUR_TEXTE$;
+    padding: $MARGE_CONTROLE$;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QStatusBar
+* \{ */
 
 QStatusBar
 {
     border: 1px solid rgb(98, 98, 98);
 }
 
-/* Vertical scroll bar. */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QScrollBar Vertical
+* \{ */
 
 QScrollBar:vertical
 {
@@ -100,7 +209,11 @@ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical
     background: white;
 }
 
-/* Horizontal scroll bar. */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QScrollBar Horizontal
+* \{ */
 
 QScrollBar:horizontal
 {
@@ -138,10 +251,11 @@ QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal
     background: white;
 }
 
-QMainWindow::separator
-{
-    background: rgb(105, 105, 105);
-}
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QDockWidget
+* \{ */
 
 QDockWidget::close-button, QDockWidget::float-button
 {
@@ -159,8 +273,14 @@ QDockWidget::title
 {
     text-align: left;
     background: rgb(113, 113, 113);
-    padding-left: 5px;
+    padding-left: $MARGE_CONTROLE$;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QMenu
+* \{ */
 
 QMenu::item:selected
 {
@@ -172,26 +292,54 @@ QMenu::title
     background: rgb(113, 113, 113);
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QMenuBar
+* \{ */
+
 QMenuBar::item
 {
-    background-color: rgb(127, 127, 127);
+    background-color: $COULEUR_ARRIERE_PLAN_WIDGET$;
 }
 
 QMenuBar::item:selected
 {
-    background-color: rgb(127, 127, 127);
+    background-color: $COULEUR_ARRIERE_PLAN_WIDGET$;
     color: #52b1ee;
 }
 
-QTabBar::tab {
-    background: rgb(113, 113, 113);
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QTabBar
+* \{ */
+
+QTabBar::tab
+{
+    background: $COULEUR_BOUTON_PRESSE$;
+    border: 1px solid $COULEUR_BORDURE$;
+    padding: $MARGE_CONTROLE$;
 }
 
-QTabBar::tab:selected, QTabBar::tab:hover {
-    background:  rgb(127, 127, 127);
+QTabBar::tab:selected
+{
+    background: $COULEUR_ARRIERE_PLAN_WIDGET$;
 }
 
-QHeaderView::section {
+QTabBar::tab:hover
+{
+    background: $COULEUR_BOUTON_SURVOL$;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QHeaderView
+* \{ */
+
+QHeaderView::section
+{
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
     stop:0 #616161, stop: 0.5 #505050,
     stop: 0.6 #434343, stop:1 #656565);
@@ -200,6 +348,15 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-QSplitter::handle {
-    background-color: rgb(105, 105, 105);
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QHeaderView
+* \{ */
+
+QSplitter::handle
+{
+    background-color: $COULEUR_SPLITTER$;
 }
+
+/** \} */
