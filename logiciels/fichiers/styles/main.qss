@@ -115,17 +115,17 @@ QLineEdit
 
 QFrame
 {
-    border: 1px solid $COULEUR_ARRIERE_PLAN_WIDGET$;
+    border: 1px solid $COULEUR_BORDURE$;
 }
 
 QFrame[state="on"]
 {
-    border: 1px solid #52b1ee;
+    border: 1px solid $COULEUR_BORDURE_EDITRICE_ACTIVE$;
 }
 
 QFrame[state="off"]
 {
-    border: 1px solid $COULEUR_ARRIERE_PLAN_WIDGET$;
+    border: 1px solid $COULEUR_BORDURE$;
 }
 
 /** \} */
@@ -284,12 +284,12 @@ QDockWidget::title
 
 QMenu::item:selected
 {
-    color: #52b1ee;
+    background: $COULEUR_BOUTON_SURVOL$;
 }
 
 QMenu::title
 {
-    background: rgb(113, 113, 113);
+    background: $COULEUR_TEXTE$;
 }
 
 /** \} */
@@ -305,8 +305,7 @@ QMenuBar::item
 
 QMenuBar::item:selected
 {
-    background-color: $COULEUR_ARRIERE_PLAN_WIDGET$;
-    color: #52b1ee;
+    background: $COULEUR_BOUTON_SURVOL$;
 }
 
 /** \} */

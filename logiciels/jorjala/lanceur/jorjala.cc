@@ -85,6 +85,7 @@ static const OptionThème options_theme[] = {
     {"$COULEUR_SPLITTER$", "rgb(105, 105, 105)"},
     {"$COULEUR_TEXTE$", "rgb(240, 240, 240)"},
     {"$COULEUR_BORDURE$", "rgb(164, 164, 164)"},
+    {"$COULEUR_BORDURE_EDITRICE_ACTIVE$", "#52b1ee"},
     {"$MARGE_CONTROLE$", "5px"},
     /* Bouton (QPushButton). */
     {"$COULEUR_BOUTON$", "rgb(150, 150, 150)"},
