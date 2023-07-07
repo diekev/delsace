@@ -5047,6 +5047,44 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
     return TypageItérandeBouclePour{GENERE_BOUCLE_PLAGE_IMPLICITE, type_itérateur, type_itérateur};
 }
 
+static bool variables_ne_redéfinissent_rien(EspaceDeTravail *espace,
+                                            kuri::tableau<NoeudExpression *, int> const &variables,
+                                            NoeudBloc const *bloc)
+{
+    POUR (variables) {
+        auto decl = trouve_dans_bloc(bloc, it->ident);
+        if (decl == nullptr) {
+            continue;
+        }
+
+        if (decl->lexeme->ligne > it->lexeme->ligne) {
+            continue;
+        }
+
+        erreur::redefinition_symbole(*espace, it, decl);
+        return false;
+    }
+
+    return true;
+}
+
+static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArbre *assembleuse,
+                                                                NoeudExpression *variable,
+                                                                Type *type,
+                                                                bool const doit_initialiser)
+{
+    auto init = NoeudExpression::nul();
+    if (doit_initialiser) {
+        init = assembleuse->cree_non_initialisation(variable->lexeme);
+    }
+    auto decl = assembleuse->cree_declaration_variable(variable->comme_reference_declaration(),
+                                                       init);
+    decl->type = type;
+    decl->valeur->type = type;
+    decl->drapeaux |= DECLARATION_FUT_VALIDEE;
+    return decl;
+}
+
 ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *inst)
 {
     if (est_appel_coroutine(inst->expression)) {
@@ -5076,44 +5114,16 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         return CodeRetourValidation::Erreur;
     }
 
-    auto variables = inst->variable;
-    auto expression = inst->expression;
-    auto bloc = inst->bloc;
-    auto feuilles = variables->comme_virgule();
-
-    auto requiers_index = feuilles->expressions.taille() == 2;
-
-    for (auto &f : feuilles->expressions) {
-        /* Transforme les références en déclarations, nous faisons ça ici et non lors
-         * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
-         * les cas où nous avons une fonction polymorphique : les données des déclarations
-         * ne sont pas copiées.
-         * Afin de ne pas faire de travail inutile, toutes les variables, saufs les
-         * variables d'indexage ne sont pas initialisées. Les variables d'indexages doivent
-         * l'être puisqu'elles sont directement testées avec la condition de fin de la
-         * boucle.
-         */
-        auto init = NoeudExpression::nul();
-        if (requiers_index && f != feuilles->expressions.derniere()) {
-            init = m_tacheronne.assembleuse->cree_non_initialisation(f->lexeme);
-        }
-
-        f = m_tacheronne.assembleuse->cree_declaration_variable(f->comme_reference_declaration(),
-                                                                init);
-        auto decl_f = trouve_dans_bloc(inst->bloc_parent, f->ident);
-
-        if (decl_f != nullptr) {
-            if (f->lexeme->ligne > decl_f->lexeme->ligne) {
-                rapporte_erreur(
-                    "Redéfinition de la variable", f, erreur::Genre::VARIABLE_REDEFINIE);
-                return CodeRetourValidation::Erreur;
-            }
-        }
+    auto variables = inst->variable->comme_virgule();
+    auto const nombre_de_variables = variables->expressions.taille();
+    if (nombre_de_variables > 2) {
+        rapporte_erreur("Les boucles « pour » ne peuvent avoir que 2 variables maximum : la "
+                        "valeur et l'index.",
+                        variables);
+        return CodeRetourValidation::Erreur;
     }
 
-    auto variable = feuilles->expressions[0];
-    inst->ident = variable->ident;
-
+    auto expression = inst->expression;
     auto const résultat_typage_itérande = détermine_typage_itérande(expression,
                                                                     m_compilatrice.typeuse);
     if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
@@ -5169,79 +5179,87 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
 
     inst->aide_generation_code = aide_génération_code;
 
-    bloc->reserve_membres(feuilles->expressions.taille());
-
-    auto nombre_feuilles = feuilles->expressions.taille() - requiers_index;
-
-    for (auto i = 0; i < nombre_feuilles; ++i) {
-        auto decl_f = feuilles->expressions[i]->comme_declaration_variable();
-
-        decl_f->type = type_itérateur;
-        decl_f->valeur->type = type_itérateur;
-        decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-        bloc->ajoute_membre(decl_f);
-
-        if (i == 0) {
-            inst->decl_it = decl_f;
-        }
+    /* Gère les redéfinitions après la détermination du typage de l'expression afin de ne pas avoir
+     * à rechercher dans le bloc en cas d'attente. */
+    if (!variables_ne_redéfinissent_rien(espace, variables->expressions, inst->bloc_parent)) {
+        return CodeRetourValidation::Erreur;
     }
 
-    if (requiers_index) {
-        auto decl_idx = feuilles->expressions[feuilles->expressions.taille() - 1]
-                            ->comme_declaration_variable();
-        decl_idx->type = typage_itérande.type_index;
-        decl_idx->valeur->type = decl_idx->type;
-        decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
-        bloc->ajoute_membre(decl_idx);
+    auto bloc = inst->bloc;
+    bloc->reserve_membres(nombre_de_variables);
 
-        inst->decl_index_it = decl_idx;
+    auto const possède_index = nombre_de_variables == 2;
+
+    auto variable = variables->expressions[0];
+    /* Copie l'ident pour les instructions de controle (continue, arrête, reprends). */
+    inst->ident = variable->ident;
+
+    /* Transforme les références en déclarations, nous faisons ça ici et non lors
+     * du syntaxage ou de la simplification de l'arbre afin de prendre en compte
+     * les cas où nous avons une fonction polymorphique : les données des déclarations
+     * ne sont pas copiées.
+     * Afin de ne pas faire de travail inutile, toutes les variables, saufs les
+     * variables d'indexage ne sont pas initialisées. Les variables d'indexages doivent
+     * l'être puisqu'elles sont directement testées avec la condition de fin de la
+     * boucle.
+     */
+    auto assembleuse = m_tacheronne.assembleuse;
+    inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
+    variables->expressions[0] = inst->decl_it;
+    bloc->ajoute_membre(inst->decl_it);
+
+    if (possède_index) {
+        inst->decl_index_it = crée_déclaration_pour_variable(
+            assembleuse, variables->expressions[1], typage_itérande.type_index, false);
+        variables->expressions[1] = inst->decl_index_it;
+        bloc->ajoute_membre(inst->decl_index_it);
     }
-
-    if (!inst->decl_index_it) {
+    else {
         /* Crée une déclaration pour « index_it » si ni le programme, ni la syntaxeuse n'en
          * a défini une. Ceci est requis pour la simplification du code.
          * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
-        inst->decl_index_it = m_tacheronne.assembleuse->cree_declaration_variable(
-            inst->lexeme, typage_itérande.type_index, ID::index_it, nullptr);
+        auto ref = assembleuse->cree_reference_declaration(inst->lexeme);
+        ref->ident = ID::index_it;
+        inst->decl_index_it = crée_déclaration_pour_variable(
+            assembleuse, ref, typage_itérande.type_index, false);
     }
 
-    if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR) {
-        auto type_variable_itérée = expression->type;
-        if (type_variable_itérée->est_opaque()) {
-            type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
-            expression->type = type_variable_itérée;
-        }
-
-        /* Copie le corps du macro.
-         * À FAIRE : ne copie que le corps. */
-        auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
-                                       type_variable_itérée->opérateur_pour,
-                                       type_variable_itérée->opérateur_pour->bloc_parent);
-
-        /* Fais pointer le corps du macro vers l'entête originale, ceci est nécessaire car
-         * nous copions aussi l'entête, mais nous ne voulons et ne devons pas la revalider.
-         */
-        auto entête_copie_macro = copie_macro->comme_operateur_pour();
-        auto corps_copie_macro = entête_copie_macro->corps;
-
-        corps_copie_macro->entete = type_variable_itérée->opérateur_pour;
-        corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
-
-        /* Installe les pointeurs de contexte. */
-        corps_copie_macro->est_macro_boucle_pour = inst;
-        inst->corps_operateur_pour = corps_copie_macro;
-
-        /* Inutile de revenir ici, la validation peut reprendre au noeud suivant. */
-        unite->index_courant += 1;
-
-        /* Attend sur la validation sémantique du macro. */
-        return Attente::sur_declaration(corps_copie_macro);
+    if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
+        return CodeRetourValidation::OK;
     }
 
-    return CodeRetourValidation::OK;
+    auto type_variable_itérée = expression->type;
+    if (type_variable_itérée->est_opaque()) {
+        type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+        expression->type = type_variable_itérée;
+    }
+
+    /* Copie le corps du macro.
+     * À FAIRE : ne copie que le corps. */
+    auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
+                                   type_variable_itérée->opérateur_pour,
+                                   type_variable_itérée->opérateur_pour->bloc_parent);
+
+    /* Fais pointer le corps du macro vers l'entête originale, ceci est nécessaire car
+     * nous copions aussi l'entête, mais nous ne voulons et ne devons pas la revalider.
+     */
+    auto entête_copie_macro = copie_macro->comme_operateur_pour();
+    auto corps_copie_macro = entête_copie_macro->corps;
+
+    corps_copie_macro->entete = type_variable_itérée->opérateur_pour;
+    corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
+
+    /* Installe les pointeurs de contexte. */
+    corps_copie_macro->est_macro_boucle_pour = inst;
+    inst->corps_operateur_pour = corps_copie_macro;
+
+    /* Inutile de revenir ici, la validation peut reprendre au noeud suivant. */
+    unite->index_courant += 1;
+
+    /* Attend sur la validation sémantique du macro. */
+    return Attente::sur_declaration(corps_copie_macro);
 }
 
 /** \} */
