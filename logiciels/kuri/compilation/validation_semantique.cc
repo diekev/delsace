@@ -4958,12 +4958,130 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
     return CodeRetourValidation::OK;
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Boucle « pour ».
+ * \{ */
+
+struct TypageItérandeBouclePour {
+    /* Pour définir aide_génération_code. */
+    int genre_de_boucle = -1;
+    /* Type à utiliser pour « it ». */
+    Type *type_variable = nullptr;
+    /* Type à utiliser pour « index_it ». */
+    Type *type_index = nullptr;
+};
+
+using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente, CodeRetourValidation>;
+
+static bool est_appel_coroutine(const NoeudExpression *itérand)
+{
+    if (!itérand->est_appel()) {
+        return false;
+    }
+
+    auto const appel = itérand->comme_appel();
+    auto const fonction_appelee = appel->noeud_fonction_appelee;
+
+    if (!fonction_appelee->est_entete_fonction()) {
+        return false;
+    }
+
+    auto const entete = fonction_appelee->comme_entete_fonction();
+    return entete->est_coroutine;
+}
+
+/**
+ * Détermine le genre de boucle et le type de « it » et « index_it » selon le noeud itéré.
+ *
+ * Retourne soit :
+ * - une erreur si nous itérons une coroutine
+ * - une attente si nous itérons un type utilisant un opérateur pour
+ * - une instance de #TypageItérandeBouclePour remplis convenablement.
+ */
+static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression *itéré,
+                                                      EspaceDeTravail *espace,
+                                                      Typeuse &typeuse)
+{
+    if (est_appel_coroutine(itéré)) {
+        espace->rapporte_erreur(itéré,
+                                "Les coroutines ne sont plus supportées dans "
+                                "le langage pour le moment");
+#if 0
+        enfant1->type = enfant2->type;
+
+        df = enfant2->df;
+        auto nombre_vars_ret = df->idx_types_retours.taille();
+
+        if (feuilles.taille() == nombre_vars_ret) {
+            requiers_index = false;
+            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+        }
+        else if (feuilles.taille() == nombre_vars_ret + 1) {
+            requiers_index = true;
+            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+        }
+        else {
+            rapporte_erreur("Mauvais compte d'arguments à déployer ",
+                            compilatrice,
+                            *enfant1->lexeme);
+        }
+#endif
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type_variable_itérée = itéré->type;
+    while (type_variable_itérée->est_opaque()) {
+        type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+    }
+
+    /* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
+     * type de retour d'une coroutine n'interfère avec le type d'une
+     * variable (par exemple quand nous retournons une chaine). */
+    if (itéré->est_plage()) {
+        return TypageItérandeBouclePour{
+            GENERE_BOUCLE_PLAGE, type_variable_itérée, type_variable_itérée};
+    }
+
+    if (type_variable_itérée->est_tableau_dynamique() ||
+        type_variable_itérée->est_tableau_fixe() || type_variable_itérée->est_variadique()) {
+        auto type_itérateur = type_dereference_pour(type_variable_itérée);
+        auto type_index = typeuse[TypeBase::Z64];
+        return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
+    }
+
+    if (type_variable_itérée->genre == GenreType::CHAINE) {
+        auto type_itérateur = typeuse[TypeBase::Z8];
+        auto type_index = typeuse[TypeBase::Z64];
+        return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
+    }
+
+    if (est_type_entier(type_variable_itérée) || type_variable_itérée->est_entier_constant()) {
+        auto type_itérateur = type_variable_itérée;
+        if (type_variable_itérée->est_entier_constant()) {
+            type_itérateur = typeuse[TypeBase::Z32];
+        }
+
+        return TypageItérandeBouclePour{
+            GENERE_BOUCLE_PLAGE_IMPLICITE, type_itérateur, type_itérateur};
+    }
+
+    if (type_variable_itérée->opérateur_pour == nullptr) {
+        return Attente::sur_opérateur_pour(type_variable_itérée);
+    }
+
+    auto const opérateur_pour = type_variable_itérée->opérateur_pour;
+    auto type_itérateur = opérateur_pour->param_sortie->type;
+    /* À FAIRE : typage correct de l'index. */
+    auto type_index = typeuse[TypeBase::Z64];
+    return TypageItérandeBouclePour{GENERE_BOUCLE_PLAGE_IMPLICITE, type_itérateur, type_itérateur};
+}
+
 ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *inst)
 {
-    auto enfant1 = inst->variable;
-    auto enfant2 = inst->expression;
-    auto enfant3 = inst->bloc;
-    auto feuilles = enfant1->comme_virgule();
+    auto variables = inst->variable;
+    auto expression = inst->expression;
+    auto bloc = inst->bloc;
+    auto feuilles = variables->comme_virgule();
 
     auto requiers_index = feuilles->expressions.taille() == 2;
 
@@ -4998,108 +5116,18 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     auto variable = feuilles->expressions[0];
     inst->ident = variable->ident;
 
-    auto type_variable_itérée = enfant2->type;
-    if (type_variable_itérée->est_opaque()) {
-        type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
-        enfant2->type = type_variable_itérée;
-    }
-
-    /* Le type de l'itérateur, à savoir le type de « it ». */
-    auto type_itérateur = type_variable_itérée;
-
-    using RéstultatTypeItérande = std::variant<int, Attente>;
-
-    auto determine_iterande = [&, this](NoeudExpression *iterand) -> RéstultatTypeItérande {
-        /* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
-         * type de retour d'une coroutine n'interfère avec le type d'une
-         * variable (par exemple quand nous retournons une chaine). */
-        if (iterand->est_plage()) {
-            return GENERE_BOUCLE_PLAGE;
-        }
-
-        if (iterand->est_appel()) {
-            auto appel = iterand->comme_appel();
-            auto fonction_appelee = appel->noeud_fonction_appelee;
-
-            if (fonction_appelee->est_entete_fonction()) {
-                auto entete = fonction_appelee->comme_entete_fonction();
-
-                if (entete->est_coroutine) {
-                    espace->rapporte_erreur(enfant2,
-                                            "Les coroutines ne sont plus supportées dans "
-                                            "le langage pour le moment");
-#if 0
-                    enfant1->type = enfant2->type;
-
-                    df = enfant2->df;
-                    auto nombre_vars_ret = df->idx_types_retours.taille();
-
-                    if (feuilles.taille() == nombre_vars_ret) {
-                        requiers_index = false;
-                        noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
-                    }
-                    else if (feuilles.taille() == nombre_vars_ret + 1) {
-                        requiers_index = true;
-                        noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
-                    }
-                    else {
-                        rapporte_erreur("Mauvais compte d'arguments à déployer ",
-                                        compilatrice,
-                                        *enfant1->lexeme);
-                    }
-#endif
-                }
-            }
-        }
-
-        if (type_variable_itérée->genre == GenreType::TABLEAU_DYNAMIQUE ||
-            type_variable_itérée->genre == GenreType::TABLEAU_FIXE ||
-            type_variable_itérée->genre == GenreType::VARIADIQUE) {
-            type_itérateur = type_dereference_pour(type_variable_itérée);
-
-            return GENERE_BOUCLE_TABLEAU;
-        }
-
-        if (type_variable_itérée->genre == GenreType::CHAINE) {
-            type_itérateur = m_compilatrice.typeuse[TypeBase::Z8];
-            enfant1->type = type_itérateur;
-
-            return GENERE_BOUCLE_TABLEAU;
-        }
-
-        if (est_type_entier(type_variable_itérée) || type_variable_itérée->est_entier_constant()) {
-            if (type_variable_itérée->est_entier_constant()) {
-                type_itérateur = m_compilatrice.typeuse[TypeBase::Z32];
-            }
-
-            enfant1->type = type_itérateur;
-            return GENERE_BOUCLE_PLAGE_IMPLICITE;
-        }
-
-        if (type_variable_itérée->opérateur_pour == nullptr) {
-            return Attente::sur_opérateur_pour(type_variable_itérée);
-        }
-
-        auto const opérateur_pour = type_variable_itérée->opérateur_pour;
-        type_itérateur = opérateur_pour->param_sortie->type;
-        return BOUCLE_POUR_OPÉRATEUR;
-    };
-
-    auto const résultat_typage_itérande = determine_iterande(enfant2);
+    auto const résultat_typage_itérande = détermine_typage_itérande(
+        expression, espace, m_compilatrice.typeuse);
     if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
         return std::get<Attente>(résultat_typage_itérande);
     }
 
-    auto const aide_génération_code = static_cast<char>(std::get<int>(résultat_typage_itérande));
-
-    /* Le type ne doit plus être un entier_constant après determine_itérande,
-     * donc nous pouvons directement l'assigner à enfant2->type.
-     * Ceci est nécessaire car la simplification du code accède aux opérateurs
-     * selon le type de enfant2. */
-    if (enfant2->type->est_entier_constant()) {
-        assert(!type_itérateur->est_entier_constant());
-        enfant2->type = type_itérateur;
+    if (std::holds_alternative<CodeRetourValidation>(résultat_typage_itérande)) {
+        return std::get<CodeRetourValidation>(résultat_typage_itérande);
     }
+
+    auto const typage_itérande = std::get<TypageItérandeBouclePour>(résultat_typage_itérande);
+    auto const aide_génération_code = static_cast<char>(typage_itérande.genre_de_boucle);
 
     if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR &&
         (inst->prend_reference || inst->prend_pointeur ||
@@ -5124,6 +5152,18 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         return CodeRetourValidation::Erreur;
     }
 
+    /* Le type ne doit plus être un entier_constant après determine_itérande,
+     * donc nous pouvons directement l'assigner à enfant2->type.
+     * Ceci est nécessaire car la simplification du code accède aux opérateurs
+     * selon le type de enfant2. */
+    if (expression->type->est_entier_constant()) {
+        assert(!typage_itérande.type_variable->est_entier_constant());
+        expression->type = typage_itérande.type_variable;
+    }
+
+    /* Le type de l'itérateur, à savoir le type de « it ». */
+    auto type_itérateur = typage_itérande.type_variable;
+
     /* il faut attendre de vérifier que le type est itérable avant de prendre cette
      * indication en compte */
     if (inst->prend_reference) {
@@ -5135,7 +5175,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
 
     inst->aide_generation_code = aide_génération_code;
 
-    enfant3->reserve_membres(feuilles->expressions.taille());
+    bloc->reserve_membres(feuilles->expressions.taille());
 
     auto nombre_feuilles = feuilles->expressions.taille() - requiers_index;
 
@@ -5146,7 +5186,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         decl_f->valeur->type = type_itérateur;
         decl_f->drapeaux |= DECLARATION_FUT_VALIDEE;
 
-        enfant3->ajoute_membre(decl_f);
+        bloc->ajoute_membre(decl_f);
 
         if (i == 0) {
             inst->decl_it = decl_f;
@@ -5156,17 +5196,10 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     if (requiers_index) {
         auto decl_idx = feuilles->expressions[feuilles->expressions.taille() - 1]
                             ->comme_declaration_variable();
-
-        if (inst->aide_generation_code == GENERE_BOUCLE_PLAGE) {
-            decl_idx->type = m_compilatrice.typeuse[TypeBase::Z32];
-        }
-        else {
-            decl_idx->type = m_compilatrice.typeuse[TypeBase::Z64];
-        }
-
+        decl_idx->type = typage_itérande.type_index;
         decl_idx->valeur->type = decl_idx->type;
         decl_idx->drapeaux |= DECLARATION_FUT_VALIDEE;
-        enfant3->ajoute_membre(decl_idx);
+        bloc->ajoute_membre(decl_idx);
 
         inst->decl_index_it = decl_idx;
     }
@@ -5178,10 +5211,16 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
         inst->decl_index_it = m_tacheronne.assembleuse->cree_declaration_variable(
-            inst->lexeme, m_compilatrice.typeuse[TypeBase::Z64], ID::index_it, nullptr);
+            inst->lexeme, typage_itérande.type_index, ID::index_it, nullptr);
     }
 
     if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR) {
+        auto type_variable_itérée = expression->type;
+        if (type_variable_itérée->est_opaque()) {
+            type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+            expression->type = type_variable_itérée;
+        }
+
         /* Copie le corps du macro.
          * À FAIRE : ne copie que le corps. */
         auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
@@ -5210,3 +5249,5 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
 
     return CodeRetourValidation::OK;
 }
+
+/** \} */
