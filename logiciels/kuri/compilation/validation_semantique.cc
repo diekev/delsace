@@ -5044,7 +5044,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
     auto type_itérateur = opérateur_pour->param_sortie->type;
     /* À FAIRE : typage correct de l'index. */
     auto type_index = typeuse[TypeBase::Z64];
-    return TypageItérandeBouclePour{GENERE_BOUCLE_PLAGE_IMPLICITE, type_itérateur, type_index};
+    return TypageItérandeBouclePour{BOUCLE_POUR_OPÉRATEUR, type_itérateur, type_index};
 }
 
 static bool variables_ne_redéfinissent_rien(EspaceDeTravail *espace,
