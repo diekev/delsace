@@ -88,8 +88,8 @@ class EditriceProprietesNoeudDialogue : public danjo::ConteneurControles {
   public:
     explicit EditriceProprietesNoeudDialogue(JJL::Noeud &noeud, QWidget *parent = nullptr);
 
-    EditriceProprietesNoeudDialogue(EditriceProprietes const &) = delete;
-    EditriceProprietesNoeudDialogue &operator=(EditriceProprietes const &) = delete;
+    EditriceProprietesNoeudDialogue(EditriceProprietesNoeudDialogue const &) = delete;
+    EditriceProprietesNoeudDialogue &operator=(EditriceProprietesNoeudDialogue const &) = delete;
 
     void ajourne_manipulable() override;
 };
