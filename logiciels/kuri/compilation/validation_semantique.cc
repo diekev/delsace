@@ -4971,7 +4971,7 @@ struct TypageItérandeBouclePour {
     Type *type_index = nullptr;
 };
 
-using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente, CodeRetourValidation>;
+using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente>;
 
 static bool est_appel_coroutine(const NoeudExpression *itérand)
 {
@@ -4994,41 +4994,12 @@ static bool est_appel_coroutine(const NoeudExpression *itérand)
  * Détermine le genre de boucle et le type de « it » et « index_it » selon le noeud itéré.
  *
  * Retourne soit :
- * - une erreur si nous itérons une coroutine
  * - une attente si nous itérons un type utilisant un opérateur pour
  * - une instance de #TypageItérandeBouclePour remplis convenablement.
  */
 static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression *itéré,
-                                                      EspaceDeTravail *espace,
                                                       Typeuse &typeuse)
 {
-    if (est_appel_coroutine(itéré)) {
-        espace->rapporte_erreur(itéré,
-                                "Les coroutines ne sont plus supportées dans "
-                                "le langage pour le moment");
-#if 0
-        enfant1->type = enfant2->type;
-
-        df = enfant2->df;
-        auto nombre_vars_ret = df->idx_types_retours.taille();
-
-        if (feuilles.taille() == nombre_vars_ret) {
-            requiers_index = false;
-            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
-        }
-        else if (feuilles.taille() == nombre_vars_ret + 1) {
-            requiers_index = true;
-            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
-        }
-        else {
-            rapporte_erreur("Mauvais compte d'arguments à déployer ",
-                            compilatrice,
-                            *enfant1->lexeme);
-        }
-#endif
-        return CodeRetourValidation::Erreur;
-    }
-
     auto type_variable_itérée = itéré->type;
     while (type_variable_itérée->est_opaque()) {
         type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
@@ -5078,6 +5049,33 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
 
 ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *inst)
 {
+    if (est_appel_coroutine(inst->expression)) {
+        espace->rapporte_erreur(inst->expression,
+                                "Les coroutines ne sont plus supportées dans "
+                                "le langage pour le moment");
+#if 0
+        enfant1->type = enfant2->type;
+
+        df = enfant2->df;
+        auto nombre_vars_ret = df->idx_types_retours.taille();
+
+        if (feuilles.taille() == nombre_vars_ret) {
+            requiers_index = false;
+            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE;
+        }
+        else if (feuilles.taille() == nombre_vars_ret + 1) {
+            requiers_index = true;
+            noeud->aide_generation_code = GENERE_BOUCLE_COROUTINE_INDEX;
+        }
+        else {
+            rapporte_erreur("Mauvais compte d'arguments à déployer ",
+                            compilatrice,
+                            *enfant1->lexeme);
+        }
+#endif
+        return CodeRetourValidation::Erreur;
+    }
+
     auto variables = inst->variable;
     auto expression = inst->expression;
     auto bloc = inst->bloc;
@@ -5116,14 +5114,10 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     auto variable = feuilles->expressions[0];
     inst->ident = variable->ident;
 
-    auto const résultat_typage_itérande = détermine_typage_itérande(
-        expression, espace, m_compilatrice.typeuse);
+    auto const résultat_typage_itérande = détermine_typage_itérande(expression,
+                                                                    m_compilatrice.typeuse);
     if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
         return std::get<Attente>(résultat_typage_itérande);
-    }
-
-    if (std::holds_alternative<CodeRetourValidation>(résultat_typage_itérande)) {
-        return std::get<CodeRetourValidation>(résultat_typage_itérande);
     }
 
     auto const typage_itérande = std::get<TypageItérandeBouclePour>(résultat_typage_itérande);
