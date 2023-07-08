@@ -25,6 +25,9 @@
 struct Message {
     GenreMessage genre [code]
     EspaceDeTravail * espace [code]
+
+    // À FAIRE : supprime ceci en ayant deux structures comme pour les noeuds
+    bool message_reçu [code]
 }
 
 struct MessageFichier : Message {

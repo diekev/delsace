@@ -1182,13 +1182,15 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 void GestionnaireCode::message_recu(Message const *message)
 {
     std::unique_lock verrou(m_mutex);
-    POUR (*unites_en_attente.verrou_lecture()) {
-        auto attente = it->attend_sur_message(message);
-        if (!attente) {
-            continue;
-        }
-        *attente = {};
-    }
+    const_cast<Message *>(message)->message_recu = true;
+    // m_messages_recus.insert(message);
+    //    POUR (*unites_en_attente.verrou_lecture()) {
+    //        auto attente = it->attend_sur_message(message);
+    //        if (!attente) {
+    //            continue;
+    //        }
+    //        *attente = {};
+    //    }
 }
 
 void GestionnaireCode::execution_terminee(UniteCompilation *unite)
@@ -1554,23 +1556,23 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
 
 void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 {
-    std::unique_lock verrou(m_mutex);
-    m_compilatrice->messagere->termine_interception(espace);
+    //    std::unique_lock verrou(m_mutex);
+    //    m_compilatrice->messagere->termine_interception(espace);
 
-    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
+    //    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
 
-    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
+    //    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
 
-    POUR (*unités_en_attente_) {
-        if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
-            continue;
-        }
+    //    POUR (*unités_en_attente_) {
+    //        if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
+    //            continue;
+    //        }
 
-        it->supprime_attentes_sur_messages();
-        nouvelles_unites.ajoute(it);
-    }
+    //        it->supprime_attentes_sur_messages();
+    //        nouvelles_unites.ajoute(it);
+    //    }
 
-    *unités_en_attente_ = nouvelles_unites;
+    //    *unités_en_attente_ = nouvelles_unites;
 }
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)

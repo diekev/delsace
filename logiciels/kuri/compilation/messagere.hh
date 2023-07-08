@@ -53,6 +53,11 @@ struct Messagere {
         return !file_message.est_vide();
     }
 
+    inline bool est_interception_commencée() const
+    {
+        return interception_commencee;
+    }
+
     Message const *defile();
 
     void commence_interception(EspaceDeTravail *espace);
