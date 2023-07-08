@@ -699,10 +699,12 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     type->drapeaux |= UNITE_POUR_INITIALISATION_FUT_CREE;
 }
 
-void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud)
+UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
+                                                        NoeudExpression *noeud)
 {
     auto unite = cree_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
+    return unite;
 }
 
 bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
@@ -1091,10 +1093,11 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     }
 
     if (message) {
-        requiers_noeud_code(espace, noeud);
+        auto unite_noeud_code = requiers_noeud_code(espace, noeud);
         auto unite_message = cree_unite_pour_message(espace, message);
-        unite_message->ajoute_attente(Attente::sur_noeud_code(&noeud->noeud_code));
-        unite->ajoute_attente(Attente::sur_message(message));
+        unite_message->ajoute_attente(
+            Attente::sur_noeud_code(unite_noeud_code, &noeud->noeud_code));
+        unite->ajoute_attente(Attente::sur_message(unite_message, message));
     }
 
     DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
@@ -1581,7 +1584,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     espace->unite_pour_code_machine = unite_code_machine;
 
     if (message) {
-        unite_code_machine->ajoute_attente(Attente::sur_message(message));
+        unite_code_machine->ajoute_attente(Attente::sur_message(nullptr, message));
     }
 }
 
