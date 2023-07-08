@@ -13,6 +13,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "gestionnaire_code.hh"
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"

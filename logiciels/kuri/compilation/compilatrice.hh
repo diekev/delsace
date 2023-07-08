@@ -10,7 +10,6 @@
 #include "parsage/modules.hh"
 
 #include "bibliotheque.hh"
-#include "gestionnaire_code.hh"
 #include "graphe_dependance.hh"
 #include "interface_module_kuri.hh"
 #include "messagere.hh"
@@ -23,6 +22,7 @@
 #include "structures/chemin_systeme.hh"
 
 class Broyeuse;
+class GestionnaireCode;
 struct ContexteLexage;
 struct EspaceDeTravail;
 struct NoeudCodeEnteteFonction;
@@ -79,7 +79,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<Messagere> messagere{};
 
-    dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
+    GestionnaireCode *gestionnaire_code{};
 
     dls::outils::Synchrone<GestionnaireBibliotheques> gestionnaire_bibliotheques;
 

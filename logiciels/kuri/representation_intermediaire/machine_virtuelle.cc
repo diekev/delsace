@@ -12,6 +12,7 @@
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/gestionnaire_code.hh"
 #include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
 

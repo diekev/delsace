@@ -19,6 +19,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "gestionnaire_code.hh"
 #include "ipa.hh"
 #include "portee.hh"
 #include "programme.hh"
@@ -60,9 +61,10 @@ void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
 /* ************************************************************************** */
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
-    : ordonnanceuse(this), messagere(this), gestionnaire_code(this),
+    : ordonnanceuse(this), messagere(this),
+      gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs)
+      racine_kuri(chemin_racine_kuri), typeuse(this->operateurs)
 {
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
@@ -84,6 +86,7 @@ Compilatrice::~Compilatrice()
     }
 
     memoire::deloge("Broyeuse", broyeuse);
+    memoire::deloge("GestionnaireCode", gestionnaire_code);
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace,

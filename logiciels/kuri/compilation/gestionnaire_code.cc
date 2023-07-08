@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+﻿/* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
 #include "gestionnaire_code.hh"
@@ -54,6 +54,7 @@ GestionnaireCode::~GestionnaireCode()
 
 void GestionnaireCode::espace_cree(EspaceDeTravail *espace)
 {
+    std::unique_lock verrou(m_mutex);
     assert(espace->programme);
     ajoute_programme(espace->programme);
 }
@@ -603,7 +604,7 @@ UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
     auto unite = unites.ajoute_element(espace);
     unite->mute_raison_d_etre(raison);
     if (met_en_attente) {
-        unites_en_attente.ajoute(unite);
+        unites_en_attente->ajoute(unite);
     }
     return unite;
 }
@@ -629,12 +630,14 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espac
 
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
+    std::unique_lock verrou(m_mutex);
     TACHE_AJOUTEE(CHARGEMENT);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
 }
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
+    std::unique_lock verrou(m_mutex);
     assert(fichier->fut_charge);
     TACHE_AJOUTEE(LEXAGE);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
@@ -642,6 +645,7 @@ void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
+    std::unique_lock verrou(m_mutex);
     assert(fichier->fut_lexe);
     TACHE_AJOUTEE(PARSAGE);
     cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
@@ -649,12 +653,14 @@ void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichie
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
+    std::unique_lock verrou(m_mutex);
     TACHE_AJOUTEE(TYPAGE);
     cree_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
 }
 
 void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
+    std::unique_lock verrou(m_mutex);
     TACHE_AJOUTEE(GENERATION_RI);
     cree_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
 }
@@ -662,6 +668,7 @@ void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpr
 void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
     EspaceDeTravail *espace, MetaProgramme *metaprogramme, bool peut_planifier_compilation)
 {
+    std::unique_lock verrou(m_mutex);
     TACHE_AJOUTEE(GENERATION_RI);
 
     auto unite = cree_unite_pour_noeud(espace,
@@ -685,9 +692,16 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *esp
 
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
 {
+    std::unique_lock verrou(m_mutex);
+    if ((type->drapeaux & INITIALISATION_TYPE_FUT_REQUISE) != 0) {
+        return;
+    }
+
     if (!type->requiers_création_fonction_initialisation()) {
         return;
     }
+
+    type->drapeaux |= INITIALISATION_TYPE_FUT_REQUISE;
 
     auto unite = cree_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
@@ -701,6 +715,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 
 void GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
+    std::unique_lock verrou(m_mutex);
     auto unite = cree_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
 }
@@ -754,11 +769,15 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 {
     assert(metaprogramme->fonction);
     assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
-
     /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
     TACHE_AJOUTEE(EXECUTION);
+    m_requêtes_compilations_métaprogrammes->ajoute({espace, metaprogramme});
+}
 
+void GestionnaireCode::requiers_compilation_metaprogramme_impl(EspaceDeTravail *espace,
+                                                               MetaProgramme *metaprogramme)
+{
     /* Ajoute le programme à la liste des programmes avant de traiter les dépendances. */
     metaprogramme_cree(metaprogramme);
 
@@ -805,6 +824,7 @@ void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme
 UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
                                                                      Programme *programme)
 {
+    std::unique_lock verrou(m_mutex);
     auto unite = cree_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
     unite->programme = programme;
     TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
@@ -813,6 +833,7 @@ UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTra
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
 {
+    std::unique_lock verrou(m_mutex);
     auto unite = cree_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
     unite->programme = programme;
     TACHE_AJOUTEE(LIAISON_PROGRAMME);
@@ -840,28 +861,36 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
 {
+    std::unique_lock verrou2(m_mutex_unités_terminées);
     assert(attente.est_valide());
     assert(unite_attendante->est_prete());
     auto espace = unite_attendante->espace;
-    ajoute_requêtes_pour_attente(espace, attente);
+    m_attentes_à_résoudre.ajoute({espace, attente});
     unite_attendante->ajoute_attente(attente);
-    unites_en_attente.ajoute(unite_attendante);
+    unites_en_attente->ajoute(unite_attendante);
 }
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
                                        kuri::tableau_statique<Attente> attentes)
 {
+    std::unique_lock verrou2(m_mutex_unités_terminées);
     assert(attentes.taille() != 0);
     assert(unite_attendante->est_prete());
 
     auto espace = unite_attendante->espace;
 
     POUR (attentes) {
-        ajoute_requêtes_pour_attente(espace, it);
+        m_attentes_à_résoudre.ajoute({espace, it});
         unite_attendante->ajoute_attente(it);
     }
 
-    unites_en_attente.ajoute(unite_attendante);
+    unites_en_attente->ajoute(unite_attendante);
+}
+
+void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
+{
+    std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
+    m_unités_terminées.ajoute(unité);
 }
 
 void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
@@ -875,7 +904,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
-    unites_en_attente.ajoute(unite);
+    unites_en_attente->ajoute(unite);
     TACHE_AJOUTEE(LEXAGE);
 }
 
@@ -889,7 +918,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
     unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
-    unites_en_attente.ajoute(unite);
+    unites_en_attente->ajoute(unite);
     TACHE_AJOUTEE(PARSAGE);
 }
 
@@ -1087,7 +1116,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
-        unites_en_attente.ajoute(unite);
+        unites_en_attente->ajoute(unite);
     }
 
     if (message) {
@@ -1152,7 +1181,8 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 
 void GestionnaireCode::message_recu(Message const *message)
 {
-    POUR (unites_en_attente) {
+    std::unique_lock verrou(m_mutex);
+    POUR (*unites_en_attente.verrou_lecture()) {
         auto attente = it->attend_sur_message(message);
         if (!attente) {
             continue;
@@ -1238,7 +1268,7 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
 
-    POUR (unites_en_attente) {
+    POUR (*unites_en_attente.verrou_lecture()) {
         auto attente = it->attend_sur_noeud_code(&noeud->noeud_code);
         if (!attente) {
             continue;
@@ -1277,98 +1307,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     TACHE_AJOUTEE(GENERATION_RI);
     unite->noeud = fonction;
     fonction->unite = unite;
-    unites_en_attente.ajoute(unite);
-}
-
-void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
-{
-    kuri::tableau<UniteCompilation *> nouvelles_unites;
-
-    if (plus_rien_n_est_a_faire()) {
-        ordonnanceuse.marque_compilation_terminee();
-        return;
-    }
-
-#undef DEBUG_UNITES_EN_ATTENTES
-
-#ifdef DEBUG_UNITES_EN_ATTENTES
-    std::cerr << "Unités en attente avant la création des tâches : " << unites_en_attente.taille()
-              << '\n';
-    ordonnanceuse.imprime_donnees_files(std::cerr);
-#endif
-
-    POUR (unites_en_attente) {
-        if (it->espace->possede_erreur) {
-            continue;
-        }
-
-        it->marque_prete_si_attente_resolue();
-
-        if (!it->est_prete()) {
-            it->cycle += 1;
-
-            if (it->est_bloquee()) {
-                it->rapporte_erreur();
-                unites_en_attente.efface();
-                ordonnanceuse.supprime_toutes_les_taches();
-                return;
-            }
-
-            nouvelles_unites.ajoute(it);
-            continue;
-        }
-
-        if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
-            it->espace->rapporte_erreur_sans_site(
-                "Erreur interne : obtenu une unité sans raison d'être");
-            continue;
-        }
-
-        if (it->annule) {
-            continue;
-        }
-
-        /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
-         * et bien dans la phase pour la génération de code. */
-        if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
-            it->programme == it->espace->programme) {
-            if (it->espace->phase_courante() != PhaseCompilation::AVANT_GENERATION_OBJET) {
-                continue;
-            }
-        }
-
-        ordonnanceuse.cree_tache_pour_unite(it);
-    }
-
-    /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée
-     * durant la création de tâches ci-dessus, et que l'erreur ne génère pas une fin totale de la
-     * compilation. Nous ne pouvons faire ceci ailleurs (dans la fonction qui rapporte l'erreur)
-     * puisque nous possédons déjà un verrou sur l'ordonnanceuse, et nous risquerions d'avoir un
-     * verrou mort. */
-    kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
-    POUR (programmes_en_cours) {
-        if (it->espace()->possede_erreur) {
-            espaces_errones.insere(it->espace());
-        }
-    }
-
-    pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
-        ordonnanceuse.supprime_toutes_les_taches_pour_espace(espace);
-        return kuri::DecisionIteration::Continue;
-    });
-
-    if (m_compilatrice->possede_erreur()) {
-        ordonnanceuse.supprime_toutes_les_taches();
-    }
-
-    unites_en_attente = nouvelles_unites;
-
-#ifdef DEBUG_UNITES_EN_ATTENTES
-    std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
-              << '\n';
-    ordonnanceuse.imprime_donnees_files(std::cerr);
-    std::cerr << "--------------------------------------------------------\n";
-#endif
+    unites_en_attente->ajoute(unite);
 }
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
@@ -1430,7 +1369,11 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         }
     }
 
-    if (!unites_en_attente.est_vide() || !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
+    if (!m_unités_terminées.est_vide()) {
+        return false;
+    }
+
+    if (!unites_en_attente->est_vide() || !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
         return false;
     }
 
@@ -1595,7 +1538,7 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
 {
     assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
     POUR (metaprogrammes_en_attente_de_cree_contexte) {
-        unites_en_attente.ajoute(it);
+        unites_en_attente->ajoute(it);
     }
     metaprogrammes_en_attente_de_cree_contexte.efface();
     metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;
@@ -1603,11 +1546,14 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
 
 void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 {
+    std::unique_lock verrou(m_mutex);
     m_compilatrice->messagere->termine_interception(espace);
 
-    kuri::tableau<UniteCompilation *> nouvelles_unites;
+    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
 
-    POUR (unites_en_attente) {
+    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
+
+    POUR (*unités_en_attente_) {
         if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
             continue;
         }
@@ -1621,6 +1567,7 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
 {
+    std::unique_lock verrou(m_mutex);
     auto programme = espace->programme;
     programme->ajourne_pour_nouvelles_options_espace();
 }
@@ -1629,5 +1576,249 @@ void GestionnaireCode::imprime_stats() const
 {
 #ifdef STATS_DÉTAILLÉES_GESTION
     stats.imprime_stats();
+#endif
+}
+
+void GestionnaireCode::démarre_boucle_compilation()
+{
+    while (true) {
+#if 0
+        auto delta = temps_début_compilation.temps();
+        imprime_débogage = delta >= 0.1;
+        if (imprime_débogage) {
+            temps_début_compilation = dls::chrono::compte_seconde();
+        }
+#endif
+
+        if (plus_rien_n_est_a_faire()) {
+            auto ordonnanceuse = m_compilatrice->ordonnanceuse.verrou_ecriture();
+            ordonnanceuse->marque_compilation_terminee();
+            break;
+        }
+
+        ajoute_types_dans_graphe();
+        gère_requête_compilations_métaprogrammes();
+        gère_choses_terminées();
+        crée_tâches_pour_ordonnanceuse();
+
+#if 0
+        imprime_débogage = false;
+#endif
+    }
+}
+
+void GestionnaireCode::gère_choses_terminées()
+{
+    std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
+
+    POUR (m_attentes_à_résoudre) {
+        ajoute_requêtes_pour_attente(it.espace, it.attente);
+    }
+    m_attentes_à_résoudre.efface();
+
+    // std::cerr << "unités terminées : " << m_unités_terminées.taille() << '\n';
+
+    POUR (m_unités_terminées) {
+        switch (it->raison_d_etre()) {
+            case RaisonDEtre::AUCUNE:
+            {
+                // erreur ?
+                break;
+            }
+            case RaisonDEtre::CHARGEMENT_FICHIER:
+            {
+                chargement_fichier_termine(it);
+                break;
+            }
+            case RaisonDEtre::LEXAGE_FICHIER:
+            {
+                lexage_fichier_termine(it);
+                break;
+            }
+            case RaisonDEtre::PARSAGE_FICHIER:
+            {
+                parsage_fichier_termine(it);
+                break;
+            }
+            case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
+            {
+                fonction_initialisation_type_creee(it);
+                break;
+            }
+            case RaisonDEtre::TYPAGE:
+            {
+                typage_termine(it);
+                break;
+            }
+            case RaisonDEtre::CONVERSION_NOEUD_CODE:
+            {
+                conversion_noeud_code_terminee(it);
+                break;
+            }
+            case RaisonDEtre::ENVOIE_MESSAGE:
+            {
+                // À FAIRE : stocke l'unité dans le message et déplace message_recu ici
+                break;
+            }
+            case RaisonDEtre::GENERATION_RI:
+            {
+                generation_ri_terminee(it);
+                break;
+            }
+            case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
+            {
+                generation_ri_terminee(it);
+                break;
+            }
+            case RaisonDEtre::EXECUTION:
+            {
+                execution_terminee(it);
+                break;
+            }
+            case RaisonDEtre::LIAISON_PROGRAMME:
+            {
+                liaison_programme_terminee(it);
+                break;
+            }
+            case RaisonDEtre::GENERATION_CODE_MACHINE:
+            {
+                generation_code_machine_terminee(it);
+                break;
+            }
+        }
+    }
+
+    m_unités_terminées.efface();
+}
+
+void GestionnaireCode::ajoute_types_dans_graphe()
+{
+    auto types_à_insérer_dans_graphe =
+        m_compilatrice->typeuse.types_à_insérer_dans_graphe.verrou_ecriture();
+
+    if (types_à_insérer_dans_graphe->est_vide()) {
+        return;
+    }
+
+    auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
+
+    POUR (*types_à_insérer_dans_graphe) {
+        graphe->connecte_type_type(it.type_parent, it.type_enfant);
+    }
+
+    types_à_insérer_dans_graphe->efface();
+}
+
+void GestionnaireCode::gère_requête_compilations_métaprogrammes()
+{
+    auto requêtes_compilations_métaprogrammes =
+        m_requêtes_compilations_métaprogrammes.verrou_ecriture();
+
+    POUR (*requêtes_compilations_métaprogrammes) {
+        requiers_compilation_metaprogramme_impl(it.espace, it.métaprogramme);
+    }
+
+    requêtes_compilations_métaprogrammes->efface();
+}
+
+void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
+{
+    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
+
+    // XXX - la suppression des tâches des espaces erronés plus bas est ignorée
+    //    if (unités_en_attente_->est_vide()) {
+    //        return;
+    //    }
+
+#undef DEBUG_UNITES_EN_ATTENTES
+
+#ifdef DEBUG_UNITES_EN_ATTENTES
+    if (imprime_débogage) {
+        std::cerr << "Unités en attente avant la création des tâches : "
+                  << unités_en_attente_->taille() << '\n';
+    }
+#endif
+
+    kuri::tableau<UniteCompilation *, int> unités_prêtes;
+    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
+    POUR (*unités_en_attente_) {
+        if (it->espace->possede_erreur) {
+            continue;
+        }
+
+        it->marque_prete_si_attente_resolue();
+
+        if (!it->est_prete()) {
+            it->cycle += 1;
+
+            if (it->est_bloquee()) {
+                it->rapporte_erreur();
+                unités_en_attente_->efface();
+                m_compilatrice->ordonnanceuse->supprime_toutes_les_taches();
+                return;
+            }
+
+            nouvelles_unites.ajoute(it);
+            continue;
+        }
+
+        if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
+            it->espace->rapporte_erreur_sans_site(
+                "Erreur interne : obtenu une unité sans raison d'être");
+            continue;
+        }
+
+        if (it->annule) {
+            continue;
+        }
+
+        /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
+         * et bien dans la phase pour la génération de code. */
+        if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
+            it->programme == it->espace->programme) {
+            if (it->espace->phase_courante() != PhaseCompilation::AVANT_GENERATION_OBJET) {
+                continue;
+            }
+        }
+
+        unités_prêtes.ajoute(it);
+    }
+
+    /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée
+     * durant la création de tâches ci-dessus, et que l'erreur ne génère pas une fin totale de la
+     * compilation. Nous ne pouvons faire ceci ailleurs (dans la fonction qui rapporte l'erreur)
+     * puisque nous possédons déjà un verrou sur l'ordonnanceuse, et nous risquerions d'avoir un
+     * verrou mort. */
+    kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
+    POUR (programmes_en_cours) {
+        if (it->espace()->possede_erreur) {
+            espaces_errones.insere(it->espace());
+        }
+    }
+
+    auto ordonnanceuse = m_compilatrice->ordonnanceuse.verrou_ecriture();
+#ifdef DEBUG_UNITES_EN_ATTENTES
+    if (imprime_débogage) {
+        ordonnanceuse->imprime_donnees_files(std::cerr);
+    }
+#endif
+    POUR (unités_prêtes) {
+        ordonnanceuse->cree_tache_pour_unite(it);
+    }
+
+    pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
+        ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
+        return kuri::DecisionIteration::Continue;
+    });
+
+    *unités_en_attente_ = nouvelles_unites;
+
+#ifdef DEBUG_UNITES_EN_ATTENTES
+    if (imprime_débogage) {
+        std::cerr << "Unités en attente après la création des tâches : "
+                  << unités_en_attente_->taille() << '\n';
+        ordonnanceuse->imprime_donnees_files(std::cerr);
+        std::cerr << "--------------------------------------------------------\n";
+    }
 #endif
 }

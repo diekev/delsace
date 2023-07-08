@@ -9,6 +9,7 @@
 #include "compilation/coulisse_llvm.hh"
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/gestionnaire_code.hh"
 #include "compilation/tacheronne.hh"
 
 #include "statistiques/statistiques.hh"
@@ -268,6 +269,9 @@ static bool compile_fichier(Compilatrice &compilatrice,
     POUR (tacheronnes) {
         threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
     }
+
+    auto gestionnaire = compilatrice.gestionnaire_code;
+    gestionnaire->démarre_boucle_compilation();
 
     POUR (threads) {
         it->join();

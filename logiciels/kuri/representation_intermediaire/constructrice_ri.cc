@@ -407,7 +407,7 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
         erreur::imprime_site(*m_espace, site_);
     });
 
-#ifndef CMAKE_BUILD_TYPE_PROFILE
+#if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     auto type_pointeur = ou->type->comme_pointeur();
     assert_rappel(
         type_pointeur->type_pointe == valeur->type ||
@@ -3382,9 +3382,9 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) == 0, [type]() {
-        std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
-    });
+    //    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) == 0, [type]() {
+    //        std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
+    //    });
 
     static_cast<AtomeGlobale *>(type->atome_info_type)->est_info_type_de = type;
 

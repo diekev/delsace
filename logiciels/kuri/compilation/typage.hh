@@ -19,7 +19,6 @@
 #include "operateurs.hh"
 
 struct AtomeConstante;
-struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
 struct Operateurs;
@@ -174,7 +173,7 @@ enum {
     POSSEDE_TYPE_TABLEAU_DYNAMIQUE = 128,
     POSSEDE_TYPE_TYPE_DE_DONNEES = 256,
     CODE_BINAIRE_TYPE_FUT_GENERE = 512,
-    /* DISPONIBLE = 1024, */
+    INITIALISATION_TYPE_FUT_REQUISE = 1024,
     TYPE_POSSEDE_OPERATEURS_DE_BASE = 2048,
     UNITE_POUR_INITIALISATION_FUT_CREE = 4096,
 };
@@ -660,7 +659,6 @@ struct Trie {
 // À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux
 // types
 struct Typeuse {
-    dls::outils::Synchrone<GrapheDependance> &graphe_;
     dls::outils::Synchrone<Operateurs> &operateurs_;
 
     template <typename T>
@@ -731,9 +729,15 @@ struct Typeuse {
     NoeudDeclarationEnteteFonction *init_type_z64 = nullptr;
     NoeudDeclarationEnteteFonction *init_type_pointeur = nullptr;
 
+    struct DonnéesInsertionTypeGraphe {
+        Type *type_parent = nullptr;
+        Type *type_enfant = nullptr;
+    };
+    tableau_synchrone<DonnéesInsertionTypeGraphe> types_à_insérer_dans_graphe{};
+
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o);
+    Typeuse(dls::outils::Synchrone<Operateurs> &o);
 
     Typeuse(Typeuse const &) = delete;
     Typeuse &operator=(Typeuse const &) = delete;

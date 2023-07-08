@@ -14,6 +14,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/gestionnaire_code.hh"
 #include "compilation/tacheronne.hh"
 
 #include "parsage/modules.hh"

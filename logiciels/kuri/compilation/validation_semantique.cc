@@ -12,6 +12,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "gestionnaire_code.hh"
 #include "portee.hh"
 #include "tacheronne.hh"
 #include "unite_compilation.hh"
