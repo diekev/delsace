@@ -604,7 +604,7 @@ UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
     auto unite = unites.ajoute_element(espace);
     unite->mute_raison_d_etre(raison);
     if (met_en_attente) {
-        unites_en_attente->ajoute(unite);
+        ajoute_unité_à_liste_attente(unite);
     }
     return unite;
 }
@@ -720,6 +720,12 @@ UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
     auto unite = cree_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
     return unite;
+}
+
+void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
+{
+    unité->définit_état(UniteCompilation::État::EN_ATTENTE);
+    unites_en_attente->ajoute(unité);
 }
 
 bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
@@ -869,7 +875,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
     auto espace = unite_attendante->espace;
     m_attentes_à_résoudre.ajoute({espace, attente});
     unite_attendante->ajoute_attente(attente);
-    unites_en_attente->ajoute(unite_attendante);
+    ajoute_unité_à_liste_attente(unite_attendante);
 }
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
@@ -886,7 +892,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
         unite_attendante->ajoute_attente(it);
     }
 
-    unites_en_attente->ajoute(unite_attendante);
+    ajoute_unité_à_liste_attente(unite_attendante);
 }
 
 void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
@@ -906,7 +912,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
-    unites_en_attente->ajoute(unite);
+    ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(LEXAGE);
 }
 
@@ -920,7 +926,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
     unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
-    unites_en_attente->ajoute(unite);
+    ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(PARSAGE);
 }
 
@@ -1118,7 +1124,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
         unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
-        unites_en_attente->ajoute(unite);
+        ajoute_unité_à_liste_attente(unite);
     }
 
     if (message) {
@@ -1303,7 +1309,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     TACHE_AJOUTEE(GENERATION_RI);
     unite->noeud = fonction;
     fonction->unite = unite;
-    unites_en_attente->ajoute(unite);
+    ajoute_unité_à_liste_attente(unite);
 }
 
 void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
@@ -1671,7 +1677,7 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
 {
     assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
     POUR (metaprogrammes_en_attente_de_cree_contexte) {
-        unites_en_attente->ajoute(it);
+        ajoute_unité_à_liste_attente(it);
     }
     metaprogrammes_en_attente_de_cree_contexte.efface();
     metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;

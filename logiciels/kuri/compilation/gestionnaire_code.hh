@@ -185,6 +185,9 @@ class GestionnaireCode {
 
     UniteCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
 
+    /* Ajoute l'unité à la liste d'attente, et change son état vers EN_ATTENTE. */
+    void ajoute_unité_à_liste_attente(UniteCompilation *unité);
+
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void ajoute_programme(Programme *programme);
