@@ -44,8 +44,8 @@ class VueEditeurNoeud : public QGraphicsView {
   public:
     VueEditeurNoeud(EditriceGraphe *base, QWidget *parent = nullptr);
 
-    VueEditeurNoeud(VueEditeurNoeud const &) = default;
-    VueEditeurNoeud &operator=(VueEditeurNoeud const &) = default;
+    VueEditeurNoeud(VueEditeurNoeud const &) = delete;
+    VueEditeurNoeud &operator=(VueEditeurNoeud const &) = delete;
 
     ~VueEditeurNoeud() override;
 

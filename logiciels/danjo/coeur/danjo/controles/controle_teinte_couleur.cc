@@ -26,7 +26,7 @@
 
 #include <QPainter>
 
-ControleTeinteCouleur::ControleTeinteCouleur(QWidget *parent) : QWidget(parent)
+ControleTeinteCouleur::ControleTeinteCouleur(QWidget *parent) : BaseControle(parent)
 {
     resize(512, 256);
 }

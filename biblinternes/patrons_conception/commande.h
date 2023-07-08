@@ -43,11 +43,31 @@ struct DonneesCommande {
 	float x = 0;
 	float y = 0;
 	dls::chaine metadonnee = "";
+    dls::chaine identifiant{};
 
 	DonneesCommande() = default;
 };
 
+class Commande;
+
+struct DescriptionCommande {
+    typedef Commande *(*fonction_usine)(DescriptionCommande);
+
+    dls::chaine categorie{};
+    dls::chaine metadonnee{};
+    mutable dls::chaine identifiant{};
+    int souris = 0;
+    int modificateur = 0;
+    int cle = 0;
+    bool double_clique = false;
+    bool peut_être_défaite = true;
+    bool pad[2];
+
+    fonction_usine construction_commande = nullptr;
+};
+
 class Commande {
+    DescriptionCommande description{};
 public:
 	virtual ~Commande() = default;
 
@@ -58,20 +78,16 @@ public:
 	virtual void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
 
 	virtual void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
-};
 
-struct DescriptionCommande {
-	typedef Commande *(*fonction_usine)();
+    void définit_description(DescriptionCommande desc)
+    {
+        description = desc;
+    }
 
-	dls::chaine categorie{};
-	dls::chaine metadonnee{};
-	int souris = 0;
-	int modificateur = 0;
-	int cle = 0;
-	bool double_clique = false;
-	bool pad[3];
-
-	fonction_usine construction_commande = nullptr;
+    bool peut_être_défaite()
+    {
+        return description.peut_être_défaite;
+    }
 };
 
 template <typename T>
@@ -81,6 +97,7 @@ inline auto description_commande(
 		int modificateur,
 		int cle,
 		bool double_clique,
+        bool peut_être_défaite = true,
 		dls::chaine const &metadonnee = "")
 {
 	DescriptionCommande description;
@@ -89,8 +106,9 @@ inline auto description_commande(
 	description.modificateur = modificateur;
 	description.categorie = categorie;
 	description.double_clique = double_clique;
-	description.construction_commande = []() -> Commande* { return new T(); };
+    description.construction_commande = [](DescriptionCommande desc) -> Commande* { auto commande = new T(); commande->définit_description(desc); return commande; };
 	description.metadonnee = metadonnee;
+    description.peut_être_défaite = peut_être_défaite;
 
 #if 0
 	dls::chaine identifiant;

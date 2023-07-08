@@ -38,6 +38,7 @@ set(BIBLIOTHEQUES
 set(SOURCES
     AbcKuri/alembic_archive.cc
     AbcKuri/alembic_export.cc
+    AbcKuri/alembic_export_attributs.cc
     AbcKuri/alembic_import.cc
     AbcKuri/utilitaires.cc
 
@@ -45,6 +46,7 @@ set(SOURCES
 
     AbcKuri/alembic_archive.hh
     AbcKuri/alembic_export.hh
+    AbcKuri/alembic_export_attributs.hh
     AbcKuri/alembic_import.hh
     AbcKuri/utilitaires.hh
 

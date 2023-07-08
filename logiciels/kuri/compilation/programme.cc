@@ -207,21 +207,21 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
 bool Programme::ri_generees() const
 {
-    auto diagnostic = diagnositique_compilation();
+    auto diagnostic = diagnostique_compilation();
     return diagnostic.toutes_les_ri_sont_generees;
 }
 
-DiagnostiqueEtatCompilation Programme::diagnositique_compilation() const
+DiagnostiqueEtatCompilation Programme::diagnostique_compilation() const
 {
-    DiagnostiqueEtatCompilation diagnositique{};
-    verifie_etat_compilation_fichier(diagnositique);
-    ri_generees(diagnositique);
-    return diagnositique;
+    DiagnostiqueEtatCompilation diagnostique{};
+    verifie_etat_compilation_fichier(diagnostique);
+    ri_generees(diagnostique);
+    return diagnostique;
 }
 
 EtatCompilation Programme::ajourne_etat_compilation()
 {
-    auto diagnostic = diagnositique_compilation();
+    auto diagnostic = diagnostique_compilation();
 
     // À FAIRE(gestion) : ceci n'est que pour les métaprogrammes
     m_etat_compilation.essaie_d_aller_a(PhaseCompilation::PARSAGE_EN_COURS);

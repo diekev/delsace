@@ -264,13 +264,10 @@ static Propriete *crée_propriété(DonneesControle const &donnees)
     return résultat;
 }
 
-AssembleurDisposition::AssembleurDisposition(Manipulable *manipulable,
-                                             RepondantBouton *repondant_bouton,
-                                             ConteneurControles *conteneur,
+AssembleurDisposition::AssembleurDisposition(const DonneesInterface &donnees,
                                              int temps,
                                              bool initialisation_seule)
-    : m_manipulable(manipulable), m_repondant(repondant_bouton), m_conteneur(conteneur),
-      m_temps(temps), m_initialisation_seule(initialisation_seule)
+    : m_donnees(donnees), m_temps(temps), m_initialisation_seule(initialisation_seule)
 {
 }
 
@@ -314,20 +311,26 @@ void AssembleurDisposition::ajoute_controle_pour_propriété(DonneesControle con
     m_pile_dispositions.haut()->addWidget(controle);
     controles.insere({donnees.nom, controle});
 
-    if (m_conteneur != nullptr) {
+    auto conteneur = m_donnees.conteneur;
+    if (conteneur != nullptr) {
         if (prop->type() == TypePropriete::LISTE) {
-            static_cast<ControleProprieteListe *>(controle)->conteneur(m_conteneur);
+            static_cast<ControleProprieteListe *>(controle)->conteneur(conteneur);
         }
 
         QObject::connect(controle,
-                         &ControlePropriete::precontrole_change,
-                         m_conteneur,
-                         &ConteneurControles::precontrole_change);
+                         &ControlePropriete::debute_changement_controle,
+                         conteneur,
+                         &ConteneurControles::debute_changement_controle);
 
         QObject::connect(controle,
                          &ControlePropriete::controle_change,
-                         m_conteneur,
+                         conteneur,
                          &ConteneurControles::ajourne_manipulable);
+
+        QObject::connect(controle,
+                         &ControlePropriete::termine_changement_controle,
+                         conteneur,
+                         &ConteneurControles::termine_changement_controle);
     }
 }
 
@@ -346,8 +349,8 @@ void AssembleurDisposition::cree_controles_proprietes_extra()
         return;
     }
 
-    auto debut = m_manipulable->debut();
-    auto fin = m_manipulable->fin();
+    auto debut = m_donnees.manipulable->debut();
+    auto fin = m_donnees.manipulable->fin();
 
     for (auto iter = debut; iter != fin; ++iter) {
         auto const prop = iter->second;
@@ -383,7 +386,7 @@ void AssembleurDisposition::ajoute_bouton()
     }
 
     Bouton *bouton = new Bouton;
-    bouton->installe_repondant(m_repondant);
+    bouton->installe_repondant(m_donnees.repondant_bouton);
 
     m_dernier_bouton = bouton;
     m_pile_dispositions.haut()->addWidget(bouton);
@@ -396,12 +399,12 @@ void AssembleurDisposition::finalise_controle()
         return;
     }
 
-    auto prop = m_manipulable->propriete(m_donnees_controle.nom);
+    auto prop = m_donnees.manipulable->propriete(m_donnees_controle.nom);
 
     /* Crée une propriété depuis la définition si aucune n'existe. */
     if (prop == nullptr) {
         prop = crée_propriété(m_donnees_controle);
-        m_manipulable->ajoute_propriete(m_donnees_controle.nom, prop);
+        m_donnees.manipulable->ajoute_propriete(m_donnees_controle.nom, prop);
     }
 
     if (m_initialisation_seule) {
@@ -537,7 +540,7 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
         return;
     }
 
-    auto menu = new MenuFiltrable(nom.c_str());
+    auto menu = new MenuFiltrable(nom.c_str(), m_donnees.parent_menu);
 
     if (!m_pile_menus.est_vide()) {
         m_pile_menus.haut()->addMenu(menu);
@@ -567,7 +570,7 @@ void AssembleurDisposition::ajoute_action()
     }
 
     auto action = new Action;
-    action->installe_repondant(m_repondant);
+    action->installe_repondant(m_donnees.repondant_bouton);
 
     /* À FAIRE : trouve une meilleure manière de procéder. */
     if (m_barre_outils) {
@@ -608,12 +611,12 @@ void AssembleurDisposition::finalise_dossier()
         return;
     }
 
-    m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
+    m_dernier_dossier->setCurrentIndex(m_donnees.manipulable->onglet_courant);
 
-    if (m_conteneur != nullptr) {
+    if (m_donnees.conteneur != nullptr) {
         QObject::connect(m_dernier_dossier,
                          &QTabWidget::currentChanged,
-                         m_conteneur,
+                         m_donnees.conteneur,
                          &ConteneurControles::onglet_dossier_change);
     }
 
@@ -671,7 +674,7 @@ void AssembleurDisposition::ajoute_barre_outils()
         delete m_barre_outils;
     }
 
-    m_barre_outils = new QToolBar;
+    m_barre_outils = new QToolBar(m_donnees.parent_barre_outils);
 }
 
 QToolBar *AssembleurDisposition::barre_outils() const

@@ -141,8 +141,14 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
     }
 
     auto resultat = ArgumentsCompilatrice();
+    auto arguments_pour_métaprogrammes = false;
 
     for (int i = 2; i < argc; ++i) {
+        if (arguments_pour_métaprogrammes) {
+            resultat.arguments_pour_métaprogrammes.ajoute(argv[i]);
+            continue;
+        }
+
         if (strcmp(argv[i], "--tests") == 0) {
             resultat.active_tests = true;
         }
@@ -179,6 +185,9 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
                 std::cerr << "Type de format de profile \"" << argv[i] << "\" inconnu\n";
                 return {};
             }
+        }
+        else if (strcmp(argv[i], "--") == 0) {
+            arguments_pour_métaprogrammes = true;
         }
         else {
             std::cerr << "Argument \"" << argv[i] << "\" inconnu\n";

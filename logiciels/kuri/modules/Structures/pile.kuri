@@ -2,46 +2,38 @@ importe Fondation
 
 Pile :: struct ($T: type_de_données) {
     données : []T
-    curseur := 0
 }
 
 détruit :: fonc (pile : &Pile(T = $T)) -> rien
 {
     déloge(pile.données)
-    pile.curseur = 0
 }
 
 empile :: fonc (pile : &Pile(T = $T), valeur : T) -> rien
 {
-    si pile.curseur == pile.données.taille {
-        taille := pile.données.taille
-        tableau_redimensionne(pile.données, taille + 1)
-    }
-
-    pile.données[pile.curseur] = valeur
-    pile.curseur += 1
+    tableau_ajoute(*pile.données, valeur)
 }
 
 dépile :: fonc (pile : &Pile(T = $T)) -> T #enligne
 {
     ret := pile.tête()
-    pile.curseur -= 1
+    pile.données.taille -= 1
     retourne ret
 }
 
 tête :: fonc (pile : &Pile(T = $T)) -> T #enligne
 {
-    retourne pile.données[pile.curseur - 1]
+    retourne pile.données[pile.données.taille - 1]
 }
 
-taille :: fonc (pile : &Pile(T = $T)) -> z32 #enligne
+taille :: fonc (pile : &Pile(T = $T)) -> z64 #enligne
 {
-    retourne pile.curseur
+    retourne pile.données.taille
 }
 
 est_vide :: fonc (pile : &Pile(T = $T)) -> bool #enligne
 {
-    retourne pile.curseur == 0
+    retourne pile.données.taille == 0
 }
 
 /* Duplique l'élément de tête.

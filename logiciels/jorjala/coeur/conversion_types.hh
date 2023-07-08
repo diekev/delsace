@@ -29,6 +29,7 @@ static TypeCible convertis_type(TypeOrig val)
 DEFINIE_FONCTION_CONVERSION_TYPE(matrice, dls::math::mat4x4f, JJL::Mat4r)
 DEFINIE_FONCTION_CONVERSION_TYPE(vecteur, dls::math::vec2f, JJL::Vec2)
 DEFINIE_FONCTION_CONVERSION_TYPE(vecteur, dls::math::vec3f, JJL::Vec3)
+DEFINIE_FONCTION_CONVERSION_TYPE(vecteur, dls::math::vec4f, JJL::Vec4)
 DEFINIE_FONCTION_CONVERSION_TYPE(couleur, dls::phys::couleur32, JJL::CouleurRVBA)
 DEFINIE_FONCTION_CONVERSION_TYPE(point, dls::math::vec3f, JJL::Point3D)
 

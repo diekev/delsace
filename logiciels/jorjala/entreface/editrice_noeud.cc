@@ -193,14 +193,14 @@ void EditriceGraphe::ajourne_état(JJL::TypeEvenement évènement)
 
 void EditriceGraphe::sors_noeud()
 {
-    repondant_commande(m_jorjala)->repond_clique("sors_noeud", "");
+    donne_repondant_commande(m_jorjala)->repond_clique("sors_noeud", "");
 }
 
 void EditriceGraphe::change_contexte(int index)
 {
     INUTILISE(index);
     auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
-    repondant_commande(m_jorjala)->repond_clique("change_contexte", valeur);
+    donne_repondant_commande(m_jorjala)->repond_clique("change_contexte", valeur);
 }
 
 void EditriceGraphe::keyPressEvent(QKeyEvent *event)
@@ -260,7 +260,7 @@ QMenu *EditriceGraphe::menu_pour_graphe()
 
     auto texte = texte_danjo_pour_menu_catégorisation(catégorisation, identifiant_graphe);
     auto donnees = cree_donnees_interface_danjo(m_jorjala, nullptr, nullptr);
-    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
 
     auto menu = gestionnaire->compile_menu_texte(donnees, texte);
     if (!menu) {
