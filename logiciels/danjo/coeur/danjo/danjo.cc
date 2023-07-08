@@ -117,8 +117,7 @@ void GestionnaireInterface::recree_menu(const dls::chaine &nom,
 QMenu *GestionnaireInterface::compile_menu_texte(DonneesInterface &donnees,
                                                  dls::chaine const &texte)
 {
-    AssembleurDisposition assembleuse(
-        donnees.manipulable, donnees.repondant_bouton, donnees.conteneur);
+    AssembleurDisposition assembleuse(donnees);
 
     auto texte_ = texte;
     auto tampon = lng::tampon_source(std::move(texte_));
@@ -162,8 +161,7 @@ QBoxLayout *GestionnaireInterface::compile_entreface_texte(DonneesInterface &don
         return nullptr;
     }
 
-    AssembleurDisposition assembleuse(
-        donnees.manipulable, donnees.repondant_bouton, donnees.conteneur, temps);
+    AssembleurDisposition assembleuse(donnees);
 
     auto texte_ = texte;
     auto tampon = lng::tampon_source(std::move(texte_));
@@ -244,7 +242,9 @@ void GestionnaireInterface::initialise_entreface_texte(Manipulable *manipulable,
         return;
     }
 
-    AssembleurDisposition assembleuse(manipulable, nullptr, nullptr, 0, true);
+    DonneesInterface donnees{};
+    donnees.manipulable = manipulable;
+    AssembleurDisposition assembleuse(donnees, 0, true);
 
     auto texte_ = texte;
     auto tampon = lng::tampon_source(std::move(texte_));
@@ -290,8 +290,7 @@ QMenu *GestionnaireInterface::pointeur_menu(const dls::chaine &nom)
 QToolBar *GestionnaireInterface::compile_barre_outils_texte(DonneesInterface &donnees,
                                                             dls::chaine const &texte)
 {
-    AssembleurDisposition assembleur(
-        donnees.manipulable, donnees.repondant_bouton, donnees.conteneur);
+    AssembleurDisposition assembleur(donnees);
 
     auto texte_ = texte;
     auto tampon = lng::tampon_source(std::move(texte_));

@@ -52,7 +52,7 @@ static const char *source_fragment = "#version 330 core\n"
                                      "uniform sampler2D image;\n"
                                      " void main()\n"
                                      "{\n"
-                                     "	vec2 flipped = vec2(UV.x, 1.0f - UV.y);\n"
+                                     "	vec2 flipped = vec2(UV.x, UV.y);\n"
                                      "	fragment_color = texture(image, flipped);\n"
                                      "}\n";
 

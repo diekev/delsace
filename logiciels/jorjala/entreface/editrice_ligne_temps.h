@@ -54,8 +54,8 @@ class EditriceLigneTemps : public BaseEditrice {
   public:
     explicit EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    EditriceLigneTemps(EditriceLigneTemps const &) = default;
-    EditriceLigneTemps &operator=(EditriceLigneTemps const &) = default;
+    EditriceLigneTemps(EditriceLigneTemps const &) = delete;
+    EditriceLigneTemps &operator=(EditriceLigneTemps const &) = delete;
 
     void ajourne_état(JJL::TypeEvenement évènement) override;
 

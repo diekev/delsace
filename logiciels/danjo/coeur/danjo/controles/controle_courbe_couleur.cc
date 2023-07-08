@@ -45,7 +45,7 @@ static QColor COULEURS_COURBES[5] = {
 
 /* ************************************************************************** */
 
-ControleCourbeCouleur::ControleCourbeCouleur(QWidget *parent) : QWidget(parent)
+ControleCourbeCouleur::ControleCourbeCouleur(QWidget *parent) : BaseControle(parent)
 {
     setMinimumSize(300, 300);
 }
@@ -186,7 +186,7 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 #endif
 }
 
-void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleCourbeCouleur::gère_clique_souris(QMouseEvent *event)
 {
     const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
     const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
@@ -222,10 +222,13 @@ void ControleCourbeCouleur::mousePressEvent(QMouseEvent *event)
 
         m_point_courant = point_courant;
         m_point_selectionne = true;
+        return RéponseÉvènement::ENTRE_EN_ÉDITION;
     }
+
+    return RéponseÉvènement::IGNORE_ÉVÈNEMENT;
 }
 
-void ControleCourbeCouleur::mouseMoveEvent(QMouseEvent *event)
+void ControleCourbeCouleur::gère_mouvement_souris(QMouseEvent *event)
 {
     if (m_point_selectionne) {
         const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
@@ -236,27 +239,29 @@ void ControleCourbeCouleur::mouseMoveEvent(QMouseEvent *event)
 
         calcule_controles_courbe(*m_courbe);
 
-        update();
-
         Q_EMIT position_changee(m_point_courant->co[POINT_CENTRE].x,
                                 m_point_courant->co[POINT_CENTRE].y);
     }
 }
 
-void ControleCourbeCouleur::mouseReleaseEvent(QMouseEvent *)
+void ControleCourbeCouleur::gère_fin_clique_souris(QMouseEvent *)
 {
     m_point_selectionne = false;
 }
 
-void ControleCourbeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
+RéponseÉvènement ControleCourbeCouleur::gère_double_clique_souris(QMouseEvent *event)
 {
     const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
     const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
+
+    Q_EMIT(debute_changement_controle());
 
     ajoute_point_courbe(*m_courbe, x, 1.0f - y);
     calcule_controles_courbe(*m_courbe);
 
     update();
+    Q_EMIT(termine_changement_controle());
+    return RéponseÉvènement::TERMINE_ÉDITION;  // À FAIRE : mauvais code
 }
 
 void ControleCourbeCouleur::ajourne_position_x(float v)

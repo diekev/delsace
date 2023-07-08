@@ -39,32 +39,20 @@ ControleProprieteEntier::ControleProprieteEntier(BasePropriete *p, int temps, QW
     : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
       m_controle(new ControleNombreEntier(this)), m_bouton(crée_bouton_échelle_valeur(this)),
       m_bouton_animation(crée_bouton_animation_controle(this)),
-      m_echelle(new ControleEchelleEntiere())
+      m_echelle(new ControleEchelleEntiere(m_controle, m_bouton))
 {
     m_agencement->addWidget(m_bouton_animation);
     m_agencement->addWidget(m_bouton);
     m_agencement->addWidget(m_controle);
     setLayout(m_agencement);
 
-    m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
+    connecte_signaux_début_fin_changement(m_controle, this);
+    connecte_signaux_début_fin_changement(m_echelle, this);
 
     connect(m_controle,
             &ControleNombreEntier::valeur_changee,
             this,
             &ControleProprieteEntier::ajourne_valeur_pointee);
-    connect(m_controle,
-            &ControleNombreEntier::prevaleur_changee,
-            this,
-            &ControleProprieteEntier::emet_precontrole_change);
-    connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteEntier::montre_echelle);
-    connect(m_echelle,
-            &ControleEchelleEntiere::valeur_changee,
-            m_controle,
-            &ControleNombreEntier::ajourne_valeur);
-    connect(m_echelle,
-            &ControleEchelleEntiere::prevaleur_changee,
-            this,
-            &ControleProprieteEntier::emet_precontrole_change);
     connect(m_bouton_animation,
             &QPushButton::pressed,
             this,
@@ -76,29 +64,22 @@ ControleProprieteEntier::~ControleProprieteEntier()
     delete m_echelle;
 }
 
-void ControleProprieteEntier::montre_echelle()
-{
-    m_echelle->valeur(m_propriete->evalue_entier(m_temps));
-    m_echelle->plage(m_controle->min(), m_controle->max());
-    m_echelle->show();
-}
-
 void ControleProprieteEntier::bascule_animation()
 {
-    Q_EMIT(precontrole_change());
-    m_animation = !m_animation;
+    émets_controle_changé_simple([this]() {
+        m_animation = !m_animation;
 
-    if (m_animation == false) {
-        m_propriete->supprime_animation();
-        m_controle->valeur(m_propriete->evalue_entier(m_temps));
-    }
-    else {
-        m_propriete->ajoute_cle(m_propriete->evalue_entier(m_temps), m_temps);
-    }
+        if (m_animation == false) {
+            m_propriete->supprime_animation();
+            m_controle->valeur(m_propriete->evalue_entier(m_temps));
+        }
+        else {
+            m_propriete->ajoute_cle(m_propriete->evalue_entier(m_temps), m_temps);
+        }
 
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
-    m_controle->marque_anime(m_animation, m_animation);
-    Q_EMIT(controle_change());
+        définit_état_bouton_animation(m_bouton_animation, m_animation);
+        m_controle->marque_anime(m_animation, m_animation);
+    });
 }
 
 void ControleProprieteEntier::finalise(const DonneesControle &donnees)

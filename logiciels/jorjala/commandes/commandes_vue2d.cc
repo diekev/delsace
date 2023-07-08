@@ -50,6 +50,11 @@
 
 class CommandeZoomCamera2D final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto camera = jorjala.caméra_2d();
@@ -72,6 +77,11 @@ class CommandePanCamera2D final : public CommandeJorjala {
     float m_vieil_y = 0.0f;
 
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     CommandePanCamera2D() = default;
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
