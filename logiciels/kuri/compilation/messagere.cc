@@ -131,10 +131,13 @@ void Messagere::commence_interception(EspaceDeTravail * /*espace*/)
 void Messagere::termine_interception(EspaceDeTravail * /*espace*/)
 {
     interception_commencee = false;
-    file_message.efface();
+    purge_messages();
 }
 
 void Messagere::purge_messages()
 {
+    POUR (file_message) {
+        const_cast<Message *>(it)->message_recu = true;
+    }
     file_message.efface();
 }

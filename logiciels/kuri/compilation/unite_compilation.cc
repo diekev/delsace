@@ -9,6 +9,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "message.hh"
 #include "metaprogramme.hh"
 #include "typage.hh"
 
@@ -161,10 +162,19 @@ static void chaine_attente_recursive(Enchaineuse &fc, UniteCompilation const *un
 
     auto attentes = unite->donne_attentes();
     fc << chaine_tabs << "Unité pour espace \"" << unite->espace->nom
-       << "\" (état : " << unite->donne_état() << ") : " << attentes.taille() << " attente(s)\n";
+       << "\" (état : " << unite->donne_état() << ")\n";
+
+    fc << chaine_tabs << "- historique :\n";
+
+    POUR (unite->donne_historique()) {
+        fc << chaine_tabs << chaine_tabs << "- " << it.état << ", " << it.raison
+           << " depuis fonction " << it.fonction << '\n';
+    }
+
+    fc << chaine_tabs << "- " << attentes.taille() << " attente(s) :\n";
 
     POUR (attentes) {
-        fc << chaine_tabs << "- " << commentaire_pour_attente(it) << '\n';
+        fc << chaine_tabs << chaine_tabs << "- " << commentaire_pour_attente(it) << '\n';
         auto attendue = unité_pour_attente(it);
         if (attendue) {
             chaine_attente_recursive(fc, attendue, tabs + 1);
@@ -238,6 +248,13 @@ void UniteCompilation::marque_prete_si_attente_resolue()
         if (!attente_est_résolue(espace, it)) {
             toutes_les_attentes_sont_résolues = false;
             continue;
+        }
+
+        /* À FAIRE : généralise. */
+        if (it.est<AttenteSurNoeudCode>()) {
+            assert(m_raison_d_etre == RaisonDEtre::ENVOIE_MESSAGE);
+            static_cast<MessageTypageCodeTermine *>(message)->code =
+                it.noeud_code().noeud->noeud_code;
         }
 
         it = {};

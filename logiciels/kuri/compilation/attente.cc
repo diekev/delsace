@@ -578,7 +578,7 @@ RAPPEL_POUR_COMMENTAIRE(message)
         {
             auto message_code = static_cast<MessageTypageCodeTermine *>(message);
             if (message_code->code) {
-                resultat << " " << message_code->code->nom << '\n';
+                resultat << " " << message_code->code->nom;
             }
             else {
                 resultat << " noeud code nom généré";
@@ -593,7 +593,9 @@ RAPPEL_POUR_COMMENTAIRE(message)
         }
     }
 
-    resultat << " (espace \"" << message->espace->nom << "\")";
+    resultat << " (espace \"" << message->espace->nom
+             << "\"); message reçu : " << (message->message_recu ? "oui" : "non") << "; adresse "
+             << message;
 
     return resultat.chaine();
 }

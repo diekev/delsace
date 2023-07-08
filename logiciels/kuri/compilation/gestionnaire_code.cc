@@ -1265,20 +1265,20 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     }
 }
 
-void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
+void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation * /*unite*/)
 {
-    auto noeud = unite->noeud;
+    //    auto noeud = unite->noeud;
 
-    POUR (*unites_en_attente.verrou_lecture()) {
-        auto attente = it->attend_sur_noeud_code(noeud);
-        if (!attente) {
-            continue;
-        }
-        assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
-        auto message = it->message;
-        static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
-        *attente = {};
-    }
+    //    POUR (*unites_en_attente.verrou_lecture()) {
+    //        auto attente = it->attend_sur_noeud_code(noeud);
+    //        if (!attente) {
+    //            continue;
+    //        }
+    //        assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
+    //        auto message = it->message;
+    //        static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
+    //        *attente = {};
+    //    }
 }
 
 void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
@@ -1320,7 +1320,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         unités_en_attente_->permute(unités_en_attente);
     }
 
-#define DEBUG_UNITES_EN_ATTENTES
+#undef DEBUG_UNITES_EN_ATTENTES
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
@@ -1334,11 +1334,11 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     static kuri::tableau<UniteCompilation *, int> nouvelles_unites;
     nouvelles_unites.efface();
     if (imprime_débogage) {
-        if (unités_en_attente.taille() == 1) {
-            auto it = unités_en_attente[0];
-            std::cerr << it->raison_d_etre() << '\n';
-            std::cerr << it->chaine_attentes_recursives() << '\n';
-        }
+        //        if (unités_en_attente.taille() == 1) {
+        //            auto it = unités_en_attente[0];
+        //            std::cerr << it->raison_d_etre() << '\n';
+        //            std::cerr << it->chaine_attentes_recursives() << '\n';
+        //        }
         // std::cerr << "-------------------- " << __func__ << '\n';
     }
     POUR (unités_en_attente) {
@@ -1416,6 +1416,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
 #endif
     POUR (unités_prêtes) {
+        it->définit_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
         ordonnanceuse->cree_tache_pour_unite(it);
     }
 
@@ -1684,23 +1685,7 @@ void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
 
 void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
 {
-    //    std::unique_lock verrou(m_mutex);
-    //    m_compilatrice->messagere->termine_interception(espace);
-
-    //    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
-
-    //    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
-
-    //    POUR (*unités_en_attente_) {
-    //        if (it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE) {
-    //            continue;
-    //        }
-
-    //        it->supprime_attentes_sur_messages();
-    //        nouvelles_unites.ajoute(it);
-    //    }
-
-    //    *unités_en_attente_ = nouvelles_unites;
+    m_compilatrice->messagere->termine_interception(espace);
 }
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
@@ -1720,7 +1705,7 @@ void GestionnaireCode::imprime_stats() const
 void GestionnaireCode::démarre_boucle_compilation()
 {
     while (true) {
-#if 1
+#if 0
         auto delta = temps_début_compilation.temps();
         imprime_débogage = delta >= 0.1;
         if (imprime_débogage) {
@@ -1739,7 +1724,7 @@ void GestionnaireCode::démarre_boucle_compilation()
         gère_choses_terminées();
         crée_tâches_pour_ordonnanceuse();
 
-#if 1
+#if 0
         imprime_débogage = false;
 #endif
     }

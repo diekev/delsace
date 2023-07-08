@@ -243,6 +243,11 @@ void Tacheronne::gere_tache()
             nombre_dodos = 0;
         }
 
+        if (tache.unite) {
+            tache.unite->définit_état(
+                UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
+        }
+
         switch (tache.genre) {
             case GenreTache::COMPILATION_TERMINEE:
             {
@@ -453,11 +458,12 @@ void Tacheronne::gere_tache()
             {
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                if (!compilatrice.messagere->est_interception_commencée()) {
+                auto messagere = compilatrice.messagere.verrou_ecriture();
+                if (!messagere->est_interception_commencée()) {
                     compilatrice.gestionnaire_code->message_recu(tache.unite->message);
                 }
                 else {
-                    compilatrice.messagere->envoie_message(tache.unite->message);
+                    messagere->envoie_message(tache.unite->message);
                 }
                 break;
             }
