@@ -89,18 +89,28 @@ struct OpérateurPour {
     Type const *type;
 };
 
+struct DonnéesAttenteNoeudCode {
+    UniteCompilation *unité = nullptr;
+    NoeudExpression *noeud = nullptr;
+};
+
+struct DonnéesAttenteMessage {
+    UniteCompilation *unité = nullptr;
+    Message *message = nullptr;
+};
+
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurInterfaceKuri = AttenteSur<IdentifiantCode *>;
 using AttenteSurMetaProgramme = AttenteSur<MetaProgramme *>;
 using AttenteSurDeclaration = AttenteSur<NoeudDeclaration *>;
 using AttenteSurSymbole = AttenteSur<NoeudExpressionReference *>;
 using AttenteSurOperateur = AttenteSur<NoeudExpression *>;
-using AttenteSurMessage = AttenteSur<Message *>;
+using AttenteSurMessage = AttenteSur<DonnéesAttenteMessage>;
 using AttenteSurRI = AttenteSur<Atome **>;
 using AttenteSurChargement = AttenteSur<FichierACharger>;
 using AttenteSurLexage = AttenteSur<FichierALexer>;
 using AttenteSurParsage = AttenteSur<FichierAParser>;
-using AttenteSurNoeudCode = AttenteSur<NoeudCode **>;
+using AttenteSurNoeudCode = AttenteSur<DonnéesAttenteNoeudCode>;
 using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 
 /** \} */
@@ -230,10 +240,10 @@ struct Attente {
         return AttenteSurOperateur{operateur};
     }
 
-    static Attente sur_message(Message *message)
+    static Attente sur_message(UniteCompilation *unité, Message *message)
     {
         assert(message);
-        return AttenteSurMessage{message};
+        return AttenteSurMessage{DonnéesAttenteMessage{unité, message}};
     }
 
     static Attente sur_ri(Atome **atome)
@@ -242,10 +252,10 @@ struct Attente {
         return AttenteSurRI{atome};
     }
 
-    static Attente sur_noeud_code(NoeudCode **code)
+    static Attente sur_noeud_code(UniteCompilation *unité, NoeudExpression *noeud)
     {
-        assert(code);
-        return AttenteSurNoeudCode{code};
+        assert(noeud);
+        return AttenteSurNoeudCode{DonnéesAttenteNoeudCode{unité, noeud}};
     }
 
     static Attente sur_opérateur_pour(Type const *type)
@@ -307,7 +317,7 @@ struct Attente {
         return std::get<AttenteSurOperateur>(attente).valeur;
     }
 
-    Message *message() const
+    DonnéesAttenteMessage message() const
     {
         assert(est<AttenteSurMessage>());
         return std::get<AttenteSurMessage>(attente).valeur;
@@ -337,7 +347,7 @@ struct Attente {
         return std::get<AttenteSurParsage>(attente).valeur.fichier;
     }
 
-    NoeudCode **noeud_code() const
+    DonnéesAttenteNoeudCode noeud_code() const
     {
         assert(est<AttenteSurNoeudCode>());
         return std::get<AttenteSurNoeudCode>(attente).valeur;
