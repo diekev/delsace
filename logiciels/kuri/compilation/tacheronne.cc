@@ -187,10 +187,19 @@ void OrdonnanceuseTache::supprime_toutes_les_taches()
     }
 }
 
-void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace)
+void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTravail *espace,
+                                                                UniteCompilation::État état)
 {
     auto predicat = [&](Tache const &tache) { return tache.espace == espace; };
     POUR (taches) {
+        for (auto &tache : it) {
+            if (tache.espace != espace) {
+                continue;
+            }
+
+            tache.unite->définit_état(état);
+        }
+
         it.efface_si(predicat);
     }
 }

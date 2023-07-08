@@ -228,3 +228,20 @@ void UniteCompilation::marque_prete_si_attente_resolue()
         marque_prete();
     }
 }
+
+const char *chaine_état_unité_compilation(UniteCompilation::État état)
+{
+#define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre)                                                  \
+    case UniteCompilation::État::Genre:                                                           \
+        return #Genre;
+    switch (état) {
+        ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
+    }
+#undef ENUMERE_ETAT_UNITE_COMPILATION_EX
+    return "ceci ne devrait pas arriver";
+}
+
+std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
+{
+    return os << chaine_état_unité_compilation(état);
+}

@@ -1333,6 +1333,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
     POUR (unités_en_attente) {
         if (it->espace->possede_erreur) {
+            it->définit_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
         }
 
@@ -1370,7 +1371,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
             continue;
         }
 
-        if (it->annule) {
+        if (it->fut_annulée()) {
             continue;
         }
 
@@ -1409,7 +1410,8 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
 
     pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
-        ordonnanceuse->supprime_toutes_les_taches_pour_espace(espace);
+        ordonnanceuse->supprime_toutes_les_taches_pour_espace(
+            espace, UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
         return kuri::DecisionIteration::Continue;
     });
 
@@ -1646,7 +1648,8 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
      * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
      * d'attente. */
     if (espace->unite_pour_code_machine) {
-        espace->unite_pour_code_machine->annule = true;
+        espace->unite_pour_code_machine->définit_état(
+            UniteCompilation::État::ANNULÉE_CAR_REMPLACÉE);
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
     }
 
