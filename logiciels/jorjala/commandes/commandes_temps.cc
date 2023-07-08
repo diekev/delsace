@@ -81,6 +81,11 @@ static void anime_image(JJL::Jorjala &jorjala)
 
 class CommandeChangementTemps final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         if (donnees.metadonnee == "va_image_debut") {

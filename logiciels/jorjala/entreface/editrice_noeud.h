@@ -49,8 +49,8 @@ class EditriceGraphe : public BaseEditrice {
   public:
     explicit EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    EditriceGraphe(EditriceGraphe const &) = default;
-    EditriceGraphe &operator=(EditriceGraphe const &) = default;
+    EditriceGraphe(EditriceGraphe const &) = delete;
+    EditriceGraphe &operator=(EditriceGraphe const &) = delete;
 
     ~EditriceGraphe() override;
 

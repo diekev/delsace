@@ -30,7 +30,7 @@
 
 static constexpr auto DECALAGE_PIXEL = 4;
 
-ControleNombreEntier::ControleNombreEntier(QWidget *parent) : QWidget(parent)
+ControleNombreEntier::ControleNombreEntier(QWidget *parent) : BaseControle(parent)
 {
     auto metriques = this->fontMetrics();
     setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
@@ -56,7 +56,8 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
 
     painter.setPen(QColor(255, 255, 255));
 
-    const auto &texte = ((m_edition && m_tampon != "") ? m_tampon : QString::number(m_valeur)) +
+    const auto &texte = ((m_en_édition_texte && m_tampon != "") ? m_tampon :
+                                                                  QString::number(m_valeur)) +
                         m_suffixe;
 
     auto metriques = this->fontMetrics();
@@ -73,7 +74,7 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
     int largeur = metriques.horizontalAdvance(texte);
     int hauteur = metriques.height();
 
-    if (m_edition) {
+    if (m_en_édition_texte) {
         painter.drawLine(DECALAGE_PIXEL + largeur,
                          static_cast<int>(static_cast<float>(metriques.height()) * 0.25f),
                          DECALAGE_PIXEL + largeur,
@@ -88,67 +89,39 @@ void ControleNombreEntier::paintEvent(QPaintEvent *)
                      static_cast<int>(static_cast<float>(hauteur) * 1.25f));
 }
 
-void ControleNombreEntier::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleNombreEntier::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() == Qt::MouseButton::LeftButton) {
-        QApplication::setOverrideCursor(Qt::SplitHCursor);
-        m_vieil_x = event->pos().x();
-        m_souris_pressee = true;
-        m_premier_changement = true;
-        event->accept();
-        update();
-    }
+    QApplication::setOverrideCursor(Qt::SplitHCursor);
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void ControleNombreEntier::mouseDoubleClickEvent(QMouseEvent *event)
+RéponseÉvènement ControleNombreEntier::gère_double_clique_souris(QMouseEvent *event)
 {
-    m_edition = true;
     m_tampon = "";
-    event->accept();
-    update();
-    setFocus();
+    return RéponseÉvènement::ENTRE_EN_ÉDITION_TEXTE;
 }
 
-void ControleNombreEntier::mouseMoveEvent(QMouseEvent *event)
+void ControleNombreEntier::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (m_souris_pressee) {
-        const auto x = event->pos().x();
-        m_valeur += (x - m_vieil_x);
-        m_valeur = std::max(m_min, std::min(m_valeur, m_max));
-        m_vieil_x = x;
+    const auto x = event->pos().x();
+    m_valeur += (x - m_vieil_x);
+    m_valeur = std::max(m_min, std::min(m_valeur, m_max));
+    m_vieil_x = x;
 
-        if (m_premier_changement) {
-            Q_EMIT(prevaleur_changee());
-            m_premier_changement = false;
-        }
-
-        Q_EMIT(valeur_changee(m_valeur));
-
-        if (m_anime) {
-            m_temps_exact = true;
-        }
-
-        update();
-        event->accept();
+    if (m_anime) {
+        m_temps_exact = true;
     }
+
+    Q_EMIT(valeur_changee(m_valeur));
 }
 
-void ControleNombreEntier::mouseReleaseEvent(QMouseEvent *event)
+void ControleNombreEntier::gère_fin_clique_souris(QMouseEvent *event)
 {
     QApplication::restoreOverrideCursor();
-
-    event->accept();
-    m_souris_pressee = false;
 }
 
-void ControleNombreEntier::keyPressEvent(QKeyEvent *event)
+RéponseÉvènement ControleNombreEntier::gère_entrée_clavier(QKeyEvent *event)
 {
-    if (m_edition == false) {
-        return;
-    }
-
-    event->accept();
-
     switch (event->key()) {
         case Qt::Key_Minus:
             if (m_tampon.isEmpty()) {
@@ -201,11 +174,10 @@ void ControleNombreEntier::keyPressEvent(QKeyEvent *event)
                 Q_EMIT(valeur_changee(m_valeur));
             }
 
-            m_edition = false;
-            break;
+            return RéponseÉvènement::TERMINE_ÉDITION;
     }
 
-    update();
+    return RéponseÉvènement::CONTINUE_ÉDITION_TEXTE;
 }
 
 void ControleNombreEntier::ajourne_plage(int min, int max)

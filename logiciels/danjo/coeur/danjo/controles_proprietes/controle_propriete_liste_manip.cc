@@ -132,42 +132,40 @@ void ControleProprieteListeManip::init_arbre()
 void ControleProprieteListeManip::ajoute_manipulable()
 {
     std::cerr << __func__ << '\n';
-    Q_EMIT(precontrole_change());
-    m_pointeur->manipulables.ajoute(Manipulable());
-    m_manipulable_courant = &m_pointeur->manipulables.back();
-    m_index_courant = m_pointeur->manipulables.taille() - 1;
+    émets_controle_changé_simple([this]() {
+        m_pointeur->manipulables.ajoute(Manipulable());
+        m_manipulable_courant = &m_pointeur->manipulables.back();
+        m_index_courant = m_pointeur->manipulables.taille() - 1;
 
-    init_arbre();
-
-    Q_EMIT(controle_change());
+        init_arbre();
+    });
 }
 
 void ControleProprieteListeManip::enleve_manipulable()
 {
-    Q_EMIT(precontrole_change());
     std::cerr << __func__ << '\n';
-    auto index = m_index_courant;
+    émets_controle_changé_simple([this]() {
+        auto index = m_index_courant;
 
-    if (m_pointeur->manipulables.taille() == 0) {
-        return;
-    }
+        if (m_pointeur->manipulables.taille() == 0) {
+            return;
+        }
 
-    m_pointeur->manipulables.erase(m_pointeur->manipulables.debut() + index);
+        m_pointeur->manipulables.erase(m_pointeur->manipulables.debut() + index);
 
-    if (index >= m_pointeur->manipulables.taille()) {
-        m_index_courant = m_pointeur->manipulables.taille() - 1;
-    }
+        if (index >= m_pointeur->manipulables.taille()) {
+            m_index_courant = m_pointeur->manipulables.taille() - 1;
+        }
 
-    if (m_pointeur->manipulables.est_vide()) {
-        m_manipulable_courant = nullptr;
-    }
-    else {
-        m_manipulable_courant = &m_pointeur->manipulables[m_index_courant];
-    }
+        if (m_pointeur->manipulables.est_vide()) {
+            m_manipulable_courant = nullptr;
+        }
+        else {
+            m_manipulable_courant = &m_pointeur->manipulables[m_index_courant];
+        }
 
-    init_arbre();
-
-    Q_EMIT(controle_change());
+        init_arbre();
+    });
 }
 
 void ControleProprieteListeManip::monte_manipulable()

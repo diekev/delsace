@@ -32,6 +32,8 @@
 #    if defined(__GNUC__)
 #        pragma GCC diagnostic push
 #        pragma GCC diagnostic ignored "-Wold-style-cast"
+#        pragma GCC diagnostic ignored "-Wcast-function-type"
+#        pragma GCC diagnostic ignored "-Weffc++"
 #    endif
 #    include "ipa/jorjala.hh"
 #    if defined(__GNUC__)
@@ -46,13 +48,11 @@ struct DonneesInterface;
 }  // namespace danjo
 
 class BaseEditrice;
-class FenetrePrincipale;
 class RepondantCommande;
 class TaskNotifier;
 class UsineCommande;
 
 struct DonnéesProgramme {
-    FenetrePrincipale *fenetre_principale = nullptr;
     BaseEditrice *editrice_active = nullptr;
     danjo::GestionnaireInterface *gestionnaire_danjo = nullptr;
     UsineCommande *usine_commande = nullptr;
@@ -71,11 +71,11 @@ inline JJL::Jorjala extrait_jorjala(std::any const &any)
     return std::any_cast<JJL::Jorjala>(any);
 }
 
-DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala);
+DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala);
 
-RepondantCommande *repondant_commande(JJL::Jorjala &jorjala);
+RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala);
 
-danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala);
+danjo::GestionnaireInterface *donne_gestionnaire_danjo(JJL::Jorjala &jorjala);
 
 danjo::DonneesInterface cree_donnees_interface_danjo(
     JJL::Jorjala &jorjala,
@@ -232,21 +232,6 @@ struct Jorjala : public Sujette {
     Reseau reseau{};
 
     void ajourne_pour_nouveau_temps(const char *message);
-
-    struct EtatLogiciel {
-        BaseDeDonnees bdd{};
-    };
-
-    dls::pile<EtatLogiciel> pile_defait{};
-    dls::pile<EtatLogiciel> pile_refait{};
-
-    EtatLogiciel etat_courant();
-
-    void empile_etat();
-
-    void defait();
-
-    void refait();
 };
 
 inline Jorjala *extrait_jorjala(std::any const &any)

@@ -37,11 +37,13 @@
 #endif
 
 class BarreDeProgres;
-class BaseEditrice;
+class VueRegion;
 
 namespace JJL {
 class Jorjala;
 }
+
+class QLabel;
 
 class FenetrePrincipale : public QMainWindow {
     Q_OBJECT
@@ -49,15 +51,18 @@ class FenetrePrincipale : public QMainWindow {
     JJL::Jorjala &m_jorjala;
 
     BarreDeProgres *m_barre_progres = nullptr;
+    QLabel *m_texte_état = nullptr;
     QToolBar *m_barre_outil = nullptr;
 
-    QVector<BaseEditrice *> m_editrices{};
+    QVector<VueRegion *> m_régions{};
 
   public:
     explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    FenetrePrincipale(FenetrePrincipale const &) = default;
-    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    FenetrePrincipale(FenetrePrincipale const &) = delete;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = delete;
+
+    void définit_texte_état(const QString &texte);
 
   public Q_SLOTS:
     void image_traitee();
@@ -71,16 +76,22 @@ class FenetrePrincipale : public QMainWindow {
     void tache_terminee();
     void evaluation_debutee(const QString &message, int execution, int total);
 
+    /** Si des changements existe dans la session courante, affiche une boîte de dialogue pour
+     * demander à l'utilisateur si les changments doivent être sauvegardés ou non.
+     * Retourne faux si l'utilisateur demande d'annuler. Si l'on retourne vrai, nous pouvons
+     * continuer de faire ce que nous voulions. */
+    bool demande_permission_avant_de_fermer();
+
   private:
-    QDockWidget *ajoute_dock(QString const &nom,
-                             int type,
-                             int aire,
-                             QDockWidget *premier = nullptr);
     void genere_barre_menu();
     void genere_menu_prereglages();
     void charge_reglages();
     void ecrit_reglages() const;
     void closeEvent(QCloseEvent *) override;
 
+    void construit_interface_depuis_jorjala();
+
     bool eventFilter(QObject *, QEvent *) override;
+
+    void keyPressEvent(QKeyEvent *) override;
 };

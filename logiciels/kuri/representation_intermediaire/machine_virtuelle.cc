@@ -719,6 +719,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_arguments_ligne_de_commande)) {
+        kuri::tableau_statique<kuri::chaine_statique> arguments =
+            compilatrice.arguments.arguments_pour_métaprogrammes;
+        empile(site, arguments);
+        return;
+    }
+
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->donnees_externe;
 

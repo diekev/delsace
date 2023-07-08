@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
-class ControleTeinteCouleur : public QWidget {
+class ControleTeinteCouleur : public BaseControle {
   public:
     explicit ControleTeinteCouleur(QWidget *parent = nullptr);
 
