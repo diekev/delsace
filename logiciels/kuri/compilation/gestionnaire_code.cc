@@ -1392,9 +1392,6 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
          * avons un, la compilation ne peut se terminée. */
         if (it->pour_metaprogramme()) {
             ok = false;
-            if (imprime_débogage) {
-                std::cerr << "it->pour_metaprogramme()\n";
-            }
             continue;
         }
 
