@@ -49,6 +49,11 @@
 
 class CommandeZoomCamera3D : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto const delta = donnees.y;
@@ -67,6 +72,11 @@ class CommandeTourneCamera3D : public CommandeJorjala {
 
   public:
     CommandeTourneCamera3D() = default;
+
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
@@ -106,6 +116,11 @@ class CommandePanCamera3D : public CommandeJorjala {
   public:
     CommandePanCamera3D() = default;
 
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         INUTILISE(jorjala);
@@ -139,6 +154,11 @@ class CommandePanCamera3D : public CommandeJorjala {
 
 class CommandeSurvoleScene : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
 #if 0
@@ -194,6 +214,11 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 
   public:
     CommandeDeplaceManipulatrice() = default;
+
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+      return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {

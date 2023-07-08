@@ -891,8 +891,36 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
 			imprime_type(enchaineuse, info_arg.type_pointé)
 		}
 		FONCTION {
-		    // À FAIRE : types paramètres
-			ajoute_au_tampon(enchaineuse, "fonction()")
+			info_fonction := info comme *InfoTypeFonction
+
+			si info_fonction.est_coroutine {
+				ajoute_au_tampon(enchaineuse, "corout")
+			}
+			sinon {
+				ajoute_au_tampon(enchaineuse, "fonc")
+			}
+
+			virgule := "("
+			saufsi info_fonction.types_entrée {
+				ajoute_au_tampon(enchaineuse, virgule)
+			}
+			sinon pour info_fonction.types_entrée {
+				ajoute_au_tampon(enchaineuse, virgule)
+				imprime_type(enchaineuse, it)
+				virgule = ", "
+			}
+			ajoute_au_tampon(enchaineuse, ")")
+
+			virgule = "("
+			saufsi info_fonction.types_sortie {
+				ajoute_au_tampon(enchaineuse, virgule)
+			}
+			sinon pour info_fonction.types_sortie {
+				ajoute_au_tampon(enchaineuse, virgule)
+				imprime_type(enchaineuse, it)
+				virgule = ", "
+			}
+			ajoute_au_tampon(enchaineuse, ")")
 		}
 		EINI {
 			ajoute_au_tampon(enchaineuse, "eini")

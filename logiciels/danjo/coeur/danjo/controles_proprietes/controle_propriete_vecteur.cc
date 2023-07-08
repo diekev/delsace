@@ -63,26 +63,6 @@ BaseControleProprieteVecteur::BaseControleProprieteVecteur(BasePropriete *p,
     }
 }
 
-void BaseControleProprieteVecteur::montre_echelle_0()
-{
-    montre_echelle(0);
-}
-
-void BaseControleProprieteVecteur::montre_echelle_1()
-{
-    montre_echelle(1);
-}
-
-void BaseControleProprieteVecteur::montre_echelle_2()
-{
-    montre_echelle(2);
-}
-
-void BaseControleProprieteVecteur::montre_echelle_3()
-{
-    montre_echelle(3);
-}
-
 /* ************************************************************************* */
 
 ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *p,
@@ -98,9 +78,7 @@ ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *
 
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i] = new ControleNombreDecimal(this);
-
-        m_echelle[i] = new ControleEchelleDecimale();
-        m_echelle[i]->setWindowFlags(Qt::WindowStaysOnTopHint);
+        m_echelle[i] = new ControleEchelleDecimale(m_dim[i], m_bouton_echelle_dim[i]);
     }
 
     m_agencement->addWidget(m_bouton_animation);
@@ -127,36 +105,9 @@ ControleProprieteVecteurDecimal::ControleProprieteVecteurDecimal(BasePropriete *
 #undef CONNECT_VALEUR_CHANGEE
 
     for (int i = 0; i < m_dimensions; i++) {
-        connect(m_dim[i],
-                &ControleNombreDecimal::prevaleur_changee,
-                this,
-                &ControleProprieteVecteurDecimal::emet_precontrole_change);
-
-        connect(m_echelle[i],
-                &ControleEchelleDecimale::valeur_changee,
-                m_dim[i],
-                &ControleNombreDecimal::ajourne_valeur);
-
-        connect(m_echelle[i],
-                &ControleEchelleDecimale::prevaleur_changee,
-                this,
-                &ControleProprieteVecteurDecimal::emet_precontrole_change);
+        connecte_signaux_début_fin_changement(m_dim[i], this);
+        connecte_signaux_début_fin_changement(m_echelle[i], this);
     }
-
-#define CONNECT_MONTRE_ECHELLE(dim, func)                                                         \
-    if (m_bouton_echelle_dim[dim]) {                                                              \
-        connect(m_bouton_echelle_dim[dim],                                                        \
-                &QPushButton::pressed,                                                            \
-                this,                                                                             \
-                &ControleProprieteVecteurDecimal::func);                                          \
-    }
-
-    CONNECT_MONTRE_ECHELLE(0, montre_echelle_0);
-    CONNECT_MONTRE_ECHELLE(1, montre_echelle_1);
-    CONNECT_MONTRE_ECHELLE(2, montre_echelle_2);
-    CONNECT_MONTRE_ECHELLE(3, montre_echelle_3);
-
-#undef CONNECT_MONTRE_ECHELLE
 
     connect(m_bouton_animation,
             &QPushButton::pressed,
@@ -240,13 +191,6 @@ void ControleProprieteVecteurDecimal::ajourne_valeur_3(float valeur)
     Q_EMIT(controle_change());
 }
 
-void ControleProprieteVecteurDecimal::montre_echelle(int index)
-{
-    m_echelle[index]->valeur(m_dim[index]->valeur());
-    m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
-    m_echelle[index]->show();
-}
-
 void ControleProprieteVecteurDecimal::ajourne_valeurs_controles()
 {
     float valeurs[4];
@@ -288,8 +232,7 @@ ControleProprieteVecteurEntier::ControleProprieteVecteurEntier(BasePropriete *p,
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i] = new ControleNombreEntier(this);
 
-        m_echelle[i] = new ControleEchelleEntiere();
-        m_echelle[i]->setWindowFlags(Qt::WindowStaysOnTopHint);
+        m_echelle[i] = new ControleEchelleEntiere(m_dim[i], m_bouton_echelle_dim[i]);
     }
 
     m_agencement->addWidget(m_bouton_animation);
@@ -316,36 +259,9 @@ ControleProprieteVecteurEntier::ControleProprieteVecteurEntier(BasePropriete *p,
 #undef CONNECT_VALEUR_CHANGEE
 
     for (int i = 0; i < m_dimensions; i++) {
-        connect(m_dim[i],
-                &ControleNombreEntier::prevaleur_changee,
-                this,
-                &ControleProprieteVecteurEntier::emet_precontrole_change);
-
-        connect(m_echelle[i],
-                &ControleEchelleEntiere::valeur_changee,
-                m_dim[i],
-                &ControleNombreEntier::ajourne_valeur);
-
-        connect(m_echelle[i],
-                &ControleEchelleEntiere::prevaleur_changee,
-                this,
-                &ControleProprieteVecteurEntier::emet_precontrole_change);
+        connecte_signaux_début_fin_changement(m_dim[i], this);
+        connecte_signaux_début_fin_changement(m_echelle[i], this);
     }
-
-#define CONNECT_MONTRE_ECHELLE(dim, func)                                                         \
-    if (m_bouton_echelle_dim[dim]) {                                                              \
-        connect(m_bouton_echelle_dim[dim],                                                        \
-                &QPushButton::pressed,                                                            \
-                this,                                                                             \
-                &ControleProprieteVecteurEntier::func);                                           \
-    }
-
-    CONNECT_MONTRE_ECHELLE(0, montre_echelle_0);
-    CONNECT_MONTRE_ECHELLE(1, montre_echelle_1);
-    CONNECT_MONTRE_ECHELLE(2, montre_echelle_2);
-    CONNECT_MONTRE_ECHELLE(3, montre_echelle_3);
-
-#undef CONNECT_MONTRE_ECHELLE
 
     connect(m_bouton_animation,
             &QPushButton::pressed,
@@ -427,13 +343,6 @@ void ControleProprieteVecteurEntier::ajourne_valeur_3(int valeur)
 {
     ajourne_valeur(3, valeur);
     Q_EMIT(controle_change());
-}
-
-void ControleProprieteVecteurEntier::montre_echelle(int index)
-{
-    m_echelle[index]->valeur(m_dim[index]->valeur());
-    m_echelle[index]->plage(m_dim[index]->min(), m_dim[index]->max());
-    m_echelle[index]->show();
 }
 
 void ControleProprieteVecteurEntier::ajourne_valeurs_controles()

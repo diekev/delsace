@@ -30,7 +30,7 @@
 
 static constexpr auto DECALAGE_PIXEL = 4;
 
-ControleNombreDecimal::ControleNombreDecimal(QWidget *parent) : QWidget(parent)
+ControleNombreDecimal::ControleNombreDecimal(QWidget *parent) : BaseControle(parent)
 {
     auto metriques = this->fontMetrics();
     setFixedHeight(static_cast<int>(static_cast<float>(metriques.height()) * 1.5f));
@@ -56,7 +56,7 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
 
     painter.setPen(QColor(255, 255, 255));
 
-    const auto &texte = ((m_edition && m_tampon != "") ?
+    const auto &texte = ((m_en_édition_texte && m_tampon != "") ?
                              m_tampon :
                              QString::number(static_cast<double>(m_valeur), 'g', 6)) +
                         m_suffixe;
@@ -75,7 +75,7 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
     int largeur = metriques.horizontalAdvance(texte);
     int hauteur = metriques.height();
 
-    if (m_edition) {
+    if (m_en_édition_texte) {
         painter.drawLine(DECALAGE_PIXEL + largeur,
                          static_cast<int>(static_cast<float>(hauteur) * 0.25f),
                          DECALAGE_PIXEL + largeur,
@@ -90,82 +90,54 @@ void ControleNombreDecimal::paintEvent(QPaintEvent *)
                      static_cast<int>(static_cast<float>(hauteur) * 1.25f));
 }
 
-void ControleNombreDecimal::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleNombreDecimal::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() == Qt::MouseButton::LeftButton) {
-        QApplication::setOverrideCursor(Qt::SplitHCursor);
-        m_vieil_x = event->pos().x();
-        m_souris_pressee = true;
-        m_premier_changement = true;
-        event->accept();
-        update();
-    }
+    QApplication::setOverrideCursor(Qt::SplitHCursor);
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void ControleNombreDecimal::mouseDoubleClickEvent(QMouseEvent *event)
+RéponseÉvènement ControleNombreDecimal::gère_double_clique_souris(QMouseEvent *event)
 {
-    m_edition = true;
     m_tampon = "";
-    update();
-    setFocus();
-    event->accept();
+    return RéponseÉvènement::ENTRE_EN_ÉDITION_TEXTE;
 }
 
-void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
+void ControleNombreDecimal::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (m_souris_pressee) {
-        const auto x = event->pos().x();
+    const auto x = event->pos().x();
 
-        auto delta = static_cast<float>(x - m_vieil_x) * m_inv_precision;
+    auto delta = static_cast<float>(x - m_vieil_x) * m_inv_precision;
 
-        /* protection contre -0.0f */
-        if (delta == 0.0f) {
-            delta = 0.0f;
-        }
-
-        m_valeur += delta;
-
-        /* protection contre -0.0f */
-        if (m_valeur == 0.0f) {
-            m_valeur = 0.0f;
-        }
-
-        m_valeur = std::max(m_min, std::min(m_valeur, m_max));
-
-        m_vieil_x = x;
-
-        if (m_anime) {
-            m_temps_exacte = true;
-        }
-
-        if (m_premier_changement) {
-            Q_EMIT(prevaleur_changee());
-            m_premier_changement = false;
-        }
-
-        Q_EMIT(valeur_changee(m_valeur));
-
-        update();
-        event->accept();
+    /* protection contre -0.0f */
+    if (delta == 0.0f) {
+        delta = 0.0f;
     }
+
+    m_valeur += delta;
+
+    /* protection contre -0.0f */
+    if (m_valeur == 0.0f) {
+        m_valeur = 0.0f;
+    }
+
+    m_valeur = std::max(m_min, std::min(m_valeur, m_max));
+
+    m_vieil_x = x;
+
+    if (m_anime) {
+        m_temps_exacte = true;
+    }
+
+    Q_EMIT(valeur_changee(m_valeur));
 }
 
-void ControleNombreDecimal::mouseReleaseEvent(QMouseEvent *event)
+void ControleNombreDecimal::gère_fin_clique_souris(QMouseEvent *event)
 {
     QApplication::restoreOverrideCursor();
-
-    m_souris_pressee = false;
-    event->accept();
 }
 
-void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
+RéponseÉvènement ControleNombreDecimal::gère_entrée_clavier(QKeyEvent *event)
 {
-    if (m_edition == false) {
-        return;
-    }
-
-    event->accept();
-
     switch (event->key()) {
         case Qt::Key_Minus:
             if (m_tampon.isEmpty()) {
@@ -217,15 +189,13 @@ void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
                 if (m_anime) {
                     m_temps_exacte = true;
                 }
-                Q_EMIT(prevaleur_changee());
                 Q_EMIT(valeur_changee(m_valeur));
             }
 
-            m_edition = false;
-            break;
+            return RéponseÉvènement::TERMINE_ÉDITION;
     }
 
-    update();
+    return RéponseÉvènement::CONTINUE_ÉDITION_TEXTE;
 }
 
 void ControleNombreDecimal::marque_anime(bool ouinon, bool temps_exacte)

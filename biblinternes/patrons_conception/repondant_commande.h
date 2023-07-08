@@ -49,9 +49,9 @@ public:
 
 	bool appele_commande(dls::chaine const &categorie, DonneesCommande const &donnees_commande);
 
-	void ajourne_commande_modale(DonneesCommande const &donnees_commande);
+    bool ajourne_commande_modale(DonneesCommande const &donnees_commande);
 
-	void acheve_commande_modale(DonneesCommande const &donnees_commande);
+    bool acheve_commande_modale(DonneesCommande const &donnees_commande);
 
 	bool evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
 

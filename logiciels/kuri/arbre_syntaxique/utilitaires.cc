@@ -1556,14 +1556,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 nombre_iterations,
                 valeur_un);
 
-            auto iterations = assem->cree_declaration_variable(
-                it->lexeme, expression_iteree->type, nullptr, nombre_iterations);
-            auto ref_iterations = assem->cree_reference_declaration(it->lexeme, iterations);
-            bloc_pre->ajoute_expression(iterations);
-            bloc_pre->ajoute_membre(iterations);
-
             /* condition */
-
             if (inverse_boucle) {
                 std::swap(expr_debut, expr_fin);
             }
@@ -1571,32 +1564,9 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->ajoute_expression(init_it);
 
-            if (iterations->type->est_entier_naturel()) {
-                /* Compare avec (iterations == 0 || iterations >= expr_fin), dans le cas où
-                 * expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
-                auto op_comp = iterations->type->operateur_egt;
-                auto condition1 = assem->cree_expression_binaire(
-                    inst->lexeme, op_comp, ref_iterations, zero);
-
-                op_comp = iterations->type->operateur_seg;
-                auto condition2 = assem->cree_expression_binaire(
-                    inst->lexeme, op_comp, ref_iterations, expr_fin);
-
-                static const Lexeme lexeme_ou = {",", {}, GenreLexeme::BARRE_BARRE, 0, 0, 0};
-                auto conjonction = assem->cree_expression_binaire(&lexeme_ou);
-                conjonction->operande_gauche = condition1;
-                conjonction->operande_droite = condition2;
-
-                condition->condition = conjonction;
-            }
-            else {
-                /* Compare avec (iterations <= 0), dans le cas où expr_fin < (expr_debut + 1). */
-                zero = assem->cree_litterale_entier(it->lexeme, iterations->type, 0);
-                auto op_comp = iterations->type->operateur_ieg;
-                condition->condition = assem->cree_expression_binaire(
-                    inst->lexeme, op_comp, ref_iterations, zero);
-            }
+            auto op_comp = index_it->type->operateur_seg;
+            condition->condition = assem->cree_expression_binaire(
+                inst->lexeme, op_comp, ref_index, nombre_iterations);
             boucle->bloc->ajoute_expression(condition);
 
             /* corps */
@@ -1614,9 +1584,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             auto inc_it = assem->cree_incrementation(ref_index->lexeme, ref_index);
             bloc_inc->ajoute_expression(inc_it);
-
-            auto dec_iterations = assem->cree_decrementation(ref_it->lexeme, ref_iterations);
-            bloc_inc->ajoute_expression(dec_iterations);
 
             break;
         }
@@ -2699,12 +2666,12 @@ void NoeudBloc::fusionne_membres(NoeudBloc *de)
     }
 }
 
-NoeudDeclaration *NoeudBloc::membre_pour_index(int index)
+NoeudDeclaration *NoeudBloc::membre_pour_index(int index) const
 {
     return membres->a(index);
 }
 
-NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche)
+NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;
@@ -2721,7 +2688,7 @@ NoeudDeclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident
     return nullptr;
 }
 
-NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr)
+NoeudDeclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
 {
     auto membres_ = membres.verrou_lecture();
     nombre_recherches += 1;

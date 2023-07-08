@@ -37,7 +37,7 @@ enum class RaisonDEtre : unsigned char {
 #undef ENUMERE_RAISON_D_ETRE_EX
 };
 
-const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre);
+const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
 struct UniteCompilation {

@@ -51,6 +51,7 @@ set(ENTETES_POUR_QT
     barre_progres.hh
     base_editrice.h
 #   editrice_arborescence.hh
+    editrice_attributs.hh
     editrice_ligne_temps.h
     editrice_noeud.h
 #   editrice_rendu.h
@@ -58,6 +59,7 @@ set(ENTETES_POUR_QT
     editrice_vue3d.h
     fenetre_principale.h
     tache.h
+    vue_region.hh
 )
 
 if(Qt6_FOUND)
@@ -256,6 +258,7 @@ add_library(${NOM_CIBLE} STATIC
 
         ${ENTETES_POUR_QT}
         chef_execution.hh
+        dialogues.hh
         gestion_entreface.hh
 
         graphe/item_noeud.cc
@@ -269,7 +272,9 @@ add_library(${NOM_CIBLE} STATIC
         barre_progres.cc
         base_editrice.cc
         chef_execution.cc
+        dialogues.cc
 #	editrice_arborescence.cc
+        editrice_attributs.cc
         editrice_ligne_temps.cc
         editrice_noeud.cc
         editrice_proprietes.cc
@@ -279,6 +284,7 @@ add_library(${NOM_CIBLE} STATIC
 	fenetre_principale.cc
         gestion_entreface.cc
         tache.cc
+        vue_region.cc
 
 	${FICHIERS_DANJO}
 	${NUANCEURS}

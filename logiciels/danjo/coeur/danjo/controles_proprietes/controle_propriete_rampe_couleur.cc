@@ -46,8 +46,9 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
     : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
       m_agencement_nombre(new QHBoxLayout()), m_entrepolation(new QComboBox(this)),
       m_controle_rampe(new ControleRampeCouleur(this)),
-      m_bouton_echelle(crée_bouton_échelle_valeur(this)), m_echelle(new ControleEchelleDecimale()),
-      m_pos(new ControleNombreDecimal(this)), m_controle_couleur(new ControleCouleur(this))
+      m_bouton_echelle(crée_bouton_échelle_valeur(this)), m_pos(new ControleNombreDecimal(this)),
+      m_echelle(new ControleEchelleDecimale(m_pos, m_bouton_echelle)),
+      m_controle_couleur(new ControleCouleur(this))
 {
     m_entrepolation->addItem("RVB");
     m_entrepolation->addItem("HSV");
@@ -59,8 +60,6 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
     m_agencement_nombre->addWidget(m_pos);
     m_agencement_nombre->addWidget(m_controle_couleur);
     m_agencement_principal->addLayout(m_agencement_nombre);
-
-    m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
 
     connect(
         m_entrepolation, SIGNAL(currentIndexChanged(int)), this, SLOT(ajourne_entrepolation(int)));
@@ -79,16 +78,6 @@ ControleProprieteRampeCouleur::ControleProprieteRampeCouleur(BasePropriete *p,
             &ControleRampeCouleur::controle_ajoute,
             this,
             &ControleProprieteRampeCouleur::controle_ajoute);
-
-    connect(m_bouton_echelle,
-            &QPushButton::pressed,
-            this,
-            &ControleProprieteRampeCouleur::montre_echelle);
-
-    connect(m_echelle,
-            &ControleEchelleDecimale::valeur_changee,
-            m_pos,
-            &ControleNombreDecimal::ajourne_valeur);
 
     connect(m_pos,
             &ControleNombreDecimal::valeur_changee,
@@ -122,13 +111,6 @@ void ControleProprieteRampeCouleur::finalise(const DonneesControle &donnees)
     }
 
     setToolTip(donnees.infobulle.c_str());
-}
-
-void ControleProprieteRampeCouleur::montre_echelle()
-{
-    m_echelle->valeur(m_pos->valeur());
-    m_echelle->plage(m_pos->min(), m_pos->max());
-    m_echelle->show();
 }
 
 void ControleProprieteRampeCouleur::ajourne_position(float x)

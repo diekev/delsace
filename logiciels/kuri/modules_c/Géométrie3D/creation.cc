@@ -120,7 +120,7 @@ void cree_boite(Maillage &maillage,
 /* ************************************************************************** */
 
 /* utilisé pour déboguer les algorithmes de déduplications de doublons */
-#define GENERE_DOUBLONS
+#undef GENERE_DOUBLONS
 
 template <typename T>
 auto sphere(const T u, const T v, const T rayon)
@@ -260,31 +260,39 @@ void cree_sphere_uv(Maillage &maillage,
 
     /* triangles du haut */
     poly[0] = 0;
-    poly[1] = 1 + resolution_u - 2;
-    poly[2] = 1;
 
-    for (auto i = 0; i < resolution_v; ++i) {
+    for (auto i = 0; i < resolution_u; ++i) {
+        poly[1] = (i + 1) * (resolution_v - 1);
+        poly[2] = i * (resolution_v - 1);
+
         poly[1] %= nombre_points;
         poly[2] %= nombre_points;
 
-        maillage.ajouteUnPolygone(poly, 3);
+        /* Décalage de 1 pour prendre en compte le premier point. */
+        poly[1] += 1;
+        poly[2] += 1;
 
-        poly[2] = poly[1];
-        poly[1] = poly[2] + resolution_u - 2;
+        maillage.ajouteUnPolygone(poly, 3);
     }
 
     /* quads du centre */
-    for (int i = 0; i < resolution_u - 2; i++) {
+    for (int i = 0; i <= resolution_u; i++) {
         for (int j = 0; j < resolution_v - 2; j++) {
-            poly[0] = 1 + i * (resolution_u - 2) + j;
-            poly[1] = 1 + (i + 1) * (resolution_u - 2) + j;
-            poly[2] = 1 + (i + 1) * (resolution_u - 2) + j + 1;
-            poly[3] = 1 + i * (resolution_u - 2) + j + 1;
+            poly[0] = i * (resolution_v - 1) + j;
+            poly[1] = (i + 1) * (resolution_v - 1) + j;
+            poly[2] = (i + 1) * (resolution_v - 1) + j + 1;
+            poly[3] = i * (resolution_v - 1) + j + 1;
 
             poly[0] %= nombre_points;
             poly[1] %= nombre_points;
             poly[2] %= nombre_points;
             poly[3] %= nombre_points;
+
+            /* Décalage de 1 pour prendre en compte le premier point. */
+            poly[0] += 1;
+            poly[1] += 1;
+            poly[2] += 1;
+            poly[3] += 1;
 
             maillage.ajouteUnPolygone(poly, 4);
         }
@@ -292,17 +300,19 @@ void cree_sphere_uv(Maillage &maillage,
 
     /* triangles du bas */
     poly[0] = nombre_points + 1;
-    poly[1] = 1 + resolution_v - 2;
-    poly[2] = poly[1] + resolution_u - 2;
 
-    for (auto i = 0; i < resolution_v; ++i) {
+    for (auto i = 0; i < resolution_u; ++i) {
+        poly[1] = i * (resolution_v - 1) + resolution_v - 2;
+        poly[2] = (i + 1) * (resolution_v - 1) + resolution_v - 2;
+
         poly[1] %= nombre_points;
         poly[2] %= nombre_points;
 
-        maillage.ajouteUnPolygone(poly, 3);
+        /* Décalage de 1 pour prendre en compte le premier point. */
+        poly[1] += 1;
+        poly[2] += 1;
 
-        poly[1] = poly[2];
-        poly[2] = poly[1] + resolution_u - 2;
+        maillage.ajouteUnPolygone(poly, 3);
     }
 #endif
 }

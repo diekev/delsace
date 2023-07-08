@@ -27,6 +27,7 @@ set(INCLUSIONS
 
 set(ENTETES_POUR_QT
     controles/action.h
+    controles/base_controle.hh
     controles/bouton.h
     controles/controle_couleur.h
     controles/controle_couleur_tsv.h
@@ -103,6 +104,7 @@ set(ENTETES
 
 set(SOURCES
 	controles/action.cc
+        controles/base_controle.cc
 	controles/bouton.cc
 	controles/controle_couleur.cc
 	controles/controle_couleur_tsv.cc
@@ -161,6 +163,7 @@ set(SOURCES
 	repondant_bouton.cc
 
 	controles/action.h
+        controles/base_controle.hh
 	controles/bouton.h
 	controles/controle_couleur.h
 	controles/controle_couleur_tsv.h
