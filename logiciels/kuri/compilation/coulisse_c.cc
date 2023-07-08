@@ -2102,9 +2102,24 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
+    auto possede_erreur = false;
 
-    kuri::tablet<pid_t, 16> enfants;
+#    ifndef NDEBUG
+    POUR (m_fichiers) {
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
 
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+        if (system(commande.pointeur()) != 0) {
+            possede_erreur = true;
+            break;
+        }
+    }
+#    else
     POUR (m_fichiers) {
         kuri::chaine nom_sortie = it.chemin_fichier_objet;
         if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
@@ -2123,7 +2138,6 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         enfants.ajoute(child_pid);
     }
 
-    auto possede_erreur = false;
     POUR (enfants) {
         int etat;
         if (waitpid(it, &etat, 0) != it) {
@@ -2141,6 +2155,8 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
             continue;
         }
     }
+#    endif
+    kuri::tablet<pid_t, 16> enfants;
 
     if (possede_erreur) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
