@@ -40,16 +40,29 @@ enum class RaisonDEtre : unsigned char {
 const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
+#define ENUMERE_ETAT_UNITE_COMPILATION(O)                                                         \
+    O(EN_COURS_DE_COMPILATION)                                                                    \
+    O(EN_ATTENTE)                                                                                 \
+    O(ANNULÉE_CAR_REMPLACÉE)                                                                      \
+    O(ANNULÉE_CAR_MESSAGERIE_FERMÉE)                                                              \
+    O(ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR)
+
 struct UniteCompilation {
+    enum class État : uint8_t {
+#define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre) Genre,
+        ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
+#undef ENUMERE_ETAT_UNITE_COMPILATION_EX
+    };
+
     int index_courant = 0;
     int index_precedent = 0;
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
     bool tag = false;
-    bool annule = false;
 
   private:
+    État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
     kuri::tableau<Attente> m_attentes{};
@@ -77,12 +90,14 @@ struct UniteCompilation {
         m_attentes.ajoute(attente);
         m_prete = false;
         cycle = 0;
+        état = État::EN_ATTENTE;
         assert(attente.est_valide());
     }
 
     void marque_prete()
     {
         m_prete = true;
+        état = État::EN_COURS_DE_COMPILATION;
         m_attentes.efface();
         cycle = 0;
     }
@@ -90,6 +105,23 @@ struct UniteCompilation {
     bool est_prete() const
     {
         return m_prete;
+    }
+
+    void définit_état(État nouvelle_état)
+    {
+        état = nouvelle_état;
+    }
+
+    État donne_état() const
+    {
+        return état;
+    }
+
+    bool fut_annulée() const
+    {
+        return état == État::ANNULÉE_CAR_MESSAGERIE_FERMÉE ||
+               état == État::ANNULÉE_CAR_REMPLACÉE ||
+               état == État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR;
     }
 
     void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
@@ -166,3 +198,6 @@ struct UniteCompilation {
 
     Attente const *première_attente_bloquée_ou_non() const;
 };
+
+const char *chaine_état_unité_compilation(UniteCompilation::État état);
+std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
