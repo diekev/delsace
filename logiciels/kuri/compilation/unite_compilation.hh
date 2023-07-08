@@ -47,6 +47,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
     O(ANNULÉE_CAR_MESSAGERIE_FERMÉE)                                                              \
     O(ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR)
 
+#undef ENREGISTRE_HISTORIQUE
+
 struct UniteCompilation {
     enum class État : uint8_t {
 #define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre) Genre,
@@ -61,6 +63,16 @@ struct UniteCompilation {
     mutable int cycle = 0;
     bool tag = false;
 
+    /* Données pour l'historique de compilation de cette unité. */
+    struct Historique {
+        /* L'état lors de cet enregistrement. */
+        État état{};
+        /* La raison d'être lors de cet enregistrement. */
+        RaisonDEtre raison{};
+        /* La fonction qui a ajouté cet enregistrement. */
+        const char *fonction{};
+    };
+
   private:
     État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
@@ -69,6 +81,8 @@ struct UniteCompilation {
 
     /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
     mutable int id_phase_cycle = 0;
+
+    kuri::tableau<Historique> m_historique{};
 
   public:
     EspaceDeTravail *espace = nullptr;
@@ -92,6 +106,9 @@ struct UniteCompilation {
         cycle = 0;
         état = État::EN_ATTENTE;
         assert(attente.est_valide());
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     void marque_prete()
@@ -100,6 +117,9 @@ struct UniteCompilation {
         état = État::EN_COURS_DE_COMPILATION;
         m_attentes.efface();
         cycle = 0;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     bool est_prete() const
@@ -110,6 +130,9 @@ struct UniteCompilation {
     void définit_état(État nouvelle_état)
     {
         état = nouvelle_état;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     État donne_état() const
@@ -127,11 +150,19 @@ struct UniteCompilation {
     void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
     {
         m_raison_d_etre = nouvelle_raison;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     RaisonDEtre raison_d_etre() const
     {
         return m_raison_d_etre;
+    }
+
+    kuri::tableau_statique<Historique> donne_historique() const
+    {
+        return m_historique;
     }
 
     inline Attente *attend_sur_message(Message const *message_)
