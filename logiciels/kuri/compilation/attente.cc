@@ -554,7 +554,8 @@ RAPPEL_POUR_COMMENTAIRE(message)
 
 RAPPEL_POUR_EST_RÉSOLUE(message)
 {
-    return false;
+    auto message = attente.message();
+    return message->message_recu;
 }
 
 InfoTypeAttente info_type_attente_sur_message = {nullptr,
