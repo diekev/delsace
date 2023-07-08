@@ -2120,6 +2120,8 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         }
     }
 #    else
+    kuri::tablet<pid_t, 16> enfants;
+
     POUR (m_fichiers) {
         kuri::chaine nom_sortie = it.chemin_fichier_objet;
         if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
@@ -2156,7 +2158,6 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         }
     }
 #    endif
-    kuri::tablet<pid_t, 16> enfants;
 
     if (possede_erreur) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
