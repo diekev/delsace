@@ -149,16 +149,35 @@ void UniteCompilation::rapporte_erreur() const
     émets_erreur_pour_attente(this, *attente);
 }
 
+static dls::chaine donne_chaine_tabulation(int tabs)
+{
+    static std::string tabulations(1024, ' ');
+    return tabulations.substr(0, static_cast<size_t>(tabs));
+}
+
+static void chaine_attente_recursive(Enchaineuse &fc, UniteCompilation const *unite, int tabs)
+{
+    auto const chaine_tabs = donne_chaine_tabulation(tabs * 4);
+
+    auto attentes = unite->donne_attentes();
+    fc << chaine_tabs << "Unité pour espace \"" << unite->espace->nom
+       << "\" (état : " << unite->donne_état() << ") : " << attentes.taille() << " attente(s)\n";
+
+    POUR (attentes) {
+        fc << chaine_tabs << "- " << commentaire_pour_attente(it) << '\n';
+        auto attendue = unité_pour_attente(it);
+        if (attendue) {
+            chaine_attente_recursive(fc, attendue, tabs + 1);
+        }
+    }
+}
+
 kuri::chaine UniteCompilation::chaine_attentes_recursives() const
 {
     Enchaineuse fc;
 
 #if 1
-    fc << m_attentes.taille() << " attente(s)\n";
-
-    POUR (m_attentes) {
-        fc << "- " << commentaire_pour_attente(it) << '\n';
-    }
+    chaine_attente_recursive(fc, this, 0);
 #else
     auto attente = première_attente_bloquée();
     assert(attente);

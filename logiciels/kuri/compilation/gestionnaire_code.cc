@@ -1329,6 +1329,11 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     static kuri::tableau<UniteCompilation *, int> nouvelles_unites;
     nouvelles_unites.efface();
     if (imprime_débogage) {
+        if (unités_en_attente.taille() == 1) {
+            auto it = unités_en_attente[0];
+            std::cerr << it->raison_d_etre() << '\n';
+            std::cerr << it->chaine_attentes_recursives() << '\n';
+        }
         // std::cerr << "-------------------- " << __func__ << '\n';
     }
     POUR (unités_en_attente) {
