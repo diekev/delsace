@@ -1609,16 +1609,25 @@ void GestionnaireCode::démarre_boucle_compilation()
 
 void GestionnaireCode::gère_choses_terminées()
 {
-    std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
+    static kuri::tableau<UniteCompilation *> unités_terminées{};
+    static kuri::tableau<AttenteEspace> attentes_à_résoudre{};
+    {
+        std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
 
-    POUR (m_attentes_à_résoudre) {
+        attentes_à_résoudre.efface();
+        m_attentes_à_résoudre.permute(attentes_à_résoudre);
+
+        unités_terminées.efface();
+        m_unités_terminées.permute(unités_terminées);
+    }
+
+    POUR (attentes_à_résoudre) {
         ajoute_requêtes_pour_attente(it.espace, it.attente);
     }
-    m_attentes_à_résoudre.efface();
 
     // std::cerr << "unités terminées : " << m_unités_terminées.taille() << '\n';
 
-    POUR (m_unités_terminées) {
+    POUR (unités_terminées) {
         switch (it->raison_d_etre()) {
             case RaisonDEtre::AUCUNE:
             {
@@ -1687,26 +1696,27 @@ void GestionnaireCode::gère_choses_terminées()
             }
         }
     }
-
-    m_unités_terminées.efface();
 }
 
 void GestionnaireCode::ajoute_types_dans_graphe()
 {
-    auto types_à_insérer_dans_graphe =
-        m_compilatrice->typeuse.types_à_insérer_dans_graphe.verrou_ecriture();
+    static kuri::tableau<Typeuse::DonnéesInsertionTypeGraphe, int> types_à_insérer_dans_graphe;
+    {
+        auto types_à_insérer_dans_graphe_ =
+            m_compilatrice->typeuse.types_à_insérer_dans_graphe.verrou_ecriture();
 
-    if (types_à_insérer_dans_graphe->est_vide()) {
-        return;
+        if (types_à_insérer_dans_graphe_->est_vide()) {
+            return;
+        }
+        types_à_insérer_dans_graphe.efface();
+        types_à_insérer_dans_graphe_->permute(types_à_insérer_dans_graphe);
     }
 
     auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
 
-    POUR (*types_à_insérer_dans_graphe) {
+    POUR (types_à_insérer_dans_graphe) {
         graphe->connecte_type_type(it.type_parent, it.type_enfant);
     }
-
-    types_à_insérer_dans_graphe->efface();
 }
 
 void GestionnaireCode::gère_requête_compilations_métaprogrammes()
@@ -1723,7 +1733,12 @@ void GestionnaireCode::gère_requête_compilations_métaprogrammes()
 
 void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 {
-    auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
+    static kuri::tableau<UniteCompilation *, int> unités_en_attente{};
+    {
+        auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
+        unités_en_attente.efface();
+        unités_en_attente_->permute(unités_en_attente);
+    }
 
     // XXX - la suppression des tâches des espaces erronés plus bas est ignorée
     //    if (unités_en_attente_->est_vide()) {
@@ -1739,9 +1754,11 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
 #endif
 
-    kuri::tableau<UniteCompilation *, int> unités_prêtes;
-    kuri::tableau<UniteCompilation *, int> nouvelles_unites;
-    POUR (*unités_en_attente_) {
+    static kuri::tableau<UniteCompilation *, int> unités_prêtes;
+    unités_prêtes.efface();
+    static kuri::tableau<UniteCompilation *, int> nouvelles_unites;
+    nouvelles_unites.efface();
+    POUR (unités_en_attente) {
         if (it->espace->possede_erreur) {
             continue;
         }
@@ -1753,7 +1770,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 
             if (it->est_bloquee()) {
                 it->rapporte_erreur();
-                unités_en_attente_->efface();
+                unites_en_attente->efface();
                 m_compilatrice->ordonnanceuse->supprime_toutes_les_taches();
                 return;
             }
@@ -1811,7 +1828,12 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         return kuri::DecisionIteration::Continue;
     });
 
-    *unités_en_attente_ = nouvelles_unites;
+    {
+        auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
+        POUR (nouvelles_unites) {
+            unités_en_attente_->ajoute(it);
+        }
+    }
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
