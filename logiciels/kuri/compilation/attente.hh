@@ -91,7 +91,7 @@ struct OpérateurPour {
 
 struct DonnéesAttenteNoeudCode {
     UniteCompilation *unité = nullptr;
-    NoeudCode **noeud_code = nullptr;
+    NoeudExpression *noeud = nullptr;
 };
 
 struct DonnéesAttenteMessage {
@@ -252,10 +252,10 @@ struct Attente {
         return AttenteSurRI{atome};
     }
 
-    static Attente sur_noeud_code(UniteCompilation *unité, NoeudCode **code)
+    static Attente sur_noeud_code(UniteCompilation *unité, NoeudExpression *noeud)
     {
-        assert(code);
-        return AttenteSurNoeudCode{DonnéesAttenteNoeudCode{unité, code}};
+        assert(noeud);
+        return AttenteSurNoeudCode{DonnéesAttenteNoeudCode{unité, noeud}};
     }
 
     static Attente sur_opérateur_pour(Type const *type)

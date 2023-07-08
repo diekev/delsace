@@ -153,10 +153,10 @@ struct UniteCompilation {
         }
     }
 
-    inline Attente *attend_sur_noeud_code(NoeudCode **code)
+    inline Attente *attend_sur_noeud_code(NoeudExpression *noeud_)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurNoeudCode>() && it.noeud_code().noeud_code == code) {
+            if (it.est<AttenteSurNoeudCode>() && it.noeud_code().noeud == noeud_) {
                 return &it;
             }
         }

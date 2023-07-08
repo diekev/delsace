@@ -699,7 +699,7 @@ RAPPEL_POUR_COMMENTAIRE(noeud_code)
 RAPPEL_POUR_EST_RÉSOLUE(noeud_code)
 {
     auto données_noeud_code = attente.noeud_code();
-    return *données_noeud_code.noeud_code != nullptr;
+    return données_noeud_code.noeud->noeud_code != nullptr;
 }
 
 InfoTypeAttente info_type_attente_sur_noeud_code = {NOM_RAPPEL_POUR_UNITÉ(noeud_code),
