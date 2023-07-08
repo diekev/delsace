@@ -104,10 +104,14 @@ struct ConvertisseuseTypeC {
 
         switch (type->genre) {
             case GenreType::POLYMORPHIQUE:
-            case GenreType::ENTIER_CONSTANT:
             {
                 /* Aucun typedef. */
                 return;
+            }
+            case GenreType::ENTIER_CONSTANT:
+            {
+                type_c.typedef_ = "int32_t";
+                break;
             }
             case GenreType::ERREUR:
             case GenreType::ENUM:
@@ -128,21 +132,21 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::BOOL:
             {
-                type_c.typedef_ = "unsigned char";
+                type_c.typedef_ = "uint8_t";
                 break;
             }
             case GenreType::OCTET:
             {
-                type_c.typedef_ = "unsigned char";
+                type_c.typedef_ = "uint8_t";
                 break;
             }
             case GenreType::ENTIER_NATUREL:
             {
                 if (type->taille_octet == 1) {
-                    type_c.typedef_ = "unsigned char";
+                    type_c.typedef_ = "uint8_t";
                 }
                 else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "unsigned short";
+                    type_c.typedef_ = "uint16_t";
                 }
                 else if (type->taille_octet == 4) {
                     type_c.typedef_ = "uint32_t";
@@ -156,13 +160,13 @@ struct ConvertisseuseTypeC {
             case GenreType::ENTIER_RELATIF:
             {
                 if (type->taille_octet == 1) {
-                    type_c.typedef_ = "char";
+                    type_c.typedef_ = "int8_t";
                 }
                 else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "short";
+                    type_c.typedef_ = "int16_t";
                 }
                 else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "int";
+                    type_c.typedef_ = "int32_t";
                 }
                 else if (type->taille_octet == 8) {
                     type_c.typedef_ = "int64_t";
@@ -178,7 +182,7 @@ struct ConvertisseuseTypeC {
             case GenreType::REEL:
             {
                 if (type->taille_octet == 2) {
-                    type_c.typedef_ = "unsigned short";
+                    type_c.typedef_ = "uint16_t";
                 }
                 else if (type->taille_octet == 4) {
                     type_c.typedef_ = "float";
@@ -673,11 +677,11 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
 #endif
     enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
-    enchaineuse << "typedef unsigned char bool;\n";
+    enchaineuse << "typedef uint8_t bool;\n";
     enchaineuse << "#endif\n";
-    enchaineuse << "typedef unsigned char octet;\n";
+    enchaineuse << "typedef uint8_t octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef char ** KPKPKsz8;\n";
+    enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
     /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      *  de LibC dont les arguments variadiques ne sont pas typés */
     enchaineuse << "#define Kv ...\n\n";
@@ -1812,8 +1816,12 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         os << ";\n";
     }
 
-    vide_enchaineuse_dans_fichier(coulisse, os);
-    os << "#include \"compilation_kuri.h\"\n";
+    /* Vide l'enchaineuse sauf si nous compilons un fichier objet car nous devons n'avoir qu'un
+     * seul fichier "*.o". */
+    if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
+        os << "#include \"compilation_kuri.h\"\n";
+    }
 
     /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
      * fichiers. */
@@ -1830,8 +1838,10 @@ void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales
         genere_code_fonction(it, os);
         nombre_instructions += nombre_effectif_d_instructions(*it);
 
-        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions. */
-        if (nombre_instructions > nombre_instructions_max_par_fichier) {
+        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions, sauf si nous
+         * compilons un fichier objet car nous devons n'avoir qu'un seul fichier "*.o". */
+        if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET &&
+            nombre_instructions > nombre_instructions_max_par_fichier) {
             vide_enchaineuse_dans_fichier(coulisse, os);
             os << "#include \"compilation_kuri.h\"\n";
             nombre_instructions = 0;
@@ -2092,12 +2102,33 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
 
 #ifndef CMAKE_BUILD_TYPE_PROFILE
     auto debut_fichier_objet = dls::chrono::compte_seconde();
+    auto possede_erreur = false;
 
+#    ifndef NDEBUG
+    POUR (m_fichiers) {
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
+
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+        if (system(commande.pointeur()) != 0) {
+            possede_erreur = true;
+            break;
+        }
+    }
+#    else
     kuri::tablet<pid_t, 16> enfants;
 
     POUR (m_fichiers) {
-        auto commande = commande_pour_fichier_objet(
-            espace.options, it.chemin_fichier, it.chemin_fichier_objet);
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
+
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
         std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
 
         auto child_pid = fork();
@@ -2109,7 +2140,6 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
         enfants.ajoute(child_pid);
     }
 
-    auto possede_erreur = false;
     POUR (enfants) {
         int etat;
         if (waitpid(it, &etat, 0) != it) {
@@ -2127,6 +2157,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
             continue;
         }
     }
+#    endif
 
     if (possede_erreur) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");

@@ -4,6 +4,7 @@ Constantes :: struct ($T: type_de_données) {
     LOG10E : T : 0.434294481903251827651128918916605082 /* log_10 e */
     LN2 : T : 0.693147180559945309417232121458176568 /* log_e 2 */
     LN10 : T : 2.302585092994045684017991454684364208 /* log_e 10 */
+    TAU : T : 6.283185307179586476925286766559005768 /* tau */
     PI : T : 3.141592653589793238462643383279502884 /* pi */
     PI_2 : T : 1.570796326794896619231321691639751442 /* pi/2 */
     PI_4 : T : 0.785398163397448309615660845819875721 /* pi/4 */
@@ -16,25 +17,36 @@ Constantes :: struct ($T: type_de_données) {
 
 /* --------------------------------------------------------- */
 
-Degrés :: #opaque r32
-Radians :: #opaque r32
+Degrés :: #opaque $T
+Radians :: #opaque $T
 
-vers_degrés :: fonc (a: Radians) -> Degrés #enligne
+vers_degrés :: fonc (a: Radians($T)) -> Degrés(T) #enligne
 {
-    retourne Degrés(a comme r32 * 180.0 / Constantes(r32).PI)
+    retourne Degrés(a comme T * 180.0 / Constantes(T).PI)
 }
 
+// À FAIRE(langage) : collision entre polymorphes
 vers_degrés :: fonc (a: r32) -> r32 #enligne
 {
     retourne a * 180.0 / Constantes(r32).PI
 }
 
-vers_radians :: fonc (a: Degrés) -> Radians #enligne
+vers_radians :: fonc (a: Degrés($T)) -> Radians(T) #enligne
 {
-    retourne Radians(a comme r32 * Constantes(r32).PI / 180.0)
+    retourne Radians(a comme T * Constantes(T).PI / 180.0)
 }
 
+// À FAIRE(langage) : collision entre polymorphes
 vers_radians :: fonc (a: r32) -> r32 #enligne
 {
     retourne a * Constantes(r32).PI / 180.0
+}
+
+/* Retourne des degrés entre 0 et 360. Par exemple, si les degrés == 360, retourne 10. */
+normalise :: fonc (d: Degrés($T)) -> Degrés(T) #enligne
+{
+    v := d comme T
+    v /= 360.0
+    _, fraction := part_entière_et_fraction(v)
+    retourne Degrés(fraction * 360.0)
 }

@@ -71,8 +71,8 @@ class MoteurRendu {
 
     virtual ~MoteurRendu();
 
-    MoteurRendu(MoteurRendu const &) = default;
-    MoteurRendu &operator=(MoteurRendu const &) = default;
+    MoteurRendu(MoteurRendu const &) = delete;
+    MoteurRendu &operator=(MoteurRendu const &) = delete;
 
     void camera(JJL::Camera3D camera);
 

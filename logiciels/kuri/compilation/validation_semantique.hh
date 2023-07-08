@@ -31,6 +31,7 @@ struct NoeudEnum;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionMembre;
+struct NoeudPour;
 struct NoeudRetour;
 struct NoeudStruct;
 struct Tacheronne;
@@ -207,4 +208,6 @@ struct ContexteValidationCode {
                                                   const Lexeme *lexeme);
 
     MetaProgramme *cree_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
+
+    ResultatValidation valide_instruction_pour(NoeudPour *inst);
 };

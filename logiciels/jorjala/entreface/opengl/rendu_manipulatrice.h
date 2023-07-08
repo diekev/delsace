@@ -50,8 +50,8 @@ class RenduManipulatricePosition {
      */
     RenduManipulatricePosition();
 
-    RenduManipulatricePosition(RenduManipulatricePosition const &) = default;
-    RenduManipulatricePosition &operator=(RenduManipulatricePosition const &) = default;
+    RenduManipulatricePosition(RenduManipulatricePosition const &) = delete;
+    RenduManipulatricePosition &operator=(RenduManipulatricePosition const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et
@@ -89,8 +89,8 @@ class RenduManipulatriceEchelle {
      */
     RenduManipulatriceEchelle();
 
-    RenduManipulatriceEchelle(RenduManipulatriceEchelle const &) = default;
-    RenduManipulatriceEchelle &operator=(RenduManipulatriceEchelle const &) = default;
+    RenduManipulatriceEchelle(RenduManipulatriceEchelle const &) = delete;
+    RenduManipulatriceEchelle &operator=(RenduManipulatriceEchelle const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et
@@ -127,8 +127,8 @@ class RenduManipulatriceRotation {
      */
     RenduManipulatriceRotation();
 
-    RenduManipulatriceRotation(RenduManipulatriceRotation const &) = default;
-    RenduManipulatriceRotation &operator=(RenduManipulatriceRotation const &) = default;
+    RenduManipulatriceRotation(RenduManipulatriceRotation const &) = delete;
+    RenduManipulatriceRotation &operator=(RenduManipulatriceRotation const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et

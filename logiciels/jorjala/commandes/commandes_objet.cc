@@ -98,6 +98,11 @@ static auto cree_graphe_ocean(
 
 class CommandeAjouteObjet final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override;
 };
 
@@ -132,6 +137,11 @@ int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCom
 /* ************************************************************************** */
 
 struct CommandeImportObjet final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0

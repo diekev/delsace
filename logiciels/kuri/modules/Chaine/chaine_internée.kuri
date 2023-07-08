@@ -14,7 +14,6 @@ TypeChaineInternée :: union {
     chn_utf32: ChaineUTF32
 }
 
-// À FAIRE(langage) : les accès à des membres d'unions échoues
 // À FAIRE(langage) : les discriminations sur des types pointeurs échoues
 // À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type membre, pour éviter les paniques en cas de membre non-actif
 
@@ -126,14 +125,12 @@ opérateur > :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
  * C'est de la responsabilité de l'appelante de libérer la mémoire allouée. */
 chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
 {
-    // À FAIRE(langage) : l'accès à des unions membres de structures échoue
-    type_chaine := chaine_internée.chn
-    discr type_chaine {
-        chn_native {
-            retourne copie_chaine(type_chaine.chn_native)
+    discr chaine_internée.chn {
+        chn_native(chn) {
+            retourne copie_chaine(chn)
         }
-        chn_utf32 {
-            retourne converti_vers_chaine(type_chaine.chn_utf32)
+        chn_utf32(chn) {
+            retourne converti_vers_chaine(chn)
         }
         sinon {
             retourne copie_chaine("")
@@ -145,42 +142,32 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
 
 imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *ChaineInternée)
 {
-    type_chaine := chaine_internée.chn
-    discr type_chaine {
-        chn_native {
-            ajoute_au_tampon(enchaineuse, type_chaine.chn_native)
+    discr chaine_internée.chn {
+        chn_native(chn) {
+            ajoute_au_tampon(enchaineuse, chn)
         }
-        chn_utf32 {
-            imprime_chaine_utf32(enchaineuse, *type_chaine.chn_utf32)
+        chn_utf32(chn) {
+            imprime_chaine_utf32(enchaineuse, *chn)
         }
         sinon {}
     }
 } @FormattageImpression
 
-// Empreinte DJB2
 calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 {
-    empreinte : n64 = 5381
-
     discr type_chaine {
         chn_native {
             chn_utf32 := crée_chaine_utf32(type_chaine.chn_native)
-            pour chn_utf32.points_de_code {
-                /* empreinte * 33 + c */
-                empreinte = ((empreinte << 5) + empreinte) + it comme n64
-            }
-            détruit_chaine(chn_utf32)
+            diffère détruit_chaine(chn_utf32)
+            retourne calcule_empreinte_djb2(chn_utf32)
         }
         chn_utf32 {
-            pour type_chaine.chn_utf32.points_de_code {
-                /* empreinte * 33 + c */
-                empreinte = ((empreinte << 5) + empreinte) + it comme n64
-            }
+            retourne calcule_empreinte_djb2(type_chaine.chn_utf32)
         }
         sinon {}
     }
 
-    retourne empreinte
+    retourne 0
 }
 
 table_des_chaines : Table(TypeChaineInternée, *ChaineInternée, calcule_empreinte)

@@ -3,6 +3,10 @@ importe Fondation
 // ------------------------------------
 // vecteurs de nombres réels
 
+/* ------------------------------------------------------------------------- */
+/* Vecteur 2D
+ * \{ */
+
 Vec2 :: struct {
     x := 0.0  @mutable
     y := 0.0  @mutable
@@ -15,54 +19,125 @@ new_Vec2_pour_python :: fonc (vec: *Vec2, x: r32, y: r32) -> bool
     retourne vrai
 } @Python "new"
 
-str_adresse_courriel_pour_python :: fonc (v: *Vec2) -> chaine
+str_Vec2_pour_python :: fonc (v: *Vec2) -> chaine
 {
     retourne imprime_chaine("Vec2(%, %)", v.x, v.y)
 } @Python "str"
-
-opérateur == :: fonc (u: Vec2, v: Vec2) -> bool
-{
-    retourne u.x == v.x && u.y == v.y
-}
-
-opérateur != :: fonc (u: Vec2, v: Vec2) -> bool
-{
-    retourne !(u == v)
-}
-
-opérateur + :: fonc (u: Vec2, v: Vec2) -> Vec2
-{
-    retourne Vec2(u.x + v.x, u.y + v.y)
-}
-
-opérateur - :: fonc (u: Vec2, v: Vec2) -> Vec2
-{
-    retourne Vec2(u.x - v.x, u.y - v.y)
-}
 
 opérateur - :: fonc (u: Vec2) -> Vec2
 {
     retourne Vec2(-u.x, -u.y)
 }
 
-opérateur * :: fonc (u: Vec2, v: Vec2) -> Vec2
+opérateur * :: fonc (v1: Vec2, v2: Vec2) -> Vec2
 {
-    retourne Vec2(u.x * v.x, u.y * v.y)
+    résultat := v1
+    multiplie_vn_vn(*résultat.x, *v2.x, 2)
+    retourne résultat
 }
 
-opérateur * :: fonc (u: Vec2, v: r32) -> Vec2
+opérateur * :: fonc (v1: Vec2, v: r32) -> Vec2
 {
-    retourne Vec2(u.x * v, u.y * v)
+    résultat : Vec2
+    si v != 0.0 {
+        résultat = v1
+        multiplie_vn_s(*résultat.x, v, 2)
+    }
+    retourne résultat
 }
 
-opérateur / :: fonc (u: Vec2, v: Vec2) -> Vec2
+opérateur / :: fonc (v1: Vec2, v2: Vec2) -> Vec2
 {
-    retourne Vec2(u.x / v.x, u.y / v.y)
+    résultat : Vec2
+    divise_vn_vn(*résultat.x, *v2.x, 2)
+    retourne résultat
 }
 
-opérateur / :: fonc (u: Vec2, v: r32) -> Vec2
+opérateur / :: fonc (v1: Vec2, v: r32) -> Vec2
 {
-    retourne Vec2(u.x / v, u.y / v)
+    résultat : Vec2
+    divise_vn_s(*résultat.x, v, 2)
+    retourne résultat
+}
+
+opérateur / :: fonc (v: r32, v1: Vec2) -> Vec2
+{
+    résultat : Vec2
+    réciproque_vn_s(*résultat.x, 2)
+    retourne résultat
+}
+
+opérateur + :: fonc (v1: Vec2, v2: Vec2) -> Vec2
+{
+    résultat : Vec2 = v1
+    ajoute_vn_vn(*résultat.x, *v2.x, 2)
+    retourne résultat
+}
+
+opérateur + :: fonc (v1: Vec2, v: r32) -> Vec2
+{
+    résultat : Vec2 = v1
+    ajoute_vn_s(*résultat.x, v, 2)
+    retourne résultat
+}
+
+opérateur - :: fonc (v1: Vec2, v2: Vec2) -> Vec2
+{
+    résultat : Vec2 = v1
+    soustrait_vn_vn(*résultat.x, *v2.x, 2)
+    retourne résultat
+}
+
+opérateur - :: fonc (v1: Vec2, v: r32) -> Vec2
+{
+    résultat : Vec2 = v1
+    ajoute_vn_s(*résultat.x, -v, 2)
+    retourne résultat
+}
+
+opérateur == :: fonc (v1: Vec2, v2: Vec2) -> bool
+{
+    retourne sont_égaux_vn_vn(*v1.x, *v2.x, 2)
+}
+
+opérateur == :: fonc (v1: Vec2, s: r32) -> bool
+{
+    retourne sont_égaux_vn_s(*v1.x, s, 2)
+}
+
+opérateur != :: fonc (v0: Vec2, v1: Vec2) -> bool
+{
+	retourne !(v0 == v1)
+}
+
+opérateur < :: fonc (v1: Vec2, s: r32) -> bool
+{
+    retourne est_inférieur_vn_s(*v1.x, s, 2)
+}
+
+opérateur > :: fonc (v1: Vec2, s: r32) -> bool
+{
+    retourne est_supérieur_vn_s(*v1.x, s, 2)
+}
+
+opérateur < :: fonc (v1: Vec2, v2: Vec2) -> bool
+{
+    retourne est_inférieur_vn_vn(*v1.x, *v2.x, 2)
+}
+
+opérateur <= :: fonc (v1: Vec2, v2: Vec2) -> bool
+{
+    retourne est_inférieur_ou_égal_vn_vn(*v1.x, *v2.x, 2)
+}
+
+opérateur > :: fonc (v1: Vec2, v2: Vec2) -> bool
+{
+    retourne est_supérieur_vn_vn(*v1.x, *v2.x, 2)
+}
+
+opérateur >= :: fonc (v1: Vec2, v2: Vec2) -> bool
+{
+    retourne est_supérieur_ou_égal_vn_vn(*v1.x, *v2.x, 2)
 }
 
 produit_scalaire :: fonc (u: Vec2, v: Vec2) -> r32
@@ -123,6 +198,12 @@ normalise :: fonc (v: Vec2) -> Vec2 #enligne
     retourne v / l
 }
 
+/* \} */
+
+/* ------------------------------------------------------------------------- */
+/* Vecteur 3D
+ * \{ */
+
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
     x: r32  @mutable
@@ -133,58 +214,11 @@ Vec3 :: struct {
 Point3 :: #opaque Vec3
 Norm3 :: #opaque Vec3
 
-crée_vec3r :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Vec3
-{
-    retourne Vec3( x = x, y = y, z = z )
-}
-
 new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
 {
     init_de(Vec3)(vec)
     retourne vrai
 } @Python "new"
-
-Vec4 :: struct {
-    x := 0.0  @mutable
-    y := 0.0  @mutable
-    z := 0.0  @mutable
-    w := 0.0  @mutable
-}
-
-produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32
-{
-    retourne u.x * v.x + u.y * v.y + u.z * v.z
-}
-
-produit_vectoriel :: fonc (u: *Vec3, v: *Vec3) -> Vec3
-{
-    résultat : Vec3
-
-    résultat.x = u.y * v.z - u.z * v.y
-    résultat.y = u.z * v.x - u.x * v.z
-    résultat.z = u.x * v.y - u.y * v.x
-
-    retourne résultat
-}
-
-produit_en_croix :: fonc (u: Vec3, v: Vec3) -> Vec3
-{
-    résultat : Vec3 = ---
-    résultat.x = u.y * v.z - u.z * v.y
-    résultat.y = u.z * v.x - u.x * v.z
-    résultat.z = u.x * v.y - u.y * v.x
-    retourne résultat
-}
-
-longueur :: fonc (u: Vec3) -> r32
-{
-    retourne racine_carrée(u.x * u.x + u.y * u.y + u.z * u.z)
-}
-
-longueur_carrée :: fonc (u: Vec3) -> r32
-{
-    retourne u.x * u.x + u.y * u.y + u.z * u.z
-}
 
 opérateur [] :: fonc (v: Vec3, index: z64) -> r32
 {
@@ -196,91 +230,80 @@ opérateur - :: fonc (v: Vec3) -> Vec3
     retourne Vec3(x = -v.x, y = -v.y, z = -v.z)
 }
 
+opérateur * :: fonc (v1: Vec3, v2: Vec3) -> Vec3
+{
+    résultat := v1
+    multiplie_vn_vn(*résultat.x, *v2.x, 3)
+    retourne résultat
+}
+
+opérateur * :: fonc (v1: Vec3, v: r32) -> Vec3
+{
+    résultat : Vec3
+    si v != 0.0 {
+        résultat = v1
+        multiplie_vn_s(*résultat.x, v, 3)
+    }
+    retourne résultat
+}
+
+opérateur / :: fonc (v1: Vec3, v2: Vec3) -> Vec3
+{
+    résultat : Vec3 = v1
+    divise_vn_vn(*résultat.x, *v2.x, 3)
+    retourne résultat
+}
+
+opérateur / :: fonc (v1: Vec3, v: r32) -> Vec3
+{
+    résultat : Vec3 = v1
+    divise_vn_s(*résultat.x, v, 3)
+    retourne résultat
+}
+
+opérateur / :: fonc (v: r32, v1: Vec3) -> Vec3
+{
+    résultat : Vec3 = v1
+    réciproque_vn_s(*résultat.x, v, 3)
+    retourne résultat
+}
+
 opérateur + :: fonc (v1: Vec3, v2: Vec3) -> Vec3
 {
-    retourne Vec3(x = v1.x + v2.x, y = v1.y + v2.y, z = v1.z + v2.z)
+    résultat : Vec3 = v1
+    ajoute_vn_vn(*résultat.x, *v2.x, 3)
+    retourne résultat
 }
 
-opérateur + :: fonc (u: Vec3, s: r32) -> Vec3
+opérateur + :: fonc (v1: Vec3, v: r32) -> Vec3
 {
-    r : Vec3 = ---
-    r.x = u.x + s
-    r.y = u.y + s
-    r.z = u.z + s
-    retourne r
-}
-
-opérateur - :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3 = ---
-    r.x = u.x - s
-    r.y = u.y - s
-    r.z = u.z - s
-    retourne r
+    résultat : Vec3 = v1
+    ajoute_vn_s(*résultat.x, v, 3)
+    retourne résultat
 }
 
 opérateur - :: fonc (v1: Vec3, v2: Vec3) -> Vec3
 {
-    retourne Vec3(x = v1.x - v2.x, y = v1.y - v2.y, z = v1.z - v2.z)
+    résultat : Vec3 = v1
+    soustrait_vn_vn(*résultat.x, *v2.x, 3)
+    retourne résultat
 }
 
-opérateur * :: fonc (u: Vec3, s: r32) -> Vec3
+opérateur - :: fonc (v1: Vec3, v: r32) -> Vec3
 {
-    r : Vec3
-
-    si s != 0.0 {
-        r.x = u.x * s
-        r.y = u.y * s
-        r.z = u.z * s
-    }
-
-    retourne r
-}
-
-opérateur / :: fonc (u: Vec3, v: Vec3) -> Vec3
-{
-    r : Vec3
-    r.x = u.x / v.x
-    r.y = u.y / v.y
-    r.z = u.z / v.z
-    retourne r
-}
-
-opérateur / :: fonc (u: Vec3, s: r32) -> Vec3
-{
-    r : Vec3
-
-    si s != 0.0 {
-        r.x = u.x / s
-        r.y = u.y / s
-        r.z = u.z / s
-    }
-
-    retourne r
-}
-
-// opérateur pour calculer des réciproques
-opérateur / :: fonc (s: r32, u: Vec3) -> Vec3
-{
-    r : Vec3
-
-    si s != 0.0 {
-        r.x = s / u.x
-        r.y = s / u.y
-        r.z = s / u.z
-    }
-
-    retourne r
+    résultat : Vec3 = v1
+    ajoute_vn_s(*résultat.x, -v, 3)
+    retourne résultat
 }
 
 opérateur == :: fonc (u: Vec3, v: Vec3) -> bool
 {
-    retourne u.x == v.x && u.y == v.y && u.z == v.z
+    retourne sont_égaux_vn_vn(*u.x, *v.x, 3)
 }
 
 opérateur == :: fonc (u: Vec3, s: r32) -> bool
 {
-    retourne u.x == s && u.y == s && u.z == s
+    retourne sont_égaux_vn_s(*u.x, s, 3)
 }
 
 opérateur != :: fonc (v0: Vec3, v1: Vec3) -> bool
@@ -290,127 +313,104 @@ opérateur != :: fonc (v0: Vec3, v1: Vec3) -> bool
 
 opérateur < :: fonc (u: Vec3, s: r32) -> bool
 {
-    retourne u.x < s && u.y < s && u.z < s
+    retourne est_inférieur_vn_s(*u.x, s, 3)
 }
 
 opérateur > :: fonc (u: Vec3, s: r32) -> bool
 {
-    retourne u.x > s && u.y > s && u.z > s
+    retourne est_supérieur_vn_s(*u.x, s, 3)
 }
 
-opérateur < :: fonc (v1: Vec3, v2: Vec3) -> bool
+opérateur < :: fonc (u: Vec3, v: Vec3) -> bool
 {
-    retourne v1.x < v2.x && v1.y < v2.y && v1.z < v2.z
+    retourne est_inférieur_vn_vn(*u.x, *v.x, 3)
 }
 
-opérateur <= :: fonc (v1: Vec3, v2: Vec3) -> bool
+opérateur <= :: fonc (u: Vec3, v: Vec3) -> bool
 {
-    retourne v1.x <= v2.x && v1.y <= v2.y && v1.z <= v2.z
+    retourne est_inférieur_ou_égal_vn_vn(*u.x, *v.x, 3)
 }
 
-opérateur > :: fonc (v1: Vec3, v2: Vec3) -> bool
+opérateur > :: fonc (u: Vec3, v: Vec3) -> bool
 {
-    retourne v1.x > v2.x && v1.y > v2.y && v1.z > v2.z
+    retourne est_supérieur_vn_vn(*u.x, *v.x, 3)
 }
 
-opérateur >= :: fonc (v1: Vec3, v2: Vec3) -> bool
+opérateur >= :: fonc (u: Vec3, v: Vec3) -> bool
 {
-    retourne v1.x >= v2.x && v1.y >= v2.y && v1.z >= v2.z
+    retourne est_supérieur_ou_égal_vn_vn(*u.x, *v.x, 3)
 }
 
-crée_vec4r :: fonc (x := 0.0, y := 0.0, z := 0.0, w := 0.0) -> Vec4
+produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32 #enligne
 {
-    retourne Vec4( x = x, y = y, z = z, w = w )
+    retourne u.x * v.x + u.y * v.y + u.z * v.z
 }
 
-multiplie :: fonc (v1: Vec4, v: r32) -> Vec4
+longueur :: fonc (u: Vec3) -> r32 #enligne
 {
-    résultat : Vec4
+    retourne racine_carrée(u.x * u.x + u.y * u.y + u.z * u.z)
+}
 
-    si v != 0.0 {
-        résultat.x = v1.x * v
-        résultat.y = v1.y * v
-        résultat.z = v1.z * v
-        résultat.z = v1.w * v
+longueur_carrée :: fonc (u: Vec3) -> r32 #enligne
+{
+    retourne produit_scalaire(u, u)
+}
+
+produit_vectoriel :: fonc (u: Vec3, v: Vec3) -> Vec3 #enligne
+{
+    résultat : Vec3 = ---
+    résultat.x = u.y * v.z - u.z * v.y
+    résultat.y = u.z * v.x - u.x * v.z
+    résultat.z = u.x * v.y - u.y * v.x
+    retourne résultat
+}
+
+produit_en_croix :: fonc (u: Vec3, v: Vec3) -> Vec3 #enligne
+{
+    retourne produit_vectoriel(u, v)
+}
+
+calcul_normal :: fonc (a: Vec3, b: Vec3) -> Norm3 #enligne
+{
+    résultat := produit_en_croix(a, b)
+    retourne Norm3(résultat)
+}
+
+calcul_normal_normalisé :: fonc (a: Vec3, b: Vec3) -> Norm3 #enligne
+{
+    nor := calcul_normal(a, b)
+    l := longueur(nor comme Vec3)
+    si l != 0.0 {
+        nor.x /= l
+        nor.y /= l
+        nor.z /= l
     }
-
-    retourne résultat
-}
-
-soustrait :: fonc (v1: Vec4, v: r32) -> Vec4
-{
-    résultat : Vec4
-
-    résultat.x = v1.x - v
-    résultat.y = v1.y - v
-    résultat.z = v1.z - v
-    résultat.z = v1.w - v
-
-    retourne résultat
-}
-
-calcul_normal :: fonc (a: Vec3, b: Vec3) -> Norm3
-{
-    nor : Norm3
-
-    nor.x = a.y * b.z - a.z * b.y
-    nor.y = a.z * b.x - a.x * b.z
-    nor.z = a.x * b.y - a.y * b.x
-
     retourne nor
 }
 
-calcul_normal_normalisé :: fonc (a: Vec3, b: Vec3) -> Norm3
-{
-    nor : Norm3
-
-    nor.x = a.y * b.z - a.z * b.y
-    nor.y = a.z * b.x - a.x * b.z
-    nor.z = a.x * b.y - a.y * b.x
-
-    l := sqrt(nor.x * nor.x + nor.y * nor.y + nor.z * nor.z)
-    nor.x /= l comme r32
-    nor.y /= l comme r32
-    nor.z /= l comme r32
-
-    retourne nor
-}
-
-normalise :: fonc (v: *Vec3) -> Vec3
-{
-    résultat := mémoire(v)
-    l := longueur(résultat)
-    retourne résultat / l
-}
-
-normalise :: fonc (v: Vec3) -> Vec3
+normalise :: fonc (v: Vec3) -> Vec3 #enligne
 {
     l := longueur(v)
     retourne v / l
 }
 
-normalise_retourne_longueur :: fonc (v: Vec3) -> Vec3, r32
+normalise_retourne_longueur :: fonc (v: Vec3) -> Vec3, r32 #enligne
 {
     l := longueur(v)
     retourne v / l, l
 }
 
-vec_depuis_nor :: fonc (n: Norm3) -> Vec3
-{
-    retourne mémoire(*n comme *Vec3)
-}
-
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
 // vecteur normal (N) pour échantillonner une capmat.
-calcul_uv_capmat :: fonc (I: *Vec3, N: *Vec3, inversé: bool) -> Vec2
+calcul_uv_capmat :: fonc (I: Vec3, N: Vec3, inversé: bool) -> Vec2
 {
     // Création rapide d'une base orthonormale
     a := 1.0 / (1.0 + I.z);
     b := -I.x * I.y * a;
-    b1 := crée_vec3r(1.0 - I.x * I.x * a, b, -I.x);
-    b2 := crée_vec3r(b, 1.0 - I.y * I.y * a, -I.y);
+    b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x);
+    b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2( x = produit_scalaire(b1, mémoire(N)), y = produit_scalaire(b2, mémoire(N)) )
+    uv_capmat := Vec2( x = produit_scalaire(b1, N), y = produit_scalaire(b2, N) )
 
     si inversé {
         uv_capmat.x = -uv_capmat.x;
@@ -433,10 +433,293 @@ interp_linéaire :: fonc (v0: Vec3, t: r32, v1: Vec3) -> Vec3
 }
 
 /* Calcule la déclinaison du vecteur en degrés. */
-déclinaison :: fonc (v: Vec3) -> Degrés
+déclinaison :: fonc (v: Vec3) -> Degrés(r32)
 {
     retourne vers_degrés(Radians(atan2(racine_carrée(v.x * v.x + v.y * v.y), v.z)))
 }
+
+/* \} */
+
+/* ------------------------------------------------------------------------- */
+/* Vecteur 4D
+ * \{ */
+
+Vec4 :: struct {
+    x := 0.0  @mutable
+    y := 0.0  @mutable
+    z := 0.0  @mutable
+    w := 0.0  @mutable
+}
+
+opérateur - :: fonc (u: Vec4) -> Vec4
+{
+    retourne Vec4(-u.x, -u.y, -u.z, -u.w)
+}
+
+opérateur * :: fonc (v1: Vec4, v2: Vec4) -> Vec4
+{
+    résultat := v1
+    multiplie_vn_vn(*résultat.x, *v2.x, 4)
+    retourne résultat
+}
+
+opérateur * :: fonc (v1: Vec4, v: r32) -> Vec4
+{
+    résultat : Vec4 = v1
+    si v != 0.0 {
+        résultat = v1
+        multiplie_vn_s(*résultat.x, v, 4)
+    }
+    retourne résultat
+}
+
+opérateur / :: fonc (v1: Vec4, v2: Vec4) -> Vec4
+{
+    résultat : Vec4 = v1
+    divise_vn_vn(*résultat.x, *v2.x, 4)
+    retourne résultat
+}
+
+opérateur / :: fonc (v1: Vec4, v: r32) -> Vec4
+{
+    résultat : Vec4 = v1
+    divise_vn_s(*résultat.x, v, 4)
+    retourne résultat
+}
+
+opérateur / :: fonc (v: r32, v1: Vec4) -> Vec4
+{
+    résultat : Vec4 = v1
+    réciproque_vn_s(*résultat.x, v, 4)
+    retourne résultat
+}
+
+opérateur + :: fonc (v1: Vec4, v2: Vec4) -> Vec4
+{
+    résultat : Vec4 = v1
+    ajoute_vn_vn(*résultat.x, *v2.x, 4)
+    retourne résultat
+}
+
+opérateur + :: fonc (v1: Vec4, v: r32) -> Vec4
+{
+    résultat : Vec4 = v1
+    ajoute_vn_s(*résultat.x, v, 4)
+    retourne résultat
+}
+
+opérateur - :: fonc (v1: Vec4, v2: Vec4) -> Vec4
+{
+    résultat : Vec4 = v1
+    soustrait_vn_vn(*résultat.x, *v2.x, 4)
+    retourne résultat
+}
+
+opérateur - :: fonc (v1: Vec4, v: r32) -> Vec4
+{
+    résultat : Vec4 = v1
+    ajoute_vn_s(*résultat.x, -v, 4)
+    retourne résultat
+}
+
+opérateur == :: fonc (u: Vec4, v: Vec4) -> bool
+{
+    retourne sont_égaux_vn_vn(*u.x, *v.x, 4)
+}
+
+opérateur == :: fonc (u: Vec4, s: r32) -> bool
+{
+    retourne sont_égaux_vn_s(*u.x, s, 4)
+}
+
+opérateur != :: fonc (v0: Vec4, v1: Vec4) -> bool
+{
+	retourne !(v0 == v1)
+}
+
+opérateur < :: fonc (u: Vec4, s: r32) -> bool
+{
+    retourne est_inférieur_vn_s(*u.x, s, 4)
+}
+
+opérateur > :: fonc (u: Vec4, s: r32) -> bool
+{
+    retourne est_supérieur_vn_s(*u.x, s, 4)
+}
+
+opérateur < :: fonc (u: Vec4, v: Vec4) -> bool
+{
+    retourne est_inférieur_vn_vn(*u.x, *v.x, 4)
+}
+
+opérateur <= :: fonc (u: Vec4, v: Vec4) -> bool
+{
+    retourne est_inférieur_ou_égal_vn_vn(*u.x, *v.x, 4)
+}
+
+opérateur > :: fonc (u: Vec4, v: Vec4) -> bool
+{
+    retourne est_supérieur_vn_vn(*u.x, *v.x, 4)
+}
+
+opérateur >= :: fonc (u: Vec4, v: Vec4) -> bool
+{
+    retourne est_supérieur_ou_égal_vn_vn(*u.x, *v.x, 4)
+}
+
+/* \} */
+
+/* ------------------------------------------------------------------------- */
+/* Utilitaires
+ * \{ */
+
+ajoute_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
+{
+    pour n {
+        dst[it] += src[it]
+    }
+}
+
+ajoute_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
+{
+    pour n {
+        dst[it] += src
+    }
+}
+
+soustrait_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
+{
+    pour n {
+        dst[it] -= src[it]
+    }
+}
+
+multiplie_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
+{
+    pour n {
+        dst[it] *= src[it]
+    }
+}
+
+multiplie_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
+{
+    pour n {
+        dst[it] *= src
+    }
+}
+
+divise_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
+{
+    pour n {
+        si src[it] != 0.0 {
+            dst[it] /= src[it]
+        }
+    }
+}
+
+divise_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
+{
+    si src == 0.0 {
+        retourne
+    }
+
+    pour n {
+        dst[it] /= src
+    }
+}
+
+réciproque_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
+{
+    si src == 0.0 {
+        retourne
+    }
+
+    pour n {
+        dst[it] = src / dst[it]
+    }
+}
+
+sont_égaux_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] == v2[it] {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+sont_égaux_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] == s {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_inférieur_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] < s {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_supérieur_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] > s {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_inférieur_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] < v2[it] {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_inférieur_ou_égal_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] <= v2[it] {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_supérieur_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] > v2[it] {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+est_supérieur_ou_égal_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
+{
+    pour n {
+        saufsi v1[it] >= v2[it] {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+/* \} */
 
 // ------------------------------------
 // vecteurs de nombres entiers relatifs

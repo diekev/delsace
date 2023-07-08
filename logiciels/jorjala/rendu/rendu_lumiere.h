@@ -45,8 +45,8 @@ class RenduLumiere {
      */
     explicit RenduLumiere(Lumiere const *lumiere);
 
-    RenduLumiere(RenduLumiere const &) = default;
-    RenduLumiere &operator=(RenduLumiere const &) = default;
+    RenduLumiere(RenduLumiere const &) = delete;
+    RenduLumiere &operator=(RenduLumiere const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et

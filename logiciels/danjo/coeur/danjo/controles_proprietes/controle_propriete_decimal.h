@@ -55,7 +55,6 @@ class ControleProprieteDecimal final : public ControlePropriete {
 
   private Q_SLOTS:
     void ajourne_valeur_pointee(float valeur);
-    void montre_echelle();
     void bascule_animation();
 };
 

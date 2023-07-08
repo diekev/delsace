@@ -1170,6 +1170,24 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
     enleve_programme(unite->metaprogramme->programme);
 }
 
+static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &options)
+{
+    switch (options.resultat) {
+        case ResultatCompilation::RIEN:
+        case ResultatCompilation::FICHIER_OBJET:
+        {
+            return false;
+        }
+        case ResultatCompilation::BIBLIOTHEQUE_STATIQUE:
+        case ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE:
+        case ResultatCompilation::EXECUTABLE:
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
 {
     assert(unite->programme);
@@ -1185,7 +1203,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     else {
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
 
-        if (espace->options.resultat != ResultatCompilation::RIEN) {
+        if (programme_requiers_liaison_exécutable(espace->options)) {
             espace->change_de_phase(m_compilatrice->messagere,
                                     PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
             requiers_liaison_executable(espace, unite->programme);
