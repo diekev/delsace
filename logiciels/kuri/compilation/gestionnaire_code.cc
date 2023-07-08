@@ -1562,7 +1562,7 @@ void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)
         nouvelles_unites.ajoute(it);
     }
 
-    unites_en_attente = nouvelles_unites;
+    *unités_en_attente_ = nouvelles_unites;
 }
 
 void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace)
