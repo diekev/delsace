@@ -101,7 +101,7 @@ struct OrdonnanceuseTache {
     int enregistre_tacheronne(Badge<Tacheronne> badge);
 
     void supprime_toutes_les_taches();
-    void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace);
+    void supprime_toutes_les_taches_pour_espace(EspaceDeTravail const *espace, UniteCompilation::État état);
 
     void marque_compilation_terminee()
     {
