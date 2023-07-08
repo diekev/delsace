@@ -1315,7 +1315,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         unités_en_attente_->permute(unités_en_attente);
     }
 
-#undef DEBUG_UNITES_EN_ATTENTES
+#define DEBUG_UNITES_EN_ATTENTES
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
