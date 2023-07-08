@@ -40,22 +40,52 @@ enum class RaisonDEtre : unsigned char {
 const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
+#define ENUMERE_ETAT_UNITE_COMPILATION(O)                                                         \
+    O(EN_COURS_DE_COMPILATION)                                                                    \
+    O(EN_ATTENTE)                                                                                 \
+    O(ANNULÉE_CAR_REMPLACÉE)                                                                      \
+    O(ANNULÉE_CAR_MESSAGERIE_FERMÉE)                                                              \
+    O(ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR)                                                          \
+    O(DONNÉE_À_ORDONNANCEUSE)                                                                     \
+    O(EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE)                                                      \
+    O(COMPILATION_TERMINÉE)
+
+#undef ENREGISTRE_HISTORIQUE
+
 struct UniteCompilation {
+    enum class État : uint8_t {
+#define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre) Genre,
+        ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
+#undef ENUMERE_ETAT_UNITE_COMPILATION_EX
+    };
+
     int index_courant = 0;
     int index_precedent = 0;
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
     bool tag = false;
-    bool annule = false;
+
+    /* Données pour l'historique de compilation de cette unité. */
+    struct Historique {
+        /* L'état lors de cet enregistrement. */
+        État état{};
+        /* La raison d'être lors de cet enregistrement. */
+        RaisonDEtre raison{};
+        /* La fonction qui a ajouté cet enregistrement. */
+        const char *fonction{};
+    };
 
   private:
+    État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     bool m_prete = true;
     kuri::tableau<Attente> m_attentes{};
 
     /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
     mutable int id_phase_cycle = 0;
+
+    kuri::tableau<Historique> m_historique{};
 
   public:
     EspaceDeTravail *espace = nullptr;
@@ -77,14 +107,22 @@ struct UniteCompilation {
         m_attentes.ajoute(attente);
         m_prete = false;
         cycle = 0;
+        état = État::EN_ATTENTE;
         assert(attente.est_valide());
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     void marque_prete()
     {
         m_prete = true;
+        état = État::EN_COURS_DE_COMPILATION;
         m_attentes.efface();
         cycle = 0;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     bool est_prete() const
@@ -92,9 +130,32 @@ struct UniteCompilation {
         return m_prete;
     }
 
+    void définit_état(État nouvelle_état)
+    {
+        état = nouvelle_état;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
+    }
+
+    État donne_état() const
+    {
+        return état;
+    }
+
+    bool fut_annulée() const
+    {
+        return état == État::ANNULÉE_CAR_MESSAGERIE_FERMÉE ||
+               état == État::ANNULÉE_CAR_REMPLACÉE ||
+               état == État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR;
+    }
+
     void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
     {
         m_raison_d_etre = nouvelle_raison;
+#ifdef ENREGISTRE_HISTORIQUE
+        m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
     }
 
     RaisonDEtre raison_d_etre() const
@@ -102,10 +163,15 @@ struct UniteCompilation {
         return m_raison_d_etre;
     }
 
+    kuri::tableau_statique<Historique> donne_historique() const
+    {
+        return m_historique;
+    }
+
     inline Attente *attend_sur_message(Message const *message_)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurMessage>() && it.message() == message_) {
+            if (it.est<AttenteSurMessage>() && it.message().message == message_) {
                 return &it;
             }
         }
@@ -121,10 +187,10 @@ struct UniteCompilation {
         }
     }
 
-    inline Attente *attend_sur_noeud_code(NoeudCode **code)
+    inline Attente *attend_sur_noeud_code(NoeudExpression *noeud_)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurNoeudCode>() && it.noeud_code() == code) {
+            if (it.est<AttenteSurNoeudCode>() && it.noeud_code().noeud == noeud_) {
                 return &it;
             }
         }
@@ -166,3 +232,6 @@ struct UniteCompilation {
 
     Attente const *première_attente_bloquée_ou_non() const;
 };
+
+const char *chaine_état_unité_compilation(UniteCompilation::État état);
+std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
