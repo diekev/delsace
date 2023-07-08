@@ -183,7 +183,7 @@ class GestionnaireCode {
 
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
 
-    void requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
+    UniteCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
 
     void requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 

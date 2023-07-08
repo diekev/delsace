@@ -105,7 +105,7 @@ struct UniteCompilation {
     inline Attente *attend_sur_message(Message const *message_)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurMessage>() && it.message() == message_) {
+            if (it.est<AttenteSurMessage>() && it.message().message == message_) {
                 return &it;
             }
         }
@@ -124,7 +124,7 @@ struct UniteCompilation {
     inline Attente *attend_sur_noeud_code(NoeudCode **code)
     {
         POUR (m_attentes) {
-            if (it.est<AttenteSurNoeudCode>() && it.noeud_code() == code) {
+            if (it.est<AttenteSurNoeudCode>() && it.noeud_code().noeud_code == code) {
                 return &it;
             }
         }
