@@ -45,7 +45,10 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
     O(EN_ATTENTE)                                                                                 \
     O(ANNULÉE_CAR_REMPLACÉE)                                                                      \
     O(ANNULÉE_CAR_MESSAGERIE_FERMÉE)                                                              \
-    O(ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR)
+    O(ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR)                                                          \
+    O(DONNÉE_À_ORDONNANCEUSE)                                                                     \
+    O(EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE)                                                      \
+    O(COMPILATION_TERMINÉE)
 
 #undef ENREGISTRE_HISTORIQUE
 

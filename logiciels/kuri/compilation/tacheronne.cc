@@ -244,6 +244,11 @@ void Tacheronne::gere_tache()
             nombre_dodos = 0;
         }
 
+        if (tache.unite) {
+            tache.unite->définit_état(
+                UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
+        }
+
         switch (tache.genre) {
             case GenreTache::COMPILATION_TERMINEE:
             {

@@ -1340,6 +1340,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             }
         }
 
+        it->définit_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
         ordonnanceuse.cree_tache_pour_unite(it);
     }
 
