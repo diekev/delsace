@@ -1355,10 +1355,10 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
             }
         }
         else {
-            if (imprime_débogage) {
-                imprime_diagnostique(it->diagnositique_compilation());
-                std::cerr << espace->phase_courante() << '\n';
-            }
+            //            if (imprime_débogage) {
+            //                imprime_diagnostique(it->diagnositique_compilation());
+            //                std::cerr << espace->phase_courante() << '\n';
+            //            }
 
             if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
                 it->ri_generees()) {
@@ -1768,6 +1768,9 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     unités_prêtes.efface();
     static kuri::tableau<UniteCompilation *, int> nouvelles_unites;
     nouvelles_unites.efface();
+    if (imprime_débogage) {
+        // std::cerr << "-------------------- " << __func__ << '\n';
+    }
     POUR (unités_en_attente) {
         if (it->espace->possede_erreur) {
             continue;
@@ -1778,12 +1781,16 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         if (!it->est_prete()) {
             it->cycle += 1;
             if (imprime_débogage) {
-                if (it->raison_d_etre() == RaisonDEtre::TYPAGE) {
-                    if (it->noeud && it->noeud->ident == ID::principale) {
-                        std::cerr << "Typage de la fonction principale attend sur "
-                                  << it->chaine_attentes_recursives() << '\n';
-                    }
-                }
+                //                std::cerr << "-------------------\n";
+                //                std::cerr << it->raison_d_etre() << '\n';
+                //                std::cerr << it->chaine_attentes_recursives() << '\n';
+                //                if (it->raison_d_etre() == RaisonDEtre::TYPAGE) {
+                //                    if (it->noeud && it->noeud->ident == ID::principale) {
+                //                        std::cerr << "Typage de la fonction principale attend sur
+                //                        "
+                //                                  << it->chaine_attentes_recursives() << '\n';
+                //                    }
+                //                }
             }
 
             if (it->est_bloquee()) {
