@@ -1152,13 +1152,7 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
 
 void GestionnaireCode::message_recu(Message const *message)
 {
-    POUR (unites_en_attente) {
-        auto attente = it->attend_sur_message(message);
-        if (!attente) {
-            continue;
-        }
-        *attente = {};
-    }
+    const_cast<Message *>(message)->message_recu = true;
 }
 
 void GestionnaireCode::execution_terminee(UniteCompilation *unite)
