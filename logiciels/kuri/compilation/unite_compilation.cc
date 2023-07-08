@@ -153,6 +153,13 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
 {
     Enchaineuse fc;
 
+#if 1
+    fc << m_attentes.taille() << " attente(s)\n";
+
+    POUR (m_attentes) {
+        fc << "- " << commentaire_pour_attente(it) << '\n';
+    }
+#else
     auto attente = première_attente_bloquée();
     assert(attente);
     auto attendue = unité_pour_attente(*attente);
@@ -185,7 +192,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
 
         attendue = unité_pour_attente(*attente);
     }
-
+#endif
     return fc.chaine();
 }
 

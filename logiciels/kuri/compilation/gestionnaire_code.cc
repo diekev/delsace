@@ -1353,6 +1353,11 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
             }
         }
         else {
+            if (imprime_débogage) {
+                imprime_diagnostique(it->diagnositique_compilation());
+                std::cerr << espace->phase_courante() << '\n';
+            }
+
             if (espace->phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE &&
                 it->ri_generees()) {
                 finalise_programme_avant_generation_code_machine(espace, it);
@@ -1385,6 +1390,9 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
          * avons un, la compilation ne peut se terminée. */
         if (it->pour_metaprogramme()) {
             ok = false;
+            if (imprime_débogage) {
+                std::cerr << "it->pour_metaprogramme()\n";
+            }
             continue;
         }
 
@@ -1582,7 +1590,7 @@ void GestionnaireCode::imprime_stats() const
 void GestionnaireCode::démarre_boucle_compilation()
 {
     while (true) {
-#if 0
+#if 1
         auto delta = temps_début_compilation.temps();
         imprime_débogage = delta >= 0.1;
         if (imprime_débogage) {
@@ -1601,7 +1609,7 @@ void GestionnaireCode::démarre_boucle_compilation()
         gère_choses_terminées();
         crée_tâches_pour_ordonnanceuse();
 
-#if 0
+#if 1
         imprime_débogage = false;
 #endif
     }
@@ -1750,7 +1758,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
         std::cerr << "Unités en attente avant la création des tâches : "
-                  << unités_en_attente_->taille() << '\n';
+                  << unités_en_attente.taille() << '\n';
     }
 #endif
 
@@ -1767,6 +1775,14 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 
         if (!it->est_prete()) {
             it->cycle += 1;
+            if (imprime_débogage) {
+                if (it->raison_d_etre() == RaisonDEtre::TYPAGE) {
+                    if (it->noeud && it->noeud->ident == ID::principale) {
+                        std::cerr << "Typage de la fonction principale attend sur "
+                                  << it->chaine_attentes_recursives() << '\n';
+                    }
+                }
+            }
 
             if (it->est_bloquee()) {
                 it->rapporte_erreur();
@@ -1838,7 +1854,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
         std::cerr << "Unités en attente après la création des tâches : "
-                  << unités_en_attente_->taille() << '\n';
+                  << unites_en_attente->taille() << '\n';
         ordonnanceuse->imprime_donnees_files(std::cerr);
         std::cerr << "--------------------------------------------------------\n";
     }
