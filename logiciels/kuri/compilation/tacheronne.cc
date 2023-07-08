@@ -127,6 +127,18 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
         return Tache::compilation_terminee();
     }
 
+    for (int i = 0; i < NOMBRE_FILES; ++i) {
+        if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
+            continue;
+        }
+
+        if (!taches[i].est_vide()) {
+            auto tache = taches[i].defile();
+            assert(!tache.unite->espace->possede_erreur);
+            return tache;
+        }
+    }
+
     auto unite = tache_terminee.unite;
     auto espace = EspaceDeTravail::nul();
 
@@ -136,16 +148,6 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
     }
     else {
         espace = tache_terminee.espace;
-    }
-
-    for (int i = 0; i < NOMBRE_FILES; ++i) {
-        if (!possede_drapeau(drapeaux, static_cast<DrapeauxTacheronne>(1 << i))) {
-            continue;
-        }
-
-        if (!taches[i].est_vide()) {
-            return taches[i].defile();
-        }
     }
 
     if (espace->possede_erreur) {
