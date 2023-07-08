@@ -1130,8 +1130,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     if (message) {
         auto unite_noeud_code = requiers_noeud_code(espace, noeud);
         auto unite_message = cree_unite_pour_message(espace, message);
-        unite_message->ajoute_attente(
-            Attente::sur_noeud_code(unite_noeud_code, &noeud->noeud_code));
+        unite_message->ajoute_attente(Attente::sur_noeud_code(unite_noeud_code, noeud));
         unite->ajoute_attente(Attente::sur_message(unite_message, message));
     }
 
@@ -1271,7 +1270,7 @@ void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
     auto noeud = unite->noeud;
 
     POUR (*unites_en_attente.verrou_lecture()) {
-        auto attente = it->attend_sur_noeud_code(&noeud->noeud_code);
+        auto attente = it->attend_sur_noeud_code(noeud);
         if (!attente) {
             continue;
         }
