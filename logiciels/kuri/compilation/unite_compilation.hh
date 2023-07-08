@@ -50,7 +50,7 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
     O(EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE)                                                      \
     O(COMPILATION_TERMINÉE)
 
-#define ENREGISTRE_HISTORIQUE
+#undef ENREGISTRE_HISTORIQUE
 
 struct UniteCompilation {
     enum class État : uint8_t {
