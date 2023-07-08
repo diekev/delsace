@@ -547,18 +547,66 @@ InfoTypeAttente info_type_attente_sur_interface_kuri = {
  * AttenteSurMessage
  * \{ */
 
+RAPPEL_POUR_UNITÉ(message)
+{
+    auto données = attente.message();
+    return données.unité;
+}
+
 RAPPEL_POUR_COMMENTAIRE(message)
 {
-    return "message";
+    auto message = attente.message().message;
+    auto resultat = Enchaineuse();
+    resultat << "message " << message->genre;
+
+    switch (message->genre) {
+        case GenreMessage::FICHIER_OUVERT:
+        case GenreMessage::FICHIER_FERME:
+        {
+            auto message_fichier = static_cast<MessageFichier *>(message);
+            resultat << " " << message_fichier->chemin;
+            break;
+        }
+        case GenreMessage::MODULE_OUVERT:
+        case GenreMessage::MODULE_FERME:
+        {
+            auto message_module = static_cast<MessageModule *>(message);
+            resultat << " " << message_module->chemin;
+            break;
+        }
+        case GenreMessage::TYPAGE_CODE_TERMINE:
+        {
+            auto message_code = static_cast<MessageTypageCodeTermine *>(message);
+            if (message_code->code) {
+                resultat << " " << message_code->code->nom;
+            }
+            else {
+                resultat << " noeud code nom généré";
+            }
+            break;
+        }
+        case GenreMessage::PHASE_COMPILATION:
+        {
+            auto message_phase = static_cast<MessagePhaseCompilation *>(message);
+            resultat << " " << message_phase->phase;
+            break;
+        }
+    }
+
+    resultat << " (espace \"" << message->espace->nom
+             << "\"); message reçu : " << (message->message_recu ? "oui" : "non") << "; adresse "
+             << message;
+
+    return resultat.chaine();
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(message)
 {
-    auto message = attente.message();
-    return message->message_recu;
+    auto données = attente.message();
+    return données.message->message_recu;
 }
 
-InfoTypeAttente info_type_attente_sur_message = {nullptr,
+InfoTypeAttente info_type_attente_sur_message = {NOM_RAPPEL_POUR_UNITÉ(message),
                                                  nullptr,
                                                  NOM_RAPPEL_POUR_COMMENTAIRE(message),
                                                  NOM_RAPPEL_POUR_EST_RÉSOLUE(message),
@@ -639,6 +687,12 @@ InfoTypeAttente info_type_attente_sur_parsage = {nullptr,
  * AttenteSurNoeudCode
  * \{ */
 
+RAPPEL_POUR_UNITÉ(noeud_code)
+{
+    auto données_noeud_code = attente.noeud_code();
+    return données_noeud_code.unité;
+}
+
 RAPPEL_POUR_COMMENTAIRE(noeud_code)
 {
     return "noeud code";
@@ -646,11 +700,11 @@ RAPPEL_POUR_COMMENTAIRE(noeud_code)
 
 RAPPEL_POUR_EST_RÉSOLUE(noeud_code)
 {
-    /* Géré dans le GestionnaireCode. */
-    return false;
+    auto données_noeud_code = attente.noeud_code();
+    return données_noeud_code.noeud->noeud_code != nullptr;
 }
 
-InfoTypeAttente info_type_attente_sur_noeud_code = {nullptr,
+InfoTypeAttente info_type_attente_sur_noeud_code = {NOM_RAPPEL_POUR_UNITÉ(noeud_code),
                                                     nullptr,
                                                     NOM_RAPPEL_POUR_COMMENTAIRE(noeud_code),
                                                     NOM_RAPPEL_POUR_EST_RÉSOLUE(noeud_code),
