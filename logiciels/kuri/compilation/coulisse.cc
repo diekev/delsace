@@ -98,6 +98,10 @@ kuri::chaine nom_sortie_resultat_final(OptionsDeCompilation const &ops)
         return nom_bibliothèque_statique_pour(nom_fichier_sortie(ops));
     }
 
+    if (ops.resultat == ResultatCompilation::FICHIER_OBJET) {
+        return nom_fichier_objet_pour(nom_fichier_sortie(ops));
+    }
+
     /* Pour un exécutable nous utilisons le nom donné via les options, en laissant les plateformes
      * gérer le cas où le nom n'est pas renseigné. */
     return nom_executable_pour(ops.nom_sortie);

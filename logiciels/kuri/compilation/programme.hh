@@ -183,11 +183,11 @@ struct Programme {
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs types validés. */
-    bool typages_termines(DiagnostiqueEtatCompilation &diagnositique) const;
+    bool typages_termines(DiagnostiqueEtatCompilation &diagnostique) const;
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs RI générées. */
-    bool ri_generees(DiagnostiqueEtatCompilation &diagnositique) const;
+    bool ri_generees(DiagnostiqueEtatCompilation &diagnostique) const;
 
     bool ri_generees() const;
 
@@ -208,7 +208,7 @@ struct Programme {
         return m_espace;
     }
 
-    DiagnostiqueEtatCompilation diagnositique_compilation() const;
+    DiagnostiqueEtatCompilation diagnostique_compilation() const;
 
     EtatCompilation ajourne_etat_compilation();
 

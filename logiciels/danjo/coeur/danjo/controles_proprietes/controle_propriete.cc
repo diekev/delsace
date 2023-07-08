@@ -37,9 +37,14 @@ ControlePropriete::ControlePropriete(BasePropriete *p, int temps, QWidget *paren
     }
 }
 
-void ControlePropriete::emet_precontrole_change()
+void ControlePropriete::emets_debute_changement_controle()
 {
-    Q_EMIT(precontrole_change());
+    Q_EMIT(debute_changement_controle());
+}
+
+void ControlePropriete::emets_termine_changement_controle()
+{
+    Q_EMIT(termine_changement_controle());
 }
 
 } /* namespace danjo */

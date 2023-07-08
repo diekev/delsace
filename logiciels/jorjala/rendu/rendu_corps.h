@@ -35,11 +35,11 @@ class Corps;
 }
 
 struct StatistiquesRendu {
-    long nombre_objets = 0;
-    long nombre_polygones = 0;
-    long nombre_polylignes = 0;
-    long nombre_volumes = 0;
-    long nombre_points = 0;
+    int64_t nombre_objets = 0;
+    int64_t nombre_polygones = 0;
+    int64_t nombre_polylignes = 0;
+    int64_t nombre_volumes = 0;
+    int64_t nombre_points = 0;
     double temps = 0.0;
 };
 
@@ -63,8 +63,8 @@ class RenduCorps {
      */
     explicit RenduCorps(JJL::Corps &corps);
 
-    RenduCorps(RenduCorps const &) = default;
-    RenduCorps &operator=(RenduCorps const &) = default;
+    RenduCorps(RenduCorps const &) = delete;
+    RenduCorps &operator=(RenduCorps const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et
@@ -78,4 +78,12 @@ class RenduCorps {
      * Dessine le maillage dans le contexte spécifié.
      */
     void dessine(StatistiquesRendu &stats, ContexteRendu const &contexte);
+
+  private:
+    void extrait_données_primitives(int64_t nombre_de_prims,
+                                    bool est_instance,
+                                    dls::tableau<char> &points_utilisés);
+    void extrait_données_points(int64_t nombre_de_prims,
+                                bool est_instance,
+                                dls::tableau<char> &points_utilisés);
 };

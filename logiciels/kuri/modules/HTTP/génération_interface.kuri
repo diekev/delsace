@@ -540,7 +540,8 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
     }
 
     type_union := type comme *InfoTypeUnion
-    si type_union.nom != "RésultatServeuseHTTP" {
+    /* À FAIRE(langage) : bonne manière de déterminer si un type est une monomorphisation. */
+    saufsi commence_par(type_union.nom, "RésultatServeuseHTTP") {
         retourne faux
     }
 

@@ -200,7 +200,8 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
                                                TypeCompose::Membre const *membre,
-                                               NoeudExpressionAppel *appel)
+                                               NoeudExpressionAppel *appel,
+                                               NoeudBloc *bloc_final_recherche_variable)
 {
     if (appel->parametres.taille() != 1) {
         espace->rapporte_erreur(
@@ -217,7 +218,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
         return false;
     }
 
-    auto decl_prec = trouve_dans_bloc(bloc_parent, param->ident);
+    auto decl_prec = trouve_dans_bloc(bloc_parent, param->ident, bloc_final_recherche_variable);
 
     if (decl_prec != nullptr) {
         espace->rapporte_erreur(param,
@@ -336,7 +337,8 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
                                                membre,
-                                               expression_valide->est_expression_appel);
+                                               expression_valide->est_expression_appel,
+                                               fonction_courante()->bloc_constantes);
         }
     }
 
@@ -435,7 +437,8 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
                                                membre,
-                                               expression_valide->est_expression_appel);
+                                               expression_valide->est_expression_appel,
+                                               fonction_courante()->bloc_constantes);
         }
     }
 

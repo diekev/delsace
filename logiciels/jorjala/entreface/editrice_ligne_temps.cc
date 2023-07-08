@@ -101,7 +101,7 @@ EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
     danjo::Manipulable dummy;
 
     auto données = cree_donnees_interface_danjo(m_jorjala, &dummy);
-    auto gestionnaire = gestionnaire_danjo(m_jorjala);
+    auto gestionnaire = donne_gestionnaire_danjo(m_jorjala);
 
     auto disp_controles = gestionnaire->compile_entreface_fichier(
         données, "entreface/disposition_ligne_temps.jo");

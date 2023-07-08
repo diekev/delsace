@@ -416,10 +416,6 @@ LectriceCache *cree_lectrice_cache(ContexteKuri *ctx_kuri,
         return nullptr;
     }
 
-    if (!archive->est_lecture()) {
-        return nullptr;
-    }
-
     auto &iarchive = archive->iarchive();
 
     if (!iarchive.valid()) {
@@ -738,16 +734,16 @@ DEFINIS_CONVERTISSEUSE_VALEUR(Imath::C4c, uint8_t, n8, 4);
 #    pragma GCC diagnostic pop
 #endif
 
-static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse,
-                                   AbcGeom::GeometryScope portee_pretendue,
-                                   AbcGeom::UInt32ArraySamplePtr indices)
+static eAbcDomaineAttribut determine_portee(ConvertisseuseImportAttributs *convertisseuse,
+                                            AbcGeom::GeometryScope portee_pretendue,
+                                            AbcGeom::UInt32ArraySamplePtr indices)
 {
     if (!indices) {
-        return eAbcPortee::AUCUNE;
+        return eAbcDomaineAttribut::AUCUNE;
     }
 
     if (!convertisseuse->information_portee) {
-        return eAbcPortee::AUCUNE;
+        return eAbcDomaineAttribut::AUCUNE;
     }
 
     const int taille_des_donnees = static_cast<int>(indices->size());
@@ -762,28 +758,28 @@ static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse
         case AbcGeom::kConstantScope:
         {
             if (taille_des_donnees == 1) {
-                return eAbcPortee::OBJECT;
+                return eAbcDomaineAttribut::OBJET;
             }
             break;
         }
         case AbcGeom::kUniformScope:
         {
             if (taille_des_donnees == 1) {
-                return eAbcPortee::OBJECT;
+                return eAbcDomaineAttribut::OBJET;
             }
             break;
         }
         case AbcGeom::kVaryingScope:
         {
             if (taille_des_donnees == nombre_de_points) {
-                return eAbcPortee::POINT;
+                return eAbcDomaineAttribut::POINT;
             }
 
             if (taille_des_donnees == nombre_de_points_primitives) {
-                return eAbcPortee::POINT_PRIMITIVE;
+                return eAbcDomaineAttribut::POINT_PRIMITIVE;
             }
             if (taille_des_donnees == nombre_de_primitives) {
-                return eAbcPortee::PRIMITIVE;
+                return eAbcDomaineAttribut::PRIMITIVE;
             }
 
             break;
@@ -791,7 +787,7 @@ static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse
         case AbcGeom::kVertexScope:
         {
             if (taille_des_donnees == nombre_de_points) {
-                return eAbcPortee::POINT;
+                return eAbcDomaineAttribut::POINT;
             }
 
             break;
@@ -799,7 +795,7 @@ static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse
         case AbcGeom::kFacevaryingScope:
         {
             if (taille_des_donnees == nombre_de_points_primitives) {
-                return eAbcPortee::POINT_PRIMITIVE;
+                return eAbcDomaineAttribut::POINT_PRIMITIVE;
             }
 
             break;
@@ -810,7 +806,7 @@ static eAbcPortee determine_portee(ConvertisseuseImportAttributs *convertisseuse
         }
     }
 
-    return eAbcPortee::AUCUNE;
+    return eAbcDomaineAttribut::AUCUNE;
 }
 
 template <typename Trait>
@@ -843,7 +839,7 @@ static void gere_attribut(ConvertisseuseImportAttributs *convertisseuse,
     }
 
     const auto portee = determine_portee(convertisseuse, param.getScope(), indices);
-    if (portee == eAbcPortee::AUCUNE) {
+    if (portee == eAbcDomaineAttribut::AUCUNE) {
         // À FAIRE : nous pourrions avoir une manière de quand même importer ces données
         return;
     }

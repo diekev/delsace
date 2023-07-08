@@ -364,9 +364,17 @@ RAPPEL_POUR_COMMENTAIRE(métaprogramme)
             resultat << " ERREUR COMPILATRICE";
         }
     }
+    else if (metaprogramme_attendu->directive) {
+        auto directive = metaprogramme_attendu->directive;
+        auto expression = directive->expression;
+        auto appel = expression->comme_appel();
+        resultat << " " << appel->expression->ident->nom;
+    }
     else {
         resultat << " " << metaprogramme_attendu;
     }
+
+    resultat << " (fut exécuté : " << metaprogramme_attendu->fut_execute << ")\n";
 
     return resultat.chaine();
 }

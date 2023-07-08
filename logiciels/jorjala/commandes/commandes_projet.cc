@@ -42,8 +42,17 @@ std::optional<JJL::CheminFichier> crée_chemin_fichier(JJL::Chaine chaine)
 
 class CommandeOuvrir final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
+        if (!jorjala.demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         dls::chaine chemin_projet = "";
         if (!donnees.metadonnee.est_vide()) {
             /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
@@ -97,6 +106,11 @@ static void sauve_fichier_sous(JJL::Jorjala &jorjala)
 
 class CommandeSauvegarder final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         if (!jorjala.chemin_fichier_projet().vers_std_string().empty()) {
@@ -118,6 +132,11 @@ class CommandeSauvegarder final : public CommandeJorjala {
 
 class CommandeSauvegarderSous final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         sauve_fichier_sous(jorjala);
@@ -129,6 +148,11 @@ class CommandeSauvegarderSous final : public CommandeJorjala {
 
 class CommandeSauvegarderRessource final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala,
                                  dls::chaine const & /*metadonnee*/) override
     {
@@ -160,6 +184,11 @@ class CommandeSauvegarderRessource final : public CommandeJorjala {
 
 class CommandeLectureRessource final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         dls::chaine chemin_projet;
@@ -193,10 +222,37 @@ class CommandeLectureRessource final : public CommandeJorjala {
 
 class CommandeNouveauProjet final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
+        if (!jorjala.demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         jorjala.réinitialise_pour_lecture_projet();
         jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeExportAlembic final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        if (!jorjala.exporte_vers_alembic()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -206,24 +262,33 @@ class CommandeNouveauProjet final : public CommandeJorjala {
 void enregistre_commandes_projet(UsineCommande &usine)
 {
     usine.enregistre_type("ouvrir_fichier",
-                          description_commande<CommandeOuvrir>("projet", 0, 0, 0, false));
+                          description_commande<CommandeOuvrir>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_O, false, false));
 
     usine.enregistre_type("sauvegarder",
-                          description_commande<CommandeSauvegarder>("projet", 0, 0, 0, false));
+                          description_commande<CommandeSauvegarder>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_S, false, false));
 
-    usine.enregistre_type("sauvegarder_sous",
-                          description_commande<CommandeSauvegarderSous>("projet", 0, 0, 0, false));
+    usine.enregistre_type(
+        "sauvegarder_sous",
+        description_commande<CommandeSauvegarderSous>(
+            "projet", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_S, false, false));
 
     usine.enregistre_type(
         "sauvegarder_ressource_sous",
-        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false));
+        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false, false));
 
     usine.enregistre_type(
         "ouvrir_ressource",
         description_commande<CommandeLectureRessource>("projet", 0, 0, 0, false));
 
     usine.enregistre_type("nouveau_projet",
-                          description_commande<CommandeNouveauProjet>("projet", 0, 0, 0, false));
+                          description_commande<CommandeNouveauProjet>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_N, false));
+
+    usine.enregistre_type(
+        "export_alembic",
+        description_commande<CommandeExportAlembic>("projet", 0, 0, 0, false, false));
 }
 
 #pragma clang diagnostic pop

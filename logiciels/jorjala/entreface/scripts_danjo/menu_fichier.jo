@@ -21,4 +21,8 @@ menu "Fichier" {
     séparateur
 
     action(valeur="Import Objet"; attache=import_objet)
+
+    séparateur
+
+    action(valeur="Export Alembic"; attache=export_alembic)
 }

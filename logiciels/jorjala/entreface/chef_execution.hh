@@ -3,16 +3,14 @@
 
 #pragma once
 
-#include <mutex>
+#include "coeur/jorjala.hh"
 
-namespace JJL {
-class Jorjala;
-}
+#include <mutex>
 
 class QString;
 class TaskNotifier;
 
-class ChefExecution {
+class ChefExecution final : public JJL::ChefExecution {
     JJL::Jorjala &m_jorjala;
     TaskNotifier *m_task_notifier;
     float m_progression_parallele = 0.0f;
@@ -23,6 +21,14 @@ class ChefExecution {
 
   public:
     ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier);
+
+    void rappel_démarre_évaluation(JJL::Chaine param1) override;
+
+    void rappel_rapporte_progression(float param1) override;
+
+    void rappel_rapporte_progression_parallèle(float param1) override;
+
+    bool rappel_doit_interrompre() override;
 
     bool interrompu() const;
 

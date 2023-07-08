@@ -1,0 +1,18 @@
+/* Crash si l'expression par défaut d'un membre d'une structure référence un
+ * membre de celle-ci. */
+
+MaStructure :: struct {
+    x : z32 = 1
+    y := x + 1
+}
+
+principale :: fonc () -> z32
+{
+    m : MaStructure
+
+    si m.x != 1 {
+        retourne 1
+    }
+
+    retourne 0
+}

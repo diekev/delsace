@@ -104,4 +104,6 @@ transformation construit_transformation(
 
 dls::math::mat4x4f matf_depuis_matd(dls::math::mat4x4d const &m);
 
+dls::math::mat4x4d matd_depuis_matf(dls::math::mat4x4f const &m);
+
 }  /* namespace math */

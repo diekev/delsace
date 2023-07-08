@@ -69,8 +69,8 @@ class Visionneuse2D : public QGLWidget {
     explicit Visionneuse2D(JJL::Jorjala &jorjala, EditriceVue2D *base, QWidget *parent = nullptr);
     ~Visionneuse2D() override;
 
-    Visionneuse2D(Visionneuse2D const &) = default;
-    Visionneuse2D &operator=(Visionneuse2D const &) = default;
+    Visionneuse2D(Visionneuse2D const &) = delete;
+    Visionneuse2D &operator=(Visionneuse2D const &) = delete;
 
     void initializeGL() override;
     void paintGL() override;
@@ -93,8 +93,8 @@ class EditriceVue2D : public BaseEditrice {
   public:
     explicit EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    EditriceVue2D(EditriceVue2D const &) = default;
-    EditriceVue2D &operator=(EditriceVue2D const &) = default;
+    EditriceVue2D(EditriceVue2D const &) = delete;
+    EditriceVue2D &operator=(EditriceVue2D const &) = delete;
 
     void ajourne_état(JJL::TypeEvenement évènement) override;
 

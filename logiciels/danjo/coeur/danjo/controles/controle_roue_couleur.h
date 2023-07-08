@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
-class ControleRoueCouleur : public QWidget {
+class ControleRoueCouleur : public BaseControle {
     double m_controle_x = 0.5;
     double m_controle_y = 0.5;
     double rayon_controle = 0.025;
@@ -41,11 +41,9 @@ class ControleRoueCouleur : public QWidget {
 
     void paintEvent(QPaintEvent *event) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
-
-    void mouseReleaseEvent(QMouseEvent *event) override;
+    void gère_mouvement_souris(QMouseEvent *event) override;
 
   private:
     void ajourne_position(int x, int y);

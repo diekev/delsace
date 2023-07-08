@@ -14,7 +14,7 @@
 
 static constexpr auto CYCLES_MAXIMUM = 1000;
 
-const char *chaine_rainson_d_etre(RaisonDEtre raison_d_etre)
+const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre)
 {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine)                                              \
     case RaisonDEtre::Genre:                                                                      \
@@ -36,7 +36,7 @@ static UniteCompilation *unité_pour_attente(Attente const &attente)
 
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
 {
-    return os << chaine_rainson_d_etre(raison_d_etre);
+    return os << chaine_raison_d_etre(raison_d_etre);
 }
 
 bool UniteCompilation::est_bloquee() const

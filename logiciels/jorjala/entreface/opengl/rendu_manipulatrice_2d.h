@@ -40,7 +40,7 @@ class RenduManipulatrice2D {
 
     /* pour faire taire cppcheck */
     RenduManipulatrice2D(RenduManipulatrice2D const &) = delete;
-    RenduManipulatrice2D &operator=(RenduManipulatrice2D const &) = default;
+    RenduManipulatrice2D &operator=(RenduManipulatrice2D const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et

@@ -1,7 +1,6 @@
 importe Fondation
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-ext_indirection1 :: fonc () -> z32 #externe
 
 //##############################################################################
 
@@ -42,12 +41,14 @@ test_ptr_fonction_ret_simple :: fonc() -> rien
     imprime("a = %\n", a)
 }
 
+/*
 coro_simple :: corout() -> z32
 {
     pour i dans 0...10 {
         retiens i
     }
 }
+*/
 
 test_coro_simple :: fonc() -> rien
 {
@@ -89,7 +90,7 @@ test_fonction_ret_moult :: fonc() -> rien
 
 appel_ptr_moult_ret :: fonc() -> z32, bool
 {
-    ptr = indirection
+    ptr := indirection
 
     retourne ptr()
 }
@@ -116,6 +117,7 @@ test_ptr_fonction_ret_moult :: fonc() -> rien
 
 //##############################################################################
 
+/*
 coro_multiple :: corout() -> z32, bool
 {
     pour i dans 0 ... 10 {
@@ -144,6 +146,7 @@ test_coro_ret_moult :: fonc() -> rien
 
     // imprime("c = ", c, '\n');
 }
+*/
 
 //##############################################################################
 
@@ -151,11 +154,11 @@ principale :: fonc () -> z32
 {
     test_fonction_ret_simple()
     test_ptr_fonction_ret_simple()
-    test_coro_simple()
+    // test_coro_simple()
 
     test_fonction_ret_moult()
     test_ptr_fonction_ret_moult()
-    test_coro_ret_moult()
+    // test_coro_ret_moult()
 
     retourne 0
 }

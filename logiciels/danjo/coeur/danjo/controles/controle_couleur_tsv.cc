@@ -36,7 +36,7 @@ static constexpr auto TAILLE_SELECTEUR_MIN = 32.0;
 
 /* ************************************************************************** */
 
-ControleSatVal::ControleSatVal(QWidget *parent) : QWidget(parent)
+ControleSatVal::ControleSatVal(QWidget *parent) : BaseControle(parent)
 {
     setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MAX), static_cast<int>(TAILLE_SELECTEUR_MAX));
 }
@@ -77,48 +77,26 @@ void ControleSatVal::paintEvent(QPaintEvent *)
         static_cast<int>(m_pos_x) - 4, static_cast<int>(TAILLE_SELECTEUR_MAX - m_pos_y) - 4, 8, 8);
 }
 
-void ControleSatVal::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleSatVal::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() != Qt::LeftButton) {
-        return;
-    }
-
     m_pos_x = restreint(event->pos().x(), 0, static_cast<int>(TAILLE_SELECTEUR_MAX));
-
     m_pos_y = restreint(static_cast<int>(TAILLE_SELECTEUR_MAX) - event->pos().y(),
                         0,
                         static_cast<int>(TAILLE_SELECTEUR_MAX));
-
-    m_souris_pressee = true;
-    update();
-
-    Q_EMIT(valeur_changee());
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void ControleSatVal::mouseMoveEvent(QMouseEvent *event)
+void ControleSatVal::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (!m_souris_pressee) {
-        return;
-    }
-
     m_pos_x = restreint(event->pos().x(), 0, static_cast<int>(TAILLE_SELECTEUR_MAX));
-
     m_pos_y = restreint(static_cast<int>(TAILLE_SELECTEUR_MAX) - event->pos().y(),
                         0,
                         static_cast<int>(TAILLE_SELECTEUR_MAX));
-    update();
-
-    Q_EMIT(valeur_changee());
-}
-
-void ControleSatVal::mouseReleaseEvent(QMouseEvent *)
-{
-    m_souris_pressee = false;
 }
 
 /* ************************************************************************** */
 
-SelecteurTeinte::SelecteurTeinte(QWidget *parent) : QWidget(parent)
+SelecteurTeinte::SelecteurTeinte(QWidget *parent) : BaseControle(parent)
 {
     setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MAX), static_cast<int>(TAILLE_SELECTEUR_MIN));
 }
@@ -154,37 +132,18 @@ void SelecteurTeinte::paintEvent(QPaintEvent *)
         static_cast<int>(m_pos_x) - 4, static_cast<int>(TAILLE_SELECTEUR_MIN * 0.5) - 4, 8, 8);
 }
 
-void SelecteurTeinte::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement SelecteurTeinte::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() != Qt::LeftButton) {
-        return;
-    }
-
     m_pos_x = restreint(event->pos().x(), 0, static_cast<int>(TAILLE_SELECTEUR_MAX));
-    m_souris_pressee = true;
-    update();
-
-    Q_EMIT(valeur_changee());
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void SelecteurTeinte::mouseMoveEvent(QMouseEvent *event)
+void SelecteurTeinte::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (!m_souris_pressee) {
-        return;
-    }
-
     m_pos_x = restreint(event->pos().x(), 0, static_cast<int>(TAILLE_SELECTEUR_MAX));
-    update();
-
-    Q_EMIT(valeur_changee());
 }
 
-void SelecteurTeinte::mouseReleaseEvent(QMouseEvent *)
-{
-    m_souris_pressee = false;
-}
-
-ControleValeurCouleur::ControleValeurCouleur(QWidget *parent) : QWidget(parent)
+ControleValeurCouleur::ControleValeurCouleur(QWidget *parent) : BaseControle(parent)
 {
     setFixedSize(static_cast<int>(TAILLE_SELECTEUR_MIN), static_cast<int>(TAILLE_SELECTEUR_MAX));
 }
@@ -223,38 +182,19 @@ void ControleValeurCouleur::paintEvent(QPaintEvent *)
                         8);
 }
 
-void ControleValeurCouleur::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleValeurCouleur::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() != Qt::LeftButton) {
-        return;
-    }
-
-    m_souris_pressee = true;
     m_pos_y = restreint(static_cast<int>(TAILLE_SELECTEUR_MAX) - event->pos().y(),
                         0,
                         static_cast<int>(TAILLE_SELECTEUR_MAX));
-    update();
-
-    Q_EMIT(valeur_changee());
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void ControleValeurCouleur::mouseMoveEvent(QMouseEvent *event)
+void ControleValeurCouleur::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (!m_souris_pressee) {
-        return;
-    }
-
     m_pos_y = restreint(static_cast<int>(TAILLE_SELECTEUR_MAX) - event->pos().y(),
                         0,
                         static_cast<int>(TAILLE_SELECTEUR_MAX));
-    update();
-
-    Q_EMIT(valeur_changee());
-}
-
-void ControleValeurCouleur::mouseReleaseEvent(QMouseEvent *)
-{
-    m_souris_pressee = false;
 }
 
 /* ************************************************************************** */

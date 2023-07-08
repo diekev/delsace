@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
 #include "types/courbe_bezier.h"
 
-class ControleSpectreCouleur : public QWidget {
+class ControleSpectreCouleur : public BaseControle {
     CourbeBezier m_courbe{};
     PointBezier *m_point_courant = nullptr;
     int m_type_point = 0;
@@ -42,11 +42,11 @@ class ControleSpectreCouleur : public QWidget {
 
     void paintEvent(QPaintEvent *event) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
+    void gère_mouvement_souris(QMouseEvent *event) override;
 
-    void mouseReleaseEvent(QMouseEvent *event) override;
+    void gère_fin_clique_souris(QMouseEvent *event) override;
 
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_double_clique_souris(QMouseEvent *event) override;
 };

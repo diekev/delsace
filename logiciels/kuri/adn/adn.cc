@@ -170,6 +170,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tType *type_initialisé() const;\n";
         }
         else if (m_nom.nom_cpp() == "NoeudBloc") {
+            os << "\tmutable int nombre_recherches = 0;\n";
             os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *> "
                   "table_membres{\"membres_bloc\"};\n";
             os << "\tint nombre_de_membres() const;\n";
@@ -177,11 +178,11 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tvoid ajoute_membre(NoeudDeclaration *decl);\n";
             os << "\tvoid ajoute_membre_au_debut(NoeudDeclaration *decl);\n";
             os << "\tvoid fusionne_membres(NoeudBloc *de);\n";
-            os << "\tNoeudDeclaration *membre_pour_index(int index);\n";
+            os << "\tNoeudDeclaration *membre_pour_index(int index) const;\n";
             os << "\tNoeudDeclaration *declaration_pour_ident(IdentifiantCode const "
-                  "*ident_recherche);\n";
+                  "*ident_recherche) const;\n";
             os << "\tNoeudDeclaration *declaration_avec_meme_ident_que(NoeudExpression const "
-                  "*expr);\n";
+                  "*expr) const;\n";
             os << "\tvoid ajoute_expression(NoeudExpression *expr);\n";
         }
 

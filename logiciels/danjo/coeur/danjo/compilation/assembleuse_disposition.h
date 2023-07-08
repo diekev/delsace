@@ -30,12 +30,13 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "../danjo.h"
+
 #include "controles_proprietes/donnees_controle.h"
 
 #include "morceaux.h"
 
 class QBoxLayout;
-class QLabel;
 class QMenu;
 class QTabWidget;
 class QToolBar;
@@ -66,9 +67,7 @@ class AssembleurDisposition {
     Bouton *m_dernier_bouton = nullptr;
     QMenu *m_menu_racine = nullptr;
 
-    Manipulable *m_manipulable = nullptr;
-    RepondantBouton *m_repondant = nullptr;
-    ConteneurControles *m_conteneur = nullptr;
+    DonneesInterface m_donnees{};
 
     QTabWidget *m_dernier_dossier = nullptr;
 
@@ -96,9 +95,7 @@ class AssembleurDisposition {
      * Le conteneur est l'objet qui soit détient le manipulable, soit répond
      * aux changements des contrôles exposés dans l'entreface.
      */
-    explicit AssembleurDisposition(Manipulable *manipulable,
-                                   RepondantBouton *repondant_bouton,
-                                   ConteneurControles *conteneur,
+    explicit AssembleurDisposition(const DonneesInterface &donnees,
                                    int temps = 0,
                                    bool initialisation_seule = false);
 

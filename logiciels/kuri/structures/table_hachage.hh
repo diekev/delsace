@@ -84,7 +84,7 @@ struct table_hachage {
      *
      * _ _ _ _ A _ B _ _ C _ _ _ D _ _ _ _ E
      */
-    inline int increment_de_base_pour_empreinte(size_t empreinte)
+    inline int increment_de_base_pour_empreinte(size_t empreinte) const
     {
         /* - 1 pour être relativement premier avec la capacité. */
         return 1 + static_cast<int>(empreinte % (static_cast<size_t>(capacite) - 1));
@@ -147,7 +147,7 @@ struct table_hachage {
         valeurs[index] = std::move(valeur);
     }
 
-    Valeur trouve(Cle const &cle, bool &trouve)
+    Valeur trouve(Cle const &cle, bool &trouve) const
     {
         auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index(cle, empreinte);
@@ -168,7 +168,14 @@ struct table_hachage {
         return valeurs[index];
     }
 
-    Valeur valeur_ou(Cle const &cle, Valeur defaut)
+    Valeur const &trouve_ref(Cle const &cle) const
+    {
+        auto empreinte = std::hash<Cle>()(cle);
+        auto index = trouve_index(cle, empreinte);
+        return valeurs[index];
+    }
+
+    Valeur valeur_ou(Cle const &cle, Valeur defaut) const
     {
         auto trouvee = false;
         auto valeur = trouve(cle, trouvee);
@@ -180,14 +187,14 @@ struct table_hachage {
         return valeur;
     }
 
-    bool possede(Cle const &cle)
+    bool possede(Cle const &cle) const
     {
         auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index(cle, empreinte);
         return index != -1;
     }
 
-    int trouve_index(Cle const &cle, size_t empreinte)
+    int trouve_index(Cle const &cle, size_t empreinte) const
     {
         if (capacite == 0) {
             return -1;

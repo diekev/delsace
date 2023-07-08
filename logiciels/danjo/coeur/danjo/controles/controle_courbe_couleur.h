@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
 struct CourbeBezier;
 struct PointBezier;
 
-class ControleCourbeCouleur : public QWidget {
+class ControleCourbeCouleur : public BaseControle {
     Q_OBJECT
 
     CourbeBezier *m_courbe = nullptr;
@@ -53,13 +53,13 @@ class ControleCourbeCouleur : public QWidget {
 
     void paintEvent(QPaintEvent * /*event*/) override;
 
-    void mousePressEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent *event) override;
+    void gère_mouvement_souris(QMouseEvent *event) override;
 
-    void mouseReleaseEvent(QMouseEvent * /*event*/) override;
+    void gère_fin_clique_souris(QMouseEvent *event) override;
 
-    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_double_clique_souris(QMouseEvent *event) override;
 
   Q_SIGNALS:
     void position_changee(float x, float y);

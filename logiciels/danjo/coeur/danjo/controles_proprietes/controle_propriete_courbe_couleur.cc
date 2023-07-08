@@ -48,9 +48,11 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
       m_selection_type(new QComboBox(this)), m_utilise_table(new QCheckBox("Utilise table", this)),
       m_controle_courbe(new ControleCourbeCouleur(this)),
       m_bouton_echelle_x(crée_bouton_échelle_valeur(this)),
-      m_echelle_x(new ControleEchelleDecimale()), m_pos_x(new ControleNombreDecimal(this)),
+      m_pos_x(new ControleNombreDecimal(this)),
+      m_echelle_x(new ControleEchelleDecimale(m_pos_x, m_bouton_echelle_x)),
       m_bouton_echelle_y(crée_bouton_échelle_valeur(this)),
-      m_echelle_y(new ControleEchelleDecimale()), m_pos_y(new ControleNombreDecimal(this))
+      m_pos_y(new ControleNombreDecimal(this)),
+      m_echelle_y(new ControleEchelleDecimale(m_pos_y, m_bouton_echelle_y))
 {
     m_selection_mode->addItem("Maitresse");
     m_selection_mode->addItem("Rouge");
@@ -72,9 +74,6 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
     m_agencement_nombre->addWidget(m_pos_y);
     m_agencement_principal->addLayout(m_agencement_nombre);
 
-    m_echelle_x->setWindowFlags(Qt::WindowStaysOnTopHint);
-    m_echelle_y->setWindowFlags(Qt::WindowStaysOnTopHint);
-
     connect(
         m_selection_mode, SIGNAL(currentIndexChanged(int)), this, SLOT(change_mode_courbe(int)));
 
@@ -95,26 +94,6 @@ ControleProprieteCourbeCouleur::ControleProprieteCourbeCouleur(BasePropriete *p,
             &ControleCourbeCouleur::point_change,
             this,
             &ControleProprieteCourbeCouleur::ajourne_point_actif);
-
-    connect(m_bouton_echelle_x,
-            &QPushButton::pressed,
-            this,
-            &ControleProprieteCourbeCouleur::montre_echelle_x);
-
-    connect(m_bouton_echelle_y,
-            &QPushButton::pressed,
-            this,
-            &ControleProprieteCourbeCouleur::montre_echelle_y);
-
-    connect(m_echelle_x,
-            &ControleEchelleDecimale::valeur_changee,
-            m_pos_x,
-            &ControleNombreDecimal::ajourne_valeur);
-
-    connect(m_echelle_y,
-            &ControleEchelleDecimale::valeur_changee,
-            m_pos_y,
-            &ControleNombreDecimal::ajourne_valeur);
 
     connect(m_pos_x,
             &ControleNombreDecimal::valeur_changee,
@@ -148,20 +127,6 @@ void ControleProprieteCourbeCouleur::finalise(const DonneesControle &donnees)
     setToolTip(donnees.infobulle.c_str());
 }
 
-void ControleProprieteCourbeCouleur::montre_echelle_x()
-{
-    m_echelle_x->valeur(m_pos_x->valeur());
-    m_echelle_x->plage(m_pos_x->min(), m_pos_x->max());
-    m_echelle_x->show();
-}
-
-void ControleProprieteCourbeCouleur::montre_echelle_y()
-{
-    m_echelle_y->valeur(m_pos_y->valeur());
-    m_echelle_y->plage(m_pos_y->min(), m_pos_y->max());
-    m_echelle_y->show();
-}
-
 void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)
 {
     m_courbe_active = &m_courbe->courbes[mode];
@@ -173,43 +138,35 @@ void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)
 
 void ControleProprieteCourbeCouleur::change_type_courbe(int type)
 {
-    Q_EMIT(precontrole_change());
-    m_courbe->type = type;
-
-    Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, type]() { m_courbe->type = type; });
 }
 
 void ControleProprieteCourbeCouleur::bascule_utilise_table(bool ouinon)
 {
-    Q_EMIT(precontrole_change());
-    m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table = ouinon;
-    m_courbe->courbes[COURBE_COULEUR_ROUGE].utilise_table = ouinon;
-    m_courbe->courbes[COURBE_COULEUR_VERTE].utilise_table = ouinon;
-    m_courbe->courbes[COURBE_COULEUR_BLEUE].utilise_table = ouinon;
-    m_courbe->courbes[COURBE_COULEUR_VALEUR].utilise_table = ouinon;
-    Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, ouinon]() {
+        m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table = ouinon;
+        m_courbe->courbes[COURBE_COULEUR_ROUGE].utilise_table = ouinon;
+        m_courbe->courbes[COURBE_COULEUR_VERTE].utilise_table = ouinon;
+        m_courbe->courbes[COURBE_COULEUR_BLEUE].utilise_table = ouinon;
+        m_courbe->courbes[COURBE_COULEUR_VALEUR].utilise_table = ouinon;
+    });
 }
 
 void ControleProprieteCourbeCouleur::ajourne_position(float x, float y)
 {
     m_pos_x->valeur(x);
     m_pos_y->valeur(y);
-
     Q_EMIT(controle_change());
 }
 
 void ControleProprieteCourbeCouleur::ajourne_position_x(float v)
 {
-    Q_EMIT(precontrole_change());
-    m_controle_courbe->ajourne_position_x(v);
-    Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, v]() { m_controle_courbe->ajourne_position_x(v); });
 }
 
 void ControleProprieteCourbeCouleur::ajourne_position_y(float v)
 {
-    Q_EMIT(precontrole_change());
-    m_controle_courbe->ajourne_position_y(v);
-    Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, v]() { m_controle_courbe->ajourne_position_y(v); });
 }
 
 void ControleProprieteCourbeCouleur::ajourne_point_actif()

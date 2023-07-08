@@ -53,8 +53,8 @@ class VueCanevas3D : public QGLWidget {
   public:
     explicit VueCanevas3D(JJL::Jorjala &jorjala, EditriceVue3D *base, QWidget *parent = nullptr);
 
-    VueCanevas3D(VueCanevas3D const &) = default;
-    VueCanevas3D &operator=(VueCanevas3D const &) = default;
+    VueCanevas3D(VueCanevas3D const &) = delete;
+    VueCanevas3D &operator=(VueCanevas3D const &) = delete;
 
     ~VueCanevas3D() override;
 
@@ -91,8 +91,8 @@ class EditriceVue3D : public BaseEditrice {
   public:
     explicit EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-    EditriceVue3D(EditriceVue3D const &) = default;
-    EditriceVue3D &operator=(EditriceVue3D const &) = default;
+    EditriceVue3D(EditriceVue3D const &) = delete;
+    EditriceVue3D &operator=(EditriceVue3D const &) = delete;
 
     void ajourne_état(JJL::TypeEvenement évènement) override;
 

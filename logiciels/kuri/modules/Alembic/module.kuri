@@ -1,3 +1,5 @@
+importe Fondation
+
 /* La bibliothèque Alembic. */
 libabc :: #bibliothèque "Alembic"
 
@@ -11,3 +13,70 @@ ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCach
 {
     retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Contexte Kuri pour Alembic
+ * \{ */
+
+ctx_kuri_pour_alembic := initialise_contexte_kuri()
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création et destruction d'autrices d'archives.
+ * \{ */
+
+crée_autrice_archive :: fonc (ctx : *ContexteCreationArchive, ctx_ecriture: *ContexteEcritureCache) -> Optionnel(*AutriceArchive)
+{
+    résultat := ABC_cree_autrice_archive(*ctx_kuri_pour_alembic, ctx, ctx_ecriture)
+    saufsi résultat {
+        retourne
+    }
+
+    retourne résultat
+}
+
+/* Écris les données de tous les écrivains dans l'archive. */
+écris_données :: fonc (autrice: *AutriceArchive)
+{
+    ABC_ecris_donnees(autrice)
+}
+
+/* Ferme et détruit l'archive. Si l'archive fut ouverte pour écriture, les
+ * données y seront alors écrites. */
+détruit_autrice :: fonc (autrice: *AutriceArchive)
+{
+    ABC_detruit_autrice(*ctx_kuri_pour_alembic, autrice)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création d'objets pour l'export.
+ * \{ */
+
+crée_écrivain_objet :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, nom: chaine, type_objet: eTypeObjetAbc, données: *rien) -> Optionnel(*EcrivainCache)
+{
+    résultat := ABC_cree_ecrivain_cache(*ctx_kuri_pour_alembic, autrice, parent, nom.pointeur, nom.taille comme n64, données, type_objet)
+    saufsi résultat {
+        retourne
+    }
+
+    retourne résultat
+}
+
+crée_écrivain_objet_racine :: fonc (autrice: *AutriceArchive, nom: chaine, type_objet: eTypeObjetAbc, données: *rien) -> Optionnel(*EcrivainCache)
+{
+    retourne crée_écrivain_objet(autrice, nul, nom, type_objet, données)
+}
+
+crée_écrivain_instance :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, origine: *EcrivainCache, nom: chaine) -> Optionnel(*EcrivainCache)
+{
+    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.pointeur, nom.taille comme n64)
+    saufsi résultat {
+        retourne
+    }
+    retourne résultat
+}
+
+/** \} */

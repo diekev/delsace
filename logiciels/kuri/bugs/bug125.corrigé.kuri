@@ -1,0 +1,25 @@
+/* Collision de symboles entre les valeurs capturées via discr et les symboles
+ * globaux. */
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    v : Optionnel(z32) = 2
+
+    discr v {
+        Quelque(valeur) {
+            imprime("valeur : %\n", valeur)
+        }
+        sinon {
+            panique("v devrait avoir une valeur")
+        }
+    }
+
+    retourne 0
+}
+
+valeur :: fonc () -> z32
+{
+    retourne 123
+}

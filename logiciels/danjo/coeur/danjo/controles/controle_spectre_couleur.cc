@@ -40,7 +40,7 @@ constexpr auto position_spectre(const double spectre)
 
 /* ************************************************************************** */
 
-ControleSpectreCouleur::ControleSpectreCouleur(QWidget *parent) : QWidget(parent)
+ControleSpectreCouleur::ControleSpectreCouleur(QWidget *parent) : BaseControle(parent)
 {
     resize(512, 256);
 
@@ -155,7 +155,7 @@ void ControleSpectreCouleur::paintEvent(QPaintEvent *)
                      static_cast<int>((1.0f - p2.y) * hauteurf));
 }
 
-void ControleSpectreCouleur::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleSpectreCouleur::gère_clique_souris(QMouseEvent *event)
 {
     const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
     const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
@@ -183,13 +183,17 @@ void ControleSpectreCouleur::mousePressEvent(QMouseEvent *event)
             }
         }
     }
+
+    if (m_point_courant) {
+        return RéponseÉvènement::ENTRE_EN_ÉDITION;
+    }
+
+    return RéponseÉvènement::IGNORE_ÉVÈNEMENT;
 }
 
-void ControleSpectreCouleur::mouseMoveEvent(QMouseEvent *event)
+void ControleSpectreCouleur::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (m_point_courant == nullptr) {
-        return;
-    }
+    assert(m_point_courant);
 
     auto x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
     auto y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
@@ -234,13 +238,13 @@ void ControleSpectreCouleur::mouseMoveEvent(QMouseEvent *event)
     update();
 }
 
-void ControleSpectreCouleur::mouseReleaseEvent(QMouseEvent * /*event*/)
+void ControleSpectreCouleur::gère_fin_clique_souris(QMouseEvent * /*event*/)
 {
     m_point_courant = nullptr;
     m_type_point = -1;
 }
 
-void ControleSpectreCouleur::mouseDoubleClickEvent(QMouseEvent *event)
+RéponseÉvènement ControleSpectreCouleur::gère_double_clique_souris(QMouseEvent *event)
 {
     const auto &x = static_cast<float>(event->pos().x()) / static_cast<float>(size().width());
     const auto &y = static_cast<float>(event->pos().y()) / static_cast<float>(size().height());
@@ -248,4 +252,5 @@ void ControleSpectreCouleur::mouseDoubleClickEvent(QMouseEvent *event)
     ajoute_point_courbe(m_courbe, x, 1.0f - y);
 
     update();
+    return RéponseÉvènement::TERMINE_ÉDITION;  // À FAIRE : mauvais code
 }

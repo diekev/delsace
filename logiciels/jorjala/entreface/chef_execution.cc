@@ -8,8 +8,28 @@
 #include "tache.h"
 
 ChefExecution::ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier)
-    : m_jorjala(jorjala), m_task_notifier(task_notifier)
+    : JJL::ChefExecution(), m_jorjala(jorjala), m_task_notifier(task_notifier)
 {
+}
+
+void ChefExecution::rappel_démarre_évaluation(JJL::Chaine param1)
+{
+    demarre_evaluation(param1.vers_std_string().c_str());
+}
+
+void ChefExecution::rappel_rapporte_progression(float param1)
+{
+    indique_progression(param1);
+}
+
+void ChefExecution::rappel_rapporte_progression_parallèle(float param1)
+{
+    indique_progression_parallele(param1);
+}
+
+bool ChefExecution::rappel_doit_interrompre()
+{
+    return interrompu();
 }
 
 bool ChefExecution::interrompu() const

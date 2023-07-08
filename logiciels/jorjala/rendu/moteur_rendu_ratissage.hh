@@ -31,12 +31,12 @@ class ContexteRendu;
 class MoteurRenduRatissage final : public MoteurRendu {
 
   public:
-    MoteurRenduRatissage() = default;
+    MoteurRenduRatissage() = delete;
 
     ~MoteurRenduRatissage() override;
 
-    MoteurRenduRatissage(MoteurRenduRatissage const &) = default;
-    MoteurRenduRatissage &operator=(MoteurRenduRatissage const &) = default;
+    MoteurRenduRatissage(MoteurRenduRatissage const &) = delete;
+    MoteurRenduRatissage &operator=(MoteurRenduRatissage const &) = delete;
 
     const char *id() const override;
 

@@ -182,7 +182,7 @@
     "discr/sinon": {
         "prefix": "discr/sinon",
         "body": [
-            "associe ${1:expression} {",
+            "discr ${1:expression} {",
             "\t${2:test} {",
             "\t\t${3:expression}"
             "\t}"
@@ -192,5 +192,18 @@
             "}"
         ],
         "description": "Fragment de code pour une instruction discr avec un bloc sinon"
+    },
+    "section_code": {
+        "prefix": "section_code",
+        "body": [
+            "/* ------------------------------------------------------------------------- */",
+            "/** \\nom ${1:nom_section}",
+            " * \\{ */",
+            "",
+            "${2:code}",
+            "",
+            "/** \\} */"
+        ],
+        "description": "Fragment de code pour une définir une section de code"
     }
 }

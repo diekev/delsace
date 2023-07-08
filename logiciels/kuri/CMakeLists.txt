@@ -194,6 +194,7 @@ compile_fichier(exemples/demos demo_operateur_point)
 compile_fichier(exemples/demos demo_operateur_surcharge)
 compile_fichier(exemples/demos demo_pointeurs)
 compile_fichier(exemples/demos demo_reference)
+compile_fichier(exemples/demos demo_retour_multiple)
 compile_fichier(exemples/demos demo_si)
 compile_fichier(exemples/demos demo_surcharge_fonctions)
 compile_fichier(exemples/demos demo_syntax_appel_uniforme)
@@ -239,7 +240,6 @@ compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
 set(FICHIERS_TESTS_COROUTINE
     exemples/demos/demo_coro_nombre_premier.kuri
     exemples/demos/demo_coroutine.kuri
-    exemples/demos/demo_retour_multiple.kuri
     exemples/tests/test_table_hachage.kuri
 )
 

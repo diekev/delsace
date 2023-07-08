@@ -7,6 +7,7 @@
 
 #include "../alembic_types.h"
 
+#include "alembic_export.hh"
 #include "utilitaires.hh"
 
 using namespace Alembic;
@@ -124,18 +125,59 @@ ArchiveCache *cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx
     return poignee;
 }
 
-ArchiveCache *cree_archive_export(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
+void detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
 {
-    const auto nombre_de_chemins = static_cast<size_t>(ctx->nombre_de_chemins(ctx));
+    kuri_deloge(ctx, archive);
+}
 
-    if (nombre_de_chemins == 0) {
-        if (ctx->erreur_aucun_chemin) {
-            ctx->erreur_aucun_chemin(ctx);
+/* ------------------------------------------------------------------------- */
+/** \nom Autrice Archive.
+ * \{ */
+
+static void initialise_metadonnées(ContexteCreationArchive *ctx, Abc::MetaData &abc_metadata)
+{
+    auto nom_application = string_depuis_rappel(ctx, ctx->donne_nom_application);
+    if (nom_application.empty()) {
+        nom_application = "unknown";
+    }
+    abc_metadata.set(Abc::kApplicationNameKey, nom_application);
+
+    auto description = string_depuis_rappel(ctx, ctx->donne_description);
+    if (description.empty()) {
+        description = "unknown";
+    }
+    abc_metadata.set(Abc::kUserDescriptionKey, description);
+
+    if (ctx->donne_frames_par_seconde) {
+        auto fps = ctx->donne_frames_par_seconde(ctx);
+        if (fps != 0.0f) {
+            abc_metadata.set("FramesPerTimeUnit", std::to_string(fps));
         }
-        return nullptr;
     }
 
-    auto str_chemin = string_depuis_rappel(ctx, 0, ctx->chemin);
+    time_t raw_time;
+    time(&raw_time);
+    char buffer[128];
+
+#if defined _WIN32 || defined _WIN64
+    ctime_s(buffer, 128, &raw_time);
+#else
+    ctime_r(&raw_time, buffer);
+#endif
+
+    const std::size_t buffer_len = strlen(buffer);
+    if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
+        buffer[buffer_len - 1] = '\0';
+    }
+
+    abc_metadata.set(Alembic::Abc::kDateWrittenKey, buffer);
+}
+
+AutriceArchive *crée_autrice_archive(ContexteKuri *ctx_kuri,
+                                     ContexteCreationArchive *ctx,
+                                     ContexteEcritureCache *ctx_écriture)
+{
+    auto str_chemin = string_depuis_rappel(ctx, ctx->donne_chemin);
     if (str_chemin.empty()) {
         if (ctx->erreur_aucun_chemin) {
             ctx->erreur_aucun_chemin(ctx);
@@ -144,19 +186,51 @@ ArchiveCache *cree_archive_export(ContexteKuri *ctx_kuri, ContexteOuvertureArchi
     }
 
     AbcCoreOgawa::WriteArchive archive_writer;
+    Abc::ErrorHandler::Policy policy = Abc::ErrorHandler::kThrowPolicy;
 
-    // À FAIRE: métadonnées
-    auto oarchive = Abc::OArchive(archive_writer(str_chemin, {}));
+    Abc::MetaData abc_metadata;
+    initialise_metadonnées(ctx, abc_metadata);
 
-    auto poignee = kuri_loge<ArchiveCache>(ctx_kuri);
+    auto oarchive = Abc::OArchive(
+        archive_writer(str_chemin, abc_metadata), Abc::kWrapExisting, policy);
+
+    auto poignee = kuri_loge<AutriceArchive>(ctx_kuri);
     poignee->archive = oarchive;
+    poignee->ctx_écriture = *ctx_écriture;
+    poignee->racine = kuri_loge<RacineAutriceCache>(ctx_kuri, *poignee);
     return poignee;
 }
 
-void detruit_archive(ContexteKuri *ctx, ArchiveCache *archive)
+static void écris_données(EcrivainCache *écrivain)
 {
+    écrivain->écris_données();
+
+    for (auto enfant : écrivain->m_enfants) {
+        écris_données(enfant);
+    }
+}
+
+void écris_données(AutriceArchive *autrice)
+{
+    écris_données(autrice->racine);
+}
+
+static void détruit_écrivain(ContexteKuri *ctx, EcrivainCache *écrivain)
+{
+    for (auto enfant : écrivain->m_enfants) {
+        détruit_écrivain(ctx, enfant);
+    }
+
+    AbcKuri::detruit_ecrivain(ctx, écrivain);
+}
+
+void détruit_autrice(ContexteKuri *ctx, AutriceArchive *archive)
+{
+    détruit_écrivain(ctx, archive->racine);
     kuri_deloge(ctx, archive);
 }
+
+/** \} */
 
 // --------------------------------------------------------------
 // Traversé de l'archive.
@@ -249,10 +323,6 @@ void traverse_archive(ContexteKuri * /*ctx_kuri*/,
                       ContexteTraverseArchive *ctx)
 {
     if (!archive) {
-        return;
-    }
-
-    if (!archive->est_lecture()) {
         return;
     }
 

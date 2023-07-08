@@ -59,9 +59,14 @@
 
 class CommandeAjouterPropriete final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
-        auto gestionnaire = gestionnaire_danjo(jorjala);
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
         auto graphe = jorjala.graphe();
 
         if (graphe.noeud_actif() == nullptr) {
@@ -112,6 +117,11 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
 
 class CommandeAjouterComposite final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         jorjala.crée_racine_composite("composite");
@@ -124,6 +134,11 @@ class CommandeAjouterComposite final : public CommandeJorjala {
 
 class CommandeAjouterNuanceur final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -140,6 +155,11 @@ class CommandeAjouterNuanceur final : public CommandeJorjala {
 
 class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -156,6 +176,11 @@ class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
 /* ************************************************************************** */
 
 struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -220,6 +245,11 @@ struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
 
 class CommandeAjouterRendu final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0  // À FAIRE
@@ -236,24 +266,22 @@ class CommandeAjouterRendu final : public CommandeJorjala {
 
 class CommandeDefait final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        return !jorjala.pile_defait.est_vide();
-#else
-        return false;
-#endif
+        return jorjala.possède_changement_à_défaire();
     }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        jorjala.defait();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
-#endif
-
+        jorjala.défait_changement();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -262,24 +290,22 @@ class CommandeDefait final : public CommandeJorjala {
 
 class CommandeRefait final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        return !jorjala.pile_refait.est_vide();
-#else
-        return false;
-#endif
+        return jorjala.possède_changement_à_refaire();
     }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
-#if 0  // À FAIRE
         INUTILISE(metadonnee);
-        jorjala.refait();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::rafraichissement);
-#endif
-
+        jorjala.refait_changement();
+        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -288,6 +314,11 @@ class CommandeRefait final : public CommandeJorjala {
 
 class CommandeRenomme final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
         INUTILISE(metadonnee);
@@ -304,7 +335,7 @@ class CommandeRenomme final : public CommandeJorjala {
             "nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud.nom().vers_std_string());
 
         auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
-        auto gestionnaire = gestionnaire_danjo(jorjala);
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
 
         auto ok = gestionnaire->montre_dialogue_fichier(donnees_entreface,
                                                         "entreface/dialogue_renommage.jo");
@@ -349,11 +380,12 @@ void enregistre_commandes_edition(UsineCommande &usine)
 
     usine.enregistre_type(
         "défait",
-        description_commande<CommandeDefait>("", 0, Qt::Modifier::CTRL, Qt::Key_Z, false));
+        description_commande<CommandeDefait>("", 0, Qt::Modifier::CTRL, Qt::Key_Z, false, false));
 
-    usine.enregistre_type("refait",
-                          description_commande<CommandeRefait>(
-                              "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false));
+    usine.enregistre_type(
+        "refait",
+        description_commande<CommandeRefait>(
+            "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false, false));
 
     usine.enregistre_type(
         "renomme", description_commande<CommandeRenomme>("graphe", 0, 0, Qt::Key_F2, false));

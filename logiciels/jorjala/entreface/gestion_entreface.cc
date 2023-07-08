@@ -25,7 +25,7 @@
 
 void active_editrice(JJL::Jorjala &jorjala, BaseEditrice *editrice)
 {
-    auto données = accède_données_programme(jorjala);
+    auto données = donne_données_programme(jorjala);
 
     if (données->editrice_active) {
         données->editrice_active->actif(false);
@@ -58,7 +58,7 @@ void appele_commande(JJL::Jorjala &jorjala,
                      dls::chaine const &nom_commande,
                      dls::chaine const &métadonnée)
 {
-    repondant_commande(jorjala)->repond_clique(nom_commande, métadonnée);
+    donne_repondant_commande(jorjala)->repond_clique(nom_commande, métadonnée);
 }
 
 /* ------------------------------------------------------------------------- */

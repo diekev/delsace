@@ -1,0 +1,44 @@
+/* « diffère » ne fonctionne pas avec « retourne » dans les blocs de boucles
+ * d'opérateur pour. */
+
+importe Fondation
+
+valeur_globale : z32
+
+Structure :: struct {
+    itérations: z32
+}
+
+opérateur pour :: fonc (structure: Structure) -> z32
+{
+    pour index, index_itération dans structure.itérations {
+        `it = index
+        `index_it = index_itération
+
+        #corps_boucle
+    }
+}
+
+lance_boucle :: fonc (max_itérations: z32, nombre_itérations: z32)
+{
+    s := Structure(max_itérations)
+    compteur := 0
+
+    diffère { valeur_globale = compteur }
+
+    pour s {
+        imprime("compteur : %, it : %\n", compteur, it)
+        si it == nombre_itérations {
+            retourne
+        }
+        compteur += 1
+    }
+}
+
+principale :: fonc () -> z32
+{
+    lance_boucle(100, 10)
+    imprime("valeur_globale : %\n", valeur_globale)
+    assert(valeur_globale == 10)
+    retourne 0
+}

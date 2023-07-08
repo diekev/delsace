@@ -38,8 +38,6 @@ namespace danjo {
 /* ************************************************************************* */
 
 class BaseControleProprieteVecteur : public ControlePropriete {
-    Q_OBJECT
-
   protected:
     static constexpr int DIMENSIONS_MAX = 4;
     int m_dimensions = 0;
@@ -53,15 +51,6 @@ class BaseControleProprieteVecteur : public ControlePropriete {
 
     BaseControleProprieteVecteur(BaseControleProprieteVecteur const &) = default;
     BaseControleProprieteVecteur &operator=(BaseControleProprieteVecteur const &) = default;
-
-  protected Q_SLOTS:
-    void montre_echelle_0();
-    void montre_echelle_1();
-    void montre_echelle_2();
-    void montre_echelle_3();
-
-  protected:
-    virtual void montre_echelle(int index) = 0;
 };
 
 /* ************************************************************************* */
@@ -92,7 +81,6 @@ class ControleProprieteVecteurDecimal final : public BaseControleProprieteVecteu
 
   private:
     void ajourne_valeur(int index, float valeur);
-    void montre_echelle(int index) override;
 
     void ajourne_valeurs_controles();
 };
@@ -125,7 +113,6 @@ class ControleProprieteVecteurEntier final : public BaseControleProprieteVecteur
 
   private:
     void ajourne_valeur(int index, int valeur);
-    void montre_echelle(int index) override;
 
     void ajourne_valeurs_controles();
 };

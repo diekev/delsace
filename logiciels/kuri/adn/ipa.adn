@@ -115,3 +115,10 @@ fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
 
 /* Retourne un tableau de toutes les fonctions parsées au moment de l'appel à cette fonction. */
 fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []
+
+/* --------------------------------------------------------------------------
+ * Accès aux arguments de la ligne de commande pour les métaprogrammes.
+ */
+
+/* Retourne la liste des arguments passés à la ligne de commande de la compilatrice Kuri après "--". */
+fonction compilatrice_donne_arguments_ligne_de_commande() -> chaine_statique []

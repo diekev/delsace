@@ -186,6 +186,11 @@ static bool peut_connecter(JJL::PriseEntree entree, JJL::PriseSortie sortie)
 
 class CommandeDessineGrapheComposite final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0
@@ -242,6 +247,11 @@ static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL
 
 class CommandeAjoutNoeud final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto nom = donnees.metadonnee;
@@ -268,6 +278,11 @@ class CommandeAjoutNoeud final : public CommandeJorjala {
 
 class CommandeAjoutNoeudDetail final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
 #if 0
@@ -330,6 +345,11 @@ class CommandeAjoutNoeudDetail final : public CommandeJorjala {
 
 class CommandeAjoutNoeudCycles final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
 #if 0
@@ -367,6 +387,11 @@ class CommandeAjoutNoeudCycles final : public CommandeJorjala {
 
 class CommandeAjoutNoeudDetailSpecial final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
 #if 0
@@ -447,6 +472,11 @@ class CommandeAjoutNoeudDetailSpecial final : public CommandeJorjala {
 
 class CommandeAjoutGrapheDetail final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
 #if 0
@@ -598,6 +628,11 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
     char m_pad[5];
 
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     CommandeSelectionGraphe() : CommandeJorjala()
     {
         INUTILISE(m_pad); /* Pour faire taire les avertissements. */
@@ -731,6 +766,11 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
 
 class CommandeSupprimeSelection final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
 #if 0
@@ -832,6 +872,11 @@ class CommandeSupprimeSelection final : public CommandeJorjala {
 
 class CommandeInfoNoeud final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
@@ -867,6 +912,11 @@ class CommandeDeplaceGraphe final : public CommandeJorjala {
   public:
     CommandeDeplaceGraphe() = default;
 
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         INUTILISE(jorjala);
@@ -900,6 +950,11 @@ class CommandeZoomGraphe final : public CommandeJorjala {
   public:
     CommandeZoomGraphe() = default;
 
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
@@ -918,6 +973,11 @@ class CommandeZoomGraphe final : public CommandeJorjala {
 
 class CommandeEntreNoeud final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.graphe();
@@ -944,6 +1004,11 @@ class CommandeEntreNoeud final : public CommandeJorjala {
 
 class CommandeSorsNoeud final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         auto graphe = jorjala.graphe();
@@ -967,6 +1032,11 @@ class CommandeSorsNoeud final : public CommandeJorjala {
 class CommandeArrangeGraphe final : public CommandeJorjala {
   public:
     CommandeArrangeGraphe() = default;
+
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
@@ -1029,6 +1099,11 @@ class CommandeArrangeGraphe final : public CommandeJorjala {
 
 class CommandeChangeContexte final : public CommandeJorjala {
   public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto const &metadonnee = donnees.metadonnee;
@@ -1041,6 +1116,11 @@ class CommandeChangeContexte final : public CommandeJorjala {
 /* ************************************************************************** */
 
 struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
     bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
     {
 #if 0

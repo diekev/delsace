@@ -31,7 +31,10 @@ Servlet :: fonc(ssl: *ssl_st) -> rien
 
         si bytes > 0 {
             buf[bytes] = '\0'
-            _ := printf(ChaineC("Client msg: \"%s\"\n".pointeur), *buf[0])
+            chn : chaine
+            chn.pointeur = *buf[0]
+            chn.taille = bytes
+            imprime("Client msg: \"%\"\n", chn)
 
             réponse := prépare_réponse()
 

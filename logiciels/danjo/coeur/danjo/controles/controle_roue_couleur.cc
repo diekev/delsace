@@ -41,7 +41,7 @@ static constexpr auto DECALAGE_CERCLE = (1.0 - DIAMETRE_CERCLE) * 0.5;
 static constexpr auto TAILLE_CIBLE = 0.83;
 static constexpr auto DECALAGE_CIBLE = (1.0 - TAILLE_CIBLE);
 
-ControleRoueCouleur::ControleRoueCouleur(QWidget *parent) : QWidget(parent)
+ControleRoueCouleur::ControleRoueCouleur(QWidget *parent) : BaseControle(parent)
 {
     resize(256, 256);
 }
@@ -115,26 +115,15 @@ void ControleRoueCouleur::paintEvent(QPaintEvent *)
                                diametre_controle));
 }
 
-void ControleRoueCouleur::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleRoueCouleur::gère_clique_souris(QMouseEvent *event)
 {
-    if (event->button() == Qt::MouseButton::LeftButton) {
-        ajourne_position(event->pos().x(), event->pos().y());
-        souris_pressee = true;
-        update();
-    }
+    ajourne_position(event->pos().x(), event->pos().y());
+    return RéponseÉvènement::ENTRE_EN_ÉDITION;
 }
 
-void ControleRoueCouleur::mouseMoveEvent(QMouseEvent *event)
+void ControleRoueCouleur::gère_mouvement_souris(QMouseEvent *event)
 {
-    if (souris_pressee) {
-        ajourne_position(event->pos().x(), event->pos().y());
-        update();
-    }
-}
-
-void ControleRoueCouleur::mouseReleaseEvent(QMouseEvent *)
-{
-    souris_pressee = false;
+    ajourne_position(event->pos().x(), event->pos().y());
 }
 
 void ControleRoueCouleur::ajourne_position(int x, int y)

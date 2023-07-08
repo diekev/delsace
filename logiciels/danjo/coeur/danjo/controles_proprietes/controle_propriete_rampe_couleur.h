@@ -53,8 +53,8 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
 
     /* controle de la position du point sélectionné */
     QPushButton *m_bouton_echelle{};
-    ControleEchelleDecimale *m_echelle{};
     ControleNombreDecimal *m_pos{};
+    ControleEchelleDecimale *m_echelle{};
 
     /* controle de la couleur */
     ControleCouleur *m_controle_couleur{};
@@ -72,7 +72,6 @@ class ControleProprieteRampeCouleur final : public ControlePropriete {
     void finalise(const DonneesControle &donnees) override;
 
   private Q_SLOTS:
-    void montre_echelle();
     void controle_ajoute();
 
     void ajourne_position(float x);

@@ -45,8 +45,8 @@ class RenduImage {
      */
     RenduImage();
 
-    RenduImage(RenduImage const &) = default;
-    RenduImage &operator=(RenduImage const &) = default;
+    RenduImage(RenduImage const &) = delete;
+    RenduImage &operator=(RenduImage const &) = delete;
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et

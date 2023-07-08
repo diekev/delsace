@@ -32,7 +32,7 @@
 
 /* ************************************************************************** */
 
-ControleRampeCouleur::ControleRampeCouleur(QWidget *parent) : QWidget(parent)
+ControleRampeCouleur::ControleRampeCouleur(QWidget *parent) : BaseControle(parent)
 {
     resize(512, 256);
     auto metriques = this->fontMetrics();
@@ -124,7 +124,7 @@ float ControleRampeCouleur::position_degrade(float x)
     return x;
 }
 
-void ControleRampeCouleur::mousePressEvent(QMouseEvent *event)
+RéponseÉvènement ControleRampeCouleur::gère_clique_souris(QMouseEvent *event)
 {
     const auto &largeur = size().width();
     const auto &metriques = this->fontMetrics();
@@ -155,11 +155,13 @@ void ControleRampeCouleur::mousePressEvent(QMouseEvent *event)
         m_point_courant->selectionne = true;
         m_point_selectionne = true;
         Q_EMIT point_change();
-        update();
+        return RéponseÉvènement::ENTRE_EN_ÉDITION;
     }
+
+    return RéponseÉvènement::IGNORE_ÉVÈNEMENT;
 }
 
-void ControleRampeCouleur::mouseMoveEvent(QMouseEvent *event)
+void ControleRampeCouleur::gère_mouvement_souris(QMouseEvent *event)
 {
     if (m_point_selectionne) {
         auto x = position_degrade(static_cast<float>(event->pos().x()));
@@ -173,12 +175,12 @@ void ControleRampeCouleur::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void ControleRampeCouleur::mouseReleaseEvent(QMouseEvent *)
+void ControleRampeCouleur::gère_fin_clique_souris(QMouseEvent *)
 {
     m_point_selectionne = false;
 }
 
-void ControleRampeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
+RéponseÉvènement ControleRampeCouleur::gère_double_clique_souris(QMouseEvent *event)
 {
     const auto &x = position_degrade(static_cast<float>(event->pos().x()));
 
@@ -187,6 +189,7 @@ void ControleRampeCouleur::mouseDoubleClickEvent(QMouseEvent *event)
     update();
 
     Q_EMIT controle_ajoute();
+    return RéponseÉvènement::TERMINE_ÉDITION;  // À FAIRE : mauvais code
 }
 
 void ControleRampeCouleur::ajourne_position(float x)

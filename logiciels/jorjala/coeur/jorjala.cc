@@ -57,7 +57,7 @@ static void enregistre_commandes(UsineCommande &usine_commande)
 static void initialise_données_programme(DonnéesProgramme *données_programme,
                                          JJL::Jorjala &jorjala)
 {
-    jorjala.crée_gestionnaire_fenêtre(données_programme);
+    jorjala.données_programme(données_programme);
 
     données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>(
         "danjo::GestionnaireInterface");
@@ -88,7 +88,7 @@ std::optional<JJL::Jorjala> initialise_jorjala()
 
 void issitialise_jorjala(JJL::Jorjala &jorjala)
 {
-    auto données_programme = accède_données_programme(jorjala);
+    auto données_programme = donne_données_programme(jorjala);
 
     memoire::deloge("UsineCommande", données_programme->usine_commande);
     memoire::deloge("RepondantCommande", données_programme->repondant_commande);
@@ -98,21 +98,20 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
     JJL::détruit_instance_jorjala(jorjala);
 }
 
-DonnéesProgramme *accède_données_programme(JJL::Jorjala &jorjala)
+DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala)
 {
-    auto données_programme = jorjala.gestionnaire_fenêtre();
-    return static_cast<DonnéesProgramme *>(données_programme.données());
+    return static_cast<DonnéesProgramme *>(jorjala.données_programme());
 }
 
-RepondantCommande *repondant_commande(JJL::Jorjala &jorjala)
+RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala)
 {
-    auto données = accède_données_programme(jorjala);
+    auto données = donne_données_programme(jorjala);
     return données->repondant_commande;
 }
 
-danjo::GestionnaireInterface *gestionnaire_danjo(JJL::Jorjala &jorjala)
+danjo::GestionnaireInterface *donne_gestionnaire_danjo(JJL::Jorjala &jorjala)
 {
-    auto données = accède_données_programme(jorjala);
+    auto données = donne_données_programme(jorjala);
     return données->gestionnaire_danjo;
 }
 
@@ -121,8 +120,8 @@ danjo::DonneesInterface cree_donnees_interface_danjo(JJL::Jorjala &jorjala,
                                                      danjo::ConteneurControles *conteneur)
 {
     danjo::DonneesInterface résultat{};
-    résultat.conteneur = nullptr;
-    résultat.repondant_bouton = repondant_commande(jorjala);
+    résultat.conteneur = conteneur;
+    résultat.repondant_bouton = donne_repondant_commande(jorjala);
     résultat.manipulable = manipulable;
     return résultat;
 }
@@ -278,43 +277,4 @@ void Jorjala::ajourne_pour_nouveau_temps(const char *message)
 {
     requiers_evaluation(*this, TEMPS_CHANGE, message);
 }
-
-Jorjala::EtatLogiciel Jorjala::etat_courant()
-{
-    auto etat = EtatLogiciel();
-
-    return etat;
-}
-
-void Jorjala::empile_etat()
-{
-    //	if (!pile_refait.est_vide()) {
-    //		pile_refait.efface();
-    //	}
-
-    //	pile_defait.empile(etat_courant());
-}
-
-void Jorjala::defait()
-{
-    //	if (pile_defait.est_vide()) {
-    //		return;
-    //	}
-
-    //	pile_refait.empile(etat_courant());
-
-    //	auto etat = pile_defait.depile();
-}
-
-void Jorjala::refait()
-{
-    //	if (pile_refait.est_vide()) {
-    //		return;
-    //	}
-
-    //	pile_defait.empile(etat_courant());
-
-    //	auto etat = pile_refait.depile();
-}
-
 #endif

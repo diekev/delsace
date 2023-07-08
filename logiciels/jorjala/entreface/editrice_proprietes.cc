@@ -58,8 +58,10 @@ std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_
                 return danjo::TypePropriete::LISTE;
             }
             return danjo::TypePropriete::CHAINE_CARACTERE;
-        case JJL::TypeParametre::CHEMIN_FICHIER:
+        case JJL::TypeParametre::CHEMIN_FICHIER_ENTRÉE:
             return danjo::TypePropriete::FICHIER_ENTREE;
+        case JJL::TypeParametre::CHEMIN_FICHIER_SORTIE:
+            return danjo::TypePropriete::FICHIER_SORTIE;
         case JJL::TypeParametre::NOMBRE_ENTIER:
             return danjo::TypePropriete::ENTIER;
         case JJL::TypeParametre::NOMBRE_RÉEL:
@@ -300,7 +302,12 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         return nullptr;
     }
 
-    danjo::AssembleurDisposition assembleuse(manipulable, repondant_bouton, conteneur);
+    danjo::DonneesInterface données_interface{};
+    données_interface.manipulable = manipulable;
+    données_interface.repondant_bouton = repondant_bouton;
+    données_interface.conteneur = conteneur;
+
+    danjo::AssembleurDisposition assembleuse(données_interface);
 
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
@@ -350,6 +357,8 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 }
 
 /* ------------------------------------------------------------------------- */
+/** \name EditriceProprietes
+ * \{ */
 
 EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     : BaseEditrice("propriétés", jorjala, parent), m_widget(new QWidget()),
@@ -419,7 +428,7 @@ void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
     }
 
     danjo::Manipulable manipulable;
-    auto repondant = repondant_commande(m_jorjala);
+    auto repondant = donne_repondant_commande(m_jorjala);
 
     auto disposition = crée_disposition_paramètres(&manipulable, repondant, this, noeud);
     if (disposition == nullptr) {
@@ -433,7 +442,7 @@ void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
 
 void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 {
-    /* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est
+    /* Qt ne permet d'extraire la disposition d'un widget que si celle-ci est
      * assignée à un autre widget. Donc pour détruire la disposition précédente
      * nous la reparentons à un widget temporaire qui la détruira dans son
      * destructeur. */
@@ -477,12 +486,18 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
     m_conteneur_avertissements->show();
 }
 
+#undef DEBOGUE_EVENEMENTS
+
 void EditriceProprietes::ajourne_manipulable()
 {
     auto graphe = m_jorjala.graphe();
     if (graphe == nullptr) {
         return;
     }
+
+#ifdef DEBOGUE_EVENEMENTS
+    std::cerr << "---------- " << __func__ << " !\n";
+#endif
 
     auto requête = JJL::RequeteEvaluation({});
     requête.raison(JJL::RaisonEvaluation::PARAMETRE_CHANGÉ);
@@ -493,12 +508,25 @@ void EditriceProprietes::ajourne_manipulable()
     m_jorjala.requiers_évaluation(requête);
 }
 
-void EditriceProprietes::precontrole_change()
+void EditriceProprietes::debute_changement_controle()
 {
-#if 0
-	std::cerr << "---- Précontrole changé !\n";
-	m_jorjala.empile_etat();
+#ifdef DEBOGUE_EVENEMENTS
+    std::cerr << "---- " << __func__ << " !\n";
 #endif
+
+    auto graphe = m_jorjala.graphe();
+    auto noeud = graphe.noeud_actif();
+
+    m_jorjala.prépare_pour_changement_paramètre(graphe, noeud);
+}
+
+void EditriceProprietes::termine_changement_controle()
+{
+#ifdef DEBOGUE_EVENEMENTS
+    std::cerr << "---- " << __func__ << " !\n";
+#endif
+
+    m_jorjala.soumets_changement();
 }
 
 static void copie_liste(JJL::tableau<JJL_Chaine, JJL::Chaine> liste,
@@ -629,3 +657,50 @@ void EditriceProprietes::onglet_dossier_change(int index)
 	}
 #endif
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name EditriceProprietes
+ * \{ */
+
+EditriceProprietesNoeudDialogue::EditriceProprietesNoeudDialogue(JJL::Noeud &noeud,
+                                                                 QWidget *parent)
+    : danjo::ConteneurControles(parent), m_widget(new QWidget()),
+      m_conteneur_avertissements(new QWidget()), m_conteneur_disposition(new QWidget()),
+      m_scroll(new QScrollArea()), m_disposition(new QVBoxLayout(this)),
+      m_disposition_widget(new QVBoxLayout(m_widget))
+{
+    QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    m_widget->setSizePolicy(size_policy);
+
+    m_scroll->setWidget(m_widget);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scroll->setWidgetResizable(true);
+
+    /* Cache le cadre du scroll area. */
+    m_scroll->setFrameStyle(0);
+
+    m_disposition_widget->addWidget(m_conteneur_avertissements);
+    m_disposition_widget->addWidget(m_conteneur_disposition);
+
+    m_disposition->addWidget(m_scroll);
+
+    if (noeud == nullptr) {
+        return;
+    }
+
+    danjo::Manipulable manipulable;
+    auto disposition = crée_disposition_paramètres(&manipulable, nullptr, this, noeud);
+    if (disposition) {
+        // À FAIRE
+        // gestionnaire->ajourne_entreface(manipulable);
+        m_conteneur_disposition->setLayout(disposition);
+    }
+}
+
+void EditriceProprietesNoeudDialogue::ajourne_manipulable()
+{
+}
+
+/** \} */

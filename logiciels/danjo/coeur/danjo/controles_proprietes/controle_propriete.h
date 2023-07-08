@@ -56,19 +56,50 @@ class ControlePropriete : public QWidget {
      */
     virtual void finalise(const DonneesControle & /*donnees*/){};
 
+    template <typename TypeFonction>
+    void émets_controle_changé_simple(TypeFonction &&fonction)
+    {
+        Q_EMIT(debute_changement_controle());
+        fonction();
+        Q_EMIT(controle_change());
+        Q_EMIT(termine_changement_controle());
+    }
+
+    template <typename TypeControle, typename TypeControlePropriete>
+    static void connecte_signaux_début_fin_changement(TypeControle *controle,
+                                                      TypeControlePropriete *controle_propriete)
+    {
+        connect(controle,
+                &TypeControle::debute_changement_controle,
+                controle_propriete,
+                &TypeControlePropriete::emets_debute_changement_controle);
+
+        connect(controle,
+                &TypeControle::termine_changement_controle,
+                controle_propriete,
+                &TypeControlePropriete::emets_termine_changement_controle);
+    }
+
   Q_SIGNALS:
     /**
-     * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+     * Signal émis avant que la valeur du contrôle ne soit changée dans l'entreface.
      */
-    void precontrole_change();
+    void debute_changement_controle();
 
     /**
      * Signal émis quand la valeur du contrôle est changée dans l'entreface.
      */
     void controle_change();
 
+    /**
+     * Signal émis après que la valeur du contrôle fut changée dans l'entreface.
+     */
+    void termine_changement_controle();
+
   public Q_SLOTS:
-    void emet_precontrole_change();
+    void emets_debute_changement_controle();
+
+    void emets_termine_changement_controle();
 };
 
 } /* namespace danjo */

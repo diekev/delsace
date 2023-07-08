@@ -51,9 +51,10 @@ ControleProprieteEnum::ControleProprieteEnum(BasePropriete *p, int temps, QWidge
 
 void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)
 {
-    Q_EMIT(precontrole_change());
-    m_propriete->définit_valeur_énum(m_liste_deroulante->currentData().toString().toStdString());
-    Q_EMIT(controle_change());
+    émets_controle_changé_simple([this]() {
+        m_propriete->définit_valeur_énum(
+            m_liste_deroulante->currentData().toString().toStdString());
+    });
 }
 
 void ControleProprieteEnum::finalise(const DonneesControle &donnees)
