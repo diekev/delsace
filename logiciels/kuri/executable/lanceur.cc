@@ -14,6 +14,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/langage/unicode.hh"
 
 #include "structures/chemin_systeme.hh"
 
@@ -133,70 +134,311 @@ static void imprime_stats(Compilatrice const &compilatrice,
 #endif
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Parsage des arguments de compilation.
+ * \{ */
+
+class ParseuseArguments {
+  private:
+    int m_argc = 0;
+    char **m_argv = nullptr;
+    int m_index = 0;
+
+  public:
+    ParseuseArguments(int argc, char **argv, int index)
+        : m_argc(argc), m_argv(argv), m_index(index)
+    {
+    }
+
+    ParseuseArguments(ParseuseArguments const &) = delete;
+    ParseuseArguments &operator=(ParseuseArguments const &) = delete;
+
+    bool a_consommé_tous_les_arguments() const
+    {
+        return m_index >= m_argc;
+    }
+
+    std::optional<kuri::chaine_statique> donne_argument_suivant()
+    {
+        if (a_consommé_tous_les_arguments()) {
+            return {};
+        }
+
+        return kuri::chaine_statique(m_argv[m_index++]);
+    }
+};
+
+enum class ActionParsageArgument : uint8_t {
+    CONTINUE,
+    ARRÊTE_POUR_AIDE,
+    ARRÊTE_CAR_ERREUR,
+    DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES,
+};
+
+using TypeFonctionGestionArgument = ActionParsageArgument (*)(ParseuseArguments &,
+                                                              ArgumentsCompilatrice &);
+
+struct DescriptionArgumentCompilation {
+    kuri::chaine nom = "";
+    kuri::chaine nom_court = "";
+    kuri::chaine nom_pour_aide = "";
+    kuri::chaine description_pour_aide = "";
+    TypeFonctionGestionArgument fonction{};
+};
+
+static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
+                                                ArgumentsCompilatrice & /*résultat*/);
+
+static ActionParsageArgument gère_argument_pour_métaprogrammes(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/);
+
+static ActionParsageArgument gère_argument_emets_fichiers_utilises(
+    ParseuseArguments &parseuse, ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
+                                                 ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
+                                                          ArgumentsCompilatrice &résultat);
+
+static DescriptionArgumentCompilation descriptions_arguments[] = {
+    {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
+    {"--",
+     "",
+     "",
+     "Débute la liste des arguments pour les métaprogrammes",
+     gère_argument_pour_métaprogrammes},
+    {"--tests",
+     "-t",
+     "--tests, -t",
+     "Active la compilation et l'exécution des directives #test",
+     gère_argument_tests},
+    {"--emets_fichiers_utilises",
+     "",
+     "--emets_fichiers_utilises [FICHIER]",
+     "Imprime, à la fin de la compilation, la liste des fichiers utilisés dans le fichier "
+     "spécifié",
+     gère_argument_emets_fichiers_utilises},
+    {"--profile_exécution",
+     "",
+     "",
+     "Active le profilage des métaprogrammes. Émets un fichier pouvant être lu avec "
+     "speedscope.app",
+     gère_argument_profile_exécution},
+    {"--format_profile",
+     "",
+     "--format_profile {défaut|gregg|échantillons_totaux}",
+     "Définit le format du fichier de profilage",
+     gère_argument_format_profile},
+    {"--débogue_exécution",
+     "",
+     "",
+     "Ajoute des instructions de débogage aux métaprogrammes afin de pouvoir détecter des "
+     "erreurs",
+     gère_argument_débogue_exécution},
+};
+
+static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
+    kuri::chaine_statique nom)
+{
+    POUR (descriptions_arguments) {
+        if (it.nom == nom || it.nom_court == nom) {
+            return it;
+        }
+    }
+
+    return {};
+}
+
+static kuri::chaine_statique donne_nom_pour_aide(DescriptionArgumentCompilation const &desc)
+{
+    if (desc.nom_pour_aide.taille() > 0) {
+        return desc.nom_pour_aide;
+    }
+
+    return desc.nom;
+}
+
+static int calcule_taille_utf8(kuri::chaine_statique chaine)
+{
+    int résultat = 0;
+    for (auto i = 0l; i < chaine.taille();) {
+        auto n = lng::nombre_octets(&chaine.pointeur()[i]);
+        résultat += 1;
+        i += n;
+    }
+    return résultat;
+}
+
+static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
+                                                ArgumentsCompilatrice & /*résultat*/)
+{
+    int taille_max_nom_pour_aide = 0;
+    POUR (descriptions_arguments) {
+        auto nom = donne_nom_pour_aide(it);
+        auto const taille = calcule_taille_utf8(nom);
+        if (taille > taille_max_nom_pour_aide) {
+            taille_max_nom_pour_aide = taille;
+        }
+    }
+
+    std::cout << "Utilisation : kuri [options...] FICHIER\n";
+    std::cout << "Options :\n";
+
+    POUR (descriptions_arguments) {
+        auto nom = donne_nom_pour_aide(it);
+        std::cout << "\t" << nom;
+
+        auto const taille_nom = calcule_taille_utf8(nom);
+        auto const taille_restante = taille_max_nom_pour_aide - taille_nom;
+        auto const taille_marge = taille_restante + 2;
+
+        for (int i = 0; i < taille_marge; i++) {
+            std::cout << ' ';
+        }
+
+        std::cout << it.description_pour_aide << ".\n";
+    }
+
+    return ActionParsageArgument::ARRÊTE_POUR_AIDE;
+}
+
+static ActionParsageArgument gère_argument_pour_métaprogrammes(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/)
+{
+    return ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES;
+}
+
+static ActionParsageArgument gère_argument_emets_fichiers_utilises(ParseuseArguments &parseuse,
+                                                                   ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        std::cerr << "Argument manquant après --emets_fichiers_utilises\n";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+    résultat.chemin_fichier_utilises = arg.value();
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
+                                                 ArgumentsCompilatrice &résultat)
+{
+    résultat.active_tests = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat)
+{
+    résultat.profile_metaprogrammes = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat)
+{
+    résultat.debogue_execution = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
+                                                          ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        std::cerr << "Argument manquant après --format_profile\n";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+
+    if (arg.value() == "défaut" || arg.value() == "gregg") {
+        résultat.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "échantillons_totaux") {
+        résultat.format_rapport_profilage =
+            FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    std::cerr << "Type de format de profile \"" << arg.value() << "\" inconnu\n";
+    return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+}
+
 static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)
 {
     if (argc < 2) {
-        std::cerr << "Utilisation : " << argv[0] << " FICHIER [options...]\n";
+        std::cerr << "Utilisation : " << argv[0] << " [options...] FICHIER\n";
         return {};
     }
 
     auto resultat = ArgumentsCompilatrice();
     auto arguments_pour_métaprogrammes = false;
 
-    for (int i = 2; i < argc; ++i) {
+    auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
+
+    while (true) {
+        auto arg = parseuse_arguments.donne_argument_suivant();
+        if (!arg.has_value()) {
+            break;
+        }
+
         if (arguments_pour_métaprogrammes) {
-            resultat.arguments_pour_métaprogrammes.ajoute(argv[i]);
+            resultat.arguments_pour_métaprogrammes.ajoute(arg.value());
             continue;
         }
 
-        if (strcmp(argv[i], "--tests") == 0) {
-            resultat.active_tests = true;
-        }
-        else if (strcmp(argv[i], "--emets_fichiers_utilises") == 0) {
-            ++i;
-            if (i >= argc) {
-                std::cerr << "Argument manquant après --emets_fichiers_utilises\n";
-                return {};
-            }
-            resultat.chemin_fichier_utilises = argv[i];
-        }
-        else if (strcmp(argv[i], "--profile_exécution") == 0) {
-            resultat.profile_metaprogrammes = true;
-        }
-        else if (strcmp(argv[i], "--débogue_exécution") == 0) {
-            resultat.debogue_execution = true;
-        }
-        else if (strcmp(argv[i], "--format_profile") == 0) {
-            ++i;
-
-            if (i >= argc) {
-                std::cerr << "Argument manquant après --format_profile\n";
-                return {};
+        auto desc = donne_description_pour_arg(arg.value());
+        if (!desc.has_value()) {
+            if (parseuse_arguments.a_consommé_tous_les_arguments()) {
+                /* C'est peut-être le fichier, ce cas est géré en dehors de cet fonction. */
+                return resultat;
             }
 
-            if (strcmp(argv[i], "défaut") == 0 || strcmp(argv[i], "gregg") == 0) {
-                resultat.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
-            }
-            else if (strcmp(argv[i], "échantillons_totaux") == 0) {
-                resultat.format_rapport_profilage =
-                    FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
-            }
-            else {
-                std::cerr << "Type de format de profile \"" << argv[i] << "\" inconnu\n";
-                return {};
-            }
-        }
-        else if (strcmp(argv[i], "--") == 0) {
-            arguments_pour_métaprogrammes = true;
-        }
-        else {
-            std::cerr << "Argument \"" << argv[i] << "\" inconnu\n";
+            std::cerr << "Argument '" << arg.value() << "' inconnu. Arrêt de la compilation.\n";
             return {};
+        }
+
+        if (!desc->fonction) {
+            std::cerr << "Erreur interne : l'argument '" << arg.value()
+                      << "' ne peut être géré. Arrêt de la compilation.\n";
+            return {};
+        }
+
+        auto action = desc->fonction(parseuse_arguments, resultat);
+        switch (action) {
+            case ActionParsageArgument::CONTINUE:
+            {
+                break;
+            }
+            case ActionParsageArgument::ARRÊTE_POUR_AIDE:
+            {
+                /* L'aide a été imprimée. */
+                exit(0);
+            }
+            case ActionParsageArgument::ARRÊTE_CAR_ERREUR:
+            {
+                return {};
+            }
+            case ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES:
+            {
+                arguments_pour_métaprogrammes = true;
+                break;
+            }
         }
     }
 
     return resultat;
 }
+
+/** \} */
 
 static bool compile_fichier(Compilatrice &compilatrice,
                             kuri::chaine_statique chemin_fichier,
@@ -416,7 +658,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto const chemin_fichier = argv[1];
+    auto const chemin_fichier = argv[argc - 1];
     if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
         return 1;
