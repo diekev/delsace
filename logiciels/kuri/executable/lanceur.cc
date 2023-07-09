@@ -228,7 +228,8 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--profile_exécution",
      "",
      "",
-     "Active le profilage des métaprogrammes",
+     "Active le profilage des métaprogrammes. Émets un fichier pouvant être lu avec "
+     "speedscope.app",
      gère_argument_profile_exécution},
     {"--format_profile",
      "",
