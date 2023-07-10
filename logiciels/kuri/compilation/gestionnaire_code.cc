@@ -1161,6 +1161,10 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
     TACHE_TERMINEE(OPTIMISATION, true);
     unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
+
+void GestionnaireCode::envoi_message_termine(UniteCompilation *unité)
+{
+    unité->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::message_recu(Message const *message)
