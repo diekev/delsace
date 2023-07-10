@@ -142,6 +142,8 @@ class GestionnaireCode {
 
     void generation_ri_terminee(UniteCompilation *unite);
 
+    void envoi_message_termine(UniteCompilation *unité);
+
     void message_recu(Message const *message);
 
     void execution_terminee(UniteCompilation *unite);

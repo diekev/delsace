@@ -9,7 +9,7 @@ libtbb :: #bibliothèque "tbb"
 #dépendance_bibliothèque libmodule_c_image libtbb
 
 Image :: struct {
-    tampon : []Couleur.Couleur
+    tampon : []CouleurRVBA
     largeur: z32
     hauteur: z32
 }
@@ -17,7 +17,7 @@ Image :: struct {
 crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
 {
     image: Image
-    image.tampon = loge_tableau(Couleur.Couleur, largeur * hauteur)
+    image.tampon = loge_tableau(CouleurRVBA, largeur * hauteur)
     image.tampon.taille = largeur * hauteur
     image.largeur = largeur
     image.hauteur = hauteur
@@ -30,14 +30,14 @@ détruit_image :: fonc (image: *Image) -> rien
     déloge(image.tampon)
 }
 
-remplis_image :: fonc (image : *Image, couleur: Couleur.Couleur) -> rien
+remplis_image :: fonc (image : *Image, couleur: CouleurRVBA) -> rien
 {
     pour & pixel dans image.tampon {
         pixel = couleur
     }
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> Couleur.Couleur
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> CouleurRVBA
 {
     x := pos.x * image.largeur comme r32
     y := pos.y * image.hauteur comme r32
