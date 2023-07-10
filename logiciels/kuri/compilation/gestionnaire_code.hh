@@ -147,6 +147,8 @@ class GestionnaireCode {
     /* Fin d'une tâche. */
     void tâche_unité_terminée(UniteCompilation *unité);
 
+    void envoi_message_termine(UniteCompilation *unité);
+
     void message_recu(Message const *message);
 
     const kuri::tableau<NoeudDeclarationEnteteFonction *> &fonctions_parsees() const
