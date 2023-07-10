@@ -664,17 +664,11 @@ struct Typeuse {
     dls::outils::Synchrone<GrapheDependance> &graphe_;
     dls::outils::Synchrone<Operateurs> &operateurs_;
 
-    template <typename T>
-    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
-
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
     // à différents types de types.
     kuri::tableau<Type *> types_communs{};
-    tableau_synchrone<Type *> types_simples{};
+    kuri::tableau_synchrone<Type *> types_simples{};
     tableau_page_synchrone<TypePointeur> types_pointeurs{};
     tableau_page_synchrone<TypeReference> types_references{};
     tableau_page_synchrone<TypeStructure> types_structures{};

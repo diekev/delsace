@@ -91,20 +91,14 @@ struct Compilatrice {
 
     ArgumentsCompilatrice arguments{};
 
-    template <typename T>
-    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
-
     dls::outils::Synchrone<GestionnaireChainesAjoutees> chaines_ajoutees_a_la_compilation{};
 
-    tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
+    kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
 
     kuri::chaine racine_kuri{};
 
     dls::outils::Synchrone<SystemeModule> sys_module{};
-
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
 
     tableau_page_synchrone<MetaProgramme> metaprogrammes{};
 

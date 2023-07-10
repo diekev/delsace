@@ -2596,7 +2596,7 @@ void NoeudBloc::reserve_membres(int nombre)
 static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
 
 template <typename T>
-using PointeurTableauVerrouille = typename tableau_synchrone<T>::PointeurVerrouille;
+using PointeurTableauVerrouille = typename kuri::tableau_synchrone<T>::PointeurVerrouille;
 
 using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDeclaration *>;
 

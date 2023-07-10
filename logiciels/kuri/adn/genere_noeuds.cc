@@ -133,8 +133,6 @@ struct GeneratriceCodeCPP {
         os << "#include \"parsage/lexemes.hh\"\n";
         os << "#include \"expression.hh\"\n";
         os << "#include \"utilitaires.hh\"\n";
-        os << "template <typename T> using tableau_synchrone = "
-              "dls::outils::Synchrone<kuri::tableau<T, int>>;\n";
         os << "class Broyeuse;\n";
 
         // Prodéclarations des structures
