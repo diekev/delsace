@@ -62,7 +62,7 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type)
             os << "kuri::tableau_compresse<" << *type_tableau->type_pointe << ", int>";
         }
         else if (type_tableau->est_synchrone) {
-            os << "tableau_synchrone<" << *type_tableau->type_pointe << ">";
+            os << "kuri::tableau_synchrone<" << *type_tableau->type_pointe << ">";
         }
         else {
             // À FAIRE: le « int » échouera pour les NoeudsCodes

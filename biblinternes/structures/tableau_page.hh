@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/moultfilage/synchrone.hh"
+
 #include "tableau.hh"
 
 template <typename T, size_t TAILLE_PAGE = 128>
@@ -146,6 +148,9 @@ struct tableau_page {
 		return pages[idx_page].donnees[idx_elem];
 	}
 };
+
+template <typename T>
+using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
 
 #define POUR_TABLEAU_PAGE(x) \
 	for (auto &p : x.pages) \
