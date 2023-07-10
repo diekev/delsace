@@ -111,6 +111,12 @@ class GestionnaireCode {
      * cours de compilation */
     void espace_cree(EspaceDeTravail *espace);
 
+  private:
+    /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
+     * cours de compilation */
+    void metaprogramme_cree(MetaProgramme *metaprogramme);
+
+  public:
     /* Création des unités pour le typage, etc. */
     void requiers_chargement(EspaceDeTravail *espace, Fichier *fichier);
 
@@ -139,6 +145,15 @@ class GestionnaireCode {
 
     void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
 
+  private:
+    UniteCompilation *cree_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
+    void cree_unite_pour_fichier(EspaceDeTravail *espace, Fichier *fichier, RaisonDEtre raison);
+    UniteCompilation *cree_unite_pour_noeud(EspaceDeTravail *espace,
+                                            NoeudExpression *noeud,
+                                            RaisonDEtre raison,
+                                            bool met_en_attente);
+
+  public:
     /* Attente sur quelque chose. */
     void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
     void mets_en_attente(UniteCompilation *unite_attendante,
@@ -149,6 +164,35 @@ class GestionnaireCode {
 
     void message_recu(Message const *message);
 
+  private:
+    void chargement_fichier_termine(UniteCompilation *unite);
+
+    void lexage_fichier_termine(UniteCompilation *unite);
+
+    void parsage_fichier_termine(UniteCompilation *unite);
+
+    void typage_termine(UniteCompilation *unite);
+
+    void generation_ri_terminee(UniteCompilation *unite);
+
+    void envoi_message_termine(UniteCompilation *unité);
+
+    void execution_terminee(UniteCompilation *unite);
+
+    void generation_code_machine_terminee(UniteCompilation *unite);
+
+    void liaison_programme_terminee(UniteCompilation *unite);
+
+    void conversion_noeud_code_terminee(UniteCompilation *unite);
+
+    void fonction_initialisation_type_creee(UniteCompilation *unite);
+
+    void optimisation_terminee(UniteCompilation *unite);
+
+    /* Remplis les tâches. */
+    void crée_tâches_pour_ordonnanceuse();
+
+  public:
     const kuri::tableau<NoeudDeclarationEnteteFonction *> &fonctions_parsees() const
     {
         return m_fonctions_parsees;
@@ -160,26 +204,15 @@ class GestionnaireCode {
      * message sont marquées comme prêtes. */
     void interception_message_terminee(EspaceDeTravail *espace);
 
+    void ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace);
+
     void imprime_stats() const;
 
     void démarre_boucle_compilation();
 
-    void ajourne_espace_pour_nouvelles_options(EspaceDeTravail *espace);
-
   private:
-    /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
-     * cours de compilation */
-    void metaprogramme_cree(MetaProgramme *metaprogramme);
-
     void requiers_compilation_metaprogramme_impl(EspaceDeTravail *espace,
                                                  MetaProgramme *metaprogramme);
-
-    UniteCompilation *cree_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
-    void cree_unite_pour_fichier(EspaceDeTravail *espace, Fichier *fichier, RaisonDEtre raison);
-    UniteCompilation *cree_unite_pour_noeud(EspaceDeTravail *espace,
-                                            NoeudExpression *noeud,
-                                            RaisonDEtre raison,
-                                            bool met_en_attente);
 
     UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
 
@@ -218,30 +251,4 @@ class GestionnaireCode {
     void ajoute_types_dans_graphe();
 
     void gère_requête_compilations_métaprogrammes();
-
-    void chargement_fichier_termine(UniteCompilation *unite);
-
-    void lexage_fichier_termine(UniteCompilation *unite);
-
-    void parsage_fichier_termine(UniteCompilation *unite);
-
-    void typage_termine(UniteCompilation *unite);
-
-    void generation_ri_terminee(UniteCompilation *unite);
-
-    void envoi_message_termine(UniteCompilation *unité);
-
-    void execution_terminee(UniteCompilation *unite);
-
-    void generation_code_machine_terminee(UniteCompilation *unite);
-
-    void liaison_programme_terminee(UniteCompilation *unite);
-
-    void conversion_noeud_code_terminee(UniteCompilation *unite);
-
-    void fonction_initialisation_type_creee(UniteCompilation *unite);
-
-    void optimisation_terminee(UniteCompilation *unite);
-
-    void crée_tâches_pour_ordonnanceuse();
 };
