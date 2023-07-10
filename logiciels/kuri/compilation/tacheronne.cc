@@ -460,6 +460,7 @@ void Tacheronne::gere_tache()
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
                 compilatrice.messagere->envoie_message(tache.unite->message);
+                compilatrice.gestionnaire_code->envoi_message_termine(tache.unite);
                 break;
             }
             case GenreTache::CREATION_FONCTION_INIT_TYPE:
