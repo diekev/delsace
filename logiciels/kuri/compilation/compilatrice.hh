@@ -100,9 +100,6 @@ struct Compilatrice {
 
     dls::outils::Synchrone<SystemeModule> sys_module{};
 
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
     tableau_page_synchrone<MetaProgramme> metaprogrammes{};
 
     dls::outils::Synchrone<GrapheDependance> graphe_dependance{};

@@ -663,9 +663,6 @@ struct Typeuse {
     dls::outils::Synchrone<GrapheDependance> &graphe_;
     dls::outils::Synchrone<Operateurs> &operateurs_;
 
-    template <typename T>
-    using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
-
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
     // à différents types de types.
