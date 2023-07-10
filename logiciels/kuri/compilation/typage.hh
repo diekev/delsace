@@ -14,6 +14,7 @@
 #include "structures/chaine.hh"
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
+#include "structures/tableaux_partage_synchrones.hh"
 #include "structures/tablet.hh"
 
 #include "operateurs.hh"
@@ -727,7 +728,7 @@ struct Typeuse {
         Type *type_parent = nullptr;
         Type *type_enfant = nullptr;
     };
-    tableau_synchrone<DonnéesInsertionTypeGraphe> types_à_insérer_dans_graphe{};
+    kuri::tableaux_partage_synchrones<DonnéesInsertionTypeGraphe> types_à_insérer_dans_graphe{};
 
     // -------------------------
 

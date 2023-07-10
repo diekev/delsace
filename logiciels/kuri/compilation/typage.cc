@@ -654,7 +654,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     auto resultat = types_pointeurs_->ajoute_element(type);
 
     if (insere_dans_graphe) {
-        types_à_insérer_dans_graphe->ajoute({resultat, type});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({resultat, type});
     }
 
     if (ajoute_operateurs) {
@@ -687,7 +687,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
 
     auto resultat = types_references_->ajoute_element(type);
 
-    types_à_insérer_dans_graphe->ajoute({resultat, type});
+    types_à_insérer_dans_graphe.ajoute_aux_données_globales({resultat, type});
 
     return resultat;
 }
@@ -717,7 +717,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
     if (insere_dans_graphe) {
-        types_à_insérer_dans_graphe->ajoute({type, type_pointe});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_pointe});
     }
 
     return type;
@@ -746,7 +746,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
     if (insere_dans_graphe) {
-        types_à_insérer_dans_graphe->ajoute({type, type_pointe});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_pointe});
     }
 
     return type;
@@ -774,8 +774,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         /* crée un tableau dynamique correspond pour que la génération */
         auto tableau_dyn = type_tableau_dynamique(type_pointe);
 
-        types_à_insérer_dans_graphe->ajoute({type, type_pointe});
-        types_à_insérer_dans_graphe->ajoute({type, tableau_dyn});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_pointe});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, tableau_dyn});
 
         type->type_tableau_dyn = tableau_dyn;
     }
@@ -830,12 +830,12 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     }
 
     POUR (type->types_entrees) {
-        types_à_insérer_dans_graphe->ajoute({type, it});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, it});
     }
 
     // À FAIRE(architecture) : voir commentaire dans TypeFonction::marque_polymorphique()
     if (type_sortie) {
-        types_à_insérer_dans_graphe->ajoute({type, type_sortie});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_sortie});
     }
 
     /* Les rappels de fonctions sont des pointeurs, donc nous utilisons la même fonction
@@ -972,7 +972,7 @@ TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_op
 {
     auto type = types_opaques->ajoute_element(decl, type_opacifie);
     if (type_opacifie) {
-        types_à_insérer_dans_graphe->ajoute({type, type_opacifie});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_opacifie});
     }
     return type;
 }
@@ -993,7 +993,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
 
     auto type = types_opaques_->ajoute_element(decl, type_monomorphique);
     type->drapeaux |= TYPE_FUT_VALIDE;
-    types_à_insérer_dans_graphe->ajoute({type, type_monomorphique});
+    types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_monomorphique});
     return type;
 }
 
@@ -1025,7 +1025,7 @@ TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membr
 
     POUR (membres) {
         type->membres.ajoute(it);
-        types_à_insérer_dans_graphe->ajoute({type, it.type});
+        types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, it.type});
     }
 
     type->marque_polymorphique();
@@ -1520,7 +1520,7 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     type_structure->drapeaux |= (TYPE_FUT_VALIDE | INITIALISATION_TYPE_FUT_CREEE |
                                  UNITE_POUR_INITIALISATION_FUT_CREE);
 
-    typeuse.types_à_insérer_dans_graphe->ajoute({this, type_structure});
+    typeuse.types_à_insérer_dans_graphe.ajoute_aux_données_globales({this, type_structure});
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,

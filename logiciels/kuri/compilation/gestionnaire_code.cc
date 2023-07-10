@@ -725,7 +725,7 @@ UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
 void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 {
     unité->définit_état(UniteCompilation::État::EN_ATTENTE);
-    unites_en_attente->ajoute(unité);
+    unites_en_attente.ajoute_aux_données_globales(unité);
 }
 
 bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTravail *espace,
@@ -869,11 +869,11 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
 {
-    std::unique_lock verrou2(m_mutex_unités_terminées);
+    std::unique_lock verrou(m_mutex_unités_terminées);
     assert(attente.est_valide());
     assert(unite_attendante->est_prete());
     auto espace = unite_attendante->espace;
-    m_attentes_à_résoudre.ajoute({espace, attente});
+    m_attentes_à_résoudre.ajoute_aux_données_globales({espace, attente});
     unite_attendante->ajoute_attente(attente);
     ajoute_unité_à_liste_attente(unite_attendante);
 }
@@ -888,7 +888,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
     auto espace = unite_attendante->espace;
 
     POUR (attentes) {
-        m_attentes_à_résoudre.ajoute({espace, it});
+        m_attentes_à_résoudre.ajoute_aux_données_globales({espace, it});
         unite_attendante->ajoute_attente(it);
     }
 
@@ -898,7 +898,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
 void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
 {
     std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
-    m_unités_terminées.ajoute(unité);
+    m_unités_terminées.ajoute_aux_données_globales(unité);
 }
 
 void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
@@ -1316,12 +1316,9 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
 
 void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 {
-    static kuri::tableau<UniteCompilation *, int> unités_en_attente{};
-    {
-        auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
-        unités_en_attente.efface();
-        unités_en_attente_->permute(unités_en_attente);
-    }
+    unites_en_attente.permute_données_globales_et_locales();
+    unités_prêtes.efface();
+    unités_à_remettre_en_attente.efface();
 
 #undef DEBUG_UNITES_EN_ATTENTES
 
@@ -1332,10 +1329,6 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
 #endif
 
-    static kuri::tableau<UniteCompilation *, int> unités_prêtes;
-    unités_prêtes.efface();
-    static kuri::tableau<UniteCompilation *, int> nouvelles_unites;
-    nouvelles_unites.efface();
     if (imprime_débogage) {
         //        if (unités_en_attente.taille() == 1) {
         //            auto it = unités_en_attente[0];
@@ -1344,7 +1337,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         //        }
         // std::cerr << "-------------------- " << __func__ << '\n';
     }
-    POUR (unités_en_attente) {
+    POUR (unites_en_attente.donne_données_locales()) {
         if (it->espace->possede_erreur) {
             it->définit_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
@@ -1369,12 +1362,12 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 
             if (it->est_bloquee()) {
                 it->rapporte_erreur();
-                unites_en_attente->efface();
+                unites_en_attente.efface_tout();
                 m_compilatrice->ordonnanceuse->supprime_toutes_les_taches();
                 return;
             }
 
-            nouvelles_unites.ajoute(it);
+            unités_à_remettre_en_attente.ajoute(it);
             continue;
         }
 
@@ -1429,12 +1422,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
         return kuri::DecisionIteration::Continue;
     });
 
-    {
-        auto unités_en_attente_ = unites_en_attente.verrou_ecriture();
-        POUR (nouvelles_unites) {
-            unités_en_attente_->ajoute(it);
-        }
-    }
+    unites_en_attente.ajoute_aux_données_globales(unités_à_remettre_en_attente);
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     if (imprime_débogage) {
@@ -1510,11 +1498,12 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         }
     }
 
-    if (!m_unités_terminées.est_vide()) {
+    if (m_unités_terminées.possède_élément_dans_données_globales()) {
         return false;
     }
 
-    if (!unites_en_attente->est_vide() || !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
+    if (unites_en_attente.possède_élément_dans_données_globales() ||
+        !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
         return false;
     }
 
@@ -1735,25 +1724,19 @@ void GestionnaireCode::démarre_boucle_compilation()
 
 void GestionnaireCode::gère_choses_terminées()
 {
-    static kuri::tableau<UniteCompilation *> unités_terminées{};
-    static kuri::tableau<AttenteEspace> attentes_à_résoudre{};
     {
-        std::unique_lock<std::mutex> verrou(m_mutex_unités_terminées);
-
-        attentes_à_résoudre.efface();
-        m_attentes_à_résoudre.permute(attentes_à_résoudre);
-
-        unités_terminées.efface();
-        m_unités_terminées.permute(unités_terminées);
+        std::unique_lock verrou(m_mutex_unités_terminées);
+        m_attentes_à_résoudre.permute_données_globales_et_locales();
+        m_unités_terminées.permute_données_globales_et_locales();
     }
 
-    POUR (attentes_à_résoudre) {
+    POUR (m_attentes_à_résoudre.donne_données_locales()) {
         ajoute_requêtes_pour_attente(it.espace, it.attente);
     }
 
     // std::cerr << "unités terminées : " << m_unités_terminées.taille() << '\n';
 
-    POUR (unités_terminées) {
+    POUR (m_unités_terminées.donne_données_locales()) {
         switch (it->raison_d_etre()) {
             case RaisonDEtre::AUCUNE:
             {
@@ -1826,18 +1809,9 @@ void GestionnaireCode::gère_choses_terminées()
 
 void GestionnaireCode::ajoute_types_dans_graphe()
 {
-    static kuri::tableau<Typeuse::DonnéesInsertionTypeGraphe, int> types_à_insérer_dans_graphe;
-    {
-        auto types_à_insérer_dans_graphe_ =
-            m_compilatrice->typeuse.types_à_insérer_dans_graphe.verrou_ecriture();
-
-        if (types_à_insérer_dans_graphe_->est_vide()) {
-            return;
-        }
-        types_à_insérer_dans_graphe.efface();
-        types_à_insérer_dans_graphe_->permute(types_à_insérer_dans_graphe);
-    }
-
+    auto &typeuse = m_compilatrice->typeuse;
+    typeuse.types_à_insérer_dans_graphe.permute_données_globales_et_locales();
+    auto types_à_insérer_dans_graphe = typeuse.types_à_insérer_dans_graphe.donne_données_locales();
     auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
 
     POUR (types_à_insérer_dans_graphe) {

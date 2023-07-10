@@ -9,6 +9,7 @@
 
 #include "structures/file.hh"
 #include "structures/tableau.hh"
+#include "structures/tableaux_partage_synchrones.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
 #include "graphe_dependance.hh"
@@ -51,10 +52,18 @@ class GestionnaireCode {
     /* Toutes les unités de compilation créées pour tous les espaces. */
     tableau_page<UniteCompilation> unites{};
 
-    template <typename T>
-    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
     /* Les unités qui attendent sur quelque chose. */
-    tableau_synchrone<UniteCompilation *> unites_en_attente{};
+    kuri::tableaux_partage_synchrones<UniteCompilation *> unites_en_attente{};
+    /* Les unités qui sont prêtes à être envoyées à l'ordonnanceuse. Ce tableau n'est utilisé que
+     * lors de la création de tâches et est stocké ici afin de réutiliser sa mémoire entre appels.
+     */
+    kuri::tableau<UniteCompilation *, int> unités_prêtes{};
+    /* Les unités qui ne sont pas prêtes à être envoyées à l'ordonnanceuse. Ce tableau n'est
+     * utilisé que lors de la création de tâches et est stocké ici afin de réutiliser sa mémoire
+     * entre appels.
+     */
+    kuri::tableau<UniteCompilation *, int> unités_à_remettre_en_attente{};
+
     kuri::tableau<UniteCompilation *> metaprogrammes_en_attente_de_cree_contexte{};
     bool metaprogrammes_en_attente_de_cree_contexte_est_ouvert = true;
 
@@ -81,19 +90,20 @@ class GestionnaireCode {
 
     /* Unités dont la dernière tâche a été terminé. */
     std::mutex m_mutex_unités_terminées{};
-    kuri::tableau<UniteCompilation *> m_unités_terminées{};
+    kuri::tableaux_partage_synchrones<UniteCompilation *> m_unités_terminées{};
 
     struct AttenteEspace {
         EspaceDeTravail *espace = nullptr;
         Attente attente{};
     };
-    kuri::tableau<AttenteEspace> m_attentes_à_résoudre{};
+    kuri::tableaux_partage_synchrones<AttenteEspace> m_attentes_à_résoudre{};
 
     struct RequêteCompilationMétaProgramme {
         EspaceDeTravail *espace = nullptr;
         MetaProgramme *métaprogramme = nullptr;
     };
-    tableau_synchrone<RequêteCompilationMétaProgramme> m_requêtes_compilations_métaprogrammes{};
+    kuri::tableau_synchrone<RequêteCompilationMétaProgramme>
+        m_requêtes_compilations_métaprogrammes{};
 
     dls::chrono::compte_seconde temps_début_compilation{};
     bool imprime_débogage = true;

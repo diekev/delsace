@@ -65,6 +65,7 @@ set(SOURCES
     tableau.hh
     tableau_compresse.hh
     tableau_statique.hh
+    tableaux_partage_synchrones.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
