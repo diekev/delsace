@@ -4,6 +4,7 @@
 #pragma once
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "tableau_statique.hh"
@@ -309,5 +310,8 @@ struct tableau {
         return {pointeur, taille()};
     }
 };
+
+template <typename T>
+using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
 
 }  // namespace kuri

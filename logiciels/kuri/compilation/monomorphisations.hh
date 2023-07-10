@@ -54,11 +54,8 @@ std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item);
 
 struct Monomorphisations {
   protected:
-    template <typename T>
-    using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
-
     using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
-    tableau_synchrone<dls::paire<tableau_items, NoeudExpression *>> monomorphisations{};
+    kuri::tableau_synchrone<dls::paire<tableau_items, NoeudExpression *>> monomorphisations{};
 
   public:
     void ajoute(tableau_items const &items, NoeudExpression *noeud);
