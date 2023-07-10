@@ -466,7 +466,7 @@ void Tacheronne::gere_tache()
                     messagere->envoie_message(tache.unite->message);
                 }
 
-                compilatrice.gestionnaire_code->envoi_message_termine(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 break;
             }
             case GenreTache::CREATION_FONCTION_INIT_TYPE:

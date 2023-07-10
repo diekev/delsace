@@ -1281,19 +1281,6 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
 
 void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 {
-    //    auto noeud = unite->noeud;
-
-    //    POUR (*unites_en_attente.verrou_lecture()) {
-    //        auto attente = it->attend_sur_noeud_code(noeud);
-    //        if (!attente) {
-    //            continue;
-    //        }
-    //        assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
-    //        auto message = it->message;
-    //        static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
-    //        *attente = {};
-    //    }
-
     unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
@@ -1805,7 +1792,7 @@ void GestionnaireCode::gère_choses_terminées()
             }
             case RaisonDEtre::ENVOIE_MESSAGE:
             {
-                // À FAIRE : stocke l'unité dans le message et déplace message_recu ici
+                envoi_message_termine(it);
                 break;
             }
             case RaisonDEtre::GENERATION_RI:
