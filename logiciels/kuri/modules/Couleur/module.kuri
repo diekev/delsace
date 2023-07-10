@@ -3,16 +3,10 @@ importe Math
 
 charge "mélange"
 
-Couleur :: struct {
-    r := 0.0
-    v := 0.0
-    b := 0.0
-    a := 0.0
-}
+/* ------------------------------------------------------------------------- */
+/** \nom CouleurRVBA
+ * \{ */
 
-// Utiliser Couleur est difficile avec la génération de code
-// dans les métaprogrammes à cause du nom du module (nous générons
-// "Couleur" au lieu de "Couleur.Couleur").
 CouleurRVBA :: struct {
     r := 0.0  @mutable
     v := 0.0  @mutable
@@ -61,6 +55,28 @@ restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
     restreint(*résultat.a, min, max)
     retourne résultat
 }
+
+/**
+ * Luminance calculée selon la recommandation ITU-R BT.709
+ * https://en.wikipedia.org/wiki/Relative_luminance
+ *
+ * Les vraies valeurs sont :
+ * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
+ * selon : "Derivation of Basic Television Color Equations", RP 177-1993
+ *
+ * Puisque ces valeurs ont une somme supérieure à 1.0, nous utilisons une des
+ * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
+ */
+luminance :: fonc (c: CouleurRVBA) -> r32
+{
+	retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Couleur Teinte-Saturation-Valeur
+ * \{ */
 
 CouleurTSV :: struct {
     t: r32
@@ -117,6 +133,12 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
     résultat.b = ((nb - 1.0) * s + 1.0) * v;
     retourne résultat
 }
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Couleur Teinte-Saturation-Luminance
+ * \{ */
 
 CouleurTSL :: struct {
     t: r32 @mutable
@@ -196,24 +218,9 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
     retourne résultat
 }
 
+/** } */
+
 // -------------------------------------------------------------------------
-
-/**
- * Luminance calculée selon la recommandation ITU-R BT.709
- * https://en.wikipedia.org/wiki/Relative_luminance
- *
- * Les vraies valeurs sont :
- * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
- * selon : "Derivation of Basic Television Color Equations", RP 177-1993
- *
- * Puisque ces valeurs ont une somme supérieur à 1.0, nous utilisons une des
- * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
- */
-
-luminance :: fonc (c: CouleurRVBA) -> r32
-{
-	retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
-}
 
 /**
  * Calcul du contraste entre une couleur de zone (avant-plan) et une couleur
@@ -234,7 +241,9 @@ calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 	retourne (luminosite_zone - luminosite_fond) / luminosite_fond
 }
 
-// -------------------------------------------------------------------------
+/* ------------------------------------------------------------------------- */
+/** \nom Spectre
+ * \{ */
 
 Spectre :: struct {
     x: r32 @accessible
@@ -327,3 +336,5 @@ linéaire_vers_srgb :: fonc (value: r32) -> z32
 
     retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
 }
+
+/** } */
