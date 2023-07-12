@@ -43,6 +43,7 @@
 #include "adaptrice_creation_maillage.h"
 
 #include "../brosse.h"
+#include "../cannevas_peinture.hh"
 #include "../evenement.h"
 #include "../kanba.h"
 #include "../maillage.h"
@@ -73,6 +74,9 @@ class CommandeZoomCamera : public Commande {
 
         camera->ajuste_vitesse();
         camera->besoin_ajournement(true);
+
+        auto cannevas = kanba->cannevas;
+        cannevas->invalide_pour_changement_caméra();
 
         kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 
@@ -109,6 +113,9 @@ class CommandeTourneCamera : public Commande {
         camera->tete(camera->tete() + dy * camera->vitesse_chute());
         camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
         camera->besoin_ajournement(true);
+
+        auto cannevas = kanba->cannevas;
+        cannevas->invalide_pour_changement_caméra();
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
@@ -156,65 +163,6 @@ class CommandePanCamera : public Commande {
 
 /* ************************************************************************** */
 
-static constexpr auto MIN_SEAUX = 4;
-static constexpr auto MAX_SEAUX = 256;
-
-template <typename T>
-auto restreint(T a, T min, T max)
-{
-    if (a < min) {
-        return min;
-    }
-
-    if (a > max) {
-        return max;
-    }
-
-    return a;
-}
-
-struct TexelProjete {
-    /* La position du texel sur l'écran. */
-    dls::math::point2f pos{};
-
-    /* L'index du polygone possédant le texel. */
-    long index{};
-
-    /* La position u du texel. */
-    unsigned int u{};
-
-    /* La position v du texel. */
-    unsigned int v{};
-};
-
-struct Seau {
-    dls::liste<TexelProjete> texels = dls::liste<TexelProjete>{};
-    dls::math::vec2f min = dls::math::vec2f(0.0);
-    dls::math::vec2f max = dls::math::vec2f(0.0);
-
-    Seau() = default;
-};
-
-Seau *cherche_seau(dls::tableau<Seau> &seaux,
-                   dls::math::point2f const &pos,
-                   int seaux_x,
-                   int seaux_y,
-                   int largeur,
-                   int hauteur)
-{
-    auto x = pos.x / static_cast<float>(largeur);
-    auto y = pos.y / static_cast<float>(hauteur);
-
-    auto sx = static_cast<float>(seaux_x) * x;
-    auto sy = static_cast<float>(seaux_y) * y;
-
-    auto index = static_cast<long>(sx + sy * static_cast<float>(seaux_y));
-
-    index = restreint(index, 0l, seaux.taille() - 1);
-
-    return &seaux[index];
-}
-
 class CommandePeinture3D : public Commande {
   public:
     CommandePeinture3D() = default;
@@ -236,90 +184,15 @@ class CommandePeinture3D : public Commande {
 
         auto camera = kanba->camera;
         auto brosse = kanba->brosse;
-
-        auto const &diametre_brosse = brosse->rayon * 2;
-
-        auto seaux_x = camera->largeur() / diametre_brosse + 1;
-        auto seaux_y = camera->hauteur() / diametre_brosse + 1;
-
-        seaux_x = restreint(seaux_x, MIN_SEAUX, MAX_SEAUX);
-        seaux_y = restreint(seaux_y, MIN_SEAUX, MAX_SEAUX);
-
-        //		std::cerr << "Il y a " << seaux_x << "x" << seaux_y << " seaux en tout\n";
-        //		std::cerr << "Taille écran " << camera->largeur() << "x" << camera->hauteur() <<
-        //"\n"; 		std::cerr << "Taille seaux " << seaux_x * diametre_brosse << "x" << seaux_y *
-        //diametre_brosse << "\n";
-
-        dls::tableau<Seau> seaux(seaux_x * seaux_y);
-
-        for (auto &seau : seaux) {
-            seau = Seau();
-        }
-
-        auto nombre_polys = maillage->nombre_polygones();
-
-        auto const &dir = dls::math::vec3f(-camera->dir().x, -camera->dir().y, -camera->dir().z);
-
-        for (auto i = 0; i < nombre_polys; ++i) {
-            auto poly = maillage->polygone(i);
-            auto const &angle = produit_scalaire(poly->nor, dir);
-
-            // std::cerr << "Angle : " << angle << '\n';
-
-            if (angle <= 0.0f || angle >= 1.0f) {
-                // std::cerr << "Le polygone " << poly->index << " ne fait pas face à l'écran !\n";
-                continue;
-            }
-
-            // std::cerr << "Le polygone " << poly->index << " fait face à l'écran !\n";
-
-            // projette texel sur l'écran
-            auto const &v0 = poly->s[0]->pos;
-
-#if 1
-            auto const &v1 = poly->s[1]->pos;
-            auto const &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
-
-            auto const &e1 = v1 - v0;
-            auto const &e2 = v3 - v0;
-
-            auto const &du = e1 / static_cast<float>(poly->res_u);
-            auto const &dv = e2 / static_cast<float>(poly->res_v);
-#else
-            auto const &du = poly->du;
-            auto const &dv = poly->dv;
-#endif
-
-            for (unsigned j = 0; j < poly->res_u; ++j) {
-                for (unsigned k = 0; k < poly->res_v; ++k) {
-                    auto const &pos3d = v0 + static_cast<float>(j) * du +
-                                        static_cast<float>(k) * dv;
-
-                    // calcul position 2D du texel
-                    auto const &pos2d = camera->pos_ecran(dls::math::point3f(pos3d));
-
-                    // cherche seau
-                    auto seau = cherche_seau(
-                        seaux, pos2d, seaux_x, seaux_y, camera->largeur(), camera->hauteur());
-
-                    TexelProjete texel;
-                    texel.pos = pos2d;
-                    texel.index = i;
-                    texel.u = j;
-                    texel.v = k;
-
-                    seau->texels.ajoute(texel);
-                }
-            }
-        }
+        auto cannevas = kanba->cannevas;
+        cannevas->ajourne_pour_peinture();
 
         auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
-
         auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
 
-        for (auto const &seau : seaux) {
+        for (auto const &seau : cannevas->seaux()) {
             if (seau.texels.est_vide()) {
                 continue;
             }

@@ -50,6 +50,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	brosse.h
 	calques.h
+        cannevas_peinture.hh
 	evenement.h
 	kanba.h
 	maillage.h
@@ -65,6 +66,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	brosse.cc
 	calques.cc
+        cannevas_peinture.cc
 	evenement.cc
 	kanba.cc
 	maillage.cc

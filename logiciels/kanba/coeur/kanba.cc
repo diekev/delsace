@@ -36,6 +36,7 @@
 #include "biblinternes/vision/camera.h"
 
 #include "brosse.h"
+#include "cannevas_peinture.hh"
 #include "maillage.h"
 
 #include "commandes/commandes_calques.h"
@@ -46,7 +47,7 @@
 Kanba::Kanba()
     : tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920)), usine_commande{},
       repondant_commande(new RepondantCommande(usine_commande, this)), brosse(new Brosse()),
-      camera(new vision::Camera3D(0, 0)), maillage(nullptr)
+      camera(new vision::Camera3D(0, 0)), maillage(nullptr), cannevas(new CannevasPeinture(*this))
 {
 }
 
@@ -56,6 +57,7 @@ Kanba::~Kanba()
     delete maillage;
     delete camera;
     delete repondant_commande;
+    delete cannevas;
 }
 
 void Kanba::enregistre_commandes()

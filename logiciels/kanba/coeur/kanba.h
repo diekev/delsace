@@ -32,6 +32,7 @@
 
 class BaseEditrice;
 class Brosse;
+class CannevasPeinture;
 class FenetrePrincipale;
 class Maillage;
 class RepondantCommande;
@@ -61,6 +62,7 @@ struct Kanba : public Sujette {
     Brosse *brosse;
     vision::Camera3D *camera;
     Maillage *maillage;
+    CannevasPeinture *cannevas = nullptr;
 
     Kanba();
     ~Kanba();
