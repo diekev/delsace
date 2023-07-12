@@ -415,9 +415,7 @@ class Manipulable {
     /**
      * Retourne un pointeur vers la valeur de la propriété au nom spécifié.
      */
-#if 0
-	void *operator[](const dls::chaine &nom);
-#endif
+    void *operator[](const dls::chaine &nom);
 
     /**
      * Retourne le type de la propriété du nom spécifié.

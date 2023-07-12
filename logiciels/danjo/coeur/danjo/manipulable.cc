@@ -53,8 +53,8 @@ int Propriete::evalue_entier(int temps) const
     std::any v1, v2;
     int t1, t2;
 
-    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-        return std::any_cast<int>(v1);
+    if (!trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<int>(valeur);
     }
 
     auto dt = t2 - t1;
@@ -71,8 +71,8 @@ float Propriete::evalue_decimal(int temps) const
     std::any v1, v2;
     int t1, t2;
 
-    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-        return std::any_cast<float>(v1);
+    if (!trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<float>(valeur);
     }
 
     auto dt = t2 - t1;
@@ -90,8 +90,8 @@ void Propriete::evalue_vecteur_décimal(int temps, float *données) const
     std::any v1, v2;
     int t1, t2;
 
-    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-        auto val = std::any_cast<dls::math::vec3f>(v1);
+    if (!trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        auto val = std::any_cast<dls::math::vec3f>(valeur);
         données[0] = val[0];
         données[1] = val[1];
         données[2] = val[2];
@@ -120,8 +120,8 @@ dls::phys::couleur32 Propriete::evalue_couleur(int temps) const
     std::any v1, v2;
     int t1, t2;
 
-    if (trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
-        return std::any_cast<dls::phys::couleur32>(v1);
+    if (!trouve_valeurs_temps(temps, v1, v2, t1, t2)) {
+        return std::any_cast<dls::phys::couleur32>(valeur);
     }
 
     auto dt = t2 - t1;
@@ -340,7 +340,10 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom,
                                    TypePropriete type,
                                    const std::any &valeur)
 {
-    // m_proprietes.insere({nom, {valeur, type}});
+    auto propriete = memoire::loge<Propriete>("Propriete");
+    propriete->valeur = valeur;
+    propriete->type_ = type;
+    m_proprietes.insere({nom, propriete});
 }
 
 void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
@@ -399,7 +402,7 @@ void Manipulable::ajoute_propriete(const dls::chaine &nom, TypePropriete type)
         }
     }
 
-    // m_proprietes[nom] = Propriete{valeur, type};
+    ajoute_propriete(nom, type, valeur);
 }
 
 void Manipulable::ajoute_propriete_extra(const dls::chaine &nom, const Propriete &propriete)
@@ -515,82 +518,83 @@ bool Manipulable::ajourne_proprietes()
     return true;
 }
 
-#if 0
 void Manipulable::valeur_bool(const dls::chaine &nom, bool valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void Manipulable::valeur_entier(const dls::chaine &nom, int valeur)
 {
-    m_proprietes[nom]->valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void Manipulable::valeur_decimal(const dls::chaine &nom, float valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void Manipulable::valeur_vecteur(const dls::chaine &nom, const dls::math::vec3f &valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void Manipulable::valeur_couleur(const dls::chaine &nom, const dls::phys::couleur32 &valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void Manipulable::valeur_chaine(const dls::chaine &nom, const dls::chaine &valeur)
 {
-	m_proprietes[nom].valeur = valeur;
+    static_cast<Propriete *>(m_proprietes[nom])->valeur = valeur;
 }
 
 void *Manipulable::operator[](const dls::chaine &nom)
 {
-	auto &propriete = m_proprietes[nom];
-	void *pointeur = nullptr;
+    auto propriete = static_cast<Propriete *>(m_proprietes[nom]);
+    void *pointeur = nullptr;
 
-	switch (propriete.type) {
-		case TypePropriete::ENTIER:
-			pointeur = std::any_cast<int>(&propriete.valeur);
-			break;
-		case TypePropriete::DECIMAL:
-			pointeur = std::any_cast<float>(&propriete.valeur);
-			break;
-		case TypePropriete::VECTEUR:
-			pointeur = std::any_cast<dls::math::vec3f>(&propriete.valeur);
-			break;
-		case TypePropriete::COULEUR:
-			pointeur = std::any_cast<dls::phys::couleur32>(&propriete.valeur);
-			break;
-		case TypePropriete::ENUM:
-		case TypePropriete::FICHIER_ENTREE:
-		case TypePropriete::FICHIER_SORTIE:
-		case TypePropriete::CHAINE_CARACTERE:
-		case TypePropriete::TEXTE:
-			pointeur = std::any_cast<dls::chaine>(&propriete.valeur);
-			break;
-		case TypePropriete::BOOL:
-			pointeur = std::any_cast<bool>(&propriete.valeur);
-			break;
-		case TypePropriete::COURBE_COULEUR:
-			pointeur = std::any_cast<CourbeCouleur>(&propriete.valeur);
-			break;
-		case TypePropriete::COURBE_VALEUR:
-			pointeur = std::any_cast<CourbeBezier>(&propriete.valeur);
-			break;
-		case TypePropriete::RAMPE_COULEUR:
-			pointeur = std::any_cast<RampeCouleur>(&propriete.valeur);
-			break;
-		case TypePropriete::LISTE_MANIP:
-			pointeur = std::any_cast<ListeManipulable>(&propriete.valeur);
-			break;
-	}
+    switch (propriete->type()) {
+        case TypePropriete::ENTIER:
+            pointeur = std::any_cast<int>(&propriete->valeur);
+            break;
+        case TypePropriete::DECIMAL:
+            pointeur = std::any_cast<float>(&propriete->valeur);
+            break;
+        case TypePropriete::VECTEUR_DECIMAL:
+            pointeur = std::any_cast<dls::math::vec3f>(&propriete->valeur);
+            break;
+        case TypePropriete::COULEUR:
+            pointeur = std::any_cast<dls::phys::couleur32>(&propriete->valeur);
+            break;
+        case TypePropriete::ENUM:
+        case TypePropriete::FICHIER_ENTREE:
+        case TypePropriete::FICHIER_SORTIE:
+        case TypePropriete::CHAINE_CARACTERE:
+        case TypePropriete::TEXTE:
+            pointeur = std::any_cast<dls::chaine>(&propriete->valeur);
+            break;
+        case TypePropriete::BOOL:
+            pointeur = std::any_cast<bool>(&propriete->valeur);
+            break;
+        case TypePropriete::COURBE_COULEUR:
+            pointeur = std::any_cast<CourbeCouleur>(&propriete->valeur);
+            break;
+        case TypePropriete::COURBE_VALEUR:
+            pointeur = std::any_cast<CourbeBezier>(&propriete->valeur);
+            break;
+        case TypePropriete::RAMPE_COULEUR:
+            pointeur = std::any_cast<RampeCouleur>(&propriete->valeur);
+            break;
+        case TypePropriete::LISTE_MANIP:
+            pointeur = std::any_cast<ListeManipulable>(&propriete->valeur);
+            break;
+        case TypePropriete::VECTEUR_ENTIER:
+        case TypePropriete::LISTE:
+            break;
+    }
 
-	return pointeur;
+    return pointeur;
 }
-#endif
 
 TypePropriete Manipulable::type_propriete(const dls::chaine &nom) const
 {
