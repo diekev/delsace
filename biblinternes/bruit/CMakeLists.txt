@@ -21,48 +21,43 @@
 
 set(NOM_BIBLIOTHEQUE bib_bruit)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-)
-
 find_package(FFTW REQUIRED)
 
 set(BIBLIOTHEQUES
-	bib_outils
-	tbb
-        FFTW::Double
+    PUBLIC dls::outils
+    PUBLIC dls::math
+    PRIVATE FFTW::Double
 )
 
 set(SOURCES
-	blanc.cc
-	cellule.cc
-	evaluation.cc
-	flux.cc
-	fourier.cc
-	ondelette.cc
-	outils.cc
-	parametres.cc
-	perlin.cc
-	simplex.cc
-	turbulent.cc
-	voronoi.cc
+    blanc.cc
+    cellule.cc
+    evaluation.cc
+    flux.cc
+    fourier.cc
+    ondelette.cc
+    outils.cc
+    parametres.cc
+    perlin.cc
+    simplex.cc
+    turbulent.cc
+    voronoi.cc
 
-	blanc.hh
-	cellule.hh
-	evaluation.hh
-	flux.hh
-	fourier.hh
-	ondelette.hh
-	outils.hh
-	parametres.hh
-	perlin.hh
-	simplex.hh
-	turbulent.hh
-	voronoi.hh
+    blanc.hh
+    cellule.hh
+    evaluation.hh
+    flux.hh
+    fourier.hh
+    ondelette.hh
+    outils.hh
+    parametres.hh
+    perlin.hh
+    simplex.hh
+    turbulent.hh
+    voronoi.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES})
-
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
-
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+add_library(dls::bruit ALIAS bib_bruit)
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})

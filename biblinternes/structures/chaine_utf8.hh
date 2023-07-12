@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "chaine.hh"
+#include "tableau.hh"
 
 #include "biblinternes/outils/iterateurs.h"
 

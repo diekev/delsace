@@ -32,7 +32,7 @@ set(BIBLIOTHEQUES
     ${BIBLIOTHEQUES_QT_WIDGETS}
 	math
 	image
-	bib_bruit
+        dls::bruit
 	bib_patrons
 	bib_objets
 	bib_vision

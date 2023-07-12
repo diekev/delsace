@@ -42,6 +42,7 @@ set(SOURCES
 )
 
 add_library(${NOM_PROJET} STATIC ${SOURCES})
+add_library(dls::moultfilage ALIAS ${NOM_PROJET})
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 

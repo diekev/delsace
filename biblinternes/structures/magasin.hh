@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/ensemble.hh"
+#include "ensemble.hh"
 
 /* Un magasin est simplement un ensemble de valeurs connues lors de la
  * compilation, mais à qui nous ne pouvons attribuer de taille fixe pour pouvoir

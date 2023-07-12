@@ -40,7 +40,7 @@ set(BIBLIOTHEQUES
 	bib_opengl
 	bib_texture
 	jorjala_coeur
-	bib_outils
+        dls::outils
 #	jorjala_koudou
 
 #	cycles_render
