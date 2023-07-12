@@ -31,8 +31,8 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
-#include <QLabel>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QStyle>
@@ -42,53 +42,51 @@
 #include "coeur/kanba.h"
 
 BaseEditrice::BaseEditrice(Kanba &kanba, QWidget *parent)
-	: danjo::ConteneurControles(parent)
-	, m_kanba(&kanba)
-	, m_cadre(new QFrame(this))
-	, m_agencement(new QVBoxLayout())
+    : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
+      m_agencement(new QVBoxLayout())
 {
-	this->observe(&kanba);
+    this->observe(&kanba);
 
-	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	size_policy.setHorizontalStretch(0);
-	size_policy.setVerticalStretch(0);
-	size_policy.setHeightForWidth(m_cadre->sizePolicy().hasHeightForWidth());
+    QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    size_policy.setHorizontalStretch(0);
+    size_policy.setVerticalStretch(0);
+    size_policy.setHeightForWidth(m_cadre->sizePolicy().hasHeightForWidth());
 
-	/* Intern frame, where individual entreface regions put their buttons. */
+    /* Intern frame, where individual entreface regions put their buttons. */
 
-	m_cadre->setSizePolicy(size_policy);
-	m_cadre->setFrameShape(QFrame::StyledPanel);
-	m_cadre->setFrameShadow(QFrame::Raised);
+    m_cadre->setSizePolicy(size_policy);
+    m_cadre->setFrameShape(QFrame::StyledPanel);
+    m_cadre->setFrameShadow(QFrame::Raised);
 
-	m_agencement->addWidget(m_cadre);
+    m_agencement->addWidget(m_cadre);
 
-	m_agencement->setMargin(0);
-	this->setLayout(m_agencement);
+    m_agencement->setMargin(0);
+    this->setLayout(m_agencement);
 
-	m_agencement_principal = new QHBoxLayout(m_cadre);
-	m_agencement_principal->setMargin(6);
+    m_agencement_principal = new QHBoxLayout(m_cadre);
+    m_agencement_principal->setMargin(6);
 
-	this->actif(false);
+    this->actif(false);
 }
 
 void BaseEditrice::actif(bool yesno)
 {
-	m_cadre->setProperty("state", (yesno) ? "on" : "off");
-	m_cadre->setStyle(QApplication::style());
+    m_cadre->setProperty("state", (yesno) ? "on" : "off");
+    m_cadre->setStyle(QApplication::style());
 }
 
 void BaseEditrice::rend_actif()
 {
-	if (m_kanba->widget_actif) {
-		m_kanba->widget_actif->actif(false);
-	}
+    if (m_kanba->widget_actif) {
+        m_kanba->widget_actif->actif(false);
+    }
 
-	m_kanba->widget_actif = this;
-	this->actif(true);
+    m_kanba->widget_actif = this;
+    this->actif(true);
 }
 
 void BaseEditrice::mousePressEvent(QMouseEvent *e)
 {
-	this->rend_actif();
-	QWidget::mousePressEvent(e);
+    this->rend_actif();
+    QWidget::mousePressEvent(e);
 }

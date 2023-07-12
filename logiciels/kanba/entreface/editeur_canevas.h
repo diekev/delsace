@@ -42,63 +42,65 @@ class QScrollArea;
 /* ************************************************************************** */
 
 enum {
-	VISIONNAGE_IMAGE = 0,
-	VISIONNAGE_SCENE = 1,
+    VISIONNAGE_IMAGE = 0,
+    VISIONNAGE_SCENE = 1,
 };
 
 class VisionneurImage;
 class VisionneurScene;
 
 class VueCanevas : public QGLWidget {
-	VisionneurImage *m_visionneur_image;
-	VisionneurScene *m_visionneur_scene;
+    VisionneurImage *m_visionneur_image;
+    VisionneurScene *m_visionneur_scene;
 
-	Kanba *m_kanba;
+    Kanba *m_kanba;
 
-	int m_mode_visionnage = VISIONNAGE_SCENE;
+    int m_mode_visionnage = VISIONNAGE_SCENE;
 
-public:
-	explicit VueCanevas(Kanba *kanba, QWidget *parent = nullptr);
-	~VueCanevas() override;
+  public:
+    explicit VueCanevas(Kanba *kanba, QWidget *parent = nullptr);
+    ~VueCanevas() override;
 
-	VueCanevas(VueCanevas const &) = default;
-	VueCanevas &operator=(VueCanevas const &) = default;
+    VueCanevas(VueCanevas const &) = default;
+    VueCanevas &operator=(VueCanevas const &) = default;
 
-	void initializeGL() override;
-	void paintGL() override;
-	void resizeGL(int w, int h) override;
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
 
-	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
 
-	void mode_visionnage(int mode);
+    void mode_visionnage(int mode);
 
-	int mode_visionnage() const;
+    int mode_visionnage() const;
 
-	void mousePressEvent(QMouseEvent *e) override;
-	void mouseMoveEvent(QMouseEvent *e) override;
-	void wheelEvent(QWheelEvent *e) override;
-	void mouseReleaseEvent(QMouseEvent *) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
 };
 
 /* ************************************************************************** */
 
 class EditeurCanevas : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueCanevas *m_vue;
+    VueCanevas *m_vue;
 
-public:
-	explicit EditeurCanevas(Kanba &kanba, QWidget *parent = nullptr);
+  public:
+    explicit EditeurCanevas(Kanba &kanba, QWidget *parent = nullptr);
 
-	EditeurCanevas(EditeurCanevas const &) = default;
-	EditeurCanevas &operator=(EditeurCanevas const &) = default;
+    EditeurCanevas(EditeurCanevas const &) = default;
+    EditeurCanevas &operator=(EditeurCanevas const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-private Q_SLOTS:
-	void change_mode_visionnage(int mode);
+  private Q_SLOTS:
+    void change_mode_visionnage(int mode);
 };

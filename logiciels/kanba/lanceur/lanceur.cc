@@ -35,19 +35,19 @@
 
 int main(int argc, char *argv[])
 {
-	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("giraffeenfeu");
-	QCoreApplication::setApplicationName("kanba");
+    QApplication a(argc, argv);
+    QCoreApplication::setOrganizationName("giraffeenfeu");
+    QCoreApplication::setApplicationName("kanba");
 
-	QFile file("styles/main.qss");
-	file.open(QFile::ReadOnly);
-	QString style_sheet = QLatin1String(file.readAll());
+    QFile file("styles/main.qss");
+    file.open(QFile::ReadOnly);
+    QString style_sheet = QLatin1String(file.readAll());
 
-	qApp->setStyleSheet(style_sheet);
+    qApp->setStyleSheet(style_sheet);
 
-	FenetrePrincipale w;
-	w.setWindowTitle(QCoreApplication::applicationName());
-	w.showMaximized();
+    FenetrePrincipale w;
+    w.setWindowTitle(QCoreApplication::applicationName());
+    w.showMaximized();
 
-	return a.exec();
+    return a.exec();
 }

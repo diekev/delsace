@@ -39,31 +39,34 @@ class ProjectSettingsDialog;
 class QProgressBar;
 
 class FenetrePrincipale : public QMainWindow {
-	Q_OBJECT
+    Q_OBJECT
 
-	QDockWidget *m_viewer_dock = nullptr;
+    QDockWidget *m_viewer_dock = nullptr;
 
-	QProgressBar *m_progress_bar{};
+    QProgressBar *m_progress_bar{};
 
-	Kanba m_kanba{};
+    Kanba m_kanba{};
 
-public:
-	explicit FenetrePrincipale(QWidget *parent = nullptr);
-	~FenetrePrincipale();
+  public:
+    explicit FenetrePrincipale(QWidget *parent = nullptr);
+    ~FenetrePrincipale();
 
-	FenetrePrincipale(FenetrePrincipale const &) = default;
-	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    FenetrePrincipale(FenetrePrincipale const &) = default;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
 
-	void ajoute_visionneur_image();
-	void ajoute_editeur_proprietes();
+    void ajoute_visionneur_image();
+    void ajoute_editeur_proprietes();
 
-public Q_SLOTS:
-	void rendu_fini();
-	void tache_commence();
-	void tache_fini();
+  public Q_SLOTS:
+    void rendu_fini();
+    void tache_commence();
+    void tache_fini();
 
-	void progres_avance(float progres);
-	void progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant);
+    void progres_avance(float progres);
+    void progres_temps(int echantillon,
+                       float temps_echantillon,
+                       float temps_ecoule,
+                       float temps_restant);
 
-	void repond_action();
+    void repond_action();
 };

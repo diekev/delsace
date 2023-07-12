@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/patrons_conception/observation.hh"
 #include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/observation.hh"
 
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
@@ -41,35 +41,34 @@ namespace vision {
 
 class Camera3D;
 
-}  /* namespace vision */
+} /* namespace vision */
 
 enum {
-	FICHIER_OUVERTURE,
+    FICHIER_OUVERTURE,
 };
 
 struct Kanba : public Sujette {
-	dls::math::matrice_dyn<dls::math::vec4f> tampon;
+    dls::math::matrice_dyn<dls::math::vec4f> tampon;
 
-	/* Interface utilisateur. */
-	FenetrePrincipale *fenetre_principale = nullptr;
-	BaseEditrice *widget_actif = nullptr;
+    /* Interface utilisateur. */
+    FenetrePrincipale *fenetre_principale = nullptr;
+    BaseEditrice *widget_actif = nullptr;
 
-	UsineCommande usine_commande;
+    UsineCommande usine_commande;
 
-	RepondantCommande *repondant_commande;
+    RepondantCommande *repondant_commande;
 
-	Brosse *brosse;
-	vision::Camera3D *camera;
-	Maillage *maillage;
+    Brosse *brosse;
+    vision::Camera3D *camera;
+    Maillage *maillage;
 
-	Kanba();
-	~Kanba();
+    Kanba();
+    ~Kanba();
 
-	Kanba(Kanba const &) = default;
-	Kanba &operator=(Kanba const &) = default;
+    Kanba(Kanba const &) = default;
+    Kanba &operator=(Kanba const &) = default;
 
-	void enregistre_commandes();
+    void enregistre_commandes();
 
-	dls::chaine requiers_dialogue(int type);
+    dls::chaine requiers_dialogue(int type);
 };
-

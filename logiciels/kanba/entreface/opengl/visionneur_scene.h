@@ -32,7 +32,7 @@ namespace vision {
 
 class Camera3D;
 
-}  /* namespace VisionneurScene */
+}  // namespace vision
 
 class Kanba;
 class RenduBrosse;
@@ -46,64 +46,64 @@ class VueCanevas;
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurScene {
-	VueCanevas *m_parent;
-	Kanba *m_kanba;
+    VueCanevas *m_parent;
+    Kanba *m_kanba;
 
-	vision::Camera3D *m_camera;
-	RenduBrosse *m_rendu_brosse;
-	RenduGrille *m_rendu_grille;
-	RenduTexte *m_rendu_texte;
-	RenduMaillage *m_rendu_maillage;
+    vision::Camera3D *m_camera;
+    RenduBrosse *m_rendu_brosse;
+    RenduGrille *m_rendu_grille;
+    RenduTexte *m_rendu_texte;
+    RenduMaillage *m_rendu_maillage;
 
-	ContexteRendu m_contexte{};
+    ContexteRendu m_contexte{};
 
-	PileMatrice m_stack = {};
+    PileMatrice m_stack = {};
 
-	float m_pos_x, m_pos_y;
-	dls::chrono::metre_seconde m_chrono_rendu{};
+    float m_pos_x, m_pos_y;
+    dls::chrono::metre_seconde m_chrono_rendu{};
 
-public:
-	/**
-	 * Empêche la construction d'un visionneur sans VueCanevas.
-	 */
-	VisionneurScene() = delete;
+  public:
+    /**
+     * Empêche la construction d'un visionneur sans VueCanevas.
+     */
+    VisionneurScene() = delete;
 
-	/**
-	 * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
-	 * pointeur vers l'instance de Kanba du programme en cours.
-	 */
-	VisionneurScene(VueCanevas *parent, Kanba *kanba);
+    /**
+     * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
+     * pointeur vers l'instance de Kanba du programme en cours.
+     */
+    VisionneurScene(VueCanevas *parent, Kanba *kanba);
 
-	/**
-	 * Empêche la copie d'un visionneur.
-	 */
-	VisionneurScene(VisionneurScene const &visionneur) = delete;
-	VisionneurScene &operator=(VisionneurScene const &) = delete;
+    /**
+     * Empêche la copie d'un visionneur.
+     */
+    VisionneurScene(VisionneurScene const &visionneur) = delete;
+    VisionneurScene &operator=(VisionneurScene const &) = delete;
 
-	/**
-	 * Détruit le visionneur scène. Les tampons de rendus sont détruits, et
-	 * utiliser cette instance après la destruction crashera le programme.
-	 */
-	~VisionneurScene();
+    /**
+     * Détruit le visionneur scène. Les tampons de rendus sont détruits, et
+     * utiliser cette instance après la destruction crashera le programme.
+     */
+    ~VisionneurScene();
 
-	/**
-	 * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
-	 * dans un contexte OpenGL valide.
-	 */
-	void initialise();
+    /**
+     * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
+     * dans un contexte OpenGL valide.
+     */
+    void initialise();
 
-	/**
-	 * Dessine la scène avec OpenGL.
-	 */
-	void peint_opengl();
+    /**
+     * Dessine la scène avec OpenGL.
+     */
+    void peint_opengl();
 
-	/**
-	 * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
-	 */
-	void redimensionne(int largeur, int hauteur);
+    /**
+     * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
+     */
+    void redimensionne(int largeur, int hauteur);
 
-	/**
-	 * Renseigne la position de la souris.
-	 */
-	void position_souris(int x, int y);
+    /**
+     * Renseigne la position de la souris.
+     */
+    void position_souris(int x, int y);
 };

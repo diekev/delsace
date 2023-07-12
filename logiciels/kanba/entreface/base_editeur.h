@@ -35,22 +35,22 @@ class QLineEdit;
 class QVBoxLayout;
 
 class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
-	Q_OBJECT
+    Q_OBJECT
 
-protected:
-	Kanba *m_kanba;
-	QFrame *m_cadre;
-	QVBoxLayout *m_agencement;
-	QHBoxLayout *m_agencement_principal{};
+  protected:
+    Kanba *m_kanba;
+    QFrame *m_cadre;
+    QVBoxLayout *m_agencement;
+    QHBoxLayout *m_agencement_principal{};
 
-public:
-	explicit BaseEditrice(Kanba &kanba, QWidget *parent = nullptr);
+  public:
+    explicit BaseEditrice(Kanba &kanba, QWidget *parent = nullptr);
 
-	BaseEditrice(BaseEditrice const &autre) = default;
-	BaseEditrice &operator=(BaseEditrice const &autre) = default;
+    BaseEditrice(BaseEditrice const &autre) = default;
+    BaseEditrice &operator=(BaseEditrice const &autre) = default;
 
-	void actif(bool yesno);
-	void rend_actif();
+    void actif(bool yesno);
+    void rend_actif();
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
 };

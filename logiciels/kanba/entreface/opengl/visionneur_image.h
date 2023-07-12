@@ -39,65 +39,60 @@ class VueCanevas;
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurImage {
-	VueCanevas *m_parent;
+    VueCanevas *m_parent;
 
-	dls::ego::Programme m_program{};
-	dls::ego::TamponObjet::Ptr m_buffer;
-	dls::ego::Texture2D::Ptr m_texture;
+    dls::ego::Programme m_program{};
+    dls::ego::TamponObjet::Ptr m_buffer;
+    dls::ego::Texture2D::Ptr m_texture;
 
-	const float m_vertices[8] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f
-	};
+    const float m_vertices[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 
-	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
+    const GLushort m_indices[6] = {0, 1, 2, 0, 2, 3};
 
-	int m_hauteur = 0;
-	int m_largeur = 0;
+    int m_hauteur = 0;
+    int m_largeur = 0;
 
-	Kanba *m_kanba;
+    Kanba *m_kanba;
 
-public:
-	/**
-	 * Empêche la construction d'un visionneur sans VueCanevas.
-	 */
-	VisionneurImage() = delete;
+  public:
+    /**
+     * Empêche la construction d'un visionneur sans VueCanevas.
+     */
+    VisionneurImage() = delete;
 
-	VisionneurImage(VisionneurImage const &) = default;
-	VisionneurImage &operator=(VisionneurImage const &) = default;
+    VisionneurImage(VisionneurImage const &) = default;
+    VisionneurImage &operator=(VisionneurImage const &) = default;
 
-	/**
-	 * Construit un visionneur avec un pointeur vers le VueCanevas parent.
-	 */
-	explicit VisionneurImage(VueCanevas *parent, Kanba *kanba);
+    /**
+     * Construit un visionneur avec un pointeur vers le VueCanevas parent.
+     */
+    explicit VisionneurImage(VueCanevas *parent, Kanba *kanba);
 
-	/**
-	 * Détruit le visionneur image. Les tampons de rendus sont détruits, et
-	 * utiliser cette instance après la destruction crashera le programme.
-	 */
-	~VisionneurImage() = default;
+    /**
+     * Détruit le visionneur image. Les tampons de rendus sont détruits, et
+     * utiliser cette instance après la destruction crashera le programme.
+     */
+    ~VisionneurImage() = default;
 
-	/**
-	 * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
-	 * dans un contexte OpenGL valide.
-	 */
-	void initialise();
+    /**
+     * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
+     * dans un contexte OpenGL valide.
+     */
+    void initialise();
 
-	/**
-	 * Dessine l'image avec OpenGL.
-	 */
-	void peint_opengl();
+    /**
+     * Dessine l'image avec OpenGL.
+     */
+    void peint_opengl();
 
-	/**
-	 * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
-	 */
-	void redimensionne(int largeur, int hauteur);
+    /**
+     * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
+     */
+    void redimensionne(int largeur, int hauteur);
 
-	/**
-	 * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
-	 * copiées dans des tampons OpenGL pour le rendu.
-	 */
-	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    /**
+     * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
+     * copiées dans des tampons OpenGL pour le rendu.
+     */
+    void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
 };

@@ -38,27 +38,26 @@
 /* ************************************************************************** */
 
 enum {
-	RES_720 = 0,
-	RES_1080,
-	RES_2K_FLAT,
-	RES_2K_DC,
-	RES_4K_UHDTV,
-	RES_4K_DC,
-	RES_8K_UHDTV,
+    RES_720 = 0,
+    RES_1080,
+    RES_2K_FLAT,
+    RES_2K_DC,
+    RES_4K_UHDTV,
+    RES_4K_DC,
+    RES_8K_UHDTV,
 };
 
 static const int RESOLUTIONS[][2] = {
-	{ 1280,  720 },
-	{ 1920, 1080 },
-	{ 1998, 1080 },
-	{ 2048, 1080 },
-	{ 3840, 2160 },
-	{ 4096, 2160 },
-	{ 7680, 4320 },
+    {1280, 720},
+    {1920, 1080},
+    {1998, 1080},
+    {2048, 1080},
+    {3840, 2160},
+    {4096, 2160},
+    {7680, 4320},
 };
 
-VueParametres::VueParametres(Kanba *kanba)
-	: m_kanba(kanba)
+VueParametres::VueParametres(Kanba *kanba) : m_kanba(kanba)
 {
 #if 0
 	danjo::ProprieteEnumerante enum_resolution;
@@ -110,44 +109,41 @@ bool VueParametres::ajourne_proprietes()
 	ajourne_valeur_int("resolution", m_kanba->parametres_rendu.resolution);
 #endif
 
-	return true;
+    return true;
 }
 
 /* ************************************************************************** */
 
 EditeurParametres::EditeurParametres(Kanba *kanba, QWidget *parent)
-	: BaseEditrice(*kanba, parent)
-	, m_vue(new VueParametres(kanba))
-	, m_widget(new QWidget())
-	, m_scroll(new QScrollArea())
-	, m_glayout(new QGridLayout(m_widget))
+    : BaseEditrice(*kanba, parent), m_vue(new VueParametres(kanba)), m_widget(new QWidget()),
+      m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
-	m_widget->setSizePolicy(m_cadre->sizePolicy());
+    m_widget->setSizePolicy(m_cadre->sizePolicy());
 
-	m_scroll->setWidget(m_widget);
-	m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	m_scroll->setWidgetResizable(true);
+    m_scroll->setWidget(m_widget);
+    m_scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_scroll->setWidgetResizable(true);
 
-	/* Hide scroll area's frame. */
-	m_scroll->setFrameStyle(0);
+    /* Hide scroll area's frame. */
+    m_scroll->setFrameStyle(0);
 
-	m_agencement_principal->addWidget(m_scroll);
+    m_agencement_principal->addWidget(m_scroll);
 }
 
 EditeurParametres::~EditeurParametres()
 {
-	delete m_vue;
-	delete m_scroll;
+    delete m_vue;
+    delete m_scroll;
 }
 
 void EditeurParametres::ajourne_etat(int /*evenement*/)
 {
-	m_vue->ajourne_proprietes();
-//	cree_controles(m_assembleur_controles, m_vue);
-//	m_assembleur_controles.setContext(this, SLOT(ajourne_vue()));
+    m_vue->ajourne_proprietes();
+    //	cree_controles(m_assembleur_controles, m_vue);
+    //	m_assembleur_controles.setContext(this, SLOT(ajourne_vue()));
 }
 
 void EditeurParametres::ajourne_manipulable()
 {
-	m_vue->ajourne_donnees();
+    m_vue->ajourne_donnees();
 }

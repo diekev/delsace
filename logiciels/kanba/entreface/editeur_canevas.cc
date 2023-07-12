@@ -29,8 +29,8 @@
 
 #include "editeur_canevas.h"
 
-#include <cassert>
 #include "biblinternes/ego/outils.h"
+#include <cassert>
 #include <iostream>
 
 #pragma GCC diagnostic push
@@ -54,171 +54,171 @@
 /* ************************************************************************** */
 
 VueCanevas::VueCanevas(Kanba *kanba, QWidget *parent)
-	: QGLWidget(parent)
-	, m_visionneur_image(new VisionneurImage(this, kanba))
-	, m_visionneur_scene(new VisionneurScene(this, kanba))
-	, m_kanba(kanba)
+    : QGLWidget(parent), m_visionneur_image(new VisionneurImage(this, kanba)),
+      m_visionneur_scene(new VisionneurScene(this, kanba)), m_kanba(kanba)
 {
-	setMouseTracking(true);
+    setMouseTracking(true);
 }
 
 VueCanevas::~VueCanevas()
 {
-	delete m_visionneur_scene;
-	delete m_visionneur_image;
+    delete m_visionneur_scene;
+    delete m_visionneur_image;
 }
 
 void VueCanevas::initializeGL()
 {
-	glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
 
-	if (err != GLEW_OK) {
-		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
-	}
+    if (err != GLEW_OK) {
+        std::cerr << "Error: " << glewGetErrorString(err) << "\n";
+    }
 
-	m_visionneur_image->initialise();
-	m_visionneur_scene->initialise();
+    m_visionneur_image->initialise();
+    m_visionneur_scene->initialise();
 }
 
 void VueCanevas::paintGL()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_mode_visionnage == VISIONNAGE_IMAGE) {
-		m_visionneur_image->peint_opengl();
-	}
-	else {
-		m_visionneur_scene->peint_opengl();
-	}
+    if (m_mode_visionnage == VISIONNAGE_IMAGE) {
+        m_visionneur_image->peint_opengl();
+    }
+    else {
+        m_visionneur_scene->peint_opengl();
+    }
 }
 
 void VueCanevas::resizeGL(int w, int h)
 {
-	glViewport(0, 0, w, h);
+    glViewport(0, 0, w, h);
 
-	if (m_mode_visionnage == VISIONNAGE_SCENE) {
-		m_visionneur_scene->redimensionne(w, h);
-	}
-	else {
-		m_visionneur_image->redimensionne(w, h);
-	}
+    if (m_mode_visionnage == VISIONNAGE_SCENE) {
+        m_visionneur_scene->redimensionne(w, h);
+    }
+    else {
+        m_visionneur_image->redimensionne(w, h);
+    }
 }
 
 void VueCanevas::mousePressEvent(QMouseEvent *e)
 {
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = e->button();
-	donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-	if (m_mode_visionnage == VISIONNAGE_SCENE) {
-		m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
-	}
-	else {
-		m_kanba->repondant_commande->appele_commande("vue_2d", donnees);
-	}
+    if (m_mode_visionnage == VISIONNAGE_SCENE) {
+        m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
+    }
+    else {
+        m_kanba->repondant_commande->appele_commande("vue_2d", donnees);
+    }
 }
 
 void VueCanevas::mouseMoveEvent(QMouseEvent *e)
 {
-	this->m_visionneur_scene->position_souris(e->pos().x(), e->pos().y());
-	this->update();
+    this->m_visionneur_scene->position_souris(e->pos().x(), e->pos().y());
+    this->update();
 
-	if (e->buttons() == 0) {
-		return;
-	}
+    if (e->buttons() == 0) {
+        return;
+    }
 
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
-	donnees.souris = e->button();
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
 
-	m_kanba->repondant_commande->ajourne_commande_modale(donnees);
+    m_kanba->repondant_commande->ajourne_commande_modale(donnees);
 }
 
 void VueCanevas::wheelEvent(QWheelEvent *e)
 {
-	/* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
-	 * roulement de la molette de la souris, on prétend que le roulement est un
-	 * double clique de la molette. */
-	auto donnees = DonneesCommande();
-	donnees.x = static_cast<float>(e->delta());
-	donnees.souris = Qt::MidButton;
-	donnees.double_clique = true;
+    /* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
+     * roulement de la molette de la souris, on prétend que le roulement est un
+     * double clique de la molette. */
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->delta());
+    donnees.souris = Qt::MidButton;
+    donnees.double_clique = true;
 
-	m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
+    m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
 }
 
 void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
 {
-	DonneesCommande donnees;
-	donnees.x = static_cast<float>(e->pos().x());
-	donnees.y = static_cast<float>(e->pos().y());
+    DonneesCommande donnees;
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
 
-	m_kanba->repondant_commande->acheve_commande_modale(donnees);
+    m_kanba->repondant_commande->acheve_commande_modale(donnees);
 }
 
 void VueCanevas::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
 {
-	m_visionneur_image->charge_image(image);
+    m_visionneur_image->charge_image(image);
 }
 
 void VueCanevas::mode_visionnage(int mode)
 {
-	m_mode_visionnage = mode;
+    m_mode_visionnage = mode;
 }
 
 int VueCanevas::mode_visionnage() const
 {
-	return m_mode_visionnage;
+    return m_mode_visionnage;
 }
 
 /* ************************************************************************** */
 
 EditeurCanevas::EditeurCanevas(Kanba &kanba, QWidget *parent)
-	: BaseEditrice(kanba, parent)
-	, m_vue(new VueCanevas(&kanba, this))
+    : BaseEditrice(kanba, parent), m_vue(new VueCanevas(&kanba, this))
 {
-	auto choix_visionneur = new QComboBox();
-	choix_visionneur->addItem("Vue2D", QVariant(VISIONNAGE_IMAGE));
-	choix_visionneur->addItem("Vue3D", QVariant(VISIONNAGE_SCENE));
-	connect(choix_visionneur, SIGNAL(currentIndexChanged(int)), this, SLOT(change_mode_visionnage(int)));
+    auto choix_visionneur = new QComboBox();
+    choix_visionneur->addItem("Vue2D", QVariant(VISIONNAGE_IMAGE));
+    choix_visionneur->addItem("Vue3D", QVariant(VISIONNAGE_SCENE));
+    connect(choix_visionneur,
+            SIGNAL(currentIndexChanged(int)),
+            this,
+            SLOT(change_mode_visionnage(int)));
 
-	auto agencement_vertical = new QVBoxLayout();
-	agencement_vertical->addWidget(m_vue);
-	agencement_vertical->addWidget(choix_visionneur);
+    auto agencement_vertical = new QVBoxLayout();
+    agencement_vertical->addWidget(m_vue);
+    agencement_vertical->addWidget(choix_visionneur);
 
-	m_agencement_principal->addLayout(agencement_vertical);
+    m_agencement_principal->addLayout(agencement_vertical);
 }
 
 void EditeurCanevas::ajourne_etat(int evenement)
 {
-	if (evenement == (type_evenement::dessin | type_evenement::fini)) {
-		if (m_vue->mode_visionnage() == VISIONNAGE_IMAGE) {
-			m_vue->charge_image(m_kanba->tampon);
-		}
-	}
+    if (evenement == (type_evenement::dessin | type_evenement::fini)) {
+        if (m_vue->mode_visionnage() == VISIONNAGE_IMAGE) {
+            m_vue->charge_image(m_kanba->tampon);
+        }
+    }
 
-	m_vue->update();
+    m_vue->update();
 }
 
 void EditeurCanevas::change_mode_visionnage(int mode)
 {
-	m_vue->mode_visionnage(mode);
+    m_vue->mode_visionnage(mode);
 
-	if (mode == VISIONNAGE_SCENE) {
-		m_vue->resize(this->size());
-	}
-	else {
-		m_vue->charge_image(m_kanba->tampon);
-	}
+    if (mode == VISIONNAGE_SCENE) {
+        m_vue->resize(this->size());
+    }
+    else {
+        m_vue->charge_image(m_kanba->tampon);
+    }
 }
 
-void EditeurCanevas::resizeEvent(QResizeEvent */*event*/)
+void EditeurCanevas::resizeEvent(QResizeEvent * /*event*/)
 {
-	if (m_vue->mode_visionnage() == VISIONNAGE_SCENE) {
-		m_vue->resize(this->size());
-	}
+    if (m_vue->mode_visionnage() == VISIONNAGE_SCENE) {
+        m_vue->resize(this->size());
+    }
 }

@@ -29,11 +29,11 @@
 #include "biblinternes/math/vecteur.hh"
 
 struct Brosse {
-	dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
-	float opacite = 1.0f;
-	int rayon = 35;
+    dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+    float opacite = 1.0f;
+    int rayon = 35;
 
-	TypeMelange mode_fusion{};
+    TypeMelange mode_fusion{};
 
-	Brosse() = default;
+    Brosse() = default;
 };
