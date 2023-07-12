@@ -46,6 +46,8 @@ void CannevasPeinture::construit_seaux()
         return;
     }
 
+    m_id += 1;
+
     auto camera = m_kanba.camera;
     auto brosse = m_kanba.brosse;
 
@@ -53,6 +55,9 @@ void CannevasPeinture::construit_seaux()
 
     auto seaux_x = camera->largeur() / diametre_brosse + 1;
     auto seaux_y = camera->hauteur() / diametre_brosse + 1;
+
+    auto taille_seau_x = camera->largeur() / seaux_x;
+    auto taille_seau_y = camera->hauteur() / seaux_y;
 
     seaux_x = restreint(seaux_x, MIN_SEAUX, MAX_SEAUX);
     seaux_y = restreint(seaux_y, MIN_SEAUX, MAX_SEAUX);
@@ -65,8 +70,26 @@ void CannevasPeinture::construit_seaux()
     m_seaux.redimensionne(seaux_x * seaux_y);
     m_seaux_x = seaux_x;
     m_seaux_y = seaux_y;
-    for (auto &seau : m_seaux) {
-        seau = Seau();
+
+    if (m_seaux.est_vide()) {
+        return;
+    }
+
+    auto ptr_seau = &m_seaux[0];
+
+    for (int y = 0; y < m_seaux_y; y++) {
+        auto const pos_y = y * taille_seau_y;
+
+        for (int x = 0; x < m_seaux_x; x++) {
+            *ptr_seau = Seau();
+
+            ptr_seau->x = x * taille_seau_x;
+            ptr_seau->y = pos_y;
+            ptr_seau->largeur = taille_seau_x;
+            ptr_seau->hauteur = taille_seau_y;
+
+            ptr_seau++;
+        }
     }
 
     m_besoin_reconstruction_seaux = false;

@@ -38,6 +38,7 @@ class Kanba;
 class RenduBrosse;
 class RenduGrille;
 class RenduMaillage;
+class RenduSeaux;
 class RenduTexte;
 class VueCanevas;
 
@@ -54,6 +55,7 @@ class VisionneurScene {
     RenduGrille *m_rendu_grille;
     RenduTexte *m_rendu_texte;
     RenduMaillage *m_rendu_maillage;
+    RenduSeaux *m_rendu_seaux = nullptr;
 
     ContexteRendu m_contexte{};
 

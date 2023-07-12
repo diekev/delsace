@@ -64,6 +64,9 @@ struct Kanba : public Sujette {
     Maillage *maillage;
     CannevasPeinture *cannevas = nullptr;
 
+    /* Définis si les seaux du cannevas doivent être dessinés sur la vue 3D. */
+    bool dessine_seaux = false;
+
     Kanba();
     ~Kanba();
 

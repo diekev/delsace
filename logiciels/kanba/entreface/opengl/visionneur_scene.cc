@@ -38,6 +38,7 @@
 #include "rendu_brosse.h"
 #include "rendu_maillage.h"
 #include "rendu_rayon.h"
+#include "rendu_seaux.hh"
 
 VisionneurScene::VisionneurScene(VueCanevas *parent, Kanba *kanba)
     : m_parent(parent), m_kanba(kanba), m_camera(kanba->camera), m_rendu_brosse(nullptr),
@@ -130,6 +131,21 @@ void VisionneurScene::peint_opengl()
     m_rendu_texte->dessine(m_contexte, ss.chn());
 
     glDisable(GL_BLEND);
+
+    /* Peint les seaux au dessus du reste. */
+    if (m_kanba->dessine_seaux) {
+        glDisable(GL_DEPTH_TEST);
+        if (!m_rendu_seaux) {
+            m_rendu_seaux = new RenduSeaux(m_kanba);
+        }
+
+        m_rendu_seaux->initialise();
+        m_contexte.modele_vue(dls::math::mat4x4f(1.0f));
+        m_contexte.projection(dls::math::mat4x4f(1.0f));
+        m_contexte.MVP(dls::math::mat4x4f(1.0f));
+        m_rendu_seaux->dessine(m_contexte);
+        glEnable(GL_DEPTH_TEST);
+    }
 
     m_chrono_rendu.commence();
 }

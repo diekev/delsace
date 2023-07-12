@@ -48,10 +48,21 @@ struct Seau {
     dls::liste<TexelProjete> texels = dls::liste<TexelProjete>{};
     dls::math::vec2f min = dls::math::vec2f(0.0);
     dls::math::vec2f max = dls::math::vec2f(0.0);
+
+    /* Position du seau sur le cannevas. */
+    int x = 0;
+    int y = 0;
+
+    /* Taille du seau. */
+    int largeur = 0;
+    int hauteur = 0;
 };
 
 class CannevasPeinture {
     Kanba &m_kanba;
+
+    /* Identifiant pour le dessin. */
+    int m_id = 0;
 
     dls::tableau<Seau> m_seaux{};
     int m_seaux_x = 0;
@@ -77,6 +88,11 @@ class CannevasPeinture {
     dls::tableau<Seau> &seaux()
     {
         return m_seaux;
+    }
+
+    int id() const
+    {
+        return m_id;
     }
 
   private:
