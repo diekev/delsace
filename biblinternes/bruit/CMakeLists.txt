@@ -25,10 +25,12 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+find_package(FFTW REQUIRED)
+
 set(BIBLIOTHEQUES
 	bib_outils
 	tbb
-	fftw3
+        FFTW::Double
 )
 
 set(SOURCES
