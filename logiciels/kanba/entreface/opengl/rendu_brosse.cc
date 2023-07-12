@@ -119,8 +119,8 @@ void RenduBrosse::initialise()
     index.reserve(points * 2);
 
     for (unsigned i = 0; i < 64; ++i) {
-        index.pousse(i);
-        index.pousse(i + 1);
+        index.ajoute(i);
+        index.ajoute(i + 1);
     }
 
     ParametresTampon parametres_tampon;

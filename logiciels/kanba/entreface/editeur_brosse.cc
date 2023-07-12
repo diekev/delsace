@@ -85,7 +85,7 @@ static TypeMelange mode_fusion_depuis_nom(dls::chaine const &nom)
 
 VueBrosse::VueBrosse(Kanba *kanba) : m_kanba(kanba)
 {
-    ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::math::vec4f(1.0f));
+    ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
     ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
     ajoute_propriete("opacité", danjo::TypePropriete::DECIMAL, 1.0f);
     ajoute_propriete("mode_fusion", danjo::TypePropriete::ENUM);

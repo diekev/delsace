@@ -89,7 +89,7 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal)
             break;
     }
 
-    canaux.calques[type_canal].pousse(calque);
+    canaux.calques[type_canal].ajoute(calque);
 
     return calque;
 }

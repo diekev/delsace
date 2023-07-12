@@ -103,7 +103,7 @@ void VisionneurScene::peint_opengl()
     }
 
     if (m_rendu_maillage) {
-        m_stack.pousse(m_rendu_maillage->matrice());
+        m_stack.ajoute(m_rendu_maillage->matrice());
         m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
         m_rendu_maillage->dessine(m_contexte);

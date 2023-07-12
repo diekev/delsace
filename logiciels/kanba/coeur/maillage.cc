@@ -301,7 +301,7 @@ void Maillage::ajoute_sommet(dls::math::vec3f const &coord)
     auto sommet = new Sommet();
     sommet->pos = coord;
     sommet->index = m_sommets.taille();
-    m_sommets.pousse(sommet);
+    m_sommets.ajoute(sommet);
 }
 
 void Maillage::ajoute_sommets(const dls::math::vec3f *sommets, long nombre)
@@ -348,7 +348,7 @@ void Maillage::ajoute_quad(const long s0, const long s1, const long s2, const lo
 
         poly->a[i] = arrete;
 
-        m_arretes.pousse(arrete);
+        m_arretes.ajoute(arrete);
     }
 
     auto c1 = poly->s[1]->pos - poly->s[0]->pos;
@@ -357,7 +357,7 @@ void Maillage::ajoute_quad(const long s0, const long s1, const long s2, const lo
 
     poly->index = m_polys.taille();
 
-    m_polys.pousse(poly);
+    m_polys.ajoute(poly);
 }
 
 #define COULEUR_ALEATOIRE

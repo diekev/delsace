@@ -43,9 +43,9 @@ enum type_evenement : int {
     charge = (6 << 8),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
+DEFINIS_OPERATEURS_DRAPEAU(type_evenement)
 
-constexpr auto action_evenement(type_evenement evenement)
+constexpr type_evenement action_evenement(type_evenement evenement)
 {
     return evenement & 0x0000ff00;
 }

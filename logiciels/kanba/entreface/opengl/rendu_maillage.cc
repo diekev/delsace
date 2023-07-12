@@ -121,8 +121,8 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
     for (auto i = 0; i < nombre_arretes; ++i) {
         auto const arrete = maillage->arrete(i);
 
-        sommets.pousse(arrete->s[0]->pos);
-        sommets.pousse(arrete->s[1]->pos);
+        sommets.ajoute(arrete->s[0]->pos);
+        sommets.ajoute(arrete->s[1]->pos);
     }
 
     dls::tableau<unsigned int> indices(sommets.taille());
@@ -207,8 +207,8 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
         auto const N = normalise(polygone->nor);
 
-        sommets.pousse(V);
-        sommets.pousse(V + 0.1f * N);
+        sommets.ajoute(V);
+        sommets.ajoute(V + 0.1f * N);
     }
 
     dls::tableau<unsigned int> indices(sommets.taille());
@@ -314,35 +314,35 @@ TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_poly
     for (auto i : id_polys) {
         auto const poly = maillage->polygone(i);
 
-        sommets.pousse(poly->s[0]->pos);
-        sommets.pousse(poly->s[1]->pos);
-        sommets.pousse(poly->s[2]->pos);
+        sommets.ajoute(poly->s[0]->pos);
+        sommets.ajoute(poly->s[1]->pos);
+        sommets.ajoute(poly->s[2]->pos);
 
-        normaux.pousse(poly->nor);
-        normaux.pousse(poly->nor);
-        normaux.pousse(poly->nor);
+        normaux.ajoute(poly->nor);
+        normaux.ajoute(poly->nor);
+        normaux.ajoute(poly->nor);
 
         if (poly->s[3] != nullptr) {
-            sommets.pousse(poly->s[0]->pos);
-            sommets.pousse(poly->s[2]->pos);
-            sommets.pousse(poly->s[3]->pos);
+            sommets.ajoute(poly->s[0]->pos);
+            sommets.ajoute(poly->s[2]->pos);
+            sommets.ajoute(poly->s[3]->pos);
 
-            uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
 
-            uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
 
-            normaux.pousse(poly->nor);
-            normaux.pousse(poly->nor);
-            normaux.pousse(poly->nor);
+            normaux.ajoute(poly->nor);
+            normaux.ajoute(poly->nor);
+            normaux.ajoute(poly->nor);
         }
         else {
-            uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
-            uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
         }
 
         index_poly += 1.0f;
@@ -409,7 +409,7 @@ void RenduMaillage::initialise()
 
         auto const &paire = std::make_pair(poly->res_u, poly->res_v);
 
-        vecteurs_polys[paire].pousse(static_cast<uint>(i));
+        vecteurs_polys[paire].ajoute(static_cast<uint>(i));
     }
 
     std::cout << "Nombre de seaux : " << vecteurs_polys.taille() << '\n';
@@ -426,14 +426,14 @@ void RenduMaillage::initialise()
     for (auto const &id_polys : vecteurs_polys) {
         for (uint i : id_polys.second) {
             if (static_cast<int>(page.polys.taille()) >= max_textures) {
-                m_pages.pousse(page);
+                m_pages.ajoute(page);
                 page.polys.efface();
             }
 
-            page.polys.pousse(i);
+            page.polys.ajoute(i);
         }
 
-        m_pages.pousse(page);
+        m_pages.ajoute(page);
         page.polys.efface();
     }
 
