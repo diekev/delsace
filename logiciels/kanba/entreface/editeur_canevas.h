@@ -52,8 +52,7 @@ class VueCanevas2D : public QGLWidget {
     explicit VueCanevas2D(Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas2D() override;
 
-    VueCanevas2D(VueCanevas2D const &) = delete;
-    VueCanevas2D &operator=(VueCanevas2D const &) = delete;
+    EMPECHE_COPIE(VueCanevas2D);
 
     void initializeGL() override;
     void paintGL() override;
@@ -79,8 +78,7 @@ class EditriceCannevas2D : public BaseEditrice {
   public:
     explicit EditriceCannevas2D(Kanba &kanba, QWidget *parent = nullptr);
 
-    EditriceCannevas2D(EditriceCannevas2D const &) = delete;
-    EditriceCannevas2D &operator=(EditriceCannevas2D const &) = delete;
+    EMPECHE_COPIE(EditriceCannevas2D);
 
     void ajourne_etat(int evenement) override;
 
@@ -104,8 +102,7 @@ class VueCanevas3D : public QGLWidget {
     explicit VueCanevas3D(Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas3D() override;
 
-    VueCanevas3D(VueCanevas3D const &) = delete;
-    VueCanevas3D &operator=(VueCanevas3D const &) = delete;
+    EMPECHE_COPIE(VueCanevas3D);
 
     void initializeGL() override;
     void paintGL() override;
@@ -130,8 +127,7 @@ class EditriceCannevas3D : public BaseEditrice {
   public:
     explicit EditriceCannevas3D(Kanba &kanba, QWidget *parent = nullptr);
 
-    EditriceCannevas3D(EditriceCannevas3D const &) = delete;
-    EditriceCannevas3D &operator=(EditriceCannevas3D const &) = delete;
+    EMPECHE_COPIE(EditriceCannevas3D);
 
     void ajourne_etat(int evenement) override;
 

@@ -60,8 +60,7 @@ class TreeWidget : public QTreeWidget {
   public:
     explicit TreeWidget(QWidget *parent = nullptr);
 
-    TreeWidget(TreeWidget const &) = default;
-    TreeWidget &operator=(TreeWidget const &) = default;
+    EMPECHE_COPIE(TreeWidget);
 
     void set_base(BaseEditrice *base);
 
@@ -82,8 +81,7 @@ class EditeurCalques final : public BaseEditrice {
   public:
     EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
 
-    EditeurCalques(EditeurCalques const &) = default;
-    EditeurCalques &operator=(EditeurCalques const &) = default;
+    EMPECHE_COPIE(EditeurCalques);
 
     ~EditeurCalques() override;
 

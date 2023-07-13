@@ -59,8 +59,7 @@ class EditeurBrosse final : public BaseEditrice {
   public:
     EditeurBrosse(Kanba *kanba, QWidget *parent = nullptr);
 
-    EditeurBrosse(EditeurBrosse const &) = default;
-    EditeurBrosse &operator=(EditeurBrosse const &) = default;
+    EMPECHE_COPIE(EditeurBrosse);
 
     ~EditeurBrosse() override;
 

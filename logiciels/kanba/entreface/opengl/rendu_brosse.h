@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 class ContexteRendu;
 class TamponRendu;
 
@@ -40,8 +42,7 @@ class RenduBrosse {
      */
     RenduBrosse() = default;
 
-    RenduBrosse(RenduBrosse const &) = default;
-    RenduBrosse &operator=(RenduBrosse const &) = default;
+    EMPECHE_COPIE(RenduBrosse);
 
     /**
      * Détruit les données de l'instance. Les tampons de rendu sont détruits et

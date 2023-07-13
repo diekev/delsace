@@ -28,6 +28,8 @@
 #include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/texture.h"
 
+#include "biblinternes/outils/definitions.h"
+
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
@@ -60,8 +62,7 @@ class VisionneurImage {
      */
     VisionneurImage() = delete;
 
-    VisionneurImage(VisionneurImage const &) = default;
-    VisionneurImage &operator=(VisionneurImage const &) = default;
+    EMPECHE_COPIE(VisionneurImage);
 
     /**
      * Construit un visionneur avec un pointeur vers le VueCanevas parent.

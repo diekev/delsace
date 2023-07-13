@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 class ContexteRendu;
 class TamponRendu;
 class Kanba;
@@ -20,8 +22,7 @@ class RenduSeaux {
   public:
     explicit RenduSeaux(Kanba *kanba);
 
-    RenduSeaux(RenduSeaux const &) = delete;
-    RenduSeaux &operator=(RenduSeaux const &) = delete;
+    EMPECHE_COPIE(RenduSeaux);
 
     ~RenduSeaux();
 

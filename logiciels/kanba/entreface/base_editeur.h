@@ -26,6 +26,7 @@
 
 #include "danjo/conteneur_controles.h"
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/observation.hh"
 
 class Kanba;
@@ -48,8 +49,7 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
   public:
     explicit BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent = nullptr);
 
-    BaseEditrice(BaseEditrice const &autre) = default;
-    BaseEditrice &operator=(BaseEditrice const &autre) = default;
+    EMPECHE_COPIE(BaseEditrice);
 
     void actif(bool yesno);
     void rend_actif();

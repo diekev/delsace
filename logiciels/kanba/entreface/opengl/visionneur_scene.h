@@ -81,8 +81,7 @@ class VisionneurScene {
     /**
      * Empêche la copie d'un visionneur.
      */
-    VisionneurScene(VisionneurScene const &visionneur) = delete;
-    VisionneurScene &operator=(VisionneurScene const &) = delete;
+    EMPECHE_COPIE(VisionneurScene);
 
     /**
      * Détruit le visionneur scène. Les tampons de rendus sont détruits, et

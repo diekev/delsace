@@ -32,6 +32,8 @@
 #include <QMainWindow>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/definitions.h"
+
 #include "coeur/kanba.h"
 
 class BaseDialogue;
@@ -51,8 +53,7 @@ class FenetrePrincipale : public QMainWindow {
     explicit FenetrePrincipale(QWidget *parent = nullptr);
     ~FenetrePrincipale();
 
-    FenetrePrincipale(FenetrePrincipale const &) = default;
-    FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    EMPECHE_COPIE(FenetrePrincipale);
 
     void ajoute_visionneur_image();
     void ajoute_editeur_proprietes();

@@ -38,8 +38,7 @@ class VueParametres : public danjo::Manipulable {
   public:
     explicit VueParametres(Kanba *kanba);
 
-    VueParametres(VueParametres const &) = default;
-    VueParametres &operator=(VueParametres const &) = default;
+    EMPECHE_COPIE(VueParametres);
 
     void ajourne_donnees();
     bool ajourne_proprietes() override;
@@ -57,8 +56,7 @@ class EditeurParametres final : public BaseEditrice {
   public:
     EditeurParametres(Kanba *kanba, QWidget *parent = nullptr);
 
-    EditeurParametres(EditeurParametres const &) = default;
-    EditeurParametres &operator=(EditeurParametres const &) = default;
+    EMPECHE_COPIE(EditeurParametres);
 
     ~EditeurParametres() override;
 
