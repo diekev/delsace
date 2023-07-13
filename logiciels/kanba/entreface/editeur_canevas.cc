@@ -114,10 +114,7 @@ void VueCanevas2D::wheelEvent(QWheelEvent *e)
 EditriceCannevas2D::EditriceCannevas2D(Kanba &kanba, QWidget *parent)
     : BaseEditrice("vue_2d", kanba, parent), m_vue(new VueCanevas2D(&kanba, this))
 {
-    auto agencement_vertical = new QVBoxLayout();
-    agencement_vertical->addWidget(m_vue);
-
-    m_agencement_principal->addLayout(agencement_vertical);
+    m_agencement_principal->addWidget(m_vue);
 }
 
 void EditriceCannevas2D::ajourne_etat(int evenement)
@@ -217,10 +214,7 @@ void VueCanevas3D::wheelEvent(QWheelEvent *e)
 EditriceCannevas3D::EditriceCannevas3D(Kanba &kanba, QWidget *parent)
     : BaseEditrice("vue_3d", kanba, parent), m_vue(new VueCanevas3D(&kanba, this))
 {
-    auto agencement_vertical = new QVBoxLayout();
-    agencement_vertical->addWidget(m_vue);
-
-    m_agencement_principal->addLayout(agencement_vertical);
+    m_agencement_principal->addWidget(m_vue);
 }
 
 void EditriceCannevas3D::ajourne_etat(int evenement)
