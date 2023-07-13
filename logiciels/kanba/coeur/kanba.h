@@ -48,6 +48,19 @@ enum {
     FICHIER_OUVERTURE,
 };
 
+struct EntréeLog {
+    enum Type {
+        GÉNÉRALE,
+        IMAGE,
+        RENDU,
+        MAILLAGE,
+        EMPAQUETAGE,
+    };
+
+    Type type{};
+    dls::chaine texte{};
+};
+
 struct Kanba : public Sujette {
     dls::math::matrice_dyn<dls::math::vec4f> tampon;
 
@@ -67,6 +80,8 @@ struct Kanba : public Sujette {
     /* Définis si les seaux du cannevas doivent être dessinés sur la vue 3D. */
     bool dessine_seaux = false;
 
+    dls::tableau<EntréeLog> entrées_log{};
+
     Kanba();
     ~Kanba();
 
@@ -76,4 +91,18 @@ struct Kanba : public Sujette {
     void enregistre_commandes();
 
     dls::chaine requiers_dialogue(int type);
+
+    template <typename... Args>
+    void ajoute_log(EntréeLog::Type type, Args... args)
+    {
+        std::stringstream ss;
+        ((ss << args), ...);
+
+        ajoute_log_impl(type, ss.str());
+    }
+
+    void ajoute_log(EntréeLog::Type type, dls::chaine const &texte);
+
+  private:
+    void ajoute_log_impl(EntréeLog::Type type, dls::chaine const &texte);
 };

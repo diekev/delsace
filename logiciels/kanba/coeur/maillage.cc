@@ -362,7 +362,7 @@ void Maillage::ajoute_quad(const long s0, const long s1, const long s2, const lo
 
 #define COULEUR_ALEATOIRE
 
-void Maillage::cree_tampon()
+void Maillage::cree_tampon(Kanba *kanba)
 {
     assigne_texels_resolution(this, 1);
 
@@ -380,7 +380,7 @@ void Maillage::cree_tampon()
 
     std::cerr << "Démarrage empaquettage...\n";
 
-    PaqueuseTexture paqueuse;
+    PaqueuseTexture paqueuse(kanba);
     paqueuse.empaquete(m_polys);
 
     m_largeur_texture = paqueuse.largeur();

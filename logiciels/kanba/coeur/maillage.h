@@ -31,6 +31,8 @@
 
 #include "calques.h"
 
+class Kanba;
+
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
@@ -193,7 +195,7 @@ class Maillage {
     /**
      * Crée un tampon PTex par défaut. À FAIRE : supprimer.
      */
-    void cree_tampon();
+    void cree_tampon(Kanba *kanba);
 
     /**
      * Retourne vrai si la texture de ce maillage est surrannée et doit être

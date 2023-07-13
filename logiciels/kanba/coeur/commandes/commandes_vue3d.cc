@@ -254,7 +254,7 @@ class CommandeAjouteCube : public Commande {
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
         kanba->maillage = adaptrice.maillage;
-        kanba->maillage->cree_tampon();
+        kanba->maillage->cree_tampon(kanba);
 
         kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
@@ -282,7 +282,7 @@ class CommandeAjouteSphere : public Commande {
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
         kanba->maillage = adaptrice.maillage;
-        kanba->maillage->cree_tampon();
+        kanba->maillage->cree_tampon(kanba);
 
         kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 

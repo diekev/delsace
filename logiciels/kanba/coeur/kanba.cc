@@ -77,3 +77,17 @@ dls::chaine Kanba::requiers_dialogue(int type)
 
     return "";
 }
+
+static const char *chaine_type_entrée_log[] = {
+    "Générale", "Image", "Rendu", "Maillage", "Empaquetage"};
+
+void Kanba::ajoute_log(EntréeLog::Type type, const dls::chaine &texte)
+{
+    ajoute_log_impl(type, texte);
+}
+
+void Kanba::ajoute_log_impl(EntréeLog::Type type, const dls::chaine &texte)
+{
+    entrées_log.ajoute({type, texte});
+    std::cout << "[" << chaine_type_entrée_log[type] << "] " << texte << std::endl;
+}

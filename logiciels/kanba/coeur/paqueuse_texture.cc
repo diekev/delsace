@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/dico.hh"
 
+#include "kanba.h"
 #include "maillage.h"
 
 /**
@@ -38,26 +39,7 @@
  * http://developer.download.nvidia.com/assets/gamedev/docs/RealtimePtex-siggraph2011.pdf
  */
 
-#undef LOGUE_EMPATQUETTAGE
-
 #undef QUEUE_PRIORITE
-
-#ifdef LOGUE_EMPATQUETTAGE
-#    include <iostream>
-#    define LOG std::cerr
-#else
-struct LoggeuseEmpaquettage {
-};
-
-template <typename T>
-LoggeuseEmpaquettage &operator<<(LoggeuseEmpaquettage &le, const T &)
-{
-    return le;
-}
-
-static LoggeuseEmpaquettage loggeuse_empaquettage;
-#    define LOG loggeuse_empaquettage
-#endif
 
 uint64_t empreinte_xy(unsigned x, unsigned y)
 {
@@ -77,7 +59,7 @@ PaqueuseTexture::Noeud::~Noeud()
     }
 }
 
-PaqueuseTexture::PaqueuseTexture() : m_racine(new Noeud())
+PaqueuseTexture::PaqueuseTexture(Kanba *kanba) : m_racine(new Noeud()), m_kanba(kanba)
 {
 }
 
@@ -88,14 +70,16 @@ PaqueuseTexture::~PaqueuseTexture()
 
 void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
 {
-    LOG << "Début de la création de la texture paquetée...\n";
-
     auto const largeur_max = polygones[0]->res_u * polygones.taille();
     auto const hauteur_max = polygones[0]->res_v * polygones.taille();
     m_racine->largeur = 16384;
     m_racine->hauteur = 16384;
 
-    LOG << "Taille noeud racine : " << m_racine->largeur << 'x' << m_racine->hauteur << "...\n";
+    m_kanba->ajoute_log(EntréeLog::Type::EMPAQUETAGE,
+                        "Taille noeud racine : ",
+                        m_racine->largeur,
+                        'x',
+                        m_racine->hauteur);
 
 #ifdef QUEUE_PRIORITE
     m_queue_priorite.enfile(m_racine);
@@ -131,9 +115,12 @@ void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
                                  static_cast<unsigned>(hauteur_max));
 
             if (!noeud) {
+#    if 0
+                // À FAIRE : erreur
                 LOG << "N'arrive pas à élargir texture " << m_racine->largeur << 'x'
                     << m_racine->hauteur << " pour un polygone de taille " << polygone->res_u
                     << 'x' << polygone->res_v << '\n';
+#    endif
             }
         }
 
@@ -149,16 +136,19 @@ void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
             tableau_coord_polygones.insere({empreinte, polygone});
         }
 
+#    if 0
         LOG << "Assignation des coordonnées " << polygone->x << ',' << polygone->y
             << " au polygone " << polygone->index << " (" << polygone->res_u << 'x'
             << polygone->res_v << ')' << '\n';
+#    endif
 
         max_x = std::max(max_x, polygone->x + polygone->res_u);
         max_y = std::max(max_y, polygone->y + polygone->res_v);
 #endif
     }
 
-    LOG << "Taille texture finale : " << largeur() << 'x' << hauteur() << "...\n";
+    m_kanba->ajoute_log(
+        EntréeLog::Type::EMPAQUETAGE, "Taille texture finale ", largeur(), 'x', hauteur());
 }
 
 unsigned int PaqueuseTexture::largeur() const
@@ -233,7 +223,6 @@ PaqueuseTexture::Noeud *PaqueuseTexture::brise_noeud(Noeud *noeud,
 
 PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(unsigned largeur, unsigned hauteur)
 {
-    LOG << __func__ << '\n';
 #if 1
     if (m_racine->largeur < m_racine->hauteur) {
         return elargi_largeur(largeur, hauteur);
@@ -277,8 +266,6 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_noeud(unsigned largeur, unsigned
 
 PaqueuseTexture::Noeud *PaqueuseTexture::elargi_largeur(unsigned largeur, unsigned hauteur)
 {
-    LOG << __func__ << '\n';
-
     auto racine = new Noeud();
     racine->utilise = true;
     racine->x = 0;
@@ -305,8 +292,6 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_largeur(unsigned largeur, unsign
 
 PaqueuseTexture::Noeud *PaqueuseTexture::elargi_hauteur(unsigned largeur, unsigned hauteur)
 {
-    LOG << __func__ << '\n';
-
     auto racine = new Noeud();
     racine->utilise = true;
     racine->x = 0;

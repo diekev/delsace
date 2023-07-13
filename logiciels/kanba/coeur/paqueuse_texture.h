@@ -27,6 +27,7 @@
 #include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau.hh"
 
+class Kanba;
 struct Polygone;
 
 /**
@@ -63,6 +64,7 @@ class PaqueuseTexture {
     };
 
     Noeud *m_racine = nullptr;
+    Kanba *m_kanba = nullptr;
 
     dls::file_priorite<Noeud *, CompareNoeud> m_queue_priorite{};
 
@@ -70,7 +72,7 @@ class PaqueuseTexture {
     unsigned int max_y = 0;
 
   public:
-    PaqueuseTexture();
+    PaqueuseTexture(Kanba *kanba);
 
     ~PaqueuseTexture();
 
