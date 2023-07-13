@@ -27,7 +27,6 @@
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/constantes.h"
 
 /* ************************************************************************** */
@@ -52,9 +51,9 @@ static const char *source_fragment = "#version 330 core\n"
                                      "	couleur_fragment = couleur;\n"
                                      "}\n";
 
-static TamponRendu *creer_tampon()
+static std::unique_ptr<TamponRendu> creer_tampon()
 {
-    auto tampon = new TamponRendu;
+    auto tampon = std::make_unique<TamponRendu>();
 
     tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex);
 
@@ -89,11 +88,6 @@ static TamponRendu *creer_tampon()
 }
 
 /* ************************************************************************** */
-
-RenduBrosse::~RenduBrosse()
-{
-    delete m_tampon_contour;
-}
 
 void RenduBrosse::initialise()
 {

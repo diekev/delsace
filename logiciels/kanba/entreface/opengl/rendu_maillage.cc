@@ -80,9 +80,9 @@ static void genere_texture(AtlasTexture *atlas, const void *donnes, GLint taille
 
 /* ************************************************************************** */
 
-TamponRendu *cree_tampon_arrete()
+static std::unique_ptr<TamponRendu> cree_tampon_arrete()
 {
-    auto tampon = new TamponRendu;
+    auto tampon = std::make_unique<TamponRendu>();
 
     tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
                                     dls::contenu_fichier("nuanceurs/simple.vert"));
@@ -108,7 +108,7 @@ TamponRendu *cree_tampon_arrete()
     return tampon;
 }
 
-TamponRendu *genere_tampon_arrete(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_arrete(Maillage *maillage)
 {
     auto const nombre_arretes = maillage->nombre_arretes();
     auto const nombre_elements = nombre_arretes * 2;
@@ -153,9 +153,9 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 
 /* ************************************************************************** */
 
-TamponRendu *cree_tampon_normal()
+static std::unique_ptr<TamponRendu> cree_tampon_normal()
 {
-    auto tampon = new TamponRendu;
+    auto tampon = std::make_unique<TamponRendu>();
 
     tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
                                     dls::contenu_fichier("nuanceurs/simple.vert"));
@@ -181,7 +181,7 @@ TamponRendu *cree_tampon_normal()
     return tampon;
 }
 
-TamponRendu *genere_tampon_normal(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_normal(Maillage *maillage)
 {
     auto const nombre_polygones = maillage->nombre_polygones();
     auto const nombre_elements = nombre_polygones * 2;
@@ -239,9 +239,9 @@ TamponRendu *genere_tampon_normal(Maillage *maillage)
 
 /* ************************************************************************** */
 
-TamponRendu *creer_tampon()
+static std::unique_ptr<TamponRendu> creer_tampon()
 {
-    auto tampon = new TamponRendu;
+    auto tampon = std::make_unique<TamponRendu>();
 
 #ifdef BOMBAGE_TEXTURE
     tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
@@ -295,10 +295,10 @@ TamponRendu *creer_tampon()
     return tampon;
 }
 
-TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
+static TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
 {
     auto nombre_elements = id_polys.taille() * 6;
-    auto tampon = creer_tampon();
+    auto tampon = creer_tampon().release();
 
     dls::tableau<dls::math::vec3f> sommets;
     sommets.reserve(nombre_elements);
@@ -385,11 +385,6 @@ TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_poly
 
 RenduMaillage::RenduMaillage(Maillage *maillage) : m_maillage(maillage)
 {
-}
-
-RenduMaillage::~RenduMaillage()
-{
-    supprime_tampons();
 }
 
 void RenduMaillage::initialise()
@@ -552,12 +547,12 @@ void RenduMaillage::ajourne_texture()
 
 void RenduMaillage::supprime_tampons()
 {
-    for (auto const &page : m_pages) {
+    for (auto &page : m_pages) {
         delete page.tampon;
     }
 
-    delete m_tampon_arrete;
-    delete m_tampon_normal;
+    m_tampon_arrete.reset(nullptr);
+    m_tampon_normal.reset(nullptr);
 }
 
 void RenduMaillage::dessine(ContexteRendu const &contexte)

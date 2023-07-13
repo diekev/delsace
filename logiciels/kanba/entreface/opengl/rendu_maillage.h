@@ -25,7 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
-
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/tableau.hh"
 
 class ContexteRendu;
@@ -39,6 +39,7 @@ class TamponRendu;
  * contient que des textures ayant les mêmes résolutions.
  */
 struct Page {
+    /* À FAIRE : utilise unique_ptr */
     TamponRendu *tampon{};
     dls::tableau<uint> polys{};
 };
@@ -48,8 +49,8 @@ struct Page {
  * scène 3D.
  */
 class RenduMaillage {
-    TamponRendu *m_tampon_arrete = nullptr;
-    TamponRendu *m_tampon_normal = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_arrete = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_normal = nullptr;
 
     Maillage *m_maillage = nullptr;
 
@@ -62,12 +63,6 @@ class RenduMaillage {
     explicit RenduMaillage(Maillage *maillage);
 
     EMPECHE_COPIE(RenduMaillage);
-
-    /**
-     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-     * utiliser l'instance crashera le programme.
-     */
-    ~RenduMaillage();
 
     void initialise();
 
