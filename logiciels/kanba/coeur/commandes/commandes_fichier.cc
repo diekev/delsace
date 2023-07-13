@@ -56,11 +56,7 @@ class CommandeOuvrirFichier : public Commande {
 
         objets::charge_fichier_OBJ(&adaptrice, chemin_projet);
 
-        maillage->cree_tampon(kanba);
-
-        delete kanba->maillage;
-        kanba->maillage = maillage;
-
+        kanba->installe_maillage(maillage);
         kanba->notifie_observatrices(static_cast<type_evenement>(-1));
 
         return EXECUTION_COMMANDE_REUSSIE;

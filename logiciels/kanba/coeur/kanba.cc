@@ -78,6 +78,16 @@ dls::chaine Kanba::requiers_dialogue(int type)
     return "";
 }
 
+void Kanba::installe_maillage(Maillage *m)
+{
+    if (maillage) {
+        delete maillage;
+    }
+
+    maillage = m;
+    maillage->cree_tampon(this);
+}
+
 static const char *chaine_type_entrée_log[] = {
     "Générale", "Image", "Rendu", "Maillage", "Empaquetage"};
 

@@ -268,20 +268,13 @@ class CommandeAjouteCube : public Commande {
 
     int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-
-        if (kanba->maillage) {
-            delete kanba->maillage;
-        }
-
         auto adaptrice = AdaptriceCreationMaillage();
         adaptrice.maillage = new Maillage;
 
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
-        kanba->maillage = adaptrice.maillage;
-        kanba->maillage->cree_tampon(kanba);
-
+        auto kanba = std::any_cast<Kanba *>(pointeur);
+        kanba->installe_maillage(adaptrice.maillage);
         kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
         return EXECUTION_COMMANDE_REUSSIE;
@@ -296,20 +289,13 @@ class CommandeAjouteSphere : public Commande {
 
     int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-
-        if (kanba->maillage) {
-            delete kanba->maillage;
-        }
-
         auto adaptrice = AdaptriceCreationMaillage();
         adaptrice.maillage = new Maillage;
 
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
-        kanba->maillage = adaptrice.maillage;
-        kanba->maillage->cree_tampon(kanba);
-
+        auto kanba = std::any_cast<Kanba *>(pointeur);
+        kanba->installe_maillage(adaptrice.maillage);
         kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
         return EXECUTION_COMMANDE_REUSSIE;

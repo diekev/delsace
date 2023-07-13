@@ -92,6 +92,8 @@ struct Kanba : public Sujette {
 
     dls::chaine requiers_dialogue(int type);
 
+    void installe_maillage(Maillage *m);
+
     template <typename... Args>
     void ajoute_log(EntréeLog::Type type, Args... args)
     {
