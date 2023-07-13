@@ -112,13 +112,15 @@ void VisionneurScene::peint_opengl()
         m_stack.enleve_sommet();
     }
 
-    auto const &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
+    if (m_affiche_brosse) {
+        auto const &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
 
-    m_rendu_brosse->dessine(m_contexte,
-                            diametre / static_cast<float>(m_camera->largeur()),
-                            diametre / static_cast<float>(m_camera->hauteur()),
-                            m_pos_x,
-                            m_pos_y);
+        m_rendu_brosse->dessine(m_contexte,
+                                diametre / static_cast<float>(m_camera->largeur()),
+                                diametre / static_cast<float>(m_camera->hauteur()),
+                                m_pos_x,
+                                m_pos_y);
+    }
 
     auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
@@ -162,4 +164,9 @@ void VisionneurScene::position_souris(int x, int y)
     m_pos_y = static_cast<float>(m_camera->hauteur() - y) /
                   static_cast<float>(m_camera->hauteur()) * 2.0f -
               1.0f;
+}
+
+void VisionneurScene::affiche_brosse(bool oui_ou_non)
+{
+    m_affiche_brosse = oui_ou_non;
 }

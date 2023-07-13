@@ -110,6 +110,8 @@ class VueCanevas3D : public QGLWidget {
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int w, int h) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
     void wheelEvent(QWheelEvent *e) override;

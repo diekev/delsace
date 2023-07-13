@@ -64,6 +64,8 @@ class VisionneurScene {
     float m_pos_x, m_pos_y;
     dls::chrono::metre_seconde m_chrono_rendu{};
 
+    bool m_affiche_brosse = false;
+
   public:
     /**
      * Empêche la construction d'un visionneur sans VueCanevas.
@@ -108,4 +110,9 @@ class VisionneurScene {
      * Renseigne la position de la souris.
      */
     void position_souris(int x, int y);
+
+    /**
+     * Détermine si la brosse doit être affichée.
+     */
+    void affiche_brosse(bool oui_ou_non);
 };
