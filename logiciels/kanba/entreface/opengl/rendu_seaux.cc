@@ -83,18 +83,18 @@ void RenduSeaux::initialise()
     m_id_cannevas = cannevas->id();
 
     delete m_tampon;
-    m_tampon = cree_tampon(dls::math::vec4f(1.0f, 1.0f, 0.0, 1.0f), 4.0f);
+    m_tampon = cree_tampon(dls::math::vec4f(1.0f, 1.0f, 0.0f, 1.0f), 4.0f);
 
     /* 4 sommets par seau, 2 sommets par ligne. */
     auto const nombre_de_points = seaux.taille() * 4;
-    dls::tableau<unsigned int> index(static_cast<long>(nombre_de_points * 2));
+    dls::tableau<unsigned int> index(nombre_de_points * 2);
     dls::tableau<dls::math::vec3f> sommets(nombre_de_points);
 
     auto const largeur_inverse_caméra = 1.0f / static_cast<float>(camera->largeur());
     auto const hauteur_inverse_caméra = 1.0f / static_cast<float>(camera->hauteur());
 
-    int décalage_sommet = 0;
-    int décalage_index = 0;
+    unsigned int décalage_sommet = 0;
+    unsigned int décalage_index = 0;
     for (auto const &seau : seaux) {
         auto px0 = static_cast<float>(seau.x) * largeur_inverse_caméra;
         auto px1 = static_cast<float>(seau.x + seau.largeur) * largeur_inverse_caméra;

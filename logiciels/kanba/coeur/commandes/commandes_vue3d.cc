@@ -182,7 +182,6 @@ class CommandePeinture3D : public Commande {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto camera = kanba->camera;
         auto brosse = kanba->brosse;
         auto cannevas = kanba->cannevas;
         cannevas->ajourne_pour_peinture();
