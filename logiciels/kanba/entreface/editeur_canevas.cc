@@ -174,12 +174,14 @@ void VueCanevas3D::resizeGL(int w, int h)
 void VueCanevas3D::enterEvent(QEvent * /*event*/)
 {
     m_visionneur_scene->affiche_brosse(true);
+    this->setCursor(Qt::BlankCursor);
     this->update();
 }
 
 void VueCanevas3D::leaveEvent(QEvent * /*event*/)
 {
     m_visionneur_scene->affiche_brosse(false);
+    this->unsetCursor();
     this->update();
 }
 
