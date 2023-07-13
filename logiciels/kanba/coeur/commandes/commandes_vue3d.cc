@@ -191,19 +191,36 @@ class CommandePeinture3D : public Commande {
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
 
+#undef DEBUG_TOUCHES_SEAUX
+#ifdef DEBUG_TOUCHES_SEAUX
+        int seaux_non_vides = 0;
+        int seaux_touchés = 0;
+#endif
+
         for (auto const &seau : cannevas->seaux()) {
             if (seau.texels.est_vide()) {
                 continue;
             }
 
+#ifdef DEBUG_TOUCHES_SEAUX
+            seaux_non_vides += 1;
+#endif
+
             // std::cerr << "Il y a " << seau.texels.taille() << " texels dans le seau !\n";
 
+#ifdef DEBUG_TOUCHES_SEAUX
+            bool texel_modifié = false;
+#endif
             for (auto const &texel : seau.texels) {
                 auto dist = longueur(texel.pos - pos_brosse);
 
                 if (dist > static_cast<float>(brosse->rayon)) {
                     continue;
                 }
+
+#ifdef DEBUG_TOUCHES_SEAUX
+                texel_modifié = true;
+#endif
 
                 auto opacite = dist * rayon_inverse;
                 opacite = 1.0f - opacite * opacite;
@@ -217,7 +234,16 @@ class CommandePeinture3D : public Commande {
                                              opacite * brosse->opacite,
                                              brosse->mode_fusion);
             }
+
+#ifdef DEBUG_TOUCHES_SEAUX
+            seaux_touchés += texel_modifié;
+#endif
         }
+
+#ifdef DEBUG_TOUCHES_SEAUX
+        std::cerr << "Seaux touchés " << seaux_touchés << " / " << seaux_non_vides
+                  << " seaux non vides\n";
+#endif
 
         fusionne_calques(maillage->canaux_texture());
 
