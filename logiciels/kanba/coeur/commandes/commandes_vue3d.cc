@@ -157,6 +157,9 @@ class CommandePanCamera : public Commande {
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
+        auto cannevas = kanba->cannevas;
+        cannevas->invalide_pour_changement_caméra();
+
         kanba->notifie_observatrices(static_cast<type_evenement>(-1));
     }
 };
