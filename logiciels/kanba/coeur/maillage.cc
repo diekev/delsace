@@ -222,12 +222,71 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 
 #undef TAILLE_UNIFORME
 
+struct StatistiquesTexture {
+    uint32_t nombre_de_texels = 0;
+
+    struct TailleTextureEtCompte {
+        uint32_t compte = 0;
+        uint32_t res_u = 0;
+        uint32_t res_v = 0;
+    };
+
+    dls::tableau<TailleTextureEtCompte> comptes_pour_taille_texture{};
+
+    void ajoute_compte_pour_taille(uint32_t compte, uint32_t res_u, uint32_t res_v)
+    {
+        comptes_pour_taille_texture.ajoute({compte, res_u, res_v});
+    }
+};
+
+static StatistiquesTexture calcule_statistiques_texture(Maillage *maillage)
+{
+    dls::dico<std::pair<unsigned int, unsigned int>, unsigned int> tableau_compte_faces;
+    auto nombre_texels = 0u;
+
+    for (auto i = 0; i < maillage->nombre_polygones(); ++i) {
+        auto p = maillage->polygone(i);
+
+        // auto paire = std::make_pair(std::max(p->res_u, p->res_v), std::min(p->res_u, p->res_v));
+        auto paire = std::make_pair(p->res_u, p->res_v);
+
+        nombre_texels += p->res_u * p->res_v;
+
+        auto iter = tableau_compte_faces.trouve(paire);
+
+        if (iter == tableau_compte_faces.fin()) {
+            tableau_compte_faces.insere({paire, 1});
+        }
+        else {
+            tableau_compte_faces[paire] += 1;
+        }
+    }
+
+    StatistiquesTexture résultat;
+    résultat.nombre_de_texels = nombre_texels;
+
+    for (auto const &paire : tableau_compte_faces) {
+        résultat.ajoute_compte_pour_taille(paire.second, paire.first.first, paire.first.second);
+    }
+
+    return résultat;
+}
+
+static void imprime_statistiques(StatistiquesTexture const &stats)
+{
+    std::cerr << "Statistiques texture :\n";
+
+    for (auto const &stat : stats.comptes_pour_taille_texture) {
+        std::cerr << "- il y a " << stat.compte << " polygones de " << stat.res_u << 'x'
+                  << stat.res_v << '\n';
+    }
+
+    std::cerr << "- il y a " << stats.nombre_de_texels << " texels en tout.\n";
+}
+
 void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 {
     /* calcule la resolution UV de chaque polygone en fonction de la densité */
-    dls::dico<std::pair<unsigned int, unsigned int>, unsigned int> tableau_compte_faces;
-
-    auto nombre_texels = 0u;
 
     for (auto i = 0; i < maillage->nombre_polygones(); ++i) {
         auto p = maillage->polygone(i);
@@ -250,27 +309,10 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
         p->res_u = std::min(p->res_u, p->res_v);
         p->res_v = p->res_u;
 #endif
-        // auto paire = std::make_pair(std::max(p->res_u, p->res_v), std::min(p->res_u, p->res_v));
-        auto paire = std::make_pair(p->res_u, p->res_v);
-
-        nombre_texels += p->res_u * p->res_v;
-
-        auto iter = tableau_compte_faces.trouve(paire);
-
-        if (iter == tableau_compte_faces.fin()) {
-            tableau_compte_faces.insere({paire, 1});
-        }
-        else {
-            tableau_compte_faces[paire] += 1;
-        }
     }
 
-    for (auto const &paire : tableau_compte_faces) {
-        std::cerr << "Il y a " << paire.second << " polygones de " << paire.first.first << 'x'
-                  << paire.first.second << '\n';
-    }
-
-    std::cerr << "Il y a " << nombre_texels << " texels en tout.\n";
+    auto stats = calcule_statistiques_texture(maillage);
+    imprime_statistiques(stats);
 }
 
 /* ************************************************************************** */
