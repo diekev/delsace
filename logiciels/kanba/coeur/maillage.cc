@@ -420,21 +420,14 @@ void Maillage::cree_tampon(Kanba *kanba)
         m_polys[i]->index = i;
     }
 
-    std::cerr << "Démarrage empaquettage...\n";
+    auto taille_texture = empaquete_version_nb(kanba, this);
 
-    PaqueuseTexture paqueuse(kanba);
-    paqueuse.empaquete(m_polys);
+    m_largeur_texture = uint32_t(taille_texture.largeur);
+    m_canaux.hauteur = static_cast<size_t>(taille_texture.hauteur);
+    m_canaux.largeur = static_cast<size_t>(taille_texture.largeur);
 
-    m_largeur_texture = paqueuse.largeur();
-    m_canaux.hauteur = static_cast<size_t>(paqueuse.hauteur());
-    m_canaux.largeur = static_cast<size_t>(paqueuse.largeur());
     auto calque = ajoute_calque(m_canaux, TypeCanal::DIFFUSION);
     calque_actif(calque);
-
-    std::cerr << "Nombre de texels dans le tampon : " << paqueuse.hauteur() * paqueuse.largeur()
-              << '\n';
-    std::cerr << "Taille image : " << paqueuse.largeur() << "x" << paqueuse.hauteur() << '\n';
-
 #ifndef COULEUR_ALEATOIRE
     ajoute_calque_echiquier(this);
 #else

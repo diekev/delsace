@@ -165,6 +165,11 @@ class Maillage {
      */
     const Polygone *polygone(long i) const;
 
+    dls::tableau<Polygone *> &donne_polygones()
+    {
+        return m_polys;
+    }
+
     /**
      * Retourne le nombre d'arrêtes de ce maillage.
      */

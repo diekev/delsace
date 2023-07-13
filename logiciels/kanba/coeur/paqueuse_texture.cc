@@ -315,3 +315,171 @@ PaqueuseTexture::Noeud *PaqueuseTexture::elargi_hauteur(unsigned largeur, unsign
 
     return nullptr;
 }
+
+struct BPXPackedLayout {
+    struct Item {
+        Item(const int u_res_, const int v_res_)
+            : u_res(u_res_), v_res(v_res_), id(-1), x(-1), y(-1)
+        {
+        }
+
+        int u_res;
+        int v_res;
+
+        int id;
+        int x;
+        int y;
+    };
+
+    typedef std::vector<Item> Items;
+
+    BPXPackedLayout(const int count) : width(0), height(0), u_max_res(0), v_max_res(0)
+    {
+        items.reserve(static_cast<size_t>(count));
+    }
+
+    void add_item(const Item &item)
+    {
+        items.push_back(item);
+        items.back().id = static_cast<int>(items.size() - 1);
+        u_max_res = std::max(u_max_res, item.u_res);
+        v_max_res = std::max(v_max_res, item.v_res);
+    }
+
+    void finalize()
+    {
+        if (u_max_res == 0 || v_max_res == 0) {
+            return;
+        }
+
+        // Sort items descending by v-res
+        std::sort(items.begin(), items.end(), sort_res);
+
+        // Decide on output width, TODO(nicholasbishop): extremely
+        // arbitrary for now
+        width = std::max(u_max_res + 2, 1024);
+
+        // For now only packing mipmap level zero
+
+        // Calc layout
+        height = 0;
+        int dst_x = 0;
+        int dst_y = 0;
+        int yinc = 0;
+        int max_width = 0;
+        for (Items::iterator iter = items.begin(); iter != items.end(); ++iter) {
+            Item &item = *iter;
+
+            // Check if enough room on this row
+            if (dst_x + item.u_res + 2 * border >= width) {
+                // Move to next row
+                assert(yinc != 0);
+                dst_y += yinc;
+                yinc = 0;
+                dst_x = 0;
+            }
+
+            // Write final position
+            item.x = dst_x + border;
+            item.y = dst_y + border;
+
+            dst_x += item.u_res + (2 * border);
+            height = std::max(height, dst_y + item.v_res + (2 * border));
+            max_width = std::max(dst_x + item.u_res + (2 * border), max_width);
+
+            yinc = std::max(yinc, item.v_res + (2 * border));
+        }
+
+        // TODO?
+        width = max_width;
+
+        std::sort(items.begin(), items.end(), sort_id);
+    }
+
+    const Items &get_items() const
+    {
+        return items;
+    }
+
+    const int get_width() const
+    {
+        return width;
+    }
+
+    const int get_height() const
+    {
+        return height;
+    }
+
+    // Width of filter border (in texels) around each packed face
+    static const int border = 1;
+
+  private:
+    static bool sort_id(const Item &a, const Item &b)
+    {
+        return a.id < b.id;
+    }
+
+    // Order *descending* by v_res, then u_res
+    static bool sort_res(const Item &a, const Item &b)
+    {
+        if (a.v_res == b.v_res) {
+            return a.u_res > b.u_res;
+        }
+        else {
+            return a.v_res > b.v_res;
+        }
+    }
+
+    Items items{};
+
+    int width;
+    int height;
+
+    int u_max_res;
+    int v_max_res;
+};
+
+TailleDisposition empaquete_version_bin_packing(Kanba *kanba, Maillage *maillage)
+{
+    PaqueuseTexture paqueuse(kanba);
+    paqueuse.empaquete(maillage->donne_polygones());
+
+    TailleDisposition résultat;
+    résultat.largeur = int(paqueuse.largeur());
+    résultat.hauteur = int(paqueuse.hauteur());
+    return résultat;
+}
+
+TailleDisposition empaquete_version_nb(Kanba *kanba, Maillage *maillage)
+{
+    BPXPackedLayout layout(static_cast<int>(maillage->nombre_polygones()));
+
+    for (int i = 0; i < maillage->nombre_polygones(); i++) {
+        auto poly = maillage->polygone(i);
+        layout.add_item(BPXPackedLayout::Item(int32_t(poly->res_u), int32_t(poly->res_v)));
+    }
+
+    layout.finalize();
+
+    kanba->ajoute_log(EntréeLog::Type::EMPAQUETAGE,
+                      "BPXPackedLayout : ",
+                      layout.get_width(),
+                      'x',
+                      layout.get_height(),
+                      ", nombre de texels : ",
+                      layout.get_height() * layout.get_width());
+
+    for (int i = 0; i < maillage->nombre_polygones(); i++) {
+        auto poly = maillage->polygone(i);
+        auto item = layout.get_items()[static_cast<size_t>(i)];
+
+        poly->x = static_cast<uint32_t>(item.x);
+        poly->y = static_cast<uint32_t>(item.y);
+    }
+
+    TailleDisposition résultat;
+    résultat.largeur = layout.get_width();
+    résultat.hauteur = layout.get_height();
+    return résultat;
+}

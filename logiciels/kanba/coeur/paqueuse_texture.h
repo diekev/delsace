@@ -28,6 +28,7 @@
 #include "biblinternes/structures/tableau.hh"
 
 class Kanba;
+class Maillage;
 struct Polygone;
 
 /**
@@ -125,3 +126,12 @@ class PaqueuseTexture {
      */
     Noeud *elargi_hauteur(unsigned largeur, unsigned hauteur);
 };
+
+struct TailleDisposition {
+    int largeur = 0;
+    int hauteur = 0;
+};
+
+TailleDisposition empaquete_version_bin_packing(Kanba *kanba, Maillage *maillage);
+
+TailleDisposition empaquete_version_nb(Kanba *kanba, Maillage *maillage);
