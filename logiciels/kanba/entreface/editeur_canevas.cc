@@ -29,44 +29,34 @@
 
 #include "editeur_canevas.h"
 
-#include "biblinternes/ego/outils.h"
-#include <cassert>
-#include <iostream>
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#include <QApplication>
-#include <QComboBox>
 #include <QMouseEvent>
-#include <QScrollArea>
 #include <QVBoxLayout>
 #pragma GCC diagnostic pop
-
-#include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/kanba.h"
 
-/* ************************************************************************** */
+/* ------------------------------------------------------------------------- */
+/** \name Vue Canevas 2D
+ * \{ */
 
-VueCanevas::VueCanevas(Kanba *kanba, QWidget *parent)
-    : QGLWidget(parent), m_visionneur_image(new VisionneurImage(this, kanba)),
-      m_visionneur_scene(new VisionneurScene(this, kanba)), m_kanba(kanba)
+VueCanevas2D::VueCanevas2D(Kanba *kanba, QWidget *parent)
+    : QGLWidget(parent), m_visionneur_image(new VisionneurImage(this, kanba))
 {
     setMouseTracking(true);
 }
 
-VueCanevas::~VueCanevas()
+VueCanevas2D::~VueCanevas2D()
 {
-    delete m_visionneur_scene;
     delete m_visionneur_image;
 }
 
-void VueCanevas::initializeGL()
+void VueCanevas2D::initializeGL()
 {
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
@@ -76,149 +66,159 @@ void VueCanevas::initializeGL()
     }
 
     m_visionneur_image->initialise();
-    m_visionneur_scene->initialise();
 }
 
-void VueCanevas::paintGL()
+void VueCanevas2D::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (m_mode_visionnage == VISIONNAGE_IMAGE) {
-        m_visionneur_image->peint_opengl();
-    }
-    else {
-        m_visionneur_scene->peint_opengl();
-    }
+    m_visionneur_image->peint_opengl();
 }
 
-void VueCanevas::resizeGL(int w, int h)
+void VueCanevas2D::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-
-    if (m_mode_visionnage == VISIONNAGE_SCENE) {
-        m_visionneur_scene->redimensionne(w, h);
-    }
-    else {
-        m_visionneur_image->redimensionne(w, h);
-    }
+    m_visionneur_image->redimensionne(w, h);
 }
 
-void VueCanevas::mousePressEvent(QMouseEvent *e)
-{
-    auto donnees = DonneesCommande();
-    donnees.x = static_cast<float>(e->pos().x());
-    donnees.y = static_cast<float>(e->pos().y());
-    donnees.souris = e->button();
-    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
-
-    if (m_mode_visionnage == VISIONNAGE_SCENE) {
-        m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
-    }
-    else {
-        m_kanba->repondant_commande->appele_commande("vue_2d", donnees);
-    }
-}
-
-void VueCanevas::mouseMoveEvent(QMouseEvent *e)
-{
-    this->m_visionneur_scene->position_souris(e->pos().x(), e->pos().y());
-    this->update();
-
-    if (e->buttons() == 0) {
-        return;
-    }
-
-    auto donnees = DonneesCommande();
-    donnees.x = static_cast<float>(e->pos().x());
-    donnees.y = static_cast<float>(e->pos().y());
-    donnees.souris = e->button();
-
-    m_kanba->repondant_commande->ajourne_commande_modale(donnees);
-}
-
-void VueCanevas::wheelEvent(QWheelEvent *e)
-{
-    /* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
-     * roulement de la molette de la souris, on prétend que le roulement est un
-     * double clique de la molette. */
-    auto donnees = DonneesCommande();
-    donnees.x = static_cast<float>(e->delta());
-    donnees.souris = Qt::MidButton;
-    donnees.double_clique = true;
-
-    m_kanba->repondant_commande->appele_commande("vue_3d", donnees);
-}
-
-void VueCanevas::mouseReleaseEvent(QMouseEvent *e)
-{
-    DonneesCommande donnees;
-    donnees.x = static_cast<float>(e->pos().x());
-    donnees.y = static_cast<float>(e->pos().y());
-
-    m_kanba->repondant_commande->acheve_commande_modale(donnees);
-}
-
-void VueCanevas::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
+void VueCanevas2D::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
 {
     m_visionneur_image->charge_image(image);
 }
 
-void VueCanevas::mode_visionnage(int mode)
+void VueCanevas2D::mousePressEvent(QMouseEvent *e)
 {
-    m_mode_visionnage = mode;
+    static_cast<EditriceCannevas2D *>(parent())->mousePressEvent(e);
 }
 
-int VueCanevas::mode_visionnage() const
+void VueCanevas2D::mouseMoveEvent(QMouseEvent *e)
 {
-    return m_mode_visionnage;
+    static_cast<EditriceCannevas2D *>(parent())->mouseMoveEvent(e);
 }
 
-/* ************************************************************************** */
-
-EditeurCanevas::EditeurCanevas(Kanba &kanba, QWidget *parent)
-    : BaseEditrice(kanba, parent), m_vue(new VueCanevas(&kanba, this))
+void VueCanevas2D::mouseReleaseEvent(QMouseEvent *e)
 {
-    auto choix_visionneur = new QComboBox();
-    choix_visionneur->addItem("Vue2D", QVariant(VISIONNAGE_IMAGE));
-    choix_visionneur->addItem("Vue3D", QVariant(VISIONNAGE_SCENE));
-    connect(choix_visionneur,
-            SIGNAL(currentIndexChanged(int)),
-            this,
-            SLOT(change_mode_visionnage(int)));
+    static_cast<EditriceCannevas2D *>(parent())->mouseReleaseEvent(e);
+}
 
+void VueCanevas2D::wheelEvent(QWheelEvent *e)
+{
+    static_cast<EditriceCannevas2D *>(parent())->wheelEvent(e);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Éditrice 2D
+ * \{ */
+
+EditriceCannevas2D::EditriceCannevas2D(Kanba &kanba, QWidget *parent)
+    : BaseEditrice("vue_2d", kanba, parent), m_vue(new VueCanevas2D(&kanba, this))
+{
     auto agencement_vertical = new QVBoxLayout();
     agencement_vertical->addWidget(m_vue);
-    agencement_vertical->addWidget(choix_visionneur);
 
     m_agencement_principal->addLayout(agencement_vertical);
 }
 
-void EditeurCanevas::ajourne_etat(int evenement)
+void EditriceCannevas2D::ajourne_etat(int evenement)
 {
     if (evenement == (type_evenement::dessin | type_evenement::fini)) {
-        if (m_vue->mode_visionnage() == VISIONNAGE_IMAGE) {
-            m_vue->charge_image(m_kanba->tampon);
-        }
+        m_vue->charge_image(m_kanba->tampon);
     }
-
     m_vue->update();
 }
 
-void EditeurCanevas::change_mode_visionnage(int mode)
+void EditriceCannevas2D::resizeEvent(QResizeEvent * /*event*/)
 {
-    m_vue->mode_visionnage(mode);
-
-    if (mode == VISIONNAGE_SCENE) {
-        m_vue->resize(this->size());
-    }
-    else {
-        m_vue->charge_image(m_kanba->tampon);
-    }
+    m_vue->resize(this->size());
 }
 
-void EditeurCanevas::resizeEvent(QResizeEvent * /*event*/)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Vue Canevas 3D
+ * \{ */
+
+VueCanevas3D::VueCanevas3D(Kanba *kanba, QWidget *parent)
+    : QGLWidget(parent), m_visionneur_scene(new VisionneurScene(this, kanba))
 {
-    if (m_vue->mode_visionnage() == VISIONNAGE_SCENE) {
-        m_vue->resize(this->size());
-    }
+    setMouseTracking(true);
 }
+
+VueCanevas3D::~VueCanevas3D()
+{
+    delete m_visionneur_scene;
+}
+
+void VueCanevas3D::initializeGL()
+{
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+
+    if (err != GLEW_OK) {
+        std::cerr << "Error: " << glewGetErrorString(err) << "\n";
+    }
+
+    m_visionneur_scene->initialise();
+}
+
+void VueCanevas3D::paintGL()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_visionneur_scene->peint_opengl();
+}
+
+void VueCanevas3D::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+    m_visionneur_scene->redimensionne(w, h);
+}
+
+void VueCanevas3D::mousePressEvent(QMouseEvent *e)
+{
+    static_cast<EditriceCannevas3D *>(parent())->mousePressEvent(e);
+}
+
+void VueCanevas3D::mouseMoveEvent(QMouseEvent *e)
+{
+    this->m_visionneur_scene->position_souris(e->pos().x(), e->pos().y());
+    this->update();
+    static_cast<EditriceCannevas3D *>(parent())->mouseMoveEvent(e);
+}
+
+void VueCanevas3D::mouseReleaseEvent(QMouseEvent *e)
+{
+    static_cast<EditriceCannevas3D *>(parent())->mouseReleaseEvent(e);
+}
+
+void VueCanevas3D::wheelEvent(QWheelEvent *e)
+{
+    static_cast<EditriceCannevas3D *>(parent())->wheelEvent(e);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Éditrice 3D
+ * \{ */
+
+EditriceCannevas3D::EditriceCannevas3D(Kanba &kanba, QWidget *parent)
+    : BaseEditrice("vue_3d", kanba, parent), m_vue(new VueCanevas3D(&kanba, this))
+{
+    auto agencement_vertical = new QVBoxLayout();
+    agencement_vertical->addWidget(m_vue);
+
+    m_agencement_principal->addLayout(agencement_vertical);
+}
+
+void EditriceCannevas3D::ajourne_etat(int evenement)
+{
+    m_vue->update();
+}
+
+void EditriceCannevas3D::resizeEvent(QResizeEvent * /*event*/)
+{
+    m_vue->resize(this->size());
+}
+
+/** \} */

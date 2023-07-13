@@ -34,16 +34,20 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QStyle>
 #include <QVariant>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+
 #include "coeur/kanba.h"
 
-BaseEditrice::BaseEditrice(Kanba &kanba, QWidget *parent)
-    : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
-      m_agencement(new QVBoxLayout())
+BaseEditrice::BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent)
+    : danjo::ConteneurControles(parent), m_identifiant(identifiant), m_kanba(&kanba),
+      m_cadre(new QFrame(this)), m_agencement(new QVBoxLayout())
 {
     this->observe(&kanba);
 
@@ -89,4 +93,44 @@ void BaseEditrice::mousePressEvent(QMouseEvent *e)
 {
     this->rend_actif();
     QWidget::mousePressEvent(e);
+
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+
+    m_kanba->repondant_commande->appele_commande(m_identifiant, donnees);
+}
+
+void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
+{
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
+
+    m_kanba->repondant_commande->ajourne_commande_modale(donnees);
+}
+
+void BaseEditrice::wheelEvent(QWheelEvent *e)
+{
+    /* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
+     * roulement de la molette de la souris, on prétend que le roulement est un
+     * double clique de la molette. */
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->delta());
+    donnees.souris = Qt::MidButton;
+    donnees.double_clique = true;
+
+    m_kanba->repondant_commande->appele_commande(m_identifiant, donnees);
+}
+
+void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
+{
+    DonneesCommande donnees;
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+
+    m_kanba->repondant_commande->acheve_commande_modale(donnees);
 }

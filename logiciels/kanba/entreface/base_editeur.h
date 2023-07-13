@@ -43,8 +43,10 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
     QVBoxLayout *m_agencement;
     QHBoxLayout *m_agencement_principal{};
 
+    const char *m_identifiant = "";
+
   public:
-    explicit BaseEditrice(Kanba &kanba, QWidget *parent = nullptr);
+    explicit BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent = nullptr);
 
     BaseEditrice(BaseEditrice const &autre) = default;
     BaseEditrice &operator=(BaseEditrice const &autre) = default;
@@ -53,4 +55,7 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
     void rend_actif();
 
     void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
 };

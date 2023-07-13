@@ -32,14 +32,14 @@
 #include "biblinternes/math/vecteur.hh"
 
 class Kanba;
-class VueCanevas;
+class VueCanevas2D;
 
 /**
  * La classe VisionneurImage contient la logique pour dessiner une image 2D avec
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurImage {
-    VueCanevas *m_parent;
+    VueCanevas2D *m_parent;
 
     dls::ego::Programme m_program{};
     dls::ego::TamponObjet::Ptr m_buffer;
@@ -66,7 +66,7 @@ class VisionneurImage {
     /**
      * Construit un visionneur avec un pointeur vers le VueCanevas parent.
      */
-    explicit VisionneurImage(VueCanevas *parent, Kanba *kanba);
+    explicit VisionneurImage(VueCanevas2D *parent, Kanba *kanba);
 
     /**
      * Détruit le visionneur image. Les tampons de rendus sont détruits, et

@@ -40,7 +40,7 @@
 #include "rendu_rayon.h"
 #include "rendu_seaux.hh"
 
-VisionneurScene::VisionneurScene(VueCanevas *parent, Kanba *kanba)
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, Kanba *kanba)
     : m_parent(parent), m_kanba(kanba), m_camera(kanba->camera), m_rendu_brosse(nullptr),
       m_rendu_grille(nullptr), m_rendu_texte(nullptr), m_rendu_maillage(nullptr), m_pos_x(0),
       m_pos_y(0)

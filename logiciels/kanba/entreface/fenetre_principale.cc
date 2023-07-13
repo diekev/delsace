@@ -146,7 +146,7 @@ void FenetrePrincipale::ajoute_visionneur_image()
     if (m_viewer_dock == nullptr) {
         m_viewer_dock = new QDockWidget("Visionneur", this);
 
-        auto view_2d = new EditeurCanevas(m_kanba, m_viewer_dock);
+        auto view_2d = new EditriceCannevas3D(m_kanba, m_viewer_dock);
 
         m_viewer_dock->setWidget(view_2d);
         m_viewer_dock->setAllowedAreas(Qt::AllDockWidgetAreas);

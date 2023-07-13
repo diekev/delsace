@@ -113,7 +113,7 @@ bool VueBrosse::ajourne_proprietes()
 }
 
 EditeurBrosse::EditeurBrosse(Kanba *kanba, QWidget *parent)
-    : BaseEditrice(*kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
+    : BaseEditrice("brosse", *kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
       m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
       m_glayout(new QVBoxLayout(m_widget))
 {

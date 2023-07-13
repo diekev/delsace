@@ -40,14 +40,14 @@ class RenduGrille;
 class RenduMaillage;
 class RenduSeaux;
 class RenduTexte;
-class VueCanevas;
+class VueCanevas3D;
 
 /**
  * La classe VisionneurScene contient la logique pour dessiner une scène 3D avec
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurScene {
-    VueCanevas *m_parent;
+    VueCanevas3D *m_parent;
     Kanba *m_kanba;
 
     vision::Camera3D *m_camera;
@@ -74,7 +74,7 @@ class VisionneurScene {
      * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
      * pointeur vers l'instance de Kanba du programme en cours.
      */
-    VisionneurScene(VueCanevas *parent, Kanba *kanba);
+    VisionneurScene(VueCanevas3D *parent, Kanba *kanba);
 
     /**
      * Empêche la copie d'un visionneur.

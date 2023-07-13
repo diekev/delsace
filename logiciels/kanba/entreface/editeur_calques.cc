@@ -110,8 +110,8 @@ void TreeWidget::mousePressEvent(QMouseEvent *e)
 /* ************************************************************************** */
 
 EditeurCalques::EditeurCalques(Kanba *kanba, QWidget *parent)
-    : BaseEditrice(*kanba, parent), m_widget_arbre(new TreeWidget(this)), m_widget(new QWidget()),
-      m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
+    : BaseEditrice("calque", *kanba, parent), m_widget_arbre(new TreeWidget(this)),
+      m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
 

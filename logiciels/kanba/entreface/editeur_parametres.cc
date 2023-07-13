@@ -115,8 +115,8 @@ bool VueParametres::ajourne_proprietes()
 /* ************************************************************************** */
 
 EditeurParametres::EditeurParametres(Kanba *kanba, QWidget *parent)
-    : BaseEditrice(*kanba, parent), m_vue(new VueParametres(kanba)), m_widget(new QWidget()),
-      m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
+    : BaseEditrice("paramètres", *kanba, parent), m_vue(new VueParametres(kanba)),
+      m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
 
