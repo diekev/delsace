@@ -506,3 +506,19 @@ void purge_tous_les_tampons()
 
 	poubelle_tampon.clear();
 }
+
+void remplis_tampon_instances(TamponRendu *tampon,
+                              dls::chaine const &nom,
+                              dls::tableau<dls::math::mat4x4f> &matrices)
+{
+    auto parametres_tampon_instance = ParametresTampon{};
+    parametres_tampon_instance.attribut = nom;
+    parametres_tampon_instance.dimension_attribut = 4;
+    parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
+    parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
+                                                                matrices.taille()) *
+                                                            sizeof(dls::math::mat4x4f);
+    parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
+
+    tampon->remplie_tampon_matrices_instance(parametres_tampon_instance);
+}

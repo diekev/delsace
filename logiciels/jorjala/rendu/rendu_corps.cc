@@ -471,25 +471,16 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
         return;
     }
 
-    auto parametres_tampon_instance = ParametresTampon{};
-    parametres_tampon_instance.attribut = "matrices_instances";
-    parametres_tampon_instance.dimension_attribut = 4;
-    parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
-    parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                matrices.taille()) *
-                                                            sizeof(dls::math::mat4x4f);
-    parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
-
     if (m_tampon_segments) {
-        m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_segments.get(), "matrices_instances", matrices);
     }
 
     if (m_tampon_polygones) {
-        m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_polygones.get(), "matrices_instances", matrices);
     }
 
     if (m_tampon_points) {
-        m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_points.get(), "matrices_instances", matrices);
     }
 }
 

@@ -30,6 +30,7 @@
 #include "biblinternes/ego/programme.h"
 #include "biblinternes/ego/texture.h"
 
+#include "biblinternes/math/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/phys/couleur.hh"
 
@@ -420,5 +421,9 @@ static void remplis_tampon_extra(TamponRendu *tampon,
 
     tampon->remplie_tampon_extra(parametres_tampon);
 }
+
+void remplis_tampon_instances(TamponRendu *tampon,
+                              dls::chaine const &nom,
+                              dls::tableau<dls::math::mat4x4f> &matrices);
 
 /** \} */
