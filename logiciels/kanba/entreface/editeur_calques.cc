@@ -36,6 +36,7 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
@@ -62,8 +63,7 @@ class BoutonItemCalque : public QPushButton {
     {
     }
 
-    BoutonItemCalque(BoutonItemCalque const &) = default;
-    BoutonItemCalque &operator=(BoutonItemCalque const &) = default;
+    EMPECHE_COPIE(BoutonItemCalque);
 };
 
 /* ************************************************************************** */
