@@ -53,25 +53,13 @@ static const char *source_fragment = "#version 330 core\n"
 
 static std::unique_ptr<TamponRendu> creer_tampon()
 {
-    auto tampon = std::make_unique<TamponRendu>();
+    auto sources = crée_sources_glsl_depuis_texte(source_vertex, source_fragment);
+    if (!sources.has_value()) {
+        std::cerr << "Erreur : les sources GLSL sont invalides\n";
+        return nullptr;
+    }
 
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex);
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment);
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_uniforme("couleur");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("taille_x");
-    parametre_programme.ajoute_uniforme("taille_y");
-    parametre_programme.ajoute_uniforme("pos_x");
-    parametre_programme.ajoute_uniforme("pos_y");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
     ParametresDessin parametres_dessin;
     parametres_dessin.type_dessin(GL_LINES);
@@ -117,18 +105,7 @@ void RenduBrosse::initialise()
         index.ajoute(i + 1);
     }
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_index = index.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) *
-                                           sizeof(unsigned int);
-    parametres_tampon.elements = static_cast<size_t>(index.taille());
-
-    m_tampon_contour->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(m_tampon_contour.get(), "sommets", sommets, index);
 }
 
 void RenduBrosse::dessine(ContexteRendu const &contexte,

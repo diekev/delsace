@@ -16,25 +16,16 @@
 /** \name Génération du tampon de rendu.
  * \{ */
 
-static TamponRendu *cree_tampon(dls::math::vec4f const &couleur, float taille_ligne)
+static std::unique_ptr<TamponRendu> cree_tampon(dls::math::vec4f const &couleur,
+                                                float taille_ligne)
 {
-    auto tampon = new TamponRendu;
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                    "nuanceurs/simple.frag");
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/simple.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/simple.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("couleur");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
     ParametresDessin parametres_dessin;
     parametres_dessin.type_dessin(GL_LINES);
@@ -60,11 +51,6 @@ RenduSeaux::RenduSeaux(Kanba *kanba) : m_kanba(kanba)
 {
 }
 
-RenduSeaux::~RenduSeaux()
-{
-    delete m_tampon;
-}
-
 void RenduSeaux::initialise()
 {
     auto const camera = m_kanba->camera;
@@ -72,7 +58,7 @@ void RenduSeaux::initialise()
     auto const &seaux = cannevas->seaux();
 
     if (seaux.est_vide()) {
-        delete m_tampon;
+        m_tampon.reset(nullptr);
         return;
     }
 
@@ -82,7 +68,7 @@ void RenduSeaux::initialise()
 
     m_id_cannevas = cannevas->id();
 
-    delete m_tampon;
+    m_tampon.reset(nullptr);
     m_tampon = cree_tampon(dls::math::vec4f(1.0f, 1.0f, 0.0f, 1.0f), 4.0f);
 
     /* 4 sommets par seau, 2 sommets par ligne. */
@@ -129,18 +115,7 @@ void RenduSeaux::initialise()
         sommets[décalage_sommet++] = p3;
     }
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_index = index.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) *
-                                           sizeof(unsigned int);
-    parametres_tampon.elements = static_cast<size_t>(index.taille());
-
-    m_tampon->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(m_tampon.get(), "sommets", sommets, index);
 }
 
 void RenduSeaux::dessine(ContexteRendu const &contexte)

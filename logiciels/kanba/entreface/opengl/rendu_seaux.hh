@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/definitions.h"
 
 class ContexteRendu;
@@ -14,7 +15,7 @@ class Kanba;
  * \{ */
 
 class RenduSeaux {
-    TamponRendu *m_tampon = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon = nullptr;
     Kanba *m_kanba = nullptr;
 
     int m_id_cannevas = -1;
@@ -23,8 +24,6 @@ class RenduSeaux {
     explicit RenduSeaux(Kanba *kanba);
 
     EMPECHE_COPIE(RenduSeaux);
-
-    ~RenduSeaux();
 
     void initialise();
 

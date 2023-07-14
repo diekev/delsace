@@ -29,7 +29,6 @@
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/opengl/atlas_texture.h"
 #include "biblinternes/opengl/contexte_rendu.h"
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/texture/texture.h"
@@ -82,23 +81,13 @@ static void genere_texture(AtlasTexture *atlas, const void *donnes, GLint taille
 
 static std::unique_ptr<TamponRendu> cree_tampon_arrete()
 {
-    auto tampon = std::make_unique<TamponRendu>();
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                    "nuanceurs/simple.frag");
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/simple.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/simple.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("couleur");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
     auto programme = tampon->programme();
     programme->active();
@@ -128,18 +117,7 @@ static std::unique_ptr<TamponRendu> genere_tampon_arrete(Maillage *maillage)
     dls::tableau<unsigned int> indices(sommets.taille());
     std::iota(indices.debut(), indices.fin(), 0);
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_index = indices.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) *
-                                           sizeof(unsigned int);
-    parametres_tampon.elements = static_cast<size_t>(indices.taille());
-
-    tampon->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(tampon.get(), "sommets", sommets, indices);
 
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
@@ -155,23 +133,13 @@ static std::unique_ptr<TamponRendu> genere_tampon_arrete(Maillage *maillage)
 
 static std::unique_ptr<TamponRendu> cree_tampon_normal()
 {
-    auto tampon = std::make_unique<TamponRendu>();
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                    "nuanceurs/simple.frag");
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/simple.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/simple.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("couleur");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
     auto programme = tampon->programme();
     programme->active();
@@ -214,18 +182,7 @@ static std::unique_ptr<TamponRendu> genere_tampon_normal(Maillage *maillage)
     dls::tableau<unsigned int> indices(sommets.taille());
     std::iota(indices.debut(), indices.fin(), 0);
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_index = indices.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) *
-                                           sizeof(unsigned int);
-    parametres_tampon.elements = static_cast<size_t>(indices.taille());
-
-    tampon->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(tampon.get(), "sommets", sommets, indices);
 
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
@@ -241,36 +198,19 @@ static std::unique_ptr<TamponRendu> genere_tampon_normal(Maillage *maillage)
 
 static std::unique_ptr<TamponRendu> creer_tampon()
 {
-    auto tampon = std::make_unique<TamponRendu>();
-
 #ifdef BOMBAGE_TEXTURE
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/texture_bombee.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/texture_bombee.frag"));
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/texture_bombee.vert",
+                                                    "nuanceurs/texture_bombee.frag");
 #else
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/diffus.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/diffus.frag"));
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/diffus.vert",
+                                                    "nuanceurs/diffus.frag");
 #endif
 
-    tampon->finalise_programme();
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_attribut("normal");
-    parametre_programme.ajoute_attribut("uvs");
-    parametre_programme.ajoute_uniforme("N");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("texture_poly");
-    parametre_programme.ajoute_uniforme("taille_u");
-    parametre_programme.ajoute_uniforme("taille_v");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
 #ifdef BOMBAGE_TEXTURE
     tampon->ajoute_texture();
@@ -348,34 +288,13 @@ static TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &
         index_poly += 1.0f;
     }
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.elements = static_cast<size_t>(sommets.taille());
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-
-    tampon->remplie_tampon(parametres_tampon);
-
+    remplis_tampon_principal(tampon, "sommets", sommets);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
-    parametres_tampon.attribut = "normal";
-    parametres_tampon.pointeur_donnees_extra = normaux.donnees();
-    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(normaux.taille()) *
-                                                   sizeof(dls::math::vec3f);
-
-    tampon->remplie_tampon_extra(parametres_tampon);
+    remplis_tampon_extra(tampon, "normal", normaux);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
-    parametres_tampon.attribut = "uvs";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(uvs.taille()) *
-                                                   sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_donnees_extra = uvs.donnees();
-
-    tampon->remplie_tampon_extra(parametres_tampon);
-
+    remplis_tampon_extra(tampon, "uvs", uvs);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
 
     return tampon;
