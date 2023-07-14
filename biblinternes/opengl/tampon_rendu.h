@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/programme.h"
 #include "biblinternes/ego/texture.h"
@@ -33,6 +35,22 @@
 
 class AtlasTexture;
 class ContexteRendu;
+
+/* ------------------------------------------------------------------------- */
+/** \name SourcesGLSL
+ * \{ */
+
+struct SourcesGLSL {
+    dls::chaine vertex{};
+    dls::chaine fragment{};
+};
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_texte(dls::chaine const &vertex, dls::chaine const &fragment);
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_fichier(dls::chaine const &fichier_vertex,
+                                                            dls::chaine const &fichier_fragment);
+
+/** \} */
 
 /* ************************************************************************** */
 
@@ -191,6 +209,8 @@ class TamponRendu {
 
 public:
 	~TamponRendu();
+
+    static std::unique_ptr<TamponRendu> crée_unique(SourcesGLSL const &sources);
 
 	/**
 	 * Charge les sources du programme de tampon pour le type de programme
