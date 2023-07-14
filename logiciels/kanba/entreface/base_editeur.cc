@@ -46,8 +46,8 @@
 #include "coeur/kanba.h"
 
 BaseEditrice::BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent)
-    : danjo::ConteneurControles(parent), m_identifiant(identifiant), m_kanba(&kanba),
-      m_cadre(new QFrame(this)), m_agencement(new QVBoxLayout())
+    : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
+      m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
 {
     this->observe(&kanba);
 
