@@ -95,55 +95,6 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 /* ************************************************************************** */
 
-template <typename T>
-struct nombre_de_dimensions;
-
-template <>
-struct nombre_de_dimensions<dls::math::vec2f> {
-    static constexpr int valeur = 2;
-};
-
-template <>
-struct nombre_de_dimensions<dls::math::vec3f> {
-    static constexpr int valeur = 3;
-};
-
-template <>
-struct nombre_de_dimensions<dls::phys::couleur32> {
-    static constexpr int valeur = 4;
-};
-
-template <typename T>
-static void remplis_tampon_principal(TamponRendu *tampon,
-                                     dls::chaine const &nom,
-                                     dls::tableau<T> &valeurs)
-{
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = nom;
-    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
-    parametres_tampon.pointeur_sommets = valeurs.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(valeurs.taille()) * sizeof(T);
-    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
-
-    tampon->remplie_tampon(parametres_tampon);
-}
-
-template <typename T>
-static void remplis_tampon_extra(TamponRendu *tampon,
-                                 dls::chaine const &nom,
-                                 dls::tableau<T> &valeurs)
-{
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = nom;
-    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
-    parametres_tampon.pointeur_donnees_extra = valeurs.donnees();
-    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(valeurs.taille()) *
-                                                   sizeof(T);
-    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
-
-    tampon->remplie_tampon_extra(parametres_tampon);
-}
-
 static dls::math::vec3f points_cercle_XZ[32] = {
     dls::math::vec3f(0.000000f, 0.000000f, 1.000000f),
     dls::math::vec3f(-0.195090f, 0.000000f, 0.980785f),
