@@ -15,7 +15,7 @@ set(BIBLIOTHEQUES
     kuri_ipa_compilatrice
     kuri_compilation
     kuri_statistiques
-    bib_outils
+    dls::outils
     systeme_fichier
     ${BIBLIOTHEQUES_LIBFFI}
     ${BIBLIOTHEQUE_DL}

@@ -34,9 +34,9 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-    bib_outils
-    bib_structures
-    memoire
+    dls::outils
+    dls::structures
+    dls::memoire
 )
 
 set(SOURCES_BOOLEEN

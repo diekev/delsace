@@ -25,13 +25,14 @@ set(INC_SYS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 	${INCLUSIONS_SYSFICHIER}
-	${INCLUSIONS_QT5_WIDGETS}
+        ${INCLUSIONS_QT_WIDGETS}
 )
 
 set(BIBLIOTHEQUES
+    ${BIBLIOTHEQUES_QT_WIDGETS}
 	math
 	image
-	bib_bruit
+        dls::bruit
 	bib_patrons
 	bib_objets
 	bib_vision
@@ -49,6 +50,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	brosse.h
 	calques.h
+        cannevas_peinture.hh
 	evenement.h
 	kanba.h
 	maillage.h
@@ -64,6 +66,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	brosse.cc
 	calques.cc
+        cannevas_peinture.cc
 	evenement.cc
 	kanba.cc
 	maillage.cc

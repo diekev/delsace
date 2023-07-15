@@ -77,6 +77,7 @@ set(SOURCES
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(dls::outils ALIAS bib_outils)
 set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
