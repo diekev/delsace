@@ -25,7 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
-
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/tableau.hh"
 
 class ContexteRendu;
@@ -39,8 +39,9 @@ class TamponRendu;
  * contient que des textures ayant les mêmes résolutions.
  */
 struct Page {
-	TamponRendu *tampon{};
-	dls::tableau<uint> polys{};
+    /* À FAIRE : utilise unique_ptr */
+    TamponRendu *tampon{};
+    dls::tableau<uint> polys{};
 };
 
 /**
@@ -48,44 +49,37 @@ struct Page {
  * scène 3D.
  */
 class RenduMaillage {
-	TamponRendu *m_tampon_arrete = nullptr;
-	TamponRendu *m_tampon_normal = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_arrete = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_normal = nullptr;
 
-	Maillage *m_maillage = nullptr;
+    Maillage *m_maillage = nullptr;
 
-	dls::tableau<Page> m_pages{};
+    dls::tableau<Page> m_pages{};
 
-public:
-	/**
-	 * Construit une instance de RenduMaillage pour le maillage spécifié.
-	 */
-	explicit RenduMaillage(Maillage *maillage);
+  public:
+    /**
+     * Construit une instance de RenduMaillage pour le maillage spécifié.
+     */
+    explicit RenduMaillage(Maillage *maillage);
 
-	RenduMaillage(RenduMaillage const &) = default;
-	RenduMaillage &operator=(RenduMaillage const &) = default;
+    EMPECHE_COPIE(RenduMaillage);
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduMaillage();
+    void initialise();
 
-	void initialise();
+    /**
+     * Dessine le maillage dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 
-	/**
-	 * Dessine le maillage dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Retourne la matrice du maillage.
+     */
+    dls::math::mat4x4d matrice() const;
 
-	/**
-	 * Retourne la matrice du maillage.
-	 */
-	dls::math::mat4x4d matrice() const;
+    Maillage *maillage() const;
 
-	Maillage *maillage() const;
+  private:
+    void ajourne_texture();
 
-private:
-	void ajourne_texture();
-
-	void supprime_tampons();
+    void supprime_tampons();
 };

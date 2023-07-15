@@ -29,8 +29,96 @@
 #include <mutex>
 #include <tbb/concurrent_vector.h>
 
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/fichier.hh"
+
 #include "atlas_texture.h"
 #include "contexte_rendu.h"
+
+/* ------------------------------------------------------------------------- */
+/** \name SourcesGLSL
+ * \{ */
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_texte(dls::chaine const &vertex,
+                                                          dls::chaine const &fragment)
+{
+    if (vertex.est_vide()) {
+        return {};
+    }
+
+    if (fragment.est_vide()) {
+        return {};
+    }
+
+    return SourcesGLSL{vertex, fragment};
+}
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_fichier(dls::chaine const &fichier_vertex,
+                                                            dls::chaine const &fichier_fragment)
+{
+    auto vertex = dls::contenu_fichier(fichier_vertex);
+    if (vertex.est_vide()) {
+        return {};
+    }
+
+    auto fragment = dls::contenu_fichier(fichier_fragment);
+    if (fragment.est_vide()) {
+        return {};
+    }
+
+    return SourcesGLSL{vertex, fragment};
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Parsage Sources GLSL
+ * \{ */
+
+
+static dls::chaine extrait_nom_attribut_ou_uniforme(dls::chaine const &ligne)
+{
+    auto dernière_espace = ligne.trouve_dernier_de(' ');
+    auto point_virgule = ligne.trouve_dernier_de(';');
+    return ligne.sous_chaine(dernière_espace + 1, point_virgule - dernière_espace - 1);
+}
+
+static void parse_attributs_et_uniformes_depuis(dls::chaine const &source,
+                                                ParametresProgramme &résultat)
+{
+    auto lignes = dls::morcelle(source, '\n');
+
+    // À FAIRE : in/out
+    // À FAIRE : location
+    // À FAIRE : déduplique les attributs/uniformes
+    POUR (lignes) {
+        if (it.sous_chaine(0, 6) == "layout") {
+            auto attribut = extrait_nom_attribut_ou_uniforme(it);
+            résultat.ajoute_attribut(attribut);
+            // std::cerr << "attribut : '" << attribut << "'\n";
+        }
+        else if (it.sous_chaine(0, 7) == "uniform") {
+            auto uniform = extrait_nom_attribut_ou_uniforme(it);
+            résultat.ajoute_uniforme(uniform);
+            // std::cerr << "uniform : '" << uniform << "'\n";
+        }
+    }
+}
+
+static ParametresProgramme parse_sources_glsl(SourcesGLSL const &sources)
+{
+    // À FAIRE : valide que tout est là
+    ParametresProgramme résultat;
+    parse_attributs_et_uniformes_depuis(sources.vertex, résultat);
+    parse_attributs_et_uniformes_depuis(sources.fragment, résultat);
+
+    // À FAIRE : nous n'avons pas tout le temps besoin de ça.
+    résultat.ajoute_uniforme("matrice");
+    résultat.ajoute_uniforme("MVP");
+    return résultat;
+}
+
+/** \} */
 
 /* ************************************************************************** */
 
@@ -100,7 +188,27 @@ void ParametresDessin::taille_point(float taille)
 
 TamponRendu::~TamponRendu()
 {
-	delete m_atlas;
+    delete m_atlas;
+}
+
+std::unique_ptr<TamponRendu> TamponRendu::crée_unique(SourcesGLSL const &sources)
+{
+    auto résultat = std::make_unique<TamponRendu>();
+
+    if (!sources.vertex.est_vide()) {
+        résultat->charge_source_programme(dls::ego::Nuanceur::VERTEX, sources.vertex);
+    }
+
+    if (!sources.fragment.est_vide()) {
+        résultat->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, sources.fragment);
+    }
+
+    résultat->finalise_programme();
+
+    ParametresProgramme parametre_programme = parse_sources_glsl(sources);
+    résultat->parametres_programme(parametre_programme);
+
+    return résultat;
 }
 
 void TamponRendu::charge_source_programme(dls::ego::Nuanceur type_programme, dls::chaine const &source, std::ostream &os)
@@ -397,4 +505,20 @@ void purge_tous_les_tampons()
 	}
 
 	poubelle_tampon.clear();
+}
+
+void remplis_tampon_instances(TamponRendu *tampon,
+                              dls::chaine const &nom,
+                              dls::tableau<dls::math::mat4x4f> &matrices)
+{
+    auto parametres_tampon_instance = ParametresTampon{};
+    parametres_tampon_instance.attribut = nom;
+    parametres_tampon_instance.dimension_attribut = 4;
+    parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
+    parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
+                                                                matrices.taille()) *
+                                                            sizeof(dls::math::mat4x4f);
+    parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
+
+    tampon->remplie_tampon_matrices_instance(parametres_tampon_instance);
 }

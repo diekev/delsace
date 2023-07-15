@@ -27,6 +27,8 @@
 #include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau.hh"
 
+class Kanba;
+class Maillage;
 struct Polygone;
 
 /**
@@ -37,89 +39,99 @@ struct Polygone;
  * L'algorithme est basé sur https://codeincomplete.com/posts/bin-packing/
  */
 class PaqueuseTexture {
-	struct Noeud {
-		Noeud *droite = nullptr;
-		Noeud *gauche = nullptr;
+    struct Noeud {
+        Noeud *droite = nullptr;
+        Noeud *gauche = nullptr;
 
-		bool utilise = false;
-		unsigned x = 0;
-		unsigned y = 0;
-		unsigned largeur = 0;
-		unsigned hauteur = 0;
+        bool utilise = false;
+        unsigned x = 0;
+        unsigned y = 0;
+        unsigned largeur = 0;
+        unsigned hauteur = 0;
 
-		Noeud() = default;
+        Noeud() = default;
 
-		Noeud(Noeud const &) = default;
-		Noeud &operator=(Noeud const &) = default;
+        Noeud(Noeud const &) = default;
+        Noeud &operator=(Noeud const &) = default;
 
-		~Noeud();
-	};
+        ~Noeud();
+    };
 
-	struct CompareNoeud {
-		bool operator()(const Noeud *a, const Noeud *b)
-		{
-			return a->largeur < b->largeur || a->hauteur < b->hauteur;
-		}
-	};
+    struct CompareNoeud {
+        bool operator()(const Noeud *a, const Noeud *b)
+        {
+            return a->largeur < b->largeur || a->hauteur < b->hauteur;
+        }
+    };
 
-	Noeud *m_racine = nullptr;
+    Noeud *m_racine = nullptr;
+    Kanba *m_kanba = nullptr;
 
-	dls::file_priorite<Noeud *, CompareNoeud> m_queue_priorite{};
+    dls::file_priorite<Noeud *, CompareNoeud> m_queue_priorite{};
 
-	unsigned int max_x = 0;
-	unsigned int max_y = 0;
+    unsigned int max_x = 0;
+    unsigned int max_y = 0;
 
-public:
-	PaqueuseTexture();
+  public:
+    PaqueuseTexture(Kanba *kanba);
 
-	~PaqueuseTexture();
+    ~PaqueuseTexture();
 
-	PaqueuseTexture(PaqueuseTexture const &) = delete;
-	PaqueuseTexture &operator=(PaqueuseTexture const &) = delete;
+    PaqueuseTexture(PaqueuseTexture const &) = delete;
+    PaqueuseTexture &operator=(PaqueuseTexture const &) = delete;
 
-	/**
-	 * Démarre l'empaquetage des polygones spécifiés.
-	 */
-	void empaquete(const dls::tableau<Polygone *> &polygones);
+    /**
+     * Démarre l'empaquetage des polygones spécifiés.
+     */
+    void empaquete(const dls::tableau<Polygone *> &polygones);
 
-	/**
-	 * Retourne la largeur de la texture empaquettée.
-	 */
-	unsigned int largeur() const;
+    /**
+     * Retourne la largeur de la texture empaquettée.
+     */
+    unsigned int largeur() const;
 
-	/**
-	 * Retourne la hauteur de la texture empaquettée.
-	 */
-	unsigned int hauteur() const;
+    /**
+     * Retourne la hauteur de la texture empaquettée.
+     */
+    unsigned int hauteur() const;
 
-private:
-	/**
-	 * Trouve un noeud ayant suffisament d'espace pour contenir une texture
-	 * dont la largeur et la hauteur sont spécifiées en paramètre.
-	 */
-	Noeud *trouve_noeud(Noeud *racine, unsigned largeur, unsigned hauteur);
+  private:
+    /**
+     * Trouve un noeud ayant suffisament d'espace pour contenir une texture
+     * dont la largeur et la hauteur sont spécifiées en paramètre.
+     */
+    Noeud *trouve_noeud(Noeud *racine, unsigned largeur, unsigned hauteur);
 
-	/**
-	 * Brise un noeud pour contenir la texture dont la largeur et la hauteur
-	 * sont spécifiées en paramètre.
-	 */
-	Noeud *brise_noeud(Noeud *noeud, unsigned largeur, unsigned hauteur);
+    /**
+     * Brise un noeud pour contenir la texture dont la largeur et la hauteur
+     * sont spécifiées en paramètre.
+     */
+    Noeud *brise_noeud(Noeud *noeud, unsigned largeur, unsigned hauteur);
 
-	/**
-	 * Élargi la racine pour faire de la place pour la texture dont la largeur
-	 * et la hauteur sont spécifiées en paramètre.
-	 */
-	Noeud *elargi_noeud(unsigned largeur, unsigned hauteur);
+    /**
+     * Élargi la racine pour faire de la place pour la texture dont la largeur
+     * et la hauteur sont spécifiées en paramètre.
+     */
+    Noeud *elargi_noeud(unsigned largeur, unsigned hauteur);
 
-	/**
-	 * Élargi la largeur racine pour faire de la place pour la texture dont la
-	 * largeur et la hauteur sont spécifiées en paramètre.
-	 */
-	Noeud *elargi_largeur(unsigned largeur, unsigned hauteur);
+    /**
+     * Élargi la largeur racine pour faire de la place pour la texture dont la
+     * largeur et la hauteur sont spécifiées en paramètre.
+     */
+    Noeud *elargi_largeur(unsigned largeur, unsigned hauteur);
 
-	/**
-	 * Élargi la hauteur racine pour faire de la place pour la texture dont la
-	 * largeur et la hauteur sont spécifiées en paramètre.
-	 */
-	Noeud *elargi_hauteur(unsigned largeur, unsigned hauteur);
+    /**
+     * Élargi la hauteur racine pour faire de la place pour la texture dont la
+     * largeur et la hauteur sont spécifiées en paramètre.
+     */
+    Noeud *elargi_hauteur(unsigned largeur, unsigned hauteur);
 };
+
+struct TailleDisposition {
+    int largeur = 0;
+    int hauteur = 0;
+};
+
+TailleDisposition empaquete_version_bin_packing(Kanba *kanba, Maillage *maillage);
+
+TailleDisposition empaquete_version_nb(Kanba *kanba, Maillage *maillage);

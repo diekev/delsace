@@ -99,6 +99,7 @@ set(ENTETES
 	danjo.h
         fournisseuse_icones.hh
 	manipulable.h
+        proprietes.hh
         repondant_bouton.h
 )
 
@@ -160,6 +161,7 @@ set(SOURCES
 	danjo.cc
         fournisseuse_icones.cc
 	manipulable.cc
+        proprietes.cc
 	repondant_bouton.cc
 
 	controles/action.h

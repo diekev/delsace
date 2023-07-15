@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include "biblinternes/structures/file.hh"
+#include "file.hh"
 
 namespace dls {
 
 template <typename T>
 struct ramasse_miette {
 private:
-	dls::file<T> m_miettes{};
+    file<T> m_miettes{};
 	T m_valeur_nulle{};
 
 public:

@@ -29,34 +29,49 @@
 class Maillage;
 
 class AdaptriceCreationMaillage : public objets::AdaptriceCreationObjet {
-public:
-	virtual ~AdaptriceCreationMaillage() = default;
+  public:
+    virtual ~AdaptriceCreationMaillage() = default;
 
-	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
+    void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
-	void ajoute_normal(const float x, const float y, const float z) override;
+    void ajoute_normal(const float x, const float y, const float z) override;
 
-	void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override;
+    void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override;
 
-	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
+    void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int */*index_uv*/, const int */*index_normal*/, long nombre) override;
+    void ajoute_polygone(const int *index_sommet,
+                         const int * /*index_uv*/,
+                         const int * /*index_normal*/,
+                         long nombre) override;
 
-	void ajoute_ligne(const int *index, size_t nombre) override;
+    void ajoute_ligne(const int *index, size_t nombre) override;
 
-	void ajoute_objet(const dls::chaine &nom) override;
+    void ajoute_objet(const dls::chaine &nom) override;
 
-	void reserve_polygones(long const nombre) override {}
+    void reserve_polygones(long const nombre) override
+    {
+    }
 
-	void reserve_sommets(long const nombre) override {}
+    void reserve_sommets(long const nombre) override
+    {
+    }
 
-	void reserve_normaux(long const nombre) override {}
+    void reserve_normaux(long const nombre) override
+    {
+    }
 
-	void reserve_uvs(long const nombre) override {}
+    void reserve_uvs(long const nombre) override
+    {
+    }
 
-	void groupes(dls::tableau<dls::chaine> const &noms) override {}
+    void groupes(dls::tableau<dls::chaine> const &noms) override
+    {
+    }
 
-	void groupe_nuancage(const int index) override {}
+    void groupe_nuancage(const int index) override
+    {
+    }
 
-	Maillage *maillage{};
+    Maillage *maillage{};
 };

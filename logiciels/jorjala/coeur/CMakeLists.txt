@@ -29,14 +29,14 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_outils
+        dls::outils
 	bib_patrons
 	bib_vision
         # bib_xml
-	bib_structures
+        dls::structures
 	danjo
 	image
-	memoire
+        dls::memoire
         jorjala_commandes
         # jorjala_corps
 	pthread

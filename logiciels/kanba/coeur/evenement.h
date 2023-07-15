@@ -29,73 +29,72 @@
 #include "biblinternes/outils/definitions.h"
 
 enum type_evenement : int {
-	/* Category. */
-	dessin           = (1 << 0),
-	calque           = (2 << 0),
-	rafraichissement = (3 << 0),
-	projet           = (4 << 0),
+    /* Category. */
+    dessin = (1 << 0),
+    calque = (2 << 0),
+    rafraichissement = (3 << 0),
+    projet = (4 << 0),
 
-	/* Action. */
-	ajoute    = (1 << 8),
-	selection = (2 << 8),
-	fini      = (4 << 8),
-	supprime  = (5 << 8),
-	charge    = (6 << 8),
+    /* Action. */
+    ajoute = (1 << 8),
+    selection = (2 << 8),
+    fini = (4 << 8),
+    supprime = (5 << 8),
+    charge = (6 << 8),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
+DEFINIS_OPERATEURS_DRAPEAU(type_evenement)
 
-constexpr auto action_evenement(type_evenement evenement)
+constexpr type_evenement action_evenement(type_evenement evenement)
 {
-	return evenement & 0x0000ff00;
+    return evenement & 0x0000ff00;
 }
 
 constexpr auto categorie_evenement(type_evenement evenement)
 {
-	return evenement & 0x000000ff;
+    return evenement & 0x000000ff;
 }
 
 template <typename TypeChar>
-std::basic_ostream<TypeChar> &operator<<(
-		std::basic_ostream<TypeChar> &os,
-		type_evenement evenement)
+std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os,
+                                         type_evenement evenement)
 {
-	switch (categorie_evenement(evenement)) {
-		case type_evenement::dessin:
-			os << "dessin, ";
-			break;
-		case type_evenement::calque:
-			os << "calque, ";
-			break;
-		case type_evenement::rafraichissement:
-			os << "rafraichissement, ";
-			break;
-		case type_evenement::projet:
-			os << "projet, ";
-			break;
-		default:
-			break;
-	}
+    switch (categorie_evenement(evenement)) {
+        case type_evenement::dessin:
+            os << "dessin, ";
+            break;
+        case type_evenement::calque:
+            os << "calque, ";
+            break;
+        case type_evenement::rafraichissement:
+            os << "rafraichissement, ";
+            break;
+        case type_evenement::projet:
+            os << "projet, ";
+            break;
+        default:
+            break;
+    }
 
-	switch (action_evenement(evenement)) {
-		case type_evenement::ajoute:
-			os << "ajoute";
-			break;
-		case type_evenement::selection:
-			os << "selection";
-			break;
-		case type_evenement::fini:
-			os << "fini";
-			break;
-		case type_evenement::supprime:
-			os << "supprime";
-			break;
-		case type_evenement::charge:
-			os << "charge";
-			break;
-		default:
-			break;
-	}
+    switch (action_evenement(evenement)) {
+        case type_evenement::ajoute:
+            os << "ajoute";
+            break;
+        case type_evenement::selection:
+            os << "selection";
+            break;
+        case type_evenement::fini:
+            os << "fini";
+            break;
+        case type_evenement::supprime:
+            os << "supprime";
+            break;
+        case type_evenement::charge:
+            os << "charge";
+            break;
+        default:
+            break;
+    }
 
-	return os;
+    return os;
 }

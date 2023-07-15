@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/math/vecteur.hh"
-#include "biblinternes/structures/tableau.hh"
 
 namespace bruit {
 

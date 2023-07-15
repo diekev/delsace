@@ -33,38 +33,37 @@ class QGridLayout;
 class QScrollArea;
 
 class VueBrosse : public danjo::Manipulable {
-	Kanba *m_kanba;
+    Kanba *m_kanba;
 
-public:
-	explicit VueBrosse(Kanba *kanba);
+  public:
+    explicit VueBrosse(Kanba *kanba);
 
-	VueBrosse(VueBrosse const &) = default;
-	VueBrosse &operator=(VueBrosse const &) = default;
+    VueBrosse(VueBrosse const &) = default;
+    VueBrosse &operator=(VueBrosse const &) = default;
 
-	void ajourne_donnees();
+    void ajourne_donnees();
 
-	bool ajourne_proprietes() override;
+    bool ajourne_proprietes() override;
 };
 
 class EditeurBrosse final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueBrosse *m_vue;
+    VueBrosse *m_vue;
 
-	QWidget *m_widget;
-	QWidget *m_conteneur_disposition;
-	QScrollArea *m_scroll;
-	QVBoxLayout *m_glayout;
+    QWidget *m_widget;
+    QWidget *m_conteneur_disposition;
+    QScrollArea *m_scroll;
+    QVBoxLayout *m_glayout;
 
-public:
-	EditeurBrosse(Kanba *kanba, QWidget *parent = nullptr);
+  public:
+    EditeurBrosse(Kanba *kanba, QWidget *parent = nullptr);
 
-	EditeurBrosse(EditeurBrosse const &) = default;
-	EditeurBrosse &operator=(EditeurBrosse const &) = default;
+    EMPECHE_COPIE(EditeurBrosse);
 
-	~EditeurBrosse() override;
+    ~EditeurBrosse() override;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 };

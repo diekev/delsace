@@ -41,58 +41,58 @@ class QScrollArea;
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-	const Calque *m_calque{};
+    const Calque *m_calque{};
 
-public:
-	explicit ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent = nullptr);
+  public:
+    explicit ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent = nullptr);
 
-	ItemArbreCalque(ItemArbreCalque const &) = default;
-	ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
+    ItemArbreCalque(ItemArbreCalque const &) = default;
+    ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
 
-	const Calque *pointeur() const;
+    const Calque *pointeur() const;
 };
 
 /* ************************************************************************** */
 
 class TreeWidget : public QTreeWidget {
-	BaseEditrice *m_base = nullptr;
+    BaseEditrice *m_base = nullptr;
 
-public:
-	explicit TreeWidget(QWidget *parent = nullptr);
+  public:
+    explicit TreeWidget(QWidget *parent = nullptr);
 
-	TreeWidget(TreeWidget const &) = default;
-	TreeWidget &operator=(TreeWidget const &) = default;
+    EMPECHE_COPIE(TreeWidget);
 
-	void set_base(BaseEditrice *base);
+    void set_base(BaseEditrice *base);
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
 };
 
 /* ************************************************************************** */
 
 class EditeurCalques final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	TreeWidget *m_widget_arbre;
+    TreeWidget *m_widget_arbre;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QGridLayout *m_glayout;
 
-public:
-	EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
+  public:
+    EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
 
-	EditeurCalques(EditeurCalques const &) = default;
-	EditeurCalques &operator=(EditeurCalques const &) = default;
+    EMPECHE_COPIE(EditeurCalques);
 
-	~EditeurCalques() override;
+    ~EditeurCalques() override;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-private Q_SLOTS:
-	void ajourne_vue();
-	void repond_bouton();
-	void repond_selection();
+  private Q_SLOTS:
+    void ajourne_vue();
+    void repond_bouton();
+    void repond_selection();
 };

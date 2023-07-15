@@ -33,36 +33,34 @@ class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
-	Kanba *m_kanba;
+    Kanba *m_kanba;
 
-public:
-	explicit VueParametres(Kanba *kanba);
+  public:
+    explicit VueParametres(Kanba *kanba);
 
-	VueParametres(VueParametres const &) = default;
-	VueParametres &operator=(VueParametres const &) = default;
+    EMPECHE_COPIE(VueParametres);
 
-	void ajourne_donnees();
-	bool ajourne_proprietes() override;
+    void ajourne_donnees();
+    bool ajourne_proprietes() override;
 };
 
 class EditeurParametres final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueParametres *m_vue;
+    VueParametres *m_vue;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QGridLayout *m_glayout;
 
-public:
-	EditeurParametres(Kanba *kanba, QWidget *parent = nullptr);
+  public:
+    EditeurParametres(Kanba *kanba, QWidget *parent = nullptr);
 
-	EditeurParametres(EditeurParametres const &) = default;
-	EditeurParametres &operator=(EditeurParametres const &) = default;
+    EMPECHE_COPIE(EditeurParametres);
 
-	~EditeurParametres() override;
+    ~EditeurParametres() override;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 };

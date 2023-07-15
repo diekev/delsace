@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/tableau.hh"
 
 class ContexteRendu;
@@ -48,10 +49,10 @@ struct StatistiquesRendu {
  * scène 3D.
  */
 class RenduCorps {
-    TamponRendu *m_tampon_points = nullptr;
-    TamponRendu *m_tampon_polygones = nullptr;
-    TamponRendu *m_tampon_segments = nullptr;
-    TamponRendu *m_tampon_volume = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_points = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_polygones = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_segments = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_volume = nullptr;
 
     JJL::Corps &m_corps;
 
@@ -65,12 +66,6 @@ class RenduCorps {
 
     RenduCorps(RenduCorps const &) = delete;
     RenduCorps &operator=(RenduCorps const &) = delete;
-
-    /**
-     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-     * utiliser l'instance crashera le programme.
-     */
-    ~RenduCorps();
 
     void initialise(ContexteRendu const &contexte, dls::tableau<dls::math::mat4x4f> &matrices);
 

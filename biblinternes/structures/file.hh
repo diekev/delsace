@@ -26,7 +26,7 @@
 
 #include <queue>
 
-#include "biblinternes/structures/tableau.hh"
+#include "tableau.hh"
 
 namespace dls {
 

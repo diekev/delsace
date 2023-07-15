@@ -27,7 +27,6 @@
 #include <numeric>
 
 #include "biblinternes/opengl/contexte_rendu.h"
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 
@@ -49,41 +48,16 @@
 
 /* ************************************************************************** */
 
-static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
+static std::unique_ptr<TamponRendu> cree_tampon_surface(bool possede_uvs, bool instances)
 {
-    auto tampon = memoire::loge<TamponRendu>("TamponRendu");
-
     auto nom_fichier = (instances) ? "nuanceurs/diffus_instances.vert" : "nuanceurs/diffus.vert";
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier(nom_fichier));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/diffus.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_attribut("normaux");
-    parametre_programme.ajoute_attribut("uvs");
-    parametre_programme.ajoute_attribut("couleurs");
-
-    if (instances) {
-        parametre_programme.ajoute_attribut("matrices_instances");
+    auto source = crée_sources_glsl_depuis_fichier(nom_fichier, "nuanceurs/diffus.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return nullptr;
     }
 
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("MV");
-    parametre_programme.ajoute_uniforme("P");
-    parametre_programme.ajoute_uniforme("N");
-    parametre_programme.ajoute_uniforme("image");
-    parametre_programme.ajoute_uniforme("direction_camera");
-    parametre_programme.ajoute_uniforme("methode");
-    parametre_programme.ajoute_uniforme("taille_texture");
-    parametre_programme.ajoute_uniforme("possede_uvs");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(source.value());
 
     auto programme = tampon->programme();
     programme->active();
@@ -94,55 +68,6 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 }
 
 /* ************************************************************************** */
-
-template <typename T>
-struct nombre_de_dimensions;
-
-template <>
-struct nombre_de_dimensions<dls::math::vec2f> {
-    static constexpr int valeur = 2;
-};
-
-template <>
-struct nombre_de_dimensions<dls::math::vec3f> {
-    static constexpr int valeur = 3;
-};
-
-template <>
-struct nombre_de_dimensions<dls::phys::couleur32> {
-    static constexpr int valeur = 4;
-};
-
-template <typename T>
-static void remplis_tampon_principal(TamponRendu *tampon,
-                                     dls::chaine const &nom,
-                                     dls::tableau<T> &valeurs)
-{
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = nom;
-    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
-    parametres_tampon.pointeur_sommets = valeurs.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(valeurs.taille()) * sizeof(T);
-    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
-
-    tampon->remplie_tampon(parametres_tampon);
-}
-
-template <typename T>
-static void remplis_tampon_extra(TamponRendu *tampon,
-                                 dls::chaine const &nom,
-                                 dls::tableau<T> &valeurs)
-{
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = nom;
-    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
-    parametres_tampon.pointeur_donnees_extra = valeurs.donnees();
-    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(valeurs.taille()) *
-                                                   sizeof(T);
-    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
-
-    tampon->remplie_tampon_extra(parametres_tampon);
-}
 
 static dls::math::vec3f points_cercle_XZ[32] = {
     dls::math::vec3f(0.000000f, 0.000000f, 1.000000f),
@@ -292,33 +217,16 @@ static void ajoute_primitive_sphere(Sphere *sphere,
     }
 }
 
-static TamponRendu *cree_tampon_segments(bool instances)
+static std::unique_ptr<TamponRendu> cree_tampon_segments(bool instances)
 {
-    auto tampon = memoire::loge<TamponRendu>("TamponRendu");
-
     auto nom_fichier = (instances) ? "nuanceurs/simple_instances.vert" : "nuanceurs/simple.vert";
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier(nom_fichier));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/simple.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_attribut("couleur_sommet");
-
-    if (instances) {
-        parametre_programme.ajoute_attribut("matrices_instances");
+    auto source = crée_sources_glsl_depuis_fichier(nom_fichier, "nuanceurs/simple.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return nullptr;
     }
 
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("couleur");
-    parametre_programme.ajoute_uniforme("possede_couleur_sommet");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(source.value());
 
     ParametresDessin parametres_dessin;
     parametres_dessin.type_dessin(GL_LINES);
@@ -409,41 +317,20 @@ static auto slice(dls::math::vec3f const &view_dir,
         idx += 4;
     }
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = points.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(points.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.elements = static_cast<size_t>(idx_count);
-    parametres_tampon.pointeur_index = indices.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(idx_count) * sizeof(GLuint);
-
-    m_renderbuffer->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(m_renderbuffer, "sommets", points, indices);
 }
 
-static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
+static std::unique_ptr<TamponRendu> cree_tampon_volume(Volume *volume,
+                                                       dls::math::vec3f const &view_dir)
 {
-    auto tampon = memoire::loge<TamponRendu>("TamponRendu");
+    auto source = crée_sources_glsl_depuis_fichier("nuanceurs/volume.vert",
+                                                   "nuanceurs/volume.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return nullptr;
+    }
 
-    tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                    dls::contenu_fichier("nuanceurs/volume.vert"));
-
-    tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                    dls::contenu_fichier("nuanceurs/volume.frag"));
-
-    tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("vertex");
-    parametre_programme.ajoute_uniforme("sommets");
-    parametre_programme.ajoute_uniforme("offset");
-    parametre_programme.ajoute_uniforme("dimension");
-    parametre_programme.ajoute_uniforme("volume");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-
-    tampon->parametres_programme(parametre_programme);
+    auto tampon = TamponRendu::crée_unique(source.value());
 
     ParametresDessin parametres_dessin;
     parametres_dessin.type_dessin(GL_LINES);
@@ -537,7 +424,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
     programme->desactive();
 
     /* crée vertices */
-    slice(view_dir, -1ul, tampon, etendue.min, etendue.max);
+    slice(view_dir, -1ul, tampon.get(), etendue.min, etendue.max);
 
     /* crée texture 3d */
 
@@ -559,14 +446,6 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 RenduCorps::RenduCorps(JJL::Corps &corps) : m_corps(corps)
 {
-}
-
-RenduCorps::~RenduCorps()
-{
-    memoire::deloge("TamponRendu", m_tampon_points);
-    memoire::deloge("TamponRendu", m_tampon_polygones);
-    memoire::deloge("TamponRendu", m_tampon_segments);
-    memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
 void RenduCorps::initialise(ContexteRendu const &contexte,
@@ -592,25 +471,16 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
         return;
     }
 
-    auto parametres_tampon_instance = ParametresTampon{};
-    parametres_tampon_instance.attribut = "matrices_instances";
-    parametres_tampon_instance.dimension_attribut = 4;
-    parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
-    parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(
-                                                                matrices.taille()) *
-                                                            sizeof(dls::math::mat4x4f);
-    parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
-
     if (m_tampon_segments) {
-        m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_segments.get(), "matrices_instances", matrices);
     }
 
     if (m_tampon_polygones) {
-        m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_polygones.get(), "matrices_instances", matrices);
     }
 
     if (m_tampon_points) {
-        m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
+        remplis_tampon_instances(m_tampon_points.get(), "matrices_instances", matrices);
     }
 }
 
@@ -701,15 +571,15 @@ void RenduCorps::extrait_données_primitives(int64_t nombre_de_prims,
 
     if (points_polys.taille() != 0) {
         m_tampon_polygones = cree_tampon_surface(false, est_instance);
-        remplis_tampon_principal(m_tampon_polygones, "sommets", points_polys);
-        remplis_tampon_extra(m_tampon_polygones, "normaux", normaux);
-        remplis_tampon_extra(m_tampon_polygones, "couleurs", couleurs_polys);
+        remplis_tampon_principal(m_tampon_polygones.get(), "sommets", points_polys);
+        remplis_tampon_extra(m_tampon_polygones.get(), "normaux", normaux);
+        remplis_tampon_extra(m_tampon_polygones.get(), "couleurs", couleurs_polys);
     }
 
     if (points_segment.taille() != 0) {
         m_tampon_segments = cree_tampon_segments(est_instance);
-        remplis_tampon_principal(m_tampon_segments, "sommets", points_segment);
-        remplis_tampon_extra(m_tampon_segments, "couleur_sommet", couleurs_segment);
+        remplis_tampon_principal(m_tampon_segments.get(), "sommets", points_segment);
+        remplis_tampon_extra(m_tampon_segments.get(), "couleur_sommet", couleurs_segment);
         auto programme = m_tampon_segments->programme();
         programme->active();
         programme->uniforme("possede_couleur_sommet", 1);
@@ -731,8 +601,8 @@ void RenduCorps::extrait_données_points(int64_t nombre_de_prims,
     }
 
     m_tampon_points = cree_tampon_segments(est_instance);
-    remplis_tampon_principal(m_tampon_points, "sommets", données.points);
-    remplis_tampon_extra(m_tampon_points, "couleur_sommet", données.couleurs);
+    remplis_tampon_principal(m_tampon_points.get(), "sommets", données.points);
+    remplis_tampon_extra(m_tampon_points.get(), "couleur_sommet", données.couleurs);
 
     ParametresDessin parametres_dessin;
     parametres_dessin.taille_point(2.0);

@@ -27,132 +27,100 @@
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/constantes.h"
 
 /* ************************************************************************** */
 
 static const char *source_vertex =
-		"#version 330 core\n"
-		"layout(location = 0) in vec3 sommets;\n"
-		"uniform float taille_x;\n"
-		"uniform float taille_y;\n"
-		"uniform float pos_x;\n"
-		"uniform float pos_y;\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = vec4(sommets.x * taille_x + pos_x, sommets.y * taille_y + pos_y, -1, 1.0);\n"
-		"}\n";
+    "#version 330 core\n"
+    "layout(location = 0) in vec3 sommets;\n"
+    "uniform float taille_x;\n"
+    "uniform float taille_y;\n"
+    "uniform float pos_x;\n"
+    "uniform float pos_y;\n"
+    "void main()\n"
+    "{\n"
+    "	gl_Position = vec4(sommets.x * taille_x + pos_x, sommets.y * taille_y + pos_y, -1, 1.0);\n"
+    "}\n";
 
-static const char *source_fragment =
-		"#version 330 core\n"
-		"layout (location = 0) out vec4 couleur_fragment;\n"
-		"uniform vec4 couleur;\n"
-		" void main()\n"
-		"{\n"
-		"	couleur_fragment = couleur;\n"
-		"}\n";
+static const char *source_fragment = "#version 330 core\n"
+                                     "layout (location = 0) out vec4 couleur_fragment;\n"
+                                     "uniform vec4 couleur;\n"
+                                     " void main()\n"
+                                     "{\n"
+                                     "	couleur_fragment = couleur;\n"
+                                     "}\n";
 
-static TamponRendu *creer_tampon()
+static std::unique_ptr<TamponRendu> creer_tampon()
 {
-	auto tampon = new TamponRendu;
+    auto sources = crée_sources_glsl_depuis_texte(source_vertex, source_fragment);
+    if (!sources.has_value()) {
+        std::cerr << "Erreur : les sources GLSL sont invalides\n";
+        return nullptr;
+    }
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				source_vertex);
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				source_fragment);
+    ParametresDessin parametres_dessin;
+    parametres_dessin.type_dessin(GL_LINES);
+    parametres_dessin.taille_ligne(1.0);
 
-	tampon->finalise_programme();
+    tampon->parametres_dessin(parametres_dessin);
 
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_uniforme("couleur");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("taille_x");
-	parametre_programme.ajoute_uniforme("taille_y");
-	parametre_programme.ajoute_uniforme("pos_x");
-	parametre_programme.ajoute_uniforme("pos_y");
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("couleur", 0.8f, 0.1f, 0.1f, 1.0f);
+    programme->desactive();
 
-	tampon->parametres_programme(parametre_programme);
-
-	ParametresDessin parametres_dessin;
-	parametres_dessin.type_dessin(GL_LINES);
-	parametres_dessin.taille_ligne(1.0);
-
-	tampon->parametres_dessin(parametres_dessin);
-
-	auto programme = tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", 0.8f, 0.1f, 0.1f, 1.0f);
-	programme->desactive();
-
-	return tampon;
+    return tampon;
 }
 
 /* ************************************************************************** */
 
-RenduBrosse::~RenduBrosse()
-{
-	delete m_tampon_contour;
-}
-
 void RenduBrosse::initialise()
 {
-	if (m_tampon_contour != nullptr) {
-		return;
-	}
+    if (m_tampon_contour != nullptr) {
+        return;
+    }
 
-	m_tampon_contour = creer_tampon();
+    m_tampon_contour = creer_tampon();
 
-	auto const &points = 64l;
+    auto const &points = 64l;
 
-	dls::tableau<dls::math::vec3f> sommets(points + 1);
+    dls::tableau<dls::math::vec3f> sommets(points + 1);
 
-	for (auto i = 0l; i <= points; i++){
-		auto const angle = constantes<float>::TAU * static_cast<float>(i) / static_cast<float>(points);
-		auto const x = std::cos(angle);
-		auto const y = std::sin(angle);
-		sommets[i] = dls::math::vec3f(x, y, 0.0f);
-	}
+    for (auto i = 0l; i <= points; i++) {
+        auto const angle = constantes<float>::TAU * static_cast<float>(i) /
+                           static_cast<float>(points);
+        auto const x = std::cos(angle);
+        auto const y = std::sin(angle);
+        sommets[i] = dls::math::vec3f(x, y, 0.0f);
+    }
 
-	dls::tableau<unsigned int> index;
-	index.reserve(points * 2);
+    dls::tableau<unsigned int> index;
+    index.reserve(points * 2);
 
-	for (unsigned i = 0; i < 64; ++i) {
-		index.pousse(i);
-		index.pousse(i + 1);
-	}
+    for (unsigned i = 0; i < 64; ++i) {
+        index.ajoute(i);
+        index.ajoute(i + 1);
+    }
 
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = index.donnees();
-	parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) * sizeof(unsigned int);
-	parametres_tampon.elements = static_cast<size_t>(index.taille());
-
-	m_tampon_contour->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(m_tampon_contour.get(), "sommets", sommets, index);
 }
 
-void RenduBrosse::dessine(
-		ContexteRendu const &contexte,
-		const float taille_x,
-		const float taille_y,
-		const float pos_x,
-		const float pos_y)
+void RenduBrosse::dessine(ContexteRendu const &contexte,
+                          const float taille_x,
+                          const float taille_y,
+                          const float pos_x,
+                          const float pos_y)
 {
-	auto programme = m_tampon_contour->programme();
-	programme->active();
-	programme->uniforme("taille_x", taille_x);
-	programme->uniforme("taille_y", taille_y);
-	programme->uniforme("pos_x", pos_x);
-	programme->uniforme("pos_y", pos_y);
-	programme->desactive();
+    auto programme = m_tampon_contour->programme();
+    programme->active();
+    programme->uniforme("taille_x", taille_x);
+    programme->uniforme("taille_y", taille_y);
+    programme->uniforme("pos_x", pos_x);
+    programme->uniforme("pos_y", pos_y);
+    programme->desactive();
 
-	m_tampon_contour->dessine(contexte);
+    m_tampon_contour->dessine(contexte);
 }

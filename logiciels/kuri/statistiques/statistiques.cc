@@ -9,7 +9,7 @@
 static inline int ratio(double a, double b)
 {
     if (b <= 0.0001) {
-        return 0.0;
+        return 0;
     }
 
     return static_cast<int>(a / b);

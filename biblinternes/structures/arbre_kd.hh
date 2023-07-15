@@ -26,8 +26,8 @@
 
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/outils/constantes.h"
-#include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "pile.hh"
+#include "tableau.hh"
 
 #include <tbb/parallel_invoke.h>
 

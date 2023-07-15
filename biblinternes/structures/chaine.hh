@@ -26,8 +26,8 @@
 
 #include "biblinternes/memoire/logeuse_gardee.hh"
 
-#include "biblinternes/structures/vue_chaine.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
+#include "vue_chaine.hh"
+#include "vue_chaine_compacte.hh"
 
 #include <cstring>
 #include <string>

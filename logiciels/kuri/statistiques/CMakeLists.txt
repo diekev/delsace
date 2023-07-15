@@ -10,7 +10,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
     kuri_structures
-    bib_outils
+    dls::outils
 )
 
 set(SOURCES

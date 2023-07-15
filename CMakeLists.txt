@@ -49,9 +49,9 @@ option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
 # Évite de polluer les options pour l'instant.
 set(REQUIERS_QT OFF)
 set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
-set(REQUIERS_OPENGL ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_OPENGL OFF)
 set(REQUIERS_BOOST ON)
-set(REQUIERS_DOCOPT OFF) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_DOCOPT OFF)
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
 set(REQUIERS_VORO OFF)
@@ -106,7 +106,7 @@ if(SEULEMENT_KURI)
     set(AVEC_HIMITSU OFF)
     set(AVEC_IMAGO OFF)
     set(AVEC_INFOGRAPHIE OFF)
-    set(AVEC_KANBA OFF)
+    # set(AVEC_KANBA OFF)
     set(AVEC_KUMO OFF)
     set(AVEC_KYANBASU OFF)
     set(AVEC_MESURE OFF)
@@ -152,90 +152,128 @@ macro(ajoute_sousdossier __test__ __nom__)
     endif()
 endmacro()
 
-# À FAIRE : permet la déclaration de plusiers dépendances
-macro(active_dependances __test__ __dep__)
+function(active_dependances __test__)
     if (${__test__})
-        set(${__dep__} ON)
+        foreach(dep ${ARGN})
+            set(${dep} ON PARENT_SCOPE)
+        endforeach()
     endif()
-endmacro()
+endfunction()
 
-active_dependances(AVEC_KANBA AVEC_DANJO)
-active_dependances(AVEC_JORJALA AVEC_DANJO)
-active_dependances(AVEC_SILVATHEQUE AVEC_DANJO)
+# ------------------------------------------------------------------------------
+# Active les dépendances des programmes.
 
-#active_dependances(AVEC_JORJALA REQUIERS_TBB)
+active_dependances(
+    AVEC_JORJALA
 
-active_dependances(AVEC_KANBA REQUIERS_OPENGL)
-active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
-active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
+    AVEC_DANJO
+    #REQUIERS_BIB_BRUIT
+    REQUIERS_BIB_IMAGE
+    #REQUIERS_BIB_LANGAGE
+    #REQUIERS_BIB_MATH
+    #REQUIERS_BIB_MOULTFILAGE
+    #REQUIERS_BIB_OBJETS
+    #REQUIERS_BIB_OPENCV
+    REQUIERS_BIB_OPENGL
+    REQUIERS_BIB_PATRONS_CONCEPTION
+    #REQUIERS_BIB_PHYS
+    #REQUIERS_BIB_SYSTEME_FICHIER
+    REQUIERS_BIB_TEXTURE
+    REQUIERS_BIB_VISION
+    #REQUIERS_BIB_XML
+    #REQUIERS_KELVINLET
+    #REQUIERS_PATATE
+    #REQUIERS_TBB
+    #REQUIERS_VORO
+)
 
-#active_dependances(AVEC_JORJALA REQUIERS_KELVINLET)
-#active_dependances(AVEC_JORJALA REQUIERS_PATATE)
-#active_dependances(AVEC_JORJALA REQUIERS_VORO)
-
-active_dependances(AVEC_DANJO REQUIERS_QT)
-active_dependances(AVEC_DANJO REQUIERS_BIB_LANGAGE)
-active_dependances(AVEC_DANJO REQUIERS_BIB_PHYS)
-active_dependances(AVEC_DANJO REQUIERS_BIB_TESTS)
-
-active_dependances(AVEC_DEPLOIE REQUIERS_BIB_JSON)
-active_dependances(AVEC_DEPLOIE REQUIERS_BIB_TORI)
+active_dependances(AVEC_DEPLOIE REQUIERS_BIB_JSON REQUIERS_BIB_TORI)
 
 active_dependances(AVEC_HIKAGE REQUIERS_BIB_EGO)
 
-active_dependances(AVEC_IMAGO REQUIERS_BIB_EGO)
-active_dependances(AVEC_IMAGO REQUIERS_BIB_SYSTEME_FICHIER)
+active_dependances(AVEC_IMAGO REQUIERS_BIB_EGO REQUIERS_BIB_SYSTEME_FICHIER)
 
 active_dependances(AVEC_KUMO REQUIERS_BIB_LANGAGE)
 
 active_dependances(AVEC_KYANBASU REQUIERS_BIB_EGO)
 
-active_dependances(AVEC_KURI REQUIERS_BIB_CHRONO)
-active_dependances(AVEC_KURI REQUIERS_BIB_JSON)
-active_dependances(AVEC_KURI REQUIERS_BIB_LANGAGE)
-active_dependances(AVEC_KURI REQUIERS_BIB_MATH)
-active_dependances(AVEC_KURI REQUIERS_BIB_MEMOIRE)
-active_dependances(AVEC_KURI REQUIERS_BIB_MOULTFILAGE)
-active_dependances(AVEC_KURI REQUIERS_BIB_NOMBRE_DECIMAUX)
-active_dependances(AVEC_KURI REQUIERS_BIB_OUTILS)
-active_dependances(AVEC_KURI REQUIERS_BIB_STRUCTURES)
-active_dependances(AVEC_KURI REQUIERS_BIB_SYSTEME_FICHIER)
-active_dependances(AVEC_KURI REQUIERS_BIB_TESTS)
-active_dependances(AVEC_KURI REQUIERS_BIB_TORI)
+active_dependances(
+    AVEC_KURI
 
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_EGO)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_IMAGE)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_MATH)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_OBJETS)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_OPENGL)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_PATRONS_CONCEPTION)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_TEXTURE)
-active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_VISION)
+    AVEC_DANJO
+    REQUIERS_BIB_CHRONO
+    REQUIERS_BIB_JSON
+    REQUIERS_BIB_LANGAGE
+    REQUIERS_BIB_MATH
+    REQUIERS_BIB_MEMOIRE
+    REQUIERS_BIB_MOULTFILAGE
+    REQUIERS_BIB_NOMBRE_DECIMAUX
+    REQUIERS_BIB_OUTILS
+    REQUIERS_BIB_STRUCTURES
+    REQUIERS_BIB_SYSTEME_FICHIER
+    REQUIERS_BIB_TESTS
+    REQUIERS_BIB_TORI
+)
+
+active_dependances(
+    AVEC_SILVATHEQUE
+
+    AVEC_DANJO
+    REQUIERS_BIB_IMAGE
+    REQUIERS_BIB_MATH
+    REQUIERS_BIB_OBJETS
+    REQUIERS_BIB_OPENGL
+    REQUIERS_BIB_PATRONS_CONCEPTION
+    REQUIERS_BIB_TEXTURE
+    REQUIERS_BIB_VISION
+)
 
 active_dependances(AVEC_MESURE REQUIERS_BIB_LANGAGE)
 
-active_dependances(AVEC_TESTS REQUIERS_BIB_MATH)
-active_dependances(AVEC_TESTS REQUIERS_BIB_SYSTEME_FICHIER)
-active_dependances(AVEC_TESTS REQUIERS_BIB_TESTS)
-active_dependances(AVEC_TESTS REQUIERS_BIB_TYPES)
+active_dependances(
+    AVEC_TESTS
+
+    REQUIERS_BIB_MATH
+    REQUIERS_BIB_SYSTEME_FICHIER
+    REQUIERS_BIB_TESTS
+    REQUIERS_BIB_TYPES
+)
+
+active_dependances(
+    AVEC_KANBA
+
+    AVEC_DANJO
+    REQUIERS_BIB_BRUIT
+    REQUIERS_BIB_IMAGE
+    REQUIERS_BIB_MATH
+    REQUIERS_BIB_PHYS
+    REQUIERS_BIB_OBJETS
+    REQUIERS_BIB_OPENGL
+    REQUIERS_BIB_PATRONS_CONCEPTION
+    REQUIERS_BIB_TESTS
+    REQUIERS_BIB_TEXTURE
+    REQUIERS_BIB_VISION
+)
+
+active_dependances(
+    AVEC_DANJO
+
+    REQUIERS_QT
+    REQUIERS_BIB_LANGAGE
+    REQUIERS_BIB_PHYS
+    REQUIERS_BIB_TESTS
+)
+
+# ------------------------------------------------------------------------------
+# Active les dépendances des bibliothèques.
+
+active_dependances(REQUIERS_BIB_OPENGL REQUIERS_BIB_EGO)
+active_dependances(REQUIERS_BIB_EGO REQUIERS_OPENGL)
 
 # ------------------------------------------------------------------------------
 
 if(AVEC_KANBA)
-    find_package(PTex REQUIRED)
-
-    set(REQUIERS_BIB_BRUIT ON)
-    set(REQUIERS_BIB_EGO ON)
-    set(REQUIERS_BIB_IMAGE ON)
-    set(REQUIERS_BIB_MATH ON)
-    set(REQUIERS_BIB_PHYS ON)
-    set(REQUIERS_BIB_OBJETS ON)
-    set(REQUIERS_BIB_OPENGL ON)
-    set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
-    set(REQUIERS_BIB_TESTS ON)
-    set(REQUIERS_BIB_TEXTURE ON)
-    set(REQUIERS_BIB_VISION ON)
+    #find_package(PTex REQUIRED)
 endif()
 
 if(AVEC_JORJALA)
@@ -246,22 +284,6 @@ if(AVEC_JORJALA)
 #    add_definitions(-DAVEC_OPENEXR)
 #    find_package(OpenSubDiv)
 #    find_package(OpenVDB)
-
-#    set(REQUIERS_BIB_BRUIT ON)
-    set(REQUIERS_BIB_EGO ON)
-    set(REQUIERS_BIB_IMAGE ON)
-#    set(REQUIERS_BIB_LANGAGE ON)
-#    set(REQUIERS_BIB_MATH ON)
-#    set(REQUIERS_BIB_MOULTFILAGE ON)
-#    set(REQUIERS_BIB_OBJETS ON)
-#    set(REQUIERS_BIB_OPENCV ON)
-    set(REQUIERS_BIB_OPENGL ON)
-    set(REQUIERS_BIB_PATRONS_CONCEPTION ON)
-#    set(REQUIERS_BIB_PHYS ON)
-#    set(REQUIERS_BIB_SYSTEME_FICHIER ON)
-    set(REQUIERS_BIB_TEXTURE ON)
-    set(REQUIERS_BIB_VISION ON)
-#    set(REQUIERS_BIB_XML ON)
 endif(AVEC_JORJALA)
 
 if(AVEC_DEPLOIE)

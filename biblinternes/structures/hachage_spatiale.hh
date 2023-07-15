@@ -26,8 +26,8 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "dico_desordonne.hh"
+#include "tableau.hh"
 
 struct HachageSpatial {
 	dls::dico_desordonne<std::size_t, dls::tableau<dls::math::vec3f>> m_tableau{};

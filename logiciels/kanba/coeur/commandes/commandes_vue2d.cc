@@ -44,71 +44,73 @@
 template <typename T>
 T distance_carree(T x1, T y1, T x2, T y2)
 {
-	auto x = x1 - x2;
-	auto y = y1 - y2;
+    auto x = x1 - x2;
+    auto y = y1 - y2;
 
-	return x * x + y * y;
+    return x * x + y * y;
 }
 
 class CommandePeinture2D : public Commande {
-public:
-	CommandePeinture2D() = default;
+  public:
+    CommandePeinture2D() = default;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
+    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    {
 #if 0
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
 
-		auto kanba = std::any_cast<Kanba *>(pointeur);
+        auto kanba = std::any_cast<Kanba *>(pointeur);
 
-		auto const rayon_brosse = 10;
-		auto const rayon_carre = rayon_brosse * rayon_brosse;
-		auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+        auto const rayon_brosse = 10;
+        auto const rayon_carre = rayon_brosse * rayon_brosse;
+        auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
 
-		for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
-			for (int j = -rayon_brosse; j < rayon_brosse; ++j) {
-				auto const x = int(donnees.x) + i;
-				auto const y = int(donnees.y) + j;
+        for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
+            for (int j = -rayon_brosse; j < rayon_brosse; ++j) {
+                auto const x = int(donnees.x) + i;
+                auto const y = int(donnees.y) + j;
 
-				if (x < 0 || x >= kanba->tampon.nombre_colonnes()) {
-					continue;
-				}
+                if (x < 0 || x >= kanba->tampon.nombre_colonnes()) {
+                    continue;
+                }
 
-				if (y < 0 || y >= kanba->tampon.nombre_lignes()) {
-					continue;
-				}
+                if (y < 0 || y >= kanba->tampon.nombre_lignes()) {
+                    continue;
+                }
 
-				if (distance_carree(x, y, int(donnees.x), int(donnees.y)) > rayon_carre) {
-					continue;
-				}
+                if (distance_carree(x, y, int(donnees.x), int(donnees.y)) > rayon_carre) {
+                    continue;
+                }
 
-				kanba->tampon[y][x] = couleur_brosse;
-			}
-		}
+                kanba->tampon[y][x] = couleur_brosse;
+            }
+        }
 
-		kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
+        kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
 
-		return EXECUTION_COMMANDE_MODALE;
-	}
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		execute(pointeur, donnees);
-	}
+    void ajourne_execution_modale(std::any const &pointeur,
+                                  DonneesCommande const &donnees) override
+    {
+        execute(pointeur, donnees);
+    }
 
-	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		execute(pointeur, donnees);
-	}
+    void termine_execution_modale(std::any const &pointeur,
+                                  DonneesCommande const &donnees) override
+    {
+        execute(pointeur, donnees);
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_peinture_2d",
-						   description_commande<CommandePeinture2D>(
-							   "vue_2d", Qt::LeftButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_peinture_2d",
+        description_commande<CommandePeinture2D>("vue_2d", Qt::LeftButton, 0, 0, false));
 }

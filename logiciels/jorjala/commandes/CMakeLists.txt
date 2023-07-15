@@ -38,7 +38,7 @@ set(BIBLIOTHEQUES_GRAPHVIZ
 
 set(BIBLIOTHEQUES
         # bib_objets
-	bib_outils
+        dls::outils
 	bib_patrons
 	bib_vision
 	danjo

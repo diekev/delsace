@@ -14,10 +14,10 @@ set(BIBLIOTHEQUES
     kuri_parsage
     kuri_statistiques
     kuri_structures
-    bib_outils
-    bib_moultfilage
-    bib_structures
-    memoire
+    dls::outils
+    dls::moultfilage
+    dls::structures
+    dls::memoire
 )
 
 set(SOURCES

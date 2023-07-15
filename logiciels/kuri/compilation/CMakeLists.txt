@@ -43,10 +43,10 @@ set(BIBLIOTHEQUES
     kuri_structures
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     langage
-    bib_outils
-    bib_moultfilage
-    bib_structures
-    memoire
+    dls::outils
+    dls::moultfilage
+    dls::structures
+    dls::memoire
     nombre_decimaux
 )
 

@@ -38,37 +38,35 @@ class Kanba;
  * 'texte'.
  */
 class RenduRayon {
-	Kanba *m_kanba = nullptr;
-	TamponRendu *m_tampon = nullptr;
-	int m_nombre_rayons = 0;
+    Kanba *m_kanba = nullptr;
+    TamponRendu *m_tampon = nullptr;
+    int m_nombre_rayons = 0;
 
-public:
-	/**
-	 * Construit une instance de RenduRayon avec des valeurs par défaut. Le
-	 * tampon n'est pas initialisé.
-	 */
-	explicit RenduRayon(Kanba *kanba);
+  public:
+    /**
+     * Construit une instance de RenduRayon avec des valeurs par défaut. Le
+     * tampon n'est pas initialisé.
+     */
+    explicit RenduRayon(Kanba *kanba);
 
-	RenduRayon(RenduRayon const &) = default;
-	RenduRayon &operator=(RenduRayon const &) = default;
+    RenduRayon(RenduRayon const &) = default;
+    RenduRayon &operator=(RenduRayon const &) = default;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduRayon();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduRayon();
 
-	/**
-	 * Ajourne les données du tampon avec le texte passé en paramètre. Cette
-	 * fonction créé un nombre de polygones égal à la taille du texte et
-	 * génère les coordonnées de projection UV de chaque lettre.
-	 */
-	void ajourne();
+    /**
+     * Ajourne les données du tampon avec le texte passé en paramètre. Cette
+     * fonction créé un nombre de polygones égal à la taille du texte et
+     * génère les coordonnées de projection UV de chaque lettre.
+     */
+    void ajourne();
 
-	/**
-	 * Dessine le texte passé en paramètre dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine le texte passé en paramètre dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };
-
-

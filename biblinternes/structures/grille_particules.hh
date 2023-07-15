@@ -27,7 +27,7 @@
 #include "biblinternes/math/limites.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "tableau.hh"
 
 class GrilleParticules {
 	dls::math::point3d m_min{};

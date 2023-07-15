@@ -36,6 +36,7 @@
 #include "biblinternes/vision/camera.h"
 
 #include "brosse.h"
+#include "cannevas_peinture.hh"
 #include "maillage.h"
 
 #include "commandes/commandes_calques.h"
@@ -44,36 +45,59 @@
 #include "commandes/commandes_vue3d.h"
 
 Kanba::Kanba()
-	: tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920))
-	, usine_commande{}
-	, repondant_commande(new RepondantCommande(usine_commande, this))
-	, brosse(new Brosse())
-	, camera(new vision::Camera3D(0, 0))
-	, maillage(nullptr)
-{}
+    : tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920)), usine_commande{},
+      repondant_commande(new RepondantCommande(usine_commande, this)), brosse(new Brosse()),
+      camera(new vision::Camera3D(0, 0)), maillage(nullptr), cannevas(new CannevasPeinture(*this))
+{
+}
 
 Kanba::~Kanba()
 {
-	delete brosse;
-	delete maillage;
-	delete camera;
-	delete repondant_commande;
+    delete brosse;
+    delete maillage;
+    delete camera;
+    delete repondant_commande;
+    delete cannevas;
 }
 
 void Kanba::enregistre_commandes()
 {
-	enregistre_commandes_calques(this->usine_commande);
-	enregistre_commandes_fichier(this->usine_commande);
-	enregistre_commandes_vue2d(this->usine_commande);
-	enregistre_commandes_vue3d(this->usine_commande);
+    enregistre_commandes_calques(this->usine_commande);
+    enregistre_commandes_fichier(this->usine_commande);
+    enregistre_commandes_vue2d(this->usine_commande);
+    enregistre_commandes_vue3d(this->usine_commande);
 }
 
 dls::chaine Kanba::requiers_dialogue(int type)
 {
-	if (type == FICHIER_OUVERTURE) {
-		auto const chemin = QFileDialog::getOpenFileName();
-		return chemin.toStdString();
-	}
+    if (type == FICHIER_OUVERTURE) {
+        auto const chemin = QFileDialog::getOpenFileName();
+        return chemin.toStdString();
+    }
 
-	return "";
+    return "";
+}
+
+void Kanba::installe_maillage(Maillage *m)
+{
+    if (maillage) {
+        delete maillage;
+    }
+
+    maillage = m;
+    maillage->cree_tampon(this);
+}
+
+static const char *chaine_type_entrée_log[] = {
+    "Générale", "Image", "Rendu", "Maillage", "Empaquetage"};
+
+void Kanba::ajoute_log(EntréeLog::Type type, const dls::chaine &texte)
+{
+    ajoute_log_impl(type, texte);
+}
+
+void Kanba::ajoute_log_impl(EntréeLog::Type type, const dls::chaine &texte)
+{
+    entrées_log.ajoute({type, texte});
+    std::cout << "[" << chaine_type_entrée_log[type] << "] " << texte << std::endl;
 }
