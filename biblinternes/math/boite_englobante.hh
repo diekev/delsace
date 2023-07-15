@@ -26,7 +26,7 @@
 
 #include "vecteur.hh"
 
-#include "../outils/constantes.h"
+#include "biblinternes/outils/constantes.h"
 
 enum class Axe : int {
 	X,
