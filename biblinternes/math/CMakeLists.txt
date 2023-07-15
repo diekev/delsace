@@ -21,65 +21,61 @@
 
 set(NOM_BIBLIOTHEQUE math)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-)
-
 set(BIBLIOTHEQUES
+    PUBLIC dls::outils
+    PUBLIC dls::structures
 )
 
 set(ENTETES_MATRICE
-	matrice/dimensions.hh
-	matrice/matrice.hh
-	matrice/matrice_fixe.hh
-	matrice/operations.hh
+    matrice/dimensions.hh
+    matrice/matrice.hh
+    matrice/matrice_fixe.hh
+    matrice/operations.hh
 )
 
 set(ENTETES
-	base_vecteur.hh
-	boite_englobante.hh
-	complexe.hh
-	concepts.hh
-	entrepolation.hh
-	fourier.hh
-	limites.hh
-	matrice.hh
-	outils.hh
-	rmsd.hh
-	rotation.hh
-	statistique.hh
-	swizzler.hh
-	quaternion.hh
-	rectangle.hh
-	transformation.hh
-	vecteur.hh
+    base_vecteur.hh
+    boite_englobante.hh
+    complexe.hh
+    concepts.hh
+    entrepolation.hh
+    fourier.hh
+    limites.hh
+    matrice.hh
+    outils.hh
+    rmsd.hh
+    rotation.hh
+    statistique.hh
+    swizzler.hh
+    quaternion.hh
+    rectangle.hh
+    transformation.hh
+    vecteur.hh
 )
 
-add_library(${NOM_BIBLIOTHEQUE} STATIC
-	boite_englobante.cc
-	complexe.cc
-	concepts.cc
-	entrepolation.cc
-	fourier.cc
-	limites.cc
-	matrice.cc
-	outils.cc
-	quaternion.cc
-	rectangle.cc
-	rmsd.cc
-	rotation.cc
-	transformation.cc
-	vecteur.cc
+set(SOURCES
+    boite_englobante.cc
+    complexe.cc
+    concepts.cc
+    entrepolation.cc
+    fourier.cc
+    limites.cc
+    matrice.cc
+    outils.cc
+    quaternion.cc
+    rectangle.cc
+    rmsd.cc
+    rotation.cc
+    transformation.cc
+    vecteur.cc
 
-	matrice/dimensions.cc
-
-	${ENTETES}
-	${ENTETES_MATRICE}
+    matrice/dimensions.cc
 )
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES} ${ENTETES_MATRICE})
+add_library(dls::math ALIAS ${NOM_BIBLIOTHEQUE})
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
 
 ################################################################################
 

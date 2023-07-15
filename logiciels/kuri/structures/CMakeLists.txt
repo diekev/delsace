@@ -27,8 +27,8 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-    memoire
-    bib_outils
+    dls::memoire
+    dls::outils
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
 )
 

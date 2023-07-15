@@ -35,8 +35,8 @@ set(BIBLIOTHEQUES
     ${OPENIMAGEIO_LIBRARIES}
     ${OPENEXR_LIBRARIES}
 
-    math
-    bib_outils
+    dls::math
+    dls::outils
 )
 
 set(SOURCES_ALGORITHMES
