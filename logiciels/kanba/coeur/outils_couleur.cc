@@ -23,4 +23,3 @@
  */
 
 #include "outils_couleur.h"
-

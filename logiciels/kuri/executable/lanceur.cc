@@ -179,10 +179,10 @@ using TypeFonctionGestionArgument = ActionParsageArgument (*)(ParseuseArguments 
                                                               ArgumentsCompilatrice &);
 
 struct DescriptionArgumentCompilation {
-    kuri::chaine nom = "";
-    kuri::chaine nom_court = "";
-    kuri::chaine nom_pour_aide = "";
-    kuri::chaine description_pour_aide = "";
+    kuri::chaine_statique nom = "";
+    kuri::chaine_statique nom_court = "";
+    kuri::chaine_statique nom_pour_aide = "";
+    kuri::chaine_statique description_pour_aide = "";
     TypeFonctionGestionArgument fonction{};
 };
 

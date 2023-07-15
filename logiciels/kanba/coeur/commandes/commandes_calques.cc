@@ -33,68 +33,66 @@
 /* ************************************************************************** */
 
 class CommandeAjouterCalque : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
-		auto maillage = kanba->maillage;
+  public:
+    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+    {
+        auto kanba = std::any_cast<Kanba *>(pointeur);
+        auto maillage = kanba->maillage;
 
-		if (maillage == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto &canaux = maillage->canaux_texture();
+        auto &canaux = maillage->canaux_texture();
 
-		ajoute_calque(canaux, TypeCanal::DIFFUSION);
+        ajoute_calque(canaux, TypeCanal::DIFFUSION);
 
-		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
+        kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class CommandeSupprimerCalque : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
-		auto maillage = kanba->maillage;
+  public:
+    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+    {
+        auto kanba = std::any_cast<Kanba *>(pointeur);
+        auto maillage = kanba->maillage;
 
-		if (maillage == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto &canaux = maillage->canaux_texture();
-		auto calque = maillage->calque_actif();
+        auto &canaux = maillage->canaux_texture();
+        auto calque = maillage->calque_actif();
 
-		if (calque == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (calque == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		maillage->calque_actif(nullptr);
+        maillage->calque_actif(nullptr);
 
-		supprime_calque(canaux, calque);
-		fusionne_calques(canaux);
+        supprime_calque(canaux, calque);
+        fusionne_calques(canaux);
 
-		maillage->marque_texture_surrannee(true);
+        maillage->marque_texture_surrannee(true);
 
-		kanba->notifie_observatrices(type_evenement::calque | type_evenement::supprime);
+        kanba->notifie_observatrices(type_evenement::calque | type_evenement::supprime);
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_calques(UsineCommande &usine)
 {
-	usine.enregistre_type("ajouter_calque",
-						   description_commande<CommandeAjouterCalque>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_calque",
+                          description_commande<CommandeAjouterCalque>("", 0, 0, 0, false));
 
-	usine.enregistre_type("supprimer_calque",
-						   description_commande<CommandeSupprimerCalque>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("supprimer_calque",
+                          description_commande<CommandeSupprimerCalque>("", 0, 0, 0, false));
 }

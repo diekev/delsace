@@ -28,20 +28,20 @@ set(INC_SYS
 	${EGO_INCLUDE_DIRS}
 	${INCLUSIONS_DANJO}
 	${INCLUSIONS_SYSFICHIER}
-	${INCLUSIONS_QT5_WIDGETS}
-	${INCLUSIONS_QT5_OPENGL}
+        ${INCLUSIONS_QT_WIDGETS}
+        ${INCLUSIONS_QT_OPENGL}
 	${INCLUSIONS_DELSACE_MATH}
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_QT5_OPENGL}
+        ${BIBLIOTHEQUES_QT_OPENGL}
 	ego
 	${BIBLIOTHEQUES_OPENGL}
 	danjo
 	math
 	stdc++fs
 	bib_opengl
-	bib_outils
+        dls::outils
 )
 
 add_compile_options(-fPIC)
@@ -75,6 +75,7 @@ set(SCRIPTS
 add_library(${NOM_CIBLE} STATIC
 	opengl/rendu_brosse.h
 	opengl/rendu_maillage.h
+        opengl/rendu_seaux.hh
 	opengl/visionneur_image.h
 	opengl/visionneur_scene.h
 
@@ -89,6 +90,7 @@ add_library(${NOM_CIBLE} STATIC
 
 	opengl/rendu_brosse.cc
 	opengl/rendu_maillage.cc
+        opengl/rendu_seaux.cc
 	opengl/visionneur_image.cc
 	opengl/visionneur_scene.cc
 

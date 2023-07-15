@@ -29,10 +29,9 @@
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/opengl/atlas_texture.h"
 #include "biblinternes/opengl/contexte_rendu.h"
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
-#include "biblinternes/texture/texture.h"
 #include "biblinternes/structures/dico.hh"
+#include "biblinternes/texture/texture.h"
 
 #include "coeur/maillage.h"
 
@@ -43,412 +42,326 @@
 #ifdef BOMBAGE_TEXTURE
 static void genere_texture(dls::ego::Texture2D *texture, const void *donnes, GLint taille[2])
 {
-	texture->free(true);
-	dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
-	texture->attache();
-	dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
-	texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-	dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
-	texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-	dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
-	texture->setWrapping(GL_REPEAT);
-	dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
-	texture->fill(donnes, taille);
-	dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
-	texture->detache();
-	dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
+    texture->free(true);
+    dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
+    texture->attache();
+    dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
+    texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
+    dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
+    texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
+    dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
+    texture->setWrapping(GL_REPEAT);
+    dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
+    texture->fill(donnes, taille);
+    dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
+    texture->detache();
+    dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
 }
 #else
 static void genere_texture(AtlasTexture *atlas, const void *donnes, GLint taille[3])
 {
-	atlas->detruit(true);
-	dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
-	atlas->attache();
-	dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
-	atlas->typage(GL_FLOAT, GL_RGBA, GL_RGBA);
-	dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
-	atlas->filtre_min_mag(GL_NEAREST, GL_NEAREST);
-	dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
-	atlas->enveloppage(GL_CLAMP);
-	dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
-	atlas->rempli(donnes, taille);
-	dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
-	atlas->detache();
-	dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
+    atlas->detruit(true);
+    dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
+    atlas->attache();
+    dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
+    atlas->typage(GL_FLOAT, GL_RGBA, GL_RGBA);
+    dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
+    atlas->filtre_min_mag(GL_NEAREST, GL_NEAREST);
+    dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
+    atlas->enveloppage(GL_CLAMP);
+    dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
+    atlas->rempli(donnes, taille);
+    dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
+    atlas->detache();
+    dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
 }
 #endif
 
 /* ************************************************************************** */
 
-TamponRendu *cree_tampon_arrete()
+static std::unique_ptr<TamponRendu> cree_tampon_arrete()
 {
-	auto tampon = new TamponRendu;
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                    "nuanceurs/simple.frag");
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/simple.vert"));
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				dls::contenu_fichier("nuanceurs/simple.frag"));
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
+    programme->desactive();
 
-	tampon->finalise_programme();
-
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("couleur");
-
-	tampon->parametres_programme(parametre_programme);
-
-	auto programme = tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
-	programme->desactive();
-
-	return tampon;
+    return tampon;
 }
 
-TamponRendu *genere_tampon_arrete(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_arrete(Maillage *maillage)
 {
-	auto const nombre_arretes = maillage->nombre_arretes();
-	auto const nombre_elements = nombre_arretes * 2;
-	auto tampon = cree_tampon_arrete();
+    auto const nombre_arretes = maillage->nombre_arretes();
+    auto const nombre_elements = nombre_arretes * 2;
+    auto tampon = cree_tampon_arrete();
 
-	dls::tableau<dls::math::vec3f> sommets;
-	sommets.reserve(static_cast<long>(nombre_elements));
+    dls::tableau<dls::math::vec3f> sommets;
+    sommets.reserve(static_cast<long>(nombre_elements));
 
-	/* OpenGL ne travaille qu'avec des floats. */
-	for (auto i = 0; i < nombre_arretes; ++i) {
-		auto const arrete = maillage->arrete(i);
+    /* OpenGL ne travaille qu'avec des floats. */
+    for (auto i = 0; i < nombre_arretes; ++i) {
+        auto const arrete = maillage->arrete(i);
 
-		sommets.pousse(arrete->s[0]->pos);
-		sommets.pousse(arrete->s[1]->pos);
-	}
+        sommets.ajoute(arrete->s[0]->pos);
+        sommets.ajoute(arrete->s[1]->pos);
+    }
 
-	dls::tableau<unsigned int> indices(sommets.taille());
-	std::iota(indices.debut(), indices.fin(), 0);
+    dls::tableau<unsigned int> indices(sommets.taille());
+    std::iota(indices.debut(), indices.fin(), 0);
 
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.donnees();
-	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
-	parametres_tampon.elements = static_cast<size_t>(indices.taille());
+    remplis_tampon_principal(tampon.get(), "sommets", sommets, indices);
 
-	tampon->remplie_tampon(parametres_tampon);
+    dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
-	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+    ParametresDessin parametres_dessin;
+    parametres_dessin.type_dessin(GL_LINES);
 
-	ParametresDessin parametres_dessin;
-	parametres_dessin.type_dessin(GL_LINES);
+    tampon->parametres_dessin(parametres_dessin);
 
-	tampon->parametres_dessin(parametres_dessin);
-
-	return tampon;
+    return tampon;
 }
 
 /* ************************************************************************** */
 
-TamponRendu *cree_tampon_normal()
+static std::unique_ptr<TamponRendu> cree_tampon_normal()
 {
-	auto tampon = new TamponRendu;
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                    "nuanceurs/simple.frag");
+    if (!sources.has_value()) {
+        return nullptr;
+    }
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/simple.vert"));
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				dls::contenu_fichier("nuanceurs/simple.frag"));
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
+    programme->desactive();
 
-	tampon->finalise_programme();
-
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("couleur");
-
-	tampon->parametres_programme(parametre_programme);
-
-	auto programme = tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
-	programme->desactive();
-
-	return tampon;
+    return tampon;
 }
 
-TamponRendu *genere_tampon_normal(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_normal(Maillage *maillage)
 {
-	auto const nombre_polygones = maillage->nombre_polygones();
-	auto const nombre_elements = nombre_polygones * 2;
-	auto tampon = cree_tampon_normal();
+    auto const nombre_polygones = maillage->nombre_polygones();
+    auto const nombre_elements = nombre_polygones * 2;
+    auto tampon = cree_tampon_normal();
 
-	dls::tableau<dls::math::vec3f> sommets;
-	sommets.reserve(static_cast<long>(nombre_elements));
+    dls::tableau<dls::math::vec3f> sommets;
+    sommets.reserve(static_cast<long>(nombre_elements));
 
-	/* OpenGL ne travaille qu'avec des floats. */
-	for (auto i = 0; i < nombre_polygones; ++i) {
-		auto const polygone = maillage->polygone(i);
-		auto V = polygone->s[0]->pos;
-		V += polygone->s[1]->pos;
-		V += polygone->s[2]->pos;
-		auto poids = 3.0f;
+    /* OpenGL ne travaille qu'avec des floats. */
+    for (auto i = 0; i < nombre_polygones; ++i) {
+        auto const polygone = maillage->polygone(i);
+        auto V = polygone->s[0]->pos;
+        V += polygone->s[1]->pos;
+        V += polygone->s[2]->pos;
+        auto poids = 3.0f;
 
-		if (polygone->s[3] != nullptr) {
-			V += polygone->s[3]->pos;
-			poids = 4.0f;
-		}
+        if (polygone->s[3] != nullptr) {
+            V += polygone->s[3]->pos;
+            poids = 4.0f;
+        }
 
-		V /= poids;
+        V /= poids;
 
-		auto const N = normalise(polygone->nor);
+        auto const N = normalise(polygone->nor);
 
-		sommets.pousse(V);
-		sommets.pousse(V + 0.1f * N);
-	}
+        sommets.ajoute(V);
+        sommets.ajoute(V + 0.1f * N);
+    }
 
-	dls::tableau<unsigned int> indices(sommets.taille());
-	std::iota(indices.debut(), indices.fin(), 0);
+    dls::tableau<unsigned int> indices(sommets.taille());
+    std::iota(indices.debut(), indices.fin(), 0);
 
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.donnees();
-	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
-	parametres_tampon.elements = static_cast<size_t>(indices.taille());
+    remplis_tampon_principal(tampon.get(), "sommets", sommets, indices);
 
-	tampon->remplie_tampon(parametres_tampon);
+    dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
-	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+    ParametresDessin parametres_dessin;
+    parametres_dessin.type_dessin(GL_LINES);
 
-	ParametresDessin parametres_dessin;
-	parametres_dessin.type_dessin(GL_LINES);
+    tampon->parametres_dessin(parametres_dessin);
 
-	tampon->parametres_dessin(parametres_dessin);
-
-	return tampon;
+    return tampon;
 }
 
 /* ************************************************************************** */
 
-TamponRendu *creer_tampon()
+static std::unique_ptr<TamponRendu> creer_tampon()
 {
-	auto tampon = new TamponRendu;
+#ifdef BOMBAGE_TEXTURE
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/texture_bombee.vert",
+                                                    "nuanceurs/texture_bombee.frag");
+#else
+    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/diffus.vert",
+                                                    "nuanceurs/diffus.frag");
+#endif
+
+    if (!sources.has_value()) {
+        return nullptr;
+    }
+
+    auto tampon = TamponRendu::crée_unique(sources.value());
 
 #ifdef BOMBAGE_TEXTURE
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/texture_bombee.vert"));
-
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				dls::contenu_fichier("nuanceurs/texture_bombee.frag"));
+    tampon->ajoute_texture();
+    auto texture = tampon->texture();
 #else
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/diffus.vert"));
-
-	tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				dls::contenu_fichier("nuanceurs/diffus.frag"));
+    tampon->ajoute_atlas();
+    auto texture = tampon->atlas();
 #endif
 
-	tampon->finalise_programme();
-
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_attribut("normal");
-	parametre_programme.ajoute_attribut("uvs");
-	parametre_programme.ajoute_uniforme("N");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("texture_poly");
-	parametre_programme.ajoute_uniforme("taille_u");
-	parametre_programme.ajoute_uniforme("taille_v");
-
-	tampon->parametres_programme(parametre_programme);
-
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
+    programme->uniforme("taille_u", 1.0f);
+    programme->uniforme("taille_v", 1.0f);
 #ifdef BOMBAGE_TEXTURE
-	tampon->ajoute_texture();
-	auto texture = tampon->texture();
+    programme->uniforme("texture_poly", texture->number());
 #else
-	tampon->ajoute_atlas();
-	auto texture = tampon->atlas();
+    programme->uniforme("texture_poly", texture->nombre());
 #endif
+    programme->desactive();
 
-	auto programme = tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
-	programme->uniforme("taille_u", 1.0f);
-	programme->uniforme("taille_v", 1.0f);
-#ifdef BOMBAGE_TEXTURE
-	programme->uniforme("texture_poly", texture->number());
-#else
-	programme->uniforme("texture_poly", texture->nombre());
-#endif
-	programme->desactive();
-
-	return tampon;
+    return tampon;
 }
 
-TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
+static TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
 {
-	auto nombre_elements = id_polys.taille() * 6;
-	auto tampon = creer_tampon();
+    auto nombre_elements = id_polys.taille() * 6;
+    auto tampon = creer_tampon().release();
 
-	dls::tableau<dls::math::vec3f> sommets;
-	sommets.reserve(nombre_elements);
+    dls::tableau<dls::math::vec3f> sommets;
+    sommets.reserve(nombre_elements);
 
-	dls::tableau<dls::math::vec3f> uvs;
-	uvs.reserve(nombre_elements);
+    dls::tableau<dls::math::vec3f> uvs;
+    uvs.reserve(nombre_elements);
 
-	dls::tableau<dls::math::vec3f> normaux;
-	normaux.reserve(nombre_elements);
+    dls::tableau<dls::math::vec3f> normaux;
+    normaux.reserve(nombre_elements);
 
-	auto index_poly = 0.0f;
+    auto index_poly = 0.0f;
 
-	for (auto i : id_polys) {
-		auto const poly = maillage->polygone(i);
+    for (auto i : id_polys) {
+        auto const poly = maillage->polygone(i);
 
-		sommets.pousse(poly->s[0]->pos);
-		sommets.pousse(poly->s[1]->pos);
-		sommets.pousse(poly->s[2]->pos);
+        sommets.ajoute(poly->s[0]->pos);
+        sommets.ajoute(poly->s[1]->pos);
+        sommets.ajoute(poly->s[2]->pos);
 
-		normaux.pousse(poly->nor);
-		normaux.pousse(poly->nor);
-		normaux.pousse(poly->nor);
+        normaux.ajoute(poly->nor);
+        normaux.ajoute(poly->nor);
+        normaux.ajoute(poly->nor);
 
-		if (poly->s[3] != nullptr) {
-			sommets.pousse(poly->s[0]->pos);
-			sommets.pousse(poly->s[2]->pos);
-			sommets.pousse(poly->s[3]->pos);
+        if (poly->s[3] != nullptr) {
+            sommets.ajoute(poly->s[0]->pos);
+            sommets.ajoute(poly->s[2]->pos);
+            sommets.ajoute(poly->s[3]->pos);
 
-			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
 
-			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(1.0f, 1.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
 
-			normaux.pousse(poly->nor);
-			normaux.pousse(poly->nor);
-			normaux.pousse(poly->nor);
-		}
-		else {
-			uvs.pousse(dls::math::vec3f(0.0f, 0.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(0.0f, 1.0f, index_poly));
-			uvs.pousse(dls::math::vec3f(1.0f, 0.0f, index_poly));
-		}
+            normaux.ajoute(poly->nor);
+            normaux.ajoute(poly->nor);
+            normaux.ajoute(poly->nor);
+        }
+        else {
+            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
+            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
+        }
 
-		index_poly += 1.0f;
-	}
+        index_poly += 1.0f;
+    }
 
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.elements = static_cast<size_t>(sommets.taille());
-	parametres_tampon.pointeur_sommets = sommets.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+    remplis_tampon_principal(tampon, "sommets", sommets);
+    dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
-	tampon->remplie_tampon(parametres_tampon);
+    remplis_tampon_extra(tampon, "normal", normaux);
+    dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
-	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
+    remplis_tampon_extra(tampon, "uvs", uvs);
+    dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
 
-	parametres_tampon.attribut = "normal";
-	parametres_tampon.pointeur_donnees_extra = normaux.donnees();
-	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(normaux.taille() )* sizeof(dls::math::vec3f);
-
-	tampon->remplie_tampon_extra(parametres_tampon);
-	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
-
-	parametres_tampon.attribut = "uvs";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(uvs.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_donnees_extra = uvs.donnees();
-
-	tampon->remplie_tampon_extra(parametres_tampon);
-
-	dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
-
-	return tampon;
+    return tampon;
 }
 
 /* ************************************************************************** */
 
-RenduMaillage::RenduMaillage(Maillage *maillage)
-	: m_maillage(maillage)
-{}
-
-RenduMaillage::~RenduMaillage()
+RenduMaillage::RenduMaillage(Maillage *maillage) : m_maillage(maillage)
 {
-	supprime_tampons();
 }
 
 void RenduMaillage::initialise()
 {
-	supprime_tampons();
+    supprime_tampons();
 
-	auto nombre_polys = m_maillage->nombre_polygones();
+    auto nombre_polys = m_maillage->nombre_polygones();
 
-	auto nombre_quads = 0;
-	auto nombre_tris = 0;
+    auto nombre_quads = 0;
+    auto nombre_tris = 0;
 
-	dls::dico<std::pair<uint, uint>, dls::tableau<uint>> vecteurs_polys;
+    dls::dico<std::pair<uint, uint>, dls::tableau<uint>> vecteurs_polys;
 
-	for (auto i = 0; i < nombre_polys; ++i) {
-		auto const poly = m_maillage->polygone(i);
-		((poly->s[3] != nullptr) ? nombre_quads : nombre_tris) += 1;
+    for (auto i = 0; i < nombre_polys; ++i) {
+        auto const poly = m_maillage->polygone(i);
+        ((poly->s[3] != nullptr) ? nombre_quads : nombre_tris) += 1;
 
-		auto const &paire = std::make_pair(poly->res_u, poly->res_v);
+        auto const &paire = std::make_pair(poly->res_u, poly->res_v);
 
-		vecteurs_polys[paire].pousse(static_cast<uint>(i));
-	}
+        vecteurs_polys[paire].ajoute(static_cast<uint>(i));
+    }
 
-	std::cout << "Nombre de seaux : " << vecteurs_polys.taille() << '\n';
+    std::cout << "Nombre de seaux : " << vecteurs_polys.taille() << '\n';
 
-	std::cout << "Nombre de quads : " << nombre_quads
-			  << ", nombre de triangles : " << nombre_tris << '\n';
+    std::cout << "Nombre de quads : " << nombre_quads << ", nombre de triangles : " << nombre_tris
+              << '\n';
 
-	Page page;
-	page.tampon = nullptr;
+    Page page;
+    page.tampon = nullptr;
 
-	GLint max_textures;
-	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS_EXT, &max_textures);
+    GLint max_textures;
+    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS_EXT, &max_textures);
 
-	for (auto const &id_polys : vecteurs_polys) {
-		for (uint i : id_polys.second) {
-			if (static_cast<int>(page.polys.taille()) >= max_textures) {
-				m_pages.pousse(page);
-				page.polys.efface();
-			}
+    for (auto const &id_polys : vecteurs_polys) {
+        for (uint i : id_polys.second) {
+            if (static_cast<int>(page.polys.taille()) >= max_textures) {
+                m_pages.ajoute(page);
+                page.polys.efface();
+            }
 
-			page.polys.pousse(i);
-		}
+            page.polys.ajoute(i);
+        }
 
-		m_pages.pousse(page);
-		page.polys.efface();
-	}
+        m_pages.ajoute(page);
+        page.polys.efface();
+    }
 
-	std::cerr << "Il y a " << m_pages.taille() << " pages\n";
+    std::cerr << "Il y a " << m_pages.taille() << " pages\n";
 
-	for (auto &pages : m_pages) {
-		pages.tampon = genere_tampon(m_maillage, pages.polys);
-	}
+    for (auto &pages : m_pages) {
+        pages.tampon = genere_tampon(m_maillage, pages.polys);
+    }
 
-	/* Création texture */
-	ajourne_texture();
+    /* Création texture */
+    ajourne_texture();
 
-	m_tampon_arrete = genere_tampon_arrete(m_maillage);
-	m_tampon_normal = genere_tampon_normal(m_maillage);
+    m_tampon_arrete = genere_tampon_arrete(m_maillage);
+    m_tampon_normal = genere_tampon_normal(m_maillage);
 }
 
 void RenduMaillage::ajourne_texture()
@@ -485,108 +398,107 @@ void RenduMaillage::ajourne_texture()
 	}
 #endif
 #ifdef BOMBAGE_TEXTURE
-	TextureImage *texture_image = charge_texture("/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
+    TextureImage *texture_image = charge_texture(
+        "/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
 
-	GLint taille_texture[2] = {
-		static_cast<GLint>(texture_image->largeur()),
-		static_cast<GLint>(texture_image->hauteur())
-	};
+    GLint taille_texture[2] = {static_cast<GLint>(texture_image->largeur()),
+                               static_cast<GLint>(texture_image->hauteur())};
 
-	auto donnees = texture_image->donnees();
+    auto donnees = texture_image->donnees();
 
-	for (auto const &pages : m_pages) {
-		auto texture = pages.tampon->texture();
-		genere_texture(texture, donnees, taille_texture);
-	}
+    for (auto const &pages : m_pages) {
+        auto texture = pages.tampon->texture();
+        genere_texture(texture, donnees, taille_texture);
+    }
 
-	delete texture_image;
+    delete texture_image;
 #else
-	auto const largeur = m_maillage->largeur_texture();
-	auto const &canaux = m_maillage->canaux_texture();
+    auto const largeur = m_maillage->largeur_texture();
+    auto const &canaux = m_maillage->canaux_texture();
 
-	auto tampon = canaux.tampon_diffusion;
+    auto tampon = canaux.tampon_diffusion;
 
-	if (tampon == nullptr) {
-		return;
-	}
+    if (tampon == nullptr) {
+        return;
+    }
 
-	for (auto const &pages : m_pages) {
-		auto poly = m_maillage->polygone(pages.polys[0]);
+    for (auto const &pages : m_pages) {
+        auto poly = m_maillage->polygone(pages.polys[0]);
 
-		GLint taille_texture[3] = {
-			static_cast<GLint>(poly->res_u),
-			static_cast<GLint>(poly->res_v),
-			static_cast<GLint>(pages.polys.taille())
-		};
+        GLint taille_texture[3] = {static_cast<GLint>(poly->res_u),
+                                   static_cast<GLint>(poly->res_v),
+                                   static_cast<GLint>(pages.polys.taille())};
 
-//		std::cerr << "Création d'une texture de "
-//				  << taille_texture[0] << "x"
-//				  << taille_texture[1] << "x"
-//				  << taille_texture[2] << '\n';
+        //		std::cerr << "Création d'une texture de "
+        //				  << taille_texture[0] << "x"
+        //				  << taille_texture[1] << "x"
+        //				  << taille_texture[2] << '\n';
 
-		dls::tableau<dls::math::vec4f> image(taille_texture[0] * taille_texture[1] * taille_texture[2]);
-		auto donnees = image.donnees();
+        dls::tableau<dls::math::vec4f> image(taille_texture[0] * taille_texture[1] *
+                                             taille_texture[2]);
+        auto donnees = image.donnees();
 
-		/* Copie les texels dans l'atlas OpenGL. */
-		auto ip = 0;
-		for (auto i : pages.polys) {
-			auto poly_page = m_maillage->polygone(i);
-			auto index_poly = (poly_page->x + poly_page->y * (m_maillage->largeur_texture()));
-			auto tampon_poly = tampon + index_poly;
+        /* Copie les texels dans l'atlas OpenGL. */
+        auto ip = 0;
+        for (auto i : pages.polys) {
+            auto poly_page = m_maillage->polygone(i);
+            auto index_poly = (poly_page->x + poly_page->y * (m_maillage->largeur_texture()));
+            auto tampon_poly = tampon + index_poly;
 
-			auto donnees_image = &donnees[ip++ * taille_texture[0] * taille_texture[1]];
+            auto donnees_image = &donnees[ip++ * taille_texture[0] * taille_texture[1]];
 
-			for (size_t j = 0; j < poly_page->res_u; ++j) {
-				for (size_t k = 0; k < poly_page->res_v; ++k) {
-					donnees_image[j + k * static_cast<size_t>(taille_texture[0])] = tampon_poly[j + k * static_cast<size_t>(largeur)];
-				}
-			}
-		}
+            for (size_t j = 0; j < poly_page->res_u; ++j) {
+                for (size_t k = 0; k < poly_page->res_v; ++k) {
+                    donnees_image[j + k * static_cast<size_t>(taille_texture[0])] =
+                        tampon_poly[j + k * static_cast<size_t>(largeur)];
+                }
+            }
+        }
 
-		auto texture = pages.tampon->atlas();
-		genere_texture(texture, image.donnees(), taille_texture);
-	}
+        auto texture = pages.tampon->atlas();
+        genere_texture(texture, image.donnees(), taille_texture);
+    }
 
-	dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");
+    dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");
 #endif
-	m_maillage->marque_texture_surrannee(false);
+    m_maillage->marque_texture_surrannee(false);
 }
 
 void RenduMaillage::supprime_tampons()
 {
-	for (auto const &page : m_pages) {
-		delete page.tampon;
-	}
+    for (auto &page : m_pages) {
+        delete page.tampon;
+    }
 
-	delete m_tampon_arrete;
-	delete m_tampon_normal;
+    m_tampon_arrete.reset(nullptr);
+    m_tampon_normal.reset(nullptr);
 }
 
 void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
-	if (m_maillage->texture_surrannee()) {
-		ajourne_texture();
-	}
+    if (m_maillage->texture_surrannee()) {
+        ajourne_texture();
+    }
 
-	for (auto const &page : m_pages) {
-		page.tampon->dessine(contexte);
-	}
+    for (auto const &page : m_pages) {
+        page.tampon->dessine(contexte);
+    }
 
-	if (contexte.dessine_arretes()) {
-		m_tampon_arrete->dessine(contexte);
-	}
+    if (contexte.dessine_arretes()) {
+        m_tampon_arrete->dessine(contexte);
+    }
 
-	if (contexte.dessine_normaux()) {
-		m_tampon_normal->dessine(contexte);
-	}
+    if (contexte.dessine_normaux()) {
+        m_tampon_normal->dessine(contexte);
+    }
 }
 
 dls::math::mat4x4d RenduMaillage::matrice() const
 {
-	return m_maillage->transformation().matrice();
+    return m_maillage->transformation().matrice();
 }
 
 Maillage *RenduMaillage::maillage() const
 {
-	return m_maillage;
+    return m_maillage;
 }
