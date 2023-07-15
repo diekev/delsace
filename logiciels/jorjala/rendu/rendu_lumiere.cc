@@ -26,7 +26,6 @@
 
 #include <numeric>
 
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/objet.h"
@@ -35,36 +34,20 @@ RenduLumiere::RenduLumiere(Lumiere const *lumiere) : m_lumiere(lumiere)
 {
 }
 
-RenduLumiere::~RenduLumiere()
-{
-    delete m_tampon;
-}
-
 void RenduLumiere::initialise()
 {
     if (m_tampon != nullptr) {
         return;
     }
 
-    m_tampon = new TamponRendu;
+    auto source = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                   "nuanceurs/simple.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return;
+    }
 
-    m_tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX,
-                                      dls::contenu_fichier("nuanceurs/simple.vert"));
-
-    m_tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT,
-                                      dls::contenu_fichier("nuanceurs/simple.frag"));
-
-    m_tampon->finalise_programme();
-
-    ParametresProgramme parametre_programme;
-    parametre_programme.ajoute_attribut("sommets");
-    parametre_programme.ajoute_attribut("normal");
-    parametre_programme.ajoute_uniforme("N");
-    parametre_programme.ajoute_uniforme("matrice");
-    parametre_programme.ajoute_uniforme("MVP");
-    parametre_programme.ajoute_uniforme("couleur");
-
-    m_tampon->parametres_programme(parametre_programme);
+    m_tampon = TamponRendu::crée_unique(source.value());
 
     auto programme = m_tampon->programme();
     programme->active();
@@ -101,18 +84,7 @@ void RenduLumiere::initialise()
     dls::tableau<unsigned int> indices(sommets.taille());
     std::iota(indices.debut(), indices.fin(), 0);
 
-    ParametresTampon parametres_tampon;
-    parametres_tampon.attribut = "sommets";
-    parametres_tampon.dimension_attribut = 3;
-    parametres_tampon.pointeur_sommets = sommets.donnees();
-    parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) *
-                                             sizeof(dls::math::vec3f);
-    parametres_tampon.pointeur_index = indices.donnees();
-    parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) *
-                                           sizeof(unsigned int);
-    parametres_tampon.elements = static_cast<size_t>(indices.taille());
-
-    m_tampon->remplie_tampon(parametres_tampon);
+    remplis_tampon_principal(m_tampon.get(), "sommets", sommets, indices);
 
     ParametresDessin parametres_dessin;
     parametres_dessin.type_dessin(GL_LINES);

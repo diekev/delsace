@@ -17,7 +17,7 @@ set(BIBLIOTHEQUES
     kuri_parsage
     kuri_representation_intermediaire
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    bib_outils
+    dls::outils
     systeme_fichier
 )
 

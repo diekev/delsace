@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
+#include "tableau.hh"
 
 namespace dls {
 

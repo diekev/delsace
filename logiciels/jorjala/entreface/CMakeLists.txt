@@ -37,7 +37,7 @@ set(BIBLIOTHEQUES
         ego
         bib_opengl
         bib_texture
-        bib_outils
+        dls::outils
         bib_patrons
         bib_vision
 #	jorjala_coeur
