@@ -2049,7 +2049,8 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* Crée la disjonction d'un drapeau avec la variable (a & ~DRAPEAU) */
     auto cree_disjonction_drapeau =
         [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
-            auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, ~valeur_enum);
+            auto valeur_lit_enum = assem->cree_litterale_entier(
+                lexeme, type_enum, ~uint64_t(valeur_enum));
             auto op = type_enum->operateur_etb;
             return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
         };

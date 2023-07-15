@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/opengl/tampon_rendu.h"
 
 struct Lumiere;
 
@@ -36,7 +37,7 @@ class TamponRendu;
  * scène 3D.
  */
 class RenduLumiere {
-    TamponRendu *m_tampon = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon = nullptr;
     Lumiere const *m_lumiere = nullptr;
 
   public:
@@ -47,12 +48,6 @@ class RenduLumiere {
 
     RenduLumiere(RenduLumiere const &) = delete;
     RenduLumiere &operator=(RenduLumiere const &) = delete;
-
-    /**
-     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-     * utiliser l'instance crashera le programme.
-     */
-    ~RenduLumiere();
 
     void initialise();
 
