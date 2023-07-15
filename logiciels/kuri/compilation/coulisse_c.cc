@@ -931,7 +931,11 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                         }
                         case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
                         {
-                            return enchaine(valeur_const->valeur.valeur_booleenne);
+                            /* Convertis vers une valeur entière pour éviter les problèmes
+                             * d'instantiation de templates (Enchaineuse ne gère pas les valeurs
+                             * booléennes, et si elle devait, elle imprimerait "vrai" ou "faux",
+                             * qui ne sont pas des identifiants valides en C). */
+                            return enchaine(valeur_const->valeur.valeur_booleenne ? 1 : 0);
                         }
                         case AtomeValeurConstante::Valeur::Genre::CARACTERE:
                         {
