@@ -51,7 +51,7 @@ set(REQUIERS_QT OFF)
 set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_OPENGL OFF)
 set(REQUIERS_BOOST ON)
-set(REQUIERS_DOCOPT OFF) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_DOCOPT OFF)
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
 set(REQUIERS_VORO OFF)
