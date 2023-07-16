@@ -59,7 +59,7 @@ class EditeurParametres final : public BaseEditrice {
 
     ~EditeurParametres() override;
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::type_evenement evenement) override;
 
     void ajourne_manipulable() override;
 };

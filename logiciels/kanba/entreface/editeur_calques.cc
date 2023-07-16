@@ -143,7 +143,7 @@ EditeurCalques::~EditeurCalques()
 {
 }
 
-void EditeurCalques::ajourne_etat(int evenement)
+void EditeurCalques::ajourne_état(KNB::type_evenement evenement)
 {
     auto maillage = m_kanba->maillage;
 

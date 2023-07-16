@@ -69,4 +69,6 @@ class FenetrePrincipale : public QMainWindow {
 
   private:
     void construit_interface_depuis_kanba();
+
+    bool eventFilter(QObject *object, QEvent *event);
 };

@@ -37,6 +37,7 @@
 
 #include "brosse.h"
 #include "cannevas_peinture.hh"
+#include "gestionnaire_fenetre.hh"
 #include "maillage.h"
 
 #include "commandes/commandes_calques.h"
@@ -61,6 +62,7 @@ Kanba::~Kanba()
     delete camera;
     delete repondant_commande;
     delete cannevas;
+    delete m_gestionnaire_fenêtre;
 }
 
 void Kanba::enregistre_commandes()
@@ -81,6 +83,12 @@ dls::chaine Kanba::requiers_dialogue(int type)
     return "";
 }
 
+void Kanba::installe_gestionnaire_fenêtre(GestionnaireFenetre *gestionnaire)
+{
+    delete m_gestionnaire_fenêtre;
+    m_gestionnaire_fenêtre = gestionnaire;
+}
+
 void Kanba::installe_maillage(Maillage *m)
 {
     if (maillage) {
@@ -91,16 +99,35 @@ void Kanba::installe_maillage(Maillage *m)
     maillage->cree_tampon(this);
 }
 
+void Kanba::notifie_observatrices(type_evenement type)
+{
+    if (!m_gestionnaire_fenêtre) {
+        return;
+    }
+
+    m_gestionnaire_fenêtre->notifie_observatrices(type);
+}
+
 /* ------------------------------------------------------------------------- */
-/** \name Interface pour l'interface graphique. À FAIRE.
+/** \name Interface pour l'interface graphique.
  * \{ */
 
 void Kanba::restaure_curseur_application()
 {
+    if (!m_gestionnaire_fenêtre) {
+        return;
+    }
+
+    m_gestionnaire_fenêtre->restaure_curseur();
 }
 
-void Kanba::change_curseur_application(KNB::TypeCurseur /*curseur*/)
+void Kanba::change_curseur_application(KNB::TypeCurseur curseur)
 {
+    if (!m_gestionnaire_fenêtre) {
+        return;
+    }
+
+    m_gestionnaire_fenêtre->change_curseur(curseur);
 }
 
 /** \} */

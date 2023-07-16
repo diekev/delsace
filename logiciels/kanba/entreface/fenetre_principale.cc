@@ -29,8 +29,12 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QCoreApplication>
+#include <QEvent>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QProgressBar>
 #include <QSplitter>
 #include <QStatusBar>
@@ -40,14 +44,121 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
+#include "coeur/gestionnaire_fenetre.hh"
 
 #include "vue_region.hh"
+
+/* ------------------------------------------------------------------------- */
+/** \name Évènement Kanba pour Qt.
+ * \{ */
+
+/* Sous-classe de QEvent pour ajouter les évnènements de Kanba à la boucle
+ * d'évènements de Qt. */
+class EvenementKanba : public QEvent {
+    KNB::type_evenement m_type;
+
+  public:
+    static QEvent::Type id_type_qt;
+
+    EvenementKanba(KNB::type_evenement type_evenenemt_kanba)
+        : QEvent(id_type_qt), m_type(type_evenenemt_kanba)
+    {
+    }
+
+    KNB::type_evenement pour_quoi() const
+    {
+        return m_type;
+    }
+};
+
+QEvent::Type EvenementKanba::id_type_qt;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Gestionnaire Fenêtre.
+ * \{ */
+
+static Qt::CursorShape convertis_type_curseur(KNB::TypeCurseur curseur)
+{
+    switch (curseur) {
+        case KNB::TypeCurseur::NORMAL:
+            return Qt::CursorShape::ArrowCursor;
+        case KNB::TypeCurseur::ATTENTE_BLOQUÉ:
+            return Qt::CursorShape::WaitCursor;
+        case KNB::TypeCurseur::TÂCHE_ARRIÈRE_PLAN_EN_COURS:
+            return Qt::CursorShape::BusyCursor;
+        case KNB::TypeCurseur::MAIN_OUVERTE:
+            return Qt::CursorShape::OpenHandCursor;
+        case KNB::TypeCurseur::MAIN_FERMÉE:
+            return Qt::CursorShape::ClosedHandCursor;
+    }
+
+    return Qt::CursorShape::ArrowCursor;
+}
+
+class GestionnaireInterface final : public KNB::GestionnaireFenetre {
+    FenetrePrincipale &m_fenêtre_principale;
+
+  public:
+    GestionnaireInterface(FenetrePrincipale &fenêtre_principale)
+        : KNB::GestionnaireFenetre(), m_fenêtre_principale(fenêtre_principale)
+    {
+    }
+
+    GestionnaireInterface(GestionnaireInterface const &) = delete;
+    GestionnaireInterface &operator=(GestionnaireInterface const &) = delete;
+
+    void notifie_observatrices(KNB::type_evenement evenement) override
+    {
+        auto event = new EvenementKanba(evenement);
+        QCoreApplication::postEvent(&m_fenêtre_principale, event);
+    }
+
+    void notifie_erreur(dls::chaine const &message) override
+    {
+        QMessageBox boite_message;
+        boite_message.critical(&m_fenêtre_principale, "Erreur", message.c_str());
+        boite_message.setFixedSize(500, 200);
+    }
+
+    void change_curseur(KNB::TypeCurseur curseur) override
+    {
+        QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
+    }
+
+    void restaure_curseur() override
+    {
+        QGuiApplication::restoreOverrideCursor();
+    }
+
+    void définit_titre_application(dls::chaine const &titre) override
+    {
+        m_fenêtre_principale.setWindowTitle(titre.c_str());
+    }
+
+    void définit_texte_état_logiciel(dls::chaine const & /*texte*/) override
+    {
+        // À FAIRE
+        // m_fenêtre_principale.définit_texte_état(texte.c_str());
+    }
+
+    bool demande_permission_avant_de_fermer() override
+    {
+        // À FAIRE
+        // return m_fenêtre_principale.demande_permission_avant_de_fermer();
+        return true;
+    }
+};
+
+/** \} */
 
 FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
 {
     m_kanba.fenetre_principale = this;
 
     m_kanba.enregistre_commandes();
+    m_kanba.installe_gestionnaire_fenêtre(new GestionnaireInterface(*this));
 
     m_progress_bar = new QProgressBar(this);
     statusBar()->addWidget(m_progress_bar);
@@ -84,6 +195,9 @@ FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
     action->setData("ajouter_sphere");
 
     connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+
+    /* Afin d'utiliser eventFilter pour filtrer les évènements de Kanba. */
+    qApp->installEventFilter(this);
 }
 
 static QLayout *qlayout_depuis_disposition(KNB::Disposition &disposition)
@@ -175,6 +289,26 @@ void FenetrePrincipale::construit_interface_depuis_kanba()
     setCentralWidget(qwidget);
 
     m_kanba.notifie_observatrices(KNB::type_evenement::rafraichissement);
+}
+
+bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
+{
+    if (event->type() != EvenementKanba::id_type_qt) {
+        return QWidget::eventFilter(object, event);
+    }
+
+    auto event_kanba = static_cast<EvenementKanba *>(event);
+
+    if (event_kanba->pour_quoi() == (KNB::type_evenement::projet | KNB::type_evenement::charge)) {
+        construit_interface_depuis_kanba();
+        return true;
+    }
+
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(event_kanba->pour_quoi());
+    }
+
+    return true;
 }
 
 void FenetrePrincipale::tache_commence()

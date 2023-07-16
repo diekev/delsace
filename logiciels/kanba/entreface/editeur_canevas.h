@@ -80,7 +80,7 @@ class EditriceCannevas2D : public BaseEditrice {
 
     EMPECHE_COPIE(EditriceCannevas2D);
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::type_evenement evenement) override;
 
     void resizeEvent(QResizeEvent *event) override;
 
@@ -129,7 +129,7 @@ class EditriceCannevas3D : public BaseEditrice {
 
     EMPECHE_COPIE(EditriceCannevas3D);
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::type_evenement evenement) override;
 
     void resizeEvent(QResizeEvent *event) override;
 

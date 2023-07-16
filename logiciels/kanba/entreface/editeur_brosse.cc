@@ -96,7 +96,7 @@ EditeurBrosse::~EditeurBrosse()
     delete m_scroll;
 }
 
-void EditeurBrosse::ajourne_etat(int evenement)
+void EditeurBrosse::ajourne_état(KNB::type_evenement evenement)
 {
     m_vue->ajourne_proprietes();
 

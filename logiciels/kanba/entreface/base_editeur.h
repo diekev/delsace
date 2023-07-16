@@ -27,18 +27,18 @@
 #include "danjo/conteneur_controles.h"
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/observation.hh"
 
 namespace KNB {
-class Kanba;
+enum class type_evenement : int;
 struct Kanba;
+}  // namespace KNB
 
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
 
-class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
+class BaseEditrice : public danjo::ConteneurControles {
     Q_OBJECT
 
   protected:
@@ -56,6 +56,8 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
 
     void actif(bool yesno);
     void rend_actif();
+
+    virtual void ajourne_état(KNB::type_evenement evenement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;

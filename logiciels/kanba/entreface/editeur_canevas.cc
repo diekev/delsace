@@ -117,7 +117,7 @@ EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent)
     m_agencement_principal->addWidget(m_vue);
 }
 
-void EditriceCannevas2D::ajourne_etat(int evenement)
+void EditriceCannevas2D::ajourne_état(KNB::type_evenement evenement)
 {
     if (evenement == (KNB::type_evenement::dessin | KNB::type_evenement::fini)) {
         m_vue->charge_image(m_kanba->tampon);
@@ -219,7 +219,7 @@ EditriceCannevas3D::EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent)
     m_agencement_principal->addWidget(m_vue);
 }
 
-void EditriceCannevas3D::ajourne_etat(int evenement)
+void EditriceCannevas3D::ajourne_état(KNB::type_evenement evenement)
 {
     m_vue->update();
 }

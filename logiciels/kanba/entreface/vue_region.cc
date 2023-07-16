@@ -107,7 +107,7 @@ void VueRegion::ajourne_éditrice_active(KNB::type_evenement évènement)
         return;
     }
 
-    éditrice->ajourne_etat(évènement);
+    éditrice->ajourne_état(évènement);
 }
 
 void VueRegion::ajoute_page_pour_éditrice(KNB::Éditrice &éditrice,

@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/patrons_conception/observation.hh"
 
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
@@ -45,8 +44,11 @@ class Camera3D;
 
 namespace KNB {
 
+enum class type_evenement : int;
+
 struct Brosse;
 class CannevasPeinture;
+class GestionnaireFenetre;
 class Maillage;
 
 enum class TypeCurseur : int32_t {
@@ -74,7 +76,7 @@ struct EntréeLog {
     dls::chaine texte{};
 };
 
-struct Kanba : public Sujette {
+struct Kanba {
     dls::math::matrice_dyn<dls::math::vec4f> tampon;
 
     /* Interface utilisateur. */
@@ -98,6 +100,8 @@ struct Kanba : public Sujette {
   private:
     InterfaceGraphique m_interface_graphique{};
 
+    GestionnaireFenetre *m_gestionnaire_fenêtre = nullptr;
+
   public:
     Kanba();
     ~Kanba();
@@ -109,7 +113,11 @@ struct Kanba : public Sujette {
 
     dls::chaine requiers_dialogue(int type);
 
+    void installe_gestionnaire_fenêtre(GestionnaireFenetre *gestionnaire);
+
     void installe_maillage(Maillage *m);
+
+    void notifie_observatrices(type_evenement type);
 
     const InterfaceGraphique &donne_interface_graphique() const
     {
