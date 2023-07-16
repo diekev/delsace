@@ -55,6 +55,7 @@ add_library(${NOM_CIBLE} STATIC
     outils.hh
     outils_couleur.h
     paqueuse_texture.h
+    sauvegarde.hh
 
     commandes/adaptrice_creation_maillage.cc
     commandes/commande_kanba.cc
@@ -74,6 +75,7 @@ add_library(${NOM_CIBLE} STATIC
     outils.cc
     outils_couleur.cc
     paqueuse_texture.cc
+    sauvegarde.cc
 )
 
 add_library(kanba::coeur ALIAS ${NOM_CIBLE})
