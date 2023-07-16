@@ -59,7 +59,6 @@ class FenetrePrincipale : public QMainWindow {
     void ajoute_editeur_proprietes();
 
   public Q_SLOTS:
-    void rendu_fini();
     void tache_commence();
     void tache_fini();
 

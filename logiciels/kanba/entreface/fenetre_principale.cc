@@ -157,12 +157,6 @@ void FenetrePrincipale::ajoute_visionneur_image()
     m_viewer_dock->show();
 }
 
-void FenetrePrincipale::rendu_fini()
-{
-    //	auto moteur_rendu = m_kanba.moteur_rendu;
-    //	moteur_rendu->notifie_observatrices(type_evenement::rendu | type_evenement::fini);
-}
-
 void FenetrePrincipale::tache_commence()
 {
     m_progress_bar->setValue(0);
