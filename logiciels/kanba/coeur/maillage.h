@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
-
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "calques.h"
 

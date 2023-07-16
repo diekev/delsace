@@ -21,47 +21,43 @@
 
 set(NOM_BIBLIOTHEQUE bib_patrons)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../logiciels/danjo/coeur/
-)
-
 set(BIBLIOTHEQUES
-	bib_structures
+    dls::structures
     pthread
 )
 
 set(ENTETES
-	commande.h
-	cowlockmap.h
+    commande.h
+    cowlockmap.h
     factory.h
-	loquets.hh
-	oberver.h
-	observation.hh
-	producers.h
-	repondant_commande.h
+    loquets.hh
+    oberver.h
+    observation.hh
+    producers.h
+    repondant_commande.h
     singleton.h
-	thread_shared_ptr.h
+    thread_shared_ptr.h
 )
 
 set(SOURCES
-	commande.cc
-	loquets.cc
+    commande.cc
+    loquets.cc
     oberver.cc
-	observation.cc
-	repondant_commande.cc
+    observation.cc
+    repondant_commande.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(dls::patrons_conception ALIAS ${NOM_BIBLIOTHEQUE})
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
 
 ################################################################################
 
 add_executable(patrons_conception main.cc)
 
-target_include_directories(patrons_conception PUBLIC ${INCLUSIONS})
+target_include_directories(patrons_conception PUBLIC .)
 
-target_link_libraries(patrons_conception "${BIBLIOTHEQUES}" bib_patrons)
+target_link_libraries(patrons_conception ${BIBLIOTHEQUES} bib_patrons)

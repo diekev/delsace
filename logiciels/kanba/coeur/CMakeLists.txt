@@ -21,60 +21,57 @@
 
 set(NOM_CIBLE kanba_coeur)
 
-set(INC_SYS
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_SYSFICHIER}
-        ${INCLUSIONS_QT_WIDGETS}
-)
-
 set(BIBLIOTHEQUES
-    ${BIBLIOTHEQUES_QT_WIDGETS}
-	math
-	image
-        dls::bruit
-	bib_patrons
-	bib_objets
-	bib_vision
-	bib_texture
+    PUBLIC dls::math
+    PUBLIC dls::structures
+    PUBLIC dls::patrons_conception
+    PUBLIC dls::outils
+
+    PRIVATE dls::bruit
+    PRIVATE dls::objets
+    PRIVATE dls::texture
+    PRIVATE dls::vision
+    PRIVATE ${BIBLIOTHEQUES_QT_WIDGETS}
 )
 
 add_compile_options(-fPIC)
 
 add_library(${NOM_CIBLE} STATIC
-	commandes/adaptrice_creation_maillage.h
-	commandes/commandes_calques.h
-	commandes/commandes_fichier.h
-	commandes/commandes_vue2d.h
-	commandes/commandes_vue3d.h
+    commandes/adaptrice_creation_maillage.h
+    commandes/commandes_calques.h
+    commandes/commandes_fichier.h
+    commandes/commandes_vue2d.h
+    commandes/commandes_vue3d.h
 
-	brosse.h
-	calques.h
-        cannevas_peinture.hh
-	evenement.h
-	kanba.h
-	maillage.h
-	melange.h
-	outils_couleur.h
-	paqueuse_texture.h
+    brosse.h
+    calques.h
+    cannevas_peinture.hh
+    evenement.h
+    kanba.h
+    maillage.h
+    melange.h
+    outils_couleur.h
+    paqueuse_texture.h
 
-	commandes/adaptrice_creation_maillage.cc
-	commandes/commandes_calques.cc
-	commandes/commandes_fichier.cc
-	commandes/commandes_vue2d.cc
-	commandes/commandes_vue3d.cc
+    commandes/adaptrice_creation_maillage.cc
+    commandes/commandes_calques.cc
+    commandes/commandes_fichier.cc
+    commandes/commandes_vue2d.cc
+    commandes/commandes_vue3d.cc
 
-	brosse.cc
-	calques.cc
-        cannevas_peinture.cc
-	evenement.cc
-	kanba.cc
-	maillage.cc
-	melange.cc
-	outils_couleur.cc
-	paqueuse_texture.cc
+    brosse.cc
+    calques.cc
+    cannevas_peinture.cc
+    evenement.cc
+    kanba.cc
+    maillage.cc
+    melange.cc
+    outils_couleur.cc
+    paqueuse_texture.cc
 )
 
-target_include_directories(${NOM_CIBLE} PUBLIC "${INC_SYS}")
+add_library(kanba::coeur ALIAS ${NOM_CIBLE})
+
+target_include_directories(${NOM_CIBLE} PUBLIC .)
 
 target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})

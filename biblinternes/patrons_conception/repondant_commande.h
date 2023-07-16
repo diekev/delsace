@@ -24,28 +24,30 @@
 
 #pragma once
 
-#include "danjo/repondant_bouton.h"
-
 #include <any>
+
 #include "biblinternes/structures/chaine.hh"
 
 class Commande;
 class DonneesCommande;
 class UsineCommande;
 
-class RepondantCommande : public danjo::RepondantBouton {
-	UsineCommande &m_usine_commande;
+class RepondantCommande {
+    UsineCommande *m_usine_commande = nullptr;
 	std::any m_pointeur = nullptr;
 
 	Commande *m_commande_modale = nullptr;
 
-
 public:
+    RepondantCommande() = default;
+
 	RepondantCommande(UsineCommande &usine_commande, std::any const &pointeur);
 
 	/* À FAIRE : considère l'utilisation de shared_ptr */
 	RepondantCommande(RepondantCommande const &) = delete;
 	RepondantCommande &operator=(RepondantCommande const &) = delete;
+
+    virtual ~RepondantCommande() = default;
 
 	bool appele_commande(dls::chaine const &categorie, DonneesCommande const &donnees_commande);
 
@@ -53,7 +55,7 @@ public:
 
     bool acheve_commande_modale(DonneesCommande const &donnees_commande);
 
-	bool evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+    virtual bool evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee);
 
-	void repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee) override;
+    virtual void repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee);
 };
