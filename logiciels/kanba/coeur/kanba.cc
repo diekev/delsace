@@ -51,6 +51,7 @@ Kanba::Kanba()
       repondant_commande(new RepondantCommande(usine_commande, this)), brosse(new Brosse()),
       camera(new vision::Camera3D(0, 0)), maillage(nullptr), cannevas(new CannevasPeinture(*this))
 {
+    InterfaceGraphique::initialise_interface_par_défaut(m_interface_graphique);
 }
 
 Kanba::~Kanba()

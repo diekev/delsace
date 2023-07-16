@@ -29,20 +29,19 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#include <QDockWidget>
+#include <QHBoxLayout>
 #include <QMenuBar>
 #include <QProgressBar>
+#include <QSplitter>
 #include <QStatusBar>
+#include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
 
-#include "editeur_brosse.h"
-#include "editeur_calques.h"
-#include "editeur_canevas.h"
-#include "editeur_parametres.h"
+#include "vue_region.hh"
 
 FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
 {
@@ -55,10 +54,7 @@ FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
     m_progress_bar->setRange(0, 100);
     m_progress_bar->setVisible(false);
 
-    ajoute_visionneur_image();
-    ajoute_editeur_proprietes();
-
-    setCentralWidget(nullptr);
+    construit_interface_depuis_kanba();
 
     auto menu = menuBar()->addMenu("Fichier");
     auto action = menu->addAction("Ouvrir projet");
@@ -90,71 +86,95 @@ FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
     connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 }
 
-FenetrePrincipale::~FenetrePrincipale()
+static QLayout *qlayout_depuis_disposition(KNB::Disposition &disposition)
 {
-    delete m_viewer_dock;
+    switch (disposition.donne_direction()) {
+        case KNB::DirectionDisposition::HORIZONTAL:
+        {
+            return new QHBoxLayout();
+        }
+        case KNB::DirectionDisposition::VERTICAL:
+        {
+            return new QVBoxLayout();
+        }
+    }
+    return nullptr;
 }
 
-void FenetrePrincipale::ajoute_editeur_proprietes()
+static Qt::Orientation donne_orientation_qsplitter_disposition(KNB::Disposition &disposition)
 {
-    /* Paramètres */
-
-    auto dock_parametres = new QDockWidget("Paramètres", this);
-    dock_parametres->setAttribute(Qt::WA_DeleteOnClose);
-
-    auto editeur_parametres = new EditeurParametres(&m_kanba, dock_parametres);
-    editeur_parametres->ajourne_etat(static_cast<KNB::type_evenement>(-1));
-
-    dock_parametres->setWidget(editeur_parametres);
-    dock_parametres->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-    addDockWidget(Qt::RightDockWidgetArea, dock_parametres);
-
-    /* Calques */
-
-    auto dock_calques = new QDockWidget("Calques", this);
-    dock_calques->setAttribute(Qt::WA_DeleteOnClose);
-
-    auto editeur_calques = new EditeurCalques(&m_kanba, dock_calques);
-    editeur_calques->ajourne_etat(static_cast<KNB::type_evenement>(-1));
-
-    dock_calques->setWidget(editeur_calques);
-    dock_calques->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-    addDockWidget(Qt::RightDockWidgetArea, dock_calques);
-
-    /* Brosse */
-
-    auto dock_brosse = new QDockWidget("Brosse", this);
-    dock_brosse->setAttribute(Qt::WA_DeleteOnClose);
-
-    auto editeur_brosse = new EditeurBrosse(&m_kanba, dock_brosse);
-    editeur_brosse->ajourne_etat(static_cast<KNB::type_evenement>(-1));
-
-    dock_brosse->setWidget(editeur_brosse);
-    dock_brosse->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-    addDockWidget(Qt::RightDockWidgetArea, dock_brosse);
-
-    tabifyDockWidget(dock_parametres, dock_calques);
-    tabifyDockWidget(dock_calques, dock_brosse);
+    switch (disposition.donne_direction()) {
+        case KNB::DirectionDisposition::HORIZONTAL:
+        {
+            return Qt::Horizontal;
+        }
+        case KNB::DirectionDisposition::VERTICAL:
+        {
+            return Qt::Vertical;
+        }
+    }
+    return Qt::Vertical;
 }
 
-void FenetrePrincipale::ajoute_visionneur_image()
+static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
+                                             KNB::Disposition &région,
+                                             QVector<VueRegion *> &régions);
+
+static void génère_interface_région(KNB::Kanba &kanba,
+                                    KNB::RégionInterface &région,
+                                    QSplitter *layout,
+                                    QVector<VueRegion *> &régions)
 {
-    /* À FAIRE: figure out a way to have multiple GL context. */
-    if (m_viewer_dock == nullptr) {
-        m_viewer_dock = new QDockWidget("Visionneur", this);
+    auto qwidget_région = new QWidget();
+    layout->addWidget(qwidget_région);
 
-        auto view_2d = new EditriceCannevas3D(m_kanba, m_viewer_dock);
+    auto qwidget_région_layout = new QVBoxLayout();
+    qwidget_région_layout->setMargin(0);
+    qwidget_région->setLayout(qwidget_région_layout);
 
-        m_viewer_dock->setWidget(view_2d);
-        m_viewer_dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    if (région.donne_type() == KNB::TypeRégion::CONTENEUR_ÉDITRICE) {
+        auto vue_région = new VueRegion(kanba, région, qwidget_région);
+        régions.append(vue_région);
+        qwidget_région_layout->addWidget(vue_région);
+    }
+    else {
+        auto widget = génère_interface_disposition(kanba, *région.donne_disposition(), régions);
+        qwidget_région_layout->addWidget(widget);
+    }
+}
 
-        addDockWidget(Qt::TopDockWidgetArea, m_viewer_dock);
+static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
+                                             KNB::Disposition &disposition,
+                                             QVector<VueRegion *> &régions)
+{
+    auto qsplitter = new QSplitter();
+    qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
+
+    for (auto région : disposition.donne_régions()) {
+        génère_interface_région(kanba, *région, qsplitter, régions);
     }
 
-    m_viewer_dock->show();
+    auto qlayout = qlayout_depuis_disposition(disposition);
+    qlayout->setMargin(0);
+    qlayout->addWidget(qsplitter);
+
+    auto qwidget = new QWidget();
+    qwidget->setLayout(qlayout);
+
+    return qwidget;
+}
+
+void FenetrePrincipale::construit_interface_depuis_kanba()
+{
+    auto &interface = m_kanba.donne_interface_graphique();
+    m_régions.clear();
+
+    auto disposition = interface.donne_disposition();
+
+    auto qwidget = génère_interface_disposition(m_kanba, *disposition, m_régions);
+    setCentralWidget(qwidget);
+
+    m_kanba.notifie_observatrices(KNB::type_evenement::rafraichissement);
 }
 
 void FenetrePrincipale::tache_commence()

@@ -30,6 +30,8 @@
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
+#include "interface_graphique.hh"
+
 class BaseEditrice;
 class FenetrePrincipale;
 class RepondantCommande;
@@ -93,6 +95,10 @@ struct Kanba : public Sujette {
 
     dls::tableau<EntréeLog> entrées_log{};
 
+  private:
+    InterfaceGraphique m_interface_graphique{};
+
+  public:
     Kanba();
     ~Kanba();
 
@@ -104,6 +110,11 @@ struct Kanba : public Sujette {
     dls::chaine requiers_dialogue(int type);
 
     void installe_maillage(Maillage *m);
+
+    const InterfaceGraphique &donne_interface_graphique() const
+    {
+        return m_interface_graphique;
+    }
 
     /* Interface pour l'interface graphique. À FAIRE. */
 

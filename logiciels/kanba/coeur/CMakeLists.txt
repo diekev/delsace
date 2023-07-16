@@ -48,9 +48,11 @@ add_library(${NOM_CIBLE} STATIC
     calques.h
     cannevas_peinture.hh
     evenement.h
+    interface_graphique.hh
     kanba.h
     maillage.h
     melange.h
+    outils.hh
     outils_couleur.h
     paqueuse_texture.h
 
@@ -65,9 +67,11 @@ add_library(${NOM_CIBLE} STATIC
     calques.cc
     cannevas_peinture.cc
     evenement.cc
+    interface_graphique.cc
     kanba.cc
     maillage.cc
     melange.cc
+    outils.cc
     outils_couleur.cc
     paqueuse_texture.cc
 )
