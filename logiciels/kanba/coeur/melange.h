@@ -27,7 +27,7 @@
 #include "biblinternes/math/vecteur.hh"
 
 namespace dls {
-class chaine;
+struct chaine;
 }
 
 namespace KNB {

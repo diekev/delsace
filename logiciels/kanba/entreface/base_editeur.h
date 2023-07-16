@@ -31,7 +31,7 @@
 
 namespace KNB {
 class Kanba;
-}
+struct Kanba;
 
 class QFrame;
 class QHBoxLayout;

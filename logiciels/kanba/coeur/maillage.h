@@ -32,7 +32,7 @@
 
 namespace KNB {
 
-class Kanba;
+struct Kanba;
 
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.

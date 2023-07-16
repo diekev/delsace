@@ -29,7 +29,7 @@
 
 namespace KNB {
 
-class Kanba;
+struct Kanba;
 class Maillage;
 struct Polygone;
 

@@ -9,7 +9,7 @@ class chaine;
 
 namespace KNB {
 
-class Kanba;
+struct Kanba;
 
 void écris_projet(Kanba &kanba, dls::chaine const &chemin_projet);
 

@@ -30,7 +30,7 @@
 
 namespace KNB {
 
-enum type_evenement : int {
+enum class type_evenement : int {
     /* Category. */
     dessin = (1 << 0),
     calque = (2 << 0),

@@ -34,7 +34,7 @@
 #include "biblinternes/math/vecteur.hh"
 
 namespace KNB {
-class Kanba;
+struct Kanba;
 }
 
 class VueCanevas2D;

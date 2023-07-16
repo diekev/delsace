@@ -9,7 +9,7 @@
 
 namespace KNB {
 
-class Kanba;
+struct Kanba;
 
 /* ------------------------------------------------------------------------- */
 /** \name Cannevas Peinture

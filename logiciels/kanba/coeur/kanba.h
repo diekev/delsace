@@ -45,7 +45,7 @@ class Camera3D;
 
 namespace KNB {
 
-class Brosse;
+struct Brosse;
 class CannevasPeinture;
 class Maillage;
 

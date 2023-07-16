@@ -35,7 +35,7 @@ class Camera3D;
 }  // namespace vision
 
 namespace KNB {
-class Kanba;
+struct Kanba;
 }
 
 class RenduBrosse;
