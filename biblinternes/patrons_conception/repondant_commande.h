@@ -29,7 +29,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 class Commande;
-class DonneesCommande;
+struct DonneesCommande;
 class UsineCommande;
 
 class RepondantCommande {
