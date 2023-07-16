@@ -44,6 +44,8 @@
 #include "commandes/commandes_vue2d.h"
 #include "commandes/commandes_vue3d.h"
 
+namespace KNB {
+
 Kanba::Kanba()
     : tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920)), usine_commande{},
       repondant_commande(new RepondantCommande(usine_commande, this)), brosse(new Brosse()),
@@ -88,6 +90,38 @@ void Kanba::installe_maillage(Maillage *m)
     maillage->cree_tampon(this);
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Interface pour l'interface graphique. À FAIRE.
+ * \{ */
+
+void Kanba::restaure_curseur_application()
+{
+}
+
+void Kanba::change_curseur_application(KNB::TypeCurseur /*curseur*/)
+{
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Interface pour l'historique. À FAIRE.
+ * \{ */
+
+void Kanba::prépare_pour_changement(dls::chaine const & /*identifiant*/)
+{
+}
+
+void Kanba::soumets_changement()
+{
+}
+
+void Kanba::annule_changement()
+{
+}
+
+/** \} */
+
 static const char *chaine_type_entrée_log[] = {
     "Générale", "Image", "Rendu", "Maillage", "Empaquetage"};
 
@@ -101,3 +135,5 @@ void Kanba::ajoute_log_impl(EntréeLog::Type type, const dls::chaine &texte)
     entrées_log.ajoute({type, texte});
     std::cout << "[" << chaine_type_entrée_log[type] << "] " << texte << std::endl;
 }
+
+}  // namespace KNB

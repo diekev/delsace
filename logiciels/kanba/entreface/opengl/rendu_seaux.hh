@@ -6,9 +6,12 @@
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/definitions.h"
 
+namespace KNB {
+class Kanba;
+}
+
 class ContexteRendu;
 class TamponRendu;
-class Kanba;
 
 /* ------------------------------------------------------------------------- */
 /** \name RenduSeaux
@@ -16,12 +19,12 @@ class Kanba;
 
 class RenduSeaux {
     std::unique_ptr<TamponRendu> m_tampon = nullptr;
-    Kanba *m_kanba = nullptr;
+    KNB::Kanba *m_kanba = nullptr;
 
     int m_id_cannevas = -1;
 
   public:
-    explicit RenduSeaux(Kanba *kanba);
+    explicit RenduSeaux(KNB::Kanba *kanba);
 
     EMPECHE_COPIE(RenduSeaux);
 

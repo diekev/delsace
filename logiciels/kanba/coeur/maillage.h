@@ -30,6 +30,8 @@
 
 #include "calques.h"
 
+namespace KNB {
+
 class Kanba;
 
 /**
@@ -249,3 +251,5 @@ class Maillage {
      */
     void nom(dls::chaine const &nom);
 };
+
+}  // namespace KNB

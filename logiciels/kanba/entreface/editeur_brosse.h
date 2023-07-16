@@ -28,15 +28,14 @@
 
 #include "base_editeur.h"
 
-class Kanba;
 class QGridLayout;
 class QScrollArea;
 
 class VueBrosse : public danjo::Manipulable {
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
 
   public:
-    explicit VueBrosse(Kanba *kanba);
+    explicit VueBrosse(KNB::Kanba *kanba);
 
     VueBrosse(VueBrosse const &) = default;
     VueBrosse &operator=(VueBrosse const &) = default;
@@ -57,7 +56,7 @@ class EditeurBrosse final : public BaseEditrice {
     QVBoxLayout *m_glayout;
 
   public:
-    EditeurBrosse(Kanba *kanba, QWidget *parent = nullptr);
+    EditeurBrosse(KNB::Kanba *kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurBrosse);
 

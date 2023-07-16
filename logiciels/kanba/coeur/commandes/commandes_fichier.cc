@@ -27,9 +27,9 @@
 #include <fstream>
 
 #include "biblinternes/objets/import_objet.h"
-#include "biblinternes/patrons_conception/commande.h"
 
 #include "adaptrice_creation_maillage.h"
+#include "commande_kanba.hh"
 
 #include "../brosse.h"
 #include "../evenement.h"
@@ -38,32 +38,37 @@
 
 /* ************************************************************************** */
 
-class CommandeOuvrirFichier : public Commande {
-  public:
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+class CommandeOuvrirFichier : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        auto const chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        auto const chemin_projet = kanba.requiers_dialogue(KNB::FICHIER_OUVERTURE);
 
         if (chemin_projet.est_vide()) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        Maillage *maillage = new Maillage();
+        KNB::Maillage *maillage = new KNB::Maillage();
 
         AdaptriceCreationMaillage adaptrice;
         adaptrice.maillage = maillage;
 
         objets::charge_fichier_OBJ(&adaptrice, chemin_projet);
 
-        kanba->installe_maillage(maillage);
-        kanba->notifie_observatrices(static_cast<type_evenement>(-1));
+        kanba.installe_maillage(maillage);
+        kanba.notifie_observatrices(static_cast<KNB::type_evenement>(-1));
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
 
 /* ************************************************************************** */
+
+namespace KNB {
 
 template <typename T>
 void ecris_fichier(std::ofstream &fichier, T valeur)
@@ -446,11 +451,16 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
     }
 }
 
-class CommandeOuvrirProjet : public Commande {
-  public:
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+}  // namespace KNB
+
+class CommandeOuvrirProjet : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
         auto const chemin_projet =
             "/home/kevin/test.cnvs";  // kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
@@ -465,24 +475,24 @@ class CommandeOuvrirProjet : public Commande {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        if (!lis_nombre_magic(fichier)) {
+        if (!KNB::lis_nombre_magic(fichier)) {
             std::cerr << "Le fichier ne contient pas de nombre magique valide !\n";
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        if (!lis_projet(fichier)) {
+        if (!KNB::lis_projet(fichier)) {
             std::cerr << "Le fichier ne contient pas de projet valide !\n";
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        Brosse brosse;
+        KNB::Brosse brosse;
 
         if (!lis_brosse(fichier, &brosse)) {
             std::cerr << "Le fichier ne contient pas de brosse valide !\n";
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        Maillage *maillage = new Maillage;
+        KNB::Maillage *maillage = new KNB::Maillage;
 
         if (!lis_maillage(fichier, maillage)) {
             std::cerr << "Le fichier ne contient pas de maillage valide !\n";
@@ -494,16 +504,12 @@ class CommandeOuvrirProjet : public Commande {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        if (kanba->maillage) {
-            delete kanba->maillage;
-        }
-
-        kanba->maillage = maillage;
-        *kanba->brosse = brosse;
+        kanba.installe_maillage(maillage);
+        *kanba.brosse = brosse;
 
         fusionne_calques(maillage->canaux_texture());
 
-        kanba->notifie_observatrices(type_evenement::projet | type_evenement::charge);
+        kanba.notifie_observatrices(KNB::type_evenement::projet | KNB::type_evenement::charge);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -511,13 +517,15 @@ class CommandeOuvrirProjet : public Commande {
 
 /* ************************************************************************** */
 
-class CommandeSauvegarderProjet : public Commande {
-  public:
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+class CommandeSauvegarderProjet : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
+        return ModeInsertionHistorique::IGNORE;
+    }
 
-        if (kanba->maillage == nullptr) {
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        if (kanba.maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
@@ -531,11 +539,11 @@ class CommandeSauvegarderProjet : public Commande {
         std::ofstream fichier;
         fichier.open(chemin_projet, std::ios_base::binary);
 
-        ecris_nombre_magique(fichier);
-        ecris_projet(fichier);
-        ecris_brosse(fichier, kanba->brosse);
-        ecris_maillage(fichier, kanba->maillage);
-        ecris_canaux(fichier, kanba->maillage->canaux_texture());
+        KNB::ecris_nombre_magique(fichier);
+        KNB::ecris_projet(fichier);
+        KNB::ecris_brosse(fichier, kanba.brosse);
+        KNB::ecris_maillage(fichier, kanba.maillage);
+        KNB::ecris_canaux(fichier, kanba.maillage->canaux_texture());
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

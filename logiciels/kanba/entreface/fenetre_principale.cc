@@ -103,7 +103,7 @@ void FenetrePrincipale::ajoute_editeur_proprietes()
     dock_parametres->setAttribute(Qt::WA_DeleteOnClose);
 
     auto editeur_parametres = new EditeurParametres(&m_kanba, dock_parametres);
-    editeur_parametres->ajourne_etat(static_cast<type_evenement>(-1));
+    editeur_parametres->ajourne_etat(static_cast<KNB::type_evenement>(-1));
 
     dock_parametres->setWidget(editeur_parametres);
     dock_parametres->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -116,7 +116,7 @@ void FenetrePrincipale::ajoute_editeur_proprietes()
     dock_calques->setAttribute(Qt::WA_DeleteOnClose);
 
     auto editeur_calques = new EditeurCalques(&m_kanba, dock_calques);
-    editeur_calques->ajourne_etat(static_cast<type_evenement>(-1));
+    editeur_calques->ajourne_etat(static_cast<KNB::type_evenement>(-1));
 
     dock_calques->setWidget(editeur_calques);
     dock_calques->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -129,7 +129,7 @@ void FenetrePrincipale::ajoute_editeur_proprietes()
     dock_brosse->setAttribute(Qt::WA_DeleteOnClose);
 
     auto editeur_brosse = new EditeurBrosse(&m_kanba, dock_brosse);
-    editeur_brosse->ajourne_etat(static_cast<type_evenement>(-1));
+    editeur_brosse->ajourne_etat(static_cast<KNB::type_evenement>(-1));
 
     dock_brosse->setWidget(editeur_brosse);
     dock_brosse->setAllowedAreas(Qt::AllDockWidgetAreas);
@@ -174,7 +174,7 @@ void FenetrePrincipale::progres_temps(int echantillon,
                                       float temps_restant)
 {
     //	auto moteur_rendu = m_kanba.moteur_rendu;
-    //	moteur_rendu->notifie_observatrices(type_evenement::rafraichissement);
+    //	moteur_rendu->notifie_observatrices(KNB::type_evenement::rafraichissement);
 }
 
 void FenetrePrincipale::tache_fini()

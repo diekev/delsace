@@ -47,7 +47,7 @@ class FenetrePrincipale : public QMainWindow {
 
     QProgressBar *m_progress_bar{};
 
-    Kanba m_kanba{};
+    KNB::Kanba m_kanba{};
 
   public:
     explicit FenetrePrincipale(QWidget *parent = nullptr);

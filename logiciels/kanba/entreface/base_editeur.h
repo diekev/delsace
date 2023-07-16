@@ -29,7 +29,10 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/observation.hh"
 
+namespace KNB {
 class Kanba;
+}
+
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
@@ -39,7 +42,7 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
     Q_OBJECT
 
   protected:
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
     QFrame *m_cadre;
     QVBoxLayout *m_agencement;
     QHBoxLayout *m_agencement_principal{};
@@ -47,7 +50,7 @@ class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
     const char *m_identifiant = "";
 
   public:
-    explicit BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent = nullptr);
+    explicit BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(BaseEditrice);
 

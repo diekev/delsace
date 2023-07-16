@@ -49,7 +49,7 @@ class VueCanevas2D : public QGLWidget {
     VisionneurImage *m_visionneur_image;
 
   public:
-    explicit VueCanevas2D(Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas2D(KNB::Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas2D() override;
 
     EMPECHE_COPIE(VueCanevas2D);
@@ -76,7 +76,7 @@ class EditriceCannevas2D : public BaseEditrice {
     VueCanevas2D *m_vue;
 
   public:
-    explicit EditriceCannevas2D(Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas2D);
 
@@ -99,7 +99,7 @@ class VueCanevas3D : public QGLWidget {
     VisionneurScene *m_visionneur_scene;
 
   public:
-    explicit VueCanevas3D(Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas3D(KNB::Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas3D() override;
 
     EMPECHE_COPIE(VueCanevas3D);
@@ -125,7 +125,7 @@ class EditriceCannevas3D : public BaseEditrice {
     VueCanevas3D *m_vue;
 
   public:
-    explicit EditriceCannevas3D(Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas3D);
 

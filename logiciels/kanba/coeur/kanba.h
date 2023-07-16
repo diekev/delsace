@@ -31,10 +31,7 @@
 #include "biblinternes/math/vecteur.hh"
 
 class BaseEditrice;
-class Brosse;
-class CannevasPeinture;
 class FenetrePrincipale;
-class Maillage;
 class RepondantCommande;
 class UsineCommande;
 
@@ -43,6 +40,20 @@ namespace vision {
 class Camera3D;
 
 } /* namespace vision */
+
+namespace KNB {
+
+class Brosse;
+class CannevasPeinture;
+class Maillage;
+
+enum class TypeCurseur : int32_t {
+    NORMAL = 0,
+    ATTENTE_BLOQUÉ = 1,
+    TÂCHE_ARRIÈRE_PLAN_EN_COURS = 2,
+    MAIN_OUVERTE = 3,
+    MAIN_FERMÉE = 4,
+};
 
 enum {
     FICHIER_OUVERTURE,
@@ -94,6 +105,19 @@ struct Kanba : public Sujette {
 
     void installe_maillage(Maillage *m);
 
+    /* Interface pour l'interface graphique. À FAIRE. */
+
+    void restaure_curseur_application();
+    void change_curseur_application(KNB::TypeCurseur curseur);
+
+    /* Interface pour l'historique. À FAIRE. */
+
+    void prépare_pour_changement(dls::chaine const &identifiant);
+    void soumets_changement();
+    void annule_changement();
+
+    /* Interface pour les logs. */
+
     template <typename... Args>
     void ajoute_log(EntréeLog::Type type, Args... args)
     {
@@ -108,3 +132,5 @@ struct Kanba : public Sujette {
   private:
     void ajoute_log_impl(EntréeLog::Type type, dls::chaine const &texte);
 };
+
+}  // namespace KNB

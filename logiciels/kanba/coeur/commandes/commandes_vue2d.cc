@@ -34,7 +34,7 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_kanba.hh"
 
 #include "../evenement.h"
 #include "../kanba.h"
@@ -50,18 +50,18 @@ T distance_carree(T x1, T y1, T x2, T y2)
     return x * x + y * y;
 }
 
-class CommandePeinture2D : public Commande {
-  public:
-    CommandePeinture2D() = default;
+class CommandePeinture2D : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
 #if 0
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
-
-        auto kanba = std::any_cast<Kanba *>(pointeur);
 
         auto const rayon_brosse = 10;
         auto const rayon_carre = rayon_brosse * rayon_brosse;
@@ -72,11 +72,11 @@ class CommandePeinture2D : public Commande {
                 auto const x = int(donnees.x) + i;
                 auto const y = int(donnees.y) + j;
 
-                if (x < 0 || x >= kanba->tampon.nombre_colonnes()) {
+                if (x < 0 || x >= kanba.tampon.nombre_colonnes()) {
                     continue;
                 }
 
-                if (y < 0 || y >= kanba->tampon.nombre_lignes()) {
+                if (y < 0 || y >= kanba.tampon.nombre_lignes()) {
                     continue;
                 }
 
@@ -84,25 +84,23 @@ class CommandePeinture2D : public Commande {
                     continue;
                 }
 
-                kanba->tampon[y][x] = couleur_brosse;
+                kanba.tampon[y][x] = couleur_brosse;
             }
         }
 
-        kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
+        kanba.notifie_observatrices(KNB::type_evenement::dessin | KNB::type_evenement::fini);
 
         return EXECUTION_COMMANDE_MODALE;
     }
 
-    void ajourne_execution_modale(std::any const &pointeur,
-                                  DonneesCommande const &donnees) override
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        execute(pointeur, donnees);
+        execute_kanba(kanba, donnees);
     }
 
-    void termine_execution_modale(std::any const &pointeur,
-                                  DonneesCommande const &donnees) override
+    void termine_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        execute(pointeur, donnees);
+        execute_kanba(kanba, donnees);
     }
 };
 

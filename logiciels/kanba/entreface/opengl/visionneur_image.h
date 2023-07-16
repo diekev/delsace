@@ -33,7 +33,10 @@
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
+namespace KNB {
 class Kanba;
+}
+
 class VueCanevas2D;
 
 /**
@@ -54,7 +57,7 @@ class VisionneurImage {
     int m_hauteur = 0;
     int m_largeur = 0;
 
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
 
   public:
     /**
@@ -67,7 +70,7 @@ class VisionneurImage {
     /**
      * Construit un visionneur avec un pointeur vers le VueCanevas parent.
      */
-    explicit VisionneurImage(VueCanevas2D *parent, Kanba *kanba);
+    explicit VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba);
 
     /**
      * Détruit le visionneur image. Les tampons de rendus sont détruits, et

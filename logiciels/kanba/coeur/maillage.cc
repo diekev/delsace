@@ -33,6 +33,8 @@
 #include "outils_couleur.h"
 #include "paqueuse_texture.h"
 
+namespace KNB {
+
 /* ************************************************************************** */
 
 static unsigned int prochain_multiple_de_2(unsigned int v)
@@ -539,3 +541,5 @@ Polygone *Maillage::polygone(long i)
 {
     return m_polys[i];
 }
+
+}  // namespace KNB

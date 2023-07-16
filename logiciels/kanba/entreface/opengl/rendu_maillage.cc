@@ -97,7 +97,7 @@ static std::unique_ptr<TamponRendu> cree_tampon_arrete()
     return tampon;
 }
 
-static std::unique_ptr<TamponRendu> genere_tampon_arrete(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage *maillage)
 {
     auto const nombre_arretes = maillage->nombre_arretes();
     auto const nombre_elements = nombre_arretes * 2;
@@ -149,7 +149,7 @@ static std::unique_ptr<TamponRendu> cree_tampon_normal()
     return tampon;
 }
 
-static std::unique_ptr<TamponRendu> genere_tampon_normal(Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage *maillage)
 {
     auto const nombre_polygones = maillage->nombre_polygones();
     auto const nombre_elements = nombre_polygones * 2;
@@ -235,7 +235,7 @@ static std::unique_ptr<TamponRendu> creer_tampon()
     return tampon;
 }
 
-static TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &id_polys)
+static TamponRendu *genere_tampon(KNB::Maillage *maillage, dls::tableau<uint> const &id_polys)
 {
     auto nombre_elements = id_polys.taille() * 6;
     auto tampon = creer_tampon().release();
@@ -302,7 +302,7 @@ static TamponRendu *genere_tampon(Maillage *maillage, dls::tableau<uint> const &
 
 /* ************************************************************************** */
 
-RenduMaillage::RenduMaillage(Maillage *maillage) : m_maillage(maillage)
+RenduMaillage::RenduMaillage(KNB::Maillage *maillage) : m_maillage(maillage)
 {
 }
 
@@ -498,7 +498,7 @@ dls::math::mat4x4d RenduMaillage::matrice() const
     return m_maillage->transformation().matrice();
 }
 
-Maillage *RenduMaillage::maillage() const
+KNB::Maillage *RenduMaillage::maillage() const
 {
     return m_maillage;
 }

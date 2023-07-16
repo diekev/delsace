@@ -38,6 +38,7 @@ add_compile_options(-fPIC)
 
 add_library(${NOM_CIBLE} STATIC
     commandes/adaptrice_creation_maillage.h
+    commandes/commande_kanba.hh
     commandes/commandes_calques.h
     commandes/commandes_fichier.h
     commandes/commandes_vue2d.h
@@ -54,6 +55,7 @@ add_library(${NOM_CIBLE} STATIC
     paqueuse_texture.h
 
     commandes/adaptrice_creation_maillage.cc
+    commandes/commande_kanba.cc
     commandes/commandes_calques.cc
     commandes/commandes_fichier.cc
     commandes/commandes_vue2d.cc

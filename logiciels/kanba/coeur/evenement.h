@@ -28,6 +28,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+namespace KNB {
+
 enum type_evenement : int {
     /* Category. */
     dessin = (1 << 0),
@@ -98,3 +100,5 @@ std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os,
 
     return os;
 }
+
+}  // namespace KNB

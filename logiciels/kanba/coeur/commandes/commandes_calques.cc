@@ -24,7 +24,7 @@
 
 #include "commandes_calques.h"
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_kanba.hh"
 
 #include "../evenement.h"
 #include "../kanba.h"
@@ -32,12 +32,15 @@
 
 /* ************************************************************************** */
 
-class CommandeAjouterCalque : public Commande {
-  public:
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+class CommandeAjouterCalque : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        auto maillage = kanba->maillage;
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        auto maillage = kanba.maillage;
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -45,9 +48,9 @@ class CommandeAjouterCalque : public Commande {
 
         auto &canaux = maillage->canaux_texture();
 
-        ajoute_calque(canaux, TypeCanal::DIFFUSION);
+        ajoute_calque(canaux, KNB::TypeCanal::DIFFUSION);
 
-        kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
+        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::ajoute);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -55,12 +58,15 @@ class CommandeAjouterCalque : public Commande {
 
 /* ************************************************************************** */
 
-class CommandeSupprimerCalque : public Commande {
-  public:
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+class CommandeSupprimerCalque : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        auto maillage = kanba->maillage;
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        auto maillage = kanba.maillage;
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -80,7 +86,7 @@ class CommandeSupprimerCalque : public Commande {
 
         maillage->marque_texture_surrannee(true);
 
-        kanba->notifie_observatrices(type_evenement::calque | type_evenement::supprime);
+        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::supprime);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

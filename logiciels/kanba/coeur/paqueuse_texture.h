@@ -27,6 +27,8 @@
 #include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau.hh"
 
+namespace KNB {
+
 class Kanba;
 class Maillage;
 struct Polygone;
@@ -135,3 +137,5 @@ struct TailleDisposition {
 TailleDisposition empaquete_version_bin_packing(Kanba *kanba, Maillage *maillage);
 
 TailleDisposition empaquete_version_nb(Kanba *kanba, Maillage *maillage);
+
+}  // namespace KNB

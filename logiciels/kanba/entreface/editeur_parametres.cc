@@ -37,7 +37,7 @@
 
 /* ************************************************************************** */
 
-VueParametres::VueParametres(Kanba *kanba) : m_kanba(kanba)
+VueParametres::VueParametres(KNB::Kanba *kanba) : m_kanba(kanba)
 {
 }
 
@@ -52,7 +52,7 @@ bool VueParametres::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurParametres::EditeurParametres(Kanba *kanba, QWidget *parent)
+EditeurParametres::EditeurParametres(KNB::Kanba *kanba, QWidget *parent)
     : BaseEditrice("paramètres", *kanba, parent), m_vue(new VueParametres(kanba)),
       m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {

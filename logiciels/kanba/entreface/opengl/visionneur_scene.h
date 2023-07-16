@@ -34,7 +34,10 @@ class Camera3D;
 
 }  // namespace vision
 
+namespace KNB {
 class Kanba;
+}
+
 class RenduBrosse;
 class RenduGrille;
 class RenduMaillage;
@@ -48,7 +51,7 @@ class VueCanevas3D;
  */
 class VisionneurScene {
     VueCanevas3D *m_parent;
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
 
     vision::Camera3D *m_camera;
     RenduBrosse *m_rendu_brosse;
@@ -76,7 +79,7 @@ class VisionneurScene {
      * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
      * pointeur vers l'instance de Kanba du programme en cours.
      */
-    VisionneurScene(VueCanevas3D *parent, Kanba *kanba);
+    VisionneurScene(VueCanevas3D *parent, KNB::Kanba *kanba);
 
     /**
      * Empêche la copie d'un visionneur.

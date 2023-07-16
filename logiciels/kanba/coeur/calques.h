@@ -29,6 +29,8 @@
 
 #include "melange.h"
 
+namespace KNB {
+
 enum TypeDonnees {
     SCALAIRE = 0,
     COULEUR = 1,
@@ -111,3 +113,5 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);
 void supprime_calque(CanauxTexture &canaux, Calque *calque);
 
 void fusionne_calques(CanauxTexture &canaux);
+
+}  // namespace KNB

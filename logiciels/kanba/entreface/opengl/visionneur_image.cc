@@ -64,7 +64,7 @@ static void generate_texture(dls::ego::Texture2D::Ptr &texture, const float *dat
 
 /* ************************************************************************** */
 
-VisionneurImage::VisionneurImage(VueCanevas2D *parent, Kanba *kanba)
+VisionneurImage::VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba)
     : m_parent(parent), m_buffer(nullptr), m_texture(nullptr), m_kanba(kanba)
 {
 }
