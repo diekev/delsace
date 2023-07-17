@@ -28,6 +28,8 @@
 
 #include "biblinternes/math/vecteur.hh"
 
+namespace KNB {
+
 struct Brosse {
     dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
     float opacite = 1.0f;
@@ -37,3 +39,5 @@ struct Brosse {
 
     Brosse() = default;
 };
+
+}  // namespace KNB

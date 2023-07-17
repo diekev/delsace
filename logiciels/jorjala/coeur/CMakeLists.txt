@@ -30,12 +30,12 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
         dls::outils
-	bib_patrons
-	bib_vision
+        dls::patrons_conception
+        dls::vision
         # bib_xml
         dls::structures
 	danjo
-	image
+        dls::image
         dls::memoire
         jorjala_commandes
         # jorjala_corps

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../math/concepts.hh"
+#include "biblinternes/math/concepts.hh"
 
 #include <cassert>
 

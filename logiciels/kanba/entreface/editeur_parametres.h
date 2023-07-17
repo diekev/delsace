@@ -28,15 +28,14 @@
 
 #include "base_editeur.h"
 
-class Kanba;
 class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
 
   public:
-    explicit VueParametres(Kanba *kanba);
+    explicit VueParametres(KNB::Kanba *kanba);
 
     EMPECHE_COPIE(VueParametres);
 
@@ -54,13 +53,13 @@ class EditeurParametres final : public BaseEditrice {
     QGridLayout *m_glayout;
 
   public:
-    EditeurParametres(Kanba *kanba, QWidget *parent = nullptr);
+    EditeurParametres(KNB::Kanba *kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurParametres);
 
     ~EditeurParametres() override;
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::TypeÉvènement evenement) override;
 
     void ajourne_manipulable() override;
 };
