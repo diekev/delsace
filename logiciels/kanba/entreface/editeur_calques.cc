@@ -52,6 +52,34 @@ enum {
     NOMBRE_COLONNES,
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name Boîte à cocher item calque.
+ * \{ */
+
+BoiteACocherItem::BoiteACocherItem(const ArgumentCréationItem &args, int drapeaux, QWidget *parent)
+    : QCheckBox(parent), m_kanba(args.kanba), m_calque(args.calque), m_drapeaux(drapeaux)
+{
+    setChecked((m_calque->drapeaux & m_drapeaux) != 0);
+
+    connect(this, &BoiteACocherItem::stateChanged, this, &BoiteACocherItem::ajourne_etat_calque);
+}
+
+void BoiteACocherItem::ajourne_etat_calque(int state)
+{
+    if (state == Qt::CheckState::Checked) {
+        m_calque->drapeaux |= m_drapeaux;
+    }
+    else {
+        m_calque->drapeaux &= ~m_drapeaux;
+    }
+
+    auto maillage = m_kanba->maillage;
+    maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
+    m_kanba->notifie_observatrices(KNB::TypeÉvènement::DESSIN);
+}
+
+/** \} */
+
 /* ************************************************************************** */
 
 class BoutonItemCalque : public QPushButton {
@@ -151,8 +179,7 @@ void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
         return;
     }
 
-    auto dessine_arbre = (evenement ==
-                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
+    auto dessine_arbre = (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
     dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
     dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 
@@ -164,7 +191,10 @@ void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
         for (auto const calque :
              dls::outils::inverse_iterateur(canaux.calques[KNB::TypeCanal::DIFFUSION])) {
             auto item = new ItemArbreCalque(calque);
-            auto bouton_visible = new BoutonItemCalque(calque, "visible");
+
+            auto args = ArgumentCréationItem{m_kanba, calque};
+
+            auto bouton_visible = new BoiteACocherItem(args, KNB::CALQUE_VISIBLE);
             auto bouton_peinture = new BoutonItemCalque(calque, "peinture");
             auto bouton_verrouille = new BoutonItemCalque(calque, "verrouille");
 

@@ -31,6 +31,7 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QCheckBox>
 #include <QTreeWidget>
 #pragma GCC diagnostic pop
 
@@ -40,6 +41,35 @@ class Calque;
 
 class QGridLayout;
 class QScrollArea;
+
+struct ArgumentCréationItem {
+    KNB::Kanba *kanba = nullptr;
+    KNB::Calque *calque = nullptr;
+};
+
+/* ------------------------------------------------------------------------- */
+/** \name Boîte à cocher item calque.
+ * \{ */
+
+class BoiteACocherItem : public QCheckBox {
+    Q_OBJECT
+
+    KNB::Kanba *m_kanba{};
+    KNB::Calque *m_calque{};
+    int m_drapeaux = 0;
+
+  public:
+    explicit BoiteACocherItem(const ArgumentCréationItem &args,
+                              int drapeaux,
+                              QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(BoiteACocherItem);
+
+  private Q_SLOTS:
+    void ajourne_etat_calque(int state);
+};
+
+/** \} */
 
 /* ************************************************************************** */
 
