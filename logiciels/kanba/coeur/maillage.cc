@@ -56,7 +56,8 @@ void ajoute_calque_procedurale(Maillage *maillage)
     bruit::construit(bruit::type::PERLIN, params, 0);
 
     auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
     for (auto i = 0; i < nombre_polygones; ++i) {
@@ -92,7 +93,8 @@ void ajoute_calque_procedurale(Maillage *maillage)
 void ajoute_calque_echiquier(Maillage *maillage)
 {
     auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
     std::mt19937 rng(19937);
@@ -162,7 +164,8 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
         "/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
 
     auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
     for (auto i = 0; i < nombre_polygones; ++i) {
@@ -319,8 +322,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 
 /* ************************************************************************** */
 
-Maillage::Maillage()
-    : m_transformation(dls::math::mat4x4d(1.0)), m_largeur_texture(0), m_nom("maillage")
+Maillage::Maillage() : m_transformation(dls::math::mat4x4d(1.0)), m_nom("maillage")
 {
 }
 
@@ -423,7 +425,6 @@ void Maillage::cree_tampon(Kanba *kanba)
 
     auto taille_texture = empaquete_version_nb(kanba, this);
 
-    m_largeur_texture = uint32_t(taille_texture.largeur);
     m_canaux.hauteur = static_cast<size_t>(taille_texture.hauteur);
     m_canaux.largeur = static_cast<size_t>(taille_texture.largeur);
 
@@ -482,11 +483,6 @@ CanalFusionné Maillage::donne_canal_fusionné()
     résultat.tampon_diffusion = m_canaux.tampon_diffusion;
     m_chose_à_recalculer &= ~ChoseÀRecalculer::CANAL_FUSIONNÉ;
     return résultat;
-}
-
-unsigned int Maillage::largeur_texture() const
-{
-    return m_largeur_texture;
 }
 
 void Maillage::calque_actif(Calque *calque)

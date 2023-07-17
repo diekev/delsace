@@ -441,7 +441,7 @@ void RenduMaillage::ajourne_texture()
         auto ip = 0;
         for (auto i : pages.polys) {
             auto poly_page = m_maillage->polygone(i);
-            auto index_poly = (poly_page->x + poly_page->y * (m_maillage->largeur_texture()));
+            auto index_poly = (poly_page->x + poly_page->y * (largeur));
             auto tampon_poly = tampon + index_poly;
 
             auto donnees_image = &donnees[ip++ * taille_texture[0] * taille_texture[1]];

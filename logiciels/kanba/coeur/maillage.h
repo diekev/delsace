@@ -117,8 +117,6 @@ class Maillage {
 
     Calque *m_calque_actif = nullptr;
 
-    unsigned int m_largeur_texture{};
-
     dls::chaine m_nom{};
 
     Maillage(Maillage const &autre) = default;
@@ -211,12 +209,6 @@ class Maillage {
      * Crée un tampon PTex par défaut. À FAIRE : supprimer.
      */
     void cree_tampon(Kanba *kanba);
-
-    /**
-     * Retourne la largeur de la texture paquettée contenant les tampons de
-     * chaque polygone.
-     */
-    unsigned int largeur_texture() const;
 
     /**
      * Renseigne le calque actif de ce maillage.

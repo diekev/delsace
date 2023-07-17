@@ -194,6 +194,8 @@ class CommandePeinture3D : public CommandeKanba {
         auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
+        auto &canaux = maillage->canaux_texture();
+        auto const largeur = canaux.largeur;
 
 #undef DEBUG_TOUCHES_SEAUX
 #ifdef DEBUG_TOUCHES_SEAUX
@@ -230,8 +232,8 @@ class CommandePeinture3D : public CommandeKanba {
                 opacite = 1.0f - opacite * opacite;
 
                 auto poly = maillage->polygone(texel.index);
-                auto tampon_poly = tampon + (poly->x + poly->y * maillage->largeur_texture());
-                auto index = texel.v + texel.u * maillage->largeur_texture();
+                auto tampon_poly = tampon + (poly->x + poly->y * largeur);
+                auto index = texel.v + texel.u * largeur;
 
                 tampon_poly[index] = melange(tampon_poly[index],
                                              brosse->couleur,
