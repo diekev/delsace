@@ -50,19 +50,27 @@ static unsigned int prochain_multiple_de_2(unsigned int v)
     return v;
 }
 
+template <typename Fonction>
+void pour_chaque_polygone(Maillage *maillage, Fonction &&fonction)
+{
+    auto const nombre_polygones = maillage->nombre_polygones();
+
+    for (auto i = 0; i < nombre_polygones; ++i) {
+        auto poly = maillage->polygone(i);
+        fonction(poly);
+    }
+}
+
 void ajoute_calque_procedurale(Maillage *maillage)
 {
     auto params = bruit::parametres();
     bruit::construit(bruit::type::PERLIN, params, 0);
 
-    auto const nombre_polygones = maillage->nombre_polygones();
     auto &canaux = maillage->canaux_texture();
     auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
-
+    pour_chaque_polygone(maillage, [&params, &tampon, &largeur](Polygone *poly) {
         auto const &s0 = poly->s[0]->pos;
         auto const &s1 = poly->s[1]->pos;
         auto const &s3 = (poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos;
@@ -87,22 +95,19 @@ void ajoute_calque_procedurale(Maillage *maillage)
                 tampon_poly[index] = dls::math::vec4f(couleur, couleur, couleur, 1.0f);
             }
         }
-    }
+    });
 }
 
 void ajoute_calque_echiquier(Maillage *maillage)
 {
-    auto const nombre_polygones = maillage->nombre_polygones();
+    std::mt19937 rng(19937);
+    std::uniform_real_distribution<float> dist(0.0f, 360.0f);
+
     auto &canaux = maillage->canaux_texture();
     auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-    std::mt19937 rng(19937);
-    std::uniform_real_distribution<float> dist(0.0f, 360.0f);
-
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
-
+    pour_chaque_polygone(maillage, [&rng, &dist, &tampon, &largeur](Polygone *poly) {
         auto hue = dist(rng);
         auto sat = 1.0f;
         auto val = 1.0f;
@@ -130,7 +135,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
                 }
             }
         }
-    }
+    });
 }
 
 auto echantillone_texture(TextureImage *texture_image, dls::math::vec2f const &uv)
@@ -163,14 +168,11 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
     TextureImage *texture_image = charge_texture(
         "/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
 
-    auto const nombre_polygones = maillage->nombre_polygones();
     auto &canaux = maillage->canaux_texture();
     auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
-
+    pour_chaque_polygone(maillage, [&texture_image, &tampon, &largeur](Polygone *poly) {
         auto const angle_xy = std::abs(
             poly->nor.z);  // abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
         auto const angle_xz = std::abs(
@@ -220,7 +222,7 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
                 tampon_poly[index] = couleur;
             }
         }
-    }
+    });
 
     delete texture_image;
 }
