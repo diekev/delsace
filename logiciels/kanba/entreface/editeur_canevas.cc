@@ -80,9 +80,9 @@ void VueCanevas2D::resizeGL(int w, int h)
     m_visionneur_image->redimensionne(w, h);
 }
 
-void VueCanevas2D::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
+void VueCanevas2D::charge_image()
 {
-    m_visionneur_image->charge_image(image);
+    m_visionneur_image->charge_image();
 }
 
 void VueCanevas2D::mousePressEvent(QMouseEvent *e)
@@ -120,7 +120,7 @@ EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent)
 void EditriceCannevas2D::ajourne_état(KNB::TypeÉvènement evenement)
 {
     if (evenement == (KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI)) {
-        m_vue->charge_image(m_kanba->tampon);
+        m_vue->charge_image();
     }
     m_vue->update();
 }

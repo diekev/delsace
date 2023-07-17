@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
 #pragma GCC diagnostic push
@@ -58,7 +57,7 @@ class VueCanevas2D : public QGLWidget {
     void paintGL() override;
     void resizeGL(int w, int h) override;
 
-    void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    void charge_image();
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;

@@ -26,13 +26,15 @@
 
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/image/pixel.h"
+#include "biblinternes/opengl/contexte_rendu.h"
 
 #include "../editeur_canevas.h"
 #include "coeur/kanba.h"
+#include "coeur/maillage.h"
 
 /* ************************************************************************** */
 
-static const char *vertex_source = "#version 330 core\n"
+static const char *source_vertex = "#version 330 core\n"
                                    "layout(location = 0) in vec2 vertex;\n"
                                    "smooth out vec2 UV;\n"
                                    "void main()\n"
@@ -41,7 +43,7 @@ static const char *vertex_source = "#version 330 core\n"
                                    "	UV = vertex;\n"
                                    "}\n";
 
-static const char *fragment_source = "#version 330 core\n"
+static const char *source_fragment = "#version 330 core\n"
                                      "layout (location = 0) out vec4 fragment_color;\n"
                                      "smooth in vec2 UV;\n"
                                      "uniform sampler2D image;\n"
@@ -49,53 +51,73 @@ static const char *fragment_source = "#version 330 core\n"
                                      "{\n"
                                      "	vec2 flipped = vec2(UV.x, 1.0f - UV.y);\n"
                                      "	fragment_color = texture(image, flipped);\n"
+                                     "	// fragment_color = vec4(flipped, 1.0, 1.0);\n"
                                      "}\n";
 
-static void generate_texture(dls::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
+static std::unique_ptr<TamponRendu> cree_tampon_image()
+{
+    auto sources = crée_sources_glsl_depuis_texte(source_vertex, source_fragment);
+    if (!sources.has_value()) {
+        return nullptr;
+    }
+
+    auto tampon = TamponRendu::crée_unique(sources.value());
+
+    tampon->ajoute_texture();
+    auto texture = tampon->texture();
+
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("image", texture->code_attache());
+    programme->desactive();
+
+    float sommets[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
+
+    unsigned int index[6] = {0, 1, 2, 0, 2, 3};
+
+    auto parametres_tampon = ParametresTampon();
+    parametres_tampon.attribut = "vertex";
+    parametres_tampon.dimension_attribut = 2;
+    parametres_tampon.pointeur_sommets = sommets;
+    parametres_tampon.taille_octet_sommets = sizeof(float) * 8;
+    parametres_tampon.pointeur_index = index;
+    parametres_tampon.taille_octet_index = sizeof(unsigned int) * 6;
+    parametres_tampon.elements = 6;
+
+    tampon->remplie_tampon(parametres_tampon);
+
+    return tampon;
+}
+
+static void generate_texture(dls::ego::Texture2D *texture, const float *data, GLint size[2])
 {
     texture->deloge(true);
+    dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
     texture->attache();
+    dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
     texture->type(GL_FLOAT, GL_RGBA, GL_RGBA);
+    dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
     texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+    dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
     texture->enveloppe(GL_CLAMP);
+    dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
     texture->remplie(data, size);
+    dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
     texture->detache();
+    dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
 }
 
 /* ************************************************************************** */
 
 VisionneurImage::VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba)
-    : m_parent(parent), m_buffer(nullptr), m_texture(nullptr), m_kanba(kanba)
+    : m_parent(parent), m_kanba(kanba)
 {
 }
 
 void VisionneurImage::initialise()
 {
-    m_texture = dls::ego::Texture2D::cree_unique(0);
-
-    m_program.charge(dls::ego::Nuanceur::VERTEX, vertex_source);
-    m_program.charge(dls::ego::Nuanceur::FRAGMENT, fragment_source);
-
-    m_program.cree_et_lie_programme();
-
-    m_program.active();
-    {
-        m_program.ajoute_attribut("vertex");
-        m_program.ajoute_uniforme("image");
-
-        glUniform1i(m_program("image"), static_cast<int>(m_texture->code_attache()));
-    }
-    m_program.desactive();
-
-    m_buffer = dls::ego::TamponObjet::cree_unique();
-
-    m_buffer->attache();
-    m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
-    m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
-    m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
-    m_buffer->detache();
-
-    charge_image(m_kanba->tampon);
+    m_tampon = cree_tampon_image();
+    charge_image();
 }
 
 void VisionneurImage::peint_opengl()
@@ -104,18 +126,11 @@ void VisionneurImage::peint_opengl()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_BLEND);
-    if (m_program.est_valide()) {
-        m_program.active();
-        m_buffer->attache();
-        m_texture->attache();
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
-
-        m_texture->detache();
-        m_buffer->detache();
-        m_program.desactive();
+    if (m_tampon) {
+        m_tampon->dessine({});
     }
     glDisable(GL_BLEND);
+    dls::ego::util::GPU_check_errors("Erreur lors du dessin de la texture");
 }
 
 void VisionneurImage::redimensionne(int largeur, int hauteur)
@@ -123,22 +138,28 @@ void VisionneurImage::redimensionne(int largeur, int hauteur)
     glViewport(0, 0, largeur, hauteur);
 }
 
-void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
+void VisionneurImage::charge_image()
 {
-    if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
+    if (!m_tampon) {
         return;
     }
 
-    GLint size[] = {image.nombre_colonnes(), image.nombre_lignes()};
+    auto maillage = m_kanba->maillage;
+    if (maillage == nullptr) {
+        return;
+    }
+
+    auto canal_fusionné = maillage->donne_canal_fusionné();
+
+    GLint size[] = {GLint(canal_fusionné.largeur), GLint(canal_fusionné.hauteur)};
 
     if (m_largeur != size[0] || m_hauteur != size[1]) {
         m_hauteur = size[0];
         m_largeur = size[1];
-
-        m_parent->resize(m_hauteur, m_largeur);
     }
 
-    generate_texture(m_texture, &image[0][0][0], size);
+    generate_texture(
+        m_tampon->texture(), reinterpret_cast<float *>(canal_fusionné.tampon_diffusion), size);
 
     dls::ego::util::GPU_check_errors("Unable to create image texture");
 }
