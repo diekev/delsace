@@ -26,6 +26,8 @@
 
 #include <cmath>
 
+namespace KNB {
+
 template <typename T>
 void converti_hsv_rvb(T &r, T &v, T &b, const T h, const T s, const T fV)
 {
@@ -74,3 +76,5 @@ void converti_hsv_rvb(T &r, T &v, T &b, const T h, const T s, const T fV)
     v += fM;
     b += fM;
 }
+
+}  // namespace KNB

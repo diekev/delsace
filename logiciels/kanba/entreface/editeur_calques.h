@@ -34,22 +34,25 @@
 #include <QTreeWidget>
 #pragma GCC diagnostic pop
 
+namespace KNB {
 class Calque;
+}
+
 class QGridLayout;
 class QScrollArea;
 
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-    const Calque *m_calque{};
+    const KNB::Calque *m_calque{};
 
   public:
-    explicit ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent = nullptr);
+    explicit ItemArbreCalque(const KNB::Calque *calque, QTreeWidgetItem *parent = nullptr);
 
     ItemArbreCalque(ItemArbreCalque const &) = default;
     ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
 
-    const Calque *pointeur() const;
+    const KNB::Calque *pointeur() const;
 };
 
 /* ************************************************************************** */
@@ -79,13 +82,13 @@ class EditeurCalques final : public BaseEditrice {
     QGridLayout *m_glayout;
 
   public:
-    EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
+    EditeurCalques(KNB::Kanba *kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurCalques);
 
     ~EditeurCalques() override;
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::TypeÉvènement evenement) override;
 
     void ajourne_manipulable() override
     {

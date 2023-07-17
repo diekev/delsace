@@ -21,31 +21,31 @@
 
 set(NOM_BIBLIOTHEQUE bib_phys)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-)
-
 set(BIBLIOTHEQUES
+    PUBLIC dls::math
+    PUBLIC dls::outils
+    PUBLIC dls::structures
 )
 
 set(ENTETES
-	collision.hh
-	coordonnees_geographiques.hh
-	couleur.hh
-	rayon.hh
-	spectre.hh
+    collision.hh
+    coordonnees_geographiques.hh
+    couleur.hh
+    rayon.hh
+    spectre.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
-	collision.cc
-	coordonnees_geographiques.cc
-	couleur.cc
-	rayon.cc
-	spectre.cc
+    collision.cc
+    coordonnees_geographiques.cc
+    couleur.cc
+    rayon.cc
+    spectre.cc
 
-	${ENTETES}
+    ${ENTETES}
 )
+add_library(dls::phys ALIAS ${NOM_BIBLIOTHEQUE})
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})

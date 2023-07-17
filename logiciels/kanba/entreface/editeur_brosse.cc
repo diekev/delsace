@@ -38,52 +38,11 @@
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/brosse.h"
+#include "coeur/evenement.h"
 #include "coeur/kanba.h"
 #include "coeur/melange.h"
 
-static dls::chaine nom_mode_fusion(TypeMelange type_melange)
-{
-    switch (type_melange) {
-        default:
-        case TypeMelange::NORMAL:
-            return "normal";
-        case TypeMelange::ADDITION:
-            return "addition";
-        case TypeMelange::SOUSTRACTION:
-            return "soustraction";
-        case TypeMelange::MULTIPLICATION:
-            return "multiplication";
-        case TypeMelange::DIVISION:
-            return "division";
-    }
-}
-
-static TypeMelange mode_fusion_depuis_nom(dls::chaine const &nom)
-{
-    if (nom == "normal") {
-        return TypeMelange::NORMAL;
-    }
-
-    if (nom == "addition") {
-        return TypeMelange::ADDITION;
-    }
-
-    if (nom == "soustraction") {
-        return TypeMelange::SOUSTRACTION;
-    }
-
-    if (nom == "multiplication") {
-        return TypeMelange::MULTIPLICATION;
-    }
-
-    if (nom == "division") {
-        return TypeMelange::DIVISION;
-    }
-
-    return TypeMelange::NORMAL;
-}
-
-VueBrosse::VueBrosse(Kanba *kanba) : m_kanba(kanba)
+VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
 {
     ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
     ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
@@ -97,7 +56,7 @@ void VueBrosse::ajourne_donnees()
     m_kanba->brosse->couleur = dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a);
     m_kanba->brosse->rayon = evalue_entier("rayon");
     m_kanba->brosse->opacite = evalue_decimal("opacité");
-    m_kanba->brosse->mode_fusion = mode_fusion_depuis_nom(evalue_enum("mode_fusion"));
+    m_kanba->brosse->mode_fusion = KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion"));
 }
 
 bool VueBrosse::ajourne_proprietes()
@@ -107,12 +66,12 @@ bool VueBrosse::ajourne_proprietes()
                    dls::phys::couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
     valeur_decimal("opacité", m_kanba->brosse->opacite);
     valeur_entier("rayon", m_kanba->brosse->rayon);
-    valeur_chaine("mode_fusion", nom_mode_fusion(m_kanba->brosse->mode_fusion));
+    valeur_chaine("mode_fusion", KNB::nom_mode_fusion(m_kanba->brosse->mode_fusion));
 
     return true;
 }
 
-EditeurBrosse::EditeurBrosse(Kanba *kanba, QWidget *parent)
+EditeurBrosse::EditeurBrosse(KNB::Kanba *kanba, QWidget *parent)
     : BaseEditrice("brosse", *kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
       m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
       m_glayout(new QVBoxLayout(m_widget))
@@ -138,8 +97,12 @@ EditeurBrosse::~EditeurBrosse()
     delete m_scroll;
 }
 
-void EditeurBrosse::ajourne_etat(int evenement)
+void EditeurBrosse::ajourne_état(KNB::TypeÉvènement evenement)
 {
+    if (evenement != KNB::TypeÉvènement::RAFRAICHISSEMENT) {
+        return;
+    }
+
     m_vue->ajourne_proprietes();
 
     danjo::DonneesInterface donnees{};

@@ -47,7 +47,7 @@ static std::unique_ptr<TamponRendu> cree_tampon(dls::math::vec4f const &couleur,
 /** \name RenduSeaux
  * \{ */
 
-RenduSeaux::RenduSeaux(Kanba *kanba) : m_kanba(kanba)
+RenduSeaux::RenduSeaux(KNB::Kanba *kanba) : m_kanba(kanba)
 {
 }
 
