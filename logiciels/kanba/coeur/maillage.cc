@@ -90,7 +90,7 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
                 auto coord = s0 + dU * static_cast<float>(j) + dV * static_cast<float>(k);
 
-                auto couleur = bruit::evalue(params, coord * 10.f);
+                auto couleur = bruit::evalue(params, coord * 10.f) * 0.5f + 0.5f;
 
                 tampon_poly[index] = dls::math::vec4f(couleur, couleur, couleur, 1.0f);
             }
