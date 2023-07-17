@@ -47,8 +47,6 @@ class Action;
 class Bouton;
 class ConteneurControles;
 class ControlePropriete;
-class Manipulable;
-class RepondantBouton;
 
 /**
  * La classe AssembleurDisposition s'occupe de créer l'entreface en fonction de

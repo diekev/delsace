@@ -45,12 +45,10 @@
 
 #include "coeur/kanba.h"
 
-BaseEditrice::BaseEditrice(const char *identifiant, Kanba &kanba, QWidget *parent)
+BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent)
     : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
       m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
 {
-    this->observe(&kanba);
-
     QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     size_policy.setHorizontalStretch(0);
     size_policy.setVerticalStretch(0);
