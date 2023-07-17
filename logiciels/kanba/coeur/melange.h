@@ -26,6 +26,12 @@
 
 #include "biblinternes/math/vecteur.hh"
 
+namespace dls {
+struct chaine;
+}
+
+namespace KNB {
+
 enum class TypeMelange {
     NORMAL,
     ADDITION,
@@ -33,6 +39,9 @@ enum class TypeMelange {
     MULTIPLICATION,
     DIVISION,
 };
+
+dls::chaine nom_mode_fusion(TypeMelange type_melange);
+TypeMelange mode_fusion_depuis_nom(dls::chaine const &nom);
 
 template <typename T>
 dls::math::vec4<T> melange_normal(dls::math::vec4<T> const &a,
@@ -67,3 +76,5 @@ dls::math::vec4<T> melange(dls::math::vec4<T> const &a,
 
     return a;
 }
+
+}  // namespace KNB

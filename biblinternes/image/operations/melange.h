@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.hh"
-#include "../../math/matrice/operations.hh"
-#include "../../math/entrepolation.hh"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/matrice/operations.hh"
+#include "biblinternes/math/entrepolation.hh"
 
 #include "../pixel.h"
 

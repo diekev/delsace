@@ -48,4 +48,4 @@ set(SOURCES
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES_OPENGL}" bib_structures)
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES_OPENGL} bib_structures)

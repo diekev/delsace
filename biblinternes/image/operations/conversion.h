@@ -28,7 +28,7 @@
 
 #include "../outils/couleurs.h"
 
-#include "../../math/matrice/matrice.hh"
+#include "biblinternes/math/matrice/matrice.hh"
 
 namespace dls {
 namespace image {

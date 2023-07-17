@@ -29,6 +29,8 @@
 #include "kanba.h"
 #include "maillage.h"
 
+namespace KNB {
+
 /**
  * Considération des deux papiers suivant pour continuer l'implémentation :
  *
@@ -483,3 +485,5 @@ TailleDisposition empaquete_version_nb(Kanba *kanba, Maillage *maillage)
     résultat.hauteur = layout.get_height();
     return résultat;
 }
+
+}  // namespace KNB

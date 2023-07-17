@@ -42,7 +42,7 @@ add_executable(${NOM_CIBLE} jorjala.cc)
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
 
 install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
 

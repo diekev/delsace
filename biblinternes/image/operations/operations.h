@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.hh"
+#include "biblinternes/math/matrice/matrice.hh"
 #include "../pixel.h"
 
 namespace dls {

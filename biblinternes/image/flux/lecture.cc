@@ -53,7 +53,7 @@
 #endif
 
 #include "../outils/flux.h"
-#include "../../outils/definitions.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "../operations/conversion.h"
 
