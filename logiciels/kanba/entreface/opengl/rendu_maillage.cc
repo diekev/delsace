@@ -35,66 +35,16 @@
 
 #include "coeur/maillage.h"
 
-/* ************************************************************************** */
+#include "tampons_rendu.hh"
+#include "textures.hh"
 
 #undef BOMBAGE_TEXTURE
-
-#ifdef BOMBAGE_TEXTURE
-static void genere_texture(dls::ego::Texture2D *texture, const void *donnes, GLint taille[2])
-{
-    texture->free(true);
-    dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
-    texture->attache();
-    dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
-    texture->setType(GL_FLOAT, GL_RGB, GL_RGB);
-    dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
-    texture->setMinMagFilter(GL_LINEAR, GL_LINEAR);
-    dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
-    texture->setWrapping(GL_REPEAT);
-    dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
-    texture->fill(donnes, taille);
-    dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
-    texture->detache();
-    dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
-}
-#else
-static void genere_texture(AtlasTexture *atlas, const void *donnes, GLint taille[3])
-{
-    atlas->detruit(true);
-    dls::ego::util::GPU_check_errors("Erreur lors de la suppression de la texture");
-    atlas->attache();
-    dls::ego::util::GPU_check_errors("Erreur lors de l'attache de la texture");
-    atlas->typage(GL_FLOAT, GL_RGBA, GL_RGBA);
-    dls::ego::util::GPU_check_errors("Erreur lors du typage de la texture");
-    atlas->filtre_min_mag(GL_NEAREST, GL_NEAREST);
-    dls::ego::util::GPU_check_errors("Erreur lors du filtrage de la texture");
-    atlas->enveloppage(GL_CLAMP);
-    dls::ego::util::GPU_check_errors("Erreur lors du wrapping de la texture");
-    atlas->rempli(donnes, taille);
-    dls::ego::util::GPU_check_errors("Erreur lors du remplissage de la texture");
-    atlas->detache();
-    dls::ego::util::GPU_check_errors("Erreur lors de la détache de la texture");
-}
-#endif
 
 /* ************************************************************************** */
 
 static std::unique_ptr<TamponRendu> cree_tampon_arrete()
 {
-    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
-                                                    "nuanceurs/simple.frag");
-    if (!sources.has_value()) {
-        return nullptr;
-    }
-
-    auto tampon = TamponRendu::crée_unique(sources.value());
-
-    auto programme = tampon->programme();
-    programme->active();
-    programme->uniforme("couleur", 0.0f, 0.0f, 0.0f, 1.0f);
-    programme->desactive();
-
-    return tampon;
+    return crée_tampon_nuanceur_simple(dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage *maillage)
@@ -133,20 +83,7 @@ static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage *maillage
 
 static std::unique_ptr<TamponRendu> cree_tampon_normal()
 {
-    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
-                                                    "nuanceurs/simple.frag");
-    if (!sources.has_value()) {
-        return nullptr;
-    }
-
-    auto tampon = TamponRendu::crée_unique(sources.value());
-
-    auto programme = tampon->programme();
-    programme->active();
-    programme->uniforme("couleur", 0.5f, 1.0f, 0.5f, 1.0f);
-    programme->desactive();
-
-    return tampon;
+    return crée_tampon_nuanceur_simple(dls::phys::couleur32(0.5f, 1.0f, 0.5f, 1.0f));
 }
 
 static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage *maillage)
@@ -199,40 +136,10 @@ static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage *maillage
 static std::unique_ptr<TamponRendu> creer_tampon()
 {
 #ifdef BOMBAGE_TEXTURE
-    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/texture_bombee.vert",
-                                                    "nuanceurs/texture_bombee.frag");
+    return crée_tampon_texture_bombée_diffus();
 #else
-    auto sources = crée_sources_glsl_depuis_fichier("nuanceurs/diffus.vert",
-                                                    "nuanceurs/diffus.frag");
+    return crée_tampon_texture_atlas_diffus();
 #endif
-
-    if (!sources.has_value()) {
-        return nullptr;
-    }
-
-    auto tampon = TamponRendu::crée_unique(sources.value());
-
-#ifdef BOMBAGE_TEXTURE
-    tampon->ajoute_texture();
-    auto texture = tampon->texture();
-#else
-    tampon->ajoute_atlas();
-    auto texture = tampon->atlas();
-#endif
-
-    auto programme = tampon->programme();
-    programme->active();
-    programme->uniforme("couleur", 1.0f, 1.0f, 1.0f, 1.0f);
-    programme->uniforme("taille_u", 1.0f);
-    programme->uniforme("taille_v", 1.0f);
-#ifdef BOMBAGE_TEXTURE
-    programme->uniforme("texture_poly", texture->number());
-#else
-    programme->uniforme("texture_poly", texture->nombre());
-#endif
-    programme->desactive();
-
-    return tampon;
 }
 
 static TamponRendu *genere_tampon(KNB::Maillage *maillage, dls::tableau<uint> const &id_polys)
@@ -408,7 +315,7 @@ void RenduMaillage::ajourne_texture()
 
     for (auto const &pages : m_pages) {
         auto texture = pages.tampon->texture();
-        genere_texture(texture, donnees, taille_texture);
+        génère_texture_pour_bombage(texture, donnees, taille_texture);
     }
 
     delete texture_image;
@@ -455,7 +362,7 @@ void RenduMaillage::ajourne_texture()
         }
 
         auto texture = pages.tampon->atlas();
-        genere_texture(texture, image.donnees(), taille_texture);
+        génère_texture_pour_atlas(texture, image.donnees(), taille_texture);
     }
 
     dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");

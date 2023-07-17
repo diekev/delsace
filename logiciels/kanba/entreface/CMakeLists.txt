@@ -87,6 +87,8 @@ add_library(${NOM_CIBLE} STATIC
 	opengl/rendu_brosse.h
 	opengl/rendu_maillage.h
         opengl/rendu_seaux.hh
+        opengl/tampons_rendu.hh
+        opengl/textures.hh
 	opengl/visionneur_image.h
 	opengl/visionneur_scene.h
 
@@ -95,6 +97,8 @@ add_library(${NOM_CIBLE} STATIC
 	opengl/rendu_brosse.cc
 	opengl/rendu_maillage.cc
         opengl/rendu_seaux.cc
+        opengl/tampons_rendu.cc
+        opengl/textures.cc
 	opengl/visionneur_image.cc
 	opengl/visionneur_scene.cc
 
