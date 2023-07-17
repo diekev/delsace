@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
 #pragma GCC diagnostic push
@@ -49,7 +48,7 @@ class VueCanevas2D : public QGLWidget {
     VisionneurImage *m_visionneur_image;
 
   public:
-    explicit VueCanevas2D(Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas2D(KNB::Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas2D() override;
 
     EMPECHE_COPIE(VueCanevas2D);
@@ -58,7 +57,7 @@ class VueCanevas2D : public QGLWidget {
     void paintGL() override;
     void resizeGL(int w, int h) override;
 
-    void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    void charge_image();
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
@@ -76,11 +75,11 @@ class EditriceCannevas2D : public BaseEditrice {
     VueCanevas2D *m_vue;
 
   public:
-    explicit EditriceCannevas2D(Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas2D);
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::TypeÉvènement evenement) override;
 
     void resizeEvent(QResizeEvent *event) override;
 
@@ -99,7 +98,7 @@ class VueCanevas3D : public QGLWidget {
     VisionneurScene *m_visionneur_scene;
 
   public:
-    explicit VueCanevas3D(Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas3D(KNB::Kanba *kanba, QWidget *parent = nullptr);
     ~VueCanevas3D() override;
 
     EMPECHE_COPIE(VueCanevas3D);
@@ -125,11 +124,11 @@ class EditriceCannevas3D : public BaseEditrice {
     VueCanevas3D *m_vue;
 
   public:
-    explicit EditriceCannevas3D(Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas3D);
 
-    void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::TypeÉvènement evenement) override;
 
     void resizeEvent(QResizeEvent *event) override;
 

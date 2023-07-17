@@ -19,60 +19,58 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INCLUSIONS_SYSTEMES
-	${JPEG_INCLUDE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_OPENEXR}
-)
-
 set(BIBLIOTHEQUES
-	${JPEG_LIBRARIES}
-	${BIBLIOTHEQUES_OPENEXR}
-        ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-	bib_structures
+    PUBLIC dls::math
+    PUBLIC dls::structures
+    PUBLIC ${BIBLIOTHEQUE_CXX_FILESYSTEM}
+
+    PRIVATE ${JPEG_LIBRARIES}
+    PRIVATE ${BIBLIOTHEQUES_OPENEXR}
+    PRIVATE dls::outils
 )
 
 set(NOM_BIBLIOTHEQUE image)
 
 set(ENTETES_LECTURE
-	flux/ecriture.h
-	flux/lecture.h
+    flux/ecriture.h
+    flux/lecture.h
 )
 
 set(ENTETES_OPERATIONS
-	operations/champs_distance.h
-	operations/conversion.h
-	operations/convolution.h
-	operations/echantillonage.h
-	operations/empreinte.h
-	operations/melange.h
-	operations/operations.h
+    operations/champs_distance.h
+    operations/conversion.h
+    operations/convolution.h
+    operations/echantillonage.h
+    operations/empreinte.h
+    operations/melange.h
+    operations/operations.h
 )
 
 set(ENTETES_OUTILS
-	outils/couleurs.h
-	outils/flux.h
+    outils/couleurs.h
+    outils/flux.h
 )
 
 set(ENTETES
-	pixel.h
+    pixel.h
 )
 
 set(SOURCES
-	flux/ecriture.cc
-	flux/lecture.cc
+    flux/ecriture.cc
+    flux/lecture.cc
 
-	operations/conversion.cc
-	operations/echantillonage.cc
-	operations/empreinte.cc
+    operations/conversion.cc
+    operations/echantillonage.cc
+    operations/empreinte.cc
 
-	outils/flux.cc
+    outils/flux.cc
 
-	main.cc
+    main.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES} ${ENTETES_OPERATIONS} ${ENTETES_LECTURE} ${ENTETES_OUTILS})
+add_library(dls::image ALIAS ${NOM_BIBLIOTHEQUE})
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS_SYSTEMES})
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC .)

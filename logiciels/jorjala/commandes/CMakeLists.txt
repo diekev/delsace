@@ -37,10 +37,10 @@ set(BIBLIOTHEQUES_GRAPHVIZ
 )
 
 set(BIBLIOTHEQUES
-        # bib_objets
+        # dls::objets
         dls::outils
-	bib_patrons
-	bib_vision
+        dls::patrons_conception
+        dls::vision
 	danjo
 	jorjala_coeur
         # jorjala_evaluation

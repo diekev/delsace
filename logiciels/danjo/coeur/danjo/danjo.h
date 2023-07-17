@@ -30,6 +30,8 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "repondant_bouton.h"
+
 class QBoxLayout;
 class QMenu;
 class QToolBar;
@@ -40,7 +42,6 @@ namespace danjo {
 class ControlePropriete;
 class ConteneurControles;
 class Manipulable;
-class RepondantBouton;
 
 struct DonneesInterface {
     Manipulable *manipulable = nullptr;

@@ -36,10 +36,10 @@ set(BIBLIOTHEQUES
         ${BIBLIOTHEQUES_OPENGL}
         ego
         bib_opengl
-        bib_texture
+        dls::texture
         dls::outils
-        bib_patrons
-        bib_vision
+        dls::patrons_conception
+        dls::vision
 #	jorjala_coeur
 #	jorjala_evaluation
         jorjala_rendu
