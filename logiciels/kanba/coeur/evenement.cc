@@ -23,3 +23,7 @@
  */
 
 #include "evenement.h"
+
+namespace KNB {
+
+}  // namespace KNB

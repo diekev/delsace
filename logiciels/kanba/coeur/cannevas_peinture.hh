@@ -7,7 +7,9 @@
 #include "biblinternes/structures/liste.hh"
 #include "biblinternes/structures/tableau.hh"
 
-class Kanba;
+namespace KNB {
+
+struct Kanba;
 
 /* ------------------------------------------------------------------------- */
 /** \name Cannevas Peinture
@@ -105,3 +107,5 @@ class CannevasPeinture {
 };
 
 /** \} */
+
+}  // namespace KNB

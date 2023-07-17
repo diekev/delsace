@@ -29,6 +29,8 @@
 
 #include "melange.h"
 
+namespace KNB {
+
 enum TypeDonnees {
     SCALAIRE = 0,
     COULEUR = 1,
@@ -111,3 +113,16 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);
 void supprime_calque(CanauxTexture &canaux, Calque *calque);
 
 void fusionne_calques(CanauxTexture &canaux);
+
+/* Structure pour tenir le tampon fusionné des calques d'un canal. */
+struct CanalFusionné {
+    /* La hauteur initiale du tampon des calques. */
+    size_t hauteur{};
+
+    /* La largeur initiale du tampon des calques. */
+    size_t largeur{};
+
+    dls::math::vec4f *tampon_diffusion = nullptr;
+};
+
+}  // namespace KNB

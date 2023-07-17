@@ -44,7 +44,7 @@ add_executable(application_test
 
 target_include_directories(application_test PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo bib_outils)
+target_link_libraries(application_test ${BIBLIOTHEQUES} danjo bib_outils)
 
 install(TARGETS application_test RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
@@ -56,7 +56,7 @@ add_executable(controles
 
 target_include_directories(controles PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(controles "${BIBLIOTHEQUES}" danjo)
+target_link_libraries(controles ${BIBLIOTHEQUES} danjo)
 
 install(TARGETS controles RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
@@ -68,6 +68,6 @@ add_executable(${NOM_EXECUTABLE} validation_script.cc)
 
 target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}" danjo)
+target_link_libraries(${NOM_EXECUTABLE} ${BIBLIOTHEQUES} danjo)
 
 install(TARGETS ${NOM_EXECUTABLE} RUNTIME DESTINATION ${RACINE_INSTALLATION})

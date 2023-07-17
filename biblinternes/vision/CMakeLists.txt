@@ -21,16 +21,20 @@
 
 set(NOM_CIBLE bib_vision)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+set(BIBLIOTHEQUES
+    PUBLIC dls::math
+    PRIVATE dls::outils
 )
 
 add_library(${NOM_CIBLE} STATIC
-	camera_2d.cc
-	camera.cc
+    camera_2d.cc
+    camera.cc
 
-	camera_2d.h
-	camera.h
+    camera_2d.h
+    camera.h
 )
+add_library(dls::vision ALIAS ${NOM_CIBLE})
 
-target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+target_include_directories(${NOM_CIBLE} PUBLIC .)
+
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})

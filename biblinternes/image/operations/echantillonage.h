@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.hh"
-
 #include <cstring>  /* for std::memcpy */
 #include <tuple>
+
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/math/matrice/matrice.hh"
 
 namespace dls {
 namespace image {

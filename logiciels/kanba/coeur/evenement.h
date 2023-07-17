@@ -28,48 +28,49 @@
 
 #include "biblinternes/outils/definitions.h"
 
-enum type_evenement : int {
+namespace KNB {
+
+enum class TypeÉvènement : int {
     /* Category. */
-    dessin = (1 << 0),
-    calque = (2 << 0),
-    rafraichissement = (3 << 0),
-    projet = (4 << 0),
+    DESSIN = (1 << 0),
+    CALQUE = (2 << 0),
+    RAFRAICHISSEMENT = (3 << 0),
+    PROJET = (4 << 0),
 
     /* Action. */
-    ajoute = (1 << 8),
-    selection = (2 << 8),
-    fini = (4 << 8),
-    supprime = (5 << 8),
-    charge = (6 << 8),
+    AJOUTÉ = (1 << 8),
+    SÉLECTIONNÉ = (2 << 8),
+    FINI = (4 << 8),
+    SUPPRIMÉ = (5 << 8),
+    CHARGÉ = (6 << 8),
 };
 
-DEFINIS_OPERATEURS_DRAPEAU(type_evenement)
+DEFINIS_OPERATEURS_DRAPEAU(TypeÉvènement)
 
-constexpr type_evenement action_evenement(type_evenement evenement)
+constexpr TypeÉvènement action_evenement(TypeÉvènement evenement)
 {
     return evenement & 0x0000ff00;
 }
 
-constexpr auto categorie_evenement(type_evenement evenement)
+constexpr auto categorie_evenement(TypeÉvènement evenement)
 {
     return evenement & 0x000000ff;
 }
 
 template <typename TypeChar>
-std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os,
-                                         type_evenement evenement)
+std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os, TypeÉvènement evenement)
 {
     switch (categorie_evenement(evenement)) {
-        case type_evenement::dessin:
+        case TypeÉvènement::DESSIN:
             os << "dessin, ";
             break;
-        case type_evenement::calque:
+        case TypeÉvènement::CALQUE:
             os << "calque, ";
             break;
-        case type_evenement::rafraichissement:
+        case TypeÉvènement::RAFRAICHISSEMENT:
             os << "rafraichissement, ";
             break;
-        case type_evenement::projet:
+        case TypeÉvènement::PROJET:
             os << "projet, ";
             break;
         default:
@@ -77,20 +78,20 @@ std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os,
     }
 
     switch (action_evenement(evenement)) {
-        case type_evenement::ajoute:
-            os << "ajoute";
+        case TypeÉvènement::AJOUTÉ:
+            os << "ajouté";
             break;
-        case type_evenement::selection:
-            os << "selection";
+        case TypeÉvènement::SÉLECTIONNÉ:
+            os << "sélectionné";
             break;
-        case type_evenement::fini:
+        case TypeÉvènement::FINI:
             os << "fini";
             break;
-        case type_evenement::supprime:
-            os << "supprime";
+        case TypeÉvènement::SUPPRIMÉ:
+            os << "supprimé";
             break;
-        case type_evenement::charge:
-            os << "charge";
+        case TypeÉvènement::CHARGÉ:
+            os << "chargé";
             break;
         default:
             break;
@@ -98,3 +99,5 @@ std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os,
 
     return os;
 }
+
+}  // namespace KNB

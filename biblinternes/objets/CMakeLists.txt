@@ -21,24 +21,23 @@
 
 set(NOM_CIBLE bib_objets)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-)
-
 set(BIBLIOTHEQUES
-	bib_outils
-	memoire
+    PUBLIC dls::structures
+
+    PRIVATE dls::math
+    PRIVATE dls::outils
 )
 
 add_library(${NOM_CIBLE} STATIC
-	adaptrice_creation.h
-	adaptrice_creation.cc
-	creation.h
-	creation.cc
-	import_objet.h
-	import_objet.cc
+    adaptrice_creation.h
+    adaptrice_creation.cc
+    creation.h
+    creation.cc
+    import_objet.h
+    import_objet.cc
 )
+add_library(dls::objets ALIAS ${NOM_CIBLE})
 
-target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+target_include_directories(${NOM_CIBLE} PUBLIC .)
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})

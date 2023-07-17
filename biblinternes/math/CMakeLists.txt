@@ -99,5 +99,5 @@ add_executable(${NOM_BIBLIOTHEQUE} ${SOURCES} ${ENTETES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
 

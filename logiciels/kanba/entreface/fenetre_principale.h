@@ -38,28 +38,24 @@
 
 class BaseDialogue;
 class ProjectSettingsDialog;
+class VueRegion;
 class QProgressBar;
 
 class FenetrePrincipale : public QMainWindow {
     Q_OBJECT
 
-    QDockWidget *m_viewer_dock = nullptr;
-
     QProgressBar *m_progress_bar{};
 
-    Kanba m_kanba{};
+    KNB::Kanba m_kanba{};
+
+    QVector<VueRegion *> m_régions{};
 
   public:
     explicit FenetrePrincipale(QWidget *parent = nullptr);
-    ~FenetrePrincipale();
 
     EMPECHE_COPIE(FenetrePrincipale);
 
-    void ajoute_visionneur_image();
-    void ajoute_editeur_proprietes();
-
   public Q_SLOTS:
-    void rendu_fini();
     void tache_commence();
     void tache_fini();
 
@@ -70,4 +66,9 @@ class FenetrePrincipale : public QMainWindow {
                        float temps_restant);
 
     void repond_action();
+
+  private:
+    void construit_interface_depuis_kanba();
+
+    bool eventFilter(QObject *object, QEvent *event);
 };

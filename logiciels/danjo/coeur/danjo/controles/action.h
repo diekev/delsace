@@ -28,9 +28,9 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-namespace danjo {
+#include "repondant_bouton.h"
 
-class RepondantBouton;
+namespace danjo {
 
 /**
  * La classe bouton représente un bouton cliquable dans l'entreface. Elle

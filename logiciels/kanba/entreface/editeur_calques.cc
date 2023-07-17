@@ -55,10 +55,10 @@ enum {
 /* ************************************************************************** */
 
 class BoutonItemCalque : public QPushButton {
-    Calque *m_calque;
+    KNB::Calque *m_calque;
 
   public:
-    BoutonItemCalque(Calque *calque, QString const &texte, QWidget *parent = nullptr)
+    BoutonItemCalque(KNB::Calque *calque, QString const &texte, QWidget *parent = nullptr)
         : QPushButton(texte, parent), m_calque(calque)
     {
     }
@@ -68,13 +68,13 @@ class BoutonItemCalque : public QPushButton {
 
 /* ************************************************************************** */
 
-ItemArbreCalque::ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent)
+ItemArbreCalque::ItemArbreCalque(const KNB::Calque *calque, QTreeWidgetItem *parent)
     : QTreeWidgetItem(parent), m_calque(calque)
 {
     setText(COLONNE_NOM_CALQUE, m_calque->nom.c_str());
 }
 
-const Calque *ItemArbreCalque::pointeur() const
+const KNB::Calque *ItemArbreCalque::pointeur() const
 {
     return m_calque;
 }
@@ -109,7 +109,7 @@ void TreeWidget::mousePressEvent(QMouseEvent *e)
 
 /* ************************************************************************** */
 
-EditeurCalques::EditeurCalques(Kanba *kanba, QWidget *parent)
+EditeurCalques::EditeurCalques(KNB::Kanba *kanba, QWidget *parent)
     : BaseEditrice("calque", *kanba, parent), m_widget_arbre(new TreeWidget(this)),
       m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
@@ -143,7 +143,7 @@ EditeurCalques::~EditeurCalques()
 {
 }
 
-void EditeurCalques::ajourne_etat(int evenement)
+void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
 {
     auto maillage = m_kanba->maillage;
 
@@ -151,9 +151,10 @@ void EditeurCalques::ajourne_etat(int evenement)
         return;
     }
 
-    auto dessine_arbre = (evenement == (type_evenement::calque | type_evenement::ajoute));
-    dessine_arbre |= (evenement == (type_evenement::calque | type_evenement::supprime));
-    dessine_arbre |= (evenement == (type_evenement::projet | type_evenement::charge));
+    auto dessine_arbre = (evenement ==
+                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
+    dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
+    dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 
     if (dessine_arbre) {
         m_widget_arbre->clear();
@@ -161,7 +162,7 @@ void EditeurCalques::ajourne_etat(int evenement)
         auto const &canaux = maillage->canaux_texture();
 
         for (auto const calque :
-             dls::outils::inverse_iterateur(canaux.calques[TypeCanal::DIFFUSION])) {
+             dls::outils::inverse_iterateur(canaux.calques[KNB::TypeCanal::DIFFUSION])) {
             auto item = new ItemArbreCalque(calque);
             auto bouton_visible = new BoutonItemCalque(calque, "visible");
             auto bouton_peinture = new BoutonItemCalque(calque, "peinture");
@@ -172,15 +173,16 @@ void EditeurCalques::ajourne_etat(int evenement)
             m_widget_arbre->setItemWidget(item, COLONNE_PEINTURE_CALQUE, bouton_peinture);
             m_widget_arbre->setItemWidget(item, COLONNE_VERROUILLE_CALQUE, bouton_verrouille);
 
-            if ((calque->drapeaux & CALQUE_ACTIF) != 0) {
+            if ((calque->drapeaux & KNB::CALQUE_ACTIF) != 0) {
                 item->setSelected(true);
             }
         }
     }
 
-    auto dessine_props = (evenement == (type_evenement::calque | type_evenement::selection));
-    dessine_props |= (evenement == (type_evenement::calque | type_evenement::supprime));
-    dessine_props |= (evenement == (type_evenement::projet | type_evenement::charge));
+    auto dessine_props = (evenement ==
+                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
+    dessine_props |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
+    dessine_props |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 
     if (dessine_props) {
         /* À FAIRE : dessine les propriétés des calques. */
@@ -214,6 +216,6 @@ void EditeurCalques::repond_selection()
     }
 
     auto maillage = m_kanba->maillage;
-    maillage->calque_actif(const_cast<Calque *>(item_calque->pointeur()));
-    m_kanba->notifie_observatrices(type_evenement::calque | type_evenement::selection);
+    maillage->calque_actif(const_cast<KNB::Calque *>(item_calque->pointeur()));
+    m_kanba->notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ);
 }

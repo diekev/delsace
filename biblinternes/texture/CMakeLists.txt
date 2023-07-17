@@ -21,23 +21,21 @@
 
 set(NOM_CIBLE bib_texture)
 
-set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-)
-
 set(BIBLIOTHEQUES
-	math
-	image
-	png
-	jpeg
-	bib_phys
+    PUBLIC dls::image
+    PUBLIC dls::math
+    PUBLIC dls::phys
+
+    PRIVATE png
+    PRIVATE jpeg
 )
 
 add_library(${NOM_CIBLE} STATIC
-	texture.h
-	texture.cc
+    texture.h
+    texture.cc
 )
+add_library(dls::texture ALIAS ${NOM_CIBLE})
 
-target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
+target_include_directories(${NOM_CIBLE} PUBLIC .)
 
 target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})

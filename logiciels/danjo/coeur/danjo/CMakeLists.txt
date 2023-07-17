@@ -76,7 +76,7 @@ endif()
 if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "Profile")
 	add_library(qt_danjo_entreface ${moc_headers})
 	target_include_directories(qt_danjo_entreface PUBLIC "${INCLUSIONS}")
-	target_link_libraries(qt_danjo_entreface "${BIBLIOTHEQUES}")
+        target_link_libraries(qt_danjo_entreface ${BIBLIOTHEQUES})
 
 	desactive_drapeaux_compilation(qt_danjo_entreface)
 
@@ -227,4 +227,4 @@ add_library(danjo STATIC ${SOURCES})
 
 target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(danjo "${BIBLIOTHEQUES}")
+target_link_libraries(danjo ${BIBLIOTHEQUES})

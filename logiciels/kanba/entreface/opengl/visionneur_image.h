@@ -24,16 +24,16 @@
 
 #pragma once
 
-#include "biblinternes/ego/programme.h"
-#include "biblinternes/ego/tampon_objet.h"
-#include "biblinternes/ego/texture.h"
-
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/definitions.h"
 
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
-class Kanba;
+namespace KNB {
+struct Kanba;
+}
+
 class VueCanevas2D;
 
 /**
@@ -43,18 +43,12 @@ class VueCanevas2D;
 class VisionneurImage {
     VueCanevas2D *m_parent;
 
-    dls::ego::Programme m_program{};
-    dls::ego::TamponObjet::Ptr m_buffer;
-    dls::ego::Texture2D::Ptr m_texture;
-
-    const float m_vertices[8] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-
-    const GLushort m_indices[6] = {0, 1, 2, 0, 2, 3};
+    std::unique_ptr<TamponRendu> m_tampon = nullptr;
 
     int m_hauteur = 0;
     int m_largeur = 0;
 
-    Kanba *m_kanba;
+    KNB::Kanba *m_kanba;
 
   public:
     /**
@@ -67,7 +61,7 @@ class VisionneurImage {
     /**
      * Construit un visionneur avec un pointeur vers le VueCanevas parent.
      */
-    explicit VisionneurImage(VueCanevas2D *parent, Kanba *kanba);
+    explicit VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba);
 
     /**
      * Détruit le visionneur image. Les tampons de rendus sont détruits, et
@@ -91,9 +85,5 @@ class VisionneurImage {
      */
     void redimensionne(int largeur, int hauteur);
 
-    /**
-     * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
-     * copiées dans des tampons OpenGL pour le rendu.
-     */
-    void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    void charge_image();
 };

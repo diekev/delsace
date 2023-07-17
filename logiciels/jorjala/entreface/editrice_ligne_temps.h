@@ -34,12 +34,6 @@ class QPushButton;
 class QSpinBox;
 class QVBoxLayout;
 
-namespace danjo {
-
-class RepondantBouton;
-
-} /* namespace danjo */
-
 class EditriceLigneTemps : public BaseEditrice {
     Q_OBJECT
 

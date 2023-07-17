@@ -27,8 +27,13 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
         ${BIBLIOTHEQUES_TBB}
+<<<<<<< HEAD
         $<$<CXX_COMPILER_ID:GNU>:pthread>
 	bib_structures
+=======
+	pthread
+        dls::structures
+>>>>>>> master
 )
 
 set(SOURCES
@@ -46,7 +51,7 @@ add_library(dls::moultfilage ALIAS ${NOM_PROJET})
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_PROJET} ${BIBLIOTHEQUES})
 
 ################################################################################
 
@@ -68,7 +73,7 @@ target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
 #target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-#target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
+#target_link_libraries(${NOM_PROJET} ${BIBLIOTHEQUES})
 
 #install(
 #    TARGETS ${NOM_PROJET} RUNTIME DESTINATION .

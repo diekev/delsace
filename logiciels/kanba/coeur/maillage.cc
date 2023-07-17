@@ -33,6 +33,8 @@
 #include "outils_couleur.h"
 #include "paqueuse_texture.h"
 
+namespace KNB {
+
 /* ************************************************************************** */
 
 static unsigned int prochain_multiple_de_2(unsigned int v)
@@ -48,18 +50,27 @@ static unsigned int prochain_multiple_de_2(unsigned int v)
     return v;
 }
 
+template <typename Fonction>
+void pour_chaque_polygone(Maillage *maillage, Fonction &&fonction)
+{
+    auto const nombre_polygones = maillage->nombre_polygones();
+
+    for (auto i = 0; i < nombre_polygones; ++i) {
+        auto poly = maillage->polygone(i);
+        fonction(poly);
+    }
+}
+
 void ajoute_calque_procedurale(Maillage *maillage)
 {
     auto params = bruit::parametres();
     bruit::construit(bruit::type::PERLIN, params, 0);
 
-    auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
-
+    pour_chaque_polygone(maillage, [&params, &tampon, &largeur](Polygone *poly) {
         auto const &s0 = poly->s[0]->pos;
         auto const &s1 = poly->s[1]->pos;
         auto const &s3 = (poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos;
@@ -79,26 +90,24 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
                 auto coord = s0 + dU * static_cast<float>(j) + dV * static_cast<float>(k);
 
-                auto couleur = bruit::evalue(params, coord * 10.f);
+                auto couleur = bruit::evalue(params, coord * 10.f) * 0.5f + 0.5f;
 
                 tampon_poly[index] = dls::math::vec4f(couleur, couleur, couleur, 1.0f);
             }
         }
-    }
+    });
 }
 
 void ajoute_calque_echiquier(Maillage *maillage)
 {
-    auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
-    auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
-
     std::mt19937 rng(19937);
     std::uniform_real_distribution<float> dist(0.0f, 360.0f);
 
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
+    auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
+    pour_chaque_polygone(maillage, [&rng, &dist, &tampon, &largeur](Polygone *poly) {
         auto hue = dist(rng);
         auto sat = 1.0f;
         auto val = 1.0f;
@@ -126,7 +135,7 @@ void ajoute_calque_echiquier(Maillage *maillage)
                 }
             }
         }
-    }
+    });
 }
 
 auto echantillone_texture(TextureImage *texture_image, dls::math::vec2f const &uv)
@@ -159,13 +168,11 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
     TextureImage *texture_image = charge_texture(
         "/home/kevin/Téléchargements/Tileable metal scratch rust texture (8).jpg");
 
-    auto const nombre_polygones = maillage->nombre_polygones();
-    auto const largeur = maillage->largeur_texture();
+    auto &canaux = maillage->canaux_texture();
+    auto const largeur = canaux.largeur;
     auto tampon = static_cast<dls::math::vec4f *>(maillage->calque_actif()->tampon);
 
-    for (auto i = 0; i < nombre_polygones; ++i) {
-        auto poly = maillage->polygone(i);
-
+    pour_chaque_polygone(maillage, [&texture_image, &tampon, &largeur](Polygone *poly) {
         auto const angle_xy = std::abs(
             poly->nor.z);  // abs(produit_scalaire(poly->nor, dls::math::vec3f(0.0, 0.0, 1.0)));
         auto const angle_xz = std::abs(
@@ -215,7 +222,7 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
                 tampon_poly[index] = couleur;
             }
         }
-    }
+    });
 
     delete texture_image;
 }
@@ -317,9 +324,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 
 /* ************************************************************************** */
 
-Maillage::Maillage()
-    : m_transformation(dls::math::mat4x4d(1.0)), m_texture_surrannee(true), m_largeur_texture(0),
-      m_nom("maillage")
+Maillage::Maillage() : m_transformation(dls::math::mat4x4d(1.0)), m_nom("maillage")
 {
 }
 
@@ -422,7 +427,6 @@ void Maillage::cree_tampon(Kanba *kanba)
 
     auto taille_texture = empaquete_version_nb(kanba, this);
 
-    m_largeur_texture = uint32_t(taille_texture.largeur);
     m_canaux.hauteur = static_cast<size_t>(taille_texture.hauteur);
     m_canaux.largeur = static_cast<size_t>(taille_texture.largeur);
 
@@ -433,8 +437,6 @@ void Maillage::cree_tampon(Kanba *kanba)
 #else
     ajoute_calque_procedurale(this);
 #endif
-
-    fusionne_calques(m_canaux);
 }
 
 Calque *Maillage::calque_actif()
@@ -462,19 +464,27 @@ void Maillage::nom(dls::chaine const &nom)
     m_nom = nom;
 }
 
-bool Maillage::texture_surrannee() const
+bool Maillage::doit_recalculer_canal_fusionné() const
 {
-    return m_texture_surrannee;
+    return (m_chose_à_recalculer & ChoseÀRecalculer::CANAL_FUSIONNÉ) != ChoseÀRecalculer(0);
 }
 
-void Maillage::marque_texture_surrannee(bool ouinon)
+CanalFusionné Maillage::donne_canal_fusionné()
 {
-    m_texture_surrannee = ouinon;
-}
+    auto résultat = CanalFusionné{};
+    résultat.hauteur = m_canaux.hauteur;
+    résultat.largeur = m_canaux.largeur;
 
-unsigned int Maillage::largeur_texture() const
-{
-    return m_largeur_texture;
+    if (!doit_recalculer_canal_fusionné()) {
+        assert(m_canaux.tampon_diffusion);
+        résultat.tampon_diffusion = m_canaux.tampon_diffusion;
+        return résultat;
+    }
+
+    fusionne_calques(m_canaux);
+    résultat.tampon_diffusion = m_canaux.tampon_diffusion;
+    m_chose_à_recalculer &= ~ChoseÀRecalculer::CANAL_FUSIONNÉ;
+    return résultat;
 }
 
 void Maillage::calque_actif(Calque *calque)
@@ -539,3 +549,5 @@ Polygone *Maillage::polygone(long i)
 {
     return m_polys[i];
 }
+
+}  // namespace KNB

@@ -36,11 +36,11 @@
 
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/structures/liste.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "adaptrice_creation_maillage.h"
+#include "commande_kanba.hh"
 
 #include "../brosse.h"
 #include "../cannevas_peinture.hh"
@@ -51,16 +51,17 @@
 
 /* ************************************************************************** */
 
-class CommandeZoomCamera : public Commande {
-  public:
-    CommandeZoomCamera() = default;
-
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+class CommandeZoomCamera : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
         auto const delta = donnees.x;
 
-        auto camera = kanba->camera;
+        auto camera = kanba.camera;
 
         if (delta >= 0) {
             auto distance = camera->distance() + camera->vitesse_zoom();
@@ -75,10 +76,10 @@ class CommandeZoomCamera : public Commande {
         camera->ajuste_vitesse();
         camera->besoin_ajournement(true);
 
-        auto cannevas = kanba->cannevas;
+        auto cannevas = kanba.cannevas;
         cannevas->invalide_pour_changement_caméra();
 
-        kanba->notifie_observatrices(static_cast<type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -86,26 +87,26 @@ class CommandeZoomCamera : public Commande {
 
 /* ************************************************************************** */
 
-class CommandeTourneCamera : public Commande {
+class CommandeTourneCamera : public CommandeKanba {
     float m_vieil_x = 0.0f;
     float m_vieil_y = 0.0f;
 
-  public:
-    CommandeTourneCamera() = default;
-
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        INUTILISE(pointeur);
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        INUTILISE(kanba);
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
         return EXECUTION_COMMANDE_MODALE;
     }
 
-    void ajourne_execution_modale(std::any const &pointeur,
-                                  DonneesCommande const &donnees) override
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        auto camera = kanba->camera;
+        auto camera = kanba.camera;
 
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
@@ -114,38 +115,38 @@ class CommandeTourneCamera : public Commande {
         camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
         camera->besoin_ajournement(true);
 
-        auto cannevas = kanba->cannevas;
+        auto cannevas = kanba.cannevas;
         cannevas->invalide_pour_changement_caméra();
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        kanba->notifie_observatrices(static_cast<type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
     }
 };
 
 /* ************************************************************************** */
 
-class CommandePanCamera : public Commande {
+class CommandePanCamera : public CommandeKanba {
     float m_vieil_x = 0.0f;
     float m_vieil_y = 0.0f;
 
-  public:
-    CommandePanCamera() = default;
-
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        INUTILISE(pointeur);
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
+
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        INUTILISE(kanba);
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
         return EXECUTION_COMMANDE_MODALE;
     }
 
-    void ajourne_execution_modale(std::any const &pointeur,
-                                  DonneesCommande const &donnees) override
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        auto camera = kanba->camera;
+        auto camera = kanba.camera;
 
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
@@ -157,42 +158,44 @@ class CommandePanCamera : public Commande {
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        auto cannevas = kanba->cannevas;
+        auto cannevas = kanba.cannevas;
         cannevas->invalide_pour_changement_caméra();
 
-        kanba->notifie_observatrices(static_cast<type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
     }
 };
 
 /* ************************************************************************** */
 
-class CommandePeinture3D : public Commande {
-  public:
-    CommandePeinture3D() = default;
-
-    int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+class CommandePeinture3D : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
-        auto kanba = std::any_cast<Kanba *>(pointeur);
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-        if (kanba->maillage == nullptr) {
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        if (kanba.maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto maillage = kanba->maillage;
+        auto maillage = kanba.maillage;
         auto calque = maillage->calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto brosse = kanba->brosse;
-        auto cannevas = kanba->cannevas;
+        auto brosse = kanba.brosse;
+        auto cannevas = kanba.cannevas;
         cannevas->ajourne_pour_peinture();
 
         auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
         auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
+        auto &canaux = maillage->canaux_texture();
+        auto const largeur = canaux.largeur;
 
 #undef DEBUG_TOUCHES_SEAUX
 #ifdef DEBUG_TOUCHES_SEAUX
@@ -229,8 +232,8 @@ class CommandePeinture3D : public Commande {
                 opacite = 1.0f - opacite * opacite;
 
                 auto poly = maillage->polygone(texel.index);
-                auto tampon_poly = tampon + (poly->x + poly->y * maillage->largeur_texture());
-                auto index = texel.v + texel.u * maillage->largeur_texture();
+                auto tampon_poly = tampon + (poly->x + poly->y * largeur);
+                auto index = texel.v + texel.u * largeur;
 
                 tampon_poly[index] = melange(tampon_poly[index],
                                              brosse->couleur,
@@ -248,37 +251,35 @@ class CommandePeinture3D : public Commande {
                   << " seaux non vides\n";
 #endif
 
-        fusionne_calques(maillage->canaux_texture());
-
-        maillage->marque_texture_surrannee(true);
-        kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
+        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
     }
 
-    void ajourne_execution_modale(std::any const &pointeur,
-                                  DonneesCommande const &donnees) override
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        execute(pointeur, donnees);
+        execute_kanba(kanba, donnees);
     }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouteCube : public Commande {
-  public:
-    CommandeAjouteCube() = default;
+class CommandeAjouteCube : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
         auto adaptrice = AdaptriceCreationMaillage();
-        adaptrice.maillage = new Maillage;
+        adaptrice.maillage = new KNB::Maillage;
 
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        kanba->installe_maillage(adaptrice.maillage);
-        kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
+        kanba.installe_maillage(adaptrice.maillage);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -286,20 +287,21 @@ class CommandeAjouteCube : public Commande {
 
 /* ************************************************************************** */
 
-class CommandeAjouteSphere : public Commande {
-  public:
-    CommandeAjouteSphere() = default;
+class CommandeAjouteSphere : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-    int execute(std::any const &pointeur, DonneesCommande const & /*donnees*/) override
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
         auto adaptrice = AdaptriceCreationMaillage();
-        adaptrice.maillage = new Maillage;
+        adaptrice.maillage = new KNB::Maillage;
 
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
-        auto kanba = std::any_cast<Kanba *>(pointeur);
-        kanba->installe_maillage(adaptrice.maillage);
-        kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
+        kanba.installe_maillage(adaptrice.maillage);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

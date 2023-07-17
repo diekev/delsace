@@ -28,6 +28,8 @@
 
 #include "melange.h"
 
+namespace KNB {
+
 Calque::~Calque()
 {
     switch (type_donnees) {
@@ -126,3 +128,5 @@ void fusionne_calques(CanauxTexture &canaux)
         }
     }
 }
+
+}  // namespace KNB
