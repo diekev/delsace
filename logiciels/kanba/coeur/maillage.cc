@@ -320,8 +320,7 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 /* ************************************************************************** */
 
 Maillage::Maillage()
-    : m_transformation(dls::math::mat4x4d(1.0)), m_texture_surrannee(true), m_largeur_texture(0),
-      m_nom("maillage")
+    : m_transformation(dls::math::mat4x4d(1.0)), m_largeur_texture(0), m_nom("maillage")
 {
 }
 
@@ -435,8 +434,6 @@ void Maillage::cree_tampon(Kanba *kanba)
 #else
     ajoute_calque_procedurale(this);
 #endif
-
-    fusionne_calques(m_canaux);
 }
 
 Calque *Maillage::calque_actif()
@@ -464,14 +461,27 @@ void Maillage::nom(dls::chaine const &nom)
     m_nom = nom;
 }
 
-bool Maillage::texture_surrannee() const
+bool Maillage::doit_recalculer_canal_fusionné() const
 {
-    return m_texture_surrannee;
+    return (m_chose_à_recalculer & ChoseÀRecalculer::CANAL_FUSIONNÉ) != ChoseÀRecalculer(0);
 }
 
-void Maillage::marque_texture_surrannee(bool ouinon)
+CanalFusionné Maillage::donne_canal_fusionné()
 {
-    m_texture_surrannee = ouinon;
+    auto résultat = CanalFusionné{};
+    résultat.hauteur = m_canaux.hauteur;
+    résultat.largeur = m_canaux.largeur;
+
+    if (!doit_recalculer_canal_fusionné()) {
+        assert(m_canaux.tampon_diffusion);
+        résultat.tampon_diffusion = m_canaux.tampon_diffusion;
+        return résultat;
+    }
+
+    fusionne_calques(m_canaux);
+    résultat.tampon_diffusion = m_canaux.tampon_diffusion;
+    m_chose_à_recalculer &= ~ChoseÀRecalculer::CANAL_FUSIONNÉ;
+    return résultat;
 }
 
 unsigned int Maillage::largeur_texture() const

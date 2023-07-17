@@ -463,7 +463,6 @@ bool lis_projet(Kanba &kanba, dls::chaine const &chemin_projet)
     kanba.installe_maillage(maillage);
     *kanba.brosse = brosse;
 
-    fusionne_calques(maillage->canaux_texture());
     return true;
 }
 

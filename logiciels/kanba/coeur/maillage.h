@@ -34,6 +34,15 @@ namespace KNB {
 
 struct Kanba;
 
+enum class ChoseÀRecalculer : uint32_t {
+    /* Le canal doit être fusionner, par exemple suite à une peinture. */
+    CANAL_FUSIONNÉ = (1 << 0),
+
+    TOUT = (~0u),
+};
+
+DEFINIS_OPERATEURS_DRAPEAU(ChoseÀRecalculer)
+
 /**
  * Représentation d'un sommet dans l'espace tridimensionel.
  */
@@ -104,8 +113,6 @@ class Maillage {
 
     math::transformation m_transformation{};
 
-    bool m_texture_surrannee{};
-
     CanauxTexture m_canaux{};
 
     Calque *m_calque_actif = nullptr;
@@ -116,6 +123,8 @@ class Maillage {
 
     Maillage(Maillage const &autre) = default;
     Maillage &operator=(Maillage const &autre) = default;
+
+    ChoseÀRecalculer m_chose_à_recalculer = ChoseÀRecalculer::TOUT;
 
   public:
     Maillage();
@@ -204,18 +213,6 @@ class Maillage {
     void cree_tampon(Kanba *kanba);
 
     /**
-     * Retourne vrai si la texture de ce maillage est surrannée et doit être
-     * redessinnée dans la vue 3D.
-     */
-    bool texture_surrannee() const;
-
-    /**
-     * Renseigne si la texture de ce maillage est surrannée et doit être
-     * redessinnée dans la vue 3D.
-     */
-    void marque_texture_surrannee(bool ouinon);
-
-    /**
      * Retourne la largeur de la texture paquettée contenant les tampons de
      * chaque polygone.
      */
@@ -250,6 +247,14 @@ class Maillage {
      * Renomme ce maillage.
      */
     void nom(dls::chaine const &nom);
+
+    void marque_chose_à_recalculer(ChoseÀRecalculer quoi)
+    {
+        m_chose_à_recalculer |= quoi;
+    }
+
+    CanalFusionné donne_canal_fusionné();
+    bool doit_recalculer_canal_fusionné() const;
 };
 
 }  // namespace KNB

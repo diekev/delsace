@@ -249,9 +249,7 @@ class CommandePeinture3D : public CommandeKanba {
                   << " seaux non vides\n";
 #endif
 
-        fusionne_calques(maillage->canaux_texture());
-
-        maillage->marque_texture_surrannee(true);
+        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
         kanba.notifie_observatrices(KNB::type_evenement::dessin | KNB::type_evenement::fini);
 
         return EXECUTION_COMMANDE_MODALE;

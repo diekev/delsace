@@ -413,11 +413,10 @@ void RenduMaillage::ajourne_texture()
 
     delete texture_image;
 #else
-    auto const largeur = m_maillage->largeur_texture();
-    auto const &canaux = m_maillage->canaux_texture();
+    auto const canal_fusionné = m_maillage->donne_canal_fusionné();
+    auto const largeur = canal_fusionné.largeur;
 
-    auto tampon = canaux.tampon_diffusion;
-
+    auto tampon = canal_fusionné.tampon_diffusion;
     if (tampon == nullptr) {
         return;
     }
@@ -461,7 +460,6 @@ void RenduMaillage::ajourne_texture()
 
     dls::ego::util::GPU_check_errors("Erreur lors de la génération de la texture");
 #endif
-    m_maillage->marque_texture_surrannee(false);
 }
 
 void RenduMaillage::supprime_tampons()
@@ -476,7 +474,7 @@ void RenduMaillage::supprime_tampons()
 
 void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
-    if (m_maillage->texture_surrannee()) {
+    if (m_maillage->doit_recalculer_canal_fusionné()) {
         ajourne_texture();
     }
 

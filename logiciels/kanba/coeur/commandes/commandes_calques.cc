@@ -82,9 +82,8 @@ class CommandeSupprimerCalque : public CommandeKanba {
         maillage->calque_actif(nullptr);
 
         supprime_calque(canaux, calque);
-        fusionne_calques(canaux);
 
-        maillage->marque_texture_surrannee(true);
+        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
 
         kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::supprime);
 
