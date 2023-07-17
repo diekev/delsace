@@ -143,7 +143,7 @@ EditeurCalques::~EditeurCalques()
 {
 }
 
-void EditeurCalques::ajourne_état(KNB::type_evenement evenement)
+void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
 {
     auto maillage = m_kanba->maillage;
 
@@ -152,9 +152,9 @@ void EditeurCalques::ajourne_état(KNB::type_evenement evenement)
     }
 
     auto dessine_arbre = (evenement ==
-                          (KNB::type_evenement::calque | KNB::type_evenement::ajoute));
-    dessine_arbre |= (evenement == (KNB::type_evenement::calque | KNB::type_evenement::supprime));
-    dessine_arbre |= (evenement == (KNB::type_evenement::projet | KNB::type_evenement::charge));
+                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
+    dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
+    dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 
     if (dessine_arbre) {
         m_widget_arbre->clear();
@@ -180,9 +180,9 @@ void EditeurCalques::ajourne_état(KNB::type_evenement evenement)
     }
 
     auto dessine_props = (evenement ==
-                          (KNB::type_evenement::calque | KNB::type_evenement::selection));
-    dessine_props |= (evenement == (KNB::type_evenement::calque | KNB::type_evenement::supprime));
-    dessine_props |= (evenement == (KNB::type_evenement::projet | KNB::type_evenement::charge));
+                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
+    dessine_props |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
+    dessine_props |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 
     if (dessine_props) {
         /* À FAIRE : dessine les propriétés des calques. */
@@ -217,5 +217,5 @@ void EditeurCalques::repond_selection()
 
     auto maillage = m_kanba->maillage;
     maillage->calque_actif(const_cast<KNB::Calque *>(item_calque->pointeur()));
-    m_kanba->notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::selection);
+    m_kanba->notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ);
 }

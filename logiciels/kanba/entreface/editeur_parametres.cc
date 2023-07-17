@@ -74,7 +74,7 @@ EditeurParametres::~EditeurParametres()
     delete m_scroll;
 }
 
-void EditeurParametres::ajourne_état(KNB::type_evenement evenement)
+void EditeurParametres::ajourne_état(KNB::TypeÉvènement evenement)
 {
     m_vue->ajourne_proprietes();
     //	cree_controles(m_assembleur_controles, m_vue);

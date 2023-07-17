@@ -55,17 +55,17 @@
 /* Sous-classe de QEvent pour ajouter les évnènements de Kanba à la boucle
  * d'évènements de Qt. */
 class EvenementKanba : public QEvent {
-    KNB::type_evenement m_type;
+    KNB::TypeÉvènement m_type;
 
   public:
     static QEvent::Type id_type_qt;
 
-    EvenementKanba(KNB::type_evenement type_evenenemt_kanba)
+    EvenementKanba(KNB::TypeÉvènement type_evenenemt_kanba)
         : QEvent(id_type_qt), m_type(type_evenenemt_kanba)
     {
     }
 
-    KNB::type_evenement pour_quoi() const
+    KNB::TypeÉvènement pour_quoi() const
     {
         return m_type;
     }
@@ -109,7 +109,7 @@ class GestionnaireInterface final : public KNB::GestionnaireFenetre {
     GestionnaireInterface(GestionnaireInterface const &) = delete;
     GestionnaireInterface &operator=(GestionnaireInterface const &) = delete;
 
-    void notifie_observatrices(KNB::type_evenement evenement) override
+    void notifie_observatrices(KNB::TypeÉvènement evenement) override
     {
         auto event = new EvenementKanba(evenement);
         QCoreApplication::postEvent(&m_fenêtre_principale, event);
@@ -288,7 +288,7 @@ void FenetrePrincipale::construit_interface_depuis_kanba()
     auto qwidget = génère_interface_disposition(m_kanba, *disposition, m_régions);
     setCentralWidget(qwidget);
 
-    m_kanba.notifie_observatrices(KNB::type_evenement::rafraichissement);
+    m_kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
 }
 
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
@@ -299,7 +299,7 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 
     auto event_kanba = static_cast<EvenementKanba *>(event);
 
-    if (event_kanba->pour_quoi() == (KNB::type_evenement::projet | KNB::type_evenement::charge)) {
+    if (event_kanba->pour_quoi() == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ)) {
         construit_interface_depuis_kanba();
         return true;
     }

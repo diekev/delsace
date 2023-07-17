@@ -9,14 +9,14 @@ struct chaine;
 
 namespace KNB {
 
-enum class type_evenement : int;
+enum class TypeÉvènement : int;
 enum class TypeCurseur : int;
 
 class GestionnaireFenetre {
   public:
     virtual ~GestionnaireFenetre() = default;
 
-    virtual void notifie_observatrices(type_evenement evenement) = 0;
+    virtual void notifie_observatrices(TypeÉvènement evenement) = 0;
 
     virtual void notifie_erreur(dls::chaine const &message) = 0;
 

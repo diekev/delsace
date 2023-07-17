@@ -58,7 +58,7 @@ class CommandeOuvrirFichier : public CommandeKanba {
         objets::charge_fichier_OBJ(&adaptrice, chemin_projet);
 
         kanba.installe_maillage(maillage);
-        kanba.notifie_observatrices(static_cast<KNB::type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -85,7 +85,7 @@ class CommandeOuvrirProjet : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        kanba.notifie_observatrices(KNB::type_evenement::projet | KNB::type_evenement::charge);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

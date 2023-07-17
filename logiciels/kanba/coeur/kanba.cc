@@ -99,7 +99,7 @@ void Kanba::installe_maillage(Maillage *m)
     maillage->cree_tampon(this);
 }
 
-void Kanba::notifie_observatrices(type_evenement type)
+void Kanba::notifie_observatrices(TypeÉvènement type)
 {
     if (!m_gestionnaire_fenêtre) {
         return;

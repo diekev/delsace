@@ -44,7 +44,7 @@ class Camera3D;
 
 namespace KNB {
 
-enum class type_evenement : int;
+enum class TypeÉvènement : int;
 
 struct Brosse;
 class CannevasPeinture;
@@ -117,7 +117,7 @@ struct Kanba {
 
     void installe_maillage(Maillage *m);
 
-    void notifie_observatrices(type_evenement type);
+    void notifie_observatrices(TypeÉvènement type);
 
     const InterfaceGraphique &donne_interface_graphique() const
     {

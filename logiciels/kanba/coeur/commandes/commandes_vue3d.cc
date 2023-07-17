@@ -79,7 +79,7 @@ class CommandeZoomCamera : public CommandeKanba {
         auto cannevas = kanba.cannevas;
         cannevas->invalide_pour_changement_caméra();
 
-        kanba.notifie_observatrices(static_cast<KNB::type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -121,7 +121,7 @@ class CommandeTourneCamera : public CommandeKanba {
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        kanba.notifie_observatrices(static_cast<KNB::type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
     }
 };
 
@@ -161,7 +161,7 @@ class CommandePanCamera : public CommandeKanba {
         auto cannevas = kanba.cannevas;
         cannevas->invalide_pour_changement_caméra();
 
-        kanba.notifie_observatrices(static_cast<KNB::type_evenement>(-1));
+        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
     }
 };
 
@@ -252,7 +252,7 @@ class CommandePeinture3D : public CommandeKanba {
 #endif
 
         maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
-        kanba.notifie_observatrices(KNB::type_evenement::dessin | KNB::type_evenement::fini);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
     }
@@ -279,7 +279,7 @@ class CommandeAjouteCube : public CommandeKanba {
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
         kanba.installe_maillage(adaptrice.maillage);
-        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::ajoute);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -301,7 +301,7 @@ class CommandeAjouteSphere : public CommandeKanba {
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
         kanba.installe_maillage(adaptrice.maillage);
-        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::ajoute);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

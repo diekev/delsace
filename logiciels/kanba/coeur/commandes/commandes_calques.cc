@@ -50,7 +50,7 @@ class CommandeAjouterCalque : public CommandeKanba {
 
         ajoute_calque(canaux, KNB::TypeCanal::DIFFUSION);
 
-        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::ajoute);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -85,7 +85,7 @@ class CommandeSupprimerCalque : public CommandeKanba {
 
         maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
 
-        kanba.notifie_observatrices(KNB::type_evenement::calque | KNB::type_evenement::supprime);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

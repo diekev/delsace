@@ -88,7 +88,7 @@ class CommandePeinture2D : public CommandeKanba {
             }
         }
 
-        kanba.notifie_observatrices(KNB::type_evenement::dessin | KNB::type_evenement::fini);
+        kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
     }

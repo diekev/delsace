@@ -100,7 +100,7 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
 #undef AJOUTE_ACTION
 }
 
-void VueRegion::ajourne_éditrice_active(KNB::type_evenement évènement)
+void VueRegion::ajourne_éditrice_active(KNB::TypeÉvènement évènement)
 {
     auto éditrice = dynamic_cast<BaseEditrice *>(currentWidget());
     if (!éditrice) {
@@ -127,7 +127,7 @@ void VueRegion::ajoute_page_pour_éditrice(KNB::Éditrice &éditrice,
 
 void VueRegion::ajourne_pour_changement_page(int /*index*/)
 {
-    ajourne_éditrice_active(KNB::type_evenement::rafraichissement);
+    ajourne_éditrice_active(KNB::TypeÉvènement::RAFRAICHISSEMENT);
 }
 
 void VueRegion::sur_fermeture_page(int index)
