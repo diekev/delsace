@@ -38,6 +38,7 @@
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/brosse.h"
+#include "coeur/evenement.h"
 #include "coeur/kanba.h"
 #include "coeur/melange.h"
 
@@ -98,6 +99,10 @@ EditeurBrosse::~EditeurBrosse()
 
 void EditeurBrosse::ajourne_état(KNB::type_evenement evenement)
 {
+    if (evenement != KNB::type_evenement::rafraichissement) {
+        return;
+    }
+
     m_vue->ajourne_proprietes();
 
     danjo::DonneesInterface donnees{};
