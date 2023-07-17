@@ -26,7 +26,9 @@
 
 #include "biblinternes/objets/adaptrice_creation.h"
 
+namespace KNB {
 class Maillage;
+}
 
 class AdaptriceCreationMaillage : public objets::AdaptriceCreationObjet {
   public:
@@ -73,5 +75,5 @@ class AdaptriceCreationMaillage : public objets::AdaptriceCreationObjet {
     {
     }
 
-    Maillage *maillage{};
+    KNB::Maillage *maillage{};
 };

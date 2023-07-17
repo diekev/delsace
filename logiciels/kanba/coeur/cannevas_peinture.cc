@@ -9,6 +9,8 @@
 #include "kanba.h"
 #include "maillage.h"
 
+namespace KNB {
+
 /* ------------------------------------------------------------------------- */
 /** \name Cannevas Peinture
  * \{ */
@@ -188,3 +190,5 @@ Seau *CannevasPeinture::cherche_seau(
 }
 
 /** \} */
+
+}  // namespace KNB
