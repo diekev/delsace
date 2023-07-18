@@ -127,5 +127,5 @@ class EditeurCalques final : public BaseEditrice {
   private Q_SLOTS:
     void ajourne_vue();
     void repond_bouton();
-    void repond_selection();
+    void repond_selection(QTreeWidgetItem *item, int column);
 };

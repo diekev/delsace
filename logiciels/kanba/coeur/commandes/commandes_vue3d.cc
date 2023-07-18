@@ -186,6 +186,11 @@ class CommandePeinture3D : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
+        if ((calque->drapeaux & KNB::CALQUE_VERROUILLÉ) != 0) {
+            // À FAIRE : message d'erreur dans la barre d'état.
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
         auto brosse = kanba.brosse;
         auto cannevas = kanba.cannevas;
         cannevas->ajourne_pour_peinture();

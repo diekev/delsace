@@ -46,6 +46,7 @@ enum class TypeCalque {
 enum {
     CALQUE_ACTIF = 1 << 0,
     CALQUE_VISIBLE = 1 << 1,
+    CALQUE_VERROUILLÉ = 1 << 2,
 };
 
 struct Calque {
