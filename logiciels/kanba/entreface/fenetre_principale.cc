@@ -30,11 +30,8 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QCoreApplication>
-#include <QEvent>
-#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QMenuBar>
-#include <QMessageBox>
 #include <QProgressBar>
 #include <QSplitter>
 #include <QStatusBar>
@@ -44,7 +41,6 @@
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
-#include "coeur/gestionnaire_fenetre.hh"
 
 #include "evenement_kanba.hh"
 #include "gestionnaire_interface.hh"

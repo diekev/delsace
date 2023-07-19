@@ -36,10 +36,8 @@
 
 #include "coeur/kanba.h"
 
-class BaseDialogue;
-class ProjectSettingsDialog;
-class VueRegion;
 class QProgressBar;
+class VueRegion;
 
 class FenetrePrincipale : public QMainWindow {
     Q_OBJECT
