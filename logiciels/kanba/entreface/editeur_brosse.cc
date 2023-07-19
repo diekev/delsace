@@ -53,20 +53,22 @@ VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
 void VueBrosse::ajourne_donnees()
 {
     auto couleur = evalue_couleur("couleur_brosse");
-    m_kanba->brosse->couleur = dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a);
-    m_kanba->brosse->rayon = evalue_entier("rayon");
-    m_kanba->brosse->opacite = evalue_decimal("opacité");
-    m_kanba->brosse->mode_fusion = KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion"));
+    auto brosse = m_kanba->donne_brosse();
+    brosse->définis_couleur(dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a));
+    brosse->définis_rayon(evalue_entier("rayon"));
+    brosse->définis_opacité(evalue_decimal("opacité"));
+    brosse->définis_mode_de_fusion(KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion")));
 }
 
 bool VueBrosse::ajourne_proprietes()
 {
-    auto couleur = m_kanba->brosse->couleur;
+    auto brosse = m_kanba->donne_brosse();
+    auto couleur = brosse->donne_couleur();
     valeur_couleur("couleur_brosse",
                    dls::phys::couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
-    valeur_decimal("opacité", m_kanba->brosse->opacite);
-    valeur_entier("rayon", m_kanba->brosse->rayon);
-    valeur_chaine("mode_fusion", KNB::nom_mode_fusion(m_kanba->brosse->mode_fusion));
+    valeur_decimal("opacité", brosse->donne_opacité());
+    valeur_entier("rayon", brosse->donne_rayon());
+    valeur_chaine("mode_fusion", KNB::nom_mode_fusion(brosse->donne_mode_de_fusion()));
 
     return true;
 }

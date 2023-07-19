@@ -73,7 +73,7 @@ void VisionneurImage::charge_image()
         return;
     }
 
-    auto maillage = m_kanba->maillage;
+    auto maillage = m_kanba->donne_maillage();
     if (maillage == nullptr) {
         return;
     }

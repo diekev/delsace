@@ -61,7 +61,7 @@ class CommandeZoomCamera : public CommandeKanba {
     {
         auto const delta = donnees.x;
 
-        auto camera = kanba.camera;
+        auto camera = kanba.donne_caméra();
 
         if (delta >= 0) {
             auto distance = camera->distance() + camera->vitesse_zoom();
@@ -76,7 +76,7 @@ class CommandeZoomCamera : public CommandeKanba {
         camera->ajuste_vitesse();
         camera->besoin_ajournement(true);
 
-        auto cannevas = kanba.cannevas;
+        auto cannevas = kanba.donne_cannevas();
         cannevas->invalide_pour_changement_caméra();
 
         kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
@@ -106,7 +106,7 @@ class CommandeTourneCamera : public CommandeKanba {
 
     void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto camera = kanba.camera;
+        auto camera = kanba.donne_caméra();
 
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
@@ -115,7 +115,7 @@ class CommandeTourneCamera : public CommandeKanba {
         camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
         camera->besoin_ajournement(true);
 
-        auto cannevas = kanba.cannevas;
+        auto cannevas = kanba.donne_cannevas();
         cannevas->invalide_pour_changement_caméra();
 
         m_vieil_x = donnees.x;
@@ -146,7 +146,7 @@ class CommandePanCamera : public CommandeKanba {
 
     void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto camera = kanba.camera;
+        auto camera = kanba.donne_caméra();
 
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
@@ -158,7 +158,7 @@ class CommandePanCamera : public CommandeKanba {
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        auto cannevas = kanba.cannevas;
+        auto cannevas = kanba.donne_cannevas();
         cannevas->invalide_pour_changement_caméra();
 
         kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
@@ -175,11 +175,11 @@ class CommandePeinture3D : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        if (kanba.maillage == nullptr) {
+        auto maillage = kanba.donne_maillage();
+        if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto maillage = kanba.maillage;
         auto calque = maillage->calque_actif();
 
         if (calque == nullptr) {
@@ -191,14 +191,14 @@ class CommandePeinture3D : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto brosse = kanba.brosse;
-        auto cannevas = kanba.cannevas;
+        auto brosse = kanba.donne_brosse();
+        auto cannevas = kanba.donne_cannevas();
         cannevas->ajourne_pour_peinture();
 
         auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
         auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
-        auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
+        auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->donne_rayon());
         auto &canaux = maillage->canaux_texture();
         auto const largeur = canaux.largeur;
 
@@ -209,7 +209,9 @@ class CommandePeinture3D : public CommandeKanba {
 #endif
 
         for (auto const &seau : cannevas->seaux()) {
-            if (seau.texels.est_vide()) {
+            auto &texels = seau.donne_texels();
+
+            if (texels.est_vide()) {
                 continue;
             }
 
@@ -222,10 +224,10 @@ class CommandePeinture3D : public CommandeKanba {
 #ifdef DEBUG_TOUCHES_SEAUX
             bool texel_modifié = false;
 #endif
-            for (auto const &texel : seau.texels) {
-                auto dist = longueur(texel.pos - pos_brosse);
+            for (auto const &texel : texels) {
+                auto dist = longueur(texel.donne_pos() - pos_brosse);
 
-                if (dist > static_cast<float>(brosse->rayon)) {
+                if (dist > static_cast<float>(brosse->donne_rayon())) {
                     continue;
                 }
 
@@ -236,14 +238,14 @@ class CommandePeinture3D : public CommandeKanba {
                 auto opacite = dist * rayon_inverse;
                 opacite = 1.0f - opacite * opacite;
 
-                auto poly = maillage->polygone(texel.index);
+                auto poly = maillage->polygone(texel.donne_index());
                 auto tampon_poly = tampon + (poly->x + poly->y * largeur);
-                auto index = texel.v + texel.u * largeur;
+                auto index = texel.donne_v() + texel.donne_u() * largeur;
 
                 tampon_poly[index] = melange(tampon_poly[index],
-                                             brosse->couleur,
-                                             opacite * brosse->opacite,
-                                             brosse->mode_fusion);
+                                             brosse->donne_couleur(),
+                                             opacite * brosse->donne_opacité(),
+                                             brosse->donne_mode_de_fusion());
             }
 
 #ifdef DEBUG_TOUCHES_SEAUX

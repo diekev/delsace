@@ -101,7 +101,7 @@ class CommandeSauvegarderProjet : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        if (kanba.maillage == nullptr) {
+        if (kanba.donne_maillage() == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 

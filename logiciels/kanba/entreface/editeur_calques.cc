@@ -99,7 +99,7 @@ void BoiteACocherItem::ajourne_etat_calque(int state)
         m_calque->drapeaux &= ~m_drapeaux;
     }
 
-    auto maillage = m_kanba->maillage;
+    auto maillage = m_kanba->donne_maillage();
     maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
     m_kanba->notifie_observatrices(KNB::TypeÉvènement::DESSIN);
 }
@@ -199,7 +199,7 @@ EditeurCalques::~EditeurCalques()
 
 void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
 {
-    auto maillage = m_kanba->maillage;
+    auto maillage = m_kanba->donne_maillage();
 
     if (maillage == nullptr) {
         return;
@@ -256,7 +256,7 @@ void EditeurCalques::ajourne_vue()
 void EditeurCalques::repond_bouton()
 {
     auto bouton = qobject_cast<QPushButton *>(sender());
-    m_kanba->repondant_commande->repond_clique(bouton->text().toStdString(), "");
+    m_kanba->donne_repondant_commande()->repond_clique(bouton->text().toStdString(), "");
 }
 
 void EditeurCalques::repond_selection(QTreeWidgetItem *item, int column)
@@ -272,7 +272,7 @@ void EditeurCalques::repond_selection(QTreeWidgetItem *item, int column)
 
     auto calque = const_cast<KNB::Calque *>(item_calque->pointeur());
 
-    auto maillage = m_kanba->maillage;
+    auto maillage = m_kanba->donne_maillage();
     if (calque == maillage->calque_actif()) {
         return;
     }

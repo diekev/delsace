@@ -41,7 +41,7 @@
 #include "rendu_seaux.hh"
 
 VisionneurScene::VisionneurScene(VueCanevas3D *parent, KNB::Kanba *kanba)
-    : m_parent(parent), m_kanba(kanba), m_camera(kanba->camera), m_rendu_brosse(nullptr),
+    : m_parent(parent), m_kanba(kanba), m_camera(kanba->donne_caméra()), m_rendu_brosse(nullptr),
       m_rendu_grille(nullptr), m_rendu_texte(nullptr), m_rendu_maillage(nullptr), m_pos_x(0),
       m_pos_y(0)
 {
@@ -93,13 +93,15 @@ void VisionneurScene::peint_opengl()
     /* Peint la scene. */
     m_rendu_grille->dessine(m_contexte);
 
-    if (m_kanba->maillage && !m_rendu_maillage) {
-        m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
+    auto maillage = m_kanba->donne_maillage();
+
+    if (maillage && !m_rendu_maillage) {
+        m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();
     }
-    else if (m_rendu_maillage && m_rendu_maillage->maillage() != m_kanba->maillage) {
+    else if (m_rendu_maillage && m_rendu_maillage->maillage() != maillage) {
         delete m_rendu_maillage;
-        m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
+        m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();
     }
 
@@ -113,7 +115,8 @@ void VisionneurScene::peint_opengl()
     }
 
     if (m_affiche_brosse) {
-        auto const &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
+        auto brosse = m_kanba->donne_brosse();
+        auto const &diametre = static_cast<float>(brosse->donne_diamètre());
 
         m_rendu_brosse->dessine(m_contexte,
                                 diametre / static_cast<float>(m_camera->largeur()),
@@ -135,7 +138,7 @@ void VisionneurScene::peint_opengl()
     glDisable(GL_BLEND);
 
     /* Peint les seaux au dessus du reste. */
-    if (m_kanba->dessine_seaux) {
+    if (m_kanba->donne_dessine_seaux()) {
         glDisable(GL_DEPTH_TEST);
         if (!m_rendu_seaux) {
             m_rendu_seaux = new RenduSeaux(m_kanba);

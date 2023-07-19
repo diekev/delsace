@@ -40,7 +40,7 @@ class CommandeAjouterCalque : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        auto maillage = kanba.maillage;
+        auto maillage = kanba.donne_maillage();
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -66,7 +66,7 @@ class CommandeSupprimerCalque : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        auto maillage = kanba.maillage;
+        auto maillage = kanba.donne_maillage();
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;

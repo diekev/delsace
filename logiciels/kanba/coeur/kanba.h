@@ -30,6 +30,7 @@
 #include "biblinternes/math/vecteur.hh"
 
 #include "interface_graphique.hh"
+#include "outils.hh"
 
 class BaseEditrice;
 class FenetrePrincipale;
@@ -77,29 +78,23 @@ struct EntréeLog {
 };
 
 struct Kanba {
-    dls::math::matrice_dyn<dls::math::vec4f> tampon;
-
-    /* Interface utilisateur. */
-    FenetrePrincipale *fenetre_principale = nullptr;
-    BaseEditrice *widget_actif = nullptr;
-
+  private:
     UsineCommande usine_commande;
 
-    RepondantCommande *repondant_commande;
+    RepondantCommande *m_repondant_commande;
 
-    Brosse *brosse;
-    vision::Camera3D *camera;
-    Maillage *maillage;
-    CannevasPeinture *cannevas = nullptr;
+    Brosse *m_brosse;
+    vision::Camera3D *m_caméra;
+    Maillage *m_maillage;
+    CannevasPeinture *m_cannevas = nullptr;
 
     /* Définis si les seaux du cannevas doivent être dessinés sur la vue 3D. */
-    bool dessine_seaux = false;
+    bool m_dessine_seaux = false;
 
     dls::tableau<EntréeLog> entrées_log{};
 
-  private:
+    /* Interface utilisateur. */
     InterfaceGraphique m_interface_graphique{};
-
     GestionnaireFenetre *m_gestionnaire_fenêtre = nullptr;
 
   public:
@@ -109,11 +104,19 @@ struct Kanba {
     Kanba(Kanba const &) = default;
     Kanba &operator=(Kanba const &) = default;
 
+    DEFINIS_ACCESSEUR_MEMBRE(Maillage *, maillage);
+    DEFINIS_ACCESSEUR_MUTATEUR_MEMBRE(Brosse *, brosse);
+    DEFINIS_ACCESSEUR_MEMBRE(vision::Camera3D *, caméra);
+    DEFINIS_ACCESSEUR_MEMBRE(CannevasPeinture *, cannevas);
+    DEFINIS_ACCESSEUR_MEMBRE(bool, dessine_seaux);
+    DEFINIS_ACCESSEUR_MEMBRE(RepondantCommande *, repondant_commande);
+
     void enregistre_commandes();
 
     dls::chaine requiers_dialogue(int type);
 
     void installe_gestionnaire_fenêtre(GestionnaireFenetre *gestionnaire);
+    DEFINIS_ACCESSEUR_MEMBRE(GestionnaireFenetre *, gestionnaire_fenêtre);
 
     void installe_maillage(Maillage *m);
 

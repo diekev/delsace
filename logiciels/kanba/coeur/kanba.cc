@@ -48,20 +48,20 @@
 namespace KNB {
 
 Kanba::Kanba()
-    : tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920)), usine_commande{},
-      repondant_commande(new RepondantCommande(usine_commande, this)), brosse(new Brosse()),
-      camera(new vision::Camera3D(0, 0)), maillage(nullptr), cannevas(new CannevasPeinture(*this))
+    : usine_commande{}, m_repondant_commande(new RepondantCommande(usine_commande, this)),
+      m_brosse(new Brosse()), m_caméra(new vision::Camera3D(0, 0)), m_maillage(nullptr),
+      m_cannevas(new CannevasPeinture(*this))
 {
     InterfaceGraphique::initialise_interface_par_défaut(m_interface_graphique);
 }
 
 Kanba::~Kanba()
 {
-    delete brosse;
-    delete maillage;
-    delete camera;
-    delete repondant_commande;
-    delete cannevas;
+    delete m_brosse;
+    delete m_maillage;
+    delete m_caméra;
+    delete m_repondant_commande;
+    delete m_cannevas;
     delete m_gestionnaire_fenêtre;
 }
 
@@ -91,12 +91,12 @@ void Kanba::installe_gestionnaire_fenêtre(GestionnaireFenetre *gestionnaire)
 
 void Kanba::installe_maillage(Maillage *m)
 {
-    if (maillage) {
-        delete maillage;
+    if (m_maillage) {
+        delete m_maillage;
     }
 
-    maillage = m;
-    maillage->cree_tampon(this);
+    m_maillage = m;
+    m_maillage->cree_tampon(this);
 }
 
 void Kanba::notifie_observatrices(TypeÉvènement type)

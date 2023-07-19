@@ -94,6 +94,9 @@ add_library(${NOM_CIBLE} STATIC
 
         ${ENTETES_POUR_QT}
 
+        evenement_kanba.hh
+        gestionnaire_interface.hh
+
 	opengl/rendu_brosse.cc
 	opengl/rendu_maillage.cc
         opengl/rendu_seaux.cc
@@ -107,7 +110,9 @@ add_library(${NOM_CIBLE} STATIC
 	editeur_calques.cc
 	editeur_canevas.cc
 	editeur_parametres.cc
+        evenement_kanba.cc
 	fenetre_principale.cc
+        gestionnaire_interface.cc
         vue_region.cc
 
 	${NUANCEURS}

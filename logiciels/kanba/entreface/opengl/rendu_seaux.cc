@@ -53,8 +53,8 @@ RenduSeaux::RenduSeaux(KNB::Kanba *kanba) : m_kanba(kanba)
 
 void RenduSeaux::initialise()
 {
-    auto const camera = m_kanba->camera;
-    auto const cannevas = m_kanba->cannevas;
+    auto const camera = m_kanba->donne_caméra();
+    auto const cannevas = m_kanba->donne_cannevas();
     auto const &seaux = cannevas->seaux();
 
     if (seaux.est_vide()) {
@@ -82,10 +82,15 @@ void RenduSeaux::initialise()
     unsigned int décalage_sommet = 0;
     unsigned int décalage_index = 0;
     for (auto const &seau : seaux) {
-        auto px0 = static_cast<float>(seau.x) * largeur_inverse_caméra;
-        auto px1 = static_cast<float>(seau.x + seau.largeur) * largeur_inverse_caméra;
-        auto py0 = static_cast<float>(seau.y) * hauteur_inverse_caméra;
-        auto py1 = static_cast<float>(seau.y + seau.hauteur) * hauteur_inverse_caméra;
+        auto seau_x = seau.donne_x();
+        auto seau_y = seau.donne_y();
+        auto seau_largeur = seau.donne_largeur();
+        auto seau_hauteur = seau.donne_hauteur();
+
+        auto px0 = static_cast<float>(seau_x) * largeur_inverse_caméra;
+        auto px1 = static_cast<float>(seau_x + seau_largeur) * largeur_inverse_caméra;
+        auto py0 = static_cast<float>(seau_y) * hauteur_inverse_caméra;
+        auto py1 = static_cast<float>(seau_y + seau_hauteur) * hauteur_inverse_caméra;
 
         px0 = px0 * 2.0f - 1.0f;
         px1 = px1 * 2.0f - 1.0f;

@@ -38,6 +38,7 @@
 
 #include "../evenement.h"
 #include "../kanba.h"
+#include "../maillage.h"
 
 /* ************************************************************************** */
 
@@ -62,6 +63,27 @@ class CommandePeinture2D : public CommandeKanba {
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
+        auto maillage = kanba.donne_maillage();
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        auto calque = maillage->calque_actif();
+
+        if (calque == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        if ((calque->drapeaux & KNB::CALQUE_VERROUILLÉ) != 0) {
+            // À FAIRE : message d'erreur dans la barre d'état.
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        auto brosse = kanba.donne_brosse();
+        auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
+        auto &canaux = maillage->canaux_texture();
+        auto const largeur = canaux.largeur;
+        auto const hauteur = canaux.hauteur;
 
         auto const rayon_brosse = 10;
         auto const rayon_carre = rayon_brosse * rayon_brosse;
@@ -72,11 +94,11 @@ class CommandePeinture2D : public CommandeKanba {
                 auto const x = int(donnees.x) + i;
                 auto const y = int(donnees.y) + j;
 
-                if (x < 0 || x >= kanba.tampon.nombre_colonnes()) {
+                if (x < 0 || x >= largeur) {
                     continue;
                 }
 
-                if (y < 0 || y >= kanba.tampon.nombre_lignes()) {
+                if (y < 0 || y >= hauteur) {
                     continue;
                 }
 
@@ -84,7 +106,7 @@ class CommandePeinture2D : public CommandeKanba {
                     continue;
                 }
 
-                kanba.tampon[y][x] = couleur_brosse;
+                tampon[x + y * largeur] = couleur_brosse;
             }
         }
 
