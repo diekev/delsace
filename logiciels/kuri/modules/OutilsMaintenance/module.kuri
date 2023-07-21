@@ -125,7 +125,7 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
@@ -137,7 +137,9 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     données.données_utilisateurs = données_utilisateurs
     données.contenu = contenu
 
-    rappel(données)
+    pour rappels {
+        it(données)
+    }
 
     si données.lignes_furent_modifiées {
         écris_lignes_dans_fichier(chemin, données.lignes)
@@ -146,7 +148,7 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     détruit_données_fichier(données)
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -161,7 +163,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
                 }
 
                 si fait_partie_de(chemin.extension(), ...extensions) {
-                    exécute_rappel_pour_fichier(racine, chemin, rappel, données_utilisateurs)
+                    exécute_rappel_pour_fichier(racine, chemin, rappels, données_utilisateurs)
                 }
             }
             sinon {
@@ -256,20 +258,38 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
     données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+/* ------------------------------------------------------------------------- */
+/** \nom Points d'entrée.
+ * \{ */
+
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     si chemin.est_un_dossier() {
-        exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
+        exécute_rappel_pour_dossier(chemin, extensions, rappels, données_utilisateurs)
     }
     sinon {
         si fait_partie_de(chemin.extension(), ...extensions) {
-            exécute_rappel_pour_fichier(chemin, chemin, rappel, données_utilisateurs)
+            exécute_rappel_pour_fichier(chemin, chemin, rappels, données_utilisateurs)
         }
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    rappels := [rappel]
+    exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
+}
+
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien))
 {
     données_utilisateurs: eini
-    exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
+    exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
 }
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
+{
+    rappels := [rappel]
+    exécute_rappels(chemin, extensions, rappels)
+}
+
+/** } */
