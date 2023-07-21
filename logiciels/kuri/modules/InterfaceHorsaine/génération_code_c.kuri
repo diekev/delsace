@@ -493,7 +493,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
     si ensemble_possède(classes_déclarées, type) {
         retourne
     }
-    
+
     diffère ensemble_ajoute(classes_déclarées, type)
 
     si type.infos.id == id_info.FONCTION {
@@ -505,7 +505,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
             prédéclare_type_cpp(enchaineuse, it, système, classes_déclarées)
         }
 
-        type_c := trouve_type(système, type.infos)      
+        type_c := trouve_type(système, type.infos)
         ajoute_au_tampon(enchaineuse, "using ", type_c.nom_type_cpp, " = ")
 
         type_c_sortie := trouve_type(système, type.types_sortie[0].infos)
@@ -744,7 +744,7 @@ définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     /* Saute l'espace de nom; +1 pour le tiret bas.. */
     taille_espace_de_nom := génératrice.espace_de_nom.taille + 1
     nom_type := avance(type_c.nom_type_c, taille_espace_de_nom)
-    
+
     /* Renseigne les rappels. */
     pour type.membres {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
@@ -765,7 +765,7 @@ définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     /* Interface publique. */
     ajoute_au_tampon(enchaineuse, "  public:\n")
     ajoute_au_tampon(enchaineuse, "     virtual ~", type_c.nom_type_cpp, "() = default;\n\n")
-    
+
     ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, "() { return this->m_poignee; }\n\n")
     ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() { return this->m_poignee; }\n\n")
     ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() const { return this->m_poignee; }\n\n")
@@ -862,7 +862,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
     fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == id_info.RIEN
 
     ajoute_au_tampon(enchaineuse, "    ")
-    
+
     saufsi fonction_ne_retourne_rien {
         ajoute_au_tampon(enchaineuse, "auto valeur_de_retour = ")
     }
@@ -1396,7 +1396,6 @@ génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_ty
         }
         ajoute_au_tampon(enchaineuse, ")\n")
     }
-
 
     saufsi fonction_ne_retourne_rien {
         type_sortie := fonction.sorties[0].type

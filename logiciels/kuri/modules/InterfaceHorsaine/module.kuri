@@ -2,8 +2,8 @@
  * À utiliser dans des métaprogrammes. */
 
 importe Compilatrice
-importe Fondation
 importe Ensemble
+importe Fondation
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -558,5 +558,5 @@ convertis_types_params_méthode :: fonc (ipa: &IPA, méthode: *MéthodeIPA)
 
     pour & méthode.sorties {
         it.type_ipa = convertis_vers_type_ipa(ipa, it.type)
-    } 
+    }
 }
