@@ -4,6 +4,10 @@ importe Fondation
 importe SysFichier
 importe Triage
 
+/* ------------------------------------------------------------------------- */
+/** \nom Données du fichier étant traité.
+ * \{ */
+
 DonnéesFichier :: struct {
     /* Le chemin racine d'où est lancée l'exécution,
      * par exemple le chemin passé dans la ligne de commande
@@ -13,6 +17,46 @@ DonnéesFichier :: struct {
     lignes: []chaine
 
     données_utilisateurs: eini
+
+    contenu: chaine
+    lignes_furent_modifiées := faux
+}
+
+détruit_données_fichier :: fonc (données: &DonnéesFichier)
+{
+    détruit_lignes(données)
+}
+
+détruit_lignes :: fonc (données: &DonnéesFichier)
+{
+    pour données.lignes {
+        si est_ligne_originelle(données, it) {
+            continue
+        }
+
+        déloge(it)
+    }
+
+    déloge(données.lignes)
+}
+
+/* Retourne vrai si la ligne provient du contenu du fichier. */
+est_ligne_originelle :: fonc (données: &DonnéesFichier, ligne: chaine) -> bool
+{
+    début_contenu := données.contenu.pointeur
+    fin_contenu := début_contenu + données.contenu.taille
+    /* fin_contenu se trouve un octet après la fin du contenu, donc nous devons
+     * faire une comparaison strictement inférieure. */
+    retourne début_contenu <= ligne.pointeur < fin_contenu
+}
+
+remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: []chaine)
+{
+    /* Supprime les vieilles lignes. */
+    détruit_lignes(données)
+
+    données.lignes = nouvelles_lignes
+    données.lignes_furent_modifiées = vrai
 }
 
 données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
@@ -23,6 +67,8 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
     retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
 }
+
+/** } */
 
 tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 {
@@ -79,26 +125,28 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
 
-    lignes := divise(contenu, '\n')
-    diffère déloge(lignes)
-
     données: DonnéesFichier
     données.racine_exécution = racine
-    données.lignes = lignes
+    données.lignes = divise(contenu, '\n')
     données.chemin = chemin
     données.données_utilisateurs = données_utilisateurs
+    données.contenu = contenu
 
-    si rappel(données) {
+    rappel(données)
+
+    si données.lignes_furent_modifiées {
         écris_lignes_dans_fichier(chemin, données.lignes)
     }
+
+    détruit_données_fichier(données)
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     exploratrice := crée_exploratrice_fichier(racine)
 
@@ -125,7 +173,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
 
 // -------------------------------------
 
-tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
+tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
 {
     première_ligne := -1
     dernière_ligne := -1
@@ -154,17 +202,16 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
         }
     }
 
-    retourne lignes_furent_modifiés
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
 }
 
 // -------------------------------------
 
-supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier) -> bool
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
 {
     dernière_ligne_fut_vide := faux
 
     nouvelles_lignes : []chaine
-    diffère déloge(nouvelles_lignes)
 
     lignes := données_fichier.lignes
     pour lignes {
@@ -183,21 +230,16 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
     }
 
     si lignes.taille != nouvelles_lignes.taille {
-        pour nouvelles_lignes {
-            lignes.pointeur[index_it] = it
-        }
-
-        lignes.taille = nouvelles_lignes.taille
-        données_fichier.lignes = lignes
-        retourne vrai
+        données_fichier.remplace_lignes(nouvelles_lignes)
+        retourne
     }
 
-    retourne faux
+    déloge(nouvelles_lignes)
 }
 
 // -------------------------------------
 
-supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier) -> bool
+supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
 {
     lignes_furent_modifiés := faux
     pour & données_fichier.lignes {
@@ -211,10 +253,10 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier) -> b
         }
     }
 
-    retourne lignes_furent_modifiés
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool), données_utilisateurs: eini)
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
     si chemin.est_un_dossier() {
         exécute_rappel_pour_dossier(chemin, extensions, rappel, données_utilisateurs)
@@ -226,7 +268,7 @@ exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fo
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(bool))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
 {
     données_utilisateurs: eini
     exécute_rappel(chemin, extensions, rappel, données_utilisateurs)
