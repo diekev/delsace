@@ -29,7 +29,7 @@ class EditriceAttributs : public BaseEditrice {
     EditriceAttributs(EditriceAttributs const &) = delete;
     EditriceAttributs &operator=(EditriceAttributs const &) = delete;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override{};
 

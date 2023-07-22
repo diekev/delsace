@@ -26,12 +26,12 @@
 
 std::optional<JJL::NoeudCorps> donne_noeud_corps_actif(JJL::Jorjala &jorjala)
 {
-    auto graphe = jorjala.graphe();
+    auto graphe = jorjala.donne_graphe();
     if (graphe == nullptr) {
         return {};
     }
 
-    auto noeud = graphe.noeud_actif();
+    auto noeud = graphe.donne_noeud_actif();
     if (noeud == nullptr) {
         return {};
     }
@@ -98,7 +98,7 @@ static void accumule_nom_attribut(dls::tableau<QString> &liste,
 
 static QString qstring_pour_attribut(JJL::Attribut attribut, const int ligne, const int dimension)
 {
-    switch (attribut.type()) {
+    switch (attribut.donne_type()) {
         case JJL::TypeAttribut::BOOL:
         {
             auto v = attribut.bool_pour_index(ligne);
@@ -118,48 +118,48 @@ static QString qstring_pour_attribut(JJL::Attribut attribut, const int ligne, co
         {
             auto v = attribut.vec2_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(static_cast<double>(v.x()));
+                return QString::number(static_cast<double>(v.donne_x()));
             }
-            return QString::number(static_cast<double>(v.y()));
+            return QString::number(static_cast<double>(v.donne_y()));
         }
         case JJL::TypeAttribut::VEC3:
         {
             auto v = attribut.vec3_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(static_cast<double>(v.x()));
+                return QString::number(static_cast<double>(v.donne_x()));
             }
             if (dimension == 1) {
-                return QString::number(static_cast<double>(v.y()));
+                return QString::number(static_cast<double>(v.donne_y()));
             }
-            return QString::number(static_cast<double>(v.z()));
+            return QString::number(static_cast<double>(v.donne_z()));
         }
         case JJL::TypeAttribut::VEC4:
         {
             auto v = attribut.vec4_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(static_cast<double>(v.x()));
+                return QString::number(static_cast<double>(v.donne_x()));
             }
             if (dimension == 1) {
-                return QString::number(static_cast<double>(v.y()));
+                return QString::number(static_cast<double>(v.donne_y()));
             }
             if (dimension == 2) {
-                return QString::number(static_cast<double>(v.z()));
+                return QString::number(static_cast<double>(v.donne_z()));
             }
-            return QString::number(static_cast<double>(v.w()));
+            return QString::number(static_cast<double>(v.donne_w()));
         }
         case JJL::TypeAttribut::COULEUR:
         {
             auto v = attribut.couleur_pour_index(ligne);
             if (dimension == 0) {
-                return QString::number(static_cast<double>(v.r()));
+                return QString::number(static_cast<double>(v.donne_r()));
             }
             if (dimension == 1) {
-                return QString::number(static_cast<double>(v.v()));
+                return QString::number(static_cast<double>(v.donne_v()));
             }
             if (dimension == 2) {
-                return QString::number(static_cast<double>(v.b()));
+                return QString::number(static_cast<double>(v.donne_b()));
             }
-            return QString::number(static_cast<double>(v.a()));
+            return QString::number(static_cast<double>(v.donne_a()));
         }
     }
 
@@ -221,7 +221,7 @@ ModèleTableAttribut::ModèleTableAttribut(JJL::Corps corps, int domaine)
     int nombre_de_colonnes = 0;
 
     for (auto attribut : attributs) {
-        nombre_de_colonnes += nombre_de_colonnes_pour_type_attribut(attribut.type());
+        nombre_de_colonnes += nombre_de_colonnes_pour_type_attribut(attribut.donne_type());
     }
 
     m_noms_colonnes.reserve(m_noms_colonnes.taille() + nombre_de_colonnes);
@@ -230,9 +230,11 @@ ModèleTableAttribut::ModèleTableAttribut(JJL::Corps corps, int domaine)
 
     int index_attribut = 0;
     for (auto attribut : attributs) {
-        accumule_nom_attribut(m_noms_colonnes, attribut.type(), attribut.nom().vers_std_string());
+        accumule_nom_attribut(
+            m_noms_colonnes, attribut.donne_type(), attribut.donne_nom().vers_std_string());
 
-        const int colonnes_pour_attribut = nombre_de_colonnes_pour_type_attribut(attribut.type());
+        const int colonnes_pour_attribut = nombre_de_colonnes_pour_type_attribut(
+            attribut.donne_type());
 
         for (int i = 0; i < colonnes_pour_attribut; i++) {
             m_index_colonne_vers_index_attribut.ajoute(index_attribut);
@@ -298,14 +300,14 @@ QVariant ModèleTableAttribut::data(const QModelIndex &index, int role) const
             auto point = m_corps.donne_point_local(index.row());
 
             if (colonne == 0) {
-                return QString::number(static_cast<double>(point.x()));
+                return QString::number(static_cast<double>(point.donne_x()));
             }
 
             if (colonne == 1) {
-                return QString::number(static_cast<double>(point.y()));
+                return QString::number(static_cast<double>(point.donne_y()));
             }
 
-            return QString::number(static_cast<double>(point.z()));
+            return QString::number(static_cast<double>(point.donne_z()));
         }
 
         /* Nous sommes en dehors des points, ajust l'index pour n'inclure que les attributs. */
@@ -349,12 +351,12 @@ EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addLayout(disposition_vert);
 }
 
-void EditriceAttributs::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceAttributs::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto creation = (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto creation = (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
 
     if (!creation) {
         return;
@@ -399,7 +401,7 @@ void EditriceAttributs::ajourne_pour_changement_domaine(int domaine)
     m_domaine = domaine;
     /* Invalide le cache. */
     m_noeud = {};
-    ajourne_état(JJL::TypeEvenement::RAFRAICHISSEMENT);
+    ajourne_état(JJL::TypeÉvènement::RAFRAICHISSEMENT);
 }
 
 /** \} */

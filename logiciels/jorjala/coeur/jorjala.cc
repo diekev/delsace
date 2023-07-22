@@ -57,7 +57,7 @@ static void enregistre_commandes(UsineCommande &usine_commande)
 static void initialise_données_programme(DonnéesProgramme *données_programme,
                                          JJL::Jorjala &jorjala)
 {
-    jorjala.données_programme(données_programme);
+    jorjala.définis_données_programme(données_programme);
 
     données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>(
         "danjo::GestionnaireInterface");
@@ -100,7 +100,7 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
 
 DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala)
 {
-    return static_cast<DonnéesProgramme *>(jorjala.données_programme());
+    return static_cast<DonnéesProgramme *>(jorjala.donne_données_programme());
 }
 
 RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala)

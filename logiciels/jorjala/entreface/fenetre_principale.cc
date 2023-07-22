@@ -72,17 +72,17 @@
 /* Sous-classe de QEvent pour ajouter les évnènements de Jorjala à la boucle
  * d'évènements de Qt. */
 class EvenementJorjala : public QEvent {
-    JJL::TypeEvenement m_type;
+    JJL::TypeÉvènement m_type;
 
   public:
     static QEvent::Type id_type_qt;
 
-    EvenementJorjala(JJL::TypeEvenement type_evenenemt_jorjala)
+    EvenementJorjala(JJL::TypeÉvènement type_evenenemt_jorjala)
         : QEvent(id_type_qt), m_type(type_evenenemt_jorjala)
     {
     }
 
-    JJL::TypeEvenement pour_quoi() const
+    JJL::TypeÉvènement pour_quoi() const
     {
         return m_type;
     }
@@ -110,13 +110,13 @@ static Qt::CursorShape convertis_type_curseur(JJL::TypeCurseur curseur)
     return Qt::CursorShape::ArrowCursor;
 }
 
-class GestionnaireInterface final : public JJL::GestionnaireFenetre {
+class GestionnaireInterface final : public JJL::GestionnaireFenêtre {
     FenetrePrincipale &m_fenêtre_principale;
     TaskNotifier *m_task_notifier = nullptr;
 
   public:
     GestionnaireInterface(FenetrePrincipale &fenêtre_principale)
-        : JJL::GestionnaireFenetre(), m_fenêtre_principale(fenêtre_principale),
+        : JJL::GestionnaireFenêtre(), m_fenêtre_principale(fenêtre_principale),
           m_task_notifier(memoire::loge<TaskNotifier>("TaskNotifier", &m_fenêtre_principale))
     {
     }
@@ -124,7 +124,7 @@ class GestionnaireInterface final : public JJL::GestionnaireFenetre {
     GestionnaireInterface(GestionnaireInterface const &) = delete;
     GestionnaireInterface &operator=(GestionnaireInterface const &) = delete;
 
-    void notifie_observatrices(JJL::TypeEvenement evenement) override
+    void notifie_observatrices(JJL::TypeÉvènement evenement) override
     {
         auto event = new EvenementJorjala(evenement);
         QCoreApplication::postEvent(&m_fenêtre_principale, event);
@@ -273,7 +273,7 @@ void FenetrePrincipale::ecrit_reglages() const
     QSettings settings;
     QStringList recent;
 
-    for (auto fichier_recent : m_jorjala.fichiers_récents()) {
+    for (auto fichier_recent : m_jorjala.donne_fichiers_récents()) {
         recent.push_front(fichier_recent.vers_std_string().c_str());
     }
 
@@ -288,7 +288,7 @@ void FenetrePrincipale::mis_a_jour_menu_fichier_recent()
     donnees.attache = "ouvrir_fichier";
     donnees.repondant_bouton = donne_repondant_commande(m_jorjala);
 
-    for (auto fichier_recent : m_jorjala.fichiers_récents()) {
+    for (auto fichier_recent : m_jorjala.donne_fichiers_récents()) {
         auto string_fichier_recent = fichier_recent.vers_std_string();
         auto name = QFileInfo(string_fichier_recent.c_str()).fileName();
 
@@ -314,7 +314,7 @@ void FenetrePrincipale::closeEvent(QCloseEvent *event)
 
 static QLayout *qlayout_depuis_disposition(JJL::Disposition disposition)
 {
-    switch (disposition.direction()) {
+    switch (disposition.donne_direction()) {
         case JJL::DirectionDisposition::HORIZONTAL:
         {
             return new QHBoxLayout();
@@ -329,7 +329,7 @@ static QLayout *qlayout_depuis_disposition(JJL::Disposition disposition)
 
 static Qt::Orientation donne_orientation_qsplitter_disposition(JJL::Disposition disposition)
 {
-    switch (disposition.direction()) {
+    switch (disposition.donne_direction()) {
         case JJL::DirectionDisposition::HORIZONTAL:
         {
             return Qt::Horizontal;
@@ -347,7 +347,7 @@ static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
                                              QVector<VueRegion *> &régions);
 
 static void génère_interface_région(JJL::Jorjala &jorjala,
-                                    JJL::RegionInterface &région,
+                                    JJL::RégionInterface &région,
                                     QSplitter *layout,
                                     QVector<VueRegion *> &régions)
 {
@@ -358,13 +358,13 @@ static void génère_interface_région(JJL::Jorjala &jorjala,
     qwidget_région_layout->setMargin(0);
     qwidget_région->setLayout(qwidget_région_layout);
 
-    if (région.type() == JJL::TypeRegion::CONTENEUR_ÉDITRICE) {
+    if (région.donne_type() == JJL::TypeRégion::CONTENEUR_ÉDITRICE) {
         auto vue_région = new VueRegion(jorjala, région, qwidget_région);
         régions.append(vue_région);
         qwidget_région_layout->addWidget(vue_région);
     }
     else {
-        auto widget = génère_interface_disposition(jorjala, région.disposition(), régions);
+        auto widget = génère_interface_disposition(jorjala, région.donne_disposition(), régions);
         qwidget_région_layout->addWidget(widget);
     }
 }
@@ -376,7 +376,7 @@ static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
     auto qsplitter = new QSplitter();
     qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
 
-    for (auto région : disposition.régions()) {
+    for (auto région : disposition.donne_régions()) {
         génère_interface_région(jorjala, région, qsplitter, régions);
     }
 
@@ -395,12 +395,12 @@ void FenetrePrincipale::construit_interface_depuis_jorjala()
     auto interface = m_jorjala.donne_interface();
     m_régions.clear();
 
-    auto disposition = interface.disposition();
+    auto disposition = interface.donne_disposition();
 
     auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_régions);
     setCentralWidget(qwidget);
 
-    m_jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
 }
 
 bool FenetrePrincipale::demande_permission_avant_de_fermer()
@@ -438,7 +438,7 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 
     auto event_jjl = static_cast<EvenementJorjala *>(event);
 
-    if (event_jjl->pour_quoi() == (JJL::TypeEvenement::PROJET | JJL::TypeEvenement::OUVERT)) {
+    if (event_jjl->pour_quoi() == (JJL::TypeÉvènement::PROJET | JJL::TypeÉvènement::OUVERT)) {
         construit_interface_depuis_jorjala();
         return true;
     }
@@ -501,12 +501,12 @@ void FenetrePrincipale::genere_menu_prereglages()
 
 void FenetrePrincipale::image_traitee()
 {
-    m_jorjala.notifie_observatrices(JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
+    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
 }
 
 void FenetrePrincipale::signale_proces(int quoi)
 {
-    m_jorjala.notifie_observatrices(static_cast<JJL::TypeEvenement>(quoi));
+    m_jorjala.notifie_observatrices(static_cast<JJL::TypeÉvènement>(quoi));
 }
 
 void FenetrePrincipale::tache_demarree()

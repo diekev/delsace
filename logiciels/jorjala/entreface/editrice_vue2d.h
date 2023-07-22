@@ -96,7 +96,7 @@ class EditriceVue2D : public BaseEditrice {
     EditriceVue2D(EditriceVue2D const &) = delete;
     EditriceVue2D &operator=(EditriceVue2D const &) = delete;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override
     {

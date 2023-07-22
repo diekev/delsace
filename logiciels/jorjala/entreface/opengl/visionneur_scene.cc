@@ -47,9 +47,9 @@
 
 /* ************************************************************************** */
 
-static int taille_tampon_camera(JJL::Camera3D camera)
+static int taille_tampon_camera(JJL::Caméra3D camera)
 {
-    return camera.hauteur() * camera.largeur() * 4;
+    return camera.donne_hauteur() * camera.donne_largeur() * 4;
 }
 
 /* ************************************************************************** */
@@ -60,7 +60,7 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
       m_rendu_manipulatrice_ech(nullptr), m_pos_x(0), m_pos_y(0),
       m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 {
-    auto camera = m_jorjala.caméra_3d();
+    auto camera = m_jorjala.donne_caméra_3d();
     camera.définit_type_projection(JJL::TypeProjection::PERSPECTIVE);
 }
 
@@ -73,7 +73,7 @@ VisionneurScene::~VisionneurScene()
 
     memoire::deloge("TamponRendu", m_tampon_image);
 
-    auto camera = m_jorjala.caméra_3d();
+    auto camera = m_jorjala.donne_caméra_3d();
 
     if (m_tampon != nullptr) {
         memoire::deloge_tableau("tampon_vue3d", m_tampon, taille_tampon_camera(camera));
@@ -107,15 +107,16 @@ void VisionneurScene::peint_opengl()
 
     auto graphe_obj = m_jorjala.trouve_graphe_pour_chemin("/obj");
 
-    for (auto noeud : graphe_obj.noeuds()) {
+    for (auto noeud : graphe_obj.donne_noeuds()) {
         délégué->objets.ajoute({transtype<JJL::Objet>(noeud), {}});
     }
 
-    auto camera = m_jorjala.caméra_3d();
+    auto camera = m_jorjala.donne_caméra_3d();
     camera.ajourne();
 
     m_moteur_rendu->camera(camera);
-    m_moteur_rendu->calcule_rendu(stats, m_tampon, camera.hauteur(), camera.largeur(), false);
+    m_moteur_rendu->calcule_rendu(
+        stats, m_tampon, camera.donne_hauteur(), camera.donne_largeur(), false);
 #else
     auto contexte_eval = cree_contexte_evaluation(m_jorjala);
     contexte_eval.rendu_final = false;
@@ -135,7 +136,7 @@ void VisionneurScene::peint_opengl()
 
     /* dessine le tampon */
 
-    int taille[2] = {camera.largeur(), camera.hauteur()};
+    int taille[2] = {camera.donne_largeur(), camera.donne_hauteur()};
 
     genere_texture_image(m_tampon_image, m_tampon, taille);
 
@@ -150,7 +151,7 @@ void VisionneurScene::peint_opengl()
     auto const &P = convertis_matrice(camera.P());
     auto const &MVP = P * MV;
 
-    m_contexte.vue(convertis_vecteur(camera.direction()));
+    m_contexte.vue(convertis_vecteur(camera.donne_direction()));
     m_contexte.modele_vue(MV);
     m_contexte.projection(P);
     m_contexte.MVP(MVP);
@@ -254,7 +255,7 @@ void VisionneurScene::peint_opengl()
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
-    auto camera = m_jorjala.caméra_3d();
+    auto camera = m_jorjala.donne_caméra_3d();
 
     if (m_tampon != nullptr) {
         memoire::deloge_tableau("tampon_vue3d", m_tampon, taille_tampon_camera(camera));
@@ -268,10 +269,10 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
 
 void VisionneurScene::position_souris(int x, int y)
 {
-    auto camera = m_jorjala.caméra_3d();
-    m_pos_x = static_cast<float>(x) / static_cast<float>(camera.largeur()) * 2.0f - 1.0f;
-    m_pos_y = static_cast<float>(camera.hauteur() - y) / static_cast<float>(camera.hauteur()) *
-                  2.0f -
+    auto camera = m_jorjala.donne_caméra_3d();
+    m_pos_x = static_cast<float>(x) / static_cast<float>(camera.donne_largeur()) * 2.0f - 1.0f;
+    m_pos_y = static_cast<float>(camera.donne_hauteur() - y) /
+                  static_cast<float>(camera.donne_hauteur()) * 2.0f -
               1.0f;
 }
 

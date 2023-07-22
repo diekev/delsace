@@ -95,9 +95,9 @@
  */
 static bool selectionne_noeud(JJL::Jorjala &jorjala, JJL::Noeud noeud, JJL::Graphe graphe)
 {
-    graphe.noeud_actif(noeud);
+    graphe.définis_noeud_actif(noeud);
 
-    if (graphe.noeud_actif() == nullptr) {
+    if (graphe.donne_noeud_actif() == nullptr) {
         return false;
     }
 
@@ -159,17 +159,17 @@ static bool noeud_connecte_sortie(Noeud *noeud, Noeud *sortie)
 /**
  * Retourne vrai si l'entrée et la sortie sont compatibles pour être connectées.
  */
-static bool peut_connecter(JJL::PriseEntree entree, JJL::PriseSortie sortie)
+static bool peut_connecter(JJL::PriseEntrée entree, JJL::PriseSortie sortie)
 {
     if (entree == nullptr || sortie == nullptr) {
         return false;
     }
 
-    if (entree.noeud_parent() == sortie.noeud_parent()) {
+    if (entree.donne_noeud_parent() == sortie.donne_noeud_parent()) {
         return false;
     }
 
-    if (entree.type() != sortie.type()) {
+    if (entree.donne_type() != sortie.donne_type()) {
 #if 0
 		if (entree->type == type_prise::POLYMORPHIQUE || sortie->type == type_prise::POLYMORPHIQUE) {
 			return true;
@@ -220,8 +220,8 @@ class CommandeDessineGrapheComposite final : public CommandeJorjala {
 
 static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL::Noeud &noeud)
 {
-    noeud.pos_x(graphe.centre_x());
-    noeud.pos_y(graphe.centre_y());
+    noeud.définis_pos_x(graphe.donne_centre_x());
+    noeud.définis_pos_y(graphe.donne_centre_y());
 
 #if 0
 	if (graphe.connexion_active != nullptr) {
@@ -238,7 +238,7 @@ static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL
 
     auto besoin_evaluation = selectionne_noeud(jorjala, noeud, graphe);
 
-    jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+    jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
 
     return besoin_evaluation;
 }
@@ -255,7 +255,7 @@ class CommandeAjoutNoeud final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto nom = donnees.metadonnee;
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
         auto noeud = jorjala.crée_noeud_dans_graphe(graphe, nom.c_str());
         if (noeud == nullptr) {
@@ -535,7 +535,7 @@ static JJL::Noeud trouve_noeud(JJL::Graphe &graphe, float x, float y)
     JJL::Noeud noeud_le_plus_proche(nullptr);
     float distance_la_plus_proche = std::numeric_limits<float>::max();
 
-    for (auto noeud : graphe.noeuds()) {
+    for (auto noeud : graphe.donne_noeuds()) {
         auto rectangle_noeud = noeud.rectangle();
 
         if (!rectangle_noeud.contient(x, y)) {
@@ -544,8 +544,8 @@ static JJL::Noeud trouve_noeud(JJL::Graphe &graphe, float x, float y)
 
         auto centre = rectangle_noeud.position_centrale();
 
-        auto dx = centre.x() - x;
-        auto dy = centre.y() - y;
+        auto dx = centre.donne_x() - x;
+        auto dy = centre.donne_y() - y;
 
         auto distance_carrée = dx * dx + dy * dy;
 
@@ -560,8 +560,8 @@ static JJL::Noeud trouve_noeud(JJL::Graphe &graphe, float x, float y)
 
 static JJL::PriseSortie trouve_prise_sortie(JJL::Noeud &noeud, float x, float y)
 {
-    for (auto sortie : noeud.sorties()) {
-        if (sortie.rectangle().contient(x, y)) {
+    for (auto sortie : noeud.donne_sorties()) {
+        if (sortie.donne_rectangle().contient(x, y)) {
             return sortie;
         }
     }
@@ -580,10 +580,10 @@ static JJL::PriseSortie trouve_prise_sortie(JJL::Graphe &graphe, float x, float 
     return trouve_prise_sortie(noeud_le_plus_proche, x, y);
 }
 
-static JJL::PriseEntree trouve_prise_entree(JJL::Noeud &noeud, float x, float y)
+static JJL::PriseEntrée trouve_prise_entree(JJL::Noeud &noeud, float x, float y)
 {
-    for (auto entree : noeud.entrées()) {
-        if (entree.rectangle().contient(x, y)) {
+    for (auto entree : noeud.donne_entrées()) {
+        if (entree.donne_rectangle().contient(x, y)) {
             return entree;
         }
     }
@@ -591,7 +591,7 @@ static JJL::PriseEntree trouve_prise_entree(JJL::Noeud &noeud, float x, float y)
     return nullptr;
 }
 
-static JJL::PriseEntree trouve_prise_entree(JJL::Graphe &graphe, float x, float y)
+static JJL::PriseEntrée trouve_prise_entree(JJL::Graphe &graphe, float x, float y)
 {
     JJL::Noeud noeud_le_plus_proche = trouve_noeud(graphe, x, y);
 
@@ -606,7 +606,7 @@ static void trouve_noeud_prise(JJL::Graphe &graphe,
                                float x,
                                float y,
                                JJL::Noeud *r_noeud,
-                               JJL::PriseEntree *r_entree,
+                               JJL::PriseEntrée *r_entree,
                                JJL::PriseSortie *r_sortie)
 {
     JJL::Noeud noeud_le_plus_proche = trouve_noeud(graphe, x, y);
@@ -640,43 +640,43 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
         JJL::Noeud noeud_selection = nullptr;
-        JJL::PriseEntree prise_entree = nullptr;
+        JJL::PriseEntrée prise_entree = nullptr;
         JJL::PriseSortie prise_sortie = nullptr;
 
         trouve_noeud_prise(
             graphe, donnees.x, donnees.y, &noeud_selection, &prise_entree, &prise_sortie);
 
         if (noeud_selection != nullptr) {
-            delta_x = donnees.x - noeud_selection.pos_x();
-            delta_y = donnees.y - noeud_selection.pos_y();
+            delta_x = donnees.x - noeud_selection.donne_pos_x();
+            delta_y = donnees.y - noeud_selection.donne_pos_y();
             m_chose_sélectionnée = true;
         }
 
         if (prise_entree != nullptr || prise_sortie != nullptr) {
             auto connexion = graphe.débute_connexion_interactive();
-            connexion.x(donnees.x);
-            connexion.y(donnees.y);
+            connexion.définis_x(donnees.x);
+            connexion.définis_y(donnees.y);
 
             /* Si nous débutons sur une prise entrée déjà connectée, nous devons nous préparer à la
              * déconnecter. */
-            if (prise_entree != nullptr && prise_entree.connexion() != nullptr) {
-                prise_sortie = prise_entree.connexion().prise_sortie();
-                auto connexion_originelle = prise_entree.connexion();
-                connexion.connexion_originelle(connexion_originelle);
+            if (prise_entree != nullptr && prise_entree.donne_connexion() != nullptr) {
+                prise_sortie = prise_entree.donne_connexion().donne_prise_sortie();
+                auto connexion_originelle = prise_entree.donne_connexion();
+                connexion.définis_connexion_originelle(connexion_originelle);
                 prise_entree = nullptr;
             }
 
-            connexion.prise_entrée(prise_entree);
-            connexion.prise_sortie(prise_sortie);
+            connexion.définis_prise_entrée(prise_entree);
+            connexion.définis_prise_sortie(prise_sortie);
             m_chose_sélectionnée = true;
         }
 
         bool besoin_evaluation = selectionne_noeud(jorjala, noeud_selection, graphe);
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ);
 
         /* évalue le graphe si un visionneur a été sélectionné */
         if (besoin_evaluation) {
@@ -695,49 +695,49 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
     void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
                                           DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        if (graphe.connexion_interactive()) {
+        if (graphe.donne_connexion_interactive()) {
             auto connexion = graphe.débute_connexion_interactive();
-            connexion.x(donnees.x);
-            connexion.y(donnees.y);
+            connexion.définis_x(donnees.x);
+            connexion.définis_y(donnees.y);
         }
         else {
-            auto noeud_actif = graphe.noeud_actif();
+            auto noeud_actif = graphe.donne_noeud_actif();
 
             if (noeud_actif == nullptr) {
                 return;
             }
 
-            noeud_actif.pos_x(donnees.x - delta_x);
-            noeud_actif.pos_y(donnees.y - delta_y);
+            noeud_actif.définis_pos_x(donnees.x - delta_x);
+            noeud_actif.définis_pos_y(donnees.y - delta_y);
         }
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     void termine_execution_modale_jorjala(JJL::Jorjala &jorjala,
                                           DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        if (graphe.connexion_interactive()) {
-            auto connexion = graphe.connexion_interactive();
-            JJL::PriseEntree entree = nullptr;
+        if (graphe.donne_connexion_interactive()) {
+            auto connexion = graphe.donne_connexion_interactive();
+            JJL::PriseEntrée entree = nullptr;
             JJL::PriseSortie sortie = nullptr;
 
-            if (connexion.prise_entrée() != nullptr) {
-                entree = connexion.prise_entrée();
+            if (connexion.donne_prise_entrée() != nullptr) {
+                entree = connexion.donne_prise_entrée();
                 sortie = trouve_prise_sortie(graphe, donnees.x, donnees.y);
             }
             else {
                 entree = trouve_prise_entree(graphe, donnees.x, donnees.y);
-                sortie = connexion.prise_sortie();
+                sortie = connexion.donne_prise_sortie();
             }
 
             /* Déconnecte la prise entrée originelle si existante. */
-            if (connexion.connexion_originelle()) {
-                auto prise_entrée = connexion.connexion_originelle().prise_entrée();
+            if (connexion.donne_connexion_originelle()) {
+                auto prise_entrée = connexion.donne_connexion_originelle().donne_prise_entrée();
                 graphe.déconnecte(prise_entrée);
             }
 
@@ -747,13 +747,13 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
 
             graphe.termine_connexion_interactive();
 
-            auto requete = JJL::RequeteEvaluation({});
-            requete.raison(JJL::RaisonEvaluation::GRAPHE_MODIFIÉ);
-            requete.graphe(graphe);
+            auto requete = JJL::RequêteÉvaluation({});
+            requete.définis_raison(JJL::RaisonÉvaluation::GRAPHE_MODIFIÉ);
+            requete.définis_graphe(graphe);
             jorjala.requiers_évaluation(requete);
         }
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -842,7 +842,7 @@ class CommandeSupprimeSelection final : public CommandeJorjala {
 
 		graphe->noeud_actif = nullptr;
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ);
 
 		if (besoin_execution) {
 			if (graphe->noeud_parent.type == type_noeud::NUANCEUR) {
@@ -879,16 +879,16 @@ class CommandeInfoNoeud final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
         auto noeud = trouve_noeud(graphe, donnees.x, donnees.y);
 
         if (noeud == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        graphe.noeud_pour_information(noeud);
+        graphe.définis_noeud_pour_information(noeud);
         selectionne_noeud(jorjala, noeud, graphe);
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ);
         return EXECUTION_COMMANDE_MODALE;
     }
 
@@ -896,10 +896,10 @@ class CommandeInfoNoeud final : public CommandeJorjala {
                                           DonneesCommande const &donnees) override
     {
         INUTILISE(donnees);
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
         JJL::Noeud noeud(nullptr);
-        graphe.noeud_pour_information(noeud);
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        graphe.définis_noeud_pour_information(noeud);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
     }
 };
 
@@ -930,12 +930,12 @@ class CommandeDeplaceGraphe final : public CommandeJorjala {
     void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
                                           DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        graphe.centre_x(graphe.centre_x() + m_orig_x - donnees.x);
-        graphe.centre_y(graphe.centre_y() + m_orig_y - donnees.y);
+        graphe.définis_centre_x(graphe.donne_centre_x() + m_orig_x - donnees.x);
+        graphe.définis_centre_y(graphe.donne_centre_y() + m_orig_y - donnees.y);
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -957,13 +957,13 @@ class CommandeZoomGraphe final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        auto valeur = graphe.zoom() *
+        auto valeur = graphe.donne_zoom() *
                       ((donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV);
-        graphe.zoom(valeur);
+        graphe.définis_zoom(valeur);
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -980,7 +980,7 @@ class CommandeEntreNoeud final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
         auto noeud = trouve_noeud(graphe, donnees.x, donnees.y);
         selectionne_noeud(jorjala, noeud, graphe);
 
@@ -994,7 +994,7 @@ class CommandeEntreNoeud final : public CommandeJorjala {
         }
 
         jorjala.définit_graphe_courant(sous_graphe);
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -1011,17 +1011,17 @@ class CommandeSorsNoeud final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        auto noeud_parent = graphe.noeud_parent();
-        auto graphe_parent = noeud_parent.graphe_parent();
+        auto noeud_parent = graphe.donne_noeud_parent();
+        auto graphe_parent = noeud_parent.donne_graphe_parent();
 
         if (graphe_parent == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
         jorjala.définit_graphe_courant(graphe_parent);
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -1088,7 +1088,7 @@ class CommandeArrangeGraphe final : public CommandeJorjala {
 		agclose(g);
 		gvFreeContext(gvc);
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
 #endif
         return EXECUTION_COMMANDE_REUSSIE;
@@ -1108,7 +1108,7 @@ class CommandeChangeContexte final : public CommandeJorjala {
     {
         auto const &metadonnee = donnees.metadonnee;
         jorjala.définit_racine_courante(metadonnee.c_str());
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -1213,7 +1213,7 @@ struct CommandeAjoutPriseNoeud final : public CommandeJorjala {
 			op->donnees_sortie(index, noeud_actif->sorties.back());
 		}
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
 #endif
         return EXECUTION_COMMANDE_REUSSIE;

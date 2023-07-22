@@ -238,22 +238,22 @@ EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addLayout(disp_widgets);
 }
 
-void EditriceVue3D::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceVue3D::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto reconstruit_scene = évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+    auto reconstruit_scene = évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
     auto const camera_modifie = évènement ==
-                                (JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+                                (JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
 
     auto ajourne = camera_modifie | reconstruit_scene;
     // L'affichage des informations des noeuds nous fait tout redessiner... (il nous faudrait une
     // mise en tampon des données de dessin).
-    // ajourne |= evenement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::TRAITÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
-    ajourne |= évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT);
+    // ajourne |= evenement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::TRAITÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
+    ajourne |= évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT);
 
 #if 0
     ajourne_combo_box(m_selecteur_rendu,

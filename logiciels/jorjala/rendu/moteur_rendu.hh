@@ -63,7 +63,7 @@ struct deleguee_scene {
 
 class MoteurRendu {
   protected:
-    JJL::Camera3D m_camera = JJL::Camera3D({});
+    JJL::Caméra3D m_camera = JJL::Caméra3D({});
     deleguee_scene *m_delegue = nullptr;
 
   public:
@@ -74,7 +74,7 @@ class MoteurRendu {
     MoteurRendu(MoteurRendu const &) = delete;
     MoteurRendu &operator=(MoteurRendu const &) = delete;
 
-    void camera(JJL::Camera3D camera);
+    void camera(JJL::Caméra3D camera);
 
     deleguee_scene *delegue();
 
