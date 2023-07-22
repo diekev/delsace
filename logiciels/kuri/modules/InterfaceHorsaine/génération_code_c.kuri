@@ -811,7 +811,7 @@ définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
         ajoute_au_tampon(enchaineuse, "        ", fonction_écriture.nom_pour_fonction_c, "(&m_poignee, ", type_c_fonction.transtype_cpp_vers_c, "rappel_", nom_fonction, ");\n")
     }
     /* Renseigne le pointeur de données. */
-    ajoute_au_tampon(enchaineuse, "        ", génératrice.espace_de_nom, "_ecris_", nom_type, "_donnees(&m_poignee, this);\n")
+    ajoute_au_tampon(enchaineuse, "        ", génératrice.espace_de_nom, "_", nom_type, "_definis_donnees(&m_poignee, this);\n")
     ajoute_au_tampon(enchaineuse, "    }\n\n")
 
     /* Interface publique. */

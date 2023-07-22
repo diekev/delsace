@@ -186,6 +186,10 @@ détruit_données_méthode_ipa :: fonc (méthode: MéthodeIPA)
     déloge(méthode.sorties)
     déloge(méthode.nom_pour_fonction_c)
     déloge(méthode.nom_rappel_pour_table)
+
+    si méthode.est_accès_membre {
+        déloge(méthode.nom)
+    }
 }
 
 convertis_paramètre :: fonc (param: *NoeudCode) -> MéthodeIPA.Paramètre
@@ -471,10 +475,15 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
     }
 }
 
-ajoute_fonction_accès_membre :: fonc (type: *TypeIPA, membre: *MembreTypeIPA) -> *MéthodeIPA
+ajoute_fonction_accès_membre :: fonc (type: *TypeIPA, membre: *MembreTypeIPA, pour_lecture: bool) -> *MéthodeIPA
 {
     fonction := tableau_ajoute_élément(*type.fonctions)
-    fonction.nom = membre.nom
+    si pour_lecture {
+        fonction.nom = enchaine("donne_", membre.nom)
+    }
+    sinon {
+        fonction.nom = enchaine("définis_", membre.nom)
+    }
     fonction.est_accès_membre = membre
     retourne fonction
 }
@@ -505,10 +514,10 @@ ajoute_méthodes_pour_membres_types :: fonc (ipa: &IPA)
 
         pour * membre dans it.membres {
             /* Fonction lecture. */
-            fonction := ajoute_fonction_accès_membre(it, membre)
+            fonction := ajoute_fonction_accès_membre(it, membre, vrai)
             membre.index_fonction_lecture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_lis_", nom_type, "_", membre.nom)
-            fonction.nom_pour_fonction_c = enchaine(ipa.espace_de_nom, "_lis_", nom_type, "_", membre.nom)
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_donne_", membre.nom)
+            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
 
             ajoute_entrée(fonction, "moi", it.infos, it)
             ajoute_sortie(fonction, "résultat", membre.type, membre.type_ipa)
@@ -520,10 +529,10 @@ ajoute_méthodes_pour_membres_types :: fonc (ipa: &IPA)
             }
 
             /* Fonction écriture. */
-            fonction = ajoute_fonction_accès_membre(it, membre)
+            fonction = ajoute_fonction_accès_membre(it, membre, faux)
             membre.index_fonction_écriture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_ecris_", nom_type, "_", membre.nom)
-            fonction.nom_pour_fonction_c = enchaine(ipa.espace_de_nom, "_ecris_", nom_type, "_", membre.nom)
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_definis_", membre.nom)
+            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
 
             ajoute_entrée(fonction, "moi", it.infos, it)
             ajoute_entrée(fonction, "valeur", membre.type, membre.type_ipa)
