@@ -44,6 +44,17 @@ InfoTypeC :: struct {
     type_kuri_requiers_conversion_tableau: bool
 }
 
+détruit_type_c :: fonc (type: *InfoTypeC)
+{
+    déloge(type.nom_type_c)
+    déloge(type.nom_type_c_élément_tableau)
+    déloge(type.nom_type_cpp)
+    déloge(type.nom_type_kuri_c)
+    déloge(type.transtype_c_vers_cpp)
+    déloge(type.transtype_cpp_vers_c)
+    déloge(type)
+}
+
 supprime_points_et_parenthèses :: fonc (chn: *chaine)
 {
     caractères := ".()"
@@ -71,6 +82,11 @@ SystèmeTypeC :: struct {
 
     /* Espace de nom, hérité de la génératrice. */
     espace_de_nom: chaine
+}
+
+détruit_données_système_type :: fonc (système: *SystèmeTypeC)
+{
+    déloge_tableau_et_ses_éléments(système.types, détruit_type_c)
 }
 
 initialise_système_type :: fonc (ipa: &IPA, espace_de_nom: chaine) -> SystèmeTypeC
@@ -308,6 +324,7 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
 {
     génératrice.système_type = initialise_système_type(génératrice.ipa, génératrice.espace_de_nom)
     système_type := *génératrice.système_type
+    diffère détruit_données_système_type(système_type)
 
     chaine_chemin_entête_c := imprime_chaine("%/%.h", génératrice.dossier_sortie, génératrice.nom_module)
     diffère déloge(chaine_chemin_entête_c)
@@ -1320,6 +1337,8 @@ TableauGénériqueIPA :: struct {
 
     // copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
     code := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(code)
+
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), code)
 }
 

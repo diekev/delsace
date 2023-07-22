@@ -143,6 +143,23 @@ TypeIPA :: struct {
     types_sortie : []*TypeIPA
 }
 
+détruit_type_ipa :: fonc (type: *TypeIPA)
+{
+    déloge(type.membres)
+    déloge(type.types_entrée)
+    déloge(type.types_sortie)
+    déloge_tableau_et_ses_éléments(type.fonctions, détruit_données_méthode_ipa)
+
+    discr type.constructrice {
+        Quelque(méthode) {
+            détruit_données_méthode_ipa(méthode)
+        }
+        sinon {}
+    }
+
+    déloge(type)
+}
+
 /* Informations pour un type faisant partie de l'IPA. */
 MéthodeIPA :: struct {
     Paramètre :: struct {
@@ -160,6 +177,15 @@ MéthodeIPA :: struct {
 
     entrées: []Paramètre
     sorties: []Paramètre
+}
+
+/* Par valeur pour déloge_tableau_et_ses_éléments. */
+détruit_données_méthode_ipa :: fonc (méthode: MéthodeIPA)
+{
+    déloge(méthode.entrées)
+    déloge(méthode.sorties)
+    déloge(méthode.nom_pour_fonction_c)
+    déloge(méthode.nom_rappel_pour_table)
 }
 
 convertis_paramètre :: fonc (param: *NoeudCode) -> MéthodeIPA.Paramètre
@@ -241,6 +267,12 @@ IPA :: struct {
     espace_de_nom: chaine
     nom_module: chaine
     dossier_sortie: chaine
+}
+
+détruit_données_ipa :: fonc (ipa: &IPA)
+{
+    déloge_tableau_et_ses_éléments(ipa.types, détruit_type_ipa)
+    déloge_tableau_et_ses_éléments(ipa.fonctions, détruit_données_méthode_ipa)
 }
 
 initialise_ipa :: fonc (espace_de_nom: chaine, nom_module: chaine, dossier_sortie: chaine) -> IPA
