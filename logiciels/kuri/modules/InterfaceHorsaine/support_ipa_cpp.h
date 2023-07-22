@@ -79,8 +79,11 @@ public:
 
     tableau(TypeC *donnees_, long taille_) : m_donnees(donnees_), m_taille(taille_) {}
 
+    TypeC *données_crues() { return m_donnees; }
     const TypeC *données_crues() const { return m_donnees; }
     long taille() const { return m_taille; }
+
+	bool est_vide() const { return taille() == 0; }
 
     TypeCPP operator[] (size_t i) { return TypeCPP(m_donnees[i]); }
 
