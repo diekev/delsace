@@ -205,6 +205,13 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
             nouveau_type.nom_type_c = enchaine(type_c_pointé.nom_type_c, "*")
             nouveau_type.nom_type_cpp = enchaine(type_c_pointé.nom_type_cpp, "*")
             nouveau_type.nom_type_c_élément_tableau = enchaine(type_c_pointé.nom_type_c, "_Ptr")
+
+            type_ipa_pointé := trouve_type_ipa(ipa, info_pointeur.type_pointé)
+
+            saufsi type_ipa_pointé.drapeaux.TOUJOURS_COMME_POINTEUR {
+                nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")")
+                nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")")
+            }
         }
         FONCTION {
             info_fonction := type comme *InfoTypeFonction
