@@ -1333,15 +1333,10 @@ TableauGénériqueIPA :: struct {
 }
 »
 
-    /* À FAIRE : détermine dynamiquement les modules à importer. */
-    ajoute_au_tampon(*enchaineuse, "importe \"../Coeur\"\n")
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
-    ajoute_au_tampon(*enchaineuse, "importe Math\n")
-    ajoute_au_tampon(*enchaineuse, "importe Couleur\n")
-    ajoute_au_tampon(*enchaineuse, "importe SysFichier\n")
-    ajoute_au_tampon(*enchaineuse, "importe OpenVDB\n")
-    ajoute_au_tampon(*enchaineuse, "importe Géométrie3D\n")
-    ajoute_au_tampon(*enchaineuse, "importe \"../Silvathèque\"\n")
+    modules_utilisés := détermine_modules_utilisés(ipa)
+    diffère détruit(*modules_utilisés)
+
+    _ := génère_instructions_importe(*modules_utilisés, *enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, types_support)
 
@@ -1570,4 +1565,17 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
         }
     }
+}
+
+détermine_modules_utilisés :: fonc (ipa: &IPA) -> EnsembleDeModules
+{
+    résultat : EnsembleDeModules
+    initialise_ensemble_de_modules(*résultat)
+
+    pour ipa.types {
+        module := compilatrice_module_pour_type(it.infos)
+        ajoute_module(*résultat, module)
+    }
+
+    retourne résultat
 }
