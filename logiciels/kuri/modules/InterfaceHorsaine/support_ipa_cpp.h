@@ -42,27 +42,7 @@
 #define DEFINIS_OPERATEURS_DRAPEAU(_type_drapeau_) \
     DEFINIS_OPERATEURS_DRAPEAU_IMPL(_type_drapeau_, std::underlying_type_t<_type_drapeau_>)
 
-namespace JJL {
-
-class Chaine : public JJL_Chaine {
-public:
-    Chaine(JJL_Chaine chaine)
-    {
-        this->pointeur = chaine.pointeur;
-        this->taille = chaine.taille;
-    }
-
-    Chaine(const char *str)
-    {
-        this->pointeur = const_cast<char *>(str);
-        this->taille = static_cast<long>(strlen(str));
-    }
-
-    std::string vers_std_string()
-    {
-        return std::string(this->pointeur, static_cast<size_t>(this->taille));
-    }
-};
+namespace ESPACE_DE_NOM {
 
 template <typename TypeC, typename TypeCPP>
 class iteratrice_tableau : public std::iterator<std::random_access_iterator_tag, TypeCPP, long, const TypeCPP *, TypeCPP> {

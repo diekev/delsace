@@ -468,6 +468,36 @@ génère_code_cpp :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFic
     ajoute_au_tampon(*enchaineuse, "#include <string>\n\n")
     ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n")
 
+    définition_classe_chaine := «
+class Chaine : public %_Chaine {
+public:
+    Chaine(%_Chaine chaine)
+    {
+        this->pointeur = chaine.pointeur;
+        this->taille = chaine.taille;
+    }
+
+    Chaine(const char *str)
+    {
+        this->pointeur = const_cast<char *>(str);
+        this->taille = static_cast<long>(strlen(str));
+    }
+
+    std::string vers_std_string() const
+    {
+        return std::string(this->pointeur, static_cast<size_t>(this->taille));
+    }
+
+    bool est_vide() const
+    {
+        return this->taille == 0;
+    }
+};
+
+»
+
+    imprime_dans_enchaineuse(*enchaineuse, définition_classe_chaine, génératrice.espace_de_nom, génératrice.espace_de_nom)
+
     /* Déclare les classes. */
     classes_déclarées : []*TypeIPA
     diffère déloge(classes_déclarées)
