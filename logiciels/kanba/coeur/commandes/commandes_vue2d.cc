@@ -36,6 +36,7 @@
 
 #include "commande_kanba.hh"
 
+#include "../brosse.h"
 #include "../evenement.h"
 #include "../kanba.h"
 #include "../maillage.h"
@@ -85,7 +86,7 @@ class CommandePeinture2D : public CommandeKanba {
         auto const largeur = canaux.largeur;
         auto const hauteur = canaux.hauteur;
 
-        auto const rayon_brosse = 10;
+        auto const rayon_brosse = brosse->donne_rayon();
         auto const rayon_carre = rayon_brosse * rayon_brosse;
         auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
 
@@ -106,7 +107,7 @@ class CommandePeinture2D : public CommandeKanba {
                     continue;
                 }
 
-                tampon[x + y * largeur] = couleur_brosse;
+                tampon[size_t(x) + size_t(y) * largeur] = couleur_brosse;
             }
         }
 
