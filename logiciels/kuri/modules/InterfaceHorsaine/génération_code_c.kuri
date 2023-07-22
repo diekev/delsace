@@ -68,8 +68,6 @@ assainie_noms :: fonc (type: *InfoTypeC)
 {
     supprime_caractère_unicode(*type.nom_type_c)
     supprime_caractère_unicode(*type.nom_type_c_élément_tableau)
-    supprime_caractère_unicode(*type.nom_type_cpp)
-    supprime_caractère_unicode(*type.transtype_c_vers_cpp)
     supprime_caractère_unicode(*type.transtype_cpp_vers_c)
 
     si type.type_kuri_requiers_conversion_tableau {
