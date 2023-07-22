@@ -33,8 +33,9 @@
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/texture/texture.h"
 
-#include "coeur/maillage.h"
+#include "coeur/kanba.h"
 
+#include "../conversion_types.hh"
 #include "tampons_rendu.hh"
 #include "textures.hh"
 
@@ -47,9 +48,9 @@ static std::unique_ptr<TamponRendu> cree_tampon_arrete()
     return crée_tampon_nuanceur_simple(dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
-static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage &maillage)
 {
-    auto const nombre_arretes = maillage->nombre_arretes();
+    auto const nombre_arretes = maillage.donne_nombre_arêtes();
     auto const nombre_elements = nombre_arretes * 2;
     auto tampon = cree_tampon_arrete();
 
@@ -58,10 +59,10 @@ static std::unique_ptr<TamponRendu> genere_tampon_arrete(KNB::Maillage *maillage
 
     /* OpenGL ne travaille qu'avec des floats. */
     for (auto i = 0; i < nombre_arretes; ++i) {
-        auto const arrete = maillage->arrete(i);
+        auto arête = maillage.donne_arête(i);
 
-        sommets.ajoute(arrete->s[0]->pos);
-        sommets.ajoute(arrete->s[1]->pos);
+        sommets.ajoute(convertis_vecteur(arête.donne_position_sommet(0)));
+        sommets.ajoute(convertis_vecteur(arête.donne_position_sommet(1)));
     }
 
     dls::tableau<unsigned int> indices(sommets.taille());
@@ -86,9 +87,9 @@ static std::unique_ptr<TamponRendu> cree_tampon_normal()
     return crée_tampon_nuanceur_simple(dls::phys::couleur32(0.5f, 1.0f, 0.5f, 1.0f));
 }
 
-static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage *maillage)
+static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage &maillage)
 {
-    auto const nombre_polygones = maillage->nombre_polygones();
+    auto const nombre_polygones = maillage.donne_nombre_polygones();
     auto const nombre_elements = nombre_polygones * 2;
     auto tampon = cree_tampon_normal();
 
@@ -97,20 +98,15 @@ static std::unique_ptr<TamponRendu> genere_tampon_normal(KNB::Maillage *maillage
 
     /* OpenGL ne travaille qu'avec des floats. */
     for (auto i = 0; i < nombre_polygones; ++i) {
-        auto const polygone = maillage->polygone(i);
-        auto V = polygone->s[0]->pos;
-        V += polygone->s[1]->pos;
-        V += polygone->s[2]->pos;
-        auto poids = 3.0f;
+        auto polygone = maillage.donne_quadrilatère(i);
+        auto V = convertis_vecteur(polygone.donne_position_sommet(0));
+        V += convertis_vecteur(polygone.donne_position_sommet(1));
+        V += convertis_vecteur(polygone.donne_position_sommet(2));
+        V += convertis_vecteur(polygone.donne_position_sommet(3));
 
-        if (polygone->s[3] != nullptr) {
-            V += polygone->s[3]->pos;
-            poids = 4.0f;
-        }
+        V /= 4.0f;
 
-        V /= poids;
-
-        auto const N = normalise(polygone->nor);
+        auto const N = normalise(convertis_vecteur(polygone.donne_nor()));
 
         sommets.ajoute(V);
         sommets.ajoute(V + 0.1f * N);
@@ -142,66 +138,73 @@ static std::unique_ptr<TamponRendu> creer_tampon()
 #endif
 }
 
-static TamponRendu *genere_tampon(KNB::Maillage *maillage, dls::tableau<uint> const &id_polys)
+struct ConstructriceTamponMaillage {
+    dls::tableau<dls::math::vec3f> sommets{};
+    dls::tableau<dls::math::vec3f> uvs{};
+    dls::tableau<dls::math::vec3f> normaux{};
+
+    ConstructriceTamponMaillage(int64_t const nombre_éléments)
+    {
+        sommets.reserve(nombre_éléments);
+        uvs.reserve(nombre_éléments);
+        normaux.reserve(nombre_éléments);
+    }
+
+    void ajoute_quad(KNB::Quadrilatère &quad, float index_quad)
+    {
+        ajoute_triangle(quad, 0, 1, 2, index_quad);
+        ajoute_triangle(quad, 0, 2, 3, index_quad);
+    }
+
+  private:
+    static constexpr float uvs_intrinsèques[4][2] = {
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f},
+    };
+
+    void ajoute_triangle(KNB::Quadrilatère &quad, int v0, int v1, int v2, float index_quad)
+    {
+        ajoute_sommet(quad, v0, index_quad);
+        ajoute_sommet(quad, v1, index_quad);
+        ajoute_sommet(quad, v2, index_quad);
+    }
+
+    void ajoute_sommet(KNB::Quadrilatère &quad, int index_v, float index_quad)
+    {
+        sommets.ajoute(convertis_vecteur(quad.donne_position_sommet(index_v)));
+        normaux.ajoute(convertis_vecteur(quad.donne_nor()));
+
+        const float u = uvs_intrinsèques[index_v][0];
+        const float v = uvs_intrinsèques[index_v][1];
+
+        uvs.ajoute(dls::math::vec3f(u, v, index_quad));
+    }
+};
+
+static TamponRendu *genere_tampon(KNB::Maillage &maillage, dls::tableau<uint> const &id_polys)
 {
     auto nombre_elements = id_polys.taille() * 6;
     auto tampon = creer_tampon().release();
 
-    dls::tableau<dls::math::vec3f> sommets;
-    sommets.reserve(nombre_elements);
-
-    dls::tableau<dls::math::vec3f> uvs;
-    uvs.reserve(nombre_elements);
-
-    dls::tableau<dls::math::vec3f> normaux;
-    normaux.reserve(nombre_elements);
+    auto constructrice = ConstructriceTamponMaillage(nombre_elements);
 
     auto index_poly = 0.0f;
 
     for (auto i : id_polys) {
-        auto const poly = maillage->polygone(i);
-
-        sommets.ajoute(poly->s[0]->pos);
-        sommets.ajoute(poly->s[1]->pos);
-        sommets.ajoute(poly->s[2]->pos);
-
-        normaux.ajoute(poly->nor);
-        normaux.ajoute(poly->nor);
-        normaux.ajoute(poly->nor);
-
-        if (poly->s[3] != nullptr) {
-            sommets.ajoute(poly->s[0]->pos);
-            sommets.ajoute(poly->s[2]->pos);
-            sommets.ajoute(poly->s[3]->pos);
-
-            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
-
-            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(1.0f, 1.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
-
-            normaux.ajoute(poly->nor);
-            normaux.ajoute(poly->nor);
-            normaux.ajoute(poly->nor);
-        }
-        else {
-            uvs.ajoute(dls::math::vec3f(0.0f, 0.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(0.0f, 1.0f, index_poly));
-            uvs.ajoute(dls::math::vec3f(1.0f, 0.0f, index_poly));
-        }
-
+        auto poly = maillage.donne_quadrilatère(i);
+        constructrice.ajoute_quad(poly, index_poly);
         index_poly += 1.0f;
     }
 
-    remplis_tampon_principal(tampon, "sommets", sommets);
+    remplis_tampon_principal(tampon, "sommets", constructrice.sommets);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de sommets");
 
-    remplis_tampon_extra(tampon, "normal", normaux);
+    remplis_tampon_extra(tampon, "normal", constructrice.normaux);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon de normal");
 
-    remplis_tampon_extra(tampon, "uvs", uvs);
+    remplis_tampon_extra(tampon, "uvs", constructrice.uvs);
     dls::ego::util::GPU_check_errors("Erreur lors de la création du tampon d'uvs");
 
     return tampon;
@@ -209,7 +212,7 @@ static TamponRendu *genere_tampon(KNB::Maillage *maillage, dls::tableau<uint> co
 
 /* ************************************************************************** */
 
-RenduMaillage::RenduMaillage(KNB::Maillage *maillage) : m_maillage(maillage)
+RenduMaillage::RenduMaillage(KNB::Maillage &maillage) : m_maillage(maillage)
 {
 }
 
@@ -217,7 +220,7 @@ void RenduMaillage::initialise()
 {
     supprime_tampons();
 
-    auto nombre_polys = m_maillage->nombre_polygones();
+    auto nombre_polys = m_maillage.donne_nombre_polygones();
 
     auto nombre_quads = 0;
     auto nombre_tris = 0;
@@ -225,10 +228,10 @@ void RenduMaillage::initialise()
     dls::dico<std::pair<uint, uint>, dls::tableau<uint>> vecteurs_polys;
 
     for (auto i = 0; i < nombre_polys; ++i) {
-        auto const poly = m_maillage->polygone(i);
-        ((poly->s[3] != nullptr) ? nombre_quads : nombre_tris) += 1;
+        auto const poly = m_maillage.donne_quadrilatère(i);
+        nombre_quads += 1;
 
-        auto const &paire = std::make_pair(poly->res_u, poly->res_v);
+        auto const &paire = std::make_pair(poly.donne_res_u(), poly.donne_res_v());
 
         vecteurs_polys[paire].ajoute(static_cast<uint>(i));
     }
@@ -283,8 +286,8 @@ void RenduMaillage::ajourne_texture()
 	};
 
 	/* Copie les texels se situant sur les polygones adjacents. */
-	for (size_t i = 0; i < m_maillage->nombre_polygones(); ++i) {
-		auto poly = m_maillage->polygone(i);
+    for (size_t i = 0; i < m_maillage.nombre_polygones(); ++i) {
+        auto poly = m_maillage.polygone(i);
 
 		for (int a = 0; a < 4; ++a) {
 			auto arrete = poly->a[a];
@@ -320,19 +323,19 @@ void RenduMaillage::ajourne_texture()
 
     delete texture_image;
 #else
-    auto const canal_fusionné = m_maillage->donne_canal_fusionné();
-    auto const largeur = canal_fusionné.largeur;
+    auto const canal_fusionné = m_maillage.donne_canal_fusionné();
+    auto const largeur = canal_fusionné.donne_largeur();
 
-    auto tampon = canal_fusionné.tampon_diffusion;
+    auto tampon = canal_fusionné.donne_tampon_diffusion();
     if (tampon == nullptr) {
         return;
     }
 
     for (auto const &pages : m_pages) {
-        auto poly = m_maillage->polygone(pages.polys[0]);
+        auto poly = m_maillage.donne_quadrilatère(pages.polys[0]);
 
-        GLint taille_texture[3] = {static_cast<GLint>(poly->res_u),
-                                   static_cast<GLint>(poly->res_v),
+        GLint taille_texture[3] = {static_cast<GLint>(poly.donne_res_u()),
+                                   static_cast<GLint>(poly.donne_res_v()),
                                    static_cast<GLint>(pages.polys.taille())};
 
         //		std::cerr << "Création d'une texture de "
@@ -347,16 +350,16 @@ void RenduMaillage::ajourne_texture()
         /* Copie les texels dans l'atlas OpenGL. */
         auto ip = 0;
         for (auto i : pages.polys) {
-            auto poly_page = m_maillage->polygone(i);
-            auto index_poly = (poly_page->x + poly_page->y * (largeur));
+            auto poly_page = m_maillage.donne_quadrilatère(i);
+            auto index_poly = (poly_page.donne_x() + poly_page.donne_y() * (largeur));
             auto tampon_poly = tampon + index_poly;
 
             auto donnees_image = &donnees[ip++ * taille_texture[0] * taille_texture[1]];
 
-            for (size_t j = 0; j < poly_page->res_u; ++j) {
-                for (size_t k = 0; k < poly_page->res_v; ++k) {
+            for (size_t j = 0; j < poly_page.donne_res_u(); ++j) {
+                for (size_t k = 0; k < poly_page.donne_res_v(); ++k) {
                     donnees_image[j + k * static_cast<size_t>(taille_texture[0])] =
-                        tampon_poly[j + k * static_cast<size_t>(largeur)];
+                        convertis_couleur_vec4(tampon_poly[j + k * static_cast<size_t>(largeur)]);
                 }
             }
         }
@@ -381,7 +384,7 @@ void RenduMaillage::supprime_tampons()
 
 void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
-    if (m_maillage->doit_recalculer_canal_fusionné()) {
+    if (m_maillage.doit_recalculer_canal_fusionné()) {
         ajourne_texture();
     }
 
@@ -400,10 +403,10 @@ void RenduMaillage::dessine(ContexteRendu const &contexte)
 
 dls::math::mat4x4d RenduMaillage::matrice() const
 {
-    return m_maillage->transformation().matrice();
+    return dls::math::mat4x4d(1.0);  // m_maillage.transformation().matrice();
 }
 
-KNB::Maillage *RenduMaillage::maillage() const
+KNB::Maillage &RenduMaillage::maillage() const
 {
     return m_maillage;
 }

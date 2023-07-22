@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "coeur/gestionnaire_fenetre.hh"
+#include "coeur/kanba.h"
 
 class BaseEditrice;
 class FenetrePrincipale;
@@ -12,7 +12,7 @@ class FenetrePrincipale;
 /** \name Gestionnaire Fenêtre.
  * \{ */
 
-class GestionnaireInterface final : public KNB::GestionnaireFenetre {
+class GestionnaireInterface final : public KNB::GestionnaireFenêtre {
     FenetrePrincipale &m_fenêtre_principale;
     BaseEditrice *m_éditrice_active = nullptr;
 
@@ -26,17 +26,21 @@ class GestionnaireInterface final : public KNB::GestionnaireFenetre {
 
     void notifie_observatrices(KNB::TypeÉvènement evenement) override;
 
-    void notifie_erreur(dls::chaine const &message) override;
+    void notifie_erreur(KNB::Chaine message) override;
 
     void change_curseur(KNB::TypeCurseur curseur) override;
 
     void restaure_curseur() override;
 
-    void définit_titre_application(dls::chaine const &titre) override;
+    void définit_titre_application(KNB::Chaine titre) override;
 
-    void définit_texte_état_logiciel(dls::chaine const & /*texte*/) override;
+    void définit_texte_état_logiciel(KNB::Chaine /*texte*/) override;
 
     bool demande_permission_avant_de_fermer() override;
+
+    KNB::Chaine affiche_dialogue_pour_sélection_fichier_lecture() override;
+
+    KNB::Chaine affiche_dialogue_pour_sélection_fichier_écriture() override;
 };
 
 /** \} */

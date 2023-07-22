@@ -9,6 +9,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QCoreApplication>
+#include <QFileDialog>
 #include <QGuiApplication>
 #include <QMessageBox>
 #pragma GCC diagnostic pop
@@ -40,7 +41,7 @@ static Qt::CursorShape convertis_type_curseur(KNB::TypeCurseur curseur)
 }
 
 GestionnaireInterface::GestionnaireInterface(FenetrePrincipale &fenêtre_principale)
-    : KNB::GestionnaireFenetre(), m_fenêtre_principale(fenêtre_principale)
+    : KNB::GestionnaireFenêtre(), m_fenêtre_principale(fenêtre_principale)
 {
 }
 
@@ -63,10 +64,10 @@ void GestionnaireInterface::notifie_observatrices(KNB::TypeÉvènement evenement
     QCoreApplication::postEvent(&m_fenêtre_principale, event);
 }
 
-void GestionnaireInterface::notifie_erreur(const dls::chaine &message)
+void GestionnaireInterface::notifie_erreur(KNB::Chaine message)
 {
     QMessageBox boite_message;
-    boite_message.critical(&m_fenêtre_principale, "Erreur", message.c_str());
+    boite_message.critical(&m_fenêtre_principale, "Erreur", message.vers_std_string().c_str());
     boite_message.setFixedSize(500, 200);
 }
 
@@ -80,12 +81,12 @@ void GestionnaireInterface::restaure_curseur()
     QGuiApplication::restoreOverrideCursor();
 }
 
-void GestionnaireInterface::définit_titre_application(const dls::chaine &titre)
+void GestionnaireInterface::définit_titre_application(KNB::Chaine titre)
 {
-    m_fenêtre_principale.setWindowTitle(titre.c_str());
+    m_fenêtre_principale.setWindowTitle(titre.vers_std_string().c_str());
 }
 
-void GestionnaireInterface::définit_texte_état_logiciel(const dls::chaine &)
+void GestionnaireInterface::définit_texte_état_logiciel(KNB::Chaine)
 {
     // À FAIRE
     // m_fenêtre_principale.définit_texte_état(texte.c_str());
@@ -96,6 +97,18 @@ bool GestionnaireInterface::demande_permission_avant_de_fermer()
     // À FAIRE
     // return m_fenêtre_principale.demande_permission_avant_de_fermer();
     return true;
+}
+
+KNB::Chaine GestionnaireInterface::affiche_dialogue_pour_sélection_fichier_lecture()
+{
+    auto const chemin = QFileDialog::getOpenFileName();
+    return chemin.toStdString().c_str();
+}
+
+KNB::Chaine GestionnaireInterface::affiche_dialogue_pour_sélection_fichier_écriture()
+{
+    auto const chemin = QFileDialog::getSaveFileName();
+    return chemin.toStdString().c_str();
 }
 
 /** \} */

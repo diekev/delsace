@@ -31,14 +31,13 @@
 #include "../editeur_canevas.h"
 
 #include "coeur/kanba.h"
-#include "coeur/maillage.h"
 
 #include "tampons_rendu.hh"
 #include "textures.hh"
 
 /* ************************************************************************** */
 
-VisionneurImage::VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba)
+VisionneurImage::VisionneurImage(VueCanevas2D *parent, KNB::Kanba &kanba)
     : m_parent(parent), m_kanba(kanba)
 {
 }
@@ -73,22 +72,23 @@ void VisionneurImage::charge_image()
         return;
     }
 
-    auto maillage = m_kanba->donne_maillage();
+    auto maillage = m_kanba.donne_maillage();
     if (maillage == nullptr) {
         return;
     }
 
-    auto canal_fusionné = maillage->donne_canal_fusionné();
+    auto canal_fusionné = maillage.donne_canal_fusionné();
 
-    GLint size[] = {GLint(canal_fusionné.largeur), GLint(canal_fusionné.hauteur)};
+    GLint size[] = {GLint(canal_fusionné.donne_largeur()), GLint(canal_fusionné.donne_hauteur())};
 
     if (m_largeur != size[0] || m_hauteur != size[1]) {
         m_hauteur = size[0];
         m_largeur = size[1];
     }
 
-    génère_texture(
-        m_tampon->texture(), reinterpret_cast<float *>(canal_fusionné.tampon_diffusion), size);
+    génère_texture(m_tampon->texture(),
+                   reinterpret_cast<float *>(canal_fusionné.donne_tampon_diffusion()),
+                   size);
 
     dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

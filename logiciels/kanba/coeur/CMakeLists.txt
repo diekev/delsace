@@ -26,12 +26,14 @@ set(BIBLIOTHEQUES
     PUBLIC dls::structures
     PUBLIC dls::patrons_conception
     PUBLIC dls::outils
+    PUBLIC Kanba::IPA
 
     PRIVATE dls::bruit
     PRIVATE dls::objets
     PRIVATE dls::texture
     PRIVATE dls::vision
     PRIVATE ${BIBLIOTHEQUES_QT_WIDGETS}
+    PRIVATE ${BIBLIOTHEQUE_DL}
 )
 
 add_compile_options(-fPIC)
@@ -44,19 +46,19 @@ add_library(${NOM_CIBLE} STATIC
     commandes/commandes_vue2d.h
     commandes/commandes_vue3d.h
 
-    brosse.h
-    calques.h
-    cannevas_peinture.hh
-    evenement.h
-    gestionnaire_fenetre.hh
-    interface_graphique.hh
+#    brosse.h
+#    calques.h
+#    cannevas_peinture.hh
+#    evenement.h
+#    gestionnaire_fenetre.hh
+#    interface_graphique.hh
     kanba.h
-    maillage.h
-    melange.h
-    outils.hh
-    outils_couleur.h
-    paqueuse_texture.h
-    sauvegarde.hh
+#    maillage.h
+#    melange.h
+#    outils.hh
+#    outils_couleur.h
+#    paqueuse_texture.h
+#    sauvegarde.hh
 
     commandes/adaptrice_creation_maillage.cc
     commandes/commande_kanba.cc
@@ -65,19 +67,19 @@ add_library(${NOM_CIBLE} STATIC
     commandes/commandes_vue2d.cc
     commandes/commandes_vue3d.cc
 
-    brosse.cc
-    calques.cc
-    cannevas_peinture.cc
-    evenement.cc
-    gestionnaire_fenetre.cc
-    interface_graphique.cc
+#    brosse.cc
+#    calques.cc
+#    cannevas_peinture.cc
+#    evenement.cc
+#    gestionnaire_fenetre.cc
+#    interface_graphique.cc
     kanba.cc
-    maillage.cc
-    melange.cc
-    outils.cc
-    outils_couleur.cc
-    paqueuse_texture.cc
-    sauvegarde.cc
+#    maillage.cc
+#    melange.cc
+#    outils.cc
+#    outils_couleur.cc
+#    paqueuse_texture.cc
+#    sauvegarde.cc
 )
 
 add_library(kanba::coeur ALIAS ${NOM_CIBLE})

@@ -26,9 +26,7 @@
 
 #include "commande_kanba.hh"
 
-#include "../evenement.h"
 #include "../kanba.h"
-#include "../maillage.h"
 
 /* ************************************************************************** */
 
@@ -46,9 +44,8 @@ class CommandeAjouterCalque : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto &canaux = maillage->canaux_texture();
-
-        ajoute_calque(canaux, KNB::TypeCanal::DIFFUSION);
+        auto canaux = maillage.donne_canaux_texture();
+        canaux.ajoute_un_calque(KNB::TypeCanal::DIFFUSION);
 
         kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
@@ -72,18 +69,19 @@ class CommandeSupprimerCalque : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto &canaux = maillage->canaux_texture();
-        auto calque = maillage->calque_actif();
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = maillage.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        maillage->calque_actif(nullptr);
+        auto calque_actif = KNB::Calque(nullptr);
+        maillage.définis_calque_actif(calque_actif);
 
-        supprime_calque(canaux, calque);
+        canaux.supprime_calque(calque);
 
-        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
+        maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
 
         kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ);
 

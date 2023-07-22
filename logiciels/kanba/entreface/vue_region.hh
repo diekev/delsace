@@ -16,7 +16,6 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
 
 class QMenu;

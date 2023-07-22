@@ -48,7 +48,7 @@
 #include "gestionnaire_interface.hh"
 
 BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent)
-    : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
+    : danjo::ConteneurControles(parent), m_kanba(kanba), m_cadre(new QFrame(this)),
       m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
 {
     QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -81,8 +81,8 @@ void BaseEditrice::actif(bool yesno)
 
 void BaseEditrice::rend_actif()
 {
-    auto gestionnaire = dynamic_cast<GestionnaireInterface *>(
-        m_kanba->donne_gestionnaire_fenêtre());
+    auto gestionnaire = static_cast<GestionnaireInterface *>(
+        m_kanba.donne_données_gestionnaire_fenêtre());
     gestionnaire->définis_éditrice_active(this);
 }
 
@@ -97,7 +97,7 @@ void BaseEditrice::mousePressEvent(QMouseEvent *e)
     donnees.souris = e->button();
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    m_kanba->donne_repondant_commande()->appele_commande(m_identifiant, donnees);
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
 }
 
 void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
@@ -107,7 +107,7 @@ void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
     donnees.y = static_cast<float>(e->pos().y());
     donnees.souris = e->button();
 
-    m_kanba->donne_repondant_commande()->ajourne_commande_modale(donnees);
+    KNB::donne_repondant_commande()->ajourne_commande_modale(donnees);
 }
 
 void BaseEditrice::wheelEvent(QWheelEvent *e)
@@ -120,7 +120,7 @@ void BaseEditrice::wheelEvent(QWheelEvent *e)
     donnees.souris = Qt::MidButton;
     donnees.double_clique = true;
 
-    m_kanba->donne_repondant_commande()->appele_commande(m_identifiant, donnees);
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
 }
 
 void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
@@ -129,5 +129,5 @@ void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
     donnees.x = static_cast<float>(e->pos().x());
     donnees.y = static_cast<float>(e->pos().y());
 
-    m_kanba->donne_repondant_commande()->acheve_commande_modale(donnees);
+    KNB::donne_repondant_commande()->acheve_commande_modale(donnees);
 }

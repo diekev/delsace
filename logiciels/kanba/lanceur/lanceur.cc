@@ -31,7 +31,10 @@
 #include <QFile>
 #pragma GCC diagnostic pop
 
+#include <iostream>
 #include <optional>
+
+#include "coeur/kanba.h"
 
 #include "entreface/fenetre_principale.h"
 
@@ -75,6 +78,14 @@ static std::optional<QString> donne_feuille_de_style()
 
 int main(int argc, char *argv[])
 {
+    auto kanba_initialisé = KNB::initialise_kanba();
+    if (!kanba_initialisé.has_value()) {
+        std::cerr << "Impossible d'initialiser la bibliothèque Kanba\n";
+        return 1;
+    }
+
+    auto kanba = kanba_initialisé.value();
+
     QApplication a(argc, argv);
     QCoreApplication::setOrganizationName("giraffeenfeu");
     QCoreApplication::setApplicationName("kanba");
@@ -84,9 +95,13 @@ int main(int argc, char *argv[])
         qApp->setStyleSheet(opt_feuille_de_style.value());
     }
 
-    FenetrePrincipale w;
+    FenetrePrincipale w(kanba);
     w.setWindowTitle(QCoreApplication::applicationName());
     w.showMaximized();
 
-    return a.exec();
+    auto résultat = a.exec();
+
+    KNB::issitialise_kanba(kanba);
+
+    return résultat;
 }

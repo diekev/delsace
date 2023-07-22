@@ -28,15 +28,7 @@
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 
-namespace vision {
-
-class Camera3D;
-
-}  // namespace vision
-
-namespace KNB {
-struct Kanba;
-}
+#include "coeur/kanba.h"
 
 class RenduBrosse;
 class RenduGrille;
@@ -51,9 +43,9 @@ class VueCanevas3D;
  */
 class VisionneurScene {
     VueCanevas3D *m_parent;
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
 
-    vision::Camera3D *m_camera;
+    KNB::Caméra3D m_caméra;
     RenduBrosse *m_rendu_brosse;
     RenduGrille *m_rendu_grille;
     RenduTexte *m_rendu_texte;
@@ -79,7 +71,7 @@ class VisionneurScene {
      * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
      * pointeur vers l'instance de Kanba du programme en cours.
      */
-    VisionneurScene(VueCanevas3D *parent, KNB::Kanba *kanba);
+    VisionneurScene(VueCanevas3D *parent, KNB::Kanba &kanba);
 
     /**
      * Empêche la copie d'un visionneur.

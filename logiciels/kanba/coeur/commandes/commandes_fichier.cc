@@ -29,10 +29,7 @@
 #include "adaptrice_creation_maillage.h"
 #include "commande_kanba.hh"
 
-#include "../evenement.h"
 #include "../kanba.h"
-#include "../maillage.h"
-#include "../sauvegarde.hh"
 
 /* ************************************************************************** */
 
@@ -44,21 +41,21 @@ class CommandeOuvrirFichier : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        auto const chemin_projet = kanba.requiers_dialogue(KNB::FICHIER_OUVERTURE);
+        auto chemin_projet = kanba.affiche_dialogue_pour_sélection_fichier_lecture();
 
         if (chemin_projet.est_vide()) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        KNB::Maillage *maillage = new KNB::Maillage();
+        KNB::Maillage maillage = KNB::crée_un_maillage_vide();
 
         AdaptriceCreationMaillage adaptrice;
-        adaptrice.maillage = maillage;
+        adaptrice.maillage = &maillage;
 
-        objets::charge_fichier_OBJ(&adaptrice, chemin_projet);
+        objets::charge_fichier_OBJ(&adaptrice, chemin_projet.vers_std_string().c_str());
 
         kanba.installe_maillage(maillage);
-        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
+        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

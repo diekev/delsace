@@ -37,14 +37,15 @@
 
 namespace KNB {
 class Calque;
-}
+enum class DrapeauxCalque : uint32_t;
+}  // namespace KNB
 
 class QGridLayout;
 class QScrollArea;
 
 struct ArgumentCréationItem {
-    KNB::Kanba *kanba = nullptr;
-    KNB::Calque *calque = nullptr;
+    KNB::Kanba &kanba;
+    KNB::Calque &calque;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -54,13 +55,13 @@ struct ArgumentCréationItem {
 class BoiteACocherItem : public QCheckBox {
     Q_OBJECT
 
-    KNB::Kanba *m_kanba{};
-    KNB::Calque *m_calque{};
-    int m_drapeaux = 0;
+    KNB::Kanba &m_kanba;
+    KNB::Calque &m_calque;
+    KNB::DrapeauxCalque m_drapeaux;
 
   public:
     explicit BoiteACocherItem(const ArgumentCréationItem &args,
-                              int drapeaux,
+                              KNB::DrapeauxCalque drapeaux,
                               QWidget *parent = nullptr);
 
     EMPECHE_COPIE(BoiteACocherItem);
@@ -74,15 +75,15 @@ class BoiteACocherItem : public QCheckBox {
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-    const KNB::Calque *m_calque{};
+    const KNB::Calque &m_calque;
 
   public:
-    explicit ItemArbreCalque(const KNB::Calque *calque, QTreeWidgetItem *parent = nullptr);
+    explicit ItemArbreCalque(const KNB::Calque &calque, QTreeWidgetItem *parent = nullptr);
 
     ItemArbreCalque(ItemArbreCalque const &) = default;
     ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
 
-    const KNB::Calque *pointeur() const;
+    const KNB::Calque &pointeur() const;
 };
 
 /* ************************************************************************** */
@@ -112,7 +113,7 @@ class EditeurCalques final : public BaseEditrice {
     QGridLayout *m_glayout;
 
   public:
-    EditeurCalques(KNB::Kanba *kanba, QWidget *parent = nullptr);
+    EditeurCalques(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurCalques);
 

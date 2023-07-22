@@ -11,7 +11,7 @@
 #include <QEvent>
 #pragma GCC diagnostic pop
 
-#include "coeur/evenement.h"
+#include "coeur/kanba.h"
 
 /* ------------------------------------------------------------------------- */
 /** \name Évènement Kanba pour Qt.

@@ -48,7 +48,7 @@ class VueCanevas2D : public QGLWidget {
     VisionneurImage *m_visionneur_image;
 
   public:
-    explicit VueCanevas2D(KNB::Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas2D(KNB::Kanba &kanba, QWidget *parent = nullptr);
     ~VueCanevas2D() override;
 
     EMPECHE_COPIE(VueCanevas2D);
@@ -98,7 +98,7 @@ class VueCanevas3D : public QGLWidget {
     VisionneurScene *m_visionneur_scene;
 
   public:
-    explicit VueCanevas3D(KNB::Kanba *kanba, QWidget *parent = nullptr);
+    explicit VueCanevas3D(KNB::Kanba &kanba, QWidget *parent = nullptr);
     ~VueCanevas3D() override;
 
     EMPECHE_COPIE(VueCanevas3D);

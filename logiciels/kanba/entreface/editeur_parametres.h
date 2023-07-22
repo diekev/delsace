@@ -32,10 +32,10 @@ class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
 
   public:
-    explicit VueParametres(KNB::Kanba *kanba);
+    explicit VueParametres(KNB::Kanba &kanba);
 
     EMPECHE_COPIE(VueParametres);
 
@@ -53,7 +53,7 @@ class EditeurParametres final : public BaseEditrice {
     QGridLayout *m_glayout;
 
   public:
-    EditeurParametres(KNB::Kanba *kanba, QWidget *parent = nullptr);
+    EditeurParametres(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurParametres);
 

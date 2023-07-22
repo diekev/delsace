@@ -38,14 +38,13 @@
 #include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
 
 /* ------------------------------------------------------------------------- */
 /** \name Vue Canevas 2D
  * \{ */
 
-VueCanevas2D::VueCanevas2D(KNB::Kanba *kanba, QWidget *parent)
+VueCanevas2D::VueCanevas2D(KNB::Kanba &kanba, QWidget *parent)
     : QGLWidget(parent), m_visionneur_image(new VisionneurImage(this, kanba))
 {
     setMouseTracking(true);
@@ -112,7 +111,7 @@ void VueCanevas2D::wheelEvent(QWheelEvent *e)
  * \{ */
 
 EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("vue_2d", kanba, parent), m_vue(new VueCanevas2D(&kanba, this))
+    : BaseEditrice("vue_2d", kanba, parent), m_vue(new VueCanevas2D(kanba, this))
 {
     m_agencement_principal->addWidget(m_vue);
 }
@@ -136,7 +135,7 @@ void EditriceCannevas2D::resizeEvent(QResizeEvent * /*event*/)
 /** \name Vue Canevas 3D
  * \{ */
 
-VueCanevas3D::VueCanevas3D(KNB::Kanba *kanba, QWidget *parent)
+VueCanevas3D::VueCanevas3D(KNB::Kanba &kanba, QWidget *parent)
     : QGLWidget(parent), m_visionneur_scene(new VisionneurScene(this, kanba))
 {
     setMouseTracking(true);
@@ -214,7 +213,7 @@ void VueCanevas3D::wheelEvent(QWheelEvent *e)
  * \{ */
 
 EditriceCannevas3D::EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("vue_3d", kanba, parent), m_vue(new VueCanevas3D(&kanba, this))
+    : BaseEditrice("vue_3d", kanba, parent), m_vue(new VueCanevas3D(kanba, this))
 {
     m_agencement_principal->addWidget(m_vue);
 }

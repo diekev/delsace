@@ -9,7 +9,6 @@
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/cannevas_peinture.hh"
 #include "coeur/kanba.h"
 
 /* ------------------------------------------------------------------------- */
@@ -47,26 +46,26 @@ static std::unique_ptr<TamponRendu> cree_tampon(dls::math::vec4f const &couleur,
 /** \name RenduSeaux
  * \{ */
 
-RenduSeaux::RenduSeaux(KNB::Kanba *kanba) : m_kanba(kanba)
+RenduSeaux::RenduSeaux(KNB::Kanba &kanba) : m_kanba(kanba)
 {
 }
 
 void RenduSeaux::initialise()
 {
-    auto const camera = m_kanba->donne_caméra();
-    auto const cannevas = m_kanba->donne_cannevas();
-    auto const &seaux = cannevas->seaux();
+    auto const camera = m_kanba.donne_caméra();
+    auto const cannevas = m_kanba.donne_canevas();
+    auto seaux = cannevas.donne_seaux();
 
     if (seaux.est_vide()) {
         m_tampon.reset(nullptr);
         return;
     }
 
-    if (m_id_cannevas == cannevas->id()) {
+    if (m_id_cannevas == cannevas.donne_id()) {
         return;
     }
 
-    m_id_cannevas = cannevas->id();
+    m_id_cannevas = cannevas.donne_id();
 
     m_tampon.reset(nullptr);
     m_tampon = cree_tampon(dls::math::vec4f(1.0f, 1.0f, 0.0f, 1.0f), 4.0f);
@@ -76,8 +75,8 @@ void RenduSeaux::initialise()
     dls::tableau<unsigned int> index(nombre_de_points * 2);
     dls::tableau<dls::math::vec3f> sommets(nombre_de_points);
 
-    auto const largeur_inverse_caméra = 1.0f / static_cast<float>(camera->largeur());
-    auto const hauteur_inverse_caméra = 1.0f / static_cast<float>(camera->hauteur());
+    auto const largeur_inverse_caméra = 1.0f / static_cast<float>(camera.donne_largeur());
+    auto const hauteur_inverse_caméra = 1.0f / static_cast<float>(camera.donne_hauteur());
 
     unsigned int décalage_sommet = 0;
     unsigned int décalage_index = 0;

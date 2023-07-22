@@ -33,9 +33,9 @@ static BaseEditrice *qéditrice_depuis_éditrice(KNB::Kanba &kanba, KNB::Éditri
         case KNB::TypeÉditrice::VUE_3D:
             return new EditriceCannevas3D(kanba);
         case KNB::TypeÉditrice::PARAMÈTRES_BROSSE:
-            return new EditeurBrosse(&kanba);
+            return new EditeurBrosse(kanba);
         case KNB::TypeÉditrice::CALQUES:
-            return new EditeurCalques(&kanba);
+            return new EditeurCalques(kanba);
         case KNB::TypeÉditrice::INFORMATIONS:
             return nullptr;
     }
@@ -71,7 +71,7 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
       m_menu_liste_éditrices(new QMenu(this))
 {
     for (auto éditrice : m_région.donne_éditrices()) {
-        ajoute_page_pour_éditrice(*éditrice, false);
+        ajoute_page_pour_éditrice(éditrice, false);
     }
 
     connect(m_bouton_affichage_liste, &QPushButton::clicked, this, &VueRegion::montre_liste);
@@ -86,7 +86,8 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
     ActionAjoutEditrice *action;
 
 #define AJOUTE_ACTION(type_kanba)                                                                 \
-    action = new ActionAjoutEditrice(KNB::nom_pour_type_éditrice(type_kanba).c_str(), this);      \
+    action = new ActionAjoutEditrice(                                                             \
+        KNB::nom_pour_type_éditrice(type_kanba).vers_std_string().c_str(), this);                 \
     m_menu_liste_éditrices->addAction(action);                                                    \
     action->setData(QVariant(int(type_kanba)));                                                   \
     connect(action, &ActionAjoutEditrice::ajoute_editrice, this, &VueRegion::sur_ajout_editrice);
@@ -118,7 +119,7 @@ void VueRegion::ajoute_page_pour_éditrice(KNB::Éditrice &éditrice,
         return;
     }
 
-    addTab(qéditrice, éditrice.donne_nom().c_str());
+    addTab(qéditrice, éditrice.donne_nom().vers_std_string().c_str());
 
     if (définit_comme_page_courante) {
         setCurrentIndex(count() - 1);
@@ -155,7 +156,7 @@ void VueRegion::sur_ajout_editrice(int type)
 {
     auto type_éditrice = static_cast<KNB::TypeÉditrice>(type);
     auto éditrice = m_région.ajoute_une_éditrice(type_éditrice);
-    ajoute_page_pour_éditrice(*éditrice, true);
+    ajoute_page_pour_éditrice(éditrice, true);
 }
 
 /** \} */

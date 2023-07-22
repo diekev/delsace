@@ -40,16 +40,17 @@
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "coeur/evenement.h"
+#include "coeur/kanba.h"
 
 #include "evenement_kanba.hh"
 #include "gestionnaire_interface.hh"
 #include "vue_region.hh"
 
-FenetrePrincipale::FenetrePrincipale(QWidget *parent) : QMainWindow(parent)
+FenetrePrincipale::FenetrePrincipale(KNB::Kanba &kanba, QWidget *parent)
+    : QMainWindow(parent), m_kanba(kanba)
 {
-    m_kanba.enregistre_commandes();
-    m_kanba.installe_gestionnaire_fenêtre(new GestionnaireInterface(*this));
+    KNB::enregistre_commandes(m_kanba);
+    m_kanba.définis_gestionnaire_fenêtre(new GestionnaireInterface(*this));
 
     m_progress_bar = new QProgressBar(this);
     statusBar()->addWidget(m_progress_bar);
@@ -122,7 +123,7 @@ static Qt::Orientation donne_orientation_qsplitter_disposition(KNB::Disposition 
 }
 
 static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
-                                             KNB::Disposition &région,
+                                             KNB::Disposition région,
                                              QVector<VueRegion *> &régions);
 
 static void génère_interface_région(KNB::Kanba &kanba,
@@ -143,20 +144,20 @@ static void génère_interface_région(KNB::Kanba &kanba,
         qwidget_région_layout->addWidget(vue_région);
     }
     else {
-        auto widget = génère_interface_disposition(kanba, *région.donne_disposition(), régions);
+        auto widget = génère_interface_disposition(kanba, région.donne_disposition(), régions);
         qwidget_région_layout->addWidget(widget);
     }
 }
 
 static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
-                                             KNB::Disposition &disposition,
+                                             KNB::Disposition disposition,
                                              QVector<VueRegion *> &régions)
 {
     auto qsplitter = new QSplitter();
     qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
 
     for (auto région : disposition.donne_régions()) {
-        génère_interface_région(kanba, *région, qsplitter, régions);
+        génère_interface_région(kanba, région, qsplitter, régions);
     }
 
     auto qlayout = qlayout_depuis_disposition(disposition);
@@ -171,12 +172,12 @@ static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
 
 void FenetrePrincipale::construit_interface_depuis_kanba()
 {
-    auto &interface = m_kanba.donne_interface_graphique();
+    auto interface = m_kanba.donne_interface_graphique();
     m_régions.clear();
 
     auto disposition = interface.donne_disposition();
 
-    auto qwidget = génère_interface_disposition(m_kanba, *disposition, m_régions);
+    auto qwidget = génère_interface_disposition(m_kanba, disposition, m_régions);
     setCentralWidget(qwidget);
 
     m_kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
@@ -235,5 +236,5 @@ void FenetrePrincipale::repond_action()
         return;
     }
 
-    m_kanba.donne_repondant_commande()->repond_clique(action->data().toString().toStdString(), "");
+    KNB::donne_repondant_commande()->repond_clique(action->data().toString().toStdString(), "");
 }

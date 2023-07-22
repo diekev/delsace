@@ -55,7 +55,7 @@ class RenduMaillage {
     std::unique_ptr<TamponRendu> m_tampon_arrete = nullptr;
     std::unique_ptr<TamponRendu> m_tampon_normal = nullptr;
 
-    KNB::Maillage *m_maillage = nullptr;
+    KNB::Maillage &m_maillage;
 
     dls::tableau<Page> m_pages{};
 
@@ -63,7 +63,7 @@ class RenduMaillage {
     /**
      * Construit une instance de RenduMaillage pour le maillage spécifié.
      */
-    explicit RenduMaillage(KNB::Maillage *maillage);
+    explicit RenduMaillage(KNB::Maillage &maillage);
 
     EMPECHE_COPIE(RenduMaillage);
 
@@ -79,7 +79,7 @@ class RenduMaillage {
      */
     dls::math::mat4x4d matrice() const;
 
-    KNB::Maillage *maillage() const;
+    KNB::Maillage &maillage() const;
 
   private:
     void ajourne_texture();

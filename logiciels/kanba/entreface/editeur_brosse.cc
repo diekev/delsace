@@ -37,14 +37,13 @@
 
 #include "biblinternes/outils/fichier.hh"
 
-#include "coeur/brosse.h"
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
-#include "coeur/melange.h"
 
-VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
+#include "conversion_types.hh"
+
+VueBrosse::VueBrosse(KNB::Kanba &kanba) : m_kanba(kanba)
 {
-    ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
+    ajoute_propriete("couleur_pinceau", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
     ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
     ajoute_propriete("opacité", danjo::TypePropriete::DECIMAL, 1.0f);
     ajoute_propriete("mode_fusion", danjo::TypePropriete::ENUM);
@@ -52,29 +51,30 @@ VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
 
 void VueBrosse::ajourne_donnees()
 {
-    auto couleur = evalue_couleur("couleur_brosse");
-    auto brosse = m_kanba->donne_brosse();
-    brosse->définis_couleur(dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a));
-    brosse->définis_rayon(evalue_entier("rayon"));
-    brosse->définis_opacité(evalue_decimal("opacité"));
-    brosse->définis_mode_de_fusion(KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion")));
+    auto couleur = evalue_couleur("couleur_pinceau");
+    auto pinceau = m_kanba.donne_pinceau();
+    pinceau.définis_couleur(convertis_couleur(couleur));
+    pinceau.définis_rayon(uint32_t(evalue_entier("rayon")));
+    pinceau.définis_opacité(evalue_decimal("opacité"));
+    // À FAIRE
+    // pinceau.définis_mode_de_peinture(KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion")));
 }
 
 bool VueBrosse::ajourne_proprietes()
 {
-    auto brosse = m_kanba->donne_brosse();
-    auto couleur = brosse->donne_couleur();
-    valeur_couleur("couleur_brosse",
-                   dls::phys::couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
-    valeur_decimal("opacité", brosse->donne_opacité());
-    valeur_entier("rayon", brosse->donne_rayon());
-    valeur_chaine("mode_fusion", KNB::nom_mode_fusion(brosse->donne_mode_de_fusion()));
+    auto pinceau = m_kanba.donne_pinceau();
+    auto couleur = pinceau.donne_couleur();
+    valeur_couleur("couleur_pinceau", convertis_couleur(couleur));
+    valeur_decimal("opacité", pinceau.donne_opacité());
+    valeur_entier("rayon", int32_t(pinceau.donne_rayon()));
+    // À FAIRE
+    // valeur_chaine("mode_fusion", KNB::nom_mode_fusion(pinceau.donne_mode_de_peinture()));
 
     return true;
 }
 
-EditeurBrosse::EditeurBrosse(KNB::Kanba *kanba, QWidget *parent)
-    : BaseEditrice("brosse", *kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
+EditeurBrosse::EditeurBrosse(KNB::Kanba &kanba, QWidget *parent)
+    : BaseEditrice("pinceau", kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
       m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
       m_glayout(new QVBoxLayout(m_widget))
 {

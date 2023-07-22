@@ -34,20 +34,15 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/math/vecteur.hh"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
-#include "biblinternes/vision/camera.h"
 
 #include "adaptrice_creation_maillage.h"
 #include "commande_kanba.hh"
 
-#include "../brosse.h"
-#include "../cannevas_peinture.hh"
-#include "../evenement.h"
 #include "../kanba.h"
-#include "../maillage.h"
-#include "../melange.h"
 
 /* ************************************************************************** */
 
@@ -62,24 +57,12 @@ class CommandeZoomCamera : public CommandeKanba {
         auto const delta = donnees.x;
 
         auto camera = kanba.donne_caméra();
+        camera.zoom(delta);
 
-        if (delta >= 0) {
-            auto distance = camera->distance() + camera->vitesse_zoom();
-            camera->distance(distance);
-        }
-        else {
-            const float temp = camera->distance() - camera->vitesse_zoom();
-            auto distance = std::max(0.0f, temp);
-            camera->distance(distance);
-        }
+        auto cannevas = kanba.donne_canevas();
+        cannevas.invalide_pour_changement_caméra();
 
-        camera->ajuste_vitesse();
-        camera->besoin_ajournement(true);
-
-        auto cannevas = kanba.donne_cannevas();
-        cannevas->invalide_pour_changement_caméra();
-
-        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
+        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -106,22 +89,19 @@ class CommandeTourneCamera : public CommandeKanba {
 
     void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto camera = kanba.donne_caméra();
-
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
 
-        camera->tete(camera->tete() + dy * camera->vitesse_chute());
-        camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
-        camera->besoin_ajournement(true);
+        auto camera = kanba.donne_caméra();
+        camera.tourne(dx, dy);
 
-        auto cannevas = kanba.donne_cannevas();
-        cannevas->invalide_pour_changement_caméra();
+        auto cannevas = kanba.donne_canevas();
+        cannevas.invalide_pour_changement_caméra();
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
+        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
     }
 };
 
@@ -146,22 +126,20 @@ class CommandePanCamera : public CommandeKanba {
 
     void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
     {
-        auto camera = kanba.donne_caméra();
 
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
 
-        auto cible = (dy * camera->haut() - dx * camera->droite()) * camera->vitesse_laterale();
-        camera->cible(camera->cible() + cible);
-        camera->besoin_ajournement(true);
+        auto camera = kanba.donne_caméra();
+        camera.pan(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        auto cannevas = kanba.donne_cannevas();
-        cannevas->invalide_pour_changement_caméra();
+        auto cannevas = kanba.donne_canevas();
+        cannevas.invalide_pour_changement_caméra();
 
-        kanba.notifie_observatrices(static_cast<KNB::TypeÉvènement>(-1));
+        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
     }
 };
 
@@ -180,27 +158,27 @@ class CommandePeinture3D : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto calque = maillage->calque_actif();
+        auto calque = maillage.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        if ((calque->drapeaux & KNB::CALQUE_VERROUILLÉ) != 0) {
+        if (calque.est_verrouillé()) {
             // À FAIRE : message d'erreur dans la barre d'état.
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto brosse = kanba.donne_brosse();
-        auto cannevas = kanba.donne_cannevas();
-        cannevas->ajourne_pour_peinture();
+        auto pinceau = kanba.donne_pinceau();
+        auto cannevas = kanba.donne_canevas();
+        cannevas.ajourne_pour_peinture();
 
-        auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
-        auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
+        auto pos_pinceau = dls::math::point2f(donnees.x, donnees.y);
+        auto tampon = calque.donne_tampon_couleur().données_crues();
 
-        auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->donne_rayon());
-        auto &canaux = maillage->canaux_texture();
-        auto const largeur = canaux.largeur;
+        auto const &rayon_inverse = 1.0f / static_cast<float>(pinceau.donne_rayon());
+        auto canaux = maillage.donne_canaux_texture();
+        auto const largeur = canaux.donne_largeur();
 
 #undef DEBUG_TOUCHES_SEAUX
 #ifdef DEBUG_TOUCHES_SEAUX
@@ -208,8 +186,8 @@ class CommandePeinture3D : public CommandeKanba {
         int seaux_touchés = 0;
 #endif
 
-        for (auto const &seau : cannevas->seaux()) {
-            auto &texels = seau.donne_texels();
+        for (auto const &seau : cannevas.donne_seaux()) {
+            auto texels = seau.donne_texels();
 
             if (texels.est_vide()) {
                 continue;
@@ -225,9 +203,11 @@ class CommandePeinture3D : public CommandeKanba {
             bool texel_modifié = false;
 #endif
             for (auto const &texel : texels) {
-                auto dist = longueur(texel.donne_pos() - pos_brosse);
+                auto pos_texel = texel.donne_pos();
+                auto pos2f_texel = dls::math::point2f(pos_texel.donne_x(), pos_texel.donne_y());
+                auto dist = dls::math::longueur(pos2f_texel - pos_pinceau);
 
-                if (dist > static_cast<float>(brosse->donne_rayon())) {
+                if (dist > static_cast<float>(pinceau.donne_rayon())) {
                     continue;
                 }
 
@@ -238,14 +218,14 @@ class CommandePeinture3D : public CommandeKanba {
                 auto opacite = dist * rayon_inverse;
                 opacite = 1.0f - opacite * opacite;
 
-                auto poly = maillage->polygone(texel.donne_index());
-                auto tampon_poly = tampon + (poly->x + poly->y * largeur);
-                auto index = texel.donne_v() + texel.donne_u() * largeur;
+                auto poly = maillage.donne_quadrilatère(texel.donne_index());
+                auto tampon_poly = tampon + (poly.donne_x() + poly.donne_y() * largeur);
+                auto index = uint32_t(texel.donne_v()) + uint32_t(texel.donne_u()) * largeur;
 
-                tampon_poly[index] = melange(tampon_poly[index],
-                                             brosse->donne_couleur(),
-                                             opacite * brosse->donne_opacité(),
-                                             brosse->donne_mode_de_fusion());
+                tampon_poly[index] = KNB::mélange(tampon_poly[index],
+                                                  pinceau.donne_couleur(),
+                                                  opacite * pinceau.donne_opacité(),
+                                                  pinceau.donne_mode_de_peinture());
             }
 
 #ifdef DEBUG_TOUCHES_SEAUX
@@ -258,7 +238,7 @@ class CommandePeinture3D : public CommandeKanba {
                   << " seaux non vides\n";
 #endif
 
-        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
+        maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
         kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
@@ -280,12 +260,14 @@ class CommandeAjouteCube : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
+        auto maillage = KNB::crée_un_maillage_vide();
+
         auto adaptrice = AdaptriceCreationMaillage();
-        adaptrice.maillage = new KNB::Maillage;
+        adaptrice.maillage = &maillage;
 
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
-        kanba.installe_maillage(adaptrice.maillage);
+        kanba.installe_maillage(maillage);
         kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
@@ -302,12 +284,14 @@ class CommandeAjouteSphere : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
+        auto maillage = KNB::crée_un_maillage_vide();
+
         auto adaptrice = AdaptriceCreationMaillage();
-        adaptrice.maillage = new KNB::Maillage;
+        adaptrice.maillage = &maillage;
 
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
-        kanba.installe_maillage(adaptrice.maillage);
+        kanba.installe_maillage(maillage);
         kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;

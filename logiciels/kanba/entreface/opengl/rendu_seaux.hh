@@ -19,12 +19,12 @@ class TamponRendu;
 
 class RenduSeaux {
     std::unique_ptr<TamponRendu> m_tampon = nullptr;
-    KNB::Kanba *m_kanba = nullptr;
+    KNB::Kanba &m_kanba;
 
     int m_id_cannevas = -1;
 
   public:
-    explicit RenduSeaux(KNB::Kanba *kanba);
+    explicit RenduSeaux(KNB::Kanba &kanba);
 
     EMPECHE_COPIE(RenduSeaux);
 

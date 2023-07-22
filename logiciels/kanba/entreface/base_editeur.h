@@ -29,7 +29,7 @@
 #include "biblinternes/outils/definitions.h"
 
 namespace KNB {
-enum class TypeÉvènement : int;
+enum class TypeÉvènement : uint32_t;
 struct Kanba;
 }  // namespace KNB
 
@@ -42,7 +42,7 @@ class BaseEditrice : public danjo::ConteneurControles {
     Q_OBJECT
 
   protected:
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
     QFrame *m_cadre;
     QVBoxLayout *m_agencement;
     QHBoxLayout *m_agencement_principal{};
