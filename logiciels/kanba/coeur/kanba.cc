@@ -32,6 +32,7 @@
 #include "commandes/commandes_vue2d.h"
 #include "commandes/commandes_vue3d.h"
 
+#include "ipa/kanba.cc"
 #include "table_types.c"
 
 namespace KNB {

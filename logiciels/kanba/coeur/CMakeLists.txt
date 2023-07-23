@@ -84,6 +84,11 @@ add_library(${NOM_CIBLE} STATIC
 
 add_library(kanba::coeur ALIAS ${NOM_CIBLE})
 
-target_include_directories(${NOM_CIBLE} PUBLIC .)
+target_include_directories(
+    ${NOM_CIBLE}
+
+    PUBLIC .
+    PRIVATE /opt/bin/kanba
+)
 
 target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
