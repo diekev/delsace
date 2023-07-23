@@ -238,31 +238,31 @@ ajuste_vitesse :: fonc (empl caméra: *Caméra3D, zoom : r32 = 0.1, latérale : 
 
 /* Mutations. */
 
-définit_distance :: fonc (empl caméra: *Caméra3D, nouvelle_distance: r32)
+définis_distance :: fonc (empl caméra: *Caméra3D, nouvelle_distance: r32)
 {
     caméra.drapeaux.DISTANCE_MODIFIÉE = nouvelle_distance != distance
 	distance = nouvelle_distance
 } @Python "méthode"
 
-définit_inclinaison :: fonc (empl caméra: *Caméra3D, nouvelle_inclinaison: r32)
+définis_inclinaison :: fonc (empl caméra: *Caméra3D, nouvelle_inclinaison: r32)
 {
     caméra.drapeaux.INCLINAISON_MODIFIÉE = nouvelle_inclinaison != inclinaison
 	inclinaison = nouvelle_inclinaison
 } @Python "méthode"
 
-définit_tête :: fonc (empl caméra: *Caméra3D, nouvelle_tête: r32)
+définis_tête :: fonc (empl caméra: *Caméra3D, nouvelle_tête: r32)
 {
     caméra.drapeaux.TETE_MODIFIÉE = nouvelle_tête != tête
 	tête = nouvelle_tête
 } @Python "méthode"
 
-définit_cible :: fonc (empl caméra: *Caméra3D, nouvelle_cible: Vec3)
+définis_cible :: fonc (empl caméra: *Caméra3D, nouvelle_cible: Vec3)
 {
     caméra.drapeaux.CIBLE_MODIFIÉE = nouvelle_cible != cible
 	cible = nouvelle_cible
 } @Python "méthode"
 
-définit_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: z32, nouvelle_hauteur: z32)
+définis_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: z32, nouvelle_hauteur: z32)
 {
     caméra.drapeaux.DIMENSIONS_MODIFIÉES = nouvelle_largeur != caméra.largeur
 	caméra.largeur = nouvelle_largeur
@@ -278,25 +278,25 @@ définit_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur:
     }
 } @Python "méthode"
 
-définit_type_projection :: fonc (empl caméra: *Caméra3D, nouveau_type: TypeProjection)
+définis_type_projection :: fonc (empl caméra: *Caméra3D, nouveau_type: TypeProjection)
 {
     caméra.drapeaux.TYPE_PROJECTION_MODIFIÉ = nouveau_type != type_projection
 	type_projection = nouveau_type
 } @Python "méthode"
 
-définit_largeur_senseur :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: r32)
+définis_largeur_senseur :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: r32)
 {
     caméra.drapeaux.SENSEUR_MODIFIÉ = nouvelle_largeur != largeur_senseur
 	largeur_senseur = nouvelle_largeur
 } @Python "méthode"
 
-définit_longueur_focale :: fonc (empl caméra: *Caméra3D, nouvelle_focale: r32)
+définis_longueur_focale :: fonc (empl caméra: *Caméra3D, nouvelle_focale: r32)
 {
     caméra.drapeaux.FOCALE_MODIFIÉE = nouvelle_focale != longueur_focale
 	longueur_focale = nouvelle_focale
 } @Python "méthode"
 
-définit_profondeur :: fonc (empl caméra: *Caméra3D, nouveau_proche: r32, nouvel_éloigné: r32)
+définis_profondeur :: fonc (empl caméra: *Caméra3D, nouveau_proche: r32, nouvel_éloigné: r32)
 {
     caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouveau_proche != plan_proche
 	plan_proche = nouveau_proche
@@ -433,20 +433,20 @@ zoom :: fonc (caméra: *Caméra3D, delta: r32)
         distance = max(0.0, temp)
     }
 
-    caméra.définit_distance(distance)
+    caméra.définis_distance(distance)
     caméra.ajuste_vitesse()
 } @Python "méthode"
 
 tourne :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
-    caméra.définit_tête(caméra.tête + dy * caméra.vitesse_chute)
-    caméra.définit_inclinaison(caméra.inclinaison + dx * caméra.vitesse_chute)
+    caméra.définis_tête(caméra.tête + dy * caméra.vitesse_chute)
+    caméra.définis_inclinaison(caméra.inclinaison + dx * caméra.vitesse_chute)
 } @Python "méthode"
 
 pan :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
     cible := (dy * caméra.vecteur_haut - dx * caméra.vecteur_droite) * caméra.vitesse_latérale
-    caméra.définit_cible(caméra.cible + cible)
+    caméra.définis_cible(caméra.cible + cible)
 } @Python "méthode"
 
 /*
