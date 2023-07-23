@@ -157,7 +157,7 @@ void VisionneurScene::peint_opengl()
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
     m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
-    m_caméra.définit_dimension_fenêtre(largeur, hauteur);
+    m_caméra.définis_dimension_fenêtre(largeur, hauteur);
 }
 
 void VisionneurScene::position_souris(int x, int y)
