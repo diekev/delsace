@@ -67,5 +67,5 @@ void initialise_fournisseuse_icône(JJL::Jorjala &jorjala)
 {
     auto fournisseuse = memoire::loge<FournisseuseIcôneJorjala>("FournisseuseIcôneJorjala",
                                                                 jorjala);
-    danjo::définit_fournisseuse_icone(*fournisseuse);
+    danjo::définis_fournisseuse_icone(*fournisseuse);
 }
