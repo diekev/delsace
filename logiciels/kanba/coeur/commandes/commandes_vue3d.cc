@@ -180,28 +180,21 @@ class CommandePeinture3D : public CommandeKanba {
         auto canaux = maillage.donne_canaux_texture();
         auto const largeur = canaux.donne_largeur();
 
-#undef DEBUG_TOUCHES_SEAUX
-#ifdef DEBUG_TOUCHES_SEAUX
-        int seaux_non_vides = 0;
-        int seaux_touchés = 0;
-#endif
+        if (kanba.donne_dessine_seaux()) {
+            cannevas.réinitialise_drapeaux_peinture_seaux();
+        }
 
+        auto index_seau = 0;
         for (auto const &seau : cannevas.donne_seaux()) {
             auto texels = seau.donne_texels();
 
             if (texels.est_vide()) {
+                index_seau += 1;
                 continue;
             }
 
-#ifdef DEBUG_TOUCHES_SEAUX
-            seaux_non_vides += 1;
-#endif
-
-            // std::cerr << "Il y a " << seau.texels.taille() << " texels dans le seau !\n";
-
-#ifdef DEBUG_TOUCHES_SEAUX
             bool texel_modifié = false;
-#endif
+
             for (auto const &texel : texels) {
                 auto pos_texel = texel.donne_pos();
                 auto pos2f_texel = dls::math::point2f(pos_texel.donne_x(), pos_texel.donne_y());
@@ -211,9 +204,7 @@ class CommandePeinture3D : public CommandeKanba {
                     continue;
                 }
 
-#ifdef DEBUG_TOUCHES_SEAUX
                 texel_modifié = true;
-#endif
 
                 auto opacite = dist * rayon_inverse;
                 opacite = 1.0f - opacite * opacite;
@@ -231,12 +222,18 @@ class CommandePeinture3D : public CommandeKanba {
 #ifdef DEBUG_TOUCHES_SEAUX
             seaux_touchés += texel_modifié;
 #endif
-        }
 
-#ifdef DEBUG_TOUCHES_SEAUX
-        std::cerr << "Seaux touchés " << seaux_touchés << " / " << seaux_non_vides
-                  << " seaux non vides\n";
-#endif
+            if (kanba.donne_dessine_seaux()) {
+                if (texel_modifié) {
+                    cannevas.marque_seau_comme_peint(index_seau);
+                }
+                else {
+                    cannevas.marque_seau_comme_touché_par_pinceau(index_seau);
+                }
+            }
+
+            index_seau += 1;
+        }
 
         maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
         kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
