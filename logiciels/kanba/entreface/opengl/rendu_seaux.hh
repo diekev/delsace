@@ -7,7 +7,7 @@
 #include "biblinternes/outils/definitions.h"
 
 namespace KNB {
-struct Kanba;
+class Kanba;
 }
 
 class ContexteRendu;

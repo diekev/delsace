@@ -30,7 +30,7 @@
 
 namespace KNB {
 enum class TypeÉvènement : uint32_t;
-struct Kanba;
+class Kanba;
 }  // namespace KNB
 
 class QFrame;
