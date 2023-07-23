@@ -145,6 +145,37 @@ class CommandePanCamera : public CommandeKanba {
 
 /* ************************************************************************** */
 
+static bool seau_peut_être_peint(KNB::Seau seau,
+                                 dls::math::point2f const pos_pinceau,
+                                 float const rayon_carré)
+{
+    if (seau.donne_texels().est_vide()) {
+        return false;
+    }
+
+    const auto x_min = float(seau.donne_x());
+    const auto x_max = float(seau.donne_x() + seau.donne_largeur());
+    const auto y_min = float(seau.donne_y());
+    const auto y_max = float(seau.donne_y() + seau.donne_hauteur());
+
+    const dls::math::point2f coins_seau[4] = {
+        dls::math::point2f(x_min, y_min),
+        dls::math::point2f(x_min, y_max),
+        dls::math::point2f(x_max, y_min),
+        dls::math::point2f(x_max, y_max),
+    };
+
+    for (auto coin : coins_seau) {
+        auto dist = dls::math::longueur_carree(coin - pos_pinceau);
+
+        if (dist < rayon_carré) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 class CommandePeinture3D : public CommandeKanba {
     ModeInsertionHistorique donne_mode_insertion_historique() const override
     {
@@ -177,6 +208,7 @@ class CommandePeinture3D : public CommandeKanba {
         auto tampon = calque.donne_tampon_couleur().données_crues();
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(pinceau.donne_rayon());
+        auto const rayon_carré = float(pinceau.donne_rayon() * pinceau.donne_rayon());
         auto canaux = maillage.donne_canaux_texture();
         auto const largeur = canaux.donne_largeur();
 
@@ -188,7 +220,7 @@ class CommandePeinture3D : public CommandeKanba {
         for (auto const &seau : cannevas.donne_seaux()) {
             auto texels = seau.donne_texels();
 
-            if (texels.est_vide()) {
+            if (!seau_peut_être_peint(seau, pos_pinceau, rayon_carré)) {
                 index_seau += 1;
                 continue;
             }
