@@ -216,6 +216,8 @@ class CommandePeinture3D : public CommandeKanba {
             cannevas.réinitialise_drapeaux_peinture_seaux();
         }
 
+        bool polygones_modifiés[6] = {false, false, false, false, false, false};
+
         auto index_seau = 0;
         for (auto const &seau : cannevas.donne_seaux()) {
             auto texels = seau.donne_texels();
@@ -238,6 +240,8 @@ class CommandePeinture3D : public CommandeKanba {
 
                 texel_modifié = true;
 
+                polygones_modifiés[texel.donne_index()] = true;
+
                 auto opacite = dist * rayon_inverse;
                 opacite = 1.0f - opacite * opacite;
 
@@ -245,10 +249,13 @@ class CommandePeinture3D : public CommandeKanba {
                 auto tampon_poly = tampon + (poly.donne_x() + poly.donne_y() * largeur);
                 auto index = uint32_t(texel.donne_v()) + uint32_t(texel.donne_u()) * largeur;
 
-                tampon_poly[index] = KNB::mélange(tampon_poly[index],
-                                                  pinceau.donne_couleur(),
-                                                  opacite * pinceau.donne_opacité(),
-                                                  pinceau.donne_mode_de_peinture());
+                //                tampon_poly[index] = KNB::mélange(tampon_poly[index],
+                //                                                  pinceau.donne_couleur(),
+                //                                                  opacite *
+                //                                                  pinceau.donne_opacité(),
+                //                                                  pinceau.donne_mode_de_peinture());
+
+                tampon_poly[index] = pinceau.donne_couleur();
             }
 
 #ifdef DEBUG_TOUCHES_SEAUX
@@ -265,6 +272,14 @@ class CommandePeinture3D : public CommandeKanba {
             }
 
             index_seau += 1;
+        }
+
+        for (int i = 0; i < 6; i++) {
+            if (!polygones_modifiés[i]) {
+                continue;
+            }
+
+            std::cerr << "Quad " << i << " modifié !\n";
         }
 
         maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
