@@ -406,7 +406,7 @@ dls::math::mat4x4d RenduMaillage::matrice() const
     return dls::math::mat4x4d(1.0);  // m_maillage.transformation().matrice();
 }
 
-KNB::Maillage &RenduMaillage::maillage() const
+KNB::Maillage RenduMaillage::maillage() const
 {
     return m_maillage;
 }
