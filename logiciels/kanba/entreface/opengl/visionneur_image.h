@@ -44,6 +44,7 @@ class VisionneurImage {
     VueCanevas2D *m_parent;
 
     std::unique_ptr<TamponRendu> m_tampon = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_arêtes = nullptr;
 
     int m_hauteur = 0;
     int m_largeur = 0;
