@@ -50,7 +50,8 @@ class EditeurParametres final : public BaseEditrice {
 
     QWidget *m_widget;
     QScrollArea *m_scroll;
-    QGridLayout *m_glayout;
+    QWidget *m_conteneur_disposition;
+    QVBoxLayout *m_disposition_widget;
 
   public:
     EditeurParametres(KNB::Kanba &kanba, QWidget *parent = nullptr);

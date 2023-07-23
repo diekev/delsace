@@ -38,6 +38,8 @@ static BaseEditrice *qéditrice_depuis_éditrice(KNB::Kanba &kanba, KNB::Éditri
             return new EditeurCalques(kanba);
         case KNB::TypeÉditrice::INFORMATIONS:
             return nullptr;
+        case KNB::TypeÉditrice::PARAMÈTRES_GLOBAUX:
+            return new EditeurParametres(kanba);
     }
 
     return nullptr;

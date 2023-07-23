@@ -33,20 +33,68 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "danjo/compilation/assembleuse_disposition.h"
+
 #include "coeur/kanba.h"
+
+static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable,
+                                               danjo::RepondantBouton *repondant_bouton,
+                                               danjo::ConteneurControles *conteneur)
+{
+    danjo::DonneesInterface données_interface{};
+    données_interface.manipulable = manipulable;
+    données_interface.repondant_bouton = repondant_bouton;
+    données_interface.conteneur = conteneur;
+
+    danjo::AssembleurDisposition assembleuse(données_interface);
+
+    /* Ajout d'une disposition par défaut. */
+    assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
+
+    auto debut = manipulable->debut();
+    auto fin = manipulable->fin();
+
+    for (; debut != fin; ++debut) {
+        auto param = *debut;
+
+        assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
+
+        dls::chaine nom_param(param.first);
+        assembleuse.ajoute_étiquette(nom_param);
+
+        danjo::DonneesControle donnees_controle;
+        donnees_controle.nom = nom_param;
+
+        assembleuse.ajoute_controle_pour_propriété(donnees_controle, param.second);
+        assembleuse.sors_disposition();
+    }
+
+    auto disp = assembleuse.disposition();
+    disp->addStretch();
+    return disp;
+}
 
 /* ************************************************************************** */
 
 VueParametres::VueParametres(KNB::Kanba &kanba) : m_kanba(kanba)
 {
+    ajoute_propriete("dessine_seaux", danjo::TypePropriete::BOOL, m_kanba.donne_dessine_seaux());
 }
 
 void VueParametres::ajourne_donnees()
 {
+    auto dessine_seaux = evalue_bool("dessine_seaux");
+
+    if (dessine_seaux != m_kanba.donne_dessine_seaux()) {
+        m_kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
+    }
+
+    m_kanba.définis_dessine_seaux(dessine_seaux);
 }
 
 bool VueParametres::ajourne_proprietes()
 {
+    valeur_bool("dessine_seaux", m_kanba.donne_dessine_seaux());
     return true;
 }
 
@@ -54,7 +102,8 @@ bool VueParametres::ajourne_proprietes()
 
 EditeurParametres::EditeurParametres(KNB::Kanba &kanba, QWidget *parent)
     : BaseEditrice("paramètres", kanba, parent), m_vue(new VueParametres(kanba)),
-      m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
+      m_widget(new QWidget()), m_scroll(new QScrollArea()), m_conteneur_disposition(new QWidget()),
+      m_disposition_widget(new QVBoxLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -66,6 +115,8 @@ EditeurParametres::EditeurParametres(KNB::Kanba &kanba, QWidget *parent)
     m_scroll->setFrameStyle(0);
 
     m_agencement_principal->addWidget(m_scroll);
+
+    m_disposition_widget->addWidget(m_conteneur_disposition);
 }
 
 EditeurParametres::~EditeurParametres()
@@ -77,8 +128,17 @@ EditeurParametres::~EditeurParametres()
 void EditeurParametres::ajourne_état(KNB::TypeÉvènement evenement)
 {
     m_vue->ajourne_proprietes();
-    //	cree_controles(m_assembleur_controles, m_vue);
-    //	m_assembleur_controles.setContext(this, SLOT(ajourne_vue()));
+
+    auto disposition = crée_disposition_paramètres(m_vue, nullptr, this);
+    if (disposition == nullptr) {
+        return;
+    }
+
+    if (m_conteneur_disposition->layout()) {
+        QWidget temp;
+        temp.setLayout(m_conteneur_disposition->layout());
+    }
+    m_conteneur_disposition->setLayout(disposition);
 }
 
 void EditeurParametres::ajourne_manipulable()
