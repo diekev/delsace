@@ -993,7 +993,7 @@ class CommandeEntreNoeud final : public CommandeJorjala {
             return EXECUTION_COMMANDE_REUSSIE;
         }
 
-        jorjala.définit_graphe_courant(sous_graphe);
+        jorjala.définis_graphe_courant(sous_graphe);
         jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
@@ -1020,7 +1020,7 @@ class CommandeSorsNoeud final : public CommandeJorjala {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        jorjala.définit_graphe_courant(graphe_parent);
+        jorjala.définis_graphe_courant(graphe_parent);
         jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
@@ -1107,7 +1107,7 @@ class CommandeChangeContexte final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto const &metadonnee = donnees.metadonnee;
-        jorjala.définit_racine_courante(metadonnee.c_str());
+        jorjala.définis_racine_courante(metadonnee.c_str());
         jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }

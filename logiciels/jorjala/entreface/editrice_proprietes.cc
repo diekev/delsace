@@ -177,15 +177,15 @@ class EnveloppeParametre : public danjo::BasePropriete {
     /* Définition des valeurs. */
     void définit_valeur_entier(int valeur) override
     {
-        m_noeud.définit_param_entier(m_param, valeur);
+        m_noeud.définis_param_entier(m_param, valeur);
     }
     void définit_valeur_décimal(float valeur) override
     {
-        m_noeud.définit_param_réel(m_param, valeur);
+        m_noeud.définis_param_réel(m_param, valeur);
     }
     void définit_valeur_bool(bool valeur) override
     {
-        m_noeud.définit_param_bool(m_param, valeur);
+        m_noeud.définis_param_bool(m_param, valeur);
     }
     void définit_valeur_vec3(dls::math::vec3f valeur) override
     {
@@ -193,10 +193,10 @@ class EnveloppeParametre : public danjo::BasePropriete {
             JJL::Vec2 résultat({});
             résultat.définis_x(valeur.x);
             résultat.définis_y(valeur.y);
-            m_noeud.définit_param_vec2(m_param, résultat);
+            m_noeud.définis_param_vec2(m_param, résultat);
             return;
         }
-        m_noeud.définit_param_vec3(m_param, convertis_vecteur(valeur));
+        m_noeud.définis_param_vec3(m_param, convertis_vecteur(valeur));
     }
     void définit_valeur_vec3(dls::math::vec3i /*valeur*/) override
     {
@@ -204,15 +204,15 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
     void définit_valeur_couleur(dls::phys::couleur32 valeur) override
     {
-        m_noeud.définit_param_couleur(m_param, convertis_couleur(valeur));
+        m_noeud.définis_param_couleur(m_param, convertis_couleur(valeur));
     }
     void définit_valeur_chaine(std::string const &valeur) override
     {
-        m_noeud.définit_param_chaine(m_param, valeur.c_str());
+        m_noeud.définis_param_chaine(m_param, valeur.c_str());
     }
     void définit_valeur_énum(std::string const &valeur) override
     {
-        m_noeud.définit_param_énum(m_param, valeur.c_str());
+        m_noeud.définis_param_énum(m_param, valeur.c_str());
     }
 
     /* Plage des valeurs. */

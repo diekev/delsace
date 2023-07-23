@@ -68,7 +68,7 @@ static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fene
     /* À FAIRE : libère la mémoire. */
     auto gestionnaire_fenêtre = memoire::loge<GestionnaireInterface>("GestionnaireInterface",
                                                                      *fenetre_principale);
-    jorjala.définit_gestionnaire_fenêtre(gestionnaire_fenêtre);
+    jorjala.définis_gestionnaire_fenêtre(gestionnaire_fenêtre);
 
     auto données_programme = donne_données_programme(jorjala);
     données_programme->task_notifier = gestionnaire_fenêtre->donne_task_notifier();
@@ -83,7 +83,7 @@ static void initialise_chef_execution(JJL::Jorjala &jorjala, FenetrePrincipale *
     auto chef = memoire::loge<ChefExecution>(
         "ChefExecution", jorjala, données_programme->task_notifier);
 
-    jorjala.définit_chef_exécution(chef);
+    jorjala.définis_chef_exécution(chef);
 }
 
 /* ------------------------------------------------------------------------- */

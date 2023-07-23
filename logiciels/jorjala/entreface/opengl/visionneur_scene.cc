@@ -61,7 +61,7 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
       m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 {
     auto camera = m_jorjala.donne_caméra_3d();
-    camera.définit_type_projection(JJL::TypeProjection::PERSPECTIVE);
+    camera.définis_type_projection(JJL::TypeProjection::PERSPECTIVE);
 }
 
 VisionneurScene::~VisionneurScene()
@@ -262,7 +262,7 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
     }
 
     m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
-    camera.définit_dimension_fenêtre(largeur, hauteur);
+    camera.définis_dimension_fenêtre(largeur, hauteur);
 
     m_tampon = memoire::loge_tableau<float>("tampon_vue3d", taille_tampon_camera(camera));
 }

@@ -82,12 +82,12 @@ void GestionnaireInterface::restaure_curseur()
     QGuiApplication::restoreOverrideCursor();
 }
 
-void GestionnaireInterface::définit_titre_application(JJL::Chaine titre)
+void GestionnaireInterface::définis_titre_application(JJL::Chaine titre)
 {
     m_fenêtre_principale.setWindowTitle(titre.vers_std_string().c_str());
 }
 
-void GestionnaireInterface::définit_texte_état_logiciel(JJL::Chaine texte)
+void GestionnaireInterface::définis_texte_état_logiciel(JJL::Chaine texte)
 {
     m_fenêtre_principale.définit_texte_état(texte.vers_std_string().c_str());
 }

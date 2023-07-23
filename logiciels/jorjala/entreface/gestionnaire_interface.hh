@@ -29,9 +29,9 @@ class GestionnaireInterface final : public JJL::GestionnaireFenêtre {
 
     void restaure_curseur() override;
 
-    void définit_titre_application(JJL::Chaine titre) override;
+    void définis_titre_application(JJL::Chaine titre) override;
 
-    void définit_texte_état_logiciel(JJL::Chaine texte) override;
+    void définis_texte_état_logiciel(JJL::Chaine texte) override;
 
     void notifie_tâche_démarrée() override;
 
