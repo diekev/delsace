@@ -229,6 +229,39 @@ Caméra3D :: struct {
 	type_projection := TypeProjection.ORTHOGRAPHIQUE
 }
 
+/* Initialise une caméra dans un espace où l'axe vertical est +Y.
+ * La caméra regarde vers le centre de la scène, à une distance d'environ 25 mètre :
+ * 
+ *   caméra
+ *   |\
+ *   | \  hypothénus = 25m
+ *   |  \
+ *   |   \
+ *   ----- centre scène
+ */
+initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_fenêtre := 0, type_projection := TypeProjection.PERSPECTIVE)
+{
+    définis_dimension_fenêtre(caméra, largeur_fenêtre, hauteur_fenêtre)
+    définis_tête(caméra, 30.0)
+    définis_inclinaison(caméra, 45.0)
+    définis_profondeur(caméra, 0.1, 1000.0)
+    définis_distance(caméra, 25.0)
+    définis_largeur_senseur(caméra, 22.0)
+    définis_longueur_focale(caméra, 35.0)
+
+	caméra.position = Vec3(0.0, 0.0, -1.0)
+	caméra.direction = Vec3(0.0, 0.0, 1.0)
+	caméra.cible = Vec3(0.0, 0.0, 0.0)
+	caméra.vecteur_droite = Vec3(1.0, 0.0, 0.0)
+	caméra.vecteur_haut = Vec3(0.0, 1.0, 0.0)
+
+    caméra.vitesse_zoom = 0.2
+    caméra.vitesse_chute = 0.5
+    caméra.vitesse_latérale = 0.05
+
+    caméra.drapeaux = DrapeauAjournementCaméra.valeurs_légales
+}
+
 ajuste_vitesse :: fonc (empl caméra: *Caméra3D, zoom : r32 = 0.1, latérale : r32 = 0.0002, chute : r32 = 0.02)
 {
 	vitesse_zoom = max(0.0001, distance * zoom)
