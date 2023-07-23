@@ -42,6 +42,12 @@ class GestionnaireInterface final : public JJL::GestionnaireFenêtre {
     TaskNotifier *donne_task_notifier();
 
     JJL::CodeFemetureDialogue affiche_dialogue_pour_propriétés_noeud(JJL::Noeud noeud) override;
+
+    JJL::CheminFichier affiche_dialogue_pour_sélection_fichier_lecture(
+        JJL::Chaine extension) override;
+
+    JJL::CheminFichier affiche_dialogue_pour_sélection_fichier_écriture(
+        JJL::Chaine extension) override;
 };
 
 /** \} */

@@ -11,6 +11,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #include <QCoreApplication>
+#include <QFileDialog>
 #include <QGuiApplication>
 #include <QMessageBox>
 #if defined(__GNUC__)
@@ -123,6 +124,53 @@ JJL::CodeFemetureDialogue GestionnaireInterface::affiche_dialogue_pour_propriét
     }
 
     return JJL::CodeFemetureDialogue::ANNULÉ;
+}
+
+enum {
+    FICHIER_SAUVEGARDE,
+    FICHIER_OUVERTURE,
+};
+
+static JJL::CheminFichier chemin_depuis_qstring(QString const &qstring)
+{
+    auto résultat = JJL::CheminFichier::construit(qstring.toStdString().c_str());
+    if (résultat.has_value()) {
+        return résultat.value();
+    }
+
+    return JJL::CheminFichier({});
+}
+
+static JJL::CheminFichier affiche_dialogue(int type, JJL::Chaine filtre)
+{
+    auto parent = static_cast<QWidget *>(nullptr);
+    auto caption = "";
+    auto dir = "";
+    auto filtre_str = filtre.vers_std_string();
+
+    if (type == FICHIER_OUVERTURE) {
+        auto const chemin = QFileDialog::getOpenFileName(parent, caption, dir, filtre_str.c_str());
+        return chemin_depuis_qstring(chemin);
+    }
+
+    if (type == FICHIER_SAUVEGARDE) {
+        auto const chemin = QFileDialog::getSaveFileName(parent, caption, dir, filtre_str.c_str());
+        return chemin_depuis_qstring(chemin);
+    }
+
+    return JJL::CheminFichier({});
+}
+
+JJL::CheminFichier GestionnaireInterface::affiche_dialogue_pour_sélection_fichier_lecture(
+    JJL::Chaine extension)
+{
+    return affiche_dialogue(FICHIER_OUVERTURE, extension);
+}
+
+JJL::CheminFichier GestionnaireInterface::affiche_dialogue_pour_sélection_fichier_écriture(
+    JJL::Chaine extension)
+{
+    return affiche_dialogue(FICHIER_SAUVEGARDE, extension);
 }
 
 /** \} */

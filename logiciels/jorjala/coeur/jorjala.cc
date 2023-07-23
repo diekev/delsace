@@ -40,6 +40,7 @@
 #    include "commandes/commandes_vue2d.h"
 #    include "commandes/commandes_vue3d.h"
 
+#    include "ipa/jorjala.cc"
 #    include "ipa/table_types.c"
 
 static void enregistre_commandes(UsineCommande &usine_commande)
