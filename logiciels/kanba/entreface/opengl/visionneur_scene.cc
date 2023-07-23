@@ -144,6 +144,7 @@ void VisionneurScene::peint_opengl()
         }
 
         m_rendu_seaux->initialise();
+        m_rendu_seaux->ajourne_tampon_couleur();
         m_contexte.modele_vue(dls::math::mat4x4f(1.0f));
         m_contexte.projection(dls::math::mat4x4f(1.0f));
         m_contexte.MVP(dls::math::mat4x4f(1.0f));

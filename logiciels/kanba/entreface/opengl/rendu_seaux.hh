@@ -30,6 +30,8 @@ class RenduSeaux {
 
     void initialise();
 
+    void ajourne_tampon_couleur();
+
     void dessine(ContexteRendu const &contexte);
 };
 
