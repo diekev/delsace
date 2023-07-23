@@ -337,6 +337,9 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
     chaine_chemin_entête_cpp := imprime_chaine("%/%.hh", génératrice.dossier_sortie, génératrice.nom_module)
     diffère déloge(chaine_chemin_entête_cpp)
 
+    chaine_chemin_source_cpp := imprime_chaine("%/%.cc", génératrice.dossier_sortie, génératrice.nom_module)
+    diffère déloge(chaine_chemin_source_cpp)
+
     chaine_chemin_entête_table := enchaine(génératrice.dossier_sortie, "/table_types.h")
     diffère déloge(chaine_chemin_entête_table)
 
@@ -349,6 +352,7 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
     génère_code_source_table(génératrice, CheminFichier(chaine_chemin_source_table))
     génère_code_c(ipa, système_type, CheminFichier(chaine_chemin_entête_c))
     génère_code_cpp(génératrice, CheminFichier(chaine_chemin_entête_cpp))
+    génère_code_source_cpp(génératrice, CheminFichier(chaine_chemin_source_cpp))
     génère_code_support_kuri(ipa, système_type)
 
     /* Copie le fichier de support C++. */
@@ -446,6 +450,33 @@ génère_code_fonction_c :: fonc (enchaineuse: *Enchaineuse, système: *Système
     }
     ajoute_au_tampon(enchaineuse, ");\n")
     ajoute_au_tampon(enchaineuse, "}\n\n")
+}
+
+/* ------------------------------------------------------------------------- */
+
+génère_code_source_cpp :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFichier)
+{
+    ipa := génératrice.ipa
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "#include \"", génératrice.nom_module, ".hh\"\n\n")
+    ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n")
+
+    /* Définit les fonctions qui ne peuvent pas être dans une entête. */
+
+    pour ipa.types {
+        si it.drapeaux.TYPE_EST_ABSTRAIT {
+            définis_rappel_fonction_virtuelle_classe_abstraite(*enchaineuse, it, génératrice, faux)
+            continue
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "} // namespace ", génératrice.espace_de_nom, "\n\n")
+
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -741,51 +772,7 @@ définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, " m_poignee;\n\n")
 
     /* Pour chaque rappel membre, ajout d'un fonction statique qui appelera la fonction virtuelle. */
-    pour type.membres {
-        saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
-            continue
-        }
-
-        nom_fonction := it.nom
-
-        type_fonction := it.type_ipa
-        type_sortie := type_fonction.types_sortie[0]
-
-        type_c_sortie := trouve_type(système, type_sortie.infos)
-
-        ajoute_au_tampon(enchaineuse, "    static ", type_c_sortie.nom_type_cpp, " rappel_", nom_fonction)
-
-        virgule := "("
-        saufsi type_fonction.types_entrée {
-            ajoute_au_tampon(enchaineuse, virgule)
-        }
-        sinon pour entrée, index_entrée dans type_fonction.types_entrée {
-            type_c_entrée := trouve_type(système, entrée.infos)
-            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, index_entrée)
-            virgule = ", "
-        }
-        ajoute_au_tampon(enchaineuse, ")\n")
-        ajoute_au_tampon(enchaineuse, "    {\n")
-        ajoute_au_tampon(enchaineuse, "        auto données = static_cast<", type_c.nom_type_cpp, " *>(param0);\n")
-        ajoute_au_tampon(enchaineuse, "        return données->", nom_fonction)
-
-        virgule = "("
-        si type_fonction.types_entrée.taille <= 1 {
-            ajoute_au_tampon(enchaineuse, virgule)
-        }
-        sinon pour index_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
-            entrée := type_fonction.types_entrée[index_entrée]
-            type_c_entrée := trouve_type(système, entrée.infos)
-            nom_type := type_c_entrée.nom_type_cpp
-            si type_est_toujours_pointeur(entrée) {
-                nom_type = recule(nom_type, 1)
-            }
-            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, index_entrée)
-            virgule = ", "
-        }
-        ajoute_au_tampon(enchaineuse, ");\n")
-        ajoute_au_tampon(enchaineuse, "    }\n\n")
-    }
+    définis_rappel_fonction_virtuelle_classe_abstraite(enchaineuse, type, génératrice, vrai)
 
     /* Constructeur. */
 
@@ -855,6 +842,83 @@ définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     }
 
     ajoute_au_tampon(enchaineuse, "};\n\n")
+}
+
+définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC, pour_déclaration: bool)
+{
+    système := *génératrice.système_type
+    type_c := trouve_type(système, type.infos)
+
+    indentation := ""
+    si pour_déclaration {
+        indentation = "    "
+    }
+
+    pour type.membres {
+        saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
+            continue
+        }
+
+        nom_fonction := it.nom
+
+        type_fonction := it.type_ipa
+        type_sortie := type_fonction.types_sortie[0]
+
+        type_c_sortie := trouve_type(système, type_sortie.infos)
+
+        si pour_déclaration {
+            ajoute_au_tampon(enchaineuse, indentation, "static ")
+        }
+
+        ajoute_au_tampon(enchaineuse, indentation, type_c_sortie.nom_type_cpp, " ")
+
+        saufsi pour_déclaration {
+            ajoute_au_tampon(enchaineuse, type_c.nom_type_cpp, "::")
+        }
+
+        ajoute_au_tampon(enchaineuse, indentation, "rappel_", nom_fonction)
+
+        virgule := "("
+        saufsi type_fonction.types_entrée {
+            ajoute_au_tampon(enchaineuse, virgule)
+        }
+        sinon pour entrée, index_entrée dans type_fonction.types_entrée {
+            type_c_entrée := trouve_type(système, entrée.infos)
+            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, index_entrée)
+            virgule = ", "
+        }
+        ajoute_au_tampon(enchaineuse, ")")
+
+        si pour_déclaration {
+            ajoute_au_tampon(enchaineuse, ";\n")
+            continue
+        }
+
+        ajoute_au_tampon(enchaineuse, "\n{\n")
+        ajoute_au_tampon(enchaineuse, "    auto données = static_cast<", type_c.nom_type_cpp, " *>(param0);\n")
+        ajoute_au_tampon(enchaineuse, "    return données->", nom_fonction)
+
+        virgule = "("
+        si type_fonction.types_entrée.taille <= 1 {
+            ajoute_au_tampon(enchaineuse, virgule)
+        }
+        sinon pour index_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
+            entrée := type_fonction.types_entrée[index_entrée]
+            type_c_entrée := trouve_type(système, entrée.infos)
+            nom_type := type_c_entrée.nom_type_cpp
+            si type_est_toujours_pointeur(entrée) {
+                nom_type = recule(nom_type, 1)
+            }
+            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, index_entrée)
+            virgule = ", "
+        }
+        ajoute_au_tampon(enchaineuse, ");\n")
+        ajoute_au_tampon(enchaineuse, "}\n\n")
+    }
+
+    si pour_déclaration {
+        ajoute_au_tampon(enchaineuse, "\n")
+    }
 }
 
 type_est_toujours_pointeur :: fonc (type: *TypeIPA) -> bool
