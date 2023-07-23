@@ -35,12 +35,7 @@
 #endif
 #include <QCloseEvent>
 #include <QCoreApplication>
-#include <QCursor>
-#include <QDockWidget>
-#include <QEvent>
-#include <QFile>
 #include <QFileInfo>
-#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenuBar>
@@ -53,143 +48,18 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/jorjala.hh"
 
 #include "barre_progres.hh"
 #include "chef_execution.hh"
-#include "dialogues.hh"
+#include "evenement_jorjala.hh"
 #include "gestion_entreface.hh"
-#include "tache.h"
+#include "gestionnaire_interface.hh"
 #include "vue_region.hh"
 
 /* ------------------------------------------------------------------------- */
-
-/* Sous-classe de QEvent pour ajouter les évnènements de Jorjala à la boucle
- * d'évènements de Qt. */
-class EvenementJorjala : public QEvent {
-    JJL::TypeÉvènement m_type;
-
-  public:
-    static QEvent::Type id_type_qt;
-
-    EvenementJorjala(JJL::TypeÉvènement type_evenenemt_jorjala)
-        : QEvent(id_type_qt), m_type(type_evenenemt_jorjala)
-    {
-    }
-
-    JJL::TypeÉvènement pour_quoi() const
-    {
-        return m_type;
-    }
-};
-
-QEvent::Type EvenementJorjala::id_type_qt;
-
-/* ------------------------------------------------------------------------- */
-
-static Qt::CursorShape convertis_type_curseur(JJL::TypeCurseur curseur)
-{
-    switch (curseur) {
-        case JJL::TypeCurseur::NORMAL:
-            return Qt::CursorShape::ArrowCursor;
-        case JJL::TypeCurseur::ATTENTE_BLOQUÉ:
-            return Qt::CursorShape::WaitCursor;
-        case JJL::TypeCurseur::TÂCHE_ARRIÈRE_PLAN_EN_COURS:
-            return Qt::CursorShape::BusyCursor;
-        case JJL::TypeCurseur::MAIN_OUVERTE:
-            return Qt::CursorShape::OpenHandCursor;
-        case JJL::TypeCurseur::MAIN_FERMÉE:
-            return Qt::CursorShape::ClosedHandCursor;
-    }
-
-    return Qt::CursorShape::ArrowCursor;
-}
-
-class GestionnaireInterface final : public JJL::GestionnaireFenêtre {
-    FenetrePrincipale &m_fenêtre_principale;
-    TaskNotifier *m_task_notifier = nullptr;
-
-  public:
-    GestionnaireInterface(FenetrePrincipale &fenêtre_principale)
-        : JJL::GestionnaireFenêtre(), m_fenêtre_principale(fenêtre_principale),
-          m_task_notifier(memoire::loge<TaskNotifier>("TaskNotifier", &m_fenêtre_principale))
-    {
-    }
-
-    GestionnaireInterface(GestionnaireInterface const &) = delete;
-    GestionnaireInterface &operator=(GestionnaireInterface const &) = delete;
-
-    void notifie_observatrices(JJL::TypeÉvènement evenement) override
-    {
-        auto event = new EvenementJorjala(evenement);
-        QCoreApplication::postEvent(&m_fenêtre_principale, event);
-    }
-
-    void notifie_erreur(JJL::Chaine message) override
-    {
-        QMessageBox boite_message;
-        boite_message.critical(&m_fenêtre_principale, "Erreur", message.vers_std_string().c_str());
-        boite_message.setFixedSize(500, 200);
-    }
-
-    void change_curseur(JJL::TypeCurseur curseur) override
-    {
-        QGuiApplication::setOverrideCursor(QCursor(convertis_type_curseur(curseur)));
-    }
-
-    void restaure_curseur() override
-    {
-        QGuiApplication::restoreOverrideCursor();
-    }
-
-    void définit_titre_application(JJL::Chaine titre) override
-    {
-        m_fenêtre_principale.setWindowTitle(titre.vers_std_string().c_str());
-    }
-
-    void définit_texte_état_logiciel(JJL::Chaine texte) override
-    {
-        m_fenêtre_principale.définit_texte_état(texte.vers_std_string().c_str());
-    }
-
-    void notifie_tâche_démarrée() override
-    {
-        m_task_notifier->signale_debut_evaluation("", 0, 0);
-    }
-
-    void notifie_tâche_terminée() override
-    {
-        m_task_notifier->signale_fin_tache();
-    }
-
-    bool demande_permission_avant_de_fermer() override
-    {
-        return m_fenêtre_principale.demande_permission_avant_de_fermer();
-    }
-
-    TaskNotifier *donne_task_notifier()
-    {
-        return m_task_notifier;
-    }
-
-    JJL::CodeFemetureDialogue affiche_dialogue_pour_propriétés_noeud(JJL::Noeud noeud) override
-    {
-        auto dialogue = DialogueProprietesNoeud(noeud, &m_fenêtre_principale);
-        dialogue.show();
-        auto ok = dialogue.exec();
-
-        if (ok == QDialog::Accepted) {
-            return JJL::CodeFemetureDialogue::OK;
-        }
-
-        return JJL::CodeFemetureDialogue::ANNULÉ;
-    }
-};
 
 static void initialise_evenements(JJL::Jorjala &jorjala, FenetrePrincipale *fenetre_principale)
 {
