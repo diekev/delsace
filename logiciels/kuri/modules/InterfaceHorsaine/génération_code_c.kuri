@@ -541,7 +541,7 @@ public:
 
     classes_définis : []*TypeIPA
     pour ipa.types {
-        définit_classe_cpp(*enchaineuse, it, génératrice, *classes_définis)
+        définis_classe_cpp(*enchaineuse, it, génératrice, *classes_définis)
     }
 
     pour ipa.types {
@@ -633,7 +633,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
     ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, ";\n")
 }
 
-définit_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC, classes_définis : *[]*TypeIPA)
+définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC, classes_définis : *[]*TypeIPA)
 {
     si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ÉNUM {
         retourne
@@ -656,11 +656,11 @@ définit_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
     système := *génératrice.système_type
 
     si type.type_base {
-        définit_classe_cpp(enchaineuse, type.type_base, génératrice, classes_définis)
+        définis_classe_cpp(enchaineuse, type.type_base, génératrice, classes_définis)
     }
 
     si type.drapeaux.TYPE_EST_ABSTRAIT {
-        définit_classe_abstraite(enchaineuse, type, génératrice)
+        définis_classe_abstraite(enchaineuse, type, génératrice)
         retourne
     }
 
@@ -762,7 +762,7 @@ définit_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
     }
 }
 
-définit_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
+définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
 {
     système := *génératrice.système_type
     type_c := trouve_type(système, type.infos)
