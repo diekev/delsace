@@ -323,7 +323,8 @@ void RenduMaillage::ajourne_texture()
 
     delete texture_image;
 #else
-    auto const canal_fusionné = m_maillage.donne_canal_fusionné();
+    auto compositrice = m_maillage.donne_compositrice();
+    auto canal_fusionné = compositrice.donne_canal_fusionné();
     auto const largeur = canal_fusionné.donne_largeur();
 
     auto tampon = canal_fusionné.donne_tampon_diffusion();
@@ -384,7 +385,8 @@ void RenduMaillage::supprime_tampons()
 
 void RenduMaillage::dessine(ContexteRendu const &contexte)
 {
-    if (m_maillage.doit_recalculer_canal_fusionné()) {
+    auto compositrice = m_maillage.donne_compositrice();
+    if (compositrice.doit_recalculer_canal_fusionné()) {
         ajourne_texture();
     }
 

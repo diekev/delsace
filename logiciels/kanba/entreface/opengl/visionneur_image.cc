@@ -165,7 +165,8 @@ void VisionneurImage::charge_image()
         m_tampon_arêtes = crée_tampon_arêtes(maillage);
     }
 
-    auto canal_fusionné = maillage.donne_canal_fusionné();
+    auto compositrice = maillage.donne_compositrice();
+    auto canal_fusionné = compositrice.donne_canal_fusionné();
 
     GLint size[] = {GLint(canal_fusionné.donne_largeur()), GLint(canal_fusionné.donne_hauteur())};
 

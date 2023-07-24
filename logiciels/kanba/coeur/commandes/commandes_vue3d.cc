@@ -264,11 +264,8 @@ class CommandePeinture3D : public CommandeKanba {
                 continue;
             }
 
-            std::cerr << "Quad " << i << " modifié !\n";
+            calque.invalide_pour_peinture(i);
         }
-
-        maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
-        kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
     }
