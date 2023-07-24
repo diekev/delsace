@@ -273,10 +273,10 @@ void EditeurCalques::repond_selection(QTreeWidgetItem *item, int column)
     auto calque = item_calque->pointeur();
 
     auto maillage = m_kanba.donne_maillage();
-    if (calque == maillage.donne_calque_actif()) {
+    auto canaux = maillage.donne_canaux_texture();
+    if (calque == canaux.donne_calque_actif()) {
         return;
     }
 
-    maillage.définis_calque_actif(calque);
-    m_kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ);
+    canaux.définis_calque_actif(calque);
 }

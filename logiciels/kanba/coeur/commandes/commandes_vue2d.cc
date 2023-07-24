@@ -66,7 +66,8 @@ class CommandePeinture2D : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto calque = maillage.donne_calque_actif();
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -79,7 +80,6 @@ class CommandePeinture2D : public CommandeKanba {
 
         auto pinceau = kanba.donne_pinceau();
         auto tampon = calque.donne_tampon_couleur().données_crues();
-        auto canaux = maillage.donne_canaux_texture();
         auto const largeur = canaux.donne_largeur();
         auto const hauteur = canaux.donne_hauteur();
 

@@ -174,7 +174,8 @@ class CommandePeinture3D : public CommandeKanba {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto calque = maillage.donne_calque_actif();
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
@@ -194,7 +195,6 @@ class CommandePeinture3D : public CommandeKanba {
 
         auto const &rayon_inverse = 1.0f / static_cast<float>(pinceau.donne_rayon());
         auto const rayon_carré = float(pinceau.donne_rayon() * pinceau.donne_rayon());
-        auto canaux = maillage.donne_canaux_texture();
         auto const largeur = canaux.donne_largeur();
 
         if (kanba.donne_dessine_seaux()) {

@@ -68,14 +68,14 @@ class CommandeSupprimerCalque : public CommandeKanba {
         }
 
         auto canaux = maillage.donne_canaux_texture();
-        auto calque = maillage.donne_calque_actif();
+        auto calque = canaux.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
         auto calque_actif = KNB::Calque(nullptr);
-        maillage.définis_calque_actif(calque_actif);
+        canaux.définis_calque_actif(calque_actif);
 
         canaux.supprime_calque(calque);
 
