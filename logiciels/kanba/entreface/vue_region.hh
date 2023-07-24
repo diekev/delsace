@@ -49,7 +49,7 @@ class VueRegion final : public QTabWidget {
     Q_OBJECT
 
     KNB::Kanba &m_kanba;
-    KNB::RégionInterface &m_région;
+    KNB::RégionInterface m_région;
     QPushButton *m_bouton_affichage_liste = nullptr;
     QMenu *m_menu_liste_éditrices = nullptr;
 
