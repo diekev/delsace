@@ -94,11 +94,11 @@ void VisionneurScene::peint_opengl()
 
     auto maillage = m_kanba.donne_maillage();
 
-    if (maillage && !m_rendu_maillage) {
+    if (maillage != nullptr && !m_rendu_maillage) {
         m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();
     }
-    else if (m_rendu_maillage && m_rendu_maillage->maillage() != maillage) {
+    else if (m_rendu_maillage && m_rendu_maillage->maillage().poignee() != maillage) {
         delete m_rendu_maillage;
         m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();

@@ -99,8 +99,6 @@ void BoiteACocherItem::ajourne_etat_calque(int state)
         m_calque.désactive_drapeau(m_drapeaux);
     }
 
-    auto maillage = m_kanba.donne_maillage();
-    maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
     m_kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN);
 }
 
@@ -274,9 +272,5 @@ void EditeurCalques::repond_selection(QTreeWidgetItem *item, int column)
 
     auto maillage = m_kanba.donne_maillage();
     auto canaux = maillage.donne_canaux_texture();
-    if (calque == canaux.donne_calque_actif()) {
-        return;
-    }
-
     canaux.définis_calque_actif(calque);
 }

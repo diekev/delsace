@@ -79,8 +79,6 @@ class CommandeSupprimerCalque : public CommandeKanba {
 
         canaux.supprime_calque(calque);
 
-        maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
