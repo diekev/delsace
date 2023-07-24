@@ -54,7 +54,7 @@ class EditeurParametres final : public BaseEditrice {
     QVBoxLayout *m_disposition_widget;
 
   public:
-    EditeurParametres(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    EditeurParametres(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurParametres);
 

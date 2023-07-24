@@ -110,8 +110,8 @@ void VueCanevas2D::wheelEvent(QWheelEvent *e)
 /** \name Éditrice 2D
  * \{ */
 
-EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("vue_2d", kanba, parent), m_vue(new VueCanevas2D(kanba, this))
+EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("vue_2d", kanba, éditrice, parent), m_vue(new VueCanevas2D(kanba, this))
 {
     m_agencement_principal->addWidget(m_vue);
 }
@@ -212,8 +212,8 @@ void VueCanevas3D::wheelEvent(QWheelEvent *e)
 /** \name Éditrice 3D
  * \{ */
 
-EditriceCannevas3D::EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("vue_3d", kanba, parent), m_vue(new VueCanevas3D(kanba, this))
+EditriceCannevas3D::EditriceCannevas3D(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("vue_3d", kanba, éditrice, parent), m_vue(new VueCanevas3D(kanba, this))
 {
     m_agencement_principal->addWidget(m_vue);
 }

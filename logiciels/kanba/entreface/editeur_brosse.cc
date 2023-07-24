@@ -73,9 +73,9 @@ bool VueBrosse::ajourne_proprietes()
     return true;
 }
 
-EditeurBrosse::EditeurBrosse(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("pinceau", kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
-      m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
+EditeurBrosse::EditeurBrosse(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("pinceau", kanba, éditrice, parent), m_vue(new VueBrosse(kanba)),
+      m_widget(new QWidget()), m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
       m_glayout(new QVBoxLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());

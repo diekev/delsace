@@ -56,7 +56,7 @@ class EditeurBrosse final : public BaseEditrice {
     QVBoxLayout *m_glayout;
 
   public:
-    EditeurBrosse(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    EditeurBrosse(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurBrosse);
 

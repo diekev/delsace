@@ -75,7 +75,9 @@ class EditriceCannevas2D : public BaseEditrice {
     VueCanevas2D *m_vue;
 
   public:
-    explicit EditriceCannevas2D(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas2D(KNB::Kanba &kanba,
+                                KNB::Éditrice &éditrice,
+                                QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas2D);
 
@@ -124,7 +126,9 @@ class EditriceCannevas3D : public BaseEditrice {
     VueCanevas3D *m_vue;
 
   public:
-    explicit EditriceCannevas3D(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    explicit EditriceCannevas3D(KNB::Kanba &kanba,
+                                KNB::Éditrice &éditrice,
+                                QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditriceCannevas3D);
 

@@ -29,17 +29,17 @@ static BaseEditrice *qéditrice_depuis_éditrice(KNB::Kanba &kanba, KNB::Éditri
 {
     switch (éditrice.donne_type()) {
         case KNB::TypeÉditrice::VUE_2D:
-            return new EditriceCannevas2D(kanba);
+            return new EditriceCannevas2D(kanba, éditrice);
         case KNB::TypeÉditrice::VUE_3D:
-            return new EditriceCannevas3D(kanba);
+            return new EditriceCannevas3D(kanba, éditrice);
         case KNB::TypeÉditrice::PARAMÈTRES_BROSSE:
-            return new EditeurBrosse(kanba);
+            return new EditeurBrosse(kanba, éditrice);
         case KNB::TypeÉditrice::CALQUES:
-            return new EditeurCalques(kanba);
+            return new EditeurCalques(kanba, éditrice);
         case KNB::TypeÉditrice::INFORMATIONS:
             return nullptr;
         case KNB::TypeÉditrice::PARAMÈTRES_GLOBAUX:
-            return new EditeurParametres(kanba);
+            return new EditeurParametres(kanba, éditrice);
     }
 
     return nullptr;
@@ -157,7 +157,7 @@ void VueRegion::montre_liste()
 void VueRegion::sur_ajout_editrice(int type)
 {
     auto type_éditrice = static_cast<KNB::TypeÉditrice>(type);
-    auto éditrice = m_région.ajoute_une_éditrice(type_éditrice);
+    auto éditrice = m_région.ajoute_une_éditrice(m_kanba, type_éditrice);
     ajoute_page_pour_éditrice(éditrice, true);
 }
 

@@ -109,7 +109,7 @@ class EditeurCalques final : public BaseEditrice {
     QGridLayout *m_glayout;
 
   public:
-    EditeurCalques(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    EditeurCalques(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurCalques);
 

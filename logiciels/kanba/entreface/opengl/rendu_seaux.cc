@@ -52,7 +52,7 @@ RenduSeaux::RenduSeaux(KNB::Kanba &kanba) : m_kanba(kanba)
 
 void RenduSeaux::initialise()
 {
-    auto const camera = m_kanba.donne_caméra();
+    auto camera = m_kanba.donne_caméra();
     auto const cannevas = m_kanba.donne_canevas();
     auto seaux = cannevas.donne_seaux();
 

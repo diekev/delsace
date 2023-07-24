@@ -47,7 +47,23 @@
 
 #include "gestionnaire_interface.hh"
 
-BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent)
+static void rappel_pour_éditrice_kanba(void *données, KNB::ChangementÉditrice changement)
+{
+    auto éditrice = static_cast<BaseEditrice *>(données);
+
+    switch (changement) {
+        case KNB::ChangementÉditrice::RAFRAICHIS:
+        {
+            éditrice->ajourne_état(KNB::TypeÉvènement::RAFRAICHISSEMENT);
+            return;
+        }
+    }
+}
+
+BaseEditrice::BaseEditrice(const char *identifiant,
+                           KNB::Kanba &kanba,
+                           KNB::Éditrice &éditrice,
+                           QWidget *parent)
     : danjo::ConteneurControles(parent), m_kanba(kanba), m_cadre(new QFrame(this)),
       m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
 {
@@ -71,6 +87,8 @@ BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *
     m_agencement_principal->setMargin(6);
 
     this->actif(false);
+
+    éditrice.définis_rappel_utilisateur_interface(this, rappel_pour_éditrice_kanba);
 }
 
 void BaseEditrice::actif(bool yesno)

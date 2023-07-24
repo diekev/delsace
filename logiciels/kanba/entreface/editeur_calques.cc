@@ -163,8 +163,8 @@ void TreeWidget::mousePressEvent(QMouseEvent *e)
 
 /* ************************************************************************** */
 
-EditeurCalques::EditeurCalques(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("calque", kanba, parent), m_widget_arbre(new TreeWidget(this)),
+EditeurCalques::EditeurCalques(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("calque", kanba, éditrice, parent), m_widget_arbre(new TreeWidget(this)),
       m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
@@ -205,8 +205,7 @@ void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
         return;
     }
 
-    auto dessine_arbre = (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
-    dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
+    auto dessine_arbre = (evenement == (KNB::TypeÉvènement::RAFRAICHISSEMENT));
     dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
     dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
 

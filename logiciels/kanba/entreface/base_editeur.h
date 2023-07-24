@@ -30,6 +30,7 @@
 
 namespace KNB {
 enum class TypeÉvènement : uint32_t;
+class Éditrice;
 class Kanba;
 }  // namespace KNB
 
@@ -50,7 +51,10 @@ class BaseEditrice : public danjo::ConteneurControles {
     const char *m_identifiant = "";
 
   public:
-    explicit BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent = nullptr);
+    explicit BaseEditrice(const char *identifiant,
+                          KNB::Kanba &kanba,
+                          KNB::Éditrice &éditrice,
+                          QWidget *parent = nullptr);
 
     EMPECHE_COPIE(BaseEditrice);
 

@@ -47,8 +47,6 @@ class CommandeAjouterCalque : public CommandeKanba {
         auto canaux = maillage.donne_canaux_texture();
         canaux.ajoute_un_calque(KNB::TypeCanal::DIFFUSION);
 
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -82,8 +80,6 @@ class CommandeSupprimerCalque : public CommandeKanba {
         canaux.supprime_calque(calque);
 
         maillage.marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

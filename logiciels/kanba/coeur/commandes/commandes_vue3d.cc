@@ -57,12 +57,7 @@ class CommandeZoomCamera : public CommandeKanba {
         auto const delta = donnees.x;
 
         auto camera = kanba.donne_caméra();
-        camera.zoom(delta);
-
-        auto cannevas = kanba.donne_canevas();
-        cannevas.invalide_pour_changement_caméra();
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
+        camera.applique_zoom(delta);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -93,15 +88,10 @@ class CommandeTourneCamera : public CommandeKanba {
         const float dy = (donnees.y - m_vieil_y);
 
         auto camera = kanba.donne_caméra();
-        camera.tourne(dx, dy);
-
-        auto cannevas = kanba.donne_canevas();
-        cannevas.invalide_pour_changement_caméra();
+        camera.applique_tourne(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
     }
 };
 
@@ -131,15 +121,10 @@ class CommandePanCamera : public CommandeKanba {
         const float dy = (donnees.y - m_vieil_y);
 
         auto camera = kanba.donne_caméra();
-        camera.pan(dx, dy);
+        camera.applique_pan(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
-
-        auto cannevas = kanba.donne_canevas();
-        cannevas.invalide_pour_changement_caméra();
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
     }
 };
 
@@ -312,7 +297,6 @@ class CommandeAjouteCube : public CommandeKanba {
         objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
         kanba.installe_maillage(maillage);
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -336,7 +320,6 @@ class CommandeAjouteSphere : public CommandeKanba {
         objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
         kanba.installe_maillage(maillage);
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

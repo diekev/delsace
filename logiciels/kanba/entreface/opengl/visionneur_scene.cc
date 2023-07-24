@@ -159,7 +159,6 @@ void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
     m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
     m_caméra.définis_dimension_fenêtre(largeur, hauteur);
-    m_kanba.donne_canevas().invalide_pour_changement_taille_écran();
 }
 
 void VisionneurScene::position_souris(int x, int y)

@@ -45,7 +45,7 @@ class VisionneurScene {
     VueCanevas3D *m_parent;
     KNB::Kanba &m_kanba;
 
-    KNB::Caméra3D m_caméra;
+    KNB::EnveloppeCaméra3D m_caméra;
     RenduBrosse *m_rendu_brosse;
     RenduGrille *m_rendu_grille;
     RenduTexte *m_rendu_texte;

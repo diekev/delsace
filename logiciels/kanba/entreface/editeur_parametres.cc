@@ -100,8 +100,8 @@ bool VueParametres::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurParametres::EditeurParametres(KNB::Kanba &kanba, QWidget *parent)
-    : BaseEditrice("paramètres", kanba, parent), m_vue(new VueParametres(kanba)),
+EditeurParametres::EditeurParametres(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("paramètres", kanba, éditrice, parent), m_vue(new VueParametres(kanba)),
       m_widget(new QWidget()), m_scroll(new QScrollArea()), m_conteneur_disposition(new QWidget()),
       m_disposition_widget(new QVBoxLayout(m_widget))
 {
