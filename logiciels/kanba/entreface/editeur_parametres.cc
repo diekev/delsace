@@ -84,11 +84,6 @@ VueParametres::VueParametres(KNB::Kanba &kanba) : m_kanba(kanba)
 void VueParametres::ajourne_donnees()
 {
     auto dessine_seaux = evalue_bool("dessine_seaux");
-
-    if (dessine_seaux != m_kanba.donne_dessine_seaux()) {
-        m_kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
-    }
-
     m_kanba.définis_dessine_seaux(dessine_seaux);
 }
 

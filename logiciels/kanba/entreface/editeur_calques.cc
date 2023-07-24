@@ -98,8 +98,6 @@ void BoiteACocherItem::ajourne_etat_calque(int state)
     else {
         m_calque.désactive_drapeau(m_drapeaux);
     }
-
-    m_kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN);
 }
 
 /** \} */
