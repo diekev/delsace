@@ -43,7 +43,7 @@
 
 VueBrosse::VueBrosse(KNB::Kanba &kanba) : m_kanba(kanba)
 {
-    ajoute_propriete("couleur_pinceau", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
+    ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
     ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
     ajoute_propriete("opacité", danjo::TypePropriete::DECIMAL, 1.0f);
     ajoute_propriete("mode_fusion", danjo::TypePropriete::ENUM);
@@ -51,7 +51,7 @@ VueBrosse::VueBrosse(KNB::Kanba &kanba) : m_kanba(kanba)
 
 void VueBrosse::ajourne_donnees()
 {
-    auto couleur = evalue_couleur("couleur_pinceau");
+    auto couleur = evalue_couleur("couleur_brosse");
     auto pinceau = m_kanba.donne_pinceau();
     pinceau.définis_couleur(convertis_couleur(couleur));
     pinceau.définis_rayon(uint32_t(evalue_entier("rayon")));
@@ -64,7 +64,7 @@ bool VueBrosse::ajourne_proprietes()
 {
     auto pinceau = m_kanba.donne_pinceau();
     auto couleur = pinceau.donne_couleur();
-    valeur_couleur("couleur_pinceau", convertis_couleur(couleur));
+    valeur_couleur("couleur_brosse", convertis_couleur(couleur));
     valeur_decimal("opacité", pinceau.donne_opacité());
     valeur_entier("rayon", int32_t(pinceau.donne_rayon()));
     // À FAIRE
