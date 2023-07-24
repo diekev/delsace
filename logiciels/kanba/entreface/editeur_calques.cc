@@ -110,7 +110,7 @@ void BoiteACocherItem::ajourne_etat_calque(int state)
 
 class IconItemCalque : public QLabel {
   public:
-    IconItemCalque(KNB::Calque &calque, QString const &texte, QWidget *parent = nullptr)
+    IconItemCalque(KNB::Calque calque, QString const &texte, QWidget *parent = nullptr)
         : QLabel(texte, parent)
     {
         auto pixmap = QPixmap("/home/kevin/icons8-brush-100.png");
@@ -122,7 +122,7 @@ class IconItemCalque : public QLabel {
 
 /* ************************************************************************** */
 
-ItemArbreCalque::ItemArbreCalque(const KNB::Calque &calque, QTreeWidgetItem *parent)
+ItemArbreCalque::ItemArbreCalque(const KNB::Calque calque, QTreeWidgetItem *parent)
     : QTreeWidgetItem(parent), m_calque(calque)
 {
     setText(COLONNE_NOM_CALQUE, m_calque.donne_nom().vers_std_string().c_str());

@@ -35,10 +35,7 @@
 #include <QTreeWidget>
 #pragma GCC diagnostic pop
 
-namespace KNB {
-class Calque;
-enum class DrapeauxCalque : uint32_t;
-}  // namespace KNB
+#include "coeur/kanba.h"
 
 class QGridLayout;
 class QScrollArea;
@@ -56,7 +53,7 @@ class BoiteACocherItem : public QCheckBox {
     Q_OBJECT
 
     KNB::Kanba &m_kanba;
-    KNB::Calque &m_calque;
+    KNB::Calque m_calque;
     KNB::DrapeauxCalque m_drapeaux;
 
   public:
@@ -75,13 +72,12 @@ class BoiteACocherItem : public QCheckBox {
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-    const KNB::Calque &m_calque;
+    const KNB::Calque m_calque;
 
   public:
-    explicit ItemArbreCalque(const KNB::Calque &calque, QTreeWidgetItem *parent = nullptr);
+    explicit ItemArbreCalque(const KNB::Calque calque, QTreeWidgetItem *parent = nullptr);
 
-    ItemArbreCalque(ItemArbreCalque const &) = default;
-    ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
+    EMPECHE_COPIE(ItemArbreCalque);
 
     const KNB::Calque &pointeur() const;
 };
