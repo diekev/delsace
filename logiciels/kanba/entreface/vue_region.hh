@@ -63,7 +63,7 @@ class VueRegion final : public QTabWidget {
     void ajourne_éditrice_active(KNB::ChangementÉditrice évènement);
 
   private:
-    void ajoute_page_pour_éditrice(KNB::Éditrice &éditrice, bool définit_comme_page_courante);
+    void ajoute_page_pour_éditrice(KNB::Éditrice &éditrice, bool définis_comme_page_courante);
 
   private Q_SLOTS:
     void ajourne_pour_changement_page(int index);

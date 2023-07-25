@@ -83,7 +83,7 @@ void GestionnaireInterface::définis_titre_application(KNB::Chaine titre)
 void GestionnaireInterface::définis_texte_état_logiciel(KNB::Chaine)
 {
     // À FAIRE
-    // m_fenêtre_principale.définit_texte_état(texte.c_str());
+    // m_fenêtre_principale.définis_texte_état(texte.c_str());
 }
 
 bool GestionnaireInterface::demande_permission_avant_de_fermer()
