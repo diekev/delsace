@@ -24,8 +24,6 @@ class GestionnaireInterface final : public KNB::GestionnaireFenêtre {
 
     void définis_éditrice_active(BaseEditrice *éditrice);
 
-    void notifie_observatrices(KNB::TypeÉvènement evenement) override;
-
     void notifie_erreur(KNB::Chaine message) override;
 
     void change_curseur(KNB::TypeCurseur curseur) override;

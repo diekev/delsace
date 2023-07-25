@@ -58,12 +58,6 @@ void GestionnaireInterface::définis_éditrice_active(BaseEditrice *éditrice)
     m_éditrice_active = nullptr;
 }
 
-void GestionnaireInterface::notifie_observatrices(KNB::TypeÉvènement evenement)
-{
-    auto event = new EvenementKanba(evenement);
-    QCoreApplication::postEvent(&m_fenêtre_principale, event);
-}
-
 void GestionnaireInterface::notifie_erreur(KNB::Chaine message)
 {
     QMessageBox boite_message;

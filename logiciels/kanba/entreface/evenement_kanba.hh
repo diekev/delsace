@@ -20,19 +20,11 @@
 /* Sous-classe de QEvent pour ajouter les évnènements de Kanba à la boucle
  * d'évènements de Qt. */
 class EvenementKanba : public QEvent {
-    KNB::TypeÉvènement m_type;
-
   public:
     static QEvent::Type id_type_qt;
 
-    EvenementKanba(KNB::TypeÉvènement type_evenenemt_kanba)
-        : QEvent(id_type_qt), m_type(type_evenenemt_kanba)
+    EvenementKanba() : QEvent(id_type_qt)
     {
-    }
-
-    KNB::TypeÉvènement pour_quoi() const
-    {
-        return m_type;
     }
 };
 
