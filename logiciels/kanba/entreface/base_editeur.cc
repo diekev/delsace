@@ -50,14 +50,7 @@
 static void rappel_pour_éditrice_kanba(void *données, KNB::ChangementÉditrice changement)
 {
     auto éditrice = static_cast<BaseEditrice *>(données);
-
-    switch (changement) {
-        case KNB::ChangementÉditrice::RAFRAICHIS:
-        {
-            éditrice->ajourne_état(KNB::TypeÉvènement::RAFRAICHISSEMENT);
-            return;
-        }
-    }
+    éditrice->ajourne_état(changement);
 }
 
 BaseEditrice::BaseEditrice(const char *identifiant,

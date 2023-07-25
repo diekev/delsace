@@ -120,7 +120,7 @@ EditeurParametres::~EditeurParametres()
     delete m_scroll;
 }
 
-void EditeurParametres::ajourne_état(KNB::TypeÉvènement evenement)
+void EditeurParametres::ajourne_état(KNB::ChangementÉditrice evenement)
 {
     m_vue->ajourne_proprietes();
 

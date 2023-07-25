@@ -62,7 +62,7 @@ class EditeurBrosse final : public BaseEditrice {
 
     ~EditeurBrosse() override;
 
-    void ajourne_état(KNB::TypeÉvènement evenement) override;
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
 
     void ajourne_manipulable() override;
 };

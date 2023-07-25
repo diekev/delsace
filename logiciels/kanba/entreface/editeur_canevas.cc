@@ -116,11 +116,10 @@ EditriceCannevas2D::EditriceCannevas2D(KNB::Kanba &kanba, KNB::Éditrice &éditr
     m_agencement_principal->addWidget(m_vue);
 }
 
-void EditriceCannevas2D::ajourne_état(KNB::TypeÉvènement evenement)
+void EditriceCannevas2D::ajourne_état(KNB::ChangementÉditrice evenement)
 {
-    if (evenement == (KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI)) {
-        m_vue->charge_image();
-    }
+    // À FAIRE : ne charge l'image que si elle a changé
+    m_vue->charge_image();
     m_vue->update();
 }
 
@@ -218,7 +217,7 @@ EditriceCannevas3D::EditriceCannevas3D(KNB::Kanba &kanba, KNB::Éditrice &éditr
     m_agencement_principal->addWidget(m_vue);
 }
 
-void EditriceCannevas3D::ajourne_état(KNB::TypeÉvènement evenement)
+void EditriceCannevas3D::ajourne_état(KNB::ChangementÉditrice evenement)
 {
     m_vue->update();
 }

@@ -99,9 +99,9 @@ EditeurBrosse::~EditeurBrosse()
     delete m_scroll;
 }
 
-void EditeurBrosse::ajourne_état(KNB::TypeÉvènement evenement)
+void EditeurBrosse::ajourne_état(KNB::ChangementÉditrice evenement)
 {
-    if (evenement != KNB::TypeÉvènement::RAFRAICHISSEMENT) {
+    if (evenement != KNB::ChangementÉditrice::RAFRAICHIS) {
         return;
     }
 

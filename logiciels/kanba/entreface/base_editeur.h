@@ -29,7 +29,7 @@
 #include "biblinternes/outils/definitions.h"
 
 namespace KNB {
-enum class TypeÉvènement : uint32_t;
+enum class ChangementÉditrice : int32_t;
 class Éditrice;
 class Kanba;
 }  // namespace KNB
@@ -61,7 +61,7 @@ class BaseEditrice : public danjo::ConteneurControles {
     void actif(bool yesno);
     void rend_actif();
 
-    virtual void ajourne_état(KNB::TypeÉvènement evenement) = 0;
+    virtual void ajourne_état(KNB::ChangementÉditrice evenement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;

@@ -193,7 +193,7 @@ EditeurCalques::~EditeurCalques()
 {
 }
 
-void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
+void EditeurCalques::ajourne_état(KNB::ChangementÉditrice evenement)
 {
     auto maillage = m_kanba.donne_maillage();
 
@@ -201,10 +201,7 @@ void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
         return;
     }
 
-    auto dessine_arbre = (evenement == (KNB::TypeÉvènement::RAFRAICHISSEMENT));
-    dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
-    dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
-
+    auto dessine_arbre = (evenement == (KNB::ChangementÉditrice::RAFRAICHIS));
     if (dessine_arbre) {
         m_widget_arbre->clear();
 
@@ -235,14 +232,7 @@ void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
         }
     }
 
-    auto dessine_props = (evenement ==
-                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
-    dessine_props |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
-    dessine_props |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
-
-    if (dessine_props) {
-        /* À FAIRE : dessine les propriétés des calques. */
-    }
+    /* À FAIRE : dessine les propriétés des calques. */
 }
 
 void EditeurCalques::ajourne_vue()

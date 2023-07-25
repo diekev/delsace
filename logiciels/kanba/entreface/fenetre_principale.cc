@@ -180,7 +180,9 @@ void FenetrePrincipale::construit_interface_depuis_kanba()
     auto qwidget = génère_interface_disposition(m_kanba, disposition, m_régions);
     setCentralWidget(qwidget);
 
-    m_kanba.notifie_observatrices(KNB::TypeÉvènement::RAFRAICHISSEMENT);
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(KNB::ChangementÉditrice::RAFRAICHIS);
+    }
 }
 
 bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
@@ -191,13 +193,15 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 
     auto event_kanba = static_cast<EvenementKanba *>(event);
 
-    if (event_kanba->pour_quoi() == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ)) {
-        construit_interface_depuis_kanba();
-        return true;
-    }
+    // À FAIRE : reconstruction de l'interface
+    //    if (event_kanba->pour_quoi() ==
+    //        (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ)) {
+    //        construit_interface_depuis_kanba();
+    //        return true;
+    //    }
 
     for (auto région : m_régions) {
-        région->ajourne_éditrice_active(event_kanba->pour_quoi());
+        région->ajourne_éditrice_active(KNB::ChangementÉditrice::RAFRAICHIS);
     }
 
     return true;
