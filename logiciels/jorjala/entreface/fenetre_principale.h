@@ -62,7 +62,7 @@ class FenetrePrincipale : public QMainWindow {
     FenetrePrincipale(FenetrePrincipale const &) = delete;
     FenetrePrincipale &operator=(FenetrePrincipale const &) = delete;
 
-    void définit_texte_état(const QString &texte);
+    void définis_texte_état(const QString &texte);
 
   public Q_SLOTS:
     void image_traitee();

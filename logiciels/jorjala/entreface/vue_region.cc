@@ -126,7 +126,7 @@ void VueRegion::ajourne_éditrice_active(JJL::TypeÉvènement évènement)
     éditrice->ajourne_état(évènement);
 }
 
-void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool définit_comme_page_courante)
+void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool définis_comme_page_courante)
 {
     auto qéditrice = qéditrice_depuis_éditrice(m_jorjala, éditrice);
     if (!qéditrice) {
@@ -135,7 +135,7 @@ void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool défin
 
     addTab(qéditrice, éditrice.donne_nom().vers_std_string().c_str());
 
-    if (définit_comme_page_courante) {
+    if (définis_comme_page_courante) {
         setCurrentIndex(count() - 1);
     }
 }

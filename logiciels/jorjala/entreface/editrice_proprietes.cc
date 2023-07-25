@@ -175,19 +175,19 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
 
     /* Définition des valeurs. */
-    void définit_valeur_entier(int valeur) override
+    void définis_valeur_entier(int valeur) override
     {
         m_noeud.définis_param_entier(m_param, valeur);
     }
-    void définit_valeur_décimal(float valeur) override
+    void définis_valeur_décimal(float valeur) override
     {
         m_noeud.définis_param_réel(m_param, valeur);
     }
-    void définit_valeur_bool(bool valeur) override
+    void définis_valeur_bool(bool valeur) override
     {
         m_noeud.définis_param_bool(m_param, valeur);
     }
-    void définit_valeur_vec3(dls::math::vec3f valeur) override
+    void définis_valeur_vec3(dls::math::vec3f valeur) override
     {
         if (m_param.donne_type() == JJL::TypeParamètre::VEC2) {
             JJL::Vec2 résultat({});
@@ -198,19 +198,19 @@ class EnveloppeParametre : public danjo::BasePropriete {
         }
         m_noeud.définis_param_vec3(m_param, convertis_vecteur(valeur));
     }
-    void définit_valeur_vec3(dls::math::vec3i /*valeur*/) override
+    void définis_valeur_vec3(dls::math::vec3i /*valeur*/) override
     {
         // À FAIRE
     }
-    void définit_valeur_couleur(dls::phys::couleur32 valeur) override
+    void définis_valeur_couleur(dls::phys::couleur32 valeur) override
     {
         m_noeud.définis_param_couleur(m_param, convertis_couleur(valeur));
     }
-    void définit_valeur_chaine(std::string const &valeur) override
+    void définis_valeur_chaine(std::string const &valeur) override
     {
         m_noeud.définis_param_chaine(m_param, valeur.c_str());
     }
-    void définit_valeur_énum(std::string const &valeur) override
+    void définis_valeur_énum(std::string const &valeur) override
     {
         m_noeud.définis_param_énum(m_param, valeur.c_str());
     }

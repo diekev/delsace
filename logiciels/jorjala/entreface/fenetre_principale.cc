@@ -112,7 +112,7 @@ FenetrePrincipale::FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent)
     genere_menu_prereglages();
 
     statusBar()->addWidget(m_texte_état);
-    définit_texte_état("");
+    définis_texte_état("");
 
     statusBar()->addWidget(m_barre_progres);
     m_barre_progres->setVisible(false);
@@ -402,7 +402,7 @@ void FenetrePrincipale::evaluation_debutee(const QString &message, int execution
     m_barre_progres->ajourne_message(message, execution, total);
 }
 
-void FenetrePrincipale::définit_texte_état(const QString &texte)
+void FenetrePrincipale::définis_texte_état(const QString &texte)
 {
     m_texte_état->setVisible(texte != "");
     m_texte_état->setText(texte);

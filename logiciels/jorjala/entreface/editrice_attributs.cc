@@ -365,7 +365,7 @@ void EditriceAttributs::ajourne_état(JJL::TypeÉvènement évènement)
     auto noeud = donne_noeud_corps_actif(m_jorjala);
     if (!noeud) {
         m_noeud = {};
-        définit_visibilité_table(false);
+        définis_visibilité_table(false);
         return;
     }
 
@@ -379,7 +379,7 @@ void EditriceAttributs::ajourne_état(JJL::TypeÉvènement évènement)
 
     if (!corps) {
         m_noeud = {};
-        définit_visibilité_table(false);
+        définis_visibilité_table(false);
         return;
     }
 
@@ -387,10 +387,10 @@ void EditriceAttributs::ajourne_état(JJL::TypeÉvènement évènement)
 
     m_table->setModel(new ModèleTableAttribut(corps, m_domaine));
 
-    définit_visibilité_table(true);
+    définis_visibilité_table(true);
 }
 
-void EditriceAttributs::définit_visibilité_table(bool est_visible)
+void EditriceAttributs::définis_visibilité_table(bool est_visible)
 {
     m_table->setVisible(est_visible);
     m_label_pour_noeud_manquant->setVisible(!est_visible);

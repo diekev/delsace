@@ -36,7 +36,7 @@ class EditriceAttributs : public BaseEditrice {
   private:
     /** Si \a est_visible est vrai, la table est montré, sinon la table est cachée et un message
      * indiquant qu'aucun noeud n'est actif est affiché. */
-    void définit_visibilité_table(bool est_visible);
+    void définis_visibilité_table(bool est_visible);
 
   private Q_SLOTS:
     void ajourne_pour_changement_domaine(int);
