@@ -191,7 +191,7 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
         return QWidget::eventFilter(object, event);
     }
 
-    auto event_kanba = static_cast<EvenementKanba *>(event);
+    // auto event_kanba = static_cast<EvenementKanba *>(event);
 
     // À FAIRE : reconstruction de l'interface
     //    if (event_kanba->pour_quoi() ==
