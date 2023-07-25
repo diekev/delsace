@@ -75,12 +75,12 @@ void GestionnaireInterface::restaure_curseur()
     QGuiApplication::restoreOverrideCursor();
 }
 
-void GestionnaireInterface::définit_titre_application(KNB::Chaine titre)
+void GestionnaireInterface::définis_titre_application(KNB::Chaine titre)
 {
     m_fenêtre_principale.setWindowTitle(titre.vers_std_string().c_str());
 }
 
-void GestionnaireInterface::définit_texte_état_logiciel(KNB::Chaine)
+void GestionnaireInterface::définis_texte_état_logiciel(KNB::Chaine)
 {
     // À FAIRE
     // m_fenêtre_principale.définit_texte_état(texte.c_str());

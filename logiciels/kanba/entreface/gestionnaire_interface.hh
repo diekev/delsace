@@ -30,9 +30,9 @@ class GestionnaireInterface final : public KNB::GestionnaireFenêtre {
 
     void restaure_curseur() override;
 
-    void définit_titre_application(KNB::Chaine titre) override;
+    void définis_titre_application(KNB::Chaine titre) override;
 
-    void définit_texte_état_logiciel(KNB::Chaine /*texte*/) override;
+    void définis_texte_état_logiciel(KNB::Chaine /*texte*/) override;
 
     bool demande_permission_avant_de_fermer() override;
 
