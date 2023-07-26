@@ -44,11 +44,12 @@ class VisionneurImage {
     VueCanevas2D *m_parent;
 
     std::unique_ptr<TamponRendu> m_tampon = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_arêtes = nullptr;
 
     int m_hauteur = 0;
     int m_largeur = 0;
 
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
 
   public:
     /**
@@ -61,7 +62,7 @@ class VisionneurImage {
     /**
      * Construit un visionneur avec un pointeur vers le VueCanevas parent.
      */
-    explicit VisionneurImage(VueCanevas2D *parent, KNB::Kanba *kanba);
+    explicit VisionneurImage(VueCanevas2D *parent, KNB::Kanba &kanba);
 
     /**
      * Détruit le visionneur image. Les tampons de rendus sont détruits, et

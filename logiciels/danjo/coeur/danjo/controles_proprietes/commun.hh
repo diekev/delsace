@@ -10,7 +10,7 @@ namespace danjo {
 
 QPushButton *crée_bouton_animation_controle(QWidget *parent);
 
-void définit_état_bouton_animation(QPushButton *bouton, bool est_animé);
+void définis_état_bouton_animation(QPushButton *bouton, bool est_animé);
 
 QPushButton *crée_bouton_échelle_valeur(QWidget *parent);
 

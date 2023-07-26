@@ -43,9 +43,9 @@
 
 static QBrush brosse_pour_couleur(JJL::CouleurTSL couleur)
 {
-    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur.t()),
-                                       static_cast<double>(couleur.s()),
-                                       static_cast<double>(couleur.l()));
+    auto couleur_qt = QColor::fromHslF(static_cast<double>(couleur.donne_t()),
+                                       static_cast<double>(couleur.donne_s()),
+                                       static_cast<double>(couleur.donne_l()));
     return QBrush(couleur_qt);
 }
 
@@ -57,12 +57,12 @@ static QBrush brosse_pour_noeud(JJL::Noeud noeud)
 
 static void ajourne_rectangle(JJL::Prise *prise, float x, float y, float hauteur, float largeur)
 {
-    auto rect = prise->rectangle();
-    rect.x(x);
-    rect.y(y);
-    rect.hauteur(hauteur);
-    rect.largeur(largeur);
-    prise->rectangle(rect);
+    auto rect = prise->donne_rectangle();
+    rect.définis_x(x);
+    rect.définis_y(y);
+    rect.définis_hauteur(hauteur);
+    rect.définis_largeur(largeur);
+    prise->définis_rectangle(rect);
 }
 
 ItemNoeud::ItemNoeud(JJL::Noeud &noeud,
@@ -82,12 +82,12 @@ ItemNoeud::ItemNoeud(JJL::Noeud &noeud,
 
 void ItemNoeud::dessine_noeud_detail(JJL::Noeud &noeud, bool selectionne)
 {
-    auto const pos_x = static_cast<double>(noeud.pos_x());
-    auto const pos_y = static_cast<double>(noeud.pos_y());
+    auto const pos_x = static_cast<double>(noeud.donne_pos_x());
+    auto const pos_y = static_cast<double>(noeud.donne_pos_y());
 
     /* crée le texte en premier pour calculer sa taille */
     auto const decalage_texte = 8;
-    auto texte = new QGraphicsTextItem(noeud.nom().vers_std_string().c_str(), this);
+    auto texte = new QGraphicsTextItem(noeud.donne_nom().vers_std_string().c_str(), this);
     auto police = QFont();
     police.setPointSize(16);
     texte->setFont(police);
@@ -106,11 +106,12 @@ void ItemNoeud::dessine_noeud_detail(JJL::Noeud &noeud, bool selectionne)
     auto largeur_entrees = 0.0;
     auto hauteur_entrees = 0.0;
 
-    auto prises_entrées = noeud.entrées();
-    auto prises_sorties = noeud.sorties();
+    auto prises_entrées = noeud.donne_entrées();
+    auto prises_sorties = noeud.donne_sorties();
 
     for (auto prise : prises_entrées) {
-        auto texte_prise = new QGraphicsTextItem(prise.nom().vers_std_string().c_str(), this);
+        auto texte_prise = new QGraphicsTextItem(prise.donne_nom().vers_std_string().c_str(),
+                                                 this);
         texte_prise->setFont(police);
         textes_entrees.ajoute(texte_prise);
 
@@ -126,7 +127,8 @@ void ItemNoeud::dessine_noeud_detail(JJL::Noeud &noeud, bool selectionne)
     auto hauteur_sorties = 0.0;
 
     for (auto prise : prises_sorties) {
-        auto texte_prise = new QGraphicsTextItem(prise.nom().vers_std_string().c_str(), this);
+        auto texte_prise = new QGraphicsTextItem(prise.donne_nom().vers_std_string().c_str(),
+                                                 this);
         texte_prise->setFont(police);
         textes_sorties.ajoute(texte_prise);
 
@@ -205,12 +207,12 @@ void ItemNoeud::dessine_noeud_generique(JJL::Noeud &noeud,
                                         QBrush const &brosse_couleur,
                                         bool selectionne)
 {
-    auto const pos_x = static_cast<double>(noeud.pos_x());
-    auto const pos_y = static_cast<double>(noeud.pos_y());
+    auto const pos_x = static_cast<double>(noeud.donne_pos_x());
+    auto const pos_y = static_cast<double>(noeud.donne_pos_y());
 
     /* crée le texte en premier pour calculer sa taille */
     auto const decalage_texte = 8;
-    auto texte = new QGraphicsTextItem(noeud.nom().vers_std_string().c_str(), this);
+    auto texte = new QGraphicsTextItem(noeud.donne_nom().vers_std_string().c_str(), this);
     auto police = QFont();
     police.setPointSize(16);
     texte->setFont(police);
@@ -227,8 +229,8 @@ void ItemNoeud::dessine_noeud_generique(JJL::Noeud &noeud,
     auto const hauteur_prise = 32.0;
     auto const largeur_prise = 32.0;
 
-    auto const nombre_entrees = noeud.entrées().taille();
-    auto const nombre_sorties = noeud.sorties().taille();
+    auto const nombre_entrees = noeud.donne_entrées().taille();
+    auto const nombre_sorties = noeud.donne_sorties().taille();
 
     auto decalage_icone_y = pos_y;
     auto decalage_texte_y = pos_y;
@@ -256,7 +258,7 @@ void ItemNoeud::dessine_noeud_generique(JJL::Noeud &noeud,
         auto const pos_debut_entrees = etendue_entree * 0.5 - largeur_prise * 0.5;
         auto pos_entree = pos_x + pos_debut_entrees;
 
-        for (auto prise : noeud.entrées()) {
+        for (auto prise : noeud.donne_entrées()) {
             auto largeur_lien = largeur_prise;
 
             // À FAIRE : connexions multiples
@@ -303,7 +305,7 @@ void ItemNoeud::dessine_noeud_generique(JJL::Noeud &noeud,
         auto const pos_debut_sorties = etendue_sortie * 0.5 - largeur_prise * 0.5;
         auto pos_sortie = pos_x + pos_debut_sorties;
 
-        for (auto prise : noeud.sorties()) {
+        for (auto prise : noeud.donne_sorties()) {
             cree_geometrie_prise(&prise,
                                  static_cast<float>(pos_sortie),
                                  static_cast<float>(decalage_sorties_y),
@@ -357,8 +359,8 @@ void ItemNoeud::finalise_dessin(JJL::Noeud &noeud,
 
     setRect(pos_x, pos_y, largeur_noeud, hauteur_noeud);
 
-    noeud.largeur(static_cast<float>(largeur_noeud));
-    noeud.hauteur(static_cast<float>(hauteur_noeud));
+    noeud.définis_largeur(static_cast<float>(largeur_noeud));
+    noeud.définis_hauteur(static_cast<float>(hauteur_noeud));
 }
 
 void ItemNoeud::cree_geometrie_prise(
@@ -369,7 +371,7 @@ void ItemNoeud::cree_geometrie_prise(
                         static_cast<double>(y),
                         static_cast<double>(largeur),
                         static_cast<double>(hauteur));
-    item_prise->setBrush(brosse_pour_couleur(prise->donne_description().couleur()));
+    item_prise->setBrush(brosse_pour_couleur(prise->donne_description().donne_couleur()));
     item_prise->setPen(QPen(Qt::white, 0.5));
 
     ajourne_rectangle(prise, x, y, hauteur, largeur);

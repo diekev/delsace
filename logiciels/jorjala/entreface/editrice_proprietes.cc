@@ -50,43 +50,43 @@
 
 /* ------------------------------------------------------------------------- */
 
-std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParametres_Parametre param)
+std::optional<danjo::TypePropriete> type_propriété_danjo(JJL::TableParamètres_Paramètre param)
 {
-    switch (param.type()) {
-        case JJL::TypeParametre::CHAINE:
-            if (param.index_prise_pour_recherche_chaine() != -1) {
+    switch (param.donne_type()) {
+        case JJL::TypeParamètre::CHAINE:
+            if (param.donne_index_prise_pour_recherche_chaine() != -1) {
                 return danjo::TypePropriete::LISTE;
             }
             return danjo::TypePropriete::CHAINE_CARACTERE;
-        case JJL::TypeParametre::CHEMIN_FICHIER_ENTRÉE:
+        case JJL::TypeParamètre::CHEMIN_FICHIER_ENTRÉE:
             return danjo::TypePropriete::FICHIER_ENTREE;
-        case JJL::TypeParametre::CHEMIN_FICHIER_SORTIE:
+        case JJL::TypeParamètre::CHEMIN_FICHIER_SORTIE:
             return danjo::TypePropriete::FICHIER_SORTIE;
-        case JJL::TypeParametre::NOMBRE_ENTIER:
+        case JJL::TypeParamètre::NOMBRE_ENTIER:
             return danjo::TypePropriete::ENTIER;
-        case JJL::TypeParametre::NOMBRE_RÉEL:
+        case JJL::TypeParamètre::NOMBRE_RÉEL:
             return danjo::TypePropriete::DECIMAL;
-        case JJL::TypeParametre::VALEUR_BOOLÉENNE:
+        case JJL::TypeParamètre::VALEUR_BOOLÉENNE:
             return danjo::TypePropriete::BOOL;
-        case JJL::TypeParametre::VEC2:
-        case JJL::TypeParametre::VEC3:
+        case JJL::TypeParamètre::VEC2:
+        case JJL::TypeParamètre::VEC3:
             return danjo::TypePropriete::VECTEUR_DECIMAL;
-        case JJL::TypeParametre::COULEUR:
+        case JJL::TypeParamètre::COULEUR:
             return danjo::TypePropriete::COULEUR;
-        case JJL::TypeParametre::ÉNUMÉRATION:
+        case JJL::TypeParamètre::ÉNUMÉRATION:
             return danjo::TypePropriete::ENUM;
         default:  // À FAIRE
-        case JJL::TypeParametre::CORPS:
+        case JJL::TypeParamètre::CORPS:
             return {};
     }
 }
 
 class EnveloppeParametre : public danjo::BasePropriete {
     mutable JJL::Noeud m_noeud;
-    mutable JJL::TableParametres_Parametre m_param;
+    mutable JJL::TableParamètres_Paramètre m_param;
 
   public:
-    EnveloppeParametre(JJL::Noeud noeud, JJL::TableParametres_Parametre param)
+    EnveloppeParametre(JJL::Noeud noeud, JJL::TableParamètres_Paramètre param)
         : m_noeud(noeud), m_param(param){};
 
     danjo::TypePropriete type() const override
@@ -119,7 +119,7 @@ class EnveloppeParametre : public danjo::BasePropriete {
 
     int donne_dimensions_vecteur() const override
     {
-        if (m_param.type() == JJL::TypeParametre::VEC2) {
+        if (m_param.donne_type() == JJL::TypeParamètre::VEC2) {
             return 2;
         }
         return 3;
@@ -144,16 +144,16 @@ class EnveloppeParametre : public danjo::BasePropriete {
     void evalue_vecteur_décimal(int temps, float *données) const override
     {
         // À FAIRE: animation
-        if (m_param.type() == JJL::TypeParametre::VEC2) {
+        if (m_param.donne_type() == JJL::TypeParamètre::VEC2) {
             auto résultat = m_param.lis_valeur_vec2();
-            données[0] = résultat.x();
-            données[1] = résultat.y();
+            données[0] = résultat.donne_x();
+            données[1] = résultat.donne_y();
             return;
         }
         auto résultat = m_param.lis_valeur_vec3();
-        données[0] = résultat.x();
-        données[1] = résultat.y();
-        données[2] = résultat.z();
+        données[0] = résultat.donne_x();
+        données[1] = résultat.donne_y();
+        données[2] = résultat.donne_z();
     }
     void evalue_vecteur_entier(int temps, int *données) const override
     {
@@ -175,76 +175,76 @@ class EnveloppeParametre : public danjo::BasePropriete {
     }
 
     /* Définition des valeurs. */
-    void définit_valeur_entier(int valeur) override
+    void définis_valeur_entier(int valeur) override
     {
-        m_noeud.définit_param_entier(m_param, valeur);
+        m_noeud.définis_param_entier(m_param, valeur);
     }
-    void définit_valeur_décimal(float valeur) override
+    void définis_valeur_décimal(float valeur) override
     {
-        m_noeud.définit_param_réel(m_param, valeur);
+        m_noeud.définis_param_réel(m_param, valeur);
     }
-    void définit_valeur_bool(bool valeur) override
+    void définis_valeur_bool(bool valeur) override
     {
-        m_noeud.définit_param_bool(m_param, valeur);
+        m_noeud.définis_param_bool(m_param, valeur);
     }
-    void définit_valeur_vec3(dls::math::vec3f valeur) override
+    void définis_valeur_vec3(dls::math::vec3f valeur) override
     {
-        if (m_param.type() == JJL::TypeParametre::VEC2) {
+        if (m_param.donne_type() == JJL::TypeParamètre::VEC2) {
             JJL::Vec2 résultat({});
-            résultat.x(valeur.x);
-            résultat.y(valeur.y);
-            m_noeud.définit_param_vec2(m_param, résultat);
+            résultat.définis_x(valeur.x);
+            résultat.définis_y(valeur.y);
+            m_noeud.définis_param_vec2(m_param, résultat);
             return;
         }
-        m_noeud.définit_param_vec3(m_param, convertis_vecteur(valeur));
+        m_noeud.définis_param_vec3(m_param, convertis_vecteur(valeur));
     }
-    void définit_valeur_vec3(dls::math::vec3i /*valeur*/) override
+    void définis_valeur_vec3(dls::math::vec3i /*valeur*/) override
     {
         // À FAIRE
     }
-    void définit_valeur_couleur(dls::phys::couleur32 valeur) override
+    void définis_valeur_couleur(dls::phys::couleur32 valeur) override
     {
-        m_noeud.définit_param_couleur(m_param, convertis_couleur(valeur));
+        m_noeud.définis_param_couleur(m_param, convertis_couleur(valeur));
     }
-    void définit_valeur_chaine(std::string const &valeur) override
+    void définis_valeur_chaine(std::string const &valeur) override
     {
-        m_noeud.définit_param_chaine(m_param, valeur.c_str());
+        m_noeud.définis_param_chaine(m_param, valeur.c_str());
     }
-    void définit_valeur_énum(std::string const &valeur) override
+    void définis_valeur_énum(std::string const &valeur) override
     {
-        m_noeud.définit_param_énum(m_param, valeur.c_str());
+        m_noeud.définis_param_énum(m_param, valeur.c_str());
     }
 
     /* Plage des valeurs. */
     danjo::plage_valeur<float> plage_valeur_decimal() const override
     {
         auto limites = m_param.limites_valeur_réel();
-        return {limites.min(), limites.max()};
+        return {limites.donne_min(), limites.donne_max()};
     }
     danjo::plage_valeur<int> plage_valeur_entier() const override
     {
         auto limites = m_param.limites_valeur_entier();
-        return {limites.min(), limites.max()};
+        return {limites.donne_min(), limites.donne_max()};
     }
     danjo::plage_valeur<float> plage_valeur_vecteur_décimal() const override
     {
-        if (m_param.type() == JJL::TypeParametre::VEC2) {
+        if (m_param.donne_type() == JJL::TypeParamètre::VEC2) {
             auto limites = m_param.limites_valeur_vec2();
-            return {limites.min(), limites.max()};
+            return {limites.donne_min(), limites.donne_max()};
         }
         auto limites = m_param.limites_valeur_vec3();
-        return {limites.min(), limites.max()};
+        return {limites.donne_min(), limites.donne_max()};
     }
     danjo::plage_valeur<int> plage_valeur_vecteur_entier() const override
     {
         // À FAIRE : vecteur nombre entier
         auto limites = m_param.limites_valeur_entier();
-        return {limites.min(), limites.max()};
+        return {limites.donne_min(), limites.donne_max()};
     }
     danjo::plage_valeur<float> plage_valeur_couleur() const override
     {
         auto limites = m_param.limites_valeur_couleur();
-        return {limites.min(), limites.max()};
+        return {limites.donne_min(), limites.donne_max()};
     }
 
     /* Animation des valeurs. */
@@ -297,7 +297,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
                                                danjo::ConteneurControles *conteneur,
                                                JJL::Noeud &noeud)
 {
-    auto table = noeud.table_paramètres();
+    auto table = noeud.donne_table_paramètres();
     if (table == nullptr) {
         return nullptr;
     }
@@ -312,7 +312,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
     /* Ajout d'une disposition par défaut. */
     assembleuse.ajoute_disposition(danjo::id_morceau::COLONNE);
 
-    for (auto param : table.paramètres()) {
+    for (auto param : table.donne_paramètres()) {
         auto type = type_propriété_danjo(param);
 
         if (!type.has_value()) {
@@ -321,7 +321,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 
         assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
 
-        dls::chaine nom_param(param.nom().vers_std_string());
+        dls::chaine nom_param(param.donne_nom().vers_std_string());
         assembleuse.ajoute_étiquette(nom_param);
 
         auto prop = memoire::loge<EnveloppeParametre>("EnveloppeParametre", noeud, param);
@@ -330,7 +330,7 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
         danjo::DonneesControle donnees_controle;
         donnees_controle.nom = nom_param;
 
-        if (param.type() == JJL::TypeParametre::ÉNUMÉRATION) {
+        if (param.donne_type() == JJL::TypeParamètre::ÉNUMÉRATION) {
             for (auto nom : param.noms_valeurs_énum()) {
                 donnees_controle.valeur_enum.ajoute(
                     {nom.vers_std_string().c_str(), nom.vers_std_string().c_str()});
@@ -341,8 +341,8 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 
         assembleuse.sors_disposition();
 
-        if (noeud.paramètre_est_erroné(param.nom())) {
-            auto erreur_param = noeud.erreur_pour_paramètre(param.nom());
+        if (noeud.paramètre_est_erroné(param.donne_nom())) {
+            auto erreur_param = noeud.erreur_pour_paramètre(param.donne_nom());
 
             // À FAIRE : icone, stylisation du paramètre
             assembleuse.ajoute_disposition(danjo::id_morceau::LIGNE);
@@ -380,25 +380,25 @@ EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     m_disposition_widget->addWidget(m_conteneur_disposition);
 }
 
-void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceProprietes::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto creation = (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::SÉLECTIONNÉ));
-    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeEvenement::PROPRIÉTÉ | JJL::TypeEvenement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ));
-    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto creation = (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::PROPRIÉTÉ | JJL::TypeÉvènement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
 
     /* n'ajourne pas durant les animation */
-    if (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ)) {
-        if (m_jorjala.animation_en_cours()) {
+    if (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ)) {
+        if (m_jorjala.donne_animation_en_cours()) {
             return;
         }
     }
 
     /* ajourne l'entreface d'avertissement */
-    auto creation_avert = (évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ));
+    auto creation_avert = (évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ));
 
     if (!(creation | creation_avert)) {
         return;
@@ -406,12 +406,12 @@ void EditriceProprietes::ajourne_état(JJL::TypeEvenement évènement)
 
     reinitialise_entreface(creation_avert);
 
-    auto graphe = m_jorjala.graphe();
+    auto graphe = m_jorjala.donne_graphe();
     if (graphe == nullptr) {
         return;
     }
 
-    auto noeud = graphe.noeud_actif();
+    auto noeud = graphe.donne_noeud_actif();
     if (noeud == nullptr) {
         return;
     }
@@ -466,15 +466,15 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
     auto ligne = 0;
     auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
-    for (auto erreur : noeud.erreurs()) {
-        if (erreur.type() == JJL::TypeErreurNoeud::PARAMÉTRIQUE) {
+    for (auto erreur : noeud.donne_erreurs()) {
+        if (erreur.donne_type() == JJL::TypeErreurNoeud::PARAMÉTRIQUE) {
             continue;
         }
 
         auto icone = new QLabel();
         icone->setPixmap(pixmap);
 
-        auto texte = new QLabel(erreur.message().vers_std_string().c_str());
+        auto texte = new QLabel(erreur.donne_message().vers_std_string().c_str());
 
         disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
         disposition_avertissements->addWidget(texte, ligne, 1);
@@ -490,7 +490,7 @@ void EditriceProprietes::ajoute_avertissements(JJL::Noeud &noeud)
 
 void EditriceProprietes::ajourne_manipulable()
 {
-    auto graphe = m_jorjala.graphe();
+    auto graphe = m_jorjala.donne_graphe();
     if (graphe == nullptr) {
         return;
     }
@@ -499,9 +499,9 @@ void EditriceProprietes::ajourne_manipulable()
     std::cerr << "---------- " << __func__ << " !\n";
 #endif
 
-    auto requête = JJL::RequeteEvaluation({});
-    requête.raison(JJL::RaisonEvaluation::PARAMETRE_CHANGÉ);
-    requête.graphe(graphe);
+    auto requête = JJL::RequêteÉvaluation({});
+    requête.définis_raison(JJL::RaisonÉvaluation::PARAMETRE_CHANGÉ);
+    requête.définis_graphe(graphe);
     // À FAIRE : message ?
     // requête.message("réponse modification propriété manipulable");
 
@@ -514,8 +514,8 @@ void EditriceProprietes::debute_changement_controle()
     std::cerr << "---- " << __func__ << " !\n";
 #endif
 
-    auto graphe = m_jorjala.graphe();
-    auto noeud = graphe.noeud_actif();
+    auto graphe = m_jorjala.donne_graphe();
+    auto noeud = graphe.donne_noeud_actif();
 
     m_jorjala.prépare_pour_changement_paramètre(graphe, noeud);
 }
@@ -545,7 +545,7 @@ static void copie_liste(JJL::tableau<JJL_ChampsDeHauteur_Canal, JJL::ChampsDeHau
     dst.reserve(dst.taille() + liste.taille());
 
     for (auto element : liste) {
-        dst.ajoute(element.nom().vers_std_string().c_str());
+        dst.ajoute(element.donne_nom().vers_std_string().c_str());
     }
 }
 
@@ -555,7 +555,7 @@ static void copie_liste(JJL::tableau<JJL_Attribut *, JJL::Attribut> liste,
     dst.reserve(dst.taille() + liste.taille());
 
     for (auto element : liste) {
-        dst.ajoute(element.nom().vers_std_string().c_str());
+        dst.ajoute(element.donne_nom().vers_std_string().c_str());
     }
 }
 
@@ -565,50 +565,50 @@ static void copie_liste(JJL::tableau<JJL_Composite_Calque, JJL::Composite_Calque
     dst.reserve(dst.taille() + liste.taille());
 
     for (auto element : liste) {
-        dst.ajoute(element.nom().vers_std_string().c_str());
+        dst.ajoute(element.donne_nom().vers_std_string().c_str());
     }
 }
 
 void EditriceProprietes::obtiens_liste(dls::chaine const &attache,
                                        dls::tableau<dls::chaine> &chaines)
 {
-    auto graphe = m_jorjala.graphe();
+    auto graphe = m_jorjala.donne_graphe();
     assert(graphe != nullptr);
 
-    auto noeud = graphe.noeud_actif();
+    auto noeud = graphe.donne_noeud_actif();
     assert(noeud != nullptr);
 
     auto param = noeud.trouve_paramètre(attache.c_str());
     assert(param != nullptr);
 
-    auto index_prise = static_cast<int>(param.index_prise_pour_recherche_chaine());
+    auto index_prise = static_cast<int>(param.donne_index_prise_pour_recherche_chaine());
     assert(index_prise != -1);
 
     // À FAIRE : type de noeud pour correctement transtyper
 
-    switch (param.type_chaine_recherchée()) {
-        case JJL::TypeChaineRecherchee::NOM_CANAL_CHAMPS_DE_HAUTEUR:
+    switch (param.donne_type_chaine_recherchée()) {
+        case JJL::TypeChaineRecherchée::NOM_CANAL_CHAMPS_DE_HAUTEUR:
         {
             auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
             auto liste = noeud_corps.liste_canaux_champs_de_hauteur_pour_entrée(index_prise);
             copie_liste(liste, chaines);
             break;
         }
-        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT_POINT:
+        case JJL::TypeChaineRecherchée::NOM_ATTRIBUT_POINT:
         {
             auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
             auto liste = noeud_corps.liste_attributs_points_pour_entrée(index_prise);
             copie_liste(liste, chaines);
             break;
         }
-        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT_PRIMITIVE:
+        case JJL::TypeChaineRecherchée::NOM_ATTRIBUT_PRIMITIVE:
         {
             auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
             auto liste = noeud_corps.liste_attributs_primitives_pour_entrée(index_prise);
             copie_liste(liste, chaines);
             break;
         }
-        case JJL::TypeChaineRecherchee::NOM_ATTRIBUT:
+        case JJL::TypeChaineRecherchée::NOM_ATTRIBUT:
         {
             auto noeud_corps = transtype<JJL::NoeudCorps>(noeud);
             auto liste = noeud_corps.liste_attributs_points_pour_entrée(index_prise);
@@ -617,7 +617,7 @@ void EditriceProprietes::obtiens_liste(dls::chaine const &attache,
             copie_liste(liste, chaines);
             break;
         }
-        case JJL::TypeChaineRecherchee::NOM_CALQUE:
+        case JJL::TypeChaineRecherchée::NOM_CALQUE:
         {
             auto noeud_composite = transtype<JJL::NoeudComposite>(noeud);
             auto liste = noeud_composite.liste_calques_composite_pour_entrée(index_prise);
