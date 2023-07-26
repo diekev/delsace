@@ -421,6 +421,14 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
         return true;
     }
 
+    /* Comme pour au-dessus, dans certains cas une fonction espère une référence mais la valeur est
+     * un pointeur. */
+    if (type_source->est_pointeur()) {
+        if (est_reference_compatible_pointeur(type_source, type_élément_dest)) {
+            return true;
+        }
+    }
+
     return false;
 }
 
