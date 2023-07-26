@@ -13,8 +13,8 @@ principale :: fonc () -> z32
 
     extensions := [".kuri"]
     chm := CheminFichier(args[1])
-    exécute_rappel(chm, extensions, tri_imports_pour_fichier)
-    exécute_rappel(chm, extensions, supprime_espaces_blancs_finaux)
-    exécute_rappel(chm, extensions, supprime_lignes_vides_redondantes_pour_fichier)
+
+    rappels := [tri_imports_pour_fichier, supprime_espaces_blancs_finaux, supprime_lignes_vides_redondantes_pour_fichier]
+    exécute_rappels(chm, extensions, rappels)
     retourne 0
 }

@@ -130,7 +130,7 @@ struct UniteCompilation {
         return m_prete;
     }
 
-    void définit_état(État nouvelle_état)
+    void définis_état(État nouvelle_état)
     {
         état = nouvelle_état;
 #ifdef ENREGISTRE_HISTORIQUE

@@ -109,7 +109,7 @@ class CommandeAjouteObjet final : public CommandeJorjala {
 int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
     jorjala.crée_objet("objet");
-    jorjala.notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+    jorjala.notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
 
 #if 0
 	auto &bdd = jorjala->bdd;
@@ -126,7 +126,7 @@ int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCom
 		return EXECUTION_COMMANDE_ECHOUEE;
 	}
 
-	jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+    jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
 
 	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
 #endif
@@ -168,7 +168,7 @@ struct CommandeImportObjet final : public CommandeJorjala {
 		graphe.connecte(noeud_lecture->sortie(0), noeud_sortie->entree(0));
 		graphe.dernier_noeud_sortie = noeud_sortie;
 
-		jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ);
+        jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
 
 		requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
 

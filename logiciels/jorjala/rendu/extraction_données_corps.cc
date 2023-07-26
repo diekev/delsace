@@ -75,7 +75,7 @@ static std::optional<JJL::Attribut> donne_attribut(
     std::string const &nom)
 {
     for (auto attribut : attributs) {
-        if (attribut.type() == type && attribut.nom().vers_std_string() == nom) {
+        if (attribut.donne_type() == type && attribut.donne_nom().vers_std_string() == nom) {
             return attribut;
         }
     }

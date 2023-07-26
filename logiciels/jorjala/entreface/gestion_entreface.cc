@@ -5,18 +5,6 @@
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#if defined(__GNUC__)
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wconversion"
-#    pragma GCC diagnostic ignored "-Wuseless-cast"
-#    pragma GCC diagnostic ignored "-Weffc++"
-#    pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-#include <QFileDialog>
-#if defined(__GNUC__)
-#    pragma GCC diagnostic pop
-#endif
-
 #include "danjo/fournisseuse_icones.hh"
 
 #include "base_editrice.h"
@@ -32,26 +20,6 @@ void active_editrice(JJL::Jorjala &jorjala, BaseEditrice *editrice)
     }
 
     données->editrice_active = editrice;
-}
-
-dls::chaine affiche_dialogue(int type, dls::chaine const &filtre)
-{
-    auto parent = static_cast<QWidget *>(nullptr);
-    auto caption = "";
-    auto dir = "";
-
-    /* À FAIRE : sort ça de la classe. */
-    if (type == FICHIER_OUVERTURE) {
-        auto const chemin = QFileDialog::getOpenFileName(parent, caption, dir, filtre.c_str());
-        return chemin.toStdString();
-    }
-
-    if (type == FICHIER_SAUVEGARDE) {
-        auto const chemin = QFileDialog::getSaveFileName(parent, caption, dir, filtre.c_str());
-        return chemin.toStdString();
-    }
-
-    return "";
 }
 
 void appele_commande(JJL::Jorjala &jorjala,
@@ -99,5 +67,5 @@ void initialise_fournisseuse_icône(JJL::Jorjala &jorjala)
 {
     auto fournisseuse = memoire::loge<FournisseuseIcôneJorjala>("FournisseuseIcôneJorjala",
                                                                 jorjala);
-    danjo::définit_fournisseuse_icone(*fournisseuse);
+    danjo::définis_fournisseuse_icone(*fournisseuse);
 }

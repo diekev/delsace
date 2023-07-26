@@ -27,13 +27,8 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
         ${BIBLIOTHEQUES_TBB}
-<<<<<<< HEAD
         $<$<CXX_COMPILER_ID:GNU>:pthread>
-	bib_structures
-=======
-	pthread
         dls::structures
->>>>>>> master
 )
 
 set(SOURCES

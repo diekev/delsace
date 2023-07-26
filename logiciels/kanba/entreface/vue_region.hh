@@ -16,7 +16,6 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
 
 class QMenu;
@@ -50,7 +49,7 @@ class VueRegion final : public QTabWidget {
     Q_OBJECT
 
     KNB::Kanba &m_kanba;
-    KNB::RégionInterface &m_région;
+    KNB::RégionInterface m_région;
     QPushButton *m_bouton_affichage_liste = nullptr;
     QMenu *m_menu_liste_éditrices = nullptr;
 
@@ -61,10 +60,10 @@ class VueRegion final : public QTabWidget {
     VueRegion &operator=(VueRegion const &) = delete;
 
     /** Transmet l'évènement à l'éditrice courante. */
-    void ajourne_éditrice_active(KNB::TypeÉvènement évènement);
+    void ajourne_éditrice_active(KNB::ChangementÉditrice évènement);
 
   private:
-    void ajoute_page_pour_éditrice(KNB::Éditrice &éditrice, bool définit_comme_page_courante);
+    void ajoute_page_pour_éditrice(KNB::Éditrice &éditrice, bool définis_comme_page_courante);
 
   private Q_SLOTS:
     void ajourne_pour_changement_page(int index);

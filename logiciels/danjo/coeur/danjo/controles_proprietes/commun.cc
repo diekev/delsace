@@ -30,7 +30,7 @@ QPushButton *crée_bouton_animation_controle(QWidget *parent)
     return résultat;
 }
 
-void définit_état_bouton_animation(QPushButton *bouton, bool est_animé)
+void définis_état_bouton_animation(QPushButton *bouton, bool est_animé)
 {
     if (est_animé) {
         bouton->setText("c");

@@ -57,9 +57,9 @@ class CommandeZoomCamera3D : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         auto const delta = donnees.y;
-        auto camera = jorjala.caméra_3d();
+        auto camera = jorjala.donne_caméra_3d();
         camera.zoom(delta);
-        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -92,13 +92,13 @@ class CommandeTourneCamera3D : public CommandeJorjala {
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
 
-        auto camera = jorjala.caméra_3d();
+        auto camera = jorjala.donne_caméra_3d();
         camera.tourne(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -135,13 +135,13 @@ class CommandePanCamera3D : public CommandeJorjala {
         const float dx = (donnees.x - m_vieil_x);
         const float dy = (donnees.y - m_vieil_y);
 
-        auto camera = jorjala.caméra_3d();
+        auto camera = jorjala.donne_caméra_3d();
         camera.pan(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -191,7 +191,7 @@ class CommandeSurvoleScene : public CommandeJorjala {
 		manipulatrice->entresecte(orig, dir);
 
 		if (etat != manipulatrice->etat()) {
-			jorjala->notifie_observatrices(JJL::TypeEvenement::CAMÉRA_3D | JJL::TypeEvenement::MODIFIÉ);
+			jorjala->notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
 		}
 
 #endif
@@ -290,7 +290,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 		jorjala->manipulatrice_3d->rotation(jorjala->manipulatrice_3d->rotation());
 		jorjala->manipulatrice_3d->taille(jorjala->manipulatrice_3d->taille());
 
-		jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
+		jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
 
 		return EXECUTION_COMMANDE_MODALE;
 #    endif
@@ -368,7 +368,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 		 * de la transformation de l'objet. */
 		jorjala->ajourne_pour_nouveau_temps("fin manipulation déplacement");
 
-		jorjala->notifie_observatrices(JJL::TypeEvenement::OBJET | JJL::TypeEvenement::MANIPULÉ);
+		jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
 #    endif
     }
 

@@ -32,7 +32,7 @@ FournisseuseIcône &donne_fournisseuse_icone()
     return *__fournisseuse;
 }
 
-void définit_fournisseuse_icone(FournisseuseIcône &fournisseuse)
+void définis_fournisseuse_icone(FournisseuseIcône &fournisseuse)
 {
     __fournisseuse = &fournisseuse;
 }

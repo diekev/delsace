@@ -193,13 +193,13 @@ void RenduImage::charge_image(const grille_couleur &image)
 
 void RenduImage::charge_composite(JJL::Composite composite)
 {
-    auto fenetre = composite.fenêtre();
+    auto fenetre = composite.donne_fenêtre();
     /* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
     auto pixels = composite.pixels_aplatis(fenetre, "rgba", "Tous");
 
     GLint size[2] = {
-        fenetre.x_max() - fenetre.x_min() + 1,
-        fenetre.y_max() - fenetre.y_min() + 1,
+        fenetre.donne_x_max() - fenetre.donne_x_min() + 1,
+        fenetre.donne_y_max() - fenetre.donne_y_min() + 1,
     };
 
     genere_texture_image(m_tampon_image, pixels.données_crues(), size);

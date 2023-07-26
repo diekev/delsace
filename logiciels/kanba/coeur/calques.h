@@ -45,12 +45,14 @@ enum class TypeCalque {
 
 enum {
     CALQUE_ACTIF = 1 << 0,
+    CALQUE_VISIBLE = 1 << 1,
+    CALQUE_VERROUILLÉ = 1 << 2,
 };
 
 struct Calque {
     TypeDonnees type_donnees = TypeDonnees::SCALAIRE;
     void *tampon = nullptr;
-    int drapeaux = 0;
+    int drapeaux = CALQUE_VISIBLE;
 
     dls::chaine nom = "";
 

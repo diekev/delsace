@@ -259,7 +259,9 @@ add_library(${NOM_CIBLE} STATIC
         ${ENTETES_POUR_QT}
         chef_execution.hh
         dialogues.hh
+        evenement_jorjala.hh
         gestion_entreface.hh
+        gestionnaire_interface.hh
 
         graphe/item_noeud.cc
         graphe/vue_editrice_graphe.cc
@@ -281,8 +283,10 @@ add_library(${NOM_CIBLE} STATIC
 #	editrice_rendu.cc
         editrice_vue2d.cc
         editrice_vue3d.cc
+        evenement_jorjala.cc
 	fenetre_principale.cc
         gestion_entreface.cc
+        gestionnaire_interface.cc
         tache.cc
         vue_region.cc
 

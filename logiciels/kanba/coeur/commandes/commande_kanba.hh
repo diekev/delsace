@@ -6,7 +6,7 @@
 #include "biblinternes/patrons_conception/commande.h"
 
 namespace KNB {
-struct Kanba;
+class Kanba;
 enum class TypeCurseur : int;
 }  // namespace KNB
 

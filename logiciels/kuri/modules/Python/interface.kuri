@@ -692,7 +692,7 @@ iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
 iternext_pour_itérateur_infos_type :: fonc (self: *PyObject) -> *PyObject
 {
     py_self := self comme *PyItérateurInfoType
-    
+
     index_courant := py_self.index_courant
     infos := py_self.infos
 

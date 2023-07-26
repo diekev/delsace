@@ -26,9 +26,7 @@
 
 #include "commande_kanba.hh"
 
-#include "../evenement.h"
 #include "../kanba.h"
-#include "../maillage.h"
 
 /* ************************************************************************** */
 
@@ -40,17 +38,14 @@ class CommandeAjouterCalque : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        auto maillage = kanba.maillage;
+        auto maillage = kanba.donne_maillage();
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto &canaux = maillage->canaux_texture();
-
-        ajoute_calque(canaux, KNB::TypeCanal::DIFFUSION);
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ);
+        auto canaux = maillage.donne_canaux_texture();
+        canaux.ajoute_un_calque(KNB::TypeCanal::DIFFUSION);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -66,26 +61,23 @@ class CommandeSupprimerCalque : public CommandeKanba {
 
     int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
     {
-        auto maillage = kanba.maillage;
+        auto maillage = kanba.donne_maillage();
 
         if (maillage == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto &canaux = maillage->canaux_texture();
-        auto calque = maillage->calque_actif();
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
         if (calque == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        maillage->calque_actif(nullptr);
+        auto calque_actif = KNB::Calque(nullptr);
+        canaux.définis_calque_actif(calque_actif);
 
-        supprime_calque(canaux, calque);
-
-        maillage->marque_chose_à_recalculer(KNB::ChoseÀRecalculer::CANAL_FUSIONNÉ);
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ);
+        canaux.supprime_calque(calque);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

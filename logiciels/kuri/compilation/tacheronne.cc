@@ -200,7 +200,7 @@ void OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace(const EspaceDeTr
                 continue;
             }
 
-            tache.unite->définit_état(état);
+            tache.unite->définis_état(état);
         }
 
         it.efface_si(predicat);
@@ -245,7 +245,7 @@ void Tacheronne::gere_tache()
         }
 
         if (tache.unite) {
-            tache.unite->définit_état(
+            tache.unite->définis_état(
                 UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
         }
 

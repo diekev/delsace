@@ -173,36 +173,36 @@ std::string Propriete::evalue_énum(int temps) const
 }
 
 /* Définition des valeurs. */
-void Propriete::définit_valeur_entier(int valeur_)
+void Propriete::définis_valeur_entier(int valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_décimal(float valeur_)
+void Propriete::définis_valeur_décimal(float valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_bool(bool valeur_)
+void Propriete::définis_valeur_bool(bool valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_vec3(dls::math::vec3f valeur_)
+void Propriete::définis_valeur_vec3(dls::math::vec3f valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_vec3(dls::math::vec3i valeur_)
+void Propriete::définis_valeur_vec3(dls::math::vec3i valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_couleur(dls::phys::couleur32 valeur_)
+void Propriete::définis_valeur_couleur(dls::phys::couleur32 valeur_)
 {
     valeur = valeur_;
 }
-void Propriete::définit_valeur_chaine(std::string const &valeur_)
+void Propriete::définis_valeur_chaine(std::string const &valeur_)
 {
     valeur = dls::chaine(valeur_.c_str());
 }
 
-void Propriete::définit_valeur_énum(const std::string &valeur_)
+void Propriete::définis_valeur_énum(const std::string &valeur_)
 {
     valeur = dls::chaine(valeur_.c_str());
 }

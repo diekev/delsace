@@ -32,6 +32,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QGridLayout>
+#include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
 #pragma GCC diagnostic pop
@@ -39,42 +40,91 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
-#include "coeur/maillage.h"
 
 enum {
     COLONNE_VISIBILITE_CALQUE,
+    COLONNE_VERROUILLE_CALQUE,
     COLONNE_NOM_CALQUE,
     COLONNE_PEINTURE_CALQUE,
-    COLONNE_VERROUILLE_CALQUE,
 
     NOMBRE_COLONNES,
 };
 
-/* ************************************************************************** */
+/* ------------------------------------------------------------------------- */
+/** \name Boîte à cocher item calque.
+ * \{ */
 
-class BoutonItemCalque : public QPushButton {
-    KNB::Calque *m_calque;
+static QString donne_feuille_de_style_boite_à_cocher(QString const &chemin_icone_actif,
+                                                     QString const &chemin_icone_inactif)
+{
+    QString résultat = "QCheckBox::indicator { width: 16px; height: 16px;}";
 
-  public:
-    BoutonItemCalque(KNB::Calque *calque, QString const &texte, QWidget *parent = nullptr)
-        : QPushButton(texte, parent), m_calque(calque)
-    {
+    if (!chemin_icone_actif.isEmpty()) {
+        résultat += "QCheckBox::indicator:checked {image: url(" + chemin_icone_actif + ");}";
     }
 
-    EMPECHE_COPIE(BoutonItemCalque);
+    if (!chemin_icone_inactif.isEmpty()) {
+        résultat += "QCheckBox::indicator:unchecked {image: url(" + chemin_icone_inactif + ");}";
+    }
+
+    return résultat;
+}
+
+BoiteACocherItem::BoiteACocherItem(const ArgumentCréationItem &args,
+                                   KNB::DrapeauxCalque drapeaux,
+                                   QWidget *parent)
+    : QCheckBox(parent), m_kanba(args.kanba), m_calque(args.calque), m_drapeaux(drapeaux)
+{
+    setChecked(m_calque.possède_drapeau(m_drapeaux));
+
+    if (drapeaux == KNB::DrapeauxCalque::VISIBLE) {
+        this->setStyleSheet(
+            donne_feuille_de_style_boite_à_cocher("/home/kevin/icons8-eye-96.png", ""));
+    }
+    else if (drapeaux == KNB::DrapeauxCalque::VERROUILLÉ) {
+        this->setStyleSheet(donne_feuille_de_style_boite_à_cocher(
+            "/home/kevin/icons8-lock-50.png", "/home/kevin/icons8-unlock-50.png"));
+    }
+
+    connect(this, &BoiteACocherItem::stateChanged, this, &BoiteACocherItem::ajourne_etat_calque);
+}
+
+void BoiteACocherItem::ajourne_etat_calque(int state)
+{
+    if (state == Qt::CheckState::Checked) {
+        m_calque.active_drapeau(m_drapeaux);
+    }
+    else {
+        m_calque.désactive_drapeau(m_drapeaux);
+    }
+}
+
+/** \} */
+
+/* ************************************************************************** */
+
+class IconItemCalque : public QLabel {
+  public:
+    IconItemCalque(KNB::Calque calque, QString const &texte, QWidget *parent = nullptr)
+        : QLabel(texte, parent)
+    {
+        auto pixmap = QPixmap("/home/kevin/icons8-brush-100.png");
+        setPixmap(pixmap.scaled(16, 16));
+    }
+
+    EMPECHE_COPIE(IconItemCalque);
 };
 
 /* ************************************************************************** */
 
-ItemArbreCalque::ItemArbreCalque(const KNB::Calque *calque, QTreeWidgetItem *parent)
+ItemArbreCalque::ItemArbreCalque(const KNB::Calque calque, QTreeWidgetItem *parent)
     : QTreeWidgetItem(parent), m_calque(calque)
 {
-    setText(COLONNE_NOM_CALQUE, m_calque->nom.c_str());
+    setText(COLONNE_NOM_CALQUE, m_calque.donne_nom().vers_std_string().c_str());
 }
 
-const KNB::Calque *ItemArbreCalque::pointeur() const
+const KNB::Calque &ItemArbreCalque::pointeur() const
 {
     return m_calque;
 }
@@ -109,8 +159,8 @@ void TreeWidget::mousePressEvent(QMouseEvent *e)
 
 /* ************************************************************************** */
 
-EditeurCalques::EditeurCalques(KNB::Kanba *kanba, QWidget *parent)
-    : BaseEditrice("calque", *kanba, parent), m_widget_arbre(new TreeWidget(this)),
+EditeurCalques::EditeurCalques(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("calque", kanba, éditrice, parent), m_widget_arbre(new TreeWidget(this)),
       m_widget(new QWidget()), m_scroll(new QScrollArea()), m_glayout(new QGridLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
@@ -136,57 +186,53 @@ EditeurCalques::EditeurCalques(KNB::Kanba *kanba, QWidget *parent)
     connect(bouton_supprimer_calque, SIGNAL(clicked()), this, SLOT(repond_bouton()));
     m_glayout->addWidget(bouton_supprimer_calque);
 
-    connect(m_widget_arbre, SIGNAL(itemSelectionChanged()), this, SLOT(repond_selection()));
+    connect(m_widget_arbre, &QTreeWidget::itemPressed, this, &EditeurCalques::repond_selection);
 }
 
 EditeurCalques::~EditeurCalques()
 {
 }
 
-void EditeurCalques::ajourne_état(KNB::TypeÉvènement evenement)
+void EditeurCalques::ajourne_état(KNB::ChangementÉditrice evenement)
 {
-    auto maillage = m_kanba->maillage;
+    auto maillage = m_kanba.donne_maillage();
 
     if (maillage == nullptr) {
         return;
     }
 
-    auto dessine_arbre = (evenement ==
-                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::AJOUTÉ));
-    dessine_arbre |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
-    dessine_arbre |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
-
+    auto dessine_arbre = (evenement == (KNB::ChangementÉditrice::RAFRAICHIS));
     if (dessine_arbre) {
         m_widget_arbre->clear();
 
-        auto const &canaux = maillage->canaux_texture();
+        auto canaux = maillage.donne_canaux_texture();
+        auto calques = canaux.donne_calques_pour_canal(KNB::TypeCanal::DIFFUSION);
 
-        for (auto const calque :
-             dls::outils::inverse_iterateur(canaux.calques[KNB::TypeCanal::DIFFUSION])) {
+        for (int64_t i = calques.taille() - 1; i >= 0; i--) {
+            auto calque = calques[size_t(i)];
             auto item = new ItemArbreCalque(calque);
-            auto bouton_visible = new BoutonItemCalque(calque, "visible");
-            auto bouton_peinture = new BoutonItemCalque(calque, "peinture");
-            auto bouton_verrouille = new BoutonItemCalque(calque, "verrouille");
+
+            auto args = ArgumentCréationItem{m_kanba, calque};
+
+            auto bouton_visible = new BoiteACocherItem(args, KNB::DrapeauxCalque::VISIBLE);
+            auto bouton_verrouille = new BoiteACocherItem(args, KNB::DrapeauxCalque::VERROUILLÉ);
+            IconItemCalque *icone_pinceau = nullptr;
+            if (calque.possède_drapeau(KNB::DrapeauxCalque::ACTIF)) {
+                icone_pinceau = new IconItemCalque(calque, "peinture");
+            }
 
             m_widget_arbre->addTopLevelItem(item);
             m_widget_arbre->setItemWidget(item, COLONNE_VISIBILITE_CALQUE, bouton_visible);
-            m_widget_arbre->setItemWidget(item, COLONNE_PEINTURE_CALQUE, bouton_peinture);
             m_widget_arbre->setItemWidget(item, COLONNE_VERROUILLE_CALQUE, bouton_verrouille);
 
-            if ((calque->drapeaux & KNB::CALQUE_ACTIF) != 0) {
+            if (calque.possède_drapeau(KNB::DrapeauxCalque::ACTIF)) {
+                m_widget_arbre->setItemWidget(item, COLONNE_PEINTURE_CALQUE, icone_pinceau);
                 item->setSelected(true);
             }
         }
     }
 
-    auto dessine_props = (evenement ==
-                          (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ));
-    dessine_props |= (evenement == (KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SUPPRIMÉ));
-    dessine_props |= (evenement == (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ));
-
-    if (dessine_props) {
-        /* À FAIRE : dessine les propriétés des calques. */
-    }
+    /* À FAIRE : dessine les propriétés des calques. */
 }
 
 void EditeurCalques::ajourne_vue()
@@ -196,26 +242,23 @@ void EditeurCalques::ajourne_vue()
 void EditeurCalques::repond_bouton()
 {
     auto bouton = qobject_cast<QPushButton *>(sender());
-    m_kanba->repondant_commande->repond_clique(bouton->text().toStdString(), "");
+    KNB::donne_repondant_commande()->repond_clique(bouton->text().toStdString(), "");
 }
 
-void EditeurCalques::repond_selection()
+void EditeurCalques::repond_selection(QTreeWidgetItem *item, int column)
 {
-    auto items = m_widget_arbre->selectedItems();
-
-    if (items.size() != 1) {
+    if (column != COLONNE_NOM_CALQUE) {
         return;
     }
 
-    auto item = items[0];
-
     auto item_calque = dynamic_cast<ItemArbreCalque *>(item);
-
     if (!item_calque) {
         return;
     }
 
-    auto maillage = m_kanba->maillage;
-    maillage->calque_actif(const_cast<KNB::Calque *>(item_calque->pointeur()));
-    m_kanba->notifie_observatrices(KNB::TypeÉvènement::CALQUE | KNB::TypeÉvènement::SÉLECTIONNÉ);
+    auto calque = item_calque->pointeur();
+
+    auto maillage = m_kanba.donne_maillage();
+    auto canaux = maillage.donne_canaux_texture();
+    canaux.définis_calque_actif(calque);
 }

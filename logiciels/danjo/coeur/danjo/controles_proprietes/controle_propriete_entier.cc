@@ -77,7 +77,7 @@ void ControleProprieteEntier::bascule_animation()
             m_propriete->ajoute_cle(m_propriete->evalue_entier(m_temps), m_temps);
         }
 
-        définit_état_bouton_animation(m_bouton_animation, m_animation);
+        définis_état_bouton_animation(m_bouton_animation, m_animation);
         m_controle->marque_anime(m_animation, m_animation);
     });
 }
@@ -89,7 +89,7 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
         m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
@@ -107,7 +107,7 @@ void ControleProprieteEntier::ajourne_valeur_pointee(int valeur)
         m_propriete->ajoute_cle(valeur, m_temps);
     }
     else {
-        m_propriete->définit_valeur_entier(valeur);
+        m_propriete->définis_valeur_entier(valeur);
     }
 
     Q_EMIT(controle_change());

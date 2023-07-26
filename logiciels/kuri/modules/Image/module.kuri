@@ -1,8 +1,8 @@
 importe Chaine
-importe SysFichier
 importe Couleur
 importe Fondation
 importe Math
+importe SysFichier
 
 libtbb :: #bibliothèque "tbb"
 

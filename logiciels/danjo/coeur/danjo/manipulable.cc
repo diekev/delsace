@@ -168,37 +168,37 @@ bool Manipulable::ajourne_proprietes()
 void Manipulable::valeur_bool(const dls::chaine &nom, bool valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_bool(valeur);
+    prop->définis_valeur_bool(valeur);
 }
 
 void Manipulable::valeur_entier(const dls::chaine &nom, int valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_entier(valeur);
+    prop->définis_valeur_entier(valeur);
 }
 
 void Manipulable::valeur_decimal(const dls::chaine &nom, float valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_décimal(valeur);
+    prop->définis_valeur_décimal(valeur);
 }
 
 void Manipulable::valeur_vecteur(const dls::chaine &nom, const dls::math::vec3f &valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_vec3(valeur);
+    prop->définis_valeur_vec3(valeur);
 }
 
 void Manipulable::valeur_couleur(const dls::chaine &nom, const dls::phys::couleur32 &valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_couleur(valeur);
+    prop->définis_valeur_couleur(valeur);
 }
 
 void Manipulable::valeur_chaine(const dls::chaine &nom, const dls::chaine &valeur)
 {
     auto prop = propriete(nom);
-    prop->définit_valeur_chaine(valeur.c_str());
+    prop->définis_valeur_chaine(valeur.c_str());
 }
 
 void *Manipulable::operator[](const dls::chaine &nom)

@@ -10,7 +10,7 @@
 class QString;
 class TaskNotifier;
 
-class ChefExecution final : public JJL::ChefExecution {
+class ChefExecution final : public JJL::ChefExécution {
     JJL::Jorjala &m_jorjala;
     TaskNotifier *m_task_notifier;
     float m_progression_parallele = 0.0f;

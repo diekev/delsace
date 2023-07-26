@@ -40,6 +40,7 @@
 #    include "commandes/commandes_vue2d.h"
 #    include "commandes/commandes_vue3d.h"
 
+#    include "ipa/jorjala.cc"
 #    include "ipa/table_types.c"
 
 static void enregistre_commandes(UsineCommande &usine_commande)
@@ -57,7 +58,7 @@ static void enregistre_commandes(UsineCommande &usine_commande)
 static void initialise_données_programme(DonnéesProgramme *données_programme,
                                          JJL::Jorjala &jorjala)
 {
-    jorjala.données_programme(données_programme);
+    jorjala.définis_données_programme(données_programme);
 
     données_programme->gestionnaire_danjo = memoire::loge<danjo::GestionnaireInterface>(
         "danjo::GestionnaireInterface");
@@ -70,7 +71,7 @@ static void initialise_données_programme(DonnéesProgramme *données_programme,
 
 std::optional<JJL::Jorjala> initialise_jorjala()
 {
-    if (!initialise_jorjala("ipa/jorjala.so")) {
+    if (!JJL_initialise("ipa/jorjala.so")) {
         return {};
     }
 
@@ -100,7 +101,7 @@ void issitialise_jorjala(JJL::Jorjala &jorjala)
 
 DonnéesProgramme *donne_données_programme(JJL::Jorjala &jorjala)
 {
-    return static_cast<DonnéesProgramme *>(jorjala.données_programme());
+    return static_cast<DonnéesProgramme *>(jorjala.donne_données_programme());
 }
 
 RepondantCommande *donne_repondant_commande(JJL::Jorjala &jorjala)

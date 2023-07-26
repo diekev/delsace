@@ -54,7 +54,7 @@ class EditriceGraphe : public BaseEditrice {
 
     ~EditriceGraphe() override;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override
     {

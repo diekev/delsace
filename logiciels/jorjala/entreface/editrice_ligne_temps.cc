@@ -130,10 +130,10 @@ EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
     connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 }
 
-void EditriceLigneTemps::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceLigneTemps::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto creation = (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto creation = (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
 
     if (!creation) {
         return;
@@ -151,17 +151,17 @@ void EditriceLigneTemps::ajourne_état(JJL::TypeEvenement évènement)
     disconnect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(setCurrentFrame(int)));
     disconnect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 
-    m_slider->setMinimum(m_jorjala.temps_début());
-    m_start_frame->setValue(m_jorjala.temps_début());
+    m_slider->setMinimum(m_jorjala.donne_temps_début());
+    m_start_frame->setValue(m_jorjala.donne_temps_début());
 
-    m_slider->setMaximum(m_jorjala.temps_fin());
-    m_end_frame->setValue(m_jorjala.temps_fin());
+    m_slider->setMaximum(m_jorjala.donne_temps_fin());
+    m_end_frame->setValue(m_jorjala.donne_temps_fin());
 
-    m_cur_frame->setValue(m_jorjala.temps_courant());
+    m_cur_frame->setValue(m_jorjala.donne_temps_courant());
 
-    m_slider->setValue(m_jorjala.temps_courant());
+    m_slider->setValue(m_jorjala.donne_temps_courant());
 
-    m_fps->setValue(m_jorjala.cadence());
+    m_fps->setValue(m_jorjala.donne_cadence());
 
     connect(m_start_frame, SIGNAL(valueChanged(int)), this, SLOT(setStartFrame(int)));
     connect(m_end_frame, SIGNAL(valueChanged(int)), this, SLOT(setEndFrame(int)));
@@ -172,26 +172,26 @@ void EditriceLigneTemps::ajourne_état(JJL::TypeEvenement évènement)
 void EditriceLigneTemps::setStartFrame(int value)
 {
     this->rend_actif();
-    m_jorjala.temps_début(value);
+    m_jorjala.définis_temps_début(value);
 }
 
 void EditriceLigneTemps::setEndFrame(int value)
 {
     this->rend_actif();
-    m_jorjala.temps_fin(value);
+    m_jorjala.définis_temps_fin(value);
 }
 
 void EditriceLigneTemps::setCurrentFrame(int value)
 {
     this->rend_actif();
-    m_jorjala.temps_courant(value);
+    m_jorjala.définis_temps_courant(value);
     m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
 
-    m_jorjala.notifie_observatrices(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
+    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
 }
 
 void EditriceLigneTemps::setFPS(double value)
 {
     this->rend_actif();
-    m_jorjala.cadence(value);
+    m_jorjala.définis_cadence(value);
 }

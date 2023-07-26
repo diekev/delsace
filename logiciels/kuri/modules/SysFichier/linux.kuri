@@ -94,7 +94,7 @@ initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFich
     // système_positionne_fichier
     résultat[ESPIPE] = ErreurFichier.FichierEstPipe
 
-    // système_crée_dossier  
+    // système_crée_dossier
     résultat[EMLINK] = ErreurFichier.TropDeLiensSymboliques
 
     résultat[ENOLCK] = ErreurFichier.ÀCourtDeVerrouxDeFichier
@@ -699,7 +699,7 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
 {
     saufsi fichier_existe(chemin) {
         retourne ErreurFichier.FichierInexistant
-    } 
+    }
 
     chemin_corbeille_opt := système_chemin_pour_corbeille()
     saufsi chemin_corbeille_opt.possède_valeur() {
@@ -842,7 +842,7 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
 
     chn := loge_chaine(lus)
     copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus)
-    
+
     résultat.chn = chn
 
     retourne résultat

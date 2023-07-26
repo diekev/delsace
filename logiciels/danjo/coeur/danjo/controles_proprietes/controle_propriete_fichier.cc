@@ -97,7 +97,7 @@ void ControleProprieteFichier::finalise(const DonneesControle &donnees)
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)
 {
     émets_controle_changé_simple(
-        [this, &valeur]() { m_propriete->définit_valeur_chaine(valeur.toStdString().c_str()); });
+        [this, &valeur]() { m_propriete->définis_valeur_chaine(valeur.toStdString().c_str()); });
 }
 
 } /* namespace danjo */

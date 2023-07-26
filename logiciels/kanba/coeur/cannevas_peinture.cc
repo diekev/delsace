@@ -50,10 +50,10 @@ void CannevasPeinture::construit_seaux()
 
     m_id += 1;
 
-    auto camera = m_kanba.camera;
-    auto brosse = m_kanba.brosse;
+    auto camera = m_kanba.donne_caméra();
+    auto brosse = m_kanba.donne_brosse();
 
-    auto const &diametre_brosse = brosse->rayon * 2;
+    auto const &diametre_brosse = brosse->donne_diamètre();
 
     auto seaux_x = camera->largeur() / diametre_brosse + 1;
     auto seaux_y = camera->hauteur() / diametre_brosse + 1;
@@ -83,14 +83,7 @@ void CannevasPeinture::construit_seaux()
         auto const pos_y = y * taille_seau_y;
 
         for (int x = 0; x < m_seaux_x; x++) {
-            *ptr_seau = Seau();
-
-            ptr_seau->x = x * taille_seau_x;
-            ptr_seau->y = pos_y;
-            ptr_seau->largeur = taille_seau_x;
-            ptr_seau->hauteur = taille_seau_y;
-
-            ptr_seau++;
+            *ptr_seau++ = Seau(taille_seau_x, pos_y, taille_seau_x, taille_seau_y);
         }
     }
 
@@ -103,15 +96,15 @@ void CannevasPeinture::remplis_seaux_avec_texels_maillage()
         return;
     }
 
-    auto camera = m_kanba.camera;
-    auto maillage = m_kanba.maillage;
+    auto camera = m_kanba.donne_caméra();
+    auto maillage = m_kanba.donne_maillage();
 
     if (!maillage) {
         return;
     }
 
     POUR (m_seaux) {
-        it.texels.efface();
+        it.réinitialise();
     }
 
     auto nombre_polys = maillage->nombre_polygones();
@@ -159,13 +152,7 @@ void CannevasPeinture::remplis_seaux_avec_texels_maillage()
                 auto seau = cherche_seau(
                     pos2d, m_seaux_x, m_seaux_y, camera->largeur(), camera->hauteur());
 
-                TexelProjete texel;
-                texel.pos = pos2d;
-                texel.index = i;
-                texel.u = j;
-                texel.v = k;
-
-                seau->texels.ajoute(texel);
+                seau->ajoute_texel(TexelProjete(pos2d, i, j, k));
             }
         }
     }

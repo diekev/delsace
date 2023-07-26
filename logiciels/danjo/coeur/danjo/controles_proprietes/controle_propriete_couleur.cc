@@ -57,7 +57,7 @@ ControleProprieteCouleur::ControleProprieteCouleur(BasePropriete *p, int temps, 
 void ControleProprieteCouleur::ajourne_couleur()
 {
     émets_controle_changé_simple(
-        [this]() { m_propriete->définit_valeur_couleur(m_controle_couleur->couleur()); });
+        [this]() { m_propriete->définis_valeur_couleur(m_controle_couleur->couleur()); });
 }
 
 } /* namespace danjo */

@@ -1084,7 +1084,7 @@ struct EcrivainType : public EcrivainCache {
                  const std::string &nom)
     {
         o_schema_object = type_objet_alembic(parent->oobject(), nom);
-        définit_parent(parent);
+        définis_parent(parent);
         données_écrivain::init_convertisseuse(autrice, &convertisseuse);
         convertisseuse.donnees = données;
     }
@@ -1217,7 +1217,7 @@ class ÉcrivainInstance final : public EcrivainCache {
         }
 
         auto résultat = kuri_loge<ÉcrivainInstance>(ctx_kuri);
-        résultat->définit_parent(parent);
+        résultat->définis_parent(parent);
         return résultat;
     }
 

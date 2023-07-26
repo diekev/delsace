@@ -29,15 +29,17 @@ static BaseEditrice *qéditrice_depuis_éditrice(KNB::Kanba &kanba, KNB::Éditri
 {
     switch (éditrice.donne_type()) {
         case KNB::TypeÉditrice::VUE_2D:
-            return new EditriceCannevas2D(kanba);
+            return new EditriceCannevas2D(kanba, éditrice);
         case KNB::TypeÉditrice::VUE_3D:
-            return new EditriceCannevas3D(kanba);
+            return new EditriceCannevas3D(kanba, éditrice);
         case KNB::TypeÉditrice::PARAMÈTRES_BROSSE:
-            return new EditeurBrosse(&kanba);
+            return new EditeurBrosse(kanba, éditrice);
         case KNB::TypeÉditrice::CALQUES:
-            return new EditeurCalques(&kanba);
+            return new EditeurCalques(kanba, éditrice);
         case KNB::TypeÉditrice::INFORMATIONS:
             return nullptr;
+        case KNB::TypeÉditrice::PARAMÈTRES_GLOBAUX:
+            return new EditeurParametres(kanba, éditrice);
     }
 
     return nullptr;
@@ -71,7 +73,7 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
       m_menu_liste_éditrices(new QMenu(this))
 {
     for (auto éditrice : m_région.donne_éditrices()) {
-        ajoute_page_pour_éditrice(*éditrice, false);
+        ajoute_page_pour_éditrice(éditrice, false);
     }
 
     connect(m_bouton_affichage_liste, &QPushButton::clicked, this, &VueRegion::montre_liste);
@@ -86,7 +88,8 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
     ActionAjoutEditrice *action;
 
 #define AJOUTE_ACTION(type_kanba)                                                                 \
-    action = new ActionAjoutEditrice(KNB::nom_pour_type_éditrice(type_kanba).c_str(), this);      \
+    action = new ActionAjoutEditrice(                                                             \
+        KNB::nom_pour_type_éditrice(type_kanba).vers_std_string().c_str(), this);                 \
     m_menu_liste_éditrices->addAction(action);                                                    \
     action->setData(QVariant(int(type_kanba)));                                                   \
     connect(action, &ActionAjoutEditrice::ajoute_editrice, this, &VueRegion::sur_ajout_editrice);
@@ -100,7 +103,7 @@ VueRegion::VueRegion(KNB::Kanba &kanba, KNB::RégionInterface &région, QWidget 
 #undef AJOUTE_ACTION
 }
 
-void VueRegion::ajourne_éditrice_active(KNB::TypeÉvènement évènement)
+void VueRegion::ajourne_éditrice_active(KNB::ChangementÉditrice évènement)
 {
     auto éditrice = dynamic_cast<BaseEditrice *>(currentWidget());
     if (!éditrice) {
@@ -111,23 +114,23 @@ void VueRegion::ajourne_éditrice_active(KNB::TypeÉvènement évènement)
 }
 
 void VueRegion::ajoute_page_pour_éditrice(KNB::Éditrice &éditrice,
-                                          bool définit_comme_page_courante)
+                                          bool définis_comme_page_courante)
 {
     auto qéditrice = qéditrice_depuis_éditrice(m_kanba, éditrice);
     if (!qéditrice) {
         return;
     }
 
-    addTab(qéditrice, éditrice.donne_nom().c_str());
+    addTab(qéditrice, éditrice.donne_nom().vers_std_string().c_str());
 
-    if (définit_comme_page_courante) {
+    if (définis_comme_page_courante) {
         setCurrentIndex(count() - 1);
     }
 }
 
 void VueRegion::ajourne_pour_changement_page(int /*index*/)
 {
-    ajourne_éditrice_active(KNB::TypeÉvènement::RAFRAICHISSEMENT);
+    ajourne_éditrice_active(KNB::ChangementÉditrice::RAFRAICHIS);
 }
 
 void VueRegion::sur_fermeture_page(int index)
@@ -154,8 +157,8 @@ void VueRegion::montre_liste()
 void VueRegion::sur_ajout_editrice(int type)
 {
     auto type_éditrice = static_cast<KNB::TypeÉditrice>(type);
-    auto éditrice = m_région.ajoute_une_éditrice(type_éditrice);
-    ajoute_page_pour_éditrice(*éditrice, true);
+    auto éditrice = m_région.ajoute_une_éditrice(m_kanba, type_éditrice);
+    ajoute_page_pour_éditrice(éditrice, true);
 }
 
 /** \} */

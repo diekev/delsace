@@ -29,8 +29,9 @@
 #include "biblinternes/outils/definitions.h"
 
 namespace KNB {
-enum class TypeÉvènement : int;
-struct Kanba;
+enum class ChangementÉditrice : int32_t;
+class Éditrice;
+class Kanba;
 }  // namespace KNB
 
 class QFrame;
@@ -42,7 +43,7 @@ class BaseEditrice : public danjo::ConteneurControles {
     Q_OBJECT
 
   protected:
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
     QFrame *m_cadre;
     QVBoxLayout *m_agencement;
     QHBoxLayout *m_agencement_principal{};
@@ -50,14 +51,17 @@ class BaseEditrice : public danjo::ConteneurControles {
     const char *m_identifiant = "";
 
   public:
-    explicit BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent = nullptr);
+    explicit BaseEditrice(const char *identifiant,
+                          KNB::Kanba &kanba,
+                          KNB::Éditrice &éditrice,
+                          QWidget *parent = nullptr);
 
     EMPECHE_COPIE(BaseEditrice);
 
     void actif(bool yesno);
     void rend_actif();
 
-    virtual void ajourne_état(KNB::TypeÉvènement evenement) = 0;
+    virtual void ajourne_état(KNB::ChangementÉditrice evenement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;

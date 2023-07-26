@@ -74,7 +74,7 @@ void ControleProprieteDecimal::ajourne_valeur_pointee(float valeur)
         m_propriete->ajoute_cle(valeur, m_temps);
     }
     else {
-        m_propriete->définit_valeur_décimal(valeur);
+        m_propriete->définis_valeur_décimal(valeur);
     }
 
     Q_EMIT(controle_change());
@@ -93,7 +93,7 @@ void ControleProprieteDecimal::bascule_animation()
             m_propriete->ajoute_cle(m_propriete->evalue_decimal(m_temps), m_temps);
         }
 
-        définit_état_bouton_animation(m_bouton_animation, m_animation);
+        définis_état_bouton_animation(m_bouton_animation, m_animation);
         m_controle->marque_anime(m_animation, m_animation);
     });
 }
@@ -105,7 +105,7 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
         m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));

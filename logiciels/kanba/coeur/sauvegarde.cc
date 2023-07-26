@@ -33,6 +33,14 @@ void lis_fichier(std::ifstream &fichier, T &valeur)
     fichier.read(reinterpret_cast<char *>(&valeur), sizeof(T));
 }
 
+template <typename T>
+static T lis_valeur(std::ifstream &fichier)
+{
+    T résultat;
+    fichier.read(reinterpret_cast<char *>(&résultat), sizeof(T));
+    return résultat;
+}
+
 void lis_fichier(std::ifstream &fichier, dls::chaine &valeur)
 {
     long taille;
@@ -136,12 +144,9 @@ static bool lis_brosse(std::ifstream &fichier, Brosse *brosse)
         return false;
     }
 
-    lis_fichier(fichier, brosse->couleur.x);
-    lis_fichier(fichier, brosse->couleur.y);
-    lis_fichier(fichier, brosse->couleur.z);
-    lis_fichier(fichier, brosse->couleur.w);
-    lis_fichier(fichier, brosse->opacite);
-    lis_fichier(fichier, brosse->rayon);
+    brosse->définis_couleur(lis_valeur<dls::math::vec4f>(fichier));
+    brosse->définis_opacité(lis_valeur<float>(fichier));
+    brosse->définis_rayon(lis_valeur<int>(fichier));
 
     return true;
 }
@@ -150,12 +155,9 @@ static void ecris_brosse(std::ofstream &fichier, Brosse *brosse)
 {
     ecris_fichier(fichier, 'B');
     ecris_fichier(fichier, 'R');
-    ecris_fichier(fichier, brosse->couleur.x);
-    ecris_fichier(fichier, brosse->couleur.y);
-    ecris_fichier(fichier, brosse->couleur.z);
-    ecris_fichier(fichier, brosse->couleur.w);
-    ecris_fichier(fichier, brosse->opacite);
-    ecris_fichier(fichier, brosse->rayon);
+    ecris_fichier(fichier, brosse->donne_couleur());
+    ecris_fichier(fichier, brosse->donne_opacité());
+    ecris_fichier(fichier, brosse->donne_rayon());
 }
 
 static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
@@ -415,9 +417,9 @@ void écris_projet(Kanba &kanba, dls::chaine const &chemin_projet)
 
     KNB::ecris_nombre_magique(fichier);
     KNB::ecris_projet(fichier);
-    KNB::ecris_brosse(fichier, kanba.brosse);
-    KNB::ecris_maillage(fichier, kanba.maillage);
-    KNB::ecris_canaux(fichier, kanba.maillage->canaux_texture());
+    KNB::ecris_brosse(fichier, kanba.donne_brosse());
+    KNB::ecris_maillage(fichier, kanba.donne_maillage());
+    KNB::ecris_canaux(fichier, kanba.donne_maillage()->canaux_texture());
 }
 
 bool lis_projet(Kanba &kanba, dls::chaine const &chemin_projet)
@@ -461,7 +463,7 @@ bool lis_projet(Kanba &kanba, dls::chaine const &chemin_projet)
     }
 
     kanba.installe_maillage(maillage);
-    *kanba.brosse = brosse;
+    *kanba.donne_brosse() = brosse;
 
     return true;
 }

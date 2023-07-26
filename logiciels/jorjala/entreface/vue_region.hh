@@ -42,28 +42,28 @@ class ActionAjoutEditrice final : public QAction {
 
 /* ------------------------------------------------------------------------- */
 /** \name VueRegion
- *  Widget pour afficher une JJL::RegionInterface et ses JJL::Éditrices.
+ *  Widget pour afficher une JJL::RégionInterface et ses JJL::Éditrices.
  * \{ */
 
 class VueRegion final : public QTabWidget {
     Q_OBJECT
 
     JJL::Jorjala &m_jorjala;
-    JJL::RegionInterface m_région;
+    JJL::RégionInterface m_région;
     QPushButton *m_bouton_affichage_liste = nullptr;
     QMenu *m_menu_liste_éditrices = nullptr;
 
   public:
-    VueRegion(JJL::Jorjala &jorjala, JJL::RegionInterface région, QWidget *parent = nullptr);
+    VueRegion(JJL::Jorjala &jorjala, JJL::RégionInterface région, QWidget *parent = nullptr);
 
     VueRegion(VueRegion const &) = delete;
     VueRegion &operator=(VueRegion const &) = delete;
 
     /** Transmet l'évènement à l'éditrice courante. */
-    void ajourne_éditrice_active(JJL::TypeEvenement évènement);
+    void ajourne_éditrice_active(JJL::TypeÉvènement évènement);
 
   private:
-    void ajoute_page_pour_éditrice(JJL::Editrice éditrice, bool définit_comme_page_courante);
+    void ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool définis_comme_page_courante);
 
   private Q_SLOTS:
     void ajourne_pour_changement_page(int index);

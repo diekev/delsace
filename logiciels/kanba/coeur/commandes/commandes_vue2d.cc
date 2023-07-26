@@ -36,7 +36,6 @@
 
 #include "commande_kanba.hh"
 
-#include "../evenement.h"
 #include "../kanba.h"
 
 /* ************************************************************************** */
@@ -62,21 +61,46 @@ class CommandePeinture2D : public CommandeKanba {
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
+        auto maillage = kanba.donne_maillage();
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-        auto const rayon_brosse = 10;
-        auto const rayon_carre = rayon_brosse * rayon_brosse;
-        auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
-        for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
-            for (int j = -rayon_brosse; j < rayon_brosse; ++j) {
+        if (calque == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        if (calque.est_verrouillé()) {
+            // À FAIRE : message d'erreur dans la barre d'état.
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        auto pinceau = kanba.donne_pinceau();
+        auto tampon = calque.donne_tampon_couleur().données_crues();
+        auto const largeur = canaux.donne_largeur();
+        auto const hauteur = canaux.donne_hauteur();
+
+        auto const rayon_pinceau = int(pinceau.donne_rayon());
+        auto const rayon_carre = rayon_pinceau * rayon_pinceau;
+        auto couleur_pinceau = KNB::CouleurRVBA({});
+        couleur_pinceau.définis_r(1.0f);
+        couleur_pinceau.définis_v(0.0f);
+        couleur_pinceau.définis_b(1.0f);
+        couleur_pinceau.définis_a(1.0f);
+
+        for (int i = -rayon_pinceau; i < rayon_pinceau; ++i) {
+            for (int j = -rayon_pinceau; j < rayon_pinceau; ++j) {
                 auto const x = int(donnees.x) + i;
                 auto const y = int(donnees.y) + j;
 
-                if (x < 0 || x >= kanba.tampon.nombre_colonnes()) {
+                if (x < 0 || x >= largeur) {
                     continue;
                 }
 
-                if (y < 0 || y >= kanba.tampon.nombre_lignes()) {
+                if (y < 0 || y >= hauteur) {
                     continue;
                 }
 
@@ -84,11 +108,9 @@ class CommandePeinture2D : public CommandeKanba {
                     continue;
                 }
 
-                kanba.tampon[y][x] = couleur_brosse;
+                tampon[size_t(x) + size_t(y) * largeur] = couleur_pinceau;
             }
         }
-
-        kanba.notifie_observatrices(KNB::TypeÉvènement::DESSIN | KNB::TypeÉvènement::FINI);
 
         return EXECUTION_COMMANDE_MODALE;
     }

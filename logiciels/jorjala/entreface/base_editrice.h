@@ -28,7 +28,7 @@
 
 namespace JJL {
 class Jorjala;
-enum class TypeEvenement : unsigned int;
+enum class TypeÉvènement : unsigned int;
 }  // namespace JJL
 
 class QFrame;
@@ -66,7 +66,7 @@ class BaseEditrice : public danjo::ConteneurControles {
         return identifiant;
     }
 
-    virtual void ajourne_état(JJL::TypeEvenement évènement) = 0;
+    virtual void ajourne_état(JJL::TypeÉvènement évènement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
 

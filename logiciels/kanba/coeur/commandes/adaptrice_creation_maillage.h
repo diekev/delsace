@@ -26,9 +26,7 @@
 
 #include "biblinternes/objets/adaptrice_creation.h"
 
-namespace KNB {
-class Maillage;
-}
+#include "../kanba.h"
 
 class AdaptriceCreationMaillage : public objets::AdaptriceCreationObjet {
   public:
@@ -75,5 +73,5 @@ class AdaptriceCreationMaillage : public objets::AdaptriceCreationObjet {
     {
     }
 
-    KNB::Maillage *maillage{};
+    KNB::Maillage *maillage = nullptr;
 };

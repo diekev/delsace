@@ -135,7 +135,7 @@ void ControleProprieteVecteurDecimal::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
         auto temps_exacte = m_propriete->possede_cle(m_temps);
@@ -161,7 +161,7 @@ void ControleProprieteVecteurDecimal::bascule_animation()
         // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
     }
 
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->marque_anime(m_animation, m_animation);
     }
@@ -212,7 +212,7 @@ void ControleProprieteVecteurDecimal::ajourne_valeur(int index, float valeur)
         m_propriete->ajoute_cle(vec, m_temps);
     }
     else {
-        m_propriete->définit_valeur_vec3(vec);
+        m_propriete->définis_valeur_vec3(vec);
     }
 }
 
@@ -289,7 +289,7 @@ void ControleProprieteVecteurEntier::finalise(const DonneesControle &donnees)
     }
 
     m_animation = m_propriete->est_animee();
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
 
     if (m_animation) {
         auto temps_exacte = m_propriete->possede_cle(m_temps);
@@ -315,7 +315,7 @@ void ControleProprieteVecteurEntier::bascule_animation()
         // m_propriete->ajoute_cle(m_propriete->evalue_vecteur(m_temps), m_temps);
     }
 
-    définit_état_bouton_animation(m_bouton_animation, m_animation);
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
     for (int i = 0; i < m_dimensions; i++) {
         m_dim[i]->marque_anime(m_animation, m_animation);
     }
@@ -366,7 +366,7 @@ void ControleProprieteVecteurEntier::ajourne_valeur(int index, int valeur)
         m_propriete->ajoute_cle(vec, m_temps);
     }
     else {
-        m_propriete->définit_valeur_vec3(vec);
+        m_propriete->définis_valeur_vec3(vec);
     }
 }
 

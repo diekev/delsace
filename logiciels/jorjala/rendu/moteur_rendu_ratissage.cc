@@ -440,7 +440,7 @@ ContexteRendu MoteurRenduRatissage::crée_contexte_rendu()
     auto const &P = convertis_matrice(m_camera.P());
     auto const &MVP = P * MV;
 
-    résultat.vue(convertis_vecteur(m_camera.direction()));
+    résultat.vue(convertis_vecteur(m_camera.donne_direction()));
     résultat.modele_vue(MV);
     résultat.projection(P);
     résultat.MVP(MVP);

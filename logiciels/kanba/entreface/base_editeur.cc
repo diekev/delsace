@@ -45,8 +45,19 @@
 
 #include "coeur/kanba.h"
 
-BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *parent)
-    : danjo::ConteneurControles(parent), m_kanba(&kanba), m_cadre(new QFrame(this)),
+#include "gestionnaire_interface.hh"
+
+static void rappel_pour_éditrice_kanba(void *données, KNB::ChangementÉditrice changement)
+{
+    auto éditrice = static_cast<BaseEditrice *>(données);
+    éditrice->ajourne_état(changement);
+}
+
+BaseEditrice::BaseEditrice(const char *identifiant,
+                           KNB::Kanba &kanba,
+                           KNB::Éditrice &éditrice,
+                           QWidget *parent)
+    : danjo::ConteneurControles(parent), m_kanba(kanba), m_cadre(new QFrame(this)),
       m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
 {
     QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -69,6 +80,8 @@ BaseEditrice::BaseEditrice(const char *identifiant, KNB::Kanba &kanba, QWidget *
     m_agencement_principal->setMargin(6);
 
     this->actif(false);
+
+    éditrice.définis_rappel_utilisateur_interface(this, rappel_pour_éditrice_kanba);
 }
 
 void BaseEditrice::actif(bool yesno)
@@ -79,12 +92,9 @@ void BaseEditrice::actif(bool yesno)
 
 void BaseEditrice::rend_actif()
 {
-    if (m_kanba->widget_actif) {
-        m_kanba->widget_actif->actif(false);
-    }
-
-    m_kanba->widget_actif = this;
-    this->actif(true);
+    auto gestionnaire = static_cast<GestionnaireInterface *>(
+        m_kanba.donne_données_gestionnaire_fenêtre());
+    gestionnaire->définis_éditrice_active(this);
 }
 
 void BaseEditrice::mousePressEvent(QMouseEvent *e)
@@ -98,7 +108,7 @@ void BaseEditrice::mousePressEvent(QMouseEvent *e)
     donnees.souris = e->button();
     donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
 
-    m_kanba->repondant_commande->appele_commande(m_identifiant, donnees);
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
 }
 
 void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
@@ -108,7 +118,7 @@ void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
     donnees.y = static_cast<float>(e->pos().y());
     donnees.souris = e->button();
 
-    m_kanba->repondant_commande->ajourne_commande_modale(donnees);
+    KNB::donne_repondant_commande()->ajourne_commande_modale(donnees);
 }
 
 void BaseEditrice::wheelEvent(QWheelEvent *e)
@@ -121,7 +131,7 @@ void BaseEditrice::wheelEvent(QWheelEvent *e)
     donnees.souris = Qt::MidButton;
     donnees.double_clique = true;
 
-    m_kanba->repondant_commande->appele_commande(m_identifiant, donnees);
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
 }
 
 void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
@@ -130,5 +140,5 @@ void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
     donnees.x = static_cast<float>(e->pos().x());
     donnees.y = static_cast<float>(e->pos().y());
 
-    m_kanba->repondant_commande->acheve_commande_modale(donnees);
+    KNB::donne_repondant_commande()->acheve_commande_modale(donnees);
 }
