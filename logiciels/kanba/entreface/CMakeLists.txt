@@ -42,6 +42,7 @@ set(BIBLIOTHEQUES
 	stdc++fs
 	bib_opengl
         dls::outils
+        kanba::coeur
 )
 
 add_compile_options(-fPIC)
@@ -94,6 +95,10 @@ add_library(${NOM_CIBLE} STATIC
 
         ${ENTETES_POUR_QT}
 
+        conversion_types.hh
+        evenement_kanba.hh
+        gestionnaire_interface.hh
+
 	opengl/rendu_brosse.cc
 	opengl/rendu_maillage.cc
         opengl/rendu_seaux.cc
@@ -103,11 +108,14 @@ add_library(${NOM_CIBLE} STATIC
 	opengl/visionneur_scene.cc
 
 	base_editeur.cc
+        conversion_types.cc
 	editeur_brosse.cc
 	editeur_calques.cc
 	editeur_canevas.cc
 	editeur_parametres.cc
+        evenement_kanba.cc
 	fenetre_principale.cc
+        gestionnaire_interface.cc
         vue_region.cc
 
 	${NUANCEURS}

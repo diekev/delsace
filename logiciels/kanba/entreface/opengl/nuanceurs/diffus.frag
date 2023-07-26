@@ -14,6 +14,6 @@ void main()
 	float w = 0.5 * (1.0 + dot(normal_normalise, vec3(0.0, 1.0, 0.0)));
 	vec4 couleur_diffuse = w * couleur + (1.0 - w) * (couleur * 0.3);
 
-	couleur_sortie = couleur_diffuse;
+        couleur_sortie = vec4(mix(vec3(0.8, 0.8, 0.8), couleur_diffuse.xyz, couleur.a), 1.0);
 	//couleur_sortie = vec4(UV, couleur_diffuse.a);
 }

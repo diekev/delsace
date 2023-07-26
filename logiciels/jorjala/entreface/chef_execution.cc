@@ -8,7 +8,7 @@
 #include "tache.h"
 
 ChefExecution::ChefExecution(JJL::Jorjala &jorjala, TaskNotifier *task_notifier)
-    : JJL::ChefExecution(), m_jorjala(jorjala), m_task_notifier(task_notifier)
+    : JJL::ChefExécution(), m_jorjala(jorjala), m_task_notifier(task_notifier)
 {
 }
 
@@ -34,7 +34,7 @@ bool ChefExecution::rappel_doit_interrompre()
 
 bool ChefExecution::interrompu() const
 {
-    return m_jorjala.interrompu();
+    return m_jorjala.donne_interrompu();
 }
 
 void ChefExecution::indique_progression(float progression)

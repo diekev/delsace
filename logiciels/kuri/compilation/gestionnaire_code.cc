@@ -724,7 +724,7 @@ UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
 
 void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 {
-    unité->définit_état(UniteCompilation::État::EN_ATTENTE);
+    unité->définis_état(UniteCompilation::État::EN_ATTENTE);
     unites_en_attente.ajoute_aux_données_globales(unité);
 }
 
@@ -936,7 +936,7 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     assert(unite->fichier->fut_parse);
     auto espace = unite->espace;
     TACHE_TERMINEE(PARSAGE, true);
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 
     POUR (unite->fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud.
@@ -1180,7 +1180,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
         flush_metaprogrammes_en_attente_de_cree_contexte();
     }
 
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
@@ -1188,12 +1188,12 @@ void GestionnaireCode::optimisation_terminee(UniteCompilation *unite)
     assert(unite->noeud);
     auto espace = unite->espace;
     TACHE_TERMINEE(OPTIMISATION, true);
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::envoi_message_termine(UniteCompilation *unité)
 {
-    unité->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::message_recu(Message const *message)
@@ -1208,7 +1208,7 @@ void GestionnaireCode::execution_terminee(UniteCompilation *unite)
     auto espace = unite->espace;
     TACHE_TERMINEE(EXECUTION, true);
     enleve_programme(unite->metaprogramme->programme);
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 static bool programme_requiers_liaison_exécutable(OptionsDeCompilation const &options)
@@ -1255,7 +1255,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
         }
     }
 
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
@@ -1276,12 +1276,12 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
         espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
     }
 
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 {
-    unite->définit_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
 void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unite)
@@ -1339,7 +1339,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
     POUR (unites_en_attente.donne_données_locales()) {
         if (it->espace->possede_erreur) {
-            it->définit_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
+            it->définis_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
         }
 
@@ -1412,7 +1412,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
     }
 #endif
     POUR (unités_prêtes) {
-        it->définit_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
+        it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
         ordonnanceuse->cree_tache_pour_unite(it);
     }
 
@@ -1651,7 +1651,7 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
      * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
      * d'attente. */
     if (espace->unite_pour_code_machine) {
-        espace->unite_pour_code_machine->définit_état(
+        espace->unite_pour_code_machine->définis_état(
             UniteCompilation::État::ANNULÉE_CAR_REMPLACÉE);
         TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
     }

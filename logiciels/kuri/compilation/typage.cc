@@ -1536,7 +1536,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     auto alignement_max = 0u;
 
     POUR (type->membres) {
-        if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
+        if (it.drapeaux & TypeStructure::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
             continue;
         }
 
@@ -1589,7 +1589,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
         auto type_le_plus_grand = Type::nul();
 
         POUR (type->membres) {
-            if (it.drapeaux & TypeStructure::Membre::EST_CONSTANT) {
+            if (it.drapeaux & TypeStructure::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
                 continue;
             }
 

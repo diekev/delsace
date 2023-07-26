@@ -94,7 +94,7 @@ class EditriceVue3D : public BaseEditrice {
     EditriceVue3D(EditriceVue3D const &) = delete;
     EditriceVue3D &operator=(EditriceVue3D const &) = delete;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override
     {

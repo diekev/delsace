@@ -67,9 +67,9 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         auto gestionnaire = donne_gestionnaire_danjo(jorjala);
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        if (graphe.noeud_actif() == nullptr) {
+        if (graphe.donne_noeud_actif() == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
@@ -107,7 +107,7 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
 		operatrice->ajoute_propriete_extra(attache, prop);
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::PROPRIÉTÉ | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::PROPRIÉTÉ | JJL::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -125,7 +125,7 @@ class CommandeAjouterComposite final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         jorjala.crée_racine_composite("composite");
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -145,7 +145,7 @@ class CommandeAjouterNuanceur final : public CommandeJorjala {
         jorjala.bdd.cree_nuanceur("nuanceur");
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -167,7 +167,7 @@ class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
 		nuanceur->marque_est_cycles();
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -232,7 +232,7 @@ struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
 
 		op->parametres_changes();
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
 
 		requiers_evaluation(*jorjala, PARAMETRE_CHANGE, "réponse commande ajout nuanceur opératrice");
 #endif
@@ -256,7 +256,7 @@ class CommandeAjouterRendu final : public CommandeJorjala {
         jorjala.bdd.cree_rendu("rendu");
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::AJOUTÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -281,7 +281,7 @@ class CommandeDefait final : public CommandeJorjala {
     {
         INUTILISE(metadonnee);
         jorjala.défait_changement();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -305,7 +305,7 @@ class CommandeRefait final : public CommandeJorjala {
     {
         INUTILISE(metadonnee);
         jorjala.refait_changement();
-        jorjala.notifie_observatrices(JJL::TypeEvenement::RAFRAICHISSEMENT);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -322,17 +322,18 @@ class CommandeRenomme final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
     {
         INUTILISE(metadonnee);
-        auto graphe = jorjala.graphe();
+        auto graphe = jorjala.donne_graphe();
 
-        if (graphe.noeud_actif() == nullptr) {
+        if (graphe.donne_noeud_actif() == nullptr) {
             return EXECUTION_COMMANDE_ECHOUEE;
         }
 
-        auto noeud = graphe.noeud_actif();
+        auto noeud = graphe.donne_noeud_actif();
 
         auto resultat = danjo::Manipulable();
-        resultat.ajoute_propriete(
-            "nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud.nom().vers_std_string());
+        resultat.ajoute_propriete("nouveau_nom",
+                                  danjo::TypePropriete::CHAINE_CARACTERE,
+                                  noeud.donne_nom().vers_std_string());
 
         auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
         auto gestionnaire = donne_gestionnaire_danjo(jorjala);
@@ -349,7 +350,7 @@ class CommandeRenomme final : public CommandeJorjala {
         noeud->nom = graphe.rend_nom_unique(nom);
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::NOEUD | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

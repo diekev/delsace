@@ -3918,7 +3918,8 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 
             auto index_membre = 0;
             POUR (type_compose->membres) {
-                if ((it.drapeaux & TypeCompose::Membre::EST_CONSTANT) == 0) {
+                if ((it.drapeaux &
+                     TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) == 0) {
                     if (it.expression_valeur_defaut &&
                         it.expression_valeur_defaut->est_non_initialisation()) {
                         index_membre += 1;

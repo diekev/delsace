@@ -52,7 +52,7 @@ class EditriceProprietes : public BaseEditrice {
     EditriceProprietes(EditriceProprietes const &) = default;
     EditriceProprietes &operator=(EditriceProprietes const &) = default;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override;
 

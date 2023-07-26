@@ -86,7 +86,7 @@ void ControleProprieteListe::texte_modifie()
 void ControleProprieteListe::ajourne_valeur_pointee(const QString &valeur)
 {
     émets_controle_changé_simple(
-        [this, &valeur]() { m_propriete->définit_valeur_chaine(valeur.toStdString()); });
+        [this, &valeur]() { m_propriete->définis_valeur_chaine(valeur.toStdString()); });
 }
 
 void ControleProprieteListe::ajourne_liste()
