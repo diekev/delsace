@@ -29,8 +29,6 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
-#include "biblinternes/texture/texture.h"
-
 #include "texte/freetype-gl.h"
 #include "texte/texture-atlas.h"
 #include "texte/mat4.h"
@@ -78,7 +76,7 @@ static TamponRendu *cree_tampon()
 				dls::ego::Nuanceur::VERTEX,
 				source_vertex_texte);
 
-	tampon->charge_source_programme(
+    tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
 				source_fragment_texte);
 
@@ -116,7 +114,6 @@ static void genere_texture(dls::ego::Texture2D *texture, texture_atlas_t *atlas)
 
 RenduTexte::~RenduTexte()
 {
-	delete m_texture;
 	delete m_tampon;
 
 	if (m_atlas != nullptr) {

@@ -79,7 +79,7 @@ public:
 
 	virtual void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
 
-    void définit_description(DescriptionCommande desc)
+    void définis_description(DescriptionCommande desc)
     {
         description = desc;
     }
@@ -106,7 +106,7 @@ inline auto description_commande(
 	description.modificateur = modificateur;
 	description.categorie = categorie;
 	description.double_clique = double_clique;
-    description.construction_commande = [](DescriptionCommande desc) -> Commande* { auto commande = new T(); commande->définit_description(desc); return commande; };
+    description.construction_commande = [](DescriptionCommande desc) -> Commande* { auto commande = new T(); commande->définis_description(desc); return commande; };
 	description.metadonnee = metadonnee;
     description.peut_être_défaite = peut_être_défaite;
 

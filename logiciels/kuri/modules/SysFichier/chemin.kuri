@@ -32,6 +32,11 @@ détruit_chemin :: fonc (chemin: &CheminFichier)
     déloge(chemin.chn)
 }
 
+est_vide :: fonc (chemin: CheminFichier) -> bool
+{
+    retourne chemin.chn.taille == 0
+} @Python "méthode"
+
 imprime_chemin_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
 {
     si chemin {

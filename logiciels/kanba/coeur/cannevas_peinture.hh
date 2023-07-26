@@ -7,6 +7,8 @@
 #include "biblinternes/structures/liste.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "outils.hh"
+
 namespace KNB {
 
 struct Kanba;
@@ -33,31 +35,68 @@ auto restreint(T a, T min, T max)
 }
 
 struct TexelProjete {
+  private:
     /* La position du texel sur l'écran. */
-    dls::math::point2f pos{};
+    dls::math::point2f m_pos{};
 
     /* L'index du polygone possédant le texel. */
-    long index{};
+    int64_t m_index{};
 
     /* La position u du texel. */
-    unsigned int u{};
+    uint32_t m_u{};
 
     /* La position v du texel. */
-    unsigned int v{};
+    uint32_t m_v{};
+
+  public:
+    TexelProjete() = default;
+
+    TexelProjete(dls::math::point2f pos, int64_t index, uint32_t u, uint32_t v)
+        : m_pos(pos), m_index(index), m_u(u), m_v(v)
+    {
+    }
+
+    DEFINIS_ACCESSEUR_MEMBRE(dls::math::point2f, pos);
+    DEFINIS_ACCESSEUR_MEMBRE(int64_t, index);
+    DEFINIS_ACCESSEUR_MEMBRE(uint32_t, u);
+    DEFINIS_ACCESSEUR_MEMBRE(uint32_t, v);
 };
 
 struct Seau {
-    dls::liste<TexelProjete> texels = dls::liste<TexelProjete>{};
-    dls::math::vec2f min = dls::math::vec2f(0.0);
-    dls::math::vec2f max = dls::math::vec2f(0.0);
+  private:
+    dls::liste<TexelProjete> m_texels = dls::liste<TexelProjete>{};
 
     /* Position du seau sur le cannevas. */
-    int x = 0;
-    int y = 0;
+    int m_x = 0;
+    int m_y = 0;
 
     /* Taille du seau. */
-    int largeur = 0;
-    int hauteur = 0;
+    int m_largeur = 0;
+    int m_hauteur = 0;
+
+  public:
+    Seau() = default;
+
+    Seau(int x, int y, int largeur, int hauteur)
+        : m_x(x), m_y(y), m_largeur(largeur), m_hauteur(hauteur)
+    {
+    }
+
+    void réinitialise()
+    {
+        m_texels.efface();
+    }
+
+    void ajoute_texel(TexelProjete texel)
+    {
+        m_texels.ajoute(texel);
+    }
+
+    DEFINIS_ACCESSEUR_MEMBRE(int, x);
+    DEFINIS_ACCESSEUR_MEMBRE(int, y);
+    DEFINIS_ACCESSEUR_MEMBRE(int, largeur);
+    DEFINIS_ACCESSEUR_MEMBRE(int, hauteur);
+    DEFINIS_ACCESSEUR_MEMBRE_TABLEAU(dls::liste<TexelProjete>, texels);
 };
 
 class CannevasPeinture {

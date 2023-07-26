@@ -74,5 +74,5 @@ void BarreDeProgres::ajourne_message(const QString &message, int execution, int 
 
 void BarreDeProgres::signal_stop()
 {
-    m_jorjala.interrompu(true);
+    m_jorjala.définis_interrompu(true);
 }

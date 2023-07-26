@@ -362,6 +362,11 @@ struct nombre_de_dimensions<dls::math::vec3f> {
 };
 
 template <>
+struct nombre_de_dimensions<dls::math::vec4f> {
+    static constexpr int valeur = 4;
+};
+
+template <>
 struct nombre_de_dimensions<dls::phys::couleur32> {
     static constexpr int valeur = 4;
 };

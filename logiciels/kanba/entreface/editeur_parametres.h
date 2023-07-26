@@ -32,10 +32,10 @@ class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
-    KNB::Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
 
   public:
-    explicit VueParametres(KNB::Kanba *kanba);
+    explicit VueParametres(KNB::Kanba &kanba);
 
     EMPECHE_COPIE(VueParametres);
 
@@ -50,16 +50,17 @@ class EditeurParametres final : public BaseEditrice {
 
     QWidget *m_widget;
     QScrollArea *m_scroll;
-    QGridLayout *m_glayout;
+    QWidget *m_conteneur_disposition;
+    QVBoxLayout *m_disposition_widget;
 
   public:
-    EditeurParametres(KNB::Kanba *kanba, QWidget *parent = nullptr);
+    EditeurParametres(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(EditeurParametres);
 
     ~EditeurParametres() override;
 
-    void ajourne_état(KNB::TypeÉvènement evenement) override;
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
 
     void ajourne_manipulable() override;
 };
