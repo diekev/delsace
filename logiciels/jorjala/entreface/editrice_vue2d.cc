@@ -105,8 +105,8 @@ void Visionneuse2D::paintGL()
 
     glEnable(GL_BLEND);
 
-    auto camera_2d = m_jorjala.caméra_2d();
-    m_contexte.MVP(convertis_matrice(camera_2d.matrice()));
+    auto camera_2d = m_jorjala.donne_caméra_2d();
+    m_contexte.MVP(convertis_matrice(camera_2d.donne_matrice()));
     m_contexte.matrice_objet(m_matrice_image);
 
     m_rendu_image->dessine(m_contexte);
@@ -169,9 +169,9 @@ void Visionneuse2D::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
 
-    auto camera_2d = m_jorjala.caméra_2d();
-    camera_2d.hauteur(h);
-    camera_2d.largeur(w);
+    auto camera_2d = m_jorjala.donne_caméra_2d();
+    camera_2d.définis_hauteur(h);
+    camera_2d.définis_largeur(w);
     camera_2d.ajourne_matrice();
 
     m_rendu_texte->etablie_dimension_fenetre(w, h);
@@ -217,11 +217,11 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 
 void Visionneuse2D::charge_composite(JJL::Composite composite)
 {
-    auto fenetre = composite.fenêtre();
+    auto fenetre = composite.donne_fenêtre();
 
     GLint size[2] = {
-        fenetre.x_max() - fenetre.x_min() + 1,
-        fenetre.y_max() - fenetre.y_min() + 1,
+        fenetre.donne_x_max() - fenetre.donne_x_min() + 1,
+        fenetre.donne_y_max() - fenetre.donne_y_min() + 1,
     };
 
     if ((size[0] == 0) || (size[1] == 0)) {
@@ -240,8 +240,8 @@ void Visionneuse2D::charge_composite(JJL::Composite composite)
     auto moitie_x = -static_cast<float>(size[0]) * 0.5f;
     auto moitie_y = -static_cast<float>(size[1]) * 0.5f;
 
-    auto min_x = static_cast<float>(fenetre.x_min());
-    auto min_y = static_cast<float>(fenetre.y_min());
+    auto min_x = static_cast<float>(fenetre.donne_x_min());
+    auto min_y = static_cast<float>(fenetre.donne_y_min());
 
     auto trans_x = (moitie_x - min_x) / 1920.0f;
     auto trans_y = (moitie_y - min_y) / 1920.0f;
@@ -296,7 +296,7 @@ static JJL::Composite accède_composite(JJL::Noeud noeud_racine_composite)
         return nullptr;
     }
 
-    return noeud_sortie.composite();
+    return noeud_sortie.donne_composite();
 }
 
 EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
@@ -305,15 +305,15 @@ EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addWidget(m_vue);
 }
 
-void EditriceVue2D::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceVue2D::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto chargement = évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ);
-    chargement |= (évènement == (JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ));
-    chargement |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto chargement = évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
+    chargement |= (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
+    chargement |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
 
     if (chargement) {
         auto graphe_cmp = m_jorjala.trouve_graphe_pour_chemin("/cmp");
-        auto noeud_actif = graphe_cmp.noeud_actif();
+        auto noeud_actif = graphe_cmp.donne_noeud_actif();
 
         if (noeud_actif == nullptr) {
             return;

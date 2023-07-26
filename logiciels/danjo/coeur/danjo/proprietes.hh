@@ -82,14 +82,14 @@ class BasePropriete {
     virtual std::string evalue_énum(int temps) const = 0;
 
     /* Définition des valeurs. */
-    virtual void définit_valeur_entier(int valeur) = 0;
-    virtual void définit_valeur_décimal(float valeur) = 0;
-    virtual void définit_valeur_bool(bool valeur) = 0;
-    virtual void définit_valeur_vec3(dls::math::vec3f valeur) = 0;
-    virtual void définit_valeur_vec3(dls::math::vec3i valeur) = 0;
-    virtual void définit_valeur_couleur(dls::phys::couleur32 valeur) = 0;
-    virtual void définit_valeur_chaine(std::string const &valeur) = 0;
-    virtual void définit_valeur_énum(std::string const &valeur) = 0;
+    virtual void définis_valeur_entier(int valeur) = 0;
+    virtual void définis_valeur_décimal(float valeur) = 0;
+    virtual void définis_valeur_bool(bool valeur) = 0;
+    virtual void définis_valeur_vec3(dls::math::vec3f valeur) = 0;
+    virtual void définis_valeur_vec3(dls::math::vec3i valeur) = 0;
+    virtual void définis_valeur_couleur(dls::phys::couleur32 valeur) = 0;
+    virtual void définis_valeur_chaine(std::string const &valeur) = 0;
+    virtual void définis_valeur_énum(std::string const &valeur) = 0;
 
     /* Plage des valeurs. */
     virtual plage_valeur<float> plage_valeur_decimal() const = 0;
@@ -195,14 +195,14 @@ struct Propriete : public BasePropriete {
     std::string evalue_énum(int temps) const override;
 
     /* Définition des valeurs. */
-    void définit_valeur_entier(int valeur) override;
-    void définit_valeur_décimal(float valeur) override;
-    void définit_valeur_bool(bool valeur) override;
-    void définit_valeur_vec3(dls::math::vec3f valeur) override;
-    void définit_valeur_vec3(dls::math::vec3i valeur) override;
-    void définit_valeur_couleur(dls::phys::couleur32 valeur) override;
-    void définit_valeur_chaine(std::string const &valeur) override;
-    void définit_valeur_énum(std::string const &valeur) override;
+    void définis_valeur_entier(int valeur) override;
+    void définis_valeur_décimal(float valeur) override;
+    void définis_valeur_bool(bool valeur) override;
+    void définis_valeur_vec3(dls::math::vec3f valeur) override;
+    void définis_valeur_vec3(dls::math::vec3i valeur) override;
+    void définis_valeur_couleur(dls::phys::couleur32 valeur) override;
+    void définis_valeur_chaine(std::string const &valeur) override;
+    void définis_valeur_énum(std::string const &valeur) override;
 
     /* Plage des valeurs. */
     plage_valeur<float> plage_valeur_decimal() const override;

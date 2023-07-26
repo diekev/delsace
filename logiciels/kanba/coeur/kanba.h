@@ -24,45 +24,23 @@
 
 #pragma once
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "kanba.hh"
 
-#include "biblinternes/math/matrice/matrice.hh"
-#include "biblinternes/math/vecteur.hh"
-
-#include "interface_graphique.hh"
-
-class BaseEditrice;
-class FenetrePrincipale;
 class RepondantCommande;
-class UsineCommande;
-
-namespace vision {
-
-class Camera3D;
-
-} /* namespace vision */
 
 namespace KNB {
 
-enum class TypeÉvènement : int;
+std::optional<KNB::Kanba> initialise_kanba();
 
-struct Brosse;
-class CannevasPeinture;
-class GestionnaireFenetre;
-class Maillage;
+void issitialise_kanba(KNB::Kanba &kanba);
 
-enum class TypeCurseur : int32_t {
-    NORMAL = 0,
-    ATTENTE_BLOQUÉ = 1,
-    TÂCHE_ARRIÈRE_PLAN_EN_COURS = 2,
-    MAIN_OUVERTE = 3,
-    MAIN_FERMÉE = 4,
-};
+void enregistre_commandes(KNB::Kanba &kanba);
 
-enum {
-    FICHIER_OUVERTURE,
-};
+RepondantCommande *donne_repondant_commande();
 
+}  // namespace KNB
+
+#if 0
 struct EntréeLog {
     enum Type {
         GÉNÉRALE,
@@ -77,64 +55,10 @@ struct EntréeLog {
 };
 
 struct Kanba {
-    dls::math::matrice_dyn<dls::math::vec4f> tampon;
-
-    /* Interface utilisateur. */
-    FenetrePrincipale *fenetre_principale = nullptr;
-    BaseEditrice *widget_actif = nullptr;
-
-    UsineCommande usine_commande;
-
-    RepondantCommande *repondant_commande;
-
-    Brosse *brosse;
-    vision::Camera3D *camera;
-    Maillage *maillage;
-    CannevasPeinture *cannevas = nullptr;
-
-    /* Définis si les seaux du cannevas doivent être dessinés sur la vue 3D. */
-    bool dessine_seaux = false;
-
+  private:
     dls::tableau<EntréeLog> entrées_log{};
 
-  private:
-    InterfaceGraphique m_interface_graphique{};
-
-    GestionnaireFenetre *m_gestionnaire_fenêtre = nullptr;
-
   public:
-    Kanba();
-    ~Kanba();
-
-    Kanba(Kanba const &) = default;
-    Kanba &operator=(Kanba const &) = default;
-
-    void enregistre_commandes();
-
-    dls::chaine requiers_dialogue(int type);
-
-    void installe_gestionnaire_fenêtre(GestionnaireFenetre *gestionnaire);
-
-    void installe_maillage(Maillage *m);
-
-    void notifie_observatrices(TypeÉvènement type);
-
-    const InterfaceGraphique &donne_interface_graphique() const
-    {
-        return m_interface_graphique;
-    }
-
-    /* Interface pour l'interface graphique. À FAIRE. */
-
-    void restaure_curseur_application();
-    void change_curseur_application(KNB::TypeCurseur curseur);
-
-    /* Interface pour l'historique. À FAIRE. */
-
-    void prépare_pour_changement(dls::chaine const &identifiant);
-    void soumets_changement();
-    void annule_changement();
-
     /* Interface pour les logs. */
 
     template <typename... Args>
@@ -151,5 +75,4 @@ struct Kanba {
   private:
     void ajoute_log_impl(EntréeLog::Type type, dls::chaine const &texte);
 };
-
-}  // namespace KNB
+#endif

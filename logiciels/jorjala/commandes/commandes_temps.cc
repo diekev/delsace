@@ -49,12 +49,12 @@ static auto compte_tick_ms()
 
 static void anime_image(JJL::Jorjala &jorjala)
 {
-    auto const IMAGE_PAR_SECONDES = jorjala.cadence();
+    auto const IMAGE_PAR_SECONDES = jorjala.donne_cadence();
     auto const TICKS_PAR_IMAGE = static_cast<int>(1000.0 / IMAGE_PAR_SECONDES);
 
     auto ticks_courant = compte_tick_ms();
 
-    while (jorjala.animation_en_cours()) {
+    while (jorjala.donne_animation_en_cours()) {
         jorjala.ajourne_pour_nouveau_temps("thread animation");
 
         ticks_courant += TICKS_PAR_IMAGE;
@@ -65,17 +65,17 @@ static void anime_image(JJL::Jorjala &jorjala)
         }
 
         /* notifie depuis le thread principal. */
-        // jorjala.notifiant_thread->signal_proces(JJL::TypeEvenement::TEMPS |
-        // JJL::TypeEvenement::MODIFIÉ);
+        // jorjala.notifiant_thread->signal_proces(JJL::TypeÉvènement::TEMPS |
+        // JJL::TypeÉvènement::MODIFIÉ);
 
-        auto value = jorjala.temps_courant();
+        auto value = jorjala.donne_temps_courant();
         ++value;
 
-        if (value > jorjala.temps_fin()) {
-            value = jorjala.temps_début();
+        if (value > jorjala.donne_temps_fin()) {
+            value = jorjala.donne_temps_début();
         }
 
-        jorjala.temps_courant(value);
+        jorjala.définis_temps_courant(value);
     }
 }
 
@@ -89,7 +89,7 @@ class CommandeChangementTemps final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
         if (donnees.metadonnee == "va_image_debut") {
-            jorjala.temps_courant(jorjala.temps_début());
+            jorjala.définis_temps_courant(jorjala.donne_temps_début());
 
             jorjala.ajourne_pour_nouveau_temps("controle image début");
         }
@@ -98,17 +98,17 @@ class CommandeChangementTemps final : public CommandeJorjala {
             return EXECUTION_COMMANDE_REUSSIE;
         }
         else if (donnees.metadonnee == "pas_en_arriere") {
-            jorjala.temps_courant(jorjala.temps_courant() - 1);
+            jorjala.définis_temps_courant(jorjala.donne_temps_courant() - 1);
 
-            if (jorjala.temps_courant() < jorjala.temps_début()) {
-                jorjala.temps_courant(jorjala.temps_fin());
+            if (jorjala.donne_temps_courant() < jorjala.donne_temps_début()) {
+                jorjala.définis_temps_courant(jorjala.donne_temps_fin());
             }
 
             jorjala.ajourne_pour_nouveau_temps("controle pas en arrière");
         }
         else if (donnees.metadonnee == "arrete_animation") {
             /* Évite d'envoyer des évènements inutiles. */
-            if (jorjala.animation_en_cours() == false) {
+            if (jorjala.donne_animation_en_cours() == false) {
                 return EXECUTION_COMMANDE_REUSSIE;
             }
 
@@ -117,17 +117,17 @@ class CommandeChangementTemps final : public CommandeJorjala {
             //          memoire::deloge("thread_animation", jorjala.thread_animation);
         }
         else if (donnees.metadonnee == "pas_en_avant") {
-            jorjala.temps_courant(jorjala.temps_courant() + 1);
+            jorjala.définis_temps_courant(jorjala.donne_temps_courant() + 1);
 
-            if (jorjala.temps_courant() > jorjala.temps_fin()) {
-                jorjala.temps_courant(jorjala.temps_fin());
+            if (jorjala.donne_temps_courant() > jorjala.donne_temps_fin()) {
+                jorjala.définis_temps_courant(jorjala.donne_temps_fin());
             }
 
             jorjala.ajourne_pour_nouveau_temps("controle pas en avant");
         }
         else if (donnees.metadonnee == "joue_en_avant") {
             /* Évite d'envoyer des évènements inutiles. */
-            if (jorjala.animation_en_cours() == true) {
+            if (jorjala.donne_animation_en_cours() == true) {
                 return EXECUTION_COMMANDE_REUSSIE;
             }
 
@@ -136,12 +136,12 @@ class CommandeChangementTemps final : public CommandeJorjala {
             return EXECUTION_COMMANDE_REUSSIE;
         }
         else if (donnees.metadonnee == "va_image_fin") {
-            jorjala.temps_courant(jorjala.temps_fin());
+            jorjala.définis_temps_courant(jorjala.donne_temps_fin());
 
             jorjala.ajourne_pour_nouveau_temps("controle va image fin");
         }
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::TEMPS | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

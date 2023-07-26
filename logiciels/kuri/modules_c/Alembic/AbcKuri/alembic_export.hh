@@ -34,7 +34,7 @@ struct EcrivainCache {
     virtual void écris_données() = 0;
 
   protected:
-    void définit_parent(EcrivainCache *parent)
+    void définis_parent(EcrivainCache *parent)
     {
         m_parent = parent;
         parent->m_enfants.push_back(this);

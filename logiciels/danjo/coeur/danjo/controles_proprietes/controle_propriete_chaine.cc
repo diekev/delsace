@@ -53,7 +53,7 @@ ControleProprieteChaineCaractere::ControleProprieteChaineCaractere(BasePropriete
 void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
 {
     Q_EMIT(debute_changement_controle());
-    m_propriete->définit_valeur_chaine(m_editeur_ligne->text().toStdString());
+    m_propriete->définis_valeur_chaine(m_editeur_ligne->text().toStdString());
     Q_EMIT(controle_change());
     Q_EMIT(termine_changement_controle());
 }
@@ -78,7 +78,7 @@ ControleProprieteEditeurTexte::ControleProprieteEditeurTexte(BasePropriete *p,
 
 void ControleProprieteEditeurTexte::ajourne_valeur_pointee()
 {
-    m_propriete->définit_valeur_chaine(m_editeur_ligne->toPlainText().toStdString());
+    m_propriete->définis_valeur_chaine(m_editeur_ligne->toPlainText().toStdString());
     Q_EMIT(controle_change());
 }
 

@@ -32,16 +32,15 @@
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/brosse.h"
-#include "coeur/kanba.h"
+#include "../conversion_types.hh"
 
 #include "rendu_brosse.h"
 #include "rendu_maillage.h"
 #include "rendu_rayon.h"
 #include "rendu_seaux.hh"
 
-VisionneurScene::VisionneurScene(VueCanevas3D *parent, KNB::Kanba *kanba)
-    : m_parent(parent), m_kanba(kanba), m_camera(kanba->camera), m_rendu_brosse(nullptr),
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, KNB::Kanba &kanba)
+    : m_parent(parent), m_kanba(kanba), m_caméra(kanba.donne_caméra()), m_rendu_brosse(nullptr),
       m_rendu_grille(nullptr), m_rendu_texte(nullptr), m_rendu_maillage(nullptr), m_pos_x(0),
       m_pos_y(0)
 {
@@ -66,7 +65,7 @@ void VisionneurScene::initialise()
     m_rendu_brosse = new RenduBrosse;
     m_rendu_brosse->initialise();
 
-    m_camera->ajourne();
+    m_caméra.ajourne();
 
     m_chrono_rendu.commence();
 }
@@ -75,14 +74,14 @@ void VisionneurScene::peint_opengl()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    m_camera->ajourne();
+    m_caméra.ajourne();
 
     /* Met en place le contexte. */
-    auto const &MV = m_camera->MV();
-    auto const &P = m_camera->P();
-    auto const &MVP = P * MV;
+    auto const MV = convertis_matrice(m_caméra.MV());
+    auto const P = convertis_matrice(m_caméra.P());
+    auto const MVP = P * MV;
 
-    m_contexte.vue(m_camera->dir());
+    m_contexte.vue(convertis_vecteur(m_caméra.donne_direction()));
     m_contexte.modele_vue(MV);
     m_contexte.projection(P);
     m_contexte.MVP(MVP);
@@ -93,13 +92,15 @@ void VisionneurScene::peint_opengl()
     /* Peint la scene. */
     m_rendu_grille->dessine(m_contexte);
 
-    if (m_kanba->maillage && !m_rendu_maillage) {
-        m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
+    auto maillage = m_kanba.donne_maillage();
+
+    if (maillage != nullptr && !m_rendu_maillage) {
+        m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();
     }
-    else if (m_rendu_maillage && m_rendu_maillage->maillage() != m_kanba->maillage) {
+    else if (m_rendu_maillage && m_rendu_maillage->maillage().poignee() != maillage) {
         delete m_rendu_maillage;
-        m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
+        m_rendu_maillage = new RenduMaillage(maillage);
         m_rendu_maillage->initialise();
     }
 
@@ -113,11 +114,12 @@ void VisionneurScene::peint_opengl()
     }
 
     if (m_affiche_brosse) {
-        auto const &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
+        auto brosse = m_kanba.donne_pinceau();
+        auto const &diametre = static_cast<float>(brosse.donne_diamètre());
 
         m_rendu_brosse->dessine(m_contexte,
-                                diametre / static_cast<float>(m_camera->largeur()),
-                                diametre / static_cast<float>(m_camera->hauteur()),
+                                diametre / static_cast<float>(m_caméra.donne_largeur()),
+                                diametre / static_cast<float>(m_caméra.donne_hauteur()),
                                 m_pos_x,
                                 m_pos_y);
     }
@@ -135,13 +137,14 @@ void VisionneurScene::peint_opengl()
     glDisable(GL_BLEND);
 
     /* Peint les seaux au dessus du reste. */
-    if (m_kanba->dessine_seaux) {
+    if (m_kanba.donne_dessine_seaux()) {
         glDisable(GL_DEPTH_TEST);
         if (!m_rendu_seaux) {
             m_rendu_seaux = new RenduSeaux(m_kanba);
         }
 
         m_rendu_seaux->initialise();
+        m_rendu_seaux->ajourne_tampon_couleur();
         m_contexte.modele_vue(dls::math::mat4x4f(1.0f));
         m_contexte.projection(dls::math::mat4x4f(1.0f));
         m_contexte.MVP(dls::math::mat4x4f(1.0f));
@@ -155,14 +158,14 @@ void VisionneurScene::peint_opengl()
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
     m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
-    m_camera->redimensionne(largeur, hauteur);
+    m_caméra.définis_dimension_fenêtre(largeur, hauteur);
 }
 
 void VisionneurScene::position_souris(int x, int y)
 {
-    m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
-    m_pos_y = static_cast<float>(m_camera->hauteur() - y) /
-                  static_cast<float>(m_camera->hauteur()) * 2.0f -
+    m_pos_x = static_cast<float>(x) / static_cast<float>(m_caméra.donne_largeur()) * 2.0f - 1.0f;
+    m_pos_y = static_cast<float>(m_caméra.donne_hauteur() - y) /
+                  static_cast<float>(m_caméra.donne_hauteur()) * 2.0f -
               1.0f;
 }
 

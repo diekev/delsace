@@ -122,6 +122,10 @@ void fusionne_calques(CanauxTexture &canaux)
     for (auto const &calque : canaux.calques[TypeCanal::DIFFUSION]) {
         auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
 
+        if ((calque->drapeaux & CALQUE_VISIBLE) == 0) {
+            continue;
+        }
+
         for (size_t i = 0; i < res; ++i) {
             canaux.tampon_diffusion[i] = melange(
                 canaux.tampon_diffusion[i], tampon[i], calque->opacite, calque->mode_fusion);

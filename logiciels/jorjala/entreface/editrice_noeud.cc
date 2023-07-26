@@ -89,13 +89,13 @@ EditriceGraphe::~EditriceGraphe()
     delete m_scene;
 }
 
-void EditriceGraphe::ajourne_état(JJL::TypeEvenement évènement)
+void EditriceGraphe::ajourne_état(JJL::TypeÉvènement évènement)
 {
-    auto creation = ((évènement & JJL::TypeEvenement::NOEUD) == JJL::TypeEvenement::NOEUD);
-    creation |= (évènement == (JJL::TypeEvenement::IMAGE | JJL::TypeEvenement::TRAITÉ));
-    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeEvenement::OBJET | JJL::TypeEvenement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeEvenement::RAFRAICHISSEMENT));
+    auto creation = ((évènement & JJL::TypeÉvènement::NOEUD) == JJL::TypeÉvènement::NOEUD);
+    creation |= (évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::ENLEVÉ));
+    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
 
     if (!creation) {
         return;
@@ -106,7 +106,7 @@ void EditriceGraphe::ajourne_état(JJL::TypeEvenement évènement)
     m_scene->clear();
     assert(m_scene->items().size() == 0);
 
-    auto const graphe = m_jorjala.graphe();
+    auto const graphe = m_jorjala.donne_graphe();
 
     if (graphe == nullptr) {
         return;
@@ -120,74 +120,75 @@ void EditriceGraphe::ajourne_état(JJL::TypeEvenement évènement)
     auto const largeur = rect_scene.width();
     auto const hauteur = rect_scene.height();
 
-    rect_scene = QRectF(graphe.centre_x() - static_cast<float>(largeur) * 0.5f,
-                        graphe.centre_y() - static_cast<float>(hauteur) * 0.5f,
+    rect_scene = QRectF(graphe.donne_centre_x() - static_cast<float>(largeur) * 0.5f,
+                        graphe.donne_centre_y() - static_cast<float>(hauteur) * 0.5f,
                         largeur,
                         hauteur);
 
     m_scene->setSceneRect(rect_scene);
 
-    m_vue->scale(graphe.zoom(), graphe.zoom());
+    m_vue->scale(graphe.donne_zoom(), graphe.donne_zoom());
 
-    for (auto node_ptr : graphe.noeuds()) {
+    for (auto node_ptr : graphe.donne_noeuds()) {
         auto item = new ItemNoeud(
             node_ptr,
-            node_ptr == graphe.noeud_actif(),
+            node_ptr == graphe.donne_noeud_actif(),
             /*graphe->type == type_graphe::DETAIL || graphe->type == type_graphe::CYCLES*/ false);
         m_scene->addItem(item);
 
-        for (auto prise : node_ptr.entrées()) {
-            auto connexion = prise.connexion();
+        for (auto prise : node_ptr.donne_entrées()) {
+            auto connexion = prise.donne_connexion();
             if (connexion == nullptr) {
                 continue;
             }
 
-            auto rectangle_prise = prise.rectangle();
-            auto rectangle_lien = connexion.prise_sortie().rectangle();
+            auto rectangle_prise = prise.donne_rectangle();
+            auto rectangle_lien = connexion.donne_prise_sortie().donne_rectangle();
 
             auto const p1 = rectangle_prise.position_centrale();
             auto const p2 = rectangle_lien.position_centrale();
 
             auto ligne = new QGraphicsLineItem();
 
-            if (graphe.connexion_interactive() &&
-                prise.connexion() == graphe.connexion_interactive().connexion_originelle()) {
+            if (graphe.donne_connexion_interactive() &&
+                prise.donne_connexion() ==
+                    graphe.donne_connexion_interactive().donne_connexion_originelle()) {
                 ligne->setPen(QPen(Qt::gray, 2.0));
             }
             else {
                 ligne->setPen(QPen(Qt::white, 2.0));
             }
 
-            ligne->setLine(p1.x(), p1.y(), p2.x(), p2.y());
+            ligne->setLine(p1.donne_x(), p1.donne_y(), p2.donne_x(), p2.donne_y());
 
             m_scene->addItem(ligne);
         }
     }
 
-    if (graphe.connexion_interactive()) {
-        auto connexion = graphe.connexion_interactive();
+    if (graphe.donne_connexion_interactive()) {
+        auto connexion = graphe.donne_connexion_interactive();
         JJL::Vec2 p1({});
-        if (connexion.prise_entrée() != nullptr) {
-            auto prise_entree = connexion.prise_entrée();
-            p1 = prise_entree.rectangle().position_centrale();
+        if (connexion.donne_prise_entrée() != nullptr) {
+            auto prise_entree = connexion.donne_prise_entrée();
+            p1 = prise_entree.donne_rectangle().position_centrale();
         }
         else {
-            auto prise_sortie = connexion.prise_sortie();
-            p1 = prise_sortie.rectangle().position_centrale();
+            auto prise_sortie = connexion.donne_prise_sortie();
+            p1 = prise_sortie.donne_rectangle().position_centrale();
         }
 
-        auto const x2 = connexion.x();
-        auto const y2 = connexion.y();
+        auto const x2 = connexion.donne_x();
+        auto const y2 = connexion.donne_y();
 
         auto ligne = new QGraphicsLineItem();
         ligne->setPen(QPen(Qt::white, 2.0));
-        ligne->setLine(p1.x(), p1.y(), x2, y2);
+        ligne->setLine(p1.donne_x(), p1.donne_y(), x2, y2);
 
         m_scene->addItem(ligne);
     }
 
-    if (graphe.noeud_pour_information()) {
-        affiche_informations_noeud(graphe.noeud_pour_information());
+    if (graphe.donne_noeud_pour_information()) {
+        affiche_informations_noeud(graphe.donne_noeud_pour_information());
     }
 }
 
@@ -221,17 +222,17 @@ void EditriceGraphe::keyPressEvent(QKeyEvent *event)
     BaseEditrice::keyPressEvent(event);
 }
 
-static std::string texte_danjo_pour_menu_catégorisation(JJL::CategorisationNoeuds catégorisation,
+static std::string texte_danjo_pour_menu_catégorisation(JJL::CatégorisationNoeuds catégorisation,
                                                         const std::string &identifiant)
 {
     std::stringstream ss;
 
     ss << "menu \"" << identifiant << "\" {\n";
 
-    for (auto catégorie : catégorisation.catégories()) {
-        ss << "  menu \"" << catégorie.nom().vers_std_string() << "\" {\n";
+    for (auto catégorie : catégorisation.donne_catégories()) {
+        ss << "  menu \"" << catégorie.donne_nom().vers_std_string() << "\" {\n";
 
-        for (auto noeud : catégorie.noeuds()) {
+        for (auto noeud : catégorie.donne_noeuds()) {
             ss << "    action(valeur=\"" << noeud.vers_std_string()
                << "\"; attache=ajouter_noeud; métadonnée=\"" << noeud.vers_std_string() << "\")\n";
         }
@@ -246,7 +247,7 @@ static std::string texte_danjo_pour_menu_catégorisation(JJL::CategorisationNoeu
 
 QMenu *EditriceGraphe::menu_pour_graphe()
 {
-    auto graphe = m_jorjala.graphe();
+    auto graphe = m_jorjala.donne_graphe();
     auto catégorisation = graphe.catégorisation_noeuds();
     auto identifiant_graphe = graphe.identifiant_graphe().vers_std_string();
     if (catégorisation == nullptr) {
@@ -280,7 +281,7 @@ QPointF EditriceGraphe::transforme_position_evenement(QPoint pos)
 
 void EditriceGraphe::ajourne_sélecteur_graphe()
 {
-    auto chemin_courant = m_jorjala.chemin_courant().vers_std_string();
+    auto chemin_courant = m_jorjala.donne_chemin_courant().vers_std_string();
     m_barre_chemin->setText(chemin_courant.c_str());
 
     auto racine_chemin_courant = chemin_courant.substr(1, 3);
@@ -288,33 +289,34 @@ void EditriceGraphe::ajourne_sélecteur_graphe()
 
     /* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
      * fichiers */
-    ajourne_combo_box(m_selecteur_graphe,
-                      racine_chemin_courant,
-                      racines,
-                      [](JJL::InformationGrapheRacine info) -> DonnéesItemComboxBox {
-                          return {info.nom().vers_std_string(), info.dossier().vers_std_string()};
-                      });
+    ajourne_combo_box(
+        m_selecteur_graphe,
+        racine_chemin_courant,
+        racines,
+        [](JJL::InformationGrapheRacine info) -> DonnéesItemComboxBox {
+            return {info.donne_nom().vers_std_string(), info.donne_dossier().vers_std_string()};
+        });
 }
 
 static void imprime_données_section(JJL::InformationsNoeud_Section section, dls::flux_chaine &ss)
 {
-    if (section.infos().taille() == 0) {
+    if (section.donne_infos().taille() == 0) {
         return;
     }
 
     ss << "<hr/>";
 
-    auto titre = section.titre().vers_std_string();
+    auto titre = section.donne_titre().vers_std_string();
     if (!titre.empty()) {
         ss << "<h3>" << titre << "</h3>";
     }
 
-    for (auto info : section.infos()) {
-        ss << "<p>" << info.nom().vers_std_string();
+    for (auto info : section.donne_infos()) {
+        ss << "<p>" << info.donne_nom().vers_std_string();
 
-        auto texte = info.texte().vers_std_string();
+        auto texte = info.donne_texte().vers_std_string();
         if (!texte.empty()) {
-            ss << " : " << info.texte().vers_std_string();
+            ss << " : " << texte;
         }
 
         ss << "</p>";
@@ -324,16 +326,16 @@ static void imprime_données_section(JJL::InformationsNoeud_Section section, dls
 void EditriceGraphe::affiche_informations_noeud(JJL::Noeud noeud)
 {
     dls::flux_chaine ss;
-    ss << "<p>Noeud : " << noeud.nom().vers_std_string() << "</p>";
+    ss << "<p>Noeud : " << noeud.donne_nom().vers_std_string() << "</p>";
 
     auto infos = noeud.donne_informations();
-    imprime_données_section(infos.entête(), ss);
+    imprime_données_section(infos.donne_entête(), ss);
 
-    for (auto section : infos.sections()) {
+    for (auto section : infos.donne_sections()) {
         imprime_données_section(section, ss);
     }
 
-    auto point = m_vue->mapFromScene(noeud.pos_x(), noeud.pos_y());
+    auto point = m_vue->mapFromScene(noeud.donne_pos_x(), noeud.donne_pos_y());
     point = m_vue->mapToGlobal(point);
     QToolTip::showText(point, ss.chn().c_str());
 }
