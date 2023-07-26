@@ -29,14 +29,14 @@ class EditriceAttributs : public BaseEditrice {
     EditriceAttributs(EditriceAttributs const &) = delete;
     EditriceAttributs &operator=(EditriceAttributs const &) = delete;
 
-    void ajourne_état(JJL::TypeEvenement évènement) override;
+    void ajourne_état(JJL::TypeÉvènement évènement) override;
 
     void ajourne_manipulable() override{};
 
   private:
     /** Si \a est_visible est vrai, la table est montré, sinon la table est cachée et un message
      * indiquant qu'aucun noeud n'est actif est affiché. */
-    void définit_visibilité_table(bool est_visible);
+    void définis_visibilité_table(bool est_visible);
 
   private Q_SLOTS:
     void ajourne_pour_changement_domaine(int);

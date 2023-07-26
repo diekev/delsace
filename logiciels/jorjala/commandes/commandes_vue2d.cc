@@ -57,14 +57,14 @@ class CommandeZoomCamera2D final : public CommandeJorjala {
 
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
     {
-        auto camera = jorjala.caméra_2d();
+        auto camera = jorjala.donne_caméra_2d();
 
-        auto zoom = camera.zoom() *
+        auto zoom = camera.donne_zoom() *
                     ((donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI);
-        camera.zoom(zoom);
+        camera.définis_zoom(zoom);
         camera.ajourne_matrice();
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_2D | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }
@@ -94,18 +94,18 @@ class CommandePanCamera2D final : public CommandeJorjala {
     void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
                                           DonneesCommande const &donnees) override
     {
-        auto camera = jorjala.caméra_2d();
+        auto camera = jorjala.donne_caméra_2d();
 
-        auto delta_pos_x = (m_vieil_x - donnees.x) / static_cast<float>(camera.largeur());
-        auto delta_pos_y = (m_vieil_y - donnees.y) / static_cast<float>(camera.hauteur());
-        camera.pos_x(camera.pos_x() + delta_pos_x);
-        camera.pos_y(camera.pos_y() + delta_pos_y);
+        auto delta_pos_x = (m_vieil_x - donnees.x) / static_cast<float>(camera.donne_largeur());
+        auto delta_pos_y = (m_vieil_y - donnees.y) / static_cast<float>(camera.donne_hauteur());
+        camera.définis_pos_x(camera.donne_pos_x() + delta_pos_x);
+        camera.définis_pos_y(camera.donne_pos_y() + delta_pos_y);
         camera.ajourne_matrice();
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
 
-        jorjala.notifie_observatrices(JJL::TypeEvenement::CAMÉRA_2D | JJL::TypeEvenement::MODIFIÉ);
+        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_2D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override

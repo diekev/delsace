@@ -34,24 +34,24 @@
 
 #include "biblinternes/outils/definitions.h"
 
-#include "coeur/kanba.h"
+namespace KNB {
+class Kanba;
+}
 
-class BaseDialogue;
-class ProjectSettingsDialog;
-class VueRegion;
 class QProgressBar;
+class VueRegion;
 
 class FenetrePrincipale : public QMainWindow {
     Q_OBJECT
 
     QProgressBar *m_progress_bar{};
 
-    KNB::Kanba m_kanba{};
+    KNB::Kanba &m_kanba;
 
     QVector<VueRegion *> m_régions{};
 
   public:
-    explicit FenetrePrincipale(QWidget *parent = nullptr);
+    explicit FenetrePrincipale(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
     EMPECHE_COPIE(FenetrePrincipale);
 

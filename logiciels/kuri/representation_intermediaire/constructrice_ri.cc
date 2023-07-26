@@ -3370,7 +3370,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) == 0, [type]() {
+    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [type]() {
         std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
     });
 

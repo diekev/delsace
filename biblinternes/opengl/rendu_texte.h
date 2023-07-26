@@ -29,7 +29,6 @@
 
 class ContexteRendu;
 class TamponRendu;
-class TextureImage;
 
 namespace ftgl {
 struct texture_atlas_t;
@@ -47,7 +46,6 @@ struct texture_font_t;
  */
 class RenduTexte {
 	TamponRendu *m_tampon = nullptr;
-	TextureImage *m_texture = nullptr;
 
 	/* Initialisation à 1 pour éviter les divisions par 0. */
 	int m_largeur = 1;

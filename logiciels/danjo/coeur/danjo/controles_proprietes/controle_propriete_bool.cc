@@ -49,7 +49,7 @@ ControleProprieteBool::ControleProprieteBool(BasePropriete *p, int temps, QWidge
 
 void ControleProprieteBool::ajourne_valeur_pointee(bool valeur)
 {
-    émets_controle_changé_simple([this, valeur]() { m_propriete->définit_valeur_bool(valeur); });
+    émets_controle_changé_simple([this, valeur]() { m_propriete->définis_valeur_bool(valeur); });
 }
 
 } /* namespace danjo */

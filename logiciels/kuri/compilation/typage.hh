@@ -339,6 +339,8 @@ struct TypeCompose : public Type {
             // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
             // énumérations)
             EST_IMPLICITE = (1 << 1),
+
+            MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = EST_CONSTANT,
         };
 
         NoeudDeclarationVariable *decl = nullptr;

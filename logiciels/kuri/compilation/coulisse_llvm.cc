@@ -79,7 +79,7 @@ static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
 
         index -= 1;
 
-        if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+        if (it.drapeaux & TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
             continue;
         }
 
@@ -863,7 +863,8 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                             auto index_membre = 0;
                             for (auto i = 0; i < type->membres.taille(); ++i) {
                                 if (type->membres[i].drapeaux &
-                                    TypeCompose::Membre::EST_CONSTANT) {
+                                    TypeCompose::Membre::
+                                        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
                                     continue;
                                 }
 

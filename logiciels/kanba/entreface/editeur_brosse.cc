@@ -37,12 +37,11 @@
 
 #include "biblinternes/outils/fichier.hh"
 
-#include "coeur/brosse.h"
-#include "coeur/evenement.h"
 #include "coeur/kanba.h"
-#include "coeur/melange.h"
 
-VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
+#include "conversion_types.hh"
+
+VueBrosse::VueBrosse(KNB::Kanba &kanba) : m_kanba(kanba)
 {
     ajoute_propriete("couleur_brosse", danjo::TypePropriete::COULEUR, dls::phys::couleur32(1.0f));
     ajoute_propriete("rayon", danjo::TypePropriete::ENTIER, 35);
@@ -53,27 +52,30 @@ VueBrosse::VueBrosse(KNB::Kanba *kanba) : m_kanba(kanba)
 void VueBrosse::ajourne_donnees()
 {
     auto couleur = evalue_couleur("couleur_brosse");
-    m_kanba->brosse->couleur = dls::math::vec4f(couleur.r, couleur.v, couleur.b, couleur.a);
-    m_kanba->brosse->rayon = evalue_entier("rayon");
-    m_kanba->brosse->opacite = evalue_decimal("opacité");
-    m_kanba->brosse->mode_fusion = KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion"));
+    auto pinceau = m_kanba.donne_pinceau();
+    pinceau.définis_couleur(convertis_couleur(couleur));
+    pinceau.définis_rayon(uint32_t(evalue_entier("rayon")));
+    pinceau.définis_opacité(evalue_decimal("opacité"));
+    // À FAIRE
+    // pinceau.définis_mode_de_peinture(KNB::mode_fusion_depuis_nom(evalue_enum("mode_fusion")));
 }
 
 bool VueBrosse::ajourne_proprietes()
 {
-    auto couleur = m_kanba->brosse->couleur;
-    valeur_couleur("couleur_brosse",
-                   dls::phys::couleur32(couleur.x, couleur.y, couleur.z, couleur.w));
-    valeur_decimal("opacité", m_kanba->brosse->opacite);
-    valeur_entier("rayon", m_kanba->brosse->rayon);
-    valeur_chaine("mode_fusion", KNB::nom_mode_fusion(m_kanba->brosse->mode_fusion));
+    auto pinceau = m_kanba.donne_pinceau();
+    auto couleur = pinceau.donne_couleur();
+    valeur_couleur("couleur_brosse", convertis_couleur(couleur));
+    valeur_decimal("opacité", pinceau.donne_opacité());
+    valeur_entier("rayon", int32_t(pinceau.donne_rayon()));
+    // À FAIRE
+    // valeur_chaine("mode_fusion", KNB::nom_mode_fusion(pinceau.donne_mode_de_peinture()));
 
     return true;
 }
 
-EditeurBrosse::EditeurBrosse(KNB::Kanba *kanba, QWidget *parent)
-    : BaseEditrice("brosse", *kanba, parent), m_vue(new VueBrosse(kanba)), m_widget(new QWidget()),
-      m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
+EditeurBrosse::EditeurBrosse(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent)
+    : BaseEditrice("pinceau", kanba, éditrice, parent), m_vue(new VueBrosse(kanba)),
+      m_widget(new QWidget()), m_conteneur_disposition(new QWidget()), m_scroll(new QScrollArea()),
       m_glayout(new QVBoxLayout(m_widget))
 {
     m_widget->setSizePolicy(m_cadre->sizePolicy());
@@ -97,9 +99,9 @@ EditeurBrosse::~EditeurBrosse()
     delete m_scroll;
 }
 
-void EditeurBrosse::ajourne_état(KNB::TypeÉvènement evenement)
+void EditeurBrosse::ajourne_état(KNB::ChangementÉditrice evenement)
 {
-    if (evenement != KNB::TypeÉvènement::RAFRAICHISSEMENT) {
+    if (evenement != KNB::ChangementÉditrice::RAFRAICHIS) {
         return;
     }
 
