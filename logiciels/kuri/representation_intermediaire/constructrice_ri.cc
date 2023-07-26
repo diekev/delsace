@@ -379,22 +379,57 @@ InstructionAllocation *ConstructriceRI::cree_allocation(NoeudExpression *site_,
     return inst;
 }
 
-bool est_reference_compatible_pointeur(Type const *type_pointeur, Type const *type_ref)
+static bool est_reference_compatible_pointeur(Type const *type_dest, Type const *type_source)
 {
-    if (!type_ref->est_reference()) {
+    if (!type_source->est_reference()) {
         return false;
     }
 
-    if (type_ref->comme_reference()->type_pointe != type_pointeur->comme_pointeur()->type_pointe) {
+    if (type_source->comme_reference()->type_pointe != type_dest->comme_pointeur()->type_pointe) {
         return false;
     }
 
     return true;
 }
 
-static bool est_type_opacifie(const Type *type_pointe, const Type *valeur)
+static bool est_type_opacifie(Type const *type_dest, Type const *type_source)
 {
-    return type_pointe->est_opaque() && type_pointe->comme_opaque()->type_opacifie == valeur;
+    return type_dest->est_opaque() && type_dest->comme_opaque()->type_opacifie == type_source;
+}
+
+static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
+                                                      Type const *type_source)
+{
+    auto type_élément_dest = type_dest->comme_pointeur()->type_pointe;
+    if (type_élément_dest == type_source) {
+        return true;
+    }
+
+    /* Nous avons différents types de données selon le type connu lors de la compilation. */
+    if (type_élément_dest->est_type_de_donnees() && type_source->est_type_de_donnees()) {
+        return true;
+    }
+
+    if (est_type_opacifie(type_élément_dest, type_source)) {
+        return true;
+    }
+
+    /* Certaines références sont converties en pointeur, nous devons vérifier ce cas. Les erreurs
+     * de sémantiques devraient déjà avoir été attrappées lors de la validation sémantique.
+     * À FAIRE : supprimer les références de la RI, ou les garder totalement. */
+    if (est_reference_compatible_pointeur(type_élément_dest, type_source)) {
+        return true;
+    }
+
+    /* Comme pour au-dessus, dans certains cas une fonction espère une référence mais la valeur est
+     * un pointeur. */
+    if (type_source->est_pointeur()) {
+        if (est_reference_compatible_pointeur(type_source, type_élément_dest)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
@@ -409,21 +444,14 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
 
 #if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     auto type_pointeur = ou->type->comme_pointeur();
-    assert_rappel(
-        type_pointeur->type_pointe == valeur->type ||
-            est_reference_compatible_pointeur(type_pointeur->type_pointe, valeur->type) ||
-            (type_pointeur->type_pointe->genre == GenreType::TYPE_DE_DONNEES &&
-             type_pointeur->type_pointe->genre == valeur->type->genre) ||
-            est_type_opacifie(type_pointeur->type_pointe, valeur->type),
-        [&]() {
-            std::cerr << "\ttype_pointeur->type_pointe : "
-                      << chaine_type(type_pointeur->type_pointe) << " ("
-                      << type_pointeur->type_pointe << ") "
-                      << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type
-                      << ") " << '\n';
+    assert_rappel(type_dest_et_type_source_sont_compatibles(type_pointeur, valeur->type), [&]() {
+        std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe)
+                  << " (" << type_pointeur->type_pointe << ") "
+                  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type
+                  << ") " << '\n';
 
-            erreur::imprime_site(*m_espace, site_);
-        });
+        erreur::imprime_site(*m_espace, site_);
+    });
 #endif
 
     auto type = valeur->type;
