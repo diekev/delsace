@@ -105,7 +105,7 @@ void MoteurRenduOpenGL::calcule_rendu(
         if (m_rendu_grille == nullptr) {
             /* Simule une grille infini en en dessinant une aussi grande que la
              * caméra peut voir. */
-            auto taille_grille = static_cast<int>(m_camera.plan_éloigné() * 2.0f);
+            auto taille_grille = static_cast<int>(m_camera.donne_plan_éloigné() * 2.0f);
             m_rendu_grille = memoire::loge<RenduGrille>(
                 "RenduGrille", taille_grille, taille_grille);
         }
@@ -125,7 +125,7 @@ void MoteurRenduOpenGL::calcule_rendu(
         pile.ajoute(dls::math::mat4x4d(1.0));
 
         if (objet_rendu.matrices.taille() == 0) {
-            pile.ajoute(math::matd_depuis_matf(convertis_matrice(corps.matrice())));
+            pile.ajoute(math::matd_depuis_matf(convertis_matrice(corps.donne_matrice())));
         }
 
         contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
@@ -169,7 +169,7 @@ ContexteRendu MoteurRenduOpenGL::crée_contexte_rendu()
     auto const &P = convertis_matrice(m_camera.P());
     auto const &MVP = P * MV;
 
-    résultat.vue(convertis_vecteur(m_camera.direction()));
+    résultat.vue(convertis_vecteur(m_camera.donne_direction()));
     résultat.modele_vue(MV);
     résultat.projection(P);
     résultat.MVP(MVP);
@@ -207,13 +207,13 @@ void MoteurRenduOpenGL::ajourne_objets(ContexteRendu &contexte)
         }
 
         RenduCorps *rendu_corps = nullptr;
-        auto iter_rendu_corps = m_rendus_corps.find(corps.uuid());
+        auto iter_rendu_corps = m_rendus_corps.find(corps.donne_uuid());
         if (iter_rendu_corps == m_rendus_corps.end()) {
             rendu_corps = memoire::loge<RenduCorps>("RenduCorps", corps);
             /* À FAIRE : invalide si les matrices ne sont pas les mêmes. */
             rendu_corps->initialise(contexte, objet_rendu.matrices);
 
-            m_rendus_corps.insert({corps.uuid(), rendu_corps});
+            m_rendus_corps.insert({corps.donne_uuid(), rendu_corps});
         }
         else {
             rendu_corps = iter_rendu_corps->second;

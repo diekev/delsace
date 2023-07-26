@@ -21,6 +21,8 @@
 
 set(NOM_PROJET kanba)
 
+find_package(IPAKanba REQUIRED)
+
 add_subdirectory(coeur)
 add_subdirectory(entreface)
 add_subdirectory(lanceur)

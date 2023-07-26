@@ -633,7 +633,7 @@ type_supporte_itération :: fonc (type: *TypePython) -> bool
     }
 
     si type_supporte_mapping(type) {
-        /* Les types pouvant être "mappés" ont des itérateurs afin de pouvoir 
+        /* Les types pouvant être "mappés" ont des itérateurs afin de pouvoir
          * supporter, par exemple, les expressions types 'if x in y'.
          * Ceci n'est pas supporté pour les unions. */
         retourne type.drapeaux.TYPE_EST_UNION == faux
