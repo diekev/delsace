@@ -32,8 +32,8 @@ struct Messagere {
 
   public:
     Messagere() = default;
-    Messagere(const Messagere &) = default;
-    Messagere &operator=(const Messagere &) = default;
+    Messagere(const Messagere &) = delete;
+    Messagere &operator=(const Messagere &) = delete;
 
     Messagere(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
     {
