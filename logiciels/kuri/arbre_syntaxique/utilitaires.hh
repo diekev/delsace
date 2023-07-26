@@ -148,11 +148,6 @@ struct DonneesAssignations {
     }
 };
 
-void simplifie_arbre(EspaceDeTravail *espace,
-                     AssembleuseArbre *assem,
-                     Typeuse &typeuse,
-                     NoeudExpression *arbre);
-
 void aplatis_arbre(NoeudExpression *declaration);
 
 void imprime_details_fonction(EspaceDeTravail *espace,
