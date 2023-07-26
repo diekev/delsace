@@ -23,6 +23,7 @@ set(BIBLIOTHEQUES
 set(SOURCES
     allocatrice.cc
     assembleuse.cc
+    canonicalisation.cc
     copieuse.cc
     expression.cc
     infos_types.cc
@@ -32,6 +33,7 @@ set(SOURCES
 
     allocatrice.hh
     assembleuse.hh
+    canonicalisation.hh
     copieuse.hh
     expression.hh
     infos_types.hh

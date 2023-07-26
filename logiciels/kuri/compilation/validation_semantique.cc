@@ -6,6 +6,7 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
+#include "arbre_syntaxique/canonicalisation.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "parsage/outils_lexemes.hh"
