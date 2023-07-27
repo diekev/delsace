@@ -56,8 +56,6 @@ struct ConstructriceRI {
      */
     int taille_allouee = 0;
 
-    NoeudExpressionAppel *m_noeud_pour_appel = nullptr;
-
     bool expression_gauche = true;
 
     EspaceDeTravail *m_espace = nullptr;
