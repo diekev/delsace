@@ -78,9 +78,6 @@ enum {
     REQUIERS_CODE_EXTRA_RETOUR,
     RETOURNE_UNE_UNION_VIA_RIEN,
     REQUIERS_RETOUR_UNION_VIA_RIEN,
-
-    /* expression construction structure */
-    CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
@@ -157,6 +154,11 @@ void imprime_details_fonction(EspaceDeTravail *espace,
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
+
+NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
+                                                                     Compilatrice &compilatrice,
+                                                                     AssembleuseArbre *assembleuse,
+                                                                     Typeuse &typeuse);
 
 void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,

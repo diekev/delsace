@@ -1592,8 +1592,10 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 
 static Lexeme lexeme_sentinel = {};
 
-static NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(
-    Type *type, Compilatrice &compilatrice, AssembleuseArbre *assembleuse, Typeuse &typeuse)
+NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
+                                                                     Compilatrice &compilatrice,
+                                                                     AssembleuseArbre *assembleuse,
+                                                                     Typeuse &typeuse)
 {
     if (!type->fonction_init) {
         auto type_param = typeuse.type_pointeur_pour(type);
