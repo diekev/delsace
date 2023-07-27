@@ -1640,7 +1640,8 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         return;
     }
 
-    /* pour les appels de fonctions */
+    /* Pour les appels de fonctions ou les accès après des parenthèse (p.e. (x comme *TypeBase).y).
+     */
     simplifie(ref_membre->accedee);
 }
 
