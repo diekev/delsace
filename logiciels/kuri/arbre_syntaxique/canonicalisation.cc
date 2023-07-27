@@ -7,8 +7,11 @@
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 
+#include "parsage/outils_lexemes.hh"
+
 #include "assembleuse.hh"
 #include "noeud_expression.hh"
+#include "utilitaires.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Canonicalisation.
@@ -617,17 +620,15 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         {
-            auto appel = noeud->comme_construction_structure();
-
-            POUR (appel->parametres_resolus) {
-                simplifie(it);
-            }
-
+            simplifie_construction_structure(noeud->comme_construction_structure());
             return;
         }
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto appel = noeud->comme_appel();
+
+            auto ancien_site_pour_position_code_source = m_site_pour_position_code_source;
+            m_site_pour_position_code_source = appel;
 
             if (appel->aide_generation_code == CONSTRUIT_OPAQUE) {
                 simplifie(appel->parametres_resolus[0]);
@@ -640,6 +641,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
                 appel->substitution = comme;
+                m_site_pour_position_code_source = ancien_site_pour_position_code_source;
                 return;
             }
 
@@ -659,6 +661,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 simplifie(it);
             }
 
+            m_site_pour_position_code_source = ancien_site_pour_position_code_source;
             return;
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -1361,15 +1364,26 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
     auto retourne = assem->cree_retourne(lexeme_reference);
     retourne->bloc_parent = bloc_d_insertion;
 
-    auto construction_union = assem->cree_construction_structure(lexeme_reference, type_sortie);
-    construction_union->aide_generation_code = CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN;
-
     auto param_sortie = entete->param_sortie;
-
     auto ref_param_sortie = assem->cree_reference_declaration(lexeme_reference, param_sortie);
 
+    auto type_union = type_sortie;
+    auto index_membre = 0u;
+    POUR (type_union->membres) {
+        if (it.type->est_rien()) {
+            break;
+        }
+
+        index_membre += 1;
+    }
+
+    auto ref_membre = assem->cree_reference_membre(
+        lexeme_reference, ref_param_sortie, typeuse[TypeBase::Z32], 1);
+    auto valeur_index = assem->cree_litterale_entier(
+        lexeme_reference, typeuse[TypeBase::Z32], index_membre + 1);
+
     auto assignation = assem->cree_assignation_variable(
-        lexeme_reference, ref_param_sortie, construction_union);
+        lexeme_reference, ref_membre, valeur_index);
 
     retourne->expression = ref_param_sortie;
 
@@ -1427,6 +1441,221 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 
     inst->substitution = bloc;
     return;
+}
+
+void Simplificatrice::simplifie_construction_structure(
+    NoeudExpressionConstructionStructure *construction)
+{
+    POUR (construction->parametres_resolus) {
+        simplifie(it);
+    }
+
+    if (construction->type->est_union()) {
+        simplifie_construction_union(construction);
+        return;
+    }
+
+    /* L'expression peut être nulle pour les structures anonymes crées par la compilatrice. */
+    if (construction->expression && construction->expression->ident == ID::PositionCodeSource) {
+        simplifie_construction_structure_position_code_source(construction);
+        return;
+    }
+
+    simplifie_construction_structure_impl(construction);
+}
+
+NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
+    Lexeme const *lexeme, NoeudExpression *expression_à_initialiser)
+{
+    auto type_expression = expression_à_initialiser->type;
+    auto fonction_init = cree_entete_pour_initialisation_type(
+        type_expression, espace->compilatrice(), assem, typeuse);
+
+    static Lexeme lexeme_op = {};
+    lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
+    auto prise_adresse = assem->cree_expression_unaire(&lexeme_op);
+    prise_adresse->operande = expression_à_initialiser;
+    prise_adresse->type = typeuse.type_pointeur_pour(type_expression);
+    auto appel = assem->cree_appel(lexeme, fonction_init, typeuse[TypeBase::RIEN]);
+    appel->parametres_resolus.ajoute(prise_adresse);
+
+    return appel;
+}
+
+void Simplificatrice::simplifie_construction_union(
+    NoeudExpressionConstructionStructure *construction)
+{
+    auto const site = construction;
+    auto const lexeme = construction->lexeme;
+    auto type_union = construction->type->comme_union();
+
+    if (construction->parametres_resolus.est_vide()) {
+        /* Initialise à zéro. */
+
+        auto decl_position = assem->cree_declaration_variable(
+            lexeme, type_union, nullptr, nullptr);
+        auto ref_position = decl_position->valeur->comme_reference_declaration();
+
+        auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
+        bloc->ajoute_membre(decl_position);
+        bloc->ajoute_expression(decl_position);
+
+        auto appel = crée_appel_fonction_init(lexeme, ref_position);
+        bloc->ajoute_expression(appel);
+
+        /* La dernière expression (une simple référence) sera utilisée lors de la génération de RI
+         * pour définir la valeur à assigner. */
+        bloc->ajoute_expression(ref_position);
+        construction->substitution = bloc;
+        return;
+    }
+
+    auto index_membre = 0u;
+    auto expression_initialisation = NoeudExpression::nul();
+
+    POUR (construction->parametres_resolus) {
+        if (it != nullptr) {
+            expression_initialisation = it;
+            break;
+        }
+
+        index_membre += 1;
+    }
+
+    assert(expression_initialisation);
+
+    /* Nous devons transtyper l'expression, la RI s'occupera d'initialiser le membre implicite en
+     * cas d'union sûre. */
+    auto comme = assem->cree_comme(lexeme);
+    comme->type = type_union;
+    comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    comme->expression = expression_initialisation;
+    comme->transformation = {TypeTransformation::CONSTRUIT_UNION, type_union, index_membre};
+
+    construction->substitution = comme;
+}
+
+void Simplificatrice::simplifie_construction_structure_position_code_source(
+    NoeudExpressionConstructionStructure *construction)
+{
+    auto const lexeme = construction->lexeme;
+    const NoeudExpression *site = m_site_pour_position_code_source ?
+                                      m_site_pour_position_code_source :
+                                      construction;
+    auto const lexeme_site = site->lexeme;
+
+    auto &compilatrice = espace->compilatrice();
+
+    /* Création des valeurs pour chaque membre. */
+
+    /* PositionCodeSource.fichier
+     * À FAIRE : sécurité, n'utilise pas le chemin, mais détermine une manière fiable et robuste
+     * d'obtenir le fichier, utiliser simplement le nom n'est pas fiable (d'autres fichiers du même
+     * nom dans le module). */
+    auto const fichier = compilatrice.fichier(lexeme_site->fichier);
+    auto valeur_chemin_fichier = assem->cree_litterale_chaine(lexeme);
+    valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
+
+    /* PositionCodeSource.fonction */
+    auto nom_fonction = kuri::chaine_statique("");
+    if (fonction_courante && fonction_courante->ident) {
+        nom_fonction = fonction_courante->ident->nom;
+    }
+
+    auto valeur_nom_fonction = assem->cree_litterale_chaine(lexeme);
+    valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
+
+    /* PositionCodeSource.ligne */
+    auto pos = position_lexeme(*lexeme_site);
+    auto valeur_ligne = assem->cree_litterale_entier(
+        lexeme, typeuse[TypeBase::Z32], static_cast<unsigned>(pos.numero_ligne));
+
+    /* PositionCodeSource.colonne */
+    auto valeur_colonne = assem->cree_litterale_entier(
+        lexeme, typeuse[TypeBase::Z32], static_cast<unsigned>(pos.pos));
+
+    /* Création d'une temporaire et assignation des membres. */
+
+    auto const type_position_code_source = typeuse.type_position_code_source;
+    auto decl_position = assem->cree_declaration_variable(
+        lexeme, type_position_code_source, nullptr, nullptr);
+    auto ref_position = decl_position->valeur->comme_reference_declaration();
+
+    auto ref_membre_fichier = assem->cree_reference_membre(
+        lexeme, ref_position, typeuse[TypeBase::CHAINE], 0);
+    auto ref_membre_fonction = assem->cree_reference_membre(
+        lexeme, ref_position, typeuse[TypeBase::CHAINE], 1);
+    auto ref_membre_ligne = assem->cree_reference_membre(
+        lexeme, ref_position, typeuse[TypeBase::Z32], 2);
+    auto ref_membre_colonne = assem->cree_reference_membre(
+        lexeme, ref_position, typeuse[TypeBase::Z32], 3);
+
+    NoeudExpression *couples_ref_membre_expression[4][2] = {
+        {ref_membre_fichier, valeur_chemin_fichier},
+        {ref_membre_fonction, valeur_nom_fonction},
+        {ref_membre_ligne, valeur_ligne},
+        {ref_membre_colonne, valeur_colonne},
+    };
+
+    auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
+    bloc->ajoute_membre(decl_position);
+    bloc->ajoute_expression(decl_position);
+
+    for (auto couple : couples_ref_membre_expression) {
+        auto assign = assem->cree_assignation_variable(lexeme, couple[0], couple[1]);
+        bloc->ajoute_expression(assign);
+    }
+
+    /* La dernière expression (une simple référence) sera utilisée lors de la génération de RI pour
+     * définir la valeur à assigner. */
+    bloc->ajoute_expression(ref_position);
+    construction->substitution = bloc;
+}
+
+void Simplificatrice::simplifie_construction_structure_impl(
+    NoeudExpressionConstructionStructure *construction)
+{
+    auto const site = construction;
+    auto const lexeme = construction->lexeme;
+    auto type_struct = construction->type->comme_structure();
+
+    auto decl_position = assem->cree_declaration_variable(lexeme, type_struct, nullptr, nullptr);
+    auto ref_position = decl_position->valeur->comme_reference_declaration();
+
+    auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
+    bloc->ajoute_membre(decl_position);
+    bloc->ajoute_expression(decl_position);
+
+    auto index_membre = 0;
+
+    POUR (construction->parametres_resolus) {
+        const auto &membre = type_struct->membres[index_membre];
+
+        if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+            index_membre += 1;
+            continue;
+        }
+
+        auto type_membre = membre.type;
+        auto ref_membre = assem->cree_reference_membre(
+            lexeme, ref_position, type_membre, index_membre);
+
+        if (it != nullptr) {
+            auto assign = assem->cree_assignation_variable(lexeme, ref_membre, it);
+            bloc->ajoute_expression(assign);
+        }
+        else {
+            auto appel = crée_appel_fonction_init(lexeme, ref_membre);
+            bloc->ajoute_expression(appel);
+        }
+
+        index_membre += 1;
+    }
+
+    /* La dernière expression (une simple référence) sera utilisée lors de la génération de RI pour
+     * définir la valeur à assigner. */
+    bloc->ajoute_expression(ref_position);
+    construction->substitution = bloc;
 }
 
 NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpression *var,

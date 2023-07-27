@@ -14,7 +14,9 @@ struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDiscr;
 struct NoeudExpression;
+struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
+struct NoeudExpressionConstructionStructure;
 struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudRetour;
@@ -36,6 +38,24 @@ struct Simplificatrice {
 
     NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
+    /* Tiens trace des appels de fonction. Quand nous visitons les paramètres de d'appel d'une
+     * fonction, si l'un des paramètres est la construction d'une instance de PositionCodeSource,
+     * nous devons utiliser le site d'appel et non le site de l'argument car celui-ci pourrait être
+     * le site de la déclaration de l'argument de la fonction.
+     *
+     * Par exemple :
+     *
+     * une_fonction :: fonc (position := PositionCodeSource()) ...
+     *
+     * une_autre_fonction :: fonc ()
+     * {
+     *     // nous devons prendre le site de l'appel, sinon les informations de PositionCodeSource
+     *     // dériveraient du site de déclaration de l'argument.
+     *     une_fonction()
+     * }
+     */
+    NoeudExpressionAppel *m_site_pour_position_code_source = nullptr;
+
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
         : espace(e), assem(a), typeuse(t)
     {
@@ -53,6 +73,11 @@ struct Simplificatrice {
     void simplifie_discr_impl(NoeudDiscr *discr);
     void simplifie_retiens(NoeudRetiens *retiens);
     void simplifie_retour(NoeudRetour *inst);
+    void simplifie_construction_structure(NoeudExpressionConstructionStructure *construction);
+    void simplifie_construction_union(NoeudExpressionConstructionStructure *construction);
+    void simplifie_construction_structure_position_code_source(
+        NoeudExpressionConstructionStructure *construction);
+    void simplifie_construction_structure_impl(NoeudExpressionConstructionStructure *construction);
 
     NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
@@ -74,6 +99,9 @@ struct Simplificatrice {
     void cree_retourne_union_via_rien(NoeudDeclarationEnteteFonction *entete,
                                       NoeudBloc *bloc_d_insertion,
                                       const Lexeme *lexeme_reference);
+
+    NoeudExpressionAppel *crée_appel_fonction_init(Lexeme const *lexeme,
+                                                   NoeudExpression *expression_à_initialiser);
 };
 
 /** \} */

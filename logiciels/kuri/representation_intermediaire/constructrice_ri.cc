@@ -803,6 +803,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             break;
         }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
+        {
+            assert_rappel(false, [&]() {
+                std::cerr << "Erreur interne : une expression de construction de structure ne fut "
+                             "pas simplifiée !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
+
+            break;
+        }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         {
             auto inst = noeud->comme_si_statique();
@@ -946,9 +956,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto args = kuri::tableau<Atome *, int>();
             args.reserve(expr_appel->parametres_resolus.taille());
 
-            auto ancien_pour_appel = m_noeud_pour_appel;
-            m_noeud_pour_appel = expr_appel;
-
             /* Nous pouvons avoir des initialisations de type ici qui furent créés lors de la
              * création de fonctions d'initialisations d'autres types. */
             auto fonction_init = est_appel_fonction_initialisation(expr_appel->expression);
@@ -958,7 +965,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 auto valeur = depile_valeur();
                 auto type = fonction_init->type_initialisé();
                 cree_appel_fonction_init_type(expr_appel, type, valeur);
-                m_noeud_pour_appel = ancien_pour_appel;
                 return;
             }
 
@@ -973,8 +979,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 cree_stocke_mem(it, alloc, valeur);
                 args.ajoute(cree_charge_mem(it, alloc));
             }
-
-            m_noeud_pour_appel = ancien_pour_appel;
 
             genere_ri_pour_expression_droite(expr_appel->expression, nullptr);
             auto atome_fonc = depile_valeur();
@@ -1635,111 +1639,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto valeur = converti_vers_tableau_dyn(
                 noeud, pointeur_tableau, type_tableau_fixe, nullptr);
             empile_valeur(valeur);
-            break;
-        }
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-        {
-            auto expr = noeud->comme_construction_structure();
-            auto alloc = static_cast<Atome *>(nullptr);
-
-            if (expr->type->genre == GenreType::UNION) {
-                auto index_membre = 0u;
-                auto valeur = static_cast<Atome *>(nullptr);
-                auto type_union = expr->type->comme_union();
-
-                POUR (expr->parametres_resolus) {
-                    if (it != nullptr) {
-                        genere_ri_pour_expression_droite(it, nullptr);
-                        valeur = depile_valeur();
-
-                        if (it->type != type_union->type_le_plus_grand) {
-                            Atome *ptr = nullptr;
-
-                            if (!valeur->est_instruction()) {
-                                auto alloc_temp = cree_allocation(it, it->type, nullptr);
-                                cree_stocke_mem(it, alloc_temp, valeur);
-                                ptr = alloc_temp;
-                            }
-                            else {
-                                ptr = valeur->comme_instruction()->comme_charge()->chargee;
-                            }
-
-                            valeur = cree_transtype(noeud,
-                                                    m_compilatrice.typeuse.type_pointeur_pour(
-                                                        type_union->type_le_plus_grand, false),
-                                                    ptr,
-                                                    TypeTranstypage::BITS);
-                            valeur = cree_charge_mem(noeud, valeur);
-                        }
-
-                        break;
-                    }
-
-                    index_membre += 1;
-                }
-
-                alloc = cree_allocation(noeud, type_union, nullptr);
-
-                if (type_union->est_nonsure) {
-                    cree_stocke_mem(noeud, alloc, valeur);
-                }
-                else if (expr->aide_generation_code == CONSTRUIT_UNION_DEPUIS_MEMBRE_TYPE_RIEN) {
-                    index_membre = 0;
-                    POUR (type_union->membres) {
-                        if (it.type->est_rien()) {
-                            break;
-                        }
-
-                        index_membre += 1;
-                    }
-
-                    auto ptr_index = cree_reference_membre(noeud, alloc, 1);
-                    cree_stocke_mem(noeud, ptr_index, cree_z32(index_membre + 1));
-                }
-                else {
-                    auto ptr_valeur = cree_reference_membre(noeud, alloc, 0);
-                    cree_stocke_mem(noeud, ptr_valeur, valeur);
-
-                    auto ptr_index = cree_reference_membre(noeud, alloc, 1);
-                    cree_stocke_mem(noeud, ptr_index, cree_z32(index_membre + 1));
-                }
-            }
-            else {
-                /* appelee peut être nulle pour les structures anonymes crées par la compilatrice
-                 */
-                if (expr->expression && expr->expression->ident == ID::PositionCodeSource) {
-                    genere_ri_pour_position_code_source(noeud);
-                    return;
-                }
-
-                auto type_struct = noeud->type->comme_structure();
-                auto index_membre = 0;
-
-                alloc = cree_allocation(noeud, type_struct, nullptr);
-
-                POUR (expr->parametres_resolus) {
-                    const auto &membre = type_struct->membres[index_membre];
-
-                    if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
-                        index_membre += 1;
-                        continue;
-                    }
-
-                    auto ptr = cree_reference_membre(it, alloc, index_membre);
-
-                    if (it != nullptr) {
-                        genere_ri_pour_expression_droite(it, ptr);
-                    }
-                    else {
-                        auto type_membre = type_struct->membres[index_membre].type;
-                        cree_appel_fonction_init_type(expr, type_membre, ptr);
-                    }
-
-                    index_membre += 1;
-                }
-            }
-
-            empile_valeur(alloc);
             break;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
@@ -3471,50 +3370,6 @@ AtomeConstante *ConstructriceRI::cree_globale_info_type(Type const *type_info_ty
 {
     auto initialisateur = cree_constante_structure(type_info_type, std::move(valeurs));
     return cree_globale(type_info_type, initialisateur, false, true);
-}
-
-void ConstructriceRI::genere_ri_pour_position_code_source(NoeudExpression *noeud)
-{
-    if (m_noeud_pour_appel) {
-        noeud = m_noeud_pour_appel;
-    }
-
-    auto type_position = m_compilatrice.typeuse.type_position_code_source;
-
-    auto alloc = cree_allocation(noeud, type_position, nullptr);
-
-    // fichier
-    auto const &fichier = m_compilatrice.fichier(noeud->lexeme->fichier);
-    // À FAIRE : sécurité, n'utilise pas le chemin, mais détermine une manière fiable
-    // et robuste d'obtenir le fichier, utiliser simplement le nom n'est pas fiable
-    // (d'autres fichiers du même nom dans le module)
-    auto chaine_nom_fichier = cree_chaine(fichier->chemin());
-    auto ptr_fichier = cree_reference_membre(noeud, alloc, 0);
-    cree_stocke_mem(noeud, ptr_fichier, chaine_nom_fichier);
-
-    // fonction
-    auto nom_fonction = kuri::chaine_statique("");
-
-    if (fonction_courante != nullptr) {
-        nom_fonction = fonction_courante->nom;
-    }
-
-    auto chaine_fonction = cree_chaine(nom_fonction);
-    auto ptr_fonction = cree_reference_membre(noeud, alloc, 1);
-    cree_stocke_mem(noeud, ptr_fonction, chaine_fonction);
-
-    // ligne
-    auto pos = position_lexeme(*noeud->lexeme);
-    auto ligne = cree_z32(static_cast<unsigned>(pos.numero_ligne));
-    auto ptr_ligne = cree_reference_membre(noeud, alloc, 2);
-    cree_stocke_mem(noeud, ptr_ligne, ligne);
-
-    // colonne
-    auto colonne = cree_z32(static_cast<unsigned>(pos.pos));
-    auto ptr_colonne = cree_reference_membre(noeud, alloc, 3);
-    cree_stocke_mem(noeud, ptr_colonne, colonne);
-
-    empile_valeur(alloc);
 }
 
 Atome *ConstructriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud,
