@@ -152,7 +152,7 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 	pos_x := app.personnage.pos_x comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
 	pos_y := app.personnage.pos_y comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
 
-	couleur := Couleur(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
+	couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
 
 	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
 
