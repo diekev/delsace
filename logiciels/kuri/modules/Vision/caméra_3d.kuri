@@ -259,6 +259,8 @@ initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_
     caméra.vitesse_chute = 0.5
     caméra.vitesse_latérale = 0.05
 
+    caméra.définis_type_projection(type_projection)
+
     caméra.drapeaux = DrapeauAjournementCaméra.valeurs_légales
 }
 
