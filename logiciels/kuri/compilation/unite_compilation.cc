@@ -214,6 +214,13 @@ void UniteCompilation::marque_prete_si_attente_resolue()
             continue;
         }
 
+        /* À FAIRE : généralise. */
+        if (it.est<AttenteSurNoeudCode>()) {
+            assert(m_raison_d_etre == RaisonDEtre::ENVOIE_MESSAGE);
+            static_cast<MessageTypageCodeTermine *>(message)->code =
+                it.noeud_code().noeud->noeud_code;
+        }
+
         it = {};
     }
 
