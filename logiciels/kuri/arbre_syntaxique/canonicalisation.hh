@@ -17,6 +17,7 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
+struct NoeudExpressionMembre;
 struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudRetour;
@@ -78,6 +79,7 @@ struct Simplificatrice {
     void simplifie_construction_structure_position_code_source(
         NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_structure_impl(NoeudExpressionConstructionStructure *construction);
+    void simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
 
     NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
