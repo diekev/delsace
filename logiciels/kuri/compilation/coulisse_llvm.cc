@@ -595,7 +595,8 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
 
             POUR (type_struct->membres) {
-                if (it.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+                if (it.drapeaux ==
+                    TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
                     continue;
                 }
                 types_membres.push_back(converti_type_llvm(it.type));

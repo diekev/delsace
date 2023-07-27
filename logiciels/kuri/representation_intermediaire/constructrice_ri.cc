@@ -2658,7 +2658,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type con
             valeurs.reserve(type_compose->membres.taille());
 
             POUR (type_compose->membres) {
-                if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+                if (it.drapeaux & TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
                     continue;
                 }
 
