@@ -333,79 +333,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         {
-            auto ref_membre = noeud->comme_reference_membre();
-            auto accede = ref_membre->accedee;
-            auto type_accede = accede->type;
-
-            if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
-                // a.DRAPEAU => (a & DRAPEAU) != 0
-                auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
-                auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-
-                auto valeur_lit_enum = assem->cree_litterale_entier(
-                    noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
-                auto op = type_enum->operateur_etb;
-                auto et = assem->cree_expression_binaire(
-                    noeud->lexeme, op, accede, valeur_lit_enum);
-
-                auto zero = assem->cree_litterale_entier(noeud->lexeme, type_enum, 0);
-                op = type_enum->operateur_dif;
-                auto dif = assem->cree_expression_binaire(noeud->lexeme, op, et, zero);
-
-                ref_membre->substitution = dif;
-                return;
-            }
-
-            if (accede->est_reference_declaration()) {
-                if (accede->comme_reference_declaration()
-                        ->declaration_referee->est_declaration_module()) {
-                    ref_membre->substitution = accede;
-                    simplifie(accede);
-                    return;
-                }
-            }
-
-            while (type_accede->est_pointeur() || type_accede->est_reference()) {
-                type_accede = type_dereference_pour(type_accede);
-            }
-
-            if (type_accede->est_opaque()) {
-                type_accede = type_accede->comme_opaque()->type_opacifie;
-            }
-
-            if (type_accede->est_tableau_fixe()) {
-                auto taille = type_accede->comme_tableau_fixe()->taille;
-                noeud->substitution = assem->cree_litterale_entier(
-                    noeud->lexeme, noeud->type, static_cast<uint64_t>(taille));
-                return;
-            }
-
-            if (type_accede->est_enum() || type_accede->est_erreur()) {
-                auto type_enum = static_cast<TypeEnum *>(type_accede);
-                auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-                noeud->substitution = assem->cree_litterale_entier(
-                    noeud->lexeme, type_enum, static_cast<unsigned>(valeur_enum));
-                return;
-            }
-
-            if (type_accede->est_type_de_donnees() && noeud->genre_valeur == GenreValeur::DROITE) {
-                noeud->substitution = assem->cree_reference_type(
-                    noeud->lexeme, typeuse.type_type_de_donnees(noeud->type));
-                return;
-            }
-
-            auto type_compose = static_cast<TypeCompose *>(type_accede);
-            auto &membre = type_compose->membres[ref_membre->index_membre];
-
-            if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
-                simplifie(membre.expression_valeur_defaut);
-                noeud->substitution = membre.expression_valeur_defaut;
-                return;
-            }
-
-            /* pour les appels de fonctions */
-            simplifie(ref_membre->accedee);
-
+            simplifie_référence_membre(noeud->comme_reference_membre());
             return;
         }
         case GenreNoeud::EXPRESSION_COMME:
@@ -1656,6 +1584,80 @@ void Simplificatrice::simplifie_construction_structure_impl(
      * définir la valeur à assigner. */
     bloc->ajoute_expression(ref_position);
     construction->substitution = bloc;
+}
+
+void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_membre)
+{
+    auto const lexeme = ref_membre->lexeme;
+    auto accede = ref_membre->accedee;
+    auto type_accede = accede->type;
+
+    if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+        // a.DRAPEAU => (a & DRAPEAU) != 0
+        auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
+        auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+
+        auto valeur_lit_enum = assem->cree_litterale_entier(
+            lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+        auto op = type_enum->operateur_etb;
+        auto et = assem->cree_expression_binaire(lexeme, op, accede, valeur_lit_enum);
+
+        auto zero = assem->cree_litterale_entier(lexeme, type_enum, 0);
+        op = type_enum->operateur_dif;
+        auto dif = assem->cree_expression_binaire(lexeme, op, et, zero);
+
+        ref_membre->substitution = dif;
+        return;
+    }
+
+    if (accede->est_reference_declaration()) {
+        if (accede->comme_reference_declaration()->declaration_referee->est_declaration_module()) {
+            ref_membre->substitution = accede;
+            simplifie(accede);
+            return;
+        }
+    }
+
+    while (type_accede->est_pointeur() || type_accede->est_reference()) {
+        type_accede = type_dereference_pour(type_accede);
+    }
+
+    if (type_accede->est_opaque()) {
+        type_accede = type_accede->comme_opaque()->type_opacifie;
+    }
+
+    if (type_accede->est_tableau_fixe()) {
+        auto taille = type_accede->comme_tableau_fixe()->taille;
+        ref_membre->substitution = assem->cree_litterale_entier(
+            lexeme, ref_membre->type, static_cast<uint64_t>(taille));
+        return;
+    }
+
+    if (type_accede->est_enum() || type_accede->est_erreur()) {
+        auto type_enum = static_cast<TypeEnum *>(type_accede);
+        auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
+        ref_membre->substitution = assem->cree_litterale_entier(
+            lexeme, type_enum, static_cast<unsigned>(valeur_enum));
+        return;
+    }
+
+    if (type_accede->est_type_de_donnees() && ref_membre->genre_valeur == GenreValeur::DROITE) {
+        ref_membre->substitution = assem->cree_reference_type(
+            lexeme, typeuse.type_type_de_donnees(ref_membre->type));
+        return;
+    }
+
+    auto type_compose = static_cast<TypeCompose *>(type_accede);
+    auto &membre = type_compose->membres[ref_membre->index_membre];
+
+    if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+        simplifie(membre.expression_valeur_defaut);
+        ref_membre->substitution = membre.expression_valeur_defaut;
+        return;
+    }
+
+    /* pour les appels de fonctions */
+    simplifie(ref_membre->accedee);
 }
 
 NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpression *var,
