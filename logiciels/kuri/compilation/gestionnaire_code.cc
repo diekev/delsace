@@ -1252,19 +1252,6 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
 
 void GestionnaireCode::conversion_noeud_code_terminee(UniteCompilation *unite)
 {
-    auto noeud = unite->noeud;
-
-    POUR (unites_en_attente) {
-        auto attente = it->attend_sur_noeud_code(noeud);
-        if (!attente) {
-            continue;
-        }
-        assert(it->raison_d_etre() == RaisonDEtre::ENVOIE_MESSAGE);
-        auto message = it->message;
-        static_cast<MessageTypageCodeTermine *>(message)->code = noeud->noeud_code;
-        *attente = {};
-    }
-
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
