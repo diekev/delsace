@@ -159,3 +159,9 @@ struct GestionnaireBibliotheques {
                                      NoeudExpression *site,
                                      Bibliotheque *bibliotheque);
 };
+
+void *notre_malloc(size_t n);
+
+void *notre_realloc(void *ptr, size_t taille);
+
+void notre_free(void *ptr);
