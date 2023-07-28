@@ -33,17 +33,17 @@
  * la mémoire de notre coté, ou encore vérifier qu'il n'y a pas de fuite de
  * mémoire dans les métaprogrammes.
  */
-static void *notre_malloc(size_t n)
+void *notre_malloc(size_t n)
 {
     return malloc(n);
 }
 
-static void *notre_realloc(void *ptr, size_t taille)
+void *notre_realloc(void *ptr, size_t taille)
 {
     return realloc(ptr, taille);
 }
 
-static void notre_free(void *ptr)
+void notre_free(void *ptr)
 {
     free(ptr);
 }
