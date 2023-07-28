@@ -14,6 +14,16 @@
 #include "utilitaires.hh"
 
 /* ------------------------------------------------------------------------- */
+/** \name Utilitaires locaux.
+ * \{ */
+
+/* Noeud global pour les expressions de non-initialisation, utilisé afin d'économiser un peu de
+ * mémoire. */
+static NoeudExpressionNonIntialisation non_initialisation{};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Canonicalisation.
  * \{ */
 
@@ -1405,7 +1415,7 @@ void Simplificatrice::simplifie_construction_union(
         /* Initialise à zéro. */
 
         auto decl_position = assem->cree_declaration_variable(
-            lexeme, type_union, nullptr, nullptr);
+            lexeme, type_union, nullptr, &non_initialisation);
         auto ref_position = decl_position->valeur->comme_reference_declaration();
 
         auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
@@ -1490,7 +1500,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
 
     auto const type_position_code_source = typeuse.type_position_code_source;
     auto decl_position = assem->cree_declaration_variable(
-        lexeme, type_position_code_source, nullptr, nullptr);
+        lexeme, type_position_code_source, nullptr, &non_initialisation);
     auto ref_position = decl_position->valeur->comme_reference_declaration();
 
     auto ref_membre_fichier = assem->cree_reference_membre(
@@ -1531,7 +1541,8 @@ void Simplificatrice::simplifie_construction_structure_impl(
     auto const lexeme = construction->lexeme;
     auto type_struct = construction->type->comme_structure();
 
-    auto decl_position = assem->cree_declaration_variable(lexeme, type_struct, nullptr, nullptr);
+    auto decl_position = assem->cree_declaration_variable(
+        lexeme, type_struct, nullptr, &non_initialisation);
     auto ref_position = decl_position->valeur->comme_reference_declaration();
 
     auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
