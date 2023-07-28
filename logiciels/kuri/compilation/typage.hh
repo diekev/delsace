@@ -371,6 +371,15 @@ struct TypeCompose : public Type {
     static TypeCompose *cree_chaine();
 
     void marque_polymorphique();
+
+    struct InformationMembre {
+        Membre membre{};
+        int index_membre = -1;
+    };
+
+    std::optional<InformationMembre> donne_membre_pour_type(Type const *type) const;
+    std::optional<InformationMembre> donne_membre_pour_nom(
+        IdentifiantCode const *nom_membre) const;
 };
 
 inline bool est_type_compose(const Type *type)

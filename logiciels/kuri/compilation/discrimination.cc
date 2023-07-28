@@ -16,35 +16,6 @@
 
 // --------------------------------------------
 
-static const TypeCompose::Membre *trouve_membre(TypeCompose const *type,
-                                                IdentifiantCode const *ident)
-{
-    POUR (type->membres) {
-        if (it.nom == ident) {
-            return &it;
-        }
-    }
-
-    return nullptr;
-}
-
-static const TypeCompose::Membre *trouve_membre(TypeCompose const *type, Type const *type_membre)
-{
-    POUR (type->membres) {
-        if (it.type == type_membre) {
-            return &it;
-        }
-    }
-
-    return nullptr;
-}
-
-static inline int64_t trouve_index_membre(TypeCompose const *type,
-                                          TypeCompose::Membre const *membre)
-{
-    return (membre - &type->membres[0]);
-}
-
 static inline bool est_implicite(TypeCompose::Membre const &membre)
 {
     return membre.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
@@ -66,7 +37,7 @@ static ResultatValidation valide_presence_membre(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
     TypeCompose *type,
-    kuri::ensemblon<TypeCompose::Membre const *, 16> const &membres_rencontres)
+    kuri::ensemblon<IdentifiantCode const *, 16> const &membres_rencontres)
 {
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
@@ -75,7 +46,7 @@ static ResultatValidation valide_presence_membre(
             continue;
         }
 
-        if (membres_rencontres.possede(&it)) {
+        if (membres_rencontres.possede(it.nom)) {
             continue;
         }
 
@@ -98,7 +69,7 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
     auto type_enum = static_cast<TypeEnum *>(type);
     inst->op = type_enum->operateur_egt;
 
-    auto membres_rencontres = kuri::ensemblon<TypeCompose::Membre const *, 16>();
+    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
@@ -114,33 +85,35 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
                 return CodeRetourValidation::Erreur;
             }
 
-            auto membre = trouve_membre(type_enum, f->ident);
+            auto info_membre = type_enum->donne_membre_pour_nom(f->ident);
 
-            if (!membre) {
+            if (!info_membre) {
                 rapporte_erreur_membre_inconnu(inst, f, type_enum);
                 return CodeRetourValidation::Erreur;
             }
 
-            if (est_implicite(*membre)) {
+            auto membre = info_membre->membre;
+
+            if (est_implicite(membre)) {
                 espace->rapporte_erreur(f,
                                         "Les membres implicites des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
-            if (est_constant(*membre)) {
+            if (est_constant(membre)) {
                 espace->rapporte_erreur(f,
                                         "Les membres constants des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
-            if (membres_rencontres.possede(membre)) {
+            if (membres_rencontres.possede(membre.nom)) {
                 rapporte_erreur("Redéfinition de l'expression", f);
                 return CodeRetourValidation::Erreur;
             }
 
-            membres_rencontres.insere(membre);
+            membres_rencontres.insere(membre.nom);
         }
     }
 
@@ -199,7 +172,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
-                                               TypeCompose::Membre const *membre,
+                                               TypeCompose::InformationMembre const &info_membre,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
@@ -229,8 +202,9 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
 
     /* À FAIRE(discr) : ceci n'est que pour la visite des noeuds dans le GestionnaireCode.
      */
-    param->type = membre->type;
-    appel->type = membre->type;
+    auto type_membre = info_membre.membre.type;
+    param->type = type_membre;
+    appel->type = type_membre;
 
     auto bloc_insertion = paire_discr->bloc;
 
@@ -238,14 +212,14 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
     auto init_decl = assembleuse->cree_comme(param->lexeme);
     init_decl->expression = expression;
-    init_decl->type = membre->type;
+    init_decl->type = type_membre;
     init_decl->transformation = {
-        TypeTransformation::EXTRAIT_UNION, membre->type, trouve_index_membre(type_union, membre)};
+        TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
 
     auto decl_expr = assembleuse->cree_declaration_variable(param->comme_reference_declaration(),
                                                             init_decl);
     decl_expr->bloc_parent = bloc_insertion;
-    decl_expr->type = membre->type;
+    decl_expr->type = type_membre;
     decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
 
     bloc_insertion->expressions->pousse_front(decl_expr);
@@ -268,7 +242,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
         return CodeRetourValidation::Erreur;
     }
 
-    auto membres_rencontres = kuri::ensemblon<TypeCompose::Membre const *, 16>();
+    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -291,40 +265,42 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
             return CodeRetourValidation::Erreur;
         }
 
-        auto membre = trouve_membre(type_union, expression_valide->ident);
+        auto info_membre = type_union->donne_membre_pour_nom(expression_valide->ident);
 
-        if (!membre) {
+        if (!info_membre) {
             rapporte_erreur_membre_inconnu(inst, feuille, type_union);
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_implicite(*membre)) {
+        auto membre = info_membre->membre;
+
+        if (est_implicite(membre)) {
             espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_constant(*membre)) {
+        if (est_constant(membre)) {
             espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontres.possede(membre)) {
+        if (membres_rencontres.possede(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
 
         /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
-        feuille->ident = membre->nom;
+        feuille->ident = membre.nom;
 
-        membres_rencontres.insere(membre);
+        membres_rencontres.insere(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
-            if (membre->type->est_rien()) {
+            if (membre.type->est_rien()) {
                 espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
@@ -336,7 +312,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
                                                type_union,
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
-                                               membre,
+                                               info_membre.value(),
                                                expression_valide->est_expression_appel,
                                                fonction_courante()->bloc_constantes);
         }
@@ -359,7 +335,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
     inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
-    auto membres_rencontres = kuri::ensemblon<TypeCompose::Membre const *, 16>();
+    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
         auto expr_paire = inst->paires_discr[i]->expression;
@@ -392,35 +368,37 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         expr_paire->type = type_expr;
 
-        auto membre = trouve_membre(type_union, type_expr);
-        if (!membre) {
+        auto info_membre = type_union->donne_membre_pour_type(type_expr);
+        if (!info_membre) {
             rapporte_erreur("Le type n'est pas membre de l'union", feuille);
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_implicite(*membre)) {
+        auto membre = info_membre->membre;
+
+        if (est_implicite(membre)) {
             espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_constant(*membre)) {
+        if (est_constant(membre)) {
             espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontres.possede(membre)) {
+        if (membres_rencontres.possede(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
 
         /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
-        feuille->ident = membre->nom;
+        feuille->ident = membre.nom;
 
-        membres_rencontres.insere(membre);
+        membres_rencontres.insere(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
@@ -436,7 +414,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
                                                type_union,
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
-                                               membre,
+                                               info_membre.value(),
                                                expression_valide->est_expression_appel,
                                                fonction_courante()->bloc_constantes);
         }
