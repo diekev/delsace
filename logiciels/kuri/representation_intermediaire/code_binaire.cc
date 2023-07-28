@@ -1533,8 +1533,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             auto type_compose = static_cast<TypeCompose const *>(type);
 
             auto index_membre = 0;
-            for (auto i = 0; i < type_compose->membres.taille(); ++i) {
-                if ((type_compose->membres[i].drapeaux &
+            POUR (type_compose->membres) {
+                if ((it.drapeaux &
                      TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) != 0) {
                     continue;
                 }

@@ -379,23 +379,18 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
             return Attente::sur_type(type_union);
         }
 
-        auto index_membre = 0l;
-
-        POUR (type_union->membres) {
-            if (it.type == type_vers) {
-                if (!type_union->est_nonsure) {
-                    auto decl_panique_membre_union =
-                        compilatrice.interface_kuri->decl_panique_membre_union;
-                    if (decl_panique_membre_union == nullptr) {
-                        return Attente::sur_interface_kuri(ID::panique_membre_union);
-                    }
-                }
-
-                return TransformationType{
-                    TypeTransformation::EXTRAIT_UNION, type_vers, index_membre};
+        POUR_INDEX (type_union->membres) {
+            if (it.type != type_vers || type_union->est_nonsure) {
+                continue;
             }
 
-            index_membre += 1;
+            auto decl_panique_membre_union =
+                compilatrice.interface_kuri->decl_panique_membre_union;
+            if (decl_panique_membre_union == nullptr) {
+                return Attente::sur_interface_kuri(ID::panique_membre_union);
+            }
+
+            return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
         }
 
         return TypeTransformation::IMPOSSIBLE;
