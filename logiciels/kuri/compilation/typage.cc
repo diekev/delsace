@@ -256,6 +256,30 @@ void TypeCompose::marque_polymorphique()
     }
 }
 
+std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_type(
+    const Type *type) const
+{
+    POUR_INDEX (membres) {
+        if (it.type == type) {
+            return TypeCompose::InformationMembre{it, index_it};
+        }
+    }
+
+    return {};
+}
+
+std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_nom(
+    const IdentifiantCode *nom_membre) const
+{
+    POUR_INDEX (membres) {
+        if (it.nom == nom_membre) {
+            return TypeCompose::InformationMembre{it, index_it};
+        }
+    }
+
+    return {};
+}
+
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
                                  kuri::tableau<TypeCompose::Membre, int> &&membres_)

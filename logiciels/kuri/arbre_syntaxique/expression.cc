@@ -247,10 +247,9 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 if (decl_var->type->est_enum()) {
                     auto type_enum = static_cast<TypeEnum *>(decl_var->type);
 
-                    POUR (type_enum->membres) {
-                        if (it.nom == decl_var->ident) {
-                            return ValeurExpression(it.valeur);
-                        }
+                    auto info_membre = type_enum->donne_membre_pour_nom(decl_var->ident);
+                    if (info_membre.has_value()) {
+                        return ValeurExpression(info_membre->membre.valeur);
                     }
                 }
 
