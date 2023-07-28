@@ -77,14 +77,14 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
 
             auto membre = info_membre->membre;
 
-            if (est_implicite(membre)) {
+            if (membre.est_implicite()) {
                 espace->rapporte_erreur(f,
                                         "Les membres implicites des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
-            if (est_constant(membre)) {
+            if (membre.est_constant()) {
                 espace->rapporte_erreur(f,
                                         "Les membres constants des énumérations ne peuvent être "
                                         "utilisés comme expression de discrimination");
