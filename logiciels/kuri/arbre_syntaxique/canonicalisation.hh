@@ -57,6 +57,8 @@ struct Simplificatrice {
      */
     NoeudExpressionAppel *m_site_pour_position_code_source = nullptr;
 
+    bool m_dans_fonction = false;
+
     Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
         : espace(e), assem(a), typeuse(t)
     {

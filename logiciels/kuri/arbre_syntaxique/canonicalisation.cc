@@ -87,7 +87,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             auto corps = noeud->comme_corps_fonction();
+
+            auto fut_dans_fonction = m_dans_fonction;
+            m_dans_fonction = true;
             simplifie(corps->bloc);
+            m_dans_fonction = fut_dans_fonction;
 
             if (corps->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
                 auto retourne = assem->cree_retourne(corps->lexeme);
@@ -733,6 +737,19 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             }
             return;
         }
+        case GenreNoeud::INSTRUCTION_EMPL:
+        {
+            if (!m_dans_fonction) {
+                /* Ne simplifie que les expressions empl dans le corps de fonctions. */
+                return;
+            }
+
+            auto expr_empl = noeud->comme_empl();
+            simplifie(expr_empl->expression);
+            /* empl n'est pas géré dans la RI. */
+            expr_empl->substitution = expr_empl->expression;
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::DECLARATION_OPAQUE:
@@ -747,7 +764,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_MEMOIRE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
-        case GenreNoeud::INSTRUCTION_EMPL:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::INSTRUCTION_CHARGE:
         case GenreNoeud::INSTRUCTION_IMPORTE:

@@ -46,7 +46,7 @@ panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface
         rappel()
     }
 
-    imprime("\n\x1b[1;31mErreur :\x1b[0m")
+    imprime("\n\x1b[1;31mErreur :\x1b[0m ")
     imprime(message, ...args)
     imprime("\n\n")
     imprime_panique()
