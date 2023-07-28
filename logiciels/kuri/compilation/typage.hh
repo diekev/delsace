@@ -349,6 +349,26 @@ struct TypeCompose : public Type {
         int valeur = 0;                                       // pour les énumérations
         NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
         int drapeaux = 0;
+
+        inline bool possède_drapeau(int drapeau) const
+        {
+            return (drapeaux & drapeau) != 0;
+        }
+
+        inline bool est_implicite() const
+        {
+            return possède_drapeau(EST_IMPLICITE);
+        }
+
+        inline bool est_constant() const
+        {
+            return possède_drapeau(EST_CONSTANT);
+        }
+
+        inline bool est_utilisable_pour_discrimination() const
+        {
+            return !est_implicite() && !est_constant();
+        }
     };
 
     kuri::tableau<Membre, int> membres{};
@@ -371,6 +391,15 @@ struct TypeCompose : public Type {
     static TypeCompose *cree_chaine();
 
     void marque_polymorphique();
+
+    struct InformationMembre {
+        Membre membre{};
+        int index_membre = -1;
+    };
+
+    std::optional<InformationMembre> donne_membre_pour_type(Type const *type) const;
+    std::optional<InformationMembre> donne_membre_pour_nom(
+        IdentifiantCode const *nom_membre) const;
 };
 
 inline bool est_type_compose(const Type *type)
