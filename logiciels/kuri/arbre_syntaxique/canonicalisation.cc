@@ -1549,19 +1549,16 @@ void Simplificatrice::simplifie_construction_structure_impl(
     bloc->ajoute_membre(decl_position);
     bloc->ajoute_expression(decl_position);
 
-    auto index_membre = 0;
-
-    POUR (construction->parametres_resolus) {
-        const auto &membre = type_struct->membres[index_membre];
+    POUR_INDEX (construction->parametres_resolus) {
+        const auto &membre = type_struct->membres[index_it];
 
         if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
-            index_membre += 1;
             continue;
         }
 
         auto type_membre = membre.type;
         auto ref_membre = assem->cree_reference_membre(
-            lexeme, ref_position, type_membre, index_membre);
+            lexeme, ref_position, type_membre, index_it);
 
         if (it != nullptr) {
             auto assign = assem->cree_assignation_variable(lexeme, ref_membre, it);
@@ -1571,8 +1568,6 @@ void Simplificatrice::simplifie_construction_structure_impl(
             auto appel = crée_appel_fonction_init(lexeme, ref_membre);
             bloc->ajoute_expression(appel);
         }
-
-        index_membre += 1;
     }
 
     /* La dernière expression (une simple référence) sera utilisée lors de la génération de RI pour
