@@ -1597,33 +1597,22 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
 
         auto type_compose = static_cast<TypeCompose *>(type);
-
-        auto membre_trouve = false;
-        auto index_membre = 0;
-        auto membre_est_constant = false;
-        auto membre_est_implicite = false;
-        auto decl_membre = NoeudDeclarationVariable::nul();
-
-        POUR (type_compose->membres) {
-            if (it.nom == membre->ident) {
-                expression_membre->type = it.type;
-                membre_trouve = true;
-                membre_est_constant = it.drapeaux & TypeCompose::Membre::EST_CONSTANT;
-                membre_est_implicite = it.drapeaux & TypeCompose::Membre::EST_IMPLICITE;
-                decl_membre = it.decl;
-                break;
-            }
-
-            index_membre += 1;
-        }
-
-        if (membre_trouve == false) {
+        auto info_membre = type_compose->donne_membre_pour_nom(membre->ident);
+        if (!info_membre.has_value()) {
             rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
+        auto const index_membre = info_membre->index_membre;
+        auto const membre_est_constant = info_membre->membre.drapeaux &
+                                         TypeCompose::Membre::EST_CONSTANT;
+        auto const membre_est_implicite = info_membre->membre.drapeaux &
+                                          TypeCompose::Membre::EST_IMPLICITE;
+        auto const decl_membre = info_membre->membre.decl;
+
         membre->comme_reference_declaration()->declaration_referee = decl_membre;
 
+        expression_membre->type = info_membre->membre.type;
         expression_membre->index_membre = index_membre;
 
         if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
