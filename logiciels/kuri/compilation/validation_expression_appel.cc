@@ -286,20 +286,11 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                 return Attente::sur_type(type_accede);
             }
 
-            auto membre_trouve = false;
-            auto index_membre = 0;
+            auto info_membre = type_struct->donne_membre_pour_nom(membre->ident);
 
-            POUR (type_struct->membres) {
-                if (it.nom == membre->ident) {
-                    acces->type = it.type;
-                    membre_trouve = true;
-                    break;
-                }
+            if (info_membre.has_value()) {
+                acces->type = info_membre->membre.type;
 
-                index_membre += 1;
-            }
-
-            if (membre_trouve != false) {
                 if (acces->type->est_type_de_donnees()) {
                     auto type_membre = acces->type->comme_type_de_donnees()->type_connu;
                     if (!type_accede) {
@@ -323,7 +314,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                 }
 
                 candidates.ajoute({CANDIDATE_EST_ACCES, acces});
-                acces->index_membre = index_membre;
+                acces->index_membre = info_membre->index_membre;
                 return CodeRetourValidation::OK;
             }
         }

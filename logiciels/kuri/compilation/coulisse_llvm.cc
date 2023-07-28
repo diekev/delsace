@@ -554,19 +554,9 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             auto nom = enchaine("union.", type_struct->nom->nom);
 
             // création d'une structure ne contenant que le membre le plus grand
-            auto taille_max = 0u;
-            auto type_max = static_cast<Type *>(nullptr);
+            auto type_le_plus_grand = type_struct->type_le_plus_grand;
 
-            POUR (type_struct->membres) {
-                auto taille_type = it.type->taille_octet;
-
-                if (taille_type > taille_max) {
-                    taille_max = taille_type;
-                    type_max = it.type;
-                }
-            }
-
-            auto type_max_llvm = converti_type_llvm(type_max);
+            auto type_max_llvm = converti_type_llvm(type_le_plus_grand);
             auto type_union = llvm::StructType::create(
                 m_contexte_llvm, {type_max_llvm}, vers_std_string(nom_nonsur));
 
