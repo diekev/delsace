@@ -1,47 +1,132 @@
 importe Fondation
 
-Vecteur :: struct {
-    x := 0
-    y := 0
-    z := 0
-}
-
-modifie_vecteur :: fonc (empl v: *Vecteur)
-{
-    x = 1
-    y = 2
-    z = 3
-}
-
-ne_modifie_pas_vecteur :: fonc (empl v: Vecteur)
-{
-    x = 4
-    y = 5
-    z = 6
-}
-
 principale :: fonc () -> z32
 {
-    v : Vecteur
-
-    imprime("%\n", v)
-
-    modifie_vecteur(*v)
-
-    imprime("%\n", v)
-
-    ne_modifie_pas_vecteur(v)
-
-    imprime("%\n", v)
-
-    {
-        empl w : Vecteur
-        x = 5
-        y = 6
-        z = 7
-
-        imprime("y = %\n", w)
-    }
-
+    test_modification_paramètre_empl()
+    test_modification_locale_via_empl()
+    test_initialisation_membre_employé()
+    test_initialisation_spéciale_membre_employé()
+    test_initialisation_spéciale_membre_avec_indirection()
     retourne 0
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modification d'un paramètre via empl.
+ * \{ */
+
+test_modification_paramètre_empl :: fonc ()
+{
+    Vecteur :: struct {
+        x := 0
+        y := 0
+        z := 0
+    }
+
+    modifie_vecteur :: fonc (empl v: *Vecteur)
+    {
+        x = 1
+        y = 2
+        z = 3
+    }
+
+    ne_modifie_pas_vecteur :: fonc (empl v: Vecteur)
+    {
+        x = 4
+        y = 5
+        z = 6
+    }
+
+    v : Vecteur
+    assert(v.x == 0 && v.y == 0 && v.z == 0)
+
+    modifie_vecteur(*v)
+    assert(v.x == 1 && v.y == 2 && v.z == 3)
+
+    ne_modifie_pas_vecteur(v)
+    assert(v.x == 1 && v.y == 2 && v.z == 3)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modification d'une structure locale via empl.
+ * \{ */
+
+test_modification_locale_via_empl :: fonc ()
+{
+    Vecteur :: struct {
+        x := 0
+        y := 0
+        z := 0
+    }
+
+    empl v : Vecteur
+    assert(v.x == 0 && v.y == 0 && v.z == 0)
+
+    x = 5
+    y = 6
+    z = 7
+    assert(v.x == 5 && v.y == 6 && v.z == 7)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation de membre d'une structure de base dans dérivée.
+ * \{ */
+
+test_initialisation_membre_employé :: fonc ()
+{
+    Base :: struct {
+        x := 1
+    }
+
+    Dérivée :: struct {
+        empl base: Base
+    }
+
+    d : Dérivée
+    assert(d.x == 1)
+}
+
+test_initialisation_spéciale_membre_employé :: fonc ()
+{
+    Base :: struct {
+        x := 1
+    }
+
+    Dérivée :: struct {
+        empl base: Base
+        x = 2
+    }
+
+    d : Dérivée
+    assert(d.x == 2)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation spéciale de membre employé.
+ * \{ */
+
+test_initialisation_spéciale_membre_avec_indirection :: fonc ()
+{
+    Base1 :: struct {
+        x := 123
+    }
+
+    Base2 :: struct {
+        empl base: Base1
+        x = 456
+    }
+
+    Base3 :: struct {
+        empl base: Base2
+    }
+
+    b3: Base3
+    assert(b3.x == 456)
+}
+
+/** } */

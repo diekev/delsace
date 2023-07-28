@@ -34,6 +34,8 @@ struct DonneesExecution {
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
     int64_t instructions_executees = 0;
+
+    kuri::table_hachage<void *, kuri::tableau<FrameAppel>> table_allocations{""};
 };
 
 struct EchantillonProfilage {
@@ -179,4 +181,6 @@ struct MachineVirtuelle {
                                 const int64_t taille,
                                 bool assignation);
     void ajoute_trace_appel(Erreur &e);
+
+    kuri::tableau<FrameAppel> donne_tableau_frame_appel() const;
 };

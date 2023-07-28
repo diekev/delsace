@@ -147,6 +147,18 @@ struct table_hachage {
         valeurs[index] = std::move(valeur);
     }
 
+    void efface(Cle const &cle)
+    {
+        auto empreinte = std::hash<Cle>()(cle);
+        auto index = trouve_index(cle, empreinte);
+        if (index == -1) {
+            return;
+        }
+
+        occupes[index] = false;
+        valeurs[index] = Valeur();
+    }
+
     Valeur trouve(Cle const &cle, bool &trouve) const
     {
         auto empreinte = std::hash<Cle>()(cle);
@@ -244,6 +256,19 @@ struct table_hachage {
         nombre_elements = 0;
         POUR (occupes) {
             it = false;
+        }
+    }
+
+    template <typename TypeFonction>
+    void pour_chaque_élément(TypeFonction &&fonction)
+    {
+        POUR_INDEX (occupes) {
+            if (!it) {
+                continue;
+            }
+
+            auto const &valeur = valeurs[index_it];
+            fonction(valeur);
         }
     }
 
