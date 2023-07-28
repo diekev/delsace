@@ -349,6 +349,26 @@ struct TypeCompose : public Type {
         int valeur = 0;                                       // pour les énumérations
         NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
         int drapeaux = 0;
+
+        inline bool possède_drapeau(int drapeau) const
+        {
+            return (drapeaux & drapeau) != 0;
+        }
+
+        inline bool est_implicite() const
+        {
+            return possède_drapeau(EST_IMPLICITE);
+        }
+
+        inline bool est_constant() const
+        {
+            return possède_drapeau(EST_CONSTANT);
+        }
+
+        inline bool est_utilisable_pour_discrimination() const
+        {
+            return !est_implicite() && !est_constant();
+        }
     };
 
     kuri::tableau<Membre, int> membres{};

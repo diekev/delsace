@@ -16,23 +16,6 @@
 
 // --------------------------------------------
 
-static inline bool est_implicite(TypeCompose::Membre const &membre)
-{
-    return membre.drapeaux == TypeCompose::Membre::EST_IMPLICITE;
-}
-
-static inline bool est_constant(TypeCompose::Membre const &membre)
-{
-    return membre.drapeaux == TypeCompose::Membre::EST_CONSTANT;
-}
-
-static inline bool est_utilisable_pour_discrimination(TypeCompose::Membre const &membre)
-{
-    return !est_implicite(membre) && !est_constant(membre);
-}
-
-// --------------------------------------------
-
 static ResultatValidation valide_presence_membre(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
@@ -42,7 +25,7 @@ static ResultatValidation valide_presence_membre(
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
     POUR (type->membres) {
-        if (!est_utilisable_pour_discrimination(it)) {
+        if (!it.est_utilisable_pour_discrimination()) {
             continue;
         }
 
@@ -274,14 +257,14 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
         auto membre = info_membre->membre;
 
-        if (est_implicite(membre)) {
+        if (membre.est_implicite()) {
             espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_constant(membre)) {
+        if (membre.est_constant()) {
             espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
@@ -376,14 +359,14 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         auto membre = info_membre->membre;
 
-        if (est_implicite(membre)) {
+        if (membre.est_implicite()) {
             espace->rapporte_erreur(feuille,
                                     "Les membres implicites des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (est_constant(membre)) {
+        if (membre.est_constant()) {
             espace->rapporte_erreur(feuille,
                                     "Les membres constants des unions ne peuvent être "
                                     "utilisés comme expression de discrimination");
