@@ -27,6 +27,7 @@
 #undef CHRONOMETRE_INTERPRETATION
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
 #undef DEBOGUE_LOCALES
+#undef DETECTE_FUITES_DE_MEMOIRE
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
@@ -724,6 +725,56 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         kuri::tableau_statique<kuri::chaine_statique> arguments =
             compilatrice.arguments.arguments_pour_métaprogrammes;
         empile(site, arguments);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
+        auto taille = depile<size_t>(site);
+        auto résultat = notre_malloc(taille);
+        empile(site, résultat);
+
+#ifdef DETECTE_FUITES_DE_MEMOIRE
+        auto données = m_metaprogramme->donnees_execution;
+        données->table_allocations.insere(résultat, donne_tableau_frame_appel());
+#endif
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(notre_realloc)) {
+        auto taille = depile<size_t>(site);
+        auto ptr = depile<void *>(site);
+
+#ifdef DETECTE_FUITES_DE_MEMOIRE
+        auto données = m_metaprogramme->donnees_execution;
+        if (ptr) {
+            données->table_allocations.efface(ptr);
+        }
+#endif
+
+        auto résultat = notre_realloc(ptr, taille);
+        empile(site, résultat);
+
+#ifdef DETECTE_FUITES_DE_MEMOIRE
+        données->table_allocations.insere(résultat, donne_tableau_frame_appel());
+#endif
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(notre_free)) {
+        auto ptr = depile<void *>(site);
+
+#ifdef DETECTE_FUITES_DE_MEMOIRE
+        if (ptr) {
+            auto données = m_metaprogramme->donnees_execution;
+            if (!données->table_allocations.possede(ptr)) {
+                // erreur
+            }
+            else {
+                données->table_allocations.efface(ptr);
+            }
+        }
+#endif
+        notre_free(ptr);
         return;
     }
 
@@ -1559,6 +1610,18 @@ void MachineVirtuelle::ajoute_trace_appel(Erreur &e)
     }
 }
 
+kuri::tableau<FrameAppel> MachineVirtuelle::donne_tableau_frame_appel() const
+{
+    kuri::tableau<FrameAppel> résultat;
+    résultat.reserve(profondeur_appel);
+
+    for (int i = 0; i < profondeur_appel; i++) {
+        résultat.ajoute(frames[i]);
+    }
+
+    return résultat;
+}
+
 bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
                                               const void *adresse_ou,
                                               const void *adresse_de,
@@ -1699,6 +1762,18 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
+
+            auto données = it->donnees_execution;
+
+#ifdef DETECTE_FUITES_DE_MEMOIRE
+            données->table_allocations.pour_chaque_élément(
+                [&](kuri::tableau<FrameAppel> const &frame) {
+                    std::cerr << "------------------------------------ Fuite de mémoire !\n";
+                    for (int i = frame.taille() - 1; i >= 0; i--) {
+                        erreur::imprime_site(*it->unite->espace, frame[i].site);
+                    }
+                });
+#endif
         }
 
         desinstalle_metaprogramme(it, compte_executees);
