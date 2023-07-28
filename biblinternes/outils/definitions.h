@@ -123,3 +123,8 @@
 #define POUR(x) for (auto &it : (x))
 
 #define POUR_NOMME(nom, x) for (auto &nom : (x))
+
+#define POUR_INDEX(variable)                                                                      \
+    if (auto index_it = -1)                                                                       \
+        for (auto &it : (variable))                                                               \
+            if (++index_it, true)
