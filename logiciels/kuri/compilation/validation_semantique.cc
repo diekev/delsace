@@ -1516,8 +1516,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto type_structure = type_employe->comme_structure();
 
-            auto index_membre = 0;
-
             // pour les structures, prend le bloc_parent qui sera celui de la structure
             auto bloc_parent = decl->bloc_parent;
 
@@ -1528,7 +1526,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 bloc_parent = fonction_courante()->corps->bloc;
             }
 
-            POUR (type_structure->membres) {
+            POUR_INDEX (type_structure->membres) {
                 if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
                     continue;
                 }
@@ -1540,7 +1538,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_membre->bloc_parent = bloc_parent;
                 decl_membre->drapeaux |= DECLARATION_FUT_VALIDEE;
                 decl_membre->declaration_vient_d_un_emploi = decl;
-                decl_membre->index_membre_employe = index_membre++;
+                decl_membre->index_membre_employe = index_it;
                 decl_membre->expression = it.expression_valeur_defaut;
 
                 bloc_parent->ajoute_membre(decl_membre);

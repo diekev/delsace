@@ -1001,14 +1001,12 @@ static ResultatAppariement apparie_appel_structure(
     auto transformations = kuri::tableau<TransformationType, int>(type_compose->membres.taille());
     auto poids_appariement = 1.0;
 
-    auto index_membre = 0;
-    POUR (apparieuse_params.slots()) {
+    POUR_INDEX (apparieuse_params.slots()) {
         if (it == nullptr) {
-            index_membre += 1;
             continue;
         }
 
-        auto &membre = type_compose->membres[index_membre];
+        auto &membre = type_compose->membres[index_it];
 
         auto resultat = verifie_compatibilite(espace.compilatrice(), membre.type, it->type, it);
 
@@ -1025,8 +1023,7 @@ static ResultatAppariement apparie_appel_structure(
             return ErreurAppariement::metypage_argument(it, membre.type, it->type);
         }
 
-        transformations[index_membre] = poids_xform.transformation;
-        index_membre += 1;
+        transformations[index_it] = poids_xform.transformation;
     }
 
     return CandidateAppariement::initialisation_structure(poids_appariement,

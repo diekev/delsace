@@ -625,10 +625,9 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     param_sortie->atome = atome_param_sortie;
 
     if (decl->params_sorties.taille() > 1) {
-        auto index_membre = 0;
-        POUR (decl->params_sorties) {
+        POUR_INDEX (decl->params_sorties) {
             it->comme_declaration_variable()->atome = constructrice.cree_reference_membre(
-                it, atome_param_sortie, index_membre++, true);
+                it, atome_param_sortie, index_it, true);
         }
     }
 
