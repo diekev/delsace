@@ -467,10 +467,8 @@ struct ConvertisseuseTypeC {
             enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
             enchaineuse << "  struct {\n";
 #endif
-            auto index_membre = 0;
-            for (auto &membre : type_tuple->membres) {
-                enchaineuse << broyeuse.nom_broye_type(membre.type) << " _" << index_membre++
-                            << ";\n";
+            POUR_INDEX (type_tuple->membres) {
+                enchaineuse << broyeuse.nom_broye_type(it.type) << " _" << index_it << ";\n";
             }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
