@@ -107,6 +107,20 @@ initialise_système_type :: fonc (ipa: &IPA, espace_de_nom: chaine) -> SystèmeT
     retourne résultat
 }
 
+type_requiers_conversion_entre_c_et_cpp :: fonc (type: *InfoType) -> bool
+{
+    discr type.id {
+        ENTIER,
+        RÉEL,
+        RIEN {
+            retourne faux
+        }
+        sinon {}
+    }
+
+    retourne vrai
+}
+
 ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *InfoTypeC
 {
     type_existant := trouve_type(système, type)
@@ -208,7 +222,7 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
 
             type_ipa_pointé := trouve_type_ipa(ipa, info_pointeur.type_pointé)
 
-            saufsi type_ipa_pointé.drapeaux.TOUJOURS_COMME_POINTEUR {
+            saufsi type_ipa_pointé.drapeaux.TOUJOURS_COMME_POINTEUR || !type_requiers_conversion_entre_c_et_cpp(info_pointeur.type_pointé) {
                 nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")")
                 nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")")
             }
@@ -908,6 +922,9 @@ définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Encha
             nom_type := type_c_entrée.nom_type_cpp
             si type_est_toujours_pointeur(entrée) {
                 nom_type = recule(nom_type, 1)
+            }
+            sinon saufsi type_requiers_conversion_entre_c_et_cpp(entrée.infos) {
+                nom_type = ""
             }
             imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, index_entrée)
             virgule = ", "
