@@ -1763,9 +1763,8 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             nombre_metaprogrammes -= 1;
             i -= 1;
 
-            auto données = it->donnees_execution;
-
 #ifdef DETECTE_FUITES_DE_MEMOIRE
+            auto données = it->donnees_execution;
             données->table_allocations.pour_chaque_élément(
                 [&](kuri::tableau<FrameAppel> const &frame) {
                     std::cerr << "------------------------------------ Fuite de mémoire !\n";
