@@ -735,7 +735,11 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
+#    ifdef UTILISE_NOTRE_TABLE
         données->table_allocations.insere(résultat, donne_tableau_frame_appel());
+#    else
+        données->table_allocations.insert({résultat, donne_tableau_frame_appel()});
+#    endif
 #endif
         return;
     }
@@ -747,7 +751,11 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 #ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
         if (ptr) {
+#    ifdef UTILISE_NOTRE_TABLE
             données->table_allocations.efface(ptr);
+#    else
+            données->table_allocations.erase(ptr);
+#    endif
         }
 #endif
 
@@ -755,7 +763,11 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         empile(site, résultat);
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
+#    ifdef UTILISE_NOTRE_TABLE
         données->table_allocations.insere(résultat, donne_tableau_frame_appel());
+#    else
+        données->table_allocations.insert({résultat, donne_tableau_frame_appel()});
+#    endif
 #endif
         return;
     }
@@ -766,12 +778,21 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 #ifdef DETECTE_FUITES_DE_MEMOIRE
         if (ptr) {
             auto données = m_metaprogramme->donnees_execution;
+#    ifdef UTILISE_NOTRE_TABLE
             if (!données->table_allocations.possede(ptr)) {
                 // erreur
             }
             else {
                 données->table_allocations.efface(ptr);
             }
+#    else
+            if (données->table_allocations.find(ptr) == données->table_allocations.end()) {
+                // erreur
+            }
+            else {
+                données->table_allocations.erase(ptr);
+            }
+#    endif
         }
 #endif
         notre_free(ptr);
@@ -1765,6 +1786,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
             auto données = it->donnees_execution;
+#    ifdef UTILISE_NOTRE_TABLE
             données->table_allocations.pour_chaque_élément(
                 [&](kuri::tableau<FrameAppel> const &frame) {
                     std::cerr << "------------------------------------ Fuite de mémoire !\n";
@@ -1772,6 +1794,15 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
                         erreur::imprime_site(*it->unite->espace, frame[i].site);
                     }
                 });
+#    else
+            auto espace = it->unite->espace;
+            POUR (données->table_allocations) {
+                std::cerr << "------------------------------------ Fuite de mémoire !\n";
+                for (int i = it.second.taille() - 1; i >= 0; i--) {
+                    erreur::imprime_site(*espace, it.second[i].site);
+                }
+            }
+#    endif
 #endif
         }
 
