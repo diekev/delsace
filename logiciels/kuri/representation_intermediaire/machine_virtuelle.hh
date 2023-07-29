@@ -27,6 +27,8 @@ struct FrameAppel {
 
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
+#undef UTILISE_NOTRE_TABLE
+
 struct DonneesExecution {
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
@@ -35,7 +37,11 @@ struct DonneesExecution {
     int profondeur_appel = 0;
     int64_t instructions_executees = 0;
 
+#ifdef UTILISE_NOTRE_TABLE
     kuri::table_hachage<void *, kuri::tableau<FrameAppel>> table_allocations{""};
+#else
+    std::unordered_map<void *, kuri::tableau<FrameAppel>> table_allocations{};
+#endif
 };
 
 struct EchantillonProfilage {

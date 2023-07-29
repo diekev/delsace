@@ -803,7 +803,7 @@ void Lexeuse::lexe_commentaire()
     }
 
     /* ignore commentaire */
-    while (this->caractère_courant() != '\n') {
+    while (!this->fini() && this->caractère_courant() != '\n') {
         this->avance_fixe<1>();
         this->ajoute_caractère();
     }

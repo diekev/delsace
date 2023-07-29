@@ -156,7 +156,10 @@ struct table_hachage {
         }
 
         occupes[index] = false;
+        empreintes[index] = 0;
+        cles[index] = Cle();
         valeurs[index] = Valeur();
+        nombre_elements -= 1;
     }
 
     Valeur trouve(Cle const &cle, bool &trouve) const
