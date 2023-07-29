@@ -119,6 +119,11 @@ DrapeauxTypeIPA :: énum_drapeau {
     /* Définit si une classe virtuelle doit être généré.
      * Ceci est pour les structures avec fonctions rappels. */
     TYPE_EST_ABSTRAIT
+
+    /* Pour la génération de code. */
+    DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE
+    DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE
+    DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE
 }
 
 /* Informations pour un type faisant partie de l'IPA. */
