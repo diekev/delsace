@@ -1901,7 +1901,17 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
             if (type_union->est_nonsure) {
                 valeur = cree_charge_mem(noeud, valeur);
-                cree_stocke_mem(noeud, alloc, valeur);
+
+                /* Transtype l'union vers le type cible pour garantir une sûreté de type et éviter
+                 * les problèmes de surécriture si la valeur est transtypée mais pas du même genre
+                 * que le type le plus grand de l'union. */
+                auto dest = cree_transtype(noeud,
+                                           m_compilatrice.typeuse.type_pointeur_pour(
+                                               const_cast<Type *>(valeur->type), false),
+                                           alloc,
+                                           TypeTranstypage::BITS);
+
+                cree_stocke_mem(noeud, dest, valeur);
             }
             else {
                 /* Pour les unions, nous transtypons le membre vers le type cible afin d'éviter les
