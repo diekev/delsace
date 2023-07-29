@@ -554,6 +554,7 @@ public:
     /* Définit les classes. */
 
     classes_définis : []*TypeIPA
+    diffère déloge(classes_définis)
     pour ipa.types {
         définis_classe_cpp(*enchaineuse, it, génératrice, *classes_définis)
     }
@@ -1187,6 +1188,7 @@ génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, chemin:
 
     /* Deux passes pour les typedefs des tableaux se fassent après les types qu'ils utilisent. */
     types_traités : []*InfoType
+    diffère déloge(types_traités)
     pour ipa.types {
         si it.drapeaux.TYPE_EST_TABLEAU {
             continue
