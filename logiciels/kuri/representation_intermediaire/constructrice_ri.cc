@@ -414,6 +414,11 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
         return true;
     }
 
+    /* À FAIRE : supprime les entiers constants. */
+    if (type_source->est_entier_constant() && est_type_entier(type_élément_dest)) {
+        return true;
+    }
+
     /* Certaines références sont converties en pointeur, nous devons vérifier ce cas. Les erreurs
      * de sémantiques devraient déjà avoir été attrappées lors de la validation sémantique.
      * À FAIRE : supprimer les références de la RI, ou les garder totalement. */
