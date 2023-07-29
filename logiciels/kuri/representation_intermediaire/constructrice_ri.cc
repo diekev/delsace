@@ -400,7 +400,7 @@ static bool est_type_opacifie(Type const *type_dest, Type const *type_source)
 static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
                                                       Type const *type_source)
 {
-    auto type_élément_dest = type_dest->comme_pointeur()->type_pointe;
+    auto type_élément_dest = type_dereference_pour(type_dest);
     if (type_élément_dest == type_source) {
         return true;
     }
@@ -442,22 +442,20 @@ InstructionStockeMem *ConstructriceRI::cree_stocke_mem(NoeudExpression *site_,
                                                        Atome *valeur,
                                                        bool cree_seulement)
 {
-    assert_rappel(ou->type->genre == GenreType::POINTEUR || ou->type->est_reference(), [&]() {
+    assert_rappel(ou->type->est_pointeur() || ou->type->est_reference(), [&]() {
         std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n';
         erreur::imprime_site(*m_espace, site_);
     });
 
-#ifndef CMAKE_BUILD_TYPE_PROFILE
-    auto type_pointeur = ou->type->comme_pointeur();
-    assert_rappel(type_dest_et_type_source_sont_compatibles(type_pointeur, valeur->type), [&]() {
-        std::cerr << "\ttype_pointeur->type_pointe : " << chaine_type(type_pointeur->type_pointe)
-                  << " (" << type_pointeur->type_pointe << ") "
-                  << ", valeur->type : " << chaine_type(valeur->type) << " (" << valeur->type
+    assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
+        auto type_élément_dest = type_dereference_pour(ou->type);
+        std::cerr << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
+                  << type_élément_dest << ") "
+                  << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type
                   << ") " << '\n';
 
         erreur::imprime_site(*m_espace, site_);
     });
-#endif
 
     auto type = valeur->type;
     auto inst = insts_stocke_memoire.ajoute_element(site_, type, ou, valeur);
