@@ -338,8 +338,15 @@ struct TypeCompose : public Type {
             // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
             // énumérations)
             EST_IMPLICITE = (1 << 1),
+            // si le membre provient d'une instruction empl
+            PROVIENT_D_UN_EMPOI = (1 << 2),
+            // si le membre est employé
+            EST_UN_EMPLOI = (1 << 3),
+            // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
+            // pour x déclaré en amont)
+            POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
 
-            MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = EST_CONSTANT,
+            MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
         };
 
         NoeudDeclarationVariable *decl = nullptr;
@@ -373,6 +380,16 @@ struct TypeCompose : public Type {
         inline bool ne_doit_pas_être_dans_code_machine() const
         {
             return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
+        }
+
+        inline bool expression_initialisation_est_spéciale() const
+        {
+            return possède_drapeau(POSSÈDE_EXPRESSION_SPÉCIALE);
+        }
+
+        inline bool est_un_emploi() const
+        {
+            return possède_drapeau(EST_UN_EMPLOI);
         }
     };
 
