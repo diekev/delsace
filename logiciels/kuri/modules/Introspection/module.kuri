@@ -365,6 +365,13 @@ trouve_info_membre :: fonc (info: *InfoTypeStructure, nom_membre: chaine) -> *In
         }
     }
 
+    pour info.structs_employées {
+        info_membre := trouve_info_membre(it, nom_membre)
+        si info_membre {
+            retourne info_membre
+        }
+    }
+
     retourne nul
 }
 
@@ -375,6 +382,19 @@ trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembre
     }
 
     retourne trouve_info_membre(valeur.info comme *InfoTypeStructure, nom_membre)
+}
+
+/* Retourne le nombre de membres de la structure en remplaçant les structures
+ * employées par leurs membres et ce de manière récursive. */
+donne_nombre_de_membres_effectif :: fonc (info: *InfoTypeStructure) -> z64
+{
+    résultat := info.membres.taille - info.structs_employées.taille
+
+    pour info.structs_employées {
+        résultat += donne_nombre_de_membres_effectif(it)
+    }
+
+    retourne résultat
 }
 
 /* Trouve la valeur eini d'un membre d'une structure ou d'une chaine.
