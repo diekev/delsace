@@ -781,7 +781,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                                                                                    type_structure);
 
             POUR (type_structure->membres) {
-                if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
 
