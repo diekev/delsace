@@ -1021,7 +1021,9 @@ static ResultatAppariement apparie_appel_structure(
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
     POUR_INDEX (type_compose->membres) {
-        if (it.possède_drapeau(TypeCompose::Membre::EST_CONSTANT)) {
+        /* Ignore les membres employés pour le moment. */
+        if (it.possède_drapeau(TypeCompose::Membre::EST_CONSTANT |
+                               TypeCompose::Membre::EST_UN_EMPLOI)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false, index_it);
             continue;
         }
