@@ -2018,22 +2018,23 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
             }
 
             POUR_INDEX (type_compose->membres) {
-                if ((it.drapeaux &
-                     TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) == 0) {
-                    if (it.expression_valeur_defaut &&
-                        it.expression_valeur_defaut->est_non_initialisation()) {
-                        continue;
-                    }
-
-                    auto ref_membre = assembleuse->cree_reference_membre(
-                        &lexeme, ref_param, it.type, index_it);
-                    cree_initialisation_defaut_pour_type(it.type,
-                                                         espace->compilatrice(),
-                                                         assembleuse,
-                                                         ref_membre,
-                                                         it.expression_valeur_defaut,
-                                                         typeuse);
+                if (!it.ne_doit_pas_être_dans_code_machine()) {
+                    continue;
                 }
+
+                if (it.expression_valeur_defaut &&
+                    it.expression_valeur_defaut->est_non_initialisation()) {
+                    continue;
+                }
+
+                auto ref_membre = assembleuse->cree_reference_membre(
+                    &lexeme, ref_param, it.type, index_it);
+                cree_initialisation_defaut_pour_type(it.type,
+                                                     espace->compilatrice(),
+                                                     assembleuse,
+                                                     ref_membre,
+                                                     it.expression_valeur_defaut,
+                                                     typeuse);
             }
 
             break;
