@@ -126,7 +126,7 @@ apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *I
         // À FAIRE : typage
     }
 
-    si nombre_paramètres != info_structure.membres.taille {
+    si nombre_paramètres != donne_nombre_de_membres_effectif(info_structure) {
         retourne faux
     }
 
