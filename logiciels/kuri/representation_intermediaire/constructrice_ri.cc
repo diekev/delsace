@@ -2639,7 +2639,7 @@ AtomeConstante *ConstructriceRI::genere_initialisation_defaut_pour_type(Type con
             valeurs.reserve(type_compose->membres.taille());
 
             POUR (type_compose->membres) {
-                if (it.drapeaux & TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
 

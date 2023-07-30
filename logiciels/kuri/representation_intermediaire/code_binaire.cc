@@ -1534,8 +1534,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
 
             auto index_membre = 0;
             POUR (type_compose->membres) {
-                if ((it.drapeaux &
-                     TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) != 0) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
 
@@ -1682,8 +1681,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                     auto index_membre = 0;
                     for (auto i = 0; i < type->membres.taille(); ++i) {
-                        if (type->membres[i].drapeaux &
-                            TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+                        if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
                             continue;
                         }
 

@@ -20,27 +20,44 @@
 
 using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
 
+enum class ChoseÀApparier : int8_t {
+    FONCTION_EXTERNE,
+    FONCTION_INTERNE,
+    POINTEUR_DE_FONCTION,
+    STRUCTURE,
+    UNION,
+};
+
 struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
     kuri::tablet<NoeudExpression *, 10> m_slots{};
+    /* Les index sont utilisés pour les membres de structures. L'expression de construction de
+     * structure doit avoir le même nombre de paramètres résolus que le nombre de membres de la
+     * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
+     * nous stockons les index des membres pour chaque slot afin que l'appariement puisse savoir à
+     * quel membre réel le slot appartient. */
+    kuri::tablet<int, 10> m_index_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> args_rencontres{};
     bool m_arguments_nommes = false;
     bool m_dernier_argument_est_variadique = false;
     bool m_est_variadique = false;
     bool m_expansion_rencontree = false;
-    bool m_fonction_externe = false;
+    ChoseÀApparier m_chose_à_apparier{};
     int m_index = 0;
     int m_nombre_arg_variadiques_rencontres = 0;
 
   public:
     ErreurAppariement erreur{};
 
-    ApparieuseParams(bool fonction_externe) : m_fonction_externe(fonction_externe)
+    ApparieuseParams(ChoseÀApparier chose_à_apparier) : m_chose_à_apparier(chose_à_apparier)
     {
     }
 
-    void ajoute_param(IdentifiantCode *ident, NoeudExpression *valeur_defaut, bool est_variadique)
+    void ajoute_param(IdentifiantCode *ident,
+                      NoeudExpression *valeur_defaut,
+                      bool est_variadique,
+                      int index = -1)
     {
         m_noms.ajoute(ident);
 
@@ -48,6 +65,7 @@ struct ApparieuseParams {
         // car le code d'appariement de type dépend de ce comportement.
         if (!est_variadique) {
             m_slots.ajoute(valeur_defaut);
+            m_index_pour_slot.ajoute(index);
         }
 
         m_est_variadique = est_variadique;
@@ -58,7 +76,7 @@ struct ApparieuseParams {
                            NoeudExpression *expr_ident)
     {
         if (expr->genre == GenreNoeud::EXPANSION_VARIADIQUE) {
-            if (m_fonction_externe) {
+            if (m_chose_à_apparier == ChoseÀApparier::FONCTION_EXTERNE) {
                 erreur = ErreurAppariement::expansion_variadique_externe(expr);
                 return false;
             }
@@ -111,16 +129,25 @@ struct ApparieuseParams {
                     return false;
                 }
                 m_nombre_arg_variadiques_rencontres += 1;
-                m_slots.ajoute(expr);
+                ajoute_slot(expr);
             }
             else {
-                m_slots[index_param] = expr;
+                remplis_slot(index_param, expr);
             }
         }
         else {
             if (m_arguments_nommes == true && m_dernier_argument_est_variadique == false) {
                 erreur = ErreurAppariement::nom_manquant_apres_variadique(expr);
                 return false;
+            }
+
+            /* Pour les structures et les unions nous devons sauter les paramètres n'étant pas
+             * utiles pour l'appariement. Ce sont notamment les variables constantes. */
+            if (m_chose_à_apparier == ChoseÀApparier::STRUCTURE ||
+                m_chose_à_apparier == ChoseÀApparier::UNION) {
+                while (m_index < m_noms.taille() && m_noms[m_index] == nullptr) {
+                    m_index++;
+                }
             }
 
             if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
@@ -130,12 +157,12 @@ struct ApparieuseParams {
                 }
                 m_nombre_arg_variadiques_rencontres += 1;
                 args_rencontres.insere(m_noms[m_noms.taille() - 1]);
-                m_slots.ajoute(expr);
+                ajoute_slot(expr);
                 m_index++;
             }
             else {
                 args_rencontres.insere(m_noms[m_index]);
-                m_slots[m_index++] = expr;
+                remplis_slot(m_index++, expr);
             }
         }
 
@@ -160,7 +187,26 @@ struct ApparieuseParams {
 
     kuri::tablet<NoeudExpression *, 10> &slots()
     {
+        assert(m_slots.taille() == m_index_pour_slot.taille());
         return m_slots;
+    }
+
+    int index_pour_slot(int64_t index_slot) const
+    {
+        assert(m_slots.taille() == m_index_pour_slot.taille());
+        return m_index_pour_slot[index_slot];
+    }
+
+  private:
+    void ajoute_slot(NoeudExpression *expression)
+    {
+        m_slots.ajoute(expression);
+        m_index_pour_slot.ajoute(-1);
+    }
+
+    void remplis_slot(int64_t index_slot, NoeudExpression *expression)
+    {
+        m_slots[index_slot] = expression;
     }
 };
 
@@ -477,7 +523,7 @@ static ResultatAppariement apparie_appel_pointeur(
     auto type_fonction = type->comme_fonction();
     auto fonction_variadique = false;
 
-    ApparieuseParams apparieuse(false);
+    ApparieuseParams apparieuse(ChoseÀApparier::POINTEUR_DE_FONCTION);
     for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
         auto type_prm = type_fonction->types_entrees[i];
         fonction_variadique |= type_prm->genre == GenreType::VARIADIQUE;
@@ -643,7 +689,8 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
-    auto apparieuse_params = ApparieuseParams(decl->est_externe);
+    auto apparieuse_params = ApparieuseParams(
+        decl->est_externe ? ChoseÀApparier::FONCTION_EXTERNE : ChoseÀApparier::FONCTION_INTERNE);
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -877,7 +924,7 @@ static ResultatAppariement apparie_appel_structure(
                 expr, params_polymorphiques->nombre_de_membres(), expr->parametres.taille());
         }
 
-        auto apparieuse_params = ApparieuseParams(false);
+        auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
         POUR (*params_polymorphiques->membres.verrou_lecture()) {
             apparieuse_params.ajoute_param(it->ident, nullptr, false);
@@ -970,16 +1017,15 @@ static ResultatAppariement apparie_appel_structure(
         }
     }
 
-    // À FAIRE : détecte quand nous avons des constantes
-    auto apparieuse_params = ApparieuseParams(false);
+    auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
-    POUR (type_compose->membres) {
-        if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
-            apparieuse_params.ajoute_param(nullptr, nullptr, false);
+    POUR_INDEX (type_compose->membres) {
+        if (it.possède_drapeau(TypeCompose::Membre::EST_CONSTANT)) {
+            apparieuse_params.ajoute_param(nullptr, nullptr, false, index_it);
             continue;
         }
 
-        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false);
+        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, index_it);
     }
 
     POUR (arguments) {
@@ -996,7 +1042,8 @@ static ResultatAppariement apparie_appel_structure(
             continue;
         }
 
-        auto &membre = type_compose->membres[index_it];
+        auto const index_membre = apparieuse_params.index_pour_slot(index_it);
+        auto &membre = type_compose->membres[index_membre];
 
         auto resultat = verifie_compatibilite(espace.compilatrice(), membre.type, it->type, it);
 

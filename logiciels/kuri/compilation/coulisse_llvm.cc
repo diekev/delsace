@@ -79,7 +79,7 @@ static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
 
         index -= 1;
 
-        if (it.drapeaux & TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+        if (it.ne_doit_pas_être_dans_code_machine()) {
             continue;
         }
 
@@ -585,8 +585,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
 
             POUR (type_struct->membres) {
-                if (it.drapeaux ==
-                    TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
                 types_membres.push_back(converti_type_llvm(it.type));
@@ -853,9 +852,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
                             auto index_membre = 0;
                             for (auto i = 0; i < type->membres.taille(); ++i) {
-                                if (type->membres[i].drapeaux &
-                                    TypeCompose::Membre::
-                                        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
                                     continue;
                                 }
 

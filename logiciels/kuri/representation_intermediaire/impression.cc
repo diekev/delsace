@@ -290,9 +290,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                         auto index_membre = 0;
 
                         POUR (type->membres) {
-                            if ((it.drapeaux &
-                                 TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) !=
-                                0) {
+                            if (it.ne_doit_pas_être_dans_code_machine()) {
                                 continue;
                             }
                             os << virgule;
