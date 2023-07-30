@@ -1914,6 +1914,24 @@ static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibl
     }
 }
 
+/* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
+ * un type dérivé. */
+static bool est_structure_info_type_défaut(GenreType genre)
+{
+    switch (genre) {
+        case GenreType::EINI:
+        case GenreType::RIEN:
+        case GenreType::CHAINE:
+        case GenreType::TYPE_DE_DONNEES:
+        case GenreType::REEL:
+        case GenreType::OCTET:
+        case GenreType::BOOL:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static void genere_table_des_types(Typeuse &typeuse,
                                    ProgrammeRepreInter &repr_inter_programme,
                                    ConstructriceRI &constructrice_ri)
@@ -1929,9 +1947,22 @@ static void genere_table_des_types(Typeuse &typeuse,
 
         auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
         auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
-        auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
-            initialisateur->valeur.valeur_structure.pointeur[2]);
-        atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+
+        if (est_structure_info_type_défaut(it->genre)) {
+            /* Accède directement au membre. */
+            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
+                initialisateur->valeur.valeur_structure.pointeur[2]);
+            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+        }
+        else {
+            /* Accède info.base */
+            auto atome_base = static_cast<AtomeValeurConstante *>(
+                initialisateur->valeur.valeur_structure.pointeur[0]);
+            /* Accède base.index_dans_table_types */
+            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
+                atome_base->valeur.valeur_structure.pointeur[2]);
+            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+        }
     }
 
     AtomeGlobale *atome_table_des_types = nullptr;
