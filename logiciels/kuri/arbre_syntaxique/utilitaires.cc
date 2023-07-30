@@ -2018,7 +2018,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
             }
 
             POUR_INDEX (type_compose->membres) {
-                if (!it.ne_doit_pas_être_dans_code_machine()) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
 
