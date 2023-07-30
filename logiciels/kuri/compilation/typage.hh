@@ -370,6 +370,11 @@ struct TypeCompose : public Type {
         {
             return !est_implicite() && !est_constant();
         }
+
+        inline bool ne_doit_pas_être_dans_code_machine() const
+        {
+            return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
+        }
     };
 
     kuri::tableau<Membre, int> membres{};
