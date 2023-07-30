@@ -1327,6 +1327,8 @@ NoeudAssignation *AssembleuseArbre::cree_assignation_variable(const Lexeme *lexe
     donnees.transformations.ajoute({});
 
     assignation->donnees_exprs.ajoute(donnees);
+    assignation->variable = assignee;
+    assignation->expression = expression;
 
     return assignation;
 }
