@@ -365,6 +365,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie_référence_membre(noeud->comme_reference_membre());
             return;
         }
+        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
+        {
+            auto ref_membre_union = noeud->comme_reference_membre_union();
+            simplifie(ref_membre_union->accedee);
+            return;
+        }
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto inst = noeud->comme_comme();
@@ -777,7 +783,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         case GenreNoeud::EXPRESSION_MEMOIRE:
-        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::INSTRUCTION_CHARGE:
@@ -1610,6 +1615,8 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
     auto type_accede = accede->type;
 
     if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+        simplifie(accede);
+
         // a.DRAPEAU => (a & DRAPEAU) != 0
         auto type_enum = static_cast<TypeEnum *>(ref_membre->type);
         auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
