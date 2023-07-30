@@ -235,6 +235,7 @@ struct ConstructriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
+    AtomeConstante *crée_constante_info_type_pour_base(uint32_t index, Type const *pour_type);
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             uint32_t index,
                                             Type const *pour_type);
