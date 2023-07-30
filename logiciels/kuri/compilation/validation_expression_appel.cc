@@ -974,7 +974,7 @@ static ResultatAppariement apparie_appel_structure(
     auto apparieuse_params = ApparieuseParams(false);
 
     POUR (type_compose->membres) {
-        if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+        if (it.possède_drapeau(TypeCompose::Membre::EST_CONSTANT)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false);
             continue;
         }
