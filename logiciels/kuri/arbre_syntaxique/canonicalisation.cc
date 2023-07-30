@@ -21,6 +21,12 @@
  * mémoire. */
 static NoeudExpressionNonIntialisation non_initialisation{};
 
+static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre *assem,
+                                                           Lexeme const *lexeme,
+                                                           NoeudExpression *expression_accédée,
+                                                           TypeCompose *type_composé,
+                                                           TypeCompose::Membre const &membre);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -349,12 +355,29 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     /* Transforme en un accès de membre. */
                     auto ref_decl_var = assem->cree_reference_declaration(
                         expr_ref->lexeme, declaration_variable->declaration_vient_d_un_emploi);
-                    auto accès_membre = assem->cree_reference_membre(
-                        expr_ref->lexeme,
-                        ref_decl_var,
-                        expr_ref->type,
-                        declaration_variable->index_membre_employe);
-                    expr_ref->substitution = accès_membre;
+
+                    auto type = ref_decl_var->type;
+                    while (type->est_pointeur() || type->est_reference()) {
+                        type = type_dereference_pour(type);
+                    }
+
+                    auto type_composé = type->comme_compose();
+                    auto membre =
+                        type_composé->membres[declaration_variable->index_membre_employe];
+
+                    if (membre.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                        auto accès_membre = crée_référence_pour_membre_employé(
+                            assem, expr_ref->lexeme, ref_decl_var, type_composé, membre);
+                        expr_ref->substitution = accès_membre;
+                    }
+                    else {
+                        auto accès_membre = assem->cree_reference_membre(
+                            expr_ref->lexeme,
+                            ref_decl_var,
+                            expr_ref->type,
+                            declaration_variable->index_membre_employe);
+                        expr_ref->substitution = accès_membre;
+                    }
                 }
             }
 
@@ -1604,6 +1627,21 @@ void Simplificatrice::simplifie_construction_structure_impl(
             continue;
         }
 
+        if (membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) {
+            if (it == nullptr || (!membre.expression_initialisation_est_spéciale() &&
+                                  it == membre.expression_valeur_defaut)) {
+                /* Le membre de base ayant ajouté ce membre est également initialisé, il est donc
+                 * inutile ce membre s'il n'y a pas d'expression pour lui. */
+                continue;
+            }
+
+            auto ref_membre = crée_référence_pour_membre_employé(
+                assem, lexeme, ref_position, type_struct, membre);
+            auto assign = assem->cree_assignation_variable(lexeme, ref_membre, it);
+            bloc->ajoute_expression(assign);
+            continue;
+        }
+
         auto type_membre = membre.type;
         auto ref_membre = assem->cree_reference_membre(
             lexeme, ref_position, type_membre, index_it);
@@ -1622,6 +1660,120 @@ void Simplificatrice::simplifie_construction_structure_impl(
      * définir la valeur à assigner. */
     bloc->ajoute_expression(ref_position);
     construction->substitution = bloc;
+}
+
+/**
+ * Trouve le membre de \a type_composé ayant ajouté via `empl base: ...` la \a decl_employée et
+ * retourne son #TypeCompose::InformationMembre. */
+static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ayant_ajouté_decl(
+    TypeCompose *type_composé, NoeudDeclarationSymbole *decl_employée)
+{
+    auto info_membre = type_composé->donne_membre_pour_type(decl_employée->type);
+    if (!info_membre) {
+        return {};
+    }
+
+    if (!info_membre->membre.est_un_emploi()) {
+        return {};
+    }
+
+    return info_membre;
+}
+
+/**
+ * Trouve le membre de \a type_composé ayant pour nom le \a nom donné et
+ * retourne son #TypeCompose::InformationMembre. */
+static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ajouté_par_emploi(
+    TypeCompose *type_composé, IdentifiantCode *nom)
+{
+    return type_composé->donne_membre_pour_nom(nom);
+}
+
+/**
+ * Construit la hiérarchie des structures employées par \a type_composé jusqu'à la structure
+ * employée ayant ajoutée \a membre à \a type_composé.
+ * Le résultat contiendra une #TypeCompose::InformationMembre pour chaque membre employé de chaque
+ * structure rencontrée + le membre de la structure à l'origine du membre ajouté par emploi.
+ *
+ * Par exemple, pour :
+ *
+ * Struct1 :: struct {
+ *    x: z32
+ * }
+ *
+ * Struct2 :: struct {
+ *    empl base1: Struct1
+ * }
+ *
+ * Struct3 :: struct {
+ *    empl base2: Struct2
+ * }
+ *
+ * Struct4 :: struct {
+ *    empl base3: Struct3
+ * }
+ *
+ * Retourne :
+ * - base3
+ * - base2
+ * - base1
+ * - x
+ */
+static kuri::tableau<TypeCompose::InformationMembre, int> trouve_hiérarchie_emploi_membre(
+    TypeCompose *type_composé, TypeCompose::Membre const &membre)
+{
+    kuri::tableau<TypeCompose::InformationMembre, int> hiérarchie;
+
+    auto type_composé_courant = type_composé;
+    auto membre_courant = membre;
+
+    while (true) {
+        auto decl_employée = membre_courant.decl->declaration_vient_d_un_emploi;
+        auto info = trouve_information_membre_ayant_ajouté_decl(type_composé_courant,
+                                                                decl_employée);
+        assert(info.has_value());
+
+        hiérarchie.ajoute(info.value());
+
+        auto type_employé = info->membre.type->comme_compose();
+        auto info_membre = trouve_information_membre_ajouté_par_emploi(type_employé,
+                                                                       membre_courant.nom);
+        assert(info_membre.has_value());
+
+        if ((info_membre->membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) == 0) {
+            /* Nous sommes au bout de la hiérarchie, ajoutons le membre, et arrêtons. */
+            hiérarchie.ajoute(info_membre.value());
+            break;
+        }
+
+        type_composé_courant = type_employé;
+        membre_courant = info_membre->membre;
+    }
+
+    return hiérarchie;
+}
+
+static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre *assem,
+                                                           Lexeme const *lexeme,
+                                                           NoeudExpression *expression_accédée,
+                                                           TypeCompose *type_composé,
+                                                           TypeCompose::Membre const &membre)
+{
+    auto hiérarchie = trouve_hiérarchie_emploi_membre(type_composé, membre);
+    auto ref_membre_courant = expression_accédée;
+
+    POUR (hiérarchie) {
+        auto accès_base = assem->cree_reference_membre(
+            lexeme, ref_membre_courant, it.membre.type, it.index_membre);
+
+        auto ref_membre_empl = assem->cree_reference_declaration(lexeme, it.membre.decl);
+        accès_base->membre = ref_membre_empl;
+
+        ref_membre_courant = accès_base;
+    }
+
+    assert(ref_membre_courant != expression_accédée);
+    return ref_membre_courant;
 }
 
 void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_membre)
@@ -1694,6 +1846,12 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         simplifie(membre.expression_valeur_defaut);
         ref_membre->substitution = membre.expression_valeur_defaut;
         return;
+    }
+
+    if (membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) {
+        /* Transforme x.y en x.base.y. */
+        ref_membre->substitution = crée_référence_pour_membre_employé(
+            assem, lexeme, ref_membre->accedee, type_compose, membre);
     }
 
     /* Pour les appels de fonctions ou les accès après des parenthèse (p.e. (x comme *TypeBase).y).

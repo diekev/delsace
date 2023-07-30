@@ -3507,7 +3507,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     };
 
     auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant,
-                                           NoeudExpression *expr_valeur) -> ResultatValidation {
+                                           NoeudExpression *expr_valeur,
+                                           int drapeaux = 0) -> ResultatValidation {
         auto type_membre = enfant->type;
 
         // À FAIRE: ceci devrait plutôt être déplacé dans la validation des déclarations, mais nous
@@ -3542,7 +3543,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         type_compose->membres.ajoute(
-            {decl_var_enfant, enfant->type, enfant->ident, 0, 0, expr_valeur});
+            {decl_var_enfant, enfant->type, enfant->ident, 0, 0, expr_valeur, drapeaux});
         return CodeRetourValidation::OK;
     };
 
@@ -3659,6 +3660,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
+            TENTE(ajoute_donnees_membre(it, nullptr, TypeCompose::Membre::EST_UN_EMPLOI));
             type_struct->types_employes.ajoute(it->type->comme_structure());
             continue;
         }
@@ -3682,8 +3684,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (decl_var->declaration_vient_d_un_emploi) {
-            // À FAIRE(emploi) : préserve l'emploi dans les données types
-            TENTE(ajoute_donnees_membre(decl_var, decl_var->expression));
+            TENTE(ajoute_donnees_membre(
+                decl_var, decl_var->expression, TypeCompose::Membre::PROVIENT_D_UN_EMPOI));
             continue;
         }
 
@@ -3746,6 +3748,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 continue;
             }
 
+            membre.drapeaux |= TypeCompose::Membre::POSSÈDE_EXPRESSION_SPÉCIALE;
             membre.expression_valeur_defaut = expr_assign->expression;
             break;
         }
