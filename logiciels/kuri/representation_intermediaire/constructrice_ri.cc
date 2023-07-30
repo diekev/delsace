@@ -3120,6 +3120,10 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
                     continue;
                 }
 
+                if (it.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                    continue;
+                }
+
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
                 auto valeurs = kuri::tableau<AtomeConstante *>(5);
                 valeurs[0] = cree_chaine(it.nom->nom);

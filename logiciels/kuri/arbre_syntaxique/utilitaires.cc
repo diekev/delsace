@@ -987,6 +987,10 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                     continue;
                 }
 
+                if (it.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                    continue;
+                }
+
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = cree_info_type_pour(it.type);
