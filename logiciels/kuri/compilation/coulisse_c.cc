@@ -586,7 +586,7 @@ void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
 #endif
 
     POUR (type_compose->membres) {
-        if (it.drapeaux & TypeCompose::Membre::MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+        if (it.ne_doit_pas_être_dans_code_machine()) {
             continue;
         }
 
@@ -956,9 +956,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
 
                             auto index_membre = 0;
                             for (auto i = 0; i < type->membres.taille(); ++i) {
-                                if (type->membres[i].drapeaux &
-                                    TypeCompose::Membre::
-                                        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE) {
+                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
                                     continue;
                                 }
 
