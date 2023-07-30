@@ -2,7 +2,6 @@
  * appeler les fonctions depuis C. */
 
 importe Compilatrice
-importe Ensemble
 importe Fondation
 importe SysFichier
 
@@ -544,19 +543,14 @@ public:
     imprime_dans_enchaineuse(*enchaineuse, définition_classe_chaine, génératrice.espace_de_nom, génératrice.espace_de_nom)
 
     /* Déclare les classes. */
-    classes_déclarées : []*TypeIPA
-    diffère déloge(classes_déclarées)
     pour ipa.types {
-        prédéclare_type_cpp(*enchaineuse, it, système, *classes_déclarées)
+        prédéclare_type_cpp(*enchaineuse, it, système)
     }
     ajoute_au_tampon(*enchaineuse, "\n")
 
     /* Définit les classes. */
-
-    classes_définis : []*TypeIPA
-    diffère déloge(classes_définis)
     pour ipa.types {
-        définis_classe_cpp(*enchaineuse, it, génératrice, *classes_définis)
+        définis_classe_cpp(*enchaineuse, it, génératrice)
     }
 
     pour ipa.types {
@@ -578,7 +572,7 @@ public:
     copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
 }
 
-prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, système: *SystèmeTypeC, classes_déclarées : *[]*TypeIPA)
+prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, système: *SystèmeTypeC)
 {
     si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU {
         retourne
@@ -588,19 +582,19 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
         retourne
     }
 
-    si ensemble_possède(classes_déclarées, type) {
+    si type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE {
         retourne
     }
 
-    diffère ensemble_ajoute(classes_déclarées, type)
+    diffère type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE = vrai
 
     si type.infos.id == id_info.FONCTION {
         pour type.types_entrée {
-            prédéclare_type_cpp(enchaineuse, it, système, classes_déclarées)
+            prédéclare_type_cpp(enchaineuse, it, système)
         }
 
         pour type.types_sortie {
-            prédéclare_type_cpp(enchaineuse, it, système, classes_déclarées)
+            prédéclare_type_cpp(enchaineuse, it, système)
         }
 
         type_c := trouve_type(système, type.infos)
@@ -648,7 +642,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
     ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, ";\n")
 }
 
-définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC, classes_définis : *[]*TypeIPA)
+définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
 {
     si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ÉNUM {
         retourne
@@ -662,16 +656,16 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
         retourne
     }
 
-    si ensemble_possède(classes_définis, type) {
+    si type.drapeaux.DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE {
         retourne
     }
 
-    diffère ensemble_ajoute(classes_définis, type)
+    diffère type.drapeaux.DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE = vrai
 
     système := *génératrice.système_type
 
     si type.type_base {
-        définis_classe_cpp(enchaineuse, type.type_base, génératrice, classes_définis)
+        définis_classe_cpp(enchaineuse, type.type_base, génératrice)
     }
 
     si type.drapeaux.TYPE_EST_ABSTRAIT {
@@ -1081,7 +1075,7 @@ génère_liste_paramètres_pour_fonction_cpp :: fonc (enchaineuse: *Enchaineuse,
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA, type_courant: *TypeIPA, système_type: *SystèmeTypeC, types_traités: *[]*InfoType)
+génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA, type_courant: *TypeIPA, système_type: *SystèmeTypeC)
 {
     si type_courant.drapeaux.TYPE_EST_BASIQUE {
         retourne
@@ -1091,23 +1085,22 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
         retourne
     }
 
-    infos_type_courant := type_courant.infos
-
-    si ensemble_possède(types_traités, infos_type_courant) {
+    si type_courant.drapeaux.DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE {
         retourne
     }
 
-    diffère ensemble_ajoute(types_traités, infos_type_courant)
+    diffère type_courant.drapeaux.DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE = vrai
 
-    type_c := trouve_type(système_type, type_courant.infos)
+    infos_type_courant := type_courant.infos
+    type_c := trouve_type(système_type, infos_type_courant)
 
     si type_courant.drapeaux.TYPE_EST_FONCTION {
         pour type_courant.types_entrée {
-            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type, types_traités)
+            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type)
         }
 
         pour type_courant.types_sortie {
-            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type, types_traités)
+            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type)
         }
 
         ajoute_au_tampon(enchaineuse, "typedef ")
@@ -1137,7 +1130,7 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
 
         type_ipa_type_pointé := trouve_type_ipa(ipa, type_tableau.type_pointé)
 
-        génère_code_déclaration_type_c(enchaineuse, ipa, type_ipa_type_pointé, système_type, types_traités)
+        génère_code_déclaration_type_c(enchaineuse, ipa, type_ipa_type_pointé, système_type)
 
         type_c_type_pointé := trouve_type(système_type, type_tableau.type_pointé)
 
@@ -1187,19 +1180,17 @@ génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, chemin:
     ajoute_au_tampon(*enchaineuse, "typedef struct { char *pointeur; long taille; } ", génératrice.espace_de_nom, "_Chaine;\n\n")
 
     /* Deux passes pour les typedefs des tableaux se fassent après les types qu'ils utilisent. */
-    types_traités : []*InfoType
-    diffère déloge(types_traités)
     pour ipa.types {
         si it.drapeaux.TYPE_EST_TABLEAU {
             continue
         }
-        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type, *types_traités)
+        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
     }
     pour ipa.types {
         saufsi it.drapeaux.TYPE_EST_TABLEAU {
             continue
         }
-        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type, *types_traités)
+        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
     }
 
     /* Déclare la structure pour la table. */

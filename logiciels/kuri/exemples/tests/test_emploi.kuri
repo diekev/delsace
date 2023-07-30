@@ -3,10 +3,13 @@ importe Fondation
 principale :: fonc () -> z32
 {
     test_modification_paramètre_empl()
+    test_modification_paramètre_empl_indirection()
     test_modification_locale_via_empl()
     test_initialisation_membre_employé()
     test_initialisation_spéciale_membre_employé()
     test_initialisation_spéciale_membre_avec_indirection()
+    test_initialisation_via_exécute()
+    test_initialisation_via_exécute_indirection()
     retourne 0
 }
 
@@ -44,6 +47,48 @@ test_modification_paramètre_empl :: fonc ()
 
     ne_modifie_pas_vecteur(v)
     assert(v.x == 1 && v.y == 2 && v.z == 3)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Modification d'un paramètre via empl avec indirection.
+ * \{ */
+
+test_modification_paramètre_empl_indirection :: fonc ()
+{
+    Vecteur :: struct {
+        x := 0
+        y := 0
+        z := 0
+    }
+
+    Point :: struct {
+        empl base: Vecteur
+    }
+
+    modifie_point :: fonc (empl p: *Point)
+    {
+        x = 1
+        y = 2
+        z = 3
+    }
+
+    ne_modifie_pas_point :: fonc (empl p: Point)
+    {
+        x = 4
+        y = 5
+        z = 6
+    }
+
+    p : Point
+    assert(p.x == 0 && p.y == 0 && p.z == 0)
+
+    modifie_point(*p)
+    assert(p.x == 1 && p.y == 2 && p.z == 3)
+
+    ne_modifie_pas_point(p)
+    assert(p.x == 1 && p.y == 2 && p.z == 3)
 }
 
 /** } */
@@ -130,3 +175,56 @@ test_initialisation_spéciale_membre_avec_indirection :: fonc ()
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation via exécute.
+ * \{ */
+
+test_initialisation_via_exécute :: fonc ()
+{
+    Base :: struct {
+        x := 123
+    }
+
+    construit_base :: fonc () -> Base
+    {
+        retourne Base(456)
+    }
+
+    b: Base
+    assert(b.x == 123)
+
+    b = #exécute construit_base()
+    assert(b.x == 456)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation via exécute avec indirection.
+ * \{ */
+
+test_initialisation_via_exécute_indirection :: fonc ()
+{
+    Base :: struct {
+        x := 123
+    }
+
+    Base2 :: struct {
+        empl base: Base
+    }
+
+    construit_base :: fonc () -> Base2
+    {
+        retourne Base2(456)
+    }
+
+    b: Base2
+    assert(b.x == 123)
+
+    b = #exécute construit_base()
+    assert(b.x == 456)
+}
+
+/** } */
+

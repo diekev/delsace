@@ -1269,16 +1269,6 @@ static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1
     return stockage->ou == inst1;
 }
 
-static bool est_accès_membre_de(Instruction const *inst0, Instruction const *inst1)
-{
-    if (!inst0->est_acces_membre()) {
-        return false;
-    }
-
-    auto const stockage = inst0->comme_acces_membre();
-    return stockage->accede == inst1;
-}
-
 static bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
 {
     if (!inst0->est_transtype()) {
@@ -1459,13 +1449,6 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
         auto decalage = est_appel_initialisation(bloc->instructions[i], alloc);
         if (decalage != 0) {
             return i - (decalage - 1);
-        }
-
-        /* La génération de code des variables employées crée des accès de membres inutiles.
-         * À FAIRE : supprime la RI spéciale pour les emplois, et crée les accès de membre lors de
-         * la canonicalisation de l'arbre syntaxique. */
-        if (est_accès_membre_de(bloc->instructions[i], alloc)) {
-            return i;
         }
 
         if (est_stockage_vers(bloc->instructions[i], alloc)) {
