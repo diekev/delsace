@@ -900,38 +900,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
             auto noeud_bloc = noeud->comme_bloc();
-
-            POUR (*noeud_bloc->membres.verrou_lecture()) {
-                if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
-                    continue;
-                }
-
-                auto decl_var = it->comme_declaration_variable();
-
-                if (!decl_var->declaration_vient_d_un_emploi) {
-                    continue;
-                }
-
-                auto ident_var_employee = decl_var->declaration_vient_d_un_emploi->ident;
-                auto pointeur_struct = decl_var->declaration_vient_d_un_emploi->atome;
-
-                if (pointeur_struct == nullptr) {
-                    pointeur_struct = cree_allocation(
-                        decl_var,
-                        decl_var->declaration_vient_d_un_emploi->type,
-                        ident_var_employee);
-                    decl_var->declaration_vient_d_un_emploi->atome = pointeur_struct;
-                }
-
-                auto type_employe = decl_var->declaration_vient_d_un_emploi->type;
-                if (type_employe->est_pointeur() || type_employe->est_reference()) {
-                    pointeur_struct = cree_charge_mem(decl_var, pointeur_struct);
-                }
-
-                decl_var->atome = cree_reference_membre(
-                    decl_var, pointeur_struct, decl_var->index_membre_employe);
-            }
-
             auto ancienne_taille_allouee = taille_allouee;
 
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
@@ -3639,24 +3607,6 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
         return;
     }
 
-    auto alloc_pointeur = [this, decl](NoeudExpression *var) {
-        Atome *pointeur = nullptr;
-
-        // les allocations pour les variables employées sont créées lors de la génération de code
-        // pour les blocs
-        if (decl->drapeaux & EMPLOYE) {
-            pointeur = decl->atome;
-            assert_rappel(pointeur != nullptr, [=]() {
-                std::cerr << "Aucune allocation pour « " << var->ident->nom << " »\n.";
-            });
-        }
-        else {
-            pointeur = cree_allocation(var, var->type, var->ident);
-        }
-
-        return pointeur;
-    };
-
     POUR (decl->donnees_decl.plage()) {
         auto expression = it.expression;
 
@@ -3673,7 +3623,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                     for (auto i = 0; i < it.variables.taille(); ++i) {
                         auto var = it.variables[i];
                         auto &transformation = it.transformations[i];
-                        auto pointeur = alloc_pointeur(var);
+                        auto pointeur = cree_allocation(var, var->type, var->ident);
                         static_cast<NoeudDeclarationSymbole *>(
                             var->comme_reference_declaration()->declaration_referee)
                             ->atome = pointeur;
@@ -3689,7 +3639,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
                     for (auto i = 0; i < it.variables.taille(); ++i) {
                         auto var = it.variables[i];
                         auto &transformation = it.transformations[i];
-                        auto pointeur = alloc_pointeur(var);
+                        auto pointeur = cree_allocation(var, var->type, var->ident);
                         static_cast<NoeudDeclarationSymbole *>(
                             var->comme_reference_declaration()->declaration_referee)
                             ->atome = pointeur;
@@ -3701,7 +3651,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
             }
             else {
                 for (auto &var : it.variables.plage()) {
-                    auto pointeur = alloc_pointeur(var);
+                    auto pointeur = cree_allocation(var, var->type, var->ident);
                     static_cast<NoeudDeclarationSymbole *>(
                         var->comme_reference_declaration()->declaration_referee)
                         ->atome = pointeur;
@@ -3710,7 +3660,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
         }
         else {
             for (auto &var : it.variables.plage()) {
-                auto pointeur = alloc_pointeur(var);
+                auto pointeur = cree_allocation(var, var->type, var->ident);
                 auto type_var = var->type;
                 cree_appel_fonction_init_type(var, type_var, pointeur);
 

@@ -343,6 +343,21 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
+            if (decl_ref->est_declaration_variable()) {
+                auto declaration_variable = decl_ref->comme_declaration_variable();
+                if (declaration_variable->declaration_vient_d_un_emploi) {
+                    /* Transforme en un accès de membre. */
+                    auto ref_decl_var = assem->cree_reference_declaration(
+                        expr_ref->lexeme, declaration_variable->declaration_vient_d_un_emploi);
+                    auto accès_membre = assem->cree_reference_membre(
+                        expr_ref->lexeme,
+                        ref_decl_var,
+                        expr_ref->type,
+                        declaration_variable->index_membre_employe);
+                    expr_ref->substitution = accès_membre;
+                }
+            }
+
             return;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
