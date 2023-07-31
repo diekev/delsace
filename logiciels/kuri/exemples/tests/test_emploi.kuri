@@ -10,6 +10,10 @@ principale :: fonc () -> z32
     test_initialisation_spéciale_membre_avec_indirection()
     test_initialisation_via_exécute()
     test_initialisation_via_exécute_indirection()
+    test_transtypage_vers_bases_multiple()
+    test_transtypage_vers_bases_multiple_avec_indirection()
+    test_transtypage_référence_vers_bases_multiple()
+    test_transtypage_référence_vers_bases_multiple_avec_indirection()
     retourne 0
 }
 
@@ -228,3 +232,288 @@ test_initialisation_via_exécute_indirection :: fonc ()
 
 /** } */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Transtypage vers type base.
+ * \{ */
+
+test_transtypage_vers_bases_multiple :: fonc ()
+{
+    Base1 :: struct {
+        membre1: chaine
+    }
+
+    Base2 :: struct {
+        membre2: chaine
+    }
+
+    Struct :: struct {
+        empl base1: Base1
+        empl base2: Base2
+    }
+
+    modifie_membre_base1 :: fonc (base: *Base1)
+    {
+        base.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2 :: fonc (base: *Base2)
+    {
+        base.membre2 = "membre de base2"
+    }
+
+    modifie_membre_base1_dérivé :: fonc (base: *Base1)
+    {
+        dérivé := base comme *Struct
+        dérivé.base1.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2_dérivé :: fonc (base: *Base2)
+    {
+        dérivé := base comme *Struct
+        dérivé.base2.membre2 = "membre de base2"
+    }
+
+    /* Dérivé vers base. */
+    {
+        s: Struct
+        modifie_membre_base1(*s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(*s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Base vers dérivé. */
+    {
+        s: Struct
+        modifie_membre_base1_dérivé(*s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2_dérivé(*s)
+        assert(s.membre2 == "membre de base2")
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Transtypage vers type base un peu plus complexe.
+ * \{ */
+
+test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
+{
+    Base1 :: struct {
+        membre1: chaine
+    }
+
+    Base2 :: struct {
+        membre2: chaine
+    }
+
+    Base3 :: struct {
+        un_réel: r32
+        un_bool: bool
+        empl base1: Base1
+        un_tableau: []octet
+        empl base2: Base2
+    }
+
+    Struct :: struct {
+        un_entier : z32
+        empl base3: Base3
+    }
+
+    modifie_membre_base1 :: fonc (base: *Base1)
+    {
+        base.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2 :: fonc (base: *Base2)
+    {
+        base.membre2 = "membre de base2"
+    }
+
+    modifie_membre_base1_dérivé :: fonc (base: *Base1)
+    {
+        dérivé := base comme *Struct
+        dérivé.base1.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2_dérivé :: fonc (base: *Base2)
+    {
+        dérivé := base comme *Struct
+        dérivé.base2.membre2 = "membre de base2"
+    }
+
+    /* Dérivé vers base. */
+    {
+        s: Struct
+        modifie_membre_base1(*s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(*s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Base vers dérivé. */
+    {
+        s: Struct
+        modifie_membre_base1_dérivé(*s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2_dérivé(*s)
+        assert(s.membre2 == "membre de base2")
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Transtypage référence vers type base.
+ * \{ */
+
+test_transtypage_référence_vers_bases_multiple :: fonc ()
+{
+    Base1 :: struct {
+        membre1: chaine
+    }
+
+    Base2 :: struct {
+        membre2: chaine
+    }
+
+    Struct :: struct {
+        empl base1: Base1
+        empl base2: Base2
+    }
+
+    modifie_membre_base1 :: fonc (base: &Base1)
+    {
+        base.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2 :: fonc (base: &Base2)
+    {
+        base.membre2 = "membre de base2"
+    }
+
+    modifie_membre_base1_dérivé :: fonc (base: &Base1)
+    {
+        dérivé : &Struct = base comme &Struct
+        dérivé.base1.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2_dérivé :: fonc (base: &Base2)
+    {
+        dérivé : &Struct = base comme &Struct
+        dérivé.base2.membre2 = "membre de base2"
+    }
+
+    /* Dérivé vers base. */
+    {
+        s: Struct
+        réf_s : &Struct = s
+        modifie_membre_base1(réf_s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(réf_s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Dérivé sans référence vers base. */
+    {
+        s: Struct
+        modifie_membre_base1(s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Base vers dérivé. */
+    {
+        s: Struct
+        réf_s : &Struct = s
+        modifie_membre_base1_dérivé(réf_s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2_dérivé(réf_s)
+        assert(s.membre2 == "membre de base2")
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Transtypage référence vers type base un peu plus complexe.
+ * \{ */
+
+test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
+{
+    Base1 :: struct {
+        membre1: chaine
+    }
+
+    Base2 :: struct {
+        membre2: chaine
+    }
+
+    Base3 :: struct {
+        un_réel: r32
+        un_bool: bool
+        empl base1: Base1
+        un_tableau: []octet
+        empl base2: Base2
+    }
+
+    Struct :: struct {
+        un_entier : z32
+        empl base3: Base3
+    }
+
+    modifie_membre_base1 :: fonc (base: &Base1)
+    {
+        base.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2 :: fonc (base: &Base2)
+    {
+        base.membre2 = "membre de base2"
+    }
+
+    modifie_membre_base1_dérivé :: fonc (base: &Base1)
+    {
+        dérivé : &Struct = base comme &Struct
+        dérivé.base1.membre1 = "membre de base1"
+    }
+
+    modifie_membre_base2_dérivé :: fonc (base: &Base2)
+    {
+        dérivé : &Struct = base comme &Struct
+        dérivé.base2.membre2 = "membre de base2"
+    }
+
+    /* Dérivé vers base. */
+    {
+        s: Struct
+        réf_s : &Struct = s
+        modifie_membre_base1(réf_s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(réf_s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Dérivé sans référence vers base. */
+    {
+        s: Struct
+        modifie_membre_base1(s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2(s)
+        assert(s.membre2 == "membre de base2")
+    }
+
+    /* Base vers dérivé. */
+    {
+        s: Struct
+        réf_s : &Struct = s
+        modifie_membre_base1_dérivé(réf_s)
+        assert(s.membre1 == "membre de base1")
+        modifie_membre_base2_dérivé(réf_s)
+        assert(s.membre2 == "membre de base2")
+    }
+}
+
+/** } */
