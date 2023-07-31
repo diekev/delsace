@@ -27,15 +27,16 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type)
     return os;
 }
 
-static bool est_type_de_base(TypeStructure const *type_de, TypeStructure const *type_vers)
+static bool est_type_de_base(TypeStructure const *type_dérivé,
+                             TypeStructure const *type_base_potentiel)
 {
-    POUR (type_de->types_employes) {
-        if (it == type_vers) {
+    POUR (type_dérivé->types_employes) {
+        if (it == type_base_potentiel) {
             return true;
         }
 
         if (it->est_structure()) {
-            if (est_type_de_base(it->comme_structure(), type_vers)) {
+            if (est_type_de_base(it->comme_structure(), type_base_potentiel)) {
                 return true;
             }
         }
@@ -44,10 +45,11 @@ static bool est_type_de_base(TypeStructure const *type_de, TypeStructure const *
     return false;
 }
 
-static bool est_type_de_base(Type const *type_de, Type const *type_vers)
+static bool est_type_de_base(Type const *type_dérivé, Type const *type_base_potentiel)
 {
-    if (type_de->est_structure() && type_vers->est_structure()) {
-        return est_type_de_base(type_de->comme_structure(), type_vers->comme_structure());
+    if (type_dérivé->est_structure() && type_base_potentiel->est_structure()) {
+        return est_type_de_base(type_dérivé->comme_structure(),
+                                type_base_potentiel->comme_structure());
     }
 
     return false;
@@ -413,25 +415,25 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
     }
 
     if (type_vers->genre == GenreType::REFERENCE) {
-        auto type_pointe = type_vers->comme_reference()->type_pointe;
+        auto type_élément_vers = type_vers->comme_reference()->type_pointe;
 
         if (type_de->est_reference()) {
-            auto type_pointe_de = type_de->comme_reference()->type_pointe;
+            auto type_élément_de = type_de->comme_reference()->type_pointe;
 
-            if ((type_pointe_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_pointe_de);
+            if ((type_élément_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_élément_de);
             }
 
-            if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_pointe);
+            if ((type_élément_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                return Attente::sur_type(type_élément_vers);
             }
 
-            if (est_type_de_base(type_pointe_de, type_pointe)) {
+            if (est_type_de_base(type_élément_de, type_élément_vers)) {
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
-        if (type_pointe == type_de) {
+        if (type_élément_vers == type_de) {
             return TypeTransformation::PREND_REFERENCE;
         }
 
@@ -439,11 +441,11 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
             return Attente::sur_type(type_de);
         }
 
-        if ((type_pointe->drapeaux & TYPE_FUT_VALIDE) == 0) {
-            return Attente::sur_type(type_pointe);
+        if ((type_élément_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(type_élément_vers);
         }
 
-        if (est_type_de_base(type_de, type_pointe)) {
+        if (est_type_de_base(type_de, type_élément_vers)) {
             return TransformationType{TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE,
                                       type_vers};
         }
