@@ -3644,8 +3644,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         return CodeRetourValidation::OK;
     }
 
-    auto type_struct = type_compose->comme_structure();
-
     POUR (*decl->bloc->membres.verrou_lecture()) {
         if (it->est_declaration_type()) {
             // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
@@ -3668,7 +3666,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             }
 
             TENTE(ajoute_donnees_membre(it, nullptr, TypeCompose::Membre::EST_UN_EMPLOI));
-            type_struct->types_employes.ajoute(it->type->comme_structure());
             continue;
         }
 
@@ -3782,6 +3779,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     }
     else {
         calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
+    }
+
+    auto type_struct = type_compose->comme_structure();
+    POUR (type_struct->membres) {
+        if (it.possède_drapeau(TypeCompose::Membre::EST_UN_EMPLOI)) {
+            type_struct->types_employés.ajoute(&it);
+        }
     }
 
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
@@ -4518,7 +4522,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 
     auto tfm = transformation;
 
-    if (transformation.type == TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE) {
+    if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
         auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->expression = expression;
@@ -4526,7 +4530,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
         noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
         expression = noeud_comme;
-        tfm.type = TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+        tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
     auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
