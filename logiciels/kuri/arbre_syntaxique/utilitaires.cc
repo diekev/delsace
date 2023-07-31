@@ -1010,9 +1010,9 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                 copie_annotations(decl_struct->annotations, info_type->annotations);
             }
 
-            info_type->structs_employees.reserve(type_struct->types_employes.taille());
-            POUR (type_struct->types_employes) {
-                auto info_struct_employe = cree_info_type_pour(it);
+            info_type->structs_employees.reserve(type_struct->types_employés.taille());
+            POUR (type_struct->types_employés) {
+                auto info_struct_employe = cree_info_type_pour(it->type);
                 info_type->structs_employees.ajoute(
                     static_cast<InfoTypeStructure *>(info_struct_employe));
             }

@@ -28,6 +28,7 @@ struct Type;
     ENUMERE_TYPE_TRANSFORMATION_EX(AUGMENTE_TAILLE_TYPE)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(REDUIT_TAILLE_TYPE)                                            \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_BASE)                                            \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_DÉRIVÉ)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_ENTIER_CONSTANT)                                      \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_PTR_RIEN)                                        \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_TYPE_CIBLE)                                      \
@@ -35,7 +36,7 @@ struct Type;
     ENUMERE_TYPE_TRANSFORMATION_EX(REEL_VERS_ENTIER)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_POINTEUR)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(POINTEUR_VERS_ENTIER)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_REFERENCE_VERS_TYPE_CIBLE)
+    ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE_ET_CONVERTIS_VERS_BASE)
 
 enum class TypeTransformation {
 #define ENUMERE_TYPE_TRANSFORMATION_EX(type) type,
@@ -51,6 +52,8 @@ struct TransformationType {
     NoeudDeclarationEnteteFonction const *fonction{};
     Type const *type_cible = nullptr;
     int64_t index_membre = 0;
+    /* Pour les transformations entre type base et type dérivé. */
+    uint32_t décalage_type_base = -1u;
 
     TransformationType() = default;
 
@@ -78,6 +81,32 @@ struct TransformationType {
     {
     }
 
+    static TransformationType vers_base(Type const *type_cible_, uint32_t décalage_type_base_)
+    {
+        auto résultat = TransformationType(TypeTransformation::CONVERTI_VERS_BASE);
+        résultat.type_cible = type_cible_;
+        résultat.décalage_type_base = décalage_type_base_;
+        return résultat;
+    }
+
+    static TransformationType prend_référence_vers_base(Type const *type_cible_,
+                                                        uint32_t décalage_type_base_)
+    {
+        auto résultat = TransformationType(
+            TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE);
+        résultat.type_cible = type_cible_;
+        résultat.décalage_type_base = décalage_type_base_;
+        return résultat;
+    }
+
+    static TransformationType vers_dérivé(Type const *type_cible_, uint32_t décalage_type_base_)
+    {
+        auto résultat = TransformationType(TypeTransformation::CONVERTI_VERS_DÉRIVÉ);
+        résultat.type_cible = type_cible_;
+        résultat.décalage_type_base = décalage_type_base_;
+        return résultat;
+    }
+
     bool operator==(TransformationType const &autre) const
     {
         if (this == &autre) {
@@ -97,6 +126,10 @@ struct TransformationType {
         }
 
         if (type_cible != autre.type_cible) {
+            return false;
+        }
+
+        if (décalage_type_base != autre.décalage_type_base) {
             return false;
         }
 

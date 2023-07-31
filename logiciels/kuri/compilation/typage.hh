@@ -448,7 +448,8 @@ struct TypeStructure final : public TypeCompose {
 
     COPIE_CONSTRUCT(TypeStructure);
 
-    kuri::tableau<TypeStructure *, int> types_employes{};
+    /* Stocke les membres pour avoir accès à leurs décalages. */
+    kuri::tableau<Membre const *, int> types_employés{};
 
     NoeudStruct *decl = nullptr;
 

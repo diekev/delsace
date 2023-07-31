@@ -1810,10 +1810,10 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         {
             break;
         }
-        case TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE:
+        case TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n";
+                std::cerr << "PREND_REFERENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !\n";
             });
             break;
         }
@@ -2317,10 +2317,14 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::CONVERTI_VERS_BASE:
         {
-            // À FAIRE : décalage dans la structure
-            valeur = cree_charge_mem(noeud, valeur);
-            valeur = cree_transtype(
-                noeud, transformation.type_cible, valeur, TypeTranstypage::BITS);
+            valeur = crée_transtype_entre_base_et_dérivé(
+                noeud, valeur, transformation, OperateurBinaire::Genre::Addition);
+            break;
+        }
+        case TypeTransformation::CONVERTI_VERS_DÉRIVÉ:
+        {
+            valeur = crée_transtype_entre_base_et_dérivé(
+                noeud, valeur, transformation, OperateurBinaire::Genre::Soustraction);
             break;
         }
     }
@@ -2330,6 +2334,34 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
     }
 
     empile_valeur(valeur);
+}
+
+Atome *ConstructriceRI::crée_transtype_entre_base_et_dérivé(
+    NoeudExpression *noeud,
+    Atome *valeur,
+    TransformationType const &transformation,
+    OperateurBinaire::Genre op)
+{
+    valeur = cree_charge_mem(noeud, valeur);
+
+    auto const décalage_type_base = transformation.décalage_type_base;
+    if (décalage_type_base != 0) {
+        auto const type_z64 = m_compilatrice.typeuse[TypeBase::Z64];
+        auto const type_ptr_octet = m_compilatrice.typeuse[TypeBase::PTR_OCTET];
+
+        /* Convertis en entier. */
+        valeur = cree_transtype(noeud, type_z64, valeur, TypeTranstypage::POINTEUR_VERS_ENTIER);
+
+        /* Ajoute ou soustrait le décalage selon l'opération. */
+        auto valeur_décalage = cree_z64(uint64_t(décalage_type_base));
+        valeur = cree_op_binaire(noeud, type_z64, op, valeur, valeur_décalage);
+
+        /* Convertis vers un pointeur. */
+        valeur = cree_transtype(
+            noeud, type_ptr_octet, valeur, TypeTranstypage::ENTIER_VERS_POINTEUR);
+    }
+
+    return cree_transtype(noeud, transformation.type_cible, valeur, TypeTranstypage::BITS);
 }
 
 void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
@@ -3151,9 +3183,9 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             auto tableau_membre = cree_tableau_global(type_membre, std::move(valeurs_membres));
 
             kuri::tableau<AtomeConstante *> valeurs_structs_employees;
-            valeurs_structs_employees.reserve(type_struct->types_employes.taille());
-            POUR (type_struct->types_employes) {
-                valeurs_structs_employees.ajoute(cree_info_type(it, site));
+            valeurs_structs_employees.reserve(type_struct->types_employés.taille());
+            POUR (type_struct->types_employés) {
+                valeurs_structs_employees.ajoute(cree_info_type(it->type, site));
             }
 
             auto type_pointeur_info_struct = m_compilatrice.typeuse.type_pointeur_pour(
