@@ -27,32 +27,39 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type)
     return os;
 }
 
-static bool est_type_de_base(TypeStructure const *type_dérivé,
-                             TypeStructure const *type_base_potentiel)
+/** Si \a type_base_potentiel est un type employé par \a type_dérivé, ou employé par un type
+ * employé par \a type_dérivé, retourne le décalage absolu en octet dans la structure de \a
+ * type_dérivé du \a type_base_potentiel. Ceci prend en compte le décalage des emplois
+ * intermédiaire pour arriver à \a type_base_potentiel.
+ * S'il n'y a aucune filliation entre les types, ne retourne rien. */
+static std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
+                                                TypeStructure const *type_base_potentiel)
 {
-    POUR (type_dérivé->types_employes) {
-        if (it == type_base_potentiel) {
-            return true;
+    POUR (type_dérivé->types_employés) {
+        auto struct_employée = it->type->comme_structure();
+        if (struct_employée == type_base_potentiel) {
+            return it->decalage;
         }
 
-        if (it->est_structure()) {
-            if (est_type_de_base(it->comme_structure(), type_base_potentiel)) {
-                return true;
-            }
+        auto décalage_depuis_struct_employée = est_type_de_base(struct_employée,
+                                                                type_base_potentiel);
+        if (décalage_depuis_struct_employée) {
+            return it->decalage + décalage_depuis_struct_employée.value();
         }
     }
 
-    return false;
+    return {};
 }
 
-static bool est_type_de_base(Type const *type_dérivé, Type const *type_base_potentiel)
+static std::optional<uint32_t> est_type_de_base(Type const *type_dérivé,
+                                                Type const *type_base_potentiel)
 {
     if (type_dérivé->est_structure() && type_base_potentiel->est_structure()) {
         return est_type_de_base(type_dérivé->comme_structure(),
                                 type_base_potentiel->comme_structure());
     }
 
-    return false;
+    return {};
 }
 
 template <typename T, int tag>
@@ -428,8 +435,9 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                 return Attente::sur_type(type_élément_vers);
             }
 
-            if (est_type_de_base(type_élément_de, type_élément_vers)) {
-                return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
+            auto décalage_type_base = est_type_de_base(type_élément_de, type_élément_vers);
+            if (décalage_type_base) {
+                return TransformationType::vers_base(type_vers, décalage_type_base.value());
             }
         }
 
@@ -445,9 +453,10 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
             return Attente::sur_type(type_élément_vers);
         }
 
-        if (est_type_de_base(type_de, type_élément_vers)) {
-            return TransformationType{TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE,
-                                      type_vers};
+        auto décalage_type_base = est_type_de_base(type_de, type_élément_vers);
+        if (décalage_type_base) {
+            return TransformationType::prend_référence_vers_base(type_vers,
+                                                                 décalage_type_base.value());
         }
     }
 
@@ -536,17 +545,15 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                 return Attente::sur_type(ts_vers);
             }
 
-            // À FAIRE : gère le décalage dans la structure, ceci ne peut
-            // fonctionner que si la structure de base est au début de la
-            // structure dérivée
-            if (est_type_de_base(ts_de, ts_vers)) {
-                return TransformationType{TypeTransformation::CONVERTI_VERS_BASE, type_vers};
+            auto décalage_type_base = est_type_de_base(ts_de, ts_vers);
+            if (décalage_type_base) {
+                return TransformationType::vers_base(type_vers, décalage_type_base.value());
             }
 
             if (POUR_TRANSTYPAGE) {
-                if (est_type_de_base(ts_vers, ts_de)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                                              type_vers};
+                décalage_type_base = est_type_de_base(ts_vers, ts_de);
+                if (décalage_type_base) {
+                    return TransformationType::vers_dérivé(type_vers, décalage_type_base.value());
                 }
             }
         }
@@ -576,9 +583,9 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                 auto ts_de = type_pointe_de->comme_structure();
                 auto ts_vers = type_pointe_vers->comme_structure();
 
-                if (est_type_de_base(ts_vers, ts_de)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                                              type_vers};
+                auto décalage_type_base = est_type_de_base(ts_vers, ts_de);
+                if (décalage_type_base) {
+                    return TransformationType::vers_dérivé(type_vers, décalage_type_base.value());
                 }
             }
         }

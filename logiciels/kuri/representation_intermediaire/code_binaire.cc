@@ -90,7 +90,7 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
                               Type const *type,
                               bool ajoute_verification)
 {
-#ifndef CMAKE_BUILD_TYPE_PROFILE
+#if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
         std::cerr << "Le type est " << chaine_type(type) << '\n';
 
