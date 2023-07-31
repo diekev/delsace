@@ -578,11 +578,6 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                     return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                               type_vers};
                 }
-
-                if (est_type_de_base(ts_de, ts_vers)) {
-                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                                              type_vers};
-                }
             }
         }
     }
