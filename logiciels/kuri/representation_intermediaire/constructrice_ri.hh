@@ -260,6 +260,11 @@ struct ConstructriceRI {
     AtomeConstante *cree_tableau_annotations_pour_info_membre(
         const kuri::tableau<Annotation, int> &annotations);
 
+    Atome *crée_transtype_entre_base_et_dérivé(NoeudExpression *noeud,
+                                               Atome *valeur,
+                                               const TransformationType &transformation,
+                                               OperateurBinaire::Genre op);
+
     /* pour pouvoir accéder aux tableaux d'instructions */
     friend struct CopieuseInstruction;
 };
