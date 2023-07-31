@@ -1822,10 +1822,10 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         {
             break;
         }
-        case TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE:
+        case TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "CONVERTI_REFERENCE_VERS_TYPE_CIBLE utilisée dans la RI !\n";
+                std::cerr << "PREND_REFERENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !\n";
             });
             break;
         }

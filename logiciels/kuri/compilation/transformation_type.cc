@@ -444,7 +444,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         }
 
         if (est_type_de_base(type_de, type_pointe)) {
-            return TransformationType{TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE,
+            return TransformationType{TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE,
                                       type_vers};
         }
     }

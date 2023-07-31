@@ -4518,7 +4518,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 
     auto tfm = transformation;
 
-    if (transformation.type == TypeTransformation::CONVERTI_REFERENCE_VERS_TYPE_CIBLE) {
+    if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
         auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->expression = expression;
@@ -4526,7 +4526,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
         noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
 
         expression = noeud_comme;
-        tfm.type = TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+        tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
     auto noeud_comme = m_tacheronne.assembleuse->cree_comme(expression->lexeme);
