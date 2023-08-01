@@ -25,19 +25,18 @@
  * \{ */
 
 class EvenementJorjala : public QEvent {
-    JJL::TypeÉvènement m_type;
+    JJL::MessageInterface m_message{{}};
 
   public:
     static QEvent::Type id_type_qt;
 
-    EvenementJorjala(JJL::TypeÉvènement type_evenenemt_jorjala)
-        : QEvent(id_type_qt), m_type(type_evenenemt_jorjala)
+    EvenementJorjala(JJL::MessageInterface message) : QEvent(id_type_qt), m_message(message)
     {
     }
 
-    JJL::TypeÉvènement pour_quoi() const
+    JJL::MessageInterface message() const
     {
-        return m_type;
+        return m_message;
     }
 };
 

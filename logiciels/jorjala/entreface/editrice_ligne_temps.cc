@@ -47,8 +47,10 @@
 
 #include "coeur/jorjala.hh"
 
-EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("scene", jorjala, parent), m_slider(new QSlider(m_frame)),
+EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala,
+                                       JJL::Éditrice éditrice,
+                                       QWidget *parent)
+    : BaseEditrice("scene", éditrice, jorjala, parent), m_slider(new QSlider(m_frame)),
       m_tc_layout(new QHBoxLayout()), m_num_layout(new QHBoxLayout()),
       m_vbox_layout(new QVBoxLayout()), m_end_frame(new QSpinBox(m_frame)),
       m_start_frame(new QSpinBox(m_frame)), m_cur_frame(new QSpinBox(m_frame)),
@@ -130,10 +132,9 @@ EditriceLigneTemps::EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent)
     connect(m_fps, SIGNAL(valueChanged(double)), this, SLOT(setFPS(double)));
 }
 
-void EditriceLigneTemps::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceLigneTemps::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto creation = (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
+    auto creation = (changement == (JJL::ChangementÉditrice::RAFRAICHIS));
 
     if (!creation) {
         return;
@@ -186,8 +187,6 @@ void EditriceLigneTemps::setCurrentFrame(int value)
     this->rend_actif();
     m_jorjala.définis_temps_courant(value);
     m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
-
-    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
 }
 
 void EditriceLigneTemps::setFPS(double value)

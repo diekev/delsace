@@ -59,7 +59,6 @@ class CommandeZoomCamera3D : public CommandeJorjala {
         auto const delta = donnees.y;
         auto camera = jorjala.donne_caméra_3d();
         camera.zoom(delta);
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -97,8 +96,6 @@ class CommandeTourneCamera3D : public CommandeJorjala {
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -140,8 +137,6 @@ class CommandePanCamera3D : public CommandeJorjala {
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override
@@ -188,11 +183,7 @@ class CommandeSurvoleScene : public CommandeJorjala {
 		/* entresecte la manipulatrice */
 		auto const etat = manipulatrice->etat();
 
-		manipulatrice->entresecte(orig, dir);
-
-		if (etat != manipulatrice->etat()) {
-			jorjala->notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
-		}
+        manipulatrice->entresecte(orig, dir);
 
 #endif
         return EXECUTION_COMMANDE_REUSSIE;
@@ -288,9 +279,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 
 		/* ajourne la rotation et la taille originales */
 		jorjala->manipulatrice_3d->rotation(jorjala->manipulatrice_3d->rotation());
-		jorjala->manipulatrice_3d->taille(jorjala->manipulatrice_3d->taille());
-
-		jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
+        jorjala->manipulatrice_3d->taille(jorjala->manipulatrice_3d->taille());
 
 		return EXECUTION_COMMANDE_MODALE;
 #    endif
@@ -366,9 +355,7 @@ class CommandeDeplaceManipulatrice : public CommandeJorjala {
 
 		/* Évalue tout le graphe pour ajourner proprement les données dépendants
 		 * de la transformation de l'objet. */
-		jorjala->ajourne_pour_nouveau_temps("fin manipulation déplacement");
-
-		jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
+        jorjala->ajourne_pour_nouveau_temps("fin manipulation déplacement");
 #    endif
     }
 

@@ -21,7 +21,7 @@ class GestionnaireInterface final : public JJL::GestionnaireFenêtre {
     GestionnaireInterface(GestionnaireInterface const &) = delete;
     GestionnaireInterface &operator=(GestionnaireInterface const &) = delete;
 
-    void notifie_observatrices(JJL::TypeÉvènement evenement) override;
+    void envoie_message(JJL::MessageInterface message) override;
 
     void notifie_erreur(JJL::Chaine message) override;
 

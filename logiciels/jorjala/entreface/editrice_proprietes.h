@@ -47,12 +47,13 @@ class EditriceProprietes : public BaseEditrice {
     QVBoxLayout *m_disposition_widget;
 
   public:
-    explicit EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceProprietes(JJL::Jorjala &jorjala,
+                                JJL::Éditrice éditrice, QWidget *parent = nullptr);
 
     EditriceProprietes(EditriceProprietes const &) = default;
     EditriceProprietes &operator=(EditriceProprietes const &) = default;
 
-    void ajourne_état(JJL::TypeÉvènement évènement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
     void ajourne_manipulable() override;
 
