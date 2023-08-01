@@ -107,8 +107,6 @@ class CommandeAjouterPropriete final : public CommandeJorjala {
 		operatrice->ajoute_propriete_extra(attache, prop);
 #endif
 
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::PROPRIÉTÉ | JJL::TypeÉvènement::AJOUTÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -125,7 +123,6 @@ class CommandeAjouterComposite final : public CommandeJorjala {
     int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
     {
         jorjala.crée_racine_composite("composite");
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -144,9 +141,6 @@ class CommandeAjouterNuanceur final : public CommandeJorjala {
 #if 0  // À FAIRE
         jorjala.bdd.cree_nuanceur("nuanceur");
 #endif
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -166,9 +160,6 @@ class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
         auto nuanceur = jorjala.bdd.cree_nuanceur("nuanceur");
 		nuanceur->marque_est_cycles();
 #endif
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -230,9 +221,7 @@ struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
 			oper->amont_change(prise);
 		});
 
-		op->parametres_changes();
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
+        op->parametres_changes();
 
 		requiers_evaluation(*jorjala, PARAMETRE_CHANGE, "réponse commande ajout nuanceur opératrice");
 #endif
@@ -255,9 +244,6 @@ class CommandeAjouterRendu final : public CommandeJorjala {
 #if 0  // À FAIRE
         jorjala.bdd.cree_rendu("rendu");
 #endif
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -281,7 +267,6 @@ class CommandeDefait final : public CommandeJorjala {
     {
         INUTILISE(metadonnee);
         jorjala.défait_changement();
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -305,7 +290,6 @@ class CommandeRefait final : public CommandeJorjala {
     {
         INUTILISE(metadonnee);
         jorjala.refait_changement();
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -349,9 +333,6 @@ class CommandeRenomme final : public CommandeJorjala {
 		auto nom = resultat.evalue_chaine("nouveau_nom");
         noeud->nom = graphe.rend_nom_unique(nom);
 #endif
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };

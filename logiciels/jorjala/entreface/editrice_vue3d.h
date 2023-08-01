@@ -89,12 +89,14 @@ class EditriceVue3D : public BaseEditrice {
     QComboBox *m_selecteur_rendu{};
 
   public:
-    explicit EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceVue3D(JJL::Jorjala &jorjala,
+                           JJL::Éditrice éditrice,
+                           QWidget *parent = nullptr);
 
     EditriceVue3D(EditriceVue3D const &) = delete;
     EditriceVue3D &operator=(EditriceVue3D const &) = delete;
 
-    void ajourne_état(JJL::TypeÉvènement évènement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
     void ajourne_manipulable() override
     {

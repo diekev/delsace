@@ -299,17 +299,15 @@ static JJL::Composite accède_composite(JJL::Noeud noeud_racine_composite)
     return noeud_sortie.donne_composite();
 }
 
-EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("vue_2d", jorjala, parent), m_vue(new Visionneuse2D(jorjala, this))
+EditriceVue2D::EditriceVue2D(JJL::Jorjala &jorjala, JJL::Éditrice éditrice, QWidget *parent)
+    : BaseEditrice("vue_2d", éditrice, jorjala, parent), m_vue(new Visionneuse2D(jorjala, this))
 {
     m_main_layout->addWidget(m_vue);
 }
 
-void EditriceVue2D::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceVue2D::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto chargement = évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
-    chargement |= (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
-    chargement |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
+    auto chargement = (changement == (JJL::ChangementÉditrice::RAFRAICHIS));
 
     if (chargement) {
         auto graphe_cmp = m_jorjala.trouve_graphe_pour_chemin("/cmp");
