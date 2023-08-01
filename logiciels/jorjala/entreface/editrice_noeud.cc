@@ -55,8 +55,8 @@
 
 #include "gestion_entreface.hh"
 
-EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("graphe", jorjala, parent), m_scene(new QGraphicsScene(this)),
+EditriceGraphe::EditriceGraphe(JJL::Jorjala &jorjala, JJL::Éditrice éditrice, QWidget *parent)
+    : BaseEditrice("graphe", éditrice, jorjala, parent), m_scene(new QGraphicsScene(this)),
       m_vue(new VueEditeurNoeud(this, this)), m_barre_chemin(new QLineEdit()),
       m_selecteur_graphe(new QComboBox(this))
 {
@@ -89,13 +89,9 @@ EditriceGraphe::~EditriceGraphe()
     delete m_scene;
 }
 
-void EditriceGraphe::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceGraphe::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto creation = ((évènement & JJL::TypeÉvènement::NOEUD) == JJL::TypeÉvènement::NOEUD);
-    creation |= (évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
+    auto creation = (changement == JJL::ChangementÉditrice::RAFRAICHIS);
 
     if (!creation) {
         return;
