@@ -59,9 +59,9 @@ GestionnaireInterface::GestionnaireInterface(FenetrePrincipale &fenêtre_princip
 {
 }
 
-void GestionnaireInterface::notifie_observatrices(JJL::TypeÉvènement evenement)
+void GestionnaireInterface::envoie_message(JJL::MessageInterface message)
 {
-    auto event = new EvenementJorjala(evenement);
+    auto event = new EvenementJorjala(message);
     QCoreApplication::postEvent(&m_fenêtre_principale, event);
 }
 
