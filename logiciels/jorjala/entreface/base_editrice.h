@@ -27,8 +27,9 @@
 #include "danjo/conteneur_controles.h"
 
 namespace JJL {
+class Éditrice;
 class Jorjala;
-enum class TypeÉvènement : unsigned int;
+enum class ChangementÉditrice : int32_t;
 }  // namespace JJL
 
 class QFrame;
@@ -52,6 +53,7 @@ class BaseEditrice : public danjo::ConteneurControles {
 
   public:
     explicit BaseEditrice(const char *identifiant_,
+                          JJL::Éditrice éditrice,
                           JJL::Jorjala &jorjala,
                           QWidget *parent = nullptr);
 
@@ -66,7 +68,7 @@ class BaseEditrice : public danjo::ConteneurControles {
         return identifiant;
     }
 
-    virtual void ajourne_état(JJL::TypeÉvènement évènement) = 0;
+    virtual void ajourne_état(JJL::ChangementÉditrice changement) = 0;
 
     void mousePressEvent(QMouseEvent *e) override;
 

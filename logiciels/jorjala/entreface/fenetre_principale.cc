@@ -53,6 +53,7 @@
 #include "coeur/jorjala.hh"
 
 #include "barre_progres.hh"
+#include "base_editrice.h"
 #include "chef_execution.hh"
 #include "evenement_jorjala.hh"
 #include "gestion_entreface.hh"
@@ -270,7 +271,10 @@ void FenetrePrincipale::construit_interface_depuis_jorjala()
     auto qwidget = génère_interface_disposition(m_jorjala, disposition, m_régions);
     setCentralWidget(qwidget);
 
-    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(JJL::ChangementÉditrice::RAFRAICHIS);
+    }
+    // m_jorjala.notifie_observatrices(JJL::ChangementÉditrice::RAFRAICHIS);
 }
 
 bool FenetrePrincipale::demande_permission_avant_de_fermer()
@@ -307,14 +311,11 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
     }
 
     auto event_jjl = static_cast<EvenementJorjala *>(event);
+    auto message = event_jjl->message();
 
-    if (event_jjl->pour_quoi() == (JJL::TypeÉvènement::PROJET | JJL::TypeÉvènement::OUVERT)) {
-        construit_interface_depuis_jorjala();
-        return true;
-    }
-
-    for (auto région : m_régions) {
-        région->ajourne_éditrice_active(event_jjl->pour_quoi());
+    auto éditrice = static_cast<BaseEditrice *>(message.donne_destinataire());
+    if (éditrice) {
+        éditrice->ajourne_état(message.donne_changement());
     }
 
     return true;
@@ -371,12 +372,13 @@ void FenetrePrincipale::genere_menu_prereglages()
 
 void FenetrePrincipale::image_traitee()
 {
-    m_jorjala.notifie_observatrices(JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
+    // À FAIRE : m_jorjala.notifie_observatrices(JJL::TypeÉvènement::IMAGE |
+    // JJL::TypeÉvènement::TRAITÉ);
 }
 
 void FenetrePrincipale::signale_proces(int quoi)
 {
-    m_jorjala.notifie_observatrices(static_cast<JJL::TypeÉvènement>(quoi));
+    // À FAIRE : m_jorjala.notifie_observatrices(static_cast<JJL::TypeÉvènement>(quoi));
 }
 
 void FenetrePrincipale::tache_demarree()
