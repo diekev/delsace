@@ -109,7 +109,6 @@ class CommandeAjouteObjet final : public CommandeJorjala {
 int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
     jorjala.crée_objet("objet");
-    jorjala.notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
 
 #if 0
 	auto &bdd = jorjala->bdd;
@@ -124,11 +123,7 @@ int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCom
 	else {
 		jorjala->affiche_erreur("Type de préréglage objet inconnu");
 		return EXECUTION_COMMANDE_ECHOUEE;
-	}
-
-    jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
-
-	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
+    }
 #endif
 
     return EXECUTION_COMMANDE_REUSSIE;
@@ -166,12 +161,9 @@ struct CommandeImportObjet final : public CommandeJorjala {
 		op_lecture->valeur_chaine("chemin", chemin);
 
 		graphe.connecte(noeud_lecture->sortie(0), noeud_sortie->entree(0));
-		graphe.dernier_noeud_sortie = noeud_sortie;
+        graphe.dernier_noeud_sortie = noeud_sortie;
 
-        jorjala->notifie_observatrices(JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
-
-		requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
-
+        requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
 #endif
         return EXECUTION_COMMANDE_REUSSIE;
     }

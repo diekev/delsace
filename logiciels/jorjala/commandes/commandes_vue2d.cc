@@ -64,8 +64,6 @@ class CommandeZoomCamera2D final : public CommandeJorjala {
         camera.définis_zoom(zoom);
         camera.ajourne_matrice();
 
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_2D | JJL::TypeÉvènement::MODIFIÉ);
-
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -104,8 +102,6 @@ class CommandePanCamera2D final : public CommandeJorjala {
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::CAMÉRA_2D | JJL::TypeÉvènement::MODIFIÉ);
     }
 
     JJL::TypeCurseur type_curseur_modal() override

@@ -24,12 +24,14 @@ class EditriceAttributs : public BaseEditrice {
     std::optional<JJL::Noeud> m_noeud{};
 
   public:
-    explicit EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceAttributs(JJL::Jorjala &jorjala,
+                               JJL::Éditrice éditrice,
+                               QWidget *parent = nullptr);
 
     EditriceAttributs(EditriceAttributs const &) = delete;
     EditriceAttributs &operator=(EditriceAttributs const &) = delete;
 
-    void ajourne_état(JJL::TypeÉvènement évènement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
     void ajourne_manipulable() override{};
 

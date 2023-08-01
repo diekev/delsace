@@ -46,7 +46,10 @@
 
 #include "coeur/jorjala.hh"
 
-BaseEditrice::BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWidget *parent)
+BaseEditrice::BaseEditrice(const char *identifiant_,
+                           JJL::Éditrice éditrice,
+                           JJL::Jorjala &jorjala,
+                           QWidget *parent)
     : danjo::ConteneurControles(parent), m_jorjala(jorjala), m_frame(new QFrame(this)),
       m_layout(new QVBoxLayout()), m_main_layout(new QHBoxLayout(m_frame)),
       identifiant(identifiant_)
@@ -68,6 +71,8 @@ BaseEditrice::BaseEditrice(const char *identifiant_, JJL::Jorjala &jorjala, QWid
     this->setLayout(m_layout);
 
     m_main_layout->setMargin(0);
+
+    éditrice.définis_données_utilisateur_interface(this);
 
     this->actif(false);
 }

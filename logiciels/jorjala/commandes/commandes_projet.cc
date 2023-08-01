@@ -76,7 +76,6 @@ class CommandeOuvrir final : public CommandeJorjala {
         jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
         jorjala.lis_projet(chemin_projet);
         jorjala.restaure_curseur_application();
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -206,7 +205,6 @@ class CommandeLectureRessource final : public CommandeJorjala {
         jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
         jorjala.lis_ressource_jorjala(chemin_projet);
         jorjala.restaure_curseur_application();
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -227,7 +225,6 @@ class CommandeNouveauProjet final : public CommandeJorjala {
         }
 
         jorjala.réinitialise_pour_lecture_projet();
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::RAFRAICHISSEMENT);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };

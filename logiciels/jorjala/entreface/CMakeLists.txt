@@ -259,6 +259,7 @@ add_library(${NOM_CIBLE} STATIC
         ${ENTETES_POUR_QT}
         chef_execution.hh
         dialogues.hh
+        editrice_proprietes.h
         evenement_jorjala.hh
         gestion_entreface.hh
         gestionnaire_interface.hh

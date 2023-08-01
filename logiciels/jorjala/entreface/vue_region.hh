@@ -60,7 +60,7 @@ class VueRegion final : public QTabWidget {
     VueRegion &operator=(VueRegion const &) = delete;
 
     /** Transmet l'évènement à l'éditrice courante. */
-    void ajourne_éditrice_active(JJL::TypeÉvènement évènement);
+    void ajourne_éditrice_active(JJL::ChangementÉditrice changement);
 
   private:
     void ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool définis_comme_page_courante);

@@ -326,8 +326,10 @@ QVariant ModèleTableAttribut::data(const QModelIndex &index, int role) const
 /** \name ÉditriceAttributs
  * \{ */
 
-EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("attributs", jorjala, parent), m_table(new QTableView(this)),
+EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala,
+                                     JJL::Éditrice éditrice,
+                                     QWidget *parent)
+    : BaseEditrice("attributs", éditrice, jorjala, parent), m_table(new QTableView(this)),
       m_label_pour_noeud_manquant(new QLabel("Aucun noeud actif", this)),
       m_sélecteur_domaine(new QComboBox(this))
 {
@@ -351,12 +353,9 @@ EditriceAttributs::EditriceAttributs(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addLayout(disposition_vert);
 }
 
-void EditriceAttributs::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceAttributs::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto creation = (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
+    auto creation = (changement == JJL::ChangementÉditrice::RAFRAICHIS);
 
     if (!creation) {
         return;
@@ -401,7 +400,7 @@ void EditriceAttributs::ajourne_pour_changement_domaine(int domaine)
     m_domaine = domaine;
     /* Invalide le cache. */
     m_noeud = {};
-    ajourne_état(JJL::TypeÉvènement::RAFRAICHISSEMENT);
+    ajourne_état(JJL::ChangementÉditrice::RAFRAICHIS);
 }
 
 /** \} */

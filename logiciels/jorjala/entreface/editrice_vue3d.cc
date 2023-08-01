@@ -179,8 +179,9 @@ static DonneesBoutonsManipulation donnees_boutons_manipulation[NOMBRE_DE_BOUTONS
     {BOUTON_ECHELLE, "icones/manipulation_echelle.png", "icones/manipulation_echelle_active.png"},
 };
 
-EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("vue_3d", jorjala, parent), m_vue(new VueCanevas3D(jorjala, this, this))
+EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, JJL::Éditrice éditrice, QWidget *parent)
+    : BaseEditrice("vue_3d", éditrice, jorjala, parent),
+      m_vue(new VueCanevas3D(jorjala, this, this))
 {
     auto disp_widgets = new QVBoxLayout();
     auto disp_boutons = new QHBoxLayout();
@@ -238,23 +239,8 @@ EditriceVue3D::EditriceVue3D(JJL::Jorjala &jorjala, QWidget *parent)
     m_main_layout->addLayout(disp_widgets);
 }
 
-void EditriceVue3D::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceVue3D::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto reconstruit_scene = évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::AJOUTÉ);
-    auto const camera_modifie = évènement ==
-                                (JJL::TypeÉvènement::CAMÉRA_3D | JJL::TypeÉvènement::MODIFIÉ);
-
-    auto ajourne = camera_modifie | reconstruit_scene;
-    // L'affichage des informations des noeuds nous fait tout redessiner... (il nous faudrait une
-    // mise en tampon des données de dessin).
-    // ajourne |= evenement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::TRAITÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
-    ajourne |= évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT);
-
 #if 0
     ajourne_combo_box(m_selecteur_rendu,
                       "",
@@ -263,15 +249,8 @@ void EditriceVue3D::ajourne_état(JJL::TypeÉvènement évènement)
                           return {rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str())};
                       });
 #endif
-
-    if (!ajourne) {
-        return;
-    }
-
-    if (reconstruit_scene) {
-        m_vue->reconstruit_scene();
-    }
-
+    // À FAIRE : implémente
+    m_vue->reconstruit_scene();
     m_vue->update();
 }
 

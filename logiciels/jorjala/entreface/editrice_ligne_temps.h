@@ -46,12 +46,14 @@ class EditriceLigneTemps : public BaseEditrice {
     QDoubleSpinBox *m_fps;
 
   public:
-    explicit EditriceLigneTemps(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceLigneTemps(JJL::Jorjala &jorjala,
+                                JJL::Éditrice éditrice,
+                                QWidget *parent = nullptr);
 
     EditriceLigneTemps(EditriceLigneTemps const &) = delete;
     EditriceLigneTemps &operator=(EditriceLigneTemps const &) = delete;
 
-    void ajourne_état(JJL::TypeÉvènement évènement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
     void ajourne_manipulable() override
     {

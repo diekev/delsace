@@ -47,14 +47,16 @@ class EditriceGraphe : public BaseEditrice {
     std::map<std::string, QMenu *> m_menus{};
 
   public:
-    explicit EditriceGraphe(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
+    explicit EditriceGraphe(JJL::Jorjala &jorjala,
+                            JJL::Éditrice éditrice,
+                            QWidget *parent = nullptr);
 
     EditriceGraphe(EditriceGraphe const &) = delete;
     EditriceGraphe &operator=(EditriceGraphe const &) = delete;
 
     ~EditriceGraphe() override;
 
-    void ajourne_état(JJL::TypeÉvènement évènement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
     void ajourne_manipulable() override
     {
