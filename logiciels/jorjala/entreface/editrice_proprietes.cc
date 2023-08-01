@@ -360,8 +360,10 @@ static QBoxLayout *crée_disposition_paramètres(danjo::Manipulable *manipulable
 /** \name EditriceProprietes
  * \{ */
 
-EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
-    : BaseEditrice("propriétés", jorjala, parent), m_widget(new QWidget()),
+EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala,
+                                       JJL::Éditrice éditrice,
+                                       QWidget *parent)
+    : BaseEditrice("propriétés", éditrice, jorjala, parent), m_widget(new QWidget()),
       m_conteneur_avertissements(new QWidget()), m_conteneur_disposition(new QWidget()),
       m_scroll(new QScrollArea()), m_disposition_widget(new QVBoxLayout(m_widget))
 {
@@ -380,31 +382,9 @@ EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala, QWidget *parent)
     m_disposition_widget->addWidget(m_conteneur_disposition);
 }
 
-void EditriceProprietes::ajourne_état(JJL::TypeÉvènement évènement)
+void EditriceProprietes::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    auto creation = (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::SÉLECTIONNÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::NOEUD | JJL::TypeÉvènement::ENLEVÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::PROPRIÉTÉ | JJL::TypeÉvènement::AJOUTÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::OBJET | JJL::TypeÉvènement::MANIPULÉ));
-    creation |= (évènement == (JJL::TypeÉvènement::RAFRAICHISSEMENT));
-
-    /* n'ajourne pas durant les animation */
-    if (évènement == (JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ)) {
-        if (m_jorjala.donne_animation_en_cours()) {
-            return;
-        }
-    }
-
-    /* ajourne l'entreface d'avertissement */
-    auto creation_avert = (évènement == (JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ));
-
-    if (!(creation | creation_avert)) {
-        return;
-    }
-
-    reinitialise_entreface(creation_avert);
+    reinitialise_entreface(false);
 
     auto graphe = m_jorjala.donne_graphe();
     if (graphe == nullptr) {
@@ -423,9 +403,10 @@ void EditriceProprietes::ajourne_état(JJL::TypeÉvènement évènement)
      * l'entreface de controles crashera le logiciel car nous sommes dans la
      * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
      * rafraichissement que les avertissements. */
-    if (creation_avert) {
-        return;
-    }
+    // À FAIRE
+    //    if (creation_avert) {
+    //        return;
+    //    }
 
     danjo::Manipulable manipulable;
     auto repondant = donne_repondant_commande(m_jorjala);

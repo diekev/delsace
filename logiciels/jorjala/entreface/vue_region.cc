@@ -33,23 +33,23 @@ static BaseEditrice *qéditrice_depuis_éditrice(JJL::Jorjala &jorjala, JJL::Éd
 {
     switch (éditrice.donne_type()) {
         case JJL::TypeÉditrice::GRAPHE:
-            return new EditriceGraphe(jorjala);
+            return new EditriceGraphe(jorjala, éditrice);
         case JJL::TypeÉditrice::PROPRIÉTÉS_NOEUDS:
-            return new EditriceProprietes(jorjala);
+            return new EditriceProprietes(jorjala, éditrice);
         case JJL::TypeÉditrice::LIGNE_TEMPS:
-            return new EditriceLigneTemps(jorjala);
+            return new EditriceLigneTemps(jorjala, éditrice);
         case JJL::TypeÉditrice::RENDU:
             // return new EditriceRendu(jorjala);
             return nullptr;
         case JJL::TypeÉditrice::VUE_2D:
-            return new EditriceVue2D(jorjala);
+            return new EditriceVue2D(jorjala, éditrice);
         case JJL::TypeÉditrice::VUE_3D:
-            return new EditriceVue3D(jorjala);
+            return new EditriceVue3D(jorjala, éditrice);
         case JJL::TypeÉditrice::ARBORESCENCE:
             // return new EditriceArborescence(m_jorjala);
             return nullptr;
         case JJL::TypeÉditrice::ATTRIBUTS:
-            return new EditriceAttributs(jorjala);
+            return new EditriceAttributs(jorjala, éditrice);
     }
 
     return nullptr;
@@ -116,14 +116,14 @@ VueRegion::VueRegion(JJL::Jorjala &jorjala, JJL::RégionInterface région, QWidg
 #undef AJOUTE_ACTION
 }
 
-void VueRegion::ajourne_éditrice_active(JJL::TypeÉvènement évènement)
+void VueRegion::ajourne_éditrice_active(JJL::ChangementÉditrice changement)
 {
     auto éditrice = dynamic_cast<BaseEditrice *>(currentWidget());
     if (!éditrice) {
         return;
     }
 
-    éditrice->ajourne_état(évènement);
+    éditrice->ajourne_état(changement);
 }
 
 void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool définis_comme_page_courante)
@@ -142,7 +142,7 @@ void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool défin
 
 void VueRegion::ajourne_pour_changement_page(int /*index*/)
 {
-    ajourne_éditrice_active(JJL::TypeÉvènement::RAFRAICHISSEMENT);
+    ajourne_éditrice_active(JJL::ChangementÉditrice::RAFRAICHIS);
 }
 
 void VueRegion::sur_fermeture_page(int index)
@@ -169,7 +169,7 @@ void VueRegion::montre_liste()
 void VueRegion::sur_ajout_editrice(int type)
 {
     auto type_éditrice = static_cast<JJL::TypeÉditrice>(type);
-    auto éditrice = m_région.ajoute_une_éditrice(type_éditrice);
+    auto éditrice = m_région.ajoute_une_éditrice(m_jorjala, type_éditrice);
     ajoute_page_pour_éditrice(éditrice, true);
 }
 
