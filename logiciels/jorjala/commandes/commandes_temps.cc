@@ -64,10 +64,6 @@ static void anime_image(JJL::Jorjala &jorjala)
             usleep(static_cast<unsigned>(temps_sommeil * 1000));
         }
 
-        /* notifie depuis le thread principal. */
-        // jorjala.notifiant_thread->signal_proces(JJL::TypeÉvènement::TEMPS |
-        // JJL::TypeÉvènement::MODIFIÉ);
-
         auto value = jorjala.donne_temps_courant();
         ++value;
 
@@ -140,8 +136,6 @@ class CommandeChangementTemps final : public CommandeJorjala {
 
             jorjala.ajourne_pour_nouveau_temps("controle va image fin");
         }
-
-        jorjala.notifie_observatrices(JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
 
         return EXECUTION_COMMANDE_REUSSIE;
     }

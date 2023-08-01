@@ -194,9 +194,7 @@ public:
 					composite,
 					jorjala->nom_calque_sortie,
 					jorjala->chemin_sortie,
-					jorjala->temps_courant);
-
-		jorjala->notifie_observatrices(JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
+                    jorjala->temps_courant);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -250,17 +248,12 @@ public:
 
 			if (!ok) {
 				break;
-			}
-
-			jorjala->notifie_observatrices(
-						JJL::TypeÉvènement::IMAGE | JJL::TypeÉvènement::TRAITÉ);
+            }
 		}
 
 		jorjala->temps_courant = temps_originale;
 
-		jorjala->ajourne_pour_nouveau_temps("fin commande rendu séquence");
-
-		jorjala->notifie_observatrices(JJL::TypeÉvènement::TEMPS | JJL::TypeÉvènement::MODIFIÉ);
+        jorjala->ajourne_pour_nouveau_temps("fin commande rendu séquence");
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
