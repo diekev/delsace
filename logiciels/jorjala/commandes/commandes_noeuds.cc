@@ -165,7 +165,7 @@ static bool peut_connecter(JJL::PriseEntrée entree, JJL::PriseSortie sortie)
         return false;
     }
 
-    if (entree.donne_noeud_parent() == sortie.donne_noeud_parent()) {
+    if (entree.donne_noeud_parent().poignee() == sortie.donne_noeud_parent().poignee()) {
         return false;
     }
 
@@ -220,8 +220,7 @@ class CommandeDessineGrapheComposite final : public CommandeJorjala {
 
 static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL::Noeud &noeud)
 {
-    noeud.définis_pos_x(graphe.donne_centre_x());
-    noeud.définis_pos_y(graphe.donne_centre_y());
+    noeud.définis_position(graphe.donne_centre_x(), graphe.donne_centre_y());
 
 #if 0
 	if (graphe.connexion_active != nullptr) {
@@ -703,8 +702,7 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
                 return;
             }
 
-            noeud_actif.définis_pos_x(donnees.x - delta_x);
-            noeud_actif.définis_pos_y(donnees.y - delta_y);
+            noeud_actif.définis_position(donnees.x - delta_x, donnees.y - delta_y);
         }
     }
 
@@ -917,9 +915,9 @@ class CommandeDeplaceGraphe final : public CommandeJorjala {
                                           DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.donne_graphe();
-
-        graphe.définis_centre_x(graphe.donne_centre_x() + m_orig_x - donnees.x);
-        graphe.définis_centre_y(graphe.donne_centre_y() + m_orig_y - donnees.y);
+        auto x = graphe.donne_centre_x() + m_orig_x - donnees.x;
+        auto y = graphe.donne_centre_y() + m_orig_y - donnees.y;
+        graphe.définis_position(x, y);
     }
 
     JJL::TypeCurseur type_curseur_modal() override

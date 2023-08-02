@@ -280,10 +280,12 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
 {
     /* Nous devons toujours avoir un type_de_données. Recevoir quelque chose qui n'en pas un veut
      * sans doute dire que le candidat a été ajouté directement via une expression résolue de
-     * l'appel. */
-    if (!type_reçu->est_type_de_donnees()) {
+     * l'appel.
+     * Vérifie que le type n'est pas nul car il pourrait s'agir de l'élément du type nul.
+     * À FAIRE : considère avoir un type élémént non nul pour type_de(nul). */
+    if (!type_reçu || !type_reçu->est_type_de_donnees()) {
         /* Garantie que nous n'avons pas d'entiers constants dans les résultats. */
-        if (type_reçu->est_entier_constant()) {
+        if (type_reçu && type_reçu->est_entier_constant()) {
             type_reçu = typeuse()[TypeBase::Z32];
         }
 
