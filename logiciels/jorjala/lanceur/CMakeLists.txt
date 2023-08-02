@@ -23,15 +23,17 @@ set(NOM_CIBLE jorjala)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
+        ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
-	jorjala_coeur
-	jorjala_commandes
-	jorjala_corps
-	jorjala_entreface
-	jorjala_operatrices
-	jorjala_rendu
+    ${BIBLIOTHEQUE_DL}
+        jorjala_coeur
+#	jorjala_commandes
+#	jorjala_corps
+    jorjala_entreface
+#	jorjala_operatrices
+#	jorjala_rendu
 )
 
 add_compile_options(-fPIC)
@@ -40,30 +42,30 @@ add_executable(${NOM_CIBLE} jorjala.cc)
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
 
 install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
 
 ################################################################################
 
-set(NOM_CIBLE genere_menu_lcc)
+#set(NOM_CIBLE genere_menu_lcc)
 
-add_executable(${NOM_CIBLE} genere_menu_lcc.cc)
+#add_executable(${NOM_CIBLE} genere_menu_lcc.cc)
 
-target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+#target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} jorjala_lcc)
+#target_link_libraries(${NOM_CIBLE} jorjala_lcc)
 
-install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
+#install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
 
-################################################################################
+#################################################################################
 
-set(NOM_CIBLE genere_fonctions_lcc_opengl)
+#set(NOM_CIBLE genere_fonctions_lcc_opengl)
 
-add_executable(${NOM_CIBLE} genere_fonctions_lcc_opengl.cc)
+#add_executable(${NOM_CIBLE} genere_fonctions_lcc_opengl.cc)
 
-target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+#target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} jorjala_lcc)
+#target_link_libraries(${NOM_CIBLE} jorjala_lcc)
 
-install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
+#install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})

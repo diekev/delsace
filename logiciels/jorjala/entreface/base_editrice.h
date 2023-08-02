@@ -26,32 +26,62 @@
 
 #include "danjo/conteneur_controles.h"
 
-#include "biblinternes/patrons_conception/observation.hh"
+namespace JJL {
+class Éditrice;
+class Jorjala;
+enum class ChangementÉditrice : int32_t;
+}  // namespace JJL
 
-struct Jorjala;
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
+class QPoint;
+class QPointF;
 
-class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
-	Q_OBJECT
+class BaseEditrice : public danjo::ConteneurControles {
+    Q_OBJECT
 
-protected:
-	Jorjala &m_jorjala;
-	QFrame *m_frame;
-	QVBoxLayout *m_layout;
-	QHBoxLayout *m_main_layout;
-	QLineEdit *m_path_edit{};
+  protected:
+    JJL::Jorjala &m_jorjala;
+    QFrame *m_frame;
+    QVBoxLayout *m_layout;
+    QHBoxLayout *m_main_layout;
+    QLineEdit *m_path_edit{};
 
-public:
-	explicit BaseEditrice(Jorjala &jorjala, QWidget *parent = nullptr);
+    const char *identifiant = nullptr;
 
-	BaseEditrice(BaseEditrice const &) = default;
-	BaseEditrice &operator=(BaseEditrice const &) = default;
+  public:
+    explicit BaseEditrice(const char *identifiant_,
+                          JJL::Éditrice éditrice,
+                          JJL::Jorjala &jorjala,
+                          QWidget *parent = nullptr);
 
-	void actif(bool ouinon);
-	void rend_actif();
+    BaseEditrice(BaseEditrice const &) = delete;
+    BaseEditrice &operator=(BaseEditrice const &) = delete;
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void actif(bool ouinon);
+    void rend_actif();
+
+    std::string donne_identifiant() const
+    {
+        return identifiant;
+    }
+
+    virtual void ajourne_état(JJL::ChangementÉditrice changement) = 0;
+
+    void mousePressEvent(QMouseEvent *e) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
+
+    void wheelEvent(QWheelEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+  protected:
+    virtual QPointF transforme_position_evenement(QPoint pos);
 };

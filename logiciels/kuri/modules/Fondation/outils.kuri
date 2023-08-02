@@ -1,0 +1,85 @@
+échange :: fonc(a : *$T, b : *T) -> rien #enligne
+{
+	temp := mémoire(a);
+	mémoire(a) = mémoire(b);
+	mémoire(b) = temp;
+}
+
+permute :: fonc (a: &$T, b: &T) #enligne
+{
+    tmp : T = a
+    a = b
+    b = tmp
+}
+
+// Type pour représenter un résultat optionnel
+Optionnel :: union ($T: type_de_données) {
+    Quelque: T
+    Aucun
+}
+
+valeur_ou :: fonc (résultat: Optionnel($T), valeur: T) -> T #enligne
+{
+	discr résultat {
+		Quelque(v) {
+			retourne v
+		}
+		sinon {
+			retourne valeur
+		}
+	}
+}
+
+valeur_ou_défaut :: fonc (résultat: Optionnel($T)) -> T #enligne
+{
+    discr résultat {
+		Quelque(v) {
+			retourne v
+		}
+        sinon {
+			valeur_défaut: T
+			retourne valeur_défaut
+        }
+    }
+}
+
+possède_valeur :: fonc (résultat: Optionnel($T)) -> bool #enligne
+{
+	discr résultat {
+		Quelque {
+			retourne vrai
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
+
+a_valeur :: fonc (optionnel: Optionnel($T), valeur: T) -> bool
+{
+	discr optionnel {
+		Quelque(v) {
+			retourne v == valeur
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
+
+fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
+{
+    pour liste {
+        si valeur == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+/* Type pour représenter la valeur d'une opération réussie, ou une erreur potentielle. */
+Résultat :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
+    Ok: TypeOk
+    Erreur: TypeErreur
+}

@@ -1,3341 +1,2251 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
 #include "coulisse_c.hh"
 
+#include <fstream>
+#include <set>
+#include <sys/wait.h>
+
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/nombres.hh"
-#include "biblinternes/outils/conditions.h"
+#include "biblinternes/outils/numerique.hh"
+#include "biblinternes/structures/tableau_page.hh"
 
-#include "arbre_syntactic.h"
+#include "structures/chemin_systeme.hh"
+#include "structures/table_hachage.hh"
+
+#include "parsage/identifiant.hh"
+#include "parsage/outils_lexemes.hh"
+
+#include "arbre_syntaxique/noeud_expression.hh"
 #include "broyage.hh"
-#include "contexte_generation_code.h"
+#include "compilatrice.hh"
+#include "environnement.hh"
 #include "erreur.h"
-#include "generatrice_code_c.hh"
-#include "modules.hh"
-#include "outils_morceaux.hh"
-#include "validation_semantique.hh"
+#include "espace_de_travail.hh"
+#include "programme.hh"
+#include "typage.hh"
 
-using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+#include "representation_intermediaire/constructrice_ri.hh"
 
-namespace noeud {
+/* Défini si les structures doivent avoir des membres explicites. Sinon, le code généré utilisera
+ * des tableaux d'octets pour toutes les structures. */
+#define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
 /* ************************************************************************** */
 
-/* À tenir synchronisé avec l'énum dans info_type.kuri
- * Nous utilisons ceci lors de la génération du code des infos types car nous ne
- * générons pas de code (ou symboles) pour les énums, mais prenons directements
- * leurs valeurs.
- */
-struct IDInfoType {
-	dls::chaine ENTIER    = "0";
-	dls::chaine REEL      = "1";
-	dls::chaine BOOLEEN   = "2";
-	dls::chaine CHAINE    = "3";
-	dls::chaine POINTEUR  = "4";
-	dls::chaine STRUCTURE = "5";
-	dls::chaine FONCTION  = "6";
-	dls::chaine TABLEAU   = "7";
-	dls::chaine EINI      = "8";
-	dls::chaine RIEN      = "9";
-	dls::chaine ENUM      = "10";
+enum {
+    STRUCTURE,
+    STRUCTURE_ANONYME,
 };
 
-static auto chaine_valeur_enum(
-		DonneesStructure const &ds,
-		dls::vue_chaine_compacte const &nom)
+struct TypeC {
+    Type *type_kuri = nullptr;
+    kuri::chaine_statique nom = "";
+    kuri::chaine_statique typedef_ = "";
+    bool code_machine_fut_genere = false;
+};
+
+struct ConvertisseuseTypeC {
+  private:
+    mutable tableau_page<TypeC> types_c{};
+    Enchaineuse enchaineuse_tmp{};
+    Enchaineuse stockage_chn{};
+    Broyeuse &broyeuse;
+
+    kuri::table_hachage<Type *, TypeC *> table_types_c{""};
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+    }
+
+  public:
+    ConvertisseuseTypeC(Broyeuse &broyeuse_) : broyeuse(broyeuse_)
+    {
+    }
+
+    TypeC &type_c_pour(Type *type)
+    {
+        auto type_c = table_types_c.valeur_ou(type, nullptr);
+        if (type_c) {
+            return *type_c;
+        }
+
+        type_c = types_c.ajoute_element();
+        type_c->type_kuri = type;
+        type_c->nom = broyeuse.nom_broye_type(type);
+        table_types_c.insere(type, type_c);
+        return *type_c;
+    }
+
+    bool typedef_fut_genere(Type *type_kuri)
+    {
+        auto &type_c = type_c_pour(type_kuri);
+        return type_c.typedef_ != "";
+    }
+
+    void cree_typedef(Type *type, Enchaineuse &enchaineuse)
+    {
+        if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return;
+        }
+
+        auto &type_c = type_c_pour(type);
+
+        if (type_c.typedef_ != "") {
+            return;
+        }
+
+        enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
+
+        switch (type->genre) {
+            case GenreType::POLYMORPHIQUE:
+            {
+                /* Aucun typedef. */
+                return;
+            }
+            case GenreType::ENTIER_CONSTANT:
+            {
+                type_c.typedef_ = "int32_t";
+                break;
+            }
+            case GenreType::ERREUR:
+            case GenreType::ENUM:
+            {
+                auto type_enum = static_cast<TypeEnum *>(type);
+                cree_typedef(type_enum->type_donnees, enchaineuse);
+                auto nom_broye_type_donnees = broyeuse.nom_broye_type(type_enum->type_donnees);
+                type_c.typedef_ = nom_broye_type_donnees;
+                break;
+            }
+            case GenreType::OPAQUE:
+            {
+                auto type_opaque = type->comme_opaque();
+                cree_typedef(type_opaque->type_opacifie, enchaineuse);
+                auto nom_broye_type_opacifie = broyeuse.nom_broye_type(type_opaque->type_opacifie);
+                type_c.typedef_ = nom_broye_type_opacifie;
+                break;
+            }
+            case GenreType::BOOL:
+            {
+                type_c.typedef_ = "uint8_t";
+                break;
+            }
+            case GenreType::OCTET:
+            {
+                type_c.typedef_ = "uint8_t";
+                break;
+            }
+            case GenreType::ENTIER_NATUREL:
+            {
+                if (type->taille_octet == 1) {
+                    type_c.typedef_ = "uint8_t";
+                }
+                else if (type->taille_octet == 2) {
+                    type_c.typedef_ = "uint16_t";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "uint32_t";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "uint64_t";
+                }
+
+                break;
+            }
+            case GenreType::ENTIER_RELATIF:
+            {
+                if (type->taille_octet == 1) {
+                    type_c.typedef_ = "int8_t";
+                }
+                else if (type->taille_octet == 2) {
+                    type_c.typedef_ = "int16_t";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "int32_t";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "int64_t";
+                }
+
+                break;
+            }
+            case GenreType::TYPE_DE_DONNEES:
+            {
+                type_c.typedef_ = "int64_t";
+                break;
+            }
+            case GenreType::REEL:
+            {
+                if (type->taille_octet == 2) {
+                    type_c.typedef_ = "uint16_t";
+                }
+                else if (type->taille_octet == 4) {
+                    type_c.typedef_ = "float";
+                }
+                else if (type->taille_octet == 8) {
+                    type_c.typedef_ = "double";
+                }
+
+                break;
+            }
+            case GenreType::REFERENCE:
+            {
+                auto type_pointe = type->comme_reference()->type_pointe;
+                cree_typedef(type_pointe, enchaineuse);
+                auto &type_c_pointe = type_c_pour(type_pointe);
+                type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+                break;
+            }
+            case GenreType::POINTEUR:
+            {
+                auto type_pointe = type->comme_pointeur()->type_pointe;
+
+                if (type_pointe) {
+                    cree_typedef(type_pointe, enchaineuse);
+                    auto &type_c_pointe = type_c_pour(type_pointe);
+                    type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+                }
+                else {
+                    type_c.typedef_ = "Ksnul*";
+                }
+
+                break;
+            }
+            case GenreType::STRUCTURE:
+            {
+                auto type_struct = type->comme_structure();
+
+                if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                    /* Aucun typedef. */
+                    type_c.typedef_ = ".";
+                    return;
+                }
+
+                auto nom_struct = broyeuse.broye_nom_simple(type_struct->nom_portable());
+
+                // struct anomyme
+                if (type_struct->est_anonyme) {
+                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+                }
+                else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+                }
+                else {
+                    type_c.typedef_ = enchaine("struct ", nom_struct);
+                }
+
+                break;
+            }
+            case GenreType::UNION:
+            {
+                auto type_union = type->comme_union();
+                POUR (type_union->membres) {
+                    cree_typedef(it.type, enchaineuse);
+                }
+
+                auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
+
+                if (type_union->est_anonyme) {
+                    type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
+                }
+                else {
+                    auto decl = type_union->decl;
+                    if (decl->est_nonsure || decl->est_externe) {
+                        auto type_le_plus_grand = type_union->type_le_plus_grand;
+                        type_c.typedef_ = broyeuse.nom_broye_type(type_le_plus_grand);
+                    }
+                    else if (type_union->decl && type_union->decl->est_monomorphisation) {
+                        type_c.typedef_ = enchaine(
+                            "struct ", nom_union, type_union->type_structure);
+                    }
+                    else {
+                        type_c.typedef_ = enchaine("struct ", nom_union);
+                    }
+                }
+
+                break;
+            }
+            case GenreType::TABLEAU_FIXE:
+            {
+                type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
+                break;
+            }
+            case GenreType::VARIADIQUE:
+            {
+                auto variadique = type->comme_variadique();
+                /* Garantie la génération du typedef pour les types tableaux des variadiques. */
+                if (!variadique->type_tableau_dyn) {
+                    type_c.typedef_ = "...";
+                    return;
+                }
+
+                auto &type_c_tableau = type_c_pour(variadique->type_tableau_dyn);
+                if (type_c_tableau.typedef_ == "") {
+                    cree_typedef(variadique->type_tableau_dyn, enchaineuse);
+                }
+
+                /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
+                 * pour ne plus revenir ici. */
+                type_c.typedef_ = ".";
+                return;
+            }
+            case GenreType::TABLEAU_DYNAMIQUE:
+            {
+                auto type_pointe = type->comme_tableau_dynamique()->type_pointe;
+
+                if (type_pointe == nullptr) {
+                    /* Aucun typedef. */
+                    type_c.typedef_ = ".";
+                    return;
+                }
+
+                cree_typedef(type_pointe, enchaineuse);
+                type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
+                break;
+            }
+            case GenreType::FONCTION:
+            {
+                auto type_fonc = type->comme_fonction();
+
+                POUR (type_fonc->types_entrees) {
+                    cree_typedef(it, enchaineuse);
+                }
+
+                cree_typedef(type_fonc->type_sortie, enchaineuse);
+
+                auto nouveau_nom_broye = Enchaineuse();
+                nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
+
+                auto const &nom_broye_sortie = broyeuse.nom_broye_type(type_fonc->type_sortie);
+
+                /* Crée le préfixe. */
+                enchaineuse_tmp.reinitialise();
+                enchaineuse_tmp << nom_broye_sortie << " (*";
+                auto prefixe = stockage_chn.ajoute_chaine_statique(
+                    enchaineuse_tmp.chaine_statique());
+
+                /* Réinitialise pour le suffixe. */
+                enchaineuse_tmp.reinitialise();
+
+                auto virgule = "(";
+
+                POUR (type_fonc->types_entrees) {
+                    auto const &nom_broye_dt = broyeuse.nom_broye_type(it);
+
+                    enchaineuse_tmp << virgule;
+                    enchaineuse_tmp << nom_broye_dt;
+                    nouveau_nom_broye << nom_broye_dt;
+                    virgule = ",";
+                }
+
+                if (type_fonc->types_entrees.taille() == 0) {
+                    enchaineuse_tmp << virgule;
+                    virgule = ",";
+                }
+
+                nouveau_nom_broye << 1;
+                nouveau_nom_broye << nom_broye_sortie;
+
+                enchaineuse_tmp << ")";
+                auto suffixe = stockage_chn.ajoute_chaine_statique(
+                    enchaineuse_tmp.chaine_statique());
+
+                type->nom_broye = stockage_chn.ajoute_chaine_statique(
+                    nouveau_nom_broye.chaine_statique());
+                type_c.nom = type->nom_broye;
+
+                type_c.typedef_ = enchaine(
+                    prefixe, nouveau_nom_broye.chaine_statique(), ")", suffixe);
+                enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
+                /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
+                 * directement. */
+                return;
+            }
+            case GenreType::EINI:
+            {
+                type_c.typedef_ = "eini";
+                break;
+            }
+            case GenreType::RIEN:
+            {
+                type_c.typedef_ = "void";
+                break;
+            }
+            case GenreType::CHAINE:
+            {
+                type_c.typedef_ = "chaine";
+                break;
+            }
+            case GenreType::TUPLE:
+            {
+                type_c.typedef_ = enchaine("struct ", type_c.nom);
+                break;
+            }
+        }
+
+        enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
+    }
+
+    /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
+     * types ont un typedef afin de simplifier la génération de code pour les déclaration de
+     * variables : avec un typedef `int *a[3]` devient simplement `Tableau3PointeurInt a;`
+     * (PointeurTableau3Int est utilisé pour démontrer la chose, dans le langage ce serait plutôt
+     * KT3KPKsz32).
+     *
+     * Pour les structures (ou unions) nous devons également nous assurer que le code des
+     * structures utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la
+     * structure parent.
+     */
+    void genere_code_pour_type(Type *type, Enchaineuse &enchaineuse)
+    {
+        if (!type) {
+            /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls
+             * peuvent être nuls. */
+            return;
+        }
+
+        auto &type_c = type_c_pour(type);
+
+        if (type_c.code_machine_fut_genere) {
+            return;
+        }
+
+        if (type->est_structure()) {
+            auto type_struct = type->comme_structure();
+
+            if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                return;
+            }
+
+            type_c.code_machine_fut_genere = true;
+            POUR (type_struct->membres) {
+                if (it.type->est_pointeur()) {
+                    continue;
+                }
+                /* Une fonction peut retourner via un tuple la structure dont nous essayons de
+                 * générer le type. Évitons de générer le code du tuple avant la génération du code
+                 * de cette structure. */
+                if (it.type->est_fonction()) {
+                    continue;
+                }
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+            genere_declaration_structure(enchaineuse, type_struct, quoi);
+
+            POUR (type_struct->membres) {
+                if (it.type->est_pointeur()) {
+                    genere_code_pour_type(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                    continue;
+                }
+            }
+        }
+        else if (type->est_tuple()) {
+            auto type_tuple = type->comme_tuple();
+
+            if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+                return;
+            }
+
+            type_c.code_machine_fut_genere = true;
+            POUR (type_tuple->membres) {
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+
+            auto nom_broye = broyeuse.nom_broye_type(type_tuple);
+
+            enchaineuse << "typedef struct " << nom_broye << " {\n";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            enchaineuse << "  union {\n";
+            enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
+            enchaineuse << "  struct {\n";
+#endif
+            POUR_INDEX (type_tuple->membres) {
+                enchaineuse << broyeuse.nom_broye_type(it.type) << " _" << index_it << ";\n";
+            }
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            enchaineuse << "};\n";  // struct
+            enchaineuse << "};\n";  // union
+#endif
+
+            enchaineuse << "} " << nom_broye << ";\n";
+        }
+        else if (type->est_union()) {
+            auto type_union = type->comme_union();
+            type_c.code_machine_fut_genere = true;
+            POUR (type_union->membres) {
+                genere_code_pour_type(it.type, enchaineuse);
+            }
+            genere_code_pour_type(type_union->type_structure, enchaineuse);
+        }
+        else if (type->est_enum()) {
+            auto type_enum = type->comme_enum();
+            genere_code_pour_type(type_enum->type_donnees, enchaineuse);
+        }
+        else if (type->est_tableau_fixe()) {
+            auto tableau_fixe = type->comme_tableau_fixe();
+            genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+            auto const &nom_broye = broyeuse.nom_broye_type(type);
+            enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
+                        << broyeuse.nom_broye_type(tableau_fixe->type_pointe);
+            enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
+            enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
+        }
+        else if (type->est_tableau_dynamique()) {
+            auto tableau_dynamique = type->comme_tableau_dynamique();
+            auto type_pointe = tableau_dynamique->type_pointe;
+
+            if (type_pointe == nullptr) {
+                return;
+            }
+
+            genere_code_pour_type(type_pointe, enchaineuse);
+
+            if (!type_c.code_machine_fut_genere) {
+                auto const &nom_broye = broyeuse.nom_broye_type(type);
+                enchaineuse << "typedef struct Tableau_" << nom_broye;
+                enchaineuse << "{\n\t";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+                enchaineuse << "  union {\n";
+                enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
+                enchaineuse << "  struct {\n";
+#endif
+                enchaineuse << broyeuse.nom_broye_type(type_pointe) << " *pointeur;";
+                enchaineuse << "\n\tlong taille;\n"
+                            << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+                enchaineuse << "};\n";  // struct
+                enchaineuse << "};\n";  // union
+#endif
+                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
+            }
+        }
+        else if (type->est_opaque()) {
+            auto opaque = type->comme_opaque();
+            genere_code_pour_type(opaque->type_opacifie, enchaineuse);
+        }
+        else if (type->est_fonction()) {
+            auto type_fonction = type->comme_fonction();
+            POUR (type_fonction->types_entrees) {
+                genere_code_pour_type(it, enchaineuse);
+            }
+            genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
+        }
+        else if (type->est_pointeur()) {
+            genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
+        }
+        else if (type->est_reference()) {
+            genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
+        }
+        else if (type->est_variadique()) {
+            genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
+            genere_code_pour_type(type->comme_variadique()->type_tableau_dyn, enchaineuse);
+        }
+
+        type_c.code_machine_fut_genere = true;
+    }
+
+    void genere_declaration_structure(Enchaineuse &enchaineuse,
+                                      TypeStructure *type_compose,
+                                      int quoi);
+};
+
+void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
+                                                       TypeStructure *type_compose,
+                                                       int quoi)
 {
-	auto &dm = ds.donnees_membres.trouve(nom)->second;
+    auto nom_broye = broyeuse.broye_nom_simple(type_compose->nom_portable());
 
-	if (dm.resultat_expression.type == type_expression::ENTIER) {
-		return dls::vers_chaine(dm.resultat_expression.entier);
-	}
+    if (type_compose->decl && type_compose->decl->est_monomorphisation) {
+        nom_broye = enchaine(nom_broye, type_compose);
+    }
 
-	return dls::vers_chaine(dm.resultat_expression.reel);
+    if (quoi == STRUCTURE) {
+        enchaineuse << "typedef struct " << nom_broye << "{\n";
+    }
+    else if (quoi == STRUCTURE_ANONYME) {
+        enchaineuse << "typedef struct " << nom_broye;
+        enchaineuse << type_compose;
+        enchaineuse << "{\n";
+    }
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "union {\n";
+    enchaineuse << "  unsigned char d[" << type_compose->taille_octet << "];\n";
+    enchaineuse << "  struct {\n ";
+#endif
+
+    POUR (type_compose->membres) {
+        if (it.ne_doit_pas_être_dans_code_machine()) {
+            continue;
+        }
+
+        enchaineuse << broyeuse.nom_broye_type(it.type) << ' ';
+
+        /* Cas pour les structures vides. */
+        if (it.nom == ID::chaine_vide) {
+            enchaineuse << "membre_invisible"
+                        << ";\n";
+        }
+        else {
+            enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
+        }
+    }
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "};\n";  // struct
+    enchaineuse << "};\n";  // union
+#endif
+    enchaineuse << "} ";
+
+    if (type_compose->decl) {
+        if (type_compose->decl->est_compacte) {
+            enchaineuse << " __attribute__((packed)) ";
+        }
+
+        if (type_compose->decl->alignement_desire != 0) {
+            enchaineuse << " __attribute__((aligned(" << type_compose->decl->alignement_desire
+                        << "))) ";
+        }
+    }
+
+    enchaineuse << nom_broye;
+
+    if (quoi == STRUCTURE_ANONYME) {
+        enchaineuse << type_compose;
+    }
+
+    enchaineuse << ";\n\n";
 }
 
 /* ************************************************************************** */
 
-void genere_code_C(
-		base *b,
-		GeneratriceCodeC &generatrice,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche);
+/* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
+ * l'accès au contexte. */
+#define AJOUTE_TRACE_APPEL
 
-static void genere_code_extra_pre_retour(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os)
+static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
-	if (contexte.donnees_fonction->est_coroutine) {
-		os << "__etat->__termine_coro = 1;\n";
-		os << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-		os << "pthread_cond_signal(&__etat->cond_boucle);\n";
-		os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-	}
+    enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
+    enchaineuse << "#include <stdint.h>\n";
 
-	/* génère le code pour les blocs déférés */
-	auto pile_noeud = contexte.noeuds_differes();
+    enchaineuse <<
+        R"(
+#define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
+    static KsKuriInfoFonctionTraceAppel mon_info = { .nom = { .pointeur = _nom_fonction, .taille = _taille_nom }, .fichier = { .pointeur = _fichier, .taille = _taille_fichier }, .adresse = _pointeur_fonction }; \
+	KsKuriTraceAppel ma_trace = { 0 }; \
+	ma_trace.info_fonction = &mon_info; \
+ ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
+ ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
-	while (!pile_noeud.est_vide()) {
-		auto noeud = pile_noeud.back();
-		genere_code_C(noeud, generatrice, contexte, true);
-		pile_noeud.pop_back();
-	}
+#define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
+    static KsKuriInfoAppelTraceAppel info_appel##_index = { .ligne = _ligne, .colonne = _colonne, .texte = { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
+	ma_trace.info_appel = &info_appel##_index; \
+ __contexte_fil_principal.trace_appel = &ma_trace;
+
+#define DEBUTE_RECORD_TRACE_APPEL_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
+	DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne)
+
+#define DEBUTE_RECORD_TRACE_APPEL(_ligne, _colonne, _ligne_appel, _taille_ligne) \
+	DEBUTE_RECORD_TRACE_APPEL_EX(__COUNTER__, _ligne, _colonne, _ligne_appel, _taille_ligne)
+
+#define TERMINE_RECORD_TRACE_APPEL \
+   __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
+	)";
+
+    /* déclaration des types de bases */
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+    enchaineuse << "typedef struct chaine { union { unsigned char d[16]; struct { char *pointeur; "
+                   "int64_t taille; };}; } chaine;\n";
+    enchaineuse << "typedef struct eini { union { unsigned char d[16]; struct { void *pointeur; "
+                   "struct KuriInfoType *info; };}; } eini;\n";
+#else
+    enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
+    enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
+#endif
+    enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
+    enchaineuse << "typedef uint8_t bool;\n";
+    enchaineuse << "#endif\n";
+    enchaineuse << "typedef uint8_t octet;\n";
+    enchaineuse << "typedef void Ksnul;\n";
+    enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
+    /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
+     *  de LibC dont les arguments variadiques ne sont pas typés */
+    enchaineuse << "#define Kv ...\n\n";
+
+    // À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
+    // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
+    // la fonction principale défini par les programmes.
+    enchaineuse << "#define __principale principale\n\n";
+
+    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
-/* ************************************************************************** */
-
-static inline auto broye_chaine(base *b)
+static bool est_type_tableau_fixe(Type *type)
 {
-	return broye_nom_simple(b->chaine());
+    return type->est_tableau_fixe() ||
+           (type->est_opaque() && type->comme_opaque()->type_opacifie->est_tableau_fixe());
 }
 
-/* ************************************************************************** */
-
-/* À FAIRE : trouve une bonne manière de générer des noms uniques. */
-static int index = 0;
-
-static auto cree_info_type_defaul_C(
-		dls::flux_chaine &os_decl,
-		dls::chaine const &id_type)
+static bool est_pointeur_vers_tableau_fixe(Type const *type)
 {
-	auto nom_info_type = "__info_type" + id_type + dls::vers_chaine(index++);
+    if (!type->est_pointeur()) {
+        return false;
+    }
 
-	os_decl << "static const InfoType " << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_type << '\n';
-	os_decl << "};\n";
+    auto const type_pointeur = type->comme_pointeur();
 
-	return nom_info_type;
+    if (!type_pointeur->type_pointe) {
+        return false;
+    }
+
+    return est_type_tableau_fixe(type_pointeur->type_pointe);
 }
 
-static auto cree_info_type_entier_C(
-		dls::flux_chaine &os_decl,
-		int taille_en_octet,
-		bool est_signe,
-		IDInfoType const &id_info_type)
+static void declare_visibilite_globale(Enchaineuse &os,
+                                       AtomeGlobale const *valeur_globale,
+                                       bool pour_entete)
 {
-	auto nom_info_type = "__info_type_entier" + dls::vers_chaine(index++);
-
-	os_decl << "static const InfoTypeEntier " << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_info_type.ENTIER << ",\n";
-	os_decl << '\t' << broye_nom_simple(".est_signé = ") << est_signe << ",\n";
-	os_decl << "\t.taille_en_octet = " << taille_en_octet << '\n';
-	os_decl << "};\n";
-
-	return nom_info_type;
+    if (valeur_globale->est_externe) {
+        os << "extern ";
+    }
+    else if (valeur_globale->est_constante) {
+        if (pour_entete) {
+            os << "extern ";
+        }
+        os << "const ";
+    }
+    else {
+        // À FAIRE : permet de définir la visibilité des globales
+        //           en dehors des fichiers dynamiques.
+        // os << "static ";
+    }
 }
 
-static auto cree_info_type_reel_C(
-		dls::flux_chaine &os_decl,
-		int taille_en_octet,
-		IDInfoType const &id_info_type)
+struct GeneratriceCodeC {
+    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_valeurs{"Valeurs locales C"};
+    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
+    EspaceDeTravail &m_espace;
+    AtomeFonction const *m_fonction_courante = nullptr;
+
+    Broyeuse &broyeuse;
+
+    // les atomes pour les chaines peuvent être générés plusieurs fois (notamment
+    // pour celles des noms des fonctions pour les traces d'appel), utilisons un
+    // index pour les rendre uniques
+    int index_chaine = 0;
+
+    Enchaineuse enchaineuse_tmp{};
+    Enchaineuse stockage_chn{};
+
+    /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
+    kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.reinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+    }
+
+    GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_);
+
+    EMPECHE_COPIE(GeneratriceCodeC);
+
+    kuri::chaine_statique genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
+
+    void debute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
+
+    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
+
+    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os);
+
+    void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
+
+    void declare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
+
+    void declare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
+
+    void genere_code(kuri::tableau<AtomeGlobale *> const &globales,
+                     kuri::tableau<AtomeFonction *> const &fonctions,
+                     CoulisseC &coulisse,
+                     Enchaineuse &os);
+
+    void genere_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
+
+    void genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                            const kuri::tableau<AtomeFonction *> &fonctions,
+                            Enchaineuse &os);
+
+    void genere_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
+    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
+};
+
+GeneratriceCodeC::GeneratriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
+    : m_espace(espace), broyeuse(broyeuse_)
 {
-	auto nom_info_type = "__info_type_reel" + dls::vers_chaine(index++);
-
-	os_decl << "static const " << broye_nom_simple("InfoTypeRéel ") << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_info_type.REEL << ",\n";
-	os_decl << "\t.taille_en_octet = " << taille_en_octet << '\n';
-	os_decl << "};\n";
-
-	return nom_info_type;
 }
 
-static dls::chaine cree_info_type_C(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type,
-		IDInfoType const &id_info_type);
-
-static auto cree_info_type_structure_C(
-		dls::flux_chaine &os_decl,
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::vue_chaine_compacte const &nom_struct,
-		DonneesStructure const &donnees_structure,
-		DonneesTypeFinal &dt,
-		IDInfoType const &id_info_type)
+kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
+                                                               Enchaineuse &os,
+                                                               bool pour_globale)
 {
-	if (dt.ptr_info_type != "") {
-		return dt.ptr_info_type;
-	}
+    switch (atome->genre_atome) {
+        case Atome::Genre::FONCTION:
+        {
+            auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+            return atome_fonc->nom;
+        }
+        case Atome::Genre::CONSTANTE:
+        {
+            auto atome_const = static_cast<AtomeConstante const *>(atome);
 
-	auto const nom_info_type = "__info_type_struct" + dls::vers_chaine(index++);
+            switch (atome_const->genre) {
+                case AtomeConstante::Genre::GLOBALE:
+                {
+                    auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
 
-	auto const nom_broye = broye_nom_simple(nom_struct);
+                    if (valeur_globale->ident) {
+                        return valeur_globale->ident->nom;
+                    }
 
-	/* prédéclare l'infotype au cas où la structure s'incluerait elle-même via
-	 * un pointeur (p.e. listes chainées) */
-	os_decl << "static const InfoTypeStructure " << nom_info_type << ";\n";
+                    return table_valeurs.valeur_ou(valeur_globale, "");
+                }
+                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+                {
+                    auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
+                    auto valeur = genere_code_pour_atome(
+                        transtype_const->valeur, os, pour_globale);
+                    return enchaine(
+                        "(",
+                        broyeuse.nom_broye_type(const_cast<Type *>(transtype_const->type)),
+                        ")(",
+                        valeur,
+                        ")");
+                }
+                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+                {
+                    break;
+                }
+                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+                {
+                    auto inst_acces = static_cast<AccedeIndexConstant const *>(atome_const);
+                    auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
+                    auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-	/* met en place le 'pointeur' au cas où une structure s'incluerait elle-même
-	 * via un pointeur */
-	dt.ptr_info_type = nom_info_type;
+                    if (est_type_tableau_fixe(
+                            inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+                        valeur_accede = enchaine(valeur_accede, ".d");
+                    }
 
-	auto const nombre_membres = donnees_structure.index_types.taille();
+                    return enchaine(valeur_accede, "[", valeur_index, "]");
+                }
+                case AtomeConstante::Genre::VALEUR:
+                {
+                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
 
-	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
+                    switch (valeur_const->valeur.genre) {
+                        case AtomeValeurConstante::Valeur::Genre::NULLE:
+                        {
+                            return "0";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TYPE:
+                        {
+                            auto type = valeur_const->valeur.type;
+                            if (type->est_type_de_donnees()) {
+                                auto type_de_donnees = type->comme_type_de_donnees();
+                                if (type_de_donnees->type_connu) {
+                                    return enchaine(
+                                        type_de_donnees->type_connu->index_dans_table_types);
+                                }
+                            }
+                            return enchaine(type->index_dans_table_types);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            return enchaine(valeur_const->valeur.type->taille_octet);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::REELLE:
+                        {
+                            auto type = valeur_const->type;
 
-		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
-			if (paire_idx_mb.second.index_membre != i) {
-				continue;
-			}
+                            if (type->taille_octet == 4) {
+                                return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+                            }
 
-			auto idx = contexte.magasin_types.ajoute_type(dt_membre);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
+                            return enchaine("(double)", valeur_const->valeur.valeur_reelle);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+                        {
+                            auto type = valeur_const->type;
+                            auto valeur_entiere = valeur_const->valeur.valeur_entiere;
 
-			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(
-							contexte, generatrice, os_decl, dt_membre, id_info_type);
-			}
+                            if (type->est_entier_naturel()) {
+                                if (type->taille_octet == 1) {
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 2) {
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 4) {
+                                    return enchaine(static_cast<uint32_t>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 8) {
+                                    return enchaine(valeur_entiere, "UL");
+                                }
+                            }
+                            else {
+                                if (type->taille_octet == 1) {
+                                    return enchaine(static_cast<int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 2) {
+                                    return enchaine(static_cast<int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 4 || type->taille_octet == 0) {
+                                    return enchaine(static_cast<int>(valeur_entiere));
+                                }
+                                else if (type->taille_octet == 8) {
+                                    return enchaine(valeur_entiere, "L");
+                                }
+                            }
 
-			break;
-		}
-	}
+                            return "";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+                        {
+                            /* Convertis vers une valeur entière pour éviter les problèmes
+                             * d'instantiation de templates (Enchaineuse ne gère pas les valeurs
+                             * booléennes, et si elle devait, elle imprimerait "vrai" ou "faux",
+                             * qui ne sont pas des identifiants valides en C). */
+                            return enchaine(valeur_const->valeur.valeur_booleenne ? 1 : 0);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+                        {
+                            return enchaine(valeur_const->valeur.valeur_entiere);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        {
+                            return "";
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+                        {
+                            auto type = static_cast<TypeCompose const *>(atome->type);
+                            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
+                            auto resultat = Enchaineuse();
 
-	/* crée le tableau des données des membres */
-	auto const nom_tableau_membre = "__info_type_membres" + dls::vers_chaine(index++);
-	os_decl << "static const InfoTypeMembreStructure " << nom_tableau_membre << "[] = {\n";
+                            auto virgule = "{ ";
+                            // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
+                            // n'est pas initialisé
+                            auto virgule_placee = false;
 
-	for (auto i = 0l; i < nombre_membres; ++i) {
-		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
+                            auto index_membre = 0;
+                            for (auto i = 0; i < type->membres.taille(); ++i) {
+                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
+                                    continue;
+                                }
 
-		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
-			if (paire_idx_mb.second.index_membre != i) {
-				continue;
-			}
+                                // les tableaux fixes ont une initialisation nulle
+                                if (tableau_valeur[index_membre] == nullptr) {
+                                    index_membre += 1;
+                                    continue;
+                                }
 
-			auto idx = contexte.magasin_types.ajoute_type(dt_membre);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
+                                resultat << virgule;
+                                virgule_placee = true;
 
-			os_decl << "\t{\n";
-			os_decl << "\t\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
-			os_decl << "\t\t" << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ",\n";
-			os_decl << "\t\t.id = (InfoType *)(&" << rderef.ptr_info_type << ")\n";
-			os_decl << "\t},\n";
+                                resultat << ".";
+                                if (type->membres[i].nom == ID::chaine_vide) {
+                                    resultat << "membre_invisible";
+                                }
+                                else {
+                                    resultat << broyeuse.broye_nom_simple(type->membres[i].nom);
+                                }
+                                resultat << " = ";
+                                resultat << genere_code_pour_atome(
+                                    tableau_valeur[index_membre], os, pour_globale);
 
-			break;
-		}
-	}
+                                virgule = ", ";
+                                index_membre += 1;
+                            }
 
-	os_decl << "};\n";
+                            if (!virgule_placee) {
+                                resultat << "{ 0";
+                            }
 
-	/* crée l'info pour la structure */
-	os_decl << "static const InfoTypeStructure " << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_info_type.STRUCTURE << ",\n";
-	os_decl << "\t.nom = {.pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << "},\n";
-	os_decl << "\t.membres = {.pointeur = " << nom_tableau_membre << ", .taille = " << donnees_structure.index_types.taille() << "},\n";
-	os_decl << "};\n";
+                            resultat << " }";
 
-	return nom_info_type;
+                            if (pour_globale) {
+                                return stockage_chn.ajoute_chaine_statique(
+                                    resultat.chaine_statique());
+                            }
+
+                            auto nom = enchaine("val", atome, index_chaine++);
+                            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(atome->type))
+                               << " " << nom << " = " << resultat.chaine() << ";\n";
+                            return nom;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+                        {
+                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+                            auto resultat = Enchaineuse();
+
+                            auto virgule = "{ .d = { ";
+
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                resultat << virgule;
+                                resultat << genere_code_pour_atome(
+                                    pointeur_tableau[i], os, pour_globale);
+                                /* Retourne à la ligne car GCC à du mal avec des chaines trop
+                                 * grandes. */
+                                virgule = ",\n";
+                            }
+
+                            if (taille_tableau == 0) {
+                                resultat << "{}";
+                            }
+                            else {
+                                resultat << " } }";
+                            }
+
+                            if (resultat.nombre_tampons() > 1) {
+                                auto chaine_resultat = resultat.chaine();
+                                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                                return chaines_trop_larges_pour_stockage_chn.derniere();
+                            }
+
+                            return stockage_chn.ajoute_chaine_statique(resultat.chaine_statique());
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+                        {
+                            auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
+                            auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
+
+                            enchaineuse_tmp.reinitialise();
+
+                            auto virgule = "{ ";
+
+                            for (auto i = 0; i < taille_donnees; ++i) {
+                                auto octet = pointeur_donnnees[i];
+                                enchaineuse_tmp << virgule;
+                                enchaineuse_tmp << "0x";
+                                enchaineuse_tmp << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                                enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
+                                virgule = ", ";
+                            }
+
+                            if (taille_donnees == 0) {
+                                enchaineuse_tmp << "{";
+                            }
+
+                            enchaineuse_tmp << " }";
+
+                            return stockage_chn.ajoute_chaine_statique(
+                                enchaineuse_tmp.chaine_statique());
+                        }
+                    }
+                }
+            }
+
+            return "";
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            auto inst = atome->comme_instruction();
+            return table_valeurs.valeur_ou(inst, "");
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            return table_globales.valeur_ou(atome, "");
+        }
+    }
+
+    return "";
 }
 
-static auto cree_info_type_enum_C(
-		dls::flux_chaine &os_decl,
-		dls::vue_chaine_compacte const &nom_struct,
-		DonneesStructure const &donnees_structure,
-		IDInfoType const &id_info_type)
+void GeneratriceCodeC::debute_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
 {
-	auto nom_broye = broye_nom_simple(nom_struct);
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    /* La fonction d'initialisation des globales n'a pas de site. */
+    if (m_fonction_courante->sanstrace || !inst_appel->site) {
+        return;
+    }
 
-	/* crée un tableau pour les noms des énumérations */
-	auto const nom_tableau_noms = "__tableau_noms_enum" + dls::vers_chaine(index++);
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
 
-	os_decl << "static const chaine " << nom_tableau_noms << "[] = {\n";
+    auto const &lexeme = inst_appel->site->lexeme;
+    auto fichier = m_espace.compilatrice().fichier(lexeme->fichier);
+    auto pos = position_lexeme(*lexeme);
 
-	auto noeud_decl = donnees_structure.noeud_decl;
-	auto nombre_enfants = noeud_decl->enfants.taille();
-	for (auto enfant : noeud_decl->enfants) {
-		auto enf0 = enfant;
+    static const auto DEBUTE_RECORD = kuri::chaine_statique("  DEBUTE_RECORD_TRACE_APPEL(");
 
-		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
-			enf0 = enf0->enfants.front();
-		}
+    os << DEBUTE_RECORD;
+    os << pos.numero_ligne << ",";
+    os << pos.pos << ",";
+    os << "\"";
 
-		os_decl << "\t{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().taille() << "},\n";
-	}
+    auto ligne = fichier->tampon()[pos.index_ligne];
 
-	os_decl << "};\n";
+    char tampon[1024];
+    char *ptr_tampon = tampon;
+    int taille_tampon = 0;
 
-	/* crée le tableau pour les valeurs */
-	auto const nom_tableau_valeurs = "__tableau_valeurs_enum" + dls::vers_chaine(index++);
+    POUR (ligne) {
+        *ptr_tampon++ = '\\';
+        *ptr_tampon++ = 'x';
+        *ptr_tampon++ = dls::num::char_depuis_hex((it & 0xf0) >> 4);
+        *ptr_tampon++ = dls::num::char_depuis_hex(it & 0x0f);
+        taille_tampon += 4;
 
-	os_decl << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
-	for (auto enfant : noeud_decl->enfants) {
-		auto enf0 = enfant;
+        if (taille_tampon == 1024) {
+            os << kuri::chaine_statique(tampon, taille_tampon);
+            ptr_tampon = tampon;
+            taille_tampon = 0;
+        }
+    }
 
-		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
-			enf0 = enf0->enfants.front();
-		}
+    if (taille_tampon) {
+        os << kuri::chaine_statique(tampon, taille_tampon);
+    }
 
-		os_decl << chaine_valeur_enum(donnees_structure, enf0->chaine());
-		os_decl << ',';
-	}
-	os_decl << "\n};\n";
-
-	/* crée l'info type pour l'énum */
-	auto const nom_info_type = "__info_type_enum" + dls::vers_chaine(index++);
-
-	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
-	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
-	os_decl << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
-	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_enfants << " },\n ";
-	os_decl << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_enfants << " },\n ";
-	os_decl << "};\n";
-
-	return nom_info_type;
+    os << "\",";
+    os << ligne.taille();
+    os << ");\n";
+#endif
 }
 
-static dls::chaine cree_info_type_C(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os_decl,
-		DonneesTypeFinal &donnees_type,
-		IDInfoType const &id_info_type)
+void GeneratriceCodeC::termine_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
 {
-	auto valeur = dls::chaine("");
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    if (m_fonction_courante->sanstrace || !inst_appel->site) {
+        return;
+    }
 
-	switch (donnees_type.type_base() & 0xff) {
-		default:
-		{
-			std::cerr << chaine_type(donnees_type, contexte) << '\n';
-			std::cerr << chaine_identifiant(donnees_type.type_base() & 0xff) << '\n';
-			assert(false);
-			break;
-		}
-		case id_morceau::BOOL:
-		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN);
-			break;
-		}
-		case id_morceau::N8:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 8, false, id_info_type);
-			break;
-		}
-		case id_morceau::OCTET:
-		case id_morceau::Z8:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 8, true, id_info_type);
-			break;
-		}
-		case id_morceau::N16:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 16, false, id_info_type);
-			break;
-		}
-		case id_morceau::Z16:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 16, true, id_info_type);
-			break;
-		}
-		case id_morceau::N32:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 32, false, id_info_type);
-			break;
-		}
-		case id_morceau::Z32:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 32, true, id_info_type);
-			break;
-		}
-		case id_morceau::N64:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 64, false, id_info_type);
-			break;
-		}
-		case id_morceau::N128:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 128, false, id_info_type);
-			break;
-		}
-		case id_morceau::Z64:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 64, true, id_info_type);
-			break;
-		}
-		case id_morceau::Z128:
-		{
-			valeur = cree_info_type_entier_C(os_decl, 128, true, id_info_type);
-			break;
-		}
-		case id_morceau::R16:
-		{
-			valeur = cree_info_type_reel_C(os_decl, 16, id_info_type);
-			break;
-		}
-		case id_morceau::R32:
-		{
-			valeur = cree_info_type_reel_C(os_decl, 32, id_info_type);
-			break;
-		}
-		case id_morceau::R64:
-		{
-			valeur = cree_info_type_reel_C(os_decl, 64, id_info_type);
-			break;
-		}
-		case id_morceau::R128:
-		{
-			valeur = cree_info_type_reel_C(os_decl, 128, id_info_type);
-			break;
-		}
-		case id_morceau::REFERENCE:
-		case id_morceau::POINTEUR:
-		{
-			auto deref = donnees_type.dereference();
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
 
-			auto idx = contexte.magasin_types.ajoute_type(deref);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
-
-			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
-			}
-
-			auto nom_info_type = "__info_type_pointeur" + dls::vers_chaine(index++);
-
-			os_decl << "static const InfoTypePointeur " << nom_info_type << " = {\n";
-			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
-			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
-			os_decl << '\t' << broye_nom_simple(".est_référence = ")
-					<< (donnees_type.type_base() == id_morceau::REFERENCE) << ",\n";
-			os_decl << "};\n";
-
-			valeur = nom_info_type;
-			donnees_type.ptr_info_type = valeur;
-			break;
-		}
-		case id_morceau::CHAINE_CARACTERE:
-		{
-			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
-			auto donnees_structure = contexte.donnees_structure(id_structure);
-
-			if (donnees_structure.est_enum) {
-				valeur = cree_info_type_enum_C(
-							os_decl,
-							contexte.nom_struct(id_structure),
-							donnees_structure,
-							id_info_type);
-
-				donnees_type.ptr_info_type = valeur;
-			}
-			else {
-				valeur = cree_info_type_structure_C(
-							os_decl,
-							contexte,
-							generatrice,
-							contexte.nom_struct(id_structure),
-							donnees_structure,
-							donnees_type,
-							id_info_type);
-			}
-
-			break;
-		}
-		case id_morceau::TROIS_POINTS:
-		case id_morceau::TABLEAU:
-		{
-			auto deref = donnees_type.dereference();
-
-			auto nom_info_type = "__info_type_tableau" + dls::vers_chaine(index++);
-
-			/* dans le cas des arguments variadics des fonctions externes */
-			if (est_invalide(deref)) {
-				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
-				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
-				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = 0,\n";
-				os_decl << "};\n";
-			}
-			else {
-				auto idx = contexte.magasin_types.ajoute_type(deref);
-				auto &rderef = contexte.magasin_types.donnees_types[idx];
-
-				if (rderef.ptr_info_type == "") {
-					rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
-				}
-
-				os_decl << "static const InfoTypeTableau " << nom_info_type << " = {\n";
-				os_decl << "\t.id = " << id_info_type.TABLEAU << ",\n";
-				os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
-				os_decl << "};\n";
-			}
-
-			valeur = nom_info_type;
-			break;
-		}
-		case id_morceau::COROUT:
-		case id_morceau::FONC:
-		{
-			auto nom_info_type = "__info_type_FONCTION" + dls::vers_chaine(index++);
-
-			donnees_type.ptr_info_type = nom_info_type;
-
-			auto nombre_types_retour = 0l;
-			auto dt_params = donnees_types_parametres(contexte.magasin_types, donnees_type, nombre_types_retour);
-			auto nombre_types_entree = dt_params.taille() - nombre_types_retour;
-
-			for (auto i = 0; i < dt_params.taille(); ++i) {
-				auto &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
-
-				if (dt_prm.ptr_info_type != "") {
-					continue;
-				}
-
-				cree_info_type_C(contexte, generatrice, os_decl, dt_prm, id_info_type);
-			}
-
-			/* crée tableau infos type pour les entrées */
-			auto const nom_tableau_entrees = "__types_entree" + dls::vers_chaine(index++);
-
-			os_decl << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
-
-			for (auto i = 0; i < nombre_types_entree; ++i) {
-				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
-				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
-			}
-
-			os_decl << "};\n";
-
-			/* crée tableau infos type pour les sorties */
-			auto const nom_tableau_sorties = "__types_sortie" + dls::vers_chaine(index++);
-
-			os_decl << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
-
-			for (auto i = nombre_types_entree; i < dt_params.taille(); ++i) {
-				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
-				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
-			}
-
-			os_decl << "};\n";
-
-			/* crée l'info type pour la fonction */
-			os_decl << "static const InfoTypeFonction " << nom_info_type << " = {\n";
-			os_decl << "\t.id = " << id_info_type.FONCTION << ",\n";
-			os_decl << "\t.est_coroutine = " << (donnees_type.type_base() == id_morceau::COROUT) << ",\n";
-			os_decl << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
-			os_decl << ", .taille = " << nombre_types_entree << " },\n";
-			os_decl << broye_nom_simple("\t.types_sortie = { .pointeur = ") << nom_tableau_sorties;
-			os_decl << ", .taille = " << nombre_types_retour << " },\n";
-			os_decl << "};\n";
-
-			valeur = nom_info_type;
-			break;
-		}
-		case id_morceau::EINI:
-		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.EINI);
-			break;
-		}
-		case id_morceau::NUL: /* À FAIRE */
-		case id_morceau::RIEN:
-		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.RIEN);
-			break;
-		}
-		case id_morceau::CHAINE:
-		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.CHAINE);
-			break;
-		}
-	}
-
-	if (donnees_type.ptr_info_type == "") {
-		donnees_type.ptr_info_type = valeur;
-	}
-
-	return valeur;
+    os << "  TERMINE_RECORD_TRACE_APPEL;\n";
+#endif
 }
 
-static auto cree_eini(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os, base *b)
+void GeneratriceCodeC::initialise_trace_appel(const AtomeFonction *atome_fonc, Enchaineuse &os)
 {
-	auto nom_eini = dls::chaine("__eini_").append(dls::vers_chaine(b).c_str());
-	auto nom_var = dls::chaine{};
+#ifndef AJOUTE_TRACE_APPEL
+    return;
+#else
+    if (atome_fonc->sanstrace) {
+        return;
+    }
 
-	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+    if (!m_espace.options.utilise_trace_appel) {
+        return;
+    }
 
-	genere_code_C(b, generatrice, contexte, false);
+    os << "INITIALISE_TRACE_APPEL(\"";
 
-	/* dans le cas d'un nombre ou d'un tableau, etc. */
-	if (b->type != type_noeud::VARIABLE) {
-		nom_var = dls::chaine("__var_").append(nom_eini);
-		generatrice.declare_variable(dt, nom_var, b->chaine_calculee());
-	}
-	else {
-		nom_var = b->chaine_calculee();
-	}
+    if (atome_fonc->lexeme != nullptr) {
+        auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
+        os << atome_fonc->lexeme->chaine << "\", " << atome_fonc->lexeme->chaine.taille() << ", \""
+           << fichier->nom() << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
+    }
+    else {
+        os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
+           << "\"???\", 3, ";
+    }
 
-	os << "eini " << nom_eini << ";\n";
-	os << nom_eini << ".pointeur = &" << nom_var << ";\n";
-	os << nom_eini << ".info = (InfoType *)(&" << dt.ptr_info_type << ");\n";
-
-	return nom_eini;
+    os << atome_fonc->nom << ");\n";
+#endif
 }
 
-static void cree_appel(
-		base *b,
-		dls::flux_chaine &os,
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::chaine const &nom_broye,
-		dls::liste<base *> const &enfants)
+void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
-	for (auto enf : enfants) {
-		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
-			auto nom_tabl_fixe = dls::chaine(enf->chaine());
+    switch (inst->genre) {
+        case Instruction::Genre::INVALIDE:
+        {
+            os << "  invalide\n";
+            break;
+        }
+        case Instruction::Genre::ALLOCATION:
+        {
+            auto type_pointeur = inst->type->comme_pointeur();
+            os << "  " << broyeuse.nom_broye_type(type_pointeur->type_pointe);
 
-			if (enf->type == type_noeud::CONSTRUIT_TABLEAU) {
-				genere_code_C(enf, generatrice, contexte, false);
-				nom_tabl_fixe = enf->chaine_calculee();
-			}
+            // les portées ne sont plus respectées : deux variables avec le même nom dans deux
+            // portées différentes auront le même nom ici dans la même portée donc nous
+            // ajoutons le numéro de l'instruction de la variable pour les différencier
+            if (inst->ident != nullptr) {
+                auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
+                os << ' ' << nom << ";\n";
+                table_valeurs.insere(inst, enchaine("&", nom));
+            }
+            else {
+                auto nom = enchaine("val", inst->numero);
+                os << ' ' << nom << ";\n";
+                table_valeurs.insere(inst, enchaine("&", nom));
+            }
 
-			auto nom_tableau = dls::chaine("__tabl_dyn") + dls::vers_chaine(index++);
-			enf->valeur_calculee = nom_tableau;
+            break;
+        }
+        case Instruction::Genre::APPEL:
+        {
+            auto inst_appel = inst->comme_appel();
 
-			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
-			auto dt_tabl_dyn = DonneesTypeFinal{};
-			dt_tabl_dyn.pousse(id_morceau::TABLEAU);
-			dt_tabl_dyn.pousse(dt.dereference());
-			auto index_dt = contexte.magasin_types.ajoute_type(dt_tabl_dyn);
-			auto &dt_tabl = contexte.magasin_types.donnees_types[index_dt];
+            debute_trace_appel(inst_appel, os);
 
-			os << nom_broye_type(contexte, dt_tabl) << ' ' << nom_tableau << ";\n";
-			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
-			os << nom_tableau << ".pointeur = " << nom_tabl_fixe << ";\n";
-		}
-		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
-			enf->valeur_calculee = cree_eini(contexte, generatrice, os, enf);
-		}
-		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
-			auto nom_var_chaine = dls::chaine("");
+            auto arguments = kuri::tablet<kuri::chaine, 10>();
 
-			if (enf->type != type_noeud::VARIABLE) {
-				nom_var_chaine = "__chaine" + dls::vers_chaine(enf);
+            POUR (inst_appel->args) {
+                arguments.ajoute(genere_code_pour_atome(it, os, false));
+            }
 
-				genere_code_C(enf, generatrice, contexte, false);
-				os << "chaine " << nom_var_chaine << " = ";
-				os << enf->chaine_calculee();
-				os << ";\n";
-			}
-			else {
-				nom_var_chaine = enf->chaine();
-			}
+            os << "  ";
 
-			auto nom_var = "__pointeur" + dls::vers_chaine(enf);
+            auto type_fonction = inst_appel->appele->type->comme_fonction();
+            if (!type_fonction->type_sortie->est_rien()) {
+                auto nom_ret = enchaine("__ret", inst->numero);
+                os << broyeuse.nom_broye_type(const_cast<Type *>(inst_appel->type)) << ' '
+                   << nom_ret << " = ";
+                table_valeurs.insere(inst, nom_ret);
+            }
 
-			os << "const char *" + nom_var;
-			os << " = " << nom_var_chaine << ".pointeur;\n";
+            os << genere_code_pour_atome(inst_appel->appele, os, false);
 
-			enf->valeur_calculee = nom_var;
-		}
-		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf);
+            auto virgule = "(";
 
-			os << "KtKsoctet " << nom_var_tableau << ";\n";
+            POUR (arguments) {
+                os << virgule;
+                os << it;
+                virgule = ", ";
+            }
 
-			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
-			auto type_base = dt.type_base();
+            if (inst_appel->args.taille() == 0) {
+                os << virgule;
+            }
 
-			switch (type_base & 0xff) {
-				default:
-				{
-					os << nom_var_tableau << ".pointeur = (unsigned char*)(&";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ");\n";
+            os << ");\n";
 
-					os << nom_var_tableau << ".taille = sizeof(";
-					os << nom_broye_type(contexte, enf->index_type);
-					os << ");\n";
-					break;
-				}
-				case id_morceau::POINTEUR:
-				{
-					os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".pointeur);\n";
+            termine_trace_appel(inst_appel, os);
 
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+            break;
+        }
+        case Instruction::Genre::BRANCHE:
+        {
+            auto inst_branche = inst->comme_branche();
+            os << "  goto label" << inst_branche->label->id << ";\n";
+            break;
+        }
+        case Instruction::Genre::BRANCHE_CONDITION:
+        {
+            auto inst_branche = inst->comme_branche_cond();
+            auto condition = genere_code_pour_atome(inst_branche->condition, os, false);
+            os << "  if (" << condition;
+            os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
+            os << "else goto label" << inst_branche->label_si_faux->id << ";\n";
+            break;
+        }
+        case Instruction::Genre::CHARGE_MEMOIRE:
+        {
+            auto inst_charge = inst->comme_charge();
+            auto charge = inst_charge->chargee;
+            auto valeur = kuri::chaine_statique();
 
-					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".sizeof(";
-					nom_broye_type(contexte, dt_deref);
-					os << ");\n";
-					break;
-				}
-				case id_morceau::CHAINE:
-				{
-					genere_code_C(enf, generatrice, contexte, false);
+            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur = table_valeurs.valeur_ou(charge, "");
+            }
+            else {
+                valeur = table_globales.valeur_ou(charge, "");
+            }
 
-					os << nom_var_tableau << ".pointeur = ";
-					os << enf->chaine_calculee();
-					os << ".pointeur;\n";
+            assert(valeur != "");
 
-					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".taille;\n";
-					break;
-				}
-				case id_morceau::TABLEAU:
-				{
-					auto taille = static_cast<int>(type_base >> 8);
+            if (valeur.pointeur()[0] == '&') {
+                /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
+                 * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
+                 * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
+                 * membre de la structure qui est le tableau, et sert également à proprement
+                 * générer le code pour les indexages. */
+                if (est_pointeur_vers_tableau_fixe(charge->type->comme_pointeur()->type_pointe)) {
+                    table_valeurs.insere(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
+                }
+                else {
+                    table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                }
+            }
+            else {
+                table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
+            }
 
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+            break;
+        }
+        case Instruction::Genre::STOCKE_MEMOIRE:
+        {
+            auto inst_stocke = inst->comme_stocke_mem();
+            auto valeur = genere_code_pour_atome(inst_stocke->valeur, os, false);
+            auto ou = inst_stocke->ou;
+            auto valeur_ou = kuri::chaine_statique();
 
-					if (taille == 0) {
-						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ".pointeur);\n";
+            if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur_ou = table_valeurs.valeur_ou(ou, "");
+            }
+            else {
+                valeur_ou = table_globales.valeur_ou(ou, "");
+            }
 
-						os << nom_var_tableau << ".taille = ";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ".taille * sizeof(";
-						nom_broye_type(contexte, dt_deref);
-						os << ");\n";
-					}
-					else {
-						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ");\n";
+            if (valeur_ou.pointeur()[0] == '&') {
+                valeur_ou = valeur_ou.sous_chaine(1);
+            }
+            else {
+                valeur_ou = enchaine("(*", valeur_ou, ")");
+            }
 
-						os << nom_var_tableau << ".taille = " << taille << " * sizeof(";
-						nom_broye_type(contexte, dt_deref);
-						os << ");\n";
-					}
+            os << "  " << valeur_ou << " = " << valeur << ";\n";
 
-					break;
-				}
-			}
+            break;
+        }
+        case Instruction::Genre::LABEL:
+        {
+            auto inst_label = inst->comme_label();
+            if (inst_label->id != 0) {
+                os << "\n";
+            }
+            os << "label" << inst_label->id << ":;\n";
+            break;
+        }
+        case Instruction::Genre::OPERATION_UNAIRE:
+        {
+            auto inst_un = inst->comme_op_unaire();
+            auto valeur = genere_code_pour_atome(inst_un->valeur, os, false);
 
-			enf->valeur_calculee = nom_var_tableau;
-		}
-		else if ((enf->drapeaux & PREND_REFERENCE) != 0) {
-			/* Petit hack pour pouvoir passer des non-références à des
-			 * paramètres de type références : les références ont pour type le
-			 * type déréférencé, et sont automatiquement 'déréférencer' via (*x),
-			 * donc passer des références à des références n'est pas un problème
-			 * même si le code C généré ici devien '&(*x)'.
-			 * Mais lorsque nous devons passer une non-référence à une référence
-			 * le code devient '&&x' si le drapeaux PREND_REFERENCE est actif
-			 * donc on le désactive pour ne générer que '&x'.
-			 */
-			enf->drapeaux &= ~PREND_REFERENCE;
+            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(inst_un->type)) << " val"
+               << inst->numero << " = ";
 
-			/* Pour les références des accès membres, on ne doit pas avoir de
-			 * prépasse, donc expr_gauche = true. */
-			genere_code_C(enf, generatrice, contexte, true);
+            switch (inst_un->op) {
+                case OperateurUnaire::Genre::Positif:
+                {
+                    break;
+                }
+                case OperateurUnaire::Genre::Invalide:
+                {
+                    break;
+                }
+                case OperateurUnaire::Genre::Complement:
+                {
+                    os << '-';
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Binaire:
+                {
+                    os << '~';
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Logique:
+                {
+                    os << '!';
+                    break;
+                }
+                case OperateurUnaire::Genre::Prise_Adresse:
+                {
+                    os << '&';
+                    break;
+                }
+            }
 
-			enf->drapeaux |= PREND_REFERENCE;
-		}
-		else {
-			genere_code_C(enf, generatrice, contexte, false);
-		}
-	}
+            os << valeur;
+            os << ";\n";
 
-	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+            table_valeurs.insere(inst, enchaine("val", inst->numero));
+            break;
+        }
+        case Instruction::Genre::OPERATION_BINAIRE:
+        {
+            auto inst_bin = inst->comme_op_binaire();
+            auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, os, false);
+            auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, os, false);
 
-	dls::liste<base *> liste_var_retour{};
-	dls::tableau<dls::chaine> liste_noms_retour{};
+            os << "  " << broyeuse.nom_broye_type(const_cast<Type *>(inst_bin->type)) << " val"
+               << inst->numero << " = ";
 
-	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
-		liste_var_retour = std::any_cast<dls::liste<base *>>(b->valeur_calculee);
-		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = dls::chaine("");
+            os << valeur_gauche;
 
-		for (auto n : liste_var_retour) {
-			genere_code_C(n, generatrice, contexte, false);
-		}
-	}
-	else if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET2) {
-		liste_noms_retour = std::any_cast<dls::tableau<dls::chaine>>(b->valeur_calculee);
-		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = dls::chaine("");
-	}
-	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
-		auto nom_indirection = "__ret" + dls::vers_chaine(b);		
-		os << nom_broye_type(contexte, dt) << ' ' << nom_indirection << " = ";
-		b->valeur_calculee = nom_indirection;
-	}
-	else {
-		/* la valeur calculée doit être toujours valide. */
-		b->valeur_calculee = dls::chaine("");
-	}
+            switch (inst_bin->op) {
+                case OperateurBinaire::Genre::Addition:
+                case OperateurBinaire::Genre::Addition_Reel:
+                {
+                    os << " + ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Soustraction:
+                case OperateurBinaire::Genre::Soustraction_Reel:
+                {
+                    os << " - ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Multiplication:
+                case OperateurBinaire::Genre::Multiplication_Reel:
+                {
+                    os << " * ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Division_Naturel:
+                case OperateurBinaire::Genre::Division_Relatif:
+                case OperateurBinaire::Genre::Division_Reel:
+                {
+                    os << " / ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Reste_Naturel:
+                case OperateurBinaire::Genre::Reste_Relatif:
+                {
+                    os << " % ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Egal:
+                case OperateurBinaire::Genre::Comp_Egal_Reel:
+                {
+                    os << " == ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inegal:
+                case OperateurBinaire::Genre::Comp_Inegal_Reel:
+                {
+                    os << " != ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inf:
+                case OperateurBinaire::Genre::Comp_Inf_Nat:
+                case OperateurBinaire::Genre::Comp_Inf_Reel:
+                {
+                    os << " < ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Inf_Egal:
+                case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
+                case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
+                {
+                    os << " <= ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Sup:
+                case OperateurBinaire::Genre::Comp_Sup_Nat:
+                case OperateurBinaire::Genre::Comp_Sup_Reel:
+                {
+                    os << " > ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Comp_Sup_Egal:
+                case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
+                case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
+                {
+                    os << " >= ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Et_Binaire:
+                {
+                    os << " & ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Ou_Binaire:
+                {
+                    os << " | ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Ou_Exclusif:
+                {
+                    os << " ^ ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Dec_Gauche:
+                {
+                    os << " << ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Dec_Droite_Arithm:
+                case OperateurBinaire::Genre::Dec_Droite_Logique:
+                {
+                    os << " >> ";
+                    break;
+                }
+                case OperateurBinaire::Genre::Invalide:
+                case OperateurBinaire::Genre::Indexage:
+                {
+                    os << " invalide ";
+                    break;
+                }
+            }
 
-	os << nom_broye;
+            os << valeur_droite;
+            os << ";\n";
 
-	auto virgule = '(';
+            table_valeurs.insere(inst, enchaine("val", inst->numero));
 
-	if (enfants.est_vide() && liste_var_retour.est_vide() && liste_noms_retour.est_vide()) {
-		os << virgule;
-		virgule = ' ';
-	}
+            break;
+        }
+        case Instruction::Genre::RETOUR:
+        {
+            auto inst_retour = inst->comme_retour();
+            if (inst_retour->valeur != nullptr) {
+                auto atome = inst_retour->valeur;
+                auto valeur_retour = genere_code_pour_atome(atome, os, false);
+                os << "  return";
+                os << ' ';
+                os << valeur_retour;
+            }
+            else {
+                os << "  return";
+            }
+            os << ";\n";
+            break;
+        }
+        case Instruction::Genre::ACCEDE_INDEX:
+        {
+            auto inst_acces = inst->comme_acces_index();
+            auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
+            auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-	if (b->df != nullptr) {
-		auto df = b->df;
-		auto noeud_decl = df->noeud_decl;
+            if (est_type_tableau_fixe(inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+                valeur_accede = enchaine(valeur_accede, ".d");
+            }
 
-		if (df->est_coroutine) {
-			os << virgule << "&__etat" << dls::vers_chaine(b) << ");\n";
-			return;
-		}
+            auto valeur = enchaine(valeur_accede, "[", valeur_index, "]");
+            table_valeurs.insere(inst, valeur);
+            break;
+        }
+        case Instruction::Genre::ACCEDE_MEMBRE:
+        {
+            auto inst_acces = inst->comme_acces_membre();
 
-		if (!df->est_externe && noeud_decl != nullptr && !dls::outils::possede_drapeau(noeud_decl->drapeaux, FORCE_NULCTX)) {
-			os << virgule;
-			os << "ctx";
-			virgule = ',';
-		}
-	}
-	else {
-		if (!dls::outils::possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-			os << virgule;
-			os << "ctx";
-			virgule = ',';
-		}
-	}
+            auto accede = inst_acces->accede;
+            auto valeur_accede = kuri::chaine_statique();
 
-	for (auto enf : enfants) {
-		os << virgule;
-		if ((enf->drapeaux & PREND_REFERENCE) != 0) {
-			os << '&';
-		}
-		os << enf->chaine_calculee();
-		virgule = ',';
-	}
+            if (accede->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur_accede = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accede, ""));
+            }
+            else {
+                valeur_accede = broyeuse.broye_nom_simple(table_globales.valeur_ou(accede, ""));
+            }
 
-	for (auto n : liste_var_retour) {
-		os << virgule;
-		os << "&(" << n->chaine_calculee() << ')';
-		virgule = ',';
-	}
+            assert(valeur_accede != "");
 
-	for (auto n : liste_noms_retour) {
-		os << virgule << n;
-		virgule = ',';
-	}
+            auto type_accede = inst_acces->accede->type;
+            auto type_pointe = Type::nul();
+            if (type_accede->est_pointeur()) {
+                type_pointe = type_accede->comme_pointeur()->type_pointe;
+            }
+            else if (type_accede->est_reference()) {
+                type_pointe = type_accede->comme_reference()->type_pointe;
+            }
 
-	os << ");\n";
+            if (type_pointe->est_opaque()) {
+                type_pointe = type_pointe->comme_opaque()->type_opacifie;
+            }
+
+            auto type_compose = static_cast<TypeCompose *>(type_pointe);
+
+            /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
+             * + index. */
+            if (type_compose->est_union()) {
+                type_compose = type_compose->comme_union()->type_structure;
+            }
+
+            auto index_membre = static_cast<int>(
+                static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere);
+
+            if (valeur_accede.pointeur()[0] == '&') {
+                valeur_accede = enchaine(valeur_accede, ".");
+            }
+            else {
+                valeur_accede = enchaine("&", valeur_accede, "->");
+            }
+
+            auto const &membre = type_compose->membres[index_membre];
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+            auto nom_type = broyeuse.nom_broye_type(membre.type);
+            valeur_accede = enchaine(
+                "&(*(", nom_type, " *)", valeur_accede, "d[", membre.decalage, "])");
+#else
+            /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
+            if (membre.nom == ID::chaine_vide) {
+                valeur_accede = enchaine(valeur_accede, "membre_invisible");
+            }
+            else if (type_compose->est_tuple()) {
+                valeur_accede = enchaine(valeur_accede, "_", index_membre);
+            }
+            else {
+                valeur_accede = enchaine(valeur_accede, broyeuse.broye_nom_simple(membre.nom));
+            }
+#endif
+
+            table_valeurs.insere(inst_acces, valeur_accede);
+            break;
+        }
+        case Instruction::Genre::TRANSTYPE:
+        {
+            auto inst_transtype = inst->comme_transtype();
+            auto valeur = genere_code_pour_atome(inst_transtype->valeur, os, false);
+            valeur = enchaine("((",
+                              broyeuse.nom_broye_type(const_cast<Type *>(inst_transtype->type)),
+                              ")(",
+                              valeur,
+                              "))");
+            table_valeurs.insere(inst, valeur);
+            break;
+        }
+    }
 }
 
-static void cree_initialisation(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		DonneesTypeFinal::type_plage dt_parent,
-		dls::chaine const &chaine_parent,
-		dls::vue_chaine_compacte const &accesseur,
-		dls::flux_chaine &os)
+void GeneratriceCodeC::declare_globale(Enchaineuse &os,
+                                       const AtomeGlobale *valeur_globale,
+                                       bool pour_entete)
 {
-	if (dt_parent.front() == id_morceau::CHAINE || dt_parent.front() == id_morceau::TABLEAU) {
-		os << chaine_parent << accesseur << "pointeur = 0;\n";
-		os << chaine_parent << accesseur << "taille = 0;\n";
-	}
-	else if ((dt_parent.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
-		auto const &ds = contexte.donnees_structure(index_structure);
+    declare_visibilite_globale(os, valeur_globale, pour_entete);
 
-		for (auto i = 0l; i < ds.index_types.taille(); ++i) {
-			auto index_dt = ds.index_types[i];
-			auto dt_enf = contexte.magasin_types.donnees_types[index_dt].plage();
+    auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+    os << broyeuse.nom_broye_type(type) << ' ';
 
-			for (auto paire_idx_mb : ds.donnees_membres) {
-				auto const &donnees_membre = paire_idx_mb.second;
-
-				if (donnees_membre.index_membre != i) {
-					continue;
-				}
-
-				auto nom = paire_idx_mb.first;
-				auto decl_nom = chaine_parent + dls::chaine(accesseur) + broye_nom_simple(nom);
-
-				if (donnees_membre.noeud_decl != nullptr) {
-					/* indirection pour les chaines ou autres */
-					genere_code_C(donnees_membre.noeud_decl, generatrice, contexte, false);
-					os << decl_nom << " = ";
-					os << donnees_membre.noeud_decl->chaine_calculee();
-					os << ";\n";
-				}
-				else {
-					cree_initialisation(
-								contexte,
-								generatrice,
-								dt_enf,
-								decl_nom,
-								".",
-								os);
-				}
-			}
-		}
-
-		if (ds.est_union && !ds.est_nonsur) {
-			os << chaine_parent << dls::chaine(accesseur) << "membre_actif = 0;\n";
-		}
-	}
-	else if ((dt_parent.front() & 0xff) == id_morceau::TABLEAU) {
-		/* À FAIRE */
-	}
-	else {
-		os << chaine_parent << " = 0;\n";
-	}
+    if (valeur_globale->ident) {
+        auto nom_globale = broyeuse.broye_nom_simple(valeur_globale->ident);
+        os << nom_globale;
+        table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+    }
+    else {
+        auto nom_globale = enchaine("globale", valeur_globale);
+        os << nom_globale;
+        table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+    }
 }
 
-static void genere_code_acces_membre(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		base *b,
-		base *structure,
-		base *membre,
-		bool expr_gauche)
+void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
-	auto flux = dls::flux_chaine();
+    if (atome_fonc->enligne) {
+        os << "static __attribute__((always_inline)) inline ";
+    }
 
-	auto nom_acces = "__acces" + dls::vers_chaine(b);
-	b->valeur_calculee = nom_acces;
+    auto type_fonction = atome_fonc->type->comme_fonction();
+    os << broyeuse.nom_broye_type(type_fonction->type_sortie) << " ";
+    os << atome_fonc->nom;
 
-	if (b->aide_generation_code == ACCEDE_MODULE) {
-		genere_code_C(membre, generatrice, contexte, false);
-		flux << membre->chaine_calculee();
-	}
-	else {
-		auto const &index_type = structure->index_type;
-		auto type_structure = contexte.magasin_types.donnees_types[index_type].plage();
-		auto est_pointeur = type_structure.front() == id_morceau::POINTEUR;
+    auto virgule = "(";
 
-		if (est_pointeur) {
-			type_structure.effronte();
-		}
+    for (auto param : atome_fonc->params_entrees) {
+        os << virgule;
 
-		if ((type_structure.front() & 0xff) == id_morceau::TABLEAU) {
-			auto taille = static_cast<size_t>(type_structure.front() >> 8);
+        auto type_pointeur = param->type->comme_pointeur();
+        auto type_param = type_pointeur->type_pointe;
+        os << broyeuse.nom_broye_type(type_param) << ' ';
 
-			if (taille != 0) {
-				generatrice.os << "long " << nom_acces << " = " << taille << ";\n";
-				flux << nom_acces;
-			}
-			else {
-				genere_code_C(structure, generatrice, contexte, expr_gauche);
+        // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
+        // (void fonction(...)), n'imprime pas de nom
+        if (type_param->est_variadique() &&
+            type_param->comme_variadique()->type_pointe == nullptr) {
+            continue;
+        }
 
-				if (membre->type != type_noeud::VARIABLE) {
-					genere_code_C(membre, generatrice, contexte, expr_gauche);
-				}
+        os << broyeuse.broye_nom_simple(param->ident);
 
-				flux << structure->chaine_calculee();
-				flux << ((est_pointeur) ? "->" : ".");
-				flux << broye_chaine(membre);
-			}
-		}
-		else if (est_type_tableau_fixe(type_structure)) {
-			auto taille_tableau = static_cast<size_t>(type_structure.front() >> 8);
-			generatrice.os << "long " << nom_acces << " = " << taille_tableau << ";\n";
-			flux << nom_acces;
-		}
-		/* vérifie si nous avons une énumération */
-		else if (contexte.structure_existe(structure->chaine())) {
-			auto &ds = contexte.donnees_structure(structure->chaine());
+        virgule = ", ";
+    }
 
-			if (ds.est_enum) {
-				flux << chaine_valeur_enum(ds, membre->chaine());
-			}
-		}
-		else {
-			genere_code_C(structure, generatrice, contexte, expr_gauche);
+    if (atome_fonc->params_entrees.taille() == 0) {
+        os << virgule;
+    }
 
-			if (membre->type != type_noeud::VARIABLE) {
-				genere_code_C(membre, generatrice, contexte, expr_gauche);
-			}
-
-			flux << structure->chaine_calculee();
-			flux << ((est_pointeur) ? "->" : ".");
-			flux << broye_chaine(membre);
-		}
-	}
-
-	if (expr_gauche) {
-		b->valeur_calculee = dls::chaine(flux.chn());
-	}
-	else {
-		if (membre->type == type_noeud::APPEL_FONCTION) {
-			membre->nom_fonction_appel = flux.chn();
-			genere_code_C(membre, generatrice, contexte, false);
-
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-			generatrice.declare_variable(dt, nom_acces, membre->chaine_calculee());
-
-			b->valeur_calculee = nom_acces;
-		}
-		else {
-			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
-			generatrice.os << "const ";
-			generatrice.declare_variable(b->index_type, nom_var, flux.chn());
-
-			b->valeur_calculee = nom_var;
-		}
-	}
+    os << ")";
 }
 
-static void genere_code_echec_logement(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::chaine const &nom_ptr,
-		bool a_pointeur,
-		base *b,
-		base *bloc)
+void GeneratriceCodeC::genere_code_entete(const kuri::tableau<AtomeGlobale *> &globales,
+                                          const kuri::tableau<AtomeFonction *> &fonctions,
+                                          Enchaineuse &os)
 {
-	generatrice.os << "if (" << nom_ptr;
-	if (a_pointeur) {
-		generatrice.os << ".pointeur ";
-	}
-	generatrice.os << " == 0)";
+    /* Déclarons les globales. */
+    POUR (globales) {
+        declare_globale(os, it, true);
+        os << ";\n";
+    }
 
-	if (bloc) {
-		genere_code_C(bloc, generatrice, contexte, true);
-	}
-	else {
-		auto const &morceau = b->morceau;
-		auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-		auto pos = trouve_position(morceau, module);
+    /* Déclarons ensuite les fonctions. */
+    POUR (fonctions) {
+        declare_fonction(os, it);
+        os << ";\n\n";
+    }
 
-		generatrice.os << " {\n";
-		generatrice.os << "KR__hors_memoire(";
-		generatrice.os << '"' << module->chemin << '"' << ',';
-		generatrice.os << pos.numero_ligne;
-		generatrice.os << ");\n";
-		generatrice.os << "}\n";
-	}
+    /* Définissons ensuite les fonctions devant être enlignées. */
+    POUR (fonctions) {
+        /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
+        if (it->instructions.taille() == 0 || !it->enligne) {
+            continue;
+        }
+
+        genere_code_fonction(it, os);
+    }
 }
 
-static DonneesFonction *cherche_donnees_fonction(
-		ContexteGenerationCode &contexte,
-		base *b)
+void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enchaineuse &os)
 {
-	auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
-	auto &vdf = module->donnees_fonction(b->morceau.chaine);
+    declare_fonction(os, atome_fonc);
 
-	for (auto &df : vdf) {
-		if (df.noeud_decl == b) {
-			return &df;
-		}
-	}
+    // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
-	return nullptr;
+    for (auto param : atome_fonc->params_entrees) {
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    os << "\n{\n";
+
+    initialise_trace_appel(atome_fonc, os);
+
+    m_fonction_courante = atome_fonc;
+
+    auto numero_inst = atome_fonc->params_entrees.taille();
+
+    /* Créons une variable locale pour la valeur de sortie. */
+    auto type_fonction = atome_fonc->type->comme_fonction();
+    if (!type_fonction->type_sortie->est_rien()) {
+        auto param = atome_fonc->param_sortie;
+        auto type_pointeur = param->type->comme_pointeur();
+        os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
+        os << broyeuse.broye_nom_simple(param->ident);
+        os << ";\n";
+
+        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+    }
+
+    /* Générons le code pour les accès de membres des retours mutliples. */
+    if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+        for (auto &param : atome_fonc->decl->params_sorties) {
+            genere_code_pour_instruction(
+                param->comme_declaration_variable()->atome->comme_instruction(), os);
+        }
+    }
+
+    for (auto inst : atome_fonc->instructions) {
+        inst->numero = numero_inst++;
+        genere_code_pour_instruction(inst, os);
+    }
+
+    m_fonction_courante = nullptr;
+
+    os << "}\n\n";
 }
 
-static void pousse_argument_fonction_pile(
-		ContexteGenerationCode &contexte,
-		DonneesArgument const &argument,
-		dls::chaine const &nom_broye,
-		DonneesTypeFinal &dt)
+void GeneratriceCodeC::vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os)
 {
-	auto donnees_var = DonneesVariable{};
-	donnees_var.est_dynamique = argument.est_dynamic;
-	donnees_var.est_variadic = argument.est_variadic;
-	donnees_var.index_type = argument.index_type;
-	donnees_var.est_argument = true;
-
-	if (dt.type_base() == id_morceau::REFERENCE) {
-		donnees_var.drapeaux |= BESOIN_DEREF;
-		donnees_var.index_type = contexte.magasin_types.ajoute_type(dt.dereference());
-		dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
-	}
-
-	contexte.pousse_locale(argument.nom, donnees_var);
-
-	if (argument.est_employe) {
-		auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
-		auto id_structure = 0l;
-		auto est_pointeur = false;
-
-		if (dt_var.type_base() == id_morceau::POINTEUR) {
-			est_pointeur = true;
-			id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
-		}
-		else {
-			id_structure = static_cast<long>(dt_var.type_base() >> 8);
-		}
-
-		auto &ds = contexte.donnees_structure(id_structure);
-
-		/* pousse chaque membre de la structure sur la pile */
-
-		for (auto &dm : ds.donnees_membres) {
-			auto index_dt_m = ds.index_types[dm.second.index_membre];
-
-			donnees_var.est_dynamique = argument.est_dynamic;
-			donnees_var.index_type = index_dt_m;
-			donnees_var.est_argument = true;
-			donnees_var.est_membre_emploie = true;
-			donnees_var.structure = nom_broye + (est_pointeur ? "->" : ".");
-
-			contexte.pousse_locale(dm.first, donnees_var);
-		}
-	}
+    auto fichier = coulisse.ajoute_fichier_c();
+    std::ofstream of;
+    of.open(
+        std::string(fichier.chemin_fichier.pointeur(), size_t(fichier.chemin_fichier.taille())));
+    os.imprime_dans_flux(of);
+    of.close();
+    os.reinitialise();
 }
 
-static void genere_declaration_structure(
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os,
-		dls::vue_chaine_compacte const &nom_struct)
+/* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
+ * traces d'appel. Ceci afin d'éviter de générer des fichiers trop grand après expansion des macros
+ * et accélérer un peu la compilation. */
+static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
 {
-	auto &donnees = contexte.donnees_structure(nom_struct);
+    auto resultat = fonction.instructions.taille();
 
-	if (donnees.est_externe) {
-		return;
-	}
+#ifdef AJOUTE_TRACE_APPEL
+    if (fonction.sanstrace) {
+        return resultat;
+    }
 
-	if (donnees.deja_genere) {
-		return;
-	}
+    resultat += 1;
 
-	auto nom_broye = broye_nom_simple(contexte.nom_struct(donnees.id));
+    POUR (fonction.instructions) {
+        if (it->est_appel()) {
+            resultat += 2;
+        }
+    }
+#endif
 
-	if (donnees.est_union) {
-		if (donnees.est_nonsur) {
-			os << "typedef union " << nom_broye << "{\n";
-		}
-		else {
-			os << "typedef struct " << nom_broye << "{\n";
-			os << "int membre_actif;\n";
-			os << "union {\n";
-		}
-	}
-	else {
-		os << "typedef struct " << nom_broye << "{\n";
-	}
-
-	for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
-		auto index_dt = donnees.index_types[i];
-		auto &dt = contexte.magasin_types.donnees_types[index_dt];
-
-		for (auto paire_idx_mb : donnees.donnees_membres) {
-			if (paire_idx_mb.second.index_membre == i) {
-				auto nom = broye_nom_simple(paire_idx_mb.first);
-				os << nom_broye_type(contexte, dt) << ' ' << nom << ";\n";
-				break;
-			}
-		}
-	}
-
-	if (donnees.est_union && !donnees.est_nonsur) {
-		os << "};\n";
-	}
-
-	os << "} " << nom_broye << ";\n\n";
-
-	donnees.deja_genere = true;
+    return resultat;
 }
 
-/* Génère le code C pour la base b passée en paramètre.
- *
- * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
- * Ceci nous permet de générer du code avant celui des expressions afin
- * d'éviter les problèmes dans les cas où par exemple le paramètre d'une
- * fonction ou une condition ou une réassignation d'une chaine requiers une
- * déclaration temporaire.
- *
- * Par exemple, sans prépasse ce code ne serait pas converti en C correctement :
- *
- * si !fichier_existe("/chemin/vers/fichier") { ... }
- *
- * il donnerait :
- *
- * if (!fichier_existe({.pointeur="/chemin/vers/fichier", .taille=20 })) { ... }
- *
- * avec prépasse :
- *
- * chaine __chaine_tmp134831354 = {.pointeur="/chemin/vers/fichier", .taille=20 };
- * bool __ret_fichier_existe04554573 = fichier_existe(__chaine_tmp134831354);
- * if (!__ret_fichier_existe04554573) { ... }
- *
- * Il y a plus de variables temporaires, mais le code est correct, et le
- * compileur C supprimera ces temporaires de toute façon.
- */
-void genere_code_C(
-		base *b,
-		GeneratriceCodeC &generatrice,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche)
+void GeneratriceCodeC::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
+                                   const kuri::tableau<AtomeFonction *> &fonctions,
+                                   CoulisseC &coulisse,
+                                   Enchaineuse &os)
 {
-	switch (b->type) {
-		case type_noeud::SINON:
-		case type_noeud::RACINE:
-		{
-			break;
-		}
-		case type_noeud::DECLARATION_FONCTION:
-		{
-			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
-
-			/* Pour les fonctions variadiques nous transformons la liste d'argument en
-			 * un tableau dynamique transmis à la fonction. La raison étant que les
-			 * instruction de LLVM pour les arguments variadiques ne fonctionnent
-			 * vraiment que pour les types simples et les pointeurs. Pour pouvoir passer
-			 * des structures, il faudrait manuellement gérer les instructions
-			 * d'incrémentation et d'extraction des arguments pour chaque plateforme.
-			 * Nos tableaux, quant à eux, sont portables.
-			 */
-
-			using dls::outils::possede_drapeau;
-
-			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
-
-			if (est_externe) {
-				return;
-			}
-
-			/* Crée fonction */
-			auto nom_fonction = donnees_fonction->nom_broye;
-
-			auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
-
-			if (moult_retour) {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
-					generatrice.os << "static inline void ";
-				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
-					generatrice.os << "static void __attribute__ ((noinline)) ";
-				}
-				else {
-					generatrice.os << "static void ";
-				}
-
-				generatrice.os << nom_fonction;
-			}
-			else {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
-					generatrice.os << "static inline ";
-				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
-					generatrice.os << "__attribute__ ((noinline)) ";
-				}
-
-				auto &dt_ret = contexte.magasin_types.donnees_types[b->index_type];
-				generatrice.os << nom_broye_type(contexte, dt_ret) << ' ' << nom_fonction;
-			}
-
-			contexte.commence_fonction(donnees_fonction);
-
-			/* Crée code pour les arguments */
-
-			auto virgule = '(';
-
-			if (donnees_fonction->args.taille() == 0 && !moult_retour) {
-				generatrice.os << '(' << '\n';
-				virgule = ' ';
-			}
-
-			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-				generatrice.os << virgule << '\n';
-				generatrice.os << "__contexte_global *ctx";
-				virgule = ',';
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = true;
-				donnees_var.est_variadic = false;
-				donnees_var.index_type = contexte.index_type_ctx;
-				donnees_var.est_argument = true;
-
-				contexte.pousse_locale("ctx", donnees_var);
-			}
-
-			for (auto &argument : donnees_fonction->args) {
-				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
-				auto nom_broye = broye_nom_simple(argument.nom);
-
-				generatrice.os << virgule << '\n';
-				generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_broye;
-
-				virgule = ',';
-
-				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
-			}
-
-			if (moult_retour) {
-				auto idx_ret = 0l;
-				for (auto idx : donnees_fonction->idx_types_retours) {
-					generatrice.os << virgule << '\n';
-
-					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
-
-					auto &dt = contexte.magasin_types.donnees_types[idx];
-					generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_ret;
-					virgule = ',';
-				}
-			}
-
-			generatrice.os << ")\n";
-
-			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.back();
-
-			genere_code_C(bloc, generatrice, contexte, false);
-
-			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			}
-
-			contexte.termine_fonction();
-
-			break;
-		}
-		case type_noeud::DECLARATION_COROUTINE:
-		{
-			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
-
-			contexte.commence_fonction(donnees_fonction);
-
-			/* Crée fonction */
-			auto nom_fonction = donnees_fonction->nom_broye;
-			auto nom_type_coro = "__etat_coro" + nom_fonction;
-
-			/* Déclare la structure d'état de la coroutine. */
-			generatrice.os << "typedef struct " << nom_type_coro << " {\n";
-			generatrice.os << "pthread_mutex_t mutex_boucle;\n";
-			generatrice.os << "pthread_cond_t cond_boucle;\n";
-			generatrice.os << "pthread_mutex_t mutex_coro;\n";
-			generatrice.os << "pthread_cond_t cond_coro;\n";
-			generatrice.os << "bool __termine_coro;\n";
-			generatrice.os << "__contexte_global *ctx;\n";
-
-			auto idx_ret = 0l;
-			for (auto idx : donnees_fonction->idx_types_retours) {
-				auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
-				auto &dt = contexte.magasin_types.donnees_types[idx];
-				generatrice.declare_variable(dt, nom_ret, "");
-			}
-
-			for (auto &argument : donnees_fonction->args) {
-				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
-				auto nom_broye = broye_nom_simple(argument.nom);
-				generatrice.declare_variable(dt, nom_broye, "");
-			}
-
-			generatrice.os << " } " << nom_type_coro << ";\n";
-
-			/* Déclare la fonction. */
-			generatrice.os << "static void *" << nom_fonction << "(\nvoid *data)\n";
-			generatrice.os << "{\n";
-			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-			generatrice.os << "__contexte_global *ctx = __etat->ctx;\n";
-
-			/* déclare les paramètres. */
-			for (auto &argument : donnees_fonction->args) {
-				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
-				auto nom_broye = broye_nom_simple(argument.nom);
-
-				generatrice.declare_variable(dt, nom_broye, "__etat->" + nom_broye);
-
-				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
-			}
-
-			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.back();
-
-			genere_code_C(bloc, generatrice, contexte, false);
-
-			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
-				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			}
-
-			generatrice.os << "}\n";
-
-			contexte.termine_fonction();
-
-			break;
-		}
-		case type_noeud::LISTE_PARAMETRES_FONCTION:
-		{
-			/* géré dans DECLARATION_FONCTION */
-			break;
-		}
-		case type_noeud::APPEL_FONCTION:
-		{
-			cree_appel(b, generatrice.os, contexte, generatrice, b->nom_fonction_appel, b->enfants);
-			break;
-		}
-		case type_noeud::VARIABLE:
-		{
-			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
-			auto flux = dls::flux_chaine();
-
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-				auto dt = contexte.magasin_types.donnees_types[b->index_type];
-
-				/* pour les assignations de tableaux fixes, remplace les crochets
-				 * par des pointeurs pour la déclaration */
-				if (dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-					if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
-						auto ndt = DonneesTypeFinal{};
-						ndt.pousse(id_morceau::POINTEUR);
-						ndt.pousse(dt.dereference());
-
-						dt = ndt;
-					}
-				}
-
-				auto nom_broye = broye_chaine(b);				
-				flux << nom_broye_type(contexte, dt) << ' ' << nom_broye;
-				b->valeur_calculee = dls::chaine(flux.chn());
-
-				if (contexte.donnees_fonction == nullptr) {
-					auto donnees_var = DonneesVariable{};
-					donnees_var.est_externe = (b->drapeaux & EST_EXTERNE) != 0;
-					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.index_type = b->index_type;
-
-					if (dt.type_base() == id_morceau::REFERENCE) {
-						donnees_var.drapeaux |= BESOIN_DEREF;
-					}
-
-					contexte.pousse_globale(b->chaine(), donnees_var);
-					return;
-				}
-
-				/* nous avons une déclaration, initialise à zéro */
-				if (!dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-					generatrice.os << flux.chn() << ";\n";
-					cree_initialisation(
-								contexte,
-								generatrice,
-								dt.plage(),
-								nom_broye,
-								".",
-								generatrice.os);
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.index_type = b->index_type;
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-				}
-
-				contexte.pousse_locale(b->chaine(), donnees_var);
-			}
-			/* désactive la vérification car les variables dans les
-			 * constructions de structures n'ont pas cette aide */
-			else /*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
-				if ((drapeaux & BESOIN_DEREF) != 0) {
-					flux << "(*" << broye_chaine(b) << ")";
-				}
-				else {
-					if (b->nom_fonction_appel != "") {
-						flux << b->nom_fonction_appel;
-					}
-					else {
-						auto dv = contexte.donnees_variable(b->morceau.chaine);
-
-						if (dv.est_membre_emploie) {
-							flux << dv.structure;
-						}
-
-						if ((b->drapeaux & PREND_REFERENCE) != 0) {
-							flux << '&';
-						}
-
-						flux << broye_chaine(b);
-					}
-				}
-
-				b->valeur_calculee = dls::chaine(flux.chn());
-			}
-
-			break;
-		}
-		case type_noeud::ACCES_MEMBRE_POINT:
-		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
-			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
-			break;
-		}
-		case type_noeud::ACCES_MEMBRE_DE:
-		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
-			break;
-		}
-		case type_noeud::ACCES_MEMBRE_UNION:
-		{
-			auto structure = b->enfants.front();
-			auto membre = b->enfants.back();
-
-			auto index_membre = std::any_cast<long>(b->valeur_calculee);
-			auto &dt = contexte.magasin_types.donnees_types[structure->index_type];
-
-			auto est_pointeur = (dt.type_base() == id_morceau::POINTEUR);
-			est_pointeur |= (dt.type_base() == id_morceau::REFERENCE);
-
-			auto const &donnees_var = contexte.donnees_variable(structure->chaine());
-			est_pointeur |= (donnees_var.drapeaux & BESOIN_DEREF) != 0;
-
-			auto flux = dls::flux_chaine();
-			flux << broye_chaine(structure);
-			flux << (est_pointeur ? "->" : ".");
-
-			auto acces_structure = flux.chn();
-
-			flux << broye_chaine(membre);
-
-			auto expr_membre = acces_structure + "membre_actif";
-
-			if (expr_gauche) {
-				generatrice.os << expr_membre << " = " << index_membre + 1 << ";";
-			}
-			else {
-				if (b->aide_generation_code != IGNORE_VERIFICATION) {
-					auto const &morceau = b->morceau;
-					auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-					auto pos = trouve_position(morceau, module);
-
-					generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
-					generatrice.os << "KR__acces_membre_union(";
-					generatrice.os << '"' << module->chemin << '"' << ',';
-					generatrice.os << pos.numero_ligne;
-					generatrice.os << ");\n";
-					generatrice.os << "}\n";
-				}
-			}
-
-			b->valeur_calculee = dls::chaine(flux.chn());
-
-			break;
-		}
-		case type_noeud::ASSIGNATION_VARIABLE:
-		{
-			assert(b->enfants.taille() == 2);
-
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
-
-			/* a, b = foo(); -> foo(&a, &b); */
-			if (variable->identifiant() == id_morceau::VIRGULE) {
-				dls::tableau<base *> feuilles;
-				rassemble_feuilles(variable, feuilles);
-
-				dls::liste<base *> noeuds;
-
-				for (auto f : feuilles) {
-					f->drapeaux |= POUR_ASSIGNATION;
-
-					/* déclare au besoin */
-					if (f->aide_generation_code == GENERE_CODE_DECL_VAR || f->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-						genere_code_C(f, generatrice, contexte, true);
-						generatrice.os << f->chaine_calculee();
-						generatrice.os << ';' << '\n';
-					}
-
-					f->drapeaux &= ~POUR_ASSIGNATION;
-					f->aide_generation_code = 0;
-					noeuds.pousse(f);
-				}
-
-				expression->aide_generation_code = APPEL_FONCTION_MOULT_RET;
-				expression->valeur_calculee = noeuds;
-
-				genere_code_C(expression,
-							  generatrice,
-							  contexte,
-							  true);
-				return;
-			}
-
-			if (b->op != nullptr) {
-				genere_code_C(expression, generatrice, contexte, false);
-
-				variable->drapeaux |= POUR_ASSIGNATION;
-				genere_code_C(variable, generatrice, contexte, true);
-
-				generatrice.os << variable->chaine_calculee();
-				generatrice.os << " = ";
-
-				if (b->op->est_basique) {
-					generatrice.os << expression->chaine_calculee();
-				}
-				else {
-					generatrice.os << b->op->nom_fonction << "(";
-					generatrice.os << expression->chaine_calculee();
-					generatrice.os << ")";
-				}
-
-				/* pour les globales */
-				generatrice.os << ";\n";
-
-				return;
-			}
-
-			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
-			auto expression_modifiee = false;
-			auto nouvelle_expr = dls::chaine();
-
-			/* À FAIRE : conversion tableau */
-			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_TABLEAU;
-			}
-
-			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_EINI;
-				expression_modifiee = true;
-
-				nouvelle_expr = cree_eini(contexte, generatrice, generatrice.os, expression);
-			}
-
-			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= EXTRAIT_EINI;
-				expression->index_type = variable->index_type;
-				expression_modifiee = true;
-
-				auto nom_eini = dls::chaine("__eini_ext_")
-						.append(dls::vers_chaine(reinterpret_cast<long>(expression)));
-
-				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
-
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << " " << nom_eini << " = *(";
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << " *)(";
-				genere_code_C(expression, generatrice, contexte, false);
-				generatrice.os << ".pointeur);\n";
-
-				nouvelle_expr = nom_eini;
-			}
-
-			if (expression->type == type_noeud::LOGE) {
-				expression_modifiee = true;
-				genere_code_C(expression, generatrice, contexte, false);
-				nouvelle_expr = expression->chaine_calculee();
-			}
-
-			if (!expression_modifiee) {
-				genere_code_C(expression, generatrice, contexte, false);
-			}
-
-			variable->drapeaux |= POUR_ASSIGNATION;
-			genere_code_C(variable, generatrice, contexte, true);
-
-			generatrice.os << variable->chaine_calculee();
-			generatrice.os << " = ";
-
-			if (!expression_modifiee) {
-				generatrice.os << expression->chaine_calculee();
-			}
-			else {
-				generatrice.os << nouvelle_expr;
-			}
-
-			/* pour les globales */
-			generatrice.os << ";\n";
-
-			break;
-		}
-		case type_noeud::NOMBRE_REEL:
-		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-											 denombreuse::converti_chaine_nombre_reel(
-												 b->morceau.chaine,
-												 b->morceau.identifiant);
-
-			b->valeur_calculee = dls::vers_chaine(valeur);
-			break;
-		}
-		case type_noeud::NOMBRE_ENTIER:
-		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-											 denombreuse::converti_chaine_nombre_entier(
-												 b->morceau.chaine,
-												 b->morceau.identifiant);
-
-			b->valeur_calculee = dls::vers_chaine(valeur);
-			break;
-		}
-		case type_noeud::OPERATION_BINAIRE:
-		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
-
-			/* À FAIRE : tests */
-			auto flux = dls::flux_chaine();
-
-			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
-
-			auto op = b->op;
-
-			if (op->est_basique) {
-				flux << enfant1->chaine_calculee();
-				flux << b->morceau.chaine;
-				flux << enfant2->chaine_calculee();
-			}
-			else {
-				flux << op->nom_fonction << '(';
-				flux << enfant1->chaine_calculee();
-				flux << ',';
-				flux << enfant2->chaine_calculee();
-				flux << ')';
-			}
-
-			if (expr_gauche) {
-				b->valeur_calculee = dls::chaine(flux.chn());
-			}
-			else {
-				auto nom_var = "__var_temp" + dls::vers_chaine(index++);
-				generatrice.os << "const ";
-				generatrice.declare_variable(b->index_type, nom_var, flux.chn());
-
-				b->valeur_calculee = nom_var;
-			}
-
-			break;
-		}
-		case type_noeud::OPERATION_COMP_CHAINEE:
-		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
-
-			/* À FAIRE : tests */
-			auto flux = dls::flux_chaine();
-
-			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant1->enfants.back(), generatrice, contexte, expr_gauche);
-
-			/* (a comp b) */
-			flux << '(';
-			flux << enfant1->chaine_calculee();
-			flux << ')';
-
-			flux << "&&";
-
-			/* (b comp c) */
-			flux << '(';
-			flux << enfant1->enfants.back()->chaine_calculee();
-			flux << b->morceau.chaine;
-			flux << enfant2->chaine_calculee();
-			flux << ')';
-
-			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
-			generatrice.os << "const ";
-			generatrice.declare_variable(b->index_type, nom_var, flux.chn());
-
-			b->valeur_calculee = nom_var;
-			break;
-		}
-		case type_noeud::ACCES_TABLEAU:
-		{
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
-
-			auto const index_type1 = enfant1->index_type;
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-
-			/* À FAIRE : tests */
-			auto flux = dls::flux_chaine();
-
-			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
-
-			auto type_base = type1.type_base();
-
-			/* À CONSIDÉRER :
-			 * - directive pour ne pas générer le code de vérification,
-			 *   car les branches nuisent à la vitesse d'exécution des
-			 *   programmes
-			 * - tests redondants ou inutiles, par exemple :
-			 *    - ceci génère deux fois la même instruction
-			 *      x[i] = 0;
-			 *      y = x[i];
-			 *    - ceci génère une instruction inutile
-			 *	    dyn x : [6]z32;
-			 *      x[0] = 8;
-			 */
-
-			auto const &morceau = b->morceau;
-			auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-			auto pos = trouve_position(morceau, module);
-
-			switch (type_base & 0xff) {
-				case id_morceau::POINTEUR:
-				{
-					flux << enfant1->chaine_calculee();
-					flux << '[';
-					flux << enfant2->chaine_calculee();
-					flux << ']';
-					break;
-				}
-				case id_morceau::CHAINE:
-				{
-					generatrice.os << "if (";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << " < 0 || ";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << " >= ";
-					generatrice.os << enfant1->chaine_calculee();
-					generatrice.os << ".taille) {\n";
-					generatrice.os << "KR__depassement_limites(";
-					generatrice.os << '"' << module->chemin << '"' << ',';
-					generatrice.os << pos.numero_ligne << ',';
-					generatrice.os << "\"de la chaine\",";
-					generatrice.os << enfant1->chaine_calculee();
-					generatrice.os << ".taille,";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << ");\n}\n";
-
-					flux << enfant1->chaine_calculee();
-					flux << ".pointeur";
-					flux << '[';
-					flux << enfant2->chaine_calculee();
-					flux << ']';
-
-					break;
-				}
-				case id_morceau::TABLEAU:
-				{
-					auto taille_tableau = static_cast<int>(type_base >> 8);
-
-					if (b->aide_generation_code != IGNORE_VERIFICATION) {
-						generatrice.os << "if (";
-						generatrice.os << enfant2->chaine_calculee();
-						generatrice.os << " < 0 || ";
-						generatrice.os << enfant2->chaine_calculee();
-						generatrice.os << " >= ";
-
-						if (taille_tableau == 0) {
-							generatrice.os << enfant1->chaine_calculee();
-							generatrice.os << ".taille";
-						}
-						else {
-							generatrice.os << taille_tableau;
-						}
-
-						generatrice.os << ") {\n";
-						generatrice.os << "KR__depassement_limites(";
-						generatrice.os << '"' << module->chemin << '"' << ',';
-						generatrice.os << pos.numero_ligne << ',';
-						generatrice.os << "\"du tableau\",";
-						if (taille_tableau == 0) {
-							generatrice.os << enfant1->chaine_calculee();
-							generatrice.os << ".taille";
-						}
-						else {
-							generatrice.os << taille_tableau;
-						}
-						generatrice.os << ",";
-						generatrice.os << enfant2->chaine_calculee();
-						generatrice.os << ");\n}\n";
-					}
-
-					flux << enfant1->chaine_calculee();
-
-					if (taille_tableau == 0) {
-						flux << ".pointeur";
-					}
-
-					flux << '[';
-					flux << enfant2->chaine_calculee();
-					flux << ']';
-					break;
-				}
-				default:
-				{
-					assert(false);
-					break;
-				}
-			}
-
-			/* pour les accès tableaux à gauche d'un '=', il ne faut pas passer
-			 * par une variable temporaire */
-			if (expr_gauche) {
-				b->valeur_calculee = dls::chaine(flux.chn());
-			}
-			else {
-				auto nom_var = "__var_temp" + dls::vers_chaine(index++);
-				generatrice.os << "const ";
-				generatrice.declare_variable(b->index_type, nom_var, flux.chn());
-
-				b->valeur_calculee = nom_var;
-			}
-
-			break;
-		}
-		case type_noeud::OPERATION_UNAIRE:
-		{
-			auto enfant = b->enfants.front();
-
-			/* À FAIRE : tests */
-
-			expr_gauche |= b->morceau.identifiant == id_morceau::AROBASE;
-			genere_code_C(enfant, generatrice, contexte, expr_gauche);
-
-			if (b->morceau.identifiant == id_morceau::AROBASE) {
-				/* force une expression si l'opérateur est @, pour que les
-				 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
-				 * pointeur de la variable temporaire du code généré */
-				genere_code_C(enfant, generatrice, contexte, true);
-				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
-			}
-			else {
-				auto flux = dls::flux_chaine();
-				auto op = b->op;
-
-				if (op->est_basique) {
-					flux << b->morceau.chaine;
-				}
-				else {
-					flux << b->op->nom_fonction;
-				}
-
-				flux << '(';
-				flux << enfant->chaine_calculee();
-				flux << ')';
-
-				b->valeur_calculee = dls::chaine(flux.chn());
-			}
-
-			break;
-		}
-		case type_noeud::RETOUR:
-		{
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			generatrice.os << "return;\n";
-			break;
-		}
-		case type_noeud::RETOUR_SIMPLE:
-		{
-			auto enfant = b->enfants.front();
-			auto df = contexte.donnees_fonction;
-			auto nom_variable = df->noms_retours[0];
-
-			genere_code_C(enfant, generatrice, contexte, false);
-
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-
-			generatrice.declare_variable(
-						dt,
-						nom_variable,
-						enfant->chaine_calculee());
-
-			/* NOTE : le code différé doit être créé après l'expression de retour, car
-			 * nous risquerions par exemple de déloger une variable utilisée dans
-			 * l'expression de retour. */
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			generatrice.os << "return " << nom_variable << ";\n";
-			break;
-		}
-		case type_noeud::RETOUR_MULTIPLE:
-		{
-			auto enfant = b->enfants.front();
-			auto df = contexte.donnees_fonction;
-
-			if (enfant->type == type_noeud::APPEL_FONCTION) {
-				/* retourne foo() -> foo(__ret...); return; */
-				enfant->aide_generation_code = APPEL_FONCTION_MOULT_RET2;
-				enfant->valeur_calculee = df->noms_retours;
-				genere_code_C(enfant, generatrice, contexte, false);
-			}
-			else if (enfant->identifiant() == id_morceau::VIRGULE) {
-				/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
-				dls::tableau<base *> feuilles;
-				rassemble_feuilles(enfant, feuilles);
-
-				auto idx = 0l;
-				for (auto f : feuilles) {
-					genere_code_C(f, generatrice, contexte, false);
-
-					generatrice.os << '*' << df->noms_retours[idx++] << " = ";
-					generatrice.os << f->chaine_calculee();
-					generatrice.os << ';';
-				}
-			}
-
-			/* NOTE : le code différé doit être créé après l'expression de retour, car
-			 * nous risquerions par exemple de déloger une variable utilisée dans
-			 * l'expression de retour. */
-			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-			generatrice.os << "return;\n";
-			break;
-		}
-		case type_noeud::CHAINE_LITTERALE:
-		{
-			/* Note : dû à la possibilité de différer le code, nous devons
-			 * utiliser la chaine originale. */
-			auto chaine = b->morceau.chaine;
-
-			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
-
-			generatrice.os << "chaine " << nom_chaine << " = {.pointeur=";
-			generatrice.os << '"';
-
-			for (auto c : chaine) {
-				if (c == '\n') {
-					generatrice.os << '\\' << 'n';
-				}
-				else if (c == '\t') {
-					generatrice.os << '\\' << 't';
-				}
-				else {
-					generatrice.os << c;
-				}
-			}
-
-			generatrice.os << '"';
-			generatrice.os << "};\n";
-			/* on utilise strlen pour être sûr d'avoir la bonne taille à cause
-			 * des caractères échappés */
-			generatrice.os << nom_chaine << ".taille=strlen(" << nom_chaine << ".pointeur);\n";
-			b->valeur_calculee = nom_chaine;
-			break;
-		}
-		case type_noeud::BOOLEEN:
-		{
-			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
-										   : (b->chaine() == "vrai");
-			b->valeur_calculee = valeur ? dls::chaine("1") : dls::chaine("0");
-			break;
-		}
-		case type_noeud::CARACTERE:
-		{
-			auto c = b->morceau.chaine[0];
-
-			auto flux = dls::flux_chaine();
-
-			flux << '\'';
-			if (c == '\\') {
-				flux << c << b->morceau.chaine[1];
-			}
-			else {
-				flux << c;
-			}
-
-			flux << '\'';
-
-			b->valeur_calculee = dls::chaine(flux.chn());
-			break;
-		}
-		case type_noeud::SAUFSI:
-		case type_noeud::SI:
-		{
-			auto const nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-
-			if (!expr_gauche) {
-				auto enfant1 = *iter_enfant++;
-				auto enfant2 = *iter_enfant++;
-				auto enfant3 = *iter_enfant++;
-
-				genere_code_C(enfant1, generatrice, contexte, false);
-				genere_code_C(enfant2->enfants.front(), generatrice, contexte, false);
-				genere_code_C(enfant3->enfants.front(), generatrice, contexte, false);
-
-				auto flux = dls::flux_chaine();
-
-				if (b->type == type_noeud::SAUFSI) {
-					flux << '!';
-				}
-
-				flux << enfant1->chaine_calculee();
-				flux << " ? ";
-				/* prenons les enfants des enfants pour ne mettre des accolades
-				 * autour de l'expression vu qu'ils sont de type 'BLOC' */
-				flux << enfant2->enfants.front()->chaine_calculee();
-				flux << " : ";
-				flux << enfant3->enfants.front()->chaine_calculee();
-
-				auto nom_variable = "__var_temp" + dls::vers_chaine(index++);
-
-				generatrice.declare_variable(
-							enfant2->enfants.front()->index_type,
-							nom_variable,
-							flux.chn());
-
-				enfant1->valeur_calculee = nom_variable;
-
-				return;
-			}
-
-			/* noeud 1 : condition */
-			auto enfant1 = *iter_enfant++;
-
-			genere_code_C(enfant1, generatrice, contexte, false);
-
-			generatrice.os << "if (";
-
-			if (b->type == type_noeud::SAUFSI) {
-				generatrice.os << '!';
-			}
-
-			generatrice.os << enfant1->chaine_calculee();
-			generatrice.os << ")";
-
-			/* noeud 2 : bloc */
-			auto enfant2 = *iter_enfant++;
-			genere_code_C(enfant2, generatrice, contexte, false);
-
-			/* noeud 3 : sinon (optionel) */
-			if (nombre_enfants == 3) {
-				generatrice.os << "else ";
-				auto enfant3 = *iter_enfant++;
-				genere_code_C(enfant3, generatrice, contexte, false);
-			}
-
-			break;
-		}
-		case type_noeud::BLOC:
-		{
-			contexte.empile_nombre_locales();
-
-			auto dernier_enfant = static_cast<base *>(nullptr);
-
-			generatrice.os << "{\n";
-
-			for (auto enfant : b->enfants) {
-				genere_code_C(enfant, generatrice, contexte, true);
-
-				dernier_enfant = enfant;
-
-				if (est_type_retour(enfant->type)) {
-					break;
-				}
-
-				if (enfant->type == type_noeud::OPERATION_BINAIRE) {
-					/* les assignations opérées (+=, etc) n'ont pas leurs codes
-					 * générées via genere_code_C  */
-					if (est_assignation_operee(enfant->identifiant())) {
-						generatrice.os << enfant->chaine_calculee();
-						generatrice.os << ";\n";
-					}
-				}
-			}
-
-			if (dernier_enfant != nullptr && !est_type_retour(dernier_enfant->type)) {
-				/* génère le code pour tous les noeuds différés de ce bloc */
-				auto noeuds = contexte.noeuds_differes_bloc();
-
-				while (!noeuds.est_vide()) {
-					auto n = noeuds.back();
-					genere_code_C(n, generatrice, contexte, false);
-					noeuds.pop_back();
-				}
-			}
-
-			generatrice.os << "}\n";
-
-			contexte.depile_nombre_locales();
-
-			break;
-		}
-		case type_noeud::POUR:
-		{
-			auto nombre_enfants = b->enfants.taille();
-			auto iter = b->enfants.debut();
-
-			/* on génère d'abord le type de la variable */
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-			auto enfant3 = *iter++;
-
-			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
-
-			auto enfant_sans_arret = enfant4;
-			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
-
-			auto index_type = enfant2->index_type;
-			auto &type_debut = contexte.magasin_types.donnees_types[index_type];
-			auto const type = type_debut.type_base();
-
-			enfant1->index_type = index_type;
-
-			contexte.empile_nombre_locales();
-
-			auto genere_code_tableau_chaine = [&generatrice](
-					dls::flux_chaine &os_loc,
-					ContexteGenerationCode &contexte_loc,
-					base *enfant_1,
-					base *enfant_2,
-					DonneesTypeFinal &dt,
-					dls::chaine const &nom_var)
-			{
-				auto var = enfant_1;
-				auto idx = static_cast<noeud::base *>(nullptr);
-
-				if (enfant_1->morceau.identifiant == id_morceau::VIRGULE) {
-					var = enfant_1->enfants.front();
-					idx = enfant_1->enfants.back();
-				}
-
-				/* utilise une expression gauche, car dans les coroutine, les
-				 * variables temporaires ne sont pas sauvegarées */
-				genere_code_C(enfant_2, generatrice, contexte_loc, true);
-
-				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
-				os_loc << enfant_2->chaine_calculee();
-				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
-				os_loc << nom_broye_type(contexte_loc, dt);
-				os_loc << " *" << broye_chaine(var) << " = &";
-				os_loc << enfant_2->chaine_calculee();
-				os_loc << ".pointeur["<< nom_var <<"];\n";
-
-				if (idx) {
-					os_loc << "int " << broye_chaine(idx) << " = " << nom_var << ";\n";
-				}
-			};
-
-			auto genere_code_tableau_fixe = [&generatrice](
-					dls::flux_chaine &os_loc,
-					ContexteGenerationCode &contexte_loc,
-					base *enfant_1,
-					base *enfant_2,
-					DonneesTypeFinal &dt,
-					dls::chaine const &nom_var,
-					uint64_t taille_tableau)
-			{
-				auto var = enfant_1;
-				auto idx = static_cast<noeud::base *>(nullptr);
-
-				if (enfant_1->morceau.identifiant == id_morceau::VIRGULE) {
-					var = enfant_1->enfants.front();
-					idx = enfant_1->enfants.back();
-				}
-
-				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
-				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
-
-				/* utilise une expression gauche, car dans les coroutine, les
-				 * variables temporaires ne sont pas sauvegarées */
-				genere_code_C(enfant_2, generatrice, contexte_loc, true);
-				os_loc << nom_broye_type(contexte_loc, dt);
-				os_loc << " *" << broye_chaine(var) << " = &";
-				os_loc << enfant_2->chaine_calculee();
-				os_loc << "["<< nom_var <<"];\n";
-
-				if (idx) {
-					os_loc << "int " << broye_chaine(idx) << " = " << nom_var << ";\n";
-				}
-			};
-
-			switch (b->aide_generation_code) {
-				case GENERE_BOUCLE_PLAGE:
-				case GENERE_BOUCLE_PLAGE_INDEX:
-				{
-					auto var = enfant1;
-					auto idx = static_cast<noeud::base *>(nullptr);
-
-					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
-						var = enfant1->enfants.front();
-						idx = enfant1->enfants.back();
-					}
-
-					auto nom_broye = broye_chaine(var);
-
-					if (idx != nullptr) {
-						generatrice.os << "int " << broye_chaine(idx) << " = 0;\n";
-					}
-
-					genere_code_C(enfant2->enfants.front(), generatrice, contexte, false);
-					genere_code_C(enfant2->enfants.back(), generatrice, contexte, false);
-
-					generatrice.os << "for (";
-					generatrice.os << nom_broye_type(contexte, type_debut);
-					generatrice.os << " " << nom_broye << " = ";
-					generatrice.os << enfant2->enfants.front()->chaine_calculee();
-
-					generatrice.os << "; "
-					   << nom_broye << " <= ";
-					generatrice.os << enfant2->enfants.back()->chaine_calculee();
-
-					generatrice.os <<"; ++" << nom_broye;
-
-					if (idx != nullptr) {
-						generatrice.os << ", ++" << broye_chaine(idx);
-					}
-
-					generatrice.os  << ") {\n";
-
-					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
-						auto donnees_var = DonneesVariable{};
-
-						donnees_var.index_type = var->index_type;
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.index_type = idx->index_type;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						auto donnees_var = DonneesVariable{};
-						donnees_var.index_type = index_type;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
-
-					break;
-				}
-				case GENERE_BOUCLE_TABLEAU:
-				case GENERE_BOUCLE_TABLEAU_INDEX:
-				{
-					auto nom_var = "__i" + dls::vers_chaine(b);
-
-					auto donnees_var = DonneesVariable{};
-
-					if ((type & 0xff) == id_morceau::TABLEAU) {
-						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
-
-						auto type_deref = type_debut.dereference();
-						auto index_dt = contexte.magasin_types.ajoute_type(type_deref);
-						auto &dt_type = contexte.magasin_types.donnees_types[index_dt];
-
-						if (taille_tableau != 0) {
-							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var, taille_tableau);
-						}
-						else {
-							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var);
-						}
-					}
-					else if (type == id_morceau::CHAINE) {
-						auto dt = DonneesTypeFinal(id_morceau::Z8);
-						index_type = contexte.magasin_types[TYPE_Z8];
-						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt, nom_var);
-					}
-
-					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
-						auto var = enfant1->enfants.front();
-						auto idx = enfant1->enfants.back();
-
-						donnees_var.index_type = var->index_type;
-						donnees_var.drapeaux = BESOIN_DEREF;
-
-						contexte.pousse_locale(var->chaine(), donnees_var);
-
-						donnees_var.index_type = idx->index_type;
-						donnees_var.drapeaux = 0;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-					else {
-						donnees_var.index_type = index_type;
-						donnees_var.drapeaux = BESOIN_DEREF;
-						contexte.pousse_locale(enfant1->chaine(), donnees_var);
-					}
-
-					break;
-				}
-				case GENERE_BOUCLE_COROUTINE:
-				case GENERE_BOUCLE_COROUTINE_INDEX:
-				{
-					auto df = enfant2->df;
-					auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
-					auto nom_type_coro = "__etat_coro" + df->nom_broye;
-
-					generatrice.os << nom_type_coro << " " << nom_etat << " = {\n";
-					generatrice.os << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
-					generatrice.os << ".mutex_coro = PTHREAD_MUTEX_INITIALIZER,\n";
-					generatrice.os << ".cond_coro = PTHREAD_COND_INITIALIZER,\n";
-					generatrice.os << ".cond_boucle = PTHREAD_COND_INITIALIZER,\n";
-					generatrice.os << ".ctx = ctx,\n";
-					generatrice.os << ".__termine_coro = 0\n";
-					generatrice.os << "};\n";
-
-					/* intialise les arguments de la fonction. */
-					for (auto enfs : enfant2->enfants) {
-						genere_code_C(enfs, generatrice, contexte, false);
-					}
-
-					auto iter_enf = enfant2->enfants.debut();
-
-					for (auto &arg : df->args) {
-						auto nom_broye = broye_nom_simple(arg.nom);
-						generatrice.os << nom_etat << '.' << nom_broye << " = ";
-						generatrice.os << (*iter_enf)->chaine_calculee();
-						generatrice.os << ";\n";
-						++iter_enf;
-					}
-
-					generatrice.os << "pthread_t fil_coro;\n";
-					generatrice.os << "pthread_create(&fil_coro, NULL, " << df->nom_broye << ", &" << nom_etat << ");\n";
-					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-					generatrice.os << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-					/* À FAIRE : utilisation du type */
-					auto nombre_vars_ret = df->idx_types_retours.taille();
-
-					auto feuilles = dls::tableau<base *>{};
-					rassemble_feuilles(enfant1, feuilles);
-
-					auto idx = static_cast<noeud::base *>(nullptr);
-					auto nom_idx = dls::chaine{};
-
-					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
-						idx = feuilles.back();
-						nom_idx = "__idx" + dls::vers_chaine(b);
-						generatrice.os << "int " << nom_idx << " = 0;";
-					}
-
-					generatrice.os << "while (" << nom_etat << ".__termine_coro == 0) {\n";
-					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-
-					for (auto i = 0l; i < nombre_vars_ret; ++i) {
-						auto f = feuilles[i];
-						auto nom_var_broye = broye_chaine(f);
-						generatrice.declare_variable(type_debut, nom_var_broye, "");
-						generatrice.os << nom_var_broye << " = "
-									   << nom_etat << '.' << df->noms_retours[i]
-									   << ";\n";
-
-						auto donnees_var = DonneesVariable{};
-						donnees_var.index_type = df->idx_types_retours[i];
-						contexte.pousse_locale(f->chaine(), donnees_var);
-					}
-
-					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_coro);\n";
-					generatrice.os << "pthread_cond_signal(&" << nom_etat << ".cond_coro);\n";
-					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_coro);\n";
-					generatrice.os << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-					if (idx) {
-						generatrice.os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
-						generatrice.os << nom_idx << " += 1;";
-
-						auto donnees_var = DonneesVariable{};
-						donnees_var.index_type = idx->index_type;
-						contexte.pousse_locale(idx->chaine(), donnees_var);
-					}
-				}
-			}
-
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
-			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
-
-			genere_code_C(enfant3, generatrice, contexte, false);
-
-			generatrice.os << goto_continue << ":;\n";
-			generatrice.os << "}\n";
-
-			if (enfant_sans_arret) {
-				genere_code_C(enfant_sans_arret, generatrice, contexte, false);
-				generatrice.os << "goto " << goto_apres << ";";
-			}
-
-			if (enfant_sinon) {
-				generatrice.os << goto_brise << ":;\n";
-				genere_code_C(enfant_sinon, generatrice, contexte, false);
-			}
-
-			generatrice.os << goto_apres << ":;\n";
-
-			contexte.depile_goto_arrete();
-			contexte.depile_goto_continue();
-
-			contexte.depile_nombre_locales();
-
-			if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE || b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
-				generatrice.os << "pthread_join(fil_coro, NULL);\n";
-			}
-
-			break;
-		}
-		case type_noeud::CONTINUE_ARRETE:
-		{
-			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
-
-			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
-					? contexte.goto_continue(chaine_var)
-					: contexte.goto_arrete(chaine_var);
-
-			generatrice.os << "goto " << label_goto << ";\n";
-			break;
-		}
-		case type_noeud::BOUCLE:
-		{
-			/* boucle:
-			 *	corps
-			 *  br boucle
-			 *
-			 * apres_boucle:
-			 *	...
-			 */
-
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-
-			/* création des blocs */
-
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
-			generatrice.os << "while (1) {\n";
-
-			genere_code_C(enfant1, generatrice, contexte, false);
-
-			generatrice.os << goto_continue << ":;\n";
-			generatrice.os << "}\n";
-			generatrice.os << goto_apres << ":;\n";
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
-
-			break;
-		}
-		case type_noeud::REPETE:
-		{
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-
-			/* création des blocs */
-
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
-			generatrice.os << "while (1) {\n";
-			genere_code_C(enfant1, generatrice, contexte, false);
-			generatrice.os << goto_continue << ":;\n";
-			genere_code_C(enfant2, generatrice, contexte, false);
-			generatrice.os << "if (!";
-			generatrice.os << enfant2->chaine_calculee();
-			generatrice.os << ") {\nbreak;\n}\n";
-			generatrice.os << "}\n";
-			generatrice.os << goto_apres << ":;\n";
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
-
-			break;
-		}
-		case type_noeud::TANTQUE:
-		{
-			assert(b->enfants.taille() == 2);
-			auto iter = b->enfants.debut();
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
-
-			contexte.empile_goto_continue("", goto_continue);
-			contexte.empile_goto_arrete("", goto_apres);
-
-			/* NOTE : la prépasse est susceptible de générer le code d'un appel
-			 * de fonction, donc nous utilisons
-			 * while (1) { if (!cond) { break; } }
-			 * au lieu de
-			 * while (cond) {}
-			 * pour être sûr que la fonction est appelée à chaque boucle.
-			 */
-			generatrice.os << "while (1) {";
-			genere_code_C(enfant1, generatrice, contexte, false);
-			generatrice.os << "if (!";
-			generatrice.os << enfant1->chaine_calculee();
-			generatrice.os << ") { break; }\n";
-
-			genere_code_C(enfant2, generatrice, contexte, false);
-
-			generatrice.os << goto_continue << ":;\n";
-			generatrice.os << "}\n";
-			generatrice.os << goto_apres << ":;\n";
-
-			contexte.depile_goto_continue();
-			contexte.depile_goto_arrete();
-
-			break;
-		}
-		case type_noeud::TRANSTYPE:
-		{
-			auto enfant = b->enfants.front();
-			auto const &index_type_de = enfant->index_type;
-
-			genere_code_C(enfant, generatrice, contexte, false);
-
-			if (index_type_de == b->index_type) {
-				b->valeur_calculee = enfant->valeur_calculee;
-				return;
-			}
-
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			auto flux = dls::flux_chaine();
-
-			flux << "(";
-			flux << nom_broye_type(contexte, dt);
-			flux << ")(";
-			flux << enfant->chaine_calculee();
-			flux << ")";
-
-			b->valeur_calculee = dls::chaine(flux.chn());
-
-			break;
-		}
-		case type_noeud::NUL:
-		{
-			b->valeur_calculee = dls::chaine("0");
-			break;
-		}
-		case type_noeud::TAILLE_DE:
-		{
-			auto index_dt = std::any_cast<long>(b->valeur_calculee);
-			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
-			b->valeur_calculee = dls::vers_chaine(taille_octet_type(contexte, donnees));
-			break;
-		}
-		case type_noeud::PLAGE:
-		{
-			/* pris en charge dans type_noeud::POUR */
-			break;
-		}
-		case type_noeud::DIFFERE:
-		{
-			auto noeud = b->enfants.front();
-			contexte.differe_noeud(noeud);
-			break;
-		}
-		case type_noeud::NONSUR:
-		{
-			contexte.non_sur(true);
-			genere_code_C(b->enfants.front(), generatrice, contexte, false);
-			contexte.non_sur(false);
-			break;
-		}
-		case type_noeud::TABLEAU:
-		{
-			/* utilisé principalement pour convertir les listes d'arguments
-			 * variadics en un tableau */
-
-			auto taille_tableau = b->enfants.taille();
-
-			auto &type = contexte.magasin_types.donnees_types[b->index_type];
-
-			/* cherche si une conversion est requise */
-			for (auto enfant : b->enfants) {
-				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-					enfant->valeur_calculee = cree_eini(contexte, generatrice, generatrice.os, enfant);
-				}
-				else {
-					genere_code_C(enfant, generatrice, contexte, false);
-				}
-			}
-
-			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesTypeFinal{};
-			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
-			dt_tfixe.pousse(type);
-
-			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
-					.append(dls::vers_chaine(reinterpret_cast<long>(b)));
-
-			generatrice.os << nom_broye_type(contexte, dt_tfixe) << ' ' << nom_tableau_fixe;
-			generatrice.os << " = ";
-
-			auto virgule = '{';
-
-			for (auto enfant : b->enfants) {
-				generatrice.os << virgule;
-				generatrice.os << enfant->chaine_calculee();
-				virgule = ',';
-			}
-
-			generatrice.os << "};\n";
-
-			/* alloue un tableau dynamique */
-			auto dt_tdyn = DonneesTypeFinal{};
-			dt_tdyn.pousse(id_morceau::TABLEAU);
-			dt_tdyn.pousse(type);
-
-			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
-					.append(dls::vers_chaine(b));
-
-			generatrice.os << nom_broye_type(contexte, dt_tdyn) << ' ' << nom_tableau_dyn << ";\n";
-			generatrice.os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
-			generatrice.os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
-
-			b->valeur_calculee = nom_tableau_dyn;
-			break;
-		}
-		case type_noeud::CONSTRUIT_STRUCTURE:
-		{
-			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
-
-			for (auto enfant : b->enfants) {
-				genere_code_C(enfant, generatrice, contexte, false);
-			}
-
-			auto flux = dls::flux_chaine();
-
-			auto enfant = b->enfants.debut();
-			auto nom_param = liste_params->debut();
-			auto virgule = '{';
-
-			for (auto i = 0l; i < liste_params->taille(); ++i) {
-				flux << virgule;
-
-				flux << '.' << broye_nom_simple(*nom_param) << '=';
-				flux << (*enfant)->chaine_calculee();
-				++enfant;
-				++nom_param;
-
-				virgule = ',';
-			}
-
-			if (liste_params->taille() == 0) {
-				flux << '{';
-			}
-
-			flux << '}';
-
-			b->valeur_calculee = dls::chaine(flux.chn());
-
-			break;
-		}
-		case type_noeud::CONSTRUIT_TABLEAU:
-		{
-			auto nom_tableau = "__tabl" + dls::vers_chaine(b);
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			dls::tableau<base *> feuilles;
-			rassemble_feuilles(b->enfants.front(), feuilles);
-
-			for (auto f : feuilles) {
-				genere_code_C(f, generatrice, contexte, false);
-			}
-
-			generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_tableau << " = ";
-
-			auto virgule = '{';
-
-			for (auto f : feuilles) {
-				generatrice.os << virgule;
-				generatrice.os << f->chaine_calculee();
-				virgule = ',';
-			}
-
-			generatrice.os << "};\n";
-
-			b->valeur_calculee = nom_tableau;
-			break;
-		}
-		case type_noeud::INFO_DE:
-		{
-			auto enfant = b->enfants.front();
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-			b->valeur_calculee = "&" + dt.ptr_info_type;
-			break;
-		}
-		case type_noeud::MEMOIRE:
-		{
-			genere_code_C(b->enfants.front(), generatrice, contexte, false);
-			b->valeur_calculee = "*(" + b->enfants.front()->chaine_calculee() + ")";
-			break;
-		}
-		case type_noeud::LOGE:
-		{
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-			auto enfant = b->enfants.debut();
-			auto nombre_enfant = b->enfants.taille();
-			auto a_pointeur = false;
-			auto nom_ptr_ret = dls::chaine("");
-			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
-
-			if (dt.type_base() == id_morceau::TABLEAU) {
-				auto expr = b->type_declare.expressions[0];
-
-				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
-				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
-
-				genere_code_C(expr, generatrice, contexte, false);
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							taille_tabl,
-							expr->chaine_calculee());
-
-				auto flux = dls::flux_chaine();
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-
-				auto expr_sizeof = "sizeof(" + nom_broye_type(contexte, dt_deref) + ") * " + taille_tabl;
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_taille,
-							expr_sizeof);
-
-				auto dt_ptr = DonneesTypeFinal{};
-				dt_ptr.pousse(id_morceau::POINTEUR);
-				dt_ptr.pousse(dt.dereference());
-
-				auto expr_m = generatrice.expression_malloc(dt_ptr, nom_taille);
-				generatrice.declare_variable(dt_ptr, nom_ptr, expr_m);
-
-				generatrice.declare_variable(dt, nom_tabl, "");
-				generatrice.os << nom_tabl << ".pointeur = " << nom_ptr << ";\n";
-				generatrice.os << nom_tabl << ".taille = " << taille_tabl << ";\n";
-
-				nom_ptr_ret = nom_tabl;
-			}
-			else if (dt.type_base() == id_morceau::CHAINE) {
-				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				auto nom_chaine = "__chaine" + dls::vers_chaine(b);
-
-				auto enf = *enfant++;
-
-				/* Prépasse pour les accès de membres dans l'expression. */
-				genere_code_C(enf, generatrice, contexte, false);
-
-				auto flux = dls::flux_chaine();
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_taille,
-							enf->chaine_calculee());
-
-				nombre_enfant -= 1;
-
-				generatrice.os << "char *" << nom_ptr << " = (char *)(malloc(sizeof(char) * (";
-				generatrice.os << nom_taille << ")));\n";
-
-				generatrice.os << "chaine " << nom_chaine << ";\n";
-				generatrice.os << nom_chaine << ".pointeur = " << nom_ptr << ";\n";
-				generatrice.os << nom_chaine << ".taille = " << nom_taille << ";\n";
-
-				nom_ptr_ret = nom_chaine;
-			}
-			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-				generatrice.os << "long " << nom_taille << " = sizeof(";
-				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
-
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << ' ' << nom_ptr << " = (";
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << ")(malloc(" << nom_taille << "));\n";
-				/* À FAIRE : évite de mettre à zéro quand non-nécessaire */
-				generatrice.os << "memset(" << nom_ptr << ",0," << nom_taille << ");\n";
-
-				/* initialise la structure */
-				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-					cree_initialisation(
-								contexte,
-								generatrice,
-								dt_deref.plage(),
-								nom_ptr,
-								"->",
-								generatrice.os);
-				}
-
-				nom_ptr_ret = nom_ptr;
-			}
-
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 1) {
-				bloc_sinon = *enfant++;
-			}
-
-			genere_code_echec_logement(
-						contexte,
-						generatrice,
-						nom_ptr_ret,
-						a_pointeur,
-						b,
-						bloc_sinon);
-
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-			b->valeur_calculee = nom_ptr_ret;
-
-			break;
-		}
-		case type_noeud::DELOGE:
-		{
-			auto enfant = b->enfants.front();
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
-
-			genere_code_C(enfant, generatrice, contexte, true);
-			auto chn_enfant = enfant->chaine_calculee();
-
-			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
-				generatrice.os << "long " << nom_taille << " = ";
-				generatrice.os << chn_enfant << ".taille";
-
-				if (dt.type_base() == id_morceau::TABLEAU) {
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-					generatrice.os << " * sizeof(" << nom_broye_type(contexte, dt_deref) << ")";
-				}
-
-				generatrice.os << ";\n";
-
-				generatrice.os << "free(" << chn_enfant << ".pointeur);\n";
-				generatrice.os << chn_enfant << ".pointeur = 0;\n";
-				generatrice.os << chn_enfant << ".taille = 0;\n";
-			}
-			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-
-				generatrice.os << "long " << nom_taille << " = sizeof(";
-				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
-				generatrice.os << "free(" << chn_enfant << ");\n";
-				generatrice.os << chn_enfant << " = 0;\n";
-			}
-
-			generatrice.os << "__VG_memoire_utilisee__ -= " << nom_taille << ";\n";
-			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
-
-			break;
-		}
-		case type_noeud::RELOGE:
-		{
-			auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
-			auto enfant = b->enfants.debut();
-			auto enfant1 = *enfant++;
-			auto nombre_enfant = b->enfants.taille();
-			auto a_pointeur = false;
-			auto nom_ptr_ret = dls::chaine("");
-			auto nom_ancienne_taille = "__ancienne_taille" + dls::vers_chaine(index++);
-			auto nom_nouvelle_taille = "__nouvelle_taille" + dls::vers_chaine(index++);
-
-			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
-				a_pointeur = true;
-				auto expr = b->type_declare.expressions[0];
-				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
-
-				genere_code_C(expr, generatrice, contexte, false);
-				genere_code_C(enfant1, generatrice, contexte, true);
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							taille_tabl,
-							expr->chaine_calculee());
-
-				nom_ptr_ret = enfant1->chaine_calculee();
-				auto acces_taille = nom_ptr_ret + ".taille";
-				auto acces_pointeur = nom_ptr_ret + ".pointeur";
-
-				auto index_dt = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
-
-				auto expr_sizeof = "sizeof(" + chn_type_deref + ")";
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_ancienne_taille,
-							expr_sizeof + " * " + acces_taille);
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_nouvelle_taille,
-							expr_sizeof + " * " + taille_tabl);
-
-				generatrice.os << acces_pointeur << " = (" << chn_type_deref << " *)(realloc(";
-				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille << "));\n";
-				generatrice.os << acces_taille << " = " << taille_tabl << ";\n";
-			}
-			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
-				auto enfant2 = *enfant++;
-				nombre_enfant -= 1;
-				a_pointeur = true;
-
-				genere_code_C(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = enfant1->chaine_calculee();
-				genere_code_C(enfant2, generatrice, contexte, true);
-
-				auto acces_taille = nom_ptr_ret + ".taille";
-				auto acces_pointeur = nom_ptr_ret + ".pointeur";
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_ancienne_taille,
-							acces_taille);
-
-				generatrice.os << "long " << nom_nouvelle_taille << " = sizeof(char) *";
-				generatrice.os << enfant2->chaine_calculee();
-				generatrice.os << ";\n";
-
-				generatrice.os << acces_pointeur << " = (char *)(realloc(";
-				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille<< "));\n";
-				generatrice.os << acces_taille << " = " << nom_nouvelle_taille << ";\n";
-			}
-			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-
-				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
-
-				auto expr = "sizeof(" + chn_type_deref + ")";
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_ancienne_taille,
-							expr);
-
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_nouvelle_taille,
-							nom_ancienne_taille);
-
-				genere_code_C(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = enfant1->chaine_calculee();
-
-				generatrice.os << nom_ptr_ret;
-				generatrice.os << " = (" << nom_broye_type(contexte, dt_pointeur);
-				generatrice.os << ")(realloc(";
-				generatrice.os << nom_ptr_ret;
-				generatrice.os << ", sizeof(" << chn_type_deref << ")));\n";
-			}
-
-			auto bloc_sinon = static_cast<base *>(nullptr);
-
-			if (nombre_enfant == 2) {
-				bloc_sinon = *enfant++;
-			}
-
-			genere_code_echec_logement(
-						contexte,
-						generatrice,
-						nom_ptr_ret,
-						a_pointeur,
-						b,
-						bloc_sinon);
-
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
-			   << " - " << nom_ancienne_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
-
-			break;
-		}
-		case type_noeud::DECLARATION_STRUCTURE:
-		{
-			genere_declaration_structure(contexte, generatrice.os, b->chaine());
-			break;
-		}
-		case type_noeud::DECLARATION_ENUM:
-		{
-			/* nous ne générons pas de code pour les énums, nous prenons leurs
-			 * valeurs directement */
-			break;
-		}
-		case type_noeud::DISCR:
-		{
-			/* le premier enfant est l'expression, les suivants les paires */
-
-			auto nombre_enfants = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
-
-			genere_code_C(expression, generatrice, contexte, true);
-			auto chaine_expr = expression->chaine_calculee();
-
-			for (auto i = 1l; i < nombre_enfants; ++i) {
-				auto paire = *iter_enfant++;
-				auto enf0 = paire->enfants.front();
-				auto enf1 = paire->enfants.back();
-
-				if (enf0->type != type_noeud::SINON) {
-					genere_code_C(enf0, generatrice, contexte, true);
-
-					generatrice.os << "if (";
-					generatrice.os << chaine_expr;
-					generatrice.os << " == ";
-					generatrice.os << enf0->chaine_calculee();
-					generatrice.os << ") ";
-				}
-
-				genere_code_C(enf1, generatrice, contexte, false);
-
-				if (i < nombre_enfants - 1) {
-					generatrice.os << "else {\n";
-				}
-			}
-
-			/* il faut fermer tous les blocs else */
-			for (auto i = 1l; i < nombre_enfants - 1; ++i) {
-				generatrice.os << "}\n";
-			}
-
-			break;
-		}
-		case type_noeud::PAIRE_DISCR:
-		{
-			/* RAF : pris en charge dans type_noeud::DISCR, ce noeud n'est que
-			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des discriminations. */
-			assert(false);
-			break;
-		}
-		case type_noeud::DISCR_UNION:
-		{
-			/* switch (union.membre_actif) {
-			 * case index membre + 1: {
-			 *	bloc
-			 *	break;
-			 * }
-			 */
-
-			auto nombre_enfant = b->enfants.taille();
-			auto iter_enfant = b->enfants.debut();
-			auto expression = *iter_enfant++;
-
-			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
-			auto const est_pointeur = dt.type_base() == id_morceau::POINTEUR;
-			auto id = static_cast<long>(dt.type_base() >> 8);
-			auto &ds = contexte.donnees_structure(id);
-
-			genere_code_C(expression, generatrice, contexte, true);
-			auto chaine_calculee = expression->chaine_calculee();
-			chaine_calculee += (est_pointeur ? "->" : ".");
-
-			generatrice.os << "switch (" << chaine_calculee << "membre_actif) {\n";
-
-			for (auto i = 1; i < nombre_enfant; ++i) {
-				auto enfant = *iter_enfant++;
-				auto expr_paire = enfant->enfants.front();
-				auto bloc_paire = enfant->enfants.back();
-
-				if (expr_paire->type == type_noeud::SINON) {
-					generatrice.os << "default";
-				}
-				else {
-					auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
-					auto const &dm = iter_dm->second;
-					generatrice.os << "case " << dm.index_membre + 1;
-				}
-
-				auto iter_membre = ds.donnees_membres.trouve(expr_paire->chaine());
-
-				auto dv = DonneesVariable{};
-				dv.index_type = ds.index_types[iter_membre->second.index_membre];
-				dv.est_argument = true;
-				dv.est_membre_emploie = true;
-				dv.structure = chaine_calculee;
-
-				contexte.empile_nombre_locales();
-				contexte.pousse_locale(iter_membre->first, dv);
-
-				generatrice.os << ": {\n";
-				genere_code_C(bloc_paire, generatrice, contexte, true);
-				generatrice.os << "break;\n}\n";
-				contexte.depile_nombre_locales();
-			}
-
-			generatrice.os << "}\n";
-
-			break;
-		}
-		case type_noeud::RETIENS:
-		{
-			auto df = contexte.donnees_fonction;
-			auto enfant = b->enfants.front();
-
-			generatrice.os << "pthread_mutex_lock(&__etat->mutex_coro);\n";
-
-			auto feuilles = dls::tableau<base *>{};
-			rassemble_feuilles(enfant, feuilles);
-
-			for (auto i = 0l; i < feuilles.taille(); ++i) {
-				auto f = feuilles[i];
-
-				genere_code_C(f, generatrice, contexte, true);
-
-				generatrice.os << "__etat->" << df->noms_retours[i] << " = ";
-				generatrice.os << f->chaine_calculee();
-				generatrice.os << ";\n";
-			}
-
-			generatrice.os << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-			generatrice.os << "pthread_cond_signal(&__etat->cond_boucle);\n";
-			generatrice.os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-			generatrice.os << "pthread_cond_wait(&__etat->cond_coro, &__etat->mutex_coro);\n";
-			generatrice.os << "pthread_mutex_unlock(&__etat->mutex_coro);\n";
-
-			break;
-		}
-	}
+    os.reinitialise();
+    os << "#include \"compilation_kuri.h\"\n";
+
+    // définis ensuite les globales
+    POUR (globales) {
+        if (it->est_externe) {
+            /* Inutile de regénérer le code. */
+            continue;
+        }
+        auto valeur_globale = it;
+        auto valeur_initialisateur = kuri::chaine_statique();
+
+        if (valeur_globale->initialisateur) {
+            valeur_initialisateur = genere_code_pour_atome(
+                valeur_globale->initialisateur, os, true);
+        }
+
+        declare_globale(os, valeur_globale, false);
+
+        if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
+            os << " = " << valeur_initialisateur;
+        }
+
+        os << ";\n";
+    }
+
+    /* Vide l'enchaineuse sauf si nous compilons un fichier objet car nous devons n'avoir qu'un
+     * seul fichier "*.o". */
+    if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
+        os << "#include \"compilation_kuri.h\"\n";
+    }
+
+    /* Nombre maximum d'instructions par fichier, afin d'avoir une taille cohérente entre tous les
+     * fichiers. */
+    constexpr auto nombre_instructions_max_par_fichier = 50000;
+    int nombre_instructions = 0;
+
+    // définis enfin les fonction
+    POUR (fonctions) {
+        /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
+        if (it->instructions.taille() == 0 || it->enligne) {
+            continue;
+        }
+
+        genere_code_fonction(it, os);
+        nombre_instructions += nombre_effectif_d_instructions(*it);
+
+        /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions, sauf si nous
+         * compilons un fichier objet car nous devons n'avoir qu'un seul fichier "*.o". */
+        if (m_espace.options.resultat != ResultatCompilation::FICHIER_OBJET &&
+            nombre_instructions > nombre_instructions_max_par_fichier) {
+            vide_enchaineuse_dans_fichier(coulisse, os);
+            os << "#include \"compilation_kuri.h\"\n";
+            nombre_instructions = 0;
+        }
+    }
+
+    if (m_espace.options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
+        os << "static __attribute__((constructor)) void "
+              "initialise_kuri()\n{\n__point_d_entree_dynamique();\n}\n";
+        os << "static __attribute__((destructor)) void "
+              "issitialise_kuri()\n{\n__point_de_sortie_dynamique();\n}\n";
+    }
+
+    if (nombre_instructions != 0) {
+        vide_enchaineuse_dans_fichier(coulisse, os);
+    }
 }
 
-// CHERCHE (noeud_principale : FONCTION { nom = "principale" })
-// CHERCHE (noeud_principale) -[:UTILISE_FONCTION|UTILISE_TYPE*]-> (noeud)
-// RETOURNE DISTINCT noeud_principale, noeud
-static void traverse_graphe_pour_generation_code(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		NoeudDependance *noeud,
-		bool genere_info_type = true)
+void GeneratriceCodeC::genere_code(ProgrammeRepreInter const &repr_inter_programme,
+                                   CoulisseC &coulisse)
 {
-	noeud->fut_visite = true;
+    Enchaineuse enchaineuse;
+    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
+    genere_code_debut_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
-	for (auto const &relation : noeud->relations) {
-		/* À FAIRE : dépendances cycliques :
-		 * - types qui s'incluent indirectement (listes chainées intrusives)
-		 * - fonctions recursives
-		 */
-		if (relation.noeud_fin->fut_visite) {
-			continue;
-		}
+    POUR (repr_inter_programme.types) {
+        convertisseuse_type_c.cree_typedef(it, enchaineuse);
+    }
 
-		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin, genere_info_type);
-	}
+    POUR (repr_inter_programme.types) {
+        convertisseuse_type_c.genere_code_pour_type(it, enchaineuse);
+    }
 
-	if (noeud->type == TypeNoeudDependance::TYPE) {
-		if (noeud->noeud_syntactique != nullptr) {
-			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
-		}
+    genere_code_entete(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
 
-		if (noeud->index == -1) {
-			return;
-		}
+    auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
+    std::ofstream of(vers_std_path(chemin_fichier_entete));
+    enchaineuse.imprime_dans_flux(of);
+    of.close();
 
-		auto &dt = contexte.magasin_types.donnees_types[noeud->index];
-		cree_typedef(contexte, dt, generatrice.os);
-
-		if (!genere_info_type) {
-			return;
-		}
-
-		/* Suppression des avertissements pour les conversions dites
-		 * « imcompatibles » alors qu'elles sont bonnes.
-		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
-		 * ceux des tableaux des membres des fonctions.
-		 */
-		generatrice.os << "#pragma GCC diagnostic push\n";
-		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
-
-		auto id_info_type = IDInfoType();
-
-		cree_info_type_C(contexte, generatrice, generatrice.os, dt, id_info_type);
-
-		generatrice.os << "#pragma GCC diagnostic pop\n";
-	}
-	else {
-		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
-	}
+    genere_code(
+        repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
 }
 
-void genere_code_C(
-		base *b,
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
+static void genere_code_C_depuis_RI(EspaceDeTravail &espace,
+                                    ProgrammeRepreInter const &repr_inter_programme,
+                                    CoulisseC &coulisse,
+                                    Broyeuse &broyeuse)
 {
-	if (b->type != type_noeud::RACINE) {
-		return;
-	}
 
-	auto generatrice = GeneratriceCodeC(contexte, os);
-
-	auto temps_validation = 0.0;
-	auto temps_generation = 0.0;
-
-	for (auto noeud : b->enfants) {
-		auto debut_validation = dls::chrono::compte_seconde();
-		performe_validation_semantique(noeud, contexte, true);
-		temps_validation += debut_validation.temps();
-	}
-
-	/* déclaration des types de bases */
-	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
-	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
-	os << "typedef unsigned char bool;\n";
-	os << "typedef unsigned char octet;\n";
-	os << "typedef void Ksnul;\n";
-	os << "typedef struct __contexte_global Ks__contexte_global;\n";
-	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
-	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
-	 * typés */
-	os << "#define Kv ...\n";
-
-	auto debut_generation = dls::chrono::compte_seconde();
-	auto &graphe_dependance = contexte.graphe_dependance;
-
-	/* il faut d'abord créer le code pour les structures InfoType */
-	const char *noms_structs_infos_types[] = {
-		"InfoType",
-		"InfoTypeEntier",
-		"InfoTypeRéel",
-		"InfoTypePointeur",
-		"InfoTypeÉnum",
-		"InfoTypeStructure",
-		"InfoTypeTableau",
-		"InfoTypeFonction",
-		"InfoTypeMembreStructure",
-	};
-
-	for (auto nom_struct : noms_structs_infos_types) {
-		auto const &ds = contexte.donnees_structure(nom_struct);
-		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false);
-		/* restaure le drapeaux pour la génération des infos des types */
-		noeud->fut_visite = false;
-	}
-
-	for (auto nom_struct : noms_structs_infos_types) {
-		auto const &ds = contexte.donnees_structure(nom_struct);
-		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, true);
-	}
-
-	temps_generation += debut_generation.temps();
-
-	reduction_transitive(graphe_dependance);
-
-	auto noeud = graphe_dependance.cherche_noeud_fonction("principale");
-
-	if (noeud == nullptr) {
-		erreur::fonction_principale_manquante();
-	}
-
-	debut_generation.commence();
-	traverse_graphe_pour_generation_code(contexte, generatrice, noeud);
-	temps_generation += debut_generation.temps();
-
-	contexte.temps_generation = temps_generation;
-	contexte.temps_validation = temps_validation;
+    auto generatrice = GeneratriceCodeC(espace, broyeuse);
+    generatrice.genere_code(repr_inter_programme, coulisse);
 }
 
-}  /* namespace noeud */
+static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibliotheques,
+                                             kuri::ensemble<Bibliotheque *> &utilisees,
+                                             Bibliotheque *bibliotheque)
+{
+    if (utilisees.possede(bibliotheque)) {
+        return;
+    }
+
+    bibliotheques.ajoute(bibliotheque);
+
+    utilisees.insere(bibliotheque);
+
+    POUR (bibliotheque->dependances.plage()) {
+        rassemble_bibliotheques_utilisee(bibliotheques, utilisees, it);
+    }
+}
+
+/* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
+ * un type dérivé. */
+static bool est_structure_info_type_défaut(GenreType genre)
+{
+    switch (genre) {
+        case GenreType::EINI:
+        case GenreType::RIEN:
+        case GenreType::CHAINE:
+        case GenreType::TYPE_DE_DONNEES:
+        case GenreType::REEL:
+        case GenreType::OCTET:
+        case GenreType::BOOL:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static void genere_table_des_types(Typeuse &typeuse,
+                                   ProgrammeRepreInter &repr_inter_programme,
+                                   ConstructriceRI &constructrice_ri)
+{
+    auto index_type = 0u;
+    POUR (repr_inter_programme.types) {
+        it->index_dans_table_types = index_type++;
+
+        if (!it->atome_info_type) {
+            // constructrice_ri.cree_info_type(it);
+            continue;
+        }
+
+        auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
+        auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
+
+        if (est_structure_info_type_défaut(it->genre)) {
+            /* Accède directement au membre. */
+            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
+                initialisateur->valeur.valeur_structure.pointeur[2]);
+            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+        }
+        else {
+            /* Accède info.base */
+            auto atome_base = static_cast<AtomeValeurConstante *>(
+                initialisateur->valeur.valeur_structure.pointeur[0]);
+            /* Accède base.index_dans_table_types */
+            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
+                atome_base->valeur.valeur_structure.pointeur[2]);
+            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+        }
+    }
+
+    AtomeGlobale *atome_table_des_types = nullptr;
+    POUR (repr_inter_programme.globales) {
+        if (it->ident == ID::__table_des_types) {
+            atome_table_des_types = it;
+            break;
+        }
+    }
+
+    if (!atome_table_des_types) {
+        return;
+    }
+
+    kuri::tableau<AtomeConstante *> table_des_types;
+    table_des_types.reserve(index_type);
+
+    POUR (repr_inter_programme.types) {
+        if (!it->atome_info_type) {
+            continue;
+        }
+
+        table_des_types.ajoute(constructrice_ri.transtype_base_info_type(it->atome_info_type));
+    }
+
+    auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+    atome_table_des_types->initialisateur = constructrice_ri.cree_tableau_global(
+        type_pointeur_info_type, std::move(table_des_types));
+
+    auto initialisateur = static_cast<AtomeValeurConstante *>(
+        atome_table_des_types->initialisateur);
+    auto atome_acces = static_cast<AccedeIndexConstant *>(
+        initialisateur->valeur.valeur_structure.pointeur[0]);
+    repr_inter_programme.globales.ajoute(static_cast<AtomeGlobale *>(atome_acces->accede));
+
+    auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
+                                                       static_cast<int>(index_type));
+    repr_inter_programme.types.ajoute(type_tableau_fixe);
+}
+
+static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_programme,
+                                              kuri::tableau<Bibliotheque *> &bibliotheques)
+{
+    kuri::ensemble<Bibliotheque *> bibliotheques_utilisees;
+    POUR (repr_inter_programme.fonctions) {
+        if (it->decl && it->decl->est_externe && it->decl->symbole) {
+            rassemble_bibliotheques_utilisee(
+                bibliotheques, bibliotheques_utilisees, it->decl->symbole->bibliotheque);
+        }
+    }
+}
+
+static void genere_ri_fonction_init_globale(EspaceDeTravail &espace,
+                                            ConstructriceRI &constructrice_ri,
+                                            AtomeFonction *fonction,
+                                            ProgrammeRepreInter &repr_inter_programme)
+{
+    constructrice_ri.genere_ri_pour_initialisation_globales(
+        &espace, fonction, repr_inter_programme.globales);
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
+     * sont peut-être pas encore dans la liste. */
+    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
+}
+
+static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
+                                                     ConstructriceRI &constructrice_ri,
+                                                     EspaceDeTravail &espace,
+                                                     CoulisseC &coulisse,
+                                                     Programme *programme,
+                                                     kuri::tableau<Bibliotheque *> &bibliotheques,
+                                                     Broyeuse &broyeuse)
+{
+    auto fonction_principale = espace.fonction_principale;
+    if (fonction_principale == nullptr) {
+        erreur::fonction_principale_manquante(espace);
+        return false;
+    }
+
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = representation_intermediaire_programme(*programme);
+
+    genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
+
+    // Génére le corps de la fonction d'initialisation des globales.
+    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
+    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
+    genere_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
+
+    rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
+
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    return true;
+}
+
+static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
+                                                   ConstructriceRI &constructrice_ri,
+                                                   EspaceDeTravail &espace,
+                                                   CoulisseC &coulisse,
+                                                   Programme *programme,
+                                                   kuri::tableau<Bibliotheque *> &bibliotheques,
+                                                   Broyeuse &broyeuse)
+{
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = representation_intermediaire_programme(*programme);
+
+    /* Garantie l'utilisation des fonctions racines. */
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+
+    auto nombre_fonctions_racines = 0;
+    POUR (repr_inter_programme.fonctions) {
+        if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
+            ++nombre_fonctions_racines;
+        }
+
+        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
+            decl_init_globales = it;
+        }
+    }
+
+    if (nombre_fonctions_racines == 0) {
+        espace.rapporte_erreur_sans_site(
+            "Aucune fonction racine trouvée pour générer le code !\n");
+        return false;
+    }
+
+    if (decl_init_globales) {
+        genere_ri_fonction_init_globale(
+            espace, constructrice_ri, decl_init_globales, repr_inter_programme);
+    }
+
+    rassemble_bibliotheques_utilisees(repr_inter_programme, bibliotheques);
+
+    genere_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    return true;
+}
+
+static bool genere_code_C(Compilatrice &compilatrice,
+                          ConstructriceRI &constructrice_ri,
+                          EspaceDeTravail &espace,
+                          CoulisseC &coulisse,
+                          Programme *programme,
+                          kuri::tableau<Bibliotheque *> &bibliotheques,
+                          Broyeuse &broyeuse)
+{
+    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
+        return genere_code_C_depuis_fonction_principale(
+            compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
+    }
+
+    return genere_code_C_depuis_fonctions_racines(
+        compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
+}
+
+bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
+                                   EspaceDeTravail &espace,
+                                   Programme *programme,
+                                   ConstructriceRI &constructrice_ri,
+                                   Broyeuse &broyeuse)
+{
+    m_bibliotheques.efface();
+
+    std::cout << "Génération du code..." << std::endl;
+    auto debut_generation_code = dls::chrono::compte_seconde();
+    if (!genere_code_C(
+            compilatrice, constructrice_ri, espace, *this, programme, m_bibliotheques, broyeuse)) {
+        return false;
+    }
+    temps_generation_code = debut_generation_code.temps();
+
+#ifndef CMAKE_BUILD_TYPE_PROFILE
+    auto debut_fichier_objet = dls::chrono::compte_seconde();
+    auto possede_erreur = false;
+
+#    ifndef NDEBUG
+    POUR (m_fichiers) {
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
+
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+        if (system(commande.pointeur()) != 0) {
+            possede_erreur = true;
+            break;
+        }
+    }
+#    else
+    kuri::tablet<pid_t, 16> enfants;
+
+    POUR (m_fichiers) {
+        kuri::chaine nom_sortie = it.chemin_fichier_objet;
+        if (espace.options.resultat == ResultatCompilation::FICHIER_OBJET) {
+            nom_sortie = nom_sortie_resultat_final(espace.options);
+        }
+
+        auto commande = commande_pour_fichier_objet(espace.options, it.chemin_fichier, nom_sortie);
+        std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+        auto child_pid = fork();
+        if (child_pid == 0) {
+            auto err = system(commande.pointeur());
+            exit(err == 0 ? 0 : 1);
+        }
+
+        enfants.ajoute(child_pid);
+    }
+
+    POUR (enfants) {
+        int etat;
+        if (waitpid(it, &etat, 0) != it) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (!WIFEXITED(etat)) {
+            possede_erreur = true;
+            continue;
+        }
+
+        if (WEXITSTATUS(etat) != 0) {
+            possede_erreur = true;
+            continue;
+        }
+    }
+#    endif
+
+    if (possede_erreur) {
+        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+        return false;
+    }
+
+    temps_fichier_objet = debut_fichier_objet.temps();
+
+#endif
+
+    return true;
+}
+
+bool CoulisseC::cree_executable(Compilatrice &compilatrice,
+                                EspaceDeTravail &espace,
+                                Programme * /*programme*/)
+{
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
+    if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
+        return false;
+    }
+
+    auto debut_executable = dls::chrono::compte_seconde();
+
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
+    POUR (m_fichiers) {
+        fichiers_objet.ajoute(it.chemin_fichier_objet);
+    }
+
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliotheques);
+
+    std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+    auto err = system(commande.pointeur());
+
+    if (err != 0) {
+        espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
+        return false;
+    }
+
+    temps_executable = debut_executable.temps();
+    return true;
+#endif
+}
+
+CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
+{
+    auto nom_base_fichier = kuri::chemin_systeme::chemin_temporaire(
+        enchaine("compilation_kuri", m_fichiers.taille()));
+
+    auto nom_fichier = enchaine(nom_base_fichier, ".c");
+    auto nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);
+
+    FichierC resultat = {nom_fichier, nom_fichier_objet};
+    m_fichiers.ajoute(resultat);
+    return m_fichiers.derniere();
+}

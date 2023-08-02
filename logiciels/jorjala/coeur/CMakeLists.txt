@@ -24,110 +24,100 @@ set(NOM_CIBLE jorjala_coeur)
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
-	${INCLUSIONS_QT5_CORE}
-	${INCLUSIONS_QT5_WIDGETS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
+        ${INCLUSIONS_JORJALA}
 )
 
 set(BIBLIOTHEQUES
-	bib_outils
-	bib_patrons
-	bib_vision
-	bib_xml
-	bib_structures
+        dls::outils
+        dls::patrons_conception
+        dls::vision
+        # bib_xml
+        dls::structures
 	danjo
-	image
-	memoire
-	jorjala_corps
+        dls::image
+        dls::memoire
+        jorjala_commandes
+        # jorjala_corps
 	pthread
 	systeme_fichier
-	wolika
+        # wolika
 	${BIBLIOTHEQUES_TBB}
-)
-
-qt5_wrap_cpp(
-	moc_headers
-
-	tache.h
+        ${BIBLIOTHEQUE_CXX_FILESYSTEM}
+        ${BIBLIOTHEQUE_DL}
 )
 
 add_compile_options(-fPIC)
 
-add_library(qt_jorjala_coeur ${moc_headers})
-target_include_directories(qt_jorjala_coeur PUBLIC "${INCLUSIONS}")
-get_target_property(EXTLIB_COMPILE_FLAGS qt_jorjala_coeur COMPILE_OPTIONS)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-set_target_properties(qt_jorjala_coeur PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
 add_library(${NOM_CIBLE} STATIC
-	arbre_hbe.cc
-	base_de_donnees.cc
-	chef_execution.cc
-	compileuse_lcc.cc
-	composite.cc
-	configuration.cc
-	contexte_evaluation.cc
-	delegue_hbe.cc
-	donnees_aval.cc
-	donnees_simulation.cc
-	editrice.cc
-	evenement.cc
-	gestionnaire_fichier.cc
-	graphe.cc
-	image.cc
-	imprimeuse_graphe.cc
-	jorjala.cc
-	manipulatrice.cc
-	noeud.cc
-	noeud_image.cc
-	nuanceur.cc
-	objet.cc
-	operatrice_corps.cc
-	operatrice_graphe_detail.cc
-	operatrice_image.cc
-	operatrice_pixel.cc
-	operatrice_simulation.cc
-	rendu.cc
-	sauvegarde.cc
-	tache.cc
-	usine_operatrice.cc
+#	arbre_hbe.cc
+#	base_de_donnees.cc
+#	chef_execution.cc
+#	compileuse_lcc.cc
+#	composite.cc
+#	configuration.cc
+#	contexte_evaluation.cc
+    conversion_types.cc
+#	delegue_hbe.cc
+#	donnees_aval.cc
+#	donnees_simulation.cc
+#	editrice.cc
+#	evenement.cc
+#	gestionnaire_fichier.cc
+#	graphe.cc
+#	image.cc
+#	imprimeuse_graphe.cc
+        jorjala.cc
+#	manipulatrice.cc
+#	noeud.cc
+#	noeud_image.cc
+#	nuanceur.cc
+#	objet.cc
+#	operatrice_corps.cc
+#	operatrice_graphe_detail.cc
+#	operatrice_image.cc
+#	operatrice_pixel.cc
+#	operatrice_simulation.cc
+#	outils_entreface.cc
+#	rendu.cc
+#	sauvegarde.cc
+#	usine_operatrice.cc
 
-	arbre_hbe.hh
-	base_de_donnees.hh
-	chef_execution.hh
-	compileuse_lcc.hh
-	composite.h
-	configuration.h
-	contexte_evaluation.hh
-	delegue_hbe.hh
-	donnees_aval.hh
-	donnees_simulation.hh
-	editrice.hh
-	evenement.h
-	gestionnaire_fichier.hh
-	graphe.hh
-	image.hh
-	imprimeuse_graphe.h
-	jorjala.hh
-	manipulatrice.h
-	noeud.hh
-	noeud_image.h
-	nuanceur.hh
-	objet.h
-	operatrice_corps.h
-	operatrice_graphe_detail.hh
-	operatrice_image.h
-	operatrice_pixel.h
-	operatrice_simulation.hh
-	rendu.hh
-	sauvegarde.h
-	tache.h
-	usine_operatrice.h
+#	arbre_hbe.hh
+#	base_de_donnees.hh
+#	chef_execution.hh
+#	compileuse_lcc.hh
+#	composite.h
+#	configuration.h
+#	contexte_evaluation.hh
+    conversion_types.hh
+#	delegue_hbe.hh
+#	donnees_aval.hh
+#	donnees_simulation.hh
+#	editrice.hh
+#	evenement.h
+#	gestionnaire_fichier.hh
+#	graphe.hh
+#	image.hh
+#	imprimeuse_graphe.h
+        jorjala.hh
+#	manipulatrice.h
+#	noeud.hh
+#	noeud_image.h
+#	nuanceur.hh
+#	objet.h
+#	operatrice_corps.h
+#	operatrice_graphe_detail.hh
+#	operatrice_image.h
+#	operatrice_pixel.h
+#	operatrice_simulation.hh
+#	outils_entreface.hh
+#	rendu.hh
+#	sauvegarde.h
+#	usine_operatrice.h
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES} qt_jorjala_coeur)
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})

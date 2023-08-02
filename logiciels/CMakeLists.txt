@@ -33,9 +33,8 @@ ajoute_sousdossier(AVEC_KURI kuri)
 ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
-ajoute_sousdossier(AVEC_TORI tori)
-ajoute_sousdossier(AVEC_TORI_V2 tori_v2)
 ajoute_sousdossier(AVEC_VULKAN vulkan)
+ajoute_sousdossier(AVEC_DEMON_REACT demon_react)
 
 set(ICONES
 	fichiers/icones/icone_avertissement.png
@@ -86,12 +85,7 @@ if (AVEC_JORJALA)
 	install(
 		FILES ${STYLES}
 		DESTINATION jorjala/styles
-	)
-
-	install(
-		FILES ${ICONES}
-		DESTINATION jorjala/icones
-	)
+        )
 
 	install(
 		FILES fichiers/texte/texture_texte.png

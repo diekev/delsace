@@ -1,0 +1,35 @@
+// ------------------------------
+// Cas : On ne peut pas nommer les arguments d'un pointeur vers une fonction.
+
+bar :: fonc (a : fonc(r32, r64)r32) -> r32
+{
+	retourne a(x=0.2, z=0.4);
+}
+
+// ------------------------------
+// Cas : Un argument nommé ne peut avoir le nom d'un argument inconnu.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5, c=6);
+	retourne x != 5;
+}
+
+// ------------------------------
+// Cas : Si un argument d'une fonction appelée est nommé, tous les arguments doivent l'être (premier).
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5, 6);
+	retourne x != 5;
+}

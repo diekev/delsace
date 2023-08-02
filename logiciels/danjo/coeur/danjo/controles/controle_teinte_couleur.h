@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
-class ControleTeinteCouleur : public QWidget {
-public:
-	explicit ControleTeinteCouleur(QWidget *parent = nullptr);
+class ControleTeinteCouleur : public BaseControle {
+  public:
+    explicit ControleTeinteCouleur(QWidget *parent = nullptr);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };

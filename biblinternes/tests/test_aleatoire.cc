@@ -45,7 +45,7 @@ void Testeuse::ajoute_tests(
 	foncs.initialisation = initialisation;
 	foncs.entree_test = entree_test;
 
-	fonctions.pousse(foncs);
+	fonctions.ajoute(foncs);
 }
 
 int Testeuse::performe_tests(std::ostream &os)

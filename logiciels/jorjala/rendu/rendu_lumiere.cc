@@ -26,97 +26,73 @@
 
 #include <numeric>
 
-#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 
 #include "coeur/objet.h"
 
-RenduLumiere::RenduLumiere(Lumiere const *lumiere)
-	: m_lumiere(lumiere)
-{}
-
-RenduLumiere::~RenduLumiere()
+RenduLumiere::RenduLumiere(Lumiere const *lumiere) : m_lumiere(lumiere)
 {
-	delete m_tampon;
 }
 
 void RenduLumiere::initialise()
 {
-	if (m_tampon != nullptr) {
-		return;
-	}
+    if (m_tampon != nullptr) {
+        return;
+    }
 
-	m_tampon = new TamponRendu;
+    auto source = crée_sources_glsl_depuis_fichier("nuanceurs/simple.vert",
+                                                   "nuanceurs/simple.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return;
+    }
 
-	m_tampon->charge_source_programme(
-				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/simple.vert"));
+    m_tampon = TamponRendu::crée_unique(source.value());
 
-	m_tampon->charge_source_programme(
-				dls::ego::Nuanceur::FRAGMENT,
-				dls::contenu_fichier("nuanceurs/simple.frag"));
+    auto programme = m_tampon->programme();
+    programme->active();
+    programme->uniforme("couleur",
+                        m_lumiere->spectre.r,
+                        m_lumiere->spectre.v,
+                        m_lumiere->spectre.b,
+                        m_lumiere->spectre.a);
+    programme->desactive();
 
-	m_tampon->finalise_programme();
+    dls::tableau<dls::math::vec3f> sommets;
 
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_attribut("normal");
-	parametre_programme.ajoute_uniforme("N");
-	parametre_programme.ajoute_uniforme("matrice");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("couleur");
+    if (m_lumiere->type == LUMIERE_POINT) {
+        sommets.redimensionne(6);
 
-	m_tampon->parametres_programme(parametre_programme);
+        sommets[0] = dls::math::vec3f(-1.0f, 0.0f, 0.0f);
+        sommets[1] = dls::math::vec3f(1.0f, 0.0f, 0.0f);
+        sommets[2] = dls::math::vec3f(0.0f, -1.0f, 0.0f);
+        sommets[3] = dls::math::vec3f(0.0f, 1.0f, 0.0f);
+        sommets[4] = dls::math::vec3f(0.0f, 0.0f, -1.0f);
+        sommets[5] = dls::math::vec3f(0.0f, 0.0f, 1.0f);
+    }
+    else {
+        sommets.redimensionne(6);
 
-	auto programme = m_tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", m_lumiere->spectre.r, m_lumiere->spectre.v, m_lumiere->spectre.b, m_lumiere->spectre.a);
-	programme->desactive();
+        sommets[0] = dls::math::vec3f(0.0f, 0.1f, 0.0f);
+        sommets[1] = dls::math::vec3f(0.0f, 0.1f, -1.0f);
+        sommets[2] = dls::math::vec3f(0.1f, -0.1f, 0.0f);
+        sommets[3] = dls::math::vec3f(0.1f, -0.1f, -1.0f);
+        sommets[4] = dls::math::vec3f(-0.1f, -0.1f, 0.0f);
+        sommets[5] = dls::math::vec3f(-0.1f, -0.1f, -1.0f);
+    }
 
-	dls::tableau<dls::math::vec3f> sommets;
+    dls::tableau<unsigned int> indices(sommets.taille());
+    std::iota(indices.debut(), indices.fin(), 0);
 
-	if (m_lumiere->type == LUMIERE_POINT) {
-		sommets.redimensionne(6);
+    remplis_tampon_principal(m_tampon.get(), "sommets", sommets, indices);
 
-		sommets[0] = dls::math::vec3f(-1.0f,  0.0f,  0.0f);
-		sommets[1] = dls::math::vec3f( 1.0f,  0.0f,  0.0f);
-		sommets[2] = dls::math::vec3f( 0.0f, -1.0f,  0.0f);
-		sommets[3] = dls::math::vec3f( 0.0f,  1.0f,  0.0f);
-		sommets[4] = dls::math::vec3f( 0.0f,  0.0f, -1.0f);
-		sommets[5] = dls::math::vec3f( 0.0f,  0.0f,  1.0f);
-	}
-	else {
-		sommets.redimensionne(6);
+    ParametresDessin parametres_dessin;
+    parametres_dessin.type_dessin(GL_LINES);
 
-		sommets[0] = dls::math::vec3f( 0.0f,  0.1f,  0.0f);
-		sommets[1] = dls::math::vec3f( 0.0f,  0.1f, -1.0f);
-		sommets[2] = dls::math::vec3f( 0.1f, -0.1f,  0.0f);
-		sommets[3] = dls::math::vec3f( 0.1f, -0.1f, -1.0f);
-		sommets[4] = dls::math::vec3f(-0.1f, -0.1f,  0.0f);
-		sommets[5] = dls::math::vec3f(-0.1f, -0.1f, -1.0f);
-	}
-
-	dls::tableau<unsigned int> indices(sommets.taille());
-	std::iota(indices.debut(), indices.fin(), 0);
-
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.donnees();
-	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
-	parametres_tampon.elements = static_cast<size_t>(indices.taille());
-
-	m_tampon->remplie_tampon(parametres_tampon);
-
-	ParametresDessin parametres_dessin;
-	parametres_dessin.type_dessin(GL_LINES);
-
-	m_tampon->parametres_dessin(parametres_dessin);
+    m_tampon->parametres_dessin(parametres_dessin);
 }
 
 void RenduLumiere::dessine(ContexteRendu const &contexte)
 {
-	m_tampon->dessine(contexte);
+    m_tampon->dessine(contexte);
 }

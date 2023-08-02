@@ -31,52 +31,54 @@
 using type_point = dls::math::vec3f;
 
 struct AccesseusePointLecture {
-private:
-	ListePoints3D const &m_points;
-	math::transformation const &m_transformation;
+  private:
+    ListePoints3D const &m_points;
+    math::transformation const &m_transformation;
 
-public:
-	AccesseusePointLecture(ListePoints3D const &pnts, math::transformation const &transform);
+  public:
+    AccesseusePointLecture(ListePoints3D const &pnts, math::transformation const &transform);
 
-	type_point point_local(long idx) const;
+    type_point point_local(long idx) const;
 
-	/**
-	 * Retourne le point à l'index précisé transformé pour être dans l'espace
-	 * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
-	 * l'index est hors de limite, le programme crashera sans doute.
-	 */
-	type_point point_monde(long idx) const;
+    /**
+     * Retourne le point à l'index précisé transformé pour être dans l'espace
+     * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
+     * l'index est hors de limite, le programme crashera sans doute.
+     */
+    type_point point_monde(long idx) const;
 
-	long taille() const;
+    long taille() const;
 };
 
 struct AccesseusePointEcriture {
-private:
-	Corps &m_corps;
-	ListePoints3D &m_points;
-	math::transformation const &m_transformation;
+  private:
+    Corps &m_corps;
+    ListePoints3D &m_points;
+    math::transformation const &m_transformation;
 
-public:
-	AccesseusePointEcriture(Corps &corps, ListePoints3D &pnts, math::transformation const &transform);
+  public:
+    AccesseusePointEcriture(Corps &corps,
+                            ListePoints3D &pnts,
+                            math::transformation const &transform);
 
-	type_point point_local(long idx) const;
+    type_point point_local(long idx) const;
 
-	/**
-	 * Retourne le point à l'index précisé transformé pour être dans l'espace
-	 * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
-	 * l'index est hors de limite, le programme crashera sans doute.
-	 */
-	type_point point_monde(long idx) const;
+    /**
+     * Retourne le point à l'index précisé transformé pour être dans l'espace
+     * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
+     * l'index est hors de limite, le programme crashera sans doute.
+     */
+    type_point point_monde(long idx) const;
 
-	long ajoute_point(type_point const &pnt);
+    long ajoute_point(type_point const &pnt);
 
-	long ajoute_point(float x, float y, float z);
+    long ajoute_point(float x, float y, float z);
 
-	void point(long idx, type_point const &pnt);
+    void point(long idx, type_point const &pnt);
 
-	void redimensionne(long nombre);
+    void redimensionne(long nombre);
 
-	void reserve(long nombre);
+    void reserve(long nombre);
 
-	long taille() const;
+    long taille() const;
 };

@@ -1,0 +1,10 @@
+// ------------------------------
+// Cas : L'expression d'un contrôle 'si' ne peut être d'un autre type que booléen.
+
+foo :: fonc () -> rien
+{
+	a := 5;
+
+	si a {
+	}
+}

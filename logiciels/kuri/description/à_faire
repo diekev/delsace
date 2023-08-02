@@ -1,0 +1,822 @@
+// -----------------------------------
+// Directives
+
+- ajout de #portée_fichier
+- ajout de #portée_module
+- ajout de #portée_export
+- ajout de #convention_c
+- ajout de #thread_local
+- ajout de #macro
+- ajout de #boucle_pour
+- ajout de #insère pour controler où nous collons du code
+- ajout de #enligne pour les appels de fonctions
+- ajout de #enligne pour les boucles (pour forcer un débouclage)
+- ajout de #horsligne pour les appels de fonctions
+- ajout de #dump pour imprimer des informations (code binaire, etc.)
+- granuralise #débogue (imprime RI, imprime ASA, etc.)
+- renomme #assert #vérifie
+
+// -----------------------------------
+// Bugs
+
+- collision de symbole pour les retours des fonctions dans les fonctions
+- crash dans les exécutables quand nous prenons l'adresse d'une référence
+- compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
+- "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
+
+Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
+    - nous ne devrions utiliser que la fonction du module courant
+
+Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent pas en compte le décalage
+    exemple 9971 au lieu de 9991:
+    Erreur : .chaine_ajoutées:9991:34 : 
+    9971 |     _ := noeud_branche_arbre(ctx, val0)
+         |                                   ^~~~
+
+
+// -----------------------------------
+// Architecture/Qualité de code
+
+- supprime chaine::ajoute, en faveur de l'enchaineuse
+- structures: ajout d'un pointeur vers une Allocatrice
+- chaine: ajoute de TypeIndex
+- ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
+- améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
+- vérifie que les opérateurs sont surchargeables durant le typage (pour compenser les syntaxes correctes, mais sémantiques incorrectes)
+- pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
+- déplace NoeudExpression::unite dans NoeudDeclaration, NoeudExecution ?
+- utilisation d'un ramasse miette pour les métaprogrammes ?
+- trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
+- pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
+- supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
+- ajout d'une fonction visite_noeud :
+    -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
+    -- peut-être utiliser une table pour les rappels de fonctions selon le genre de noeud
+- transforme les PositionCode en globales:
+    -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
+
+
+// -----------------------------------
+// Fonctionnalités diverses
+
+- trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
+- "kuri init" pour créer des projets ?
+- directive pour définir quelle fonction doit-être la fonction principale
+- pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
+- tests des énums drapeaux dans les conditions des boucles
+    voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
+
+Test pour les retours de pointeurs
+
+    StructureGlobale :: struct {
+        adresse: *z32
+    }
+
+    globale : StructureGlobale
+
+    retourne_adresse_stockée_dans_globale :: fonc () -> *z32
+    {
+        retourne globale.adresse
+    }
+
+À voir si ceci fonctionne :
+    Module.StructurePoly(T = z32)(x = 5)
+
+// -----------------------------------
+// Avertissements
+
+- fonction non utilisée
+- membre structure (ou union) non utilisé
+- structure ou union non utilisée
+- module non utilisé dans un fichier
+
+// -----------------------------------
+// Fonctionnalités pour moultfilage
+
+- async
+- attends
+- corout
+- retiens
+- thead_local
+- thread
+- mutex
+- correctitude de constance
+- nursery
+
+// --------------------------- Compilatrice
+
+nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
+
+-- ajout d'un état aux validations des appels
+    - étape rassemble candidates
+    - valide candidates
+    - candidate choisie
+
+struct EtatValidationAppel {
+    enum {
+        NON_COMMENCE,
+        CANDIDATES_RASSEMBLEES,
+        CANDIDATES_VALIDEES,
+        CANDIDATE_CHOISIE,
+        VALIDATION_TERMINEE,
+    };
+
+    int etat = NON_COMMENCE;
+
+    dls::tablet<Candidates> candidates{};
+    Candidate *candidate_choisie = nullptr;
+
+    /* l'index pour reprendre la validation des candidates */
+    int index = 0;
+
+
+};
+
+switch (expr->etat_validation.etat) {
+    case EtatValidationAppel::NON_COMMENCE:
+    {
+        break;
+    }
+    case EtatValidationAppel::CANDIDATES_RASSEMBLEES:
+    {
+        /* reprend la validation des candidates là où nous sommes arrêtés */
+        if (valide_candidates(...)) {
+            return true;
+        }
+
+        auto candidate_choisie = ...;
+
+
+        expr->etat_validation.candidate_choisie = candidate_choisie;
+        expr->etat_validation.etat = EtatValidationAppel.CANDIDATES_VALIDEES;
+
+        if (valide_candidate_choisie()) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::CANDIDATE_CHOISIE:
+    {
+        if (valide_candidate_choisie(...)) {
+
+        }
+
+        break;
+    }
+    case EtatValidationAppel::VALIDATION_TERMINEE:
+    {
+        break;
+    }
+}
+
+plusieurs threads d'exécutions pour le typage ou la génération de RI
+
+remplace les noeuds de dépendances par des unités de compilations
+-- ajoute la liste des dépendances aux unités, ainsi que la raison de la dépendance
+-- les types dérivés (pointeurs, références, tableaux, etc.) ne seront plus dans le graphe
+
+statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
+fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
+
+considère revoir l'arbre syntaxique des références de membres, pour simpilfier la génération de code et économiser de la mémoire
+
+    .
+        accédé
+        membre
+
+    membre
+        accédé
+
+// stabilité de pointeur pour les infos types
+
+- utilisation d'une poule de mémoire
+- pour les chaines, prise de pointeurs via la gérante de chaine
+- pour les membres des structures, création des infos-types des membres avant ceux-ci
+- pour les noms des énumérations, prise de pointeurs via la gérant de chaine
+- pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
+  -- prise d'un pointeur
+- création des globales pour la RI via les InfoType
+
+- déduplique TypeTranstypage et TypeTransformation
+
+// --------------------------- Lexage
+
+ajout de drapeaux aux lexèmes des nombres littéraux pour indiquer la taille du nombre
+
+// -------------------
+
+Résultat de l'algorithme d'unification :
+- si la fonction ou structure est polymorphique :
+-- doit monomorpher, résultat final
+-- doit monomorpher, mais certains paramètres sont toujours polymorphique
+-- pour la cuisson de paramètres non-constants : remplace les paramètres par des constantes
+
+// --------------------------- Contexte Implicite
+
+permettre aux utilisateurs du langage d'y ajouter des variables
+
+option de compilation pour définir la taille du stockage temporaire
+
+// --------------------------- Fonctions
+
+passe un type à une fonction pour instantier automatiquement une valeur temporaire dont on ne se soucie pas de la valeur
+
+    au lieu de :
+    v : MonType
+    fonction(v)
+
+    faire :
+    fonction(MonType)
+
+pouvoir prendre les adresses des fonctions
+    il faut définir le type de manière générique (*rien ?)
+    voir mise en place de la trace d'appel dans Kuri/module.kuri
+
+
+permet de ne pas avoir un retour si la dernière instruction est celle d'une discrimination qui retourne de toute manière
+    Ici x n'a que deux valeurs possibles
+    discr x {
+        cas_1 { retourne 0 }
+        cas_2 { retourne 1 }
+    }
+
+propement gérer les cas où une fonction nichée dans une autre essaie d'utiliser une variable locale de la fonction parente
+
+// --------------------------- Polymorphie / Monomorphisation
+
+pouvoir instantier une fonction polymorphique lorsqu'on la passe à une autre
+
+    ajoute :: fonc (a: $T, b : T) -> T
+    {
+        retourne a + b
+    }
+
+    fais_le :: fonc (a : z32, b : z32, f : fonc (z32, z32)(z32)) -> z32
+    {
+        retourne f(a, b)
+    }
+
+    fais_le(0, 5, ajoute) // ceci détecte que ajoute est une fonction polymorphique et l'instantie pour le bon type
+
+lambdas
+
+    x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
+
+
+avoir un système de détermination de contraintes pour les fonctions polymorphiques
+
+    ajoute :: fonc (a: $T/TypeOuInterface) // force T à être un dérivé de TypeOuInterface
+        comment faire pour contraindre sur des types scalaires (entier ou réél)
+
+currying
+    #cuisine ma_fonction(T = z32) // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
+    #cuisine ma_fonction(x = 5)   // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
+
+information que la structure est polymorphique dans les infos-types
+
+impression des paramètres dans les messages d'erreur en cas de mésappariement
+
+// --------------------------- Métaprogrammation
+
+permet de modifier la valeur des globales via les métaprogrammes, la génération de code final devra pendre les valeurs se trouvant dans le code binaire
+    complexe
+
+vérifie que les entrées des métaprogrammes sont des constantes
+
+- pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
+
+- avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
+
+- utilise des métaprogrammes pour exécuter les #si
+
+- optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
+-- pour cela il faut pouvoir déterminer quand une locale est hors de portée, en incluant les boucles (une allocation en début de boucle doit être désallouée en fin de boucle)
+
+// --------------------------- Opérateurs
+
+considère la surchage pour '='
+
+opérateurs implicites
+	<= implicite si > ou (< et ==) est défini
+	>= implicite si < ou (> et ==) est défini
+	== implicite si != est défini
+	!= implicite si == est défini
+
+considère un opérateur pour convertir entre des types
+
+    opérateur Type :: fonc (a: AutreType) -> Type
+
+Opérateurs implicites :
+- pour les structures, si triviale -> hérite des différents opérateurs
+- le faire de manière fainéante, quand requis, que faire si un autre module les définis ?
+- création de l'opérateur en lui créant un arbre syntaxique
+
+- pour les comparaisons de nombres réels, il faut savoir comment ordonnées
+---- définis un epsilon lors de la compilation ? ULP ?
+
+
+// --------------------------- Bas Fruitage
+
+ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
+   -- mention dans test_logement.kuri
+
+ajout de tranches pour les tableaux et les chaines
+
+    chn1 := "une chaine"
+    chn2 := chn1[ 4 ... chn.taille - 1 ] // nous donne "chaine"
+
+// --------------------------- Types
+
+unions : utilise le plus petit type possible pour représenter le discriminant
+
+ajout de types produits (tuples) avec accès par x.0, x.1, etc...
+
+typage un peu libre des énumérations
+
+    ExtensionImageSupportée :: chaine {
+        JPEG :: "jpeg"
+        EXR  :: "exr"
+    }
+
+    peut-être pourrions nous reprendre les énums de Rust pour les unions nonsûres
+    mais une énumération est sensé être un ensemble de constantes
+
+évite de nommer les membres des unions sûres
+
+    Union :: struct {
+        Type1
+        Type2
+        Type3
+    }
+
+ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via une opacité, mais les chaines seraient brisées)
+
+charge/données personnalisées pour les erreurs afin de transmettre plus de détails à la fonction appelante
+
+erreur générique pouvant passer des erreurs de fonction à fonction
+
+avoir une gestion de la correctitude de constance
+
+investigue l'utilisation des types entiers, des représentations binaires et des opérations
+    https://stackoverflow.com/questions/13224273/difference-between-signed-and-unsigned-on-bitwise-operations
+
+meilleur gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
+
+amélioration du typage des expressions de tableaux constants
+    plusieurs problèmes de l'approche courrante
+    - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
+    - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
+        -- voir cas dans HTML/Autres/parse_entite.kuri
+
+normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
+    -- mention dans Internet/module.kuri
+    -- // u : anonyme4 dans MySQL/mysql.kuri
+    - passe en revue les initialisations des unions
+    - déplace la normalisation dans une passe secondaire après la génération de RI, le code courant est bien trop complexe
+        -- une analyse de la RI pourra mieux se faire avant la normalisation
+
+déclaration d'énum, de structures, et d'unions anonymes :
+    énum {
+        X
+        Y
+        Z
+    }
+
+    struct {
+        x, y, z
+    }
+
+    également dans les expressions des types :
+        a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
+        b : énum ...
+
+- réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
+
+- explore représenter les types comme de noeuds_syntaxiques afin de simplifier les appariements de gabarits
+
+- impression des types via imprime (requiers une table de types)
+    voir cas dans Jorjala/LCC
+
+- impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
+
+- corrige les infos types des énumérations pour prendre en compte la taille en octet du type
+    voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
+
+- pouvoir passer des pointeur comme référence
+
+- utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
+
+voir le système de type de Odin (https://odin-lang.org/), notamment
+- type pointeur (intptr)
+- transmutage (bitcast)
+- expression type (z32(8))
+- auto_cast
+- type sur 128-bits
+- bit_sets (énum_drapeau)
+
+voir le système de type de zig, notamment pour les bitfields
+- n3 pour un entier naturel sur 3-bits
+- z6 pour un entier relatif sur 6-bits
+etc..
+
+révision des transtypages :
+    - instruction comme -> convertis les bits, les types doivent avoir la même taille en octet
+    - instruction vers -> convertis le type, les types doivent être parenté, ou la conversion valide selon les règles du langage
+
+// --------------------------- Discriminations
+
+avoir une meilleure sécurité de type pour les einis, via discr et un transtypage automatique
+
+    discr e {
+        ENTIER {
+            // que faire pour la taille en octet
+        }
+        STRUCTURE {
+            // ??
+        }
+    }
+
+    le compilateur doit savoir le type lors de la compilation, peut-être avoir des outils avec la métaprogrammation et le polymorphisme
+
+possibilité d'avoir des appels de fonctions où le premier argument est celui discriminé
+
+    discr chn {
+        commence_par("abc") {  } // équivalent à commence_par(chn, "abc")
+        finie_par("xyz") { }     // équivalent à finie_par(chn, "xyz")
+    }
+
+avoir un bon système d'appariement de motif :
+
+    discr a {
+        b | c {	} // équivalent à (a == b || b == c)
+        etc.
+    }
+
+    utilisation de '_' comme caractère générique pouvant être n'importe quelle valeur
+
+
+// --------------------------- Boucles
+
+- amélioration boucle pour :
+-- itération sur plusieurs variables de même type
+---- pour chn1, chn2 { ... }, la variable implicite sera un type produit accédé via it.N où N est un nombre
+
+
+
+// --------------------------- Modules / Espaces de Noms
+
+utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
+
+emploie des énums "empl MonÉnum", pour directement accéder aux valeurs
+
+// Garde trace des espaces de noms, mais permet l'utilisation des membres via empl
+
+importe Fondation
+empl Fondation
+
+ou
+
+empl importe Fondation
+
+renomme un import
+F :: importe Fondation
+
+
+// --------------------------- Interfaces / Traits
+
+MonInterface :: entreface {
+    x :: fonc ()...
+}
+
+définis MonInterface pour X {
+    x :: fonc ()
+}
+
+peut-être devrions-nous forcer l'utilisation de "définis" pour toutes les fonctions afin de simplifier la recherche de fonctions par syntaxe uniforme ?
+voir Rust
+
+définis n8 {
+    min :: 0
+    max :: 255
+    epsilon :: 1
+    bits :: 8
+    octets :: 1
+}
+
+définis n16 {
+    min :: 0
+    max :: 65535
+    epsilon :: 1
+    bits :: 16
+    octets :: 2
+}
+
+définis n32 {
+    min :: 0
+    max :: 4
+    epsilon :: 1
+    bits :: 32
+    octets :: 4
+}
+
+définis n64 {
+    min :: 0
+    max :: 4
+    epsilon :: 1
+    bits :: 32
+    octets :: 4
+}
+
+- différencier entre les membres et l'interface
+
+
+// --------------------------- Optimisations / Génération de Code
+
+force l'enlignage des fonctions via un mot-clé, peut être fait durant le typage ?
+
+a := enligne ajoute(5, 6)
+
+
+// --------------------------- Analyse Statique
+
+!= || != => toujours vraie, avertissement
+
+nombres littéraux :
+-- définis la taille minimale naturel et relative
+---- v < 128 => z8
+---- v < 256 => n8, z16
+---- v < 65536 => n16, z32, etc....
+
+
+// --------------------------- Environnemnt / Autres
+
+avoir un « runtime » par machine cible où nous implémentons les fonctions ou instructions n'étant pas disponible sur celle-ci (voir Zig)
+
+asm enligné
+
+instructions SIMD
+
+idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
+    -- nécéssite support de la part du système d'exploitation
+
+génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
+    -- imprime quand même la durée de compilation à la fin?
+
+
+considération des assertions statiques lors de la compilation de plusieurs espaces de travail
+    elles seront éxecutées pour chaque espace
+    vraiment un espace de travail ne définit que ce que l'exécutable final contiendra, et il nous le faut pour les versions 32-bit
+    peut-être qu'un espace devra pouvoir partager le code avec les autres
+    un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
+
+
+- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
+- stack canaries (coulisse LLVM)
+- coroutines en dehors de boucles
+- renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
+- diffère_err pour différer un bloc si une erreur est retournée
+- possibilité de déclarer une variable dans une condition (si a := foo() { ... })
+
+- généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
+-- paramètres des appels
+- optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu)
+- pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
+- nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
+- pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
+- pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
+- ajout des arbres aplatis aux noeuds codes déclarations
+- documentation des instructions via kuri --manuel|-m inst
+- type les expressions constantes (a :: 0x1) lors du parsage ?
+- supprime les arbres aplatis et utilise un autre algorithme pour stopper/arrêter la compilation ?
+    perte de l'arbre aplatis dans le code utilisateur
+
+- ajout d'expressions par défaut pour les déclarations de variables, si celles-ci ne sont pas explicitement marquées comme non-initialisées, pour simplifier la RI :
+-- comment pour les tableaux et les chaines ? (expression_tableau_vide, expression_tableau_chaine)
+
+- ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
+- vérifie les appels superflux à empile_valeur (expr appel, transforme valeur)
+
+- variable_locales :: fonc () #compilatrice
+    retourne une structure contenant les variables locales de la fonction qui sont visibles depuis l'appel
+
+ajoute :: fonc (x: z32, y: z32) -> z32
+{
+    vars := variables_locales()
+    retourne 0
+}
+
+À faire (architecture)
+----------------------
+- génération de code sur plusieurs threads (LLVM -> un module par thread + liaison finale de tous les modules)
+- réduction des allocations
+- déplace la génération de la fonction main dans une unité de compilation
+- parser les expressions se finissant par une virgule (f(x,)) ; peut simplifier la métaprogrammation
+
+À faire (32-bits)
+-----------------
+- proprement définir les types (taille des entiers et des pointeurs)
+
+
+Idées
+-----
+- opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
+- utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
+- fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
+- passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
+- mot-clés pour un mutli-threading par système de tâches concurrentes, avec maintenance des fonctions auxilliaires par le compileur
+- transformer les messages d'erreur en tutoriaux
+- ajout de valeur par défaut au type de retour
+- constructeurs/destructeurs via mot-clés et pointeurs de fonction
+- concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
+- opérateurs prenant des listes :
+	a += (c, d, e, f, g, h, i, j)
+
+	équivalent à
+
+	a += b + c + d + e + f + g
+
+	si a == (c, d, e, f, g, h, i, j) {
+
+	}
+
+	équivalent à
+
+	si a == c || a == d || a == e ... {
+
+	}
+
+	comment pour a && c
+
+lit + var
+var + lit
+lit + lit
+
+- controler la génération d'exécutable depuis les métaprogrammes
+
+- type.[] pour créer des tableaux d'un certain type :
+    z32.[0, 1, 2, 3]
+
+Zones d'ombres
+--------------
+- concurrence, moultfilage
+
+
+// optimisations (avant la génération de code) :
+// -- supression de code mort
+// -- débouclement (tableau fixes, plages connues)
+// -- évaluation d'expressions constantes
+
+/: évaluation des conditions
+
+
+
+À faire (tests)
+---------------
+- test caractère simple (assignation + modification)
+- test opérateurs simple
+- test mélanges types/nombres littéraux
+- test @var[0]
+- test chaine littérale, déclaration, assignement de pointeur et tableau
+- test énumération
+- test initialisation de structures lors des déclarations
+- test surcharge de fonction
+- test coroutine
+- test valeurs de retours multiples
+
+-- débogueur pour la machine virtuelle
+-- langage pour les optimisations (remplacement d'instructions)
+
+struct Allocatrice {
+	long nombre_allocations = 0;
+
+	template <typename T>
+	T *loge()
+	{
+		return nullptr;
+	}
+
+	template <typename T>
+	void deloge(T *&ptr)
+	{
+		ptr = nullptr;
+		return;
+	}
+};
+
+/* kuri::tableau
+ * kuri::tablet
+ * kuri::tableau_statique (pour l'interface)
+ * kuri::chaine
+ * kuri::chaine_statique (pour l'interface, et les « vues »)
+ * kuri::file
+ * kuri::filonne (allouée sur la pile)
+ * kuri::ensemble
+ * kuri::ensemblon (allouée sur la pile)
+ * kuri::table_hachage
+ * kuri::plage (begin + end)
+ *
+ * interface de base:
+ *
+ * ctor(Allocatrice)
+ * copy_ctor()
+ * move_ctor()
+ *
+ * plage()
+ *
+ * operator[](long)
+ *
+ * reserve()
+ * redimensionne()
+ *
+ * efface()
+ *
+ * premier()
+ * dernier()
+ *
+ * ajoute()
+ */
+
+// documentation JAI
+
+001_first.jai
+002_number_types.jai
+003_booleans.jai
+004_arrays.jai
+005_strings.jai
+006_structs.jai
+007_struct_litterals.jai
+008_types.jai
+010_calling_procedures.jai
+011_contexte.jai
+012_temporary_storage.jai
+013_enums.jai
+014_enum_unary_dot.jai
+015_array_litterals.jai
+020_type_info.jai
+030_any.jai
+550_is_constant.jai
+551_things_that_are_constant.jai
+600_insert.jai
+630_compiler_get_nodes.jai
+700_stack_trace.jai
+935_type_info_reduction.jai
+
+// à documenter Kuri
+
+-- polymorphisme
+-- union (syntaxes a | b)
+-- erreur
+-- appels fonction (syntaxe uniforme)
+-- métaprogrammation (#si, #assert, #exécute, #corps_texte, #test)
+-- compilatrice
+
+// idées pour réusiner les globles pour la RI et l'exécution du code
+// deux zones : lectures, écritures
+// lecture seule :
+// - chaines de caractères
+// - tableau de constantes
+// - infos types
+// écriture :
+// - les autres variables globales
+// considération pour les concurrences critiques
+
+struct ValeurGlobale : public ValeurGlobale {
+    octet_t *tampon = nullptr;
+    Type *type = nullptr;
+};
+
+struct EntierGloable : public ValeurGlobale {
+    void mute_valeur(unsigned long valeur);
+};
+
+struct ReelGlobale : public ValeurGlobale {
+    void mute_valeur(double valeur);
+};
+
+struct TableauGlobale : public ValeurGlobale {
+    void mute_valeur(long index, ValeurGlobale valeur)
+    {
+        auto v = valeur_indexee(index);
+        copie_valeur(v.pointeur, valeur.pointeur, taille_donnees);
+    }
+
+    ValeurGlobale valeur_indexee(long index)
+    {
+        // type de données
+        return ValeurGlobale(tampon + index * taille_donnees, type_de_donnees);
+    }
+};
+
+struct ChaineGlobale : public ValeurGlobale {
+    void mute_valeur(kuri::chaine chn)
+    {
+
+    }
+};
+
+struct StructureGlobale : public ValeurGlobale {
+    void mute_valeur(long index, ValeurGlobale valeur);
+
+    ValeurGlobale accede_valeur();
+};

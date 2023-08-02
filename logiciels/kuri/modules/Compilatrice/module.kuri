@@ -1,0 +1,257 @@
+// Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
+
+importe Ensemble
+importe Fondation
+importe SysFichier
+
+charge "ipa"
+charge "code"
+charge "lexèmes"
+charge "message"
+charge "options"
+
+// ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour la compilation.
+
+compile_pour_production :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.niveau_optimisation = NiveauOptimisation.O3
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    compilatrice_ajourne_options(options)
+}
+
+compile_pour_débogage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    compilatrice_ajourne_options(options)
+}
+
+compile_pour_débogage_avec_asan :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.DÉBOGAGE
+    options.utilise_asan = vrai
+    compilatrice_ajourne_options(options)
+}
+
+compile_pour_profilage :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.EXÉCUTABLE
+    options.compilation_pour = CompilationPour.PROFILAGE
+    compilatrice_ajourne_options(options)
+}
+
+// ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour l'IPA.
+
+compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
+{
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
+}
+
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := PositionCodeSource())
+{
+	compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
+}
+
+compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine)
+{
+	compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+}
+
+compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
+{
+	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
+}
+
+compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCodeSource())
+{
+	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+}
+
+compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
+{
+	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+}
+
+compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
+{
+	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
+}
+
+désactive_compilation_espace_défaut :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.résultat = RésultatCompilation.RIEN
+	// À FAIRE : ajourne les options manuellement
+}
+
+// ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour les tests unitaires
+
+compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionCodeSource())
+{
+	si a == b {
+		retourne
+	}
+
+	enchaineuse : Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+	diffère { détruit_tampons(*enchaineuse) }
+
+	ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
+	imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
+	imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b)
+
+	message := chaine_depuis_enchaineuse(*enchaineuse)
+
+	espace := compilatrice_espace_courant()
+	compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+
+	déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
+}
+
+// ---------------------------------------------------------------------------------------
+// Fonctions auxilliaires pour travailler sur les fonctions parsées lors de la compilation
+
+fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotation: chaine) -> bool
+{
+    pour code.annotations {
+        si it.nom == annotation {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeEntêteFonction
+{
+	fonctions := compilatrice_fonctions_parsées()
+    résultat: []*NoeudCodeEntêteFonction
+
+    pour fonctions {
+        si !fonction_possède_annotation(it, annotation) {
+            continue
+        }
+
+        tableau_ajoute(*résultat, it)
+    }
+
+	retourne résultat
+}
+
+// ---------------------------------------------------------------------------------------
+// Fonctions auxilliaires pour travailler sur les fonctions
+
+fonction_n_a_qu_un_seul_paramètre :: fonc (fonction: *NoeudCodeEntêteFonction) -> bool
+{
+    si fonction.params.taille == 0 {
+        retourne faux
+    }
+
+    retourne fonction.params.taille == 1
+}
+
+fonction_ne_retourne_que :: fonc (fonction: *NoeudCodeEntêteFonction, type_à_retourner: *InfoType) -> bool
+{
+    si fonction.params_sorties.taille != 1 {
+        retourne faux
+    }
+
+    retourne fonction.params_sorties[0].type == type_à_retourner
+}
+
+type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoType
+{
+    si entête.params.taille == 0 {
+        retourne nul
+    }
+
+    retourne entête.params[0].type
+}
+
+// ---------------------------------------------------------------------------------------
+// EnsembleDeModules est un ensemble de modules pour tenir trace de modules intéressants.
+// Par exemple, les métaprogrammes peuvent l'utiliser pour rassembler les modules des
+// fonctions et des types intéressants afin de générer des instructions d'import pour
+// lesdits modules.
+
+EnsembleDeModules :: struct {
+    modules: []*Module
+    module_racine_compilation : *Module
+    chemin_racine_compilation : CheminFichier
+    chemin_modules_kuri : CheminFichier
+}
+
+initialise_ensemble_de_modules :: fonc (liste: *EnsembleDeModules)
+{
+    liste.module_racine_compilation = compilatrice_module_racine_compilation()
+
+    racine_kuri := compilatrice_racine_installation_kuri()
+    chemin_racine := CheminFichier(racine_kuri)
+    tmp_chemin_modules := chemin_racine / "modules/"
+
+    /* Il est possible que le dossier soit un lien symbolique, par exemple pour
+     * les développeurs souhaitant garder les modules synchronisés entre
+     * l'installation et le dépôt de sources. */
+    liste.chemin_modules_kuri = chemin_véritable(tmp_chemin_modules)
+
+    liste.chemin_racine_compilation = CheminFichier(compilatrice_chemin_module(liste.module_racine_compilation))
+
+    détruit_chemin(tmp_chemin_modules)
+}
+
+détruit :: fonc (liste: *EnsembleDeModules)
+{
+    déloge(liste.modules)
+    détruit_chemin(liste.chemin_modules_kuri)
+}
+
+ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
+{
+    saufsi module {
+        /* Permet d'avoir un module nul, si par exemple il est
+         * retourné via `compilatrice_module_pour_type` pour un
+         * type de base. */
+        retourne
+    }
+
+    si module == liste.module_racine_compilation {
+        /* Ignore le module racine de compilation. */
+        retourne
+    }
+
+    ensemble_ajoute(*liste.modules, module)
+}
+
+génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *Enchaineuse) -> bool
+{
+    pour liste.modules {
+        chemin_module := compilatrice_chemin_module(it)
+
+        si commence_par(chemin_module, liste.chemin_modules_kuri.chn) {
+            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), "\n")
+            continue
+        }
+
+        /* Essaie un chemin relatif au fichier principal de compilation. */
+        tmp_chemin_module := CheminFichier(chemin_module)
+        discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
+            Ok(chemin_relatif) {
+                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n")
+                détruit_chemin(chemin_relatif)
+            }
+            sinon {
+                retourne faux
+            }
+        }
+    }
+
+    retourne vrai
+}

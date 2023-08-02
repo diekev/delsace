@@ -1,0 +1,80 @@
+Cycles Renderer
+===============
+
+Cycles is a path tracing renderer focused on interactivity and ease of use, while supporting many production features.
+
+https://www.cycles-renderer.org
+
+Building
+--------
+
+The easiest way to build on macOS, Linux and Windows is to use the Blender precompiled libraries.
+
+  https://svn.blender.org/svnroot/bf-blender/trunk/lib/
+
+Checkout the folder for your platform and place it in a lib/ folder next to the Cycles source directory. The libraries will then be automatically found as part of the build configuration.
+
+Quick setup is as follows:
+
+  git clone git://git.blender.org/cycles.git
+
+  mkdir lib
+  cd lib
+  svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/<platform>
+
+  cd ../cycles
+  make
+
+Dependencies
+------------
+
+The following library dependencies are required for building a feature complete Cycles version. These are all included as part of the precompiled libraries.
+
+Required:
+- OpenGL
+- GLEW
+- GLUT
+- Boost
+- OpenImageIO
+- TBB
+
+Optional:
+- Embree
+- OpenColorIO
+- OpenVDB / NanoVDB
+- OpenShadingLanguage
+- OpenImageDenoise
+
+For GPU rendering support on NVIDIA cards, these need to be downloaded and installed from the NVIDIA website.
+
+- CUDA Toolkit
+- OptiX 7 SDK
+
+Build Options
+-------------
+
+CMake is used for building, and standard CMake configuration can be used to configure the build and enable or disable features.
+
+Examples
+--------
+
+The repository contains example xml scenes which could be used for testing.
+
+Example usage:
+
+  ./cycles scene_monkey.xml
+
+You can also use optional parameters (see ./cycles --help), like:
+
+  ./cycles --samples 100 --output ./image.png scene_monkey.xml
+
+For the OSL scene you need to enable the OSL shading system:
+
+  ./cycles --shadingsys osl scene_osl_stripes.xml
+
+Contact
+-------
+
+For help building or running Cycles, see the channels listed here:
+
+https://www.cycles-renderer.org/development/

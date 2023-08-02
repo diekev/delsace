@@ -28,9 +28,9 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-namespace danjo {
+#include "repondant_bouton.h"
 
-class RepondantBouton;
+namespace danjo {
 
 /**
  * La classe bouton représente un bouton cliquable dans l'entreface. Elle
@@ -38,57 +38,57 @@ class RepondantBouton;
  * est cliqué.
  */
 class Bouton : public QPushButton {
-	Q_OBJECT
+    Q_OBJECT
 
-	RepondantBouton *m_repondant = nullptr;
-	dls::chaine m_attache = "";
-	dls::chaine m_metadonnee = "";
+    RepondantBouton *m_repondant = nullptr;
+    dls::chaine m_attache = "";
+    dls::chaine m_metadonnee = "";
 
-public:
-	explicit Bouton(QWidget *parent = nullptr);
+  public:
+    explicit Bouton(QWidget *parent = nullptr);
 
-	Bouton(Bouton const &) = default;
-	Bouton &operator=(Bouton const &) = default;
+    Bouton(Bouton const &) = default;
+    Bouton &operator=(Bouton const &) = default;
 
-	/**
-	 * Installe le RepondantBouton qui sera appelé lors d'un clique sur ce
-	 * bouton.
-	 */
-	void installe_repondant(RepondantBouton *repondant);
+    /**
+     * Installe le RepondantBouton qui sera appelé lors d'un clique sur ce
+     * bouton.
+     */
+    void installe_repondant(RepondantBouton *repondant);
 
-	/**
-	 * Établie l'attache du bouton, c'est-à-dire l'identifiant qui sera passé
-	 * au RepondantBouton lors d'un clique sur ce bouton.
-	 */
-	void etablie_attache(const dls::chaine &attache);
+    /**
+     * Établie l'attache du bouton, c'est-à-dire l'identifiant qui sera passé
+     * au RepondantBouton lors d'un clique sur ce bouton.
+     */
+    void etablie_attache(const dls::chaine &attache);
 
-	/**
-	 * Établie la valeur du bouton, c'est-à-dire la chaîne de caractère qui sera
-	 * affichée sur le bouton dans l'entreface.
-	 */
-	void etablie_valeur(const dls::chaine &valeur);
+    /**
+     * Établie la valeur du bouton, c'est-à-dire la chaîne de caractère qui sera
+     * affichée sur le bouton dans l'entreface.
+     */
+    void etablie_valeur(const dls::chaine &valeur);
 
-	/**
-	 * Établie le contenu de l'infobulle du bouton.
-	 */
-	void etablie_infobulle(const dls::chaine &valeur);
+    /**
+     * Établie le contenu de l'infobulle du bouton.
+     */
+    void etablie_infobulle(const dls::chaine &valeur);
 
-	/**
-	 * Établie la métadonnée du bouton, c'est-à-dire la chaîne de caractère qui
-	 * sera passée au RepondantBouton lors d'un clique sur ce bouton.
-	 */
-	void etablie_metadonnee(const dls::chaine &metadonnee);
+    /**
+     * Établie la métadonnée du bouton, c'est-à-dire la chaîne de caractère qui
+     * sera passée au RepondantBouton lors d'un clique sur ce bouton.
+     */
+    void etablie_metadonnee(const dls::chaine &metadonnee);
 
-	/**
-	 * Établie l'icône de ce bouton.
-	 */
-	void etablie_icone(const dls::chaine &valeur);
+    /**
+     * Établie l'icône de ce bouton.
+     */
+    void etablie_icone(const dls::chaine &valeur);
 
-public Q_SLOTS:
-	/**
-	 * Notifie le RepondantBouton que le bouton a été pressé.
-	 */
-	void bouton_presse();
+  public Q_SLOTS:
+    /**
+     * Notifie le RepondantBouton que le bouton a été pressé.
+     */
+    void bouton_presse();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

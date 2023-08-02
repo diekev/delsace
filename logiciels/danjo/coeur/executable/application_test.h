@@ -32,24 +32,24 @@
 #include "repondant_bouton.h"
 
 class WidgetTest : public danjo::ConteneurControles {
-public:
-	explicit WidgetTest(QWidget *parent = nullptr);
+  public:
+    explicit WidgetTest(QWidget *parent = nullptr);
 
-	void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines) override;
+    void obtiens_liste(const dls::chaine &attache, dls::tableau<dls::chaine> &chaines) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 };
 
 class RepondantBoutonTest : public danjo::RepondantBouton {
-public:
-	void repond_clique(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
-	bool evalue_predicat(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
+  public:
+    void repond_clique(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
+    bool evalue_predicat(const dls::chaine &valeur, const dls::chaine &metadonnee) override;
 };
 
 class FenetreTest : public QMainWindow {
-	danjo::Manipulable m_manipulable{};
-	RepondantBoutonTest m_repondant{};
+    danjo::Manipulable m_manipulable{};
+    RepondantBoutonTest m_repondant{};
 
-public:
-	FenetreTest();
+  public:
+    FenetreTest();
 };

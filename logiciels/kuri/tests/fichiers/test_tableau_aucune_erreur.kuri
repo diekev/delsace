@@ -1,0 +1,56 @@
+// -----------------------------------
+// Cas : On peut accèder à la propriété 'taille' d'un tableau fixe.
+
+foo :: fonc () -> rien
+{
+	tabl : [3]z32;
+	taille := tabl.taille
+}
+
+// -----------------------------------
+// Cas : On peut accèder à la propriété 'taille' d'un tableau dynamique.
+
+foo :: fonc () -> rien
+{
+	tabl : []z32;
+	taille := tabl.taille
+}
+
+// -----------------------------------
+// Cas : On peut passer un tableau dynamique à une fonction attendant un tableau dynamique.
+
+passe_tableau_dynamic :: fonc (tabl : []z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : []z32;
+	passe_tableau_dynamic(tabl);
+}
+
+// -----------------------------------
+// Cas : On peut passer un tableau fixe à une fonction attendant un tableau dynamique.
+
+passe_tableau_dynamic :: fonc (tabl : []z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : [3]z32;
+	passe_tableau_dynamic(tabl);
+}
+
+// -----------------------------------
+// Cas : On peut passer un tableau fixe à une fonction attendant un tableau dynamique.
+
+passe_tableau_fixe :: fonc (tabl : [3]z32) -> rien
+{
+}
+
+foo :: fonc () -> rien
+{
+	tabl : [3]z32;
+	passe_tableau_fixe(tabl);
+}

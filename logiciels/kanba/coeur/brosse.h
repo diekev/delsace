@@ -28,12 +28,28 @@
 
 #include "biblinternes/math/vecteur.hh"
 
+#include "outils.hh"
+
+namespace KNB {
+
 struct Brosse {
-	dls::math::vec4f couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
-	float opacite = 1.0f;
-	int rayon = 35;
+  private:
+    dls::math::vec4f m_couleur = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+    float m_opacité = 1.0f;
+    int m_rayon = 35;
 
-	TypeMelange mode_fusion{};
+    TypeMelange m_mode_de_fusion{};
 
-	Brosse() = default;
+  public:
+    DEFINIS_ACCESSEUR_MUTATEUR_MEMBRE(dls::math::vec4f, couleur);
+    DEFINIS_ACCESSEUR_MUTATEUR_MEMBRE(float, opacité);
+    DEFINIS_ACCESSEUR_MUTATEUR_MEMBRE(int, rayon);
+    DEFINIS_ACCESSEUR_MUTATEUR_MEMBRE(TypeMelange, mode_de_fusion);
+
+    int donne_diamètre() const
+    {
+        return m_rayon * 2;
+    }
 };
+
+}  // namespace KNB

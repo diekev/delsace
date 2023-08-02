@@ -24,48 +24,74 @@
 
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QMainWindow>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 class BarreDeProgres;
-struct Jorjala;
+class VueRegion;
+
+namespace JJL {
+class Jorjala;
+}
+
+class QLabel;
 
 class FenetrePrincipale : public QMainWindow {
-	Q_OBJECT
+    Q_OBJECT
 
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
-	BarreDeProgres *m_barre_progres = nullptr;
-	QToolBar *m_barre_outil = nullptr;
+    BarreDeProgres *m_barre_progres = nullptr;
+    QLabel *m_texte_état = nullptr;
+    QToolBar *m_barre_outil = nullptr;
 
-public:
-	explicit FenetrePrincipale(Jorjala &jorjala, QWidget *parent = nullptr);
+    QVector<VueRegion *> m_régions{};
 
-	FenetrePrincipale(FenetrePrincipale const &) = default;
-	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+  public:
+    explicit FenetrePrincipale(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-public Q_SLOTS:
-	void image_traitee();
-	void mis_a_jour_menu_fichier_recent();
+    FenetrePrincipale(FenetrePrincipale const &) = delete;
+    FenetrePrincipale &operator=(FenetrePrincipale const &) = delete;
 
-	void signale_proces(int quoi);
+    void définis_texte_état(const QString &texte);
 
-	/* barre de progrès */
-	void tache_demarree();
-	void ajourne_progres(float progres);
-	void tache_terminee();
-	void evaluation_debutee(const char *message, int execution, int total);
+  public Q_SLOTS:
+    void image_traitee();
+    void mis_a_jour_menu_fichier_recent();
 
-private:
-	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);
-	void genere_barre_menu();
-	void genere_menu_prereglages();
-	void charge_reglages();
-	void ecrit_reglages() const;
-	void closeEvent(QCloseEvent *) override;
+    void signale_proces(int quoi);
+
+    /* barre de progrès */
+    void tache_demarree();
+    void ajourne_progres(float progres);
+    void tache_terminee();
+    void evaluation_debutee(const QString &message, int execution, int total);
+
+    /** Si des changements existe dans la session courante, affiche une boîte de dialogue pour
+     * demander à l'utilisateur si les changments doivent être sauvegardés ou non.
+     * Retourne faux si l'utilisateur demande d'annuler. Si l'on retourne vrai, nous pouvons
+     * continuer de faire ce que nous voulions. */
+    bool demande_permission_avant_de_fermer();
+
+  private:
+    void genere_barre_menu();
+    void genere_menu_prereglages();
+    void charge_reglages();
+    void ecrit_reglages() const;
+    void closeEvent(QCloseEvent *) override;
+
+    void construit_interface_depuis_jorjala();
+
+    bool eventFilter(QObject *, QEvent *) override;
+
+    void keyPressEvent(QKeyEvent *) override;
 };

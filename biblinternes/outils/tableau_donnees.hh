@@ -29,13 +29,13 @@
 
 struct ChaineUTF8 {
 	dls::chaine chaine{};
-	long m_taille = 0;
+    int64_t m_taille = 0;
 
 	ChaineUTF8(char const *chn);
 
 	ChaineUTF8(dls::chaine const &chn);
 
-	long taille() const;
+    int64_t taille() const;
 
 	void calcule_taille();
 };
@@ -54,7 +54,7 @@ struct Tableau {
 
 	dls::tableau<Ligne> lignes{};
 	dls::tableau<Alignement> alignements{};
-	long nombre_colonnes = 0;
+    int64_t nombre_colonnes = 0;
 
 	Tableau(std::initializer_list<ChaineUTF8> const &titres);
 

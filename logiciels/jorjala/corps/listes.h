@@ -38,148 +38,107 @@ struct Corps;
 
 /* ************************************************************************** */
 
-/**
- * Représentation d'un sommet dans l'espace tridimensionel.
- */
-struct Sommet {
-	dls::math::vec3f pos;
-	int index;
-};
-
-class Polygone;
-
-/* ************************************************************************** */
-
-/**
- * Représentation d'une arrête d'un polygone.
- */
-struct Arrete {
-	/* Les sommets connectés à cette arrête. */
-	Sommet *s[2] = { nullptr, nullptr };
-
-	/* Le polygone propriétaire de cette arrête. */
-	Polygone *p = nullptr;
-
-	/* L'arrête du polygone adjacent allant dans la direction opposée de
-	 * celle-ci. */
-	Arrete *opposee = nullptr;
-
-	/* L'index de l'arrête dans la boucle d'arrêtes du polygone. */
-	char index = 0;
-
-	Arrete() = default;
-};
-
-/* ************************************************************************** */
-
 enum class type_polygone : char {
-	FERME,
-	OUVERT,
+    FERME,
+    OUVERT,
 };
 
-/**
- * Représentation d'un quadrilatère et de son vecteur normal dans l'espace
- * tridimensionel.
- */
 class Polygone final : public Primitive {
-	dls::tableau<long> m_idx_points{};
-	dls::tableau<long> m_idx_sommets{};
+    dls::tableau<long> m_idx_points{};
+    dls::tableau<long> m_idx_sommets{};
 
-public:
-	/* nouvelle entreface */
-	Polygone() = default;
+  public:
+    /* nouvelle entreface */
+    Polygone() = default;
 
-	Polygone(Polygone const &) = default;
-	Polygone &operator=(Polygone const &) = default;
+    Polygone(Polygone const &) = default;
+    Polygone &operator=(Polygone const &) = default;
 
-	/* Le type de ce polygone :
-	 * type_polygone::FERME : un polygone avec une face
-	 * type_polygone::OUVERT : un polygone sans face, une courbe
-	 */
-	type_polygone type = type_polygone::FERME;
+    /* Le type de ce polygone :
+     * type_polygone::FERME : un polygone avec une face
+     * type_polygone::OUVERT : un polygone sans face, une courbe
+     */
+    type_polygone type = type_polygone::FERME;
 
-	/* Le vecteur normal de ce polygone. */
-	dls::math::vec3f nor{};
+    void ajoute_point(long idx_point, long idx_sommet);
 
-	void ajoute_point(long idx_point, long idx_sommet);
+    void reserve_sommets(long nombre);
 
-	void reserve_sommets(long nombre);
+    long nombre_sommets() const;
 
-	long nombre_sommets() const;
+    long nombre_segments() const;
 
-	long nombre_segments() const;
+    long index_point(long i) const;
 
-	long index_point(long i) const;
+    long index_sommet(long i) const;
 
-	long index_sommet(long i) const;
+    type_primitive type_prim() const override
+    {
+        return type_primitive::POLYGONE;
+    }
 
-	type_primitive type_prim() const override
-	{
-		return type_primitive::POLYGONE;
-	}
-
-	void ajourne_index(long i, long j);
+    void ajourne_index(long i, long j);
 };
 
 /* ************************************************************************** */
 
 class ListePoints3D {
-public:
-	using type_liste = dls::tableau<dls::math::vec3f>;
+  public:
+    using type_liste = dls::tableau<dls::math::vec3f>;
 
-private:
-	typedef std::shared_ptr<type_liste> RefPtr;
+  private:
+    typedef std::shared_ptr<type_liste> RefPtr;
 
-	RefPtr m_sommets{};
+    RefPtr m_sommets{};
 
-public:
-	~ListePoints3D();
+  public:
+    ~ListePoints3D();
 
-	void reinitialise();
+    void reinitialise();
 
-	void redimensionne(long const nombre);
+    void redimensionne(long const nombre);
 
-	void reserve(long const nombre);
+    void reserve(long const nombre);
 
-	long taille() const;
+    long taille() const;
 
-	void pousse(dls::math::vec3f const &p);
+    void ajoute(dls::math::vec3f const &p);
 
-	dls::math::vec3f point(long i) const;
+    dls::math::vec3f point(long i) const;
 
-	void point(long i, dls::math::vec3f const &p);
+    void point(long i, dls::math::vec3f const &p);
 
-	/* public pour pouvoir détacher avant de modifier dans des threads */
-	void detache();
+    /* public pour pouvoir détacher avant de modifier dans des threads */
+    void detache();
 };
 
 /* ************************************************************************** */
 
 class ListePrimitives {
-public:
-	using type_liste = dls::tableau<Primitive *>;
+  public:
+    using type_liste = dls::tableau<Primitive *>;
 
-private:
-	typedef std::shared_ptr<type_liste> RefPtr;
-	RefPtr m_primitives{};
+  private:
+    typedef std::shared_ptr<type_liste> RefPtr;
+    RefPtr m_primitives{};
 
-public:
-	~ListePrimitives();
+  public:
+    ~ListePrimitives();
 
-	void reinitialise();
+    void reinitialise();
 
-	void redimensionne(long const nombre);
+    void redimensionne(long const nombre);
 
-	void reserve(long const nombre);
+    void reserve(long const nombre);
 
-	long taille() const;
+    long taille() const;
 
-	void pousse(Primitive *s);
+    void ajoute(Primitive *s);
 
-	Primitive *prim(long index) const;
+    Primitive *prim(long index) const;
 
-	void prim(long i, Primitive *p);
+    void prim(long i, Primitive *p);
 
-	/* public pour pouvoir détacher avant de modifier dans des threads */
-	void detache();
+    /* public pour pouvoir détacher avant de modifier dans des threads */
+    void detache();
 };

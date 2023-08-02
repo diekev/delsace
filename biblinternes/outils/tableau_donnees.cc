@@ -36,7 +36,7 @@ ChaineUTF8::ChaineUTF8(const dls::chaine &chn)
 	calcule_taille();
 }
 
-long ChaineUTF8::taille() const
+int64_t ChaineUTF8::taille() const
 {
 	return m_taille;
 }
@@ -57,12 +57,12 @@ std::ostream &operator<<(std::ostream &os, const ChaineUTF8 &chaine)
 }
 
 Tableau::Tableau(const std::initializer_list<ChaineUTF8> &titres)
-	: nombre_colonnes(static_cast<long>(titres.size()))
+    : nombre_colonnes(static_cast<int64_t>(titres.size()))
 {
 	ajoute_ligne(titres);
 
 	for (auto i = 0; i < nombre_colonnes; ++i) {
-		alignements.pousse(Alignement::GAUCHE);
+		alignements.ajoute(Alignement::GAUCHE);
 	}
 }
 
@@ -73,18 +73,18 @@ void Tableau::alignement(int idx, Alignement a)
 
 void Tableau::ajoute_ligne(const std::initializer_list<ChaineUTF8> &valeurs)
 {
-	assert(static_cast<long>(valeurs.size()) <= nombre_colonnes);
+    assert(static_cast<int64_t>(valeurs.size()) <= nombre_colonnes);
 
 	auto ligne = Ligne{};
 
 	for (auto const &valeur : valeurs) {
-		ligne.colonnes.pousse(valeur);
+		ligne.colonnes.ajoute(valeur);
 	}
 
-	lignes.pousse(ligne);
+	lignes.ajoute(ligne);
 }
 
-static void imprime_ligne_demarcation(dls::tableau<long> const &tailles_max_colonnes)
+static void imprime_ligne_demarcation(dls::tableau<int64_t> const &tailles_max_colonnes)
 {
 	for (auto i = 0; i < tailles_max_colonnes.taille(); ++i) {
 		std::cout << '+' << '-';
@@ -101,7 +101,7 @@ static void imprime_ligne_demarcation(dls::tableau<long> const &tailles_max_colo
 
 static void imprime_ligne(
 		Tableau::Ligne const &ligne,
-		dls::tableau<long> const &tailles_max_colonnes,
+        dls::tableau<int64_t> const &tailles_max_colonnes,
 		dls::tableau<Alignement> const &alignements)
 {
 	for (auto i = 0; i < ligne.colonnes.taille(); ++i) {
@@ -142,8 +142,8 @@ static void imprime_ligne(
 void imprime_tableau(Tableau &tableau)
 {
 	// pour chaque ligne, calcul la taille maximale de la colonne
-	dls::tableau<long> tailles_max_colonnes{};
-	long nombre_colonnes = 0;
+    dls::tableau<int64_t> tailles_max_colonnes{};
+    int64_t nombre_colonnes = 0;
 
 	for (auto const &ligne : tableau.lignes) {
 		nombre_colonnes = std::max(nombre_colonnes, ligne.colonnes.taille());
@@ -157,8 +157,8 @@ void imprime_tableau(Tableau &tableau)
 		}
 	}
 
-	/* ajout de marges */
-	auto taille_ligne = 0l;
+    /* ajout de marges */
+    auto taille_ligne = int64_t(0);
 	for (auto const &taille : tailles_max_colonnes) {
 		taille_ligne += taille + 2;
 	}

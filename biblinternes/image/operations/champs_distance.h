@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "../../math/matrice/matrice.hh"
-#include "../../math/outils.hh"
-#include "../../math/vecteur.hh"
+#include "biblinternes/math/matrice/matrice.hh"
+#include "biblinternes/math/outils.hh"
+#include "biblinternes/math/vecteur.hh"
 
 namespace dls {
 namespace image {

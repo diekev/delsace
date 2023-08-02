@@ -1,56 +1,53 @@
-importe "flux"
+importe Fondation
+importe Introspection
 
-fonc imprime_tableau(tabl : []r64) : rien
+imprime_tableau :: fonc(tabl : []r32) -> rien
 {
     imprime("imprime_tableau...\n");
-    imprime("taille de tabl = ", taille de tabl, "\n");
-    imprime("pointeur de tabl = ", pointeur de tabl, "\n");
+    imprime("tabl.taille = %\n", tabl.taille);
+    imprime("tabl.pointeur = %\n", tabl.pointeur);
 
-    dyn index = 0;
-    pour v dans tabl {
-        # À FAIRE : besoin_dérèf
-        soit x = v;
-        imprime("tabl[", index, "] = ", x, "\n");
-        index = index + 1;
+    pour v, index dans tabl {
+        x := v;
+        imprime("tabl[%] = %\n", index, x);
     }
 }
 
-struct Vecteur {
-    x : r64;
-    y : r64;
-    z : r64;
+Vecteur :: struct {
+    x : r32;
+    y : r32;
+    z : r32;
 }
 
-fonc test() : rien
+test :: fonc() -> rien
 {
     imprime("=========================================\n");
     imprime("                 tableau                 \n");
 
-    dyn tabl = [1.0, 2.0, 4.0, 8.0, 16.0];
+    tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
 
     imprime_tableau(tabl);
 
     imprime("=========================================\n");
     imprime("                 tailles                 \n");
 
-    imprime("taille_de(z32) = ", taille_de(z32), "\n");
-    imprime("taille_de([]z32) = ", taille_de([]z32), "\n");
-    imprime("taille_de([]r64) = ", taille_de([]r64), "\n");
-    imprime("taille_de(eini) = ", taille_de(eini), "\n");
+    imprime("taille_de(z32) = %\n", taille_de(z32));
+    imprime("taille_de([]z32) = %\n", taille_de([]z32));
+    imprime("taille_de([]r32) = %\n", taille_de([]r32));
+    imprime("taille_de(eini) = %\n", taille_de(eini));
 
     imprime("=========================================\n");
     imprime("                 vecteur                 \n");
 
-    dyn vec2 : Vecteur;
-    soit vec1 = Vecteur{x = 1.0, y = 4.0, z = 16.0};
+    vec2 : Vecteur;
+    vec1 := Vecteur(x = 1.0, y = 4.0, z = 16.0);
 
-    imprime("Vecteur initiliasé : ", vec1, '\n');
-    imprime("Vecteur non-initiliasé : ", vec2, '\n');
+    imprime("Vecteur initiliasé : %\n", vec1);
+    imprime("Vecteur non-initiliasé : %\n", vec2);
 
-    # À FAIRE : appel foncs ne foncne pas s'il faut transformer les arguments
-    dyn nom = "x";
+    nom := "x";
 
-    dyn ok = possede_membre(vec1, nom);
+    ok := possède_membre(vec1, nom);
 
     si ok {
         imprime("Le vecteur possède le membre 'x' !\n");
@@ -59,9 +56,8 @@ fonc test() : rien
         imprime("Le vecteur ne possède pas le membre 'x' !\n");
     }
 
-    # À FAIRE : réassignement
-    dyn nom1 = "non";
-    ok = possede_membre(vec1, nom1);
+    nom = "non";
+    ok = possède_membre(vec1, nom);
 
     si ok {
         imprime("Le vecteur possède le membre 'non' !\n");
@@ -71,77 +67,76 @@ fonc test() : rien
     }
 }
 
-fonc logement_tableau() : rien
+logement_tableau :: fonc() -> rien
 {
     imprime("=========================================\n");
     imprime("            logements tableau            \n");
 
-    dyn tabl = loge [32]r64;
+    tabl := loge_tableau(r32, 32);
 
-    imprime("Tableau logé à l'addresse : ", pointeur de tabl, '\n');
-    imprime("Taille tableau : ", taille de tabl, '\n');
+    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
+    imprime("Taille tableau : %\n", tabl.taille);
 
-    dyn debut = 1.0;
+    debut := 1.0;
 
-    pour v dans tabl {
+    pour & v dans tabl {
         v = debut;
         debut *= 3.0;
     }
 
     imprime_tableau(tabl);
 
-    déloge tabl;
-    
-    imprime("Tableau délogé : ", pointeur de tabl, '\n');
-    imprime("Taille tableau : ", taille de tabl, '\n');
+    déloge(tabl);
+
+    imprime("Tableau délogé : %\n", tabl.pointeur);
+    imprime("Taille tableau : %\n", tabl.taille);
 
     imprime_tableau(tabl);
 }
 
-
-fonc logement_chaine() : rien
-{  
+logement_chaine :: fonc() -> rien
+{
     imprime("=========================================\n");
     imprime("            logements chaine             \n");
 
-    soit chn1 = "Kévin";
-    soit chn2 = "Dietrich";
+    chn1 := "Kévin";
+    chn2 := "Dietrich";
 
-    dyn chnr = concatene(chn1, chn2);
+    chnr := enchaine(chn1, chn2);
 
-    imprime("Résultat : ", chnr, '\n');
+    imprime("Résultat : %\n", chnr);
 
-    déloge chnr;
-    
-    imprime("Chaîne délogée : ", pointeur de chnr, '\n');
-    imprime("Taille chaîne  : ", taille de chnr, '\n');
+    déloge(chnr);
+
+    imprime("Chaîne délogée : %\n", chnr.pointeur);
+    imprime("Taille chaîne  : %\n", chnr.taille);
 }
 
-fonc test_fichier() : rien
+test_fichier :: fonc() -> rien
 {
     imprime("=========================================\n");
     imprime("                 fichier                 \n");
 
-    soit chemin = "/home/kevin/test.kuri";
+    chemin := "/home/kevin/test.kuri";
 
     nonsûr {
-        dyn res = open(chemin, 0);
+        res := open(chemin.pointeur, 0);
 
         si res == -1 {
             imprime("Erreur lors de l'ouverture du fichier !\n");
             retourne;
         }
 
-        dyn tpn : [1024]z8;
-        dyn nread = read(res, @tpn[0], 1024);
+        tpn : [1024]z8;
+        nread := read(res, *tpn[0], 1024);
 
         imprime("Lu ", nread, " octets\n");
-        
-        dyn chn : chaîne;
-        pointeur de chn = @tpn[0]; # À FAIRE : prend pointeur automatiquement
-        taille de chn = transtype(nread : z64);
 
-        imprime(chn, '\n');
+        chn : chaine;
+        chn.pointeur = *tpn[0]; // À FAIRE : prend pointeur automatiquement
+        chn.taille = nread comme z64;
+
+        imprime(chn, "\n");
 
         res = close(res);
 
@@ -152,24 +147,21 @@ fonc test_fichier() : rien
     }
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
     imprime("=========================================\n");
     imprime("                arguments                \n");
 
-    soit str = "nombre d'arguments = ";
-    imprime(str, argc, "\n");
+    args := arguments_ligne_commande()
+    imprime("nombre d'arguments = %\n", args.taille);
 
-    dyn i = 0;
-    pour arg dans args {
-        soit nom_arg = converti_chaine_c(arg);
-        imprime("argument ", i,": ", nom_arg, "\n");
-        i += 1;
+    pour arg, i dans args {
+        imprime("argument %: %\n", i, arg);
     }
 
     logement_tableau();
     logement_chaine();
-    #test_fichier();
+    //test_fichier();
     test();
 
     retourne 0;

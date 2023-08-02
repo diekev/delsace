@@ -1,0 +1,292 @@
+
+// --------------------
+// Point2D
+
+Point2D :: struct {
+    x: r32
+    y: r32
+}
+
+crée_point :: fonc(x : r64, y : r64) -> Point2D
+{
+	retourne Point2D( x = x, y = y )
+}
+
+opérateur + :: fonc (p0: Point2D, p1: Point2D) -> Point2D
+{
+    retourne Point2D(p0.x + p1.x, p0.y + p1.y)
+}
+
+opérateur + :: fonc (p0: Point2D, v: Vec2) -> Point2D
+{
+    retourne Point2D(p0.x + v.x, p0.y + v.y)
+}
+
+opérateur - :: fonc (p0: Point2D, p1: Point2D) -> Vec2
+{
+    retourne Vec2(p0.x - p1.x, p0.y - p1.y)
+}
+
+opérateur * :: fonc (p0: Point2D, r: r32) -> Point2D
+{
+    retourne Point2D(p0.x * r, p0.y * r)
+}
+
+opérateur / :: fonc (p0: Point2D, r: r32) -> Point2D
+{
+    retourne Point2D(p0.x / r, p0.y / r)
+}
+
+// --------------------
+// Point3D
+
+Point3D :: struct {
+    x: r32 @accessible
+    y: r32 @accessible
+    z: r32 @accessible
+} @Python
+
+opérateur - :: fonc (a: Point3D, b: Point3D) -> Vec3
+{
+    résultat : Vec3 = ---
+    résultat.x = a.x - b.x
+    résultat.y = a.y - b.y
+    résultat.z = a.z - b.z
+    retourne résultat
+}
+
+/*
+
+Segment :: struct {
+    x: r32
+    y: r32
+}
+*/
+
+// --------------------
+
+Triangle :: struct {
+    p0: Point2D
+    p1: Point2D
+    p2: Point2D
+}
+
+est_rectangle :: fonc (triangle: Triangle) -> bool
+{
+
+}
+
+est_isocèle :: fonc (triangle: Triangle) -> bool
+{
+    l0 := longueur(triangle.p1 - triangle.p0)
+    l1 := longueur(triangle.p2 - triangle.p1)
+
+    si l0 == l1 {
+        retourne vrai
+    }
+
+    l2 := longueur(triangle.p0 - triangle.p1)
+
+    si l0 == l2 {
+        retourne vrai
+    }
+
+    retourne l1 == l2
+}
+
+// retourne vrai si la longueur de tous les côtés sont égales
+// Un triangle est équilatéral si :
+// - les cotés du triangle ont tous la même longueur
+// - les angles du triangle ont tous la même valeur
+// - les droites remarquables (hauteurs, médianes, médiatrices, bissectrices) sont confondues
+est_équilatéral :: fonc (triangle: Triangle) -> bool
+{
+    retourne longueur(triangle.p0 - triangle.p1) == longueur(triangle.p1 - triangle.p2) == longueur(triangle.p2 - triangle.p0)
+}
+
+aire :: fonc (triangle: Triangle) -> r32
+{
+    s0 := triangle.p1 - triangle.p0
+
+    // aire = base * hauteur / 2
+    base := longueur(s0)
+
+    // Pour la hauteur, projette un des autres cotés sur la base
+    s1 := triangle.p2 - triangle.p0
+
+    projection_s1_sur_s0 := projette(s1, s0)
+
+    hauteur := longueur(s1 - projection_s1_sur_s0)
+
+    retourne base * hauteur / 2.0
+}
+
+// Retourne une ligne perpendiculaire à [p0, p1] passant par p2, en somme, c'est une hauteur d'un triangle
+perpendiculaire_passant_par :: fonc (p0: Point2D, p1: Point2D, p2: Point2D) -> Ligne
+{
+    c0 := p1 - p0
+    c1 := p2 - p0
+    projection_c1_sur_c0 := projette(c1, c0)
+    p := p0 + projection_c1_sur_c0
+    retourne Ligne(p, p2)
+}
+
+// Le point d'intersection des perpendiculaires du triangles
+orthocentre :: fonc (triangle: Triangle) -> Point2D
+{
+    l0 := perpendiculaire_passant_par(triangle.p0, triangle.p1, triangle.p2)
+    l1 := perpendiculaire_passant_par(triangle.p1, triangle.p2, triangle.p0)
+
+    intersecte, point := point_d_intersection(l0, l1)
+
+    si !intersecte {
+        // imprime("orthocentre: les perpendiculaires ne s'intersectent pas !\n")
+    }
+
+    retourne point
+}
+
+// le point d'intersection des médianes du triangle
+médicentre :: fonc (triangle: Triangle) -> Point2D
+{
+    retourne (triangle.p0 + triangle.p1 + triangle.p2) / 3.0
+}
+
+Ligne :: struct {
+    origine: Point2D
+    point: Point2D
+}
+
+point_d_intersection :: fonc (l0: Ligne, l1: Ligne) -> bool, Point2D
+{
+    retourne point_d_intersection(l0.origine, l0.point, l1.origine, l1.Point2D)
+}
+
+point_centrale :: fonc (p0: Point2D, p1: Point2D) -> Point2D
+{
+    retourne (p0 + p1) * 0.5
+}
+
+médiatrice :: fonc (p0: Point2D, p1: Point2D) -> Ligne
+{
+    centre := point_centrale(p0, p1)
+    v := p0 - centre
+    orthogonale := Point2D(v.y, -v.x) // sense horaire, antihoraire serait -y, x
+    retourne Ligne(centre, centre + orthogonale)
+}
+
+// le point d'intersection de deux médiatrices du triangle
+// Une médiatrice est une ligne perpendiculaire à un coté du triangle, passant par le centre du coté
+// Le circoncentre définis le centre d'un cercle passant par tous les points du triangles.
+circoncentre :: fonc (triangle: Triangle) -> Point2D
+{
+    b0 := médiatrice(triangle.p0, triangle.p1)
+    b1 := médiatrice(triangle.p0, triangle.p2)
+
+    intersecte, point := point_d_intersection(b0, b1)
+
+    si !intersecte {
+        // imprime("circoncentre : les médiatrices ne s'intersectent pas !\n")
+    }
+
+    retourne point
+}
+
+centroide :: fonc (triangle: Triangle) -> Point2D
+{
+    retourne médicentre(triangle)
+}
+
+centre_de_masse :: fonc (triangle: Triangle) -> Point2D
+{
+    retourne centroide(triangle)
+}
+
+// Le point d'intersection des bissectrices du triangle.
+encentre :: fonc (triangle: Triangle) -> Point2D
+{
+
+}
+
+// La ligne passant par l'orthocentre, le médicentre, et le circoncentre
+ligne_de_euler :: fonc (triangle: Triangle) -> Ligne
+{
+    o := triangle.orthocentre()
+    m := triangle.médicentre()
+    // c := triangle.circoncentre()
+    retourne Ligne(o, m)
+}
+
+Cercle :: struct {
+    origine: Point2D
+    rayon: r32
+}
+
+cercle_circonscrit :: fonc (triangle: Triangle) -> Cercle
+{
+    origine := triangle.circoncentre()
+    rayon := longueur(origine - triangle.p0)
+    retourne Cercle(origine, rayon)
+}
+
+// Inverse un point selon un cercle d'inversion.
+// Pour un point, le point inverse Pi devra préserver la relation suivante :
+// |OP| * |OPi| = r²
+// où
+// O est l'origine du cercle
+// OP, le segment alant de l'origine au point
+// OPi, le segment allant de l'origine au point inversé
+// r, le rayon du cercle
+inverse :: fonc (cercle_d_inversion: Cercle, point: Point2D) -> Point2D
+{
+    // Pi = O + OP / |OP| * distance
+    // distance = r² / |OP|
+    OP := point - cercle_d_inversion.origine
+    l_OP := longueur(OP)
+
+    si l_OP == 0.0 {
+        retourne point
+    }
+
+    rr := cercle_d_inversion.rayon * cercle_d_inversion.rayon
+
+    retourne cercle_d_inversion.origine + OP / l_OP * (rr / l_OP)
+}
+
+point_d_intersection :: fonc (o1: Point2D, p1: Point2D, o2: Point2D, p2: Point2D) -> bool, Point2D
+{
+    résultat : Point2D
+
+    x := o2 - o1
+    d1 := p1 - o1
+    d2 := p2 - o2
+
+    croix := produit_vectoriel(d1, d2)
+
+    si abs(croix) < 0.00001 {
+        retourne faux, résultat
+    }
+
+    t1 := produit_vectoriel(x, d2) / croix
+    résultat = o1 + d1 * t1
+    retourne vrai, résultat
+}
+
+périmètre_cercle :: fonc (rayon: $T) -> T
+{
+    retourne Constantes(T).PI * rayon * 2.0
+}
+
+aire_cercle :: fonc (rayon: $T) -> T
+{
+    retourne Constantes(T).PI * rayon * rayon
+}
+
+/*
+
+    triangle_depuis_angles_et_longueurs
+    est_obtus
+    est_aigus
+
+    est_valide : somme des angles == 180°
+ */

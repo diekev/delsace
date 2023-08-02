@@ -41,7 +41,7 @@ add_executable(test_danjo
 
 target_include_directories(test_danjo PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(test_danjo "${BIBLIOTHEQUES}")
+target_link_libraries(test_danjo ${BIBLIOTHEQUES})
 
 install(
 	TARGETS test_danjo RUNTIME DESTINATION ${RACINE_INSTALLATION}
@@ -53,7 +53,7 @@ add_executable(tests_danjo_aleatoire
 
 target_include_directories(tests_danjo_aleatoire PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(tests_danjo_aleatoire "${BIBLIOTHEQUES}")
+target_link_libraries(tests_danjo_aleatoire ${BIBLIOTHEQUES})
 
 install(
 	TARGETS tests_danjo_aleatoire RUNTIME DESTINATION ${RACINE_INSTALLATION}

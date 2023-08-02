@@ -31,34 +31,30 @@ class Noeud;
 struct DonneesSimulation;
 
 class OperatriceCorps : public OperatriceImage {
-protected:
-	Corps m_corps{};
-	DonneesSimulation *m_donnees_simulation = nullptr;
+  protected:
+    Corps m_corps{};
+    DonneesSimulation *m_donnees_simulation = nullptr;
 
-public:
-	OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_);
+  public:
+    OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_);
 
-	OperatriceCorps(OperatriceCorps const &) = default;
-	OperatriceCorps &operator=(OperatriceCorps const &) = default;
+    OperatriceCorps(OperatriceCorps const &) = default;
+    OperatriceCorps &operator=(OperatriceCorps const &) = default;
 
-	int type() const override;
+    int type() const override;
 
-	type_prise type_entree(int) const override;
+    type_prise type_entree(int) const override;
 
-	type_prise type_sortie(int) const override;
+    type_prise type_sortie(int) const override;
 
-	Corps *corps() override;
+    Corps *corps() override;
 
-	void donnees_simulation(DonneesSimulation *donnees);
+    void donnees_simulation(DonneesSimulation *donnees);
 
-	void libere_memoire() override;
+    void libere_memoire() override;
 };
 
 /* ************************************************************************** */
 
 bool valide_corps_entree(
-		OperatriceCorps &op,
-		Corps const *corps,
-		bool besoin_points,
-		bool besoin_prims,
-		int index = 0);
+    OperatriceCorps &op, Corps const *corps, bool besoin_points, bool besoin_prims, int index = 0);

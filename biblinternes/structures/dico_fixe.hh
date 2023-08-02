@@ -25,26 +25,11 @@
 #pragma once
 
 #include "plage.hh"
+#include "tuples.hh"
 
 namespace dls {
 
-template <typename T1, typename T2>
-struct paire {
-	T1 premier{};
-	T2 second{};
-
-	paire() = default;
-
-	paire(T1 const &p, T2 const &s)
-		: premier(p)
-		, second(s)
-	{}
-
-	paire(paire const &) = default;
-	paire &operator=(paire const &) = default;
-};
-
-template <typename C, typename V, unsigned long N>
+template <typename C, typename V, uint64_t N>
 struct dico_fixe {
 	using type_valeur = paire<C, V>;
 	using type_pointeur = type_valeur*;
@@ -56,7 +41,7 @@ private:
 	type_valeur m_donnees[N];
 
 	template <typename PV, typename... PVs>
-	void construit_index(unsigned long &i, PV const &pv)
+	void construit_index(uint64_t &i, PV const &pv)
 	{
 		m_donnees[i++] = pv;
 	}
@@ -67,7 +52,7 @@ public:
 	{
 		static_assert(sizeof...(pvs) + 1 == N, "La taille de la liste n'est pas celle attendue");
 
-		unsigned long i = 0;
+		uint64_t i = 0;
 		construit_index(i, pv);
 		(construit_index(i, pvs), ...);
 	}
@@ -93,6 +78,23 @@ public:
 	{
 		auto plg = this->plage();
 
+#if 0
+		auto debut = &m_donnees[0];
+		auto fin = &m_donnees[N];
+
+		while (debut != fin) {
+			auto milieu = debut + (fin - debut) / 2;
+
+			if (milieu->premier < v) {
+				debut = milieu + 1;
+			}
+			else {
+				fin = milieu;
+			}
+		}
+
+		return plage_valeur(debut, fin);
+#else
 		while (!plg.est_finie()) {
 			auto m = plg.deuxieme_moitie();
 
@@ -112,6 +114,7 @@ public:
 		}
 
 		return plg;
+#endif
 	}
 
 	plage_valeur plage()

@@ -1,40 +1,33 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
 #pragma once
 
-#include "biblinternes/structures/flux_chaine.hh"
+#include "coulisse.hh"
 
-struct ContexteGenerationCode;
+#include "structures/tableau.hh"
 
-namespace noeud {
+struct Bibliotheque;
 
-struct base;
+struct CoulisseC final : public Coulisse {
+    kuri::tableau<Bibliotheque *> m_bibliotheques{};
 
-void genere_code_C(
-		base *b,
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os);
+    struct FichierC {
+        kuri::chaine chemin_fichier{};
+        kuri::chaine chemin_fichier_objet{};
+    };
 
-}  /* namespace noeud */
+    kuri::tableau<FichierC> m_fichiers{};
+
+    bool cree_fichier_objet(Compilatrice &compilatrice,
+                            EspaceDeTravail &espace,
+                            Programme *programme,
+                            ConstructriceRI &constructrice_ri,
+                            Broyeuse &) override;
+
+    bool cree_executable(Compilatrice &compilatrice,
+                         EspaceDeTravail &espace,
+                         Programme *programme) override;
+
+    FichierC &ajoute_fichier_c();
+};

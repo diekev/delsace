@@ -1,0 +1,11 @@
+/* Erreur de compilation si nous définissons un type polymorphique dans un type fonction. */
+
+fonction_polymorphique :: fonc (rappel: fonc($T)(rien), données_rappel: T)
+{
+    rappel(données)
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

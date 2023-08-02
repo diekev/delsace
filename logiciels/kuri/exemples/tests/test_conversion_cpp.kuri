@@ -1,0 +1,44 @@
+importe Compilatrice
+importe Fondation
+importe Transpilation
+
+// À CONSIDÉRER : ajout d'une interface pour requerir l'arbre syntaxique au lieu de toujours le générer
+
+fais_conversion_code :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    options : OptionsDeCompilation
+    espace := démarre_un_espace_de_travail("test_conversion", *options)
+
+    compilatrice_commence_interception(espace)
+
+    boucle {
+        message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
+
+        discr message.genre {
+            TYPAGE_CODE_TERMINÉ {
+                message_fonction := message comme *MessageTypageCodeTerminé
+                //imprime("Une fonction fut typée : % !\n", message_fonction.code.nom)
+
+                code := message_fonction.code
+                transpile_code_c(code)
+            }
+            PHASE_COMPILATION {
+                message_phase := message comme *MessagePhaseCompilation
+
+                si message_phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                    arrête
+                }
+            }
+            sinon {
+                continue
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}
+
+#exécute fais_conversion_code()

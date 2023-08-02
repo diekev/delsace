@@ -1,0 +1,38 @@
+// -----------------------------------
+// Cas : Une variable ne peut prendre le nom d'un argument de la fonction
+
+foo :: fonc (compte: z32) -> rien
+{
+	compte := 0
+}
+
+// -----------------------------------
+// Cas : Une variable ne peut prendre le nom d'une autre variable locale
+
+foo :: fonc () -> rien
+{
+	x := 0
+	x := 0
+}
+
+// -----------------------------------
+// Cas : Une variable ne peut prendre le nom d'une autre variable globale
+
+x := 0
+
+foo :: fonc () -> rien
+{
+	x := 0
+}
+
+// -----------------------------------
+// Cas : Une variable dans une portée fille ne peut avoir le même nom qu'une variable dans une portée mère
+
+foo :: fonc (compte : z32) -> rien
+{
+	a := compte
+
+	si compte == 5 {
+		a := compte
+	}
+}

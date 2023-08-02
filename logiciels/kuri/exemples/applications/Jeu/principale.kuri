@@ -1,0 +1,15 @@
+importe Fondation
+
+charge "application"
+
+//###############################################################################
+
+principale :: fonc () -> z32
+{
+	diffère {
+	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+	}
+
+    app : Application
+    retourne lance_application(app)
+}

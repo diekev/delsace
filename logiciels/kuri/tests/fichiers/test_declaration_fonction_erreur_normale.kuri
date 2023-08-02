@@ -1,0 +1,38 @@
+// ------------------------------
+// Cas : On ne peut pas avoir d'autres arguments après un argument variadique.
+
+principale :: fonc externe (arguments : ...*z32, compte : z32) -> rien
+
+// ------------------------------
+// Cas : On ne peut pas avoir plusieurs arguments variadiques.
+
+principale :: fonc externe (arguments : ...*z32, comptes : ...z32) -> rien;
+
+// ------------------------------
+// Cas : Deux arguments d'une fonction ne peuvent avoir les même nom.
+
+principale :: fonc (compte : z32, compte : z8) -> z32
+{
+	retourne x != 5;
+}
+
+// ------------------------------
+// Cas : Deux fonctions ne peuvent avoir les même nom.
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	retourne 0;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	retourne 0;
+}
+
+// ------------------------------
+// Cas : rien ne peut pas être argument d'une fonction
+
+foo :: fonc (a : rien) -> rien
+{
+}
+

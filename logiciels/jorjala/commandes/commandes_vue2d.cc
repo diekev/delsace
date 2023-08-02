@@ -24,88 +24,101 @@
 
 #include "commandes_vue2d.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QKeyEvent>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/patrons_conception/commande.h"
-#include "biblinternes/vision/camera_2d.h"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
+#include "commande_jorjala.hh"
+
 #include "coeur/jorjala.hh"
-#include "coeur/operatrice_image.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
-class CommandeZoomCamera2D final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto camera = jorjala->camera_2d;
+class CommandeZoomCamera2D final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
-		camera->zoom *= (donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI;
-		camera->ajourne_matrice();
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        auto camera = jorjala.donne_caméra_2d();
 
-		jorjala->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
+        auto zoom = camera.donne_zoom() *
+                    ((donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI);
+        camera.définis_zoom(zoom);
+        camera.ajourne_matrice();
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandePanCamera2D final : public Commande {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+class CommandePanCamera2D final : public CommandeJorjala {
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandePanCamera2D() = default;
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		INUTILISE(pointeur);
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    CommandePanCamera2D() = default;
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto camera = jorjala->camera_2d;
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-		camera->pos_x += (m_vieil_x - donnees.x) / static_cast<float>(camera->largeur);
-		camera->pos_y += (m_vieil_y - donnees.y) / static_cast<float>(camera->hauteur);
-		camera->ajourne_matrice();
+    void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala,
+                                          DonneesCommande const &donnees) override
+    {
+        auto camera = jorjala.donne_caméra_2d();
 
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
+        auto delta_pos_x = (m_vieil_x - donnees.x) / static_cast<float>(camera.donne_largeur());
+        auto delta_pos_y = (m_vieil_y - donnees.y) / static_cast<float>(camera.donne_hauteur());
+        camera.définis_pos_x(camera.donne_pos_x() + delta_pos_x);
+        camera.définis_pos_y(camera.donne_pos_y() + delta_pos_y);
+        camera.ajourne_matrice();
 
-		jorjala->notifie_observatrices(type_evenement::camera_2d | type_evenement::modifie);
-	}
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+    }
+
+    JJL::TypeCurseur type_curseur_modal() override
+    {
+        return JJL::TypeCurseur::MAIN_FERMÉE;
+    }
 };
 
 /* ************************************************************************** */
 
-struct CommandeOutil2D final : public Commande {
+#if 0
+struct CommandeOutil2D final : public CommandeJorjala {
 	float vieil_x = 0.0f;
 	float vieil_y = 0.0f;
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-
+	int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
 		/* vérifie si le clique est dans l'image */
 
 		auto const &noeud_composite = jorjala->bdd.graphe_composites()->noeud_actif;
@@ -123,7 +136,7 @@ struct CommandeOutil2D final : public Commande {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto camera_2d = jorjala->camera_2d;
+        auto camera_2d = jorjala.caméra_2d();
 		/* converti en espace -1:1 */
 		auto x = (static_cast<float>(camera_2d->largeur) - donnees.x);
 		auto y = (static_cast<float>(camera_2d->hauteur) - donnees.y);
@@ -152,28 +165,31 @@ struct CommandeOutil2D final : public Commande {
 		return EXECUTION_COMMANDE_MODALE;
 	}
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
+	void ajourne_execution_modale_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
 	{
 		INUTILISE(pointeur);
 		INUTILISE(donnees);
 	}
 };
+#endif
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_zoom_camera_2d",
-						   description_commande<CommandeZoomCamera2D>(
-							   "vue_2d", Qt::MiddleButton, 0, 0, true));
+    usine.enregistre_type(
+        "commande_zoom_camera_2d",
+        description_commande<CommandeZoomCamera2D>("vue_2d", Qt::MiddleButton, 0, 0, true));
 
-	usine.enregistre_type("commande_pan_camera_2d",
-						   description_commande<CommandePanCamera2D>(
-							   "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
+    usine.enregistre_type("commande_pan_camera_2d",
+                          description_commande<CommandePanCamera2D>(
+                              "vue_2d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
+#if 0
 	usine.enregistre_type("commande_outil_2d",
 						   description_commande<CommandeOutil2D>(
 							   "vue_2d", Qt::LeftButton, 0, 0, false));
+#endif
 }
 
 #pragma clang diagnostic pop

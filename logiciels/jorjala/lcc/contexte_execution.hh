@@ -46,19 +46,19 @@ class Camera3D;
 namespace lcc {
 
 enum class ctx_script : unsigned short {
-	invalide  = 0,
-	pixel     = (1 << 0),
-	voxel     = (1 << 1),
-	fichier   = (1 << 2),
-	nuanceur  = (1 << 3),
-	primitive = (1 << 4),
-	point     = (1 << 5),
+    invalide = 0,
+    pixel = (1 << 0),
+    voxel = (1 << 1),
+    fichier = (1 << 2),
+    nuanceur = (1 << 3),
+    primitive = (1 << 4),
+    point = (1 << 5),
 
-	detail    = (8 << 0),
-	topologie = (8 << 1),
+    detail = (8 << 0),
+    topologie = (8 << 1),
 
-	/* outils */
-	tous = (pixel | voxel | fichier | nuanceur | primitive | detail | topologie),
+    /* outils */
+    tous = (pixel | voxel | fichier | nuanceur | primitive | detail | topologie),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(ctx_script, unsigned short)
@@ -66,23 +66,23 @@ DEFINIE_OPERATEURS_DRAPEAU(ctx_script, unsigned short)
 /* ************************************************************************** */
 
 struct magasin_tableau {
-	dls::tableau<dls::tableau<int>> tableaux;
+    dls::tableau<dls::tableau<int>> tableaux;
 
-	std::pair<dls::tableau<int> &, long> cree_tableau()
-	{
-		tableaux.pousse({});
-		return { tableaux.back(), tableaux.taille() - 1};
-	}
+    std::pair<dls::tableau<int> &, long> cree_tableau()
+    {
+        tableaux.ajoute({});
+        return {tableaux.back(), tableaux.taille() - 1};
+    }
 
-	dls::tableau<int> &tableau(long idx)
-	{
-		return tableaux[idx];
-	}
+    dls::tableau<int> &tableau(long idx)
+    {
+        return tableaux[idx];
+    }
 
-	void reinitialise()
-	{
-		tableaux.efface();
-	}
+    void reinitialise()
+    {
+        tableaux.efface();
+    }
 };
 
 /* ************************************************************************** */
@@ -90,65 +90,66 @@ struct magasin_tableau {
 /* Le contexte local est pour les données locales à chaque thread et chaque
  * itération. */
 struct ctx_local {
-	magasin_tableau tableaux;
-	dls::tableau<bruit::parametres> params_bruits{};
-	dls::tableau<dls::chaine> chaines{};
+    magasin_tableau tableaux;
+    dls::tableau<bruit::parametres> params_bruits{};
+    dls::tableau<dls::chaine> chaines{};
 
-	void reinitialise()
-	{
-		tableaux.reinitialise();
-		params_bruits.efface();
-		chaines.efface();
-	}
+    void reinitialise()
+    {
+        tableaux.reinitialise();
+        params_bruits.efface();
+        chaines.efface();
+    }
 };
 
 /* ************************************************************************** */
 
 struct ctx_exec {
-	/* Le corps dans notre contexte. */
-	dls::synchronise<Corps *> ptr_corps;
+    /* Le corps dans notre contexte. */
+    dls::synchronise<Corps *> ptr_corps{};
 
-	/* Le corps d'entrée */
-	Corps const *corps = nullptr;
+    /* Le corps d'entrée */
+    Corps const *corps = nullptr;
 
-	/* Le polyedre de notre corps */
-	Polyedre polyedre{};
+    /* Le polyedre de notre corps */
+    Polyedre polyedre{};
 
-	/* Le polyedre de notre corps */
-	arbre_3df arbre_kd{};
+    /* Le polyedre de notre corps */
+    arbre_3df arbre_kd{};
 
-	/* Toutes les images. */
-	dls::tableau<Image const *> images;
+    /* Toutes les images. */
+    dls::tableau<Image const *> images{};
 
-	/* Toutes les caméras. */
-	dls::tableau<vision::Camera3D const *> cameras;
+    /* Toutes les caméras. */
+    dls::tableau<vision::Camera3D const *> cameras{};
 
-	/* Toutes les courbes couleur. */
-	dls::tableau<CourbeCouleur const *> courbes_couleur;
+    /* Toutes les courbes couleur. */
+    dls::tableau<CourbeCouleur const *> courbes_couleur{};
 
-	/* Toutes les courbes valeur. */
-	dls::tableau<CourbeBezier const *> courbes_valeur;
+    /* Toutes les courbes valeur. */
+    dls::tableau<CourbeBezier const *> courbes_valeur{};
 
-	/* Toutes les rampes couleur. */
-	dls::tableau<RampeCouleur const *> rampes_couleur;
+    /* Toutes les rampes couleur. */
+    dls::tableau<RampeCouleur const *> rampes_couleur{};
 
-	/* Toutes les chaines. */
-	dls::tableau<dls::chaine> chaines;
+    /* Toutes les chaines. */
+    dls::tableau<dls::chaine> chaines{};
 
-	/* Si contexte topologie primitive. */
-	//dls::tableau<Corps const *> corps_entrees;
+    /* Si contexte topologie primitive. */
+    // dls::tableau<Corps const *> corps_entrees;
 
-	COPIE_CONSTRUCT(ctx_exec);
+    ctx_exec() = default;
+    COPIE_CONSTRUCT(ctx_exec);
 
-	void reinitialise()
-	{
-		ptr_corps = nullptr;
-		images.efface();
-		cameras.efface();
-		courbes_couleur.efface();
-		courbes_valeur.efface();
-		rampes_couleur.efface();
-	}
+    void reinitialise()
+    {
+        ptr_corps = nullptr;
+        images.efface();
+        cameras.efface();
+        courbes_couleur.efface();
+        courbes_valeur.efface();
+        rampes_couleur.efface();
+    }
 };
 
-}  /* namespace lcc */
+} /* namespace lcc */

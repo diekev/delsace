@@ -24,134 +24,164 @@
 
 #include "commandes_edition.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QKeyEvent>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
 #include "danjo/danjo.h"
 #include "danjo/manipulable.h"
 
 #include "biblinternes/outils/fichier.hh"
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
+#include "commande_jorjala.hh"
 
-#include "coeur/composite.h"
-#include "coeur/evenement.h"
+//#include "coeur/composite.h"
 #include "coeur/jorjala.hh"
-#include "coeur/nuanceur.hh"
-#include "coeur/operatrice_image.h"
+//#include "coeur/nuanceur.hh"
+//#include "coeur/operatrice_image.h"
 
-#include "evaluation/evaluation.hh"
+// #include "evaluation/evaluation.hh"
+
+#include "entreface/gestion_entreface.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
-class CommandeAjouterPropriete final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-		auto graphe = jorjala->graphe;
+class CommandeAjouterPropriete final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		if (graphe->noeud_actif == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
+        auto graphe = jorjala.donne_graphe();
 
-		danjo::Manipulable resultat;
-		danjo::DonneesInterface donnees_entreface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
+        if (graphe.donne_noeud_actif() == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto ok = gestionnaire->montre_dialogue_fichier(
-					donnees_entreface,
-					"entreface/ajouter_propriete.jo");
+        danjo::Manipulable resultat;
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
 
-		if (!ok) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        auto ok = gestionnaire->montre_dialogue_fichier(donnees_entreface,
+                                                        "entreface/ajouter_propriete.jo");
 
-		auto noeud = graphe->noeud_actif;
-		auto operatrice = extrait_opimage(noeud->donnees);
+        if (!ok) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto attache = resultat.evalue_chaine("attache_propriete");
-		auto type = resultat.evalue_enum("type_propriete");
+        auto attache = resultat.evalue_chaine("attache_propriete");
+        auto type = resultat.evalue_enum("type_propriete");
 
-		if (attache == "") {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        if (attache == "") {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		danjo::Propriete prop;
+        danjo::Propriete prop;
 
-		if (type == "entier") {
-			prop.type = danjo::TypePropriete::ENTIER;
-			prop.valeur = 0;
-		}
-		else {
-			prop.type = danjo::TypePropriete::DECIMAL;
-			prop.valeur = 0.0f;
-		}
+        if (type == "entier") {
+            prop.type_ = danjo::TypePropriete::ENTIER;
+            prop.valeur = 0;
+        }
+        else {
+            prop.type_ = danjo::TypePropriete::DECIMAL;
+            prop.valeur = 0.0f;
+        }
 
+#if 0  // À FAIRE
+        auto noeud = graphe.noeud_actif;
+        auto operatrice = extrait_opimage(noeud->donnees);
 		operatrice->ajoute_propriete_extra(attache, prop);
+#endif
 
-		jorjala->notifie_observatrices(type_evenement::propriete | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouterComposite final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+class CommandeAjouterComposite final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		jorjala->bdd.cree_composite("composite");
-
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+        jorjala.crée_racine_composite("composite");
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouterNuanceur final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+class CommandeAjouterNuanceur final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		jorjala->bdd.cree_nuanceur("nuanceur");
-
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+#if 0  // À FAIRE
+        jorjala.bdd.cree_nuanceur("nuanceur");
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-struct CommandeCreeNuanceurOperatrice final : public Commande {
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto graphe = jorjala->graphe;
+class CommandeAjouterNuanceurCycles final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		if (graphe->noeud_actif == nullptr) {
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+#if 0  // À FAIRE
+        auto nuanceur = jorjala.bdd.cree_nuanceur("nuanceur");
+		nuanceur->marque_est_cycles();
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+struct CommandeCreeNuanceurOperatrice final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+#if 0  // À FAIRE
+        auto graphe = jorjala.graphe();
+
+        if (graphe.noeud_actif() == nullptr) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto noeud = graphe->noeud_actif;
+        auto noeud = graphe.noeud_actif();
 
 		if (noeud->type != type_noeud::OPERATRICE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -164,15 +194,10 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 		}
 
 		auto resultat = danjo::Manipulable();
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
+        auto gestionnaire = gestionnaire_danjo(jorjala);
 
-		auto donnees_entreface = danjo::DonneesInterface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
-
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-
-		auto ok = gestionnaire->montre_dialogue_fichier(
+        auto ok = gestionnaire->montre_dialogue_fichier(
 					donnees_entreface,
 					"entreface/dialogue_creation_nuanceur.jo");
 
@@ -181,7 +206,7 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 		}
 
 		auto nom_nuanceur = resultat.evalue_chaine("nom_nuanceur");
-		auto nuanceur = jorjala->bdd.cree_nuanceur(nom_nuanceur);
+        auto nuanceur = jorjala.bdd.cree_nuanceur(nom_nuanceur);
 
 		op->valeur_chaine("nom_nuanceur", nuanceur->noeud.nom);
 
@@ -196,153 +221,156 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 			oper->amont_change(prise);
 		});
 
-		op->parametres_changes();
-
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+        op->parametres_changes();
 
 		requiers_evaluation(*jorjala, PARAMETRE_CHANGE, "réponse commande ajout nuanceur opératrice");
+#endif
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouterRendu final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+class CommandeAjouterRendu final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		jorjala->bdd.cree_rendu("rendu");
-
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+#if 0  // À FAIRE
+        jorjala.bdd.cree_rendu("rendu");
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeDefait final : public Commande {
-public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
-	{
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		return !jorjala->pile_defait.est_vide();
-	}
+class CommandeDefait final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
-	{
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		jorjala->defait();
-		jorjala->notifie_observatrices(type_evenement::rafraichissement);
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
+    {
+        INUTILISE(metadonnee);
+        return jorjala.possède_changement_à_défaire();
+    }
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
+    {
+        INUTILISE(metadonnee);
+        jorjala.défait_changement();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeRefait final : public Commande {
-public:
-	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
-	{
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		return !jorjala->pile_refait.est_vide();
-	}
+class CommandeRefait final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
-	{
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		jorjala->refait();
-		jorjala->notifie_observatrices(type_evenement::rafraichissement);
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala, dls::chaine const &metadonnee) override
+    {
+        INUTILISE(metadonnee);
+        return jorjala.possède_changement_à_refaire();
+    }
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
+    {
+        INUTILISE(metadonnee);
+        jorjala.refait_changement();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeRenomme final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
-	{
-		INUTILISE(metadonnee);
-		auto jorjala = extrait_jorjala(pointeur);
-		auto gestionnaire = jorjala->gestionnaire_entreface;
-		auto graphe = jorjala->graphe;
+class CommandeRenomme final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-		if (graphe->noeud_actif == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &metadonnee) override
+    {
+        INUTILISE(metadonnee);
+        auto graphe = jorjala.donne_graphe();
 
-		auto noeud = graphe->noeud_actif;
+        if (graphe.donne_noeud_actif() == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto resultat = danjo::Manipulable();
-		resultat.ajoute_propriete("nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud->nom);
+        auto noeud = graphe.donne_noeud_actif();
 
-		danjo::DonneesInterface donnees_entreface{};
-		donnees_entreface.conteneur = nullptr;
-		donnees_entreface.repondant_bouton = jorjala->repondant_commande();
-		donnees_entreface.manipulable = &resultat;
+        auto resultat = danjo::Manipulable();
+        resultat.ajoute_propriete("nouveau_nom",
+                                  danjo::TypePropriete::CHAINE_CARACTERE,
+                                  noeud.donne_nom().vers_std_string());
 
-		auto ok = gestionnaire->montre_dialogue_fichier(
-					donnees_entreface,
-					"entreface/dialogue_renommage.jo");
+        auto donnees_entreface = cree_donnees_interface_danjo(jorjala, &resultat);
+        auto gestionnaire = donne_gestionnaire_danjo(jorjala);
 
-		if (!ok) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+        auto ok = gestionnaire->montre_dialogue_fichier(donnees_entreface,
+                                                        "entreface/dialogue_renommage.jo");
 
+        if (!ok) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+#if 0  // À FAIRE
 		auto nom = resultat.evalue_chaine("nouveau_nom");
-		noeud->nom = graphe->rend_nom_unique(nom);
-
-		jorjala->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        noeud->nom = graphe.rend_nom_unique(nom);
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_edition(UsineCommande &usine)
 {
-	usine.enregistre_type("ajouter_propriete",
-						   description_commande<CommandeAjouterPropriete>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_propriete",
+                          description_commande<CommandeAjouterPropriete>("", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_composite",
-						   description_commande<CommandeAjouterComposite>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_composite",
+                          description_commande<CommandeAjouterComposite>("", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_nuanceur",
-						   description_commande<CommandeAjouterNuanceur>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_nuanceur",
+                          description_commande<CommandeAjouterNuanceur>("", 0, 0, 0, false));
 
-	usine.enregistre_type("crée_nuanceur_opératrice",
-						   description_commande<CommandeCreeNuanceurOperatrice>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_nuanceur_cycles",
+                          description_commande<CommandeAjouterNuanceurCycles>("", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_rendu",
-						   description_commande<CommandeAjouterRendu>(
-							   "", 0, 0, 0, false));
+    usine.enregistre_type(
+        "crée_nuanceur_opératrice",
+        description_commande<CommandeCreeNuanceurOperatrice>("", 0, 0, 0, false));
 
-	usine.enregistre_type("défait",
-						   description_commande<CommandeDefait>(
-							   "", 0, Qt::Modifier::CTRL, Qt::Key_Z, false));
+    usine.enregistre_type("ajouter_rendu",
+                          description_commande<CommandeAjouterRendu>("", 0, 0, 0, false));
 
-	usine.enregistre_type("refait",
-						   description_commande<CommandeRefait>(
-							   "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false));
+    usine.enregistre_type(
+        "défait",
+        description_commande<CommandeDefait>("", 0, Qt::Modifier::CTRL, Qt::Key_Z, false, false));
 
-	usine.enregistre_type("renomme",
-						   description_commande<CommandeRenomme>(
-							   "graphe", 0, 0, Qt::Key_F2, false));
+    usine.enregistre_type(
+        "refait",
+        description_commande<CommandeRefait>(
+            "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false, false));
+
+    usine.enregistre_type(
+        "renomme", description_commande<CommandeRenomme>("graphe", 0, 0, Qt::Key_F2, false));
 }
 
 #pragma clang diagnostic pop

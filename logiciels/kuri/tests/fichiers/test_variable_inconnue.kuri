@@ -1,0 +1,22 @@
+// -----------------------------------
+// Cas : La variable itérable d'une boucle 'pour' ne peut être utilisée après la boucle
+
+principale :: fonc () -> z32
+{
+	pour i dans 0...10 {
+		a := i;
+	}
+
+	a := i;
+
+	retourne 0;
+}
+
+// -----------------------------------
+// Cas : Une variable indéfinie ne peut être utilisée
+
+principale :: fonc () -> z32
+{
+    a := comte;
+    retourne 0;
+}

@@ -24,15 +24,37 @@
 
 #pragma once
 
+#include <optional>
+
 #include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/programme.h"
 #include "biblinternes/ego/texture.h"
+
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
+#include "biblinternes/phys/couleur.hh"
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class AtlasTexture;
 class ContexteRendu;
+
+/* ------------------------------------------------------------------------- */
+/** \name SourcesGLSL
+ * \{ */
+
+struct SourcesGLSL {
+    dls::chaine vertex{};
+    dls::chaine fragment{};
+};
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_texte(dls::chaine const &vertex, dls::chaine const &fragment);
+
+std::optional<SourcesGLSL> crée_sources_glsl_depuis_fichier(dls::chaine const &fichier_vertex,
+                                                            dls::chaine const &fichier_fragment);
+
+/** \} */
 
 /* ************************************************************************** */
 
@@ -192,6 +214,8 @@ class TamponRendu {
 public:
 	~TamponRendu();
 
+    static std::unique_ptr<TamponRendu> crée_unique(SourcesGLSL const &sources);
+
 	/**
 	 * Charge les sources du programme de tampon pour le type de programme
 	 * spécifié (VERTEX, FRAGMENT, GEOMETRY, etc...).
@@ -319,3 +343,92 @@ void supprime_tampon_rendu(TamponRendu *tampon);
  * a été utilisé pour créer les tampons en premier lieu.
  */
 void purge_tous_les_tampons();
+
+/* ------------------------------------------------------------------------- */
+/** \name Remplissage de TamponRendu.
+ * \{ */
+
+template <typename T>
+struct nombre_de_dimensions;
+
+template <>
+struct nombre_de_dimensions<dls::math::vec2f> {
+    static constexpr int valeur = 2;
+};
+
+template <>
+struct nombre_de_dimensions<dls::math::vec3f> {
+    static constexpr int valeur = 3;
+};
+
+template <>
+struct nombre_de_dimensions<dls::math::vec4f> {
+    static constexpr int valeur = 4;
+};
+
+template <>
+struct nombre_de_dimensions<dls::phys::couleur32> {
+    static constexpr int valeur = 4;
+};
+
+template <typename T>
+static void remplis_tampon_principal(TamponRendu *tampon,
+                                     dls::chaine const &nom,
+                                     dls::tableau<T> &valeurs)
+{
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = nom;
+    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
+    parametres_tampon.pointeur_sommets = valeurs.donnees();
+    parametres_tampon.taille_octet_sommets = static_cast<size_t>(valeurs.taille()) * sizeof(T);
+    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
+
+    tampon->remplie_tampon(parametres_tampon);
+}
+
+template <typename T, typename TypeIndex>
+static void remplis_tampon_principal(TamponRendu *tampon,
+                                     dls::chaine const &nom,
+                                     dls::tableau<T> &valeurs,
+                                     dls::tableau<TypeIndex> &index)
+{
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = nom;
+    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
+    parametres_tampon.pointeur_sommets = valeurs.donnees();
+    parametres_tampon.taille_octet_sommets = static_cast<size_t>(valeurs.taille()) * sizeof(T);
+
+    if (index.est_vide()) {
+        parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
+    }
+    else {
+        parametres_tampon.pointeur_index = index.donnees();
+        parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) *
+                                               sizeof(TypeIndex);
+        parametres_tampon.elements = static_cast<size_t>(index.taille());
+    }
+
+    tampon->remplie_tampon(parametres_tampon);
+}
+
+template <typename T>
+static void remplis_tampon_extra(TamponRendu *tampon,
+                                 dls::chaine const &nom,
+                                 dls::tableau<T> &valeurs)
+{
+    ParametresTampon parametres_tampon;
+    parametres_tampon.attribut = nom;
+    parametres_tampon.dimension_attribut = nombre_de_dimensions<T>::valeur;
+    parametres_tampon.pointeur_donnees_extra = valeurs.donnees();
+    parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(valeurs.taille()) *
+                                                   sizeof(T);
+    parametres_tampon.elements = static_cast<size_t>(valeurs.taille());
+
+    tampon->remplie_tampon_extra(parametres_tampon);
+}
+
+void remplis_tampon_instances(TamponRendu *tampon,
+                              dls::chaine const &nom,
+                              dls::tableau<dls::math::mat4x4f> &matrices);
+
+/** \} */

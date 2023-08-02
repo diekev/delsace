@@ -1,0 +1,19 @@
+/* Crash si « nul » est retourné pour une union qui possède un membre de type pointeur. */
+
+importe Fondation
+
+optionnel :: fonc () -> Optionnel(*z32)
+{
+    retourne nul
+}
+
+principale :: fonc () -> z32
+{
+    opt := optionnel()
+
+    saufsi opt.possède_valeur() {
+        retourne 1
+    }
+
+    retourne 0
+}

@@ -1,0 +1,283 @@
+importe Math
+
+/**
+ * Fonctions communes pour mélanger des images.
+ *
+ * Référence pour les mélanges utilisant le canal alpha :
+ * « Compositing Digital Images », Porter & Duff
+ * http://graphics.pixar.com/library/Compositing/paper.pdf
+ *
+ * Les fonctions ont la forme (A, a, B, b), où
+ * - A est une valeur (R, V, ou B) du premier pixel
+ * - a est l'alpha du premier pixel
+ * - B est une valeur (R, V, ou B) du second pixel
+ * - b est l'alpha du second pixel
+ *
+ * Toutes les fonctions n'utilise pas tous les paramètres,
+ * nous les conservons afin d'avoir la même interface pour
+ * toutes les fonctions, simplifiant ainsi l'application
+ * de ces opérations dans une boucle générique.
+ */
+
+enhaut :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	retourne A * b + B * (1.0 - a)
+}
+
+moyenne :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne (A + B) * 0.5
+}
+
+densite_couleur_pos :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+    si B == 0.0 {
+        retourne 0.0
+    }
+
+	retourne max(1.0 - ((1.0 - A) / B), 0.0)
+}
+
+densite_couleur_neg :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+    si B >= 1.0 {
+        retourne 1.0
+    }
+	retourne min(A / (1.0 - B), 1.0)
+}
+
+dessus_conjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	si (a > b || b == 0.0) {
+		retourne A
+	}
+
+	retourne A + B * (1.0 - a) / b
+}
+
+copie :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32 @inutilisée) -> r32
+{
+	retourne A
+}
+
+différence :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne abs(A - B)
+}
+
+dessus_disjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	si (a + b < 1.0) {
+		retourne A + B
+	}
+
+	retourne A + B * (1.0 - a) / b
+}
+
+divise :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	si (A < 0.0 || B <= 0.0) {
+		retourne 0.0
+	}
+
+	retourne A / B
+}
+
+exclus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne A + B - 2.0 * A * B
+}
+
+depuis :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne B - A
+}
+
+géométrique :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne (2.0 * A * B) / (A + B)
+}
+
+hypothénuse :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne racine_carrée(A * A + B * B)
+}
+
+dedans :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32) -> r32
+{
+	retourne A * b
+}
+
+masque :: fonc (A: r32 @inutilisée, a: r32, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne B * a
+}
+
+matte :: fonc (A: r32, a: r32, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne A * a + B * (1.0 - a)
+}
+
+max :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne max(A, B)
+}
+
+min :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne min(A, B)
+}
+
+moins :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne A - B
+}
+
+multiplie :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	si (A < 0.0 && B < 0.0) {
+		retourne A
+	}
+
+	retourne A * B
+}
+
+dehors :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32) -> r32
+{
+	retourne A * (1.0 - b)
+}
+
+dessus :: fonc (A: r32, a: r32, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne A + B * (1.0 - a)
+}
+
+plus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne A + B
+}
+
+écran :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	si (0.0 <= A <= 1.0) && (0.0 <= B <= 1.0) {
+		retourne A + B - A * B
+	}
+
+	si (A > B) {
+		retourne A
+	}
+
+	retourne B
+}
+
+lumiere_douce :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+{
+	AB := A * B
+
+	si (AB < 1.0) {
+		retourne B * (2.0 * A + (B * (1.0 - AB)))
+	}
+
+	retourne 2.0 * AB
+}
+
+pochoir :: fonc (A: r32 @inutilisée, a: r32, B: r32, b: r32 @inutilisée) -> r32
+{
+	retourne B * (1.0 - a)
+}
+
+dessous :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32) -> r32
+{
+	retourne A * (1.0 - b) + B
+}
+
+ou_exclusif :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	retourne A * (1.0 - b) + B * (1.0 - a)
+}
+
+lumiere_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	si (A < 0.5) {
+		retourne multiplie(A, a, B, b)
+	}
+
+	retourne écran(A, a, B, b)
+}
+
+superpose :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+{
+	si (B < 0.5) {
+		retourne multiplie(A, a, B, b)
+	}
+
+	retourne écran(A, a, B, b)
+}
+
+OpérationMélange :: énum {
+    Copie
+    Dedans
+    DensitéCouleurPositive
+    DensitéCouleurNégative
+    Dehors
+    Dessous
+    Dessus
+    DessusConjoint
+    DessusDisjoint
+    Différence
+    Divise
+    Écran
+    Enhaut
+    Exclus
+    Depuis
+    Géométrique
+    LumièreDouce
+    LumièreDure
+    Hypothénuse
+    Masque
+    Matte
+    Maximum
+    Minimum
+    Moins
+    Moyenne
+    Multiplie
+    DisjonctionExclusive
+    Plus
+    Pochoir
+    Superpose
+}
+
+TypeFonction :: fonc(r32, r32, r32, r32)(r32)
+
+fonctions_de_mélange : [OpérationMélange.nombre_éléments]TypeFonction = [
+    copie,
+    dedans,
+    densite_couleur_pos,
+    densite_couleur_neg,
+    dehors,
+    dessous,
+    dessus,
+    dessus_conjoint,
+    dessus_disjoint,
+    différence,
+    divise,
+    écran,
+    enhaut,
+    exclus,
+    depuis,
+    géométrique,
+    lumiere_douce,
+    lumiere_dure,
+    hypothénuse,
+    masque,
+    matte,
+    max,
+    min,
+    moins,
+    moyenne,
+    multiplie,
+    ou_exclusif,
+    plus,
+    pochoir,
+    superpose
+]

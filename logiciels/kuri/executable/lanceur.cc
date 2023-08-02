@@ -1,606 +1,680 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
-#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <thread>
 
-#ifdef AVEC_LLVM
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/InitializePasses.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetOptions.h>
-#include <llvm/Transforms/InstCombine/InstCombine.h>
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Transforms/Scalar/GVN.h>
-#pragma GCC diagnostic pop
-#endif
+#include "compilation/compilatrice.hh"
+#include "compilation/coulisse_llvm.hh"
+#include "compilation/environnement.hh"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/tacheronne.hh"
 
-#include "compilation/analyseuse_grammaire.h"
-#include "compilation/assembleuse_arbre.h"
-#include "compilation/contexte_generation_code.h"
-#include "compilation/decoupeuse.h"
-#include "compilation/erreur.h"
-#include "compilation/modules.hh"
-
-#include "options.hh"
+#include "statistiques/statistiques.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/outils/format.hh"
-#include "biblinternes/outils/tableau_donnees.hh"
+#include "biblinternes/langage/unicode.hh"
 
-#ifdef AVEC_LLVM
-static void initialise_llvm()
-{
-	if (llvm::InitializeNativeTarget()
-			|| llvm::InitializeNativeTargetAsmParser()
-			|| llvm::InitializeNativeTargetAsmPrinter())
-	{
-		std::cerr << "Ne peut pas initialiser LLVM !\n";
-		exit(EXIT_FAILURE);
-	}
+#include "structures/chemin_systeme.hh"
 
-	/* Initialise les passes. */
-	auto &registre = *llvm::PassRegistry::getPassRegistry();
-	llvm::initializeCore(registre);
-	llvm::initializeScalarOpts(registre);
-	llvm::initializeObjCARCOpts(registre);
-	llvm::initializeVectorization(registre);
-	llvm::initializeIPO(registre);
-	llvm::initializeAnalysis(registre);
-	llvm::initializeTransformUtils(registre);
-	llvm::initializeInstCombine(registre);
-	llvm::initializeInstrumentation(registre);
-	llvm::initializeTarget(registre);
-
-	/* Pour les passes de transformation de code, seuls celles d'IR à IR sont
-	 * supportées. */
-	llvm::initializeCodeGenPreparePass(registre);
-	llvm::initializeAtomicExpandPass(registre);
-	llvm::initializeWinEHPreparePass(registre);
-	llvm::initializeDwarfEHPreparePass(registre);
-	llvm::initializeSjLjEHPreparePass(registre);
-	llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
-	llvm::initializeGlobalMergePass(registre);
-	llvm::initializeInterleavedAccessPass(registre);
-	llvm::initializeUnreachableBlockElimLegacyPassPass(registre);
-}
-
-static void issitialise_llvm()
-{
-	llvm::llvm_shutdown();
-}
+#define AVEC_THREADS
 
 /**
- * Ajoute les passes d'optimisation au ménageur en fonction du niveau
- * d'optimisation.
+ * Fonction de rappel pour les fils d'exécutions.
  */
-static void ajoute_passes(
-		llvm::legacy::FunctionPassManager &menageur_fonctions,
-		uint niveau_optimisation,
-		uint niveau_taille)
+static void lance_tacheronne(Tacheronne *tacheronne)
 {
-	llvm::PassManagerBuilder builder;
-	builder.OptLevel = niveau_optimisation;
-	builder.SizeLevel = niveau_taille;
-	builder.DisableUnrollLoops = (niveau_optimisation == 0);
-
-	/* À FAIRE : enlignage. */
-
-	/* Pour plus d'informations sur les vectoriseurs, suivre le lien :
-	 * http://llvm.org/docs/Vectorizers.html */
-	builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-	builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-
-	builder.populateFunctionPassManager(menageur_fonctions);
+    tacheronne->gere_tache();
 }
 
-/**
- * Initialise le ménageur de passes fonctions du contexte selon le niveau
- * d'optimisation.
- */
-static void initialise_optimisation(
-		NiveauOptimisation optimisation,
-		ContexteGenerationCode &contexte)
+#if 0
+static void valide_blocs_modules(EspaceDeTravail const &espace)
 {
-	if (contexte.menageur_fonctions == nullptr) {
-		contexte.menageur_fonctions = new llvm::legacy::FunctionPassManager(contexte.module_llvm);
-	}
+	POUR_TABLEAU_PAGE (espace.graphe_dependance->noeuds) {
+		if (it.type != TypeNoeudDependance::FONCTION) {
+			continue;
+		}
 
-	switch (optimisation) {
-		case NiveauOptimisation::Aucun:
-			break;
-		case NiveauOptimisation::O0:
-			ajoute_passes(*contexte.menageur_fonctions, 0, 0);
-			break;
-		case NiveauOptimisation::O1:
-			ajoute_passes(*contexte.menageur_fonctions, 1, 0);
-			break;
-		case NiveauOptimisation::O2:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 0);
-			break;
-		case NiveauOptimisation::Os:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 1);
-			break;
-		case NiveauOptimisation::Oz:
-			ajoute_passes(*contexte.menageur_fonctions, 2, 2);
-			break;
-		case NiveauOptimisation::O3:
-			ajoute_passes(*contexte.menageur_fonctions, 3, 0);
-			break;
-	}
-}
+		auto noeud = it.noeud_syntaxique;
 
-static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
-{
-	auto chemin_sortie = "/tmp/kuri.o";
-	std::error_code ec;
+		auto fichier = espace.fichier(noeud->lexeme->fichier);
+		auto module = fichier->module;
 
-	llvm::raw_fd_ostream dest(chemin_sortie, ec, llvm::sys::fs::F_None);
+		auto bloc = noeud->bloc_parent;
 
-	if (ec) {
-		std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
-		return false;
-	}
+		while (bloc->bloc_parent) {
+			bloc = bloc->bloc_parent;
+		}
 
-	llvm::legacy::PassManager pass;
-	auto type_fichier = llvm::TargetMachine::CGFT_ObjectFile;
-
-	if (machine_cible->addPassesToEmitFile(pass, dest, type_fichier)) {
-		std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
-		return false;
-	}
-
-	pass.run(module);
-	dest.flush();
-
-	return true;
-}
-
-static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
-{
-	/* Compile le fichier objet qui appelera 'fonction principale'. */
-	if (!std::filesystem::exists("/tmp/execution_kuri.o")) {
-		auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
-
-		dls::flux_chaine ss;
-		ss << "as -o /tmp/execution_kuri.o ";
-		ss << chemin_execution_S;
-
-		auto err = system(ss.chn().c_str());
-
-		if (err != 0) {
-			std::cerr << "Ne peut pas créer /tmp/execution_kuri.o !\n";
-			return;
+		if (module->bloc != bloc) {
+			std::cerr << "Une fonction n'est pas le bon bloc parent !\n";
 		}
 	}
+}
 
-	if (!std::filesystem::exists("/tmp/kuri.o")) {
-		std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
-		return;
-	}
-
-	dls::flux_chaine ss;
-	ss << "ld ";
-	/* ce qui chargera le programme */
-	ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
-	ss << "-m elf_x86_64 ";
-	ss << "--hash-style=gnu ";
-	ss << "-lc ";
-	ss << "/tmp/execution_kuri.o ";
-	ss << "/tmp/kuri.o ";
-	ss << "-o " << dest;
-
-	auto err = system(ss.chn().c_str());
-
-	if (err != 0) {
-		std::cerr << "Ne peut pas créer l'executable !\n";
+static void valide_blocs_modules(Compilatrice &compilatrice)
+{
+	POUR_TABLEAU_PAGE ((*compilatrice.espaces_de_travail.verrou_lecture())) {
+		valide_blocs_modules(it);
 	}
 }
 #endif
 
-static void imprime_stats(
-		std::ostream &os,
-		Metriques const &metriques,
-		OptionsCompilation const &ops,
-		dls::chrono::compte_seconde debut_compilation)
+/**
+ * Imprime les fichiers utilisés dans le fichier spécifié via la ligne de commande.
+ */
+static void imprime_fichiers_utilises(Compilatrice &compilatrice)
 {
-	auto const temps_total = debut_compilation.temps();
+    auto chemin = vers_std_path(compilatrice.arguments.chemin_fichier_utilises);
+    if (chemin.empty()) {
+        return;
+    }
 
-	auto const temps_scene = metriques.temps_tampon
-							 + metriques.temps_decoupage
-							 + metriques.temps_analyse
-							 + metriques.temps_chargement
-							 + metriques.temps_validation;
+    std::ofstream fichier_sortie(chemin);
 
-	auto const temps_coulisse = metriques.temps_generation
-								+ metriques.temps_fichier_objet
-								+ metriques.temps_executable;
-
-	auto const temps_aggrege = temps_scene + temps_coulisse + metriques.temps_nettoyage;
-
-	auto calc_pourcentage = [&](const double &x, const double &total)
-	{
-		return (x * 100.0 / total);
-	};
-
-	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
-							+ metriques.memoire_arbre
-							+ metriques.memoire_contexte;
-
-	auto memoire_consommee = memoire::consommee();
-
-	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
-	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
-	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
-	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
-	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
-
-	auto tableau = Tableau({ "Nom", "Valeur", "Unité", "Pourcentage" });
-	tableau.alignement(1, Alignement::DROITE);
-	tableau.alignement(3, Alignement::DROITE);
-
-	tableau.ajoute_ligne({ "Temps total", formatte_nombre(temps_total * 1000.0), "ms" });
-	tableau.ajoute_ligne({ "Temps aggrégé", formatte_nombre(temps_aggrege * 1000.0), "ms" });
-	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(metriques.nombre_modules), "" });
-	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(metriques.nombre_lignes), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde", formatte_nombre(debit_lignes), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
-	tableau.ajoute_ligne({ "Débit de lignes par seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
-	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
-
-	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
-	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_morceaux), "" });
-	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
-
-	tableau.ajoute_ligne({ "Mémoire", "", "" });
-	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
-	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
-	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
-	tableau.ajoute_ligne({ "- Morceaux", formatte_nombre(metriques.memoire_morceaux), "o" });
-	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
-	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
-
-	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
-	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
-	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
-	tableau.ajoute_ligne({ "- Découpage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
-	tableau.ajoute_ligne({ "- Analyse", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
-	tableau.ajoute_ligne({ "- Validation", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
-
-	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
-	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
-	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(metriques.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse)) });
-	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(metriques.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_executable, temps_coulisse)) });
-
-	tableau.ajoute_ligne({ "Temps Nettoyage", formatte_nombre(metriques.temps_nettoyage * 1000.0), "ms" });
-
-	imprime_tableau(tableau);
-
-	if (ops.imprime_taille_memoire_objet) {
-		imprime_taille_memoire_noeud(os);
-	}
-
-	return;
+    POUR_TABLEAU_PAGE (compilatrice.sys_module->fichiers) {
+        fichier_sortie << it.chemin() << "\n";
+    }
 }
 
-static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
+static void rassemble_statistiques(Compilatrice &compilatrice,
+                                   Statistiques &stats,
+                                   kuri::tableau<Tacheronne *> const &tacheronnes)
 {
-	auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-	auto chemin_objet = "/tmp/r16_tables.o";
+    if (!compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+        return;
+    }
 
-	if (std::filesystem::exists(chemin_objet)) {
-		return;
-	}
+    POUR (tacheronnes) {
+        stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
+        stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, it->temps_fichier_objet);
+        stats.temps_generation_code = std::max(stats.temps_generation_code,
+                                               it->temps_generation_code);
+        stats.temps_ri = std::max(stats.temps_ri, it->constructrice_ri.temps_generation);
+        stats.temps_lexage = std::max(stats.temps_lexage, it->temps_lexage);
+        stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
+        stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
+        stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
+        stats.temps_chargement = std::max(stats.temps_chargement, it->temps_chargement);
+        stats.temps_tampons = std::max(stats.temps_tampons, it->temps_tampons);
 
-	auto commande = dls::chaine("g++ -c ");
-	commande += chemin_fichier.c_str();
-	commande += " -o /tmp/r16_tables.o";
+        it->constructrice_ri.rassemble_statistiques(stats);
+        it->allocatrice_noeud.rassemble_statistiques(stats);
 
-	std::cout << "Compilation des tables de conversion R16...\n";
-	std::cout << "Exécution de la commande " << commande << std::endl;
+        it->mv.rassemble_statistiques(stats);
 
-	auto err = system(commande.c_str());
+        // std::cerr << "tâcheronne " << it->id << " a dormis pendant " <<
+        // it->temps_passe_a_dormir << "ms\n";
 
-	if (err != 0) {
-		std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
-		return;
-	}
+#ifdef STATISTIQUES_DETAILLEES
+        if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
+            it->stats_typage.imprime_stats();
+        }
+#endif
+    }
 
-	std::cout << "Compilation réussie !" << std::endl;
+    compilatrice.rassemble_statistiques(stats);
+
+    stats.memoire_ri = stats.stats_ri.totaux.memoire;
+}
+
+static void imprime_stats(Compilatrice const &compilatrice,
+                          Statistiques const &stats,
+                          dls::chrono::compte_seconde debut_compilation)
+{
+    if (!compilatrice.espace_de_travail_defaut->options.emets_metriques) {
+        return;
+    }
+
+    imprime_stats(stats, debut_compilation);
+    compilatrice.gestionnaire_code->imprime_stats();
+#ifdef STATISTIQUES_DETAILLEES
+    imprime_stats_detaillee(stats);
+#endif
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name Parsage des arguments de compilation.
+ * \{ */
+
+class ParseuseArguments {
+  private:
+    int m_argc = 0;
+    char **m_argv = nullptr;
+    int m_index = 0;
+
+  public:
+    ParseuseArguments(int argc, char **argv, int index)
+        : m_argc(argc), m_argv(argv), m_index(index)
+    {
+    }
+
+    ParseuseArguments(ParseuseArguments const &) = delete;
+    ParseuseArguments &operator=(ParseuseArguments const &) = delete;
+
+    bool a_consommé_tous_les_arguments() const
+    {
+        return m_index >= m_argc;
+    }
+
+    std::optional<kuri::chaine_statique> donne_argument_suivant()
+    {
+        if (a_consommé_tous_les_arguments()) {
+            return {};
+        }
+
+        return kuri::chaine_statique(m_argv[m_index++]);
+    }
+};
+
+enum class ActionParsageArgument : uint8_t {
+    CONTINUE,
+    ARRÊTE_POUR_AIDE,
+    ARRÊTE_CAR_ERREUR,
+    DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES,
+};
+
+using TypeFonctionGestionArgument = ActionParsageArgument (*)(ParseuseArguments &,
+                                                              ArgumentsCompilatrice &);
+
+struct DescriptionArgumentCompilation {
+    kuri::chaine_statique nom = "";
+    kuri::chaine_statique nom_court = "";
+    kuri::chaine_statique nom_pour_aide = "";
+    kuri::chaine_statique description_pour_aide = "";
+    TypeFonctionGestionArgument fonction{};
+};
+
+static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
+                                                ArgumentsCompilatrice & /*résultat*/);
+
+static ActionParsageArgument gère_argument_pour_métaprogrammes(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/);
+
+static ActionParsageArgument gère_argument_emets_fichiers_utilises(
+    ParseuseArguments &parseuse, ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
+                                                 ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
+                                                          ArgumentsCompilatrice &résultat);
+
+static DescriptionArgumentCompilation descriptions_arguments[] = {
+    {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
+    {"--",
+     "",
+     "",
+     "Débute la liste des arguments pour les métaprogrammes",
+     gère_argument_pour_métaprogrammes},
+    {"--tests",
+     "-t",
+     "--tests, -t",
+     "Active la compilation et l'exécution des directives #test",
+     gère_argument_tests},
+    {"--emets_fichiers_utilises",
+     "",
+     "--emets_fichiers_utilises [FICHIER]",
+     "Imprime, à la fin de la compilation, la liste des fichiers utilisés dans le fichier "
+     "spécifié",
+     gère_argument_emets_fichiers_utilises},
+    {"--profile_exécution",
+     "",
+     "",
+     "Active le profilage des métaprogrammes. Émets un fichier pouvant être lu avec "
+     "speedscope.app",
+     gère_argument_profile_exécution},
+    {"--format_profile",
+     "",
+     "--format_profile {défaut|gregg|échantillons_totaux}",
+     "Définit le format du fichier de profilage",
+     gère_argument_format_profile},
+    {"--débogue_exécution",
+     "",
+     "",
+     "Ajoute des instructions de débogage aux métaprogrammes afin de pouvoir détecter des "
+     "erreurs",
+     gère_argument_débogue_exécution},
+};
+
+static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
+    kuri::chaine_statique nom)
+{
+    POUR (descriptions_arguments) {
+        if (it.nom == nom || it.nom_court == nom) {
+            return it;
+        }
+    }
+
+    return {};
+}
+
+static kuri::chaine_statique donne_nom_pour_aide(DescriptionArgumentCompilation const &desc)
+{
+    if (desc.nom_pour_aide.taille() > 0) {
+        return desc.nom_pour_aide;
+    }
+
+    return desc.nom;
+}
+
+static int calcule_taille_utf8(kuri::chaine_statique chaine)
+{
+    int résultat = 0;
+    for (auto i = 0l; i < chaine.taille();) {
+        auto n = lng::nombre_octets(&chaine.pointeur()[i]);
+        résultat += 1;
+        i += n;
+    }
+    return résultat;
+}
+
+static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
+                                                ArgumentsCompilatrice & /*résultat*/)
+{
+    int taille_max_nom_pour_aide = 0;
+    POUR (descriptions_arguments) {
+        auto nom = donne_nom_pour_aide(it);
+        auto const taille = calcule_taille_utf8(nom);
+        if (taille > taille_max_nom_pour_aide) {
+            taille_max_nom_pour_aide = taille;
+        }
+    }
+
+    std::cout << "Utilisation : kuri [options...] FICHIER\n";
+    std::cout << "Options :\n";
+
+    POUR (descriptions_arguments) {
+        auto nom = donne_nom_pour_aide(it);
+        std::cout << "\t" << nom;
+
+        auto const taille_nom = calcule_taille_utf8(nom);
+        auto const taille_restante = taille_max_nom_pour_aide - taille_nom;
+        auto const taille_marge = taille_restante + 2;
+
+        for (int i = 0; i < taille_marge; i++) {
+            std::cout << ' ';
+        }
+
+        std::cout << it.description_pour_aide << ".\n";
+    }
+
+    return ActionParsageArgument::ARRÊTE_POUR_AIDE;
+}
+
+static ActionParsageArgument gère_argument_pour_métaprogrammes(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/)
+{
+    return ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES;
+}
+
+static ActionParsageArgument gère_argument_emets_fichiers_utilises(ParseuseArguments &parseuse,
+                                                                   ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        std::cerr << "Argument manquant après --emets_fichiers_utilises\n";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+    résultat.chemin_fichier_utilises = arg.value();
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse*/,
+                                                 ArgumentsCompilatrice &résultat)
+{
+    résultat.active_tests = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat)
+{
+    résultat.profile_metaprogrammes = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArguments & /*parseuse*/,
+                                                             ArgumentsCompilatrice &résultat)
+{
+    résultat.debogue_execution = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
+                                                          ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        std::cerr << "Argument manquant après --format_profile\n";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+
+    if (arg.value() == "défaut" || arg.value() == "gregg") {
+        résultat.format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "échantillons_totaux") {
+        résultat.format_rapport_profilage =
+            FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    std::cerr << "Type de format de profile \"" << arg.value() << "\" inconnu\n";
+    return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+}
+
+static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)
+{
+    if (argc < 2) {
+        std::cerr << "Utilisation : " << argv[0] << " [options...] FICHIER\n";
+        return {};
+    }
+
+    auto resultat = ArgumentsCompilatrice();
+    auto arguments_pour_métaprogrammes = false;
+
+    auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
+
+    while (true) {
+        auto arg = parseuse_arguments.donne_argument_suivant();
+        if (!arg.has_value()) {
+            break;
+        }
+
+        if (arguments_pour_métaprogrammes) {
+            resultat.arguments_pour_métaprogrammes.ajoute(arg.value());
+            continue;
+        }
+
+        auto desc = donne_description_pour_arg(arg.value());
+        if (!desc.has_value()) {
+            if (parseuse_arguments.a_consommé_tous_les_arguments()) {
+                /* C'est peut-être le fichier, ce cas est géré en dehors de cet fonction. */
+                return resultat;
+            }
+
+            std::cerr << "Argument '" << arg.value() << "' inconnu. Arrêt de la compilation.\n";
+            return {};
+        }
+
+        if (!desc->fonction) {
+            std::cerr << "Erreur interne : l'argument '" << arg.value()
+                      << "' ne peut être géré. Arrêt de la compilation.\n";
+            return {};
+        }
+
+        auto action = desc->fonction(parseuse_arguments, resultat);
+        switch (action) {
+            case ActionParsageArgument::CONTINUE:
+            {
+                break;
+            }
+            case ActionParsageArgument::ARRÊTE_POUR_AIDE:
+            {
+                /* L'aide a été imprimée. */
+                exit(0);
+            }
+            case ActionParsageArgument::ARRÊTE_CAR_ERREUR:
+            {
+                return {};
+            }
+            case ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES:
+            {
+                arguments_pour_métaprogrammes = true;
+                break;
+            }
+        }
+    }
+
+    return resultat;
+}
+
+/** \} */
+
+static bool compile_fichier(Compilatrice &compilatrice,
+                            kuri::chaine_statique chemin_fichier,
+                            std::ostream &os)
+{
+    auto debut_compilation = dls::chrono::compte_seconde();
+
+    /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
+    if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {
+        return false;
+    }
+
+    /* Initialise les bibliothèques après avoir généré les objets r16. */
+    if (!GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(compilatrice)) {
+        return false;
+    }
+
+    /* Crée les tâches pour les données requise de la typeuse. */
+    Typeuse::crée_tâches_précompilation(compilatrice);
+
+    /* enregistre le dossier d'origine */
+    auto dossier_origine = kuri::chemin_systeme::chemin_courant();
+
+    auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
+
+    auto nom_fichier = chemin.nom_fichier_sans_extension();
+
+    /* Charge d'abord le module basique. */
+    auto espace_defaut = compilatrice.espace_de_travail_defaut;
+
+    auto dossier = chemin.chemin_parent();
+    kuri::chemin_systeme::change_chemin_courant(dossier);
+
+    os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
+       << std::endl;
+
+    auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier);
+    compilatrice.module_racine_compilation = module;
+    compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
+
+#ifdef AVEC_THREADS
+    auto nombre_tacheronnes = std::thread::hardware_concurrency();
+
+    kuri::tableau<Tacheronne *> tacheronnes;
+    tacheronnes.reserve(nombre_tacheronnes);
+
+    for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+        tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+    }
+
+    // pour le moment, une seule tacheronne peut exécuter du code
+    tacheronnes[0]->drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
+    tacheronnes[1]->drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+
+    for (auto i = 2u; i < nombre_tacheronnes; ++i) {
+        tacheronnes[i]->drapeaux = DrapeauxTacheronne(0);
+    }
+
+    auto drapeaux = DrapeauxTacheronne::PEUT_LEXER | DrapeauxTacheronne::PEUT_PARSER |
+                    DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE;
+
+    for (auto i = 0u; i < nombre_tacheronnes; ++i) {
+        tacheronnes[i]->drapeaux |= drapeaux;
+    }
+
+    kuri::tableau<std::thread *> threads;
+    threads.reserve(nombre_tacheronnes);
+
+    POUR (tacheronnes) {
+        threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+    }
+
+    POUR (threads) {
+        it->join();
+        memoire::deloge("std::thread", it);
+    }
+#else
+    auto tacheronne = Tacheronne(compilatrice);
+    auto tacheronne_mp = Tacheronne(compilatrice);
+
+    tacheronne.drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
+    tacheronne_mp.drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
+
+    lance_tacheronne(&tacheronne);
+    lance_tacheronne(&tacheronne_mp);
+#endif
+
+    if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
+        auto fichier_chaines = std::ofstream(".chaines_ajoutées");
+        compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
+    }
+
+    /* restore le dossier d'origine */
+    kuri::chemin_systeme::change_chemin_courant(dossier_origine);
+
+    if (compilatrice.possede_erreur()) {
+        return false;
+    }
+
+    imprime_fichiers_utilises(compilatrice);
+
+    auto stats = Statistiques();
+    rassemble_statistiques(compilatrice, stats, tacheronnes);
+
+    imprime_stats(compilatrice, stats, debut_compilation);
+
+    os << "Nettoyage..." << std::endl;
+
+    POUR (tacheronnes) {
+        memoire::deloge("Tacheronne", it);
+    }
+
+    return true;
+}
+
+/* Détermine si la racine d'exécution est valide : que les dossiers que nous y espérons se trouver
+ * s'y trouvent. Si un dossier est manquant, son chemin sera retourné. En cas de racine valide la
+ * valeur optionnelle sera elle invalide. */
+static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
+    kuri::chaine_statique racine)
+{
+    /* Certains dossiers qui doivent être dans une installation valide de Kuri. */
+    const kuri::chaine_statique dossiers[] = {"fichiers", "modules", "modules/Kuri"};
+
+    POUR (dossiers) {
+        auto const chemin_dossier = kuri::chemin_systeme(racine) / it;
+        /* Si le dossier n'existe pas, le test échouera. */
+        if (!kuri::chemin_systeme::est_dossier(chemin_dossier)) {
+            return chemin_dossier;
+        }
+    }
+
+    return {};
+}
+
+/* Tente de déterminer la racine depuis le système. */
+static std::optional<kuri::chaine> détermine_chemin_exécutable()
+{
+    /* Tente de déterminer la racine depuis le système. */
+    char tampon[1024];
+    ssize_t len = readlink("/proc/self/exe", tampon, 1024);
+    if (len < 0) {
+        return {};
+    }
+    return kuri::chaine(&tampon[0], len);
+}
+
+/* Détermine le chemin racine d'exécution de Kuri. Ceci est nécessaire puisque les modules de la
+ * bibliothèque standarde sont stockés à coté de l'exécutable.
+ *
+ * Pour les développeurs, il est possible de définir la variable d'environnement « RACINE_KURI »
+ * pour pointer vers la racine d'installation de Kuri, afin que le dossier de travail puisse être
+ * différent de celui de l'installation.
+ *
+ * https://stackoverflow.com/questions/65548404/finding-path-of-execution-of-c-program
+ */
+static std::optional<kuri::chaine> determine_racine_execution_kuri()
+{
+    auto opt_chemin_executable = détermine_chemin_exécutable();
+    if (!opt_chemin_executable.has_value()) {
+        std::cerr
+            << "Impossible de déterminer la racine d'exécution de Kuri depuis le système !\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    /* Ici nous avons le chemin complet vers l'exécutable, pour la racine il nous faut le chemin
+     * parent. */
+    auto chemin_executable = opt_chemin_executable.value();
+    auto racine = kuri::chemin_systeme(kuri::chemin_systeme(chemin_executable).chemin_parent());
+
+    /* Vérifie que nous avons tous les dossiers. Si oui, nous sommes sans doute à la bonne adresse.
+     */
+    auto dossier_manquant = dossier_manquant_racine_execution(racine);
+    if (!dossier_manquant) {
+        return kuri::chaine(racine);
+    }
+
+    /* Essayons alors la variable d'environnement. */
+    auto racine_env = getenv("RACINE_KURI");
+    if (racine_env == nullptr) {
+        std::cerr
+            << "Impossible de déterminer la racine d'exécution de Kuri depuis l'environnement !\n";
+        std::cerr << "Veuillez vous assurer que RACINE_KURI fait partie de l'environnement "
+                     "d'exécution et pointe vers une installation valide de Kuri.\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    racine = kuri::chemin_systeme(racine_env);
+    dossier_manquant = dossier_manquant_racine_execution(racine);
+
+    if (dossier_manquant.has_value()) {
+        std::cerr << "Racine d'exécution de Kuri invalide !\n";
+        std::cerr << "Le dossier \"" << dossier_manquant.value() << "\" n'existe pas !\n";
+        std::cerr << "Veuillez vérifier que votre installation est correcte.\n";
+        std::cerr << "NOTE : le chemin racine utilisé provient de la variable d'environnement « "
+                     "RACINE_KURI ».\n";
+        std::cerr << "Compilation avortée.\n";
+        return {};
+    }
+
+    return kuri::chaine(racine);
 }
 
 int main(int argc, char *argv[])
 {
-	std::ios::sync_with_stdio(false);
+    std::ios::sync_with_stdio(false);
 
-	auto const ops = genere_options_compilation(argc, argv);
+    auto const opt_racine_kuri = determine_racine_execution_kuri();
+    if (!opt_racine_kuri.has_value()) {
+        return 1;
+    }
 
-	if (ops.erreur) {
-		return 1;
-	}
+    auto const opt_arguments = parse_arguments(argc, argv);
+    if (!opt_arguments.has_value()) {
+        return 1;
+    }
 
-	auto const &chemin_racine_kuri = getenv("RACINE_KURI");
+    auto const chemin_fichier = argv[argc - 1];
+    if (!kuri::chemin_systeme::existe(chemin_fichier)) {
+        std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
+        return 1;
+    }
 
-	if (chemin_racine_kuri == nullptr) {
-		std::cerr << "Impossible de trouver le chemin racine de l'installation de kuri !\n";
-		std::cerr << "Possible solution : veuillez faire en sorte que la variable d'environnement 'RACINE_KURI' soit définie !\n";
-		return 1;
-	}
+    std::ostream &os = std::cout;
 
-	auto const chemin_fichier = ops.chemin_fichier;
+    auto compilatrice = Compilatrice(opt_racine_kuri.value(), opt_arguments.value());
 
-	if (chemin_fichier == nullptr) {
-		std::cerr << "Aucun fichier spécifié !\n";
-		return 1;
-	}
-
-	if (!std::filesystem::exists(chemin_fichier)) {
-		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
-		return 1;
-	}
-
-	std::ostream &os = std::cout;
-
-	auto resultat = 0;
-	auto debut_compilation   = dls::chrono::compte_seconde();
-	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
-	auto temps_fichier_objet = 0.0;
-	auto temps_executable    = 0.0;
-	auto est_errone = false;
-
-	auto metriques = Metriques{};
-
-	try {
-		precompile_objet_r16(chemin_racine_kuri);
-
-		/* enregistre le dossier d'origine */
-		auto dossier_origine = std::filesystem::current_path();
-
-		auto chemin = std::filesystem::path(chemin_fichier);
-
-		if (chemin.is_relative()) {
-			chemin = std::filesystem::absolute(chemin);
-		}
-
-		auto nom_fichier = chemin.stem();
-
-		auto contexte_generation = ContexteGenerationCode{};
-		contexte_generation.bit32 = ops.bit32;
-		auto assembleuse = assembleuse_arbre(contexte_generation);
-
-		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
-
-		/* Charge d'abord le module basique. */
-		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
-
-		/* Change le dossier courant et lance la compilation. */
-		auto dossier = chemin.parent_path();
-		std::filesystem::current_path(dossier);
-
-		auto module = contexte_generation.cree_module("", dossier.c_str());
-		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
-
-		if (ops.emet_arbre) {
-			assembleuse.imprime_code(os);
-		}
+    if (!compile_fichier(compilatrice, chemin_fichier, os)) {
+        return 1;
+    }
 
 #ifdef AVEC_LLVM
-		auto coulisse_LLVM = false;
-		if (coulisse_LLVM) {
-			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
-
-			initialise_llvm();
-
-			auto erreur = dls::chaine{""};
-			auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
-
-			if (!cible) {
-				std::cerr << erreur << '\n';
-				return 1;
-			}
-
-			auto CPU = "generic";
-			auto feature = "";
-			auto options_cible = llvm::TargetOptions{};
-			auto RM = llvm::Optional<llvm::Reloc::Model>();
-			auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-									 cible->createTargetMachine(
-										 triplet_cible, CPU, feature, options_cible, RM));
-
-			auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
-			module.setDataLayout(machine_cible->createDataLayout());
-			module.setTargetTriple(triplet_cible);
-
-			contexte_generation.module_llvm = &module;
-
-			initialise_optimisation(ops.optimisation, contexte_generation);
-
-			os << "Génération du code..." << std::endl;
-			assembleuse.genere_code_llvm(contexte_generation);
-			mem_arbre = assembleuse.memoire_utilisee();
-			nombre_noeuds = assembleuse.nombre_noeuds();
-
-			if (ops.emet_code_intermediaire) {
-				std::cerr <<  "------------------------------------------------------------------\n";
-				module.print(llvm::errs(), nullptr);
-				std::cerr <<  "------------------------------------------------------------------\n";
-			}
-
-			/* définition du fichier de sortie */
-			if (ops.emet_fichier_objet) {
-				os << "Écriture du code dans un fichier..." << std::endl;
-				auto debut_fichier_objet = dls::chrono::maintenant();
-				if (!ecris_fichier_objet(machine_cible.get(), module)) {
-					resultat = 1;
-				}
-				temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
-
-				auto debut_executable = dls::chrono::maintenant();
-				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
-				temps_executable = dls::chrono::delta(debut_executable);
-			}
-		}
-		else
-#endif
-		{
-			os << "Génération du code..." << std::endl;
-
-			std::ofstream of;
-			of.open("/tmp/compilation_kuri.c");
-
-			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
-
-			of.close();
-
-			auto debut_fichier_objet = dls::chrono::compte_seconde();
-			auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
-
-			/* désactivation des erreurs concernant le manque de "const" quand
-			 * on passe des variables générés temporairement par la coulisse à
-			 * des fonctions qui dont les paramètres ne sont pas constants */
-			commande += "-Wno-discarded-qualifiers ";
-
-			switch (ops.optimisation) {
-				case NiveauOptimisation::Aucun:
-				case NiveauOptimisation::O0:
-				{
-					commande += "-O0 ";
-					break;
-				}
-				case NiveauOptimisation::O1:
-				{
-					commande += "-O1 ";
-					break;
-				}
-				case NiveauOptimisation::O2:
-				{
-					commande += "-O2 ";
-					break;
-				}
-				case NiveauOptimisation::Os:
-				{
-					commande += "-Os ";
-					break;
-				}
-				/* Oz est spécifique à LLVM, prend O3 car c'est le plus élevé le
-				 * plus proche. */
-				case NiveauOptimisation::Oz:
-				case NiveauOptimisation::O3:
-				{
-					commande += "-O3 ";
-					break;
-				}
-			}
-
-			if (ops.bit32) {
-				commande += "-m32 ";
-			}
-
-			for (auto const &def : assembleuse.definitions) {
-				commande += " -D" + dls::chaine(def);
-			}
-
-			commande += " -o /tmp/compilation_kuri.o";
-
-			os << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-			auto err = system(commande.c_str());
-
-			temps_fichier_objet = debut_fichier_objet.temps();
-
-			if (err != 0) {
-				std::cerr << "Ne peut pas créer le fichier objet !\n";
-				est_errone = true;
-			}
-			else {
-				auto debut_executable = dls::chrono::compte_seconde();
-				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
-
-				for (auto const &bib : assembleuse.bibliotheques) {
-					commande += " -l" + dls::chaine(bib);
-				}
-
-				commande += " -o ";
-				commande += ops.chemin_sortie;
-
-				os << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-				err = system(commande.c_str());
-
-				if (err != 0) {
-					std::cerr << "Ne peut pas créer l'exécutable !\n";
-					est_errone = true;
-				}
-
-				temps_executable = debut_executable.temps();
-			}
-		}
-
-		/* restore le dossier d'origine */
-		std::filesystem::current_path(dossier_origine);
-
-		metriques = contexte_generation.rassemble_metriques();
-		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
-		metriques.memoire_arbre = assembleuse.memoire_utilisee();
-		metriques.nombre_noeuds = assembleuse.nombre_noeuds();
-		metriques.temps_executable = temps_executable;
-		metriques.temps_fichier_objet = temps_fichier_objet;
-
-		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = dls::chrono::compte_seconde();
-	}
-	catch (const erreur::frappe &erreur_frappe) {
-		std::cerr << erreur_frappe.message() << '\n';
-		est_errone = true;
-	}
-
-	metriques.temps_nettoyage = debut_nettoyage.temps();
-
-	if (!est_errone) {
-		imprime_stats(os, metriques, ops, debut_compilation);
-	}
-
-#ifdef AVEC_LLVM
-	issitialise_llvm();
+    issitialise_llvm();
 #endif
 
-	return resultat;
+    return static_cast<int>(compilatrice.code_erreur());
 }

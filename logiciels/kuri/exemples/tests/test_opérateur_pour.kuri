@@ -1,0 +1,96 @@
+importe Fondation
+importe Introspection
+importe Math
+
+/* ------------------------------------------------------------------- */
+
+Tablet :: struct {
+    données: [6]z32
+}
+
+crée_tablet :: fonc () -> Tablet
+{
+    résultat : Tablet
+    pour & résultat.données {
+        it = (index_it * 3) comme z32
+    }
+    retourne résultat
+}
+
+opérateur pour :: fonc (tablet: Tablet) -> z32
+{
+    pour donnée, index dans tablet.données {
+        `it = donnée
+        `index_it = index
+
+        #corps_boucle
+    }
+}
+
+test_boucle_tablet :: fonc ()
+{
+    imprime("------------------- Boucle pour Tablet\n")
+
+    tablet := crée_tablet()
+    pour tablet {
+        si it == 9 {
+            continue
+        }
+
+        imprime("% %\n", it, index_it)
+    }
+}
+
+/* ------------------------------------------------------------------- */
+
+DonnéesMembreStructure :: struct {
+    valeur: eini
+    nom: chaine
+}
+
+opérateur pour :: fonc (itératrice: ItératriceMembreStructure) -> DonnéesMembreStructure
+{
+    index := 0
+
+    boucle {
+        membre, nom := itératrice.membre_suivant()
+
+        saufsi membre.est_valide() {
+            arrête
+        }
+
+        données := DonnéesMembreStructure(membre, nom)
+
+        `it = données
+        `index_it = index
+
+        index += 1
+
+        #corps_boucle
+    }
+}
+
+test_boucle_introspection :: fonc ()
+{
+    imprime("------------------- Boucle pour Introspection\n")
+
+    valeur := Vec3(1.0, 2.0, 3.0)
+
+    pour crée_itératrice_membre(valeur) {
+        imprime("% : %\n", it.nom, it.valeur)
+
+        /* Les boucles avec opérateur dans les boucles avec opérateurs fonctionnent. */
+        pour données dans crée_itératrice_membre(valeur) {
+            imprime("-- % : %\n", données.nom, données.valeur)
+        }
+    }
+}
+
+/* ------------------------------------------------------------------- */
+
+principale :: fonc () -> z32
+{
+    test_boucle_tablet()
+    test_boucle_introspection()
+    retourne 0
+}

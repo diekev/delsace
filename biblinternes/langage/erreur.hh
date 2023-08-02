@@ -26,46 +26,85 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-namespace dls {
-struct flux_chaine;
-}
+#include "unicode.hh"
 
 namespace lng::erreur {
 
-template <typename type_erreur>
+template <typename TypeErreur, typename TypeChaine>
 class frappe {
-	dls::chaine m_message;
-	type_erreur m_type;
+	TypeChaine m_message;
+	TypeErreur m_type;
 
 public:
-	frappe(const char *message, type_erreur type)
+	frappe(const TypeChaine &message, TypeErreur type)
 		: m_message(message)
 		, m_type(type)
 	{}
 
-	type_erreur type() const
+	frappe(TypeChaine &&message, TypeErreur type)
+		: m_message(std::move(message))
+		, m_type(type)
+	{}
+
+	TypeErreur type() const
 	{
 		return m_type;
 	}
 
-	const char *message() const
+	const TypeChaine &message() const
 	{
-		return m_message.c_str();
+		return m_message;
 	}
 };
 
 /* Fonctions communes de formattage d'erreurs. */
+template <typename Flux>
+void imprime_caractere_vide(Flux &os, const int64_t nombre, const dls::vue_chaine &chaine)
+{
+	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
+     * de chaque point de code pour bien formater l'erreur. */
+    for (auto i = int64_t(0); i < std::min(nombre, chaine.taille());) {
+		if (chaine[i] == '\t') {
+			os << '\t';
+		}
+		else {
+			os << ' ';
+		}
 
-void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine);
+		i += lng::decalage_pour_caractere(chaine, i);
+	}
+}
 
-void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine);
+template <typename Flux>
+void imprime_tilde(Flux &os, const dls::vue_chaine &chaine)
+{
+    for (auto i = int64_t(0); i < chaine.taille() - 1;) {
+		os << '~';
+		i += lng::decalage_pour_caractere(chaine, i);
+	}
+}
 
-void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin);
+template <typename Flux>
+void imprime_tilde(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
+{
+	for (auto i = debut; i < fin;) {
+		os << '~';
+		i += lng::decalage_pour_caractere(chaine, i);
+	}
+}
 
-void imprime_ligne_entre(
-		dls::flux_chaine &os,
-		const dls::vue_chaine &chaine,
-		long debut,
-		long fin);
+template <typename Flux>
+void imprime_ligne_entre(Flux &os, const dls::vue_chaine &chaine, int64_t debut, int64_t fin)
+{
+	for (auto i = debut; i < fin; ++i) {
+		os << chaine[i];
+	}
+}
+
+template <typename Flux>
+void imprime_tilde(Flux &ss, dls::vue_chaine_compacte chaine)
+{
+	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
+}
 
 }  /* namespace lng::erreur */

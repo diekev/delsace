@@ -1,0 +1,16 @@
+// exception en point flottant quand une structure n'a pas de membre, autre que d'autres structures
+
+importe Fondation
+
+Structure :: struct {
+    SousStructure :: struct {
+        z: r32
+    }
+}
+
+principale :: fonc () -> z32
+{
+    s : Structure
+    imprime("taille_de(Structure) : %\n", taille_de(type_de(s)))
+    retourne 0
+}

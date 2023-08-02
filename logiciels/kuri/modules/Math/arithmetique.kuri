@@ -1,0 +1,418 @@
+// À FAIRE : implémente les fonctions suivantes avec notre langage
+
+libcmath :: #bibliothèque "m"
+
+sqrt :: fonc (v: r64) -> r64 #externe libcmath
+cos :: fonc (a : r64) -> r64 #externe libcmath
+sin :: fonc (a : r64) -> r64 #externe libcmath
+tan :: fonc (a : r64) -> r64 #externe libcmath
+acos :: fonc (a : r64) -> r64 #externe libcmath
+asin :: fonc (a : r64) -> r64 #externe libcmath
+asinf :: fonc (a : r32) -> r32 #externe libcmath
+atan :: fonc (a : r64) -> r64 #externe libcmath
+atan2 :: fonc (a : r64, b: r64) -> r64 #externe libcmath
+pow :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+ceil :: fonc (a: r64) -> r64 #externe libcmath
+floor :: fonc (a: r64) -> r64 #externe libcmath
+copysign :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+log :: fonc (a: r64) -> r64 #externe libcmath
+exp :: fonc (a: r64) -> r64 #externe libcmath
+roundf :: fonc (a: r32) -> r32 #externe libcmath
+fmod :: fonc (a: r64, b: r64) -> r64 #externe libcmath
+fmodf :: fonc (a: r32, b: r32) -> r32 #externe libcmath
+
+mod :: fonc (a: r32, b: r32) -> r32 #enligne
+{
+    retourne fmodf(a, b)
+}
+
+mod :: fonc (a: r64, b: r32) -> r64 #enligne
+{
+    retourne fmod(a, b)
+}
+
+exp :: fonc (a: r32) -> r32
+{
+    retourne exp(a comme r64) comme r32
+}
+
+log :: fonc (a: r32) -> r32
+{
+    retourne log(a comme r64) comme r32
+}
+
+plancher :: fonc (a: r32) -> r32
+{
+    retourne floor(a) comme r32
+}
+
+plancher :: fonc (a: r64) -> r64
+{
+    retourne floor(a)
+}
+
+plafond :: fonc (a: r32) -> r32
+{
+    retourne ceil(a) comme r32
+}
+
+plafond :: fonc (a: r64) -> r64
+{
+    retourne ceil(a)
+}
+
+cosinus :: fonc (a: r32) -> r32
+{
+    retourne cos(a) comme r32
+}
+
+cosinus :: fonc (a: r64) -> r64
+{
+    retourne cos(a)
+}
+
+sinus :: fonc (a: r32) -> r32
+{
+    retourne sin(a) comme r32
+}
+
+sinus :: fonc (a: r64) -> r64
+{
+    retourne sin(a)
+}
+
+arcsinus :: fonc (a: r32) -> r32
+{
+    retourne asinf(a)
+}
+
+arcsinus_borné :: fonc (a: r32) -> r32 #enligne
+{
+    si a <= -1.0 {
+        retourne -Constantes(r32).PI_2
+    }
+    si a >= 1.0 {
+        retourne Constantes(r32).PI_2
+    }
+    retourne asinf(a)
+}
+
+arcsinus_borné :: fonc (a: r64) -> r64 #enligne
+{
+    si a <= -1.0 {
+        retourne -Constantes(r64).PI_2
+    }
+    si a >= 1.0 {
+        retourne Constantes(r64).PI_2
+    }
+    retourne asin(a)
+}
+
+atan2 :: fonc (a: r32, b: r32) -> r32
+{
+    retourne atan2(a comme r64, b comme r64) comme r32
+}
+
+puissance :: fonc (v: r32, exp: r32) -> r32
+{
+    retourne pow(v, exp) comme r32
+}
+
+puissance :: fonc (v: r64, exp: r64) -> r64
+{
+    retourne pow(v, exp)
+}
+
+copie_signe :: fonc (a: r32, b: r32) -> r32
+{
+    retourne copysign(a, b) comme r32
+}
+
+copie_signe :: fonc (a: r64, b: r64) -> r64
+{
+    retourne copysign(a, b)
+}
+
+racine :: fonc (a: $T, index: T) -> T
+{
+    si index <= 0 {
+        retourne 0
+    }
+
+    retourne puissance(a, 1.0 / index)
+}
+
+// calcul d'une racine carré d'un nombre réel selon la méthode approximative de Newton
+racine_carrée :: fonc (n: r32) -> r32
+{
+    retourne racine_carrée(n comme r64) comme r32
+}
+
+racine_carrée :: fonc (n: r64) -> r64
+{
+    retourne sqrt(n)
+    /*
+    si n == 0.0 {
+        retourne 0.0
+    }
+
+    si n == 1.0 {
+        retourne 1.0
+    }
+
+    si n < 0.0 {
+        // À FAIRE: retourne NaN
+        retourne 0.0
+    }
+
+    PRÉCISION := 0.0001
+    limite_basse : r64
+    limite_haute : r64
+
+    si n < 1.0 {
+        limite_basse = n
+        limite_haute = 1.0
+    }
+    sinon {
+        limite_basse = 1.0
+        limite_haute = n
+    }
+
+    tantque (limite_haute - limite_basse) > PRÉCISION {
+        prédiction := (limite_basse + limite_haute) * 0.5
+
+        si (prédiction * prédiction) > n {
+            limite_haute = prédiction
+        }
+        sinon {
+            limite_basse = prédiction
+        }
+    }
+
+    retourne (limite_basse + limite_haute) * 0.5
+    */
+}
+
+racine_cubique :: fonc (n: r64) -> r64
+{
+    si n == 0.0 {
+        retourne 0.0
+    }
+
+    si n == 1.0 {
+        retourne 1.0
+    }
+
+    PRÉCISION := 0.00001
+    limite_basse : r64
+    limite_haute : r64
+
+    si n < 1.0 {
+        limite_basse = n
+        limite_haute = 1.0
+    }
+    sinon {
+        limite_basse = 1.0
+        limite_haute = n
+    }
+
+    tantque (limite_haute - limite_basse) > PRÉCISION {
+        prédiction := (limite_basse + limite_haute) * 0.5
+
+        si (prédiction * prédiction * prédiction) > n {
+            limite_haute = prédiction
+        }
+        sinon {
+            limite_basse = prédiction
+        }
+    }
+
+    retourne (limite_basse + limite_haute) * 0.5
+}
+
+// À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
+
+abs :: fonc(a : $T) -> T #enligne
+{
+    si a < 0 { retourne -a } sinon { retourne a; }
+	//retourne si a < 0 { -a } sinon { a }
+}
+
+min :: fonc(a : $T, b : T) -> T #enligne
+{
+    si a < b { retourne a; } sinon { retourne b; }
+	//retourne si a < b { a } sinon { b }
+}
+
+min :: fonc (val: $T, vals: ...T) -> T
+{
+    résultat := val
+
+    pour vals {
+        si it < résultat {
+            résultat = it
+        }
+    }
+
+    retourne résultat
+}
+
+max :: fonc(a : $T, b : T) -> T #enligne
+{
+    si a > b { retourne a; } sinon { retourne b; }
+	//retourne si a > b { a } sinon { b }
+}
+
+max :: fonc (val: $T, vals: ...T) -> T
+{
+    résultat := val
+
+    pour vals {
+        si it > résultat {
+            résultat = it
+        }
+    }
+
+    retourne résultat
+}
+
+restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
+{
+    si mémoire(x) <= min {
+        mémoire(x) = min;
+    }
+    si mémoire(x) >= max {
+        mémoire(x) = max;
+    }
+}
+
+// Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
+pgcd :: fonc(a : z32, b : z32) -> z32
+{
+	x := a
+	y := b
+
+	tantque y > 1 {
+		x = y
+		y = x % y
+	}
+
+	retourne x
+}
+
+// Trouve le plus petit commun multiple
+ppmc :: fonc(a : z32, b : z32) -> z32
+{
+	si a == 0 || b == 0 {
+		retourne 0
+	}
+
+	retourne abs(a * b) / pgcd(a, b)
+}
+
+surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne ((n + multiple - 1) / multiple) * multiple
+}
+
+sousarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
+{
+    retourne (n / multiple) * multiple
+}
+
+divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
+{
+    si dénominateur == 0 {
+        retourne 0
+    }
+
+    résultat := numérateur / dénominateur
+
+    si (numérateur % dénominateur) != 0 {
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+bit_est_actif :: fonc (n: n64, index_bit: n64) -> bool #enligne
+{
+    retourne (n & (1 << index_bit)) != 0
+}
+
+index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
+{
+    pour > 64 {
+        si bit_est_actif(v, it comme n64) {
+            retourne it comme n64
+        }
+    }
+
+    retourne 0
+}
+
+/* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
+exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
+{
+    début := index_premier_bit_actif_gauche(exp)
+    résultat : n64 = 1
+
+    pour début {
+        si bit_est_actif(exp, début - it) {
+            résultat *= résultat
+            résultat *= b
+        }
+        sinon {
+            résultat *= résultat
+        }
+
+        résultat %= mod
+    }
+
+    retourne résultat
+}
+
+bilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne x * 2.0 - 1.0
+}
+
+unilatéral_de :: fonc (x: r32) -> r32 #enligne
+{
+    retourne (x + 1.0) * 0.5
+}
+
+relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
+{
+    retourne 2.0 * (x comme r32 / taille comme r32) - 1.0
+}
+
+enveloppe :: fonc (v: r32) -> r32 #enligne
+{
+	v = mod(v, 1.0)
+	si v < 0.0 {
+		v += 1.0
+	}
+	retourne v
+}
+
+part_entière :: fonc (v: r32) -> z32 #enligne
+{
+	retourne v comme z32
+}
+
+part_réelle :: fonc (v: r32) -> r32 #enligne
+{
+	retourne v - part_entière(v) comme r32
+}
+
+restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
+{
+	si valeur <= min {
+		retourne min
+	}
+	si valeur < max {
+		retourne valeur
+	}
+	retourne max
+}

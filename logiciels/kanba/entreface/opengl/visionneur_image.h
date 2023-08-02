@@ -24,80 +24,67 @@
 
 #pragma once
 
-#include "biblinternes/ego/programme.h"
-#include "biblinternes/ego/tampon_objet.h"
-#include "biblinternes/ego/texture.h"
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/definitions.h"
 
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
-class Kanba;
-class VueCanevas;
+namespace KNB {
+struct Kanba;
+}
+
+class VueCanevas2D;
 
 /**
  * La classe VisionneurImage contient la logique pour dessiner une image 2D avec
  * OpenGL dans une instance de VueCanevas.
  */
 class VisionneurImage {
-	VueCanevas *m_parent;
+    VueCanevas2D *m_parent;
 
-	dls::ego::Programme m_program{};
-	dls::ego::TamponObjet::Ptr m_buffer;
-	dls::ego::Texture2D::Ptr m_texture;
+    std::unique_ptr<TamponRendu> m_tampon = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_arêtes = nullptr;
 
-	const float m_vertices[8] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f
-	};
+    int m_hauteur = 0;
+    int m_largeur = 0;
 
-	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
+    KNB::Kanba &m_kanba;
 
-	int m_hauteur = 0;
-	int m_largeur = 0;
+  public:
+    /**
+     * Empêche la construction d'un visionneur sans VueCanevas.
+     */
+    VisionneurImage() = delete;
 
-	Kanba *m_kanba;
+    EMPECHE_COPIE(VisionneurImage);
 
-public:
-	/**
-	 * Empêche la construction d'un visionneur sans VueCanevas.
-	 */
-	VisionneurImage() = delete;
+    /**
+     * Construit un visionneur avec un pointeur vers le VueCanevas parent.
+     */
+    explicit VisionneurImage(VueCanevas2D *parent, KNB::Kanba &kanba);
 
-	VisionneurImage(VisionneurImage const &) = default;
-	VisionneurImage &operator=(VisionneurImage const &) = default;
+    /**
+     * Détruit le visionneur image. Les tampons de rendus sont détruits, et
+     * utiliser cette instance après la destruction crashera le programme.
+     */
+    ~VisionneurImage() = default;
 
-	/**
-	 * Construit un visionneur avec un pointeur vers le VueCanevas parent.
-	 */
-	explicit VisionneurImage(VueCanevas *parent, Kanba *kanba);
+    /**
+     * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
+     * dans un contexte OpenGL valide.
+     */
+    void initialise();
 
-	/**
-	 * Détruit le visionneur image. Les tampons de rendus sont détruits, et
-	 * utiliser cette instance après la destruction crashera le programme.
-	 */
-	~VisionneurImage() = default;
+    /**
+     * Dessine l'image avec OpenGL.
+     */
+    void peint_opengl();
 
-	/**
-	 * Crée les différents tampons de rendus OpenGL. Cette méthode est à appeler
-	 * dans un contexte OpenGL valide.
-	 */
-	void initialise();
+    /**
+     * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
+     */
+    void redimensionne(int largeur, int hauteur);
 
-	/**
-	 * Dessine l'image avec OpenGL.
-	 */
-	void peint_opengl();
-
-	/**
-	 * Redimensionne le visionneur selon la largeur et la hauteur spécifiées.
-	 */
-	void redimensionne(int largeur, int hauteur);
-
-	/**
-	 * Charge l'image spécifiée dans le visionneur. Les données de l'image sont
-	 * copiées dans des tampons OpenGL pour le rendu.
-	 */
-	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
+    void charge_image();
 };

@@ -36,168 +36,178 @@ namespace danjo {
 /* ************************************************************************** */
 
 ItemArbreManip::ItemArbreManip(const Manipulable *manip, QTreeWidgetItem *parent)
-	: QTreeWidgetItem(parent)
-	, m_manipulable(manip)
+    : QTreeWidgetItem(parent), m_manipulable(manip)
 {
-	setText(0, "manip");
+    setText(0, "manip");
 }
 
 const Manipulable *ItemArbreManip::pointeur() const
 {
-	return m_manipulable;
+    return m_manipulable;
 }
 
 /* ************************************************************************** */
 
-TreeWidget::TreeWidget(QWidget *parent)
-	: QTreeWidget(parent)
+TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent)
 {
-	setIconSize(QSize(20, 20));
-	setAllColumnsShowFocus(true);
-	setAnimated(false);
-	setAutoScroll(false);
-	setUniformRowHeights(true);
-	setSelectionMode(SingleSelection);
-	setFocusPolicy(Qt::NoFocus);
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	setHeaderHidden(true);
-	setDragDropMode(NoDragDrop);
-	setDragEnabled(false);
+    setIconSize(QSize(20, 20));
+    setAllColumnsShowFocus(true);
+    setAnimated(false);
+    setAutoScroll(false);
+    setUniformRowHeights(true);
+    setSelectionMode(SingleSelection);
+    setFocusPolicy(Qt::NoFocus);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    setHeaderHidden(true);
+    setDragDropMode(NoDragDrop);
+    setDragEnabled(false);
 }
 
 /* ************************************************************************** */
 
-ControleProprieteListeManip::ControleProprieteListeManip(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_disp_horiz(new QHBoxLayout(this))
-	, m_disp_boutons(new QVBoxLayout())
-	, m_bouton_ajoute(new QPushButton("ajoute", this))
-	, m_bouton_enleve(new QPushButton("enlève", this))
-	, m_bouton_monte(new QPushButton("monte", this))
-	, m_bouton_descend(new QPushButton("descend", this))
-	, m_widget_arbre(new TreeWidget(this))
+ControleProprieteListeManip::ControleProprieteListeManip(BasePropriete *p,
+                                                         int temps,
+                                                         QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_disp_horiz(new QHBoxLayout(this)),
+      m_disp_boutons(new QVBoxLayout()), m_bouton_ajoute(new QPushButton("ajoute", this)),
+      m_bouton_enleve(new QPushButton("enlève", this)),
+      m_bouton_monte(new QPushButton("monte", this)),
+      m_bouton_descend(new QPushButton("descend", this)), m_widget_arbre(new TreeWidget(this))
 {
-	m_disp_boutons->addWidget(m_bouton_ajoute);
-	m_disp_boutons->addWidget(m_bouton_enleve);
-	m_disp_boutons->addWidget(m_bouton_monte);
-	m_disp_boutons->addWidget(m_bouton_descend);
-	m_disp_horiz->addWidget(m_widget_arbre);
-	m_disp_horiz->addLayout(m_disp_boutons);
+    m_disp_boutons->addWidget(m_bouton_ajoute);
+    m_disp_boutons->addWidget(m_bouton_enleve);
+    m_disp_boutons->addWidget(m_bouton_monte);
+    m_disp_boutons->addWidget(m_bouton_descend);
+    m_disp_horiz->addWidget(m_widget_arbre);
+    m_disp_horiz->addLayout(m_disp_boutons);
 
-	connect(m_bouton_ajoute, &QPushButton::clicked, this, &ControleProprieteListeManip::ajoute_manipulable);
-	connect(m_bouton_enleve, &QPushButton::clicked, this, &ControleProprieteListeManip::enleve_manipulable);
-	connect(m_bouton_monte,  &QPushButton::clicked, this, &ControleProprieteListeManip::monte_manipulable);
-	connect(m_bouton_descend, &QPushButton::clicked, this, &ControleProprieteListeManip::descend_manipulable);
+    connect(m_bouton_ajoute,
+            &QPushButton::clicked,
+            this,
+            &ControleProprieteListeManip::ajoute_manipulable);
+    connect(m_bouton_enleve,
+            &QPushButton::clicked,
+            this,
+            &ControleProprieteListeManip::enleve_manipulable);
+    connect(m_bouton_monte,
+            &QPushButton::clicked,
+            this,
+            &ControleProprieteListeManip::monte_manipulable);
+    connect(m_bouton_descend,
+            &QPushButton::clicked,
+            this,
+            &ControleProprieteListeManip::descend_manipulable);
 
-	connect(m_widget_arbre, &QTreeWidget::itemSelectionChanged, this, &ControleProprieteListeManip::repond_selection);
+    connect(m_widget_arbre,
+            &QTreeWidget::itemSelectionChanged,
+            this,
+            &ControleProprieteListeManip::repond_selection);
 
-	setLayout(m_disp_horiz);
+    setLayout(m_disp_horiz);
 }
 
 void ControleProprieteListeManip::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<ListeManipulable *>(donnees.pointeur);
-	init_arbre();
+    m_pointeur = static_cast<ListeManipulable *>(donnees.pointeur);
+    init_arbre();
 }
 
 void ControleProprieteListeManip::init_arbre()
 {
-	m_widget_arbre->clear();
+    m_widget_arbre->clear();
 
-	for (auto &manip : m_pointeur->manipulables) {
-		auto item = new ItemArbreManip(&manip);
+    for (auto &manip : m_pointeur->manipulables) {
+        auto item = new ItemArbreManip(&manip);
 
-		if (&manip == m_manipulable_courant) {
-			item->setSelected(true);
-		}
+        if (&manip == m_manipulable_courant) {
+            item->setSelected(true);
+        }
 
-		m_widget_arbre->addTopLevelItem(item);
-	}
+        m_widget_arbre->addTopLevelItem(item);
+    }
 
-	update();
+    update();
 }
 
 void ControleProprieteListeManip::ajoute_manipulable()
 {
-	std::cerr << __func__ << '\n';
-	Q_EMIT(precontrole_change());
-	m_pointeur->manipulables.pousse(Manipulable());
-	m_manipulable_courant = &m_pointeur->manipulables.back();
-	m_index_courant = m_pointeur->manipulables.taille() - 1;
+    std::cerr << __func__ << '\n';
+    émets_controle_changé_simple([this]() {
+        m_pointeur->manipulables.ajoute(Manipulable());
+        m_manipulable_courant = &m_pointeur->manipulables.back();
+        m_index_courant = m_pointeur->manipulables.taille() - 1;
 
-	init_arbre();
-
-	Q_EMIT(controle_change());
+        init_arbre();
+    });
 }
 
 void ControleProprieteListeManip::enleve_manipulable()
 {
-	Q_EMIT(precontrole_change());
-	std::cerr << __func__ << '\n';
-	auto index = m_index_courant;
+    std::cerr << __func__ << '\n';
+    émets_controle_changé_simple([this]() {
+        auto index = m_index_courant;
 
-	if (m_pointeur->manipulables.taille() == 0) {
-		return;
-	}
+        if (m_pointeur->manipulables.taille() == 0) {
+            return;
+        }
 
-	m_pointeur->manipulables.erase(m_pointeur->manipulables.debut() + index);
+        m_pointeur->manipulables.erase(m_pointeur->manipulables.debut() + index);
 
-	if (index >= m_pointeur->manipulables.taille()) {
-		m_index_courant = m_pointeur->manipulables.taille() - 1;
-	}
+        if (index >= m_pointeur->manipulables.taille()) {
+            m_index_courant = m_pointeur->manipulables.taille() - 1;
+        }
 
-	if (m_pointeur->manipulables.est_vide()) {
-		m_manipulable_courant = nullptr;
-	}
-	else {
-		m_manipulable_courant = &m_pointeur->manipulables[m_index_courant];
-	}
+        if (m_pointeur->manipulables.est_vide()) {
+            m_manipulable_courant = nullptr;
+        }
+        else {
+            m_manipulable_courant = &m_pointeur->manipulables[m_index_courant];
+        }
 
-	init_arbre();
-
-	Q_EMIT(controle_change());
+        init_arbre();
+    });
 }
 
 void ControleProprieteListeManip::monte_manipulable()
 {
-	std::cerr << __func__ << '\n';
-	init_arbre();
+    std::cerr << __func__ << '\n';
+    init_arbre();
 }
 
 void ControleProprieteListeManip::descend_manipulable()
 {
-	std::cerr << __func__ << '\n';
-	init_arbre();
+    std::cerr << __func__ << '\n';
+    init_arbre();
 }
 
 void ControleProprieteListeManip::repond_selection()
 {
-	std::cerr << __func__ << '\n';
-	auto items = m_widget_arbre->selectedItems();
+    std::cerr << __func__ << '\n';
+    auto items = m_widget_arbre->selectedItems();
 
-	if (items.size() != 1) {
-		return;
-	}
+    if (items.size() != 1) {
+        return;
+    }
 
-	auto item = items[0];
+    auto item = items[0];
 
-	auto item_manip = dynamic_cast<ItemArbreManip *>(item);
+    auto item_manip = dynamic_cast<ItemArbreManip *>(item);
 
-	if (!item_manip) {
-		return;
-	}
+    if (!item_manip) {
+        return;
+    }
 
-	auto index = 0;
+    auto index = 0;
 
-	for (auto &manip : m_pointeur->manipulables) {
-		if (&manip == item_manip->pointeur()) {
-			m_manipulable_courant = &manip;
-			m_index_courant = index;
-			break;
-		}
+    for (auto &manip : m_pointeur->manipulables) {
+        if (&manip == item_manip->pointeur()) {
+            m_manipulable_courant = &manip;
+            m_index_courant = index;
+            break;
+        }
 
-		++index;
-	}
+        ++index;
+    }
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

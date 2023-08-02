@@ -33,78 +33,71 @@
 
 namespace danjo {
 
-SelecteurFichier::SelecteurFichier(bool input, QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_line_edit(new QLineEdit(this))
-	, m_push_button(new QPushButton("Choisir Fichier", this))
-	, m_input(input)
+SelecteurFichier::SelecteurFichier(BasePropriete *p, int temps, bool input, QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_line_edit(new QLineEdit(this)), m_push_button(new QPushButton("Choisir Fichier", this)),
+      m_input(input)
 {
-	m_agencement->addWidget(m_line_edit);
-	m_agencement->addWidget(m_push_button);
+    m_agencement->addWidget(m_line_edit);
+    m_agencement->addWidget(m_push_button);
 
-	setLayout(m_agencement);
+    setLayout(m_agencement);
 
-	connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
+    connect(m_push_button, SIGNAL(clicked()), this, SLOT(setChoosenFile()));
 }
 
 void SelecteurFichier::setValue(const QString &text)
 {
-	m_line_edit->setText(text);
+    m_line_edit->setText(text);
 }
 
 void SelecteurFichier::setChoosenFile()
 {
-	QString chemin;
-	QString caption = "";
-	QString dir = "";
-	QString filtres = m_filtres;
+    QString chemin;
+    QString caption = "";
+    QString dir = "";
+    QString filtres = m_filtres;
 
-	if (m_input) {
-		chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
-	}
-	else {
-		chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
-	}
+    if (m_input) {
+        chemin = QFileDialog::getOpenFileName(this, caption, dir, filtres);
+    }
+    else {
+        chemin = QFileDialog::getSaveFileName(this, caption, dir, filtres);
+    }
 
-	if (!chemin.isEmpty()) {
-		m_line_edit->setText(chemin);
-		Q_EMIT(valeur_changee(chemin));
-	}
+    if (!chemin.isEmpty()) {
+        m_line_edit->setText(chemin);
+        Q_EMIT(valeur_changee(chemin));
+    }
 }
 
 void SelecteurFichier::ajourne_filtres(const QString &chaine)
 {
-	m_filtres = chaine;
+    m_filtres = chaine;
 }
 
-ControleProprieteFichier::ControleProprieteFichier(bool input, QWidget *parent)
-	: SelecteurFichier(input, parent)
-	, m_pointeur(nullptr)
+ControleProprieteFichier::ControleProprieteFichier(BasePropriete *p,
+                                                   int temps,
+                                                   bool input,
+                                                   QWidget *parent)
+    : SelecteurFichier(p, temps, input, parent)
 {
-	connect(this, &SelecteurFichier::valeur_changee, this, &ControleProprieteFichier::ajourne_valeur_pointee);
+    setValue(p->evalue_chaine(temps).c_str());
+    connect(this,
+            &SelecteurFichier::valeur_changee,
+            this,
+            &ControleProprieteFichier::ajourne_valeur_pointee);
 }
 
 void ControleProprieteFichier::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
-
-	if (donnees.initialisation) {
-		*m_pointeur = donnees.valeur_defaut;
-	}
-
-	setValue(m_pointeur->c_str());
-
-	setToolTip(donnees.infobulle.c_str());
-
-	ajourne_filtres(donnees.filtres.c_str());
+    ajourne_filtres(donnees.filtres.c_str());
 }
 
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)
 {
-	Q_EMIT(precontrole_change());
-	*m_pointeur = valeur.toStdString();
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple(
+        [this, &valeur]() { m_propriete->définis_valeur_chaine(valeur.toStdString().c_str()); });
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

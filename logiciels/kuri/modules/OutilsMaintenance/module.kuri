@@ -1,0 +1,295 @@
+/* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
+
+importe Fondation
+importe SysFichier
+importe Triage
+
+/* ------------------------------------------------------------------------- */
+/** \nom Données du fichier étant traité.
+ * \{ */
+
+DonnéesFichier :: struct {
+    /* Le chemin racine d'où est lancée l'exécution,
+     * par exemple le chemin passé dans la ligne de commande
+     * pour les programmes en ligne de commande. */
+    racine_exécution: CheminFichier
+    chemin: CheminFichier
+    lignes: []chaine
+
+    données_utilisateurs: eini
+
+    contenu: chaine
+    lignes_furent_modifiées := faux
+}
+
+détruit_données_fichier :: fonc (données: &DonnéesFichier)
+{
+    détruit_lignes(données)
+}
+
+détruit_lignes :: fonc (données: &DonnéesFichier)
+{
+    pour données.lignes {
+        si est_ligne_originelle(données, it) {
+            continue
+        }
+
+        déloge(it)
+    }
+
+    déloge(données.lignes)
+}
+
+/* Retourne vrai si la ligne provient du contenu du fichier. */
+est_ligne_originelle :: fonc (données: &DonnéesFichier, ligne: chaine) -> bool
+{
+    début_contenu := données.contenu.pointeur
+    fin_contenu := début_contenu + données.contenu.taille
+    /* fin_contenu se trouve un octet après la fin du contenu, donc nous devons
+     * faire une comparaison strictement inférieure. */
+    retourne début_contenu <= ligne.pointeur < fin_contenu
+}
+
+remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: []chaine)
+{
+    /* Supprime les vieilles lignes. */
+    détruit_lignes(données)
+
+    données.lignes = nouvelles_lignes
+    données.lignes_furent_modifiées = vrai
+}
+
+données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
+{
+    si données_fichier.données_utilisateurs.info != info_de(TypeDonnéesPersonnelles) {
+        retourne nul
+    }
+
+    retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles
+}
+
+/** } */
+
+tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
+{
+    résultat : []T
+
+    si début > fin {
+        retourne résultat
+    }
+
+    si début >= tableau.taille {
+        retourne résultat
+    }
+
+    si fin >= tableau.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = *tableau.pointeur[début]
+    résultat.taille = fin - début + 1
+    résultat.capacité = résultat.taille
+    retourne résultat
+}
+
+// -------------------------------------
+
+écris_lignes_dans_fichier :: fonc (chemin: CheminFichier, lignes: []chaine)
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour lignes {
+        ajoute_au_tampon(*enchaineuse, it, "\n")
+    }
+
+    raison : RaisonOuvertureFichier
+    raison.Écriture = vrai
+    raison.Troncage = vrai
+    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
+        imprime("Impossible d'ouvrir le fichier % : %\n", chemin, err)
+        retourne
+    }
+
+    _ := tente copie_enchaineuse_fichier(*enchaineuse, *fichier) piège err {
+        imprime("Impossible d'écrire le fichier: %\n", err)
+        retourne
+    }
+
+    tente ferme(*fichier) piège err {
+        imprime("Impossible de fermer le fichier %\n", err)
+        retourne
+    }
+}
+
+// -------------------------------------
+
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    contenu := contenu_fichier_texte(chemin.chn)
+    diffère déloge(contenu)
+
+    données: DonnéesFichier
+    données.racine_exécution = racine
+    données.lignes = divise(contenu, '\n')
+    données.chemin = chemin
+    données.données_utilisateurs = données_utilisateurs
+    données.contenu = contenu
+
+    pour rappels {
+        it(données)
+    }
+
+    si données.lignes_furent_modifiées {
+        écris_lignes_dans_fichier(chemin, données.lignes)
+    }
+
+    détruit_données_fichier(données)
+}
+
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    exploratrice := crée_exploratrice_fichier(racine)
+
+    tantque !exploration_finie(exploratrice) {
+        // À FAIRE(langage) : panique dans certains cas
+        candidat := exploratrice.chemin_suivant()
+        discr candidat {
+            Quelque(chemin) {
+                si chemin.est_un_dossier() {
+                    exploratrice.empile_dossier(chemin)
+                    continue
+                }
+
+                si fait_partie_de(chemin.extension(), ...extensions) {
+                    exécute_rappel_pour_fichier(racine, chemin, rappels, données_utilisateurs)
+                }
+            }
+            sinon {
+                arrête
+            }
+        }
+    }
+}
+
+// -------------------------------------
+
+tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
+{
+    première_ligne := -1
+    dernière_ligne := -1
+
+    lignes_furent_modifiés := faux
+
+    lignes := données_fichier.lignes
+    pour lignes {
+        si it.commence_par("importe ") {
+            si première_ligne == -1 {
+                première_ligne = index_it comme z32
+            }
+        }
+        sinon si dernière_ligne == -1 && première_ligne != -1 {
+            dernière_ligne = index_it comme z32 - 1
+
+            bloc := tranche(lignes, première_ligne, dernière_ligne)
+
+            si bloc.taille > 1 {
+                tri_rapide(bloc, compare_chaine)
+                lignes_furent_modifiés = vrai
+            }
+
+            dernière_ligne = -1
+            première_ligne = -1
+        }
+    }
+
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
+}
+
+// -------------------------------------
+
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
+{
+    dernière_ligne_fut_vide := faux
+
+    nouvelles_lignes : []chaine
+
+    lignes := données_fichier.lignes
+    pour lignes {
+        si it == "" {
+            si dernière_ligne_fut_vide {
+                continue
+            }
+
+            dernière_ligne_fut_vide = vrai
+        }
+        sinon {
+            dernière_ligne_fut_vide = faux
+        }
+
+        tableau_ajoute(*nouvelles_lignes, it)
+    }
+
+    si lignes.taille != nouvelles_lignes.taille {
+        données_fichier.remplace_lignes(nouvelles_lignes)
+        retourne
+    }
+
+    déloge(nouvelles_lignes)
+}
+
+// -------------------------------------
+
+supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
+{
+    lignes_furent_modifiés := faux
+    pour & données_fichier.lignes {
+        ancienne_taille := it.taille
+        tantque it.taille != 0 && est_espace_blanc(it[it.taille - 1]) {
+            it = recule(it, 1)
+        }
+
+        si it.taille != ancienne_taille {
+            lignes_furent_modifiés = vrai
+        }
+    }
+
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Points d'entrée.
+ * \{ */
+
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    si chemin.est_un_dossier() {
+        exécute_rappel_pour_dossier(chemin, extensions, rappels, données_utilisateurs)
+    }
+    sinon {
+        si fait_partie_de(chemin.extension(), ...extensions) {
+            exécute_rappel_pour_fichier(chemin, chemin, rappels, données_utilisateurs)
+        }
+    }
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    rappels := [rappel]
+    exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
+}
+
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien))
+{
+    données_utilisateurs: eini
+    exécute_rappels(chemin, extensions, rappels, données_utilisateurs)
+}
+
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc(&DonnéesFichier)(rien))
+{
+    rappels := [rappel]
+    exécute_rappels(chemin, extensions, rappels)
+}
+
+/** } */

@@ -29,32 +29,19 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
-    allocators/affix_allocator.h
-    allocators/bitmapped_block.h
-    allocators/bucketizer.h
-    allocators/cascade_allocator.h
-    allocators/freelist.h
-    allocators/mallocator.h
-    allocators/null_allocator.h
-    allocators/stack_allocator.h
-    allocators/stats_allocator.h
-    composers/fallback_allocator.h
-    composers/segregator.h
-    allocator.h
-    block.h
-    guard.h
 	logeuse_gardee.hh
 	logeuse_memoire.hh
 )
 
 set(SOURCES
-	#main.cc
 	logeuse_gardee.cc
 	logeuse_memoire.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(dls::memoire ALIAS ${NOM_BIBLIOTHEQUE})
+set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})

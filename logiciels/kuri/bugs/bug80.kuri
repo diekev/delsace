@@ -1,0 +1,19 @@
+/* Les expressions de types complexes ne peuvent être utilisés pour discriminer
+ * des unions anonymes.
+ * Voir note « les discriminations ne fonctionnent pas sur les types pointeus ou autres » dans le module Chaine. */
+
+principale :: fonc () -> z32
+{
+    u : r32 | *z32
+
+    discr u {
+        r32 {
+
+        }
+        *z32 {
+
+        }
+    }
+
+    retourne 0
+}

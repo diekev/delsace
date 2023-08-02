@@ -24,56 +24,55 @@
 
 #include "kanba.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include <QFileDialog>
-#pragma GCC diagnostic pop
-
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/vision/camera.h"
-
-#include "brosse.h"
-#include "maillage.h"
 
 #include "commandes/commandes_calques.h"
 #include "commandes/commandes_fichier.h"
 #include "commandes/commandes_vue2d.h"
 #include "commandes/commandes_vue3d.h"
 
-Kanba::Kanba()
-	: tampon(dls::math::Hauteur(1080), dls::math::Largeur(1920))
-	, usine_commande{}
-	, repondant_commande(new RepondantCommande(usine_commande, this))
-	, brosse(new Brosse())
-	, camera(new vision::Camera3D(0, 0))
-	, maillage(nullptr)
-{}
+#include "ipa/kanba.cc"
+#include "table_types.c"
 
-Kanba::~Kanba()
+namespace KNB {
+
+static UsineCommande usine_commande;
+static RepondantCommande *repondant_commande = nullptr;
+
+std::optional<KNB::Kanba> initialise_kanba()
 {
-	delete brosse;
-	delete maillage;
-	delete camera;
-	delete repondant_commande;
+    if (!KNB_initialise("ipa/libkanba.so")) {
+        return {};
+    }
+
+    KNB::Kanba kanba = KNB::crée_une_instance_de_kanba();
+    if (kanba == nullptr) {
+        return {};
+    }
+
+    return kanba;
 }
 
-void Kanba::enregistre_commandes()
+void issitialise_kanba(KNB::Kanba &kanba)
 {
-	enregistre_commandes_calques(this->usine_commande);
-	enregistre_commandes_fichier(this->usine_commande);
-	enregistre_commandes_vue2d(this->usine_commande);
-	enregistre_commandes_vue3d(this->usine_commande);
+    détruit_kanba(kanba);
+    KNB_issitialise();
 }
 
-dls::chaine Kanba::requiers_dialogue(int type)
+void enregistre_commandes(KNB::Kanba &kanba)
 {
-	if (type == FICHIER_OUVERTURE) {
-		auto const chemin = QFileDialog::getOpenFileName();
-		return chemin.toStdString();
-	}
+    repondant_commande = new RepondantCommande(usine_commande, kanba);
 
-	return "";
+    enregistre_commandes_calques(usine_commande);
+    enregistre_commandes_fichier(usine_commande);
+    enregistre_commandes_vue2d(usine_commande);
+    enregistre_commandes_vue3d(usine_commande);
 }
+
+RepondantCommande *donne_repondant_commande()
+{
+    return repondant_commande;
+}
+
+}  // namespace KNB

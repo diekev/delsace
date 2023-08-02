@@ -24,18 +24,21 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/outils/fichier.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
-#include "danjo/danjo.h"
-
-#include "evaluation/evaluation.hh"
-
-#include "coeur/evenement.h"
-#include "coeur/objet.h"
-#include "coeur/operatrice_image.h"
 #include "coeur/jorjala.hh"
-#include "coeur/noeud_image.h"
+
+#if 0
+#    include "biblinternes/outils/fichier.hh"
+
+#    include "danjo/danjo.h"
+
+#    include "evaluation/evaluation.hh"
+
+#    include "coeur/evenement.h"
+#    include "coeur/noeud_image.h"
+#    include "coeur/objet.h"
+#    include "coeur/operatrice_image.h"
 
 /* ************************************************************************** */
 
@@ -50,36 +53,11 @@ static auto cree_noeud_op(
 
 	auto op = usine(nom_op, graphe, *noeud);
 
-	gestionnaire->initialise_entreface_fichier(op, op->chemin_entreface());
+	initialise_entreface(gestionnaire, op, op->chemin_entreface());
 
 	synchronise_donnees_operatrice(*noeud);
 
 	return noeud;
-}
-
-static auto cree_graphe_creation_objet(
-		danjo::GestionnaireInterface *gestionnaire,
-		Graphe &graphe,
-		UsineOperatrice &usine,
-		dls::chaine const &nom_noeud,
-		const char *nom_op)
-{
-	auto noeud_creation = cree_noeud_op(gestionnaire, graphe, usine, nom_noeud, nom_op);
-	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
-
-	noeud_creation->pos_y(-200.0f);
-
-	graphe.connecte(noeud_creation->sortie(0), noeud_sortie->entree(0));
-	graphe.dernier_noeud_sortie = noeud_sortie;
-}
-
-static auto cree_graphe_objet_vide(
-		danjo::GestionnaireInterface *gestionnaire,
-		Graphe &graphe,
-		UsineOperatrice &usine)
-{
-	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
-	graphe.dernier_noeud_sortie = noeud_sortie;
 }
 
 static auto cree_graphe_ocean(
@@ -114,74 +92,25 @@ static auto cree_graphe_ocean(
 	prop->ajoute_cle(static_cast<float>(temps_debut), temps_debut);
 	prop->ajoute_cle(static_cast<float>(temps_fin), temps_fin);
 }
+#endif
 
 /* ************************************************************************** */
 
-class CommandeAjoutePrereglage final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
+class CommandeAjouteObjet final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override;
 };
 
-int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCommande &donnees)
+int CommandeAjouteObjet::execute_jorjala(JJL::Jorjala &jorjala, const DonneesCommande &donnees)
 {
-	auto jorjala = extrait_jorjala(pointeur);
-	auto &bdd = jorjala->bdd;
-	auto nom = donnees.metadonnee;
-	auto gestionnaire = jorjala->gestionnaire_entreface;
+    jorjala.crée_objet("objet");
 
-	auto objet = bdd.cree_objet(nom, type_objet::CORPS);
-
-	if (nom == "boîte") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Cube");
-	}
-	else if (nom == "grille") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Grille");
-	}
-	else if (nom == "cercle") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Cercle");
-	}
-	else if (nom == "icosphère") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Sphère Ico");
-	}
-	else if (nom == "tube") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Cylindre");
-	}
-	else if (nom == "cone") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Cone");
-	}
-	else if (nom == "torus") {
-		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), nom, "Création Torus");
-	}
-	else if (nom == "océan") {
-		cree_graphe_ocean(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices(), jorjala->temps_debut, jorjala->temps_fin);
-	}
-	else if (nom == "vide") {
-		cree_graphe_objet_vide(gestionnaire, objet->noeud->graphe, jorjala->usine_operatrices());
-	}
-	else {
-		jorjala->affiche_erreur("Type de préréglage inconnu");
-		bdd.enleve_objet(objet);
-		return EXECUTION_COMMANDE_ECHOUEE;
-	}
-
-	jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
-
-	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
-
-	return EXECUTION_COMMANDE_REUSSIE;
-}
-
-/* ************************************************************************** */
-
-
-class CommandeAjouteObjet final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
-};
-
-int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande &donnees)
-{
-	auto jorjala = extrait_jorjala(pointeur);
+#if 0
 	auto &bdd = jorjala->bdd;
 	auto nom = donnees.metadonnee;
 
@@ -194,21 +123,23 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 	else {
 		jorjala->affiche_erreur("Type de préréglage objet inconnu");
 		return EXECUTION_COMMANDE_ECHOUEE;
-	}
+    }
+#endif
 
-	jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
-
-	requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution préréglage");
-
-	return EXECUTION_COMMANDE_REUSSIE;
+    return EXECUTION_COMMANDE_REUSSIE;
 }
 
 /* ************************************************************************** */
 
-struct CommandeImportObjet final : public Commande {
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+struct CommandeImportObjet final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+#if 0
 		auto const chemin = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.obj *.stl");
 
 		if (chemin.est_vide()) {
@@ -230,29 +161,21 @@ struct CommandeImportObjet final : public Commande {
 		op_lecture->valeur_chaine("chemin", chemin);
 
 		graphe.connecte(noeud_lecture->sortie(0), noeud_sortie->entree(0));
-		graphe.dernier_noeud_sortie = noeud_sortie;
+        graphe.dernier_noeud_sortie = noeud_sortie;
 
-		jorjala->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
-
-		requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        requiers_evaluation(*jorjala, OBJET_AJOUTE, "exécution import objet");
+#endif
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_objet(UsineCommande &usine)
 {
-	usine.enregistre_type("ajoute_prereglage",
-						   description_commande<CommandeAjoutePrereglage>(
-							   "objet", 0, 0, 0, false));
+    usine.enregistre_type("ajoute_objet",
+                          description_commande<CommandeAjouteObjet>("objet", 0, 0, 0, false));
 
-	usine.enregistre_type("ajoute_objet",
-						   description_commande<CommandeAjouteObjet>(
-							   "objet", 0, 0, 0, false));
-
-	usine.enregistre_type("import_objet",
-						   description_commande<CommandeImportObjet>(
-							   "objet", 0, 0, 0, false));
+    usine.enregistre_type("import_objet",
+                          description_commande<CommandeImportObjet>("objet", 0, 0, 0, false));
 }

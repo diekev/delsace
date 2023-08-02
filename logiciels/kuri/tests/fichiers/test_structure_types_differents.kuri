@@ -1,0 +1,18 @@
+// ---------------------------------
+// Cas : On ne peut pas accèder aux membres d'une variable qui n'est pas une structure.
+
+accès_x :: fonc () -> rien
+{
+	a := 0;
+	b := a.x;
+}
+
+// ---------------------------------
+// Cas : « rien » ne peut pas être membre d'une structure
+
+TEST :: struct { a : rien; }
+
+// ---------------------------------
+// Cas : « rien » ne peut pas être membre d'une union
+
+TEST :: union { a : rien; }

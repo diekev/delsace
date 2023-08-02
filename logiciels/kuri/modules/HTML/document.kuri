@@ -1,0 +1,61 @@
+importe Chaine
+importe Fondation
+
+Document :: struct {
+    empl base: Noeud
+
+    quirks_mode := faux
+}
+
+crée_noeud_document :: fonc () -> *Document
+{
+    document := loge(Document)
+    document.genre = GenreNoeud.Document
+    document.document = document // au cas où
+
+    retourne document
+}
+
+DocumentType :: struct {
+    empl base: Noeud
+}
+
+crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
+{
+    doctype := loge(DocumentType)
+    doctype.genre = GenreNoeud.Doctype
+    doctype.document = document
+
+    retourne doctype
+}
+
+NoeudTexte :: struct {
+    empl base: Noeud
+
+    données: ChaineUTF16
+}
+
+crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
+{
+    texte := loge(NoeudTexte)
+    texte.genre = GenreNoeud.Texte
+    texte.document = document
+
+    retourne texte
+}
+
+NoeudCommentaire :: struct {
+    empl base: Noeud
+
+    données: ChaineUTF16
+}
+
+crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
+{
+    commentaire := loge(NoeudCommentaire)
+    commentaire.genre = GenreNoeud.Commentaire
+    commentaire.document = document
+    commentaire.données = copie_chaine(données)
+
+    retourne commentaire
+}

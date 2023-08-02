@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/opengl/tampon_rendu.h"
 
 struct Lumiere;
 
@@ -36,29 +37,22 @@ class TamponRendu;
  * scène 3D.
  */
 class RenduLumiere {
-	TamponRendu *m_tampon = nullptr;
-	Lumiere const *m_lumiere = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon = nullptr;
+    Lumiere const *m_lumiere = nullptr;
 
-public:
-	/**
-	 * Construit une instance de RenduLumiere pour la lumière spécifié.
-	 */
-	explicit RenduLumiere(Lumiere const *lumiere);
+  public:
+    /**
+     * Construit une instance de RenduLumiere pour la lumière spécifié.
+     */
+    explicit RenduLumiere(Lumiere const *lumiere);
 
-	RenduLumiere(RenduLumiere const &) = default;
-	RenduLumiere &operator=(RenduLumiere const &) = default;
+    RenduLumiere(RenduLumiere const &) = delete;
+    RenduLumiere &operator=(RenduLumiere const &) = delete;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduLumiere();
+    void initialise();
 
-	void initialise();
-
-	/**
-	 * Dessine le maillage dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine le maillage dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };
-

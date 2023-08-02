@@ -30,31 +30,69 @@ class QGridLayout;
 class QHBoxLayout;
 class QScrollArea;
 
+namespace JJL {
+class Noeud;
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name EditriceProprietes
+ *  Cette éditrice correspond à l'éditrice de propriétés des noeuds de Jorjala.
+ * \{ */
+
 class EditriceProprietes : public BaseEditrice {
-	QWidget *m_widget;
-	QWidget *m_conteneur_avertissements;
-	QWidget *m_conteneur_disposition;
-	QScrollArea *m_scroll;
-	QVBoxLayout *m_disposition_widget;
+    QWidget *m_widget;
+    QWidget *m_conteneur_avertissements;
+    QWidget *m_conteneur_disposition;
+    QScrollArea *m_scroll;
+    QVBoxLayout *m_disposition_widget;
 
-public:
-	explicit EditriceProprietes(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceProprietes(JJL::Jorjala &jorjala,
+                                JJL::Éditrice éditrice, QWidget *parent = nullptr);
 
-	EditriceProprietes(EditriceProprietes const &) = default;
-	EditriceProprietes &operator=(EditriceProprietes const &) = default;
+    EditriceProprietes(EditriceProprietes const &) = default;
+    EditriceProprietes &operator=(EditriceProprietes const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_état(JJL::ChangementÉditrice changement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 
-	void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
+    void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
 
-	void onglet_dossier_change(int index) override;
+    void onglet_dossier_change(int index) override;
 
-	void reinitialise_entreface(bool creation_avert);
+    void reinitialise_entreface(bool creation_avert);
 
-	void precontrole_change() override;
+    void debute_changement_controle() override;
 
-private:
-	void ajoute_avertissements(dls::tableau<dls::chaine> const &avertissements);
+    void termine_changement_controle() override;
+
+  private:
+    void ajoute_avertissements(JJL::Noeud &noeud);
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name EditriceProprietesNoeudDialogue
+ *  Cette éditrice est pour afficher les propriétés des noeuds dans un dialogue.
+ * \{ */
+
+class EditriceProprietesNoeudDialogue : public danjo::ConteneurControles {
+    QWidget *m_widget;
+    QWidget *m_conteneur_avertissements;
+    QWidget *m_conteneur_disposition;
+    QScrollArea *m_scroll;
+    QVBoxLayout *m_disposition;
+    QVBoxLayout *m_disposition_widget;
+
+  public:
+    explicit EditriceProprietesNoeudDialogue(JJL::Noeud &noeud, QWidget *parent = nullptr);
+
+    EditriceProprietesNoeudDialogue(EditriceProprietesNoeudDialogue const &) = delete;
+    EditriceProprietesNoeudDialogue &operator=(EditriceProprietesNoeudDialogue const &) = delete;
+
+    void ajourne_manipulable() override;
+};
+
+/** \} */

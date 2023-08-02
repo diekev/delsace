@@ -1,0 +1,83 @@
+importe Fondation
+
+Couleur :: énum {
+    BLANC
+    BLEU
+    CYAN
+    GRIS
+    JAUNE
+    MAGENTA
+    ROUGE
+    VERT
+}
+
+Alignement :: énum {
+    GAUCHE
+    DROIT
+    CENTRE
+}
+
+ChaineOptionnelle :: union {
+    chn : chaine
+    aucun : z32
+}
+
+CouleurOptionnelle :: union {
+    couleur : Couleur
+    aucun : z32
+}
+
+AlignementOptionnel :: union {
+    alignement : Alignement
+    aucun : z32
+}
+
+Format :: struct {
+    couleur_avant_plan : Couleur = Couleur.BLANC
+    couleur_arrière_plan : Couleur = Couleur.BLANC
+    couleur_bordure : Couleur = Couleur.BLANC
+    couleur_bordure_gauche : Couleur = Couleur.BLANC
+    couleur_bordure_droite : Couleur = Couleur.BLANC
+    couleur_bordure_haut : Couleur = Couleur.BLANC
+    couleur_bordure_bas : Couleur = Couleur.BLANC
+
+    alignement : Alignement = Alignement.GAUCHE
+
+    // À FAIRE : ces chaines sont possiblement de simples caractère UTF-8
+    caractère_coin_haut_gauche : chaine = "+"
+    caractère_coin_haut_droit  : chaine = "+"
+    caractère_coin_bas_gauche  : chaine = "+"
+    caractère_coin_bas_droit   : chaine = "+"
+    caractère_coin : chaine = "+"
+}
+
+Cellule :: struct {
+    parente : *Ligne
+    format : Format
+
+    données : chaine
+}
+
+Ligne :: struct {
+    parent : *Table
+    cellules : []Cellule
+
+    format : Format
+}
+
+Table :: struct {
+    lignes : []Ligne
+    format : Format
+}
+
+détruit_table :: fonc (table: *Table) -> rien
+{
+    déloge(table.lignes)
+}
+
+principale :: fonc () -> z32
+{
+    imprime("\\033[3msur cyan\n")
+    retourne 0
+}
+

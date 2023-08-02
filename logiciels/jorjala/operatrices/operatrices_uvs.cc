@@ -42,119 +42,119 @@ struct mi_arete_uv;
 struct mi_face_uv;
 
 struct mi_point_uv {
-	dls::math::vec2f pos{};
-	long index{};
+    dls::math::vec2f pos{};
+    long index{};
 
-	mi_point_uv() = default;
+    mi_point_uv() = default;
 };
 
 struct mi_sommet_uv {
-	mi_point_uv *p = nullptr;
+    mi_point_uv *p = nullptr;
 
-	/* la mi-arête de ce sommet */
-	mi_arete_uv *arete = nullptr;
+    /* la mi-arête de ce sommet */
+    mi_arete_uv *arete = nullptr;
 
-	bool est_sur_couture = false;
+    bool est_sur_couture = false;
 
-	long label = 0;
+    long label = 0;
 
-	mi_sommet_uv() = default;
+    mi_sommet_uv() = default;
 
-	COPIE_CONSTRUCT(mi_sommet_uv);
+    COPIE_CONSTRUCT(mi_sommet_uv);
 };
 
 struct mi_arete_uv {
-	mi_sommet_uv *smt = nullptr;
-	mi_arete_uv *suivante = nullptr;
-	mi_arete_uv *paire = nullptr;
-	mi_face_uv *face = nullptr;
+    mi_sommet_uv *smt = nullptr;
+    mi_arete_uv *suivante = nullptr;
+    mi_arete_uv *paire = nullptr;
+    mi_face_uv *face = nullptr;
 
-	mi_arete_uv() = default;
+    mi_arete_uv() = default;
 
-	COPIE_CONSTRUCT(mi_arete_uv);
+    COPIE_CONSTRUCT(mi_arete_uv);
 };
 
 struct mi_face_uv {
-	/* une des arête de la face */
-	mi_arete_uv *arete = nullptr;
+    /* une des arête de la face */
+    mi_arete_uv *arete = nullptr;
 
-	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
-	unsigned int label0 = 0;
-	unsigned int label1 = 0;
+    /* label pour les algorithmes, par exemple pour stocker un index d'origine */
+    unsigned int label0 = 0;
+    unsigned int label1 = 0;
 
-	mi_face_uv() = default;
+    mi_face_uv() = default;
 
-	COPIE_CONSTRUCT(mi_face_uv);
+    COPIE_CONSTRUCT(mi_face_uv);
 };
 
 struct PolyedreUV {
-	dls::tableau<mi_point_uv *> points{};
-	dls::tableau<mi_sommet_uv *> sommets{};
-	dls::tableau<mi_arete_uv *> aretes{};
-	dls::tableau<mi_face_uv *> faces{};
+    dls::tableau<mi_point_uv *> points{};
+    dls::tableau<mi_sommet_uv *> sommets{};
+    dls::tableau<mi_arete_uv *> aretes{};
+    dls::tableau<mi_face_uv *> faces{};
 
-	~PolyedreUV()
-	{
-		for (auto pnt : points) {
-			memoire::deloge("mi_point_uv", pnt);
-		}
+    ~PolyedreUV()
+    {
+        for (auto pnt : points) {
+            memoire::deloge("mi_point_uv", pnt);
+        }
 
-		for (auto smt : sommets) {
-			memoire::deloge("mi_sommet_uv", smt);
-		}
+        for (auto smt : sommets) {
+            memoire::deloge("mi_sommet_uv", smt);
+        }
 
-		for (auto art : aretes) {
-			memoire::deloge("mi_arete_uv", art);
-		}
+        for (auto art : aretes) {
+            memoire::deloge("mi_arete_uv", art);
+        }
 
-		for (auto fac : faces) {
-			memoire::deloge("mi_face_uv", fac);
-		}
-	}
+        for (auto fac : faces) {
+            memoire::deloge("mi_face_uv", fac);
+        }
+    }
 
-	mi_point_uv *cree_point(dls::math::vec2f const &pos)
-	{
-		for (auto pnt : points) {
-			if (pnt->pos == pos) {
-				return pnt;
-			}
-		}
+    mi_point_uv *cree_point(dls::math::vec2f const &pos)
+    {
+        for (auto pnt : points) {
+            if (pnt->pos == pos) {
+                return pnt;
+            }
+        }
 
-		auto pnt = memoire::loge<mi_point_uv>("mi_point_uv");
-		pnt->pos = pos;
-		pnt->index = points.taille();
-		points.pousse(pnt);
-		return pnt;
-	}
+        auto pnt = memoire::loge<mi_point_uv>("mi_point_uv");
+        pnt->pos = pos;
+        pnt->index = points.taille();
+        points.ajoute(pnt);
+        return pnt;
+    }
 
-	mi_sommet_uv *cree_sommet(mi_point_uv *pnt)
-	{
-		auto smt = memoire::loge<mi_sommet_uv>("mi_sommet_uv");
-		smt->p = pnt;
-		sommets.pousse(smt);
-		return smt;
-	}
+    mi_sommet_uv *cree_sommet(mi_point_uv *pnt)
+    {
+        auto smt = memoire::loge<mi_sommet_uv>("mi_sommet_uv");
+        smt->p = pnt;
+        sommets.ajoute(smt);
+        return smt;
+    }
 
-	mi_arete_uv *cree_arete(mi_sommet_uv *smt, mi_face_uv *face)
-	{
-		auto art = memoire::loge<mi_arete_uv>("mi_arete_uv");
-		art->smt = smt;
-		art->face = face;
-		aretes.pousse(art);
-		return art;
-	}
+    mi_arete_uv *cree_arete(mi_sommet_uv *smt, mi_face_uv *face)
+    {
+        auto art = memoire::loge<mi_arete_uv>("mi_arete_uv");
+        art->smt = smt;
+        art->face = face;
+        aretes.ajoute(art);
+        return art;
+    }
 
-	mi_face_uv *cree_face()
-	{
-		auto fac = memoire::loge<mi_face_uv>("mi_arete_uv");
-		faces.pousse(fac);
-		return fac;
-	}
+    mi_face_uv *cree_face()
+    {
+        auto fac = memoire::loge<mi_face_uv>("mi_arete_uv");
+        faces.ajoute(fac);
+        return fac;
+    }
 };
 
 inline auto index_arete(long i0, long i1)
 {
-	return static_cast<size_t>(i0 | (i1 << 32));
+    return static_cast<size_t>(i0 | (i1 << 32));
 }
 
 /**
@@ -166,131 +166,128 @@ inline auto index_arete(long i0, long i1)
  */
 static auto construit_polyedre_uv(Corps const &corps)
 {
-	auto polyedre = PolyedreUV();
-	auto attr_UV = corps.attribut("UV");
+    auto polyedre = PolyedreUV();
+    auto attr_UV = corps.attribut("UV");
 
-	auto dico_aretes = dls::dico_desordonne<size_t, mi_arete_uv *>();
+    auto dico_aretes = dls::dico_desordonne<size_t, mi_arete_uv *>();
 
-	pour_chaque_polygone_ferme(corps, [&](Corps const &, Polygone *poly)
-	{
-		auto f = polyedre.cree_face();
-		f->label0 = static_cast<unsigned>(poly->index);
-		f->label1 = 0;
+    pour_chaque_polygone_ferme(corps, [&](Corps const &, Polygone *poly) {
+        auto f = polyedre.cree_face();
+        f->label0 = static_cast<unsigned>(poly->index);
+        f->label1 = 0;
 
-		auto a = static_cast<mi_arete_uv *>(nullptr);
+        auto a = static_cast<mi_arete_uv *>(nullptr);
 
-		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-			auto idx = poly->index_sommet(i);
+        for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+            auto idx = poly->index_sommet(i);
 
-			auto uv = dls::math::vec2f();
-			extrait(attr_UV->r32(idx), uv);
+            auto uv = dls::math::vec2f();
+            extrait(attr_UV->r32(idx), uv);
 
-			auto pnt = polyedre.cree_point(uv);
-			auto smt = polyedre.cree_sommet(pnt);
+            auto pnt = polyedre.cree_point(uv);
+            auto smt = polyedre.cree_sommet(pnt);
 
-			auto a0 = polyedre.cree_arete(smt, f);
+            auto a0 = polyedre.cree_arete(smt, f);
 
-			if (f->arete == nullptr) {
-				f->arete = a0;
-			}
+            if (f->arete == nullptr) {
+                f->arete = a0;
+            }
 
-			if (a != nullptr) {
-				a->suivante = a0;
-			}
+            if (a != nullptr) {
+                a->suivante = a0;
+            }
 
-			a = a0;
+            a = a0;
 
-			auto idx0 = poly->index_point(i);
-			auto idx1 = poly->index_point((i + 1) % poly->nombre_sommets());
-			auto idxi0i1 = index_arete(idx0, idx1);
+            auto idx0 = poly->index_point(i);
+            auto idx1 = poly->index_point((i + 1) % poly->nombre_sommets());
+            auto idxi0i1 = index_arete(idx0, idx1);
 
-			smt->label = idx0;
+            smt->label = idx0;
 
-			dico_aretes.insere({idxi0i1, a0});
+            dico_aretes.insere({idxi0i1, a0});
 
-			/* cherches la mi_arete opposée */
-			auto idxi1i0 = index_arete(idx1, idx0);
+            /* cherches la mi_arete opposée */
+            auto idxi1i0 = index_arete(idx1, idx0);
 
-			auto iter = dico_aretes.trouve(idxi1i0);
+            auto iter = dico_aretes.trouve(idxi1i0);
 
-			if (iter != dico_aretes.fin()) {
-				auto a1 = iter->second;
-				a0->paire = a1;
-				a1->paire = a0;
-			}
-		}
+            if (iter != dico_aretes.fin()) {
+                auto a1 = iter->second;
+                a0->paire = a1;
+                a1->paire = a0;
+            }
+        }
 
-		/* clos la boucle */
-		a->suivante = f->arete;
-	});
+        /* clos la boucle */
+        a->suivante = f->arete;
+    });
 
-	return polyedre;
+    return polyedre;
 }
 
 static void ajourne_label_groupe(mi_face_uv *face, unsigned int groupe)
 {
-	auto file = dls::file<mi_face_uv *>();
-	auto visites = dls::ensemble<mi_face_uv *>();
+    auto file = dls::file<mi_face_uv *>();
+    auto visites = dls::ensemble<mi_face_uv *>();
 
-	file.enfile(face);
+    file.enfile(face);
 
-	while (!file.est_vide()) {
-		face = file.defile();
+    while (!file.est_vide()) {
+        face = file.defile();
 
-		if (visites.trouve(face) != visites.fin()) {
-			continue;
-		}
+        if (visites.trouve(face) != visites.fin()) {
+            continue;
+        }
 
-		visites.insere(face);
+        visites.insere(face);
 
-		face->label1 = groupe;
+        face->label1 = groupe;
 
-		/* pour chaque face autour de la nôtre */
-		auto a0 = face->arete;
-		auto a1 = a0->suivante;
-		auto fin = a1;
+        /* pour chaque face autour de la nôtre */
+        auto a0 = face->arete;
+        auto a1 = a0->suivante;
+        auto fin = a1;
 
-		do {
-			if (a0->paire != nullptr) {
-				file.enfile(a0->paire->face);
-			}
+        do {
+            if (a0->paire != nullptr) {
+                file.enfile(a0->paire->face);
+            }
 
-			a0 = a1;
-			a1 = a0->suivante;
-		} while (a1 != fin);
-	}
+            a0 = a1;
+            a1 = a0->suivante;
+        } while (a1 != fin);
+    }
 }
 
-static void detaches_iles_uvs(
-		PolyedreUV &polyedre_uv,
-		dls::tableau<char> const &est_sur_couture)
+static void detaches_iles_uvs(PolyedreUV &polyedre_uv, dls::tableau<char> const &est_sur_couture)
 {
-	for (auto smt : polyedre_uv.sommets) {
-		smt->est_sur_couture = est_sur_couture[smt->label];
-	}
+    for (auto smt : polyedre_uv.sommets) {
+        smt->est_sur_couture = est_sur_couture[smt->label];
+    }
 
-	for (auto face : polyedre_uv.faces) {
-		auto a0 = face->arete;
-		auto a1 = a0->suivante;
-		auto fin = a1;
+    for (auto face : polyedre_uv.faces) {
+        auto a0 = face->arete;
+        auto a1 = a0->suivante;
+        auto fin = a1;
 
-		do {
-			if (a0->smt->est_sur_couture) {
-				if (a0->paire != nullptr) {
-					auto p = a0->paire;
-					auto s = p->smt;
+        do {
+            if (a0->smt->est_sur_couture) {
+                if (a0->paire != nullptr) {
+                    auto p = a0->paire;
+                    auto s = p->smt;
 
-					if (s->est_sur_couture) {
-						a0->paire->paire = nullptr;
-						a0->paire = nullptr;
-					}
-				}
-			}
+                    if (s->est_sur_couture) {
+                        a0->paire->paire = nullptr;
+                        a0->paire = nullptr;
+                    }
+                }
+            }
 
-			a0 = a1;
-			a1 = a0->suivante;
-		} while (a1 != fin);
-	}
+            a0 = a1;
+            a1 = a0->suivante;
+        } while (a1 != fin);
+    }
 }
 
 /* ************************************************************************** */
@@ -300,231 +297,224 @@ static void detaches_iles_uvs(
  */
 static auto rassemble_index_sommets(Corps const &corps)
 {
-	auto points_entree = corps.points_pour_lecture();
+    auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> sommets(points_entree.taille());
+    dls::tableau<dls::ensemble<long>> sommets(points_entree.taille());
 
-	pour_chaque_polygone_ferme(corps,
-							   [&](Corps const &corps_entree, Polygone *poly)
-	{
-		INUTILISE(corps_entree);
+    pour_chaque_polygone_ferme(corps, [&](Corps const &corps_entree, Polygone *poly) {
+        INUTILISE(corps_entree);
 
-		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			auto ip = poly->index_point(j);
-			auto is = poly->index_sommet(j);
+        for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+            auto ip = poly->index_point(j);
+            auto is = poly->index_sommet(j);
 
-			sommets[ip].insere(is);
-		}
-	});
+            sommets[ip].insere(is);
+        }
+    });
 
-	return sommets;
+    return sommets;
 }
 
 /* ************************************************************************** */
 
 struct OpVisualiseUV : public OperatriceCorps {
-	static constexpr auto NOM = "Visualise UVs";
-	static constexpr auto AIDE = "";
+    static constexpr auto NOM = "Visualise UVs";
+    static constexpr auto AIDE = "";
 
-	OpVisualiseUV(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		m_execute_toujours = true;
-		entrees(1);
-	}
+    OpVisualiseUV(Graphe &graphe_parent, Noeud &noeud_) : OperatriceCorps(graphe_parent, noeud_)
+    {
+        m_execute_toujours = true;
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{""};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, true, true)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto attr_UV = corps_entree->attribut("UV");
+        auto attr_UV = corps_entree->attribut("UV");
 
-		if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
-			this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
-			return res_exec::ECHOUEE;
-		}
+        if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
+            this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
+            return res_exec::ECHOUEE;
+        }
 
-		auto polyedre_uv = construit_polyedre_uv(*corps_entree);
-		auto points = m_corps.points_pour_ecriture();
+        auto polyedre_uv = construit_polyedre_uv(*corps_entree);
+        auto points = m_corps.points_pour_ecriture();
 
-		for (auto point : polyedre_uv.points) {
-			points.ajoute_point(point->pos.x, 0.0f, point->pos.y);
-		}
+        for (auto point : polyedre_uv.points) {
+            points.ajoute_point(point->pos.x, 0.0f, point->pos.y);
+        }
 
-		for (auto face : polyedre_uv.faces) {
-			auto arete = face->arete;
-			auto poly = m_corps.ajoute_polygone(type_polygone::FERME);
+        for (auto face : polyedre_uv.faces) {
+            auto arete = face->arete;
+            auto poly = m_corps.ajoute_polygone(type_polygone::FERME);
 
-			do {
-				m_corps.ajoute_sommet(poly, arete->smt->p->index);
+            do {
+                m_corps.ajoute_sommet(poly, arete->smt->p->index);
 
-				arete = arete->suivante;
-			} while (arete != face->arete);
-		}
+                arete = arete->suivante;
+            } while (arete != face->arete);
+        }
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 struct OpGroupeUV : public OperatriceCorps {
-	static constexpr auto NOM = "Groupe Prims UVs";
-	static constexpr auto AIDE = "Groupe les primitives selon les pièces détachées des UVs";
+    static constexpr auto NOM = "Groupe Prims UVs";
+    static constexpr auto AIDE = "Groupe les primitives selon les pièces détachées des UVs";
 
-	OpGroupeUV(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		m_execute_toujours = true;
-		entrees(1);
-	}
+    OpGroupeUV(Graphe &graphe_parent, Noeud &noeud_) : OperatriceCorps(graphe_parent, noeud_)
+    {
+        m_execute_toujours = true;
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{""};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto attr_UV = m_corps.attribut("UV");
+        auto attr_UV = m_corps.attribut("UV");
 
-		if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
-			this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
-			return res_exec::ECHOUEE;
-		}
+        if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
+            this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
+            return res_exec::ECHOUEE;
+        }
 
-		/* avant de construire une polyèdre pour les UVs, trouve les sommets
-		 * autour de chaque points, et vérifie que leurs attributs UV pareils ;
-		 * sinon le point est sur une couture
-		 * À FAIRE : utilise les arêtes pour définir les coutures avec les
-		 * points une arête n'étant pas sur une couture mais dont les points le
-		 * sont via d'autres arêtes nous donne une couture en trop */
-		auto ensemble_sommets = rassemble_index_sommets(m_corps);
-		auto est_sur_couture = dls::tableau<char>(m_corps.points_pour_lecture().taille());
+        /* avant de construire une polyèdre pour les UVs, trouve les sommets
+         * autour de chaque points, et vérifie que leurs attributs UV pareils ;
+         * sinon le point est sur une couture
+         * À FAIRE : utilise les arêtes pour définir les coutures avec les
+         * points une arête n'étant pas sur une couture mais dont les points le
+         * sont via d'autres arêtes nous donne une couture en trop */
+        auto ensemble_sommets = rassemble_index_sommets(m_corps);
+        auto est_sur_couture = dls::tableau<char>(m_corps.points_pour_lecture().taille());
 
-		for (auto i = 0; i < ensemble_sommets.taille(); ++i) {
-			auto const &sommets = ensemble_sommets[i];
+        for (auto i = 0; i < ensemble_sommets.taille(); ++i) {
+            auto const &sommets = ensemble_sommets[i];
 
-			if (sommets.taille() == 0) {
-				continue;
-			}
+            if (sommets.taille() == 0) {
+                continue;
+            }
 
-			auto ds = sommets.debut();
-			auto fs = sommets.fin();
+            auto ds = sommets.debut();
+            auto fs = sommets.fin();
 
-			auto uv = dls::math::vec2f();
-			extrait(attr_UV->r32(*ds), uv);
+            auto uv = dls::math::vec2f();
+            extrait(attr_UV->r32(*ds), uv);
 
-			while (++ds != fs) {
-				auto uv1 = dls::math::vec2f();
-				extrait(attr_UV->r32(*ds), uv1);
+            while (++ds != fs) {
+                auto uv1 = dls::math::vec2f();
+                extrait(attr_UV->r32(*ds), uv1);
 
-				if (uv != uv1) {
-					est_sur_couture[i] = 1;
-					break;
-				}
-			}
-		}
+                if (uv != uv1) {
+                    est_sur_couture[i] = 1;
+                    break;
+                }
+            }
+        }
 
-		auto polyedre_uv = construit_polyedre_uv(m_corps);
-		detaches_iles_uvs(polyedre_uv, est_sur_couture);
+        auto polyedre_uv = construit_polyedre_uv(m_corps);
+        detaches_iles_uvs(polyedre_uv, est_sur_couture);
 
-		auto nombre_groupe = 0u;
-		for (auto face : polyedre_uv.faces) {
-			if (face->label1 != 0) {
-				continue;
-			}
+        auto nombre_groupe = 0u;
+        for (auto face : polyedre_uv.faces) {
+            if (face->label1 != 0) {
+                continue;
+            }
 
-			ajourne_label_groupe(face, ++nombre_groupe);
-		}
+            ajourne_label_groupe(face, ++nombre_groupe);
+        }
 
-		auto groupes = dls::tableau<GroupePrimitive *>(nombre_groupe);
+        auto groupes = dls::tableau<GroupePrimitive *>(nombre_groupe);
 
-		for (auto i = 0u; i < nombre_groupe; ++i) {
-			groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i));
-		}
+        for (auto i = 0u; i < nombre_groupe; ++i) {
+            groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i));
+        }
 
-		for (auto face : polyedre_uv.faces) {
-			groupes[face->label1 - 1]->ajoute_index(face->label0);
-		}
+        for (auto face : polyedre_uv.faces) {
+            groupes[face->label1 - 1]->ajoute_index(face->label0);
+        }
 
 #if 1
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
+        auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
-		auto gna = GNA();
+        auto gna = GNA();
 
-		for (auto i = 0u; i < nombre_groupe; ++i) {
-			auto hsv = dls::math::vec3f(
-						gna.uniforme(0.0f, 1.0f),
-						1.0f,
-						0.5f);
+        for (auto i = 0u; i < nombre_groupe; ++i) {
+            auto hsv = dls::math::vec3f(gna.uniforme(0.0f, 1.0f), 1.0f, 0.5f);
 
-			auto couleur = dls::math::vec3f();
-			dls::phys::hsv_vers_rvb(hsv.x, hsv.y, hsv.z, &couleur.x, &couleur.y, &couleur.z);
+            auto couleur = dls::math::vec3f();
+            dls::phys::hsv_vers_rvb(hsv.x, hsv.y, hsv.z, &couleur.x, &couleur.y, &couleur.z);
 
-			auto groupe = groupes[i];
+            auto groupe = groupes[i];
 
-			for (auto j = 0; j < groupe->taille(); ++j) {
-				auto idx = groupe->index(j);
-				assigne(attr_C->r32(idx), couleur);
-			}
-		}
+            for (auto j = 0; j < groupe->taille(); ++j) {
+                auto idx = groupe->index(j);
+                assigne(attr_C->r32(idx), couleur);
+            }
+        }
 #else
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+        auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
-		dls::math::vec3f couleurs[2] = {
-			dls::math::vec3f(0.0f),
-			dls::math::vec3f(1.0f),
-		};
+        dls::math::vec3f couleurs[2] = {
+            dls::math::vec3f(0.0f),
+            dls::math::vec3f(1.0f),
+        };
 
-		for (auto i = 0; i < est_sur_couture.taille(); ++i) {
-			assigne(attr_C->r32(i), couleurs[static_cast<long>(est_sur_couture[i])]);
-		}
+        for (auto i = 0; i < est_sur_couture.taille(); ++i) {
+            assigne(attr_C->r32(i), couleurs[static_cast<long>(est_sur_couture[i])]);
+        }
 #endif
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_uvs(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OpVisualiseUV>());
-	usine.enregistre_type(cree_desc<OpGroupeUV>());
+    usine.enregistre_type(cree_desc<OpVisualiseUV>());
+    usine.enregistre_type(cree_desc<OpGroupeUV>());
 }
 
 #pragma clang diagnostic pop

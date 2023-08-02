@@ -38,65 +38,106 @@ struct ContexteNuancage;
 class ParametresRendu;
 
 struct Volume {
-	ContexteNuancage &contexte;
+    ContexteNuancage &contexte;
 
-	explicit Volume(ContexteNuancage &ctx);
+    explicit Volume(ContexteNuancage &ctx);
 
-	virtual ~Volume() = default;
+    virtual ~Volume() = default;
 
-	virtual bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) = 0;
+    virtual bool integre(GNA &gna,
+                         ParametresRendu const &parametres,
+                         Spectre &L,
+                         Spectre &tr,
+                         Spectre &poids,
+                         dls::phys::rayond &wo) = 0;
 
-	virtual Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) = 0;
+    virtual Spectre transmittance(GNA &gna,
+                                  ParametresRendu const &parametres,
+                                  dls::math::point3d const &P0,
+                                  dls::math::point3d const &P1) = 0;
 };
 
 struct VolumeLoiBeers : public Volume {
-	Spectre absorption = Spectre(1.0);
+    Spectre absorption = Spectre(1.0);
 
-	explicit VolumeLoiBeers(ContexteNuancage &ctx);
+    explicit VolumeLoiBeers(ContexteNuancage &ctx);
 
-	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
+    bool integre(GNA &gna,
+                 ParametresRendu const &parametres,
+                 Spectre &L,
+                 Spectre &tr,
+                 Spectre &poids,
+                 dls::phys::rayond &wo) override;
 
-	Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) override;
+    Spectre transmittance(GNA &gna,
+                          ParametresRendu const &parametres,
+                          dls::math::point3d const &P0,
+                          dls::math::point3d const &P1) override;
 };
 
 struct VolumeHeterogeneLoiBeers : public Volume {
-	Spectre absorption = Spectre(1.0);
-	double absorption_max = 1.0;
-	wlk::grille_eparse<float> const *grille = nullptr;
+    Spectre absorption = Spectre(1.0);
+    double absorption_max = 1.0;
+    wlk::grille_eparse<float> const *grille = nullptr;
 
-	VolumeHeterogeneLoiBeers(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_);
+    VolumeHeterogeneLoiBeers(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_);
 
-	VolumeHeterogeneLoiBeers(VolumeHeterogeneLoiBeers const &) = default;
-	VolumeHeterogeneLoiBeers &operator=(VolumeHeterogeneLoiBeers const &) = default;
+    VolumeHeterogeneLoiBeers(VolumeHeterogeneLoiBeers const &) = default;
+    VolumeHeterogeneLoiBeers &operator=(VolumeHeterogeneLoiBeers const &) = default;
 
-	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
+    bool integre(GNA &gna,
+                 ParametresRendu const &parametres,
+                 Spectre &L,
+                 Spectre &tr,
+                 Spectre &poids,
+                 dls::phys::rayond &wo) override;
 
-	Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) override;
+    Spectre transmittance(GNA &gna,
+                          ParametresRendu const &parametres,
+                          dls::math::point3d const &P0,
+                          dls::math::point3d const &P1) override;
 };
 
 struct VolumeDiffusionSimple : public Volume {
-	Spectre extinction = Spectre(0.5);
-	Spectre albedo_diffusion = Spectre(0.5);
+    Spectre extinction = Spectre(0.5);
+    Spectre albedo_diffusion = Spectre(0.5);
 
-	explicit VolumeDiffusionSimple(ContexteNuancage &ctx);
+    explicit VolumeDiffusionSimple(ContexteNuancage &ctx);
 
-	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
+    bool integre(GNA &gna,
+                 ParametresRendu const &parametres,
+                 Spectre &L,
+                 Spectre &tr,
+                 Spectre &poids,
+                 dls::phys::rayond &wo) override;
 
-	Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) override;
+    Spectre transmittance(GNA &gna,
+                          ParametresRendu const &parametres,
+                          dls::math::point3d const &P0,
+                          dls::math::point3d const &P1) override;
 };
 
 struct VolumeHeterogeneDiffusionSimple : public Volume {
-	double extinction_max = 1.0;
-	wlk::grille_eparse<float> const *grille = nullptr;
+    double extinction_max = 1.0;
+    wlk::grille_eparse<float> const *grille = nullptr;
 
-	VolumeHeterogeneDiffusionSimple(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_);
+    VolumeHeterogeneDiffusionSimple(ContexteNuancage &ctx,
+                                    wlk::grille_eparse<float> const *grille_);
 
-	VolumeHeterogeneDiffusionSimple(VolumeHeterogeneDiffusionSimple const &) = default;
-	VolumeHeterogeneDiffusionSimple &operator=(VolumeHeterogeneDiffusionSimple const &) = default;
+    VolumeHeterogeneDiffusionSimple(VolumeHeterogeneDiffusionSimple const &) = default;
+    VolumeHeterogeneDiffusionSimple &operator=(VolumeHeterogeneDiffusionSimple const &) = default;
 
-	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
+    bool integre(GNA &gna,
+                 ParametresRendu const &parametres,
+                 Spectre &L,
+                 Spectre &tr,
+                 Spectre &poids,
+                 dls::phys::rayond &wo) override;
 
-	Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) override;
+    Spectre transmittance(GNA &gna,
+                          ParametresRendu const &parametres,
+                          dls::math::point3d const &P0,
+                          dls::math::point3d const &P1) override;
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

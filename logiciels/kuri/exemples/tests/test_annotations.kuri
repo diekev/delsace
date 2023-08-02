@@ -1,0 +1,92 @@
+importe Compilatrice
+importe Fondation
+
+imprime_annotations :: fonc (annotations: []AnnotationCode, nom: chaine)
+{
+    imprime("annotations pour % :\n", nom)
+    pour annotations {
+        imprime("-- %\n", it)
+    }
+}
+
+métaprogramme :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    options := OptionsDeCompilation()
+
+    espace := démarre_un_espace_de_travail("annotations", *options)
+
+    compilatrice_commence_interception(espace)
+    ajoute_fichier_à_la_compilation(espace, "annotations.kuri")
+
+    boucle {
+        message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
+
+        si message.espace != espace {
+            continue
+        }
+
+        si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+            message_code := message comme *MessageTypageCodeTerminé
+            code := message_code.code
+
+            saufsi code {
+                continue
+            }
+
+            si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+                code_entete := code comme *NoeudCodeEntêteFonction
+
+                si code_entete.annotations {
+                    imprime_annotations(code_entete.annotations, code_entete.nom)
+                }
+            }
+            sinon si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE {
+                code_structure := code comme *NoeudCodeStructure
+
+                si code_structure.annotations {
+                    imprime_annotations(code_structure.annotations, code_structure.nom)
+                }
+
+                bloc := code_structure.bloc
+
+                saufsi bloc {
+                    /* bloc peut-être nul pour les structures externes */
+                    continue
+                }
+
+                pour bloc.membres {
+                    saufsi it.genre == GenreNoeud.DÉCLARATION_VARIABLE {
+                        continue
+                    }
+
+                    decl_var := it comme *NoeudCodeDéclarationVariable
+                    si decl_var.annotations {
+                        imprime_annotations(decl_var.annotations, decl_var.nom)
+                    }
+                }
+            }
+            sinon si code.genre == GenreNoeud.DÉCLARATION_ÉNUM {
+                code_énum := code comme *NoeudCodeÉnum
+
+                si code_énum.annotations {
+                    imprime_annotations(code_énum.annotations, code_énum.nom)
+                }
+            }
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                arrête
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}
+
+#exécute métaprogramme()

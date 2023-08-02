@@ -34,134 +34,106 @@
 
 #include "types/courbe_bezier.h"
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
-ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement_principal(new QVBoxLayout())
-	, m_agencement_nombre(new QHBoxLayout())
-	, m_utilise_table(new QCheckBox("Utilise table", this))
-	, m_controle_courbe(new ControleCourbeCouleur(this))
-	, m_bouton_echelle_x(new QPushButton("H", this))
-	, m_echelle_x(new ControleEchelleDecimale())
-	, m_pos_x(new ControleNombreDecimal(this))
-	, m_bouton_echelle_y(new QPushButton("H", this))
-	, m_echelle_y(new ControleEchelleDecimale())
-	, m_pos_y(new ControleNombreDecimal(this))
+ControleProprieteCourbeValeur::ControleProprieteCourbeValeur(BasePropriete *p,
+                                                             int temps,
+                                                             QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement_principal(new QVBoxLayout()),
+      m_agencement_nombre(new QHBoxLayout()),
+      m_utilise_table(new QCheckBox("Utilise table", this)),
+      m_controle_courbe(new ControleCourbeCouleur(this)),
+      m_bouton_echelle_x(crée_bouton_échelle_valeur(this)),
+      m_pos_x(new ControleNombreDecimal(this)),
+      m_echelle_x(new ControleEchelleDecimale(m_pos_x, m_bouton_echelle_x)),
+      m_bouton_echelle_y(crée_bouton_échelle_valeur(this)),
+      m_pos_y(new ControleNombreDecimal(this)),
+      m_echelle_y(new ControleEchelleDecimale(m_pos_y, m_bouton_echelle_y))
 {
-	m_agencement_principal->addWidget(m_utilise_table);
-	m_agencement_principal->addWidget(m_controle_courbe);
+    m_agencement_principal->addWidget(m_utilise_table);
+    m_agencement_principal->addWidget(m_controle_courbe);
 
-	auto metriques = this->fontMetrics();
-	m_bouton_echelle_x->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_echelle_y->setFixedWidth(metriques.width("H") * 2);
+    m_agencement_nombre->addWidget(m_bouton_echelle_x);
+    m_agencement_nombre->addWidget(m_pos_x);
+    m_agencement_nombre->addWidget(m_bouton_echelle_y);
+    m_agencement_nombre->addWidget(m_pos_y);
+    m_agencement_principal->addLayout(m_agencement_nombre);
 
-	m_agencement_nombre->addWidget(m_bouton_echelle_x);
-	m_agencement_nombre->addWidget(m_pos_x);
-	m_agencement_nombre->addWidget(m_bouton_echelle_y);
-	m_agencement_nombre->addWidget(m_pos_y);
-	m_agencement_principal->addLayout(m_agencement_nombre);
+    connect(m_utilise_table,
+            &QCheckBox::clicked,
+            this,
+            &ControleProprieteCourbeValeur::bascule_utilise_table);
 
-	m_echelle_x->setWindowFlags(Qt::WindowStaysOnTopHint);
-	m_echelle_y->setWindowFlags(Qt::WindowStaysOnTopHint);
+    connect(m_controle_courbe,
+            &ControleCourbeCouleur::position_changee,
+            this,
+            &ControleProprieteCourbeValeur::ajourne_position);
 
-	connect(m_utilise_table, &QCheckBox::clicked,
-			this, &ControleProprieteCourbeValeur::bascule_utilise_table);
+    connect(m_controle_courbe,
+            &ControleCourbeCouleur::point_change,
+            this,
+            &ControleProprieteCourbeValeur::ajourne_point_actif);
 
-	connect(m_controle_courbe, &ControleCourbeCouleur::position_changee,
-			this, &ControleProprieteCourbeValeur::ajourne_position);
+    connect(m_pos_x,
+            &ControleNombreDecimal::valeur_changee,
+            this,
+            &ControleProprieteCourbeValeur::ajourne_position_x);
 
-	connect(m_controle_courbe, &ControleCourbeCouleur::point_change,
-			this, &ControleProprieteCourbeValeur::ajourne_point_actif);
+    connect(m_pos_y,
+            &ControleNombreDecimal::valeur_changee,
+            this,
+            &ControleProprieteCourbeValeur::ajourne_position_y);
 
-	connect(m_bouton_echelle_x, &QPushButton::pressed,
-			this, &ControleProprieteCourbeValeur::montre_echelle_x);
-
-	connect(m_bouton_echelle_y, &QPushButton::pressed,
-			this, &ControleProprieteCourbeValeur::montre_echelle_y);
-
-	connect(m_echelle_x, &ControleEchelleDecimale::valeur_changee,
-			m_pos_x, &ControleNombreDecimal::ajourne_valeur);
-
-	connect(m_echelle_y, &ControleEchelleDecimale::valeur_changee,
-			m_pos_y, &ControleNombreDecimal::ajourne_valeur);
-
-	connect(m_pos_x, &ControleNombreDecimal::valeur_changee,
-			this, &ControleProprieteCourbeValeur::ajourne_position_x);
-
-	connect(m_pos_y, &ControleNombreDecimal::valeur_changee,
-			this, &ControleProprieteCourbeValeur::ajourne_position_y);
-
-	setLayout(m_agencement_principal);
+    setLayout(m_agencement_principal);
 }
 
 ControleProprieteCourbeValeur::~ControleProprieteCourbeValeur()
 {
-	delete m_echelle_x;
-	delete m_echelle_y;
+    delete m_echelle_x;
+    delete m_echelle_y;
 }
 
 void ControleProprieteCourbeValeur::finalise(const DonneesControle &donnees)
 {
-	/* À FAIRE : min/max */
-	m_courbe = static_cast<CourbeBezier *>(donnees.pointeur);
-	m_controle_courbe->installe_courbe(m_courbe);
-	m_utilise_table->setChecked(m_courbe->utilise_table);
-	m_pos_x->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
-	m_pos_y->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
-	setToolTip(donnees.infobulle.c_str());
-}
-
-void ControleProprieteCourbeValeur::montre_echelle_x()
-{
-	m_echelle_x->valeur(m_pos_x->valeur());
-	m_echelle_x->plage(m_pos_x->min(), m_pos_x->max());
-	m_echelle_x->show();
-}
-
-void ControleProprieteCourbeValeur::montre_echelle_y()
-{
-	m_echelle_y->valeur(m_pos_y->valeur());
-	m_echelle_y->plage(m_pos_y->min(), m_pos_y->max());
-	m_echelle_y->show();
+    /* À FAIRE : min/max */
+    m_courbe = static_cast<CourbeBezier *>(donnees.pointeur);
+    m_controle_courbe->installe_courbe(m_courbe);
+    m_utilise_table->setChecked(m_courbe->utilise_table);
+    m_pos_x->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
+    m_pos_y->ajourne_plage(m_courbe->valeur_min, m_courbe->valeur_max);
+    setToolTip(donnees.infobulle.c_str());
 }
 
 void ControleProprieteCourbeValeur::bascule_utilise_table(bool ouinon)
 {
-	Q_EMIT(precontrole_change());
-	m_courbe->utilise_table = ouinon;
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, ouinon]() { m_courbe->utilise_table = ouinon; });
 }
 
 void ControleProprieteCourbeValeur::ajourne_position(float x, float y)
 {
-	Q_EMIT(precontrole_change());
-	m_pos_x->valeur(x);
-	m_pos_y->valeur(y);
-
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, x, y]() {
+        m_pos_x->valeur(x);
+        m_pos_y->valeur(y);
+    });
 }
 
 void ControleProprieteCourbeValeur::ajourne_position_x(float v)
 {
-	Q_EMIT(precontrole_change());
-	m_controle_courbe->ajourne_position_x(v);
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, v]() { m_controle_courbe->ajourne_position_x(v); });
 }
 
 void ControleProprieteCourbeValeur::ajourne_position_y(float v)
 {
-	Q_EMIT(precontrole_change());
-	m_controle_courbe->ajourne_position_y(v);
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, v]() { m_controle_courbe->ajourne_position_y(v); });
 }
 
 void ControleProprieteCourbeValeur::ajourne_point_actif()
 {
-	m_pos_x->valeur(m_courbe->point_courant->co[POINT_CENTRE].x);
-	m_pos_y->valeur(m_courbe->point_courant->co[POINT_CENTRE].y);
+    m_pos_x->valeur(m_courbe->point_courant->co[POINT_CENTRE].x);
+    m_pos_y->valeur(m_courbe->point_courant->co[POINT_CENTRE].y);
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

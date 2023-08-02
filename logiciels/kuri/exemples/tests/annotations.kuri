@@ -1,0 +1,33 @@
+fonction_annotée :: fonc ()
+{
+
+} @quelquechose @autre_chose
+
+fonction_annotée_avec_chaine :: fonc ()
+{
+
+} @une_chaine "la chaine en question"
+
+Vec3 :: struct {
+    x: r32 @v1
+    y: r32 @v1
+    z: r32 @v2
+} @GLSL "vec3"
+
+Énumération :: énum {
+    XYZ
+    UVW
+} @quelquechose
+
+principale :: fonc () -> z32
+{
+    v: Vec3
+    e: Énumération
+    si e != Énumération.XYZ {
+        retourne 1
+    }
+    si v.x != 0.0 {
+        retourne 1
+    }
+    retourne 0
+}

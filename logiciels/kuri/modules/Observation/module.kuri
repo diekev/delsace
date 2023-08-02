@@ -1,0 +1,136 @@
+/* Module implémentant le patron de conception "observateur" afin de définir des
+ * dépendences entre objets et prévenir les observateurs qu'un changement eu lieu.
+ */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Message contenant des informations sur un changement.
+ * \{ */
+
+MessageObservable :: struct {
+    envoyeur: *InfoType
+    quoi: chaine
+    données: *rien
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Observable, diffuseuse de messages.
+ * \{ */
+
+Observable :: struct {
+    observatrices: []*Observatrice
+    est_en_diffusion := vrai
+}
+
+détruit_données_observable :: fonc (observable: *Observable)
+{
+    message: MessageObservable
+    message.envoyeur = info_de(Observable)
+    message.quoi = "observable_est_supprimé"
+
+    /* Prévient les observatrices que nous sommes terminés. */
+    pour observable.observatrices {
+        it.reçoie_message(*message)
+    }
+
+    pour observable.observatrices {
+        it.supprime_observable(observable)
+    }
+
+    déloge(observable.observatrices)
+}
+
+ajoute_observatrice :: fonc (observable: *Observable, observatrice: *Observatrice)
+{
+    pour observable.observatrices {
+        si it == observatrice {
+            retourne
+        }
+    }
+
+    tableau_ajoute(*observable.observatrices, observatrice)
+    observatrice.ajoute_observable(observable)
+}
+
+supprime_observatrice :: fonc (observable: *Observable, observatrice: *Observatrice)
+{
+    pour observable.observatrices {
+        si it == observatrice {
+            tableau_supprime_index(*observable.observatrices, index_it)
+            it.supprime_observable(observable)
+            retourne
+        }
+    }
+}
+
+envoie_message :: fonc (observable: *Observable, message: MessageObservable)
+{
+    saufsi observable.observatrices {
+        retourne
+    }
+
+    saufsi observable.est_en_diffusion {
+        retourne
+    }
+
+    pour observable.observatrices {
+        saufsi it.est_observante {
+            continue
+        }
+
+        it.reçoie_message(*message)
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Observatrice, réceptrice de messages.
+ * \{ */
+
+Observatrice :: struct {
+    observables: []*Observable
+
+    est_observante := vrai
+
+    rappel_sur_reception_message : fonc (*Observatrice, *MessageObservable)(rien)
+}
+
+détruit_données_observatrice :: fonc (observatrice: *Observatrice)
+{
+    /* Assurons-nous que plus personne ne nous référence. */
+    pour observatrice.observables {
+        it.supprime_observatrice(observatrice)
+    }
+
+    déloge(observatrice.observables)
+}
+
+reçoie_message :: fonc (observatrice: *Observatrice, message: *MessageObservable)
+{
+    saufsi observatrice.rappel_sur_reception_message {
+        retourne
+    }
+
+    observatrice.rappel_sur_reception_message(observatrice, message)
+}
+
+/* Seulement appelé depuis Observable. */
+ajoute_observable :: fonc (observatrice: *Observatrice, observable: *Observable)
+{
+    tableau_ajoute(*observatrice.observables, observable)
+}
+
+/* Seulement appelé depuis Observable. */
+supprime_observable :: fonc (observatrice: *Observatrice, observable: *Observable)
+{
+    pour observatrice.observables {
+        si it == observable {
+            tableau_supprime_index(*observatrice.observables, index_it)
+            retourne
+        }
+    }
+}
+
+/** } */

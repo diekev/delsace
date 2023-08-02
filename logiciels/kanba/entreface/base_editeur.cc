@@ -31,64 +31,114 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
 #include <QFrame>
-#include <QLabel>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QStyle>
 #include <QVariant>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+
 #include "coeur/kanba.h"
 
-BaseEditrice::BaseEditrice(Kanba &kanba, QWidget *parent)
-	: danjo::ConteneurControles(parent)
-	, m_kanba(&kanba)
-	, m_cadre(new QFrame(this))
-	, m_agencement(new QVBoxLayout())
+#include "gestionnaire_interface.hh"
+
+static void rappel_pour_éditrice_kanba(void *données, KNB::ChangementÉditrice changement)
 {
-	this->observe(&kanba);
+    auto éditrice = static_cast<BaseEditrice *>(données);
+    éditrice->ajourne_état(changement);
+}
 
-	QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	size_policy.setHorizontalStretch(0);
-	size_policy.setVerticalStretch(0);
-	size_policy.setHeightForWidth(m_cadre->sizePolicy().hasHeightForWidth());
+BaseEditrice::BaseEditrice(const char *identifiant,
+                           KNB::Kanba &kanba,
+                           KNB::Éditrice &éditrice,
+                           QWidget *parent)
+    : danjo::ConteneurControles(parent), m_kanba(kanba), m_cadre(new QFrame(this)),
+      m_agencement(new QVBoxLayout()), m_identifiant(identifiant)
+{
+    QSizePolicy size_policy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    size_policy.setHorizontalStretch(0);
+    size_policy.setVerticalStretch(0);
+    size_policy.setHeightForWidth(m_cadre->sizePolicy().hasHeightForWidth());
 
-	/* Intern frame, where individual entreface regions put their buttons. */
+    /* Intern frame, where individual entreface regions put their buttons. */
 
-	m_cadre->setSizePolicy(size_policy);
-	m_cadre->setFrameShape(QFrame::StyledPanel);
-	m_cadre->setFrameShadow(QFrame::Raised);
+    m_cadre->setSizePolicy(size_policy);
+    m_cadre->setFrameShape(QFrame::StyledPanel);
+    m_cadre->setFrameShadow(QFrame::Raised);
 
-	m_agencement->addWidget(m_cadre);
+    m_agencement->addWidget(m_cadre);
 
-	m_agencement->setMargin(0);
-	this->setLayout(m_agencement);
+    m_agencement->setMargin(0);
+    this->setLayout(m_agencement);
 
-	m_agencement_principal = new QHBoxLayout(m_cadre);
-	m_agencement_principal->setMargin(6);
+    m_agencement_principal = new QHBoxLayout(m_cadre);
+    m_agencement_principal->setMargin(6);
 
-	this->actif(false);
+    this->actif(false);
+
+    éditrice.définis_rappel_utilisateur_interface(this, rappel_pour_éditrice_kanba);
 }
 
 void BaseEditrice::actif(bool yesno)
 {
-	m_cadre->setProperty("state", (yesno) ? "on" : "off");
-	m_cadre->setStyle(QApplication::style());
+    m_cadre->setProperty("state", (yesno) ? "on" : "off");
+    m_cadre->setStyle(QApplication::style());
 }
 
 void BaseEditrice::rend_actif()
 {
-	if (m_kanba->widget_actif) {
-		m_kanba->widget_actif->actif(false);
-	}
-
-	m_kanba->widget_actif = this;
-	this->actif(true);
+    auto gestionnaire = static_cast<GestionnaireInterface *>(
+        m_kanba.donne_données_gestionnaire_fenêtre());
+    gestionnaire->définis_éditrice_active(this);
 }
 
 void BaseEditrice::mousePressEvent(QMouseEvent *e)
 {
-	this->rend_actif();
-	QWidget::mousePressEvent(e);
+    this->rend_actif();
+    QWidget::mousePressEvent(e);
+
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
+    donnees.modificateur = static_cast<int>(QApplication::keyboardModifiers());
+
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
+}
+
+void BaseEditrice::mouseMoveEvent(QMouseEvent *e)
+{
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+    donnees.souris = e->button();
+
+    KNB::donne_repondant_commande()->ajourne_commande_modale(donnees);
+}
+
+void BaseEditrice::wheelEvent(QWheelEvent *e)
+{
+    /* Puisque Qt ne semble pas avoir de bouton pour différencier un clique d'un
+     * roulement de la molette de la souris, on prétend que le roulement est un
+     * double clique de la molette. */
+    auto donnees = DonneesCommande();
+    donnees.x = static_cast<float>(e->delta());
+    donnees.souris = Qt::MidButton;
+    donnees.double_clique = true;
+
+    KNB::donne_repondant_commande()->appele_commande(m_identifiant, donnees);
+}
+
+void BaseEditrice::mouseReleaseEvent(QMouseEvent *e)
+{
+    DonneesCommande donnees;
+    donnees.x = static_cast<float>(e->pos().x());
+    donnees.y = static_cast<float>(e->pos().y());
+
+    KNB::donne_repondant_commande()->acheve_commande_modale(donnees);
 }

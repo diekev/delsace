@@ -24,52 +24,55 @@
 
 #pragma once
 
-#include "biblinternes/patrons_conception/observation.hh"
-#include "biblinternes/patrons_conception/commande.h"
+#include "kanba.hh"
 
-#include "biblinternes/math/matrice/matrice.hh"
-#include "biblinternes/math/vecteur.hh"
-
-class BaseEditrice;
-class Brosse;
-class FenetrePrincipale;
-class Maillage;
 class RepondantCommande;
-class UsineCommande;
 
-namespace vision {
+namespace KNB {
 
-class Camera3D;
+std::optional<KNB::Kanba> initialise_kanba();
 
-}  /* namespace vision */
+void issitialise_kanba(KNB::Kanba &kanba);
 
-enum {
-	FICHIER_OUVERTURE,
+void enregistre_commandes(KNB::Kanba &kanba);
+
+RepondantCommande *donne_repondant_commande();
+
+}  // namespace KNB
+
+#if 0
+struct EntréeLog {
+    enum Type {
+        GÉNÉRALE,
+        IMAGE,
+        RENDU,
+        MAILLAGE,
+        EMPAQUETAGE,
+    };
+
+    Type type{};
+    dls::chaine texte{};
 };
 
-struct Kanba : public Sujette {
-	dls::math::matrice_dyn<dls::math::vec4f> tampon;
+struct Kanba {
+  private:
+    dls::tableau<EntréeLog> entrées_log{};
 
-	/* Interface utilisateur. */
-	FenetrePrincipale *fenetre_principale = nullptr;
-	BaseEditrice *widget_actif = nullptr;
+  public:
+    /* Interface pour les logs. */
 
-	UsineCommande usine_commande;
+    template <typename... Args>
+    void ajoute_log(EntréeLog::Type type, Args... args)
+    {
+        std::stringstream ss;
+        ((ss << args), ...);
 
-	RepondantCommande *repondant_commande;
+        ajoute_log_impl(type, ss.str());
+    }
 
-	Brosse *brosse;
-	vision::Camera3D *camera;
-	Maillage *maillage;
+    void ajoute_log(EntréeLog::Type type, dls::chaine const &texte);
 
-	Kanba();
-	~Kanba();
-
-	Kanba(Kanba const &) = default;
-	Kanba &operator=(Kanba const &) = default;
-
-	void enregistre_commandes();
-
-	dls::chaine requiers_dialogue(int type);
+  private:
+    void ajoute_log_impl(EntréeLog::Type type, dls::chaine const &texte);
 };
-
+#endif

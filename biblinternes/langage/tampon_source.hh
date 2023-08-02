@@ -34,6 +34,8 @@ class tampon_source {
 	dls::tableau<dls::vue_chaine> m_lignes{};
 
 public:
+	tampon_source() = default;
+
 	/**
 	 * Construit une instance de tampon_source à partir d'une chaîne C
 	 * terminée par zéro.
@@ -45,7 +47,14 @@ public:
 	 * est 'bougée' dans la tampon. Après cette opération la dls::chaine
 	 * passée en paramètre sera vide.
 	 */
-	explicit tampon_source(dls::chaine chaine) noexcept;
+    explicit tampon_source(dls::chaine &&chaine) noexcept;
+
+	tampon_source(tampon_source const &autre);
+
+	tampon_source &operator=(tampon_source const &autre);
+
+	tampon_source(tampon_source &&autre);
+	tampon_source &operator=(tampon_source &&autre);
 
 	/**
 	 * Retourne un pointeur vers le début du tampon.
@@ -63,17 +72,21 @@ public:
 	 * du tampon n'est effectuée, de sorte que si i n'est pas dans la
 	 * portée, le programme crashera.
 	 */
-	dls::vue_chaine operator[](long i) const noexcept;
+    dls::vue_chaine operator[](int64_t i) const noexcept;
 
 	/**
 	 * Retourne le nombre de ligne dans le tampon.
 	 */
-	size_t nombre_lignes() const noexcept;
+  int64_t nombre_lignes() const noexcept;
 
 	/**
 	 * Retourne la taille des données en octets du tampon.
 	 */
-	size_t taille_donnees() const noexcept;
+  int64_t taille_donnees() const noexcept;
+
+	tampon_source sous_tampon(size_t debut, size_t fin) const;
+
+	dls::chaine const &chaine() const;
 
 private:
 	/**

@@ -1,0 +1,147 @@
+/* ------------------------------------------------------------------------- */
+/* Diverses fonctions de calcul d'empreintes de chaines pour des fonctions
+ * de hachage.
+ * \{ */
+
+/* Calcule l'empreinte en utilisant l'algorithme DJB2.
+ *
+ * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
+ * la fonction dans le cadre de la recherche d'un hachage parfait.
+ *
+ * http://www.cse.yorku.ca/~oz/hash.html
+ */
+calcule_empreinte_djb2 :: fonc (chn: chaine, semence: n64) -> n64
+{
+    empreinte : n64 = 5381 + semence
+
+    pour chn {
+        /* empreinte * 33 + c */
+        empreinte = ((empreinte << 5) + empreinte) + it comme n64
+    }
+
+    retourne empreinte
+}
+
+calcule_empreinte_djb2 :: fonc (chn: chaine) -> n64
+{
+    retourne calcule_empreinte_djb2(chn, 0)
+}
+
+calcule_empreinte_djb2 :: fonc (chn: ChaineUTF32, semence: n64) -> n64
+{
+    empreinte : n64 = 5381 + semence
+
+    pour chn.points_de_code {
+        /* empreinte * 33 + c */
+        empreinte = ((empreinte << 5) + empreinte) + it comme n64
+    }
+
+    retourne empreinte
+}
+
+calcule_empreinte_djb2 :: fonc (chn: ChaineUTF32) -> n64
+{
+    retourne calcule_empreinte_djb2(chn, 0)
+}
+
+/* Calcule l'empreinte en utilisant l'algorithme DJB2a.
+ * Comme DJB2 mais utilise xor au lieu d'une addition.
+ *
+ * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
+ * la fonction dans le cadre de la recherche d'un hachage parfait.
+ *
+ * http://www.cse.yorku.ca/~oz/hash.html
+ */
+calcule_empreinte_djb2a :: fonc (chn: chaine, semence: n64) -> n64
+{
+    empreinte : n64 = 5381 + semence
+
+    pour chn {
+        valeur := it comme n64
+        résultat = ((résultat << 5) + résultat) ^ valeur
+    }
+
+    retourne résultat
+}
+
+calcule_empreinte_djb2a :: fonc (chn: chaine) -> n64
+{
+    retourne calcule_empreinte_djb2a(chn, 0)
+}
+
+/* Calcule l'empreinte en utilisant l'algorithme SDBM.
+ *
+ * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
+ * la fonction dans le cadre de la recherche d'un hachage parfait.
+ *
+ * http://www.cse.yorku.ca/~oz/hash.html
+ */
+calcule_empreinte_sdbm :: fonc (chn: chaine, semence: n64) -> n64
+{
+    résultat := semence
+
+    pour chn {
+        valeur := it comme n64
+        résultat = valeur + (résultat << 6) + (résultat << 16) - résultat
+    }
+
+    retourne résultat
+}
+
+calcule_empreinte_sdbm :: fonc (chn: chaine) -> n64
+{
+    retourne calcule_empreinte_sdbm(chn, 0)
+}
+
+/* Calcule l'empreinte en utilisant l'algorithme FNV-1.
+ *
+ * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
+ * la fonction dans le cadre de la recherche d'un hachage parfait.
+ *
+ * https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+ */
+calcule_empreinte_fnv_1 :: fonc (chn: chaine, semence: n64) -> n64
+{
+    résultat := 14695981039346656037 comme n64 + semence
+
+    pour chn {
+        valeur := it comme n64
+        résultat *= 1099511628211
+        résultat ^= valeur
+    }
+
+    retourne résultat
+}
+
+calcule_empreinte_fnv_1 :: fonc (chn: chaine) -> n64
+{
+    retourne calcule_empreinte_fnv_1(chn, 0)
+}
+
+/* Calcule l'empreinte en utilisant l'algorithme FNV-1a.
+ * Comme FNV-1 mais intervertis la multiplication et le xor.
+ *
+ * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
+ * la fonction dans le cadre de la recherche d'un hachage parfait.
+ *
+ * https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+ */
+calcule_empreinte_fnv_1a :: fonc (chn: chaine, semence: n64) -> n64
+{
+    résultat := 14695981039346656037 comme n64 + semence
+
+    pour chn {
+        valeur := it comme n64
+        résultat ^= valeur
+        résultat *= 1099511628211
+    }
+
+    retourne résultat
+}
+
+calcule_empreinte_fnv_1a :: fonc (chn: chaine) -> n64
+{
+    retourne calcule_empreinte_fnv_1a(chn, 0)
+}
+
+/* \} */

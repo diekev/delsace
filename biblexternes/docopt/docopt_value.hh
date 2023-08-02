@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <functional>  /* pour std::hash */
+#include <functional> /* pour std::hash */
 #include <iosfwd>
 
 #include "biblinternes/structures/chaine.hh"
@@ -38,42 +38,42 @@ namespace docopt {
 ///
 /// This type can be one of: {bool, long, string, vector<string>}, or empty.
 struct value {
-	/// An empty value
-	value() {}
+  /// An empty value
+  value() {}
 
 	explicit value(dls::chaine);
-	explicit value(dls::tableau<dls::chaine>);
+    explicit value(dls::tableau<dls::chaine>);
 
-	explicit value(bool);
-	explicit value(long);
-	explicit value(int v) : value(static_cast<long>(v)) {}
+  explicit value(bool);
+  explicit value(long);
+  explicit value(int v) : value(static_cast<long>(v)) {}
 
-	~value();
-	value(value const&);
-	value(value&&) noexcept;
-	value& operator=(value const&);
-	value& operator=(value&&) noexcept;
+  ~value();
+  value(value const &);
+  value(value &&) noexcept;
+  value &operator=(value const &);
+  value &operator=(value &&) noexcept;
 
-	// Test if this object has any contents at all
-	explicit operator bool() const { return kind != Kind::Empty; }
+  // Test if this object has any contents at all
+  explicit operator bool() const { return kind != Kind::Empty; }
 
-	// Test the type contained by this value object
-	bool isBool()       const { return kind==Kind::Bool; }
-	bool isString()     const { return kind==Kind::String; }
-	bool isLong()       const { return kind==Kind::Long; }
-	bool isStringList() const { return kind==Kind::StringList; }
+  // Test the type contained by this value object
+  bool isBool() const { return kind == Kind::Bool; }
+  bool isString() const { return kind == Kind::String; }
+  bool isLong() const { return kind == Kind::Long; }
+  bool isStringList() const { return kind == Kind::StringList; }
 
 	// Throws std::invalid_argument if the type does not match
 	bool asBool() const;
 	long asLong() const;
 	dls::chaine const& asString() const;
-	dls::tableau<dls::chaine> const& asStringList() const;
+    dls::tableau<dls::chaine> const& asStringList() const;
 
-	size_t hash() const noexcept;
+  size_t hash() const noexcept;
 
-	// equality is based on hash-equality
-	friend bool operator==(value const&, value const&);
-	friend bool operator!=(value const&, value const&);
+  // equality is based on hash-equality
+  friend bool operator==(value const &, value const &);
+  friend bool operator!=(value const &, value const &);
 
 private:
 	enum class Kind {
@@ -118,45 +118,35 @@ private:
 		error += "; type is actually ";
 		error += kindAsString(kind);
 		throw std::runtime_error(error.c_str());
-	}
+    }
 
 private:
-	Kind kind = Kind::Empty;
-	Variant variant {};
+  Kind kind = Kind::Empty;
+  Variant variant{};
 };
 
 /// Write out the contents to the ostream
-std::ostream& operator<<(std::ostream&, value const&);
+std::ostream &operator<<(std::ostream &, value const &);
 
-}  /* namespace docopt */
-}  /* namespace dls */
+} /* namespace docopt */
+} /* namespace dls */
 
 namespace std {
 
-template <>
-struct hash<dls::docopt::value> {
-	size_t operator()(const dls::docopt::value &val) const noexcept
-	{
-		return val.hash();
-	}
+template <> struct hash<dls::docopt::value> {
+  size_t operator()(const dls::docopt::value &val) const noexcept {
+    return val.hash();
+  }
 };
 
-}  /* namespace std */
+} /* namespace std */
 
 namespace dls {
 namespace docopt {
 
-inline value::value(bool v)
-	: kind(Kind::Bool)
-{
-	variant.boolValue = v;
-}
+inline value::value(bool v) : kind(Kind::Bool) { variant.boolValue = v; }
 
-inline value::value(long v)
-	: kind(Kind::Long)
-{
-	variant.longValue = v;
-}
+inline value::value(long v) : kind(Kind::Long) { variant.longValue = v; }
 
 inline value::value(dls::chaine v)
 	: kind(Kind::String)
@@ -238,26 +228,24 @@ inline value::~value()
 			// trivial dtor
 			break;
 	}
+
 }
 
-inline value &value::operator=(const value &other)
-{
-	// make a copy and move from it; way easier.
-	return *this = value{other};
+inline value &value::operator=(const value &other) {
+  // make a copy and move from it; way easier.
+  return *this = value{other};
 }
 
-inline value &value::operator=(value&& other) noexcept
-{
-	// move of all the types involved is noexcept, so we dont have to worry about
-	// these two statements throwing, which gives us a consistency guarantee.
-	this->~value();
-	new (this) value(std::move(other));
+inline value &value::operator=(value &&other) noexcept {
+  // move of all the types involved is noexcept, so we dont have to worry about
+  // these two statements throwing, which gives us a consistency guarantee.
+  this->~value();
+  new (this) value(std::move(other));
 
-	return *this;
+  return *this;
 }
 
-template <class T>
-void hash_combine(std::size_t& seed, const T& v);
+template <class T> void hash_combine(std::size_t &seed, const T &v);
 
 inline size_t value::hash() const noexcept
 {
@@ -271,25 +259,24 @@ inline size_t value::hash() const noexcept
 				hash_combine(seed, str);
 			}
 			return seed;
-		}
+        }
 
-		case Kind::Bool:
-			return std::hash<bool>()(variant.boolValue);
+  case Kind::Bool:
+    return std::hash<bool>()(variant.boolValue);
 
-		case Kind::Long:
-			return std::hash<long>()(variant.longValue);
+  case Kind::Long:
+    return std::hash<long>()(variant.longValue);
 
-		case Kind::Empty:
-			return std::hash<void*>()(nullptr);
-	}
+  case Kind::Empty:
+    return std::hash<void *>()(nullptr);
+  }
 
-	return std::hash<void*>()(nullptr);
+  return std::hash<void *>()(nullptr);
 }
 
-inline bool value::asBool() const
-{
-	throwIfNotKind(Kind::Bool);
-	return variant.boolValue;
+inline bool value::asBool() const {
+  throwIfNotKind(Kind::Bool);
+  return variant.boolValue;
 }
 
 inline long value::asLong() const
@@ -320,39 +307,35 @@ inline dls::chaine const& value::asString() const
 inline dls::tableau<dls::chaine> const& value::asStringList() const
 {
 	throwIfNotKind(Kind::StringList);
-	return variant.strList;
+    return variant.strList;
 }
 
-inline bool operator==(const value &v1, const value &v2)
-{
-	if (v1.kind != v2.kind) {
-		return false;
-	}
+inline bool operator==(const value &v1, const value &v2) {
+  if (v1.kind != v2.kind) {
+    return false;
+  }
 
-	switch (v1.kind) {
-		case value::Kind::String:
-			return v1.variant.strValue==v2.variant.strValue;
+  switch (v1.kind) {
+  case value::Kind::String:
+    return v1.variant.strValue == v2.variant.strValue;
 
-		case value::Kind::StringList:
-			return v1.variant.strList==v2.variant.strList;
+  case value::Kind::StringList:
+    return v1.variant.strList == v2.variant.strList;
 
-		case value::Kind::Bool:
-			return v1.variant.boolValue==v2.variant.boolValue;
+  case value::Kind::Bool:
+    return v1.variant.boolValue == v2.variant.boolValue;
 
-		case value::Kind::Long:
-			return v1.variant.longValue==v2.variant.longValue;
+  case value::Kind::Long:
+    return v1.variant.longValue == v2.variant.longValue;
 
-		case value::Kind::Empty:
-			return true;
-	}
+  case value::Kind::Empty:
+    return true;
+  }
 
-	return true;
+  return true;
 }
 
-inline bool operator!=(const value &v1, const value &v2)
-{
-	return !(v1 == v2);
-}
+inline bool operator!=(const value &v1, const value &v2) { return !(v1 == v2); }
 
-}  /* namespace docopt */
-}  /* namespace dls */
+} /* namespace docopt */
+} /* namespace dls */

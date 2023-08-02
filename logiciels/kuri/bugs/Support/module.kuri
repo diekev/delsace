@@ -1,0 +1,56 @@
+importe Compilatrice
+importe Fondation
+
+attend_compilation_terminée :: fonc (espace: *EspaceDeTravail)
+{
+    boucle {
+        message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
+
+        si message.espace != espace {
+            continue
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                arrête
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}
+
+compile_fichier_erroné :: fonc (chemin: chaine) -> bool
+{
+    options : OptionsDeCompilation
+    options.continue_si_erreur = vrai
+
+    espace := démarre_un_espace_de_travail("bug", *options)
+
+    compilatrice_commence_interception(espace)
+
+    ajoute_fichier_à_la_compilation(espace, chemin)
+
+    attend_compilation_terminée(espace)
+
+    // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
+    retourne compilatrice_possède_erreur(espace)
+}
+
+compile_script_erroné :: fonc (script: chaine) -> bool
+{
+    options : OptionsDeCompilation
+    options.continue_si_erreur = vrai
+
+    espace := démarre_un_espace_de_travail("bug", *options)
+    compilatrice_commence_interception(espace)
+    ajoute_chaine_à_la_compilation(espace, script)
+
+    attend_compilation_terminée(espace)
+
+    // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
+    retourne compilatrice_possède_erreur(espace)
+}

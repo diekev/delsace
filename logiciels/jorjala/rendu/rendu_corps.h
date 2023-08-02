@@ -25,19 +25,23 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/tableau.hh"
 
-class Corps;
 class ContexteRendu;
 class TamponRendu;
 
+namespace JJL {
+class Corps;
+}
+
 struct StatistiquesRendu {
-	long nombre_objets = 0;
-	long nombre_polygones = 0;
-	long nombre_polylignes = 0;
-	long nombre_volumes = 0;
-	long nombre_points = 0;
-	double temps = 0.0;
+    int64_t nombre_objets = 0;
+    int64_t nombre_polygones = 0;
+    int64_t nombre_polylignes = 0;
+    int64_t nombre_volumes = 0;
+    int64_t nombre_points = 0;
+    double temps = 0.0;
 };
 
 /**
@@ -45,34 +49,36 @@ struct StatistiquesRendu {
  * scène 3D.
  */
 class RenduCorps {
-	TamponRendu *m_tampon_points = nullptr;
-	TamponRendu *m_tampon_polygones = nullptr;
-	TamponRendu *m_tampon_segments = nullptr;
-	TamponRendu *m_tampon_volume = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_points = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_polygones = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_segments = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_volume = nullptr;
 
-	Corps const *m_corps = nullptr;
+    JJL::Corps &m_corps;
 
-public:
-	/**
-	 * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
-	 */
-	explicit RenduCorps(Corps const *corps);
+    StatistiquesRendu m_stats{};
 
-	RenduCorps(RenduCorps const &) = default;
-	RenduCorps &operator=(RenduCorps const &) = default;
+  public:
+    /**
+     * RenduCorps une instance de RenduMaillage pour le maillage spécifié.
+     */
+    explicit RenduCorps(JJL::Corps &corps);
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduCorps();
+    RenduCorps(RenduCorps const &) = delete;
+    RenduCorps &operator=(RenduCorps const &) = delete;
 
-	void initialise(ContexteRendu const &contexte,
-					StatistiquesRendu &stats,
-					dls::tableau<dls::math::mat4x4f> &matrices);
+    void initialise(ContexteRendu const &contexte, dls::tableau<dls::math::mat4x4f> &matrices);
 
-	/**
-	 * Dessine le maillage dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine le maillage dans le contexte spécifié.
+     */
+    void dessine(StatistiquesRendu &stats, ContexteRendu const &contexte);
+
+  private:
+    void extrait_données_primitives(int64_t nombre_de_prims,
+                                    bool est_instance,
+                                    dls::tableau<char> &points_utilisés);
+    void extrait_données_points(int64_t nombre_de_prims,
+                                bool est_instance,
+                                dls::tableau<char> &points_utilisés);
 };

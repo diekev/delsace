@@ -1,0 +1,85 @@
+importe Fondation
+
+// Type opaque pour indiquer que l'IPA espère et reçoie une chaine de caractère
+// et non un pointeur vers un nombre ou un tampon d'octet
+ChaineC :: #opaque *z8
+
+crée_chaine_c :: fonc (chn: chaine) -> ChaineC
+{
+    résultat : ChaineC
+
+    saufsi chn {
+        retourne résultat
+    }
+
+    copie := copie_chaine(chn)
+
+    si copie.pointeur[copie.taille - 1] != '\0' {
+        chaine_ajoute(*copie, '\0')
+    }
+
+    résultat = ChaineC(copie.pointeur)
+    retourne résultat
+}
+
+// Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
+// par un '\0' et l'utiliser dans les fonctions C. Le tampon est alloué dans le
+// stockage temporaire, et n'a pas besoin d'être déloger manuellement.
+crée_chaine_c_temp :: fonc (chn: chaine) -> ChaineC
+{
+    tampon := logement_temp(chn.taille + 1)
+    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
+    tampon[chn.taille] = '\0' comme octet
+    retourne ChaineC(tampon comme *z8)
+}
+
+// Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+convertis_chaine_c :: fonc (chn: ChaineC) -> chaine
+{
+    taille := taille_chaine_c(chn)
+    résultat := construit_chaine(chn comme *z8, taille)
+    retourne copie_chaine(résultat)
+}
+
+détruit_chaine_c :: fonc (chn: &ChaineC)
+{
+    taille := taille_chaine_c(chn)
+    // ajoute 1 pour inclure le caractère nul en fin de chaine
+    chaine_native := construit_chaine(chn comme *z8, taille + 1)
+    déloge(chaine_native)
+    // impossible de construire un type opaque si la valeur doit être transformée ?
+    ptr : *z8 = nul
+    chn = ChaineC(ptr)
+}
+
+taille_chaine_c :: fonc (chn: &ChaineC) -> z64
+{
+    ptr := chn comme *z8
+
+    si ptr == nul {
+        retourne 0
+    }
+
+    taille : z64
+
+    tantque mémoire(ptr) != '\0' {
+        taille += 1
+        ptr += 1
+    }
+
+    retourne taille
+}
+
+copie_chaine_c :: fonc (chaine_c: ChaineC) -> chaine
+{
+    ptr := chaine_c comme *z8
+
+	si !ptr || ptr[0] == '\0' {
+		retourne ""
+	}
+
+	taille := taille_chaine_c(chaine_c)
+	chn := loge_chaine(taille)
+	copie_mem_nonsur(src = chaine_c comme *z8, dst = chn.pointeur, taille = taille)
+    retourne chn
+}

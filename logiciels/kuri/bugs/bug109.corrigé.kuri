@@ -1,0 +1,26 @@
+/* Collision de symbole dans la coulisse C si deux structures de mêmes noms
+ * sont définies dans des fonctions différentes. */
+
+principale :: fonc () -> z32
+{
+    fonction1 :: fonc () -> z32
+    {
+        Struct :: struct {
+            x: z32
+        }
+        s: Struct
+        retourne s.x
+    }
+
+    fonction2 :: fonc () -> z32
+    {
+        Struct :: struct {
+            x: z32
+        }
+
+        s: Struct
+        retourne s.x
+    }
+
+    retourne fonction1() + fonction2()
+}

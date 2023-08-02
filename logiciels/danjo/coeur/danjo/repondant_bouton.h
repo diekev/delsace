@@ -24,31 +24,10 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 namespace danjo {
 
-/**
- * La classe RepondantBouton définie l'entreface nécessaire pour attacher un
- * objet à plusieurs bouton dans une entreface utilisateur. À chaque fois qu'un
- * bouton est cliqué, cette classe est invoquée.
- */
-class RepondantBouton {
-public:
-	virtual ~RepondantBouton() = default;
+using RepondantBouton = RepondantCommande;
 
-	/**
-	 * Fonction appelée quand un bouton attaché à ce répondant est cliqué.
-	 *
-	 * L'identifiant passé en paramètre est l'attache du bouton défini dans le
-	 * script (bouton(attache="..."; métadonnée="...")).
-	 */
-	virtual void repond_clique(const dls::chaine &identifiant, const dls::chaine &metadonnee) = 0;
-
-	/**
-	 * Fonction appelée pour vérifié si un bouton doit ou non être désactivé.
-	 */
-	virtual bool evalue_predicat(const dls::chaine &identifiant, const dls::chaine &metadonnee) = 0;
-};
-
-}  /* namespace danjo */
+} /* namespace danjo */

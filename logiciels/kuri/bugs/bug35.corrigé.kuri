@@ -1,0 +1,18 @@
+// boucle infinie quand nous utilisons une expression de style fonctions[0]()
+// les expressions de style fonctions[0]() ne sont pas considérées par l'algorithme de sélection de candidates d'appels
+
+fonctions := [ foo, bar ]
+
+foo :: fonc ()
+{
+}
+
+bar :: fonc ()
+{
+}
+
+principale :: fonc () -> z32
+{
+    fonctions[0]()
+    retourne 0
+}

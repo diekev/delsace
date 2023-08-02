@@ -34,29 +34,28 @@ class QPushButton;
 namespace danjo {
 
 class ControleProprieteDecimal final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	/* entreface */
-	QHBoxLayout *m_agencement{};
-	ControleNombreDecimal *m_controle{};
+    /* entreface */
+    QHBoxLayout *m_agencement{};
+    ControleNombreDecimal *m_controle{};
 
-	QPushButton *m_bouton{};
-	QPushButton *m_bouton_animation{};
-	ControleEchelleDecimale *m_echelle{};
+    QPushButton *m_bouton{};
+    QPushButton *m_bouton_animation{};
+    ControleEchelleDecimale *m_echelle{};
 
-public:
-	explicit ControleProprieteDecimal(QWidget *parent = nullptr);
-	~ControleProprieteDecimal() override;
+  public:
+    explicit ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteDecimal() override;
 
-	ControleProprieteDecimal(ControleProprieteDecimal const &) = default;
-	ControleProprieteDecimal &operator=(ControleProprieteDecimal const &) = default;
+    ControleProprieteDecimal(ControleProprieteDecimal const &) = default;
+    ControleProprieteDecimal &operator=(ControleProprieteDecimal const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-	void ajourne_valeur_pointee(float valeur);
-	void montre_echelle();
-	void bascule_animation();
+  private Q_SLOTS:
+    void ajourne_valeur_pointee(float valeur);
+    void bascule_animation();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

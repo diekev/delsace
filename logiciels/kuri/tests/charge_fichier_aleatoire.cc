@@ -1,102 +1,78 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
 #include <fstream>
 #include <iostream>
 
-#include "compilation/analyseuse_grammaire.h"
-#include "compilation/contexte_generation_code.h"
-#include "compilation/decoupeuse.h"
-#include "compilation/modules.hh"
+#include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
+#include "compilation/syntaxeuse.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
 
 int main(int argc, char *argv[])
 {
-	if (argc != 2) {
-		std::cerr << "Usage : charge_fichier_aleatoire FICHIER\n";
-		return 1;
-	}
+    if (argc != 2) {
+        std::cerr << "Usage : charge_fichier_aleatoire FICHIER\n";
+        return 1;
+    }
 
-	std::ifstream fichier(argv[1]);
+    std::ifstream fichier_entree(argv[1]);
 
-	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = fichier.tellg();
-	fichier.seekg(0, fichier.beg);
+    fichier_entree.seekg(0, fichier_entree.end);
+    auto const taille_fichier = fichier_entree.tellg();
+    fichier_entree.seekg(0, fichier_entree.beg);
 
-	char *donnees = new char[static_cast<size_t>(taille_fichier)];
+    char *donnees = new char[static_cast<size_t>(taille_fichier)];
 
-	fichier.read(donnees, static_cast<long>(taille_fichier));
+    fichier_entree.read(donnees, static_cast<int64_t>(taille_fichier));
 
 #if 1
-	try {
-		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_fichier("", "");
-		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
-		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
-		auto decoupeuse = decoupeuse_texte(module);
-		decoupeuse.genere_morceaux();
-	}
-	catch (erreur::frappe const &e) {
-		std::cerr << e.message() << '\n';
-	}
+    {
+        auto compilatrice = Compilatrice("", {});
+        auto fichier = Fichier();
+        auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
+        fichier.charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
+
+        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
+        lexeuse.performe_lexage();
+    }
 #else
-	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
-	auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
+    auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
+    auto nombre_morceaux = taille_fichier / static_cast<int64_t>(sizeof(id_morceau));
 
-	dls::tableau<DonneesMorceau> morceaux;
-	morceaux.reserve(nombre_morceaux);
+    kuri::tableau<Lexeme> morceaux;
+    morceaux.reserve(nombre_morceaux);
 
-	for (auto i = 0; i < nombre_morceaux; ++i) {
-		auto dm = DonneesMorceau{};
-		dm.identifiant = donnees_morceaux[i];
-		/* rétabli une chaine car nous une décharge de la mémoire, donc les
-		 * pointeurs sont mauvais. */
-		dm.chaine = "texte_test";
-		dm.ligne_pos = 0ul;
-		dm.module = 0;
-		morceaux.pousse(dm);
-	}
+    for (auto i = 0; i < nombre_morceaux; ++i) {
+        auto dm = Lexeme{};
+        dm.genre = donnees_morceaux[i];
+        /* rétabli une chaine car nous une décharge de la mémoire, donc les
+         * pointeurs sont mauvais. */
+        dm.chaine = "texte_test";
+        dm.ligne_pos = 0ul;
+        dm.module = 0;
+        morceaux.ajoute(dm);
+    }
 
-	std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
+    std::cerr << "Il y a " << nombre_morceaux << " morceaux.\n";
 
-	try {
-		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("", "");
-		module->tampon = lng::tampon_source("texte_test");
-		module->morceaux = morceaux;
-		auto assembleuse = assembleuse_arbre(contexte);
-		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, module, "");
+    {
+        auto compilatrice = Compilatrice{};
+        auto module = compilatrice.cree_module("", "");
+        module->tampon = lng::tampon_source("texte_test");
+        module->morceaux = morceaux;
+        auto assembleuse = AssembleuseArbre(compilatrice);
+        compilatrice.assembleuse = &assembleuse;
+        auto analyseuse = Syntaxeuse(compilatrice, module, "");
 
-		std::ostream os(nullptr);
-		analyseuse.lance_analyse(os);
-	}
-	catch (...) {
+        std::ostream os(nullptr);
+        analyseuse.lance_analyse(os);
+    }
 
-	}
-
-	delete [] donnees;
+    delete[] donnees;
 #endif
 
-	return 0;
+    return 0;
 }

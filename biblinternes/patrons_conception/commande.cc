@@ -55,18 +55,20 @@ void UsineCommande::enregistre_type(dls::chaine const &nom, DescriptionCommande 
 {
 	auto const iter = m_tableau.trouve(nom);
 	assert(iter == m_tableau.fin());
-
+    description.identifiant = nom;
 	m_tableau[nom] = description;
 }
 
 Commande *UsineCommande::operator()(dls::chaine const &nom)
 {
 	auto const iter = m_tableau.trouve(nom);
-	assert(iter != m_tableau.fin());
+    if (iter == m_tableau.fin()) {
+        return nullptr;
+    }
 
 	DescriptionCommande const &desc = iter->second;
 
-	return desc.construction_commande();
+    return desc.construction_commande(desc);
 }
 
 Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCommande &donnees_commande)
@@ -98,7 +100,11 @@ Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCo
 			donnees_commande.metadonnee = desc.metadonnee;
 		}
 
-		return desc.construction_commande();
+        if (donnees_commande.identifiant == "") {
+            donnees_commande.identifiant = desc.identifiant;
+        }
+
+        return desc.construction_commande(desc);
 	}
 
 	return nullptr;

@@ -24,108 +24,261 @@
 
 #include "commandes_projet.h"
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_jorjala.hh"
 
-#include "coeur/evenement.h"
 #include "coeur/jorjala.hh"
-#include "coeur/sauvegarde.h"
+
+#include "entreface/gestion_entreface.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
-/* ************************************************************************** */
-
-class CommandeOuvrir final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		auto const chemin_projet = jorjala->requiers_dialogue(FICHIER_OUVERTURE, "*.jorjala");
-
-		if (chemin_projet.est_vide()) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
-
-		coeur::ouvre_projet(chemin_projet.c_str(), *jorjala);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-class CommandeOuvrirRecent final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		coeur::ouvre_projet(donnees.metadonnee.c_str(), *jorjala);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-static void sauve_fichier_sous(Jorjala &jorjala)
+std::optional<JJL::CheminFichier> crée_chemin_fichier(JJL::Chaine chaine)
 {
-	auto const &chemin_projet = jorjala.requiers_dialogue(FICHIER_SAUVEGARDE, "*.jorjala");
-
-	jorjala.chemin_projet(chemin_projet);
-	jorjala.projet_ouvert(true);
-
-	coeur::sauvegarde_projet(chemin_projet.c_str(), jorjala);
+    return JJL::CheminFichier::construit(chaine);
 }
 
-class CommandeSauvegarder final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
+/* ************************************************************************** */
 
-		if (jorjala->projet_ouvert()) {
-			coeur::sauvegarde_projet(jorjala->chemin_projet().c_str(), *jorjala);
-		}
-		else {
-			sauve_fichier_sous(*jorjala);
-		}
+class CommandeOuvrir final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        if (!jorjala.demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        JJL::CheminFichier chemin_projet({});
+        if (!donnees.metadonnee.est_vide()) {
+            /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
+             * appelé au début de l'exécution pour gérer un chemin passé en
+             * ligne de commande. */
+            auto opt_chemin_fichier = crée_chemin_fichier(donnees.metadonnee.c_str());
+            if (!opt_chemin_fichier.has_value()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+
+            chemin_projet = opt_chemin_fichier.value();
+        }
+        else {
+            chemin_projet = jorjala.affiche_dialogue_pour_sélection_fichier_lecture("*.jorjala");
+            if (chemin_projet.est_vide()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+        }
+
+        /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.lis_projet(chemin_projet);
+        jorjala.restaure_curseur_application();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeSauvegarderSous final : public Commande {
-public:
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto jorjala = extrait_jorjala(pointeur);
-		sauve_fichier_sous(*jorjala);
+static void sauve_fichier_sous(JJL::Jorjala &jorjala, JJL::CheminFichier chemin)
+{
+    jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+    jorjala.sauvegarde_projet(chemin);
+    jorjala.restaure_curseur_application();
+}
 
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+static void sauve_fichier_sous(JJL::Jorjala &jorjala)
+{
+    auto chemin_projet = jorjala.affiche_dialogue_pour_sélection_fichier_écriture("*.jorjala");
+    if (chemin_projet.est_vide()) {
+        return;
+    }
+
+    sauve_fichier_sous(jorjala, chemin_projet);
+}
+
+class CommandeSauvegarder final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+        if (!jorjala.donne_chemin_fichier_projet().vers_std_string().empty()) {
+            auto opt_chemin_fichier = crée_chemin_fichier(jorjala.donne_chemin_fichier_projet());
+            if (!opt_chemin_fichier.has_value()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+            sauve_fichier_sous(jorjala, opt_chemin_fichier.value());
+        }
+        else {
+            sauve_fichier_sous(jorjala);
+        }
+
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeSauvegarderSous final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const & /*donnees*/) override
+    {
+        sauve_fichier_sous(jorjala);
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeSauvegarderRessource final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    bool evalue_predicat_jorjala(JJL::Jorjala &jorjala,
+                                 dls::chaine const & /*metadonnee*/) override
+    {
+        /* À FAIRE. */
+        return true;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        auto chemin_projet = jorjala.affiche_dialogue_pour_sélection_fichier_écriture("*.jjr");
+        if (chemin_projet.est_vide()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.sauvegarde_ressource_jorjala(chemin_projet);
+        jorjala.restaure_curseur_application();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeLectureRessource final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        JJL::CheminFichier chemin_projet({});
+        if (!donnees.metadonnee.est_vide()) {
+            /* Nous pouvons avoir une métadonnée pour le chemin si nous sommes
+             * appelé pour un préréglage. */
+            auto chemin_ressource = "ressources/" + donnees.metadonnee + ".jjr";
+
+            auto opt_chemin_fichier = crée_chemin_fichier(chemin_ressource.c_str());
+            if (!opt_chemin_fichier.has_value()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+
+            chemin_projet = opt_chemin_fichier.value();
+        }
+        else {
+            chemin_projet = jorjala.affiche_dialogue_pour_sélection_fichier_lecture("*.jjr");
+            if (chemin_projet.est_vide()) {
+                return EXECUTION_COMMANDE_ECHOUEE;
+            }
+        }
+
+        /* À FAIRE : erreur de lecture. */
+        jorjala.change_curseur_application(JJL::TypeCurseur::ATTENTE_BLOQUÉ);
+        jorjala.lis_ressource_jorjala(chemin_projet);
+        jorjala.restaure_curseur_application();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeNouveauProjet final : public CommandeJorjala {
+  public:
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        if (!jorjala.demande_permission_avant_de_fermer()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        jorjala.réinitialise_pour_lecture_projet();
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
+};
+
+/* ************************************************************************** */
+
+class CommandeExportAlembic final : public CommandeJorjala {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::IGNORE;
+    }
+
+    int execute_jorjala(JJL::Jorjala &jorjala, DonneesCommande const &donnees) override
+    {
+        if (!jorjala.exporte_vers_alembic()) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
+
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_projet(UsineCommande &usine)
 {
-	usine.enregistre_type("ouvrir_fichier",
-						   description_commande<CommandeOuvrir>(
-							   "projet", 0, 0, 0, false));
+    usine.enregistre_type("ouvrir_fichier",
+                          description_commande<CommandeOuvrir>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_O, false, false));
 
-	usine.enregistre_type("ouvrir_fichier_recent",
-						   description_commande<CommandeOuvrirRecent>(
-							   "projet", 0, 0, 0, false));
+    usine.enregistre_type("sauvegarder",
+                          description_commande<CommandeSauvegarder>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_S, false, false));
 
-	usine.enregistre_type("sauvegarder",
-						   description_commande<CommandeSauvegarder>(
-							   "projet", 0, 0, 0, false));
+    usine.enregistre_type(
+        "sauvegarder_sous",
+        description_commande<CommandeSauvegarderSous>(
+            "projet", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_S, false, false));
 
-	usine.enregistre_type("sauvegarder_sous",
-						   description_commande<CommandeSauvegarderSous>(
-							   "projet", 0, 0, 0, false));
+    usine.enregistre_type(
+        "sauvegarder_ressource_sous",
+        description_commande<CommandeSauvegarderRessource>("projet", 0, 0, 0, false, false));
+
+    usine.enregistre_type(
+        "ouvrir_ressource",
+        description_commande<CommandeLectureRessource>("projet", 0, 0, 0, false));
+
+    usine.enregistre_type("nouveau_projet",
+                          description_commande<CommandeNouveauProjet>(
+                              "projet", 0, Qt::Modifier::CTRL, Qt::Key_N, false));
+
+    usine.enregistre_type(
+        "export_alembic",
+        description_commande<CommandeExportAlembic>("projet", 0, 0, 0, false, false));
 }
 
 #pragma clang diagnostic pop

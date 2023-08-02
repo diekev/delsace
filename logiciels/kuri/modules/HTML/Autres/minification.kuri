@@ -1,0 +1,57 @@
+importe Chaine
+importe Compilatrice
+importe Fondation
+importe HTML
+importe SysFichier
+importe Temps
+
+// #exécute compile_pour_production()
+// #exécute compile_pour_profilage()
+// #exécute compile_pour_débogage()
+
+est_fichier_html :: fonc (chm: CheminFichier) -> bool
+{
+    retourne chm.extension() == ".html"
+}
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("Utilisation: % FICHIER\n", args[0])
+        retourne 1
+    }
+
+    chm := CheminFichier(args[1])
+
+    saufsi est_fichier_html(chm) {
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+        retourne 1
+    }
+
+    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère détruit_chaines_internées()
+
+    contenu := contenu_fichier_texte(chm.chn)
+    diffère déloge(contenu)
+
+    imprime("%\n", contenu)
+
+    taille_contenu := contenu.taille
+
+    début := maintenant_précis()
+    parsat := parse_document(contenu)
+    diffère détruit(parsat)
+
+    contexte_formattage := initialise_contexte_formattage_minification()
+    taille_minifiée := formatte_document(contexte_formattage, parsat.document, sortie_standarde())
+    temps := début.temps_écoulé_microsecondes()
+
+    imprime("\n")
+    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation=3))
+    imprime("Taille minifiée  : %o\n", FormatEntier(taille_minifiée, séparation=3))
+    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation=3))
+
+    retourne 0
+}

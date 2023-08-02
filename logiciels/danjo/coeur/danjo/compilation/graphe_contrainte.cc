@@ -30,94 +30,94 @@ namespace danjo {
 
 graphe_contrainte::~graphe_contrainte()
 {
-	imprime_graphe(std::cerr, *this);
-	for (auto &v : m_variables) {
-		delete v;
-	}
+    imprime_graphe(std::cerr, *this);
+    for (auto &v : m_variables) {
+        delete v;
+    }
 
-	for (auto &c : m_contraintes) {
-		delete c;
-	}
+    for (auto &c : m_contraintes) {
+        delete c;
+    }
 }
 
 void graphe_contrainte::ajoute_contrainte(contrainte *c)
 {
-	m_contraintes.pousse(c);
+    m_contraintes.ajoute(c);
 }
 
 void graphe_contrainte::ajoute_variable(Variable *v)
 {
-	m_variables.pousse(v);
+    m_variables.ajoute(v);
 }
 
 graphe_contrainte::iterateur_contrainte graphe_contrainte::debut_contrainte()
 {
-	return m_contraintes.debut();
+    return m_contraintes.debut();
 }
 
 graphe_contrainte::iterateur_contrainte graphe_contrainte::fin_contrainte()
 {
-	return m_contraintes.fin();
+    return m_contraintes.fin();
 }
 
 graphe_contrainte::iterateur_contrainte_const graphe_contrainte::debut_contrainte() const
 {
-	return m_contraintes.debut();
+    return m_contraintes.debut();
 }
 
 graphe_contrainte::iterateur_contrainte_const graphe_contrainte::fin_contrainte() const
 {
-	return m_contraintes.fin();
+    return m_contraintes.fin();
 }
 
 graphe_contrainte::iterateur_variable graphe_contrainte::debut_variable()
 {
-	return m_variables.debut();
+    return m_variables.debut();
 }
 
 graphe_contrainte::iterateur_variable graphe_contrainte::fin_variable()
 {
-	return m_variables.fin();
+    return m_variables.fin();
 }
 
 graphe_contrainte::iterateur_variable_const graphe_contrainte::debut_variable() const
 {
-	return m_variables.debut();
+    return m_variables.debut();
 }
 
 graphe_contrainte::iterateur_variable_const graphe_contrainte::fin_variable() const
 {
-	return m_variables.fin();
+    return m_variables.fin();
 }
 
 void connecte(contrainte *c, Variable *v)
 {
-	c->m_variables.pousse(v);
-	v->m_contraintes.pousse(c);
+    c->m_variables.ajoute(v);
+    v->m_contraintes.ajoute(c);
 }
 
 void imprime_graphe(std::ostream &os, const graphe_contrainte &graphe)
 {
-	auto debut_contrainte = graphe.debut_contrainte();
-	auto fin_contrainte = graphe.fin_contrainte();
+    auto debut_contrainte = graphe.debut_contrainte();
+    auto fin_contrainte = graphe.fin_contrainte();
 
-	auto index = 0;
+    auto index = 0;
 
-	os << "graph graphe_contrainte {\n";
+    os << "graph graphe_contrainte {\n";
 
-	while (debut_contrainte != fin_contrainte) {
-		contrainte *c = *debut_contrainte;
+    while (debut_contrainte != fin_contrainte) {
+        contrainte *c = *debut_contrainte;
 
-		for (Variable *v : c->m_variables) {
-			//os << "C" << index << " (" << c->m_sortie->nom << ") -- " << v->nom << '\n';
-			os << "\t" << c->m_sortie->nom << " -> " << v->nom << ";\n";
-		}
+        for (Variable *v : c->m_variables) {
+            // os << "C" << index << " (" << c->m_sortie->nom << ") -- " << v->nom << '\n';
+            os << "\t" << c->m_sortie->nom << " -> " << v->nom << ";\n";
+        }
 
-		++index;
-		++debut_contrainte;
-	}
+        ++index;
+        ++debut_contrainte;
+    }
 
-	os << "}\n";
+    os << "}\n";
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

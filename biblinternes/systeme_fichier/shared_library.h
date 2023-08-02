@@ -84,6 +84,12 @@ class dso_symbol {
 	friend dso_symbol symbol_default(const dls::chaine &name, std::error_code &ec);
 	friend dso_symbol symbol_next(const dls::chaine &name);
 	friend dso_symbol symbol_next(const dls::chaine &name, std::error_code &ec);
+
+public:
+	void *ptr()
+	{
+		return m_ptr;
+	}
 };
 
 template <typename>

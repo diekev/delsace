@@ -31,44 +31,25 @@
 
 namespace danjo {
 
-ControleProprieteBool::ControleProprieteBool(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout)
-	, m_case_a_cocher(new QCheckBox(this))
-	, m_pointeur(nullptr)
+ControleProprieteBool::ControleProprieteBool(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout),
+      m_case_a_cocher(new QCheckBox(this))
 {
-	m_agencement->addWidget(m_case_a_cocher);
-	m_case_a_cocher->setChecked(false);
+    m_agencement->addWidget(m_case_a_cocher);
 
-	this->setLayout(m_agencement);
+    m_case_a_cocher->setChecked(m_propriete->evalue_bool(temps));
 
-	connect(m_case_a_cocher, &QAbstractButton::toggled, this, &ControleProprieteBool::ajourne_valeur_pointee);
-}
+    this->setLayout(m_agencement);
 
-void ControleProprieteBool::finalise(const DonneesControle &donnees)
-{
-	const auto vieil_etat = m_case_a_cocher->blockSignals(true);
-
-	m_pointeur = static_cast<bool *>(donnees.pointeur);
-
-	const auto valeur_defaut = (donnees.valeur_defaut == "vrai");
-
-	if (donnees.initialisation) {
-		*m_pointeur = valeur_defaut;
-	}
-
-	m_case_a_cocher->setChecked(*m_pointeur);
-
-	setToolTip(donnees.infobulle.c_str());
-
-	m_case_a_cocher->blockSignals(vieil_etat);
+    connect(m_case_a_cocher,
+            &QAbstractButton::toggled,
+            this,
+            &ControleProprieteBool::ajourne_valeur_pointee);
 }
 
 void ControleProprieteBool::ajourne_valeur_pointee(bool valeur)
 {
-	Q_EMIT(precontrole_change());
-	*m_pointeur = valeur;
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple([this, valeur]() { m_propriete->définis_valeur_bool(valeur); });
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

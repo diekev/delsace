@@ -1,62 +1,62 @@
 importe Fondation
 importe SysFichier
 
-# tests pour vérifier la vitesse de compilation de gros blocs de code
-# redondant mais simple
-# les entrées sont 20 000, 100 000, 500 000, 2 000 000 lignes de
-# a = b + c * d
-# a, b, c, d sont des nombres entiers initialisés à 1, 2, 3, 4
-#
-# les tests sont inspirés de
-# https://github.com/sal55/langs/blob/master/compilertest.txt
+// tests pour vérifier la vitesse de compilation de gros blocs de code
+// redondant mais simple
+// les entrées sont 20 000, 100 000, 500 000, 2 000 000 lignes de
+// a = b + c * d
+// a, b, c, d sont des nombres entiers initialisés à 1, 2, 3, 4
+//
+// les tests sont inspirés de
+// https://github.com/sal55/langs/blob/master/compilertest.txt
 
-fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
+crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 {
-	chaines = [
-		"fonc principale(args : []*z8) : z32\n",
+	chaines := [
+		"principale :: fonc () -> z32\n",
 		"{\n",
-		"\tdyn a = 1\n",
-		"\tdyn b = 2\n",
-		"\tdyn c = 3\n",
-		"\tdyn d = 4\n",
+		"\ta := 1\n",
+		"\tb := 2\n",
+		"\tc := 3\n",
+		"\td := 4\n",
 		"\ta = b + c * d\n",
 		"\tretourne 0\n",
-		"}"
+		"}\n"
 	]
 
-	# calcule l'espace nécessaire
-	dyn taille : z64 = 0
+	// calcule l'espace nécessaire
+	taille : z64 = 0
 
 	pour chn dans chaines {
 		taille += chn.taille
 	}
 
-	taille += chaines[6].taille * nombre_de_ligne - 1
+	taille += chaines[6].taille * (nombre_de_ligne - 1)
 
-	# génère le code du test
-	dyn enchaineuse : Enchaineuse
-	diffère { enchaineuse.détruit(); }
-
-	enchaineuse.réserve(taille)
+	// génère le code du test
+	enchaineuse : Enchaineuse
+	diffère { détruit_tampons(*enchaineuse); }
 
 	pour i dans 0 ... 5 {
-		enchaineuse.pousse(chaines[i])
+		ajoute_au_tampon(*enchaineuse, chaines[i])
 	}
 
-	pour i dans 0 ... nombre_de_ligne - 1 {
-		enchaineuse.pousse(chaines[6])
+	pour nombre_de_ligne {
+		ajoute_au_tampon(*enchaineuse, chaines[6])
 	}
 
-	enchaineuse.pousse(chaines[7])
-	enchaineuse.pousse(chaines[8])
+	ajoute_au_tampon(*enchaineuse, chaines[7])
+	ajoute_au_tampon(*enchaineuse, chaines[8])
 
-	# écris le fichier
-	chemin = construit_chemin(chemin_fichier)
-	fichier = ouvre_fichier_ecriture(chemin)
-	écris_fichier(fichier, enchaineuse.résultat)
+	// écris le fichier
+	chemin := construit_chemin(chemin_fichier)
+	fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège nonatteignable
+    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
+	_ := écris(*fichier, chaine_reponse)
+	déloge(chaine_reponse)
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
 	crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
 	crée_test(100_000, "/tmp/test_100_000_lignes.kuri")

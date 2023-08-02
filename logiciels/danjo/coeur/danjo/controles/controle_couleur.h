@@ -33,32 +33,32 @@ namespace danjo {
 class DialogueCouleur;
 
 class ControleCouleur final : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-	DialogueCouleur *m_dialogue;
-	dls::phys::couleur32 m_couleur{};
+    DialogueCouleur *m_dialogue;
+    dls::phys::couleur32 m_couleur{};
 
-public:
-	explicit ControleCouleur(QWidget *parent = nullptr);
+  public:
+    explicit ControleCouleur(QWidget *parent = nullptr);
 
-	ControleCouleur(ControleCouleur const &) = default;
-	ControleCouleur &operator=(ControleCouleur const &) = default;
+    ControleCouleur(ControleCouleur const &) = default;
+    ControleCouleur &operator=(ControleCouleur const &) = default;
 
-	dls::phys::couleur32 couleur();
+    dls::phys::couleur32 couleur();
 
-	void couleur(const dls::phys::couleur32 &c);
+    void couleur(const dls::phys::couleur32 &c);
 
-	void ajourne_plage(const float min, const float max);
+    void ajourne_plage(const float min, const float max);
 
-	void mouseReleaseEvent(QMouseEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *e) override;
 
-	void paintEvent(QPaintEvent *) override;
+    void paintEvent(QPaintEvent *) override;
 
-private Q_SLOTS:
-	void ajourne_couleur();
+  private Q_SLOTS:
+    void ajourne_couleur();
 
-Q_SIGNALS:
-	void couleur_changee();
+  Q_SIGNALS:
+    void couleur_changee();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -29,81 +29,85 @@
 
 #include "melange.h"
 
+namespace KNB {
+
 enum TypeDonnees {
-	SCALAIRE = 0,
-	COULEUR  = 1,
-	VECTEUR  = 2,
+    SCALAIRE = 0,
+    COULEUR = 1,
+    VECTEUR = 2,
 };
 
 enum class TypeCalque {
-	PEINTURE,
-	PROCEDUREL,
-	REPETABLE,
+    PEINTURE,
+    PROCEDUREL,
+    REPETABLE,
 };
 
 enum {
-	CALQUE_ACTIF = 1 << 0,
+    CALQUE_ACTIF = 1 << 0,
+    CALQUE_VISIBLE = 1 << 1,
+    CALQUE_VERROUILLÉ = 1 << 2,
 };
 
 struct Calque {
-	TypeDonnees type_donnees = TypeDonnees::SCALAIRE;
-	void *tampon = nullptr;
-	int drapeaux = 0;
+    TypeDonnees type_donnees = TypeDonnees::SCALAIRE;
+    void *tampon = nullptr;
+    int drapeaux = CALQUE_VISIBLE;
 
-	dls::chaine nom = "";
+    dls::chaine nom = "";
 
-	TypeCalque type_calque = TypeCalque::PEINTURE;
+    TypeCalque type_calque = TypeCalque::PEINTURE;
 
-	TypeMelange mode_fusion = TypeMelange::NORMAL;
-	float opacite = 1.0f;
+    TypeMelange mode_fusion = TypeMelange::NORMAL;
+    float opacite = 1.0f;
 
-	/* TypeCalque::REPETABLE */
-	float taille_u = 1.0f;
-	float taille_v = 1.0f;
-	dls::chaine chemin = "";
+    /* TypeCalque::REPETABLE */
+    float taille_u = 1.0f;
+    float taille_v = 1.0f;
+    dls::chaine chemin = "";
 
-	/* TypeCalque::PROCEDUREL */
-	int octaves = 1;
-	float taille = 1.0f;
-	dls::math::vec4f couleur = dls::math::vec4f(0.0f);
+    /* TypeCalque::PROCEDUREL */
+    int octaves = 1;
+    float taille = 1.0f;
+    dls::math::vec4f couleur = dls::math::vec4f(0.0f);
 
-	Calque() = default;
-	~Calque();
+    Calque() = default;
+    ~Calque();
 
-	Calque(Calque const &autre) = default;
-	Calque &operator=(Calque const &autre) = default;
+    Calque(Calque const &autre) = default;
+    Calque &operator=(Calque const &autre) = default;
 };
 
 enum TypeCanal {
-	DIFFUSION,
-	SPECULARITE,
-	GLOSS,
-	INCANDESCENCE,
-	OPACITE,
-	DEPLACEMENT_VECTORIEL,
-	RELIEF,
-	NORMAL,
-	MASQUE_REFLECTION,
+    DIFFUSION,
+    SPECULARITE,
+    GLOSS,
+    INCANDESCENCE,
+    OPACITE,
+    DEPLACEMENT_VECTORIEL,
+    RELIEF,
+    NORMAL,
+    MASQUE_REFLECTION,
 
-	NOMBRE_CANAUX
+    NOMBRE_CANAUX
 };
 
 struct CanauxTexture {
-	dls::tableau<Calque *> calques[TypeCanal::NOMBRE_CANAUX];
+    dls::tableau<Calque *> calques[TypeCanal::NOMBRE_CANAUX];
 
-	/* La hauteur initiale du tampon des calques. */
-	size_t hauteur{};
+    /* La hauteur initiale du tampon des calques. */
+    size_t hauteur{};
 
-	/* La largeur initiale du tampon des calques. */
-	size_t largeur{};
+    /* La largeur initiale du tampon des calques. */
+    size_t largeur{};
 
-	dls::math::vec4f *tampon_diffusion = nullptr;
+    dls::math::vec4f *tampon_diffusion = nullptr;
 
-	CanauxTexture() = default;
-	~CanauxTexture();
+    CanauxTexture() = default;
+    ~CanauxTexture();
 
-	CanauxTexture(CanauxTexture const &autre) = default;
-	CanauxTexture &operator=(CanauxTexture const &autre) = default;
+    CanauxTexture(CanauxTexture const &autre) = default;
+    CanauxTexture &operator=(CanauxTexture const &autre) = default;
 };
 
 Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);
@@ -111,3 +115,16 @@ Calque *ajoute_calque(CanauxTexture &canaux, TypeCanal type_canal);
 void supprime_calque(CanauxTexture &canaux, Calque *calque);
 
 void fusionne_calques(CanauxTexture &canaux);
+
+/* Structure pour tenir le tampon fusionné des calques d'un canal. */
+struct CanalFusionné {
+    /* La hauteur initiale du tampon des calques. */
+    size_t hauteur{};
+
+    /* La largeur initiale du tampon des calques. */
+    size_t largeur{};
+
+    dls::math::vec4f *tampon_diffusion = nullptr;
+};
+
+}  // namespace KNB

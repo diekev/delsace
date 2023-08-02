@@ -26,6 +26,8 @@
 
 #include "biblinternes/structures/chaine.hh"
 
+class GNA;
+
 /* ************************************************************************** */
 
 /* espaces */
@@ -69,7 +71,7 @@ int nombre_octets(const char *sequence);
  * fonction prend en compte la possibilité qu'un caractère soit invalide et le
  * saute au cas où.
  */
-long decalage_pour_caractere(dls::vue_chaine const &chaine, long i);
+int64_t decalage_pour_caractere(dls::vue_chaine const &chaine, int64_t i);
 
 /**
  * Retourne une chaine correspondant à la chaine spécifiée dénuée d'accents.
@@ -77,5 +79,9 @@ long decalage_pour_caractere(dls::vue_chaine const &chaine, long i);
 dls::chaine supprime_accents(dls::chaine const &chaine);
 
 int converti_utf32(const char *sequence, int n);
+
+int point_de_code_vers_utf8(uint32_t point_de_code, uint8_t *sequence);
+
+int sequence_aleatoire(GNA &gna, uint8_t *sequence, int taille_max);
 
 }  /* namespace lng */

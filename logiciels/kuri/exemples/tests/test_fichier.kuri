@@ -1,27 +1,26 @@
-importe "chaine"
+importe Fondation
+importe GlibC
 
-FILE_MODE = 0600;
+FILE_MODE := 0600;
 
-fonc crée_fichier(chemin : chaine) : z32
+crée_fichier :: fonc(chemin : chaine) -> z32
 {
-    # Il nous faut une chaine c.
-    tampon : [1024]z8;
-    ptr_chaine_c = copie_chaine_c_tampon(tampon, chemin);
+    ptr_chaine_c := crée_chaine_c_temp(chemin);
 
-    # Supprime les liens symbolics potentiels, pour éviter les attaques.
-    unlink(ptr_chaine_c);
+    // Supprime les liens symbolics potentiels, pour éviter les attaques.
+    _ := unlink(ptr_chaine_c);
 
-    fd = open(ptr_chaine_c, O_WRONLY|O_CREAT|O_EXCL, FILE_MODE);
+    fd := open(ptr_chaine_c, O_WRONLY|O_CREAT|O_EXCL, FILE_MODE);
 
     retourne fd;
 }
 
-fonc ouvre_fichier_append(chemin : chaine) : z32
+ouvre_fichier_append :: fonc(chemin : chaine) -> z32
 {
-
+    retourne -1
 }
 
-fonc possède_drapeaux(drapeaux : z32, valeurs : ...z32) : z32
+possède_drapeaux :: fonc(drapeaux : z32, valeurs : ...z32) -> bool
 {
     pour val dans valeurs {
         si (drapeaux & val) != 0 {
@@ -32,7 +31,7 @@ fonc possède_drapeaux(drapeaux : z32, valeurs : ...z32) : z32
     retourne faux;
 }
 
-fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) : z32
+ouvre_fichier_sans_créer :: fonc(chemin : chaine, drapeaux : z32) -> z32
 {
     si possède_drapeaux(drapeaux, O_CREATE | O_EXCL) {
         retourne -1;
@@ -41,17 +40,15 @@ fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) : z32
     boucle {
         drapeaux &= ~O_TRUNC;
 
-        fd = open(chemin, drapeaux);
+        fd := open(chemin, drapeaux);
         lstat(chemin);
         fstat(fd);
-
-        si
     }
 
     retourne -1;
 }
 
-fonc ouvre_fichier(chemin : chaine, drapeaux : z32, mode : z32) : z32
+ouvre_fichier :: fonc(chemin : chaine, drapeaux : z32, mode : z32) -> z32
 {
     si possède_drapeaux(drapeaux, O_CREAT) {
         si possède_drapeaux(drapeaux, O_EXCL) {
@@ -64,6 +61,7 @@ fonc ouvre_fichier(chemin : chaine, drapeaux : z32, mode : z32) : z32
     retourne ouvre_fichier_sans_créer(chaine, drapeaux);
 }
 
+/*
 safe_open_wrapper(filename, flags, perms)
 safe_open_no_create
 safe_create_fail_if_exists
@@ -73,3 +71,4 @@ safe_create_replace_if_exists
 safe_open_wrapper_follow
 safe_open_no_create_follow
 safe_open_keep_if_exists_follow
+*/

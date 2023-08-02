@@ -1,0 +1,397 @@
+importe Chaine
+importe Couleur
+importe Fondation
+importe Math
+importe SysFichier
+
+libtbb :: #bibliothèque "tbb"
+
+#dépendance_bibliothèque libmodule_c_image libtbb
+
+Image :: struct {
+    tampon : []CouleurRVBA
+    largeur: z32
+    hauteur: z32
+}
+
+crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
+{
+    image: Image
+    image.tampon = loge_tableau(CouleurRVBA, largeur * hauteur)
+    image.tampon.taille = largeur * hauteur
+    image.largeur = largeur
+    image.hauteur = hauteur
+
+    retourne image
+}
+
+détruit_image :: fonc (image: *Image) -> rien
+{
+    déloge(image.tampon)
+}
+
+remplis_image :: fonc (image : *Image, couleur: CouleurRVBA) -> rien
+{
+    pour & pixel dans image.tampon {
+        pixel = couleur
+    }
+}
+
+échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> CouleurRVBA
+{
+    x := pos.x * image.largeur comme r32
+    y := pos.y * image.hauteur comme r32
+
+    xi := x comme z32
+    yi := y comme z32
+
+    restreint(*xi, 0 comme z32, image.largeur - 1)
+    restreint(*yi, 0 comme z32, image.hauteur - 1)
+
+    index := xi + yi * image.largeur
+
+    retourne image.tampon[index]
+}
+
+charge "interface_image"
+
+liboiio :: #bibliothèque "OpenImageIO"
+liboiio_util :: #bibliothèque "OpenImageIO_Util"
+// libjpeg :: #bibliothèque "jpeg"
+// libpugixml :: #bibliothèque "pugixml"
+// libwebp :: #bibliothèque "webp"
+// libwebpdecoder :: #bibliothèque "webpdecoder"
+// libwebpdemux :: #bibliothèque "webpdemux"
+// libwebpmux :: #bibliothèque "webpmux"
+// libpthread :: #bibliothèque "pthread"
+// libtiff :: #bibliothèque "tiff"
+// libtiffxx :: #bibliothèque "tiffxx"
+// libz :: #bibliothèque "z"
+// libboost_thread :: #bibliothèque "boost_thread"
+// libboost_system :: #bibliothèque "boost_system"
+// libboost_filesystem :: #bibliothèque "boost_filesystem"
+// libopenjp2 :: #bibliothèque "openjp2"
+// libdl :: #bibliothèque "dl"
+// libpng :: #bibliothèque "png"
+
+// #dépendance_bibliothèque liboiio_util libdl
+// #dépendance_bibliothèque libtiff libz
+// #dépendance_bibliothèque libtiff libtiffxx
+// #dépendance_bibliothèque libwebp libwebpdecoder
+// #dépendance_bibliothèque libwebp libwebpdemux
+// #dépendance_bibliothèque libwebp libwebpmux
+// #dépendance_bibliothèque liboiio libpng
+// #dépendance_bibliothèque liboiio libwebp
+// #dépendance_bibliothèque liboiio libtiff
+// #dépendance_bibliothèque liboiio libpthread
+// #dépendance_bibliothèque liboiio libpugixml
+// #dépendance_bibliothèque liboiio libjpeg
+// #dépendance_bibliothèque liboiio libopenjp2
+#dépendance_bibliothèque liboiio liboiio_util
+// #dépendance_bibliothèque libmodule_c_image libboost_thread
+// #dépendance_bibliothèque libmodule_c_image libboost_system
+// #dépendance_bibliothèque libmodule_c_image libboost_filesystem
+#dépendance_bibliothèque libmodule_c_image liboiio
+
+nombre_éléments_données :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur * image.nombre_composants
+}
+
+alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
+{
+    image : ImageIO
+    image.hauteur = hauteur
+    image.largeur = largeur
+    image.nombre_composants = composants
+
+    données := loge_tableau(r32, image.nombre_éléments_données())
+    image.donnees = données.pointeur
+
+    retourne image
+}
+
+détruit_image :: fonc (image: &ImageIO)
+{
+    tableau : []r32 = ---
+    tableau.pointeur = image.donnees
+    tableau.taille = image.nombre_éléments_données()
+    déloge(tableau)
+
+    image.donnees = nul
+    image.hauteur = 0
+    image.largeur = 0
+    image.nombre_composants = 0
+}
+
+nombre_de_pixels :: fonc (image: ImageIO) -> z64
+{
+    retourne image.hauteur * image.largeur
+}
+
+pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> []T
+{
+    tableau : []T = ---
+    tableau.pointeur = image.donnees comme *T
+    tableau.taille = image.hauteur * image.largeur
+    retourne tableau
+}
+
+pixel_à_la_position :: fonc (image: ImageIO, x: z32, y: z32, $T: type_de_données) -> *T
+{
+    index := y * image.nombre_composants * image.largeur + x * image.nombre_composants
+    retourne *image.donnees[index] comme *T
+}
+
+premier_pixel_ligne :: fonc (image: ImageIO, y: z32, $T: type_de_données) -> *T
+{
+    décalage := y * image.nombre_composants * image.largeur
+    retourne *image.donnees[décalage] comme *T
+}
+
+ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperation)
+{
+    chn_c := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c)
+
+    image : ImageIO
+    résultat := IMG_ouvre_image(chn_c comme *z8, *image)
+
+    si résultat != ResultatOperation.OK {
+        retourne résultat
+    }
+
+    retourne image
+}
+
+écris_image :: fonc (chemin: CheminFichier, image: ImageIO)
+{
+    chn_c_sortie := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chn_c_sortie)
+
+    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
+}
+
+calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
+{
+    tampon : [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
+    taille_résultat : z64
+
+    chaine_c := crée_chaine_c_temp(chemin)
+
+    IMG_calcul_empreinte_floue(chaine_c, composants_x, composants_y, *tampon[0], *taille_résultat)
+
+    résultat := loge_chaine(taille_résultat)
+
+    pour 0 ... taille_résultat - 1 {
+        résultat[it] = tampon[it]
+    }
+
+    retourne résultat
+}
+
+/*
+
+// tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C
+
+ErreurHachage :: erreur {
+    NombreDeComposantXTropPetit
+    NombreDeComposantXTropGrand
+    NombreDeComposantYTropPetit
+    NombreDeComposantYTropGrand
+}
+
+RésultatHachage :: union {
+    e: ErreurHachage
+    c: chaine
+}
+
+blurHashForPixels :: fonc (
+    composants_x: z32,
+    composants_y: z32,
+    image: *ImageIO) -> RésultatHachage
+{
+    si composants_x < 1 {
+        retourne ErreurHachage.NombreDeComposantXTropPetit
+    }
+
+    si composants_x > 9 {
+        retourne ErreurHachage.NombreDeComposantXTropGrand
+    }
+
+    si composants_y < 1 {
+        retourne ErreurHachage.NombreDeComposantYTropPetit
+    }
+
+    si composants_y > 9 {
+        retourne ErreurHachage.NombreDeComposantYTropGrand
+    }
+
+    buffer : [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
+
+    factors : [9][9][3]r32
+
+    pour y dans 0 ... composants_y - 1 {
+        pour x dans 0 ... composants_x - 1 {
+            factor := multiplyBasisFunction(x, y, image)
+			factors[y][x][0] = factor[0]
+			factors[y][x][1] = factor[1]
+			factors[y][x][2] = factor[2]
+        }
+    }
+
+	dc := *factors[0][0][0]
+    ac := dc + 3
+	acCount := composants_x * composants_y - 1
+
+	sizeFlag := (composants_x - 1) + (composants_y - 1) * 9
+	ptr := encode_int(sizeFlag, 1, *buffer[0])
+
+	maximumValue : r32
+
+	si acCount > 0 {
+		actualMaximumValue := 0.0
+
+        pour i dans 0 ... acCount * 3 - 1 {
+            actualMaximumValue = max(abs(ac[i]), actualMaximumValue)
+        }
+
+		quantisedMaximumValue := max(0, min(82, plancher(actualMaximumValue * 166.0 - 0.5) comme z32))
+		maximumValue = (quantisedMaximumValue + 1) comme r32 / 166.0
+		ptr = encode_int(quantisedMaximumValue, 1, ptr)
+	}
+    sinon {
+		maximumValue = 1.0
+		ptr = encode_int(0, 1, ptr)
+	}
+
+	ptr = encode_int(encodeDC(dc[0], dc[1], dc[2]), 4, ptr)
+
+    pour i dans 0 ... acCount - 1 {
+		ptr = encode_int(encodeAC(ac[i * 3 + 0], ac[i * 3 + 1], ac[i * 3 + 2], maximumValue), 2, ptr)
+    }
+
+	mémoire(ptr) = 0
+
+    taille_chaine := (ptr - *buffer[0]) comme z64
+
+    chn := construit_chaine(*buffer[0], taille_chaine)
+
+    imprime("Résultat : %\n", chn)
+
+	retourne ""
+}
+
+résultat_fonction_base : [3]r32
+
+multiplyBasisFunction :: fonc (
+    composant_x: z32,
+    composant_y: z32,
+    image: *ImageIO) -> *r32
+{
+    r := 0.0
+    g := 0.0
+    b := 0.0
+
+    normalisation := 1.0
+
+    si (composant_x != 0 || composant_y != 0) {
+        normalisation = 2.0
+    }
+
+    pour y dans 0 ... image.hauteur - 1 {
+        pour x dans 0 ... image.largeur - 1 {
+            fraction_largeur := x comme r32 / image.largeur comme r32
+            fraction_hauteur := y comme r32 / image.hauteur comme r32
+
+            cos_composant_x := cosinus(Constantes(r32).PI * composant_x comme r32 * fraction_largeur)
+            cos_composant_y := cosinus(Constantes(r32).PI * composant_y comme r32 * fraction_hauteur)
+
+            base := cos_composant_x * cos_composant_y
+
+            pixel := *image.données[x * image.composants + y * image.largeur]
+
+            r += base * sRGBToLinear(pixel[0])
+            g += base * sRGBToLinear(pixel[1])
+            b += base * sRGBToLinear(pixel[2])
+        }
+    }
+
+	scale := normalisation / (image.largeur * image.hauteur) comme r32
+
+	résultat_fonction_base[0] = r * scale
+	résultat_fonction_base[1] = g * scale
+	résultat_fonction_base[2] = b * scale
+
+	retourne *résultat_fonction_base[0]
+}
+
+linearTosRGB :: fonc (value: r32) -> z32
+{
+	v := max(0.0, min(1.0, value))
+
+    si v <= 0.0031308 {
+        retourne (v * 12.92 * 255.0 + 0.5) comme z32
+    }
+
+    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
+}
+
+sRGBToLinear :: fonc (value: z32) -> r32
+{
+    v := value comme r32 / 255.0
+    retourne sRGBToLinear(v)
+}
+
+sRGBToLinear :: fonc (value: r32) -> r32
+{
+    si value <= 0.04045 {
+        retourne value / 12.92
+    }
+
+    retourne puissance((value + 0.055) / 1.055, 2.4)
+}
+
+encodeDC :: fonc (r: r32, g: r32, b: r32) -> z32
+{
+	roundedR := linearTosRGB(r)
+	roundedG := linearTosRGB(g)
+	roundedB := linearTosRGB(b)
+	retourne (roundedR << 16) + (roundedG << 8) + roundedB
+}
+
+encodeAC :: fonc (r: r32, g: r32, b: r32, maximumValue: r32) -> z32
+{
+	quantR := max(0.0, min(18.0, floor(signPow(r / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
+	quantG := max(0.0, min(18.0, floor(signPow(g / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
+	quantB := max(0.0, min(18.0, floor(signPow(b / maximumValue, 0.5) * 9.0 + 9.5) comme r32))
+
+	retourne (quantR * 19 * 19 + quantG * 19 + quantB) comme z32
+}
+
+signPow :: fonc (value: r32, exp: r32) -> r32
+{
+	retourne copie_signe(puissance(abs(value), exp), value)
+}
+
+encode_int :: fonc (value: z32, length: z32, destination: *z8) -> *z8
+{
+    characters :: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~"
+
+	divisor := 1
+
+    pour i dans 0 ... length - 1 {
+        divisor *= 83
+    }
+
+    pour i dans 0 ... length - 1 {
+        digit := (value / divisor) % 83
+        divisor /= 83
+
+        mémoire(destination) = characters[digit]
+        destination += 1
+    }
+
+	retourne destination
+}
+*/

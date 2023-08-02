@@ -1,0 +1,196 @@
+importe Fondation
+importe Structures
+
+charge "chemin"
+charge "exploratrice"
+charge "fichier"
+charge "fichier_paginé_mémoire"
+charge "linux"
+charge "liste_entrées_dossier"
+charge "requête"
+
+/*
+
+// pour la gestion des fichiers
+
+gestion centralisé de l'ouverture et la fermeture des fichiers, avec détection des changements
+peut-être une politique de cache (MRU, etc.)
+
+les bibliothèques devant ouvrir des fichiers devraient prendre un pointeur vers un gestionnaire
+le gestionnaire résoud les chemins et indique
+
+peut-être un système de catalogue par type de fichiers ?
+
+- fichier temporaire
+- compression/décompression
+- flux
+- (USD) FileSystemDiscovery
+
+notifie les applications quand un fichier change
+
+il nous faudrait des lecteurs et des écrivains ?
+
+fichier_fut_changé_sur_dique :: fonc (fichier: *Fichier)
+
+fichier_fut_ouvert :: fonc (fichier: *Fichier)
+
+fichier_ne_pas_trouvé :: fonc (chemin: CheminFichier)
+
+fichier_existe
+
+crée_fichier_pour_écriture
+
+ouvre_fichier_pour_écriture
+
+fichier_fut_fermé
+
+ferme_fichier
+
+- le fichier peut-être dans un catalogue
+- le fichier peut-être dans un cache
+- le fichier peut-être utilisé par plusieurs personnes
+- le fichier peut-être sur le réseau
+
+ */
+
+// ----------------------------------------------------------
+// Toutes les erreurs possibles.
+
+ErreurFichier :: erreur {
+    Inconnue
+
+    EntréeSortie
+    EntréeSortieSpéciale
+    EspaceDisqueInexistant
+    EspaceDisqueInsuffisant
+    FichierEstLectureSeul
+    FichierEstPipe
+    FichierExisteDéjà
+    FichierInexistant
+    FichierInvalide
+    FichierTemporaireNonSupporté
+    FichierTropGrand
+    FichierTropPetit
+    ImageEnLecture
+    InterrompuParSignal
+    LimiteOuvertureFichierAtteinte
+    MauvaisEspaceAdressage
+    MatérielInconnu
+    MémoireInsuffisante
+    NomTropGrand
+    ActionPeutBloquer
+    ActionImpossibleSurDossier
+    PaireNonRenseigné
+    PasDansUnDossier
+    PermissionNonAccordé
+    PipeFerméPourÉcriture
+    SynchronisationImpossiblePourFichier
+    TropDeLiensSymboliques
+    ValeurInvalide
+    ÀCourtDeVerrouxDeFichier
+    OpérationImpossiblePourLeSystème
+    TamponSortieTropPetit
+    NEstPasUnDossier
+    DossierUtiliséParQuelqueAutreProcessus
+    DossierNonVide
+    DifférentSystèmeFichier
+    CheminNonAbsolu
+}
+
+// ----------------------------------------------------------
+
+espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
+{
+    retourne système_espace_disque_disponible(chemin)
+}
+
+contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
+{
+    contenu : []octet
+
+	fichier := tente ouvre_fichier(chemin) piège err {
+        retourne contenu
+    }
+
+	diffère { _ := ferme(*fichier) }
+
+    discr lis_tout(*fichier) {
+        c(c_) {
+            contenu = c_
+        }
+        sinon {
+        }
+    }
+
+    retourne contenu
+}
+
+contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
+{
+    contenu := contenu_fichier_binaire(chemin)
+    chn : chaine;
+
+    nonsûr {
+        chn.pointeur = contenu.pointeur comme *z8
+        chn.taille = contenu.taille
+    }
+
+    retourne chn
+}
+
+contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
+{
+    chm := CheminFichier(chn = chemin)
+    retourne contenu_fichier_texte(chm)
+}
+
+// -----------------------------------------------------------------------
+
+chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
+{
+    retourne système_chemin_courant()
+}
+
+chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
+{
+	retourne système_chemin_courant(chemin)
+}
+
+chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
+{
+    retourne système_chemin_répertoire_personnel()
+}
+
+chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
+{
+    retourne système_chemin_véritable(chemin)
+}
+
+renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> Optionnel(ErreurFichier)
+{
+	retourne système_renomme(orig, dest)
+}
+
+supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)
+{
+    retourne système_supprime(chm)
+}
+
+/*
+
+    Opération sur les chemins de fichiers :
+    - remplace l'extension
+    - crée un nom sûr (pour éviter les problèmes sur Windows dûs à des noms réservés)
+    - ajout d'un suffixe avant l'extension (manipulations générales)
+
+    - détermine une séquence de fichier (a001.ext, a0002.ext, etc.)
+        -- séquence UDIM
+        -- avoir un système de token pour définir où se trouve la quantité à trouver
+            -- mon_image.<UDIM>.ext
+            -- mon_image.<u0_v0>.ext
+            -- mon_image.<u1_v1>.ext
+            -- etc.
+    - crée une séquence de fichier
+        -- pour les séquences, l'application cliente peut se charger de créer le bon chemin
+
+ */

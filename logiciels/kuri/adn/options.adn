@@ -1,0 +1,66 @@
+// ADN pour les options de compilation.
+
+énum RésultatCompilation {
+    @code RésultatCompilation
+
+    RIEN
+    EXÉCUTABLE
+    FICHIER_OBJET
+    BIBLIOTHÈQUE_STATIQUE
+    BIBLIOTHÈQUE_DYNAMIQUE
+}
+
+énum ArchitectureCible {
+    @code ArchitectureCible
+
+    X86
+    X64
+}
+
+énum TypeCoulisse {
+    @code TypeCoulisse
+
+    C
+    LLVM
+    ASM
+}
+
+énum NiveauOptimisation {
+    AUCUN
+    O0
+    O1
+    O2
+    Os
+    Oz
+    O3
+}
+
+énum CompilationPour {
+    PRODUCTION
+    DÉBOGAGE
+    PROFILAGE
+}
+
+struct OptionsDeCompilation {
+    @code OptionsDeCompilation
+
+    chaine_statique nom_sortie = "a.out"
+
+    TypeCoulisse coulisse = .C
+    RésultatCompilation résultat = .EXÉCUTABLE
+    ArchitectureCible architecture = .X64
+    NiveauOptimisation niveau_optimisation = .AUCUN
+    CompilationPour compilation_pour = .PRODUCTION
+
+    bool émets_métriques = vrai
+    bool continue_si_erreur = faux
+    bool erreur_si_avertissement = faux
+    bool utilise_asan = faux
+    /* Ajoute des protections pour détecter les dépassements de pile lors de
+     * l'exécution. */
+    bool protège_pile = vrai
+    /* Détermine si les traces d'appels doivent être utilisée dans le programme. */
+    bool utilise_trace_appel = vrai
+    /* Définis si nous devons compiler du code indépendent de position. */
+    bool code_indépendent_de_position = faux
+}

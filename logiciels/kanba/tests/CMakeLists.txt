@@ -33,7 +33,7 @@ set(SOURCES
 set(BIBLIOTHEQUES
 	tests
 
-	kanba_coeur
+        kanba::coeur
 
 	${BIBLIOTHEQUES_TBB}
 
@@ -46,7 +46,7 @@ add_executable(${NOM_CIBLE} ${SOURCES})
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
 
 add_test(tests ${NOM_CIBLE})
 

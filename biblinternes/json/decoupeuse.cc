@@ -95,7 +95,7 @@ void decoupeuse_texte::genere_morceaux()
 			 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 			 * infinie. */
 			auto const compte = denombreuse::extrait_nombre(m_debut, m_fin, id_nombre);
-			m_taille_mot_courant = static_cast<long>(compte);
+            m_taille_mot_courant = static_cast<int64_t>(compte);
 
 			this->pousse_mot(id_nombre);
 			this->avance(static_cast<int>(compte));
@@ -193,7 +193,7 @@ void decoupeuse_texte::pousse_caractere()
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant });
+    m_morceaux.ajoute({ mot_courant(), static_cast<uint64_t>((m_compte_ligne << 32) | m_pos_mot), identifiant });
 	m_taille_mot_courant = 0;
 	m_debut_mot = nullptr;
 }

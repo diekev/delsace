@@ -13,7 +13,7 @@
 
 # If LLVM_ROOT_DIR was defined in the environment, use it.
 
-set(LLVM_VERSION 6.0)
+set(LLVM_VERSION 12)
 
 if(LLVM_ROOT_DIR)
 	if(DEFINED LLVM_VERSION)
@@ -54,16 +54,33 @@ endif()
 
 if(LLVM_STATIC)
 	find_library(LLVM_LIBRARY
-	             NAMES LLVMAnalysis # first of a whole bunch of libs to get
+                     NAMES LLVMDemangle # first of a whole bunch of libs to get
 	             PATHS ${LLVM_LIBPATH})
 else()
 	find_library(LLVM_LIBRARY
 	             NAMES
 	               LLVM-${LLVM_VERSION}
-	               LLVMAnalysis  # check for the static library as a fall-back
-	             PATHS ${LLVM_LIBPATH})
+                       LLVMDemangle  # check for the static library as a fall-back
+                     PATHS ${LLVM_LIBPATH})
 endif()
 
+find_path(LLVM_INCLUDE_DIR
+        NAMES
+            llvm/InitializePasses.h
+        HINTS
+            ${LLVM_ROOT_DIR}
+        PATH_SUFFIXES
+            include
+)
+
+find_path(CLANG_INCLUDE_DIR
+        NAMES
+            clang/AST/Expr.h
+        HINTS
+            ${LLVM_ROOT_DIR}
+        PATH_SUFFIXES
+            include
+)
 
 if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 	if(LLVM_STATIC)
@@ -77,12 +94,43 @@ if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 	endif()
 endif()
 
+if(LLVM_LIBPATH)
+	set(CLANG_LIBS
+		clangTooling
+		clangFrontend
+		clangFrontendTool
+		clangDriver
+		clangSerialization
+		clangCodeGen
+		clangParse
+		clangSema
+		clangStaticAnalyzerFrontend
+		clangStaticAnalyzerCheckers
+		clangStaticAnalyzerCore
+		clangAnalysis
+		clangARCMigrate
+		clangRewrite
+		clangRewriteFrontend
+		clangEdit
+		clangAST
+		clangLex
+		clangBasic
+		clang
+	)
 
-# handle the QUIETLY and REQUIRED arguments and set SDL2_FOUND to TRUE if
+	set(CLANG_LIBRARIES)
+
+	foreach (__clang_lib__ ${CLANG_LIBS})
+		find_library(__clang_library__${__clang_lib__} NAMES ${__clang_lib__} PATHS ${LLVM_LIBPATH} NO_CACHE)
+		list(APPEND CLANG_LIBRARIES ${__clang_library__${__clang_lib__}})
+	endforeach()
+endif()
+
+# handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
-    LLVM_LIBRARY)
+    LLVM_LIBRARY  LLVM_INCLUDE_DIR CLANG_INCLUDE_DIR CLANG_LIBRARIES)
 
 MARK_AS_ADVANCED(
   LLVM_LIBRARY

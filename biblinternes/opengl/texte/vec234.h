@@ -25,39 +25,39 @@ namespace ftgl {
  *  - Fourth component: <b>w</b>, <b>a</b>, <b>alpha</b>, <b>height</b> or <b>icount</b>
  *
  */
-typedef union
+typedef struct
 {
-     int data[4];    /**< All compoments at once     */
-     struct {
-        int x;      /**< Alias for first component  */
-        int y;      /**< Alias for second component */
-        int z;      /**< Alias for third component  */
-        int w;      /**< Alias for fourht component */
-    };
-    struct {
-        int x_;     /**< Alias for first component  */
-        int y_;     /**< Alias for second component */
-        int width;  /**< Alias for third component  */
-        int height; /**< Alias for fourth component */
-    };
-    struct {
-        int r;      /**< Alias for first component  */
-        int g;      /**< Alias for second component */
-        int b;      /**< Alias for third component  */
-        int a;      /**< Alias for fourth component */
-    };
-    struct {
-        int red;    /**< Alias for first component  */
-        int green;  /**< Alias for second component */
-        int blue;   /**< Alias for third component  */
-        int alpha;  /**< Alias for fourth component */
-    };
-    struct {
-        int vstart; /**< Alias for first component  */
-        int vcount; /**< Alias for second component */
-        int istart; /**< Alias for third component  */
-        int icount; /**< Alias for fourth component */
-    };
+	 int data[4];    /**< All compoments at once     */
+	 struct {
+		int x;      /**< Alias for first component  */
+		int y;      /**< Alias for second component */
+		int z;      /**< Alias for third component  */
+		int w;      /**< Alias for fourht component */
+	};
+	struct {
+		int x_;     /**< Alias for first component  */
+		int y_;     /**< Alias for second component */
+		int width;  /**< Alias for third component  */
+		int height; /**< Alias for fourth component */
+	};
+	struct {
+		int r;      /**< Alias for first component  */
+		int g;      /**< Alias for second component */
+		int b;      /**< Alias for third component  */
+		int a;      /**< Alias for fourth component */
+	};
+	struct {
+		int red;    /**< Alias for first component  */
+		int green;  /**< Alias for second component */
+		int blue;   /**< Alias for third component  */
+		int alpha;  /**< Alias for fourth component */
+	};
+	struct {
+		int vstart; /**< Alias for first component  */
+		int vcount; /**< Alias for second component */
+		int istart; /**< Alias for third component  */
+		int icount; /**< Alias for fourth component */
+	};
 } ivec4;
 
 

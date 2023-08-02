@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "chaine.hh"
+#include "tableau.hh"
 
 #include "biblinternes/outils/iterateurs.h"
 
@@ -40,7 +40,7 @@ class utf8 {
 
 public:
 	using type_valeur = char32_t;
-	using type_taille = long;
+	using type_taille = int64_t;
 	using plage = dls::outils::plage_iterable<dls::tableau<char32_t>::iteratrice>;
 	using plage_const = dls::outils::plage_iterable<dls::tableau<char32_t>::const_iteratrice>;
 
@@ -62,7 +62,7 @@ public:
 
 	type_taille taille() const;
 
-	type_valeur operator[](long i) const;
+	type_valeur operator[](int64_t i) const;
 
 	bool compare(utf8 const &autre) const;
 

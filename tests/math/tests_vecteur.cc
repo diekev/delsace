@@ -56,7 +56,7 @@ static void test_addition(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les opérateurs d'addition et de soustractions sont corrects.");
 
-	auto gna = GNA(rand());
+	auto gna = GNA(static_cast<unsigned>(rand()));
 
 	for (auto i = 0; i < 1000; ++i) {
 		auto a = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
@@ -97,7 +97,7 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les opérateurs de multiplications et de divisions sont corrects.");
 
-	auto gna = GNA(rand());
+	auto gna = GNA(static_cast<unsigned>(rand()));
 
 	for (auto i = 0; i < 1000; ++i) {
 		auto a = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
@@ -125,7 +125,7 @@ static void test_produit_scalaire(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les produits scalaires sont corrects.");
 
-	auto gna = GNA(rand());
+	auto gna = GNA(static_cast<unsigned>(rand()));
 
 	for (auto i = 0; i < 1000; ++i) {
 		auto a = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());

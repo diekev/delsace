@@ -118,7 +118,7 @@ auto operator+(GardePorteeSurSortie, TypeFonction &&fonction)
 /* ************************************************************************** */
 
 class CompteurExceptionNonAttrapee {
-	int m_compteur;
+    int m_compteur = 0;
 
 public:
 	/**
@@ -139,8 +139,8 @@ public:
  */
 template <typename TypeFonction, bool EXECUTE_SI_EXCEPTION>
 class GardePorteePourNouvelleException {
-	TypeFonction m_fonction;
-	CompteurExceptionNonAttrapee m_compteur;
+    TypeFonction m_fonction{};
+    CompteurExceptionNonAttrapee m_compteur{};
 
 public:
 	/**
@@ -169,7 +169,7 @@ GardePorteePourNouvelleException(const TypeFonction &fonction)
 template <typename TypeFonction, bool EXECUTE_SI_EXCEPTION>
 GardePorteePourNouvelleException<TypeFonction, EXECUTE_SI_EXCEPTION>::
 GardePorteePourNouvelleException(TypeFonction &&fonction)
-	: m_fonction(std::move(fonction))
+    : m_fonction(std::move(fonction))
 {}
 
 template <typename TypeFonction, bool EXECUTE_SI_EXCEPTION>
@@ -268,8 +268,8 @@ auto operator+(GardePorteeSurSucces, TypeFonction &&fonction)
  * obtenu à travers le macro VARIABLE_ANONYME. De fait, plusieurs instances
  * peuvent être créées dans la même portée.
  */
-#define REUSSITE_PORTEE \
-	auto VARIABLE_ANONYME(ETAT_REUSSITE_PORTEE) = ::detail::GardePorteeSurSucces() + [&]() noexcept
+#define DIFFERE \
+    auto VARIABLE_ANONYME(ETAT_REUSSITE_PORTEE) = dls::outils::detail::GardePorteeSurSucces() + [&]() noexcept
 
 }  /* namespace outils */
 }  /* namespace dls */

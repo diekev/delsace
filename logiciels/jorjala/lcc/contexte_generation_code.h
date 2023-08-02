@@ -36,262 +36,261 @@ class assembleuse_arbre;
 struct DonneesModule;
 
 struct compileuse_lng {
-	template <typename T>
-	void ajoute_instructions(T inst)
-	{
-		m_instructions.pousse(inst);
-	}
+    template <typename T>
+    void ajoute_instructions(T inst)
+    {
+        m_instructions.ajoute(inst);
+    }
 
-	lcc::pile &donnees()
-	{
-		return m_donnees;
-	}
+    lcc::pile &donnees()
+    {
+        return m_donnees;
+    }
 
-	lcc::pile const &donnees() const
-	{
-		return m_donnees;
-	}
+    lcc::pile const &donnees() const
+    {
+        return m_donnees;
+    }
 
-	lcc::pile &instructions()
-	{
-		return m_instructions;
-	}
+    lcc::pile &instructions()
+    {
+        return m_instructions;
+    }
 
-	lcc::pile const &instructions() const
-	{
-		return m_instructions;
-	}
+    lcc::pile const &instructions() const
+    {
+        return m_instructions;
+    }
 
-private:
-	lcc::pile m_donnees{};
-	lcc::pile m_instructions{};
+  private:
+    lcc::pile m_donnees{};
+    lcc::pile m_instructions{};
 };
 
 /* ************************************************************************** */
 
 struct donnees_propriete {
-	dls::chaine nom = "";
-	lcc::type_var type{};
-	bool est_requis = false;
-	bool est_propriete = false;
-	bool est_modifiee = false;
-	bool est_non_modifiable = false;
-	int ptr = 0;
-	std::any ptr_donnees = nullptr;
+    dls::chaine nom = "";
+    lcc::type_var type{};
+    bool est_requis = false;
+    bool est_propriete = false;
+    bool est_modifiee = false;
+    bool est_non_modifiable = false;
+    int ptr = 0;
+    std::any ptr_donnees = nullptr;
 
-	donnees_propriete(
-			dls::chaine const &_nom_,
-			lcc::type_var _type_,
-			bool _est_requis_,
-			bool _est_propriete_,
-			int _ptr_)
-		: nom(_nom_)
-		, type(_type_)
-		, est_requis(_est_requis_)
-		, est_propriete(_est_propriete_)
-	    , ptr(_ptr_)
-	{}
+    donnees_propriete(dls::chaine const &_nom_,
+                      lcc::type_var _type_,
+                      bool _est_requis_,
+                      bool _est_propriete_,
+                      int _ptr_)
+        : nom(_nom_), type(_type_), est_requis(_est_requis_), est_propriete(_est_propriete_),
+          ptr(_ptr_)
+    {
+    }
 };
 
 struct gestionnaire_propriete {
-	dls::tableau<donnees_propriete *> donnees{};
-	dls::tableau<donnees_propriete *> requetes{};
+    dls::tableau<donnees_propriete *> donnees{};
+    dls::tableau<donnees_propriete *> requetes{};
 
-	~gestionnaire_propriete()
-	{
-		reinitialise();
-	}
+    ~gestionnaire_propriete()
+    {
+        reinitialise();
+    }
 
-	void reinitialise()
-	{
-		for (auto &d : donnees) {
-			memoire::deloge("donnees_propriete", d);
-		}
+    void reinitialise()
+    {
+        for (auto &d : donnees) {
+            memoire::deloge("donnees_propriete", d);
+        }
 
-		donnees.efface();
-	}
+        donnees.efface();
+    }
 
-	donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)
-	{
-		for (auto const &donnee : donnees) {
-			if (donnee->nom == nom) {
-				return donnee;
-			}
-		}
+    donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)
+    {
+        for (auto const &donnee : donnees) {
+            if (donnee->nom == nom) {
+                return donnee;
+            }
+        }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
-	{
-		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx);
-		donnees.pousse(prop);
-		return prop;
-	}
+    donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+    {
+        auto prop = memoire::loge<donnees_propriete>(
+            "donnees_propriete", nom, type, false, true, idx);
+        donnees.ajoute(prop);
+        return prop;
+    }
 
-	void ajoute_propriete_non_modifiable(dls::chaine const &nom, lcc::type_var type, int idx)
-	{
-		auto prop = ajoute_propriete(nom, type, idx);
-		prop->est_non_modifiable = true;
-	}
+    void ajoute_propriete_non_modifiable(dls::chaine const &nom, lcc::type_var type, int idx)
+    {
+        auto prop = ajoute_propriete(nom, type, idx);
+        prop->est_non_modifiable = true;
+    }
 
-	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
-	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
-	}
+    void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
+    {
+        donnees.ajoute(
+            memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
+    }
 
-	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
-	{
-		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
-		prop->est_modifiee = true;
-		donnees.pousse(prop);
-		requetes.pousse(prop);
-	}
+    void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
+    {
+        auto prop = memoire::loge<donnees_propriete>(
+            "donnees_propriete", nom, type, true, false, idx);
+        prop->est_modifiee = true;
+        donnees.ajoute(prop);
+        requetes.ajoute(prop);
+    }
 
-	bool propriete_existe(dls::vue_chaine const &nom)
-	{
-		for (auto const &donnee : donnees) {
-			if (donnee->nom == nom) {
-				return true;
-			}
-		}
+    bool propriete_existe(dls::vue_chaine const &nom)
+    {
+        for (auto const &donnee : donnees) {
+            if (donnee->nom == nom) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	lcc::type_var type_propriete(dls::vue_chaine const &nom)
-	{
-		for (auto const &donnee : donnees) {
-			if (donnee->nom == nom) {
-				return donnee->type;
-			}
-		}
+    lcc::type_var type_propriete(dls::vue_chaine const &nom)
+    {
+        for (auto const &donnee : donnees) {
+            if (donnee->nom == nom) {
+                return donnee->type;
+            }
+        }
 
-		return lcc::type_var::INVALIDE;
-	}
+        return lcc::type_var::INVALIDE;
+    }
 
-	int pointeur_donnees(dls::vue_chaine const &nom) const
-	{
-		for (auto &donnee : donnees) {
-			if (donnee->nom == nom) {
-				return donnee->ptr;
-			}
-		}
+    int pointeur_donnees(dls::vue_chaine const &nom) const
+    {
+        for (auto &donnee : donnees) {
+            if (donnee->nom == nom) {
+                return donnee->ptr;
+            }
+        }
 
-		return -1;
-	}
+        return -1;
+    }
 };
 
 template <typename T>
-auto remplis_donnees(
-		lcc::pile &donnees,
-		gestionnaire_propriete &gest_props,
-		dls::chaine const &nom,
-		T const &v)
+auto remplis_donnees(lcc::pile &donnees,
+                     gestionnaire_propriete &gest_props,
+                     dls::chaine const &nom,
+                     T const &v)
 {
-	auto idx = gest_props.pointeur_donnees(nom);
+    auto idx = gest_props.pointeur_donnees(nom);
 
-	if (idx == -1) {
-		/* À FAIRE : erreur */
-		return;
-	}
+    if (idx == -1) {
+        /* À FAIRE : erreur */
+        return;
+    }
 
-	donnees.stocke(idx, v);
+    donnees.stocke(idx, v);
 }
 
 /* ************************************************************************** */
 
 struct donnees_variables {
-	int type{};
-	lcc::type_var donnees_type{};
+    int type{};
+    lcc::type_var donnees_type{};
 };
 
 struct donnees_boucles {
-	dls::tableau<int> arretes{};
-	dls::tableau<int> continues{};
+    dls::tableau<int> arretes{};
+    dls::tableau<int> continues{};
 };
 
 /* pour les paramètres déclarés dans les scripts via #!param */
 struct DonneesDeclarationParam {
-	dls::chaine nom{};
-	lcc::type_var type{};
-	dls::math::vec3f min{};
-	dls::math::vec3f max{};
-	dls::math::vec3f valeur{};
+    dls::chaine nom{};
+    lcc::type_var type{};
+    dls::math::vec3f min{};
+    dls::math::vec3f max{};
+    dls::math::vec3f valeur{};
 };
 
 using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
 
 struct ContexteGenerationCode {
-	assembleuse_arbre *assembleuse = nullptr;
+    assembleuse_arbre *assembleuse = nullptr;
 
-	dls::tableau<DonneesModule *> modules{};
+    dls::tableau<DonneesModule *> modules{};
 
-	dls::ensemble<lcc::req_fonc> requetes{};
+    dls::ensemble<lcc::req_fonc> requetes{};
 
-	dls::pile<donnees_boucles *> boucles{};
+    dls::pile<donnees_boucles *> boucles{};
 
-	dls::tableau<DonneesDeclarationParam> params_declare{};
+    dls::tableau<DonneesDeclarationParam> params_declare{};
 
-	lcc::magasin_fonctions fonctions{};
+    lcc::magasin_fonctions fonctions{};
 
-	gestionnaire_propriete gest_attrs{};
+    gestionnaire_propriete gest_attrs{};
 
-	/* les chaines qui seront transférées au contexte globale */
-	dls::tableau<dls::chaine> chaines{};
+    /* les chaines qui seront transférées au contexte globale */
+    dls::tableau<dls::chaine> chaines{};
 
-	ContexteGenerationCode() = default;
+    ContexteGenerationCode() = default;
 
-	~ContexteGenerationCode();
+    ~ContexteGenerationCode();
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	/* La copie devrait être désactivée, car il ne peut y avoir qu'un seul
-	 * contexte par compilation, mais nous l'avons besoin pour retourner des
-	 * contextes par valeur. */
-	ContexteGenerationCode(const ContexteGenerationCode &) = default;
-	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = default;
+    /* La copie devrait être désactivée, car il ne peut y avoir qu'un seul
+     * contexte par compilation, mais nous l'avons besoin pour retourner des
+     * contextes par valeur. */
+    ContexteGenerationCode(const ContexteGenerationCode &) = default;
+    ContexteGenerationCode &operator=(const ContexteGenerationCode &) = default;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	/**
-	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
-	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
-	 * d'un module avec un nom similaire pour l'instant.
-	 */
-	DonneesModule *cree_module(const dls::chaine &nom);
+    /**
+     * Crée un module avec le nom spécifié, et retourne un pointeur vers le
+     * module ainsi créé. Aucune vérification n'est faite quant à la présence
+     * d'un module avec un nom similaire pour l'instant.
+     */
+    DonneesModule *cree_module(const dls::chaine &nom);
 
-	/**
-	 * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
-	 * en dehors de portée, le programme crashera.
-	 */
-	DonneesModule *module(size_t index) const;
+    /**
+     * Retourne un pointeur vers le module à l'index indiqué. Si l'index est
+     * en dehors de portée, le programme crashera.
+     */
+    DonneesModule *module(size_t index) const;
 
-	/**
-	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-	 * module n'a ce nom, retourne nullptr.
-	 */
-	DonneesModule *module(const dls::vue_chaine &nom) const;
+    /**
+     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+     * module n'a ce nom, retourne nullptr.
+     */
+    DonneesModule *module(const dls::vue_chaine &nom) const;
 
-	/**
-	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
-	 * de module de ce contexte.
-	 */
-	bool module_existe(const dls::vue_chaine &nom) const;
+    /**
+     * Retourne vrai si le module dont le nom est spécifié existe dans la liste
+     * de module de ce contexte.
+     */
+    bool module_existe(const dls::vue_chaine &nom) const;
 
-	/* ********************************************************************** */
+    /* ********************************************************************** */
 
-	void pousse_locale(dls::vue_chaine const &nom, int valeur, lcc::type_var donnees_type);
+    void pousse_locale(dls::vue_chaine const &nom, int valeur, lcc::type_var donnees_type);
 
-	int valeur_locale(dls::vue_chaine const &nom);
+    int valeur_locale(dls::vue_chaine const &nom);
 
-	lcc::type_var donnees_type(dls::vue_chaine const &nom);
+    lcc::type_var donnees_type(dls::vue_chaine const &nom);
 
-	/**
-	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
-	 */
-	bool locale_existe(const dls::vue_chaine &nom);
+    /**
+     * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
+     */
+    bool locale_existe(const dls::vue_chaine &nom);
 
-private:
-	conteneur_locales m_locales{};
+  private:
+    conteneur_locales m_locales{};
 };

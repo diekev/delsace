@@ -1,0 +1,69 @@
+// ------------------------------
+// Cas : Les pointeurs fonction ont un typage strict (échec).
+
+ajoute_cb :: fonc (x : r64, z : r64, cb : fonc(r64, r64) r64) -> r64
+{
+	retourne cb(x, z);
+}
+
+ajoute_trois :: fonc (x : r64, y : r64, z : r64) -> r64
+{
+	retourne x + y + z;
+}
+
+bar :: fonc () -> r64
+{
+	retourne ajoute_cb(1.0, 2.0, ajoute_trois);
+}
+
+// ------------------------------
+// Cas : Les arguments des pointeurs fonction ont un typage strict.
+
+ajoute_cb :: fonc (x : z32, z : z32, cb : fonc(r32, r32) r32) -> r32
+{
+	retourne cb(x, z);
+}
+
+// ------------------------------
+// Cas : Une fonction variadique dont l'argument variadic est typé ne peut prendre n'importe quel type.
+
+printf :: fonc externe (arguments : ...z32) -> rien;
+
+foo :: fonc () -> rien
+{
+	nonsûr {
+		printf(0, 'z', 2.5, "chaine");
+	}
+}
+
+// ------------------------------
+// Cas : Les types des arguments passés à une fonction ne peuvent être différents de ceux de sa définition.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5.0, b=6.0);
+	retourne 0;
+}
+
+// ------------------------------
+// Cas : On ne peut appeler une fonction en utilisant un autre argument que le premier comme objet.
+
+foo :: fonc (a : z32, b : r64) -> rien
+{
+	retourne;
+}
+
+bar :: fonc () -> rien
+{
+	a := 0.0;
+	b := 5;
+	a.foo(5);
+
+	retourne;
+}
+

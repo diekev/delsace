@@ -40,18 +40,20 @@ void remplace_souschaine(
 		dls::chaine const &substr,
 		dls::chaine const &rep);
 
-chaine garnis_chaine(chaine const &chn, long taille);
+chaine garnis_chaine(chaine const &chn, int64_t taille);
 
 chaine chaine_depuis_entier(int nombre);
 
-chaine premier_n_caracteres(chaine const &chn, long n);
+chaine premier_n_caracteres(chaine const &chn, int64_t n);
 
-chaine dernier_n_caracteres(chaine const &chn, long n);
+chaine dernier_n_caracteres(chaine const &chn, int64_t n);
 
-long compte(const dls::chaine &str, char c);
+int64_t compte(const dls::chaine &str, char c);
 
-long compte_commun(dls::chaine const &rhs, dls::chaine const &lhs);
+int64_t compte_commun(dls::chaine const &rhs, dls::chaine const &lhs);
 
-long distance_levenshtein(dls::vue_chaine_compacte const &chn1, dls::vue_chaine_compacte const &chn2);
+int64_t distance_levenshtein(dls::vue_chaine_compacte const &chn1, dls::vue_chaine_compacte const &chn2);
+
+char caractere_echappe(char const *sequence);
 
 }  /* namespace dls */

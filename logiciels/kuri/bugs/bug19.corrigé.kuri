@@ -1,0 +1,7 @@
+// crash lors de la construction d'un tableau d'octet depuis un pointeur nul
+
+principale :: fonc () -> z32
+{
+    a : []octet = nul
+    retourne 0
+}

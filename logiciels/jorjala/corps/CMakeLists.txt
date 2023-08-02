@@ -22,41 +22,41 @@
 set(NOM_CIBLE jorjala_corps)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
-	math
-	wolika
+    math
+    wolika
 )
 
 add_library(${NOM_CIBLE} STATIC
-	accesseuses.cc
+    accesseuses.cc
     adaptrice_creation_corps.cc
-	attribut.cc
+    attribut.cc
     corps.cc
     groupes.cc
     iteration_corps.cc
-	limites_corps.cc
+    limites_corps.cc
     listes.cc
-	polyedre.cc
+    polyedre.cc
     primitive.cc
-	sphere.cc
+    sphere.cc
     triangulation.cc
     volume.cc
 
-	accesseuses.hh
+    accesseuses.hh
     adaptrice_creation_corps.h
-	attribut.h
+    attribut.h
     corps.h
     groupes.h
     iteration_corps.hh
-	limites_corps.hh
+    limites_corps.hh
     listes.h
-	polyedre.hh
+    polyedre.hh
     primitive.hh
-	sphere.hh
+    sphere.hh
     triangulation.hh
     volume.hh
 )

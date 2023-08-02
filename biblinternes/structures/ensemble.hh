@@ -76,14 +76,19 @@ public:
 		m_ensemble.insert(valeur);
 	}
 
-	long taille() const
+	void insere(Cle &&valeur)
 	{
-		return static_cast<long>(m_ensemble.size());
+		m_ensemble.insert(valeur);
 	}
 
-	long compte(Cle const &valeur) const
+	int64_t taille() const
 	{
-		return static_cast<long>(m_ensemble.count(valeur));
+		return static_cast<int64_t>(m_ensemble.size());
+	}
+
+	int64_t compte(Cle const &valeur) const
+	{
+		return static_cast<int64_t>(m_ensemble.count(valeur));
 	}
 
 	iteratrice trouve(Cle const &valeur)
@@ -94,6 +99,16 @@ public:
 	const_iteratrice trouve(Cle const &valeur) const
 	{
 		return m_ensemble.find(valeur);
+	}
+
+    bool possede(Cle const &valeur) const
+    {
+        return trouve(valeur) != fin();
+    }
+
+	void permute(ensemble &autre)
+	{
+		m_ensemble.swap(autre.m_ensemble);
 	}
 };
 

@@ -22,23 +22,20 @@
 # ------------------------------------------------------------------------------
 
 set(INCLUSIONS_SYSTEMES
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${INCLUSIONS_QT5_CORE}
-	${INCLUSIONS_QT5_GUI}
-	${INCLUSIONS_QT5_WIDGETS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_QT5_CORE}
-	${BIBLIOTHEQUES_QT5_GUI}
-	${BIBLIOTHEQUES_QT5_WIDGETS}
-	bib_phys
-	langage
-	memoire
-	bib_structures
-	bib_outils
-
-	stdc++fs
+    PUBLIC ${BIBLIOTHEQUES_QT_CORE}
+    PUBLIC ${BIBLIOTHEQUES_QT_GUI}
+    PUBLIC ${BIBLIOTHEQUES_QT_WIDGETS}
+    PUBLIC dls::phys
+    PUBLIC langage
+    PUBLIC dls::memoire
+    PUBLIC dls::structures
+    PUBLIC dls::outils
+    PUBLIC dls::patrons_conception
+    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
 )
 
 # ------------------------------------------------------------------------------

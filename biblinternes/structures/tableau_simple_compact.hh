@@ -72,12 +72,12 @@ public:
 
 	tableau_simple_compact(tableau_simple_compact &&autre)
 	{
-		x.echange(autre.x);
+		x.permute(autre.x);
 	}
 
 	tableau_simple_compact &operator=(tableau_simple_compact &&autre)
 	{
-		x.echange(autre.x);
+		x.permute(autre.x);
 		return *this;
 	}
 
@@ -107,7 +107,7 @@ public:
 		return taille() == 0;
 	}
 
-	void pousse(T const &valeur)
+	void ajoute(T const &valeur)
 	{
 		assert(taille() < 65536);
 
@@ -120,13 +120,13 @@ public:
 		x.ajourne(ptr, taille() + 1);
 	}
 
-	T operator[](long idx)
+	T operator[](int64_t idx)
 	{
 		assert(idx >= 0 && idx < 65536);
 		return donnees()[idx];
 	}
 
-	T operator[](long idx) const
+	T operator[](int64_t idx) const
 	{
 		assert(idx >= 0 && idx < 65536);
 		return donnees()[idx];

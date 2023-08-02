@@ -29,120 +29,120 @@
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/outils/fichier.hh"
 
-#include "danjo/compilation/decoupeuse.h"
 #include "danjo/compilation/analyseuse_disposition.h"
+#include "danjo/compilation/decoupeuse.h"
 
 #include "danjo/danjo.h"
 #include "danjo/erreur.h"
 
 static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeuse::iterateur fin)
 {
-	while (debut != fin) {
-		std::cerr << chaine_identifiant(debut->identifiant) << " : " << debut->chaine << '\n';
-		++debut;
-	}
+    while (debut != fin) {
+        std::cerr << chaine_identifiant(debut->genre) << " : " << debut->chaine << '\n';
+        ++debut;
+    }
 }
 
 static void cree_fichier_dan(const std::filesystem::path &chemin)
 {
-	try {
-		auto texte = dls::contenu_fichier(chemin.c_str());
+    try {
+        auto texte = dls::contenu_fichier(chemin.c_str());
 
-		auto tampon = lng::tampon_source(texte.c_str());
-		auto decoupeuse = danjo::Decoupeuse(tampon);
-		decoupeuse.decoupe();
+        auto tampon = lng::tampon_source(texte.c_str());
+        auto decoupeuse = danjo::Decoupeuse(tampon);
+        decoupeuse.decoupe();
 
-		auto debut = decoupeuse.morceaux().debut();
-		auto fin = decoupeuse.morceaux().fin();
+        auto debut = decoupeuse.morceaux().debut();
+        auto fin = decoupeuse.morceaux().fin();
 
-		if (debut->identifiant != danjo::id_morceau::DISPOSITION) {
-			return;
-		}
+        if (debut->genre != danjo::id_morceau::DISPOSITION) {
+            return;
+        }
 
-		auto chemin_dan = chemin;
-		chemin_dan.replace_extension("dan");
+        auto chemin_dan = chemin;
+        chemin_dan.replace_extension("dan");
 
-		std::ofstream fichier;
-		fichier.open(chemin_dan.c_str());
+        std::ofstream fichier;
+        fichier.open(chemin_dan.c_str());
 
-		std::ostream &os = fichier;
+        std::ostream &os = fichier;
 
-		++debut;
+        ++debut;
 
-		auto nom_disposition = debut->chaine;
+        auto nom_disposition = debut->chaine;
 
-		os << "feuille \"" << nom_disposition << "\" {\n";
-		os << "\tentreface {\n";
+        os << "feuille \"" << nom_disposition << "\" {\n";
+        os << "\tentreface {\n";
 
-		auto nom_propriete = dls::chaine("");
-		auto valeur_propriete = dls::chaine("");
+        auto nom_propriete = dls::chaine("");
+        auto valeur_propriete = dls::chaine("");
 
-		while (debut++ != fin) {
-			if (!danjo::est_identifiant_controle(debut->identifiant)) {
-				continue;
-			}
+        while (debut++ != fin) {
+            if (!danjo::est_identifiant_controle(debut->genre)) {
+                continue;
+            }
 
-			if (debut->identifiant == danjo::id_morceau::ETIQUETTE) {
-				continue;
-			}
+            if (debut->genre == danjo::id_morceau::ETIQUETTE) {
+                continue;
+            }
 
-			auto identifiant = debut->identifiant;
+            auto identifiant = debut->genre;
 
-			nom_propriete.efface();
-			valeur_propriete.efface();
+            nom_propriete.efface();
+            valeur_propriete.efface();
 
-			while (debut->identifiant != danjo::id_morceau::PARENTHESE_FERMANTE) {
-				if (debut->identifiant == danjo::id_morceau::VALEUR) {
-					++debut;
-					++debut;
+            while (debut->genre != danjo::id_morceau::PARENTHESE_FERMANTE) {
+                if (debut->genre == danjo::id_morceau::VALEUR) {
+                    ++debut;
+                    ++debut;
 
-					valeur_propriete = debut->chaine;
-				}
-				else if (debut->identifiant == danjo::id_morceau::ATTACHE) {
-					++debut;
-					++debut;
+                    valeur_propriete = debut->chaine;
+                }
+                else if (debut->genre == danjo::id_morceau::ATTACHE) {
+                    ++debut;
+                    ++debut;
 
-					nom_propriete = debut->chaine;
-				}
+                    nom_propriete = debut->chaine;
+                }
 
-				++debut;
-			}
+                ++debut;
+            }
 
-			if (nom_propriete.est_vide()) {
-				//imprime_morceaux(decoupeuse.debut(), decoupeuse.fin());
-				std::cerr << "Fichier " << chemin << " : attache manquante !\n";
-				continue;
-			}
+            if (nom_propriete.est_vide()) {
+                // imprime_morceaux(decoupeuse.debut(), decoupeuse.fin());
+                std::cerr << "Fichier " << chemin << " : attache manquante !\n";
+                continue;
+            }
 
-			os << "\t\t" << nom_propriete << ":";
+            os << "\t\t" << nom_propriete << ":";
 
-			switch (identifiant) {
-				case danjo::id_morceau::COULEUR:
-					os << "couleur(" << valeur_propriete << ");\n";
-					break;
-				case danjo::id_morceau::VECTEUR:
-					os << "vecteur(" << valeur_propriete << ");\n";
-					break;
-				case danjo::id_morceau::FICHIER_ENTREE:
-				case danjo::id_morceau::FICHIER_SORTIE:
-				case danjo::id_morceau::CHAINE:
-				case danjo::id_morceau::LISTE:
-				case danjo::id_morceau::ENUM:
-					os << "\"" << valeur_propriete << "\";\n";
-					break;
-				default:
-					os << valeur_propriete << ";\n";
-					break;
-			}
-		}
+            switch (identifiant) {
+                case danjo::id_morceau::COULEUR:
+                    os << "couleur(" << valeur_propriete << ");\n";
+                    break;
+                case danjo::id_morceau::VECTEUR:
+                    os << "vecteur(" << valeur_propriete << ");\n";
+                    break;
+                case danjo::id_morceau::FICHIER_ENTREE:
+                case danjo::id_morceau::FICHIER_SORTIE:
+                case danjo::id_morceau::CHAINE:
+                case danjo::id_morceau::LISTE:
+                case danjo::id_morceau::ENUM:
+                    os << "\"" << valeur_propriete << "\";\n";
+                    break;
+                default:
+                    os << valeur_propriete << ";\n";
+                    break;
+            }
+        }
 
-		os << "\t}\n";
-		os << "}";
-	}
-	catch (const danjo::ErreurFrappe &e) {
-		std::cerr << e.quoi();
-		return;
-	}
+        os << "\t}\n";
+        os << "}";
+    }
+    catch (const danjo::ErreurFrappe &e) {
+        std::cerr << e.quoi();
+        return;
+    }
 }
 
 /**
@@ -154,31 +154,31 @@ static void cree_fichier_dan(const std::filesystem::path &chemin)
  */
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-		std::cerr << "Usage : outils_danjo chemin_fichier.jo|chemin_dossier\n";
-		return 1;
-	}
+    if (argc < 2) {
+        std::cerr << "Usage : outils_danjo chemin_fichier.jo|chemin_dossier\n";
+        return 1;
+    }
 
-	auto chemin = std::filesystem::path(argv[1]);
+    auto chemin = std::filesystem::path(argv[1]);
 
-	if (std::filesystem::is_directory(chemin)) {
-		for (const auto &donnees : std::filesystem::directory_iterator(chemin)) {
-			auto chemin_fichier = donnees.path();
+    if (std::filesystem::is_directory(chemin)) {
+        for (const auto &donnees : std::filesystem::directory_iterator(chemin)) {
+            auto chemin_fichier = donnees.path();
 
-			if (std::filesystem::is_directory(chemin_fichier)) {
-				continue;
-			}
+            if (std::filesystem::is_directory(chemin_fichier)) {
+                continue;
+            }
 
-			if (chemin_fichier.extension() != ".jo") {
-				continue;
-			}
+            if (chemin_fichier.extension() != ".jo") {
+                continue;
+            }
 
-			cree_fichier_dan(chemin_fichier);
-		}
-	}
-	else {
-		cree_fichier_dan(chemin);
-	}
+            cree_fichier_dan(chemin_fichier);
+        }
+    }
+    else {
+        cree_fichier_dan(chemin);
+    }
 
-	return 0;
+    return 0;
 }

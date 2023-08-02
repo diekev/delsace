@@ -1,164 +1,139 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
 #include "test_decoupage.h"
 
 #include <cstring>
 
-#include "compilation/contexte_generation_code.h"  // pour DonneesModule
-#include "compilation/decoupeuse.h"
-#include "compilation/modules.hh"
+#include "compilation/compilatrice.hh"
+
+#include "parsage/lexeuse.hh"
+#include "parsage/modules.hh"
 
 #undef DEBOGUE_MORCEAUX
 
 template <typename I1, typename I2>
-bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
+bool verifie_lexemes(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 {
-	auto const dist1 = std::distance(debut1, fin1);
-	auto const dist2 = std::distance(debut2, fin2);
+    auto const dist1 = std::distance(debut1, fin1);
+    auto const dist2 = std::distance(debut2, fin2);
 
-	if (dist1 != dist2) {
+    if (dist1 != dist2) {
 #ifdef DEBOGUE_MORCEAUX
-		std::cerr << "Les distances ne correspondent pas : "
-				  << dist1 << " vs " << dist2 << '\n';
+        std::cerr << "Les distances ne correspondent pas : " << dist1 << " vs " << dist2 << '\n';
 #endif
-		return false;
-	}
+        return false;
+    }
 
-	while (debut1 != fin1 && debut2 != fin2) {
-		if ((*debut1).identifiant != (*debut2).identifiant) {
+    while (debut1 != fin1 && debut2 != fin2) {
+        if ((*debut1).genre != (*debut2).genre) {
 #ifdef DEBOGUE_MORCEAUX
-			std::cerr << "Les identifiants ne correspondent pas : "
-					  << chaine_identifiant((*debut1).identifiant)
-					  << " vs "
-					  << chaine_identifiant((*debut2).identifiant) << '\n';
+            std::cerr << "Les identifiants ne correspondent pas : "
+                      << chaine_identifiant((*debut1).genre) << " vs "
+                      << chaine_identifiant((*debut2).genre) << '\n';
 #endif
-			return false;
-		}
+            return false;
+        }
 
-		if ((*debut1).chaine != (*debut2).chaine) {
+        if ((*debut1).chaine != (*debut2).chaine) {
 #ifdef DEBOGUE_MORCEAUX
-			std::cerr << "Les chaines ne correspondent pas : "
-					  << (*debut1).chaine
-					  << " vs "
-					  << (*debut2).chaine << '\n';
+            std::cerr << "Les chaines ne correspondent pas : " << (*debut1).chaine << " vs "
+                      << (*debut2).chaine << '\n';
 #endif
-			return false;
-		}
+            return false;
+        }
 
-		++debut1;
-		++debut2;
-	}
+        ++debut1;
+        ++debut2;
+    }
 
-	return true;
+    return true;
 }
 
 bool test_decoupage_texte1()
 {
-	const char *texte =
-R"(# Ceci est un commentaire
+    const char *texte =
+        R"(# Ceci est un commentaire
 « ceci est une chaine française avec espaces »
 «ceci est une chaine française sans espaces»
-soit str='a';
-soit str0='\0';
+str='a';
+str0='\0';
 discr nombre {
 	0...1_000: imprime(1000);
 	11_000...2_0000: imprime(20000);
 	sinon:imprime(inconnu);
 }
-decoupeuse_texte decoupeuse(str, str + len);
+Lexeuse lexeuse(str, str + len);
 )";
 
-	const DonneesMorceau donnees_morceaux[] = {
-		{ " ceci est une chaine française avec espaces ", id_morceau::CHAINE_LITTERALE },
-		{ "\n", id_morceau::POINT_VIRGULE },
-		{ "ceci est une chaine française sans espaces", id_morceau::CHAINE_LITTERALE },
-		{ "\n", id_morceau::POINT_VIRGULE },
-		{ "soit", id_morceau::SOIT },
-		{ "str", id_morceau::CHAINE_CARACTERE },
-		{ "=", id_morceau::EGAL },
-		{ "a", id_morceau::CARACTERE },
-		{ ";", id_morceau::POINT_VIRGULE },
-		{ "soit", id_morceau::SOIT },
-		{ "str0", id_morceau::CHAINE_CARACTERE },
-		{ "=", id_morceau::EGAL },
-		{ "\\0", id_morceau::CARACTERE },
-		{ ";", id_morceau::POINT_VIRGULE },
-		{ "discr", id_morceau::DISCR },
-		{ "nombre", id_morceau::CHAINE_CARACTERE },
-		{ "{", id_morceau::ACCOLADE_OUVRANTE },
-		{ "0", id_morceau::NOMBRE_ENTIER },
-		{ "...", id_morceau::TROIS_POINTS },
-		{ "1_000", id_morceau::NOMBRE_ENTIER },
-		{ ":", id_morceau::DOUBLE_POINTS },
-		{ "imprime", id_morceau::CHAINE_CARACTERE },
-		{ "(", id_morceau::PARENTHESE_OUVRANTE },
-		{ "1000", id_morceau::NOMBRE_ENTIER },
-		{ ")", id_morceau::PARENTHESE_FERMANTE },
-		{ ";", id_morceau::POINT_VIRGULE },
-		{ "11_000", id_morceau::NOMBRE_ENTIER },
-		{ "...", id_morceau::TROIS_POINTS },
-		{ "2_0000", id_morceau::NOMBRE_ENTIER },
-		{ ":", id_morceau::DOUBLE_POINTS },
-		{ "imprime", id_morceau::CHAINE_CARACTERE },
-		{ "(", id_morceau::PARENTHESE_OUVRANTE },
-		{ "20000", id_morceau::NOMBRE_ENTIER },
-		{ ")", id_morceau::PARENTHESE_FERMANTE },
-		{ ";", id_morceau::POINT_VIRGULE },
-		{ "sinon", id_morceau::SINON },
-		{ ":", id_morceau::DOUBLE_POINTS },
-		{ "imprime", id_morceau::CHAINE_CARACTERE },
-		{ "(", id_morceau::PARENTHESE_OUVRANTE },
-		{ "inconnu", id_morceau::CHAINE_CARACTERE },
-		{ ")", id_morceau::PARENTHESE_FERMANTE },
-		{ ";", id_morceau::POINT_VIRGULE },
-		{ "}", id_morceau::ACCOLADE_FERMANTE },
-		{ "decoupeuse_texte", id_morceau::CHAINE_CARACTERE },
-		{ "decoupeuse", id_morceau::CHAINE_CARACTERE },
-		{ "(", id_morceau::PARENTHESE_OUVRANTE },
-		{ "str", id_morceau::CHAINE_CARACTERE },
-		{ ",", id_morceau::VIRGULE },
-		{ "str", id_morceau::CHAINE_CARACTERE },
-		{ "+", id_morceau::PLUS },
-		{ "len", id_morceau::CHAINE_CARACTERE },
-		{ ")", id_morceau::PARENTHESE_FERMANTE },
-		{ ";", id_morceau::POINT_VIRGULE }
-	};
+    const Lexeme donnees_lexemes[] = {
+        {" ceci est une chaine française avec espaces ", {0ull}, GenreLexeme::CHAINE_LITTERALE},
+        {"\n", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"ceci est une chaine française sans espaces", {0ull}, GenreLexeme::CHAINE_LITTERALE},
+        {"\n", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"str", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"=", {0ull}, GenreLexeme::EGAL},
+        {"a", {0ull}, GenreLexeme::CARACTERE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"str0", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"=", {0ull}, GenreLexeme::EGAL},
+        {"\\0", {0ull}, GenreLexeme::CARACTERE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"discr", {0ull}, GenreLexeme::DISCR},
+        {"nombre", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"{", {0ull}, GenreLexeme::ACCOLADE_OUVRANTE},
+        {"0", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {"...", {0ull}, GenreLexeme::TROIS_POINTS},
+        {"1_000", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {":", {0ull}, GenreLexeme::DOUBLE_POINTS},
+        {"imprime", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"(", {0ull}, GenreLexeme::PARENTHESE_OUVRANTE},
+        {"1000", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {")", {0ull}, GenreLexeme::PARENTHESE_FERMANTE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"11_000", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {"...", {0ull}, GenreLexeme::TROIS_POINTS},
+        {"2_0000", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {":", {0ull}, GenreLexeme::DOUBLE_POINTS},
+        {"imprime", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"(", {0ull}, GenreLexeme::PARENTHESE_OUVRANTE},
+        {"20000", {0ull}, GenreLexeme::NOMBRE_ENTIER},
+        {")", {0ull}, GenreLexeme::PARENTHESE_FERMANTE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"sinon", {0ull}, GenreLexeme::SINON},
+        {":", {0ull}, GenreLexeme::DOUBLE_POINTS},
+        {"imprime", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"(", {0ull}, GenreLexeme::PARENTHESE_OUVRANTE},
+        {"inconnu", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {")", {0ull}, GenreLexeme::PARENTHESE_FERMANTE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE},
+        {"}", {0ull}, GenreLexeme::ACCOLADE_FERMANTE},
+        {"lexeuse_texte", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"lexeuse", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"(", {0ull}, GenreLexeme::PARENTHESE_OUVRANTE},
+        {"str", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {",", {0ull}, GenreLexeme::VIRGULE},
+        {"str", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {"+", {0ull}, GenreLexeme::PLUS},
+        {"len", {0ull}, GenreLexeme::CHAINE_CARACTERE},
+        {")", {0ull}, GenreLexeme::PARENTHESE_FERMANTE},
+        {";", {0ull}, GenreLexeme::POINT_VIRGULE}};
 
-	auto fichier = Fichier{};
-	fichier.tampon = lng::tampon_source(texte);
+    auto donnees_fichier = Fichier();
+    donnees_fichier.charge_tampon(lng::tampon_source(texte));
 
-	decoupeuse_texte decoupeuse(&fichier);
-	decoupeuse.genere_morceaux();
+    auto compilatrice = Compilatrice("", {});
 
-	return verifie_morceaux(fichier.morceaux.debut(),
-							fichier.morceaux.fin(),
-							std::begin(donnees_morceaux),
-							std::end(donnees_morceaux));
+    Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
+    lexeuse.performe_lexage();
+
+    return verifie_lexemes(donnees_fichier.lexemes.begin(),
+                           donnees_fichier.lexemes.end(),
+                           std::begin(donnees_lexemes),
+                           std::end(donnees_lexemes));
 }
 
 void test_decoupage(dls::test_unitaire::Controleuse &controleuse)
 {
-	CU_VERIFIE_CONDITION(controleuse, test_decoupage_texte1());
+    CU_VERIFIE_CONDITION(controleuse, test_decoupage_texte1());
 }

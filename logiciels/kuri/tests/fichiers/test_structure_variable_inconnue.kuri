@@ -1,0 +1,12 @@
+// ---------------------------------
+// Cas : On ne peut pas accèder aux membres d'une variable inconnue.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+accès_x :: fonc (v : Vecteur2D) -> rien
+{
+	retourne w.x;
+}

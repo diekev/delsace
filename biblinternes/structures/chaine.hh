@@ -26,8 +26,8 @@
 
 #include "biblinternes/memoire/logeuse_gardee.hh"
 
-#include "biblinternes/structures/vue_chaine.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
+#include "vue_chaine.hh"
+#include "vue_chaine_compacte.hh"
 
 #include <cstring>
 #include <string>
@@ -46,7 +46,7 @@ private:
 	type_chaine m_chaine{};
 
 public:
-	static constexpr long npos = -1;
+	static constexpr int64_t npos = -1;
 
 	chaine() = default;
 
@@ -54,13 +54,13 @@ public:
 
 	chaine(char const *__c_str);
 
-	chaine(char const *__c_str, long taille);
+	chaine(char const *__c_str, int64_t taille);
 
 	chaine(vue_chaine const &vue);
 
 	chaine(vue_chaine_compacte const &vue);
 
-	chaine(long nombre, char c);
+	chaine(int64_t nombre, char c);
 
 	template <typename AllocatorT>
 	chaine(std::basic_string<char, std::char_traits<char>, AllocatorT> const &str)
@@ -83,53 +83,68 @@ public:
 
 	void efface(iteratrice iter1, iteratrice iter2);
 
-	void efface(long pos, long n = npos);
+	void efface(int64_t pos, int64_t n = npos);
 
-	void reserve(long combien);
+	void reserve(int64_t combien);
 
-	void redimensionne(long combien);
+	void redimensionne(int64_t combien);
 
-	void redimensionne(long combien, char c);
+	void redimensionne(int64_t combien, char c);
 
-	void pousse(char c);
+	void ajoute(char c)
+	{
+		m_chaine.push_back(c);
+	}
 
 	chaine &append(chaine const &c);
 
 	bool est_vide() const;
 
-	long taille() const;
+	inline int64_t taille() const
+	{
+		return static_cast<int64_t>(m_chaine.size());
+	}
 
-	long capacite() const;
+	int64_t capacite() const;
 
-	dls::chaine sous_chaine(long pos, long combien = npos) const;
+	dls::chaine sous_chaine(int64_t pos, int64_t combien = npos) const;
 
-	long trouve(char c, long pos = 0) const;
+	int64_t trouve(char c, int64_t pos = 0) const;
 
-	long trouve(chaine const &motif, long pos = 0) const;
+	int64_t trouve(chaine const &motif, int64_t pos = 0) const;
 
-	long trouve_premier_de(char c) const;
+	int64_t trouve_premier_de(char c) const;
 
-	long trouve_premier_de(chaine const &c, long pos = 0) const;
+	int64_t trouve_premier_de(chaine const &c, int64_t pos = 0) const;
 
-	long trouve_premier_non_de(char c, long pos = 0) const;
+	int64_t trouve_premier_non_de(char c, int64_t pos = 0) const;
 
-	long trouve_premier_non_de(chaine const &c, long pos = 0) const;
+	int64_t trouve_premier_non_de(chaine const &c, int64_t pos = 0) const;
 
-	long trouve_dernier_de(char c) const;
+	int64_t trouve_dernier_de(char c) const;
 
-	long trouve_dernier_non_de(char c) const;
+	int64_t trouve_dernier_non_de(char c) const;
 
-	long trouve_dernier_non_de(chaine const &c) const;
+	int64_t trouve_dernier_non_de(chaine const &c) const;
 
-	void insere(long pos, long combien, char c);
+	void insere(int64_t pos, int64_t combien, char c);
 
-	void remplace(long pos, long combien, chaine const &motif);
+	void remplace(int64_t pos, int64_t combien, chaine const &motif);
 
-	char &operator[](long idx);
+	inline char &operator[](int64_t idx)
+	{
+		return m_chaine[static_cast<size_t>(idx)];
+	}
 
-	char const &operator[](long idx) const;
+	inline char const &operator[](int64_t idx) const
+	{
+		return m_chaine[static_cast<size_t>(idx)];
+	}
 
-	char const *c_str() const;
+	char const *c_str() const
+	{
+		return m_chaine.c_str();
+	}
 
 	type_chaine const &std_str() const;
 
@@ -153,9 +168,17 @@ public:
 
 	chaine &operator+=(chaine const &autre);
 
-	operator vue_chaine() const;
+	operator vue_chaine() const
+	{
+		return vue_chaine(this->c_str(), this->taille());
+	}
 
-	operator vue_chaine_compacte() const;
+	operator vue_chaine_compacte() const
+	{
+		return vue_chaine_compacte(this->c_str(), this->taille());
+	}
+
+	void permute(chaine &autre);
 };
 
 /* ************************************************************************** */
@@ -233,7 +256,7 @@ inline auto vers_chaine(T valeur)
 template <typename T>
 inline auto vers_chaine(T *valeur)
 {
-	return chaine(std::to_string(reinterpret_cast<long>(valeur)));
+	return chaine(std::to_string(reinterpret_cast<int64_t>(valeur)));
 }
 
 }  /* namespace dls */

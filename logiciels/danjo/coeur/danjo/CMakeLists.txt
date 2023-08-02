@@ -25,39 +25,44 @@ set(INCLUSIONS
 	${INCLUSIONS_SYSTEMES}
 )
 
-qt5_wrap_cpp(
-	moc_headers
+set(ENTETES_POUR_QT
+    controles/action.h
+    controles/base_controle.hh
+    controles/bouton.h
+    controles/controle_couleur.h
+    controles/controle_couleur_tsv.h
+    controles/controle_courbe_couleur.h
+    controles/controle_echelle_valeur.h
+    controles/controle_nombre_decimal.h
+    controles/controle_nombre_entier.h
+    controles/controle_rampe_couleur.h
+    controles/menu_filtrable.hh
 
-	controles/action.h
-	controles/bouton.h
-	controles/controle_couleur.h
-	controles/controle_couleur_tsv.h
-	controles/controle_courbe_couleur.h
-	controles/controle_echelle_valeur.h
-	controles/controle_nombre_decimal.h
-	controles/controle_nombre_entier.h
-	controles/controle_rampe_couleur.h
-	controles/menu_filtrable.hh
+    controles_proprietes/controle_propriete.h
+    controles_proprietes/controle_propriete_bool.h
+    controles_proprietes/controle_propriete_chaine.h
+    controles_proprietes/controle_propriete_couleur.h
+    controles_proprietes/controle_propriete_courbe_couleur.h
+    controles_proprietes/controle_propriete_courbe_valeur.h
+    controles_proprietes/controle_propriete_decimal.h
+    controles_proprietes/controle_propriete_entier.h
+    controles_proprietes/controle_propriete_enum.h
+    controles_proprietes/controle_propriete_fichier.h
+    controles_proprietes/controle_propriete_rampe_couleur.h
+    controles_proprietes/controle_propriete_liste.h
+    controles_proprietes/controle_propriete_liste_manip.hh
+    controles_proprietes/controle_propriete_vecteur.h
 
-	controles_proprietes/controle_propriete.h
-	controles_proprietes/controle_propriete_bool.h
-	controles_proprietes/controle_propriete_chaine.h
-	controles_proprietes/controle_propriete_couleur.h
-	controles_proprietes/controle_propriete_courbe_couleur.h
-	controles_proprietes/controle_propriete_courbe_valeur.h
-	controles_proprietes/controle_propriete_decimal.h
-	controles_proprietes/controle_propriete_entier.h
-	controles_proprietes/controle_propriete_enum.h
-	controles_proprietes/controle_propriete_fichier.h
-	controles_proprietes/controle_propriete_rampe_couleur.h
-	controles_proprietes/controle_propriete_liste.h
-	controles_proprietes/controle_propriete_liste_manip.hh
-	controles_proprietes/controle_propriete_vecteur.h
+    dialogues/dialogue_couleur.h
 
-	dialogues/dialogue_couleur.h
-
-	conteneur_controles.h
+    conteneur_controles.h
 )
+
+if(Qt6_FOUND)
+    qt_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+else()
+    qt5_wrap_cpp(moc_headers ${ENTETES_POUR_QT})
+endif()
 
 #NOTE: pour ici et plus bas (CMAKE_BUILD_TYPE MATCHES "Release"):
 # lors que nous compilons en mode Debug nous devons désactiver certains drapeaux
@@ -71,13 +76,9 @@ qt5_wrap_cpp(
 if(CMAKE_BUILD_TYPE MATCHES "Debug" OR CMAKE_BUILD_TYPE MATCHES "Profile")
 	add_library(qt_danjo_entreface ${moc_headers})
 	target_include_directories(qt_danjo_entreface PUBLIC "${INCLUSIONS}")
-	target_link_libraries(qt_danjo_entreface "${BIBLIOTHEQUES}")
-	get_target_property(EXTLIB_COMPILE_FLAGS qt_danjo_entreface COMPILE_OPTIONS)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-	list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-	set_target_properties(qt_danjo_entreface PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+        target_link_libraries(qt_danjo_entreface ${BIBLIOTHEQUES})
+
+	desactive_drapeaux_compilation(qt_danjo_entreface)
 
 	set(BIBLIOTHEQUES
 		${BIBLIOTHEQUES}
@@ -96,12 +97,15 @@ set(ENTETES
 	conteneur_controles.h
 	erreur.h
 	danjo.h
+        fournisseuse_icones.hh
 	manipulable.h
-	repondant_bouton.h
+        proprietes.hh
+        repondant_bouton.h
 )
 
 set(SOURCES
 	controles/action.cc
+        controles/base_controle.cc
 	controles/bouton.cc
 	controles/controle_couleur.cc
 	controles/controle_couleur_tsv.cc
@@ -116,6 +120,7 @@ set(SOURCES
 	controles/controle_teinte_couleur.cc
 	controles/menu_filtrable.cc
 
+        controles_proprietes/commun.cc
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
 	controles_proprietes/controle_propriete_chaine.cc
@@ -154,10 +159,13 @@ set(SOURCES
 	dialogue.cc
 	erreur.cc
 	danjo.cc
+        fournisseuse_icones.cc
 	manipulable.cc
+        proprietes.cc
 	repondant_bouton.cc
 
 	controles/action.h
+        controles/base_controle.hh
 	controles/bouton.h
 	controles/controle_couleur.h
 	controles/controle_couleur_tsv.h
@@ -172,6 +180,7 @@ set(SOURCES
 	controles/controle_teinte_couleur.h
 	controles/menu_filtrable.hh
 
+        controles_proprietes/commun.hh
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
 	controles_proprietes/controle_propriete_chaine.h
@@ -218,4 +227,4 @@ add_library(danjo STATIC ${SOURCES})
 
 target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(danjo "${BIBLIOTHEQUES}")
+target_link_libraries(danjo ${BIBLIOTHEQUES})

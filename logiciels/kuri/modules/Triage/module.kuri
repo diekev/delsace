@@ -1,0 +1,29 @@
+importe Fondation // pour échange
+importe GlibC
+
+tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> rien
+{
+    pour i dans 0 ... éléments.taille - 2 {
+        index_min : z64 = i
+
+        pour j dans i + 1 comme z64 ... éléments.taille - 1 {
+            si comparaison(éléments[j], éléments[index_min]) {
+                index_min = j
+            }
+        }
+
+        échange(*éléments[i], *éléments[index_min])
+    }
+}
+
+tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc(T, T)(z32))
+{
+    rappel_interne :: fonc (a: *rien, b: *rien) -> (o: z32)
+    {
+        a_T := a comme *T
+        b_T := b comme *T
+        retourne Comparaison(mémoire(a_T), mémoire(b_T))
+    }
+
+    qsort(éléments.pointeur, éléments.taille comme n64, taille_de(T) comme n64, rappel_interne)
+}

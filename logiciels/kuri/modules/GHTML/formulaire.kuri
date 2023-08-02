@@ -1,0 +1,100 @@
+importe Courriel
+importe Fondation
+importe Introspection
+
+MotDePasse :: struct {
+    chn: chaine
+}
+
+parse_mot_de_passe :: fonc (chn: chaine) -> bool, MotDePasse
+{
+    retourne vrai, MotDePasse(chn)
+} @ParsageURL
+
+/*
+    À PARAMÉTRER
+    - traduction
+    - labels
+    - requis ou non
+    - nom du bouton
+    - caché ou non
+ */
+
+génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine, méthode: chaine, cible: chaine) -> chaine
+{
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "<form method='%' action='%'>\n", méthode, cible)
+    ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
+    imprime_dans_enchaineuse(*enchaineuse, "<legend>%</legend>\n", nom_formulaire)
+
+    info := valeur.info comme *InfoTypeStructure
+
+    pour membre dans info.membres {
+        valeur_membre := eini_depuis_info_membre(valeur, membre)
+        ajoute_tag_pour_valeur(*enchaineuse, valeur_membre, membre.nom)
+    }
+
+    imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
+
+    ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    ajoute_au_tampon(*enchaineuse, "</form>\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: chaine)
+{
+    // imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", membre.nom)
+
+    ajoute_au_tampon(enchaineuse, "<div>\n")
+    ajoute_au_tampon(enchaineuse, "<label for='", nom, "'>")
+
+    début_mot := vrai
+
+    pour nom {
+        si it == '_' {
+            it = ' '
+            début_mot = vrai
+        }
+        sinon {
+            si début_mot && ('a' <= it <= 'z') {
+                it -= 0x20
+            }
+
+            début_mot = faux
+        }
+
+        ajoute_au_tampon(enchaineuse, it)
+    }
+
+    ajoute_au_tampon(enchaineuse, "</label><br>\n")
+
+    type_input := "text"
+
+    extras := ""
+
+    discr valeur.info.id {
+        ENTIER {
+            // https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/
+            // type_input = "text"
+            extras = "inputmethod='numeric' pattern='[0-9]*"
+        }
+        STRUCTURE {
+            si valeur.info == info_de(MotDePasse) {
+                type_input = "password"
+            }
+            sinon si valeur.info == info_de(AdresseCourriel) {
+                type_input = "email"
+            }
+        }
+        sinon {
+
+        }
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "<input type='%' name='%' % required>\n", type_input, nom, extras)
+    ajoute_au_tampon(enchaineuse, "</div>\n")
+}

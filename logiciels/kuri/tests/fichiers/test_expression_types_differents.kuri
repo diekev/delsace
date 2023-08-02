@@ -1,0 +1,7 @@
+// ---------------------------------
+// Cas : on ne peut pas comparer des types incompatibles
+
+foo :: fonc () -> rien
+{
+	t0 := 5.0 == 2;
+}

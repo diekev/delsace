@@ -24,9 +24,9 @@
 
 #include "operatrices_script.hh"
 
+#include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/fichier.hh"
-#include "biblinternes/langage/tampon_source.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/compileuse_lcc.hh"
@@ -40,374 +40,369 @@
 /* ************************************************************************** */
 
 class OpScriptTopologie final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Script Topologie";
-	static constexpr auto AIDE = "";
+  public:
+    static constexpr auto NOM = "Script Topologie";
+    static constexpr auto AIDE = "";
 
-	OpScriptTopologie(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OpScriptTopologie(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_script_detail.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_script_detail.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(donnees_aval);
-		m_corps.reinitialise();
-	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        INUTILISE(donnees_aval);
+        m_corps.reinitialise();
+        //	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		auto portee_script = evalue_enum("portée_script");
+        auto portee_script = evalue_enum("portée_script");
 
-		auto ctx_script = lcc::ctx_script::topologie;
+        auto ctx_script = lcc::ctx_script::topologie;
 
-		if (portee_script == "points") {
-			ctx_script |= lcc::ctx_script::point;
-		}
-		else if (portee_script == "primitives") {
-			ctx_script |= lcc::ctx_script::primitive;
-		}
-		else if (portee_script == "fichier") {
-			ctx_script |= lcc::ctx_script::fichier;
-		}
-		else {
-			this->ajoute_avertissement("La portée du script est invalide");
-			return res_exec::ECHOUEE;
-		}
+        if (portee_script == "points") {
+            ctx_script |= lcc::ctx_script::point;
+        }
+        else if (portee_script == "primitives") {
+            ctx_script |= lcc::ctx_script::primitive;
+        }
+        else if (portee_script == "fichier") {
+            ctx_script |= lcc::ctx_script::fichier;
+        }
+        else {
+            this->ajoute_avertissement("La portée du script est invalide");
+            return res_exec::ECHOUEE;
+        }
 
-		auto texte = evalue_chaine("script");
+        auto texte = evalue_chaine("script");
 
-		if (texte.est_vide()) {
-			return res_exec::ECHOUEE;
-		}
+        if (texte.est_vide()) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto contenu_fichier = dls::contenu_fichier(evalue_fichier_entree("source_entrée"));
+        auto contenu_fichier = dls::contenu_fichier(evalue_fichier_entree("source_entrée"));
 
-		if (contenu_fichier.est_vide()) {
-			return res_exec::ECHOUEE;
-		}
+        if (contenu_fichier.est_vide()) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("script détail");
+        auto chef = contexte.chef;
+        chef->demarre_evaluation("script détail");
 
-		/* ****************************************************************** */
+        /* ****************************************************************** */
 
-		auto compileuse = CompileuseScriptLCC();
+        auto compileuse = CompileuseScriptLCC();
 
-		if (!compileuse.compile_script(*this, m_corps, contexte, texte, ctx_script)) {
-			chef->indique_progression(100.0f);
-			return res_exec::ECHOUEE;
-		}
+        if (!compileuse.compile_script(*this, m_corps, contexte, texte, ctx_script)) {
+            chef->indique_progression(100.0f);
+            return res_exec::ECHOUEE;
+        }
 
-		auto taille_donnees = compileuse.donnees().taille();
-		auto taille_instructions = compileuse.m_compileuse.instructions().taille();
+        auto taille_donnees = compileuse.donnees().taille();
+        auto taille_instructions = compileuse.m_compileuse.instructions().taille();
 
-		/* Retourne si le script est vide, notons qu'il y a forcément une
-		 * intruction : code_inst::TERMINE. */
-		if ((taille_donnees == 0) || (taille_instructions == 1)) {
-			return res_exec::REUSSIE;
-		}
+        /* Retourne si le script est vide, notons qu'il y a forcément une
+         * intruction : code_inst::TERMINE. */
+        if ((taille_donnees == 0) || (taille_instructions == 1)) {
+            return res_exec::REUSSIE;
+        }
 
-		/* données générales */
-		compileuse.remplis_donnees(compileuse.donnees(), "temps", contexte.temps_courant);
-		compileuse.remplis_donnees(compileuse.donnees(), "temps_début", contexte.temps_debut);
-		compileuse.remplis_donnees(compileuse.donnees(), "temps_fin", contexte.temps_fin);
-		compileuse.remplis_donnees(compileuse.donnees(), "cadence", static_cast<float>(contexte.cadence));
+        /* données générales */
+        compileuse.remplis_donnees(compileuse.donnees(), "temps", contexte.temps_courant);
+        compileuse.remplis_donnees(compileuse.donnees(), "temps_début", contexte.temps_debut);
+        compileuse.remplis_donnees(compileuse.donnees(), "temps_fin", contexte.temps_fin);
+        compileuse.remplis_donnees(
+            compileuse.donnees(), "cadence", static_cast<float>(contexte.cadence));
 
-		if (portee_script == "fichier") {
-			execute_script_pour_fichier(
-						chef, compileuse, contenu_fichier);
-		}
-		else {
-			execute_script(chef, compileuse);
-		}
+        if (portee_script == "fichier") {
+            execute_script_pour_fichier(chef, compileuse, contenu_fichier);
+        }
+        else {
+            execute_script(chef, compileuse);
+        }
 
-		/* ****************************************************************** */
+        /* ****************************************************************** */
 
-		chef->indique_progression(100.0f);
+        chef->indique_progression(100.0f);
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	void execute_script_pour_fichier(
-			ChefExecution *chef,
-			CompileuseScriptLCC &compileuse,
-			dls::chaine const &contenu_fichier)
-	{
-		auto tampon_source = lng::tampon_source(contenu_fichier);
+    void execute_script_pour_fichier(ChefExecution *chef,
+                                     CompileuseScriptLCC &compileuse,
+                                     dls::chaine const &contenu_fichier)
+    {
+        auto texte_ = contenu_fichier;
+        auto tampon_source = lng::tampon_source(std::move(texte_));
 
-		auto decalage_chn = compileuse.m_ctx_global.chaines.taille();
-		compileuse.m_ctx_global.chaines.pousse("");
+        auto decalage_chn = compileuse.m_ctx_global.chaines.taille();
+        compileuse.m_ctx_global.chaines.ajoute("");
 
-		for (auto i = 0ul; i < tampon_source.nombre_lignes(); ++i) {
-			if (chef->interrompu()) {
-				break;
-			}
+        for (auto i = 0ul; i < tampon_source.nombre_lignes(); ++i) {
+            if (chef->interrompu()) {
+                break;
+            }
 
-			auto ctx_local = lcc::ctx_local{};
+            auto ctx_local = lcc::ctx_local{};
 
-			compileuse.m_ctx_global.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
+            compileuse.m_ctx_global.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
 
-			compileuse.remplis_donnees(compileuse.donnees(), "index", static_cast<int>(i));
-			compileuse.remplis_donnees(compileuse.donnees(), "ligne", static_cast<int>(decalage_chn));
+            compileuse.remplis_donnees(compileuse.donnees(), "index", static_cast<int>(i));
+            compileuse.remplis_donnees(
+                compileuse.donnees(), "ligne", static_cast<int>(decalage_chn));
 
-			/* stocke les attributs */
-			compileuse.stocke_attributs(ctx_local, compileuse.donnees(), static_cast<int>(i));
+            /* stocke les attributs */
+            compileuse.stocke_attributs(ctx_local, compileuse.donnees(), static_cast<int>(i));
 
-			compileuse.execute_pile(ctx_local, compileuse.donnees());
+            compileuse.execute_pile(ctx_local, compileuse.donnees());
 
-			/* charge les attributs */
-			compileuse.charge_attributs(ctx_local, compileuse.donnees(), static_cast<int>(i));
-		}
-	}
+            /* charge les attributs */
+            compileuse.charge_attributs(ctx_local, compileuse.donnees(), static_cast<int>(i));
+        }
+    }
 
-	void execute_script(
-			ChefExecution *chef,
-			CompileuseScriptLCC &compileuse)
-	{
-		for (auto i = 0; i < 1; ++i) {
-			if (chef->interrompu()) {
-				break;
-			}
+    void execute_script(ChefExecution *chef, CompileuseScriptLCC &compileuse)
+    {
+        for (auto i = 0; i < 1; ++i) {
+            if (chef->interrompu()) {
+                break;
+            }
 
-			auto ctx_local = lcc::ctx_local{};
+            auto ctx_local = lcc::ctx_local{};
 
-			compileuse.remplis_donnees(compileuse.donnees(), "index", i);
+            compileuse.remplis_donnees(compileuse.donnees(), "index", i);
 
-			/* stocke les attributs */
-			compileuse.stocke_attributs(ctx_local, compileuse.donnees(), i);
+            /* stocke les attributs */
+            compileuse.stocke_attributs(ctx_local, compileuse.donnees(), i);
 
-			compileuse.execute_pile(ctx_local, compileuse.donnees());
+            compileuse.execute_pile(ctx_local, compileuse.donnees());
 
-			/* charge les attributs */
-			compileuse.charge_attributs(ctx_local, compileuse.donnees(), i);
-		}
-	}
+            /* charge les attributs */
+            compileuse.charge_attributs(ctx_local, compileuse.donnees(), i);
+        }
+    }
 };
 
 /* ************************************************************************** */
 
 class OpScriptDetail final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Script Détail";
-	static constexpr auto AIDE = "";
+  public:
+    static constexpr auto NOM = "Script Détail";
+    static constexpr auto AIDE = "";
 
-	OpScriptDetail(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OpScriptDetail(Graphe &graphe_parent, Noeud &noeud_) : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_script_detail.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_script_detail.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, &m_corps, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto portee_script = evalue_enum("portée_script");
+        auto portee_script = evalue_enum("portée_script");
 
-		auto ctx_script = lcc::ctx_script::detail;
+        auto ctx_script = lcc::ctx_script::detail;
 
-		if (portee_script == "points") {
-			ctx_script |= lcc::ctx_script::point;
-		}
-		else if (portee_script == "primitives") {
-			ctx_script |= lcc::ctx_script::primitive;
-		}
-		else if (portee_script == "fichier") {
-			ctx_script |= lcc::ctx_script::fichier;
-		}
-		else {
-			this->ajoute_avertissement("La portée du script est invalide");
-			return res_exec::ECHOUEE;
-		}
+        if (portee_script == "points") {
+            ctx_script |= lcc::ctx_script::point;
+        }
+        else if (portee_script == "primitives") {
+            ctx_script |= lcc::ctx_script::primitive;
+        }
+        else if (portee_script == "fichier") {
+            ctx_script |= lcc::ctx_script::fichier;
+        }
+        else {
+            this->ajoute_avertissement("La portée du script est invalide");
+            return res_exec::ECHOUEE;
+        }
 
-		auto texte = evalue_chaine("script");
+        auto texte = evalue_chaine("script");
 
-		if (texte.est_vide()) {
-			return res_exec::ECHOUEE;
-		}
+        if (texte.est_vide()) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("script détail");
+        auto chef = contexte.chef;
+        chef->demarre_evaluation("script détail");
 
-		/* ****************************************************************** */
+        /* ****************************************************************** */
 
-		auto compileuse = CompileuseScriptLCC();
+        auto compileuse = CompileuseScriptLCC();
 
-		if (!compileuse.compile_script(*this, m_corps, contexte, texte, ctx_script)) {
-			chef->indique_progression(100.0f);
-			return res_exec::ECHOUEE;
-		}
+        if (!compileuse.compile_script(*this, m_corps, contexte, texte, ctx_script)) {
+            chef->indique_progression(100.0f);
+            return res_exec::ECHOUEE;
+        }
 
-		auto taille_donnees = compileuse.donnees().taille();
-		auto taille_instructions = compileuse.m_compileuse.instructions().taille();
+        auto taille_donnees = compileuse.donnees().taille();
+        auto taille_instructions = compileuse.m_compileuse.instructions().taille();
 
-		/* Retourne si le script est vide, notons qu'il y a forcément une
-		 * intruction : code_inst::TERMINE. */
-		if ((taille_donnees == 0) || (taille_instructions == 1)) {
-			return res_exec::REUSSIE;
-		}
+        /* Retourne si le script est vide, notons qu'il y a forcément une
+         * intruction : code_inst::TERMINE. */
+        if ((taille_donnees == 0) || (taille_instructions == 1)) {
+            return res_exec::REUSSIE;
+        }
 
-		/* données générales */
-		compileuse.remplis_donnees(compileuse.donnees(), "temps", contexte.temps_courant);
-		compileuse.remplis_donnees(compileuse.donnees(), "temps_début", contexte.temps_debut);
-		compileuse.remplis_donnees(compileuse.donnees(), "temps_fin", contexte.temps_fin);
-		compileuse.remplis_donnees(compileuse.donnees(), "cadence", static_cast<float>(contexte.cadence));
+        /* données générales */
+        compileuse.remplis_donnees(compileuse.donnees(), "temps", contexte.temps_courant);
+        compileuse.remplis_donnees(compileuse.donnees(), "temps_début", contexte.temps_debut);
+        compileuse.remplis_donnees(compileuse.donnees(), "temps_fin", contexte.temps_fin);
+        compileuse.remplis_donnees(
+            compileuse.donnees(), "cadence", static_cast<float>(contexte.cadence));
 
-		if (portee_script == "points") {
-			auto points_entree = m_corps.points_pour_lecture();
+        if (portee_script == "points") {
+            auto points_entree = m_corps.points_pour_lecture();
 
-			auto donnees_prop = compileuse.m_gest_attrs.donnees_pour_propriete("P");
-			if (donnees_prop->est_modifiee) {
-				auto points_sortie = m_corps.points_pour_ecriture();
-				execute_script_sur_points(chef, compileuse, points_entree, &points_sortie);
-			}
-			else {
-				execute_script_sur_points(chef, compileuse, points_entree, nullptr);
-			}
+            auto donnees_prop = compileuse.m_gest_attrs.donnees_pour_propriete("P");
+            if (donnees_prop->est_modifiee) {
+                auto points_sortie = m_corps.points_pour_ecriture();
+                execute_script_sur_points(chef, compileuse, points_entree, &points_sortie);
+            }
+            else {
+                execute_script_sur_points(chef, compileuse, points_entree, nullptr);
+            }
+        }
+        else if (portee_script == "primitives") {
+            execute_script_sur_primitives(chef, compileuse);
+        }
 
-		}
-		else if (portee_script == "primitives") {
-			execute_script_sur_primitives(chef, compileuse);
-		}
+        /* ******************* */
 
-		/* ******************* */
+        chef->indique_progression(100.0f);
 
-		chef->indique_progression(100.0f);
+        return res_exec::REUSSIE;
+    }
 
-		return res_exec::REUSSIE;
-	}
+    void execute_script_sur_points(ChefExecution *chef,
+                                   CompileuseScriptLCC &compileuse,
+                                   AccesseusePointLecture const &points_entree,
+                                   AccesseusePointEcriture *points_sortie)
+    {
+        boucle_serie(tbb::blocked_range<long>(0, points_entree.taille()),
+                     [&](tbb::blocked_range<long> const &plage) {
+                         if (chef->interrompu()) {
+                             return;
+                         }
 
-	void execute_script_sur_points(
-			ChefExecution *chef,
-			CompileuseScriptLCC &compileuse,
-			AccesseusePointLecture const &points_entree,
-			AccesseusePointEcriture *points_sortie)
-	{
-		boucle_serie(tbb::blocked_range<long>(0, points_entree.taille()),
-					 [&](tbb::blocked_range<long> const &plage)
-		{
-			if (chef->interrompu()) {
-				return;
-			}
+                         /* fait une copie locale */
+                         auto donnees = compileuse.donnees();
 
-			/* fait une copie locale */
-			auto donnees = compileuse.donnees();
+                         for (auto i = plage.begin(); i < plage.end(); ++i) {
+                             if (chef->interrompu()) {
+                                 break;
+                             }
 
-			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				if (chef->interrompu()) {
-					break;
-				}
+                             auto ctx_local = lcc::ctx_local{};
 
-				auto ctx_local = lcc::ctx_local{};
+                             auto point = points_entree.point_local(i);
 
-				auto point = points_entree.point_local(i);
+                             compileuse.remplis_donnees(donnees, "P", point);
+                             compileuse.remplis_donnees(donnees, "index", static_cast<int>(i));
 
-				compileuse.remplis_donnees(donnees, "P", point);
-				compileuse.remplis_donnees(donnees, "index", static_cast<int>(i));
+                             /* stocke les attributs */
+                             compileuse.stocke_attributs(ctx_local, donnees, i);
 
-				/* stocke les attributs */
-				compileuse.stocke_attributs(ctx_local, donnees, i);
+                             compileuse.execute_pile(ctx_local, donnees);
 
-				compileuse.execute_pile(ctx_local, donnees);
+                             auto idx_sortie = compileuse.pointeur_donnees("P");
+                             point = donnees.charge_vec3(idx_sortie);
 
-				auto idx_sortie = compileuse.pointeur_donnees("P");
-				point = donnees.charge_vec3(idx_sortie);
+                             /* charge les attributs */
+                             compileuse.charge_attributs(ctx_local, donnees, i);
 
-				/* charge les attributs */
-				compileuse.charge_attributs(ctx_local, donnees, i);
+                             if (points_sortie) {
+                                 points_sortie->point(i, point);
+                             }
+                         }
 
-				if (points_sortie) {
-					points_sortie->point(i, point);
-				}
-			}
+                         auto delta = static_cast<float>(plage.end() - plage.begin());
+                         chef->indique_progression_parallele(
+                             delta / static_cast<float>(points_entree.taille()) * 100.0f);
+                     });
+    }
 
-			auto delta = static_cast<float>(plage.end() - plage.begin());
-			chef->indique_progression_parallele(delta / static_cast<float>(points_entree.taille()) * 100.0f);
-		});
-	}
+    void execute_script_sur_primitives(ChefExecution *chef, CompileuseScriptLCC &compileuse)
+    {
+        auto prims = m_corps.prims();
 
-	void execute_script_sur_primitives(
-			ChefExecution *chef,
-			CompileuseScriptLCC &compileuse)
-	{
-		auto prims = m_corps.prims();
+        boucle_serie(tbb::blocked_range<long>(0, prims->taille()),
+                     [&](tbb::blocked_range<long> const &plage) {
+                         if (chef->interrompu()) {
+                             return;
+                         }
 
-		boucle_serie(tbb::blocked_range<long>(0, prims->taille()),
-					 [&](tbb::blocked_range<long> const &plage)
-		{
-			if (chef->interrompu()) {
-				return;
-			}
+                         /* fait une copie locale */
+                         auto donnees = compileuse.donnees();
 
-			/* fait une copie locale */
-			auto donnees = compileuse.donnees();
+                         for (auto i = plage.begin(); i < plage.end(); ++i) {
+                             if (chef->interrompu()) {
+                                 break;
+                             }
 
-			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				if (chef->interrompu()) {
-					break;
-				}
+                             auto ctx_local = lcc::ctx_local{};
 
-				auto ctx_local = lcc::ctx_local{};
+                             compileuse.remplis_donnees(donnees, "index", static_cast<int>(i));
 
-				compileuse.remplis_donnees(donnees, "index", static_cast<int>(i));
+                             /* stocke les attributs */
+                             compileuse.stocke_attributs(ctx_local, donnees, i);
 
-				/* stocke les attributs */
-				compileuse.stocke_attributs(ctx_local, donnees, i);
+                             compileuse.execute_pile(ctx_local, donnees);
 
-				compileuse.execute_pile(ctx_local, donnees);
+                             /* charge les attributs */
+                             compileuse.charge_attributs(ctx_local, donnees, i);
+                         }
 
-				/* charge les attributs */
-				compileuse.charge_attributs(ctx_local, donnees, i);
-			}
-
-			auto delta = static_cast<float>(plage.end() - plage.begin());
-			chef->indique_progression_parallele(delta / static_cast<float>(prims->taille()) * 100.0f);
-		});
-	}
+                         auto delta = static_cast<float>(plage.end() - plage.begin());
+                         chef->indique_progression_parallele(
+                             delta / static_cast<float>(prims->taille()) * 100.0f);
+                     });
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_script(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OpScriptDetail>());
-	usine.enregistre_type(cree_desc<OpScriptTopologie>());
+    usine.enregistre_type(cree_desc<OpScriptDetail>());
+    usine.enregistre_type(cree_desc<OpScriptTopologie>());
 }
 
 #pragma clang diagnostic pop

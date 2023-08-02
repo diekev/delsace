@@ -1,0 +1,78 @@
+TypeÉditrice :: énum z32 {
+	NULLE     :: 0
+	PROPRIETE :: 1
+	TEMPS     :: 2
+}
+
+vec2d :: struct {
+	x : r32
+	y : r32
+}
+
+rect2d :: struct {
+	pos : vec2d
+	taille : vec2d
+}
+
+Éditrice :: struct {
+	nom : chaîne
+	type : TypeÉditrice
+
+	rect_abs : vec2d // rectangle en coordonnées pixel
+	rect_rel : vec2d // rectangle en coordonnées normalisées
+}
+
+cree_éditrice :: fonc (type : TypeÉditrice) -> Éditrice
+{
+	éditrice := loge(Éditrice)
+	éditrice.type = type
+
+	discr type {
+		NULLE {
+			éditrice.nom = "nulle"
+		}
+		PROPRIETE {
+			éditrice.nom = "propriété"
+		}
+		TEMPS {
+			éditrice.nom = "temps"
+		}
+	}
+
+	retourne éditrice
+}
+
+ajoute_éditrice :: fonc (éditrices : *[]*Éditrice, type : TypeÉditrice) -> Éditrice
+{
+	éditrice := cree_éditrice(type)
+
+	tableau_ajoute(éditrices, éditrice)
+
+	// initialise la taille de l'éditrice selon sa position
+
+	retourne éditrice
+}
+
+enlève_éditrice :: fonc (éditrices : *[]*Éditrice, éditrice : *Éditrice) -> rien
+{
+	// trouve l'index de l'éditrice dans le tableau
+
+	// supprime à l'index
+}
+
+// éditrice gauche-droite-haut-bas
+divise_éditrice :: fonc (éditrice : *Éditrice) -> bool
+{
+	gauche := éditrice.gauche
+	droite := éditrice.droite
+	haut   := éditrice.haut
+	bas    := éditrice.bas
+
+	si gauche == droite == haut == bas == nul {
+		retourne vrai
+	}
+
+	// trouve s'il est possible de diviser l'éditrice
+
+	retourne vrai
+}

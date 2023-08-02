@@ -60,7 +60,7 @@ public:
 		ajourne(pointeur_, marque_);
 	}
 
-	inline void ajourne(T *pointeur_, long marque_ = 0)
+	inline void ajourne(T *pointeur_, int64_t marque_ = 0)
 	{
 		comme_pointeur = pointeur_;
 		comme_bits |= static_cast<uintptr_t>(marque_) << 48l;
@@ -76,7 +76,7 @@ public:
 		return static_cast<int>((comme_bits & masque_marque) >> 48l);
 	}
 
-	void echange(pointeur_marque_haut &autre)
+	void permute(pointeur_marque_haut &autre)
 	{
 		std::swap(comme_pointeur, autre.comme_pointeur);
 	}
@@ -138,7 +138,7 @@ public:
 		return comme_bits & masque_marque;
 	}
 
-	void echange(pointeur_marque_bas &autre)
+	void permute(pointeur_marque_bas &autre)
 	{
 		std::swap(comme_pointeur, autre.comme_pointeur);
 	}
@@ -208,7 +208,7 @@ public:
 		return static_cast<int>(comme_bits & masque_marque_bas);
 	}
 
-	void echange(pointeur_marque_haut_bas &autre)
+	void permute(pointeur_marque_haut_bas &autre)
 	{
 		std::swap(comme_pointeur, autre.comme_pointeur);
 	}

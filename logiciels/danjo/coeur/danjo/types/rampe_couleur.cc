@@ -30,107 +30,106 @@
 
 void cree_rampe_defaut(RampeCouleur &rampe)
 {
-	ajoute_point_rampe(rampe, 0.0f, dls::phys::couleur32{0.0f, 0.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 0.5f, dls::phys::couleur32{0.0f, 1.0f, 0.0f, 1.0f});
-	ajoute_point_rampe(rampe, 1.0f, dls::phys::couleur32{1.0f, 1.0f, 1.0f, 1.0f});
+    ajoute_point_rampe(rampe, 0.0f, dls::phys::couleur32{0.0f, 0.0f, 0.0f, 1.0f});
+    ajoute_point_rampe(rampe, 0.5f, dls::phys::couleur32{0.0f, 1.0f, 0.0f, 1.0f});
+    ajoute_point_rampe(rampe, 1.0f, dls::phys::couleur32{1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void tri_points_rampe(RampeCouleur &rampe)
 {
-	std::sort(rampe.points.debut(), rampe.points.fin(),
-			  [](const PointRampeCouleur &a, const PointRampeCouleur &b)
-	{
-		return a.position < b.position;
-	});
+    std::sort(rampe.points.debut(),
+              rampe.points.fin(),
+              [](const PointRampeCouleur &a, const PointRampeCouleur &b) {
+                  return a.position < b.position;
+              });
 }
 
 void ajoute_point_rampe(RampeCouleur &rampe, float x, const dls::phys::couleur32 &couleur)
 {
-	PointRampeCouleur p;
-	p.position = x;
-	p.couleur = couleur;
+    PointRampeCouleur p;
+    p.position = x;
+    p.couleur = couleur;
 
-	rampe.points.pousse(p);
+    rampe.points.ajoute(p);
 
-	tri_points_rampe(rampe);
+    tri_points_rampe(rampe);
 }
 
 PointRampeCouleur *trouve_point_selectionne(const RampeCouleur &rampe)
 {
-	for (const auto &point : rampe.points) {
-		if (point.selectionne) {
-			return const_cast<PointRampeCouleur *>(&point);
-		}
-	}
+    for (const auto &point : rampe.points) {
+        if (point.selectionne) {
+            return const_cast<PointRampeCouleur *>(&point);
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 dls::phys::couleur32 evalue_rampe_couleur(const RampeCouleur &rampe, const float valeur)
 {
-	auto v = restreint(valeur, 0.0f, 1.0f);
+    auto v = restreint(valeur, 0.0f, 1.0f);
 
-	if (rampe.points.taille() == 1) {
-		return rampe.points[0].couleur;
-	}
+    if (rampe.points.taille() == 1) {
+        return rampe.points[0].couleur;
+    }
 
-	if (v <= rampe.points[0].position) {
-		return rampe.points[0].couleur;
-	}
+    if (v <= rampe.points[0].position) {
+        return rampe.points[0].couleur;
+    }
 
-	if (v >= rampe.points[rampe.points.taille() - 1].position) {
-		return rampe.points[rampe.points.taille() - 1].couleur;
-	}
+    if (v >= rampe.points[rampe.points.taille() - 1].position) {
+        return rampe.points[rampe.points.taille() - 1].couleur;
+    }
 
-	dls::phys::couleur32 res;
+    dls::phys::couleur32 res;
 
-	for (auto i = 0; i < rampe.points.taille() - 1; ++i) {
-		const auto &p0 = rampe.points[i];
-		const auto &p1 = rampe.points[i + 1];
+    for (auto i = 0; i < rampe.points.taille() - 1; ++i) {
+        const auto &p0 = rampe.points[i];
+        const auto &p1 = rampe.points[i + 1];
 
-		if (p0.position <= v && v <= p1.position) {
-			const auto &c0 = p0.couleur;
-			const auto &c1 = p1.couleur;
-			auto fac = (v - p0.position) / (p1.position - p0.position);
+        if (p0.position <= v && v <= p1.position) {
+            const auto &c0 = p0.couleur;
+            const auto &c1 = p1.couleur;
+            auto fac = (v - p0.position) / (p1.position - p0.position);
 
-			if (rampe.entrepolation == ENTREPOLATION_HSV) {
-				float h0, s0, v0, h1, s1, v1;
-				dls::phys::rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
-				dls::phys::rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
+            if (rampe.entrepolation == ENTREPOLATION_HSV) {
+                float h0, s0, v0, h1, s1, v1;
+                dls::phys::rvb_vers_hsv(c0[0], c0[1], c0[2], &h0, &s0, &v0);
+                dls::phys::rvb_vers_hsv(c1[0], c1[1], c1[2], &h1, &s1, &v1);
 
-				/* Les teintes doivent être entrepolées selon leurs angles, donc
-				 * on doit définir la distance entre les angles et leur
-				 * orientation anti-horaire (dist_a) ou horaire (dist_h).
-				 */
-				const auto dist_a = (h0 >= h1) ? h0 - h1 : 1 + h0 - h1;
-				const auto dist_h = (h0 >= h1) ? 1 + h1 - h0 : h1 - h0;
-				auto nh = (dist_h <= dist_a) ? h0 + (dist_h * fac)
-											 : h0 - (dist_a * fac);
+                /* Les teintes doivent être entrepolées selon leurs angles, donc
+                 * on doit définir la distance entre les angles et leur
+                 * orientation anti-horaire (dist_a) ou horaire (dist_h).
+                 */
+                const auto dist_a = (h0 >= h1) ? h0 - h1 : 1 + h0 - h1;
+                const auto dist_h = (h0 >= h1) ? 1 + h1 - h0 : h1 - h0;
+                auto nh = (dist_h <= dist_a) ? h0 + (dist_h * fac) : h0 - (dist_a * fac);
 
-				if (nh < 0.0f) {
-					nh = 1 + nh;
-				}
+                if (nh < 0.0f) {
+                    nh = 1 + nh;
+                }
 
-				if (nh > 1.0f) {
-					nh = nh - 1.0f;
-				}
+                if (nh > 1.0f) {
+                    nh = nh - 1.0f;
+                }
 
-				auto ns = (1.0f - fac) * s0 + fac * s1;
-				auto nv = (1.0f - fac) * v0 + fac * v1;
-				res[3] = (1.0f - fac) * c0.a + fac * c1.a;
+                auto ns = (1.0f - fac) * s0 + fac * s1;
+                auto nv = (1.0f - fac) * v0 + fac * v1;
+                res[3] = (1.0f - fac) * c0.a + fac * c1.a;
 
-				dls::phys::hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
-			}
-			else {
-				for (int j = 0; j < 4; ++j) {
-					res[j] = (1.0f - fac) * c0[j] + fac * c1[j];
-				}
-			}
+                dls::phys::hsv_vers_rvb(nh, ns, nv, &res[0], &res[1], &res[2]);
+            }
+            else {
+                for (int j = 0; j < 4; ++j) {
+                    res[j] = (1.0f - fac) * c0[j] + fac * c1[j];
+                }
+            }
 
-			return res;
-		}
-	}
+            return res;
+        }
+    }
 
-	/* ne devrait pas arriver */
-	return dls::phys::couleur32(0.0f);
+    /* ne devrait pas arriver */
+    return dls::phys::couleur32(0.0f);
 }

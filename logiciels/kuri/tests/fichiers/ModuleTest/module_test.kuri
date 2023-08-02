@@ -1,0 +1,4 @@
+retourne_0 :: fonc () -> z32
+{
+	retourne 0;
+}

@@ -24,61 +24,65 @@
 
 #include "action.h"
 
+#include "fournisseuse_icones.hh"
 #include "repondant_bouton.h"
 
 namespace danjo {
 
-Action::Action(QWidget *parent)
-	: QAction(parent)
+Action::Action(QWidget *parent) : QAction(parent)
 {
-	connect(this, SIGNAL(triggered()), this, SLOT(action_presse()));
+    connect(this, SIGNAL(triggered()), this, SLOT(action_presse()));
 }
 
 void Action::installe_repondant(RepondantBouton *repondant)
 {
-	m_repondant = repondant;
+    m_repondant = repondant;
 }
 
 void Action::etablie_attache(const dls::chaine &attache)
 {
-	m_attache = attache;
+    m_attache = attache;
 }
 
 void Action::etablie_metadonnee(const dls::chaine &metadonnee)
 {
-	m_metadonnee = metadonnee;
+    m_metadonnee = metadonnee;
 }
 
 void Action::etablie_icone(const dls::chaine &valeur)
 {
-	this->setIcon(QIcon(valeur.c_str()));
+    auto &fournisseuse = donne_fournisseuse_icone();
+    auto icône = fournisseuse.icone_pour_identifiant(valeur.c_str(), ÉtatIcône::ACTIF);
+    if (icône.has_value()) {
+        this->setIcon(icône.value());
+    }
 }
 
 void Action::evalue_predicat()
 {
-	if (m_repondant == nullptr) {
-		return;
-	}
+    if (m_repondant == nullptr) {
+        return;
+    }
 
-	auto ok = m_repondant->evalue_predicat(m_attache, m_metadonnee);
-	this->setEnabled(ok);
+    auto ok = m_repondant->evalue_predicat(m_attache, m_metadonnee);
+    this->setEnabled(ok);
 }
 
 void Action::etablie_valeur(const dls::chaine &valeur)
 {
-	this->setText(valeur.c_str());
+    this->setText(valeur.c_str());
 }
 
 void Action::etablie_infobulle(const dls::chaine &valeur)
 {
-	this->setToolTip(valeur.c_str());
+    this->setToolTip(valeur.c_str());
 }
 
 void Action::action_presse()
 {
-	if (m_repondant) {
-		m_repondant->repond_clique(m_attache, m_metadonnee);
-	}
+    if (m_repondant) {
+        m_repondant->repond_clique(m_attache, m_metadonnee);
+    }
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

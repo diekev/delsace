@@ -33,149 +33,186 @@
 
 namespace wlk {
 
-class IteratricePosition {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
+template <typename type_vec>
+struct IteratriceCoordonnees {
+  private:
+    using TypeVecteur = type_vec;
+    static constexpr auto DIMS = TypeVecteur::nombre_composants;
 
-public:
-	IteratricePosition(limites3i const &lim)
-		: m_lim(lim)
-		, m_etat(lim.min)
-	{}
+    limites<TypeVecteur> m_lim{};
+    TypeVecteur m_etat;
 
-	dls::math::vec3i suivante()
-	{
-		auto etat = m_etat;
+  public:
+    IteratriceCoordonnees(limites<TypeVecteur> const &lim) : m_lim(lim), m_etat(lim.min)
+    {
+    }
 
-		m_etat.x += 1;
+    TypeVecteur suivante()
+    {
+        auto etat = m_etat;
 
-		if (m_etat.x >= m_lim.max.x) {
-			m_etat.x = m_lim.min.x;
+        m_etat[0] += 1;
 
-			m_etat.y += 1;
+        for (auto i = 0u; i < DIMS - 1; ++i) {
+            if (m_etat[i] < m_lim.max[i + 1]) {
+                break;
+            }
 
-			if (m_etat.y >= m_lim.max.y) {
-				m_etat.y = m_lim.min.y;
+            m_etat[i] = m_lim.min[i];
+            m_etat[i + 1] += 1;
+        }
 
-				m_etat.z += 1;
-			}
-		}
+        return etat;
+    }
 
-		return etat;
-	}
-
-	bool fini() const
-	{
-		return m_etat.z >= m_lim.max.z;
-	}
+    bool fini() const
+    {
+        return m_etat[DIMS - 1] >= m_lim.max[DIMS - 1];
+    }
 };
 
-class IteratricePositionInv {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
+template <typename type_vec>
+struct IteratriceCoordonneesInv {
+  private:
+    using TypeVecteur = type_vec;
+    static constexpr auto DIMS = TypeVecteur::nombre_composants;
 
-public:
-	IteratricePositionInv(limites3i const &lim)
-		: m_lim(lim)
-		, m_etat(lim.max)
-	{}
+    limites<TypeVecteur> m_lim{};
+    TypeVecteur m_etat;
 
-	dls::math::vec3i suivante()
+  public:
+    IteratriceCoordonneesInv(limites<TypeVecteur> const &lim) : m_lim(lim), m_etat(lim.max)
+    {
+    }
+
+    TypeVecteur suivante()
+    {
+        auto etat = m_etat;
+
+        m_etat[0] -= 1;
+
+        for (auto i = 0u; i < DIMS - 1; ++i) {
+            if (m_etat[i] >= m_lim.min[i + 1]) {
+                break;
+            }
+
+            m_etat[i] = m_lim.max[i] - 1;
+            m_etat[i + 1] -= 1;
+        }
+
+        return etat;
+    }
+
+    bool fini() const
+    {
+        return m_etat[DIMS - 1] < m_lim.min[DIMS - 1];
+    }
+};
+
+using IteratricePosition = IteratriceCoordonnees<dls::math::vec3i>;
+using IteratricePositionInv = IteratriceCoordonneesInv<dls::math::vec3i>;
+
+#if 0
+template <template <typename> typename type_vec>
+struct IndexeuseCoordonnees {
+	using TypeVecteur = type_vec<int>;
+	static constexpr auto DIMS = TypeVecteur::DIMS;
+
+	int res[DIMS];
+	int poids[DIMS];
+
+	IndexeuseCoordonnees(TypeVecteur r)
 	{
-		auto etat = m_etat;
-
-		m_etat.x -= 1;
-
-		if (m_etat.x < m_lim.min.x) {
-			m_etat.x = m_lim.max.x - 1;
-
-			m_etat.y -= 1;
-
-			if (m_etat.y < m_lim.min.y) {
-				m_etat.y = m_lim.max.y - 1;
-
-				m_etat.z -= 1;
-			}
+		for (auto i = 0u; i < DIMS; ++i) {
+			res[i] = r[i];
+			poids[i] = 1;
 		}
 
-		return etat;
+		for (auto i = 1u; i < DIMS; ++i) {
+			for (auto j = 0u; j < i; ++j) {
+				poids[i] *= res[j];
+			}
+		}
 	}
 
-	bool fini() const
+	long index(TypeVecteur const &co)
 	{
-		return m_etat.z < m_lim.min.z;
+		long idx = co[0];
+
+		for (auto i = 1u; i < DIMS; ++i) {
+			idx += co[i] * poids[i];
+		}
+
+		return idx;
 	}
 };
+#endif
 
 template <typename T, typename Op>
-auto pour_chaque_voxel_parallele(
-		grille_dense_3d<T> &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto pour_chaque_voxel_parallele(grille_dense_3d<T> &grille,
+                                 Op &&op,
+                                 interruptrice *chef = nullptr)
 {
-	auto res_x = grille.desc().resolution.x;
-	auto res_y = grille.desc().resolution.y;
-	auto res_z = grille.desc().resolution.z;
+    auto res_x = grille.desc().resolution.x;
+    auto res_y = grille.desc().resolution.y;
+    auto res_z = grille.desc().resolution.z;
 
-	boucle_parallele(tbb::blocked_range<int>(0, res_z),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		if (chef && chef->interrompue()) {
-			return;
-		}
+    boucle_parallele(tbb::blocked_range<int>(0, res_z), [&](tbb::blocked_range<int> const &plage) {
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		for (auto z = plage.begin(); z < plage.end(); ++z) {
-			if (chef && chef->interrompue()) {
-				return;
-			}
+        for (auto z = plage.begin(); z < plage.end(); ++z) {
+            if (chef && chef->interrompue()) {
+                return;
+            }
 
-			for (auto y = 0; y < res_y; ++y) {
-				if (chef && chef->interrompue()) {
-					return;
-				}
+            for (auto y = 0; y < res_y; ++y) {
+                if (chef && chef->interrompue()) {
+                    return;
+                }
 
-				for (auto x = 0; x < res_x; ++x) {
-					auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
+                for (auto x = 0; x < res_x; ++x) {
+                    auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
 
-					grille.valeur(idx) = op(grille.valeur(idx), idx, x, y, z);
-				}
-			}
+                    grille.valeur(idx) = op(grille.valeur(idx), idx, x, y, z);
+                }
+            }
 
-			if (chef) {
-				auto delta = static_cast<float>(plage.end() - plage.begin());
-				delta /= static_cast<float>(res_z);
-				chef->indique_progression_parallele(delta * 100.0f);
-			}
-		}
-	});
+            if (chef) {
+                auto delta = static_cast<float>(plage.end() - plage.begin());
+                delta /= static_cast<float>(res_z);
+                chef->indique_progression_parallele(delta * 100.0f);
+            }
+        }
+    });
 }
 
 template <typename T, typename type_tuile, typename Op>
-auto pour_chaque_tuile(
-		grille_eparse<T, type_tuile> const &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto pour_chaque_tuile(grille_eparse<T, type_tuile> const &grille,
+                       Op &&op,
+                       interruptrice *chef = nullptr)
 {
-	auto plg = grille.plage();
-	auto idx = 0;
-	auto nombre_tuiles = grille.nombre_tuile();
+    auto plg = grille.plage();
+    auto idx = 0;
+    auto nombre_tuiles = grille.nombre_tuile();
 
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
+    while (!plg.est_finie()) {
+        auto tuile = plg.front();
+        plg.effronte();
 
-		if (chef && chef->interrompue()) {
-			return;
-		}
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		op(tuile);
+        op(tuile);
 
-		if (chef) {
-			auto delta = static_cast<float>(idx++);
-			delta /= static_cast<float>(nombre_tuiles);
-			chef->indique_progression_parallele(delta * 100.0f);
-		}
-	}
+        if (chef) {
+            auto delta = static_cast<float>(idx++);
+            delta /= static_cast<float>(nombre_tuiles);
+            chef->indique_progression_parallele(delta * 100.0f);
+        }
+    }
 }
 
 /**
@@ -183,121 +220,111 @@ auto pour_chaque_tuile(
  * les données. L'opérateur doit être de la forme T(grille_temp, x, y, z).
  */
 template <typename T, typename Op>
-auto transforme_grille(
-		grille_dense_3d<T> &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto transforme_grille(grille_dense_3d<T> &grille, Op &&op, interruptrice *chef = nullptr)
 {
-	auto temp = grille;
+    auto temp = grille;
 
-	auto res_x = grille.desc().resolution.x;
-	auto res_y = grille.desc().resolution.y;
-	auto res_z = grille.desc().resolution.z;
+    auto res_x = grille.desc().resolution.x;
+    auto res_y = grille.desc().resolution.y;
+    auto res_z = grille.desc().resolution.z;
 
-	boucle_parallele(tbb::blocked_range<int>(0, res_z),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		if (chef && chef->interrompue()) {
-			return;
-		}
+    boucle_parallele(tbb::blocked_range<int>(0, res_z), [&](tbb::blocked_range<int> const &plage) {
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		for (auto z = plage.begin(); z < plage.end(); ++z) {
-			if (chef && chef->interrompue()) {
-				return;
-			}
+        for (auto z = plage.begin(); z < plage.end(); ++z) {
+            if (chef && chef->interrompue()) {
+                return;
+            }
 
-			for (auto y = 0; y < res_y; ++y) {
-				if (chef && chef->interrompue()) {
-					return;
-				}
+            for (auto y = 0; y < res_y; ++y) {
+                if (chef && chef->interrompue()) {
+                    return;
+                }
 
-				for (auto x = 0; x < res_x; ++x) {
-					auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
-					grille.valeur(idx) = op(temp, x, y, z);
-				}
-			}
+                for (auto x = 0; x < res_x; ++x) {
+                    auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
+                    grille.valeur(idx) = op(temp, x, y, z);
+                }
+            }
 
-			if (chef) {
-				auto delta = static_cast<float>(plage.end() - plage.begin());
-				delta /= static_cast<float>(res_z);
-				chef->indique_progression_parallele(delta * 100.0f);
-			}
-		}
-	});
+            if (chef) {
+                auto delta = static_cast<float>(plage.end() - plage.begin());
+                delta /= static_cast<float>(res_z);
+                chef->indique_progression_parallele(delta * 100.0f);
+            }
+        }
+    });
 }
 
 template <typename T, typename type_tuile, typename Op>
-auto pour_chaque_tuile(
-		grille_eparse<T, type_tuile> &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto pour_chaque_tuile(grille_eparse<T, type_tuile> &grille,
+                       Op &&op,
+                       interruptrice *chef = nullptr)
 {
-	auto plg = grille.plage();
-	auto idx = 0;
-	auto nombre_tuiles = grille.nombre_tuile();
+    auto plg = grille.plage();
+    auto idx = 0;
+    auto nombre_tuiles = grille.nombre_tuile();
 
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
+    while (!plg.est_finie()) {
+        auto tuile = plg.front();
+        plg.effronte();
 
-		if (chef && chef->interrompue()) {
-			return;
-		}
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		op(tuile);
+        op(tuile);
 
-		if (chef) {
-			auto delta = static_cast<float>(idx++);
-			delta /= static_cast<float>(nombre_tuiles);
-			chef->indique_progression_parallele(delta * 100.0f);
-		}
-	}
+        if (chef) {
+            auto delta = static_cast<float>(idx++);
+            delta /= static_cast<float>(nombre_tuiles);
+            chef->indique_progression_parallele(delta * 100.0f);
+        }
+    }
 }
 
 template <typename T, typename type_tuile, typename Op>
-auto pour_chaque_tuile_parallele(
-		grille_eparse<T, type_tuile> const &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto pour_chaque_tuile_parallele(grille_eparse<T, type_tuile> const &grille,
+                                 Op &&op,
+                                 interruptrice *chef = nullptr)
 {
-	auto nombre_tuiles = grille.nombre_tuile();
+    auto nombre_tuiles = grille.nombre_tuile();
 
-	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
-	{
-		if (chef && chef->interrompue()) {
-			return;
-		}
+    tbb::parallel_for(0l, nombre_tuiles, [&](long i) {
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		op(grille.tuile(i));
+        op(grille.tuile(i));
 
-		if (chef) {
-			auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
-			chef->indique_progression_parallele(delta * 100.0f);
-		}
-	});
+        if (chef) {
+            auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
+            chef->indique_progression_parallele(delta * 100.0f);
+        }
+    });
 }
 
 template <typename T, typename type_tuile, typename Op>
-auto pour_chaque_tuile_parallele(
-		grille_eparse<T, type_tuile> &grille,
-		Op &&op,
-		interruptrice *chef = nullptr)
+auto pour_chaque_tuile_parallele(grille_eparse<T, type_tuile> &grille,
+                                 Op &&op,
+                                 interruptrice *chef = nullptr)
 {
-	auto nombre_tuiles = grille.nombre_tuile();
+    auto nombre_tuiles = grille.nombre_tuile();
 
-	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
-	{
-		if (chef && chef->interrompue()) {
-			return;
-		}
+    tbb::parallel_for(0l, nombre_tuiles, [&](long i) {
+        if (chef && chef->interrompue()) {
+            return;
+        }
 
-		op(grille.tuile(i));
+        op(grille.tuile(i));
 
-		if (chef) {
-			auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
-			chef->indique_progression_parallele(delta * 100.0f);
-		}
-	});
+        if (chef) {
+            auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
+            chef->indique_progression_parallele(delta * 100.0f);
+        }
+    });
 }
 
-}  /* namespace wlk */
+} /* namespace wlk */

@@ -1,40 +1,40 @@
-# démonstration de la surchage de fonctions.
+// démonstration de la surchage de fonctions.
 
-importe "flux"
+importe Fondation
 
-struct TEST {
-    fonction : fonc(eini)z32
+TEST :: struct {
+    fonction : fonc(eini)(z32)
 }
 
-fonc foo(args : eini) : z32
+foo :: fonc(args : eini) -> z32
 {
     imprime("appel foo avec eini\n")
-    imprime(args, '\n')
+    imprime("%\n", args)
     retourne 123
 }
 
-fonc foo(args : chaine) : z32
+foo :: fonc(args : chaine) -> z32
 {
     imprime("appel foo avec chaine\n")
-    imprime(args, '\n')
+    imprime("%\n", args)
     retourne 0
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
-    dyn t : TEST
-    fonction de t = foo
+    t : TEST
+    t.fonction = foo
 
-    soit x = fonction("je ne sais pas") de t
+    x := t.fonction("je ne sais pas")
 
-    imprime("résultat : ", x, '\n')
+    imprime("résultat : %\n", x)
 
-    soit ptr = foo
+    ptr := foo
 
-    ptr("je ne sais pas")
+    _ := ptr("je ne sais pas")
 
-    foo(1)
-    foo("nouvelle chaine")
+    _ = foo(1)
+    _ = foo("nouvelle chaine")
 
     retourne 0
 }

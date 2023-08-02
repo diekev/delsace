@@ -1,0 +1,5 @@
+principale :: fonc () -> z32
+{
+    #assert 5 == 5
+    retourne 0
+}

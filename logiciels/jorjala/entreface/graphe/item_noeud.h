@@ -24,43 +24,44 @@
 
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <QGraphicsRectItem>
-#pragma GCC diagnostic pop
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
 
+namespace JJL {
 class Noeud;
+class Prise;
+}  // namespace JJL
 class OperatriceImage;
 
 class ItemNoeud : public QGraphicsRectItem {
-public:
-	explicit ItemNoeud(
-			Noeud *noeud,
-			bool selectionne,
-			bool est_noeud_detail,
-			QGraphicsItem *parent = nullptr);
+  public:
+    explicit ItemNoeud(JJL::Noeud &noeud,
+                       bool selectionne,
+                       bool est_noeud_detail,
+                       QGraphicsItem *parent = nullptr);
 
-	void dessine_noeud_detail(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
-			bool selectionne);
+    void dessine_noeud_detail(JJL::Noeud &noeud, bool selectionne);
 
-	void dessine_noeud_generique(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
-			QBrush const &brosse_couleur,
-			bool selectionne);
+    void dessine_noeud_generique(JJL::Noeud &noeud,
+                                 QBrush const &brosse_couleur,
+                                 bool selectionne);
 
-private:
-	void finalise_dessin(
-			Noeud *noeud,
-			OperatriceImage *operatrice,
-			bool selectionne,
-			double pos_x,
-			double pos_y,
-			double largeur_noeud,
-			double hauteur_noeud);
+  private:
+    void finalise_dessin(JJL::Noeud &noeud,
+                         bool selectionne,
+                         double pos_x,
+                         double pos_y,
+                         double largeur_noeud,
+                         double hauteur_noeud);
+
+    void cree_geometrie_prise(JJL::Prise *prise, float x, float y, float hauteur, float largeur);
 };
