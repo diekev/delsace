@@ -56,6 +56,9 @@ public:
 	}
 };
 
+static dynamic_loading_category erreur_chargement;
+static dynamic_loading_category erreur_symbole;
+
 static void *get_symbol(void *handle, const dls::chaine &name, std::error_code &ec)
 {
 	dlerror();  /* clear any existing error */
@@ -64,7 +67,7 @@ static void *get_symbol(void *handle, const dls::chaine &name, std::error_code &
 
 	const auto err = dlerror();
 	if (err != nullptr) {
-		ec.assign(1, dynamic_loading_category());
+		ec.assign(1, erreur_symbole);
 	}
 
 	return sym;
@@ -151,8 +154,7 @@ void shared_library::open(const std::filesystem::path &filename, dso_loading fla
 	open(filename, ec, flag);
 
 	if (ec != std::error_code()) {
-		//const dls::chaine error = dlerror();
-		throw std::filesystem::filesystem_error("Cannot open shared library", m_chemin.c_str(), filename, ec);
+		throw std::filesystem::filesystem_error(dlerror(), m_chemin.c_str(), filename, ec);
 	}
 }
 
@@ -164,7 +166,7 @@ void shared_library::open(const std::filesystem::path &filename, std::error_code
 
 	if (m_handle != nullptr) {
 		if (dlclose(m_handle) != 0) {
-			ec.assign(1, __detail::dynamic_loading_category());
+			ec.assign(1, __detail::erreur_chargement);
 			return;
 		}
 	}
@@ -172,7 +174,7 @@ void shared_library::open(const std::filesystem::path &filename, std::error_code
 	m_handle = dlopen(filename.c_str(), static_cast<int>(flag));
 
 	if (m_handle == nullptr) {
-		ec.assign(1, __detail::dynamic_loading_category());
+		ec.assign(1, __detail::erreur_chargement);
 		return;
 	}
 

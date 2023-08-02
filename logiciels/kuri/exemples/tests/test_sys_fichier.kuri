@@ -1,30 +1,30 @@
-importe "flux"
-importe "sys_fichier"
+importe Fondation
+importe SysFichier
 
-################################################################################
+//###############################################################################
 
-fonc test_chemin_courant() : rien
+test_chemin_courant :: fonc() -> rien
 {
-    dyn chemin = chemin_courant()
+    chemin := chemin_courant()
 
-    imprime("chemin courant : ", chemin.chn, '\n')
-    déloge chemin.chn
+    imprime("chemin courant : %\n", chemin.chn)
+    déloge(chemin.chn)
 
-    chemin = construit_chemin("/home/kevin/src/")
+    chemin = construit_chemin("/tmp/")
     chemin_courant(chemin)
 
     chemin = chemin_courant()
 
-    imprime("chemin courant : ", chemin.chn, '\n')
-    déloge chemin.chn
+    imprime("chemin courant : %\n", chemin.chn)
+    déloge(chemin.chn)
 }
 
-fonc test_itération_dossier() : rien
+test_itération_dossier :: fonc() -> rien
 {
-    chemin = construit_chemin("/home/kevin/")
+    chemin := construit_chemin("/tmp/")
 
     pour entrée dans chaque_chemin(chemin) {
-        imprime(entrée.chn, '\n')
+        imprime("%\n", entrée.chn)
 
         si est_dossier(entrée) {
             imprime("---- dossier\n")
@@ -38,21 +38,21 @@ fonc test_itération_dossier() : rien
     }
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
-    chm = construit_chemin("/home/kevin/test_parcer.cc")
-    contenu = contenu_fichier_texte(chm)
+    chm := construit_chemin("/tmp/test_parcer.cc")
+    contenu := contenu_fichier_texte(chm)
 
-    chm_sortie = construit_chemin("/home/kevin/SORITE_test_parcer.cc")
+    chm_sortie := construit_chemin("/tmp/SORITE_test_parcer.cc")
 
-    fd = ouvre_fichier_ecriture(chm_sortie)
-    diffère { ferme_fichier(fd) }
+    fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie, pour_écriture) piège nonatteignable
+    diffère { _ := ferme(*fd) }
 
-    écris_fichier(fd, contenu)
+    _ := écris(*fd, contenu)
 
     imprime(contenu, '\n');
 
-    déloge contenu
+    déloge(contenu)
 
     retourne 0
 }

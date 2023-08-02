@@ -26,46 +26,55 @@
 
 #include "biblinternes/math/vecteur.hh"
 
+namespace dls {
+struct chaine;
+}
+
+namespace KNB {
+
 enum class TypeMelange {
-	NORMAL,
-	ADDITION,
-	SOUSTRACTION,
-	MULTIPLICATION,
-	DIVISION,
+    NORMAL,
+    ADDITION,
+    SOUSTRACTION,
+    MULTIPLICATION,
+    DIVISION,
 };
 
-template <typename T>
-dls::math::vec4<T> melange_normal(
-        dls::math::vec4<T> const &a,
-        dls::math::vec4<T> const &b,
-		T const &facteur)
-{
-	if (b[3] == static_cast<T>(0)) {
-		return a;
-	}
+dls::chaine nom_mode_fusion(TypeMelange type_melange);
+TypeMelange mode_fusion_depuis_nom(dls::chaine const &nom);
 
-	return a * (static_cast<T>(1.0) - facteur) + b * facteur;
+template <typename T>
+dls::math::vec4<T> melange_normal(dls::math::vec4<T> const &a,
+                                  dls::math::vec4<T> const &b,
+                                  T const &facteur)
+{
+    if (b[3] == static_cast<T>(0)) {
+        return a;
+    }
+
+    return a * (static_cast<T>(1.0) - facteur) + b * facteur;
 }
 
 template <typename T>
-dls::math::vec4<T> melange(
-        dls::math::vec4<T> const &a,
-        dls::math::vec4<T> const &b,
-		T const &facteur,
-		const TypeMelange type_melange)
+dls::math::vec4<T> melange(dls::math::vec4<T> const &a,
+                           dls::math::vec4<T> const &b,
+                           T const &facteur,
+                           const TypeMelange type_melange)
 {
-	switch (type_melange) {
-		case TypeMelange::NORMAL:
-			return melange_normal(a, b, facteur);
-		case TypeMelange::ADDITION:
-			return melange_normal(a, a + b, facteur);
-		case TypeMelange::SOUSTRACTION:
-			return melange_normal(a, a - b, facteur);
-		case TypeMelange::MULTIPLICATION:
-			return melange_normal(a, a * b, facteur);
-		case TypeMelange::DIVISION:
-			return melange_normal(a, a / b, facteur);
-	}
+    switch (type_melange) {
+        case TypeMelange::NORMAL:
+            return melange_normal(a, b, facteur);
+        case TypeMelange::ADDITION:
+            return melange_normal(a, a + b, facteur);
+        case TypeMelange::SOUSTRACTION:
+            return melange_normal(a, a - b, facteur);
+        case TypeMelange::MULTIPLICATION:
+            return melange_normal(a, a * b, facteur);
+        case TypeMelange::DIVISION:
+            return melange_normal(a, a / b, facteur);
+    }
 
-	return a;
+    return a;
 }
+
+}  // namespace KNB

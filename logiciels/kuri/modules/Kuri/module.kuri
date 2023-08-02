@@ -1,0 +1,1084 @@
+importe Fondation
+importe GlibC // pour le signal de violation de segmentation
+
+charge "infos_types"
+charge "panique"
+charge "r16"
+
+// Ce fichier est utiliser pour définir des variables et fonctions de
+// bases (« connus par le compilateur ») que tous les modules doivent importer.
+// Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
+// code du compilateur.
+// Par contre, ce fichier ne devrait pas pouvoir être modifié par les
+// utilisateurs du langage.
+
+malloc :: fonc (taille : z64) -> *rien #externe libc
+realloc :: fonc (ptr : *rien, taille : z64) -> *rien #externe libc
+free :: fonc (ptr : *rien) -> rien #externe libc
+
+// --------------------------
+
+// Position dans le code source. Quand cette structure est instantiée, le
+// compilateur remplis les membres de cette structure avec les valeurs
+// correspondantes de la position du lexème dans le fichier où se fait ladite
+// construction.
+PositionCodeSource :: struct #interface {
+    // le nom du fichier où se trouve l'objet
+    fichier : chaine
+    // le nom de la fonction où se trouve l'objet, vide si variable globale
+    fonction : chaine
+    // la ligne où se trouve l'objet
+    ligne : z32
+    // la colonne où se trouve l'objet
+    colonne : z32
+}
+
+// --------------------------
+
+ModeAllocatrice :: énum z32 {
+    ALLOUE
+    RÉALLOUE
+    DÉSALLOUE
+}
+
+BaseAllocatrice :: struct #interface {
+    nombre_allocations : z64 = 0
+    nombre_réallocations : z64 = 0
+    nombre_désallocations : z64 = 0
+    mémoire_utilisée : z64 = 0
+    pic_de_mémoire : z64 = 0
+
+    // pour pouvoir déterminer quelle type d'allocatrice nous avons
+    infos : *InfoTypeStructure = info_de(BaseAllocatrice)
+
+    allocatrice_parente : *BaseAllocatrice = nul
+    allocatrice_secours : *BaseAllocatrice = nul
+}
+
+allocatrice_défaut :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *BaseAllocatrice,
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
+{
+    discr mode {
+        ALLOUE {
+            données.mémoire_utilisée += nouvelle_taille
+            données.nombre_allocations += 1
+
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
+            }
+
+            retourne malloc(nouvelle_taille)
+        }
+        RÉALLOUE {
+            données.mémoire_utilisée += nouvelle_taille - ancienne_taille
+            données.nombre_allocations += 1
+            données.nombre_réallocations += 1
+
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
+            }
+
+            retourne realloc(ancien_pointeur, nouvelle_taille)
+        }
+        DÉSALLOUE {
+            données.mémoire_utilisée -= ancienne_taille
+            données.nombre_désallocations += 1
+
+            free(ancien_pointeur)
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
+
+/* Fonctions de bases pour loger des valeurs en mémoire. */
+
+loge_mémoire :: fonc (taille: z64, info: *InfoType, pos : PositionCodeSource) -> *rien
+{
+    ptr := contexte().allocatrice(
+        ModeAllocatrice.ALLOUE,
+        taille,
+        0,
+        nul,
+        contexte().données_allocatrice,
+        info,
+        pos)
+
+    saufsi ptr {
+        panique_hors_mémoire()
+    }
+
+    retourne ptr
+}
+
+reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_pointeur: *rien, info: *InfoType, pos: PositionCodeSource) -> *rien
+{
+    nouveau_pointeur := contexte().allocatrice(
+        ModeAllocatrice.RÉALLOUE,
+        nouvelle_taille,
+        ancienne_taille,
+        ancien_pointeur,
+        contexte().données_allocatrice,
+        info,
+        pos)
+
+    saufsi nouveau_pointeur {
+        panique_hors_mémoire()
+    }
+
+    retourne nouveau_pointeur
+}
+
+déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos : PositionCodeSource)
+{
+    _ := contexte().allocatrice(
+        ModeAllocatrice.DÉSALLOUE,
+        0,
+        taille,
+        pointeur,
+        contexte().données_allocatrice,
+        info,
+        pos)
+}
+
+loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
+{
+    info := info_de(T)
+    ptr := loge_mémoire(info.taille_en_octet comme z64, info, pos) comme *T
+
+    init_de(T)(ptr)
+
+    retourne ptr
+}
+
+reloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
+{
+    info := info_de(T)
+    ancien_pointeur := pointeur
+    nouveau_pointeur := reloge_mémoire(
+        info.taille_en_octet comme z64,
+        info.taille_en_octet comme z64,
+        ancien_pointeur,
+        info,
+        pos)
+
+    pointeur = nouveau_pointeur
+}
+
+déloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
+{
+    info := info_de(T)
+    ancien_pointeur := pointeur
+    déloge_mémoire(info.taille_en_octet comme z64, ancien_pointeur, info, pos)
+    pointeur = nul
+}
+
+loge_chaine :: fonc (taille: z64, pos := PositionCodeSource()) -> chaine
+{
+    ptr := loge_mémoire(taille, info_de(chaine), pos)
+
+    chn: chaine = ---
+    chn.pointeur = ptr
+    chn.taille = taille
+
+    retourne chn
+}
+
+reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := PositionCodeSource())
+{
+    ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos)
+
+    chn.pointeur = ptr
+    chn.taille = nouvelle_taille
+}
+
+déloge :: fonc (chn: &chaine, pos := PositionCodeSource())
+{
+    déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
+    chn.pointeur = nul
+    chn.taille = 0
+}
+
+loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := PositionCodeSource()) -> []T
+{
+    taille_en_octets := taille * (taille_de(T) comme z64)
+    ptr := loge_mémoire(taille_en_octets, info_de([]T), pos)
+
+    résultat : []T = ---
+    résultat.pointeur = ptr
+    résultat.taille = 0
+    résultat.capacité = taille
+
+    retourne résultat
+}
+
+reloge_tableau :: fonc (tableau: &[]$T, nouvelle_taille: z64, pos := PositionCodeSource())
+{
+    ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
+    nouvelle_taille_en_octets := nouvelle_taille * (taille_de(T) comme z64)
+
+    ptr := reloge_mémoire(ancienne_taille_en_octets, nouvelle_taille_en_octets, tableau.pointeur, info_de([]T), pos)
+
+    tableau.pointeur = ptr
+    tableau.capacité = nouvelle_taille
+}
+
+déloge :: fonc (tableau: &[]$T, pos := PositionCodeSource())
+{
+    ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
+    déloge_mémoire(ancienne_taille_en_octets, tableau.pointeur, info_de([]T), pos)
+    tableau.pointeur = nul
+    tableau.capacité = 0
+    tableau.taille = 0
+}
+
+// ----------------------------
+
+SystèmeExploitation :: énum {
+    AUCUN
+    LINUX
+    ANDROIDE
+    WINDOWS
+    MACOS
+}
+
+// ----------------------------
+
+ModeLogage :: énum z32 {
+    AUCUN
+    MINIMAL
+    JOURNALIER
+    VERBEUX
+}
+
+// ----------------------------
+
+// Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
+// une certaine taille dans l'exécutable où mettre des données temporaire.
+StockageTemporaire :: struct #interface {
+    données : *octet
+    taille : z32
+    occupé : z32
+    occupation_maximale : z32
+}
+
+// ----------------------------
+
+InfoFonctionTraceAppel :: struct #interface {
+    nom : chaine
+    fichier : chaine
+    adresse : *rien
+    // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
+    // position: PositionCodeSource
+    // desc_type: *InfoTypeFonction
+}
+
+// redondance : peut être remplacé par PositionCodeSource
+InfoAppelTraceAppel :: struct #interface {
+    ligne: z32
+    colonne: z32
+    texte: chaine
+}
+
+TraceAppel :: struct #interface {
+    précédente : *TraceAppel
+    info_fonction : *InfoFonctionTraceAppel
+    info_appel : *InfoAppelTraceAppel
+    profondeur : z32
+}
+
+nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
+{
+    résultat := 0
+    trace := racine
+
+    tantque trace != nul {
+        résultat += 1
+        trace = trace.précédente
+    }
+
+    retourne résultat
+}
+
+copie_trace_appel :: fonc (racine: *TraceAppel, tableau: []TraceAppel)
+{
+    trace := racine
+    index := 0
+
+    tantque trace != nul {
+        copie : TraceAppel
+        copie.info_appel = trace.info_appel
+        copie.info_fonction = trace.info_fonction
+        tableau.pointeur[index] = copie
+        index += 1
+        trace = trace.précédente
+    }
+}
+
+enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> []TraceAppel
+{
+    n := nombre_de_trace(racine)
+
+    /* À FAIRE: remplace l'appel à malloc par allocatrice_défaut, ou loge_mémoire. */
+    t := malloc(taille_de(TraceAppel) comme z64 * n)
+
+    tableau_traces : []TraceAppel
+    tableau_traces.pointeur = t
+    tableau_traces.taille = n
+    copie_trace_appel(racine, tableau_traces)
+    retourne tableau_traces
+}
+
+imprime_trace :: fonc (tableau: []TraceAppel, enchaineuse: *Enchaineuse)
+{
+    pour tableau {
+        trace := it
+        info_fonction := trace.info_fonction
+        info_appel := trace.info_appel
+        imprime_dans_enchaineuse(enchaineuse, "%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
+        imprime_dans_enchaineuse(enchaineuse, "%\n", info_appel.texte);
+    }
+}
+
+détruit_liste_trace_appels :: fonc (tableau_traces: []TraceAppel)
+{
+    free(tableau_traces.pointeur)
+}
+
+// Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
+ContexteProgramme :: struct {
+    allocatrice := allocatrice_défaut
+    données_allocatrice : *BaseAllocatrice = nul
+
+    logueur := __logueur_défaut
+    données_logueur : *rien = nul
+
+    stockage_temporaire : *StockageTemporaire
+
+    trace_appel : *TraceAppel
+
+    rappel_panique := __rappel_panique_défaut
+    données_rappel_panique : *rien
+}
+
+__logueur_défaut :: fonc (message: chaine  @inutilisée,
+                          ident: chaine  @inutilisée,
+                          mode: ModeLogage  @inutilisée,
+                          données: *rien  @inutilisée) -> rien
+{
+}
+
+__rappel_panique_défaut :: fonc () -> rien {}
+
+// ----------------------------
+
+// Fonctions de convénience pour accéder aux données sur les allocations
+// de l'allocatrice courante du contexte
+mémoire_utilisée :: fonc() -> z64 #enligne
+{
+    retourne contexte().données_allocatrice.mémoire_utilisée
+}
+
+pic_de_mémoire :: fonc() -> z64 #enligne
+{
+    retourne contexte().données_allocatrice.pic_de_mémoire
+}
+
+nombre_allocations :: fonc() -> z64 #enligne
+{
+    retourne contexte().données_allocatrice.nombre_allocations
+}
+
+nombre_réallocations :: fonc() -> z64 #enligne
+{
+    retourne contexte().données_allocatrice.nombre_réallocations
+}
+
+nombre_désallocations :: fonc() -> z64 #enligne
+{
+    retourne contexte().données_allocatrice.nombre_désallocations
+}
+
+// ----------------------------
+// Implémentation des fonctions du stockage temporaire
+
+obtiens_marque_stockage_temporaire :: fonc () -> z32
+{
+    retourne __contexte_fil_principal.stockage_temporaire.occupé
+}
+
+set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
+{
+    //assert(marque >= 0)
+    //assert(marque < contexte().stockage_temporaire.taille)
+    __contexte_fil_principal.stockage_temporaire.occupé = marque
+}
+
+réinitialise_stockage_temporaire :: fonc () -> rien
+{
+    set_marque_stockage_temporaire(0)
+    __contexte_fil_principal.stockage_temporaire.occupation_maximale = 0
+}
+
+alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: z64) -> *rien
+{
+    si alloc.occupé + nouvelle_taille > alloc.taille {
+        // À FAIRE : utilisation de l'allocatrice par défaut
+        retourne nul
+    }
+
+    ptr := alloc.données + alloc.occupé
+    alloc.occupé += nouvelle_taille comme z32
+
+    si alloc.occupé > alloc.occupation_maximale {
+        alloc.occupation_maximale = alloc.occupé
+    }
+
+    retourne ptr
+}
+
+__stockage_temporaire :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *BaseAllocatrice @inutilisée,
+    info : *InfoType @inutilisée,
+    pos : PositionCodeSource @inutilisée) -> *rien
+{
+    alloc := contexte().stockage_temporaire
+
+    discr mode {
+        ALLOUE {
+            retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+        }
+        RÉALLOUE {
+            ptr := ancien_pointeur comme *octet
+
+            si ptr == nul {
+                retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+            }
+
+            delta := nouvelle_taille - ancienne_taille
+
+            // À FAIRE
+            // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
+            /*
+            n := ancienne_taille
+
+            si ptr + n != alloc.ptr {
+                retourne nul
+            }
+
+            // ... et qu'il y a suffisament de place pour delta
+
+            n = delta  // arrondis_pour_aligner(delta, 8)
+
+            d := transtype(alloc.ptr: z64)
+            f := transtype(alloc.début + alloc.données.taille: z64)
+
+            si n > (f - d) {
+                retourne nul
+            }
+
+		    alloc.ptr += n
+            */
+
+            alloc.occupé += delta comme z32
+
+            si alloc.occupé > alloc.occupation_maximale {
+                alloc.occupation_maximale = alloc.occupé
+            }
+
+            retourne ancien_pointeur
+        }
+        DÉSALLOUE {
+            // À FAIRE
+            alloc.occupé -= ancienne_taille comme z32
+            retourne nul
+        }
+    }
+
+    retourne nul
+}
+
+// fonction de convénience pour loge un tampon dans le stockage temporaire
+// principalement utilisé pour loger des chaines avec une terminaison nulle
+// afin de pouvoir les passer aux fonctions de C
+logement_temp :: fonc(taille: z64) -> *octet
+{
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    ptr : *octet
+
+    pousse_contexte nouveau_contexte {
+        tmp := loge_tableau(octet, taille)
+        ptr = tmp.pointeur
+    }
+
+    retourne ptr
+}
+
+// -----------------------------
+
+// Fonctions de bases pour les opérateurs de comparaisons de chaines
+opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    si chn1.taille != chn2.taille {
+		retourne faux
+    }
+
+	taille := chn1.taille
+	début : z64 = 0
+
+    pour i dans début...(taille - 1) {
+        si chn1[i] != chn2[i] {
+			retourne faux
+        }
+    }
+
+	retourne vrai
+}
+
+opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne !(chn1 == chn2)
+}
+
+/*
+    while (*s1 == *s2++)
+        if (*s1++ == 0)
+            return (0);
+    return (*(const unsigned char *)s1 - *(const unsigned char *)(s2 - 1));
+*/
+compare_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
+{
+    pour c, i dans chn1 {
+        si i == chn2.taille {
+            retourne 1
+        }
+
+        si chn2[i] > c {
+            retourne -1
+        }
+
+        si c > chn2[i] {
+            retourne 1
+        }
+    }
+
+    si chn1.taille < chn2.taille {
+        retourne -1
+    }
+
+    retourne 0
+}
+
+opérateur < :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compare_chaine(chn1, chn2) < 0
+}
+
+opérateur <= :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compare_chaine(chn1, chn2) <= 0
+}
+
+opérateur > :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compare_chaine(chn1, chn2) > 0
+}
+
+opérateur >= :: fonc(chn1: chaine, chn2: chaine) -> bool
+{
+    retourne compare_chaine(chn1, chn2) >= 0
+}
+
+/*
+test_compare_chaine_impl :: fonc (chn1: chaine, chn2: chaine, attendu: z32) -> rien
+{
+    résultat := mon_compare_chaine(chn1, chn2)
+
+    si résultat != attendu {
+        imprime("Erreur : le résultat de compare_chaine pour '%' et '%' doit être de %, mais eu %\n", chn1, chn2, attendu, résultat)
+    }
+}
+
+test_compare_chaine :: fonc () -> rien
+{
+    test_compare_chaine_impl("", "", 0)
+    test_compare_chaine_impl("", "abc", -1)
+    test_compare_chaine_impl("abc", "", 1)
+    test_compare_chaine_impl("abc", "def", -1)
+    test_compare_chaine_impl("abc", "abcd", -1)
+    test_compare_chaine_impl("abc", "ABC", 1)
+    test_compare_chaine_impl("abc", "abc", 0)
+    test_compare_chaine_impl("Prashant", "Surendra", -1)
+    test_compare_chaine_impl("Surendra", "Jaya", 1)
+    test_compare_chaine_impl("Jaya", "Shruti", -1)
+    test_compare_chaine_impl("Shruti", "Mangala", 1)
+}
+*/
+
+// Fonctions basiques pour les tableaux
+
+tableau_ajoute :: fonc (tabl: *[]$T, valeur: T) -> rien #enligne
+{
+    tmp := mémoire(tabl)
+
+    si tmp.taille == tmp.capacité {
+        capacité := tmp.capacité
+        reloge_tableau(tmp, capacité + 1)
+    }
+
+    tmp.taille += 1
+    tmp[tmp.taille - 1] = valeur
+
+    mémoire(tabl) = tmp
+}
+
+tableau_ajoute_élément :: fonc (tableau: *[]$T) -> *T
+{
+    valeur: T
+    tableau_ajoute(tableau, valeur)
+    /* Utilise ".pointeur" car [] s'applique au pointeur du tableau. */
+    retourne *tableau.pointeur[tableau.taille - 1]
+}
+
+élément_tableau_index_relatif :: fonc (tabl: []$T, index: z64) -> *T
+{
+    si index >= 0 {
+        retourne *tabl[index]
+    }
+
+    index = tabl.taille + index
+    retourne *tabl[index]
+}
+
+tableau_réserve :: fonc(tabl: *[]$T, taille: z64) -> rien
+{
+    si taille <= tabl.capacité {
+        retourne
+    }
+
+	tmp := mémoire(tabl)
+
+	reloge_tableau(tmp, taille)
+
+	mémoire(tabl) = tmp
+}
+
+tableau_redimensionne :: fonc (tabl: &[]$T, taille: z64) -> rien
+{
+    si taille == tabl.capacité {
+        tabl.taille = tabl.capacité
+        retourne
+    }
+
+    reloge_tableau(tabl, taille)
+    tabl.taille = taille
+}
+
+tableau_copie :: fonc(tabl: []$T) -> []T
+{
+	tmp := loge_tableau(T, tabl.taille)
+    //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
+
+    pour tabl {
+        tmp.pointeur[index_it] = it
+    }
+
+    tmp.taille = tabl.taille
+    retourne tmp
+}
+
+tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc(T)(T)) -> []T
+{
+    résultat : []T
+    tableau_réserve(*résultat, tabl.taille)
+
+    pour tabl {
+        tableau_ajoute(*résultat, fonction_de_copie(it))
+    }
+
+    retourne résultat
+}
+
+tableau_inverse :: fonc (tabl: *[]n8)
+{
+    pour tabl.taille / 2 {
+        tmp := tabl.pointeur[it]
+        tabl.pointeur[it] = tabl.pointeur[tabl.taille - it - 1]
+        tabl.pointeur[tabl.taille - it - 1] = tmp
+    }
+}
+
+tableau_insère_index :: fonc (tabl: *[]$T, valeur: T, où: z64) -> rien
+{
+    tmp := mémoire(tabl)
+
+    reloge_tableau(tmp, tmp.taille + 1)
+    tmp.taille += 1
+
+    pour > où + 1 ... tmp.taille - 1 {
+        tmp[it] = tmp[it - 1]
+    }
+
+    tmp[où] = valeur
+
+    mémoire(tabl) = tmp
+}
+
+tableau_supprime :: fonc(tabl: *[]$T, index: z32) -> rien
+{
+	si index < 0 || index >= tabl.taille {
+		retourne
+	}
+
+	tmp := mémoire(tabl)
+
+	taille := tabl.taille
+
+	pour i dans index comme z64 ... taille - 2 {
+		tmp[i] = tmp[i + 1]
+	}
+
+	reloge_tableau(tmp, taille - 1)
+
+	mémoire(tabl) = tmp
+}
+
+tableau_supprime_index :: fonc (tabl: *[]$T, index: z64) -> rien
+{
+    tmp := mémoire(tabl)
+
+    pour i dans index ... tmp.taille - 2 {
+        tmp[i] = tmp[i + 1]
+    }
+
+    tmp.taille -= 1
+
+    mémoire(tabl) = tmp
+}
+
+tableau_supprime_si :: fonc (tableau: *[]$T, prédicat: fonc(T)(bool))
+{
+    temp := mémoire(tableau)
+
+    nouveau_tableau : []T
+    tableau_réserve(*nouveau_tableau, tableau.taille)
+
+    pour temp {
+        si prédicat(it) {
+            continue
+        }
+
+        tableau_ajoute(*nouveau_tableau, it)
+    }
+
+    déloge(temp)
+
+    mémoire(tableau) = nouveau_tableau
+}
+
+tableau_supprime_valeur :: fonc (tabl: *[]$T, valeur: T)
+{
+    tmp := mémoire(tabl)
+
+    pour tmp {
+        si it == valeur {
+            tableau_supprime_index(tabl, index_it)
+            arrête
+        }
+    }
+}
+
+/**
+ * Retourne un tableau ayant les mêmes valeurs que le tableau en paramètre, et réinitialise
+ * ce dernier. Ceci est utile pour transférer la propriété d'un tableau.
+ */
+tableau_vole_mémoire :: fonc (tableau: &[]$T) -> []T
+{
+    résultat := tableau
+    tableau.pointeur = nul
+    tableau.taille = 0
+    tableau.capacité = 0
+    retourne résultat
+}
+
+tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
+{
+    pour & v dans tableau {
+        v = valeur
+    }
+}
+
+est_adresse_borne_tableau :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    si adresse == tableau.pointeur {
+        retourne vrai
+    }
+
+    si adresse == (tableau.pointeur + tableau.taille - 1) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en incluant le premier et le dernier élément. */
+est_adresse_élément_bornes_incluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille - 1
+    retourne premier <= adresse <= dernier
+}
+
+/* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
+ * en excluant le premier et le dernier élément. */
+est_adresse_élément_bornes_excluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
+{
+    premier := tableau.pointeur
+    dernier := premier + tableau.taille
+    retourne premier < adresse < dernier
+}
+
+index_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
+{
+    retourne (adresse - tableau.pointeur)
+}
+
+tableau_détruit :: fonc (tableau: &[]$T)
+{
+    déloge(tableau)
+}
+
+mémoire_utilisée_tableau :: fonc (tableau: []$T) -> z64
+{
+    retourne tableau.taille * (taille_de(T) comme z64)
+}
+
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[]$T)
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        déloge(tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[]$T, rappel_déloge_élément: fonc(T)(rien))
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        rappel_déloge_élément(tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
+tableau_trouve_index_élément :: fonc (tableau: []$T, valeur: T) -> Optionnel(z64)
+{
+    pour tableau {
+        si it == valeur {
+            retourne index_it
+        }
+    }
+}
+
+// --------------------------------
+
+strlen :: fonc (str: *z8) -> z64 #externe libc
+
+arguments_ligne_commande :: fonc () -> []chaine
+{
+    tabl_args : []chaine
+
+    si __arguments_ligne_commande.taille == 0 {
+        retourne tabl_args
+    }
+
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    pousse_contexte nouveau_contexte {
+        tabl_args = loge_tableau(chaine, __arguments_ligne_commande.taille)
+
+        pour __arguments_ligne_commande {
+            chn : chaine
+            chn.pointeur = it
+            chn.taille = strlen(it)
+            tableau_ajoute(*tabl_args, chn)
+        }
+
+        retourne tabl_args
+    }
+}
+
+crée_contexte :: fonc () -> rien #création_contexte
+{
+    info_trace_appel := InfoFonctionTraceAppel(nom = "main", fichier = "module.kuri", adresse = nul)
+
+    trace_appel := TraceAppel(info_fonction = *info_trace_appel)
+
+    base_allocatrice : BaseAllocatrice = ---
+
+    init_de(ContexteProgramme)(*__contexte_fil_principal)
+
+    __contexte_fil_principal.données_allocatrice = *base_allocatrice
+
+    // __contexte_fil_principal.stockage_temporaire = *stockage_temporaire
+
+    // init_de(ContexteProgramme) remet à zéro la trace_appel
+    __contexte_fil_principal.trace_appel = *trace_appel
+
+    init_de(BaseAllocatrice)(*base_allocatrice)
+}
+
+__contexte_fil_principal : ContexteProgramme = ---
+__arguments_ligne_commande : []*z8 = ---
+__tampon_stockage_tamporaire : [16384]z8 = ---
+__table_des_types : []*InfoType
+
+contexte :: fonc () -> ContexteProgramme #horsligne
+{
+    retourne __contexte_fil_principal
+}
+
+__init_contexte_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #sanstrace
+{
+    __arguments_ligne_commande.taille = argc
+    __arguments_ligne_commande.pointeur = argv
+
+    ctx := *__contexte_fil_principal
+    init_de(ContexteProgramme)(ctx)
+    retourne ctx
+}
+
+__init_exécution_kuri :: fonc () #sanstrace #interface
+{
+    // Ici serons ajoutées toutes les expression des directives #ajoute_init.
+}
+
+__fini_exécution_kuri :: fonc () #sanstrace #interface
+{
+    // Ici seront ajoutées toutes les expression des directives #ajoute_fini.
+}
+
+__init_globales_kuri :: fonc () #sanstrace #interface
+{
+    // Ici seront ajoutées l'initialisation de toutes les globales ayant besoin d'une initialisation spécifique
+}
+
+// Ceci sera remplacé par la fonction principale ou par les métaprogrammes
+__principale :: fonc () -> z32 #principale
+
+__initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice : *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #sanstrace
+{
+    ctx.trace_appel = trace_appel
+
+    ctx.données_allocatrice = base_allocatrice
+
+    stockage_temporaire.données = *__tampon_stockage_tamporaire[0]
+    stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
+    stockage_temporaire.occupé = 0
+    stockage_temporaire.occupation_maximale = 0
+    ctx.stockage_temporaire = stockage_temporaire
+}
+
+__point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sansbroyage
+{
+    ctx := __init_contexte_kuri(argc, argv)
+
+    // initalise les autres membres du contexte
+    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
+    trace_appel := TraceAppel(info_fonction = *info_trace_appel)
+
+    base_allocatrice : BaseAllocatrice
+    stockage_temporaire : StockageTemporaire = ---
+
+    __initialise_contexte_extra(ctx, *trace_appel, *base_allocatrice, *stockage_temporaire)
+
+    __init_exécution_kuri()
+
+    __init_globales_kuri()
+
+    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale()\n")
+    trace_appel.info_appel = *info_appel
+
+    système_ajoute_action_pour_action_erreur_de_segmentation()
+
+    résultat := __principale()
+
+    __fini_exécution_kuri()
+
+    retourne résultat
+}
+
+/* ----------------------------------------------------------------------------
+ * Point d'entrée et de sortie pour les bibliothèques partagées.
+ */
+
+/* Globales nécessaires pour Kuri. */
+__info_trace_appel_dynamique : InfoFonctionTraceAppel = ---
+__trace_appel_dynamique : TraceAppel = ---
+__base_allocatrice_dynamique : BaseAllocatrice = ---
+__stockage_temporaire_dynamique : StockageTemporaire = ---
+
+__point_d_entree_dynamique :: fonc () #sanstrace #sansbroyage
+{
+    init_de(ContexteProgramme)(*__contexte_fil_principal)
+    __info_trace_appel_dynamique = InfoFonctionTraceAppel(nom = "__point_d_entree_dynamique", fichier = "", adresse = nul)
+    __trace_appel_dynamique = TraceAppel(info_fonction = *__info_trace_appel_dynamique)
+    __base_allocatrice_dynamique = BaseAllocatrice()
+
+    __initialise_contexte_extra(*__contexte_fil_principal, *__trace_appel_dynamique, *__base_allocatrice_dynamique, *__stockage_temporaire_dynamique)
+    __init_exécution_kuri()
+    __init_globales_kuri()
+}
+
+__point_de_sortie_dynamique :: fonc () #sanstrace #sansbroyage
+{
+    __fini_exécution_kuri()
+}
+
+// -----------------------------------
+
+// Contexte pour les fonctions/modules C.
+ContexteKuri :: struct {
+    loge_memoire : fonc (*ContexteKuri,n64)(*rien)
+	reloge_memoire : fonc (*ContexteKuri,*rien,n64,n64)(*rien)
+	deloge_memoire : fonc (*ContexteKuri,*rien,n64)(rien)
+}
+
+loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien
+{
+    retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
+}
+
+reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
+{
+    retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+}
+
+déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64) -> rien
+{
+    déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+}
+
+initialise_contexte_kuri :: fonc () -> ContexteKuri
+{
+    ctx: ContexteKuri
+    ctx.loge_memoire = loge_memoire_pour_contexte_kuri
+    ctx.reloge_memoire = reloge_memoire_pour_contexte_kuri
+    ctx.deloge_memoire = déloge_memoire_pour_contexte_kuri
+    retourne ctx
+}

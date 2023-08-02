@@ -35,7 +35,7 @@ private:
 	pointeur_marque_haut<char const> m_ptr{};
 
 public:
-	template <unsigned long N>
+	template <uint64_t N>
 	vue_chaine_compacte(char const (&c)[N])
 		: m_ptr(&c[0], N)
 	{}
@@ -44,19 +44,39 @@ public:
 
 	vue_chaine_compacte(char const *ptr);
 
-	vue_chaine_compacte(char const *ptr, long taille);
+	inline vue_chaine_compacte(char const *ptr, int64_t taille)
+		: m_ptr(ptr, static_cast<int>(taille))
+	{}
 
-	char const &operator[](long idx) const;
+	inline char const &operator[](int64_t idx) const
+	{
+		return pointeur()[idx];
+	}
 
-	long taille() const;
+	inline int64_t taille() const
+	{
+		return m_ptr.marque();
+	}
 
-	bool est_vide() const;
+	inline bool est_vide() const
+	{
+		return taille() == 0;
+	}
 
-	char const *pointeur() const;
+	inline char const *pointeur() const
+	{
+		return m_ptr.pointeur();
+	}
 
-	const char *begin() const;
+	inline const char *begin() const
+	{
+		return pointeur();
+	}
 
-	const char *end() const;
+	inline const char *end() const
+	{
+		return pointeur() + taille();
+	}
 };
 
 bool operator<(vue_chaine_compacte const &c1, vue_chaine_compacte const &c2);
@@ -85,8 +105,8 @@ template <>
 struct hash<dls::vue_chaine_compacte> {
 	std::size_t operator()(dls::vue_chaine_compacte const &chn) const
 	{
-		auto h = std::hash<std::string>{};
-		return h(std::string(&chn[0], static_cast<size_t>(chn.taille())));
+		auto h = std::hash<std::string_view>{};
+		return h(std::string_view(&chn[0], static_cast<size_t>(chn.taille())));
 	}
 };
 

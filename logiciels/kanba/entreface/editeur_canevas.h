@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
 #pragma GCC diagnostic push
@@ -37,68 +36,109 @@
 
 #include "base_editeur.h"
 
-class QScrollArea;
-
-/* ************************************************************************** */
-
-enum {
-	VISIONNAGE_IMAGE = 0,
-	VISIONNAGE_SCENE = 1,
-};
-
 class VisionneurImage;
 class VisionneurScene;
+class QScrollArea;
 
-class VueCanevas : public QGLWidget {
-	VisionneurImage *m_visionneur_image;
-	VisionneurScene *m_visionneur_scene;
+/* ------------------------------------------------------------------------- */
+/** \name Vue Canevas 2D
+ * \{ */
 
-	Kanba *m_kanba;
+class VueCanevas2D : public QGLWidget {
+    VisionneurImage *m_visionneur_image;
 
-	int m_mode_visionnage = VISIONNAGE_SCENE;
+  public:
+    explicit VueCanevas2D(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    ~VueCanevas2D() override;
 
-public:
-	explicit VueCanevas(Kanba *kanba, QWidget *parent = nullptr);
-	~VueCanevas() override;
+    EMPECHE_COPIE(VueCanevas2D);
 
-	VueCanevas(VueCanevas const &) = default;
-	VueCanevas &operator=(VueCanevas const &) = default;
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
 
-	void initializeGL() override;
-	void paintGL() override;
-	void resizeGL(int w, int h) override;
+    void charge_image();
 
-	void charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image);
-
-	void mode_visionnage(int mode);
-
-	int mode_visionnage() const;
-
-	void mousePressEvent(QMouseEvent *e) override;
-	void mouseMoveEvent(QMouseEvent *e) override;
-	void wheelEvent(QWheelEvent *e) override;
-	void mouseReleaseEvent(QMouseEvent *) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
 };
 
-/* ************************************************************************** */
+/** \} */
 
-class EditeurCanevas : public BaseEditrice {
-	Q_OBJECT
+/* ------------------------------------------------------------------------- */
+/** \name Éditrice Canevas 2D
+ * \{ */
 
-	VueCanevas *m_vue;
+class EditriceCannevas2D : public BaseEditrice {
+    VueCanevas2D *m_vue;
 
-public:
-	explicit EditeurCanevas(Kanba &kanba, QWidget *parent = nullptr);
+  public:
+    explicit EditriceCannevas2D(KNB::Kanba &kanba,
+                                KNB::Éditrice &éditrice,
+                                QWidget *parent = nullptr);
 
-	EditeurCanevas(EditeurCanevas const &) = default;
-	EditeurCanevas &operator=(EditeurCanevas const &) = default;
+    EMPECHE_COPIE(EditriceCannevas2D);
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
 
-	void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
-	void ajourne_manipulable() override {}
-
-private Q_SLOTS:
-	void change_mode_visionnage(int mode);
+    void ajourne_manipulable() override
+    {
+    }
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Vue Canevas 3D
+ * \{ */
+
+class VueCanevas3D : public QGLWidget {
+    VisionneurScene *m_visionneur_scene;
+
+  public:
+    explicit VueCanevas3D(KNB::Kanba &kanba, QWidget *parent = nullptr);
+    ~VueCanevas3D() override;
+
+    EMPECHE_COPIE(VueCanevas3D);
+
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Éditrice Canevas 3D
+ * \{ */
+
+class EditriceCannevas3D : public BaseEditrice {
+    VueCanevas3D *m_vue;
+
+  public:
+    explicit EditriceCannevas3D(KNB::Kanba &kanba,
+                                KNB::Éditrice &éditrice,
+                                QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(EditriceCannevas3D);
+
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
+
+    void resizeEvent(QResizeEvent *event) override;
+
+    void ajourne_manipulable() override
+    {
+    }
+};
+
+/** \} */

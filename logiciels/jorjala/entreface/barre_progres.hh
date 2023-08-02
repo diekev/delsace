@@ -31,29 +31,31 @@ class QHBoxLayout;
 class QProgressBar;
 class QPushButton;
 
-struct Jorjala;
+namespace JJL {
+class Jorjala;
+}
 
 class BarreDeProgres : public QWidget {
-	Q_OBJECT
+    Q_OBJECT
 
-	Jorjala &m_jorjala;
+    JJL::Jorjala &m_jorjala;
 
-	QProgressBar *m_barre_progres;
-	QLabel *m_label;
-	QPushButton *m_bouton_stop;
+    QProgressBar *m_barre_progres;
+    QLabel *m_label;
+    QPushButton *m_bouton_stop;
 
-	QHBoxLayout *m_disposition;
+    QHBoxLayout *m_disposition;
 
-public:
-	explicit BarreDeProgres(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit BarreDeProgres(JJL::Jorjala &jorjala, QWidget *parent = nullptr);
 
-	BarreDeProgres(BarreDeProgres const &) = default;
-	BarreDeProgres &operator=(BarreDeProgres const &) = default;
+    BarreDeProgres(BarreDeProgres const &) = delete;
+    BarreDeProgres &operator=(BarreDeProgres const &) = delete;
 
-	void ajourne_valeur(int valeur);
+    void ajourne_valeur(int valeur);
 
-	void ajourne_message(const char *message, int execution, int total);
+    void ajourne_message(const QString &message, int execution, int total);
 
-private Q_SLOTS:
-	void signal_stop();
+  private Q_SLOTS:
+    void signal_stop();
 };

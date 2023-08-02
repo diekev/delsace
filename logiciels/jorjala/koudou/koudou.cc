@@ -31,46 +31,45 @@
 namespace kdo {
 
 ParametresRendu::ParametresRendu()
-{}
+{
+}
 
 ParametresRendu::~ParametresRendu()
 {
 #ifdef NOUVELLE_CAMERA
-	delete camera;
+    delete camera;
 #endif
 }
 
-Koudou::Koudou()
-	: moteur_rendu(new MoteurRendu)
-	, camera(nullptr)
+Koudou::Koudou() : moteur_rendu(new MoteurRendu), camera(nullptr)
 {
 
-//#ifdef NOUVELLE_CAMERA
-//	double fenetre_ecran[4] = {
-//		-1.0, 1.0,
-//		-1.0, 1.0
-//	};
+    //#ifdef NOUVELLE_CAMERA
+    //	double fenetre_ecran[4] = {
+    //		-1.0, 1.0,
+    //		-1.0, 1.0
+    //	};
 
-//	auto camera = new CameraPerspective();
-//	camera->fenetre_ecran(fenetre_ecran);
-//	camera->champs_de_vue(60.0);
-//	camera->ouverture_obturateur(0.0);
-//	camera->fermeture_obturateur(1.0);
-//	camera->distance_focale(5.0);
-//	camera->rayon_lentille(0.0);
-//	camera->position(dls::math::vec3d(0.0, 1.0, 5.0));
-//	camera->rotation(dls::math::vec3d(0.0, 0.0, 0.0));
-//	camera->pellicule(m_koudou.moteur_rendu->pointeur_pellicule());
+    //	auto camera = new CameraPerspective();
+    //	camera->fenetre_ecran(fenetre_ecran);
+    //	camera->champs_de_vue(60.0);
+    //	camera->ouverture_obturateur(0.0);
+    //	camera->fermeture_obturateur(1.0);
+    //	camera->distance_focale(5.0);
+    //	camera->rayon_lentille(0.0);
+    //	camera->position(dls::math::vec3d(0.0, 1.0, 5.0));
+    //	camera->rotation(dls::math::vec3d(0.0, 0.0, 0.0));
+    //	camera->pellicule(m_koudou.moteur_rendu->pointeur_pellicule());
 
-//	camera->ajourne();
-//#endif
-//	camera->projection(vision::TypeProjection::PERSPECTIVE);
-//	parametres_rendu.camera = camera;
+    //	camera->ajourne();
+    //#endif
+    //	camera->projection(vision::TypeProjection::PERSPECTIVE);
+    //	parametres_rendu.camera = camera;
 }
 
 Koudou::~Koudou()
 {
-	delete moteur_rendu;
+    delete moteur_rendu;
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

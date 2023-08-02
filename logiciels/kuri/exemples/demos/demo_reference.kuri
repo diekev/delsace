@@ -1,66 +1,106 @@
-importe "flux"
+importe Fondation
 
-struct FOO {
-    a = 123
+/* Cas assignation :
+ *  +--------+-----------+-----------+------------------------------+
+ *  | status | gauche    | droite    | action                       |
+ *  +--------+-----------+-----------+------------------------------+
+ *  | ok     | référence | valeur    | déréférence gauche           |
+ *  | ok     | référence | référence | déréférence gauche et droite |
+ *  | ok     | valeur    | référence | déréférence droite           |
+ *  +--------+-----------+-----------+------------------------------+
+ *
+ * Cas déclaration :
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | status | gauche    | droite    | action                                   |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | ok     | référence | valeur    | prend référence                          |
+ *  | ok     | référence | référence | assigne référence (réfère au même objet) |
+ *  | ok     | valeur    | référence | déréférence droite                       |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *
+ * Cas paramètre :
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | status | gauche    | droite    | action                                   |
+ *  +--------+-----------+-----------+------------------------------------------+
+ *  | ok     | référence | valeur    | prend référence                          |
+ *  | ok     | référence | référence | assigne référence (réfère au même objet) |
+ *  | ok     | valeur    | référence | déréférence droite                       |
+ *  +--------+-----------+-----------+------------------------------------------+
+ */
+
+FOO :: struct {
+    a := 123
 }
 
-fonc bar(dyn f : &FOO) : rien
+assigne_membre_de_référence :: fonc (f: &FOO) -> rien
 {
-    a de f = 987
+    f.a = 987
 }
 
-fonc foo(dyn a : &z32) : rien
+assigne_valeur_à_référence :: fonc (a: &z32) -> rien
 {
     a = 7
 }
 
-fonc échange(dyn a : &z32, dyn b : &z32) : rien
+assigne_référence_à_référence :: fonc (a: &z32, b: &z32) -> rien
 {
-    tmp = a
+    tmp := a
     a = b
     b = tmp
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
-    dyn a = 5
-    imprime("a = ", a, '\n')
+    a := 5
+    imprime("a = %\n", a)
 
-    foo(a)
+    assigne_valeur_à_référence(a)
+    imprime("a = %\n", a)
 
-    imprime("a = ", a, '\n')
+    // //#####################
 
-    ######################
+    foo : FOO
 
-    dyn foo : FOO
+    imprime("%\n", foo)
 
-    imprime(foo, '\n')
+    assigne_membre_de_référence(foo)
+    imprime("%\n", foo)
 
-    bar(foo)
+    //#####################
 
-    imprime(foo, '\n')
+    x := 123
+    y := 456
+    imprime("x = %, y = %\n", x, y)
 
-    ######################
+    assigne_référence_à_référence(x, y)
+    imprime("x = %, y = %\n", x, y)
 
-    x = 123
-    y = 456
-    imprime("x = ", x, ", y = ", y, '\n')
+    //#####################
 
-    échange(x, y)
-    imprime("x = ", x, ", y = ", y, '\n')
+    z := 5
+    imprime("z = %\n", z)
 
-    ######################
-
-    z = 5
-    dyn w : &z32 = z
-
-    imprime("z = ", z, '\n')
-
+    w : &z32 = z
     w = 10
+    imprime("z = %\n", z)
 
-    imprime("z = ", z, '\n')
-
-    ######################
+    //#####################
 
     retourne 0
 }
+
+// références :
+// si assignation :
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source
+// si déclaration :
+//    si dest est référence -> force la présence d'une expression
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source
+//    si dest n'a pas de type -> le type devient le type déréférencé
+// si argument :
+//    si dest est référence et src est référence -> assigne
+//    si dest est référence et src n'est pas référence -> prend référence
+//    si dest n'est pas référence et src est référence -> déréférence source

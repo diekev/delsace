@@ -35,12 +35,12 @@ namespace lcc {
 /* ************************************************************************** */
 
 struct signature {
-	param_entrees entrees{};
-	param_sorties sorties{};
+    param_entrees entrees{};
+    param_sorties sorties{};
 
-	signature() = default;
+    signature() = default;
 
-	signature(param_entrees _entrees_, param_sorties _sorties_);
+    signature(param_entrees _entrees_, param_sorties _sorties_);
 };
 
 /* ************************************************************************** */
@@ -49,48 +49,44 @@ enum class code_inst : int;
 enum class ctx_script : unsigned short;
 
 enum class req_fonc : char {
-	polyedre,
-	arbre_kd,
+    polyedre,
+    arbre_kd,
 };
 
 struct donnees_fonction {
-	signature seing{};
-	lcc::code_inst type{};
-	lcc::ctx_script ctx{};
-	req_fonc requete{};
-	char pad{};
-
-	donnees_fonction() = default;
+    signature seing{};
+    lcc::code_inst type{};
+    lcc::ctx_script ctx{};
+    req_fonc requete{};
+    char pad{};
 };
 
 /* ************************************************************************** */
 
 struct donnees_fonction_generation {
-	donnees_fonction const *donnees;
-	types_entrees entrees;
-	types_sorties sorties;
-	type_var type;
+    donnees_fonction const *donnees;
+    types_entrees entrees;
+    types_sorties sorties;
+    type_var type;
 };
 
 struct magasin_fonctions {
-	donnees_fonction *ajoute_fonction(
-			dls::chaine const &nom,
-			lcc::code_inst type,
-			signature const &seing,
-			lcc::ctx_script ctx);
+    donnees_fonction *ajoute_fonction(dls::chaine const &nom,
+                                      lcc::code_inst type,
+                                      signature const &seing,
+                                      lcc::ctx_script ctx);
 
-	donnees_fonction_generation meilleure_candidate(
-			dls::chaine const &nom,
-			types_entrees const &type_params);
+    donnees_fonction_generation meilleure_candidate(dls::chaine const &nom,
+                                                    types_entrees const &type_params);
 
-	dls::chaine categorie = "";
+    dls::chaine categorie = "";
 
-	dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
-	dls::dico_desordonne<dls::chaine, dls::ensemble<dls::chaine>> table_categories{};
+    dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
+    dls::dico_desordonne<dls::chaine, dls::ensemble<dls::chaine>> table_categories{};
 };
 
 /* ************************************************************************** */
 
 void enregistre_fonctions_base(magasin_fonctions &magasin);
 
-}  /* namespace lcc */
+} /* namespace lcc */

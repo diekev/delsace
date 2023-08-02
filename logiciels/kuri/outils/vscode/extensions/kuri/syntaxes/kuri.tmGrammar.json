@@ -1,8 +1,10 @@
 {
     "scopeName": "source.kuri",
     "patterns": [
-        { "include": "#comment" },
+        { "include": "#comment-slash" },
+        { "include": "#comment-bloc" },
         { "include": "#directive" },
+        { "include": "#annotation" },
         { "include": "#control-keyword" },
         { "include": "#other-keyword" },
         { "include": "#string" },
@@ -13,23 +15,33 @@
         { "include": "#typename" }
     ],
     "repository": {
-        "comment": {
+        "comment-slash": {
             "name": "comment.kuri",
-            "begin": "#[^!]",
-            "end": "\\n"
+            "begin": "//",
+            "end": "$"
+        },
+        "comment-bloc": {
+            "name": "comment.kuri",
+            "begin": "/\\*",
+            "end": "\\*/"
         },
         "directive": {
             "name": "comment.kuri",
-            "begin": "#!",
-            "end": " "
+            "begin": "#",
+            "end": "($| )"
+        },
+        "annotation": {
+            "name": "comment.kuri",
+            "begin": "@",
+            "end": "($| )"
         },
         "control-keyword": {
             "name": "keyword.control.kuri",
-            "match": "\\b(retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|discr|sansarrêt|diffère)\\b"
+            "match": "\\b(définis|retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|reprends|discr|sansarrêt|diffère|pousse_contexte|tente|piège|nonatteignable)\\b"
         },
         "other-keyword": {
             "name": "keyword.other.kuri",
-            "match": "\\b(loge|déloge|reloge|struct|énum|importe|charge|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire|info_de|type_de|taille_de)\\b"
+            "match": "\\b(struct|énum|énum_drapeau|erreur|eini_erreur|importe|charge|fonc|corout|dyn|empl|union|nonsûr|externe|mémoire|info_de|init_de|type_de|taille_de|opérateur|comme)\\b"
         },
         "string": {
             "name": "string.quoted.double.kuri",
@@ -41,7 +53,7 @@
         },
         "integer": {
             "name": "constant.numeric.kuri",
-            "match": "\\b(0[xXbBoO][0-9A-Fa-f]+|[0-9]+)(_[a-z]+)?\\b"
+            "match": "\\b(0[xXbBoO][0-9A-Fa-f_]+)|([0-9_]+)\\b"
         },
         "boolean": {
             "name": "constant.language.kuri",
@@ -53,7 +65,7 @@
         },
         "typename": {
             "name": "support.type.kuri",
-            "match": "\\b(rien|octet|n8|n16|n32|n64|n128|z8|z16|z32|z64|z128|r16|r32|r64|r128|bool|chaine|eini)\\b"
+            "match": "\\b(rien|octet|n8|n16|n32|n64|z8|z16|z32|z64|r16|r32|r64|bool|chaine|eini|type_de_données)\\b"
         }
     }
 }

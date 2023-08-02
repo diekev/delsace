@@ -24,3 +24,6 @@
 
 #include "outils_couleur.h"
 
+namespace KNB {
+
+}  // namespace KNB

@@ -24,35 +24,49 @@
 
 #include "adaptrice_creation_maillage.h"
 
-#include "../maillage.h"
-
-void AdaptriceCreationMaillage::ajoute_sommet(const float x, const float y, const float z, const float w)
+void AdaptriceCreationMaillage::ajoute_sommet(const float x,
+                                              const float y,
+                                              const float z,
+                                              const float w)
 {
-	maillage->ajoute_sommet(dls::math::vec3f(x, y, z));
+    auto vec3 = KNB::Vec3({});
+    vec3.définis_x(x);
+    vec3.définis_y(y);
+    vec3.définis_z(z);
+    maillage->ajoute_sommet(vec3);
 }
 
 void AdaptriceCreationMaillage::ajoute_normal(const float x, const float y, const float z)
-{}
+{
+}
 
 void AdaptriceCreationMaillage::ajoute_coord_uv_sommet(const float u, const float v, const float w)
-{}
-
-void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x, const float y, const float z)
-{}
-
-void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet, const int *, const int *, long nombre)
 {
-	auto poly_3 = (nombre == 3) ? -1 : index_sommet[3];
+}
 
-	maillage->ajoute_quad(
-				static_cast<size_t>(index_sommet[0]),
-			static_cast<size_t>(index_sommet[1]),
-			static_cast<size_t>(index_sommet[2]),
-			static_cast<size_t>(poly_3));
+void AdaptriceCreationMaillage::ajoute_parametres_sommet(const float x,
+                                                         const float y,
+                                                         const float z)
+{
+}
+
+void AdaptriceCreationMaillage::ajoute_polygone(const int *index_sommet,
+                                                const int *,
+                                                const int *,
+                                                long nombre)
+{
+    auto poly_3 = (nombre == 3) ? -1 : index_sommet[3];
+
+    maillage->ajoute_quad(int64_t(index_sommet[0]),
+                          int64_t(index_sommet[1]),
+                          int64_t(index_sommet[2]),
+                          int64_t(poly_3));
 }
 
 void AdaptriceCreationMaillage::ajoute_ligne(const int *index, size_t nombre)
-{}
+{
+}
 
 void AdaptriceCreationMaillage::ajoute_objet(dls::chaine const &nom)
-{}
+{
+}

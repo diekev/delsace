@@ -24,6 +24,11 @@
 
 #pragma once
 
+#include <memory>
+
+#include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/definitions.h"
+
 class ContexteRendu;
 class TamponRendu;
 
@@ -32,35 +37,20 @@ class TamponRendu;
  * sur l'écran.
  */
 class RenduBrosse {
-	TamponRendu *m_tampon_contour = nullptr;
+    std::unique_ptr<TamponRendu> m_tampon_contour{};
 
-public:
-	/**
-	 * Construit une instance de RenduBrosse avec des valeurs par défaut.
-	 */
-	RenduBrosse() = default;
+  public:
+    /**
+     * Initialise le contenu du tampon.
+     */
+    void initialise();
 
-	RenduBrosse(RenduBrosse const &) = default;
-	RenduBrosse &operator=(RenduBrosse const &) = default;
-
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduBrosse();
-
-	/**
-	 * Initialise le contenu du tampon.
-	 */
-	void initialise();
-
-	/**
-	 * Dessine la grille dans le contexte spécifié.
-	 */
-	void dessine(
-			ContexteRendu const &contexte,
-			const float taille_x,
-			const float taille_y,
-			const float pos_x,
-			const float pos_y);
+    /**
+     * Dessine la grille dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte,
+                 const float taille_x,
+                 const float taille_y,
+                 const float pos_x,
+                 const float pos_y);
 };

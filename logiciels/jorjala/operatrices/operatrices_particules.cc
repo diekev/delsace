@@ -65,535 +65,531 @@
 /* ************************************************************************** */
 
 class OperatriceSuppressionPoints final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Suppression Points";
-	static constexpr auto AIDE = "Supprime des points.";
+  public:
+    static constexpr auto NOM = "Suppression Points";
+    static constexpr auto AIDE = "Supprime des points.";
 
-	OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_suppression_point.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_suppression_point.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, false, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto nom_groupe = evalue_chaine("nom_groupe");
+        auto nom_groupe = evalue_chaine("nom_groupe");
 
-		if (nom_groupe.est_vide()) {
-			ajoute_avertissement("Le nom du groupe est vide !");
-			return res_exec::ECHOUEE;
-		}
+        if (nom_groupe.est_vide()) {
+            ajoute_avertissement("Le nom du groupe est vide !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto points_corps = corps_entree->points_pour_lecture();
-		auto groupe = corps_entree->groupe_point(nom_groupe);
+        auto points_corps = corps_entree->points_pour_lecture();
+        auto groupe = corps_entree->groupe_point(nom_groupe);
 
-		if (groupe == nullptr) {
-			ajoute_avertissement("Aucun groupe trouvé !");
-			return res_exec::ECHOUEE;
-		}
+        if (groupe == nullptr) {
+            ajoute_avertissement("Aucun groupe trouvé !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (groupe->taille() == 0) {
-			corps_entree->copie_vers(&m_corps);
-			return res_exec::REUSSIE;
-		}
+        if (groupe->taille() == 0) {
+            corps_entree->copie_vers(&m_corps);
+            return res_exec::REUSSIE;
+        }
 
-		auto transfere = TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_SOMMETS;
-		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
-		transferante.transfere_attributs_corps(0, 0);
+        auto transfere = TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_POINTS |
+                         TRANSFERE_ATTR_SOMMETS;
+        auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
+        transferante.transfere_attributs_corps(0, 0);
 
-		auto points_sortie = m_corps.points_pour_ecriture();
-		points_sortie.reserve(points_corps.taille() - groupe->taille());
+        auto points_sortie = m_corps.points_pour_ecriture();
+        points_sortie.reserve(points_corps.taille() - groupe->taille());
 
-		/* Utilisation d'un tableau pour définir plus rapidement si un point est
-		 * à garder ou non. Ceci donne une accélération de 10x avec des
-		 * centaines de miliers de points à traverser. */
-		auto dans_le_groupe = dls::tableau<char>(points_corps.taille(), 0);
+        /* Utilisation d'un tableau pour définir plus rapidement si un point est
+         * à garder ou non. Ceci donne une accélération de 10x avec des
+         * centaines de miliers de points à traverser. */
+        auto dans_le_groupe = dls::tableau<char>(points_corps.taille(), 0);
 
-		for (auto i = 0; i < groupe->taille(); ++i) {
-			dans_le_groupe[groupe->index(i)] = 1;
-		}
+        for (auto i = 0; i < groupe->taille(); ++i) {
+            dans_le_groupe[groupe->index(i)] = 1;
+        }
 
-		auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture().taille());
+        auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture().taille());
 
-		for (auto i = 0l; i < points_corps.taille(); ++i) {
-			if (dans_le_groupe[i]) {
-				continue;
-			}
+        for (auto i = 0l; i < points_corps.taille(); ++i) {
+            if (dans_le_groupe[i]) {
+                continue;
+            }
 
-			auto const point = points_corps.point_local(i);
-			auto index_point = points_sortie.ajoute_point(point.x, point.y, point.z);
+            auto const point = points_corps.point_local(i);
+            auto index_point = points_sortie.ajoute_point(point.x, point.y, point.z);
 
-			reindexage[i] = index_point;
+            reindexage[i] = index_point;
 
-			transferante.transfere_attributs_points(i, index_point);
-		}
+            transferante.transfere_attributs_points(i, index_point);
+        }
 
-		pour_chaque_polygone(*corps_entree, [&](Corps const &corps_poly, Polygone const *poly)
-		{
-			INUTILISE(corps_poly);
+        pour_chaque_polygone(*corps_entree, [&](Corps const &corps_poly, Polygone const *poly) {
+            INUTILISE(corps_poly);
 
-			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-				if (dans_le_groupe[poly->index_point(i)]) {
-					return;
-				}
-			}
+            for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+                if (dans_le_groupe[poly->index_point(i)]) {
+                    return;
+                }
+            }
 
-			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+            auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
-			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-				auto idx0 = poly->index_sommet(i);
-				auto idx1 = m_corps.ajoute_sommet(npoly, reindexage[poly->index_point(i)]);
+            for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+                auto idx0 = poly->index_sommet(i);
+                auto idx1 = m_corps.ajoute_sommet(npoly, reindexage[poly->index_point(i)]);
 
-				transferante.transfere_attributs_sommets(idx0, idx1);
-			}
+                transferante.transfere_attributs_sommets(idx0, idx1);
+            }
 
-			transferante.transfere_attributs_prims(poly->index, npoly->index);
-		});
+            transferante.transfere_attributs_prims(poly->index, npoly->index);
+        });
 
-		/* la transformation n'est pas appliquée, donc il faut la copier */
-		m_corps.transformation = corps_entree->transformation;
+        /* la transformation n'est pas appliquée, donc il faut la copier */
+        m_corps.transformation = corps_entree->transformation;
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	void obtiens_liste(
-			ContexteEvaluation const &contexte,
-			dls::chaine const &attache,
-			dls::tableau<dls::chaine> &chaines) override
-	{
-		INUTILISE(contexte);
-		if (attache == "nom_groupe") {
-			entree(0)->obtiens_liste_groupes_points(chaines);
-		}
-	}
+    void obtiens_liste(ContexteEvaluation const &contexte,
+                       dls::chaine const &attache,
+                       dls::tableau<dls::chaine> &chaines) override
+    {
+        INUTILISE(contexte);
+        if (attache == "nom_groupe") {
+            entree(0)->obtiens_liste_groupes_points(chaines);
+        }
+    }
 };
 
 /* ************************************************************************** */
 
-static auto echantillonne_normal(
-		Corps const &corps,
-		long index,
-		dls::math::vec3f const &pos)
+static auto echantillonne_normal(Corps const &corps, long index, dls::math::vec3f const &pos)
 {
-	auto nor = dls::math::vec3f();
-	auto prim = corps.prims()->prim(index);
-	auto poly = dynamic_cast<Polygone *>(prim);
+    auto nor = dls::math::vec3f();
+    auto prim = corps.prims()->prim(index);
+    auto poly = dynamic_cast<Polygone *>(prim);
 
-	if (poly == nullptr) {
-		return nor;
-	}
+    if (poly == nullptr) {
+        return nor;
+    }
 
-	auto attr_N = corps.attribut("N");
+    auto attr_N = corps.attribut("N");
 
-	if (attr_N == nullptr) {
-		return normalise(calcul_normal_poly(corps, *poly));
-	}
+    if (attr_N == nullptr) {
+        return normalise(calcul_normal_poly(corps, *poly));
+    }
 
-	if (attr_N->portee == portee_attr::PRIMITIVE) {
-		extrait(attr_N->r32(poly->index), nor);
-		return nor;
-	}
+    if (attr_N->portee == portee_attr::PRIMITIVE) {
+        extrait(attr_N->r32(poly->index), nor);
+        return nor;
+    }
 
-	if (attr_N->portee == portee_attr::POINT) {
-		// À FAIRE - il nous faut calculer les coordonnées barycentriques selon
-		// la position dans le triangle, mais il nous faut le triangle et non le
-		// polygone
+    if (attr_N->portee == portee_attr::POINT) {
+        // À FAIRE - il nous faut calculer les coordonnées barycentriques selon
+        // la position dans le triangle, mais il nous faut le triangle et non le
+        // polygone
 
-		auto poids = 0.0f;
-		auto nombre_sommets = poly->nombre_sommets();
-		auto points = corps.points_pour_lecture();
+        auto poids = 0.0f;
+        auto nombre_sommets = poly->nombre_sommets();
+        auto points = corps.points_pour_lecture();
 
-		for (auto i = 0; i < nombre_sommets; ++i) {
-			auto idx = poly->index_point(i);
-			auto const &p = points.point_local(idx);
-			auto l = longueur(pos - p);
+        for (auto i = 0; i < nombre_sommets; ++i) {
+            auto idx = poly->index_point(i);
+            auto const &p = points.point_local(idx);
+            auto l = longueur(pos - p);
 
-			poids += l;
-			auto ptr = attr_N->r32(poly->index);
-			nor[0] += ptr[0] * l;
-			nor[1] += ptr[1] * l;
-			nor[2] += ptr[2] * l;
-		}
+            poids += l;
+            auto ptr = attr_N->r32(poly->index);
+            nor[0] += ptr[0] * l;
+            nor[1] += ptr[1] * l;
+            nor[2] += ptr[2] * l;
+        }
 
-		if (poids != 0.0f) {
-			nor /= poids;
-		}
-	}
+        if (poids != 0.0f) {
+            nor /= poids;
+        }
+    }
 
-	return nor;
+    return nor;
 }
 
 /* À FAIRE : transfère attribut. */
 class OperatriceCreationPoints final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Création Points";
-	static constexpr auto AIDE = "Crée des points à partir des points ou des primitives d'un autre corps.";
+  public:
+    static constexpr auto NOM = "Création Points";
+    static constexpr auto AIDE =
+        "Crée des points à partir des points ou des primitives d'un autre corps.";
 
-	OperatriceCreationPoints(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OperatriceCreationPoints(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_dispersion_points.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_dispersion_points.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
+
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, false, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto origine = evalue_enum("origine");
-
-		if (origine == "points") {
-			return genere_points_depuis_points(corps_entree, contexte.temps_courant);
-		}
-
-		if (origine == "primitives") {
-			return genere_points_depuis_primitives(corps_entree, contexte.temps_courant);
-		}
-
-		if (origine == "volume") {
-			return genere_points_depuis_volume(corps_entree, contexte.temps_courant);
-		}
-
-		if (origine == "attribut") {
-			return genere_points_depuis_attribut(corps_entree);
-		}
-
-		ajoute_avertissement("Erreur : origine inconnue !");
-		return res_exec::ECHOUEE;
-	}
-
-	res_exec genere_points_depuis_points(Corps const *corps_entree, int temps)
-	{
-		auto points_entree = corps_entree->points_pour_lecture();
-
-		if (points_entree.taille() == 0) {
-			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
-			return res_exec::ECHOUEE;
-		}
+        auto origine = evalue_enum("origine");
+
+        if (origine == "points") {
+            return genere_points_depuis_points(corps_entree, contexte.temps_courant);
+        }
+
+        if (origine == "primitives") {
+            return genere_points_depuis_primitives(corps_entree, contexte.temps_courant);
+        }
+
+        if (origine == "volume") {
+            return genere_points_depuis_volume(corps_entree, contexte.temps_courant);
+        }
+
+        if (origine == "attribut") {
+            return genere_points_depuis_attribut(corps_entree);
+        }
+
+        ajoute_avertissement("Erreur : origine inconnue !");
+        return res_exec::ECHOUEE;
+    }
+
+    res_exec genere_points_depuis_points(Corps const *corps_entree, int temps)
+    {
+        auto points_entree = corps_entree->points_pour_lecture();
+
+        if (points_entree.taille() == 0) {
+            this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto nom_groupe_origine = evalue_chaine("groupe_origine");
-		auto groupe_entree = static_cast<GroupePoint *>(nullptr);
+        auto nom_groupe_origine = evalue_chaine("groupe_origine");
+        auto groupe_entree = static_cast<GroupePoint *>(nullptr);
 
-		if (!nom_groupe_origine.est_vide()) {
-			groupe_entree = corps_entree->groupe_point(nom_groupe_origine);
+        if (!nom_groupe_origine.est_vide()) {
+            groupe_entree = corps_entree->groupe_point(nom_groupe_origine);
 
-			if (groupe_entree == nullptr) {
-				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return res_exec::ECHOUEE;
-			}
-		}
+            if (groupe_entree == nullptr) {
+                this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
+                return res_exec::ECHOUEE;
+            }
+        }
 
-		auto grouper_points = evalue_bool("grouper_points");
-		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
-
-		if (grouper_points) {
-			auto nom_groupe = evalue_chaine("nom_groupe");
+        auto grouper_points = evalue_bool("grouper_points");
+        auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
 
-			if (nom_groupe.est_vide()) {
-				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return res_exec::ECHOUEE;
-			}
-
-			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
-		}
+        if (grouper_points) {
+            auto nom_groupe = evalue_chaine("nom_groupe");
 
-		auto points_sorties = m_corps.points_pour_ecriture();
+            if (nom_groupe.est_vide()) {
+                this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+                return res_exec::ECHOUEE;
+            }
 
-		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
-		points_sorties.reserve(nombre_points_emis);
-
-		auto iter = (groupe_entree != nullptr)
-				? iteratrice_index(groupe_entree)
-				: iteratrice_index(points_entree.taille());
+            groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+        }
 
-		auto const nombre_points_par_points = (groupe_entree != nullptr)
-				? nombre_points_emis / groupe_entree->taille()
-				: nombre_points_emis / points_entree.taille();
-
-		for (auto i : iter) {
-			auto point = points_entree.point_monde(i);
+        auto points_sorties = m_corps.points_pour_ecriture();
 
-			for (long j = 0; j < nombre_points_par_points; ++j) {
-				auto index = points_sorties.ajoute_point(point);
+        auto const nombre_points_emis = evalue_entier("nombre_points", temps);
+        points_sorties.reserve(nombre_points_emis);
 
-				if (groupe_sortie) {
-					groupe_sortie->ajoute_index(index);
-				}
-			}
-		}
+        auto iter = (groupe_entree != nullptr) ? iteratrice_index(groupe_entree) :
+                                                 iteratrice_index(points_entree.taille());
 
-		return res_exec::REUSSIE;
-	}
+        auto const nombre_points_par_points = (groupe_entree != nullptr) ?
+                                                  nombre_points_emis / groupe_entree->taille() :
+                                                  nombre_points_emis / points_entree.taille();
 
-	res_exec genere_points_depuis_volume(Corps const *corps_entree, int temps)
-	{
-		/* création du conteneur */
-		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
-		auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
+        for (auto i : iter) {
+            auto point = points_entree.point_monde(i);
 
-		auto points_maillage = corps_entree->points_pour_lecture();
+            for (long j = 0; j < nombre_points_par_points; ++j) {
+                auto index = points_sorties.ajoute_point(point);
 
-		for (auto i = 0; i < points_maillage.taille(); ++i) {
-			auto point = points_maillage.point_local(i);
-			auto point_monde = corps_entree->transformation(dls::math::point3d(point.x, point.y, point.z));
+                if (groupe_sortie) {
+                    groupe_sortie->ajoute_index(index);
+                }
+            }
+        }
 
-			for (size_t j = 0; j < 3; ++j) {
-				if (point_monde[j] < min[j]) {
-					min[j] = point_monde[j];
-				}
-				else if (point_monde[j] > max[j]) {
-					max[j] = point_monde[j];
-				}
-			}
-		}
+        return res_exec::REUSSIE;
+    }
 
-		auto grouper_points = evalue_bool("grouper_points");
-		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+    res_exec genere_points_depuis_volume(Corps const *corps_entree, int temps)
+    {
+        /* création du conteneur */
+        auto min = dls::math::vec3d(std::numeric_limits<double>::max());
+        auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
 
-		if (grouper_points) {
-			auto nom_groupe = evalue_chaine("nom_groupe");
+        auto points_maillage = corps_entree->points_pour_lecture();
 
-			if (nom_groupe.est_vide()) {
-				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return res_exec::ECHOUEE;
-			}
+        for (auto i = 0; i < points_maillage.taille(); ++i) {
+            auto point = points_maillage.point_local(i);
+            auto point_monde = corps_entree->transformation(
+                dls::math::point3d(point.x, point.y, point.z));
 
-			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
-		}
+            for (size_t j = 0; j < 3; ++j) {
+                if (point_monde[j] < min[j]) {
+                    min[j] = point_monde[j];
+                }
+                else if (point_monde[j] > max[j]) {
+                    max[j] = point_monde[j];
+                }
+            }
+        }
 
-		auto const nombre_points = evalue_entier("nombre_points", temps);
+        auto grouper_points = evalue_bool("grouper_points");
+        auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
 
-		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties.reserve(nombre_points);
+        if (grouper_points) {
+            auto nom_groupe = evalue_chaine("nom_groupe");
 
-		auto const anime_graine = evalue_bool("anime_graine");
-		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
+            if (nom_groupe.est_vide()) {
+                this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+                return res_exec::ECHOUEE;
+            }
 
-		auto gna = GNA(graine);
+            groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+        }
 
-		for (auto i = 0; i < nombre_points; ++i) {
-			auto pos_x = gna.uniforme(min.x, max.x);
-			auto pos_y = gna.uniforme(min.y, max.y);
-			auto pos_z = gna.uniforme(min.z, max.z);
+        auto const nombre_points = evalue_entier("nombre_points", temps);
 
-			auto index = points_sorties.ajoute_point(
-						static_cast<float>(pos_x),
-						static_cast<float>(pos_y),
-						static_cast<float>(pos_z));
+        auto points_sorties = m_corps.points_pour_ecriture();
+        points_sorties.reserve(nombre_points);
 
-			if (groupe_sortie) {
-				groupe_sortie->ajoute_index(index);
-			}
-		}
+        auto const anime_graine = evalue_bool("anime_graine");
+        auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
 
-		return res_exec::REUSSIE;
-	}
+        auto gna = GNA(static_cast<unsigned long>(graine));
 
-	res_exec genere_points_depuis_primitives(Corps const *corps_entree, int temps)
-	{
-		auto nom_groupe_origine = evalue_chaine("groupe_origine");
-		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
+        for (auto i = 0; i < nombre_points; ++i) {
+            auto pos_x = gna.uniforme(min.x, max.x);
+            auto pos_y = gna.uniforme(min.y, max.y);
+            auto pos_z = gna.uniforme(min.z, max.z);
 
-		if (!nom_groupe_origine.est_vide()) {
-			groupe_entree = corps_entree->groupe_primitive(nom_groupe_origine);
+            auto index = points_sorties.ajoute_point(
+                static_cast<float>(pos_x), static_cast<float>(pos_y), static_cast<float>(pos_z));
 
-			if (groupe_entree == nullptr) {
-				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return res_exec::ECHOUEE;
-			}
-		}
+            if (groupe_sortie) {
+                groupe_sortie->ajoute_index(index);
+            }
+        }
 
-		auto triangles = convertis_maillage_triangles(corps_entree, groupe_entree);
+        return res_exec::REUSSIE;
+    }
 
-		if (triangles.est_vide()) {
-			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
-			return res_exec::ECHOUEE;
-		}
+    res_exec genere_points_depuis_primitives(Corps const *corps_entree, int temps)
+    {
+        auto nom_groupe_origine = evalue_chaine("groupe_origine");
+        auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
 
-		auto grouper_points = evalue_bool("grouper_points");
-		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+        if (!nom_groupe_origine.est_vide()) {
+            groupe_entree = corps_entree->groupe_primitive(nom_groupe_origine);
 
-		if (grouper_points) {
-			auto nom_groupe = evalue_chaine("nom_groupe");
+            if (groupe_entree == nullptr) {
+                this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
+                return res_exec::ECHOUEE;
+            }
+        }
 
-			if (nom_groupe.est_vide()) {
-				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return res_exec::ECHOUEE;
-			}
+        auto triangles = convertis_maillage_triangles(corps_entree, groupe_entree);
 
-			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
-		}
+        if (triangles.est_vide()) {
+            this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto const nombre_points = evalue_entier("nombre_points", temps);
+        auto grouper_points = evalue_bool("grouper_points");
+        auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
 
-		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties.reserve(nombre_points);
+        if (grouper_points) {
+            auto nom_groupe = evalue_chaine("nom_groupe");
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
+            if (nom_groupe.est_vide()) {
+                this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+                return res_exec::ECHOUEE;
+            }
 
-		/* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
-		 *  les points sur les maillages, avec nombre_points = max nombre
-		 *  points. En ce moment, l'algorithme peut en mettre plus que prévu. */
-		auto const nombre_points_triangle = static_cast<long>(std::ceil(
-					static_cast<double>(nombre_points) / static_cast<double>(triangles.taille())));
+            groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+        }
 
-		auto const anime_graine = evalue_bool("anime_graine");
-		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
+        auto const nombre_points = evalue_entier("nombre_points", temps);
 
-		auto gna = GNA(graine);
+        auto points_sorties = m_corps.points_pour_ecriture();
+        points_sorties.reserve(nombre_points);
 
-		for (Triangle const &triangle : triangles) {
-			auto const v0 = corps_entree->transformation(dls::math::point3d(triangle.v0));
-			auto const v1 = corps_entree->transformation(dls::math::point3d(triangle.v1));
-			auto const v2 = corps_entree->transformation(dls::math::point3d(triangle.v2));
+        auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
-			auto const e0 = v1 - v0;
-			auto const e1 = v2 - v0;
-
-			for (long j = 0; j < nombre_points_triangle; ++j) {
-				/* Génère des coordonnées barycentriques aléatoires. */
-				auto r = gna.uniforme(0.0, 1.0);
-				auto s = gna.uniforme(0.0, 1.0);
-
-				if (r + s >= 1.0) {
-					r = 1.0 - r;
-					s = 1.0 - s;
-				}
-
-				auto pos = v0 + r * e0 + s * e1;
-
-				auto posf = dls::math::converti_type_vecteur<float>(pos);
-				auto index = points_sorties.ajoute_point(posf);
-
-				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
-
-				if (groupe_sortie) {
-					groupe_sortie->ajoute_index(index);
-				}
-			}
-		}
-
-		return res_exec::REUSSIE;
-	}
-
-	res_exec genere_points_depuis_attribut(Corps const *corps_entree)
-	{
-		auto nom_attribut = evalue_chaine("nom_attribut");
-
-		if (nom_attribut.est_vide()) {
-			this->ajoute_avertissement("L'attribut n'est pas spécifié");
-			return res_exec::ECHOUEE;
-		}
-
-		auto attr_source = corps_entree->attribut(nom_attribut);
-
-		if (attr_source == nullptr) {
-			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'existe pas !");
-			return res_exec::ECHOUEE;
-		}
-
-		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
-			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'est pas de type vecteur !");
-			return res_exec::ECHOUEE;
-		}
-
-		auto grouper_points = evalue_bool("grouper_points");
-		auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
-
-		if (grouper_points) {
-			auto nom_groupe = evalue_chaine("nom_groupe");
-
-			if (nom_groupe.est_vide()) {
-				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return res_exec::ECHOUEE;
-			}
-
-			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
-		}
-
-		auto points_sortie = m_corps.points_pour_ecriture();
-
-		for (auto i = 0; i < attr_source->taille(); ++i) {
-			auto p = attr_source->r32(i);
-			auto index = points_sortie.ajoute_point(p[0], p[1], p[2]);
-
-			if (groupe_sortie) {
-				groupe_sortie->ajoute_index(index);
-			}
-		}
-
-		return res_exec::REUSSIE;
-	}
-
-	void obtiens_liste(
-			ContexteEvaluation const &contexte,
-			dls::chaine const &attache,
-			dls::tableau<dls::chaine> &chaines) override
-	{
-		INUTILISE(contexte);
-		if (attache == "groupe_origine") {
-			auto origine = evalue_enum("origine");
-
-			if (origine == "points") {
-				entree(0)->obtiens_liste_groupes_points(chaines);
-			}
-			else if (origine == "primitives") {
-				entree(0)->obtiens_liste_groupes_prims(chaines);
-			}
-		}
-		else if (attache == "nom_attribut") {
-			entree(0)->obtiens_liste_attributs(chaines);
-		}
-	}
-
-	bool depend_sur_temps() const override
-	{
-		return evalue_bool("anime_graine");
-	}
+        /* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
+         *  les points sur les maillages, avec nombre_points = max nombre
+         *  points. En ce moment, l'algorithme peut en mettre plus que prévu. */
+        auto const nombre_points_triangle = static_cast<long>(std::ceil(
+            static_cast<double>(nombre_points) / static_cast<double>(triangles.taille())));
+
+        auto const anime_graine = evalue_bool("anime_graine");
+        auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
+
+        auto gna = GNA(static_cast<unsigned long>(graine));
+
+        for (Triangle const &triangle : triangles) {
+            auto const v0 = corps_entree->transformation(dls::math::point3d(triangle.v0));
+            auto const v1 = corps_entree->transformation(dls::math::point3d(triangle.v1));
+            auto const v2 = corps_entree->transformation(dls::math::point3d(triangle.v2));
+
+            auto const e0 = v1 - v0;
+            auto const e1 = v2 - v0;
+
+            for (long j = 0; j < nombre_points_triangle; ++j) {
+                /* Génère des coordonnées barycentriques aléatoires. */
+                auto r = gna.uniforme(0.0, 1.0);
+                auto s = gna.uniforme(0.0, 1.0);
+
+                if (r + s >= 1.0) {
+                    r = 1.0 - r;
+                    s = 1.0 - s;
+                }
+
+                auto pos = v0 + r * e0 + s * e1;
+
+                auto posf = dls::math::converti_type_vecteur<float>(pos);
+                auto index = points_sorties.ajoute_point(posf);
+
+                assigne(attr_N->r32(index),
+                        echantillonne_normal(*corps_entree, triangle.index_orig, posf));
+
+                if (groupe_sortie) {
+                    groupe_sortie->ajoute_index(index);
+                }
+            }
+        }
+
+        return res_exec::REUSSIE;
+    }
+
+    res_exec genere_points_depuis_attribut(Corps const *corps_entree)
+    {
+        auto nom_attribut = evalue_chaine("nom_attribut");
+
+        if (nom_attribut.est_vide()) {
+            this->ajoute_avertissement("L'attribut n'est pas spécifié");
+            return res_exec::ECHOUEE;
+        }
+
+        auto attr_source = corps_entree->attribut(nom_attribut);
+
+        if (attr_source == nullptr) {
+            this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'existe pas !");
+            return res_exec::ECHOUEE;
+        }
+
+        if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
+            this->ajoute_avertissement(
+                "L'attribut '", nom_attribut, "' n'est pas de type vecteur !");
+            return res_exec::ECHOUEE;
+        }
+
+        auto grouper_points = evalue_bool("grouper_points");
+        auto groupe_sortie = static_cast<GroupePoint *>(nullptr);
+
+        if (grouper_points) {
+            auto nom_groupe = evalue_chaine("nom_groupe");
+
+            if (nom_groupe.est_vide()) {
+                this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
+                return res_exec::ECHOUEE;
+            }
+
+            groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
+        }
+
+        auto points_sortie = m_corps.points_pour_ecriture();
+
+        for (auto i = 0; i < attr_source->taille(); ++i) {
+            auto p = attr_source->r32(i);
+            auto index = points_sortie.ajoute_point(p[0], p[1], p[2]);
+
+            if (groupe_sortie) {
+                groupe_sortie->ajoute_index(index);
+            }
+        }
+
+        return res_exec::REUSSIE;
+    }
+
+    void obtiens_liste(ContexteEvaluation const &contexte,
+                       dls::chaine const &attache,
+                       dls::tableau<dls::chaine> &chaines) override
+    {
+        INUTILISE(contexte);
+        if (attache == "groupe_origine") {
+            auto origine = evalue_enum("origine");
+
+            if (origine == "points") {
+                entree(0)->obtiens_liste_groupes_points(chaines);
+            }
+            else if (origine == "primitives") {
+                entree(0)->obtiens_liste_groupes_prims(chaines);
+            }
+        }
+        else if (attache == "nom_attribut") {
+            entree(0)->obtiens_liste_attributs(chaines);
+        }
+    }
+
+    bool depend_sur_temps() const override
+    {
+        return evalue_bool("anime_graine");
+    }
 };
 
 /* ************************************************************************** */
@@ -613,454 +609,451 @@ static constexpr auto NOMBRE_BOITE = 64;
 /* ************************************************************************** */
 
 class ListeTriangle {
-	Triangle *m_premier_triangle = nullptr;
-	Triangle *m_dernier_triangle = nullptr;
+    Triangle *m_premier_triangle = nullptr;
+    Triangle *m_dernier_triangle = nullptr;
 
-public:
-	ListeTriangle() = default;
+  public:
+    ListeTriangle() = default;
 
-	ListeTriangle(ListeTriangle const &) = default;
-	ListeTriangle &operator=(ListeTriangle const &) = default;
+    ListeTriangle(ListeTriangle const &) = default;
+    ListeTriangle &operator=(ListeTriangle const &) = default;
 
-	~ListeTriangle()
-	{
-		auto triangle = m_premier_triangle;
-		while (triangle != nullptr) {
-			auto tri_suiv = triangle->suivant;
-			memoire::deloge("Triangle", triangle);
-			triangle = tri_suiv;
-		}
-	}
+    ~ListeTriangle()
+    {
+        auto triangle = m_premier_triangle;
+        while (triangle != nullptr) {
+            auto tri_suiv = triangle->suivant;
+            memoire::deloge("Triangle", triangle);
+            triangle = tri_suiv;
+        }
+    }
 
-	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
-	{
-		auto triangle = memoire::loge<Triangle>("Triangle", v0, v1, v2);
-		triangle->aire = calcule_aire(*triangle);
-		triangle->precedent = nullptr;
-		triangle->suivant = nullptr;
+    Triangle *ajoute(dls::math::vec3f const &v0,
+                     dls::math::vec3f const &v1,
+                     dls::math::vec3f const &v2)
+    {
+        auto triangle = memoire::loge<Triangle>("Triangle", v0, v1, v2);
+        triangle->aire = calcule_aire(*triangle);
+        triangle->precedent = nullptr;
+        triangle->suivant = nullptr;
 
-		if (m_premier_triangle == nullptr) {
-			m_premier_triangle = triangle;
-		}
-		else {
-			triangle->precedent = m_dernier_triangle;
-			m_dernier_triangle->suivant = triangle;
-		}
+        if (m_premier_triangle == nullptr) {
+            m_premier_triangle = triangle;
+        }
+        else {
+            triangle->precedent = m_dernier_triangle;
+            m_dernier_triangle->suivant = triangle;
+        }
 
-		m_dernier_triangle = triangle;
+        m_dernier_triangle = triangle;
 
-		return triangle;
-	}
+        return triangle;
+    }
 
-	void enleve(Triangle *triangle)
-	{
-		if (triangle->precedent) {
-			triangle->precedent->suivant = triangle->suivant;
-		}
+    void enleve(Triangle *triangle)
+    {
+        if (triangle->precedent) {
+            triangle->precedent->suivant = triangle->suivant;
+        }
 
-		if (triangle->suivant) {
-			triangle->suivant->precedent = triangle->precedent;
-		}
+        if (triangle->suivant) {
+            triangle->suivant->precedent = triangle->precedent;
+        }
 
-		if (triangle == m_premier_triangle) {
-			m_premier_triangle = triangle->suivant;
+        if (triangle == m_premier_triangle) {
+            m_premier_triangle = triangle->suivant;
 
-			if (m_premier_triangle) {
-				m_premier_triangle->precedent = nullptr;
-			}
-		}
+            if (m_premier_triangle) {
+                m_premier_triangle->precedent = nullptr;
+            }
+        }
 
-		if (triangle == m_dernier_triangle) {
-			m_dernier_triangle = triangle->precedent;
+        if (triangle == m_dernier_triangle) {
+            m_dernier_triangle = triangle->precedent;
 
-			if (m_dernier_triangle) {
-				m_dernier_triangle->precedent = nullptr;
-			}
-		}
+            if (m_dernier_triangle) {
+                m_dernier_triangle->precedent = nullptr;
+            }
+        }
 
-		memoire::deloge("Triangle", triangle);
-	}
+        memoire::deloge("Triangle", triangle);
+    }
 
-	Triangle *premier_triangle()
-	{
-		return m_premier_triangle;
-	}
+    Triangle *premier_triangle()
+    {
+        return m_premier_triangle;
+    }
 
-	bool vide() const
-	{
-		return m_premier_triangle == nullptr;
-	}
+    bool vide() const
+    {
+        return m_premier_triangle == nullptr;
+    }
 };
 
 struct BoiteTriangle {
-	float aire_minimum = std::numeric_limits<float>::max();
-	float aire_maximum = 0.0f; // = 2 * aire_minimum
-	float aire_totale = 0.0f;
-	float pad{};
+    float aire_minimum = std::numeric_limits<float>::max();
+    float aire_maximum = 0.0f;  // = 2 * aire_minimum
+    float aire_totale = 0.0f;
+    float pad{};
 
-	ListeTriangle triangles{};
+    ListeTriangle triangles{};
 };
 
-static void ajoute_triangle_boite(
-		BoiteTriangle *boite,
-		dls::math::vec3f const &v0,
-		dls::math::vec3f const &v1,
-		dls::math::vec3f const &v2,
-		long index)
+static void ajoute_triangle_boite(BoiteTriangle *boite,
+                                  dls::math::vec3f const &v0,
+                                  dls::math::vec3f const &v1,
+                                  dls::math::vec3f const &v2,
+                                  long index)
 {
-	auto triangle = boite->triangles.ajoute(v0, v1, v2);
-	triangle->index_orig = index;
-	boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
-	boite->aire_maximum = 2 * boite->aire_minimum;
-	boite->aire_totale += triangle->aire;
+    auto triangle = boite->triangles.ajoute(v0, v1, v2);
+    triangle->index_orig = index;
+    boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
+    boite->aire_maximum = 2 * boite->aire_minimum;
+    boite->aire_totale += triangle->aire;
 }
 
 static BoiteTriangle *choisis_boite(BoiteTriangle boites[], GNA &gna)
 {
-	auto aire_totale_boites = 0.0f;
+    auto aire_totale_boites = 0.0f;
 
-	auto nombre_boite_vide = 0;
-	for (auto i = 0; i < NOMBRE_BOITE; ++i) {
-		if (boites[i].triangles.vide()) {
-			++nombre_boite_vide;
-			continue;
-		}
+    auto nombre_boite_vide = 0;
+    for (auto i = 0; i < NOMBRE_BOITE; ++i) {
+        if (boites[i].triangles.vide()) {
+            ++nombre_boite_vide;
+            continue;
+        }
 
-		aire_totale_boites += boites[i].aire_totale;
-	}
+        aire_totale_boites += boites[i].aire_totale;
+    }
 
-	if (nombre_boite_vide == NOMBRE_BOITE) {
-		return nullptr;
-	}
+    if (nombre_boite_vide == NOMBRE_BOITE) {
+        return nullptr;
+    }
 
-	auto debut = compte_tick_ms();
+    auto debut = compte_tick_ms();
 
-	while (true) {
-		for (auto i = 0; i < NOMBRE_BOITE; ++i) {
-			if (boites[i].triangles.vide()) {
-				continue;
-			}
+    while (true) {
+        for (auto i = 0; i < NOMBRE_BOITE; ++i) {
+            if (boites[i].triangles.vide()) {
+                continue;
+            }
 
-			auto const probabilite_boite = boites[i].aire_totale / aire_totale_boites;
+            auto const probabilite_boite = boites[i].aire_totale / aire_totale_boites;
 
-			if (gna.uniforme(0.0f, 1.0f) <= probabilite_boite) {
-				return &boites[i];
-			}
-		}
+            if (gna.uniforme(0.0f, 1.0f) <= probabilite_boite) {
+                return &boites[i];
+            }
+        }
 
-		/* Évite les boucles infinies. */
-		if ((compte_tick_ms() - debut) > 1000) {
-			break;
-		}
-	}
+        /* Évite les boucles infinies. */
+        if ((compte_tick_ms() - debut) > 1000) {
+            break;
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 static Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna)
 {
 #if 1
-	static_cast<void>(gna);
-	return boite->triangles.premier_triangle();
+    static_cast<void>(gna);
+    return boite->triangles.premier_triangle();
 #else
-	if (false) { // cause un crash
-		auto tri = boite->triangles.premier_triangle();
-		boite->aire_totale = 0.0f;
+    if (false) {  // cause un crash
+        auto tri = boite->triangles.premier_triangle();
+        boite->aire_totale = 0.0f;
 
-		while (tri != nullptr) {
-			boite->aire_totale += tri->aire;
-			tri = tri->suivant;
-		}
-	}
+        while (tri != nullptr) {
+            boite->aire_totale += tri->aire;
+            tri = tri->suivant;
+        }
+    }
 
-	auto debut = compte_tick_ms();
+    auto debut = compte_tick_ms();
 
-	while (true) {
-		auto tri = boite->triangles.premier_triangle();
+    while (true) {
+        auto tri = boite->triangles.premier_triangle();
 
-		while (tri != nullptr) {
-			auto const probabilite_triangle = tri->aire / boite->aire_totale;
+        while (tri != nullptr) {
+            auto const probabilite_triangle = tri->aire / boite->aire_totale;
 
-			if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
-				return tri;
-			}
+            if (gna.uniforme(0.0f, 1.0f) <= probabilite_triangle) {
+                return tri;
+            }
 
-			tri = tri->suivant;
-		}
+            tri = tri->suivant;
+        }
 
-		/* Évite les boucles infinies. */
-		if ((compte_tick_ms() - debut) > 1000) {
-			break;
-		}
-	}
+        /* Évite les boucles infinies. */
+        if ((compte_tick_ms() - debut) > 1000) {
+            break;
+        }
+    }
 
-	return boite->triangles.premier_triangle();
+    return boite->triangles.premier_triangle();
 #endif
 }
 
 class OperatriceTirageFleche final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Tirage de flèche";
-	static constexpr auto AIDE =
-			"Crée des points sur une surface en l'échantillonnant par tirage de flèche.";
+  public:
+    static constexpr auto NOM = "Tirage de flèche";
+    static constexpr auto AIDE =
+        "Crée des points sur une surface en l'échantillonnant par tirage de flèche.";
 
-	OperatriceTirageFleche(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OperatriceTirageFleche(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_tirage_fleche.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_tirage_fleche.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
+        auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_maillage, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_maillage, true, true)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto nom_groupe = evalue_chaine("nom_groupe");
-		auto groupe_prim = static_cast<GroupePrimitive *>(nullptr);
+        auto nom_groupe = evalue_chaine("nom_groupe");
+        auto groupe_prim = static_cast<GroupePrimitive *>(nullptr);
 
-		if (!nom_groupe.est_vide()) {
-			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
+        if (!nom_groupe.est_vide()) {
+            groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
 
-			if (groupe_prim == nullptr) {
-				this->ajoute_avertissement(
-							"Aucun groupe de primitives nommé '",
-							nom_groupe,
-							"' trouvé sur le corps d'entrée !");
+            if (groupe_prim == nullptr) {
+                this->ajoute_avertissement("Aucun groupe de primitives nommé '",
+                                           nom_groupe,
+                                           "' trouvé sur le corps d'entrée !");
 
-				return res_exec::ECHOUEE;
-			}
-		}
+                return res_exec::ECHOUEE;
+            }
+        }
 
-		/* Convertis le maillage en triangles. */
-		auto triangles_entree = convertis_maillage_triangles(corps_maillage, groupe_prim);
+        /* Convertis le maillage en triangles. */
+        auto triangles_entree = convertis_maillage_triangles(corps_maillage, groupe_prim);
 
-		if (triangles_entree.est_vide()) {
-			this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
-			return res_exec::ECHOUEE;
-		}
+        if (triangles_entree.est_vide()) {
+            this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto aire_minimum = std::numeric_limits<float>::max();
-		auto aire_maximum = 0.0f;
-		auto aire_totale = 0.0f;
+        auto aire_minimum = std::numeric_limits<float>::max();
+        auto aire_maximum = 0.0f;
+        auto aire_totale = 0.0f;
 
-		auto limites_min = dls::math::point3d( std::numeric_limits<double>::max());
-		auto limites_max = dls::math::point3d(-std::numeric_limits<double>::max());
+        auto limites_min = dls::math::point3d(std::numeric_limits<double>::max());
+        auto limites_max = dls::math::point3d(-std::numeric_limits<double>::max());
 
-		/* Calcule les informations sur les aires. */
-		for (auto const &triangle : triangles_entree) {
-			auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
-			auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
-			auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
+        /* Calcule les informations sur les aires. */
+        for (auto const &triangle : triangles_entree) {
+            auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
+            auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
+            auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
 
-			auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
-			aire_minimum = std::min(aire_minimum, aire);
-			aire_maximum = std::max(aire_maximum, aire);
-			aire_totale += aire;
+            auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
+            aire_minimum = std::min(aire_minimum, aire);
+            aire_maximum = std::max(aire_maximum, aire);
+            aire_totale += aire;
 
-			extrait_min_max(v0_m, limites_min, limites_max);
-			extrait_min_max(v1_m, limites_min, limites_max);
-			extrait_min_max(v2_m, limites_min, limites_max);
-		}
+            extrait_min_max(v0_m, limites_min, limites_max);
+            extrait_min_max(v1_m, limites_min, limites_max);
+            extrait_min_max(v2_m, limites_min, limites_max);
+        }
 
-		/* Place les triangles dans les boites. */
-		BoiteTriangle boites[NOMBRE_BOITE];
+        /* Place les triangles dans les boites. */
+        BoiteTriangle boites[NOMBRE_BOITE];
 
-		for (auto const &triangle : triangles_entree) {
-			auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
-			auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
-			auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
+        for (auto const &triangle : triangles_entree) {
+            auto const v0_m = corps_maillage->transformation(dls::math::point3d(triangle.v0));
+            auto const v1_m = corps_maillage->transformation(dls::math::point3d(triangle.v1));
+            auto const v2_m = corps_maillage->transformation(dls::math::point3d(triangle.v2));
 
-			auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
+            auto aire = static_cast<float>(calcule_aire(v0_m, v1_m, v2_m));
 
-			auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
+            auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
 
-			if (index_boite < 0 || index_boite >= 64) {
-				this->ajoute_avertissement(
-							"Erreur lors de la génération de l'index d'une boîte !",
-							"\n   Index : ", index_boite,
-							"\n   Aire triangle : ", aire,
-							"\n   Aire totale : ", aire_maximum);
-				continue;
-			}
+            if (index_boite < 0 || index_boite >= 64) {
+                this->ajoute_avertissement("Erreur lors de la génération de l'index d'une boîte !",
+                                           "\n   Index : ",
+                                           index_boite,
+                                           "\n   Aire triangle : ",
+                                           aire,
+                                           "\n   Aire totale : ",
+                                           aire_maximum);
+                continue;
+            }
 
-			ajoute_triangle_boite(&boites[index_boite],
-								  dls::math::converti_type_vecteur<float>(v0_m),
-								  dls::math::converti_type_vecteur<float>(v1_m),
-								  dls::math::converti_type_vecteur<float>(v2_m),
-								  triangle.index_orig);
-		}
+            ajoute_triangle_boite(&boites[index_boite],
+                                  dls::math::converti_type_vecteur<float>(v0_m),
+                                  dls::math::converti_type_vecteur<float>(v1_m),
+                                  dls::math::converti_type_vecteur<float>(v2_m),
+                                  triangle.index_orig);
+        }
 
-		/* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
-		auto const seuil_aire = aire_minimum / 10000.0f;
-		auto const distance = evalue_decimal("distance");
+        /* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
+        auto const seuil_aire = aire_minimum / 10000.0f;
+        auto const distance = evalue_decimal("distance");
 
-		/* Calcule le nombre maximum de point. */
-		auto const aire_cercle = constantes<float>::PI * (distance * 0.5f) * (distance * 0.5f);
-		auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) / aire_cercle);
-		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
+        /* Calcule le nombre maximum de point. */
+        auto const aire_cercle = constantes<float>::PI * (distance * 0.5f) * (distance * 0.5f);
+        auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) / aire_cercle);
+        std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 
-		auto points_nuage = m_corps.points_pour_ecriture();
-		points_nuage.reserve(nombre_points);
+        auto points_nuage = m_corps.points_pour_ecriture();
+        points_nuage.reserve(nombre_points);
 
-		auto const graine = evalue_entier("graine");
+        auto const graine = evalue_entier("graine");
 
-		auto gna = GNA(graine);
+        auto gna = GNA(static_cast<unsigned long>(graine));
 
-		auto grille_particule = GrilleParticules(limites_min, limites_max, distance);
+        auto grille_particule = GrilleParticules(limites_min, limites_max, distance);
 
-		auto debut = compte_tick_ms();
+        auto debut = compte_tick_ms();
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
+        auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
-		/* Tant qu'il reste des triangles à remplir... */
-		while (true) {
-			/* Choisis une boîte avec une probabilité proportionnelle à l'aire
-			 * total des fragments de la boîte. À FAIRE. */
-			BoiteTriangle *boite = choisis_boite(boites, gna);
+        /* Tant qu'il reste des triangles à remplir... */
+        while (true) {
+            /* Choisis une boîte avec une probabilité proportionnelle à l'aire
+             * total des fragments de la boîte. À FAIRE. */
+            BoiteTriangle *boite = choisis_boite(boites, gna);
 
-			/* Toutes les boites sont vides, arrêt de l'algorithme. */
-			if (boite == nullptr) {
-				break;
-			}
+            /* Toutes les boites sont vides, arrêt de l'algorithme. */
+            if (boite == nullptr) {
+                break;
+            }
 
-			/* Sélectionne un triangle proportionellement à son aire. */
-			auto triangle = choisis_triangle(boite, gna);
+            /* Sélectionne un triangle proportionellement à son aire. */
+            auto triangle = choisis_triangle(boite, gna);
 
-			/* Choisis un point aléatoire p sur le triangle en prenant une
-			 * coordonnée barycentrique aléatoire. */
-			auto const v0 = triangle->v0;
-			auto const v1 = triangle->v1;
-			auto const v2 = triangle->v2;
-			auto const e0 = v1 - v0;
-			auto const e1 = v2 - v0;
+            /* Choisis un point aléatoire p sur le triangle en prenant une
+             * coordonnée barycentrique aléatoire. */
+            auto const v0 = triangle->v0;
+            auto const v1 = triangle->v1;
+            auto const v2 = triangle->v2;
+            auto const e0 = v1 - v0;
+            auto const e1 = v2 - v0;
 
-			auto r = gna.uniforme(0.0f, 1.0f);
-			auto s = gna.uniforme(0.0f, 1.0f);
+            auto r = gna.uniforme(0.0f, 1.0f);
+            auto s = gna.uniforme(0.0f, 1.0f);
 
-			if (r + s >= 1.0f) {
-				r = 1.0f - r;
-				s = 1.0f - s;
-			}
+            if (r + s >= 1.0f) {
+                r = 1.0f - r;
+                s = 1.0f - s;
+            }
 
-			auto point = v0 + r * e0 + s * e1;
+            auto point = v0 + r * e0 + s * e1;
 
-			/* Vérifie que le point respecte la condition de distance minimal */
-			//auto ok = verifie_distance_minimal(hachage_spatial, point, distance);
-			auto ok = grille_particule.verifie_distance_minimal(point, distance);
+            /* Vérifie que le point respecte la condition de distance minimal */
+            // auto ok = verifie_distance_minimal(hachage_spatial, point, distance);
+            auto ok = grille_particule.verifie_distance_minimal(point, distance);
 
-			if (ok) {
-				//chage_spatial.ajoute(point);
-				grille_particule.ajoute(point);
-				auto idx_p = points_nuage.ajoute_point(point.x, point.y, point.z);
-				assigne(attr_N->r32(idx_p), echantillonne_normal(*corps_maillage, triangle->index_orig, point));
-				debut = compte_tick_ms();
-			}
+            if (ok) {
+                // chage_spatial.ajoute(point);
+                grille_particule.ajoute(point);
+                auto idx_p = points_nuage.ajoute_point(point.x, point.y, point.z);
+                assigne(attr_N->r32(idx_p),
+                        echantillonne_normal(*corps_maillage, triangle->index_orig, point));
+                debut = compte_tick_ms();
+            }
 
-			/* Vérifie si le triangle est complétement couvert par un point de
-			 * l'ensemble. */
-			auto couvert = grille_particule.triangle_couvert(
-						triangle->v0,
-						triangle->v1,
-						triangle->v2,
-						distance);
+            /* Vérifie si le triangle est complétement couvert par un point de
+             * l'ensemble. */
+            auto couvert = grille_particule.triangle_couvert(
+                triangle->v0, triangle->v1, triangle->v2, distance);
 
-			if (couvert) {
-				/* Si couvert, jète le triangle. */
-				boite->aire_totale -= triangle->aire;
-				boite->triangles.enleve(triangle);
-			}
-			else {
-				/* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
-				 * qui ne ne sont pas totalement couvert à la liste, sauf si son
-				 * aire est plus petite que le seuil d'acceptance. */
+            if (couvert) {
+                /* Si couvert, jète le triangle. */
+                boite->aire_totale -= triangle->aire;
+                boite->triangles.enleve(triangle);
+            }
+            else {
+                /* Sinon, coupe le triangle en petit morceaux, et ajoute ceux
+                 * qui ne ne sont pas totalement couvert à la liste, sauf si son
+                 * aire est plus petite que le seuil d'acceptance. */
 
-				/* On coupe le triangle en quatre en introduisant un point au
-				 * centre de chaque coté. */
-				auto const v01 = (v0 + v1) * 0.5f;
-				auto const v12 = (v1 + v2) * 0.5f;
-				auto const v20 = (v2 + v0) * 0.5f;
+                /* On coupe le triangle en quatre en introduisant un point au
+                 * centre de chaque coté. */
+                auto const v01 = (v0 + v1) * 0.5f;
+                auto const v12 = (v1 + v2) * 0.5f;
+                auto const v20 = (v2 + v0) * 0.5f;
 
-				Triangle triangle_fils[4] = {
-					Triangle{ v0, v01, v20},
-					Triangle{v01,  v1, v12},
-					Triangle{v12,  v2, v20},
-					Triangle{v20, v01, v12},
-				};
+                Triangle triangle_fils[4] = {
+                    Triangle{v0, v01, v20},
+                    Triangle{v01, v1, v12},
+                    Triangle{v12, v2, v20},
+                    Triangle{v20, v01, v12},
+                };
 
-				for (auto i = 0; i < 4; ++i) {
-					auto const aire = calcule_aire(triangle_fils[i]);
+                for (auto i = 0; i < 4; ++i) {
+                    auto const aire = calcule_aire(triangle_fils[i]);
 
-					if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
-						boite->aire_totale -= aire;
-						continue;
-					}
+                    if (std::abs(aire - seuil_aire) <= std::numeric_limits<float>::epsilon()) {
+                        boite->aire_totale -= aire;
+                        continue;
+                    }
 
-					couvert = grille_particule.triangle_couvert(
-								triangle_fils[i].v0,
-								triangle_fils[i].v1,
-								triangle_fils[i].v2,
-								distance);
+                    couvert = grille_particule.triangle_couvert(
+                        triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2, distance);
 
-					if (couvert) {
-						continue;
-					}
+                    if (couvert) {
+                        continue;
+                    }
 
-					auto const index_boite0 = static_cast<int>(std::log2(aire_maximum / aire));
+                    auto const index_boite0 = static_cast<int>(std::log2(aire_maximum / aire));
 
-					if (index_boite0 >= 0 && index_boite0 < 64) {
-						auto &b = boites[index_boite0];
+                    if (index_boite0 >= 0 && index_boite0 < 64) {
+                        auto &b = boites[index_boite0];
 
-						auto t = b.triangles.ajoute(triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
-						t->index_orig = triangle->index_orig;
-						b.aire_totale += aire;
-					}
-				}
+                        auto t = b.triangles.ajoute(
+                            triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
+                        t->index_orig = triangle->index_orig;
+                        b.aire_totale += aire;
+                    }
+                }
 
-				boite->triangles.enleve(triangle);
-			}
+                boite->triangles.enleve(triangle);
+            }
 
-			/* Évite les boucles infinies. */
-			if ((compte_tick_ms() - debut) > 1000) {
-				break;
-			}
-		}
+            /* Évite les boucles infinies. */
+            if ((compte_tick_ms() - debut) > 1000) {
+                break;
+            }
+        }
 
-		std::cerr << "Nombre de points : " << points_nuage.taille() << "\n";
+        std::cerr << "Nombre de points : " << points_nuage.taille() << "\n";
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	void obtiens_liste(
-			ContexteEvaluation const &contexte,
-			dls::chaine const &attache,
-			dls::tableau<dls::chaine> &chaines) override
-	{
-		INUTILISE(contexte);
-		if (attache == "nom_groupe") {
-			entree(0)->obtiens_liste_groupes_prims(chaines);
-		}
-	}
+    void obtiens_liste(ContexteEvaluation const &contexte,
+                       dls::chaine const &attache,
+                       dls::tableau<dls::chaine> &chaines) override
+    {
+        INUTILISE(contexte);
+        if (attache == "nom_groupe") {
+            entree(0)->obtiens_liste_groupes_prims(chaines);
+        }
+    }
 };
 
 /* ************************************************************************** */
@@ -1071,551 +1064,537 @@ public:
  * Hagit Schechter, 2013
  */
 
-static bool construit_sphere(
-		dls::math::vec3f const &x0,
-		dls::math::vec3f const &x1,
-		dls::math::vec3f const &x2,
-		float const rayon,
-		dls::math::vec3f &centre)
+static bool construit_sphere(dls::math::vec3f const &x0,
+                             dls::math::vec3f const &x1,
+                             dls::math::vec3f const &x2,
+                             float const rayon,
+                             dls::math::vec3f &centre)
 {
-	auto const x0x1 = x0 - x1;
-	auto const lx0x1 = longueur(x0x1);
+    auto const x0x1 = x0 - x1;
+    auto const lx0x1 = longueur(x0x1);
 
-	auto const x1x2 = x1 - x2;
-	auto const lx1x2 = longueur(x1x2);
+    auto const x1x2 = x1 - x2;
+    auto const lx1x2 = longueur(x1x2);
 
-	auto const x2x0 = x2 - x0;
-	auto const lx2x0 = longueur(x2x0);
+    auto const x2x0 = x2 - x0;
+    auto const lx2x0 = longueur(x2x0);
 
-	auto n = produit_croix(x0x1, x1x2);
-	auto ln = longueur(n);
+    auto n = produit_croix(x0x1, x1x2);
+    auto ln = longueur(n);
 
-	auto radius_x = (lx0x1 * lx1x2 * lx2x0) / (2.0f * ln);
+    auto radius_x = (lx0x1 * lx1x2 * lx2x0) / (2.0f * ln);
 
-	if (radius_x > rayon) {
-		return false;
-	}
+    if (radius_x > rayon) {
+        return false;
+    }
 
-	auto const abs_n_sqr = (ln * ln);
-	auto const inv_abs_n_sqr = 1.0f / abs_n_sqr;
-	auto const inv_abs_n_sqr2 = 1.0f / (2.0f * abs_n_sqr);
+    auto const abs_n_sqr = (ln * ln);
+    auto const inv_abs_n_sqr = 1.0f / abs_n_sqr;
+    auto const inv_abs_n_sqr2 = 1.0f / (2.0f * abs_n_sqr);
 
-	auto alpha = (longueur_carree(x1x2) * produit_scalaire(x0x1, x0 - x2)) * inv_abs_n_sqr2;
-	auto beta = (longueur_carree(x0 - x2) * produit_scalaire(x1 - x0, x1x2)) * inv_abs_n_sqr2;
-	auto gamma = (longueur_carree(x0x1) * produit_scalaire(x2x0, x2 - x1)) * inv_abs_n_sqr2;
+    auto alpha = (longueur_carree(x1x2) * produit_scalaire(x0x1, x0 - x2)) * inv_abs_n_sqr2;
+    auto beta = (longueur_carree(x0 - x2) * produit_scalaire(x1 - x0, x1x2)) * inv_abs_n_sqr2;
+    auto gamma = (longueur_carree(x0x1) * produit_scalaire(x2x0, x2 - x1)) * inv_abs_n_sqr2;
 
-	auto l = alpha * x0 + beta * x1 + gamma * x2;
+    auto l = alpha * x0 + beta * x1 + gamma * x2;
 
-	/* NOTE : selon le papier, c'est censé être
-	 * (radius_x * radius_x - radius * radius)
-	 * mais cela donne un nombre négatif, résultant en un NaN... */
-	auto t = std::sqrt((radius_x - rayon) * (radius_x - rayon) * inv_abs_n_sqr);
+    /* NOTE : selon le papier, c'est censé être
+     * (radius_x * radius_x - radius * radius)
+     * mais cela donne un nombre négatif, résultant en un NaN... */
+    auto t = std::sqrt((radius_x - rayon) * (radius_x - rayon) * inv_abs_n_sqr);
 
-	centre = l + t * n;
+    centre = l + t * n;
 
-	if (est_nan(centre)) {
-		return false;
-	}
+    if (est_nan(centre)) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
-static void trouve_points_voisins(
-		AccesseusePointLecture const &points,
-		ListePoints3D &rpoints,
-		dls::math::vec3f const &point,
-		const float radius)
+static void trouve_points_voisins(AccesseusePointLecture const &points,
+                                  ListePoints3D &rpoints,
+                                  dls::math::vec3f const &point,
+                                  const float radius)
 {
-	for (auto i = 0; i < points.taille(); ++i) {
-		const auto &pi = points.point_local(i);
+    for (auto i = 0; i < points.taille(); ++i) {
+        const auto &pi = points.point_local(i);
 
-		if (pi == point) {
-			continue;
-		}
+        if (pi == point) {
+            continue;
+        }
 
-		if (longueur(point - pi) < radius) {
-			rpoints.pousse(pi);
-		}
-	}
+        if (longueur(point - pi) < radius) {
+            rpoints.ajoute(pi);
+        }
+    }
 }
 
-static void construit_triangle(
-		Corps &corps,
-		int &tri_offset,
-		float const radius,
-		ListePoints3D const &N1,
-		dls::math::vec3f const &pi)
+static void construit_triangle(Corps &corps,
+                               int &tri_offset,
+                               float const radius,
+                               ListePoints3D const &N1,
+                               dls::math::vec3f const &pi)
 {
-	auto points = corps.points_pour_ecriture();
-	for (auto j = 0; j < N1.taille() - 1; ++j) {
-		auto pj = N1.point(j), pk = N1.point(j + 1);
-		dls::math::vec3f center;
+    auto points = corps.points_pour_ecriture();
+    for (auto j = 0; j < N1.taille() - 1; ++j) {
+        auto pj = N1.point(j), pk = N1.point(j + 1);
+        dls::math::vec3f center;
 
-		if (!construit_sphere(pi, pj, pk, radius, center)) {
-			continue;
-		}
+        if (!construit_sphere(pi, pj, pk, radius, center)) {
+            continue;
+        }
 
-		bool clear = true;
+        bool clear = true;
 
-		for (auto k(0); k < N1.taille(); ++k) {
-			if (k == j || k == (j + 1)) {
-				continue;
-			}
+        for (auto k(0); k < N1.taille(); ++k) {
+            if (k == j || k == (j + 1)) {
+                continue;
+            }
 
-			if (longueur(N1.point(k) - center) < radius) {
-				clear = false;
-				break;
-			}
-		}
+            if (longueur(N1.point(k) - center) < radius) {
+                clear = false;
+                break;
+            }
+        }
 
-		if (!clear) {
-			continue;
-		}
+        if (!clear) {
+            continue;
+        }
 
-		points.ajoute_point(pi.x, pi.y, pi.z);
-		points.ajoute_point(pj.x, pj.y, pj.z);
-		points.ajoute_point(pk.x, pk.y, pk.z);
+        points.ajoute_point(pi.x, pi.y, pi.z);
+        points.ajoute_point(pj.x, pj.y, pj.z);
+        points.ajoute_point(pk.x, pk.y, pk.z);
 
-		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
-		corps.ajoute_sommet(poly, tri_offset + 0);
-		corps.ajoute_sommet(poly, tri_offset + 1);
-		corps.ajoute_sommet(poly, tri_offset + 2);
+        auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
+        corps.ajoute_sommet(poly, tri_offset + 0);
+        corps.ajoute_sommet(poly, tri_offset + 1);
+        corps.ajoute_sommet(poly, tri_offset + 2);
 
-		tri_offset += 3;
-	}
+        tri_offset += 3;
+    }
 }
 
-static void construit_maillage_alpha(
-		Corps const &corps_entree,
-		float const radius,
-		Corps &sortie)
+static void construit_maillage_alpha(Corps const &corps_entree, float const radius, Corps &sortie)
 {
-	auto points_entree = corps_entree.points_pour_lecture();
-	auto tri_offset = 0;
+    auto points_entree = corps_entree.points_pour_lecture();
+    auto tri_offset = 0;
 
-	for (auto i = 0; i < points_entree.taille(); ++i) {
-		auto point = points_entree.point_local(i);
+    for (auto i = 0; i < points_entree.taille(); ++i) {
+        auto point = points_entree.point_local(i);
 
-		ListePoints3D N1;
-		trouve_points_voisins(points_entree, N1, point, 2.0f * radius);
-		construit_triangle(sortie, tri_offset, radius, N1, point);
-	}
+        ListePoints3D N1;
+        trouve_points_voisins(points_entree, N1, point, 2.0f * radius);
+        construit_triangle(sortie, tri_offset, radius, N1, point);
+    }
 }
 
 class OperatriceMaillageAlpha final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Maillage Alpha";
-	static constexpr auto AIDE =
-			"Crée une surface à partir de points.";
+  public:
+    static constexpr auto NOM = "Maillage Alpha";
+    static constexpr auto AIDE = "Crée une surface à partir de points.";
 
-	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
 
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		construit_maillage_alpha(*corps_entree, 0.1f, m_corps);
+        construit_maillage_alpha(*corps_entree, 0.1f, m_corps);
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class OperatriceEnleveDoublons final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Enlève Doublons";
-	static constexpr auto AIDE = "";
+  public:
+    static constexpr auto NOM = "Enlève Doublons";
+    static constexpr auto AIDE = "";
 
-	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_enleve_doublons.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_enleve_doublons.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, false, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto points_entree = corps_entree->points_pour_lecture();
+        auto points_entree = corps_entree->points_pour_lecture();
 
-		auto dist = evalue_decimal("distance", contexte.temps_courant);
+        auto dist = evalue_decimal("distance", contexte.temps_courant);
 
-		/* À FAIRE : liste de points à garder : doublons[i] = i. */
-		auto doublons = dls::tableau<int>(points_entree.taille(), -1);
+        /* À FAIRE : liste de points à garder : doublons[i] = i. */
+        auto doublons = dls::tableau<int>(points_entree.taille(), -1);
 
 #if 1
-		auto arbre = arbre_3df();
-		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
-		{
-			return points_entree.point_local(i);
-		});
+        auto arbre = arbre_3df();
+        arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()),
+                                      [&](int i) { return points_entree.point_local(i); });
 
-		auto doublons_trouves = 0;
+        auto doublons_trouves = 0;
 
-		for (auto i = 0; i < points_entree.taille(); ++i) {
-			auto point = points_entree.point_local(i);
+        for (auto i = 0; i < points_entree.taille(); ++i) {
+            auto point = points_entree.point_local(i);
 
-			arbre.cherche_points(point, dist, [&](int idx, dls::math::vec3f const &p, float d2, float &r2)
-			{
-				INUTILISE(p);
-				INUTILISE(d2);
-				INUTILISE(r2);
+            arbre.cherche_points(
+                point, dist, [&](int idx, dls::math::vec3f const &p, float d2, float &r2) {
+                    INUTILISE(p);
+                    INUTILISE(d2);
+                    INUTILISE(r2);
 
-				if (doublons[i] != -1) {
-					doublons_trouves += 1;
-					doublons[i] = idx;
-				}
-			});
-		}
+                    if (doublons[i] != -1) {
+                        doublons_trouves += 1;
+                        doublons[i] = idx;
+                    }
+                });
+        }
 #else
-		auto doublons_trouves = 0;
+        auto doublons_trouves = 0;
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto const &p1 = points_entree->point(i);
+        for (auto i = 0; i < points_entree->taille(); ++i) {
+            auto const &p1 = points_entree->point(i);
 
-			for (auto j = i + 1; j < points_entree->taille(); ++j) {
-				auto const &p2 = points_entree->point(j);
+            for (auto j = i + 1; j < points_entree->taille(); ++j) {
+                auto const &p2 = points_entree->point(j);
 
-				auto d = longueur(p1 - p2);
+                auto d = longueur(p1 - p2);
 
-				if (d <= dist && doublons[static_cast<size_t>(i)] == -1) {
-					++doublons_trouves;
-					doublons[static_cast<size_t>(i)] = j;
-				}
-			}
-		}
+                if (d <= dist && doublons[static_cast<size_t>(i)] == -1) {
+                    ++doublons_trouves;
+                    doublons[static_cast<size_t>(i)] = j;
+                }
+            }
+        }
 #endif
 
-		std::cerr << "Il y a " << points_entree.taille() << " points.\n";
-		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
+        std::cerr << "Il y a " << points_entree.taille() << " points.\n";
+        std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
 
-		if (doublons_trouves == 0) {
-			corps_entree->copie_vers(&m_corps);
-			return res_exec::REUSSIE;
-		}
+        if (doublons_trouves == 0) {
+            corps_entree->copie_vers(&m_corps);
+            return res_exec::REUSSIE;
+        }
 
 #if 1
-		corps_entree->copie_vers(&m_corps);
+        corps_entree->copie_vers(&m_corps);
 
-		pour_chaque_polygone(m_corps,
-							 [&](Corps const &, Polygone *poly)
-		{
-			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				auto index = poly->index_point(j);
+        pour_chaque_polygone(m_corps, [&](Corps const &, Polygone *poly) {
+            for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+                auto index = poly->index_point(j);
 
-				if (doublons[index] != -1) {
-					poly->ajourne_index(j, doublons[index]);
-				}
-			}
-		});
+                if (doublons[index] != -1) {
+                    poly->ajourne_index(j, doublons[index]);
+                }
+            }
+        });
 
-#else	/* À FAIRE : le réindexage n'est pas correcte. */
-		/* Supprime les points */
+#else /* À FAIRE : le réindexage n'est pas correcte. */
+        /* Supprime les points */
 
-		auto tamis_point = dls::tableau<bool>(doublons.taille(), false);
-		auto reindexage = dls::tableau<long>(doublons.taille(), -1);
-		auto nouvel_index = 0;
+        auto tamis_point = dls::tableau<bool>(doublons.taille(), false);
+        auto reindexage = dls::tableau<long>(doublons.taille(), -1);
+        auto nouvel_index = 0;
 
-		std::cerr << "Calcul tamis, reindexage\n";
+        std::cerr << "Calcul tamis, reindexage\n";
 
-		for (auto i = 0ul; i < doublons.taille(); ++i) {
-			auto supprime = (doublons[i] != -1) && (doublons[i] != static_cast<int>(i));
-			tamis_point[i] = supprime;
+        for (auto i = 0ul; i < doublons.taille(); ++i) {
+            auto supprime = (doublons[i] != -1) && (doublons[i] != static_cast<int>(i));
+            tamis_point[i] = supprime;
 
-			if (supprime) {
-				reindexage[i] = std::min(static_cast<int>(i), doublons[i]);
-			}
-			else {
-				reindexage[i] = nouvel_index++;
-			}
-		}
+            if (supprime) {
+                reindexage[i] = std::min(static_cast<int>(i), doublons[i]);
+            }
+            else {
+                reindexage[i] = nouvel_index++;
+            }
+        }
 
-		std::cerr << "Copie des points non supprimés\n";
-		m_corps.points()->reserve(points_entree->taille() - doublons_trouves);
+        std::cerr << "Copie des points non supprimés\n";
+        m_corps.points()->reserve(points_entree->taille() - doublons_trouves);
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			if (tamis_point[static_cast<size_t>(i)]) {
-				continue;
-			}
+        for (auto i = 0; i < points_entree->taille(); ++i) {
+            if (tamis_point[static_cast<size_t>(i)]) {
+                continue;
+            }
 
-			auto p = corps_entree->point_monde(i);
+            auto p = corps_entree->point_monde(i);
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
-		}
+            m_corps.ajoute_point(p.x, p.y, p.z);
+        }
 
-		std::cerr << "Il y a '" << m_corps.points()->taille() << "' points de créés !\n";
+        std::cerr << "Il y a '" << m_corps.points()->taille() << "' points de créés !\n";
 
-		/* Copie les primitives. */
+        /* Copie les primitives. */
 
-		std::cerr << "Création des primitives\n";
-		pour_chaque_polygone(*corps_entree,
-							 [&](Corps const &, Polygone *poly)
-		{
-			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+        std::cerr << "Création des primitives\n";
+        pour_chaque_polygone(*corps_entree, [&](Corps const &, Polygone *poly) {
+            auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
-			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				auto index = static_cast<size_t>(poly->index_point(j));
+            for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+                auto index = static_cast<size_t>(poly->index_point(j));
 
-				if (reindexage[index] == -1 || reindexage[index] > m_corps.points()->taille()) {
-					//std::cerr << "Ajout d'un index invalide !!!\n";
-				}
+                if (reindexage[index] == -1 || reindexage[index] > m_corps.points()->taille()) {
+                    // std::cerr << "Ajout d'un index invalide !!!\n";
+                }
 
-				nm_corps.ajoute_sommet(poly, reindexage[index]);
-			}
-		});
+                nm_corps.ajoute_sommet(poly, reindexage[index]);
+            }
+        });
 
-		std::cerr << "Copie des attributs\n";
-		/* Copie les attributs */
-		for (auto const attr : corps_entree->attributs()) {
-			if (attr->portee != portee_attr::POINT) {
-				auto copie_attr = memoire::loge<Attribut>(*attr);
-				m_corps.ajoute_attribut(copie_attr);
-				continue;
-			}
+        std::cerr << "Copie des attributs\n";
+        /* Copie les attributs */
+        for (auto const attr : corps_entree->attributs()) {
+            if (attr->portee != portee_attr::POINT) {
+                auto copie_attr = memoire::loge<Attribut>(*attr);
+                m_corps.ajoute_attribut(copie_attr);
+                continue;
+            }
 
-			auto attr_point = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+            auto attr_point = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
 
-			for (auto i = 0, j = 0; i < points_entree->taille(); ++i) {
-				if (tamis_point[static_cast<size_t>(i)] == true) {
-					continue;
-				}
+            for (auto i = 0, j = 0; i < points_entree->taille(); ++i) {
+                if (tamis_point[static_cast<size_t>(i)] == true) {
+                    continue;
+                }
 
-				copie_attribut(attr, i, attr_point, j++);
-			}
-		}
+                copie_attribut(attr, i, attr_point, j++);
+            }
+        }
 
-		std::cerr << "Fin de l'algorithme\n";
+        std::cerr << "Fin de l'algorithme\n";
 #endif
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class OperatriceGiguePoints final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Gigue Points";
-	static constexpr auto AIDE = "Gigue les points d'entrée.";
+  public:
+    static constexpr auto NOM = "Gigue Points";
+    static constexpr auto AIDE = "Gigue les points d'entrée.";
 
-	OperatriceGiguePoints(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-	}
+    OperatriceGiguePoints(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_gigue_points.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_gigue_points.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, &m_corps, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto points_entree = m_corps.points_pour_ecriture();
+        auto points_entree = m_corps.points_pour_ecriture();
 
-		auto const graine = evalue_entier("graine");
-		auto const taille = evalue_decimal("taille");
-		auto const taille_par_axe = evalue_vecteur("taille_par_axe");
+        auto const graine = evalue_entier("graine");
+        auto const taille = evalue_decimal("taille");
+        auto const taille_par_axe = evalue_vecteur("taille_par_axe");
 
-		/* À FAIRE : pondérer selon un attribut, genre taille de point d'une
-		 * opératrice de création de points. */
+        /* À FAIRE : pondérer selon un attribut, genre taille de point d'une
+         * opératrice de création de points. */
 
-		auto gna = GNA(graine);
-		auto min = -0.5f * taille;
-		auto max =  0.5f * taille;
+        auto gna = GNA(static_cast<unsigned long>(graine));
+        auto min = -0.5f * taille;
+        auto max = 0.5f * taille;
 
-		for (auto i = 0; i < points_entree.taille(); ++i) {
-			auto p = points_entree.point_local(i);
+        for (auto i = 0; i < points_entree.taille(); ++i) {
+            auto p = points_entree.point_local(i);
 
-			p.x += gna.uniforme(min, max) * taille_par_axe.x;
-			p.y += gna.uniforme(min, max) * taille_par_axe.y;
-			p.z += gna.uniforme(min, max) * taille_par_axe.z;
+            p.x += gna.uniforme(min, max) * taille_par_axe.x;
+            p.y += gna.uniforme(min, max) * taille_par_axe.y;
+            p.z += gna.uniforme(min, max) * taille_par_axe.z;
 
-			points_entree.point(i, p);
-		}
+            points_entree.point(i, p);
+        }
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 class OperatriceCreationTrainee final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Trainée";
-	static constexpr auto AIDE = "Crée une trainée derrière des particules selon leurs vélocités.";
+  public:
+    static constexpr auto NOM = "Trainée";
+    static constexpr auto AIDE = "Crée une trainée derrière des particules selon leurs vélocités.";
 
-	OperatriceCreationTrainee(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-	}
+    OperatriceCreationTrainee(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_trainee_points.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_trainee_points.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto points_entree = corps_entree->points_pour_lecture();
+        auto points_entree = corps_entree->points_pour_lecture();
 
-		auto nom_attribut = evalue_chaine("nom_attribut");
+        auto nom_attribut = evalue_chaine("nom_attribut");
 
-		if (nom_attribut == "") {
-			this->ajoute_avertissement("L'attribut n'est pas nommé !");
-			return res_exec::ECHOUEE;
-		}
+        if (nom_attribut == "") {
+            this->ajoute_avertissement("L'attribut n'est pas nommé !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto attr_V = corps_entree->attribut(nom_attribut);
+        auto attr_V = corps_entree->attribut(nom_attribut);
 
-		if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 || attr_V->portee != portee_attr::POINT) {
-			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
-			return res_exec::ECHOUEE;
-		}
+        if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 ||
+            attr_V->portee != portee_attr::POINT) {
+            this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
+            return res_exec::ECHOUEE;
+        }
 
-		auto const chaine_mode = evalue_enum("mode");
-		auto const nombre_points = evalue_entier("nombre_points");
+        auto const chaine_mode = evalue_enum("mode");
+        auto const nombre_points = evalue_entier("nombre_points");
 
-		auto mode = (chaine_mode == "ligne") ? 0 : 1;
+        auto mode = (chaine_mode == "ligne") ? 0 : 1;
 
-		/* À FAIRE : transfère d'attributs */
+        /* À FAIRE : transfère d'attributs */
 
-		auto points_sortie = m_corps.points_pour_ecriture();
-		points_sortie.reserve(points_entree.taille() * 2);
+        auto points_sortie = m_corps.points_pour_ecriture();
+        points_sortie.reserve(points_entree.taille() * 2);
 
-		auto const dt = evalue_decimal("dt", contexte.temps_courant);
-		auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
-		auto const inverse_direction = evalue_bool("inverse_direction");
+        auto const dt = evalue_decimal("dt", contexte.temps_courant);
+        auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
+        auto const inverse_direction = evalue_bool("inverse_direction");
 
-		for (auto i = 0; i < points_entree.taille(); ++i) {
-			auto p = points_entree.point_local(i);
-			auto v = dls::math::vec3f();
-			extrait(attr_V->r32(i), v);
-			v *= taille;
+        for (auto i = 0; i < points_entree.taille(); ++i) {
+            auto p = points_entree.point_local(i);
+            auto v = dls::math::vec3f();
+            extrait(attr_V->r32(i), v);
+            v *= taille;
 
-			/* Par défaut nous utilisons la vélocité, donc la direction normale
-			 * est celle d'où nous venons. */
-			if (!inverse_direction) {
-				v = -v;
-			}
+            /* Par défaut nous utilisons la vélocité, donc la direction normale
+             * est celle d'où nous venons. */
+            if (!inverse_direction) {
+                v = -v;
+            }
 
-			auto idx0 = points_sortie.ajoute_point(p.x, p.y, p.z);
+            auto idx0 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
-			if (mode == 0) {
-				p += v;
-				auto idx1 = points_sortie.ajoute_point(p.x, p.y, p.z);
+            if (mode == 0) {
+                p += v;
+                auto idx1 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
-				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
-				m_corps.ajoute_sommet(seg, idx0);
-				m_corps.ajoute_sommet(seg, idx1);
-			}
-			else {
-				v /= static_cast<float>(nombre_points);
+                auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+                m_corps.ajoute_sommet(seg, idx0);
+                m_corps.ajoute_sommet(seg, idx1);
+            }
+            else {
+                v /= static_cast<float>(nombre_points);
 
-				for (auto j = 0; j < nombre_points; ++j) {
-					p += v;
-					points_sortie.ajoute_point(p.x, p.y, p.z);
-				}
-			}
-		}
+                for (auto j = 0; j < nombre_points; ++j) {
+                    p += v;
+                    points_sortie.ajoute_point(p.x, p.y, p.z);
+                }
+            }
+        }
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	void obtiens_liste(
-			ContexteEvaluation const &contexte,
-			dls::chaine const &attache,
-			dls::tableau<dls::chaine> &chaines) override
-	{
-		INUTILISE(contexte);
-		if (attache == "nom_attribut") {
-			entree(0)->obtiens_liste_attributs(chaines);
-		}
-	}
+    void obtiens_liste(ContexteEvaluation const &contexte,
+                       dls::chaine const &attache,
+                       dls::tableau<dls::chaine> &chaines) override
+    {
+        INUTILISE(contexte);
+        if (attache == "nom_attribut") {
+            entree(0)->obtiens_liste_attributs(chaines);
+        }
+    }
 };
 
 /* ************************************************************************** */
 
-static auto calcul_centre_masse(
-	dls::tableau<dls::math::vec3f> const &points)
+static auto calcul_centre_masse(dls::tableau<dls::math::vec3f> const &points)
 {
 #if 0
 		/* calcul la masse totale */
@@ -1630,79 +1609,76 @@ static auto calcul_centre_masse(
 		}
 #endif
 
-	auto centre = dls::math::vec3f(0.0f);
+    auto centre = dls::math::vec3f(0.0f);
 
-	for (auto const &pi : points) {
-		centre += pi; // * attr_M->valeur(i);
-	}
+    for (auto const &pi : points) {
+        centre += pi;  // * attr_M->valeur(i);
+    }
 
-	centre /= static_cast<float>(points.taille());
-	//centre_masse /= masse_totale;
+    centre /= static_cast<float>(points.taille());
+    // centre_masse /= masse_totale;
 
-	return centre;
+    return centre;
 }
 
-static auto calcul_covariance(
-	dls::tableau<dls::math::vec3f> const &points,
-	dls::math::vec3f const &centre)
+static auto calcul_covariance(dls::tableau<dls::math::vec3f> const &points,
+                              dls::math::vec3f const &centre)
 {
-	auto mat_covariance = dls::math::mat3x3f(0.0f);
+    auto mat_covariance = dls::math::mat3x3f(0.0f);
 
-	for (auto const &pi : points) {
-		//auto mi = (attr_M != nullptr) ? attr_M->valeur(i) : 1.0f;
-		auto vi = pi - centre;
+    for (auto const &pi : points) {
+        // auto mi = (attr_M != nullptr) ? attr_M->valeur(i) : 1.0f;
+        auto vi = pi - centre;
 
-		/* | x*x x*y x*z |
-		 * | x*y y*y y*z |
-		 * | x*z z*y z*z |
-		 */
-		mat_covariance[0][0] += vi.x * vi.x;// * mi;
-		mat_covariance[0][1] += vi.x * vi.y;// * mi;
-		mat_covariance[0][2] += vi.x * vi.z;// * mi;
+        /* | x*x x*y x*z |
+         * | x*y y*y y*z |
+         * | x*z z*y z*z |
+         */
+        mat_covariance[0][0] += vi.x * vi.x;  // * mi;
+        mat_covariance[0][1] += vi.x * vi.y;  // * mi;
+        mat_covariance[0][2] += vi.x * vi.z;  // * mi;
 
-		mat_covariance[1][0] += vi.y * vi.x;// * mi;
-		mat_covariance[1][1] += vi.y * vi.y;// * mi;
-		mat_covariance[1][2] += vi.y * vi.z;// * mi;
+        mat_covariance[1][0] += vi.y * vi.x;  // * mi;
+        mat_covariance[1][1] += vi.y * vi.y;  // * mi;
+        mat_covariance[1][2] += vi.y * vi.z;  // * mi;
 
-		mat_covariance[2][0] += vi.z * vi.x;// * mi;
-		mat_covariance[2][1] += vi.z * vi.y;// * mi;
-		mat_covariance[2][2] += vi.z * vi.z;// * mi;
-	}
+        mat_covariance[2][0] += vi.z * vi.x;  // * mi;
+        mat_covariance[2][1] += vi.z * vi.y;  // * mi;
+        mat_covariance[2][2] += vi.z * vi.z;  // * mi;
+    }
 
-	//mat_covariance /= masse_totale;
-	mat_covariance[0] /= static_cast<float>(points.taille());
-	mat_covariance[1] /= static_cast<float>(points.taille());
-	mat_covariance[2] /= static_cast<float>(points.taille());
+    // mat_covariance /= masse_totale;
+    mat_covariance[0] /= static_cast<float>(points.taille());
+    mat_covariance[1] /= static_cast<float>(points.taille());
+    mat_covariance[2] /= static_cast<float>(points.taille());
 
-	return mat_covariance;
+    return mat_covariance;
 }
 
 /* calcul la force pour faire tourner point autour de l'axe */
-static auto force_rotation(
-		dls::math::vec3f const &point,
-		dls::math::vec3f const &centre_masse,
-		dls::math::vec3f const &normal,
-		float const poids)
+static auto force_rotation(dls::math::vec3f const &point,
+                           dls::math::vec3f const &centre_masse,
+                           dls::math::vec3f const &normal,
+                           float const poids)
 {
-	auto dir = point - centre_masse;
+    auto dir = point - centre_masse;
 
-	auto temp = produit_croix(normal, dir);
-	temp *= poids;
+    auto temp = produit_croix(normal, dir);
+    temp *= poids;
 
-	auto f = produit_croix(normal, temp);
-	f *= poids;
+    auto f = produit_croix(normal, temp);
+    f *= poids;
 
-	return f + temp;
+    return f + temp;
 }
 
 /* calcul la force pour attirer point vers un axe */
-static auto force_attirance(
-		dls::math::vec3f const &point,
-		dls::math::vec3f const &axe,
-		float const poids)
+static auto force_attirance(dls::math::vec3f const &point,
+                            dls::math::vec3f const &axe,
+                            float const poids)
 {
-	auto proj = produit_scalaire(point, axe) * axe;
-	return (proj - point) * poids;
+    auto proj = produit_scalaire(point, axe) * axe;
+    return (proj - point) * poids;
 }
 
 /**
@@ -1710,74 +1686,72 @@ static auto force_attirance(
  * http://number-none.com/product/My%20Friend,%20the%20Covariance%20Body/
  */
 class OpForceInteraction final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Force d'Interaction";
-	static constexpr auto AIDE = "Influence les particules selon une distribution locale de particules voisines.";
+  public:
+    static constexpr auto NOM = "Force d'Interaction";
+    static constexpr auto AIDE =
+        "Influence les particules selon une distribution locale de particules voisines.";
 
-	OpForceInteraction(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-	}
+    OpForceInteraction(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_force_interaction.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_force_interaction.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, &m_corps, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto points_entree = m_corps.points_pour_lecture();
+        auto points_entree = m_corps.points_pour_lecture();
 
-		/* À FAIRE :
-		 * - fusion des particules se trouvant dans une fraction du rayon
-		 *   afin d'optimiser le calcul des corps de covariance
-		 */
+        /* À FAIRE :
+         * - fusion des particules se trouvant dans une fraction du rayon
+         *   afin d'optimiser le calcul des corps de covariance
+         */
 
-		/* pousse ou tire la particule le long des axes locaux */
-		auto const force_dir = evalue_vecteur("force_dir");
-		/* attire la particule vers les axes locaux */
-		auto const force_axe = evalue_vecteur("force_axe");
-		/* rotationne la particule autour des axes locaux */
-		auto const force_rot = evalue_vecteur("force_rot");
-		/* attire la particule vers le centre de masse */
-		auto const force_centre = evalue_decimal("force_centre");
+        /* pousse ou tire la particule le long des axes locaux */
+        auto const force_dir = evalue_vecteur("force_dir");
+        /* attire la particule vers les axes locaux */
+        auto const force_axe = evalue_vecteur("force_axe");
+        /* rotationne la particule autour des axes locaux */
+        auto const force_rot = evalue_vecteur("force_rot");
+        /* attire la particule vers le centre de masse */
+        auto const force_centre = evalue_decimal("force_centre");
 
-		auto rayon = evalue_decimal("rayon");
-		auto poids = evalue_decimal("poids");
+        auto rayon = evalue_decimal("rayon");
+        auto poids = evalue_decimal("poids");
 
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
+        auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
-		auto arbre = arbre_3df();
-		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
-		{
-			return points_entree.point_local(i);
-		});
+        auto arbre = arbre_3df();
+        arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()),
+                                      [&](int i) { return points_entree.point_local(i); });
 
-		/* À FAIRE : il y a un effet yo-yo. */
+        /* À FAIRE : il y a un effet yo-yo. */
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
-						 [&](tbb::blocked_range<long> const &plage)
-		{
-			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = points_entree.point_local(i);
+        boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
+                         [&](tbb::blocked_range<long> const &plage) {
+                             for (auto i = plage.begin(); i < plage.end(); ++i) {
+                                 auto p = points_entree.point_local(i);
 
 #if 0
 				auto force = attr_F->valeur(i);
@@ -1827,7 +1801,7 @@ public:
 					INUTILISE(idx);
 					INUTILISE(d2);
 					INUTILISE(r2);
-					points_voisins.pousse(pnt);
+					points_voisins.ajoute(pnt);
 				});
 
 				if (points_voisins.est_vide()) {
@@ -1899,12 +1873,12 @@ public:
 				force += (centre_masse - p) * force_centre;
 #endif
 
-				assigne(attr_F->r32(i), force * poids);
-			}
-		});
+                                 assigne(attr_F->r32(i), force * poids);
+                             }
+                         });
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
@@ -1912,10 +1886,7 @@ public:
 namespace dls::math {
 
 template <typename T>
-static void decomposition_QR(
-		mat3x2<T> const &M,
-		mat3x2<T> &Q,
-		mat2x2<T> &R)
+static void decomposition_QR(mat3x2<T> const &M, mat3x2<T> &Q, mat2x2<T> &R)
 {
 #if 0
 	/* extrait les vecteurs colonnes */
@@ -1939,233 +1910,229 @@ static void decomposition_QR(
 	 */
 	R = transpose(Q) * M;
 #else
-	Eigen::Matrix<float, 3, 2> m;
-	m << M[0][0], M[0][1], M[1][0], M[1][1], M[2][0], M[2][1];
+    Eigen::Matrix<float, 3, 2> m;
+    m << M[0][0], M[0][1], M[1][0], M[1][1], M[2][0], M[2][1];
 
-	auto holder = m.colPivHouseholderQr();
-	auto Qeigen = holder.matrixQ() * Eigen::Matrix<float, 3, 2>::Identity();
-	auto Reigen = holder.matrixR().template triangularView<Eigen::Upper>() * Eigen::Matrix<float, 2, 2>::Identity();
+    auto holder = m.colPivHouseholderQr();
+    auto Qeigen = holder.matrixQ() * Eigen::Matrix<float, 3, 2>::Identity();
+    auto Reigen = holder.matrixR().template triangularView<Eigen::Upper>() *
+                  Eigen::Matrix<float, 2, 2>::Identity();
 
-	for (auto i = 0; i < 3; ++i) {
-		for (auto j = 0; j < 2; ++j) {
-			Q[static_cast<size_t>(i)][static_cast<size_t>(j)] = Qeigen.row(i)[j];
-		}
-	}
+    for (auto i = 0; i < 3; ++i) {
+        for (auto j = 0; j < 2; ++j) {
+            Q[static_cast<size_t>(i)][static_cast<size_t>(j)] = Qeigen.row(i)[j];
+        }
+    }
 
-	for (auto i = 0; i < 2; ++i) {
-		for (auto j = 0; j < 2; ++j) {
-			R[static_cast<size_t>(i)][static_cast<size_t>(j)] = Reigen.row(i)[j];
-		}
-	}
+    for (auto i = 0; i < 2; ++i) {
+        for (auto j = 0; j < 2; ++j) {
+            R[static_cast<size_t>(i)][static_cast<size_t>(j)] = Reigen.row(i)[j];
+        }
+    }
 #endif
 }
 
-auto mul_m32_v3(
-		matrice<float, vecteur, paquet_index<0, 1>, paquet_index<0, 1, 2>> const &m,
-		vecteur<TYPE_VECTEUR, float, 0, 1, 2> const &v)
+auto mul_m32_v3(matrice<float, vecteur, paquet_index<0, 1>, paquet_index<0, 1, 2>> const &m,
+                vecteur<TYPE_VECTEUR, float, 0, 1, 2> const &v)
 {
-	auto res = vecteur<TYPE_VECTEUR, float, 0, 1>{};
+    auto res = vecteur<TYPE_VECTEUR, float, 0, 1>{};
 
-	res[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
-	res[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
+    res[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
+    res[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
 
-	return res;
+    return res;
 }
 
-}  /* namespace dls::math */
+} /* namespace dls::math */
 
 /* Test d'implémentation d'une opératrice contraignant des points bougeant sur
  * une surface en s'inspirant de l'algorithme de contrainte de simulation de
  * peau de Pixar. Voir test_mat.cc */
 class OpContraintPoints final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Contraint Points";
-	static constexpr auto AIDE = "Contraint des particules sur la surface d'un maillage.";
+  public:
+    static constexpr auto NOM = "Contraint Points";
+    static constexpr auto AIDE = "Contraint des particules sur la surface d'un maillage.";
 
-	OpContraintPoints(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-	}
+    OpContraintPoints(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{""};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_entree, true, true)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto prims_entree = corps_entree->prims();
+        auto prims_entree = corps_entree->prims();
 
-		auto gna = GNA{};
+        auto gna = GNA{};
 
-		if (contexte.temps_courant == 1) {
-			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
-			m_corps.reinitialise();
+        if (contexte.temps_courant == 1) {
+            /* ajoute des points qui devraient vraiment venir d'un autre noeud */
+            m_corps.reinitialise();
 
-			auto points_entree = corps_entree->points_pour_lecture();
-			auto points_sortie = m_corps.points_pour_ecriture();
+            auto points_entree = corps_entree->points_pour_lecture();
+            auto points_sortie = m_corps.points_pour_ecriture();
 
-			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
-			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
+            auto attr_Prim = m_corps.ajoute_attribut(
+                "prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
+            auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
 
-			for (auto i = 0; i < 100; ++i) {
-				auto idx_prim = gna.uniforme(0l, prims_entree->taille() - 1);
-				auto prim = prims_entree->prim(idx_prim);
+            for (auto i = 0; i < 100; ++i) {
+                auto idx_prim = gna.uniforme(0l, prims_entree->taille() - 1);
+                auto prim = prims_entree->prim(idx_prim);
 
-				auto poly = dynamic_cast<Polygone *>(prim);
+                auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto const v0 = points_entree.point_monde(poly->index_point(0));
-				auto const v1 = points_entree.point_monde(poly->index_point(1));
-				auto const v2 = points_entree.point_monde(poly->index_point(2));
+                auto const v0 = points_entree.point_monde(poly->index_point(0));
+                auto const v1 = points_entree.point_monde(poly->index_point(1));
+                auto const v2 = points_entree.point_monde(poly->index_point(2));
 
-				auto const e0 = v1 - v0;
-				auto const e1 = v2 - v0;
+                auto const e0 = v1 - v0;
+                auto const e1 = v2 - v0;
 
-				/* Génère des coordonnées barycentriques aléatoires. */
-				auto r = gna.uniforme(0.0, 1.0);
-				auto s = gna.uniforme(0.0, 1.0);
+                /* Génère des coordonnées barycentriques aléatoires. */
+                auto r = gna.uniforme(0.0, 1.0);
+                auto s = gna.uniforme(0.0, 1.0);
 
-				if (r + s >= 1.0) {
-					r = 1.0 - r;
-					s = 1.0 - s;
-				}
+                if (r + s >= 1.0) {
+                    r = 1.0 - r;
+                    s = 1.0 - s;
+                }
 
-				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
+                auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
-				auto idx_p = points_sortie.ajoute_point(pos);
-				assigne(attr_P->r32(idx_p), pos);
+                auto idx_p = points_sortie.ajoute_point(pos);
+                assigne(attr_P->r32(idx_p), pos);
 
-				attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
-			}
-		}
-		else {
-			/* simule une étape où les points de controles bougent */
-			auto points = m_corps.points_pour_ecriture();
-			auto attr_P = m_corps.attribut("P");
+                attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
+            }
+        }
+        else {
+            /* simule une étape où les points de controles bougent */
+            auto points = m_corps.points_pour_ecriture();
+            auto attr_P = m_corps.attribut("P");
 
-			for (auto i = 0; i < points.taille(); ++i) {
-				auto p = points.point_local(i);
-				assigne(attr_P->r32(i), p);
-				p.x += gna.uniforme(-0.2f, 0.2f);
-				p.y += gna.uniforme(-0.2f, 0.2f);
-				p.z += gna.uniforme(-0.2f, 0.2f);
-				points.point(i, p);
-			}
+            for (auto i = 0; i < points.taille(); ++i) {
+                auto p = points.point_local(i);
+                assigne(attr_P->r32(i), p);
+                p.x += gna.uniforme(-0.2f, 0.2f);
+                p.y += gna.uniforme(-0.2f, 0.2f);
+                p.z += gna.uniforme(-0.2f, 0.2f);
+                points.point(i, p);
+            }
 
 #if 1
-			/* essaye de contraindre les points via une transformée de point le
-			 * plus proche */
-			auto delegue = DeleguePrim(*corps_entree);
-			auto arbre_hbe = construit_arbre_hbe(delegue, 12);
+            /* essaye de contraindre les points via une transformée de point le
+             * plus proche */
+            auto delegue = DeleguePrim(*corps_entree);
+            auto arbre_hbe = construit_arbre_hbe(delegue, 12);
 
-			for (auto i = 0; i < points.taille(); ++i) {
-				auto dist_max = 0.4;
-				auto pointf = points.point_local(i);
-				auto point = dls::math::point3d(
-							static_cast<double>(pointf.x),
-							static_cast<double>(pointf.y),
-							static_cast<double>(pointf.z));
+            for (auto i = 0; i < points.taille(); ++i) {
+                auto dist_max = 0.4;
+                auto pointf = points.point_local(i);
+                auto point = dls::math::point3d(static_cast<double>(pointf.x),
+                                                static_cast<double>(pointf.y),
+                                                static_cast<double>(pointf.z));
 
-				auto dpp = cherche_point_plus_proche(arbre_hbe, delegue, point, dist_max);
+                auto dpp = cherche_point_plus_proche(arbre_hbe, delegue, point, dist_max);
 
-				pointf = dls::math::converti_type_vecteur<float>(dpp.point);
+                pointf = dls::math::converti_type_vecteur<float>(dpp.point);
 
-				points.point(i, pointf);
-			}
+                points.point(i, pointf);
+            }
 #else
-			/* essaye de contraindre les points via l'algorithme du papier */
-			auto attr_Prim = m_corps.attribut("prim_idx");
+            /* essaye de contraindre les points via l'algorithme du papier */
+            auto attr_Prim = m_corps.attribut("prim_idx");
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto idx_prim = attr_Prim->z32(i);
-				auto prim = prims_entree->prim(idx_prim);
+            for (auto i = 0; i < points->taille(); ++i) {
+                auto idx_prim = attr_Prim->z32(i);
+                auto prim = prims_entree->prim(idx_prim);
 
-				auto poly = dynamic_cast<Polygone *>(prim);
+                auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto a0 = attr_P->r32(i);
-				//auto as = points->point(i);
-				//auto const d = as - a0;
+                auto a0 = attr_P->r32(i);
+                // auto as = points->point(i);
+                // auto const d = as - a0;
 
-				auto const v0 = corps_entree->point_monde(poly->index_point(0));
-				auto const v1 = corps_entree->point_monde(poly->index_point(1));
-				auto const v2 = corps_entree->point_monde(poly->index_point(2));
+                auto const v0 = corps_entree->point_monde(poly->index_point(0));
+                auto const v1 = corps_entree->point_monde(poly->index_point(1));
+                auto const v2 = corps_entree->point_monde(poly->index_point(2));
 
-				/* construit la matrice de l'espace canonique */
-				auto e0 = v1 - v0;
-				auto e1 = v2 - v0;
+                /* construit la matrice de l'espace canonique */
+                auto e0 = v1 - v0;
+                auto e1 = v2 - v0;
 
-				auto Dm = dls::math::mat3x2f(
-							e0.x, e1.x,
-							e0.y, e1.y,
-							e0.z, e1.z
-							);
+                auto Dm = dls::math::mat3x2f(e0.x, e1.x, e0.y, e1.y, e0.z, e1.z);
 
-				auto Q = dls::math::mat3x2f();
-				auto R = dls::math::mat2x2f();
+                auto Q = dls::math::mat3x2f();
+                auto R = dls::math::mat2x2f();
 
-				decomposition_QR(Dm, Q, R);
+                decomposition_QR(Dm, Q, R);
 
-				std::cerr << "--------------------------------------\n";
-				std::cerr << "Dm =\n" << Dm << '\n';
-				std::cerr << "Q =\n" << Q << '\n';
-				std::cerr << "R =\n" << R << '\n';
+                std::cerr << "--------------------------------------\n";
+                std::cerr << "Dm =\n" << Dm << '\n';
+                std::cerr << "Q =\n" << Q << '\n';
+                std::cerr << "R =\n" << R << '\n';
 
-				/* transforme l'ancre et la direction dans l'espace canonique */
-				auto tf_canon = inverse(R) * transpose(Q);
-				std::cerr << "tf_canon =\n" << tf_canon << '\n';
-				auto ah = dls::math::mul_m32_v3(tf_canon, (a0 - v0));
-				std::cerr << "ah =\n" << ah << '\n';
-				//auto dh = tf_canon * d;
+                /* transforme l'ancre et la direction dans l'espace canonique */
+                auto tf_canon = inverse(R) * transpose(Q);
+                std::cerr << "tf_canon =\n" << tf_canon << '\n';
+                auto ah = dls::math::mul_m32_v3(tf_canon, (a0 - v0));
+                std::cerr << "ah =\n" << ah << '\n';
+                // auto dh = tf_canon * d;
 
-				auto h = transpose(Dm) * ah;
-				h += v0;
-				std::cerr << "a0 =\n" << a0 << '\n';
-				std::cerr << "h =\n" << h << '\n';
+                auto h = transpose(Dm) * ah;
+                h += v0;
+                std::cerr << "a0 =\n" << a0 << '\n';
+                std::cerr << "h =\n" << h << '\n';
 
-				points->point(i, h);
-			}
+                points->point(i, h);
+            }
 #endif
-		}
+        }
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	bool depend_sur_temps() const override
-	{
-		return true;
-	}
+    bool depend_sur_temps() const override
+    {
+        return true;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
-	usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
-	usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
-	usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
-	usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
-	usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
-	usine.enregistre_type(cree_desc<OperatriceCreationTrainee>());
-	usine.enregistre_type(cree_desc<OpForceInteraction>());
-	usine.enregistre_type(cree_desc<OpContraintPoints>());
+    usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
+    usine.enregistre_type(cree_desc<OperatriceSuppressionPoints>());
+    usine.enregistre_type(cree_desc<OperatriceTirageFleche>());
+    usine.enregistre_type(cree_desc<OperatriceMaillageAlpha>());
+    usine.enregistre_type(cree_desc<OperatriceEnleveDoublons>());
+    usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
+    usine.enregistre_type(cree_desc<OperatriceCreationTrainee>());
+    usine.enregistre_type(cree_desc<OpForceInteraction>());
+    usine.enregistre_type(cree_desc<OpContraintPoints>());
 }
 
 #pragma clang diagnostic pop

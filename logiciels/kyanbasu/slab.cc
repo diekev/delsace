@@ -38,7 +38,7 @@ Slab create_slab(GLsizei width, GLsizei height, int numComponents, int &unit)
 	Slab slab;
 	slab.ping = Surface(width, height, numComponents, unit++);
 	slab.pong = Surface(width, height, numComponents, unit++);
-	return std::move(slab);
+	return slab;
 }
 
 Surface::Surface(GLsizei width, GLsizei height, int numComponents, int unit)

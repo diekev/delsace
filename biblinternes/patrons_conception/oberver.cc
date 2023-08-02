@@ -34,7 +34,7 @@ void Observer::update(const Observable *observable) const
 
 void Observer::add(Observable *observable)
 {
-	m_observables.pousse(observable);
+	m_observables.ajoute(observable);
 }
 
 void Observer::remove(Observable *observable)
@@ -55,7 +55,7 @@ Observable::~Observable()
 
 void Observable::add(Observer *observer)
 {
-	m_observers.pousse(observer);
+	m_observers.ajoute(observer);
 	observer->add(this);
 }
 

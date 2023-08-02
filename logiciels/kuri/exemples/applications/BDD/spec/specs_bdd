@@ -1,0 +1,127 @@
+------------------------------------------------
++ Cas : Sortir du programme sans rien faire fonctionne.
+
++ Commandes :
+.sors
+
++ Résultat :
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Sélectionner les tables sans rien créer retourne un tableau vide.
+
++ Commandes :
+.tables
+.sors
+
++ Résultat :
+db > +--------+
+| Tables |
++--------+
++--------+
+Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : On peut créer une table.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+.tables
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > +--------------+
+| Tables       |
++--------------+
+| utilisateurs |
++--------------+
+Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : On ne peut pas créer deux tables du même nom.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+crée utilisateurs (nom texte, id entier);
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > Erreur : redéfinition de la table utilisateurs
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : On peut créer une table, y insérer une ligne et la retrouver.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+insère dans utilisateurs valeurs ("Thor", 123);
+sélectionne nom, id depuis utilisateurs;
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > Exécution réussie.
+db > +------+-----+
+| nom  | id  |
++------+-----+
+| Thor | 123 |
++------+-----+
+Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : On peut créer une table, y insérer plusieurs lignes et les retrouver même dans le désordre des colonnes.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier);
+insère dans utilisateurs valeurs ("Thor", 123);
+insère dans utilisateurs valeurs ("Carter", 789);
+sélectionne nom, id depuis utilisateurs;
+sélectionne id, nom depuis utilisateurs;
+.sors
+
++ Résultat :
+db > Exécution réussie.
+db > Exécution réussie.
+db > Exécution réussie.
+db > +--------+-----+
+| nom    | id  |
++--------+-----+
+| Thor   | 123 |
+| Carter | 789 |
++--------+-----+
+Exécution réussie.
+db > +-----+--------+
+| id  | nom    |
++-----+--------+
+| 123 | Thor   |
+| 789 | Carter |
++-----+--------+
+Exécution réussie.
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si un point virgule manque.
+
++ Commandes :
+crée utilisateurs (nom texte, id entier)
+.sors
+
++ Résultat :
+db > Attendu un point virgule à la fin de l'instruction
+db > Fin du programme, mémoire utilisée : 0o
+
+------------------------------------------------
++ Cas : Erreur si une méta commande est inconnues.
+
++ Commandes :
+.tabels
+.sors
+
++ Résultat :
+db > Méta commande inconnue
+db > Fin du programme, mémoire utilisée : 0o

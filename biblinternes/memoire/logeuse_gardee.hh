@@ -61,18 +61,10 @@ struct chaine_pour_type<int> {
 };
 
 template <>
-struct chaine_pour_type<long> {
+struct chaine_pour_type<int64_t> {
 	static constexpr const char *CT()
 	{
-		return "dls::tableau<long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<long long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<long long>";
+		return "dls::tableau<int64_t>";
 	}
 };
 
@@ -93,26 +85,18 @@ struct chaine_pour_type<unsigned short> {
 };
 
 template <>
-struct chaine_pour_type<unsigned int> {
+struct chaine_pour_type<uint32_t> {
 	static constexpr const char *CT()
 	{
-		return "dls::tableau<unsigned int>";
+		return "dls::tableau<uint32_t>";
 	}
 };
 
 template <>
-struct chaine_pour_type<unsigned long> {
+struct chaine_pour_type<uint64_t> {
 	static constexpr const char *CT()
 	{
-		return "dls::tableau<unsigned long>";
-	}
-};
-
-template <>
-struct chaine_pour_type<unsigned long long> {
-	static constexpr const char *CT()
-	{
-		return "dls::tableau<unsigned long long>";
+		return "dls::tableau<uint64_t>";
 	}
 };
 
@@ -148,11 +132,11 @@ struct logeuse_guardee {
 
 	logeuse_guardee(logeuse_guardee const &) = default;
 
-	T *allocate(unsigned long n, void const *hint = nullptr)
+	T *allocate(uint64_t n, void const *hint = nullptr)
 	{
 		static_cast<void>(hint);
 
-		auto p = memoire::loge_tableau<T>(chaine_pour_type<T>::CT(), static_cast<long>(n));
+		auto p = memoire::loge_tableau<T>(chaine_pour_type<T>::CT(), static_cast<int64_t>(n));
 
 		if (p == nullptr) {
 			throw std::bad_alloc();
@@ -161,10 +145,10 @@ struct logeuse_guardee {
 		return p;
 	}
 
-	void deallocate(T *p, unsigned long n)
+	void deallocate(T *p, uint64_t n)
 	{
 		if (p != nullptr) {
-			memoire::deloge_tableau(chaine_pour_type<T>::CT(), p, static_cast<long>(n));
+			memoire::deloge_tableau(chaine_pour_type<T>::CT(), p, static_cast<int64_t>(n));
 		}
 	}
 
@@ -217,9 +201,9 @@ struct logeuse_guardee {
 		p->~T();
 	}
 
-	unsigned long max_size() const
-	{
-		return -1ul;
+	uint64_t max_size() const
+    {
+        return std::numeric_limits<uint64_t>::max();
 	}
 
 	template <class U>

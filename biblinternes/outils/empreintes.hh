@@ -134,6 +134,10 @@
 	return c;
 }
 
+#undef rot
+#undef mix
+#undef finalise
+
 [[nodiscard]] inline auto empreinte_n32_vers_r32(unsigned kx)
 {
 	return static_cast<float>(empreinte_n32(kx)) / static_cast<float>(0xFFFFFFFFu);

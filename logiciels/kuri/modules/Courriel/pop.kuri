@@ -1,0 +1,181 @@
+/*
+
+ÉtatSessionPOP :: énum {
+    NonCommencé
+    Autorisation
+    Transaction
+    Ajournement
+}
+
+https://datatracker.ietf.org/doc/html/rfc1939
+
+TypeCommandePOP :: énum {
+    QUIT
+    USER
+    PASS
+    APOP
+    STAT
+    LIST
+    DELE
+    RSET
+    NOOP
+}
+
+CommandePOP :: struct {
+}
+
+QUIT :: struct {
+    empl base: CommandePOP
+
+    type = QUIT
+    autorisé_dans = (ÉtatSessionPOP.Autorisation | ÉtatSessionPOP.Transaction)
+}
+
+// partie cliente
+
+parse_réponse :: fonc (commande_originelle: *CommandePOP, texte: chaine)
+{
+    // attend d'avoir un CRLF
+}
+
+// partie serveuse
+
+parse_commande :: fonc (texte: chaine) -> *CommandePOP
+{
+    // attend d'avoir un CRLF
+}
+
+InterfaceServeuseCourriel :: struct {
+    /* Les données de l'interface */
+    données: *rien
+
+    /* Doit retourner vrai si un utilisateur avec ce nom (une adresse courriel) existe */
+    utilisateur_existe: fonc(InterfaceServeuseCourriel, chaine)(bool)
+
+    /* Doit retourner vrai si la paire mot de passe, utilisateur est corecte */
+    authentifie_utilisateur: fonc(InterfaceServeuseCourriel, chaine, chaine)(bool)
+}
+
+SessionPOP :: struct {
+    /* Pour les paramètres APOP */
+    id_processus: z32
+    horodotage: z64
+
+    interface_serveuse: InterfaceServeuseCourriel
+
+    état: ÉtatSessionPOP
+
+    nom_utilisateur: Optionnel(chaine)
+
+    /* Soit le mot de passe donné via "USER" et le condensat de "APOP" */
+    mot_de_passe: Optionnel(chaine)
+}
+
+utilisateur_existe :: fonc (session: &SessionPOP, nom: chaine) -> bool
+{
+    interface := session.interface_serveuse
+
+    saufsi interface.utilisateur_existe {
+        retourne faux
+    }
+
+    retourne interface.utilisateur_existe(interface, nom)
+}
+
+authentifie_utilisateur :: fonc (session: &SessionPOP, nom: chaine, mot_de_passe: chaine) -> bool
+{
+    interface := session.authentifie_utilisateur
+
+    saufsi interface.authentifie_utilisateur {
+        retourne faux
+    }
+
+    retourne interface.authentifie_utilisateur(interface, nom, mot_de_passe)
+}
+
+gère_commande :: fonc (session: &SessionPOP, commande: *CommandePOP)
+{
+    si session.état == ÉtatSessionPOP.NonCommencé {
+        retourne "-ERR"
+    }
+
+    si session.état == ÉtatSessionPOP.Autorisation {
+        si commande.est(CommandePOP_USER) {
+            /* Nous avons déjà reçu une telle commande ? */
+            si session.nom_utilisateur.possède_valeur() {
+                retourne "-ERR"
+            }
+
+            commande_user := commande comme *CommandePOP_USER
+
+            saufsi session.utilisateur_existe(commande_user.nom) {
+                retourne "-ERR"
+            }
+
+            session.nom_utilisateur = commande_user.nom
+            retourne "+OK"
+        }
+
+        si commande.est(CommandePOP_PASS) {
+            /* Nous n'avons pas encore eu l'utilisateur ? */
+            saufsi session.nom_utilisateur.possède_valeur() {
+                retourne "-ERR"
+            }
+
+            /* Nous avons déjà reçu une telle commande ? */
+            si session.mot_de_passe.possède_valeur() {
+                retourne "-ERR"
+            }
+
+            saufsi session.authentifie_utilisateur(session.nom_utilisateur.Valeur, commande_pass.mot_de_passe) {
+                retourne "-ERR"
+            }
+
+            session.mot_de_passe = commande_pass.mot_de_passe
+
+            saufsi session.ouvre_boite_au_lettre() {
+                retourne "-ERR"
+            }
+
+            retourne "+OK"
+        }
+
+        si commande.est(CommandePOP_APOP) {
+            saufsi session.peut_recevoir_commande_apop() {
+                retourne "-ERR"
+            }
+
+            commande_apop := commande comme *CommandePOP_APOP
+
+            nom_utilisateur := commande_apop.nom_utilisateur
+
+            saufsi session.utilisateur_existe(nom_utilisateur) {
+                retourne "-ERR"
+            }
+
+        }
+    }
+
+    retourne "-ERR"
+}
+
+InformationCourriel :: struct {
+    taille_en_octet: z32
+    identifiant: chaine
+}
+
+InformationLocalCourriel :: struct {
+    infos: InformationCourriel
+    fut_supprimé: bool
+}
+
+ouvre_boite_au_lettre :: fonc (session: &SessionPOP) -> bool
+{
+    // vérrouiller la boite au lettre pour empêcher que des messages soit supprimer par d'autres
+
+    // cherche la liste des messages
+    // pour chaque message : la taille en octet, l'identifiant unique du message
+    // assigner un identifiant local (commençant par 1) à chaque message
+}
+
+*/

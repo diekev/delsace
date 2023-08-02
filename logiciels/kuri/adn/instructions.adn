@@ -1,0 +1,51 @@
+
+- adn pour les instructions x86 et x64
+- adn pour les instructions de chez nous (requiers de réusiner ce bordel)
+- adn
+- langage
+
+ChargeMémoire : Instruction {
+    @genre CHARGE_MEMOIRE
+    @comme charge_mémoire
+    @code  ChargeMémoire
+    @nom_inst crg
+
+    Atome *source
+}
+
+// Un opérateur par type (ajt, sst, etc.)
+OpérateurBinaire : Instruction {
+    @genre CHARGE_MEMOIRE
+    @comme charge_mémoire
+    @code  ChargeMémoire
+    @nom_inst crg
+
+    Atome *opérande_gauche
+    Atome *opérande_droite
+}
+
+// crée une parseuse pour créer des Instructions
+// %15 crg %14, *z8
+
+Instruction *instruction;
+
+// parse_nombre
+instruction->numero = consomme_nombre_entier();
+
+// parse instruction
+if (nom_inst == ID::crg) {
+    const auto *lexeme = lexeme_courant()
+    consomme()
+
+    auto source = parse_operande();
+
+    auto crg = cree_instruction<InstructionChargeMemoire>();
+    crg->source = source;
+
+    instruction = crg;
+}
+
+consomme(GenreLexeme::VIRGULE);
+
+// parse_type
+instruction->type = parse_type();

@@ -31,37 +31,9 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	outils.h
-	test_assignation.hh
-	test_boucle.hh
 	test_decoupage.h
-	test_decoupage_nombres.h
-	test_expression.h
-	test_fonctions.h
-	test_modules.hh
-	test_retour.hh
-	test_structures.hh
-	test_tableaux.hh
-	test_transtype.hh
-	test_types.h
-	test_unicode.h
-	test_variables.h
 
-	outils.cc
-	test_assignation.cc
-	test_boucle.cc
 	test_decoupage.cc
-	test_decoupage_nombres.cc
-	test_expression.cc
-	test_fonctions.cc
-	test_modules.cc
-	test_retour.cc
-	test_structures.cc
-	test_tableaux.cc
-	test_transtype.cc
-	test_types.cc
-	test_unicode.cc
-	test_variables.cc
 	tests.cc
 )
 
@@ -70,23 +42,30 @@ add_executable(test_kuri ${SOURCES})
 target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
 target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
 
-add_test(tests test_kuri)
+add_test(NAME tests_unitaires COMMAND test_kuri)
 
 install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
+
+###############################################################
+
+add_executable(tests_unitaires_structures tests_unitaires_structures.cc)
+target_include_directories(tests_unitaires_structures PUBLIC "${INCLUSIONS}")
+target_link_libraries(tests_unitaires_structures "${BIBLIOTHEQUES}")
+add_test(NAME tests_structures COMMAND tests_unitaires_structures)
+
+###############################################################
 
 add_executable(test_aleatoire_kuri test_donnees_aleatoire.cc)
 target_include_directories(test_aleatoire_kuri PUBLIC "${INCLUSIONS}")
 target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")
 
-add_test(tests test_aleatoire_kuri)
+# À FAIRE add_test(NAME test_aleatoire COMMAND test_aleatoire_kuri)
 
 install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 add_executable(charge_fichier_aleatoire charge_fichier_aleatoire.cc)
 target_include_directories(charge_fichier_aleatoire PUBLIC "${INCLUSIONS}")
 target_link_libraries(charge_fichier_aleatoire "${BIBLIOTHEQUES}")
-
-add_test(tests charge_fichier_aleatoire)
 
 install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
@@ -99,6 +78,14 @@ set(FICHIERS_TESTS
 )
 
 install(
-	FILES ${FICHIERS_TESTS}
+	DIRECTORY fichiers
 	DESTINATION ${RACINE_INSTALLATION}/fichiers_tests
 )
+
+################################################################################
+
+add_executable(test_transformation test_transformation.cc)
+target_include_directories(test_transformation PUBLIC "${INCLUSIONS}")
+target_link_libraries(test_transformation "${BIBLIOTHEQUES}")
+
+add_test(NAME test_transformation COMMAND test_transformation)

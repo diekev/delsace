@@ -1,0 +1,11 @@
+/* Crash quand nous référençons une fonction polymorphique. */
+
+importe Fondation
+
+principale :: fonc () -> z32
+{
+    chn := copie_chaine("chaine test")
+    /* Fut un temps, « déloge » était une instruction. Certaines sources ne furent pas mises à jour. */
+    déloge chn
+    retourne 0
+}

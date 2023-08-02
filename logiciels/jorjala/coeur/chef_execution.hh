@@ -31,52 +31,52 @@
 struct Jorjala;
 
 class ChefExecution {
-	Jorjala &m_jorjala;
-	float m_progression_parallele = 0.0f;
-	std::mutex m_mutex_progression{};
+    Jorjala &m_jorjala;
+    float m_progression_parallele = 0.0f;
+    std::mutex m_mutex_progression{};
 
-	int m_nombre_a_executer = 0;
-	int m_nombre_execution = 0;
+    int m_nombre_a_executer = 0;
+    int m_nombre_execution = 0;
 
-public:
-	explicit ChefExecution(Jorjala &jorjala);
+  public:
+    explicit ChefExecution(Jorjala &jorjala);
 
-	bool interrompu() const;
+    bool interrompu() const;
 
-	/**
-	 * Indique la progression d'un algorithme en série, dans un seul thread.
-	 */
-	void indique_progression(float progression);
+    /**
+     * Indique la progression d'un algorithme en série, dans un seul thread.
+     */
+    void indique_progression(float progression);
 
-	/**
-	 * Indique la progression depuis le corps d'une boucle parallèle. Le delta
-	 * est la quantité de travail effectuée dans le thread du corps.
-	 *
-	 * Un mutex est verrouillé à chaque appel, et le delta est ajouté à une
-	 * progression globale mise à zéro à chaque appel à demarre_evaluation().
-	 */
-	void indique_progression_parallele(float delta);
+    /**
+     * Indique la progression depuis le corps d'une boucle parallèle. Le delta
+     * est la quantité de travail effectuée dans le thread du corps.
+     *
+     * Un mutex est verrouillé à chaque appel, et le delta est ajouté à une
+     * progression globale mise à zéro à chaque appel à demarre_evaluation().
+     */
+    void indique_progression_parallele(float delta);
 
-	void demarre_evaluation(const char *message);
+    void demarre_evaluation(const char *message);
 
-	void reinitialise();
+    void reinitialise();
 
-	void incremente_compte_a_executer();
+    void incremente_compte_a_executer();
 };
 
 /* ************************************************************************** */
 
 struct ChefWolika : public wlk::interruptrice {
-	ChefExecution *chef;
+    ChefExecution *chef;
 
-	ChefWolika(ChefExecution *chef_ex, const char *message);
+    ChefWolika(ChefExecution *chef_ex, const char *message);
 
-	ChefWolika(ChefWolika const &) = default;
-	ChefWolika &operator=(ChefWolika const &) = default;
+    ChefWolika(ChefWolika const &) = default;
+    ChefWolika &operator=(ChefWolika const &) = default;
 
-	bool interrompue() const override;
+    bool interrompue() const override;
 
-	void indique_progression(float progression) override;
+    void indique_progression(float progression) override;
 
-	void indique_progression_parallele(float delta) override;
+    void indique_progression_parallele(float delta) override;
 };

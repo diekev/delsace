@@ -1,0 +1,124 @@
+// ADN pour les fonctions d'interface de la Compilatrice.
+
+/* --------------------------------------------------------------------------
+ * Ajout de chaines ou fichiers à la compilation.
+ */
+
+/* Ajoute du code source au module défaut de compilation. */
+fonction ajoute_chaine_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
+
+/* Ajoute un fichier source au module défaut de compilation. */
+fonction ajoute_fichier_à_la_compilation(EspaceDeTravail * espace, chaine_statique c) -> void
+
+/* Ajoute du code source au module donné. */
+fonction ajoute_chaine_au_module(EspaceDeTravail * espace, Module * module, chaine_statique c)
+
+/* --------------------------------------------------------------------------
+ * Accès aux données d'installation de Kuri.
+ */
+
+/* Retourne le chemin racine de l'installation de Kuri. */
+fonction compilatrice_racine_installation_kuri() -> chaine_statique
+
+/* --------------------------------------------------------------------------
+ * Accès aux modules.
+ */
+
+/* Retourne le module où se trouve l'appel à cette fonction. */
+fonction compilatrice_module_courant() -> Module *
+
+/* Retourne le module racine de la compilation. */
+fonction compilatrice_module_racine_compilation() -> Module *
+
+/* Retourne le module ayant défini le code, ou nul si aucun ne l'a défini. */
+fonction compilatrice_module_pour_code(NoeudCode * code) -> Module *
+
+/* Retourne le module ayant défini le type, ou nul si aucun ne l'a défini
+ * (par exemple pour les types de bases comme z32). */
+fonction compilatrice_module_pour_type(InfoType * type) -> Module *
+
+/* Retourne le nom du module (à savoir le nom du dossier), ou une chaine vide si le module
+ * est le module racine de la compilation (celui contenant le fichier principal de compilation). */
+fonction compilatrice_nom_module(Module * module) -> chaine_statique
+
+/* Retourne le chemin complet du module. */
+fonction compilatrice_chemin_module(Module * module) -> chaine_statique
+
+/* --------------------------------------------------------------------------
+ * Accès/modification des options de compilation.
+ */
+
+/* Retourne les options de compilations de l'espace défaut de compilation. */
+fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
+
+/* Ajourne les options de compilations de l'espace défaut de compilation. */
+fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void
+
+/* --------------------------------------------------------------------------
+ * Interception de messages.
+ */
+
+/* Retourne le dernier message reçu lors de la compilation. Si aucun message
+ * n'est disponible, le métaprogramme est mis en pause. */
+fonction compilatrice_attend_message() -> Message *
+
+/* Indique à la compilatrice que le message fut reçu. */
+fonction compilatrice_message_reçu(Message *message) -> void
+
+/* Indique à la compilatrice que nous souhaitons recevoir des messages. */
+fonction compilatrice_commence_interception(EspaceDeTravail * espace)
+
+/* Indique à la compilatrice que nous ne souhaitons plus recevoir des messages. */
+fonction compilatrice_termine_interception(EspaceDeTravail * espace)
+
+/* --------------------------------------------------------------------------
+ * Accès aux et rapport d'erreurs.
+ */
+
+/* Rapporte une erreur, la compilation sera alors terminée. */
+fonction compilatrice_rapporte_erreur(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
+
+/* Retourne vrai si l'espace donné possède une erreur de compilation. */
+fonction compilatrice_possède_erreur(EspaceDeTravail * espace) -> bool
+
+/* --------------------------------------------------------------------------
+ * Rapport d'avertissements.
+ */
+
+/* Rapporte un avertissemnt, la compilation ne sera pas terminée. */
+fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
+
+/* --------------------------------------------------------------------------
+ * Espace de travail.
+ */
+
+/* Retourne l'espace de travail dans lequel le métaprogramme appelant la fonction est exécuté. */
+fonction compilatrice_espace_courant() -> EspaceDeTravail *
+
+/* Retourne l'espace défaut de compilation, celui créé implicitement pour compiler le ficheir
+ * principal. */
+fonction espace_défaut_compilation() -> EspaceDeTravail *
+
+/* Crée un nouvel espace de travail, et retourne un pointeur vers celui-ci. */
+fonction démarre_un_espace_de_travail(chaine_statique nom, OptionsDeCompilation * options) -> EspaceDeTravail *
+
+/* --------------------------------------------------------------------------
+ * Léxage de fichiers.
+ */
+
+/* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
+fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
+
+/* --------------------------------------------------------------------------
+ * Accès aux fonctions.
+ */
+
+/* Retourne un tableau de toutes les fonctions parsées au moment de l'appel à cette fonction. */
+fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []
+
+/* --------------------------------------------------------------------------
+ * Accès aux arguments de la ligne de commande pour les métaprogrammes.
+ */
+
+/* Retourne la liste des arguments passés à la ligne de commande de la compilatrice Kuri après "--". */
+fonction compilatrice_donne_arguments_ligne_de_commande() -> chaine_statique []

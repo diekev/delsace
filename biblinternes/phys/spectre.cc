@@ -125,7 +125,7 @@ void trie_echantillons_spectre(
 	vec.reserve(n);
 
 	for (auto i = 0; i < n; ++i) {
-		vec.pousse(std::make_pair(lambdas[i], valeurs[i]));
+		vec.ajoute(std::make_pair(lambdas[i], valeurs[i]));
 	}
 
 	std::sort(vec.debut(), vec.fin());
@@ -652,7 +652,10 @@ SpectreRGB::SpectreRGB(SpectreRGB const &spectre, TypeSpectre type)
 	: SpectreCoefficient<3>()
 {
 	INUTILISE(type);
-	*this = spectre;
+
+	for (auto i = 0; i < 3; ++i) {
+		m_coefficients[i] = spectre.m_coefficients[i];
+	}
 }
 
 SpectreRGB SpectreRGB::depuis_rgb(float r, float g, float b, TypeSpectre type)

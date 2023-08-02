@@ -29,22 +29,22 @@
 #include <cassert>
 #include <string>
 
-#undef DEBOGUE_MEMOIRE
-
-#ifdef DEBOGUE_MEMOIRE
-#	include "biblinternes/structures/dico.hh"
-#endif
-
 namespace memoire {
 
-struct logeuse_memoire {
-	std::atomic_long memoire_consommee = 0;
-	std::atomic_long memoire_allouee = 0;
+template <typename T>
+inline constexpr int64_t calcule_memoire(int64_t nombre)
+{
+	return static_cast<int64_t>(sizeof(T)) * nombre;
+}
 
-#ifdef DEBOGUE_MEMOIRE
-	/* XXX - il est possible d'avoir une situation de concurence sur la table */
-	dls::dico<const char *, std::atomic_long> tableau_allocation;
-#endif
+struct logeuse_memoire {
+    std::atomic_int64_t memoire_consommee = 0;
+    std::atomic_int64_t memoire_allouee = 0;
+    std::atomic_int64_t nombre_allocations = 0;
+    std::atomic_int64_t nombre_reallocations = 0;
+    std::atomic_int64_t nombre_deallocations = 0;
+
+	logeuse_memoire() = default;
 
 	~logeuse_memoire();
 
@@ -54,61 +54,57 @@ struct logeuse_memoire {
 	logeuse_memoire &operator=(logeuse_memoire const &) = delete;
 	logeuse_memoire &operator=(logeuse_memoire &&) = delete;
 
-	void ajoute_memoire(const char *message, long taille);
-
-	void enleve_memoire(const char *message, long taille);
-
 	template <typename T, typename... Args>
 	[[nodiscard]] T *loge(const char *message, Args &&... args)
 	{
-		auto ptr = new T(args...);
+		auto ptr = static_cast<T *>(loge_generique(message, calcule_memoire<T>(1)));
 
 		if (ptr == nullptr) {
 			throw std::bad_alloc();
 		}
 
-		ajoute_memoire(message, static_cast<long>(sizeof(T)));
+		new (ptr) T(args...);
 
 		return ptr;
 	}
 
 	template <typename T>
-	[[nodiscard]] T *loge_tableau(const char *message, long nombre)
+	[[nodiscard]] T *loge_tableau(const char *message, int64_t nombre)
 	{
 		assert(nombre >= 0);
 
-		auto ptr = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nombre)));
+		auto ptr = static_cast<T *>(loge_generique(message, calcule_memoire<T>(nombre)));
 
 		if (ptr == nullptr) {
 			throw std::bad_alloc();
 		}
 
-		ajoute_memoire(message, static_cast<long>(sizeof(T)) * nombre);
-
 		return ptr;
 	}
 
 	template <typename T>
-	void reloge_tableau(const char *message, T *&ptr, long ancienne_taille, long nouvelle_taille)
+	void reloge_tableau(const char *message, T *&ptr, int64_t ancienne_taille, int64_t nouvelle_taille)
 	{
 		assert(ancienne_taille >= 0);
 		assert(nouvelle_taille >= 0);
 
 		if constexpr (std::is_trivially_copyable_v<T>) {
-			ptr = static_cast<T *>(realloc(ptr, sizeof(T) * static_cast<size_t>(nouvelle_taille)));
+			ptr = static_cast<T *>(reloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille), calcule_memoire<T>(nouvelle_taille)));
 		}
 		else {
-			auto res = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nouvelle_taille)));
+			auto res = static_cast<T *>(loge_generique(message, calcule_memoire<T>(nouvelle_taille)));
 
-			for (auto i = 0; i < ancienne_taille; ++i) {
-				res[i] = ptr[i];
+			for (auto i = 0; i < nouvelle_taille; ++i) {
+				new (&res[i]) T();
 			}
 
-			free(ptr);
+			for (auto i = 0; i < ancienne_taille; ++i) {
+				res[i] = std::move(ptr[i]);
+			}
+
+			deloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
 			ptr = res;
 		}
-
-		ajoute_memoire(message, static_cast<long>(sizeof(T)) * (nouvelle_taille - ancienne_taille));
 	}
 
 	template <typename T>
@@ -118,42 +114,62 @@ struct logeuse_memoire {
 			return;
 		}
 
-		delete ptr;
-		ptr = nullptr;
+		ptr->~T();
 
-		enleve_memoire(message, static_cast<long>(sizeof(T)));
+		deloge_generique(message, ptr, calcule_memoire<T>(1));
+		ptr = nullptr;
 	}
 
 	template <typename T>
-	void deloge_tableau(const char *message, T *&ptr, long nombre)
+	void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
 	{
 		assert(nombre >= 0);
 
-		if (ptr == nullptr) {
-			return;
-		}
-
-		free(ptr);
+		deloge_generique(message, ptr, calcule_memoire<T>(nombre));
 		ptr = nullptr;
-
-		enleve_memoire(message, static_cast<long>(sizeof(T)) * nombre);
 	}
 
-	static logeuse_memoire &instance();
+	static inline logeuse_memoire &instance()
+	{
+		return m_instance;
+	}
 
 private:
 	static logeuse_memoire m_instance;
+
+	inline void ajoute_memoire(int64_t taille)
+	{
+		this->memoire_allouee += taille;
+		this->memoire_consommee = std::max(this->memoire_allouee.load(), this->memoire_consommee.load());
+	}
+
+	inline void enleve_memoire(int64_t taille)
+	{
+		this->memoire_allouee -= taille;
+	}
+
+	void *loge_generique(const char *message, int64_t taille);
+
+	void *reloge_generique(const char *message, void *ptr, int64_t ancienne_taille, int64_t nouvelle_taille);
+
+	void deloge_generique(const char *message, void *ptr, int64_t taille);
 };
 
 /**
  * Retourne la quantité en octets de mémoire allouée au moment de l'appel.
  */
-[[nodiscard]] long allouee();
+[[nodiscard]] int64_t allouee();
 
 /**
  * Retourne la quantité en octets de mémoire consommée au moment de l'appel.
  */
-[[nodiscard]] long consommee();
+[[nodiscard]] int64_t consommee();
+
+[[nodiscard]] int64_t nombre_allocations();
+
+[[nodiscard]] int64_t nombre_reallocations();
+
+[[nodiscard]] int64_t nombre_deallocations();
 
 /**
  * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
@@ -166,7 +182,7 @@ private:
  * 8564 -> "8 Ko"
  * 16789432158 -> "15 Go"
  */
-[[nodiscard]] std::string formate_taille(long octets);
+[[nodiscard]] std::string formate_taille(int64_t octets);
 
 template <typename T, typename... Args>
 [[nodiscard]] T *loge(const char *message, Args &&...args)
@@ -176,14 +192,14 @@ template <typename T, typename... Args>
 }
 
 template <typename T>
-void reloge_tableau(const char *message, T *&ptr, long ancienne_taille, long nouvelle_taille)
+void reloge_tableau(const char *message, T *&ptr, int64_t ancienne_taille, int64_t nouvelle_taille)
 {
 	auto &logeuse = logeuse_memoire::instance();
 	logeuse.reloge_tableau(message, ptr, ancienne_taille, nouvelle_taille);
 }
 
 template <typename T>
-[[nodiscard]] T *loge_tableau(const char *message, long nombre)
+[[nodiscard]] T *loge_tableau(const char *message, int64_t nombre)
 {
 	auto &logeuse = logeuse_memoire::instance();
 	return logeuse.loge_tableau<T>(message, nombre);
@@ -197,7 +213,7 @@ void deloge(const char *message, T *&ptr)
 }
 
 template <typename T>
-void deloge_tableau(const char *message, T *&ptr, long nombre)
+void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
 {
 	auto &logeuse = logeuse_memoire::instance();
 	logeuse.deloge_tableau<T>(message, ptr, nombre);

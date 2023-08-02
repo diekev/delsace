@@ -1,0 +1,175 @@
+importe Aléa
+importe Chaine
+importe SysFichier
+
+ContexteEntropisation :: struct {
+    document: *Document
+    gna: *GNA
+
+    profondeur: z32
+    éléments_créés: z32
+
+    profondeur_max: z32
+    nombre_enfants_max: z32
+    nombre_éléments_max: z32
+}
+
+choisis_un_de :: fonc (gna: *GNA, tags: ...*ChaineInternée) -> *ChaineInternée
+{
+    index := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
+    retourne tags[index]
+}
+
+tag_enfant_possible :: fonc (gna: *GNA, tag: *ChaineInternée) -> *ChaineInternée
+{
+    si tag == TAG_head {
+        retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript)
+    }
+
+    si tag == TAG_table {
+        retourne TAG_tbody
+    }
+
+    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
+}
+
+nombre_enfants_possibles :: fonc (gna: *GNA, tag: *ChaineInternée) -> z32
+{
+    si tag == TAG_table {
+        retourne 1
+    }
+
+    retourne gna.uniforme(0.0, 10.0) comme z32
+}
+
+génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Élément)
+{
+    si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
+        retourne
+    }
+
+    si ctx_entropie.éléments_créés >= ctx_entropie.nombre_éléments_max {
+        retourne
+    }
+
+    gna := ctx_entropie.gna
+
+    doit_faire_des_enfants := gna.uniforme(0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32)
+    saufsi doit_faire_des_enfants {
+        retourne
+    }
+
+    nombre_enfants := nombre_enfants_possibles(gna, parent.texte)
+    pour 0 ... nombre_enfants - 1 {
+        enfant := crée_élément_avec_tag(ctx_entropie.document, tag_enfant_possible(gna, parent.texte))
+        ctx_entropie.éléments_créés += 1
+        ajoute_enfant(parent, enfant)
+    }
+
+    ctx_entropie.profondeur += 1
+    pour parent.enfants {
+        saufsi it.genre == GenreNoeud.Élément {
+            continue
+        }
+
+        élément_enfant := it comme *Élément
+
+        saufsi !est_tag_auto_fermant(élément_enfant.texte) {
+            continue
+        }
+
+        si élément_enfant.texte == TAG_script {
+            continue
+        }
+
+        génère_enfants_récusifs(ctx_entropie, élément_enfant)
+    }
+    ctx_entropie.profondeur -= 1
+}
+
+ParamètresEntropisation :: struct {
+    limite_basse_enfants : z32
+    limite_haute_enfants : z32
+
+    limite_basse_profondeur : z32
+    limite_haute_profondeur : z32
+
+    limite_basse_éléments : z32
+    limite_haute_éléments : z32
+
+    graine : n32
+
+    fichier_sortie : CheminFichier
+}
+
+ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichier
+{
+    si paramètres.fichier_sortie.chn == "" {
+        retourne sortie_standarde()
+    }
+
+    fichier := tente ouvre_fichier_pour_lecture(paramètres.fichier_sortie) piège nonatteignable
+
+    résultat := loge(Fichier)
+    mémoire(résultat) = fichier
+    retourne résultat
+}
+
+détruit_fichier :: fonc (paramètres: &ParamètresEntropisation, fichier: *Fichier)
+{
+    si paramètres.fichier_sortie.chn != "" {
+        _ := ferme(fichier)
+        déloge(fichier)
+    }
+}
+
+programme_entropisation :: fonc (paramètres: ParamètresEntropisation)
+{
+    diffère détruit_chaines_internées()
+
+    document := crée_document_aléatoire(paramètres)
+    diffère détruit_noeud(document)
+
+    fichier := paramètres.ouvre_fichier_sortie()
+    diffère détruit_fichier(paramètres, fichier)
+
+    _ := formatte_document(document, fichier)
+}
+
+/* Crée un document aléatoire selon les paramètres, la fonction appelante a pour responsabilité
+ * de détruire le document, et de s'assurer que les chaines internées utilisées par le document
+ * soit valide jusqu'à sa desctruction. */
+crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation) -> *Document
+{
+    ctx_kuri := initialise_contexte_kuri()
+
+    gna: *GNA = crée_gna(*ctx_kuri, paramètres.graine)
+    diffère détruit_gna(*ctx_kuri, gna)
+
+    document := crée_noeud_document()
+
+    doctype := crée_noeud_doctype(document)
+
+    html := crée_élément_avec_tag(document, TAG_html)
+    head := crée_élément_avec_tag(document, TAG_head)
+    body := crée_élément_avec_tag(document, TAG_body)
+
+    ajoute_enfant(document, doctype)
+    ajoute_enfant(document, html)
+    ajoute_enfant(html, head)
+    ajoute_enfant(html, body)
+
+    profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32
+
+    ctx_entropie: ContexteEntropisation
+    ctx_entropie.document = document
+    ctx_entropie.gna = gna
+    ctx_entropie.profondeur_max = profondeur_max
+    ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants
+    ctx_entropie.nombre_éléments_max = paramètres.limite_haute_éléments
+
+    génère_enfants_récusifs(ctx_entropie, head)
+    génère_enfants_récusifs(ctx_entropie, body)
+
+    retourne document
+}

@@ -37,7 +37,7 @@ struct tableau {
 	using type_pointeur_const = T const*;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 	using type_vecteur = std::vector<T, memoire::logeuse_guardee<T>>;
 
 	using iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::iterator;
@@ -51,11 +51,11 @@ private:
 public:
 	tableau() = default;
 
-	tableau(long taille_)
+	tableau(int64_t taille_)
 		: m_vecteur(static_cast<size_t>(taille_))
 	{}
 
-	tableau(long taille_, type_valeur valeur)
+	tableau(int64_t taille_, type_valeur valeur)
 		: m_vecteur(static_cast<size_t>(taille_), valeur)
 	{}
 
@@ -65,7 +65,7 @@ public:
 
 	tableau(tableau &&autre)
 	{
-		this->echange(autre);
+		this->permute(autre);
 	}
 
 	template <typename __iter_horsin, typename = std::_RequireInputIter<__iter_horsin>>
@@ -93,35 +93,35 @@ public:
 
 	tableau &operator=(tableau &&autre)
 	{
-		this->echange(autre);
+		this->permute(autre);
 		return *this;
 	}
 
-	void echange(tableau &autre)
+	void permute(tableau &autre)
 	{
 		m_vecteur.swap(autre.m_vecteur);
 	}
 
-	type_reference operator[](long idx)
+	type_reference operator[](int64_t idx)
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_vecteur.at(static_cast<size_t>(idx));
 	}
 
-	type_reference_const operator[](long idx) const
+	type_reference_const operator[](int64_t idx) const
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_vecteur.at(static_cast<size_t>(idx));
 	}
 
-	type_reference a(long idx)
+	type_reference a(int64_t idx)
 	{
 		return this->operator[](idx);
 	}
 
-	type_reference_const a(long idx) const
+	type_reference_const a(int64_t idx) const
 	{
 		return this->operator[](idx);
 	}
@@ -146,27 +146,27 @@ public:
 		m_vecteur.pop_back();
 	}
 
-	void pousse(type_reference_const valeur)
+	void ajoute(type_reference_const valeur)
 	{
 		m_vecteur.push_back(valeur);
 	}
 
-	void pousse(type_valeur &&valeur)
+	void ajoute(type_valeur &&valeur)
 	{
 		m_vecteur.push_back(std::move(valeur));
 	}
 
-	void reserve(long nombre)
+	void reserve(int64_t nombre)
 	{
 		m_vecteur.reserve(static_cast<size_t>(nombre));
 	}
 
-	void redimensionne(long nouvelle_taille)
+	void redimensionne(int64_t nouvelle_taille)
 	{
 		m_vecteur.resize(static_cast<size_t>(nouvelle_taille));
 	}
 
-	void redimensionne(long nouvelle_taille, type_reference_const valeur)
+	void redimensionne(int64_t nouvelle_taille, type_reference_const valeur)
 	{
 		m_vecteur.resize(static_cast<size_t>(nouvelle_taille), valeur);
 	}
@@ -176,14 +176,14 @@ public:
 		m_vecteur.shrink_to_fit();
 	}
 
-	long taille() const
+	int64_t taille() const
 	{
-		return static_cast<long>(m_vecteur.size());
+		return static_cast<int64_t>(m_vecteur.size());
 	}
 
-	long capacite() const
+	int64_t capacite() const
 	{
-		return static_cast<long>(m_vecteur.capacity());
+		return static_cast<int64_t>(m_vecteur.capacity());
 	}
 
 	type_pointeur donnees()
@@ -271,7 +271,7 @@ public:
 		m_vecteur.insert(ou, quoi);
 	}
 
-	void insere(iteratrice ou, long nombre, type_reference_const quoi)
+	void insere(iteratrice ou, int64_t nombre, type_reference_const quoi)
 	{
 		m_vecteur.insert(ou, static_cast<size_t>(nombre), quoi);
 	}

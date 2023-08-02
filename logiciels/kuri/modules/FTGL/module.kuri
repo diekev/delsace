@@ -1,0 +1,5 @@
+charge "interface_ftgl"
+
+libfreetype :: #bibliothèque "freetype"
+
+#dépendance_bibliothèque libftgl libfreetype

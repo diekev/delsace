@@ -35,36 +35,36 @@ class TamponRendu;
  * manipulatrice de position dans la scène 3D.
  */
 class RenduManipulatricePosition {
-	TamponRendu *m_tampon_axe_x = nullptr;
-	TamponRendu *m_tampon_axe_y = nullptr;
-	TamponRendu *m_tampon_axe_z = nullptr;
-	TamponRendu *m_tampon_poignee_xyz = nullptr;
+    TamponRendu *m_tampon_axe_x = nullptr;
+    TamponRendu *m_tampon_axe_y = nullptr;
+    TamponRendu *m_tampon_axe_z = nullptr;
+    TamponRendu *m_tampon_poignee_xyz = nullptr;
 
-	Manipulatrice3D *m_pointeur = nullptr;
+    Manipulatrice3D *m_pointeur = nullptr;
 
-public:
-	/**
-	 * Construit une instance de RenduManipulatricePosition selon les dimensions
-	 * spécifiées. La construction implique la création de tampons OpenGL, donc
-	 * elle doit se faire dans un contexte OpenGL valide.
-	 */
-	RenduManipulatricePosition();
+  public:
+    /**
+     * Construit une instance de RenduManipulatricePosition selon les dimensions
+     * spécifiées. La construction implique la création de tampons OpenGL, donc
+     * elle doit se faire dans un contexte OpenGL valide.
+     */
+    RenduManipulatricePosition();
 
-	RenduManipulatricePosition(RenduManipulatricePosition const &) = default;
-	RenduManipulatricePosition &operator=(RenduManipulatricePosition const &) = default;
+    RenduManipulatricePosition(RenduManipulatricePosition const &) = delete;
+    RenduManipulatricePosition &operator=(RenduManipulatricePosition const &) = delete;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduManipulatricePosition();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduManipulatricePosition();
 
-	void manipulatrice(Manipulatrice3D *pointeur);
+    void manipulatrice(Manipulatrice3D *pointeur);
 
-	/**
-	 * Dessine la manipulatrice dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine la manipulatrice dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };
 
 /* ************************************************************************** */
@@ -74,36 +74,36 @@ public:
  * manipulatrice d'échelle dans la scène 3D.
  */
 class RenduManipulatriceEchelle {
-	TamponRendu *m_tampon_axe_x = nullptr;
-	TamponRendu *m_tampon_axe_y = nullptr;
-	TamponRendu *m_tampon_axe_z = nullptr;
-	TamponRendu *m_tampon_poignee_xyz = nullptr;
+    TamponRendu *m_tampon_axe_x = nullptr;
+    TamponRendu *m_tampon_axe_y = nullptr;
+    TamponRendu *m_tampon_axe_z = nullptr;
+    TamponRendu *m_tampon_poignee_xyz = nullptr;
 
-	Manipulatrice3D *m_pointeur = nullptr;
+    Manipulatrice3D *m_pointeur = nullptr;
 
-public:
-	/**
-	 * Construit une instance de RenduManipulatriceEchelle selon les dimensions
-	 * spécifiées. La construction implique la création de tampons OpenGL, donc
-	 * elle doit se faire dans un contexte OpenGL valide.
-	 */
-	RenduManipulatriceEchelle();
+  public:
+    /**
+     * Construit une instance de RenduManipulatriceEchelle selon les dimensions
+     * spécifiées. La construction implique la création de tampons OpenGL, donc
+     * elle doit se faire dans un contexte OpenGL valide.
+     */
+    RenduManipulatriceEchelle();
 
-	RenduManipulatriceEchelle(RenduManipulatriceEchelle const &) = default;
-	RenduManipulatriceEchelle &operator=(RenduManipulatriceEchelle const &) = default;
+    RenduManipulatriceEchelle(RenduManipulatriceEchelle const &) = delete;
+    RenduManipulatriceEchelle &operator=(RenduManipulatriceEchelle const &) = delete;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduManipulatriceEchelle();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduManipulatriceEchelle();
 
-	void manipulatrice(Manipulatrice3D *pointeur);
+    void manipulatrice(Manipulatrice3D *pointeur);
 
-	/**
-	 * Dessine la manipulatrice dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine la manipulatrice dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };
 
 /* ************************************************************************** */
@@ -113,33 +113,33 @@ public:
  * manipulatrice de rotation dans la scène 3D.
  */
 class RenduManipulatriceRotation {
-	TamponRendu *m_tampon_axe_x = nullptr;
-	TamponRendu *m_tampon_axe_y = nullptr;
-	TamponRendu *m_tampon_axe_z = nullptr;
+    TamponRendu *m_tampon_axe_x = nullptr;
+    TamponRendu *m_tampon_axe_y = nullptr;
+    TamponRendu *m_tampon_axe_z = nullptr;
 
-	Manipulatrice3D *m_pointeur = nullptr;
+    Manipulatrice3D *m_pointeur = nullptr;
 
-public:
-	/**
-	 * Construit une instance de RenduManipulatriceRotation selon les dimensions
-	 * spécifiées. La construction implique la création de tampons OpenGL, donc
-	 * elle doit se faire dans un contexte OpenGL valide.
-	 */
-	RenduManipulatriceRotation();
+  public:
+    /**
+     * Construit une instance de RenduManipulatriceRotation selon les dimensions
+     * spécifiées. La construction implique la création de tampons OpenGL, donc
+     * elle doit se faire dans un contexte OpenGL valide.
+     */
+    RenduManipulatriceRotation();
 
-	RenduManipulatriceRotation(RenduManipulatriceRotation const &) = default;
-	RenduManipulatriceRotation &operator=(RenduManipulatriceRotation const &) = default;
+    RenduManipulatriceRotation(RenduManipulatriceRotation const &) = delete;
+    RenduManipulatriceRotation &operator=(RenduManipulatriceRotation const &) = delete;
 
-	/**
-	 * Détruit les données de l'instance. Les tampons de rendu sont détruits et
-	 * utiliser l'instance crashera le programme.
-	 */
-	~RenduManipulatriceRotation();
+    /**
+     * Détruit les données de l'instance. Les tampons de rendu sont détruits et
+     * utiliser l'instance crashera le programme.
+     */
+    ~RenduManipulatriceRotation();
 
-	void manipulatrice(Manipulatrice3D *pointeur);
+    void manipulatrice(Manipulatrice3D *pointeur);
 
-	/**
-	 * Dessine la manipulatrice dans le contexte spécifié.
-	 */
-	void dessine(ContexteRendu const &contexte);
+    /**
+     * Dessine la manipulatrice dans le contexte spécifié.
+     */
+    void dessine(ContexteRendu const &contexte);
 };

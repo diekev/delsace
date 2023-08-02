@@ -34,407 +34,317 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/math/vecteur.hh"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/vision/camera.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "adaptrice_creation_maillage.h"
+#include "commande_kanba.hh"
 
-#include "../brosse.h"
-#include "../evenement.h"
 #include "../kanba.h"
-#include "../maillage.h"
-#include "../melange.h"
 
 /* ************************************************************************** */
 
-class CommandeZoomCamera : public Commande {
-public:
-	CommandeZoomCamera() = default;
+class CommandeZoomCamera : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
-		auto const delta = donnees.x;
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        auto const delta = donnees.x;
 
-		auto camera = kanba->camera;
+        auto camera = kanba.donne_caméra();
+        camera.applique_zoom(delta);
 
-		if (delta >= 0) {
-			auto distance = camera->distance() + camera->vitesse_zoom();
-			camera->distance(distance);
-		}
-		else {
-			const float temp = camera->distance() - camera->vitesse_zoom();
-			auto distance = std::max(0.0f, temp);
-			camera->distance(distance);
-		}
-
-		camera->ajuste_vitesse();
-		camera->besoin_ajournement(true);
-
-		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeTourneCamera : public Commande {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+class CommandeTourneCamera : public CommandeKanba {
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandeTourneCamera() = default;
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		INUTILISE(pointeur);
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        INUTILISE(kanba);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
-		auto camera = kanba->camera;
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        const float dx = (donnees.x - m_vieil_x);
+        const float dy = (donnees.y - m_vieil_y);
 
-		const float dx = (donnees.x - m_vieil_x);
-		const float dy = (donnees.y - m_vieil_y);
+        auto camera = kanba.donne_caméra();
+        camera.applique_tourne(dx, dy);
 
-		camera->tete(camera->tete() + dy * camera->vitesse_chute());
-		camera->inclinaison(camera->inclinaison() + dx * camera->vitesse_chute());
-		camera->besoin_ajournement(true);
-
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-
-		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
-	}
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandePanCamera : public Commande {
-	float m_vieil_x = 0.0f;
-	float m_vieil_y = 0.0f;
+class CommandePanCamera : public CommandeKanba {
+    float m_vieil_x = 0.0f;
+    float m_vieil_y = 0.0f;
 
-public:
-	CommandePanCamera() = default;
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_SI_INTERFACE_VOULUE;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		INUTILISE(pointeur);
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-		return EXECUTION_COMMANDE_MODALE;
-	}
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        INUTILISE(kanba);
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
-		auto camera = kanba->camera;
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
 
-		const float dx = (donnees.x - m_vieil_x);
-		const float dy = (donnees.y - m_vieil_y);
+        const float dx = (donnees.x - m_vieil_x);
+        const float dy = (donnees.y - m_vieil_y);
 
-		auto cible = (dy * camera->haut() - dx * camera->droite()) * camera->vitesse_laterale();
-		camera->cible(camera->cible() + cible);
-		camera->besoin_ajournement(true);
+        auto camera = kanba.donne_caméra();
+        camera.applique_pan(dx, dy);
 
-		m_vieil_x = donnees.x;
-		m_vieil_y = donnees.y;
-
-		kanba->notifie_observatrices(static_cast<type_evenement>(-1));
-	}
+        m_vieil_x = donnees.x;
+        m_vieil_y = donnees.y;
+    }
 };
 
 /* ************************************************************************** */
 
-static constexpr auto MIN_SEAUX = 4;
-static constexpr auto MAX_SEAUX = 256;
-
-template <typename T>
-auto restreint(T a, T min, T max)
+static bool seau_peut_être_peint(KNB::Seau seau,
+                                 dls::math::point2f const pos_pinceau,
+                                 float const rayon_carré)
 {
-	if (a < min) {
-		return min;
-	}
+    if (seau.donne_texels().est_vide()) {
+        return false;
+    }
 
-	if (a > max) {
-		return max;
-	}
+    const auto x_min = float(seau.donne_x());
+    const auto x_max = float(seau.donne_x() + seau.donne_largeur());
+    const auto y_min = float(seau.donne_y());
+    const auto y_max = float(seau.donne_y() + seau.donne_hauteur());
 
-	return a;
+    const dls::math::point2f coins_seau[4] = {
+        dls::math::point2f(x_min, y_min),
+        dls::math::point2f(x_min, y_max),
+        dls::math::point2f(x_max, y_min),
+        dls::math::point2f(x_max, y_max),
+    };
+
+    for (auto coin : coins_seau) {
+        auto dist = dls::math::longueur_carree(coin - pos_pinceau);
+
+        if (dist < rayon_carré) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-struct TexelProjete {
-	/* La position du texel sur l'écran. */
-	dls::math::point2f pos{};
+class CommandePeinture3D : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-	/* L'index du polygone possédant le texel. */
-	long index{};
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        auto maillage = kanba.donne_maillage();
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-	/* La position u du texel. */
-	unsigned int u{};
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
-	/* La position v du texel. */
-	unsigned int v{};
-};
+        if (calque == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-struct Seau {
-	dls::liste<TexelProjete> texels = dls::liste<TexelProjete>{};
-	dls::math::vec2f min = dls::math::vec2f(0.0);
-	dls::math::vec2f max = dls::math::vec2f(0.0);
+        if (calque.est_verrouillé()) {
+            // À FAIRE : message d'erreur dans la barre d'état.
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-	Seau() = default;
-};
+        auto pinceau = kanba.donne_pinceau();
+        auto cannevas = kanba.donne_canevas();
+        cannevas.ajourne_pour_peinture();
 
-Seau *cherche_seau(dls::tableau<Seau> &seaux, dls::math::point2f const &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
-{
-	auto x = pos.x / static_cast<float>(largeur);
-	auto y = pos.y / static_cast<float>(hauteur);
+        auto pos_pinceau = dls::math::point2f(donnees.x, donnees.y);
+        auto tampon = calque.donne_tampon_couleur().données_crues();
 
-	auto sx = static_cast<float>(seaux_x) * x;
-	auto sy = static_cast<float>(seaux_y) * y;
+        auto const &rayon_inverse = 1.0f / static_cast<float>(pinceau.donne_rayon());
+        auto const rayon_carré = float(pinceau.donne_rayon() * pinceau.donne_rayon());
+        auto const largeur = canaux.donne_largeur();
 
-	auto index = static_cast<long>(sx + sy * static_cast<float>(seaux_y));
+        if (kanba.donne_dessine_seaux()) {
+            cannevas.réinitialise_drapeaux_peinture_seaux();
+        }
 
-	index = restreint(index, 0l, seaux.taille() - 1);
+        bool polygones_modifiés[6] = {false, false, false, false, false, false};
 
-	return &seaux[index];
-}
+        auto index_seau = 0;
+        for (auto const &seau : cannevas.donne_seaux()) {
+            auto texels = seau.donne_texels();
 
-class CommandePeinture3D : public Commande {
-public:
-	CommandePeinture3D() = default;
+            if (!seau_peut_être_peint(seau, pos_pinceau, rayon_carré)) {
+                index_seau += 1;
+                continue;
+            }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
+            bool texel_modifié = false;
 
-		if (kanba->maillage == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+            for (auto const &texel : texels) {
+                auto pos_texel = texel.donne_pos();
+                auto pos2f_texel = dls::math::point2f(pos_texel.donne_x(), pos_texel.donne_y());
+                auto dist = dls::math::longueur(pos2f_texel - pos_pinceau);
 
-		auto maillage = kanba->maillage;
-		auto calque = maillage->calque_actif();
+                if (dist > static_cast<float>(pinceau.donne_rayon())) {
+                    continue;
+                }
 
-		if (calque == nullptr) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+                texel_modifié = true;
 
-		auto camera = kanba->camera;
-		auto brosse = kanba->brosse;
+                polygones_modifiés[texel.donne_index()] = true;
 
-		auto const &diametre_brosse = brosse->rayon * 2;
+                auto opacite = dist * rayon_inverse;
+                opacite = 1.0f - opacite * opacite;
 
-		auto seaux_x = camera->largeur() / diametre_brosse + 1;
-		auto seaux_y = camera->hauteur() / diametre_brosse + 1;
+                auto poly = maillage.donne_quadrilatère(texel.donne_index());
+                auto tampon_poly = tampon + (poly.donne_x() + poly.donne_y() * largeur);
+                auto index = uint32_t(texel.donne_v()) + uint32_t(texel.donne_u()) * largeur;
 
-		seaux_x = restreint(seaux_x, MIN_SEAUX, MAX_SEAUX);
-		seaux_y = restreint(seaux_y, MIN_SEAUX, MAX_SEAUX);
+                //                tampon_poly[index] = KNB::mélange(tampon_poly[index],
+                //                                                  pinceau.donne_couleur(),
+                //                                                  opacite *
+                //                                                  pinceau.donne_opacité(),
+                //                                                  pinceau.donne_mode_de_peinture());
 
-		//		std::cerr << "Il y a " << seaux_x << "x" << seaux_y << " seaux en tout\n";
-		//		std::cerr << "Taille écran " << camera->largeur() << "x" << camera->hauteur() << "\n";
-		//		std::cerr << "Taille seaux " << seaux_x * diametre_brosse << "x" << seaux_y * diametre_brosse << "\n";
+                tampon_poly[index] = pinceau.donne_couleur();
+            }
 
-		dls::tableau<Seau> seaux(seaux_x * seaux_y);
-
-		for (auto &seau : seaux) {
-			seau = Seau();
-		}
-
-		auto nombre_polys = maillage->nombre_polygones();
-
-		auto const &dir = dls::math::vec3f(
-							  -camera->dir().x,
-							  -camera->dir().y,
-							  -camera->dir().z);
-
-		for (auto i = 0; i < nombre_polys; ++i) {
-			auto poly = maillage->polygone(i);
-			auto const &angle = produit_scalaire(poly->nor, dir);
-
-			//std::cerr << "Angle : " << angle << '\n';
-
-			if (angle <= 0.0f || angle >= 1.0f) {
-				//std::cerr << "Le polygone " << poly->index << " ne fait pas face à l'écran !\n";
-				continue;
-			}
-
-			//std::cerr << "Le polygone " << poly->index << " fait face à l'écran !\n";
-
-			// projette texel sur l'écran
-			auto const &v0 = poly->s[0]->pos;
-
-#if 1
-			auto const &v1 = poly->s[1]->pos;
-			auto const &v3 = ((poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos);
-
-			auto const &e1 = v1 - v0;
-			auto const &e2 = v3 - v0;
-
-			auto const &du = e1 / static_cast<float>(poly->res_u);
-			auto const &dv = e2 / static_cast<float>(poly->res_v);
-#else
-			auto const &du = poly->du;
-			auto const &dv = poly->dv;
+#ifdef DEBUG_TOUCHES_SEAUX
+            seaux_touchés += texel_modifié;
 #endif
 
-			for (unsigned j = 0; j < poly->res_u; ++j) {
-				for (unsigned k = 0; k < poly->res_v; ++k) {
-					auto const &pos3d = v0 + static_cast<float>(j) * du + static_cast<float>(k) * dv;
+            if (kanba.donne_dessine_seaux()) {
+                if (texel_modifié) {
+                    cannevas.marque_seau_comme_peint(index_seau);
+                }
+                else {
+                    cannevas.marque_seau_comme_touché_par_pinceau(index_seau);
+                }
+            }
 
-					// calcul position 2D du texel
-					auto const &pos2d = camera->pos_ecran(dls::math::point3f(pos3d));
+            index_seau += 1;
+        }
 
-					// cherche seau
-					auto seau = cherche_seau(seaux, pos2d, seaux_x, seaux_y, camera->largeur(), camera->hauteur());
+        for (int i = 0; i < 6; i++) {
+            if (!polygones_modifiés[i]) {
+                continue;
+            }
 
-					TexelProjete texel;
-					texel.pos = pos2d;
-					texel.index = i;
-					texel.u = j;
-					texel.v = k;
+            calque.invalide_pour_peinture(i);
+        }
 
-					seau->texels.pousse(texel);
-				}
-			}
-		}
+        return EXECUTION_COMMANDE_MODALE;
+    }
 
-		auto pos_brosse = dls::math::point2f(donnees.x, donnees.y);
-
-		auto tampon = static_cast<dls::math::vec4f *>(calque->tampon);
-
-		auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
-
-		for (auto const &seau : seaux) {
-			if (seau.texels.est_vide()) {
-				continue;
-			}
-
-			//std::cerr << "Il y a " << seau.texels.taille() << " texels dans le seau !\n";
-
-			for (auto const &texel : seau.texels) {
-				auto dist = longueur(texel.pos - pos_brosse);
-
-				if (dist > static_cast<float>(brosse->rayon)) {
-					continue;
-				}
-
-				auto opacite = dist * rayon_inverse;
-				opacite = 1.0f - opacite * opacite;
-
-				auto poly = maillage->polygone(texel.index);
-				auto tampon_poly = tampon + (poly->x + poly->y * maillage->largeur_texture());
-				auto index = texel.v + texel.u * maillage->largeur_texture();
-
-				tampon_poly[index] = melange(tampon_poly[index],
-											 brosse->couleur,
-											 opacite * brosse->opacite,
-											 brosse->mode_fusion);
-			}
-		}
-
-		fusionne_calques(maillage->canaux_texture());
-
-		maillage->marque_texture_surrannee(true);
-		kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
-
-		return EXECUTION_COMMANDE_MODALE;
-	}
-
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		execute(pointeur, donnees);
-	}
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        execute_kanba(kanba, donnees);
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouteCube : public Commande {
-public:
-	CommandeAjouteCube() = default;
+class CommandeAjouteCube : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        auto maillage = KNB::crée_un_maillage_vide();
 
-		if (kanba->maillage) {
-			delete kanba->maillage;
-		}
+        auto adaptrice = AdaptriceCreationMaillage();
+        adaptrice.maillage = &maillage;
 
-		auto adaptrice = AdaptriceCreationMaillage();
-		adaptrice.maillage = new Maillage;
+        objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
 
-		objets::cree_boite(&adaptrice, 1.0f, 1.0f, 1.0f);
+        kanba.installe_maillage(maillage);
 
-		kanba->maillage = adaptrice.maillage;
-		kanba->maillage->cree_tampon();
-
-		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
-class CommandeAjouteSphere : public Commande {
-public:
-	CommandeAjouteSphere() = default;
+class CommandeAjouteSphere : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
-	{
-		auto kanba = std::any_cast<Kanba *>(pointeur);
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const & /*donnees*/) override
+    {
+        auto maillage = KNB::crée_un_maillage_vide();
 
-		if (kanba->maillage) {
-			delete kanba->maillage;
-		}
+        auto adaptrice = AdaptriceCreationMaillage();
+        adaptrice.maillage = &maillage;
 
-		auto adaptrice = AdaptriceCreationMaillage();
-		adaptrice.maillage = new Maillage;
+        objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
 
-		objets::cree_sphere_uv(&adaptrice, 1.0f, 48, 24);
+        kanba.installe_maillage(maillage);
 
-		kanba->maillage = adaptrice.maillage;
-		kanba->maillage->cree_tampon();
-
-		kanba->notifie_observatrices(type_evenement::calque | type_evenement::ajoute);
-
-		return EXECUTION_COMMANDE_REUSSIE;
-	}
+        return EXECUTION_COMMANDE_REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue3d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_zoom_camera",
-						   description_commande<CommandeZoomCamera>(
-							   "vue_3d", Qt::MiddleButton, 0, 0, true));
+    usine.enregistre_type(
+        "commande_zoom_camera",
+        description_commande<CommandeZoomCamera>("vue_3d", Qt::MiddleButton, 0, 0, true));
 
-	usine.enregistre_type("commande_tourne_camera",
-						   description_commande<CommandeTourneCamera>(
-							   "vue_3d", Qt::MiddleButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_tourne_camera",
+        description_commande<CommandeTourneCamera>("vue_3d", Qt::MiddleButton, 0, 0, false));
 
-	usine.enregistre_type("commande_pan_camera",
-						   description_commande<CommandePanCamera>(
-							   "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
+    usine.enregistre_type("commande_pan_camera",
+                          description_commande<CommandePanCamera>(
+                              "vue_3d", Qt::MiddleButton, Qt::ShiftModifier, 0, false));
 
-	usine.enregistre_type("commande_peinture_3D",
-						   description_commande<CommandePeinture3D>(
-							   "vue_3d", Qt::LeftButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_peinture_3D",
+        description_commande<CommandePeinture3D>("vue_3d", Qt::LeftButton, 0, 0, false));
 
-	usine.enregistre_type("ajouter_cube",
-						   description_commande<CommandeAjouteCube>(
-							   "vue_3d", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_cube",
+                          description_commande<CommandeAjouteCube>("vue_3d", 0, 0, 0, false));
 
-	usine.enregistre_type("ajouter_sphere",
-						   description_commande<CommandeAjouteSphere>(
-							   "vue_3d", 0, 0, 0, false));
+    usine.enregistre_type("ajouter_sphere",
+                          description_commande<CommandeAjouteSphere>("vue_3d", 0, 0, 0, false));
 }

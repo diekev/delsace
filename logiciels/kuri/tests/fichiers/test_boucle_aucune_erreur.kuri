@@ -1,0 +1,102 @@
+// ----------------------------
+// Cas : La plage d'une boucle 'pour' peut avoir des types réguliers
+
+foo :: fonc () -> rien
+{
+	pour x dans 'a'...'z' {
+	}
+	pour x dans 0...10 {
+	}
+	pour x dans 0.0...10.0 {
+	}
+}
+
+// ----------------------------
+// Cas : Le mot clé 'continue' peut apparaître dans une boucle
+
+foo :: fonc () -> rien
+{
+	boucle {
+		continue
+	}
+}
+
+// ----------------------------
+// Cas : Le mot clé 'arrête' peut apparaître dans une boucle
+
+foo :: fonc () -> rien
+{
+	boucle {
+		arrête
+	}
+}
+
+// ----------------------------
+// Cas : Il est possible d'associer la variable d'une boucle 'pour' à un contrôle 'arrête' ou 'continue'
+
+foo :: fonc () -> rien
+{
+	pour i dans 0 ... 10 {
+		arrête i
+	}
+
+	pour i dans 0 ... 10 {
+		continue i
+	}
+}
+
+// ----------------------------
+// Cas : On peut avoir des contrôles de flux dans des boucles 'pour' sans problème
+
+foo :: fonc () -> rien
+{
+	pour i dans 0 ... 10 {
+		si i > 5 {
+			si i > 8 {
+
+			}
+			sinon si i < 6 {
+
+			}
+			sinon {
+
+			}
+		}
+		sinon si i < 3 {
+
+		}
+		sinon {
+
+		}
+	}
+}
+
+// ----------------------------
+// Cas : On peut avoir des contrôles de flux dans des boucles 'boucle' sans problème
+
+foo :: fonc () -> rien
+{
+	i := 0;
+	boucle {
+		si i > 5 {
+			si i > 8 {
+
+			}
+			sinon si i < 6 {
+
+			}
+			sinon {
+
+			}
+		}
+		sinon si i < 3 {
+
+		}
+		sinon {
+
+		}
+
+		i = i + 1;
+	}
+}
+

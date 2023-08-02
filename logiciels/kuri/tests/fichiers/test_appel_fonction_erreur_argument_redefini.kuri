@@ -1,0 +1,27 @@
+// ------------------------------
+// Cas : Si un argument d'une fonction appelée est nommé, il ne peut pas prendre le nom d'un argument précédent anonyme.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(5, a=6);
+	retourne 0;
+}
+
+// ------------------------------
+// Cas : Un argument nommé ne peut avoir le nom d'un argument déjà nommé.
+
+ajouter :: fonc (a : z32, b : z32) -> z32
+{
+	retourne a + b;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	x := ajouter(a=5, a=6);
+	retourne x != 5;
+}

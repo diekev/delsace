@@ -1,0 +1,18 @@
+disposition "operatrice_3d_compression_normaux.jo" {
+	ligne {
+		étiquette(valeur="Nom Attribut Entrée")
+		chaine(valeur="N"; attache=nom_attribut_entrée)
+	}
+	ligne {
+		étiquette(valeur="Nom Attribut Sortie")
+		chaine(valeur="Noct"; attache=nom_attribut_sortie)
+	}
+	ligne {
+		étiquette(valeur="Quantifie")
+		case(valeur=faux; attache=quantifie; infobulle="Quantification des vecteurs normaux sur 2 octets par dimension")
+	}
+	ligne {
+		étiquette(valeur="Visualise")
+		case(valeur=vrai; attache=visualise; infobulle="Crée un attribut de couleur pour visualiser la différence entre les normaux d'entrée et ceux de sortie")
+	}
+}

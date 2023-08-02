@@ -24,60 +24,54 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
-class ControleNombreDecimal : public QWidget {
-	Q_OBJECT
+class ControleNombreDecimal : public BaseControle {
+    Q_OBJECT
 
-	float m_valeur = 0.0f;
-	float m_min = -std::numeric_limits<float>::max();
-	float m_max = std::numeric_limits<float>::max();
-	float m_precision = 10.0f;
-	float m_inv_precision = 1.0f / m_precision;
-	bool m_souris_pressee = false;
-	bool m_edition = false;
-	bool m_anime = false;
-	bool m_temps_exacte = false;
-	int m_vieil_x = 0;
-	int pad = 0;
-	QString m_tampon = "";
-	QString m_suffixe = "";
-	bool m_premier_changement = false;
+    float m_valeur = 0.0f;
+    float m_min = -std::numeric_limits<float>::max();
+    float m_max = std::numeric_limits<float>::max();
+    float m_precision = 10.0f;
+    float m_inv_precision = 1.0f / m_precision;
+    bool m_anime = false;
+    bool m_temps_exacte = false;
+    int pad = 0;
+    QString m_tampon = "";
+    QString m_suffixe = "";
 
-public:
-	explicit ControleNombreDecimal(QWidget *parent = nullptr);
+  public:
+    explicit ControleNombreDecimal(QWidget *parent = nullptr);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_double_clique_souris(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void gère_mouvement_souris(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void gère_fin_clique_souris(QMouseEvent *event) override;
 
-	void keyPressEvent(QKeyEvent *event) override;
+    RéponseÉvènement gère_entrée_clavier(QKeyEvent *event) override;
 
-	void marque_anime(bool ouinon, bool temps_exacte);
+    void marque_anime(bool ouinon, bool temps_exacte);
 
-	void ajourne_plage(float min, float max);
+    void ajourne_plage(float min, float max);
 
-	float valeur() const;
+    float valeur() const;
 
-	void valeur(const float v);
+    void valeur(const float v);
 
-	void suffixe(const QString &s);
+    void suffixe(const QString &s);
 
-	float min() const;
+    float min() const;
 
-	float max() const;
+    float max() const;
 
-Q_SIGNALS:
-	void prevaleur_changee();
-	void valeur_changee(float);
+  Q_SIGNALS:
+    void valeur_changee(float);
 
-public Q_SLOTS:
-	void ajourne_valeur(float valeur);
+  public Q_SLOTS:
+    void ajourne_valeur(float valeur);
 };
-

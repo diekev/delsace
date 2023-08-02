@@ -26,10 +26,10 @@
 
 int main()
 {
-	dls::test_unitaire::Controleuse controlleur;
+    dls::test_unitaire::Controleuse controlleur;
 
-	controlleur.performe_controles();
-	controlleur.imprime_resultat();
+    controlleur.performe_controles();
+    controlleur.imprime_resultat();
 
-	return 0;
+    return 0;
 }

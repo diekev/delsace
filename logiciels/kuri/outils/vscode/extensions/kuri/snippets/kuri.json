@@ -104,7 +104,7 @@
     "fonc": {
         "prefix": "fonc",
         "body": [
-            "fonc ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: fonc (${2:parameter_list}) -> ${3:type_retour}",
             "{",
             "\t${4:retourne}",
             "}"
@@ -114,7 +114,7 @@
     "principale": {
         "prefix": "principale",
         "body": [
-            "fonc principale(args : []*z8) : z32",
+            "principale :: fonc () -> z32",
             "{",
             "\t${1:expression}",
             "\tretourne 0",
@@ -125,7 +125,7 @@
     "corout": {
         "prefix": "corout",
         "body": [
-            "corout ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: corout (${2:parameter_list}) -> ${3:type_retour}",
             "{",
             "\t${4:retiens}",
             "}"
@@ -135,7 +135,7 @@
     "struct": {
         "prefix": "struct",
         "body": [
-            "struct ${1:nom_struct} {",
+            "${1:nom_struct} :: struct {",
             "\t${2:membre}",
             "}"
         ],
@@ -144,16 +144,25 @@
     "énum": {
         "prefix": "énum",
         "body": [
-            "énum ${1:nom_énum} {",
+            "${1:nom_énum} :: énum {",
             "\t${2:membre}",
             "}"
         ],
         "description": "Fragment de code pour une définition d'une énumération"
     },
+    "énum_drapeau": {
+        "prefix": "énum_drapeau",
+        "body": [
+            "${1:nom_énum} :: énum_drapeau {",
+            "\t${2:membre}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition d'une énumération drapeau"
+    },
     "union": {
         "prefix": "union",
         "body": [
-            "union ${1:nom_union} {",
+            "${1:nom_union} :: union {",
             "\t${2:membre}",
             "}"
         ],
@@ -173,7 +182,7 @@
     "discr/sinon": {
         "prefix": "discr/sinon",
         "body": [
-            "associe ${1:expression} {",
+            "discr ${1:expression} {",
             "\t${2:test} {",
             "\t\t${3:expression}"
             "\t}"
@@ -183,5 +192,18 @@
             "}"
         ],
         "description": "Fragment de code pour une instruction discr avec un bloc sinon"
+    },
+    "section_code": {
+        "prefix": "section_code",
+        "body": [
+            "/* ------------------------------------------------------------------------- */",
+            "/** \\nom ${1:nom_section}",
+            " * \\{ */",
+            "",
+            "${2:code}",
+            "",
+            "/** \\} */"
+        ],
+        "description": "Fragment de code pour une définir une section de code"
     }
 }

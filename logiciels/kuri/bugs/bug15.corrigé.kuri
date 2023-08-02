@@ -1,0 +1,19 @@
+// Bug corrigé par le commit : 0cab5ae23ddb96691fda8dbac3799c1c8a5e4571
+
+// On ne peut pas comparer un pointeur de fonction avec "nul"
+
+importe Support
+
+foo :: fonc () -> rien
+{
+
+}
+
+principale :: fonc () -> z32
+{
+    ptr := foo
+    saufsi (ptr != nul) {
+        retourne 1
+    }
+    retourne 0
+}

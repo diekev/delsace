@@ -1,47 +1,48 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
+#include "structures/chaine_statique.hh"
+#include "structures/enchaineuse.hh"
 
-struct ContexteGenerationCode;
-struct DonneesFonction;
-struct DonneesTypeFinal;
+struct IdentifiantCode;
+struct NoeudDeclarationEnteteFonction;
+struct Type;
 
-dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
+/**
+ * Une Broyeuse s'occupe de transformer une chaine de caractère en une chaine unique.
+ * Cette structure n'est pas sure pour le moultfilage: chaque fil doit avoir sa propre
+ * broyeuse.
+ */
+class Broyeuse {
+    /* Stockage pour toutes les chaines. */
+    Enchaineuse stockage_chaines{};
 
-dls::chaine const &nom_broye_type(
-		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &dt);
+    /* Stockage temporaire pour éviter d'allouer trop de chaines.
+     * Une fois le broyage terminé, la chaine temporaire est ajoutée au #stockage_chaine.
+     */
+    Enchaineuse stockage_temp{};
 
-dls::chaine const &nom_broye_type(
-		ContexteGenerationCode &contexte,
-		long index_type);
+  public:
+    /* Retourne le nom broyé de la chaine donnée. */
+    kuri::chaine_statique broye_nom_simple(kuri::chaine_statique const &nom);
 
-dls::chaine broye_nom_fonction(
-		ContexteGenerationCode &contexte,
-		DonneesFonction const &df,
-		dls::vue_chaine_compacte const &nom_fonction,
-		dls::chaine const &nom_module);
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans le type. */
+    kuri::chaine_statique nom_broye_type(Type *type);
+
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans la fonction. */
+    kuri::chaine_statique broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
+                                             IdentifiantCode *nom_module);
+
+    /* Retourne le nom broyé de l'identifiant.
+     * Le résultat sera mis en cache dans l'identifiant. */
+    kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident);
+
+  private:
+    /* Déplace la chaine du stockage temporaire dans le stockage final, et
+     * retourne une chaine statique pour celle-ci. */
+    kuri::chaine_statique chaine_finale_pour_stockage_temp();
+};

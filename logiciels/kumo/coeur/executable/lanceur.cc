@@ -48,10 +48,10 @@ static lng::tampon_source charge_fichier(const char *chemin_fichier)
 	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
 	{
 		res += ligne;
-		res.pousse('\n');
+		res.ajoute('\n');
 	});
 
-	return lng::tampon_source{res};
+	return lng::tampon_source(std::move(res));
 }
 
 struct OptionsCompilation {

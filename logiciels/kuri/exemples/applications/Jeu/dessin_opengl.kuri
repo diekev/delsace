@@ -1,0 +1,309 @@
+importe Couleur
+importe Fondation
+importe Math
+importe OpenGL
+
+VertexArrayID : n32 = 0
+ProgramID : n32 = 0
+vertexbuffer : n32 = 0
+colorbuffer : n32 = 0
+tabl_sommets : []r32
+tabl_couleur : []CouleurRVBA
+
+charge_programme :: fonc() -> n32
+{
+    source_vertex := "
+    #version 330 core
+    layout(location = 0) in vec3 sommet;
+    layout(location = 1) in vec4 couleurs;
+    smooth out vec4 couleur;
+    void main()
+    {
+        gl_Position.xyz = 2.0 * sommet - 1.0;
+        gl_Position.w = 1.0;
+        couleur = couleurs;
+    }
+    "
+
+    source_fragment := "
+    #version 330 core
+    out vec4 couleur_fragment;
+    smooth in vec4 couleur;
+    void main()
+    {
+        couleur_fragment = couleur;
+    }
+    "
+
+    // crée les nuanceurs
+	VertexShaderID := glCreateShader(GL_VERTEX_SHADER)
+	FragmentShaderID := glCreateShader(GL_FRAGMENT_SHADER)
+
+    taille_src_vertex := source_vertex.taille comme z32
+	glShaderSource(VertexShaderID, 1, *source_vertex.pointeur , *taille_src_vertex)
+	glCompileShader(VertexShaderID)
+
+    // verifie la compilation
+    Result : z32 = 0
+    InfoLogLength : z32 = 0
+    glGetShaderiv(VertexShaderID, GL_LINK_STATUS, *Result)
+	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
+
+    si InfoLogLength > 0 {
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
+		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
+		imprime("!!!!! Erreur compilation : VertexShaderID %\n", ProgramErrorMessage)
+        déloge(ProgramErrorMessage)
+	}
+
+    taille_src_fragment := source_fragment.taille comme z32
+	glShaderSource(FragmentShaderID, 1, *source_fragment.pointeur , *taille_src_fragment)
+	glCompileShader(FragmentShaderID)
+
+    // verifie la compilation
+    Result = 0
+    InfoLogLength = 0
+    glGetShaderiv(FragmentShaderID, GL_LINK_STATUS, *Result)
+	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
+
+    si InfoLogLength > 0 {
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
+		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
+		imprime("!!!!! Erreur compilation : FragmentShaderID %\n", ProgramErrorMessage)
+        déloge(ProgramErrorMessage)
+	}
+
+    ProgramID_ := glCreateProgram()
+	glAttachShader(ProgramID_, VertexShaderID)
+	glAttachShader(ProgramID_, FragmentShaderID)
+	glLinkProgram(ProgramID_)
+
+    // verifie la liaison
+    Result = 0
+    InfoLogLength = 0
+    glGetProgramiv(ProgramID_, GL_COMPILE_STATUS, *Result)
+	glGetProgramiv(ProgramID_, GL_INFO_LOG_LENGTH, *InfoLogLength)
+
+    si InfoLogLength > 0 {
+		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
+		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
+		imprime("!!!!! Erreur liaison : ProgramID %\n", ProgramErrorMessage)
+        déloge(ProgramErrorMessage)
+	}
+
+	glDetachShader(ProgramID_, VertexShaderID)
+	glDetachShader(ProgramID_, FragmentShaderID)
+
+	glDeleteShader(VertexShaderID)
+	glDeleteShader(FragmentShaderID)
+
+    retourne ProgramID_
+}
+
+initialise_tampon_dessin :: fonc() -> rien
+{
+    nonsûr {
+        ProgramID = charge_programme()
+    }
+
+    glGenVertexArrays(1, *VertexArrayID)
+    glGenBuffers(1, *vertexbuffer)
+    glGenBuffers(1, *colorbuffer)
+}
+
+issitialise_tampon_dessin :: fonc() -> rien
+{
+    glDeleteVertexArrays(1, *VertexArrayID)
+    glDeleteBuffers(1, *vertexbuffer)
+    glDeleteBuffers(1, *colorbuffer)
+    déloge(tabl_sommets)
+    déloge(tabl_couleur)
+    glDeleteProgram(ProgramID)
+}
+
+débute_dessin :: fonc() -> rien
+{
+    glBindVertexArray(VertexArrayID)
+}
+
+termine_dessin :: fonc() -> rien
+{
+    glUseProgram(ProgramID)
+
+    glEnableVertexAttribArray(0)
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer)
+	glBufferData(GL_ARRAY_BUFFER, tabl_sommets.taille comme n64 * taille_de(z32), tabl_sommets.pointeur, GL_STATIC_DRAW)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nul)
+
+    glEnableVertexAttribArray(1)
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer)
+	glBufferData(GL_ARRAY_BUFFER, tabl_couleur.taille comme n64 * taille_de(CouleurRVBA), tabl_couleur.pointeur, GL_STATIC_DRAW)
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nul)
+
+    glDrawArrays(GL_TRIANGLES, 0, tabl_sommets.taille / 3)
+    glDisableVertexAttribArray(0)
+
+    glUseProgram(0)
+
+    tabl_sommets.taille = 0
+    tabl_couleur.taille = 0
+
+    glBindVertexArray(0)
+}
+
+ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien
+{
+    tableau_ajoute(*tabl_sommets, x)
+    tableau_ajoute(*tabl_sommets, y)
+    tableau_ajoute(*tabl_sommets, z)
+}
+
+ajoute_couleur :: fonc(coul : CouleurRVBA) -> rien
+{
+    tableau_ajoute(*tabl_couleur, coul)
+}
+
+dessine_triangle :: fonc() -> rien
+{
+    débute_dessin()
+
+	ajoute_sommet(-1.0, -1.0, 0.0)
+	ajoute_sommet( 1.0, -1.0, 0.0)
+    ajoute_sommet( 0.0,  1.0, 0.0)
+
+    termine_dessin()
+}
+
+dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : CouleurRVBA) -> rien
+{
+    débute_dessin()
+
+    min_x := px
+    min_y := py
+    max_x := px + tx
+    max_y := py + ty
+
+    ajoute_sommet(min_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_couleur(coul)
+
+    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(max_x, max_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_couleur(coul)
+
+    termine_dessin()
+}
+
+dessine_carré :: fonc() -> rien
+{
+    couleur := Couleur(r = 1.0, v = 1.0, b = 0.0, a = 1.0 )
+    dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
+}
+
+dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
+{
+    débute_dessin()
+
+    segs := 32
+    phi := 0.0
+	phi_delta := 2.0 * 3.14159 / segs comme r32
+
+    pour i dans 0...segs - 1 {
+        ca0 := cx + cos(phi) comme r32 * rx
+        sa0 := cy + sin(phi) comme r32 * ry
+
+        phi += phi_delta
+
+        ca1 := cx + cos(phi) comme r32 * rx
+        sa1 := cy + sin(phi) comme r32 * ry
+
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
+    }
+
+    termine_dessin()
+}
+
+dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) -> rien
+{
+    débute_dessin()
+
+    segs := 8
+	phi := quadrant comme r32 * (3.14159 / 2.0)
+	phi_delta := 2.0 * 3.14159 / (segs * 4) comme r32
+
+    pour i dans 0...segs - 1 {
+        ca0 := cx + cos(phi) comme r32 * rx
+        sa0 := cy + sin(phi) comme r32 * ry
+
+        phi += phi_delta
+
+        ca1 := cx + cos(phi) comme r32 * rx
+        sa1 := cy + sin(phi) comme r32 * ry
+
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
+    }
+
+    termine_dessin()
+}
+
+dessine_rect_arrondi :: fonc(largeur : r32, hauteur : r32, arrondis_pixel : r32) -> rien
+{
+    rx := arrondis_pixel / largeur
+    ry := arrondis_pixel / hauteur
+
+	px := -1.0 + rx
+	py := -1.0 + ry
+    tx := 2.0 - 2.0 * rx
+    ty := 2.0 - 2.0 * ry
+
+    couleur := Couleur(r = 1.0, v = 1.0, b = 0.0, a = 1.0 )
+
+    // dessine centre
+    dessine_carré_ex(px, py, tx, ty, couleur)
+
+    // dessine rect gauche
+    dessine_carré_ex(px - rx, py, rx, ty, couleur)
+
+    // dessine rect droite
+    dessine_carré_ex(px + tx, py, rx, ty, couleur)
+
+    // dessine rect dessus
+    dessine_carré_ex(px, py + ty, tx, ry, couleur)
+
+    // dessine rect dessous
+    dessine_carré_ex(px, py - ry, tx, ry, couleur)
+
+    // dessine coin haut-gauche
+    dessine_quart_cercle(px, py + ty, rx, ry, 1)
+
+    // dessine coin haut-droite
+    dessine_quart_cercle(px + tx, py + ty, rx, ry, 0)
+
+    // dessine coin bas-gauche
+    dessine_quart_cercle(px, py, rx, ry, 2)
+
+    // dessine coin bas-droite
+    dessine_quart_cercle(px + tx, py, rx, ry, 3)
+}
+
+dessine_bouton :: fonc() -> rien
+{
+
+}
+
+dessine_image :: fonc() -> rien
+{
+    // crée texture
+
+    // rempli UV
+}

@@ -50,7 +50,7 @@ inline auto construit_defaut(parametres &params, int graine)
 	/* nous pourrions avoir une table de permutation par bruit par graine, mais
 	 * cela consommerait bien trop de mémoire donc nous utilisons un décalage
 	 * aléatoire pour simuler différentes graines */
-	auto gna = GNA{graine};
+	auto gna = GNA{static_cast<unsigned>(graine)};
 	auto rand_x = gna.uniforme(0.0f, 1.0f);
 	auto rand_y = gna.uniforme(0.0f, 1.0f);
 	auto rand_z = gna.uniforme(0.0f, 1.0f);

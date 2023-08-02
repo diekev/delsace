@@ -29,19 +29,19 @@
 #include "biblinternes/phys/couleur.hh"
 
 enum {
-	ENTREPOLATION_RVB = 0,
-	ENTREPOLATION_HSV = 1,
+    ENTREPOLATION_RVB = 0,
+    ENTREPOLATION_HSV = 1,
 };
 
 struct PointRampeCouleur {
-	float position{};
-	dls::phys::couleur32 couleur{};
-	bool selectionne = false;
+    float position{};
+    dls::phys::couleur32 couleur{};
+    bool selectionne = false;
 };
 
 struct RampeCouleur {
-	dls::tableau<PointRampeCouleur> points{};
-	char entrepolation = ENTREPOLATION_RVB;
+    dls::tableau<PointRampeCouleur> points{};
+    char entrepolation = ENTREPOLATION_RVB;
 };
 
 void cree_rampe_defaut(RampeCouleur &rampe);

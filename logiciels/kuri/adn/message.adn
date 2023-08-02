@@ -1,0 +1,47 @@
+// ADN pour les Messages.
+// Les messages sont directement passés par pointeurs aux métaprogrammes sans conversion au préalable.
+
+énum GenreMessage {
+    FICHIER_OUVERT
+    FICHIER_FERMÉ
+    MODULE_OUVERT
+    MODULE_FERMÉ
+    TYPAGE_CODE_TERMINÉ
+    PHASE_COMPILATION
+}
+
+énum PhaseCompilation {
+    PARSAGE_EN_COURS
+    PARSAGE_TERMINÉ
+    TYPAGE_TERMINÉ
+    GÉNÉRATION_CODE_TERMINÉE
+    AVANT_GÉNÉRATION_OBJET
+    APRÈS_GÉNÉRATION_OBJET
+    AVANT_LIAISON_EXÉCUTABLE
+    APRÈS_LIAISON_EXÉCUTABLE
+    COMPILATION_TERMINÉE
+}
+
+struct Message {
+    GenreMessage genre [code]
+    // À FAIRE : supprime ceci en ayant deux structures comme pour les noeuds
+    bool message_reçu [code]
+    EspaceDeTravail * espace [code]
+}
+
+struct MessageFichier : Message {
+    chaine_statique chemin [code]
+}
+
+struct MessageModule : Message {
+    chaine_statique chemin [code]
+    Module * module [code]
+}
+
+struct MessageTypageCodeTerminé : Message {
+    NoeudCode * code [code]
+}
+
+struct MessagePhaseCompilation : Message {
+    PhaseCompilation phase [code]
+}

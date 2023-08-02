@@ -29,7 +29,7 @@
 #include "commande.h"
 
 RepondantCommande::RepondantCommande(UsineCommande &usine_commande, std::any const &pointeur)
-	: m_usine_commande(usine_commande)
+    : m_usine_commande(&usine_commande)
 	, m_pointeur(pointeur)
 {}
 
@@ -43,13 +43,16 @@ bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCom
 	std::cerr << "\tx : " << donnees_commande.x << '\n';
 	std::cerr << "\ty : " << donnees_commande.y << '\n';
 #endif
+    if (m_commande_modale) {
+        return false;
+    }
 
-	auto donnees = donnees_commande;
-	auto commande = m_usine_commande.trouve_commande(categorie, donnees);
+    auto donnees = donnees_commande;
+    auto commande = m_usine_commande->trouve_commande(categorie, donnees);
 
 	if (commande == nullptr) {
 		return false;
-	}
+    }
 
 	auto resultat = commande->execute(m_pointeur, donnees);
 
@@ -64,33 +67,36 @@ bool RepondantCommande::appele_commande(dls::chaine const &categorie, DonneesCom
 	return true;
 }
 
-void RepondantCommande::ajourne_commande_modale(DonneesCommande const &donnees_commande)
+bool RepondantCommande::ajourne_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
-		return;
+        return false;
 	}
 
 	m_commande_modale->ajourne_execution_modale(m_pointeur, donnees_commande);
+    return true;
 }
 
-void RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_commande)
+bool RepondantCommande::acheve_commande_modale(DonneesCommande const &donnees_commande)
 {
 	if (!m_commande_modale) {
-		return;
+        return false;
 	}
 
 	m_commande_modale->termine_execution_modale(m_pointeur, donnees_commande);
 
 	delete m_commande_modale;
 	m_commande_modale = nullptr;
+    return true;
 }
 
 void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
-	auto commande = m_usine_commande(identifiant);
+    auto commande = (*m_usine_commande)(identifiant);
 
 	DonneesCommande donnees;
 	donnees.metadonnee = metadonnee;
+    donnees.identifiant = identifiant;
 
 	commande->execute(m_pointeur, donnees);
 
@@ -99,7 +105,10 @@ void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chain
 
 bool RepondantCommande::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
-	auto commande = m_usine_commande(identifiant);
+    auto commande = (*m_usine_commande)(identifiant);
+    if (!commande) {
+        return false;
+    }
 	auto ok = commande->evalue_predicat(m_pointeur, metadonnee);
 	delete commande;
 	return ok;

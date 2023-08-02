@@ -1,0 +1,14 @@
+// -----------------------------------
+// Cas : Une structure ne peut avoir le nom d'une autre structure.
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+}
+
+Vecteur2D :: struct {
+	x : n32;
+	y : n32;
+	z : n32;
+}
+

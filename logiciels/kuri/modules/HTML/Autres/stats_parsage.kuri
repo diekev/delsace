@@ -1,0 +1,145 @@
+/* Programme pour imprimer les statistiques du parsage d'un fichier HTML.
+ * Le programme peut opérer sur un fichier simple ou sur un dossier contenant des fichiers HTML. */
+
+/*
+
+    Optimisations, améliorations :
+    - chaine_ajoute crée des embouteillages
+    - réutilise la mémoire de détruit_lexème
+    - allocation spéciale pour les noeuds, avec une allocatrice par page
+    - crée_chaine_utf32 est coûteuse, il faudra trouver une bonne manière d'optimiser le codec Unicode
+    - les références de caractères utilise trop de comparaisons de chaines, peut-être qu'un hash parfait pourrait être utilisé ?
+
+ */
+
+importe Allocatrices
+importe Chaine
+importe Fondation
+importe HTML
+importe SysFichier
+
+StatistiquesParsage :: struct {
+    /* Le temps de parsage en microsecondes. */
+    temps: z64
+    /* La taille des données en octets. */
+    taille: z64
+}
+
+imprime_stats :: fonc (statistiques: StatistiquesParsage)
+{
+    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation=3))
+    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation=3))
+    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation=3))
+    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation=3))
+}
+
+est_fichier_html :: fonc (chm: CheminFichier) -> bool
+{
+    retourne chm.extension() == ".html"
+}
+
+parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &StatistiquesParsage)
+{
+    contenu := contenu_fichier_texte(chemin.chn)
+    diffère déloge(contenu)
+
+    parsat := parse_document(contenu)
+
+    statistiques.temps += parsat.temps
+    statistiques.taille += contenu.taille
+
+    diffère détruit(parsat)
+}
+
+parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiques: &StatistiquesParsage) -> z32
+{
+    exploratrice := crée_exploratrice_fichier(dossier)
+    diffère détruit(exploratrice)
+    exploratrice.filtre_chemin = est_fichier_html
+
+    nombre_de_fichiers := 0
+
+    boucle {
+        chemin_possible := exploratrice.chemin_suivant()
+
+        discr chemin_possible {
+            Quelque(chemin) {
+                si est_fichier_html(chemin) {
+                    parse_page_et_accumule_stats(chemin, statistiques)
+                    nombre_de_fichiers += 1
+                }
+                déloge(chemin.chn)
+            }
+            sinon {
+                arrête
+            }
+        }
+    }
+
+    retourne nombre_de_fichiers
+}
+
+mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
+{
+    imprime("%\n", c)
+}
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("Utilisation: % [FICHIER|DOSSIER]\n", args[0])
+        retourne 1
+    }
+
+    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
+
+    allocatrice_gardée : AllocatriceGardée
+    diffère imprime_liste_mémoire(*allocatrice_gardée)
+
+    // Il nous faut un logueur pour imprimer la liste de mémoire
+    nouveau_contexte := contexte()
+    nouveau_contexte.logueur = mon_logueur
+    // l'allocation gardée a un certain coût...
+    //nouveau_contexte.allocatrice = allocation_gardée
+    //nouveau_contexte.données_allocatrice = *allocatrice_gardée
+
+    pousse_contexte nouveau_contexte {
+        diffère détruit_chaines_internées()
+
+        chm := CheminFichier(args[1])
+        statistiques : StatistiquesParsage
+
+        si est_un_dossier(chm) {
+            si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
+                imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
+                retourne 1
+            }
+        }
+        sinon si est_fichier_html(chm) {
+            parse_page_et_accumule_stats(chm, statistiques)
+        }
+        sinon {
+            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+            retourne 1
+        }
+
+        imprime_stats(statistiques)
+    }
+
+    retourne 0
+}
+
+importe Compilatrice
+
+// Fichier reddit
+// ~60 ms non-optimisé
+// ~15 ms optimisé
+//
+// Fichier legifrance
+// ~6 s non-optimisé
+// ~1.5 s optimisé
+// #exécute compile_pour_production()
+// #exécute compile_pour_profilage()
+// #exécute compile_pour_débogage()

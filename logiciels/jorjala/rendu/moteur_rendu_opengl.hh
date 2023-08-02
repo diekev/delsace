@@ -26,30 +26,48 @@
 
 #include "biblinternes/structures/tableau.hh"
 
+#include <map>
+
 #include "moteur_rendu.hh"
 
+class ContexteRendu;
 class RenduGrille;
+class RenduCorps;
 class TamponRendu;
 
 class MoteurRenduOpenGL final : public MoteurRendu {
-	RenduGrille *m_rendu_grille = nullptr;
+    RenduGrille *m_rendu_grille = nullptr;
 
-	dls::tableau<TamponRendu *> m_tampons{};
+    dls::tableau<TamponRendu *> m_tampons{};
 
-public:
-	MoteurRenduOpenGL() = default;
+    std::map<unsigned long, RenduCorps *> m_rendus_corps{};
 
-	~MoteurRenduOpenGL() override;
+    struct ObjetÀRendre {
+        /* Index dans le délégué_scène. */
+        long index_délégué = 0;
+        RenduCorps *rendu_corps = nullptr;
+    };
 
-	MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
-	MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
+    dls::tableau<ObjetÀRendre> m_objets_à_rendre{};
 
-	const char *id() const override;
+  public:
+    MoteurRenduOpenGL() = default;
 
-	void calcule_rendu(
-			StatistiquesRendu &stats,
-			float *tampon,
-			int hauteur,
-			int largeur,
-			bool rendu_final) override;
+    ~MoteurRenduOpenGL() override;
+
+    MoteurRenduOpenGL(MoteurRenduOpenGL const &) = delete;
+    MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = delete;
+
+    const char *id() const override;
+
+    void calcule_rendu(StatistiquesRendu &stats,
+                       float *tampon,
+                       int hauteur,
+                       int largeur,
+                       bool rendu_final) override;
+
+  private:
+    ContexteRendu crée_contexte_rendu();
+
+    void ajourne_objets(ContexteRendu &contexte);
 };

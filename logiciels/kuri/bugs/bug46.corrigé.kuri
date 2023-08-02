@@ -1,0 +1,5 @@
+// boucle infinie quand il manque le ':' avant un type
+
+fonction :: fonc (a *rien) // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
+{
+}

@@ -1,0 +1,18 @@
+importe Fondation
+
+// Ce test existe à cause d'un bug dans la gestion des allocations dans la MachineVirtuelle révélé
+// par l'appel à imprime. Le bug étant que des variables dans des blocs étaient allouées sur la pile
+// même si le bloc fut évité ; ceci arrivant pour des blocs de même profondeur (p.e. ceux d'un si ... sinon ...).
+
+test :: fonc ()
+{
+    imprime("Ça marche !\n")
+}
+
+#exécute test()
+
+principale :: fonc () -> z32
+{
+    test()
+    retourne 0
+}

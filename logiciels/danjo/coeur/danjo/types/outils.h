@@ -37,15 +37,15 @@
 template <typename T>
 auto restreint(const T &a, const T &min, const T &max)
 {
-	if (a < min) {
-		return min;
-	}
+    if (a < min) {
+        return min;
+    }
 
-	if (a > max) {
-		return max;
-	}
+    if (a > max) {
+        return max;
+    }
 
-	return a;
+    return a;
 }
 
 QColor converti_couleur(float r, float v, float b, float a);

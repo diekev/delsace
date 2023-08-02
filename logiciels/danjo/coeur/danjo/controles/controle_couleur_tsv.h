@@ -24,101 +24,74 @@
 
 #pragma once
 
-#include <QWidget>
-
 #include "biblinternes/phys/couleur.hh"
+
+#include "base_controle.hh"
 
 namespace danjo {
 
 /* ************************************************************************** */
 
-class ControleSatVal final : public QWidget {
-	Q_OBJECT
+class ControleSatVal final : public BaseControle {
+    int pad0 = 0;
+    dls::phys::couleur32 m_hsv{};
+    double m_pos_x = 0.0;
+    double m_pos_y = 0.0;
 
-	int pad0 = 0;
-	dls::phys::couleur32 m_hsv{};
-	bool m_souris_pressee = false;
-	char pad[3];
-	double m_pos_x = 0.0;
-	double m_pos_y = 0.0;
+  public:
+    explicit ControleSatVal(QWidget *parent = nullptr);
 
-public:
-	explicit ControleSatVal(QWidget *parent = nullptr);
+    void couleur(const dls::phys::couleur32 &c);
 
-	void couleur(const dls::phys::couleur32 &c);
+    float saturation() const;
 
-	float saturation() const;
+    float valeur() const;
 
-	float valeur() const;
+    void paintEvent(QPaintEvent * /*event*/) override;
 
-	void paintEvent(QPaintEvent */*event*/) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-	void mouseReleaseEvent(QMouseEvent */*event*/) override;
-
-Q_SIGNALS:
-	void valeur_changee();
+    void gère_mouvement_souris(QMouseEvent *event) override;
 };
 
 /* ************************************************************************** */
 
-class SelecteurTeinte final : public QWidget {
-	Q_OBJECT
+class SelecteurTeinte final : public BaseControle {
+    double m_teinte = 0.0;
+    double m_pos_x = 0.0;
 
-	bool m_souris_pressee = false;
-	char pad[7];
-	double m_teinte = 0.0;
-	double m_pos_x = 0.0;
+  public:
+    explicit SelecteurTeinte(QWidget *parent = nullptr);
 
-public:
-	explicit SelecteurTeinte(QWidget *parent = nullptr);
+    void teinte(float t);
 
-	void teinte(float t);
+    float teinte() const;
 
-	float teinte() const;
+    void paintEvent(QPaintEvent * /*event*/) override;
 
-	void paintEvent(QPaintEvent */*event*/) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-	void mouseReleaseEvent(QMouseEvent */*event*/) override;
-
-Q_SIGNALS:
-	void valeur_changee();
+    void gère_mouvement_souris(QMouseEvent *event) override;
 };
 
 /* ************************************************************************** */
 
-class ControleValeurCouleur final : public QWidget {
-	Q_OBJECT
+class ControleValeurCouleur final : public BaseControle {
+    double m_valeur = 0.0;
+    double m_pos_y = 0.0;
 
-	bool m_souris_pressee = false;
-	char pad[7];
-	double m_valeur = 0.0;
-	double m_pos_y = 0.0;
+  public:
+    explicit ControleValeurCouleur(QWidget *parent = nullptr);
 
-public:
-	explicit ControleValeurCouleur(QWidget *parent = nullptr);
+    void valeur(float t);
 
-	void valeur(float t);
+    float valeur() const;
 
-	float valeur() const;
+    void paintEvent(QPaintEvent * /*event*/) override;
 
-	void paintEvent(QPaintEvent */*event*/) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-	void mouseReleaseEvent(QMouseEvent */*event*/) override;
-
-Q_SIGNALS:
-	void valeur_changee();
+    void gère_mouvement_souris(QMouseEvent *event) override;
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

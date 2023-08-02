@@ -37,112 +37,98 @@
 
 namespace danjo {
 
-ControleProprieteListe::ControleProprieteListe(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_editeur_texte(new QLineEdit(this))
-	, m_bouton_liste(new QPushButton("list", this))
-	, m_liste(new QMenu(this))
+ControleProprieteListe::ControleProprieteListe(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_editeur_texte(new QLineEdit(this)), m_bouton_liste(new QPushButton("list", this)),
+      m_liste(new QMenu(this))
 {
-	m_agencement->addWidget(m_editeur_texte);
-	m_agencement->addWidget(m_bouton_liste);
+    m_agencement->addWidget(m_editeur_texte);
+    m_agencement->addWidget(m_bouton_liste);
 
-	setLayout(m_agencement);
+    setLayout(m_agencement);
 
-	connect(m_bouton_liste, SIGNAL(clicked()), this, SLOT(montre_liste()));
-	connect(m_editeur_texte, SIGNAL(returnPressed()), this, SLOT(texte_modifie()));
-	connect(m_liste, SIGNAL(aboutToShow()), this, SLOT(ajourne_liste()));
+    m_editeur_texte->setText(m_propriete->evalue_chaine(m_temps).c_str());
+
+    connect(m_bouton_liste, SIGNAL(clicked()), this, SLOT(montre_liste()));
+    connect(m_editeur_texte, SIGNAL(returnPressed()), this, SLOT(texte_modifie()));
+    connect(m_liste, SIGNAL(aboutToShow()), this, SLOT(ajourne_liste()));
 }
 
 void ControleProprieteListe::attache(const dls::chaine &attache)
 {
-	m_attache = attache;
+    m_attache = attache;
 }
 
 void ControleProprieteListe::conteneur(ConteneurControles *conteneur)
 {
-	m_conteneur = conteneur;
+    m_conteneur = conteneur;
 }
 
 void ControleProprieteListe::finalise(const DonneesControle &donnees)
 {
-	m_pointeur = static_cast<dls::chaine *>(donnees.pointeur);
-
-	if (donnees.initialisation) {
-		*m_pointeur = donnees.valeur_defaut;
-	}
-
-	attache(donnees.nom);
-	m_editeur_texte->setText(m_pointeur->c_str());
-
-	setToolTip(donnees.infobulle.c_str());
+    attache(donnees.nom);
 }
 
 void ControleProprieteListe::montre_liste()
 {
-	/* La liste est positionnée en dessous du bouton, alignée à sa gauche. */
-	const auto &rect = m_bouton_liste->geometry();
-	const auto &bas_gauche = m_bouton_liste->parentWidget()->mapToGlobal(rect.bottomLeft());
+    /* La liste est positionnée en dessous du bouton, alignée à sa gauche. */
+    const auto &rect = m_bouton_liste->geometry();
+    const auto &bas_gauche = m_bouton_liste->parentWidget()->mapToGlobal(rect.bottomLeft());
 
-	m_liste->popup(bas_gauche);
+    m_liste->popup(bas_gauche);
 }
 
 void ControleProprieteListe::texte_modifie()
 {
-	ajourne_valeur_pointee(m_editeur_texte->text());
+    ajourne_valeur_pointee(m_editeur_texte->text());
 }
 
 void ControleProprieteListe::ajourne_valeur_pointee(const QString &valeur)
 {
-	if (m_pointeur == nullptr) {
-		return;
-	}
-
-	Q_EMIT(precontrole_change());
-	*m_pointeur = valeur.toStdString();
-	Q_EMIT(controle_change());
+    émets_controle_changé_simple(
+        [this, &valeur]() { m_propriete->définis_valeur_chaine(valeur.toStdString()); });
 }
 
 void ControleProprieteListe::ajourne_liste()
 {
-	if (m_conteneur == nullptr) {
-		return;
-	}
+    if (m_conteneur == nullptr) {
+        return;
+    }
 
-	dls::tableau<dls::chaine> chaines;
-	m_conteneur->obtiens_liste(m_attache, chaines);
+    dls::tableau<dls::chaine> chaines;
+    m_conteneur->obtiens_liste(m_attache, chaines);
 
-	m_liste->clear();
+    m_liste->clear();
 
-	for (const auto &chaine : chaines) {
-		auto action = m_liste->addAction(chaine.c_str());
-		connect(action, SIGNAL(triggered()), this, SLOT(repond_clique()));
-	}
+    for (const auto &chaine : chaines) {
+        auto action = m_liste->addAction(chaine.c_str());
+        connect(action, SIGNAL(triggered()), this, SLOT(repond_clique()));
+    }
 }
 
 void ControleProprieteListe::repond_clique()
 {
-	auto action = qobject_cast<QAction *>(sender());
+    auto action = qobject_cast<QAction *>(sender());
 
-	if (!action) {
-		return;
-	}
+    if (!action) {
+        return;
+    }
 
-	const auto &texte_action = action->text();
-	auto texte_courant = m_editeur_texte->text();
+    const auto &texte_action = action->text();
+    auto texte_courant = m_editeur_texte->text();
 
-	if (texte_courant.contains(texte_action)) {
-		return;
-	}
+    if (texte_courant.contains(texte_action)) {
+        return;
+    }
 
-	if (!texte_courant.isEmpty()) {
-		texte_courant += ",";
-	}
+    if (!texte_courant.isEmpty()) {
+        texte_courant += ",";
+    }
 
-	texte_courant += action->text();
+    texte_courant += action->text();
 
-	m_editeur_texte->setText(texte_courant);
-	ajourne_valeur_pointee(texte_courant);
+    m_editeur_texte->setText(texte_courant);
+    ajourne_valeur_pointee(texte_courant);
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -30,7 +30,7 @@
 struct DonneesMorceau;
 
 namespace lng {
-struct tampon_source;
+class tampon_source;
 }
 
 namespace json {
@@ -43,7 +43,7 @@ enum {
 	AUCUNE_ERREUR,
 };
 
-using frappe = lng::erreur::frappe<int>;
+using frappe = lng::erreur::frappe<int, dls::chaine>;
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,

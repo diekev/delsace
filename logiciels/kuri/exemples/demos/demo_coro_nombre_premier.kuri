@@ -1,6 +1,6 @@
-importe "flux"
+importe Fondation
 
-fonc est_premier(n : z32) : bool
+est_premier :: fonc(n : z32) -> bool
 {
      si n <= 3 {
         retourne n > 1
@@ -10,7 +10,7 @@ fonc est_premier(n : z32) : bool
         retourne faux
      }
 
-     dyn i = 5
+     i := 5
 
      tantque i * i <= n {
         si (n % i == 0) || (n % (i + 2) == 0) {
@@ -23,10 +23,10 @@ fonc est_premier(n : z32) : bool
      retourne vrai
 }
 
-corout genere_premiers(n : z32) : z32
+genere_premiers :: corout(n : z32) -> z32
 {
-    dyn nombre = 0
-    dyn dernier = 0
+    nombre := 0
+    dernier := 0
 
     tantque nombre < n {
         boucle {
@@ -44,10 +44,10 @@ corout genere_premiers(n : z32) : z32
     }
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc () -> z32
 {
     pour i, j dans genere_premiers(100) {
-        imprime(j, " : ", i, '\n')
+        imprime("% : %\n", j, i)
     }
 
     retourne 0

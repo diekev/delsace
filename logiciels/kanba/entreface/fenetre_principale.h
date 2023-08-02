@@ -32,38 +32,43 @@
 #include <QMainWindow>
 #pragma GCC diagnostic pop
 
-#include "coeur/kanba.h"
+#include "biblinternes/outils/definitions.h"
 
-class BaseDialogue;
-class ProjectSettingsDialog;
+namespace KNB {
+class Kanba;
+}
+
 class QProgressBar;
+class VueRegion;
 
 class FenetrePrincipale : public QMainWindow {
-	Q_OBJECT
+    Q_OBJECT
 
-	QDockWidget *m_viewer_dock = nullptr;
+    QProgressBar *m_progress_bar{};
 
-	QProgressBar *m_progress_bar{};
+    KNB::Kanba &m_kanba;
 
-	Kanba m_kanba{};
+    QVector<VueRegion *> m_régions{};
 
-public:
-	explicit FenetrePrincipale(QWidget *parent = nullptr);
-	~FenetrePrincipale();
+  public:
+    explicit FenetrePrincipale(KNB::Kanba &kanba, QWidget *parent = nullptr);
 
-	FenetrePrincipale(FenetrePrincipale const &) = default;
-	FenetrePrincipale &operator=(FenetrePrincipale const &) = default;
+    EMPECHE_COPIE(FenetrePrincipale);
 
-	void ajoute_visionneur_image();
-	void ajoute_editeur_proprietes();
+  public Q_SLOTS:
+    void tache_commence();
+    void tache_fini();
 
-public Q_SLOTS:
-	void rendu_fini();
-	void tache_commence();
-	void tache_fini();
+    void progres_avance(float progres);
+    void progres_temps(int echantillon,
+                       float temps_echantillon,
+                       float temps_ecoule,
+                       float temps_restant);
 
-	void progres_avance(float progres);
-	void progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant);
+    void repond_action();
 
-	void repond_action();
+  private:
+    void construit_interface_depuis_kanba();
+
+    bool eventFilter(QObject *object, QEvent *event);
 };

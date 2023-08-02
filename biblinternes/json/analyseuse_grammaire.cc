@@ -215,7 +215,7 @@ void analyseuse_grammaire::analyse_valeur(dls::vue_chaine const &nom_objet)
 			auto obj_chaine = static_cast<tori::ObjetNombreEntier *>(obj.get());
 			obj_chaine->valeur = denombreuse::converti_chaine_nombre_entier(
 						donnees().chaine,
-						donnees().identifiant);
+						donnees().genre);
 
 			break;
 		}
@@ -229,7 +229,7 @@ void analyseuse_grammaire::analyse_valeur(dls::vue_chaine const &nom_objet)
 			auto obj_chaine = static_cast<tori::ObjetNombreReel *>(obj.get());
 			obj_chaine->valeur = denombreuse::converti_chaine_nombre_reel(
 						donnees().chaine,
-						donnees().identifiant);
+						donnees().genre);
 
 			break;
 		}

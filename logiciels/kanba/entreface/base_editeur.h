@@ -26,31 +26,45 @@
 
 #include "danjo/conteneur_controles.h"
 
-#include "biblinternes/patrons_conception/observation.hh"
+#include "biblinternes/outils/definitions.h"
 
+namespace KNB {
+enum class ChangementÉditrice : int32_t;
+class Éditrice;
 class Kanba;
+}  // namespace KNB
+
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
 class QVBoxLayout;
 
-class BaseEditrice : public danjo::ConteneurControles, public Observatrice {
-	Q_OBJECT
+class BaseEditrice : public danjo::ConteneurControles {
+    Q_OBJECT
 
-protected:
-	Kanba *m_kanba;
-	QFrame *m_cadre;
-	QVBoxLayout *m_agencement;
-	QHBoxLayout *m_agencement_principal{};
+  protected:
+    KNB::Kanba &m_kanba;
+    QFrame *m_cadre;
+    QVBoxLayout *m_agencement;
+    QHBoxLayout *m_agencement_principal{};
 
-public:
-	explicit BaseEditrice(Kanba &kanba, QWidget *parent = nullptr);
+    const char *m_identifiant = "";
 
-	BaseEditrice(BaseEditrice const &autre) = default;
-	BaseEditrice &operator=(BaseEditrice const &autre) = default;
+  public:
+    explicit BaseEditrice(const char *identifiant,
+                          KNB::Kanba &kanba,
+                          KNB::Éditrice &éditrice,
+                          QWidget *parent = nullptr);
 
-	void actif(bool yesno);
-	void rend_actif();
+    EMPECHE_COPIE(BaseEditrice);
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void actif(bool yesno);
+    void rend_actif();
+
+    virtual void ajourne_état(KNB::ChangementÉditrice evenement) = 0;
+
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
 };

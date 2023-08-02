@@ -38,23 +38,23 @@ struct tableau_boucle {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 
 private:
 	tableau<type_valeur> m_tabl{};
-	long m_index = 0;
+	int64_t m_index = 0;
 
 public:
 	tableau_boucle() = default;
 
-	void pousse(type_valeur &&valeur)
+	void ajoute(type_valeur &&valeur)
 	{
-		m_tabl.pousse(valeur);
+		m_tabl.ajoute(valeur);
 	}
 
-	void pousse(type_reference_const valeur)
+	void ajoute(type_reference_const valeur)
 	{
-		m_tabl.pousse(valeur);
+		m_tabl.ajoute(valeur);
 	}
 
 	type_reference_const element()

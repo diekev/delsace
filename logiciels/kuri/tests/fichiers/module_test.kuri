@@ -1,4 +1,0 @@
-fonc retourne_0() : z32
-{
-	retourne 0;
-}

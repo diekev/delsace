@@ -27,7 +27,7 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 	${INCLUSIONS_OPENCOLORIO}
 	${INCLUSIONS_OPENEXR}
-	${INCLUSIONS_QT5_CORE}
+        ${INCLUSIONS_JORJALA}
 )
 
 # À FAIRE : module
@@ -37,20 +37,21 @@ set(BIBLIOTHEQUES_GRAPHVIZ
 )
 
 set(BIBLIOTHEQUES
-	bib_objets
-	bib_outils
-	bib_patrons
-	bib_vision
+        # dls::objets
+        dls::outils
+        dls::patrons_conception
+        dls::vision
 	danjo
 	jorjala_coeur
-	jorjala_evaluation
-	${BIBLIOTHEQUES_GRAPHVIZ}
-	${BIBLIOTHEQUES_OPENCOLORIO}
-	${BIBLIOTHEQUES_OPENEXR}
+        # jorjala_evaluation
+        # ${BIBLIOTHEQUES_GRAPHVIZ}
+        # ${BIBLIOTHEQUES_OPENCOLORIO}
+        # ${BIBLIOTHEQUES_OPENEXR}
 )
 
 add_library(${NOM_CIBLE} STATIC
-	commandes_edition.cc
+    commande_jorjala.cc
+        commandes_edition.cc
 	commandes_noeuds.cc
 	commandes_objet.cc
 	commandes_projet.cc
@@ -59,6 +60,7 @@ add_library(${NOM_CIBLE} STATIC
 	commandes_vue2d.cc
 	commandes_vue3d.cc
 
+        commande_jorjala.hh
 	commandes_edition.h
 	commandes_noeuds.h
 	commandes_objet.hh

@@ -31,68 +31,98 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QCheckBox>
 #include <QTreeWidget>
 #pragma GCC diagnostic pop
 
-class Calque;
+#include "coeur/kanba.h"
+
 class QGridLayout;
 class QScrollArea;
+
+struct ArgumentCréationItem {
+    KNB::Kanba &kanba;
+    KNB::Calque &calque;
+};
+
+/* ------------------------------------------------------------------------- */
+/** \name Boîte à cocher item calque.
+ * \{ */
+
+class BoiteACocherItem : public QCheckBox {
+    Q_OBJECT
+
+    KNB::Kanba &m_kanba;
+    KNB::Calque m_calque;
+    KNB::DrapeauxCalque m_drapeaux;
+
+  public:
+    explicit BoiteACocherItem(const ArgumentCréationItem &args,
+                              KNB::DrapeauxCalque drapeaux,
+                              QWidget *parent = nullptr);
+
+    EMPECHE_COPIE(BoiteACocherItem);
+
+  private Q_SLOTS:
+    void ajourne_etat_calque(int state);
+};
+
+/** \} */
 
 /* ************************************************************************** */
 
 class ItemArbreCalque : public QTreeWidgetItem {
-	const Calque *m_calque{};
+    const KNB::Calque m_calque;
 
-public:
-	explicit ItemArbreCalque(const Calque *calque, QTreeWidgetItem *parent = nullptr);
+  public:
+    explicit ItemArbreCalque(const KNB::Calque calque, QTreeWidgetItem *parent = nullptr);
 
-	ItemArbreCalque(ItemArbreCalque const &) = default;
-	ItemArbreCalque &operator=(ItemArbreCalque const &) = default;
+    EMPECHE_COPIE(ItemArbreCalque);
 
-	const Calque *pointeur() const;
+    const KNB::Calque &pointeur() const;
 };
 
 /* ************************************************************************** */
 
 class TreeWidget : public QTreeWidget {
-	BaseEditrice *m_base = nullptr;
+    BaseEditrice *m_base = nullptr;
 
-public:
-	explicit TreeWidget(QWidget *parent = nullptr);
+  public:
+    explicit TreeWidget(QWidget *parent = nullptr);
 
-	TreeWidget(TreeWidget const &) = default;
-	TreeWidget &operator=(TreeWidget const &) = default;
+    EMPECHE_COPIE(TreeWidget);
 
-	void set_base(BaseEditrice *base);
+    void set_base(BaseEditrice *base);
 
-	void mousePressEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *e) override;
 };
 
 /* ************************************************************************** */
 
 class EditeurCalques final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	TreeWidget *m_widget_arbre;
+    TreeWidget *m_widget_arbre;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QGridLayout *m_glayout;
 
-public:
-	EditeurCalques(Kanba *kanba, QWidget *parent = nullptr);
+  public:
+    EditeurCalques(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
-	EditeurCalques(EditeurCalques const &) = default;
-	EditeurCalques &operator=(EditeurCalques const &) = default;
+    EMPECHE_COPIE(EditeurCalques);
 
-	~EditeurCalques() override;
+    ~EditeurCalques() override;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
 
-	void ajourne_manipulable() override {}
+    void ajourne_manipulable() override
+    {
+    }
 
-private Q_SLOTS:
-	void ajourne_vue();
-	void repond_bouton();
-	void repond_selection();
+  private Q_SLOTS:
+    void ajourne_vue();
+    void repond_bouton();
+    void repond_selection(QTreeWidgetItem *item, int column);
 };

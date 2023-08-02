@@ -28,41 +28,39 @@
 
 #include "base_editeur.h"
 
-class Kanba;
 class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
-	Kanba *m_kanba;
+    KNB::Kanba &m_kanba;
 
-public:
-	explicit VueParametres(Kanba *kanba);
+  public:
+    explicit VueParametres(KNB::Kanba &kanba);
 
-	VueParametres(VueParametres const &) = default;
-	VueParametres &operator=(VueParametres const &) = default;
+    EMPECHE_COPIE(VueParametres);
 
-	void ajourne_donnees();
-	bool ajourne_proprietes() override;
+    void ajourne_donnees();
+    bool ajourne_proprietes() override;
 };
 
 class EditeurParametres final : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	VueParametres *m_vue;
+    VueParametres *m_vue;
 
-	QWidget *m_widget;
-	QScrollArea *m_scroll;
-	QGridLayout *m_glayout;
+    QWidget *m_widget;
+    QScrollArea *m_scroll;
+    QWidget *m_conteneur_disposition;
+    QVBoxLayout *m_disposition_widget;
 
-public:
-	EditeurParametres(Kanba *kanba, QWidget *parent = nullptr);
+  public:
+    EditeurParametres(KNB::Kanba &kanba, KNB::Éditrice &éditrice, QWidget *parent = nullptr);
 
-	EditeurParametres(EditeurParametres const &) = default;
-	EditeurParametres &operator=(EditeurParametres const &) = default;
+    EMPECHE_COPIE(EditeurParametres);
 
-	~EditeurParametres() override;
+    ~EditeurParametres() override;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_état(KNB::ChangementÉditrice evenement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 };

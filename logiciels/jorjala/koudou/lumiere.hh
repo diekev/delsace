@@ -33,24 +33,24 @@ namespace kdo {
 class Nuanceur;
 
 enum class type_lumiere : char {
-	POINT,
-	DISTANTE,
+    POINT,
+    DISTANTE,
 };
 
 struct Lumiere : public noeud {
-	double intensite = 0.0;
-	Spectre spectre{};
-	type_lumiere type_l = type_lumiere::POINT;
-	char pad[3];
+    double intensite = 0.0;
+    Spectre spectre{};
+    type_lumiere type_l = type_lumiere::POINT;
+    char pad[3];
 
-	Lumiere() = default;
+    Lumiere() = default;
 
-	Lumiere(Lumiere const &) = default;
-	Lumiere &operator=(Lumiere const &) = default;
+    Lumiere(Lumiere const &) = default;
+    Lumiere &operator=(Lumiere const &) = default;
 
-	explicit Lumiere(math::transformation const &transform);
+    explicit Lumiere(math::transformation const &transform);
 
-	virtual ~Lumiere();
+    virtual ~Lumiere();
 };
 
 /**
@@ -58,9 +58,11 @@ struct Lumiere : public noeud {
  * Dans ce cas, seule sa position dans la scène importe.
  */
 struct LumierePoint final : public Lumiere {
-	dls::math::point3d pos{};
+    dls::math::point3d pos{};
 
-	LumierePoint(math::transformation const &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
+    LumierePoint(math::transformation const &transform,
+                 Spectre spec = Spectre(1.0),
+                 double intens = 1.0);
 };
 
 /**
@@ -68,9 +70,11 @@ struct LumierePoint final : public Lumiere {
  * Dans ce cas, la source est si loin que seule sa direction importe.
  */
 struct LumiereDistante final : public Lumiere {
-	dls::math::vec3d dir{};
+    dls::math::vec3d dir{};
 
-	LumiereDistante(math::transformation const &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
+    LumiereDistante(math::transformation const &transform,
+                    Spectre spec = Spectre(1.0),
+                    double intens = 1.0);
 };
 
-}  /* namespace kdo */
+} /* namespace kdo */

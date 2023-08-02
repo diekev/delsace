@@ -28,74 +28,76 @@
 
 #include "biblinternes/outils/definitions.h"
 
-enum type_evenement : int {
-	/* Category. */
-	dessin           = (1 << 0),
-	calque           = (2 << 0),
-	rafraichissement = (3 << 0),
-	projet           = (4 << 0),
+namespace KNB {
 
-	/* Action. */
-	ajoute    = (1 << 8),
-	selection = (2 << 8),
-	fini      = (4 << 8),
-	supprime  = (5 << 8),
-	charge    = (6 << 8),
+enum class TypeÉvènement : int {
+    /* Category. */
+    DESSIN = (1 << 0),
+    CALQUE = (2 << 0),
+    RAFRAICHISSEMENT = (3 << 0),
+    PROJET = (4 << 0),
+
+    /* Action. */
+    AJOUTÉ = (1 << 8),
+    SÉLECTIONNÉ = (2 << 8),
+    FINI = (4 << 8),
+    SUPPRIMÉ = (5 << 8),
+    CHARGÉ = (6 << 8),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
+DEFINIS_OPERATEURS_DRAPEAU(TypeÉvènement)
 
-constexpr auto action_evenement(type_evenement evenement)
+constexpr TypeÉvènement action_evenement(TypeÉvènement evenement)
 {
-	return evenement & 0x0000ff00;
+    return evenement & 0x0000ff00;
 }
 
-constexpr auto categorie_evenement(type_evenement evenement)
+constexpr auto categorie_evenement(TypeÉvènement evenement)
 {
-	return evenement & 0x000000ff;
+    return evenement & 0x000000ff;
 }
 
 template <typename TypeChar>
-std::basic_ostream<TypeChar> &operator<<(
-		std::basic_ostream<TypeChar> &os,
-		type_evenement evenement)
+std::basic_ostream<TypeChar> &operator<<(std::basic_ostream<TypeChar> &os, TypeÉvènement evenement)
 {
-	switch (categorie_evenement(evenement)) {
-		case type_evenement::dessin:
-			os << "dessin, ";
-			break;
-		case type_evenement::calque:
-			os << "calque, ";
-			break;
-		case type_evenement::rafraichissement:
-			os << "rafraichissement, ";
-			break;
-		case type_evenement::projet:
-			os << "projet, ";
-			break;
-		default:
-			break;
-	}
+    switch (categorie_evenement(evenement)) {
+        case TypeÉvènement::DESSIN:
+            os << "dessin, ";
+            break;
+        case TypeÉvènement::CALQUE:
+            os << "calque, ";
+            break;
+        case TypeÉvènement::RAFRAICHISSEMENT:
+            os << "rafraichissement, ";
+            break;
+        case TypeÉvènement::PROJET:
+            os << "projet, ";
+            break;
+        default:
+            break;
+    }
 
-	switch (action_evenement(evenement)) {
-		case type_evenement::ajoute:
-			os << "ajoute";
-			break;
-		case type_evenement::selection:
-			os << "selection";
-			break;
-		case type_evenement::fini:
-			os << "fini";
-			break;
-		case type_evenement::supprime:
-			os << "supprime";
-			break;
-		case type_evenement::charge:
-			os << "charge";
-			break;
-		default:
-			break;
-	}
+    switch (action_evenement(evenement)) {
+        case TypeÉvènement::AJOUTÉ:
+            os << "ajouté";
+            break;
+        case TypeÉvènement::SÉLECTIONNÉ:
+            os << "sélectionné";
+            break;
+        case TypeÉvènement::FINI:
+            os << "fini";
+            break;
+        case TypeÉvènement::SUPPRIMÉ:
+            os << "supprimé";
+            break;
+        case TypeÉvènement::CHARGÉ:
+            os << "chargé";
+            break;
+        default:
+            break;
+    }
 
-	return os;
+    return os;
 }
+
+}  // namespace KNB

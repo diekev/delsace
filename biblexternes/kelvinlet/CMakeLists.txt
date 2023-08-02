@@ -67,17 +67,7 @@ add_library(${NOM_CIBLE} STATIC
     kelvinlet.hh
 )
 
-target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
-get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_CIBLE} COMPILE_OPTIONS)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wuseless-cast)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Weffc++)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wold-style-cast)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wshadow)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wnon-virtual-dtor)
-list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Woverloaded-virtual)
-set_target_properties(${NOM_CIBLE} PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
+desactive_drapeaux_compilation(${NOM_CIBLE})
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
 

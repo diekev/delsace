@@ -29,93 +29,93 @@
 #include "biblinternes/outils/definitions.h"
 
 enum type_evenement : int {
-	/* Categorie, 256 entrées. */
-	image            = (1 << 0),
-	noeud            = (2 << 0),
-	temps            = (3 << 0),
-	rafraichissement = (4 << 0),
-	camera_2d        = (5 << 0),
-	camera_3d        = (6 << 0),
-	objet            = (7 << 0),
-	propriete        = (8 << 0),
+    /* Categorie, 256 entrées. */
+    image = (1 << 0),
+    noeud = (2 << 0),
+    temps = (3 << 0),
+    rafraichissement = (4 << 0),
+    camera_2d = (5 << 0),
+    camera_3d = (6 << 0),
+    objet = (7 << 0),
+    propriete = (8 << 0),
 
-	/* Action, 256 entrées. */
-	ajoute      = (1 << 8),
-	enleve      = (2 << 8),
-	selectionne = (3 << 8),
-	modifie     = (4 << 8),
-	traite      = (5 << 8),
-	manipule    = (6 << 8),
+    /* Action, 256 entrées. */
+    ajoute = (1 << 8),
+    enleve = (2 << 8),
+    selectionne = (3 << 8),
+    modifie = (4 << 8),
+    traite = (5 << 8),
+    manipule = (6 << 8),
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
+DEFINIS_OPERATEURS_DRAPEAU(type_evenement)
 
 constexpr auto action_evenement(type_evenement evenement) -> type_evenement
 {
-	return evenement & 0x0000ff00;
+    return evenement & 0x0000ff00;
 }
 
 constexpr auto categorie_evenement(type_evenement evenement) -> type_evenement
 {
-	return evenement & 0x000000ff;
+    return evenement & 0x000000ff;
 }
 
 template <typename char_type>
 auto &operator<<(std::basic_ostream<char_type> &os, type_evenement evenement)
 {
-	switch (categorie_evenement(evenement)) {
-		case type_evenement::image:
-			os << "image, ";
-			break;
-		case type_evenement::noeud:
-			os << "noeud, ";
-			break;
-		case type_evenement::temps:
-			os << "temps, ";
-			break;
-		case type_evenement::rafraichissement:
-			os << "rafraichissement, ";
-			break;
-		case type_evenement::camera_2d:
-			os << "camera_2d, ";
-			break;
-		case type_evenement::camera_3d:
-			os << "camera_3d, ";
-			break;
-		case type_evenement::objet:
-			os << "objet, ";
-			break;
-		case type_evenement::propriete:
-			os << "propriété, ";
-			break;
-		default:
-			os << "inconnu, ";
-			break;
-	}
+    switch (categorie_evenement(evenement)) {
+        case type_evenement::image:
+            os << "image, ";
+            break;
+        case type_evenement::noeud:
+            os << "noeud, ";
+            break;
+        case type_evenement::temps:
+            os << "temps, ";
+            break;
+        case type_evenement::rafraichissement:
+            os << "rafraichissement, ";
+            break;
+        case type_evenement::camera_2d:
+            os << "camera_2d, ";
+            break;
+        case type_evenement::camera_3d:
+            os << "camera_3d, ";
+            break;
+        case type_evenement::objet:
+            os << "objet, ";
+            break;
+        case type_evenement::propriete:
+            os << "propriété, ";
+            break;
+        default:
+            os << "inconnu, ";
+            break;
+    }
 
-	switch (action_evenement(evenement)) {
-		case type_evenement::ajoute:
-			os << "ajouté";
-			break;
-		case type_evenement::modifie:
-			os << "modifié";
-			break;
-		case type_evenement::enleve:
-			os << "enlevé";
-			break;
-		case type_evenement::selectionne:
-			os << "sélectionné";
-			break;
-		case type_evenement::traite:
-			os << "traité";
-			break;
-		case type_evenement::manipule:
-			os << "manipulé";
-			break;
-		default:
-			os << "inconnu";
-			break;
-	}
+    switch (action_evenement(evenement)) {
+        case type_evenement::ajoute:
+            os << "ajouté";
+            break;
+        case type_evenement::modifie:
+            os << "modifié";
+            break;
+        case type_evenement::enleve:
+            os << "enlevé";
+            break;
+        case type_evenement::selectionne:
+            os << "sélectionné";
+            break;
+        case type_evenement::traite:
+            os << "traité";
+            break;
+        case type_evenement::manipule:
+            os << "manipulé";
+            break;
+        default:
+            os << "inconnu";
+            break;
+    }
 
-	return os;
+    return os;
 }

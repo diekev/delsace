@@ -1,0 +1,34 @@
+// ---------------------------
+// Cas : La plage d'une boucle 'pour' doit avoir des types identiques
+
+foo :: fonc () -> rien
+{
+	pour x dans 0...10.0 {
+	}
+}
+
+// ---------------------------
+// Cas : La plage d'une boucle 'pour' ne peut être de type booléen
+
+foo :: fonc () -> rien
+{
+	pour x dans vrai...faux {
+	}
+}
+
+// ------------------------------
+// Cas : La plage d'une boucle 'pour' ne peut avoir des types définis par l'utilisateur
+
+Demo :: struct {
+	demo : z32;
+}
+
+foo :: fonc () -> rien
+{
+	debut : Demo;
+	fin   : Demo;
+
+	pour x dans debut...fin {
+	}
+}
+

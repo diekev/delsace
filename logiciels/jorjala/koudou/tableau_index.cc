@@ -26,92 +26,92 @@
 
 namespace kdo {
 
-tableau_index::tableau_index(int oct)
-	: octets(oct)
-{}
+tableau_index::tableau_index(int oct) : octets(oct)
+{
+}
 
 int tableau_index::octets_pour_taille(long taille)
 {
-	if (taille <= 256) {
-		return 0;
-	}
+    if (taille <= 256) {
+        return 0;
+    }
 
-	if (taille <= 65536) {
-		return 1;
-	}
+    if (taille <= 65536) {
+        return 1;
+    }
 
-	return 2;
+    return 2;
 }
 
-void tableau_index::pousse(int v)
+void tableau_index::ajoute(int v)
 {
-	switch (octets) {
-		case 0:
-		{
-			pousse_impl(static_cast<unsigned char>(v));
-			break;
-		}
-		case 1:
-		{
-			pousse_impl(static_cast<unsigned short>(v));
-			break;
-		}
-		case 2:
-		{
-			pousse_impl(v);
-			break;
-		}
-	}
+    switch (octets) {
+        case 0:
+        {
+            pousse_impl(static_cast<unsigned char>(v));
+            break;
+        }
+        case 1:
+        {
+            pousse_impl(static_cast<unsigned short>(v));
+            break;
+        }
+        case 2:
+        {
+            pousse_impl(v);
+            break;
+        }
+    }
 }
 
 void tableau_index::pousse_impl(unsigned char v)
 {
-	assert(octets == 0);
-	donnees.pousse(v);
-	assert((*this)[taille] >= 0 && (*this)[taille] < 256);
-	taille += 1;
+    assert(octets == 0);
+    donnees.ajoute(v);
+    assert((*this)[taille] >= 0 && (*this)[taille] < 256);
+    taille += 1;
 }
 
 void tableau_index::pousse_impl(unsigned short v)
 {
-	assert(octets == 1);
-	auto curseur = donnees.taille();
-	donnees.redimensionne(curseur + 2);
-	*reinterpret_cast<unsigned short *>(&donnees[curseur]) = v;
-	assert((*this)[curseur / 2] >= 0 && (*this)[curseur / 2] < 65536);
-	taille += 1;
+    assert(octets == 1);
+    auto curseur = donnees.taille();
+    donnees.redimensionne(curseur + 2);
+    *reinterpret_cast<unsigned short *>(&donnees[curseur]) = v;
+    assert((*this)[curseur / 2] >= 0 && (*this)[curseur / 2] < 65536);
+    taille += 1;
 }
 
 void tableau_index::pousse_impl(int v)
 {
-	assert(octets == 2);
-	auto curseur = donnees.taille();
-	donnees.redimensionne(curseur + 4);
-	*reinterpret_cast<int *>(&donnees[curseur]) = v;
-	assert((*this)[curseur / 4] >= 0);
-	taille += 1;
+    assert(octets == 2);
+    auto curseur = donnees.taille();
+    donnees.redimensionne(curseur + 4);
+    *reinterpret_cast<int *>(&donnees[curseur]) = v;
+    assert((*this)[curseur / 4] >= 0);
+    taille += 1;
 }
 
 /* ****************************************************************** */
 
 int tableau_index_comprime::operator[](long idx) const
 {
-	if (donnees.taille() == 1) {
-		return donnees[0].second;
-	}
+    if (donnees.taille() == 1) {
+        return donnees[0].second;
+    }
 
-	for (auto i = 0; i < donnees.taille() - 1; ++i) {
-		if (donnees[i].first >= idx && donnees[i + 1].first < idx) {
-			return donnees[i].second;
-		}
-	}
+    for (auto i = 0; i < donnees.taille() - 1; ++i) {
+        if (donnees[i].first >= idx && donnees[i + 1].first < idx) {
+            return donnees[i].second;
+        }
+    }
 
-	return donnees.back().second;
+    return donnees.back().second;
 }
 
-void tableau_index_comprime::pousse(int decalage, int valeur)
+void tableau_index_comprime::ajoute(int decalage, int valeur)
 {
-	donnees.pousse({ decalage, valeur });
+    donnees.ajoute({decalage, valeur});
 }
 
 /* ****************************************************************** */
@@ -137,23 +137,23 @@ void tableau_index_comprime::pousse(int decalage, int valeur)
  */
 tableau_index_comprime comprimes_tableau_index(tableau_index const &entree)
 {
-	auto sortie = tableau_index_comprime();
-	auto decalage = 0;
+    auto sortie = tableau_index_comprime();
+    auto decalage = 0;
 
-	for (auto i = 0; i < entree.taille; ++i) {
-		auto valeur = entree[i];
+    for (auto i = 0; i < entree.taille; ++i) {
+        auto valeur = entree[i];
 
-		for (auto j = i + 1; j < entree.taille; ++j, ++i) {
-			if (entree[j] != valeur) {
-				break;
-			}
-		}
+        for (auto j = i + 1; j < entree.taille; ++j, ++i) {
+            if (entree[j] != valeur) {
+                break;
+            }
+        }
 
-		sortie.pousse(decalage, valeur);
-		decalage = i;
-	}
+        sortie.ajoute(decalage, valeur);
+        decalage = i;
+    }
 
-	return sortie;
+    return sortie;
 }
 
-}  /* namespace kdo */
+} /* namespace kdo */

@@ -1,0 +1,15 @@
+// Impossible d'utiliser une globale avant sa déclaration
+
+importe Support
+
+foo :: fonc ()
+{
+}
+
+principale :: fonc () -> z32
+{
+    foo2()
+    retourne 0
+}
+
+foo2 := foo

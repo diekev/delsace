@@ -1,61 +1,340 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
-#include "test_assignation.hh"
-#include "test_boucle.hh"
 #include "test_decoupage.h"
-#include "test_decoupage_nombres.h"
-#include "test_expression.h"
-#include "test_fonctions.h"
-#include "test_modules.hh"
-#include "test_retour.hh"
-#include "test_structures.hh"
-#include "test_tableaux.hh"
-#include "test_transtype.hh"
-#include "test_types.h"
-#include "test_unicode.h"
-#include "test_variables.h"
+
+#include <fstream>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include "biblinternes/chrono/outils.hh"
+
+#include "arbre_syntaxique/assembleuse.hh"
+
+#include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/tacheronne.hh"
+
+#include "parsage/modules.hh"
+
+#include "structures/chemin_systeme.hh"
+
+struct Test {
+    const char *cas = "";
+    const char *source = "";
+    erreur::Genre resultat_attendu = erreur::Genre::AUCUNE_ERREUR;
+};
+
+static Test tests_unitaires[] = {
+    // À FAIRE : désactivation de ces tests pour le moment car la fonctionnalité est brisée depuis
+    // le réusinage de l'arbre
+    //	{
+    //		"",
+    //		"fichiers/test_module_correcte.kuri",
+    //		erreur::Genre::AUCUNE_ERREUR
+    //	},
+    //	{
+    //		"",
+    //		"fichiers/test_fonction_inconnue_module.kuri",
+    //		erreur::Genre::FONCTION_INCONNUE
+    //	},
+    {"", "fichiers/test_lexage_nombre_correcte.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_lexage_nombre_erreur.kuri", erreur::Genre::LEXAGE},
+    {"", "fichiers/test_module_inconnu.kuri", erreur::Genre::MODULE_INCONNU},
+    {"", "fichiers/test_utilisation_module_inconnu.kuri", erreur::Genre::VARIABLE_INCONNUE},
+    {"", "fichiers/test_type_retour_rien.kuri", erreur::Genre::ASSIGNATION_RIEN},
+    {"", "fichiers/test_assignation_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_assignation_invalide.kuri", erreur::Genre::ASSIGNATION_INVALIDE},
+    {"",
+     "fichiers/test_assignation_types_differents.kuri",
+     erreur::Genre::ASSIGNATION_MAUVAIS_TYPE},
+    {"", "fichiers/test_erreur_syntaxage.kuri", erreur::Genre::SYNTAXAGE},
+    {"", "fichiers/test_boucle_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_boucle_erreur_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_boucle_erreur_controle_invalide.kuri", erreur::Genre::CONTROLE_INVALIDE},
+    {"", "fichiers/test_boucle_erreur_variable_inconnue.kuri", erreur::Genre::VARIABLE_INCONNUE},
+    {"",
+     "fichiers/test_appel_fonction_erreur_nombre_argument.kuri",
+     erreur::Genre::NOMBRE_ARGUMENT},
+    {"",
+     "fichiers/test_appel_fonction_erreur_fonction_inconnue.kuri",
+     erreur::Genre::FONCTION_INCONNUE},
+    {"",
+     "fichiers/test_appel_fonction_erreur_argument_inconnu.kuri",
+     erreur::Genre::ARGUMENT_INCONNU},
+    {"", "fichiers/test_appel_fonction_erreur_type_argument.kuri", erreur::Genre::TYPE_ARGUMENT},
+    {"",
+     "fichiers/test_appel_fonction_erreur_argument_redefini.kuri",
+     erreur::Genre::ARGUMENT_REDEFINI},
+    {"", "fichiers/test_declaration_fonctin_erreur_normale.kuri", erreur::Genre::NORMAL},
+    {"", "fichiers/test_expression_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_condition_controle_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_condition_controle_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_expression_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_operateurs_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_operateurs_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_fonction_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_fonction_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_structure_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_structure_membre_inconnu.kuri", erreur::Genre::MEMBRE_INCONNU},
+    {
+        "",
+        "fichiers/test_structure_redefinie.kuri",
+        erreur::Genre::VARIABLE_REDEFINIE  // À FAIRE : considère plutôt SYMBOLE_REDIFINI, et
+                                           // fusionne tous les tests
+    },
+    {"", "fichiers/test_type_inconnu.kuri", erreur::Genre::TYPE_INCONNU},
+    {"", "fichiers/test_structure_variable_inconnue.kuri", erreur::Genre::VARIABLE_INCONNUE},
+    {"", "fichiers/test_structure_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
+    {"", "fichiers/test_structure_membre_redefini.kuri", erreur::Genre::MEMBRE_REDEFINI},
+    {"", "fichiers/test_tableau_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_tableau_type_argument.kuri", erreur::Genre::TYPE_ARGUMENT},
+    {"", "fichiers/test_transtypage_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"",
+     "fichiers/test_transtypage_assignation_mauvais_type.kuri",
+     erreur::Genre::ASSIGNATION_MAUVAIS_TYPE},
+    {"", "fichiers/test_variable_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+    {"", "fichiers/test_variable_inconnue.kuri", erreur::Genre::VARIABLE_INCONNUE},
+    {"", "fichiers/test_variable_redefinie.kuri", erreur::Genre::VARIABLE_REDEFINIE},
+    {"", "fichiers/test_variable_redefinie.kuri", erreur::Genre::VARIABLE_REDEFINIE},
+    {"", "fichiers/test_appel_fonction_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
+};
+
+static erreur::Genre lance_test(lng::tampon_source &tampon)
+{
+    auto chemin_courant = kuri::chemin_systeme::chemin_courant();
+    kuri::chemin_systeme::change_chemin_courant("/opt/bin/kuri/fichiers_tests/fichiers/");
+
+    auto compilatrice = Compilatrice(getenv("RACINE_KURI"), {});
+
+    auto espace = compilatrice.espace_defaut_compilation();
+
+    /* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme.
+     */
+    compilatrice.importe_module(espace, "Kuri", {});
+
+    /* Ne nomme pas le module, car c'est le module racine. */
+    auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, "");
+    auto resultat = compilatrice.trouve_ou_cree_fichier(module, "", "", false);
+    auto fichier = resultat.resultat<FichierNeuf>().fichier;
+    fichier->charge_tampon(std::move(tampon));
+
+    compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
+
+    auto tacheronne = Tacheronne(compilatrice);
+    tacheronne.gere_tache();
+
+    kuri::chemin_systeme::change_chemin_courant(chemin_courant);
+    return compilatrice.code_erreur();
+}
+
+static auto decoupe_tampon(lng::tampon_source const &tampon)
+{
+    kuri::tableau<lng::tampon_source> resultat;
+
+    auto debut_cas = 0ul;
+    auto fin_cas = 1ul;
+
+    for (auto i = 0ul; i < tampon.nombre_lignes(); ++i) {
+        auto ligne = dls::chaine(tampon[static_cast<int64_t>(i)]);
+
+        if (ligne.sous_chaine(0, 8) == "// Cas :") {
+            debut_cas = i + 1;
+        }
+
+        if (ligne.sous_chaine(0, 8) == "// -----") {
+            fin_cas = i;
+
+            if (debut_cas < fin_cas) {
+                auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
+                resultat.ajoute(sous_tampon);
+            }
+        }
+    }
+
+    fin_cas = static_cast<size_t>(tampon.nombre_lignes());
+
+    if (debut_cas < fin_cas) {
+        auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
+        resultat.ajoute(sous_tampon);
+    }
+
+    return resultat;
+}
+
+enum {
+    ECHEC_CAR_CRASH,
+    ECHEC_POUR_RAISON_INCONNUE,
+    ECHEC_CAR_MAUVAIS_CODE_ERREUR,
+    ECHEC_CAR_BOUCLE_INFINIE,
+};
+
+struct ResultatTest {
+    dls::chaine fichier_origine{};
+    kuri::chemin_systeme chemin_fichier{};
+    int raison_echec{};
+    erreur::Genre erreur_attendue{};
+    erreur::Genre erreur_recue{};
+};
+
+static auto ecris_fichier_tmp(dls::chaine const &source, int index)
+{
+    auto nom_fichier = enchaine("echec_test", index, ".kuri");
+    auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
+
+    std::ofstream of;
+    of.open(vers_std_path(chemin_fichier));
+    of.write(source.c_str(), source.taille());
+
+    return chemin_fichier;
+}
 
 int main()
 {
-	dls::test_unitaire::Controleuse controleuse;
-	controleuse.ajoute_fonction(test_decoupage);
-	controleuse.ajoute_fonction(test_decoupage_nombres);
-	controleuse.ajoute_fonction(test_unicode);
-	controleuse.ajoute_fonction(test_expression);
-	controleuse.ajoute_fonction(test_fonctions);
-	controleuse.ajoute_fonction(test_types);
-	controleuse.ajoute_fonction(test_variables);
-	controleuse.ajoute_fonction(test_structures);
-	controleuse.ajoute_fonction(test_assignation);
-	controleuse.ajoute_fonction(test_retour);
-	controleuse.ajoute_fonction(test_boucle);
-	controleuse.ajoute_fonction(test_transtype);
-	//controleuse.ajoute_fonction(test_modules);
-	controleuse.ajoute_fonction(test_tableaux);
+    auto test_passes = 0;
+    auto test_echoues = 0;
 
-	controleuse.performe_controles();
+    auto resultats_tests = kuri::tableau<ResultatTest>();
 
-	controleuse.imprime_resultat();
+    POUR (tests_unitaires) {
+        auto chemin = kuri::chemin_systeme("fichiers_tests/") / it.source;
+
+        if (kuri::chemin_systeme::existe(chemin)) {
+            auto compilatrice = Compilatrice("", {});
+            auto contenu_fichier = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
+            auto tampon = lng::tampon_source(std::move(contenu_fichier));
+
+            if (tampon.nombre_lignes() == 0) {
+                // std::cerr << "Le fichier " << chemin << " est vide\n";
+                continue;
+            }
+
+            auto cas = decoupe_tampon(tampon);
+
+            for (auto &c : cas) {
+                auto pid = fork();
+
+                if (pid == 0) {
+                    auto res = lance_test(c);
+                    return static_cast<int>(res);
+                }
+                else if (pid > 0) {
+                    auto debut = dls::chrono::compte_seconde();
+
+                    while (true) {
+                        int status;
+                        pid_t result = waitpid(pid, &status, WNOHANG);
+
+                        if (result == 0) {
+                            /* L'enfant est toujours en vie, continue. */
+                        }
+                        else if (result == -1) {
+                            auto rt = ResultatTest();
+                            rt.raison_echec = ECHEC_POUR_RAISON_INCONNUE;
+                            rt.fichier_origine = it.source;
+                            rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+
+                            resultats_tests.ajoute(rt);
+
+                            test_echoues += 1;
+                            break;
+                        }
+                        else {
+                            if (!WIFEXITED(status)) {
+                                auto rt = ResultatTest();
+                                rt.raison_echec = ECHEC_CAR_CRASH;
+                                rt.fichier_origine = it.source;
+                                rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+
+                                resultats_tests.ajoute(rt);
+
+                                test_echoues += 1;
+                            }
+                            else {
+                                if (WEXITSTATUS(status) == static_cast<int>(it.resultat_attendu)) {
+                                    test_passes += 1;
+                                }
+                                else {
+                                    auto rt = ResultatTest();
+                                    rt.erreur_recue = static_cast<erreur::Genre>(
+                                        WEXITSTATUS(status));
+                                    rt.erreur_attendue = it.resultat_attendu;
+                                    rt.raison_echec = ECHEC_CAR_MAUVAIS_CODE_ERREUR;
+                                    rt.fichier_origine = it.source;
+                                    rt.chemin_fichier = ecris_fichier_tmp(c.chaine(),
+                                                                          test_echoues);
+
+                                    resultats_tests.ajoute(rt);
+
+                                    test_echoues += 1;
+                                }
+                            }
+
+                            break;
+                        }
+
+                        auto temps = debut.temps();
+
+                        if (temps > 25.0) {
+                            kill(pid, SIGKILL);
+
+                            auto rt = ResultatTest();
+                            rt.raison_echec = ECHEC_CAR_BOUCLE_INFINIE;
+                            rt.fichier_origine = it.source;
+                            rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+
+                            resultats_tests.ajoute(rt);
+
+                            test_echoues += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            std::cout << '.' << std::flush;
+        }
+        else {
+            continue;
+        }
+    }
+
+    std::cout << '\n';
+
+    POUR (resultats_tests) {
+        std::cout << "----------------------------------------\n";
+
+        switch (it.raison_echec) {
+            case ECHEC_CAR_CRASH:
+            {
+                std::cout << "Test échoué à cause d'un crash\n";
+                break;
+            }
+            case ECHEC_CAR_BOUCLE_INFINIE:
+            {
+                std::cout << "Test échoué à cause d'une boucle infinie\n";
+                break;
+            }
+            case ECHEC_CAR_MAUVAIS_CODE_ERREUR:
+            {
+                std::cout << "Test échoué à cause d'un mauvais code erreur\n";
+                std::cout << "-- attendu : " << erreur::chaine_erreur(it.erreur_attendue) << '\n';
+                std::cout << "-- reçu    : " << erreur::chaine_erreur(it.erreur_recue) << '\n';
+                break;
+            }
+            case ECHEC_POUR_RAISON_INCONNUE:
+            {
+                std::cout << "Test échoué pour une raison inconnue\n";
+                break;
+            }
+        }
+
+        std::cout << "Fichier d'origine : " << it.fichier_origine << '\n';
+        std::cout << "Fichier source    : " << it.chemin_fichier << '\n';
+    }
+
+    std::cout << '\n';
+    std::cout << "SUCCES (" << test_passes << ")\n";
+    std::cout << "ÉCHECS (" << test_echoues << ")\n";
 }

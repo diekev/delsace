@@ -1,0 +1,11 @@
+<html>
+    <head>
+        <title>{{ indirection.titre }}</title>
+        {% bloc entête %}{% finbloc %}
+    </head>
+    <body>
+        <p>ceci est dans la base</p>
+        {% bloc corps %}{% finbloc %}
+        {% inclus extra %}
+    </body>
+</html>

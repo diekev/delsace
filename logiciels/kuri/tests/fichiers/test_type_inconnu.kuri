@@ -1,0 +1,15 @@
+// -----------------------------------
+// Cas : Une structure ne peut avoir une structure inconnue comme membre.
+
+Vecteur3D :: struct {
+	xy : Vecteur2D;
+	z : n32;
+}
+
+// -----------------------------------
+// Cas : Une fonction ne peut avoir une structure inconnue comme argument.
+
+foo :: fonc (v : Vecteur3D) -> rien
+{
+}
+

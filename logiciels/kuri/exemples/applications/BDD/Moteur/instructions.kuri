@@ -1,0 +1,53 @@
+GenreInstruction :: énum z32 {
+    CRÉE
+    SÉLECTIONNE
+    INSÈRE
+
+    MÉTA_SORS
+    MÉTA_TABLES
+}
+
+Instruction :: struct {
+    genre : GenreInstruction
+}
+
+InstructionInsère :: struct {
+    empl base : Instruction
+
+    table : Lexème
+    valeurs: []*Expression
+
+    genre = GenreInstruction.INSÈRE
+}
+
+GenreExpression :: énum z32 {
+    LITTÉRALE
+}
+
+Expression :: struct {
+    genre : GenreExpression
+    littérale : Lexème
+}
+
+DéfinitionColonne :: struct {
+    nom: Lexème
+    type_données: Lexème
+}
+
+InstructionCréationTable :: struct {
+    empl base : Instruction
+
+    nom: Lexème
+    colonnes : []*DéfinitionColonne
+
+    genre = GenreInstruction.CRÉE
+}
+
+InstructionSélection :: struct {
+    empl base : Instruction
+
+    items : []*Expression
+    depuis : Lexème
+
+    genre = GenreInstruction.SÉLECTIONNE
+}

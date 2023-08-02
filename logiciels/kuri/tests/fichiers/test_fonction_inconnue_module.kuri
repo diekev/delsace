@@ -1,6 +1,9 @@
-importe "module_test"
+// --------------------------------
+// Cas : On ne peut pas appeler une fonction inconnue d'un module.
 
-fonc principale(compte : z32, arguments : **z8) : z32
+importe ModuleTest
+
+principale :: fonc (compte : z32, arguments : **z8) -> z32
 {
-	retourne module_test.retourne_1();
+	retourne ModuleTest.retourne_1();
 }

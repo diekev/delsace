@@ -1,0 +1,56 @@
+importe Compilatrice
+importe Ensemble
+importe Fondation
+importe SysFichier
+
+génère_script :: fonc ()
+{
+    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[]chaine)
+    {
+        interdits := [
+            ".vscode",
+            "adn",
+            /* Routage, qui n'existe plus, est requis. */
+            "ServeuseCGI",
+            /* Définit sa propre fonction principale... */
+            "Documentation",
+            /* Superflux. */
+            "Kuri",
+            /* En développement. */
+            "GVDB"
+        ]
+
+        nom_fichier := chemin.nom_fichier()
+
+        pour interdits {
+            si it == nom_fichier {
+                retourne
+            }
+        }
+
+        ensemble_ajoute(ensemble, copie_chaine(nom_fichier))
+    }
+
+    ensemble: []chaine
+
+    chemins_modules := CheminFichier("../../modules/")
+    pour_chaque_chemin(chemins_modules, *ensemble, ajoute_module)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour ensemble {
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\n")
+    ajoute_au_tampon(*enchaineuse, "principale :: fonc () -> z32 { retourne 0 }")
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn)
+
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn)
+}
+
+#exécute génère_script()

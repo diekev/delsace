@@ -24,3 +24,6 @@
 
 #include "brosse.h"
 
+namespace KNB {
+
+}  // namespace KNB

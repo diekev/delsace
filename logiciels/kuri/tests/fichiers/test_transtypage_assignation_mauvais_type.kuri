@@ -1,0 +1,31 @@
+// -----------------------------------
+// Cas : Les nombres littéraux entiers ne peuvent pas être convertis en types réels
+
+foo :: fonc () -> rien
+{
+	x : r16 = 0;
+	y : r32 = 0;
+	z : r64 = 0;
+}
+
+// -----------------------------------
+// Cas : Les nombres littéraux réels ne peuvent pas être convertis en types relatifs
+
+foo :: fonc () -> rien
+{
+	x : z8  = 0.0;
+	y : z16 = 0.0;
+	z : z32 = 0.0;
+	w : z64 = 0.0;
+}
+
+// -----------------------------------
+// Cas : Les nombres littéraux réels ne peuvent pas être convertis en types naturels
+
+foo :: fonc () -> rien
+{
+	x : n8  = 0.0;
+	y : n16 = 0.0;
+	z : n32 = 0.0;
+	w : n64 = 0.0;
+}

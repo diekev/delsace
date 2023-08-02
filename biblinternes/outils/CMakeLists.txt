@@ -28,17 +28,20 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	bib_structures
 	langage
-	stdc++fs
+        ${BIBLIOTHEQUE_CXX_FILESYSTEM}
 )
 
 set(ENTETES
+    assert.hh
 	attendu.hh
+    badge.hh
 	chaine.hh
 	chemin.hh
 	constantes.h
 	conditions.h
 	definitions.h
 	empreintes.hh
+    enum_drapeau.hh
 	fichier.hh
 	format.hh
 	gna.hh
@@ -46,7 +49,10 @@ set(ENTETES
 	indexeuse.hh
 	iterateurs.h
 	masque_binaire.h
+	numerique.hh
 	parametres.hh
+    resultat.hh
+    sauvegardeuse_etat.hh
 	tableau_donnees.hh
 	temps.hh
 	transbit.hh
@@ -62,13 +68,17 @@ set(SOURCES
 	garde_portee.cc
 	indexeuse.cc
 	iterateurs.cc
+	numerique.cc
 	parametres.cc
+    resultat.cc
 	tableau_donnees.cc
 	temps.cc
 	main.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(dls::outils ALIAS bib_outils)
+set_property(TARGET ${NOM_BIBLIOTHEQUE} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})

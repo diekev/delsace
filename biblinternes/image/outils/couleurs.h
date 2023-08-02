@@ -26,7 +26,7 @@
 
 #include <type_traits>
 
-#include "../../math/concepts.hh"
+#include "biblinternes/math/concepts.hh"
 
 namespace dls {
 namespace image {

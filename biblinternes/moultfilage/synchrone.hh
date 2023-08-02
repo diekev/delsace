@@ -31,8 +31,8 @@ namespace outils {
 
 template <typename T, class Mutex = std::shared_mutex>
 class Synchrone {
-	T m_donnee;  /* CRUCIAL : non-mutable ! */
-	mutable Mutex m_mutex;
+	T m_donnee{};  /* CRUCIAL : non-mutable ! */
+	mutable Mutex m_mutex{};
 
 public:
 	class PointeurVerrouille {
@@ -105,6 +105,11 @@ public:
 		{
 			return m_parent ? &m_parent->m_donnee : nullptr;
 		}
+
+		T &operator*()
+		{
+			return m_parent->m_donnee;
+		}
 	};
 
 	/* Cet opérateur va appelé PointeurVerrouille::operator->() de manière
@@ -117,13 +122,18 @@ public:
 		return PointeurVerrouille(this);
 	}
 
+	PointeurVerrouille verrou_ecriture()
+	{
+		return PointeurVerrouille(this);
+	}
+
 	class ConstPointeurVerrouille {
-		Synchrone *m_parent;
+		const Synchrone *m_parent;
 
 	public:
 		ConstPointeurVerrouille() = delete;
 
-		explicit ConstPointeurVerrouille(Synchrone *parent)
+		explicit ConstPointeurVerrouille(const Synchrone *parent)
 			: m_parent(parent)
 		{
 			if (m_parent) {
@@ -183,9 +193,14 @@ public:
 			}
 		}
 
-		T *operator->()
+		T const *operator->() const
 		{
 			return m_parent ? &m_parent->m_donnee : nullptr;
+		}
+
+		T const &operator*() const
+		{
+			return m_parent->m_donnee;
 		}
 	};
 
@@ -195,6 +210,11 @@ public:
 	 * enfin, quand tout sera fini, l'objet sera détruit. Ce méchanisme,
 	 * ctor/dtor, est utilisé pour synchroniser le pointeur. */
 	ConstPointeurVerrouille operator->() const
+	{
+		return ConstPointeurVerrouille(this);
+	}
+
+	ConstPointeurVerrouille verrou_lecture() const
 	{
 		return ConstPointeurVerrouille(this);
 	}
@@ -215,6 +235,11 @@ public:
 		: m_donnee(std::move(rhs.m_donnee))
 	{}
 
+	template <typename... Args>
+	Synchrone(Args... args)
+		: m_donnee(args...)
+	{}
+
 	explicit Synchrone(const T &rhs) noexcept(std::is_nothrow_copy_constructible<T>::value)
 		: m_donnee(rhs)
 	{}
@@ -223,7 +248,7 @@ public:
 		: m_donnee(std::move(rhs))
 	{}
 
-	const Synchrone &operator=(const Synchrone &rhs) noexcept(std::is_nothrow_assignable<T>::value)
+	const Synchrone &operator=(const Synchrone &rhs) // noexcept(std::is_nothrow_assignable<T>::value)
 	{
 		/* Fais en sorte que les verroux sont acquis dans le bon ordre. */
 		if (std::less<void *>()(this, &rhs)) {
@@ -253,7 +278,7 @@ public:
 		return *this;
 	}
 
-	const Synchrone &operator=(const T &rhs) noexcept(std::is_nothrow_assignable<T>::value)
+	const Synchrone &operator=(const T &rhs) // noexcept(std::is_nothrow_assignable<T>::value)
 	{
 		auto g1 = operator->();
 		m_donnee = rhs;
@@ -285,6 +310,20 @@ public:
 	const Synchrone &en_const() const
 	{
 		return *this;
+	}
+
+	template <typename Fonction>
+	void avec_verrou_lecture(Fonction &&fonction) const
+	{
+		operator->();
+		fonction(m_donnee);
+	}
+
+	template <typename Fonction>
+	void avec_verrou_ecriture(Fonction &&fonction)
+	{
+		operator->();
+		fonction(m_donnee);
 	}
 };
 

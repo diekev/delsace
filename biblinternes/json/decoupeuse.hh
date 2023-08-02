@@ -41,10 +41,10 @@ class decoupeuse_texte {
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
-	long m_position_ligne = 0;
-	long m_compte_ligne = 0;
-	long m_pos_mot = 0;
-	long m_taille_mot_courant = 0;
+    int64_t m_position_ligne = 0;
+    int64_t m_compte_ligne = 0;
+    int64_t m_pos_mot = 0;
+    int64_t m_taille_mot_courant = 0;
 
 	dls::tableau<DonneesMorceau> m_morceaux{};
 

@@ -145,10 +145,10 @@ void unitcell::images(dls::tableau<int> &vi,dls::tableau<double> &vd) {
 		if(intersects_image(i,j,k,vol)) {
 
 			// Add this entry to the output vectors
-			vi.pousse(i);
-			vi.pousse(j);
-			vi.pousse(k);
-			vd.pousse(vol);
+			vi.ajoute(i);
+			vi.ajoute(j);
+			vi.ajoute(k);
+			vd.ajoute(vol);
 
 			// Add neighbors to the queue if they have not been
 			// tested

@@ -32,121 +32,144 @@
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/brosse.h"
-#include "coeur/kanba.h"
+#include "../conversion_types.hh"
 
 #include "rendu_brosse.h"
 #include "rendu_maillage.h"
 #include "rendu_rayon.h"
+#include "rendu_seaux.hh"
 
-VisionneurScene::VisionneurScene(VueCanevas *parent, Kanba *kanba)
-	: m_parent(parent)
-	, m_kanba(kanba)
-	, m_camera(kanba->camera)
-	, m_rendu_brosse(nullptr)
-	, m_rendu_grille(nullptr)
-	, m_rendu_texte(nullptr)
-	, m_rendu_maillage(nullptr)
-	, m_pos_x(0)
-	, m_pos_y(0)
-{}
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, KNB::Kanba &kanba)
+    : m_parent(parent), m_kanba(kanba), m_caméra(kanba.donne_caméra()), m_rendu_brosse(nullptr),
+      m_rendu_grille(nullptr), m_rendu_texte(nullptr), m_rendu_maillage(nullptr), m_pos_x(0),
+      m_pos_y(0)
+{
+}
 
 VisionneurScene::~VisionneurScene()
 {
-	delete m_rendu_maillage;
-	delete m_rendu_texte;
-	delete m_rendu_grille;
-	delete m_rendu_brosse;
+    delete m_rendu_maillage;
+    delete m_rendu_texte;
+    delete m_rendu_grille;
+    delete m_rendu_brosse;
 }
 
 void VisionneurScene::initialise()
 {
-	glClearColor(0.5, 0.5, 0.5, 1.0);
+    glClearColor(0.5, 0.5, 0.5, 1.0);
 
-	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
-	m_rendu_grille = new RenduGrille(20, 20);
-	m_rendu_texte = new RenduTexte();
-	m_rendu_brosse = new RenduBrosse;
-	m_rendu_brosse->initialise();
+    m_rendu_grille = new RenduGrille(20, 20);
+    m_rendu_texte = new RenduTexte();
+    m_rendu_brosse = new RenduBrosse;
+    m_rendu_brosse->initialise();
 
-	m_camera->ajourne();
+    m_caméra.ajourne();
 
-	m_chrono_rendu.commence();
+    m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	m_camera->ajourne();
+    m_caméra.ajourne();
 
-	/* Met en place le contexte. */
-	auto const &MV = m_camera->MV();
-	auto const &P = m_camera->P();
-	auto const &MVP = P * MV;
+    /* Met en place le contexte. */
+    auto const MV = convertis_matrice(m_caméra.MV());
+    auto const P = convertis_matrice(m_caméra.P());
+    auto const MVP = P * MV;
 
-	m_contexte.vue(m_camera->dir());
-	m_contexte.modele_vue(MV);
-	m_contexte.projection(P);
-	m_contexte.MVP(MVP);
-	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
-	m_contexte.pour_surlignage(false);
+    m_contexte.vue(convertis_vecteur(m_caméra.donne_direction()));
+    m_contexte.modele_vue(MV);
+    m_contexte.projection(P);
+    m_contexte.MVP(MVP);
+    m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
+    m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
+    m_contexte.pour_surlignage(false);
 
-	/* Peint la scene. */
-	m_rendu_grille->dessine(m_contexte);
+    /* Peint la scene. */
+    m_rendu_grille->dessine(m_contexte);
 
-	if (m_kanba->maillage && !m_rendu_maillage) {
-		m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
-		m_rendu_maillage->initialise();
-	}
-	else if (m_rendu_maillage && m_rendu_maillage->maillage() != m_kanba->maillage) {
-		delete m_rendu_maillage;
-		m_rendu_maillage = new RenduMaillage(m_kanba->maillage);
-		m_rendu_maillage->initialise();
-	}
+    auto maillage = m_kanba.donne_maillage();
 
-	if (m_rendu_maillage) {
-		m_stack.pousse(m_rendu_maillage->matrice());
-		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
+    if (maillage != nullptr && !m_rendu_maillage) {
+        m_rendu_maillage = new RenduMaillage(maillage);
+        m_rendu_maillage->initialise();
+    }
+    else if (m_rendu_maillage && m_rendu_maillage->maillage().poignee() != maillage) {
+        delete m_rendu_maillage;
+        m_rendu_maillage = new RenduMaillage(maillage);
+        m_rendu_maillage->initialise();
+    }
 
-		m_rendu_maillage->dessine(m_contexte);
+    if (m_rendu_maillage) {
+        m_stack.ajoute(m_rendu_maillage->matrice());
+        m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
-		m_stack.enleve_sommet();
-	}
+        m_rendu_maillage->dessine(m_contexte);
 
-	auto const &diametre = static_cast<float>(m_kanba->brosse->rayon) * 2.0f;
+        m_stack.enleve_sommet();
+    }
 
-	m_rendu_brosse->dessine(m_contexte,
-							diametre / static_cast<float>(m_camera->largeur()),
-							diametre / static_cast<float>(m_camera->hauteur()),
-							m_pos_x,
-							m_pos_y);
+    if (m_affiche_brosse) {
+        auto brosse = m_kanba.donne_pinceau();
+        auto const &diametre = static_cast<float>(brosse.donne_diamètre());
 
-	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
+        m_rendu_brosse->dessine(m_contexte,
+                                diametre / static_cast<float>(m_caméra.donne_largeur()),
+                                diametre / static_cast<float>(m_caméra.donne_hauteur()),
+                                m_pos_x,
+                                m_pos_y);
+    }
 
-	dls::flux_chaine ss;
-	ss << fps << " IPS";
+    auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
-	glEnable(GL_BLEND);
+    dls::flux_chaine ss;
+    ss << fps << " IPS";
 
-	m_rendu_texte->reinitialise();
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+    glEnable(GL_BLEND);
 
-	glDisable(GL_BLEND);
+    m_rendu_texte->reinitialise();
+    m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	m_chrono_rendu.commence();
+    glDisable(GL_BLEND);
+
+    /* Peint les seaux au dessus du reste. */
+    if (m_kanba.donne_dessine_seaux()) {
+        glDisable(GL_DEPTH_TEST);
+        if (!m_rendu_seaux) {
+            m_rendu_seaux = new RenduSeaux(m_kanba);
+        }
+
+        m_rendu_seaux->initialise();
+        m_rendu_seaux->ajourne_tampon_couleur();
+        m_contexte.modele_vue(dls::math::mat4x4f(1.0f));
+        m_contexte.projection(dls::math::mat4x4f(1.0f));
+        m_contexte.MVP(dls::math::mat4x4f(1.0f));
+        m_rendu_seaux->dessine(m_contexte);
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    m_chrono_rendu.commence();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
 {
-	m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
-	m_camera->redimensionne(largeur, hauteur);
+    m_rendu_texte->etablie_dimension_fenetre(largeur, hauteur);
+    m_caméra.définis_dimension_fenêtre(largeur, hauteur);
 }
 
 void VisionneurScene::position_souris(int x, int y)
 {
-	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
-	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
+    m_pos_x = static_cast<float>(x) / static_cast<float>(m_caméra.donne_largeur()) * 2.0f - 1.0f;
+    m_pos_y = static_cast<float>(m_caméra.donne_hauteur() - y) /
+                  static_cast<float>(m_caméra.donne_hauteur()) * 2.0f -
+              1.0f;
+}
+
+void VisionneurScene::affiche_brosse(bool oui_ou_non)
+{
+    m_affiche_brosse = oui_ou_non;
 }

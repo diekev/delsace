@@ -33,20 +33,24 @@ struct Noeud;
 /* ************************************************************************** */
 
 struct Nuanceur {
-	Noeud &noeud;
+    Noeud &noeud;
 
-	dls::chaine source_vert_glsl = "";
-	dls::chaine source_frag_glsl = "";
+    dls::chaine source_vert_glsl = "";
+    dls::chaine source_frag_glsl = "";
 
-	int temps_modifie = 0;
-	int temps_compilation_glsl = 0;
+    int temps_modifie = 0;
+    int temps_compilation_glsl = 0;
 
-	Nuanceur(Noeud &n);
+    bool est_cycles = false;
+
+    Nuanceur(Noeud &n);
+
+    void marque_est_cycles();
 };
 
 /* ************************************************************************** */
 
 inline Nuanceur *extrait_nuanceur(std::any const &any)
 {
-	return std::any_cast<Nuanceur *>(any);
+    return std::any_cast<Nuanceur *>(any);
 }

@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# The Original Code is Copyright (C) 2020-2022 Kévin Dietrich.
+
+set(NOM_CIBLE kuri_representation_intermediaire)
+
+set(INCLUSIONS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
+    ${INCLUSIONS_LIBFFI}
+)
+
+set(BIBLIOTHEQUES
+    kuri_arbre_syntaxique
+    kuri_ipa_compilatrice
+    kuri_compilation
+    kuri_statistiques
+    dls::outils
+    systeme_fichier
+    ${BIBLIOTHEQUES_LIBFFI}
+    ${BIBLIOTHEQUE_DL}
+)
+
+set(SOURCES
+    analyse.cc
+    bloc_basique.cc
+    code_binaire.cc
+    constructrice_ri.cc
+    impression.cc
+    instructions.cc
+    log.cc
+    machine_virtuelle.cc
+    optimisations.cc
+
+    analyse.hh
+    bloc_basique.hh
+    code_binaire.hh
+    constructrice_ri.hh
+    impression.hh
+    instructions.hh
+    log.hh
+    machine_virtuelle.hh
+    optimisations.hh
+)
+
+add_library(${NOM_CIBLE} STATIC "${SOURCES}")
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_dependencies(${NOM_CIBLE} kuri_arbre_syntaxique)
+add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)

@@ -1,0 +1,18 @@
+// Cette expression fait crasher la compilatrice
+// Résolution : le crash est dû au fait que les globales utiliserait des instructions normales alors qu'il n'y a pas de fonction_courante
+//              émets une erreur de syntaxage
+
+importe Support
+
+Structure :: struct {
+    valeur: z32
+}
+
+tableau := []Structure = [
+    Structure(valeur = 0)
+]
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}

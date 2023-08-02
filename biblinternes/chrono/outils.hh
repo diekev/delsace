@@ -24,7 +24,10 @@
 
 #pragma once
 
+#include <assert.h>
+#include <functional>
 #include <sys/time.h>
+#include <unistd.h>
 
 namespace dls::chrono {
 
@@ -32,7 +35,7 @@ namespace dls::chrono {
  * Structure pour enrober les fonctions maintenant() et delta(temps) afin de
  * mieux controler leurs précisions (heure/minute/secondes...)
  */
-template <long D>
+template <int64_t D>
 struct compte_temps {
 private:
 	double m_temps = 0.0;
@@ -81,12 +84,35 @@ using compte_seconde = compte_temps<1000000>;
 using compte_minute = compte_temps<60000000>;
 using compte_heure = compte_temps<3600000000>;
 
+template <int64_t N>
+struct chrono_rappel {
+private:
+    compte_temps<N> chrono{};
+    std::function<void(double)> m_rappel{};
+
+public:
+    chrono_rappel(std::function<void(double)> rappel)
+        : m_rappel(rappel)
+    {}
+
+    ~chrono_rappel()
+    {
+        m_rappel(chrono.temps());
+    }
+};
+
+using chrono_rappel_microseconde = chrono_rappel<1>;
+using chrono_rappel_milliseconde = chrono_rappel<1000>;
+using chrono_rappel_seconde = chrono_rappel<1000000>;
+using chrono_rappel_minute = chrono_rappel<60000000>;
+using chrono_rappel_heure = chrono_rappel<3600000000>;
+
 /**
  * Structure définissant un chronomètre pouvant être arrêté et repris. Elle
  * s'appele seulement 'metre' car avec l'espace de nom, cela donne
  * chrono::metre, forçant ainsi une bonne utilisation des espaces de nom.
  */
-template <long D>
+template <int64_t D>
 struct metre {
 private:
 	compte_temps<D> m_compteuse{false};
@@ -135,5 +161,17 @@ using metre_milliseconde = metre<1000>;
 using metre_seconde = metre<1000000>;
 using metre_minute = metre<60000000>;
 using metre_heure = metre<3600000000>;
+
+inline void dors_millisecondes(int millisecondes)
+{
+	assert(millisecondes >= 0);
+	usleep(static_cast<unsigned>(millisecondes * 1000));
+}
+
+inline void dors_microsecondes(int microsecondes)
+{
+	assert(microsecondes >= 0);
+	usleep(static_cast<unsigned>(microsecondes));
+}
 
 }  /* namespace dls::chrono */

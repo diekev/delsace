@@ -1,49 +1,41 @@
-importe "flux"
+importe Fondation
 
-N = 5
+N := 5
 
-struct XYZ {
-    a = 128.0
+XYZ :: struct {
+    a := 128.0
     b : type_de(a)
 }
 
-fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) : rien
+copie_vNvN :: fonc(a : [3]z32, b : [3]z32) -> rien
 {
     pour v, i dans b {
         a[i] = v
     }
 }
 
-# tag fonction comme étant un gabarit
-# - rassemble les types gabarit
-# lors de l'appel :
-# - détermine les types
-# - validation sémantique avec contexte des types si non validée pour ces types
-# - tag pour génération avec types
-# lors de la génération
-fonc ajoute(a : $T, b : $T) : $T
+principale :: fonc () -> type_de(N)
 {
-    retourne a + b
-}
+    x := 5.0
+    y : type_de(x)
 
-fonc principale(args : []*z8) : type_de(N)
-{
-    x = 5.0
-    dyn y : type_de(x)
+    infos := info_de(type_de(y))
 
-    infos = info_de(y)
+    imprime("%\n", mémoire(infos))
 
-    imprime(mémoire(infos), '\n')
+    imprime("N = %\n", N)
 
-    imprime("N = ", N, '\n')
-
-    z = faux
+    z := faux
 
     w : type_de(z) = vrai
 
-    a = 0
+    a := 0
 
-    b = transtype(a : type_de(w))
+    b := a comme type_de(w)
+
+    si b != faux {
+        retourne 1
+    }
 
     retourne 0
 }

@@ -35,66 +35,66 @@ namespace kdo {
  * 65 536 valeurs, sur 2 octets, et sur 4 octets sinon.
  */
 struct tableau_index {
-	dls::tableau<unsigned char> donnees{};
+    dls::tableau<unsigned char> donnees{};
 
-	/* La taille du nombres de données (donnees.taille() >> octets). */
-	int taille = 0;
+    /* La taille du nombres de données (donnees.taille() >> octets). */
+    int taille = 0;
 
-	/* Exposant pour le nombre d'octets utilisés pour stocker les données
-	 * 0 = char  (2^0 = 1)
-	 * 1 = short (2^1 = 2)
-	 * 2 = int   (2^2 = 4)
-	 */
-	int octets = 0;
+    /* Exposant pour le nombre d'octets utilisés pour stocker les données
+     * 0 = char  (2^0 = 1)
+     * 1 = short (2^1 = 2)
+     * 2 = int   (2^2 = 4)
+     */
+    int octets = 0;
 
-	tableau_index() = default;
+    tableau_index() = default;
 
-	explicit tableau_index(int oct);
+    explicit tableau_index(int oct);
 
-	static int octets_pour_taille(long taille);
+    static int octets_pour_taille(long taille);
 
-	inline int operator[](long i) const
-	{
-		switch (octets) {
-			case 0:
-			{
-				return donnees[i];
-			}
-			case 1:
-			{
-				return *reinterpret_cast<unsigned short const *>(&donnees[i << 1]);
-			}
-			case 2:
-			{
-				return *reinterpret_cast<int const *>(&donnees[i << 2]);
-			}
-		}
+    inline int operator[](long i) const
+    {
+        switch (octets) {
+            case 0:
+            {
+                return donnees[i];
+            }
+            case 1:
+            {
+                return *reinterpret_cast<unsigned short const *>(&donnees[i << 1]);
+            }
+            case 2:
+            {
+                return *reinterpret_cast<int const *>(&donnees[i << 2]);
+            }
+        }
 
-		return 0;
-	}
+        return 0;
+    }
 
-	void pousse(int v);
+    void ajoute(int v);
 
-private:
-	void pousse_impl(unsigned char v);
+  private:
+    void pousse_impl(unsigned char v);
 
-	void pousse_impl(unsigned short v);
+    void pousse_impl(unsigned short v);
 
-	void pousse_impl(int v);
+    void pousse_impl(int v);
 };
 
 /* ****************************************************************** */
 
 struct tableau_index_comprime {
-	dls::tableau<std::pair<int, int>> donnees{};
+    dls::tableau<std::pair<int, int>> donnees{};
 
-	int operator[](long idx) const;
+    int operator[](long idx) const;
 
-	void pousse(int decalage, int valeur);
+    void ajoute(int decalage, int valeur);
 };
 
 /* ****************************************************************** */
 
 tableau_index_comprime comprimes_tableau_index(tableau_index const &entree);
 
-}  /* namespace kdo */
+} /* namespace kdo */

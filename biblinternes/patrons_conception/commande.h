@@ -43,11 +43,31 @@ struct DonneesCommande {
 	float x = 0;
 	float y = 0;
 	dls::chaine metadonnee = "";
+    dls::chaine identifiant{};
 
 	DonneesCommande() = default;
 };
 
+class Commande;
+
+struct DescriptionCommande {
+    typedef Commande *(*fonction_usine)(DescriptionCommande);
+
+    dls::chaine categorie{};
+    dls::chaine metadonnee{};
+    mutable dls::chaine identifiant{};
+    int souris = 0;
+    int modificateur = 0;
+    int cle = 0;
+    bool double_clique = false;
+    bool peut_être_défaite = true;
+    bool pad[2];
+
+    fonction_usine construction_commande = nullptr;
+};
+
 class Commande {
+    DescriptionCommande description{};
 public:
 	virtual ~Commande() = default;
 
@@ -58,20 +78,16 @@ public:
 	virtual void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
 
 	virtual void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees);
-};
 
-struct DescriptionCommande {
-	typedef Commande *(*fonction_usine)();
+    void définis_description(DescriptionCommande desc)
+    {
+        description = desc;
+    }
 
-	dls::chaine categorie{};
-	dls::chaine metadonnee{};
-	int souris = 0;
-	int modificateur = 0;
-	int cle = 0;
-	bool double_clique = false;
-	bool pad[3];
-
-	fonction_usine construction_commande = nullptr;
+    bool peut_être_défaite()
+    {
+        return description.peut_être_défaite;
+    }
 };
 
 template <typename T>
@@ -81,6 +97,7 @@ inline auto description_commande(
 		int modificateur,
 		int cle,
 		bool double_clique,
+        bool peut_être_défaite = true,
 		dls::chaine const &metadonnee = "")
 {
 	DescriptionCommande description;
@@ -89,8 +106,9 @@ inline auto description_commande(
 	description.modificateur = modificateur;
 	description.categorie = categorie;
 	description.double_clique = double_clique;
-	description.construction_commande = []() -> Commande* { return new T(); };
+    description.construction_commande = [](DescriptionCommande desc) -> Commande* { auto commande = new T(); commande->définis_description(desc); return commande; };
 	description.metadonnee = metadonnee;
+    description.peut_être_défaite = peut_être_défaite;
 
 #if 0
 	dls::chaine identifiant;
@@ -102,26 +120,26 @@ inline auto description_commande(
 
 	*tampon = *reinterpret_cast<char *>(&description.souris);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.modificateur);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
 	*tampon = *reinterpret_cast<char *>(&description.cle);
 
-	identifiant.pousse(tampon[0]);
-	identifiant.pousse(tampon[1]);
-	identifiant.pousse(tampon[2]);
-	identifiant.pousse(tampon[3]);
+	identifiant.ajoute(tampon[0]);
+	identifiant.ajoute(tampon[1]);
+	identifiant.ajoute(tampon[2]);
+	identifiant.ajoute(tampon[3]);
 
-	identifiant.pousse('\0' + static_cast<char>(double_clique));
+	identifiant.ajoute('\0' + static_cast<char>(double_clique));
 
 	std::cerr << "Tampon commande " << identifiant << '\n';
 #endif

@@ -1,2056 +1,1856 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
 #include "coulisse_llvm.hh"
 
-#include <delsace/chrono/chronometrage.hh>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/IR/DataLayout.h>
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wclass-memaccess"
+#    pragma GCC diagnostic ignored "-Wconversion"
+#    pragma GCC diagnostic ignored "-Weffc++"
+#    pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#    pragma GCC diagnostic ignored "-Wold-style-cast"
+#    pragma GCC diagnostic ignored "-Wshadow"
+#    pragma GCC diagnostic ignored "-Wsign-conversion"
+#    pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
-#pragma GCC diagnostic pop
-
-#include "arbre_syntactic.h"
-#include "contexte_generation_code.h"
-#include "erreur.h"
-#include "info_type.hh"
-#include "modules.hh"
-#include "nombres.h"
-#include "validation_semantique.hh"
-
-#undef NOMME_IR
-
-/* ************************************************************************** */
-
-/* À FAIRE (coulisse LLVM)
- * - type 'chaine'
- * - noeud 'mémoire', 'déclaration structure/énum'
- * - infos types
- * - loge, déloge, reloge
- * - opérateurs : +=, -=, etc..
- * - ajourne opérateur [] pour les chaines
- * - converti paramètres fonction principale en un tableau
- * - boucle 'tantque'
- * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
- * - prend en compte la portée des blocs pour générer le code des noeuds différés
- * - conversion tableau octet
- * - union accès membre par '.' et par 'de'
- * - déclaration structure/énum
- * - associe
- * - ajourne la génération de code pour les boucles 'pour'
- * - saufsi
- * - trace de la mémoire utilisée
- * - retiens
- */
-
-/* ************************************************************************** */
-
-static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
-{
-	/* génère le code pour les blocs déférés */
-	auto pile_noeud = contexte.noeuds_differes();
-
-	while (!pile_noeud.empty()) {
-		auto noeud = pile_noeud.back();
-		genere_code_llvm(noeud, contexte, true);
-		pile_noeud.pop_back();
-	}
-}
-
-/* ************************************************************************** */
-
-static size_t taille_de(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::BOOL:
-			return 1;
-		case id_morceau::N8:
-		case id_morceau::Z8:
-			return 8;
-		case id_morceau::N16:
-		case id_morceau::R16:
-		case id_morceau::Z16:
-			return 16;
-		case id_morceau::N32:
-		case id_morceau::R32:
-		case id_morceau::Z32:
-			return 32;
-		case id_morceau::N64:
-		case id_morceau::R64:
-		case id_morceau::Z64:
-		case id_morceau::POINTEUR:
-			return 64;
-		default:
-			return 0ul;
-	}
-}
-
-static bool est_plus_petit(id_morceau type1, id_morceau type2)
-{
-	return taille_de(type1) < taille_de(type2);
-}
-
-namespace noeud {
-
-/* ************************************************************************** */
-
-static auto cree_bloc(ContexteGenerationCode &contexte, char const *nom)
-{
-#ifdef NOMME_IR
-	return llvm::BasicBlock::Create(contexte.contexte, nom, contexte.fonction);
-#else
-	static_cast<void>(nom);
-	return llvm::BasicBlock::Create(contexte.contexte, "", contexte.fonction);
+#include <llvm/InitializePasses.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Scalar/GVN.h>
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
 #endif
-}
 
-static bool est_branche_ou_retour(llvm::Value *valeur)
+#include "biblexternes/iprof/prof.h"
+
+#include "biblinternes/chrono/chronometrage.hh"
+
+#include "structures/chemin_systeme.hh"
+#include "structures/table_hachage.hh"
+
+#include "compilatrice.hh"
+#include "environnement.hh"
+#include "espace_de_travail.hh"
+#include "programme.hh"
+
+#include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/impression.hh"
+#include "representation_intermediaire/instructions.hh"
+
+// Inclus cela à la fin car DIFFERE interfère avec le lexème...
+#include "biblinternes/outils/garde_portee.h"
+
+inline bool adresse_est_nulle(void *adresse)
 {
-	return (valeur != nullptr) && (llvm::isa<llvm::BranchInst>(*valeur) || llvm::isa<llvm::ReturnInst>(*valeur));
+    /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
+    return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
 
-static llvm::FunctionType *obtiens_type_fonction(
-		ContexteGenerationCode &contexte,
-		DonneesFonction const &donnees_fonction,
-		DonneesType &donnees_retour,
-		bool est_variadique)
+/* ************************************************************************** */
+
+/* À FAIRE(typage) : l'index des membres utilisé pour les accès à des membres est l'index absolu
+ * dans le tableau de membres du type. Hors ceci contient également les membres constants. Avoir de
+ * tels index pour les accès est plus ou moins correcte pour la coulisse C, mais pour LLVM, dont
+ * les types n'ont pas de membres constants, les index sont faux et peuvent pointer endehors du
+ * type donc nous devons les corriger afin d'accéder au membre correspondant du type LLVM.
+ * Nous pourrions stocker les membres constants à la fin du tableau de membre afin de ne pas avoir
+ * à se soucier de ce genre de choses. */
+static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
 {
-	std::vector<llvm::Type *> parametres;
-	parametres.reserve(donnees_fonction.nom_args.size());
+    auto index_reel = 0u;
 
-	for (auto const &nom : donnees_fonction.nom_args) {
-		auto const &argument = donnees_fonction.args.find(nom);
+    POUR (type.membres) {
+        if (index == 0) {
+            break;
+        }
 
-		if (argument->second.est_variadic) {
-			/* les arguments variadics sont transformés en un tableau */
-			if (!donnees_fonction.est_externe) {
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::TABLEAU);
-				dt.pousse(contexte.magasin_types.donnees_types[argument->second.donnees_type]);
+        index -= 1;
 
-				parametres.push_back(contexte.magasin_types.converti_type(contexte, dt));
-			}
+        if (it.ne_doit_pas_être_dans_code_machine()) {
+            continue;
+        }
 
-			break;
-		}
+        index_reel += 1;
+    }
 
-		parametres.push_back(contexte.magasin_types.converti_type(contexte, argument->second.donnees_type));
-	}
-
-	return llvm::FunctionType::get(
-				contexte.magasin_types.converti_type(contexte, donnees_retour),
-				parametres,
-				est_variadique && donnees_fonction.est_externe);
+    return index_reel;
 }
 
-enum {
-	/* TABLEAUX */
-	POINTEUR_TABLEAU = 0,
-	TAILLE_TABLEAU = 1,
+/* ************************************************************************** */
 
-	/* EINI */
-	POINTEUR_EINI = 0,
-	TYPE_EINI = 1,
+struct Indentation {
+    int v = 0;
+
+    void incremente()
+    {
+        v += 1;
+    }
+
+    void decremente()
+    {
+        v -= 1;
+    }
 };
 
-[[nodiscard]] static llvm::Value *accede_membre_structure(
-		ContexteGenerationCode &contexte,
-		llvm::Value *structure,
-		uint64_t index,
-		bool charge = false)
+static Indentation __indente_globale;
+
+void indente()
 {
-	auto ptr = llvm::GetElementPtrInst::CreateInBounds(
-			  structure, {
-				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index)
-			  },
-			  "",
-			  contexte.bloc_courant());
-
-	if (charge == true) {
-		return new llvm::LoadInst(ptr, "", contexte.bloc_courant());
-	}
-
-	return ptr;
+    __indente_globale.incremente();
 }
 
-[[nodiscard]] static llvm::Value *accede_element_tableau(
-		ContexteGenerationCode &contexte,
-		llvm::Value *structure,
-		llvm::Type *type,
-		llvm::Value *index)
+void desindente()
 {
-	return llvm::GetElementPtrInst::CreateInBounds(
-				type,
-				structure, {
-					llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
-					index
-				},
-				"",
-				contexte.bloc_courant());
+    __indente_globale.decremente();
 }
 
-[[nodiscard]] static llvm::Value *accede_element_tableau(
-		ContexteGenerationCode &contexte,
-		llvm::Value *structure,
-		llvm::Type *type,
-		uint64_t index)
+struct LogDebug {
+    std::ostream &os = std::cerr;
+
+    LogDebug()
+    {
+        for (auto i = 0; i < __indente_globale.v; ++i) {
+            os << ' ' << ' ';
+        }
+    }
+
+    ~LogDebug()
+    {
+        os << "\n";
+    }
+};
+
+LogDebug dbg()
 {
-	return accede_element_tableau(
-				contexte,
-				structure,
-				type,
-				llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), index));
+    return {};
 }
 
-[[nodiscard]] static llvm::Value *converti_vers_tableau_dyn(
-		ContexteGenerationCode &contexte,
-		llvm::Value *tableau,
-		DonneesType const &donnees_type,
-		bool charge_ = true)
+template <typename T>
+const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
 {
-	/* trouve le type de la structure tableau */
-	auto deref = donnees_type.derefence();
-	auto dt = DonneesType{};
-	dt.pousse(id_morceau::TABLEAU);
-	dt.pousse(deref);
-
-	auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
-
-	/* alloue de l'espace pour ce type */
-	auto alloc = new llvm::AllocaInst(type_llvm, 0, "", contexte.bloc_courant());
-	alloc->setAlignment(8);
-
-	/* copie le pointeur du début du tableau */
-	auto ptr_valeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
-
-	/* charge le premier élément du tableau */
-	auto premier_elem = accede_element_tableau(
-							contexte,
-							tableau,
-							donnees_type.type_llvm(),
-							0ul);
-
-	auto charge = new llvm::LoadInst(premier_elem, "", contexte.bloc_courant());
-	charge->setAlignment(8);
-	auto addresse = charge->getPointerOperand();
-
-	auto stocke = new llvm::StoreInst(addresse, ptr_valeur, contexte.bloc_courant());
-	stocke->setAlignment(8);
-
-	/* copie la taille du tableau */
-	auto ptr_taille = accede_membre_structure(contexte, alloc, TAILLE_TABLEAU);
-
-	auto taille_tableau = donnees_type.type_base() >> 8;
-	auto constante = llvm::ConstantInt::get(
-						 llvm::Type::getInt64Ty(contexte.contexte),
-						 uint64_t(taille_tableau),
-						 false);
-
-	stocke = new llvm::StoreInst(constante, ptr_taille, contexte.bloc_courant());
-	stocke->setAlignment(8);
-
-	if (charge_) {
-		charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
-		charge->setAlignment(8);
-		return charge;
-	}
-
-	return alloc;
+    log_debug.os << valeur;
+    return log_debug;
 }
 
-[[nodiscard]] static llvm::Value *converti_vers_eini(
-		ContexteGenerationCode &contexte,
-		llvm::Value *valeur,
-		DonneesType &donnees_type,
-		bool charge_)
+static const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
 {
-	/* alloue de l'espace pour un eini */
-	auto dt = DonneesType{};
-	dt.pousse(id_morceau::EINI);
+    for (auto i = 0; i < indentation.v; ++i) {
+        log_debug.os << ' ';
+    }
 
-	auto type_eini_llvm = contexte.magasin_types.converti_type(contexte, dt);
-
-	auto alloc_eini = new llvm::AllocaInst(type_eini_llvm, 0, "", contexte.bloc_courant());
-	alloc_eini->setAlignment(8);
-
-	/* copie le pointeur de la valeur vers le type eini */
-	auto ptr_eini = accede_membre_structure(contexte, alloc_eini, POINTEUR_EINI);
-
-	/* Dans le cas des constantes, nous pouvons directement utiliser la valeur,
-	 * car il s'agit de l'adresse où elle est stockée. */
-	if (llvm::isa<llvm::Constant>(valeur) == false) {
-		auto charge_valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-		valeur = charge_valeur->getPointerOperand();
-	}
-
-	auto transtype = new llvm::BitCastInst(
-						 valeur,
-						 llvm::Type::getInt8PtrTy(contexte.contexte),
-						 "",
-						 contexte.bloc_courant());
-
-	auto stocke = new llvm::StoreInst(transtype, ptr_eini, contexte.bloc_courant());
-	stocke->setAlignment(8);
-
-	/* copie le pointeur vers les infos du type du eini */
-	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
-
-	auto ptr_info_type = cree_info_type(contexte, donnees_type);
-
-	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
-	stocke->setAlignment(8);
-
-	/* charge et retourne */
-	if (charge_) {
-		auto charge = new llvm::LoadInst(alloc_eini, "", contexte.bloc_courant());
-		charge->setAlignment(8);
-		return charge;
-	}
-
-	return alloc_eini;
+    return log_debug;
 }
 
-[[nodiscard]] static llvm::Value *genere_code_enfant(
-		ContexteGenerationCode &contexte,
-		base *enfant)
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
 {
-	auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
-	auto valeur_enfant = genere_code_llvm(enfant, contexte, conversion);
-
-	if (conversion) {
-		auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-
-		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
-			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
-		}
-
-		if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-			valeur_enfant = converti_vers_eini(contexte, valeur_enfant, dt, false);
-		}
-
-		if ((enfant->drapeaux & EXTRAIT_EINI) != 0) {
-			auto ptr_valeur = accede_membre_structure(contexte, valeur_enfant, POINTEUR_EINI);
-
-			/* déréfence ce pointeur */
-			auto charge = new llvm::LoadInst(ptr_valeur, "", false, contexte.bloc_courant());
-			charge->setAlignment(8);
-
-			/* transtype le pointeur vers le bon type */
-			auto dt_vers = DonneesType{};
-			dt_vers.pousse(id_morceau::POINTEUR);
-			dt_vers.pousse(contexte.magasin_types.donnees_types[enfant->index_type]);
-
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_vers);
-			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
-
-			/* déréfence ce pointeur : après la portée */
-		}
-
-		auto charge = new llvm::LoadInst(valeur_enfant, "", contexte.bloc_courant());
-		//charge->setAlignment(8);
-		valeur_enfant = charge;
-	}
-
-	return valeur_enfant;
+    llvm::errs() << llvm_value;
+    return log_debug;
 }
 
-template <typename Conteneur>
-llvm::Value *cree_appel(
-		ContexteGenerationCode &contexte,
-		llvm::Value *fonction,
-		Conteneur const &conteneur)
+static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Constant &llvm_value)
 {
-	std::vector<llvm::Value *> parametres(conteneur.size());
-
-	std::transform(conteneur.begin(), conteneur.end(), parametres.begin(),
-				   [&](base *noeud_enfant)
-	{
-		return genere_code_enfant(contexte, noeud_enfant);
-	});
-
-	llvm::ArrayRef<llvm::Value *> args(parametres);
-
-	return llvm::CallInst::Create(fonction, args, "", contexte.bloc_courant());
+    llvm::errs() << llvm_value;
+    return log_debug;
 }
 
-template <llvm::Instruction::CastOps Op>
-constexpr llvm::Value *cree_instruction(
-		llvm::Value *valeur,
-		llvm::Type *type,
-		llvm::BasicBlock *bloc)
+static const LogDebug &operator<<(const LogDebug &log_debug,
+                                  const llvm::GlobalVariable &llvm_value)
 {
-	using CastOps = llvm::Instruction::CastOps;
-
-	static_assert(Op >= CastOps::Trunc && Op <= CastOps::AddrSpaceCast,
-				  "OpCode de transtypage inconnu");
-
-	switch (Op) {
-		case CastOps::IntToPtr:
-			return llvm::IntToPtrInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::UIToFP:
-			return llvm::UIToFPInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::SIToFP:
-			return llvm::SIToFPInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::Trunc:
-			return llvm::TruncInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::ZExt:
-			return llvm::ZExtInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::SExt:
-			return llvm::SExtInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::FPToUI:
-			return llvm::FPToUIInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::FPToSI:
-			return llvm::FPToSIInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::FPTrunc:
-			return llvm::FPTruncInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::FPExt:
-			return llvm::FPExtInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::PtrToInt:
-			return llvm::PtrToIntInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::BitCast:
-			return llvm::BitCastInst::Create(Op, valeur, type, "", bloc);
-		case CastOps::AddrSpaceCast:
-			return llvm::AddrSpaceCastInst::Create(Op, valeur, type, "", bloc);
-	}
+    llvm::errs() << llvm_value;
+    return log_debug;
 }
 
 /* ************************************************************************** */
 
-static llvm::Value *comparaison_pour_type(
-		const id_morceau &type,
-		llvm::PHINode *noeud_phi,
-		llvm::Value *valeur_fin,
-		llvm::BasicBlock *bloc_courant)
+auto vers_std_string(kuri::chaine const &chn)
 {
-	if (est_type_entier_naturel(type)) {
-		return llvm::ICmpInst::Create(
-					llvm::Instruction::ICmp,
-					llvm::CmpInst::Predicate::ICMP_ULE,
-					noeud_phi,
-					valeur_fin,
-					"",
-					bloc_courant);
-	}
-
-	if (est_type_entier_relatif(type)) {
-		return llvm::ICmpInst::Create(
-					llvm::Instruction::ICmp,
-					llvm::CmpInst::Predicate::ICMP_SLE,
-					noeud_phi,
-					valeur_fin,
-					"",
-					bloc_courant);
-	}
-
-	if (est_type_reel(type)) {
-		return llvm::FCmpInst::Create(
-					llvm::Instruction::FCmp,
-					llvm::CmpInst::Predicate::FCMP_OLE,
-					noeud_phi,
-					valeur_fin,
-					"",
-					bloc_courant);
-	}
-
-	return nullptr;
+    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
 
-static llvm::Value *incremente_pour_type(
-		const id_morceau &type,
-		ContexteGenerationCode &contexte,
-		llvm::PHINode *noeud_phi,
-		llvm::BasicBlock *bloc_courant)
+auto vers_std_string(dls::vue_chaine_compacte const &chn)
 {
-	auto type_llvm = converti_type_simple(contexte, type, nullptr);
+    return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
+}
 
-	if (est_type_entier(type)) {
-		auto val_inc = llvm::ConstantInt::get(
-						   type_llvm,
-						   static_cast<uint64_t>(1),
-						   false);
+static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
+{
+    using Genre = OperateurBinaire::Genre;
 
-		return llvm::BinaryOperator::Create(
-					llvm::Instruction::Add,
-					noeud_phi,
-					val_inc,
-					"",
-					bloc_courant);
-	}
+    switch (genre) {
+        case Genre::Addition:
+            return llvm::Instruction::Add;
+        case Genre::Addition_Reel:
+            return llvm::Instruction::FAdd;
+        case Genre::Soustraction:
+            return llvm::Instruction::Sub;
+        case Genre::Soustraction_Reel:
+            return llvm::Instruction::FSub;
+        case Genre::Multiplication:
+            return llvm::Instruction::Mul;
+        case Genre::Multiplication_Reel:
+            return llvm::Instruction::FMul;
+        case Genre::Division_Naturel:
+            return llvm::Instruction::UDiv;
+        case Genre::Division_Reel:
+            return llvm::Instruction::FDiv;
+        case Genre::Division_Relatif:
+            return llvm::Instruction::SDiv;
+        case Genre::Reste_Naturel:
+            return llvm::Instruction::URem;
+        case Genre::Reste_Relatif:
+            return llvm::Instruction::SRem;
+        case Genre::Et_Binaire:
+            return llvm::Instruction::And;
+        case Genre::Ou_Binaire:
+            return llvm::Instruction::Or;
+        case Genre::Ou_Exclusif:
+            return llvm::Instruction::Xor;
+        case Genre::Dec_Gauche:
+            return llvm::Instruction::Shl;
+        case Genre::Dec_Droite_Arithm:
+            return llvm::Instruction::AShr;
+        case Genre::Dec_Droite_Logique:
+            return llvm::Instruction::LShr;
+        case Genre::Invalide:
+        case Genre::Comp_Egal:
+        case Genre::Comp_Inegal:
+        case Genre::Comp_Inf:
+        case Genre::Comp_Inf_Egal:
+        case Genre::Comp_Sup:
+        case Genre::Comp_Sup_Egal:
+        case Genre::Comp_Inf_Nat:
+        case Genre::Comp_Inf_Egal_Nat:
+        case Genre::Comp_Sup_Nat:
+        case Genre::Comp_Sup_Egal_Nat:
+        case Genre::Comp_Egal_Reel:
+        case Genre::Comp_Inegal_Reel:
+        case Genre::Comp_Inf_Reel:
+        case Genre::Comp_Inf_Egal_Reel:
+        case Genre::Comp_Sup_Reel:
+        case Genre::Comp_Sup_Egal_Reel:
+        case Genre::Indexage:
+            break;
+    }
 
-	if (est_type_reel(type)) {
-		auto val_inc = llvm::ConstantFP::get(
-						   type_llvm,
-						   1.0);
+    return static_cast<llvm::Instruction::BinaryOps>(0);
+}
 
-		return llvm::BinaryOperator::Create(
-					llvm::Instruction::FAdd,
-					noeud_phi,
-					val_inc,
-					"",
-					bloc_courant);
-	}
+static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
+{
+    using Genre = OperateurBinaire::Genre;
 
-	return nullptr;
+    switch (genre) {
+        case Genre::Comp_Egal:
+            return llvm::CmpInst::Predicate::ICMP_EQ;
+        case Genre::Comp_Inegal:
+            return llvm::CmpInst::Predicate::ICMP_NE;
+        case Genre::Comp_Inf:
+            return llvm::CmpInst::Predicate::ICMP_SLT;
+        case Genre::Comp_Inf_Egal:
+            return llvm::CmpInst::Predicate::ICMP_SLE;
+        case Genre::Comp_Sup:
+            return llvm::CmpInst::Predicate::ICMP_SGT;
+        case Genre::Comp_Sup_Egal:
+            return llvm::CmpInst::Predicate::ICMP_SGE;
+        case Genre::Comp_Inf_Nat:
+            return llvm::CmpInst::Predicate::ICMP_ULT;
+        case Genre::Comp_Inf_Egal_Nat:
+            return llvm::CmpInst::Predicate::ICMP_ULE;
+        case Genre::Comp_Sup_Nat:
+            return llvm::CmpInst::Predicate::ICMP_UGT;
+        case Genre::Comp_Sup_Egal_Nat:
+            return llvm::CmpInst::Predicate::ICMP_UGE;
+        case Genre::Comp_Egal_Reel:
+            return llvm::CmpInst::Predicate::FCMP_OEQ;
+        case Genre::Comp_Inegal_Reel:
+            return llvm::CmpInst::Predicate::FCMP_ONE;
+        case Genre::Comp_Inf_Reel:
+            return llvm::CmpInst::Predicate::FCMP_OLT;
+        case Genre::Comp_Inf_Egal_Reel:
+            return llvm::CmpInst::Predicate::FCMP_OLE;
+        case Genre::Comp_Sup_Reel:
+            return llvm::CmpInst::Predicate::FCMP_OGT;
+        case Genre::Comp_Sup_Egal_Reel:
+            return llvm::CmpInst::Predicate::FCMP_OGE;
+        case Genre::Invalide:
+        case Genre::Addition:
+        case Genre::Addition_Reel:
+        case Genre::Soustraction:
+        case Genre::Soustraction_Reel:
+        case Genre::Multiplication:
+        case Genre::Multiplication_Reel:
+        case Genre::Division_Naturel:
+        case Genre::Division_Reel:
+        case Genre::Division_Relatif:
+        case Genre::Reste_Naturel:
+        case Genre::Reste_Relatif:
+        case Genre::Et_Binaire:
+        case Genre::Ou_Binaire:
+        case Genre::Ou_Exclusif:
+        case Genre::Dec_Gauche:
+        case Genre::Dec_Droite_Arithm:
+        case Genre::Dec_Droite_Logique:
+        case Genre::Indexage:
+            break;
+    }
+
+    return static_cast<llvm::CmpInst::Predicate>(0);
+}
+
+static auto convertis_type_transtypage(TypeTranstypage const transtypage,
+                                       Type const *type_de,
+                                       Type const *type_vers)
+{
+    using CastOps = llvm::Instruction::CastOps;
+    switch (transtypage) {
+        case TypeTranstypage::AUGMENTE_NATUREL:
+            return CastOps::ZExt;
+        case TypeTranstypage::AUGMENTE_RELATIF:
+            return CastOps::SExt;
+        case TypeTranstypage::AUGMENTE_REEL:
+            return CastOps::FPExt;
+        case TypeTranstypage::DIMINUE_NATUREL:
+        case TypeTranstypage::DIMINUE_RELATIF:
+            return CastOps::Trunc;
+        case TypeTranstypage::DIMINUE_REEL:
+            return CastOps::FPTrunc;
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+            return CastOps::PtrToInt;
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+            return CastOps::IntToPtr;
+        case TypeTranstypage::REEL_VERS_ENTIER:
+            if (type_vers->est_entier_naturel()) {
+                return CastOps::FPToUI;
+            }
+            return CastOps::FPToSI;
+        case TypeTranstypage::ENTIER_VERS_REEL:
+            if (type_de->est_entier_naturel()) {
+                return CastOps::UIToFP;
+            }
+            return CastOps::SIToFP;
+        case TypeTranstypage::DEFAUT:
+        case TypeTranstypage::BITS:
+            return CastOps::BitCast;
+    }
+
+    return static_cast<CastOps>(0);
 }
 
 /* ************************************************************************** */
 
-llvm::Value *genere_code_llvm(
-		base *b,
-		ContexteGenerationCode &contexte,
-		const bool expr_gauche)
+struct GeneratriceCodeLLVM {
+    kuri::table_hachage<Atome const *, llvm::Value *> table_valeurs{"Table valeurs locales LLVM"};
+    kuri::table_hachage<InstructionLabel const *, llvm::BasicBlock *> table_blocs{
+        "Table labels LLVM"};
+    kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
+        "Table valeurs globales LLVM"};
+    kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
+    kuri::table_hachage<kuri::chaine, llvm::Constant *> valeurs_chaines_globales{
+        "Table chaines LLVM"};
+    EspaceDeTravail &m_espace;
+
+    llvm::Function *m_fonction_courante = nullptr;
+    llvm::LLVMContext m_contexte_llvm{};
+    llvm::Module *m_module = nullptr;
+    llvm::IRBuilder<> m_builder;
+    llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
+
+    GeneratriceCodeLLVM(EspaceDeTravail &espace);
+
+    GeneratriceCodeLLVM(GeneratriceCodeLLVM const &) = delete;
+    GeneratriceCodeLLVM &operator=(const GeneratriceCodeLLVM &) = delete;
+
+    llvm::Type *converti_type_llvm(Type const *type);
+
+    llvm::FunctionType *converti_type_fonction(TypeFonction const *type, bool est_externe);
+
+    llvm::Value *genere_code_pour_atome(Atome *atome, bool pour_globale);
+
+    void genere_code_pour_instruction(Instruction const *inst);
+
+    void genere_code(const ProgrammeRepreInter &repr_inter);
+
+    llvm::Constant *valeur_pour_chaine(const kuri::chaine &chaine, int64_t taille_chaine);
+};
+
+GeneratriceCodeLLVM::GeneratriceCodeLLVM(EspaceDeTravail &espace)
+    : m_espace(espace), m_builder(m_contexte_llvm)
 {
-	switch (b->type) {
-		case type_noeud::RACINE:
-		{
-			auto temps_validation = 0.0;
-			auto temps_generation = 0.0;
-
-			for (auto noeud : b->enfants) {
-				auto debut_validation = dls::chrono::maintenant();
-				performe_validation_semantique(noeud, contexte);
-				temps_validation += dls::chrono::delta(debut_validation);
-
-				auto debut_generation = dls::chrono::maintenant();
-				genere_code_llvm(noeud, contexte, true);
-				temps_generation += dls::chrono::delta(debut_generation);
-			}
-
-			contexte.temps_generation = temps_generation;
-			contexte.temps_validation = temps_validation;
-
-			return nullptr;
-		}
-		case type_noeud::DECLARATION_FONCTION:
-		{
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
-			auto &vdf = module->donnees_fonction(b->morceau.chaine);
-			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
-
-			for (auto &df : vdf) {
-				if (df.noeud_decl == b) {
-					donnees_fonction = &df;
-				}
-			}
-
-			/* Pour les fonctions variadiques nous transformons la liste d'argument en
-			 * un tableau dynamique transmis à la fonction. La raison étant que les
-			 * instruction de LLVM pour les arguments variadiques ne fonctionnent
-			 * vraiment que pour les types simples et les pointeurs. Pour pouvoir passer
-			 * des structures, il faudrait manuellement gérer les instructions
-			 * d'incrémentation et d'extraction des arguments pour chaque plateforme.
-			 * Nos tableaux, quant à eux, sont portables.
-			 */
-
-			/* Crée le type de la fonction */
-			auto &this_dt = contexte.magasin_types.donnees_types[b->index_type];
-			auto type_fonction = obtiens_type_fonction(
-									 contexte,
-									 *donnees_fonction,
-									 this_dt,
-									 (b->drapeaux & VARIADIC) != 0);
-
-			contexte.magasin_types.donnees_types[donnees_fonction->index_type].type_llvm(type_fonction);
-
-			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
-
-			/* Crée fonction */
-			auto fonction = llvm::Function::Create(
-								type_fonction,
-								llvm::Function::ExternalLinkage,
-								donnees_fonction->nom_broye,
-								contexte.module_llvm);
-
-			if (est_externe) {
-				return fonction;
-			}
-
-			contexte.commence_fonction(fonction, donnees_fonction);
-
-			auto block = cree_bloc(contexte, "entree");
-
-			contexte.bloc_courant(block);
-
-			/* Crée code pour les arguments */
-			auto valeurs_args = fonction->arg_begin();
-
-			for (auto const &nom : donnees_fonction->nom_args) {
-				auto &argument = donnees_fonction->args[nom];
-				auto index_type = argument.donnees_type;
-				auto align = unsigned{0};
-				auto type = static_cast<llvm::Type *>(nullptr);
-
-				if (argument.est_variadic) {
-					align = 8;
-
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
-
-					index_type = contexte.magasin_types.ajoute_type(dt);
-
-					type = contexte.magasin_types.converti_type(contexte, index_type);
-				}
-				else {
-					auto dt = contexte.magasin_types.donnees_types[argument.donnees_type];
-					align = alignement(contexte, dt);
-					type = contexte.magasin_types.converti_type(contexte, argument.donnees_type);
-				}
-
-		#ifdef NOMME_IR
-				auto const &nom_argument = argument.chaine;
-		#else
-				auto const &nom_argument = "";
-		#endif
-
-				auto valeur = &(*valeurs_args++);
-				valeur->setName(nom_argument);
-
-				auto alloc = new llvm::AllocaInst(
-								 type,
-								 0,
-								 nom_argument,
-								 contexte.bloc_courant());
-
-				alloc->setAlignment(align);
-				auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-				store->setAlignment(align);
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = alloc;
-				donnees_var.est_dynamique = argument.est_dynamic;
-				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.donnees_type = index_type;
-
-				contexte.pousse_locale(nom, donnees_var);
-			}
-
-			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.front();
-			bloc->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
-			auto ret = genere_code_llvm(bloc, contexte, true);
-
-			/* Ajoute une instruction de retour si la dernière n'en est pas une. */
-			if ((ret != nullptr) && !llvm::isa<llvm::ReturnInst>(*ret)) {
-				genere_code_extra_pre_retour(contexte);
-
-				llvm::ReturnInst::Create(
-							contexte.contexte,
-							nullptr,
-							contexte.bloc_courant());
-			}
-
-			contexte.termine_fonction();
-
-			/* optimise la fonction */
-			if (contexte.menageur_fonctions != nullptr) {
-				contexte.menageur_fonctions->run(*fonction);
-			}
-
-			return nullptr;
-		}
-		case type_noeud::APPEL_FONCTION:
-		{
-			auto est_pointeur_fonction = contexte.locale_existe(b->morceau.chaine);
-
-			if (est_pointeur_fonction) {
-				auto valeur = contexte.valeur_locale(b->morceau.chaine);
-
-				auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
-				/* À FAIRE : alignement pointeur. */
-				charge->setAlignment(8);
-
-				return cree_appel(contexte, charge, b->enfants);
-			}
-
-			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel);
-			return cree_appel(contexte, fonction, b->enfants);
-		}
-		case type_noeud::VARIABLE:
-		{
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR) {
-				auto const &type = contexte.magasin_types.donnees_types[b->index_type];
-				auto type_llvm = contexte.magasin_types.converti_type(contexte, b->index_type);
-
-				if (contexte.fonction == nullptr) {
-					auto valeur = new llvm::GlobalVariable(
-									  *contexte.module_llvm,
-									  type_llvm,
-									  true,
-									  llvm::GlobalValue::InternalLinkage,
-									  nullptr);
-
-					valeur->setConstant((b->drapeaux & DYNAMIC) == 0);
-					valeur->setAlignment(alignement(contexte, type));
-
-					auto donnees_var = DonneesVariable{};
-					donnees_var.valeur = valeur;
-					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.donnees_type = b->index_type;
-
-					contexte.pousse_globale(b->chaine(), donnees_var);
-					return valeur;
-				}
-
-				auto alloc = new llvm::AllocaInst(
-								 type_llvm,
-								 0,
-			#ifdef NOMME_IR
-								 std::string(b->morceau.chaine),
-			#else
-								 "",
-			#endif
-								 contexte.bloc_courant());
-
-				alloc->setAlignment(alignement(contexte, type));
-
-				/* Mets à zéro les valeurs des tableaux dynamics. */
-				if (type.type_base() == id_morceau::TABLEAU) {
-					auto pointeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
-
-					auto stocke = new llvm::StoreInst(
-									  llvm::ConstantInt::get(
-										  llvm::Type::getInt64Ty(contexte.contexte),
-										  static_cast<uint64_t>(0),
-										  false),
-									  pointeur,
-									  contexte.bloc_courant());
-					stocke->setAlignment(8);
-
-					auto taille = accede_membre_structure(contexte, alloc, TAILLE_TABLEAU);
-					stocke = new llvm::StoreInst(
-								 llvm::ConstantInt::get(
-									 llvm::Type::getInt64Ty(contexte.contexte),
-									 static_cast<uint64_t>(0),
-									 false),
-								 taille,
-								 contexte.bloc_courant());
-					stocke->setAlignment(8);
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = alloc;
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
-
-				contexte.pousse_locale(b->morceau.chaine, donnees_var);
-
-				return alloc;
-			}
-
-			auto valeur = contexte.valeur_locale(b->morceau.chaine);
-
-			if (valeur == nullptr) {
-				valeur = contexte.valeur_globale(b->morceau.chaine);
-
-				if (valeur == nullptr && b->nom_fonction_appel != "") {
-					valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel);
-					return valeur;
-				}
-			}
-
-			if (expr_gauche || llvm::dyn_cast<llvm::PHINode>(valeur)) {
-				return valeur;
-			}
-
-			auto const &index_type = b->index_type;
-			auto &type = contexte.magasin_types.donnees_types[index_type];
-
-			auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
-			charge->setAlignment(alignement(contexte, type));
-
-			return charge;
-		}
-		case type_noeud::ACCES_MEMBRE:
-		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-
-			auto const &index_type = structure->index_type;
-			auto type_structure = contexte.magasin_types.donnees_types[index_type];
-
-			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
-
-			if (est_pointeur) {
-				type_structure = type_structure.derefence();
-			}
-
-			if (type_structure.type_base() == id_morceau::EINI) {
-				auto valeur = genere_code_llvm(structure, contexte, true);
-
-				if (est_pointeur) {
-					valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-				}
-
-				if (membre->chaine() == "pointeur") {
-					return accede_membre_structure(contexte, valeur, POINTEUR_EINI, true);
-				}
-
-				return accede_membre_structure(contexte, valeur, TYPE_EINI, true);
-			}
-
-			/* À FAIRE : chaine */
-
-			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-				if (!contexte.non_sur() && expr_gauche) {
-					erreur::lance_erreur(
-								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
-				}
-
-				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
-
-				if (taille != 0) {
-					return llvm::ConstantInt::get(
-								contexte.magasin_types.converti_type(contexte, b->index_type),
-								taille);
-				}
-
-				/* charge taille de la structure tableau { *type, taille } */
-				auto valeur = genere_code_llvm(structure, contexte, true);
-
-				if (est_pointeur) {
-					/* déréférence le pointeur en le chargeant */
-					auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-					charge->setAlignment(8);
-					valeur = charge;
-				}
-
-				if (b->morceau.chaine == "pointeur") {
-					return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU);
-				}
-
-				return accede_membre_structure(contexte, valeur, true, TAILLE_TABLEAU);
-			}
-
-			auto index_structure = size_t(type_structure.type_base() >> 8);
-
-			auto const &nom_membre = membre->chaine();
-
-			auto &donnees_structure = contexte.donnees_structure(index_structure);
-
-			auto const iter = donnees_structure.donnees_membres.find(nom_membre);
-
-			auto const &donnees_membres = iter->second;
-			auto const index_membre = donnees_membres.index_membre;
-
-			auto valeur = genere_code_llvm(structure, contexte, true);
-
-			llvm::Value *ret;
-
-			/* À FAIRE : le pointeur vers l'InfoType (index = 0) d'un eini n'est pas
-			 * vraiment un pointeur, donc on ne devrait pas le déréférencé. */
-			if (est_pointeur && index_structure != 0) {
-				/* déréférence le pointeur en le chargeant */
-				auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-				charge->setAlignment(8);
-				valeur = charge;
-			}
-
-			ret = accede_membre_structure(contexte, valeur, index_membre);
-
-			if (!expr_gauche) {
-				auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
-				auto const &dt = contexte.magasin_types.donnees_types[donnees_structure.donnees_types[index_membre]];
-				charge->setAlignment(alignement(contexte, dt));
-				ret = charge;
-			}
-
-			return ret;
-		}
-		case type_noeud::ACCES_MEMBRE_POINT:
-		{
-			return genere_code_llvm(b->enfants.back(), contexte, true);
-		}
-		case type_noeud::ASSIGNATION_VARIABLE:
-		{
-			assert(b->enfants.size() == 2);
-
-			auto variable = b->enfants.front();
-			auto expression = b->enfants.back();
-
-			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
-
-			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_TABLEAU;
-			}
-
-			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_EINI;
-			}
-
-			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= EXTRAIT_EINI;
-				expression->index_type = variable->index_type;
-			}
-
-			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
-			 * la variable sur la pile et celle de stockage de la valeur soit côte à
-			 * côte. */
-			auto valeur = genere_code_enfant(contexte, expression);
-
-			auto alloc = genere_code_llvm(variable, contexte, true);
-
-			if (variable->aide_generation_code == GENERE_CODE_DECL_VAR && contexte.fonction == nullptr) {
-				assert(est_constant(expression));
-				auto vg = llvm::dyn_cast<llvm::GlobalVariable>(alloc);
-				vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
-				return vg;
-			}
-
-			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
-
-			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
-			store->setAlignment(alignement(contexte, dt));
-
-			return store;
-		}
-		case type_noeud::NOMBRE_REEL:
-		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-												converti_chaine_nombre_reel(
-													b->morceau.chaine,
-													b->morceau.identifiant);
-
-			return llvm::ConstantFP::get(
-						llvm::Type::getDoubleTy(contexte.contexte),
-						valeur);
-		}
-		case type_noeud::NOMBRE_ENTIER:
-		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-												converti_chaine_nombre_entier(
-													b->morceau.chaine,
-													b->morceau.identifiant);
-
-			return llvm::ConstantInt::get(
-						llvm::Type::getInt32Ty(contexte.contexte),
-						static_cast<uint64_t>(valeur),
-						false);
-		}
-		case type_noeud::OPERATION_BINAIRE:
-		{
-			auto instr = llvm::Instruction::Add;
-			auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
-			auto est_comp_entier = false;
-			auto est_comp_reel = false;
-
-			auto enfant1 = b->enfants.front();
-			auto enfant2 = b->enfants.back();
-
-			auto const index_type1 = enfant1->index_type;
-			auto const index_type2 = enfant2->index_type;
-
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-			auto &type2 = contexte.magasin_types.donnees_types[index_type2];
-
-			if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
-				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-					erreur::lance_erreur_type_operation(
-								type1,
-								type2,
-								contexte,
-								b->morceau);
-				}
-			}
-
-			/* À FAIRE : typage */
-
-			/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-			auto const valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
-
-			auto valeur1 = genere_code_llvm(enfant1, contexte, false);
-			auto valeur2 = genere_code_llvm(enfant2, contexte, valeur2_brut);
-
-			switch (b->morceau.identifiant) {
-				case id_morceau::PLUS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Add;
-					}
-					else {
-						instr = llvm::Instruction::FAdd;
-					}
-
-					break;
-				case id_morceau::MOINS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Sub;
-					}
-					else {
-						instr = llvm::Instruction::FSub;
-					}
-
-					break;
-				case id_morceau::FOIS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Mul;
-					}
-					else {
-						instr = llvm::Instruction::FMul;
-					}
-
-					break;
-				case id_morceau::DIVISE:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::UDiv;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::SDiv;
-					}
-					else {
-						instr = llvm::Instruction::FDiv;
-					}
-
-					break;
-				case id_morceau::POURCENT:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::URem;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::SRem;
-					}
-					else {
-						instr = llvm::Instruction::FRem;
-					}
-
-					break;
-				case id_morceau::DECALAGE_DROITE:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::LShr;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::AShr;
-					}
-					else {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour le décalage !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-					break;
-				case id_morceau::DECALAGE_GAUCHE:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour le décalage !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-
-					instr = llvm::Instruction::Shl;
-					break;
-				case id_morceau::ESPERLUETTE:
-				case id_morceau::ESP_ESP:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-					instr = llvm::Instruction::And;
-					break;
-				case id_morceau::BARRE:
-				case id_morceau::BARRE_BARRE:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-					instr = llvm::Instruction::Or;
-					break;
-				case id_morceau::CHAPEAU:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-					instr = llvm::Instruction::Xor;
-					break;
-					/* À FAIRE. */
-				case id_morceau::INFERIEUR:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_ULT;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SLT;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OLT;
-					}
-
-					break;
-				case id_morceau::INFERIEUR_EGAL:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_ULE;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SLE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OLE;
-					}
-
-					break;
-				case id_morceau::SUPERIEUR:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_UGT;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SGT;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OGT;
-					}
-
-					break;
-				case id_morceau::SUPERIEUR_EGAL:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_UGE;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SGE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OGE;
-					}
-
-					break;
-				case id_morceau::EGALITE:
-					if (est_type_entier(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_EQ;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OEQ;
-					}
-
-					break;
-				case id_morceau::DIFFERENCE:
-					if (est_type_entier(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_NE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_ONE;
-					}
-
-					break;
-				case id_morceau::CROCHET_OUVRANT:
-				{
-					/* À FAIRE : la compilation de l'opérateur du crochet
-					 * ouvrant a été changé, vérifié si c'est toujours correcte
-					 */
-					if (type1.type_base() != id_morceau::POINTEUR && (type1.type_base() & 0xff) != id_morceau::TABLEAU) {
-						erreur::lance_erreur(
-									"Le type ne peut être déréférencé !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-
-					llvm::Value *valeur;
-
-					if (type2.type_base() == id_morceau::POINTEUR) {
-						valeur = llvm::GetElementPtrInst::CreateInBounds(
-									 valeur1,
-									 valeur2,
-									 "",
-									 contexte.bloc_courant());
-					}
-					else {
-						valeur = accede_element_tableau(
-									 contexte,
-									 valeur1,
-									 contexte.magasin_types.converti_type(contexte, index_type1),
-									 valeur2);
-					}
-
-					/* Dans le cas d'une assignation, on n'a pas besoin de charger
-					 * la valeur dans un registre. */
-					if (expr_gauche) {
-						return valeur;
-					}
-
-					/* Ajout d'un niveau d'indirection pour pouvoir proprement
-					 * générer un code pour les expressions de type x[0][0]. Sans ça
-					 * LLVM n'arrive pas à déterminer correctement la valeur
-					 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
-					 * ce qui n'est pas forcément le cas. */
-					auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-					charge->setAlignment(alignement(contexte, type2));
-					return charge;
-				}
-				default:
-					return nullptr;
-			}
-
-			if (est_comp_entier) {
-				return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-			}
-
-			if (est_comp_reel) {
-				return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-			}
-
-			return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
-		}
-		case type_noeud::OPERATION_UNAIRE:
-		{
-			llvm::Instruction::BinaryOps instr;
-			auto enfant = b->enfants.front();
-			auto index_type1 = enfant->index_type;
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-			auto valeur1 = genere_code_llvm(enfant, contexte, false);
-			auto valeur2 = static_cast<llvm::Value *>(nullptr);
-
-			switch (b->morceau.identifiant) {
-				case id_morceau::EXCLAMATION:
-				{
-					instr = llvm::Instruction::Xor;
-					valeur2 = valeur1;
-					break;
-				}
-				case id_morceau::TILDE:
-				{
-					instr = llvm::Instruction::Xor;
-					valeur2 = llvm::ConstantInt::get(
-								  llvm::Type::getInt32Ty(contexte.contexte),
-								  static_cast<uint64_t>(0),
-								  false);
-					break;
-				}
-				case id_morceau::AROBASE:
-				{
-					auto inst_load = llvm::dyn_cast<llvm::LoadInst>(valeur1);
-
-					if (inst_load == nullptr) {
-						/* Ne devrais pas arriver. */
-						return nullptr;
-					}
-
-					return inst_load->getPointerOperand();
-				}
-				case id_morceau::PLUS_UNAIRE:
-				{
-					return valeur1;
-				}
-				case id_morceau::MOINS_UNAIRE:
-				{
-					valeur2 = valeur1;
-
-					if (est_type_entier(type1.type_base())) {
-						valeur1 = llvm::ConstantInt::get(
-									  valeur2->getType(),
-									  static_cast<uint64_t>(0),
-									  false);
-						instr = llvm::Instruction::Sub;
-					}
-					else {
-						valeur1 = llvm::ConstantFP::get(valeur2->getType(), 0);
-						instr = llvm::Instruction::FSub;
-					}
-
-					break;
-				}
-				default:
-				{
-					return nullptr;
-				}
-			}
-
-			return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
-		}
-		case type_noeud::RETOUR:
-		{
-			llvm::Value *valeur = nullptr;
-
-			if (!b->enfants.empty()) {
-				assert(b->enfants.size() == 1);
-				valeur = genere_code_llvm(b->enfants.front(), contexte, false);
-			}
-
-			/* NOTE : le code différé doit être crée après l'expression de retour, car
-			 * nous risquerions par exemple de déloger une variable utilisée dans
-			 * l'expression de retour. */
-			genere_code_extra_pre_retour(contexte);
-
-			return llvm::ReturnInst::Create(contexte.contexte, valeur, contexte.bloc_courant());
-		}
-		case type_noeud::CHAINE_LITTERALE:
-		{
-			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
-
-			auto constante = llvm::ConstantDataArray::getString(
-								 contexte.contexte,
-								 chaine);
-
-			auto type = contexte.magasin_types.converti_type(contexte, b->index_type);
-
-			auto globale = new llvm::GlobalVariable(
-							   *contexte.module_llvm,
-							   type,
-							   true,
-							   llvm::GlobalValue::PrivateLinkage,
-							   constante,
-							   ".chn");
-
-			globale->setAlignment(1);
-			globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-
-			return accede_membre_structure(contexte, globale, 0);
-		}
-		case type_noeud::BOOLEEN:
-		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
-											  : (b->chaine() == "vrai");
-			return llvm::ConstantInt::get(
-						llvm::Type::getInt1Ty(contexte.contexte),
-						static_cast<uint64_t>(valeur),
-						false);
-		}
-		case type_noeud::CARACTERE:
-		{
-			auto valeur = caractere_echape(&b->morceau.chaine[0]);
-
-			return llvm::ConstantInt::get(
-						llvm::Type::getInt8Ty(contexte.contexte),
-						static_cast<uint64_t>(valeur),
-						false);
-		}
-		case type_noeud::SAUFSI:
-		case type_noeud::SI:
-		{
-			auto const nombre_enfants = b->enfants.size();
-			auto iter_enfant = b->enfants.begin();
-
-			/* noeud 1 : condition */
-			auto enfant1 = *iter_enfant++;
-
-			auto condition = genere_code_llvm(enfant1, contexte, false);
-
-			auto bloc_alors = cree_bloc(contexte, "alors");
-
-			auto bloc_sinon = (nombre_enfants == 3)
-							  ? cree_bloc(contexte, "sinon")
-							  : nullptr;
-
-			auto bloc_fusion = cree_bloc(contexte, "cont_si");
-
-			llvm::BranchInst::Create(
-						bloc_alors,
-						(bloc_sinon != nullptr) ? bloc_sinon : bloc_fusion,
-						condition,
-						contexte.bloc_courant());
-
-			contexte.bloc_courant(bloc_alors);
-
-			/* noeud 2 : bloc */
-			auto enfant2 = *iter_enfant++;
-			enfant2->valeur_calculee = bloc_fusion;
-			auto ret = genere_code_llvm(enfant2, contexte, false);
-
-			/* noeud 3 : sinon (optionel) */
-			if (nombre_enfants == 3) {
-				contexte.bloc_courant(bloc_sinon);
-
-				auto enfant3 = *iter_enfant++;
-				enfant3->valeur_calculee = bloc_fusion;
-				ret = genere_code_llvm(enfant3, contexte, false);
-			}
-
-			contexte.bloc_courant(bloc_fusion);
-
-			return ret;
-		}
-		case type_noeud::BLOC:
-		{
-			llvm::Value *valeur = nullptr;
-
-			auto bloc_entree = contexte.bloc_courant();
-
-			contexte.empile_nombre_locales();
-
-			for (auto enfant : b->enfants) {
-				valeur = genere_code_llvm(enfant, contexte, true);
-
-				/* nul besoin de continuer à générer du code pour des expressions qui ne
-				 * seront jamais executées. À FAIRE : erreur de compilation ? */
-				if (est_branche_ou_retour(valeur) && bloc_entree == contexte.bloc_courant()) {
-					break;
-				}
-			}
-
-			auto bloc_suivant = std::any_cast<llvm::BasicBlock *>(b->valeur_calculee);
-
-			/* Un bloc_suivant nul indique que le bloc est celui d'une fonction, mais
-			 * les fonctions une logique différente. */
-			if (bloc_suivant != nullptr) {
-				/* Il est possible d'avoir des blocs récursifs, donc on fait une
-				 * branche dans le bloc courant du contexte qui peut être différent de
-				 * bloc_entree. */
-				if (!est_branche_ou_retour(valeur) || (bloc_entree != contexte.bloc_courant())) {
-					valeur = llvm::BranchInst::Create(bloc_suivant, contexte.bloc_courant());
-				}
-			}
-
-			contexte.depile_nombre_locales();
-
-			return valeur;
-		}
-		case type_noeud::POUR:
-		{
-			/* Arbre :
-			 * pour
-			 * - enfant 1 : déclaration variable
-			 * - enfant 2 : expr
-			 * - enfant 3 : bloc
-			 * - enfant 4 : bloc sansarrêt ou sinon (optionel)
-			 * - enfant 5 : bloc sinon (optionel)
-			 *
-			 * boucle:
-			 *	phi [entrée] [corps_boucle]
-			 *	cmp phi, fin
-			 *	br corps_boucle, apre_boucle
-			 *
-			 * corps_boucle:
-			 *	...
-			 *	br inc_boucle
-			 *
-			 * inc_boucle:
-			 *	inc phi
-			 *	br boucle
-			 *
-			 * apres_boucle:
-			 *	...
-			 */
-
-			auto nombre_enfants = b->enfants.size();
-			auto iter = b->enfants.begin();
-
-			/* on génère d'abord le type de la variable */
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-			auto enfant3 = *iter++;
-			auto enfant4 = (nombre_enfants >= 4) ? *iter++ : nullptr;
-			auto enfant5 = (nombre_enfants == 5) ? *iter++ : nullptr;
-
-			auto enfant_sans_arret = enfant4;
-			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
-
-			auto index_type = enfant2->index_type;
-			auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
-			auto const type = type_debut.type_base();
-
-			enfant1->index_type = index_type;
-
-			/* création des blocs */
-			auto bloc_boucle = cree_bloc(contexte, "boucle");
-			auto bloc_corps = cree_bloc(contexte, "corps_boucle");
-			auto bloc_inc = cree_bloc(contexte, "inc_boucle");
-
-			auto bloc_sansarret = static_cast<llvm::BasicBlock *>(nullptr);
-			auto bloc_sinon = static_cast<llvm::BasicBlock *>(nullptr);
-
-			if (nombre_enfants == 4) {
-				if (enfant4->identifiant() == id_morceau::SINON) {
-					bloc_sinon = cree_bloc(contexte, "sinon_boucle");
-				}
-				else {
-					bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
-				}
-			}
-			else if (nombre_enfants == 5) {
-				bloc_sansarret = cree_bloc(contexte, "sansarret_boucle");
-				bloc_sinon = cree_bloc(contexte, "sinon_boucle");
-			}
-
-			auto bloc_apres = cree_bloc(contexte, "apres_boucle");
-
-			contexte.empile_bloc_continue(enfant1->chaine(), bloc_inc);
-			contexte.empile_bloc_arrete(enfant1->chaine(), (bloc_sinon != nullptr) ? bloc_sinon : bloc_apres);
-
-			auto bloc_pre = contexte.bloc_courant();
-
-			contexte.empile_nombre_locales();
-
-			auto noeud_phi = static_cast<llvm::PHINode *>(nullptr);
-
-			/* bloc_boucle */
-			/* on crée une branche explicite dans le bloc */
-			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-
-			contexte.bloc_courant(bloc_boucle);
-
-			const auto tableau = (type & 0xff) == id_morceau::TABLEAU;
-			const auto taille_tableau = static_cast<uint64_t>(type >> 8);
-			auto pointeur_tableau = static_cast<llvm::Value *>(nullptr);
-
-			if (enfant2->type == type_noeud::PLAGE) {
-				noeud_phi = llvm::PHINode::Create(
-								contexte.magasin_types.converti_type(contexte, index_type),
-								2,
-								std::string(enfant1->chaine()),
-								contexte.bloc_courant());
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				noeud_phi = llvm::PHINode::Create(
-								tableau ? llvm::Type::getInt64Ty(contexte.contexte)
-										: llvm::Type::getInt32Ty(contexte.contexte),
-								2,
-								std::string(enfant1->chaine()),
-								contexte.bloc_courant());
-			}
-
-			if (enfant2->type == type_noeud::PLAGE) {
-				genere_code_llvm(enfant2, contexte, false);
-
-				auto valeur_debut = contexte.valeur_locale("__debut");
-				auto valeur_fin = contexte.valeur_locale("__fin");
-
-				noeud_phi->addIncoming(valeur_debut, bloc_pre);
-
-				auto condition = comparaison_pour_type(
-									 type,
-									 noeud_phi,
-									 valeur_fin,
-									 contexte.bloc_courant());
-
-				llvm::BranchInst::Create(
-							bloc_corps,
-							(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-							condition,
-							contexte.bloc_courant());
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = noeud_phi;
-				donnees_var.donnees_type = index_type;
-
-				contexte.pousse_locale(enfant1->chaine(), donnees_var);
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				if (tableau) {
-					auto valeur_debut = llvm::ConstantInt::get(
-											llvm::Type::getInt64Ty(contexte.contexte),
-											static_cast<uint64_t>(0),
-											false);
-
-					auto valeur_fin = static_cast<llvm::Value *>(nullptr);
-
-					if (taille_tableau != 0) {
-						valeur_fin = llvm::ConstantInt::get(
-										 llvm::Type::getInt64Ty(contexte.contexte),
-										 taille_tableau,
-										 false);
-					}
-					else {
-						pointeur_tableau = genere_code_llvm(enfant2, contexte, true);
-						valeur_fin = accede_membre_structure(contexte, pointeur_tableau, TAILLE_TABLEAU, true);
-					}
-
-					auto condition = llvm::ICmpInst::Create(
-										 llvm::Instruction::ICmp,
-										 llvm::CmpInst::Predicate::ICMP_SLT,
-										 noeud_phi,
-										 valeur_fin,
-										 "",
-										 contexte.bloc_courant());
-
-					noeud_phi->addIncoming(valeur_debut, bloc_pre);
-
-					llvm::BranchInst::Create(
-								bloc_corps,
-								(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-								condition,
-								contexte.bloc_courant());
-				}
-			}
-
-			/* bloc_corps */
-			contexte.bloc_courant(bloc_corps);
-
-			if (tableau) {
-				auto valeur_arg = static_cast<llvm::Value *>(nullptr);
-
-				if (taille_tableau != 0) {
-					auto valeur_tableau = genere_code_llvm(enfant2, contexte, true);
-
-					valeur_arg = accede_element_tableau(
-								 contexte,
-								 valeur_tableau,
-								 contexte.magasin_types.converti_type(contexte, index_type),
-								 noeud_phi);
-				}
-				else {
-					auto pointeur = accede_membre_structure(contexte, pointeur_tableau, POINTEUR_TABLEAU);
-
-					pointeur = new llvm::LoadInst(pointeur, "", contexte.bloc_courant());
-
-					valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
-								 pointeur,
-								 noeud_phi,
-								 "",
-								 contexte.bloc_courant());
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = valeur_arg;
-				donnees_var.donnees_type = index_type;
-
-				contexte.pousse_locale(enfant1->chaine(), donnees_var);
-			}
-
-			enfant3->valeur_calculee = bloc_inc;
-			auto ret = genere_code_llvm(enfant3, contexte, false);
-
-			/* bloc_inc */
-			contexte.bloc_courant(bloc_inc);
-
-			if (enfant2->type == type_noeud::PLAGE) {
-				auto inc = incremente_pour_type(
-							   type,
-							   contexte,
-							   noeud_phi,
-							   contexte.bloc_courant());
-
-				noeud_phi->addIncoming(inc, contexte.bloc_courant());
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				auto inc = incremente_pour_type(
-							   tableau ? id_morceau::N64 : id_morceau::Z32,
-							   contexte,
-							   noeud_phi,
-							   contexte.bloc_courant());
-
-				noeud_phi->addIncoming(inc, contexte.bloc_courant());
-			}
-
-			ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-
-			/* 'continue'/'arrête' dans les blocs 'sinon'/'sansarrêt' n'a aucun sens */
-			contexte.depile_bloc_continue();
-			contexte.depile_bloc_arrete();
-
-			if (bloc_sansarret != nullptr) {
-				contexte.bloc_courant(bloc_sansarret);
-				enfant_sans_arret->valeur_calculee = bloc_apres;
-				ret = genere_code_llvm(enfant_sans_arret, contexte, false);
-			}
-
-			if (bloc_sinon != nullptr) {
-				contexte.bloc_courant(bloc_sinon);
-				enfant_sinon->valeur_calculee = bloc_apres;
-				ret = genere_code_llvm(enfant_sinon, contexte, false);
-			}
-
-			contexte.depile_nombre_locales();
-			contexte.bloc_courant(bloc_apres);
-
-			return ret;
-		}
-		case type_noeud::CONTINUE_ARRETE:
-		{
-			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
-
-			auto bloc = (b->morceau.identifiant == id_morceau::CONTINUE)
-						? contexte.bloc_continue(chaine_var)
-						: contexte.bloc_arrete(chaine_var);
-
-			if (bloc == nullptr) {
-				if (chaine_var.empty()) {
-					erreur::lance_erreur(
-								"'continue' ou 'arrête' en dehors d'une boucle",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::CONTROLE_INVALIDE);
-				}
-				else {
-					erreur::lance_erreur(
-								"Variable inconnue",
-								contexte,
-								b->enfants.front()->donnees_morceau(),
-								erreur::type_erreur::VARIABLE_INCONNUE);
-				}
-			}
-
-			return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
-		}
-		case type_noeud::BOUCLE:
-		{
-			/* boucle:
-			 *	corps
-			 *  br boucle
-			 *
-			 * apres_boucle:
-			 *	...
-			 */
-
-			auto enfant = b->enfants.front();
-
-			/* création des blocs */
-			auto bloc_boucle = cree_bloc(contexte, "boucle");
-			auto bloc_apres = cree_bloc(contexte, "apres_boucle");
-
-			contexte.empile_bloc_continue("", bloc_boucle);
-			contexte.empile_bloc_arrete("", bloc_apres);
-
-			/* on crée une branche explicite dans le bloc */
-			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
-
-			contexte.bloc_courant(bloc_boucle);
-
-			enfant->valeur_calculee = bloc_boucle;
-			auto ret = genere_code_llvm(enfant, contexte, false);
-
-			contexte.depile_bloc_continue();
-			contexte.depile_bloc_arrete();
-			contexte.bloc_courant(bloc_apres);
-
-			return ret;
-		}
-		case type_noeud::TANTQUE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::TRANSTYPE:
-		{
-			auto enfant = b->enfants.front();
-			auto valeur = genere_code_llvm(enfant, contexte, false);
-			auto const &index_type_de = enfant->index_type;
-
-			if (index_type_de == b->index_type) {
-				return valeur;
-			}
-
-			auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
-
-			using CastOps = llvm::Instruction::CastOps;
-			auto const &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			auto type = contexte.magasin_types.converti_type(contexte, b->index_type);
-			auto bloc = contexte.bloc_courant();
-			auto type_de = donnees_type_de.type_base();
-			auto type_vers = dt.type_base();
-
-			if (est_type_entier(type_de)) {
-				/* un nombre entier peut être converti en l'adresse d'un pointeur */
-				if (type_vers == id_morceau::POINTEUR) {
-					return cree_instruction<CastOps::IntToPtr>(valeur, type, bloc);
-				}
-
-				if (est_type_reel(type_vers)) {
-					if (est_type_entier_naturel(type_de)) {
-						return cree_instruction<CastOps::UIToFP>(valeur, type, bloc);
-					}
-
-					return cree_instruction<CastOps::SIToFP>(valeur, type, bloc);
-				}
-
-				if (est_type_entier(type_vers)) {
-					if (est_plus_petit(type_vers, type_de)) {
-						return cree_instruction<CastOps::Trunc>(valeur, type, bloc);
-					}
-
-					if (est_type_entier_naturel(type_de)) {
-						return cree_instruction<CastOps::ZExt>(valeur, type, bloc);
-					}
-
-					return cree_instruction<CastOps::SExt>(valeur, type, bloc);
-				}
-			}
-
-			if (est_type_reel(type_de)) {
-				if (est_type_entier_naturel(type_vers)) {
-					return cree_instruction<CastOps::FPToUI>(valeur, type, bloc);
-				}
-
-				if (est_type_entier_relatif(type_vers)) {
-					return cree_instruction<CastOps::FPToSI>(valeur, type, bloc);
-				}
-
-				if (est_type_reel(type_de)) {
-					if (est_plus_petit(type_vers, type_de)) {
-						return cree_instruction<CastOps::FPTrunc>(valeur, type, bloc);
-					}
-
-					return cree_instruction<CastOps::FPExt>(valeur, type, bloc);
-				}
-			}
-
-			if (type_de == id_morceau::POINTEUR && est_type_entier(type_vers)) {
-				return cree_instruction<CastOps::PtrToInt>(valeur, type, bloc);
-			}
-
-			/* À FAIRE : BitCast (Type Cast) */
-			erreur::lance_erreur_type_operation(
-						donnees_type_de,
-						dt,
-						contexte,
-						b->donnees_morceau());
-		}
-		case type_noeud::NUL:
-		{
-			return llvm::ConstantInt::get(
-						llvm::Type::getInt32Ty(contexte.contexte),
-						static_cast<uint64_t>(0),
-						false);
-		}
-		case type_noeud::TAILLE_DE:
-		{
-			auto dl = llvm::DataLayout(contexte.module_llvm);
-			auto donnees = std::any_cast<size_t>(b->valeur_calculee);
-			auto type = contexte.magasin_types.converti_type(contexte, donnees);
-			auto taille = dl.getTypeAllocSize(type);
-
-			return llvm::ConstantInt::get(
-						llvm::Type::getInt32Ty(contexte.contexte),
-						taille,
-						false);
-		}
-		case type_noeud::PLAGE:
-		{
-			auto iter = b->enfants.begin();
-
-			auto enfant1 = *iter++;
-			auto enfant2 = *iter++;
-
-			auto valeur_debut = genere_code_llvm(enfant1, contexte, false);
-			auto valeur_fin = genere_code_llvm(enfant2, contexte, false);
-
-			auto donnees_var = DonneesVariable{};
-			donnees_var.valeur = valeur_debut;
-			donnees_var.donnees_type = b->index_type;
-
-			contexte.pousse_locale("__debut", donnees_var);
-
-			donnees_var.valeur = valeur_fin;
-			contexte.pousse_locale("__fin", donnees_var);
-
-			return valeur_fin;
-		}
-		case type_noeud::DIFFERE:
-		{
-			auto noeud = b->enfants.front();
-
-			/* La valeur_calculee d'un bloc est son bloc suivant, qui dans le cas d'un
-			 * bloc déféré n'en est aucun. */
-			noeud->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
-
-			contexte.differe_noeud(noeud);
-
-			return nullptr;
-		}
-		case type_noeud::NONSUR:
-		{
-			contexte.non_sur(true);
-			genere_code_llvm(b->enfants.front(), contexte, false);
-			contexte.non_sur(false);
-			return nullptr;
-		}
-		case type_noeud::TABLEAU:
-		{
-			auto taille_tableau = b->enfants.size();
-
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
-			if (est_calcule) {
-				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
-			}
-
-			auto &type = contexte.magasin_types.donnees_types[b->index_type];
-
-			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesType{};
-			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
-			dt_tfixe.pousse(type);
-
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_tfixe);
-
-			auto pointeur_tableau = new llvm::AllocaInst(
-										type_llvm,
-										0,
-										nullptr,
-										"",
-										contexte.bloc_courant());
-
-			/* copie les valeurs dans le tableau fixe */
-			auto index = 0ul;
-
-			for (auto enfant : b->enfants) {
-				auto valeur_enfant = genere_code_enfant(contexte, enfant);
-
-				auto index_tableau = accede_element_tableau(
-										 contexte,
-										 pointeur_tableau,
-										 type_llvm,
-										 index++);
-
-				new llvm::StoreInst(valeur_enfant, index_tableau, contexte.bloc_courant());
-			}
-
-			/* alloue un tableau dynamique */
-			return converti_vers_tableau_dyn(contexte, pointeur_tableau, dt_tfixe);
-		}
-		case type_noeud::CONSTRUIT_TABLEAU:
-		{
-			/* À FAIRE : le stockage n'a pas l'air de fonctionner. */
-			std::vector<base *> feuilles;
-			rassemble_feuilles(b, feuilles);
-
-			/* alloue de la place pour le tableau */
-			auto dt = contexte.magasin_types.donnees_types[b->index_type];
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
-
-			auto pointeur_tableau = new llvm::AllocaInst(
-										type_llvm,
-										0,
-										nullptr,
-										"",
-										contexte.bloc_courant());
-			pointeur_tableau->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
-
-			/* stocke les valeurs des feuilles */
-			auto index = 0ul;
-
-			for (auto f : feuilles) {
-				auto valeur = genere_code_enfant(contexte, f);
-
-				auto index_tableau = accede_element_tableau(
-										 contexte,
-										 pointeur_tableau,
-										 type_llvm,
-										 index++);
-
-				auto stocke = new llvm::StoreInst(valeur, index_tableau, contexte.bloc_courant());
-				stocke->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
-			}
-
-			return pointeur_tableau;
-		}
-		case type_noeud::CONSTRUIT_STRUCTURE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::TYPE_DE:
-		{
-			auto enfant = b->enfants.front();
-
-			genere_code_llvm(enfant, contexte, false);
-
-			auto valeur = llvm::ConstantInt::get(
-							  llvm::Type::getInt64Ty(contexte.contexte),
-							  enfant->index_type,
-							  false);
-
-			return valeur;
-		}
-		case type_noeud::MEMOIRE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::LOGE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::DELOGE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::RELOGE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::DECLARATION_STRUCTURE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::DECLARATION_ENUM:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::ASSOCIE:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::PAIRE_ASSOCIATION:
-		{
-			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
-			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des associations. */
-			assert(false);
-			return nullptr;
-		}
-		case type_noeud::RETIENS:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
-	}
-
-	return nullptr;
 }
 
-}  /* namespace noeud */
+llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
+{
+    auto type_llvm = table_types.valeur_ou(type, nullptr);
+
+    if (type_llvm != nullptr) {
+        /* Note: normalement les types des pointeurs vers les fonctions doivent
+         * être des pointeurs, mais les types fonctions sont partagés entre les
+         * fonctions et les variables, donc un type venant d'une fonction n'aura
+         * pas le pointeur. Ajoutons-le. */
+        if (type->genre == GenreType::FONCTION && !type_llvm->isPointerTy()) {
+            return llvm::PointerType::get(type_llvm, 0);
+        }
+
+        return type_llvm;
+    }
+
+    if (type == nullptr) {
+        return nullptr;
+    }
+
+    switch (type->genre) {
+        case GenreType::POLYMORPHIQUE:
+        {
+            type_llvm = nullptr;
+            table_types.insere(type, type_llvm);
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            auto tuple = type->comme_tuple();
+
+            std::vector<llvm::Type *> types_membres;
+            types_membres.reserve(static_cast<size_t>(tuple->membres.taille()));
+            POUR (tuple->membres) {
+                types_membres.push_back(converti_type_llvm(it.type));
+            }
+
+            type_llvm = llvm::StructType::create(m_contexte_llvm, types_membres, "tuple", false);
+            break;
+        }
+        case GenreType::FONCTION:
+        {
+            auto type_fonc = type->comme_fonction();
+
+            std::vector<llvm::Type *> parametres;
+            POUR (type_fonc->types_entrees) {
+                auto type_llvm_it = converti_type_llvm(it);
+                parametres.push_back(type_llvm_it);
+            }
+
+            auto type_retour = converti_type_llvm(type_fonc->type_sortie);
+
+            type_llvm = llvm::FunctionType::get(type_retour, parametres, false);
+
+            type_llvm = llvm::PointerType::get(type_llvm, 0);
+            break;
+        }
+        case GenreType::EINI:
+        {
+            /* type = structure { *z8, *InfoType } */
+            auto type_info_type = m_espace.compilatrice().typeuse.type_info_type_;
+
+            std::vector<llvm::Type *> types_membres(2ul);
+            types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);
+            types_membres[1] = converti_type_llvm(type_info_type)->getPointerTo();
+
+            type_llvm = llvm::StructType::create(
+                m_contexte_llvm, types_membres, "struct.eini", false);
+
+            break;
+        }
+        case GenreType::CHAINE:
+        {
+            /* type = structure { *z8, z64 } */
+            std::vector<llvm::Type *> types_membres(2ul);
+            types_membres[0] = llvm::Type::getInt8PtrTy(m_contexte_llvm);
+            types_membres[1] = llvm::Type::getInt64Ty(m_contexte_llvm);
+
+            type_llvm = llvm::StructType::create(
+                m_contexte_llvm, types_membres, "struct.chaine", false);
+
+            break;
+        }
+        case GenreType::RIEN:
+        {
+            type_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
+            break;
+        }
+        case GenreType::BOOL:
+        {
+            type_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
+            break;
+        }
+        case GenreType::OCTET:
+        {
+            type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
+            break;
+        }
+        case GenreType::ENTIER_CONSTANT:
+        {
+            type_llvm = llvm::Type::getInt32Ty(m_contexte_llvm);
+            break;
+        }
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        {
+            if (type->taille_octet == 1) {
+                type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
+            }
+            else if (type->taille_octet == 2) {
+                type_llvm = llvm::Type::getInt16Ty(m_contexte_llvm);
+            }
+            else if (type->taille_octet == 4) {
+                type_llvm = llvm::Type::getInt32Ty(m_contexte_llvm);
+            }
+            else if (type->taille_octet == 8) {
+                type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
+            }
+
+            break;
+        }
+        case GenreType::TYPE_DE_DONNEES:
+        {
+            type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
+            break;
+        }
+        case GenreType::REEL:
+        {
+            if (type->taille_octet == 2) {
+                type_llvm = llvm::Type::getInt16Ty(m_contexte_llvm);
+            }
+            else if (type->taille_octet == 4) {
+                type_llvm = llvm::Type::getFloatTy(m_contexte_llvm);
+            }
+            else if (type->taille_octet == 8) {
+                type_llvm = llvm::Type::getDoubleTy(m_contexte_llvm);
+            }
+
+            break;
+        }
+        case GenreType::REFERENCE:
+        case GenreType::POINTEUR:
+        {
+            auto type_deref = type_dereference_pour(type);
+
+            // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
+            // @Incomplet : LLVM n'a pas de pointeur nul
+            if (!type_deref || type_deref->genre == GenreType::RIEN) {
+                type_deref = m_espace.compilatrice().typeuse[TypeBase::Z8];
+            }
+
+            auto type_deref_llvm = converti_type_llvm(type_deref);
+            type_llvm = llvm::PointerType::get(type_deref_llvm, 0);
+            break;
+        }
+        case GenreType::UNION:
+        {
+            auto type_struct = type->comme_union();
+            auto decl_struct = type_struct->decl;
+            auto nom_nonsur = enchaine("union_nonsure.", type_struct->nom->nom);
+            auto nom = enchaine("union.", type_struct->nom->nom);
+
+            // création d'une structure ne contenant que le membre le plus grand
+            auto type_le_plus_grand = type_struct->type_le_plus_grand;
+
+            auto type_max_llvm = converti_type_llvm(type_le_plus_grand);
+            auto type_union = llvm::StructType::create(
+                m_contexte_llvm, {type_max_llvm}, vers_std_string(nom_nonsur));
+
+            if (!decl_struct->est_nonsure) {
+                // création d'une structure contenant l'union et une valeur discriminante
+                type_union = llvm::StructType::create(
+                    m_contexte_llvm,
+                    {type_union, llvm::Type::getInt32Ty(m_contexte_llvm)},
+                    vers_std_string(nom));
+            }
+
+            type_llvm = type_union;
+            break;
+        }
+        case GenreType::STRUCTURE:
+        {
+            auto type_struct = type->comme_structure();
+            auto nom = enchaine("struct.", type_struct->nom->nom);
+
+            /* Pour les structures récursives, il faut créer un type
+             * opaque, dont le corps sera renseigné à la fin */
+            auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
+            table_types.insere(type, type_opaque);
+
+            std::vector<llvm::Type *> types_membres;
+            types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
+
+            POUR (type_struct->membres) {
+                if (it.ne_doit_pas_être_dans_code_machine()) {
+                    continue;
+                }
+                types_membres.push_back(converti_type_llvm(it.type));
+            }
+
+            auto est_compacte = false;
+            if (type_struct->decl && type_struct->decl->est_compacte) {
+                est_compacte = true;
+            }
+
+            type_opaque->setBody(types_membres, est_compacte);
+
+            /* retourne directement puisque le type a déjà été ajouté à la table de types */
+            return type_opaque;
+        }
+        case GenreType::VARIADIQUE:
+        {
+            auto type_var = type->comme_variadique();
+
+            // Utilise le type de tableau dynamique afin que le code IR LLVM
+            // soit correcte (pointe vers le même type)
+            if (type_var->type_pointe != nullptr) {
+                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
+                    type_var->type_pointe);
+                type_llvm = converti_type_llvm(type_tabl);
+            }
+
+            break;
+        }
+        case GenreType::TABLEAU_DYNAMIQUE:
+        {
+            auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
+
+            /* type = structure { *type, n64, n64 } */
+            std::vector<llvm::Type *> types_membres(3ul);
+            types_membres[0] = llvm::PointerType::get(type_deref_llvm, 0);
+            types_membres[1] = llvm::Type::getInt64Ty(m_contexte_llvm);
+            types_membres[2] = llvm::Type::getInt64Ty(m_contexte_llvm);
+
+            type_llvm = llvm::StructType::create(
+                m_contexte_llvm, types_membres, "struct.tableau", false);
+            break;
+        }
+        case GenreType::TABLEAU_FIXE:
+        {
+            auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
+            auto const taille = type->comme_tableau_fixe()->taille;
+
+            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
+            break;
+        }
+        case GenreType::ENUM:
+        case GenreType::ERREUR:
+        {
+            auto type_enum = static_cast<TypeEnum const *>(type);
+            type_llvm = converti_type_llvm(type_enum->type_donnees);
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto type_opaque = type->comme_opaque();
+            type_llvm = converti_type_llvm(type_opaque->type_opacifie);
+            break;
+        }
+    }
+
+    table_types.insere(type, type_llvm);
+    return type_llvm;
+}
+
+llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction const *type,
+                                                                bool est_externe)
+{
+    std::vector<llvm::Type *> parametres;
+    parametres.reserve(static_cast<size_t>(type->types_entrees.taille()));
+
+    auto est_variadique = false;
+
+    POUR (type->types_entrees) {
+        if (it->genre == GenreType::VARIADIQUE) {
+            est_variadique = true;
+
+            /* les arguments variadiques sont transformés en un tableau */
+            if (!est_externe) {
+                auto type_var = it->comme_variadique();
+                auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
+                    type_var->type_pointe);
+                parametres.push_back(converti_type_llvm(type_tabl));
+            }
+
+            break;
+        }
+
+        parametres.push_back(converti_type_llvm(it));
+    }
+
+    auto type_sortie_llvm = converti_type_llvm(type->type_sortie);
+    assert(type_sortie_llvm);
+
+    return llvm::FunctionType::get(type_sortie_llvm, parametres, est_variadique && est_externe);
+}
+
+llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
+{
+    const int indentation_courante = __indente_globale.v;
+    indente();
+    DIFFERE {
+        __indente_globale.v = indentation_courante;
+    };
+
+    // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
+
+    switch (atome->genre_atome) {
+        case Atome::Genre::FONCTION:
+        {
+            // dbg() << "FONCTION";
+            auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+            return m_module->getFunction(vers_std_string(atome_fonc->nom));
+        }
+        case Atome::Genre::CONSTANTE:
+        {
+            auto atome_const = static_cast<AtomeConstante const *>(atome);
+            auto type_llvm = converti_type_llvm(atome_const->type);
+
+            switch (atome_const->genre) {
+                case AtomeConstante::Genre::GLOBALE:
+                {
+                    auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
+
+                    if (valeur_globale->ident) {
+                        auto valeur_ = table_globales.valeur_ou(valeur_globale, nullptr);
+                        // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
+                        return valeur_;
+                    }
+
+                    auto valeur_ = table_valeurs.valeur_ou(valeur_globale, nullptr);
+                    // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
+                    return valeur_;
+                }
+                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+                {
+                    auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
+                    auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
+                    auto valeur_ = llvm::ConstantExpr::getBitCast(
+                        llvm::cast<llvm::Constant>(valeur), type_llvm);
+                    // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
+                    return valeur_;
+                }
+                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+                {
+                    // dbg() << "À FAIRE: OP_UNAIRE_CONSTANTE !\n";
+                    break;
+                }
+                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+                {
+                    // dbg() << "À FAIRE: OP_BINAIRE_CONSTANTE !\n";
+                    break;
+                }
+                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+                {
+                    auto acces = static_cast<AccedeIndexConstant const *>(atome_const);
+                    auto index = genere_code_pour_atome(acces->index, pour_globale);
+                    assert(index);
+                    auto accede = genere_code_pour_atome(acces->accede, pour_globale);
+                    assert(accede);
+
+                    if (acces->accede->est_globale()) {
+                        auto globale = static_cast<AtomeGlobale *>(acces->accede);
+
+                        auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
+                        assert(init);
+                        auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
+
+                        accede = globale_llvm;
+
+                        globale_llvm->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+                        globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
+                    }
+
+                    auto index_array = std::vector<llvm::Value *>();
+                    auto type_accede = acces->accede->type;
+                    if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+                        index_array.resize(1);
+                        index_array[0] = index;
+                    }
+                    else {
+                        index_array.resize(2);
+                        index_array[0] = llvm::ConstantInt::get(
+                            llvm::Type::getInt32Ty(m_contexte_llvm), 0);
+                        index_array[1] = index;
+                    }
+
+                    assert(type_llvm);
+
+                    // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
+
+                    return llvm::ConstantExpr::getInBoundsGetElementPtr(
+                        nullptr, llvm::cast<llvm::Constant>(accede), index_array);
+                }
+                case AtomeConstante::Genre::VALEUR:
+                {
+                    // dbg() << "VALEUR";
+                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
+
+                    switch (valeur_const->valeur.genre) {
+                        case AtomeValeurConstante::Valeur::Genre::NULLE:
+                        {
+                            return llvm::ConstantPointerNull::get(static_cast<llvm::PointerType *>(
+                                converti_type_llvm(valeur_const->type)));
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::REELLE:
+                        {
+                            if (atome_const->type->taille_octet == 2) {
+                                return llvm::ConstantInt::get(
+                                    llvm::Type::getInt16Ty(m_contexte_llvm),
+                                    static_cast<unsigned>(valeur_const->valeur.valeur_reelle));
+                            }
+
+                            return llvm::ConstantFP::get(type_llvm,
+                                                         valeur_const->valeur.valeur_reelle);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TYPE:
+                        {
+                            return llvm::ConstantInt::get(
+                                type_llvm, valeur_const->valeur.type->index_dans_table_types);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+                        {
+                            return llvm::ConstantInt::get(type_llvm,
+                                                          valeur_const->valeur.type->taille_octet);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+                        {
+                            // À FAIRE : la RI peut modifier le type mais pas le genre de l'atome.
+                            if (atome->type->est_reel()) {
+                                auto valeur_reelle = static_cast<double>(
+                                    valeur_const->valeur.valeur_entiere);
+                                return llvm::ConstantFP::get(type_llvm, valeur_reelle);
+                            }
+
+                            return llvm::ConstantInt::get(type_llvm,
+                                                          valeur_const->valeur.valeur_entiere);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+                        {
+                            return llvm::ConstantInt::get(type_llvm,
+                                                          valeur_const->valeur.valeur_booleenne);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+                        {
+                            return llvm::ConstantInt::get(type_llvm,
+                                                          valeur_const->valeur.valeur_entiere);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+                        {
+                            return nullptr;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+                        {
+                            auto type = static_cast<TypeCompose const *>(atome->type);
+                            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
+
+                            auto tableau_membre = std::vector<llvm::Constant *>();
+
+                            auto index_membre = 0;
+                            for (auto i = 0; i < type->membres.taille(); ++i) {
+                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
+                                    continue;
+                                }
+
+                                auto valeur = static_cast<llvm::Constant *>(nullptr);
+
+                                // les tableaux fixes ont une initialisation nulle
+                                if (tableau_valeur[index_membre] == nullptr) {
+                                    auto type_llvm_valeur = converti_type_llvm(
+                                        type->membres[i].type);
+                                    valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
+                                }
+                                else {
+                                    // dbg() << "Génère code pour le membre " <<
+                                    // type->membres[i].nom->nom;
+                                    valeur = llvm::cast<llvm::Constant>(genere_code_pour_atome(
+                                        tableau_valeur[index_membre], pour_globale));
+                                }
+
+                                tableau_membre.push_back(valeur);
+                                index_membre += 1;
+                            }
+
+                            return llvm::ConstantStruct::get(
+                                llvm::cast<llvm::StructType>(converti_type_llvm(type)),
+                                tableau_membre);
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+                        {
+                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
+                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+
+                            std::vector<llvm::Constant *> valeurs;
+                            valeurs.reserve(static_cast<size_t>(taille_tableau));
+
+                            for (auto i = 0; i < taille_tableau; ++i) {
+                                auto valeur = genere_code_pour_atome(pointeur_tableau[i],
+                                                                     pour_globale);
+                                valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
+                            }
+
+                            auto resultat = llvm::ConstantArray::get(
+                                llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
+                            // dbg() << "TABLEAU_FIXE : " << *resultat;
+                            return resultat;
+                        }
+                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+                        {
+                            auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
+                            auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
+
+                            std::vector<unsigned char> donnees;
+                            donnees.resize(static_cast<size_t>(taille_donnees));
+
+                            for (auto i = 0; i < taille_donnees; ++i) {
+                                donnees[static_cast<size_t>(i)] = static_cast<unsigned char>(
+                                    pointeur_donnnees[i]);
+                            }
+
+                            auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+                            // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
+                            return valeur_;
+                        }
+                    }
+                }
+            }
+
+            return nullptr;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            auto inst = atome->comme_instruction();
+            return table_valeurs.valeur_ou(inst, nullptr);
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            auto valeur = table_globales.valeur_ou(atome, nullptr);
+            // dbg() << "GLOBALE: " << *valeur;
+            return valeur;
+        }
+    }
+
+    return nullptr;
+}
+
+void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
+{
+    const int indentation_courante = __indente_globale.v;
+    indente();
+    DIFFERE {
+        __indente_globale.v = indentation_courante;
+    };
+
+    // dbg() << __func__;
+
+    switch (inst->genre) {
+        case Instruction::Genre::INVALIDE:
+        {
+            break;
+        }
+        case Instruction::Genre::ALLOCATION:
+        {
+            auto type_pointeur = inst->type->comme_pointeur();
+            auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
+            auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
+            alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
+            table_valeurs.insere(inst, alloca);
+            break;
+        }
+        case Instruction::Genre::APPEL:
+        {
+            auto inst_appel = inst->comme_appel();
+
+            //			auto const &lexeme = inst_appel->lexeme;
+            //			auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
+            //			auto pos = position_lexeme(*lexeme);
+
+            //			if (!m_fonction_courante->sanstrace) {
+            //				os << "  DEBUTE_RECORD_TRACE_APPEL(";
+            //				os << pos.numero_ligne << ",";
+            //				os << pos.pos << ",";
+            //				os << "\"";
+
+            //				auto ligne = fichier->tampon[pos.index_ligne];
+
+            //				POUR (ligne) {
+            //					if (it == '\n') {
+            //						continue;
+            //					}
+
+            //					if (it == '"') {
+            //						os << '\\';
+            //					}
+
+            //					os << it;
+            //				}
+
+            //				os << "\",";
+            //				os << ligne.taille();
+            //				os << ");\n";
+            //			}
+
+            auto arguments = std::vector<llvm::Value *>();
+
+            POUR (inst_appel->args) {
+                arguments.push_back(genere_code_pour_atome(it, false));
+            }
+
+            auto valeur_fonction = genere_code_pour_atome(inst_appel->appele, false);
+            assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
+                erreur::imprime_site(m_espace, inst_appel->site);
+                imprime_atome(inst_appel->appele, std::cerr);
+            });
+            table_valeurs.insere(
+                inst,
+                m_builder.CreateCall(llvm::FunctionCallee(static_cast<llvm::FunctionType *>(
+                                                              valeur_fonction->getType()),
+                                                          valeur_fonction),
+                                     arguments));
+
+            //			if (!m_fonction_courante->sanstrace) {
+            //				os << "  TERMINE_RECORD_TRACE_APPEL;\n";
+            //			}
+
+            break;
+        }
+        case Instruction::Genre::BRANCHE:
+        {
+            auto inst_branche = inst->comme_branche();
+            m_builder.CreateBr(table_blocs.valeur_ou(inst_branche->label, nullptr));
+            break;
+        }
+        case Instruction::Genre::BRANCHE_CONDITION:
+        {
+            auto inst_branche = inst->comme_branche_cond();
+            auto condition = genere_code_pour_atome(inst_branche->condition, false);
+            auto bloc_si_vrai = table_blocs.valeur_ou(inst_branche->label_si_vrai, nullptr);
+            auto bloc_si_faux = table_blocs.valeur_ou(inst_branche->label_si_faux, nullptr);
+            m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
+            break;
+        }
+        case Instruction::Genre::CHARGE_MEMOIRE:
+        {
+            auto inst_charge = inst->comme_charge();
+            auto charge = inst_charge->chargee;
+            auto valeur = static_cast<llvm::Value *>(nullptr);
+
+            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur = table_valeurs.valeur_ou(charge, nullptr);
+            }
+            else {
+                valeur = table_globales.valeur_ou(charge, nullptr);
+            }
+
+            assert(valeur != nullptr);
+
+            auto load = m_builder.CreateLoad(valeur, "");
+            load->setAlignment(llvm::Align(charge->type->alignement));
+            table_valeurs.insere(inst_charge, load);
+            break;
+        }
+        case Instruction::Genre::STOCKE_MEMOIRE:
+        {
+            auto inst_stocke = inst->comme_stocke_mem();
+            auto valeur = genere_code_pour_atome(inst_stocke->valeur, false);
+            auto ou = inst_stocke->ou;
+            auto valeur_ou = static_cast<llvm::Value *>(nullptr);
+
+            if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
+                valeur_ou = table_valeurs.valeur_ou(ou, nullptr);
+            }
+            else {
+                valeur_ou = table_globales.valeur_ou(ou, nullptr);
+            }
+
+            assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
+                erreur::imprime_site(m_espace, inst_stocke->site);
+                imprime_atome(inst_stocke, std::cerr);
+                std::cerr << '\n';
+                imprime_information_atome(inst_stocke->ou, std::cerr);
+                std::cerr << '\n';
+            });
+            assert_rappel(!adresse_est_nulle(valeur), [&]() {
+                erreur::imprime_site(m_espace, inst_stocke->site);
+                imprime_atome(inst_stocke, std::cerr);
+                std::cerr << '\n';
+                imprime_information_atome(inst_stocke->valeur, std::cerr);
+                std::cerr << '\n';
+            });
+
+            m_builder.CreateStore(valeur, valeur_ou);
+
+            break;
+        }
+        case Instruction::Genre::LABEL:
+        {
+            auto inst_label = inst->comme_label();
+            auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", m_fonction_courante);
+            table_blocs.insere(inst_label, bloc);
+            // m_builder.SetInsertPoint(bloc);
+            break;
+        }
+        case Instruction::Genre::OPERATION_UNAIRE:
+        {
+            auto inst_un = inst->comme_op_unaire();
+            auto valeur = genere_code_pour_atome(inst_un->valeur, false);
+            auto type = inst_un->valeur->type;
+
+            switch (inst_un->op) {
+                case OperateurUnaire::Genre::Positif:
+                {
+                    valeur = m_builder.CreateLoad(valeur, "");
+                    break;
+                }
+                case OperateurUnaire::Genre::Invalide:
+                {
+                    break;
+                }
+                case OperateurUnaire::Genre::Complement:
+                {
+                    auto type_llvm = converti_type_llvm(inst_un->valeur->type);
+                    if (est_type_entier(type)) {
+                        auto zero = llvm::ConstantInt::get(
+                            type_llvm, 0, type->genre == GenreType::ENTIER_RELATIF);
+                        valeur = m_builder.CreateSub(zero, valeur);
+                    }
+                    else {
+                        auto zero = llvm::ConstantFP::get(type_llvm, 0.0);
+                        valeur = m_builder.CreateFSub(zero, valeur);
+                    }
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Binaire:
+                {
+                    auto type_llvm = converti_type_llvm(inst_un->valeur->type);
+                    valeur = m_builder.CreateXor(
+                        valeur,
+                        llvm::ConstantInt::get(
+                            type_llvm, 0, type->genre == GenreType::ENTIER_RELATIF));
+                    break;
+                }
+                case OperateurUnaire::Genre::Non_Logique:
+                {
+                    auto valeur2 = m_builder.getInt1(0);
+                    valeur = m_builder.CreateICmpEQ(valeur, valeur2);
+                    valeur = m_builder.CreateXor(valeur, m_builder.getInt1(1));
+                    break;
+                }
+                case OperateurUnaire::Genre::Prise_Adresse:
+                {
+                    break;
+                }
+            }
+
+            table_valeurs.insere(inst, valeur);
+            break;
+        }
+        case Instruction::Genre::OPERATION_BINAIRE:
+        {
+            auto inst_bin = inst->comme_op_binaire();
+            auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, false);
+            auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, false);
+
+            if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal &&
+                inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Nat) {
+                auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
+
+                assert_rappel(inst_bin->valeur_droite->type == inst_bin->valeur_gauche->type,
+                              [&]() {
+                                  erreur::imprime_site(m_espace, inst_bin->site);
+                                  std::cerr << "Type à gauche "
+                                            << chaine_type(inst_bin->valeur_gauche->type) << '\n';
+                                  std::cerr << "Type à droite "
+                                            << chaine_type(inst_bin->valeur_droite->type) << '\n';
+                                  imprime_instruction(inst_bin, std::cerr);
+                                  std::cerr << '\n';
+                              });
+
+                assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
+                    erreur::imprime_site(m_espace, inst_bin->site);
+                    llvm::errs() << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n';
+                    llvm::errs() << "Type à droite LLVM " << *valeur_droite->getType() << '\n';
+                    std::cerr << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type)
+                              << '\n';
+                    std::cerr << "Type à droite " << chaine_type(inst_bin->valeur_droite->type)
+                              << '\n';
+                    imprime_instruction(inst_bin, std::cerr);
+                    std::cerr << '\n';
+                });
+
+                table_valeurs.insere(inst,
+                                     m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
+            }
+            else if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal_Reel &&
+                     inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Reel) {
+                auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
+                table_valeurs.insere(inst,
+                                     m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite));
+            }
+            else {
+                auto inst_llvm = inst_llvm_depuis_operateur(inst_bin->op);
+                table_valeurs.insere(
+                    inst, m_builder.CreateBinOp(inst_llvm, valeur_gauche, valeur_droite));
+            }
+
+            break;
+        }
+        case Instruction::Genre::RETOUR:
+        {
+            auto inst_retour = inst->comme_retour();
+            if (inst_retour->valeur != nullptr) {
+                auto atome = inst_retour->valeur;
+                auto valeur_retour = genere_code_pour_atome(atome, false);
+                m_builder.CreateRet(valeur_retour);
+            }
+            else {
+                m_builder.CreateRet(nullptr);
+            }
+            break;
+        }
+        case Instruction::Genre::ACCEDE_INDEX:
+        {
+            auto inst_acces = inst->comme_acces_index();
+            auto valeur_accede = genere_code_pour_atome(inst_acces->accede, false);
+            auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
+
+            auto type_accede = inst_acces->accede->type;
+            if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+                auto index = std::vector<llvm::Value *>(1);
+                index[0] = valeur_index;
+
+                // À FAIRE : ceci est sans doute faux
+                auto xx = m_builder.CreateGEP(valeur_accede, index);
+                table_valeurs.insere(inst, m_builder.CreateLoad(xx));
+            }
+            else {
+                auto index = std::vector<llvm::Value *>(2);
+                index[0] = m_builder.getInt32(0);
+                index[1] = valeur_index;
+                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+            }
+
+            break;
+        }
+        case Instruction::Genre::ACCEDE_MEMBRE:
+        {
+            auto inst_acces = inst->comme_acces_membre();
+
+            auto accede = inst_acces->accede;
+            auto valeur_accede = genere_code_pour_atome(accede, false);
+
+            auto index_membre =
+                static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere;
+
+            auto type_pointe = accede->type->comme_pointeur()->type_pointe;
+
+            auto index_reel = index_reel_pour_membre(
+                *accede->type->comme_pointeur()->type_pointe->comme_compose(),
+                static_cast<uint32_t>(index_membre));
+
+            if (!type_pointe->est_pointeur()) {
+                auto index = std::vector<llvm::Value *>(2);
+                index[0] = m_builder.getInt32(0);
+                index[1] = m_builder.getInt32(index_reel);
+
+                auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
+                table_valeurs.insere(inst, valeur_membre);
+            }
+            else {
+                valeur_accede = table_globales.valeur_ou(accede, nullptr);
+
+                auto index = std::vector<llvm::Value *>(1);
+                index[0] = m_builder.getInt32(index_reel);
+
+                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+            }
+
+            // À FAIRE : type union
+
+            break;
+        }
+        case Instruction::Genre::TRANSTYPE:
+        {
+            auto const inst_transtype = inst->comme_transtype();
+            auto const valeur = genere_code_pour_atome(inst_transtype->valeur, false);
+            auto const type_de = inst_transtype->valeur->type;
+            auto const type_vers = inst_transtype->type;
+            auto const type_llvm = converti_type_llvm(type_vers);
+            auto const cast_op = convertis_type_transtypage(
+                inst_transtype->op, type_de, type_vers);
+            auto const resultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
+            table_valeurs.insere(inst, resultat);
+            assert_rappel(!adresse_est_nulle(resultat), [&]() {
+                erreur::imprime_site(m_espace, inst_transtype->site);
+                imprime_atome(inst_transtype->valeur, std::cerr);
+            });
+            break;
+        }
+    }
+}
+
+void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
+{
+    POUR (repr_inter.globales) {
+        __indente_globale.v = 0;
+        // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
+        auto valeur_globale = it;
+
+        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+        auto type_llvm = converti_type_llvm(type);
+
+        auto nom_globale = llvm::StringRef();
+
+        if (valeur_globale->ident) {
+            nom_globale = llvm::StringRef(
+                valeur_globale->ident->nom.pointeur(),
+                static_cast<size_t>(valeur_globale->ident->nom.taille()));
+        }
+
+        auto globale = new llvm::GlobalVariable(*m_module,
+                                                type_llvm,
+                                                valeur_globale->est_constante,
+                                                valeur_globale->est_externe ?
+                                                    llvm::GlobalValue::ExternalLinkage :
+                                                    llvm::GlobalValue::InternalLinkage,
+                                                nullptr,
+                                                nom_globale);
+
+        globale->setAlignment(llvm::Align(type->alignement));
+        table_globales.insere(valeur_globale, globale);
+    }
+
+    POUR (repr_inter.globales) {
+        __indente_globale.v = 0;
+        // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
+        auto valeur_globale = it;
+
+        auto globale = table_globales.valeur_ou(valeur_globale, nullptr);
+        if (valeur_globale->initialisateur) {
+            auto valeur_initialisateur = static_cast<llvm::Constant *>(
+                genere_code_pour_atome(valeur_globale->initialisateur, true));
+            globale->setInitializer(valeur_initialisateur);
+        }
+        else {
+            globale->setInitializer(llvm::ConstantAggregateZero::get(globale->getType()));
+        }
+    }
+
+    POUR (repr_inter.fonctions) {
+        auto atome_fonc = it;
+
+        auto type_fonction = atome_fonc->type->comme_fonction();
+        auto type_llvm = converti_type_fonction(type_fonction,
+                                                atome_fonc->instructions.taille() == 0);
+
+        llvm::Function::Create(type_llvm,
+                               llvm::Function::ExternalLinkage,
+                               vers_std_string(atome_fonc->nom),
+                               m_module);
+    }
+
+    // auto index_fonction = 0l;
+    POUR (repr_inter.fonctions) {
+        auto atome_fonc = it;
+        table_valeurs.efface();
+        table_blocs.efface();
+
+        // index_fonction++;
+
+        if (atome_fonc->est_externe) {
+            continue;
+        }
+
+        // dbg() << "Génère code pour : " << atome_fonc->nom;
+
+        auto fonction = m_module->getFunction(vers_std_string(atome_fonc->nom));
+
+        m_fonction_courante = fonction;
+        table_valeurs.efface();
+        table_blocs.efface();
+
+        /* génère d'abord tous les blocs depuis les labels */
+        for (auto inst : atome_fonc->instructions) {
+            if (inst->genre != Instruction::Genre::LABEL) {
+                continue;
+            }
+
+            genere_code_pour_instruction(inst);
+        }
+
+        auto bloc_entree = table_blocs.valeur_ou(atome_fonc->instructions[0]->comme_label(),
+                                                 nullptr);
+        m_builder.SetInsertPoint(bloc_entree);
+
+        auto valeurs_args = fonction->arg_begin();
+
+        for (auto &param : atome_fonc->params_entrees) {
+            auto const &nom_argument = param->ident->nom;
+
+            auto valeur = &(*valeurs_args++);
+            valeur->setName(vers_std_string(nom_argument));
+
+            auto type = param->type->comme_pointeur()->type_pointe;
+            auto type_llvm = converti_type_llvm(type);
+
+            auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
+            alloc->setAlignment(llvm::Align(type->alignement));
+
+            auto store = m_builder.CreateStore(valeur, alloc);
+            store->setAlignment(llvm::Align(type->alignement));
+
+            table_valeurs.insere(param, alloc);
+        }
+
+        //		if (!atome_fonc->sanstrace) {
+        //			os << "INITIALISE_TRACE_APPEL(\"";
+
+        //			if (atome_fonc->lexeme != nullptr) {
+        //				auto fichier =
+        // m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier)); 				os
+        // << atome_fonc->lexeme->chaine << "\", "
+        //				   << atome_fonc->lexeme->chaine.taille() << ", \""
+        //				   << fichier->nom << ".kuri\", "
+        //				   << fichier->nom.taille() + 5 << ", ";
+        //			}
+        //			else {
+        //				os << atome_fonc->nom << "\", "
+        //				   << atome_fonc->nom.taille() << ", "
+        //				   << "\"???\", 3, ";
+        //			}
+
+        //			os << atome_fonc->nom << ");\n";
+        //		}
+
+        /* crée une variable local pour la valeur de sortie */
+        auto type_fonction = atome_fonc->type->comme_fonction();
+        if (!type_fonction->type_sortie->est_rien()) {
+            auto param = atome_fonc->param_sortie;
+            auto type_pointeur = param->type->comme_pointeur();
+            auto type_pointe = type_pointeur->type_pointe;
+            auto type_llvm = converti_type_llvm(type_pointe);
+            auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
+            alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
+            table_valeurs.insere(param, alloca);
+        }
+
+        /* Génère le code pour les accès de membres des retours mutliples. */
+        if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
+            for (auto &param : atome_fonc->decl->params_sorties) {
+                genere_code_pour_instruction(
+                    param->comme_declaration_variable()->atome->comme_instruction());
+            }
+        }
+
+        //        std::cerr << "Fonction " << index_fonction << " / " <<
+        //        repr_inter.fonctions.taille()
+        //                  << '\n';
+        // imprime_fonction(atome_fonc, std::cerr);
+        for (auto inst : atome_fonc->instructions) {
+            if (inst->genre == Instruction::Genre::LABEL) {
+                auto bloc = table_blocs.valeur_ou(inst->comme_label(), nullptr);
+                m_builder.SetInsertPoint(bloc);
+                continue;
+            }
+
+            genere_code_pour_instruction(inst);
+        }
+
+        if (manager_fonctions) {
+            manager_fonctions->run(*m_fonction_courante);
+        }
+
+        m_fonction_courante = nullptr;
+    }
+}
+
+llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chaine,
+                                                        int64_t taille_chaine)
+{
+    auto iter = valeurs_chaines_globales.valeur_ou(chaine, nullptr);
+    if (iter) {
+        return iter;
+    }
+
+    // @.chn [N x i8] c"...0"
+    auto type_tableau = m_espace.compilatrice().typeuse.type_tableau_fixe(
+        m_espace.compilatrice().typeuse[TypeBase::Z8], static_cast<int>(taille_chaine + 1));
+
+    auto constante = llvm::ConstantDataArray::getString(m_contexte_llvm, vers_std_string(chaine));
+
+    auto tableu_chaine_c = new llvm::GlobalVariable(*m_module,
+                                                    converti_type_llvm(type_tableau),
+                                                    true,
+                                                    llvm::GlobalValue::PrivateLinkage,
+                                                    constante,
+                                                    ".chn");
+
+    // prend le pointeur vers le premier élément.
+    auto idx = std::vector<llvm::Constant *>{
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm), 0),
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm), 0)};
+
+    auto pointeur_chaine_c = llvm::ConstantExpr::getGetElementPtr(
+        converti_type_llvm(type_tableau), tableu_chaine_c, idx, true);
+
+    auto valeur_taille = llvm::ConstantInt::get(
+        llvm::Type::getInt64Ty(m_contexte_llvm), static_cast<uint64_t>(chaine.taille()), false);
+
+    auto type_chaine = converti_type_llvm(m_espace.compilatrice().typeuse[TypeBase::CHAINE]);
+
+    auto struct_chaine = llvm::ConstantStruct::get(
+        static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);
+
+    valeurs_chaines_globales.insere(chaine, struct_chaine);
+
+    return struct_chaine;
+}
+
+bool initialise_llvm()
+{
+    if (llvm::InitializeNativeTarget() || llvm::InitializeNativeTargetAsmParser() ||
+        llvm::InitializeNativeTargetAsmPrinter()) {
+        std::cerr << "Ne peut pas initialiser LLVM !\n";
+        return false;
+    }
+
+    /* Initialise les passes. */
+    auto &registre = *llvm::PassRegistry::getPassRegistry();
+    llvm::initializeCore(registre);
+    llvm::initializeScalarOpts(registre);
+    llvm::initializeObjCARCOpts(registre);
+    llvm::initializeVectorization(registre);
+    llvm::initializeIPO(registre);
+    llvm::initializeAnalysis(registre);
+    llvm::initializeTransformUtils(registre);
+    llvm::initializeInstCombine(registre);
+    llvm::initializeInstrumentation(registre);
+    llvm::initializeTarget(registre);
+
+    /* Pour les passes de transformation de code, seuls celles d'IR à IR sont
+     * supportées. */
+    llvm::initializeCodeGenPreparePass(registre);
+    llvm::initializeAtomicExpandPass(registre);
+    llvm::initializeWinEHPreparePass(registre);
+    llvm::initializeDwarfEHPrepareLegacyPassPass(registre);
+    llvm::initializeSjLjEHPreparePass(registre);
+    llvm::initializePreISelIntrinsicLoweringLegacyPassPass(registre);
+    llvm::initializeGlobalMergePass(registre);
+    llvm::initializeInterleavedAccessPass(registre);
+    llvm::initializeUnreachableBlockElimLegacyPassPass(registre);
+
+    return true;
+}
+
+void issitialise_llvm()
+{
+    llvm::llvm_shutdown();
+}
+
+/**
+ * Ajoute les passes d'optimisation au ménageur en fonction du niveau
+ * d'optimisation.
+ */
+static void ajoute_passes(llvm::legacy::FunctionPassManager &manager_fonctions,
+                          uint32_t niveau_optimisation,
+                          uint32_t niveau_taille)
+{
+    llvm::PassManagerBuilder builder;
+    builder.OptLevel = niveau_optimisation;
+    builder.SizeLevel = niveau_taille;
+    builder.DisableUnrollLoops = (niveau_optimisation == 0);
+
+    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+     * http://llvm.org/docs/Vectorizers.html */
+    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+
+    builder.populateFunctionPassManager(manager_fonctions);
+}
+
+/**
+ * Initialise le ménageur de passes fonctions du contexte selon le niveau
+ * d'optimisation.
+ */
+static void initialise_optimisation(NiveauOptimisation optimisation, GeneratriceCodeLLVM &contexte)
+{
+    if (contexte.manager_fonctions == nullptr) {
+        contexte.manager_fonctions = new llvm::legacy::FunctionPassManager(contexte.m_module);
+    }
+
+    switch (optimisation) {
+        case NiveauOptimisation::AUCUN:
+            break;
+        case NiveauOptimisation::O0:
+            ajoute_passes(*contexte.manager_fonctions, 0, 0);
+            break;
+        case NiveauOptimisation::O1:
+            ajoute_passes(*contexte.manager_fonctions, 1, 0);
+            break;
+        case NiveauOptimisation::O2:
+            ajoute_passes(*contexte.manager_fonctions, 2, 0);
+            break;
+        case NiveauOptimisation::Os:
+            ajoute_passes(*contexte.manager_fonctions, 2, 1);
+            break;
+        case NiveauOptimisation::Oz:
+            ajoute_passes(*contexte.manager_fonctions, 2, 2);
+            break;
+        case NiveauOptimisation::O3:
+            ajoute_passes(*contexte.manager_fonctions, 3, 0);
+            break;
+    }
+}
+
+/* Chemin du fichier objet généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_objet_llvm()
+{
+    return chemin_fichier_objet_temporaire_pour("kuri");
+}
+
+/* Chemin du fichier objet "execution_kuri" généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_objet_execution_llvm()
+{
+    return chemin_fichier_objet_temporaire_pour("execution_kuri");
+}
+
+/* Chemin du fichier de code binaire LLVM généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_bc_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.bc");
+}
+
+/* Chemin du fichier de code LLVM généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_ll_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.ll");
+}
+
+/* Chemin du fichier ".s" généré par la coulisse. */
+static kuri::chemin_systeme chemin_fichier_s_llvm()
+{
+    return kuri::chemin_systeme::chemin_temporaire("kuri.s");
+}
+
+static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
+{
+    return llvm::StringRef(chaine.pointeur(), size_t(chaine.taille()));
+}
+
+static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module &module)
+{
+#if 1
+    auto chemin_sortie = chemin_fichier_objet_llvm();
+    std::error_code ec;
+
+    llvm::raw_fd_ostream dest(
+        llvm::StringRef(chemin_sortie.pointeur(), size_t(chemin_sortie.taille())),
+        ec,
+        llvm::sys::fs::F_None);
+
+    if (ec) {
+        std::cerr << "Ne put pas ouvrir le fichier '" << chemin_sortie << "'\n";
+        return false;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto type_fichier = llvm::CGFT_ObjectFile;
+
+    if (machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
+        std::cerr << "La machine cible ne peut pas émettre ce type de fichier\n";
+        return false;
+    }
+
+    pass.run(module);
+    dest.flush();
+#else
+    auto const fichier_ll = chemin_fichier_ll_llvm();
+    auto const fichier_bc = chemin_fichier_bc_llvm();
+    auto const fichier_s = chemin_fichier_s_llvm();
+
+    // https://stackoverflow.com/questions/1419139/llvm-linking-problem?rq=1
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
+    module.print(dest, nullptr);
+
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM. */
+    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    if (system(commande.pointeur()) != 0) {
+        return false;
+    }
+
+    /* Génère le fichier d'instruction assembly depuis le fichier de code binaire. */
+    commande = enchaine("llvm-as ", fichier_bc, " -o ", fichier_s, "\0");
+    if (system(commande.pointeur()) != 0) {
+        return false;
+    }
+#endif
+    return true;
+}
+
+#ifndef NDEBUG
+static bool valide_llvm_ir(llvm::Module &module)
+{
+    auto const fichier_ll = chemin_fichier_ll_llvm();
+    auto const fichier_bc = chemin_fichier_bc_llvm();
+
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
+    module.print(dest, nullptr);
+
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
+     * est correcte. */
+    auto commande = enchaine("llvm-as ", fichier_ll, " -o ", fichier_bc, "\0");
+    return system(commande.pointeur()) == 0;
+}
+#endif
+
+static bool cree_executable(EspaceDeTravail const &espace,
+                            const kuri::chaine &dest,
+                            const kuri::chemin_systeme &racine_kuri)
+{
+    /* Compile le fichier objet qui appelera 'fonction principale'. */
+    auto chemin_execution = chemin_fichier_objet_execution_llvm();
+    if (!kuri::chemin_systeme::existe(chemin_execution)) {
+        auto const &chemin_execution_S = racine_kuri / "fichiers/execution_kuri.S";
+
+        Enchaineuse ss;
+        ss << "as -o " << chemin_execution;
+        ss << chemin_execution_S;
+        ss << '\0';
+
+        const auto err = system(ss.chaine().pointeur());
+
+        if (err != 0) {
+            std::cerr << "Ne peut pas créer " << chemin_execution << " !\n";
+            return false;
+        }
+    }
+
+    auto chemin_objet = chemin_fichier_objet_llvm();
+
+    if (!kuri::chemin_systeme::existe(chemin_objet)) {
+        std::cerr << "Le fichier objet n'a pas été émis !\n Utiliser la commande -o !\n";
+        return false;
+    }
+
+    Enchaineuse ss;
+#if 1
+    ss << "gcc ";
+    ss << racine_kuri / "fichiers/point_d_entree.c";
+    ss << chemin_fichier_objet_r16(espace.options.architecture) << " ";
+
+#else
+    ss << "ld ";
+    /* ce qui chargera le programme */
+    ss << "-dynamic-linker /lib64/ld-linux-x86-64.so.2 ";
+    ss << "-m elf_x86_64 ";
+    ss << "--hash-style=gnu ";
+    ss << "-lc ";
+    ss << chemin_execution << " ";
+#endif
+
+    ss << " " << chemin_objet << " ";
+    ss << "-o " << dest;
+    ss << '\0';
+
+    auto commande = ss.chaine();
+
+    std::cout << "Exécution de la commande : " << commande << '\n';
+
+    const auto err = system(commande.pointeur());
+
+    if (err != 0) {
+        std::cerr << "Ne peut pas créer l'executable !\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
+                                      EspaceDeTravail &espace,
+                                      Programme *programme,
+                                      ConstructriceRI & /*constructrice_ri*/,
+                                      Broyeuse &)
+{
+    auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+
+    if (!initialise_llvm()) {
+        return false;
+    }
+
+    auto erreur = std::string{""};
+    auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
+
+    if (!cible) {
+        std::cerr << erreur << '\n';
+        return 1;
+    }
+
+    auto repr_inter = representation_intermediaire_programme(*programme);
+
+    auto CPU = "generic";
+    auto feature = "";
+    auto options_cible = llvm::TargetOptions{};
+    auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
+    auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
+        cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM));
+
+    auto generatrice = GeneratriceCodeLLVM(espace);
+
+    auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
+    module_llvm.setDataLayout(machine_cible->createDataLayout());
+    module_llvm.setTargetTriple(triplet_cible);
+
+    generatrice.m_module = &module_llvm;
+
+    std::cout << "Génération du code..." << std::endl;
+    auto debut_generation_code = dls::chrono::compte_seconde();
+
+    initialise_optimisation(espace.options.niveau_optimisation, generatrice);
+
+    generatrice.genere_code(repr_inter);
+
+    delete generatrice.manager_fonctions;
+
+    temps_generation_code = debut_generation_code.temps();
+
+#ifndef NDEBUG
+    if (!valide_llvm_ir(module_llvm)) {
+        espace.rapporte_erreur_sans_site("Erreur interne, impossible de générer le code LLVM.");
+        return false;
+    }
+#endif
+
+    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
+        std::cout << "Écriture du code dans un fichier..." << std::endl;
+        auto debut_fichier_objet = dls::chrono::compte_seconde();
+        if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
+            espace.rapporte_erreur_sans_site("Impossible de créer le fichier objet");
+            return 1;
+        }
+        temps_fichier_objet = debut_fichier_objet.temps();
+    }
+
+    return true;
+}
+
+bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
+                                   EspaceDeTravail &espace,
+                                   Programme * /*programme*/)
+{
+    auto debut_executable = dls::chrono::compte_seconde();
+    if (!::cree_executable(
+            espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
+        espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
+        return false;
+    }
+
+    temps_executable = debut_executable.temps();
+    return true;
+}

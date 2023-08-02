@@ -1,42 +1,21 @@
-/*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Kévin Dietrich.
- * All rights reserved.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich. */
 
 #pragma once
 
-namespace llvm {
-class Value;
-}
+#include "coulisse.hh"
 
-struct ContexteGenerationCode;
+bool initialise_llvm();
+void issitialise_llvm();
 
-namespace noeud {
+struct CoulisseLLVM final : public Coulisse {
+    bool cree_fichier_objet(Compilatrice &compilatrice,
+                            EspaceDeTravail &espace,
+                            Programme *programme,
+                            ConstructriceRI &constructrice_ri,
+                            Broyeuse &) override;
 
-struct base;
-
-llvm::Value *genere_code_llvm(
-		base *b,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche);
-
-}  /* namespace noeud */
+    bool cree_executable(Compilatrice &compilatrice,
+                         EspaceDeTravail &espace,
+                         Programme *programme) override;
+};

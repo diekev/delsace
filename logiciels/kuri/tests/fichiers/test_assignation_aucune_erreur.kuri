@@ -1,0 +1,43 @@
+// -----------------------------------
+// Cas : On peut assigner une valeur à un élément d'un tableau
+
+foo :: fonc (a : [2]z32) -> rien
+{
+	a[0] = 5;
+}
+
+// -----------------------------------
+// Cas : On peut assigner une valeur à un membre d'une structure
+
+Vecteur3D :: struct {
+	x : z32
+}
+
+foo :: fonc (v : Vecteur3D) -> rien
+{
+	v.x = 5
+}
+
+// -----------------------------------
+// Cas : On peut assigner une valeur à un élément d'un membre de type tableau d'une structure
+
+Vecteur3D :: struct {
+	x : [2]z32;
+}
+
+foo :: fonc (v : Vecteur3D) -> rien
+{
+	v.x[0] = 5;
+}
+
+// -----------------------------------
+// Cas : On peut réassigner une valeur à une globale dynamique dans un bloc 'nonsûr'
+
+PI := 3.14
+
+foo :: fonc () -> rien
+{
+	nonsûr {
+		PI = 3.14159
+	}
+}

@@ -53,346 +53,353 @@
 /* ************************************************************************** */
 
 struct SommetOSD {
-	dls::math::vec3f valeur{};
+    dls::math::vec3f valeur{};
 
-	/* IPA requise par OSD */
+    /* IPA requise par OSD */
 
-	SommetOSD() = default;
+    SommetOSD() = default;
 
-	SommetOSD(SommetOSD const & src)
-	{
-		valeur[0] = src.valeur[0];
-		valeur[1] = src.valeur[1];
-		valeur[2] = src.valeur[2];
-	}
+    SommetOSD(SommetOSD const &src)
+    {
+        valeur[0] = src.valeur[0];
+        valeur[1] = src.valeur[1];
+        valeur[2] = src.valeur[2];
+    }
 
-	void Clear( void * = nullptr )
-	{
-		valeur[0] = valeur[1] = valeur[2] = 0.0f;
-	}
+    void Clear(void * = nullptr)
+    {
+        valeur[0] = valeur[1] = valeur[2] = 0.0f;
+    }
 
-	void AddWithWeight(SommetOSD const &src, float poids)
-	{
-		valeur[0] += poids * src.valeur[0];
-		valeur[1] += poids * src.valeur[1];
-		valeur[2] += poids * src.valeur[2];
-	}
+    void AddWithWeight(SommetOSD const &src, float poids)
+    {
+        valeur[0] += poids * src.valeur[0];
+        valeur[1] += poids * src.valeur[1];
+        valeur[2] += poids * src.valeur[2];
+    }
 };
 
 class OperatriceOpenSubDiv final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "OpenSubDiv";
-	static constexpr auto AIDE = "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";
+  public:
+    static constexpr auto NOM = "OpenSubDiv";
+    static constexpr auto AIDE =
+        "Sousdivise les maillages d'entrée en utilisant la bibliothèque OpenSubDiv.";
+
+    OperatriceOpenSubDiv(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(1);
+        sorties(1);
+    }
 
-	OperatriceOpenSubDiv(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_opensubdiv.jo"};
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_opensubdiv.jo";
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
+        auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+        if (!valide_corps_entree(*this, corps_entree, true, true)) {
+            return res_exec::ECHOUEE;
+        }
 
-		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        /* peuple un descripteur avec nos données crues */
+        using Descripteur = OpenSubdiv::Far::TopologyDescriptor;
+        using Refineur = OpenSubdiv::Far::TopologyRefiner;
+        using UsineRafineur = OpenSubdiv::Far::TopologyRefinerFactory<Descripteur>;
 
-		/* peuple un descripteur avec nos données crues */
-		using Descripteur   = OpenSubdiv::Far::TopologyDescriptor;
-		using Refineur      = OpenSubdiv::Far::TopologyRefiner;
-		using UsineRafineur = OpenSubdiv::Far::TopologyRefinerFactory<Descripteur>;
+        auto const niveau_max = evalue_entier("niveau_max");
 
-		auto const niveau_max = evalue_entier("niveau_max");
+        auto const schema = evalue_enum("schéma");
 
-		auto const schema = evalue_enum("schéma");
+        static auto dico_schema = dls::cree_dico(
+            dls::paire{dls::chaine("catmark"), OpenSubdiv::Sdc::SCHEME_CATMARK},
+            dls::paire{dls::chaine("bilineaire"), OpenSubdiv::Sdc::SCHEME_BILINEAR},
+            /* À FAIRE : CRASH avec OpenSubdiv::Sdc::SCHEME_LOOP */
+            dls::paire{dls::chaine("boucle"), OpenSubdiv::Sdc::SCHEME_CATMARK});
 
-		static auto dico_schema = dls::cree_dico(
-					dls::paire{ dls::chaine("catmark"), OpenSubdiv::Sdc::SCHEME_CATMARK },
-					dls::paire{ dls::chaine("bilineaire"), OpenSubdiv::Sdc::SCHEME_BILINEAR },
-					/* À FAIRE : CRASH avec OpenSubdiv::Sdc::SCHEME_LOOP */
-					dls::paire{ dls::chaine("boucle"), OpenSubdiv::Sdc::SCHEME_CATMARK });
+        auto plg_subdiv = dico_schema.trouve(schema);
 
-		auto plg_subdiv = dico_schema.trouve(schema);
+        if (plg_subdiv.est_finie()) {
+            ajoute_avertissement("Type de schéma invalide !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (plg_subdiv.est_finie()) {
-			ajoute_avertissement("Type de schéma invalide !");
-			return res_exec::ECHOUEE;
-		}
+        auto const type_subdiv = plg_subdiv.front().second;
 
-		auto const type_subdiv = plg_subdiv.front().second;
+        OpenSubdiv::Sdc::Options options;
 
-		OpenSubdiv::Sdc::Options options;
+        auto const entrep_bord = evalue_enum("entrep_bord");
 
-		auto const entrep_bord = evalue_enum("entrep_bord");
+        static auto dico_entrep = dls::cree_dico(
+            dls::paire{dls::chaine("aucune"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_NONE},
+            dls::paire{dls::chaine("segment"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY},
+            dls::paire{dls::chaine("segment_coin"),
+                       OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER});
 
-		static auto dico_entrep = dls::cree_dico(
-					dls::paire{ dls::chaine("aucune"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_NONE },
-					dls::paire{ dls::chaine("segment"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY },
-					dls::paire{ dls::chaine("segment_coin"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER });
+        auto plg_entrep_bord = dico_entrep.trouve(entrep_bord);
 
-		auto plg_entrep_bord = dico_entrep.trouve(entrep_bord);
+        if (plg_entrep_bord.est_finie()) {
+            ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (plg_entrep_bord.est_finie()) {
-			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return res_exec::ECHOUEE;
-		}
+        options.SetVtxBoundaryInterpolation(plg_entrep_bord.front().second);
 
-		options.SetVtxBoundaryInterpolation(plg_entrep_bord.front().second);
+        static auto dico_entrep_fvar = dls::cree_dico(
+            dls::paire{dls::chaine("aucune"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_NONE},
+            dls::paire{dls::chaine("coins_seuls"),
+                       OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_ONLY},
+            dls::paire{dls::chaine("coins_p1"),
+                       OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1},
+            dls::paire{dls::chaine("coins_p2"),
+                       OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS2},
+            dls::paire{dls::chaine("bordures"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_BOUNDARIES},
+            dls::paire{dls::chaine("tout"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL});
 
-		static auto dico_entrep_fvar = dls::cree_dico(
-					dls::paire{ dls::chaine("aucune"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_NONE },
-					dls::paire{ dls::chaine("coins_seuls"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_ONLY },
-					dls::paire{ dls::chaine("coins_p1"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1 },
-					dls::paire{ dls::chaine("coins_p2"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS2 },
-					dls::paire{ dls::chaine("bordures"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_BOUNDARIES },
-					dls::paire{ dls::chaine("tout"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL });
+        auto const entrep_fvar = evalue_enum("entrep_fvar");
 
-		auto const entrep_fvar = evalue_enum("entrep_fvar");
+        auto plg_entrep_fvar = dico_entrep_fvar.trouve(entrep_fvar);
 
-		auto plg_entrep_fvar = dico_entrep_fvar.trouve(entrep_fvar);
+        if (plg_entrep_fvar.est_finie()) {
+            ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (plg_entrep_fvar.est_finie()) {
-			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return res_exec::ECHOUEE;
-		}
+        options.SetFVarLinearInterpolation(plg_entrep_fvar.front().second);
 
-		options.SetFVarLinearInterpolation(plg_entrep_fvar.front().second);
+        static auto dico_pliure = dls::cree_dico(
+            dls::paire{dls::chaine("uniforme"), OpenSubdiv::Sdc::Options::CREASE_UNIFORM},
+            dls::paire{dls::chaine("chaikin"), OpenSubdiv::Sdc::Options::CREASE_CHAIKIN});
 
-		static auto dico_pliure = dls::cree_dico(
-					dls::paire{ dls::chaine("uniforme"), OpenSubdiv::Sdc::Options::CREASE_UNIFORM },
-					dls::paire{ dls::chaine("chaikin"), OpenSubdiv::Sdc::Options::CREASE_CHAIKIN });
+        auto const pliure = evalue_enum("pliage");
 
-		auto const pliure = evalue_enum("pliage");
+        auto plg_pliure = dico_pliure.trouve(pliure);
 
-		auto plg_pliure = dico_pliure.trouve(pliure);
+        if (plg_pliure.est_finie()) {
+            ajoute_avertissement("Type de pliage invalide !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (plg_pliure.est_finie()) {
-			ajoute_avertissement("Type de pliage invalide !");
-			return res_exec::ECHOUEE;
-		}
+        options.SetCreasingMethod(plg_pliure.front().second);
 
-		options.SetCreasingMethod(plg_pliure.front().second);
+        static auto dico_sd_tri = dls::cree_dico(
+            dls::paire{dls::chaine("catmark"), OpenSubdiv::Sdc::Options::TRI_SUB_CATMARK},
+            dls::paire{dls::chaine("lisse"), OpenSubdiv::Sdc::Options::TRI_SUB_SMOOTH});
 
-		static auto dico_sd_tri = dls::cree_dico(
-					dls::paire{ dls::chaine("catmark"), OpenSubdiv::Sdc::Options::TRI_SUB_CATMARK },
-					dls::paire{ dls::chaine("lisse"), OpenSubdiv::Sdc::Options::TRI_SUB_SMOOTH });
+        auto const sousdivision_triangle = evalue_enum("sousdivision_triangle");
 
-		auto const sousdivision_triangle = evalue_enum("sousdivision_triangle");
+        auto plg_sd_tri = dico_sd_tri.trouve(sousdivision_triangle);
 
-		auto plg_sd_tri = dico_sd_tri.trouve(sousdivision_triangle);
+        if (plg_sd_tri.est_finie()) {
+            ajoute_avertissement("Type de sousdivision triangulaire invalide !");
+            return res_exec::ECHOUEE;
+        }
 
-		if (plg_sd_tri.est_finie()) {
-			ajoute_avertissement("Type de sousdivision triangulaire invalide !");
-			return res_exec::ECHOUEE;
-		}
-
-		options.SetTriangleSubdivision(plg_sd_tri.front().second);
-
-		auto points_entree = corps_entree->points_pour_lecture();
-		auto nombre_sommets = points_entree.taille();
-		auto prims_entree = corps_entree->prims();
-		auto nombre_polygones = prims_entree->taille();
+        options.SetTriangleSubdivision(plg_sd_tri.front().second);
 
-		Descripteur desc;
-		desc.numVertices = static_cast<int>(nombre_sommets);
-		desc.numFaces    = static_cast<int>(nombre_polygones);
+        auto points_entree = corps_entree->points_pour_lecture();
+        auto nombre_sommets = points_entree.taille();
+        auto prims_entree = corps_entree->prims();
+        auto nombre_polygones = prims_entree->taille();
 
-		dls::tableau<int> nombre_sommets_par_poly;
-		nombre_sommets_par_poly.reserve(nombre_polygones);
+        Descripteur desc;
+        desc.numVertices = static_cast<int>(nombre_sommets);
+        desc.numFaces = static_cast<int>(nombre_polygones);
 
-		dls::tableau<int> index_sommets_polys;
-		index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
+        dls::tableau<int> nombre_sommets_par_poly;
+        nombre_sommets_par_poly.reserve(nombre_polygones);
 
-		pour_chaque_polygone_ferme(*corps_entree,
-								   [&](Corps const &, Polygone *poly)
-		{
-			nombre_sommets_par_poly.pousse(static_cast<int>(poly->nombre_sommets()));
+        dls::tableau<int> index_sommets_polys;
+        index_sommets_polys.reserve(nombre_sommets * nombre_polygones);
 
-			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				index_sommets_polys.pousse(static_cast<int>(poly->index_point(i)));
-			}
-		});
+        pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &, Polygone *poly) {
+            nombre_sommets_par_poly.ajoute(static_cast<int>(poly->nombre_sommets()));
 
-		desc.numVertsPerFace = &nombre_sommets_par_poly[0];
-		desc.vertIndicesPerFace = &index_sommets_polys[0];
+            for (long i = 0; i < poly->nombre_sommets(); ++i) {
+                index_sommets_polys.ajoute(static_cast<int>(poly->index_point(i)));
+            }
+        });
 
-		/* Crée un rafineur depuis le descripteur. */
-		auto rafineur = UsineRafineur::Create(
-							desc, UsineRafineur::Options(type_subdiv, options));
+        desc.numVertsPerFace = &nombre_sommets_par_poly[0];
+        desc.vertIndicesPerFace = &index_sommets_polys[0];
 
-		/* Rafine uniformément la topologie jusque 'niveau_max'. */
-		rafineur->RefineUniform(Refineur::UniformOptions(niveau_max));
+        /* Crée un rafineur depuis le descripteur. */
+        auto rafineur = UsineRafineur::Create(desc, UsineRafineur::Options(type_subdiv, options));
 
-		/* Alloue un tampon pouvant contenir le nombre total de sommets à
-		 * 'niveau_max' de rafinement. */
-		dls::tableau<SommetOSD> sommets_osd(rafineur->GetNumVerticesTotal());
-		SommetOSD *sommets = &sommets_osd[0];
+        /* Rafine uniformément la topologie jusque 'niveau_max'. */
+        rafineur->RefineUniform(Refineur::UniformOptions(niveau_max));
 
-		dls::tableau<Attribut const *> attrs_points;
-		dls::tableau<dls::tableau<SommetOSD>> tampon_attr_points;
-		dls::tableau<SommetOSD *> ptr_attrs_pnt;
+        /* Alloue un tampon pouvant contenir le nombre total de sommets à
+         * 'niveau_max' de rafinement. */
+        dls::tableau<SommetOSD> sommets_osd(rafineur->GetNumVerticesTotal());
+        SommetOSD *sommets = &sommets_osd[0];
 
-		dls::tableau<Attribut const *> attrs_prims;
-		dls::tableau<dls::tableau<SommetOSD>> tampon_attr_prims;
-		dls::tableau<SommetOSD *> ptr_attrs_prims;
+        dls::tableau<Attribut const *> attrs_points;
+        dls::tableau<dls::tableau<SommetOSD>> tampon_attr_points;
+        dls::tableau<SommetOSD *> ptr_attrs_pnt;
 
-		for (auto const &attr : corps_entree->attributs()) {
-			if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
-				tampon_attr_points.pousse(dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
-				attrs_points.pousse(&attr);
-			}
+        dls::tableau<Attribut const *> attrs_prims;
+        dls::tableau<dls::tableau<SommetOSD>> tampon_attr_prims;
+        dls::tableau<SommetOSD *> ptr_attrs_prims;
 
-			if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
-				if (attr.nom() == "N") {
-					/* l'attribut normal ne peut-être copié */
-					continue;
-				}
+        for (auto const &attr : corps_entree->attributs()) {
+            if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::R32 &&
+                attr.dimensions == 3) {
+                tampon_attr_points.ajoute(
+                    dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
+                attrs_points.ajoute(&attr);
+            }
 
-				tampon_attr_prims.pousse(dls::tableau<SommetOSD>(rafineur->GetNumFacesTotal()));
-				attrs_prims.pousse(&attr);
-			}
-		}
+            if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::R32 &&
+                attr.dimensions == 3) {
+                if (attr.nom() == "N") {
+                    /* l'attribut normal ne peut-être copié */
+                    continue;
+                }
 
-		for (auto &attr : tampon_attr_points) {
-			ptr_attrs_pnt.pousse(&attr[0]);
-		}
+                tampon_attr_prims.ajoute(dls::tableau<SommetOSD>(rafineur->GetNumFacesTotal()));
+                attrs_prims.ajoute(&attr);
+            }
+        }
 
-		for (auto &attr : tampon_attr_prims) {
-			ptr_attrs_prims.pousse(&attr[0]);
-		}
+        for (auto &attr : tampon_attr_points) {
+            ptr_attrs_pnt.ajoute(&attr[0]);
+        }
 
-		/* Initialise les positions du maillage grossier. */
-		for (auto i = 0; i < points_entree.taille(); ++i) {
-			sommets[i].valeur = points_entree.point_monde(i);
+        for (auto &attr : tampon_attr_prims) {
+            ptr_attrs_prims.ajoute(&attr[0]);
+        }
 
-			for (auto j = 0; j < attrs_points.taille(); ++j) {
-				extrait(attrs_points[j]->r32(i), ptr_attrs_pnt[j][i].valeur);
-			}
-		}
+        /* Initialise les positions du maillage grossier. */
+        for (auto i = 0; i < points_entree.taille(); ++i) {
+            sommets[i].valeur = points_entree.point_monde(i);
 
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			for (auto j = 0; j < attrs_prims.taille(); ++j) {
-				extrait(attrs_prims[j]->r32(i), ptr_attrs_prims[j][i].valeur);
-			}
-		}
+            for (auto j = 0; j < attrs_points.taille(); ++j) {
+                extrait(attrs_points[j]->r32(i), ptr_attrs_pnt[j][i].valeur);
+            }
+        }
 
-		/* Entrepole les sommets */
-		OpenSubdiv::Far::PrimvarRefiner rafineur_primvar(*rafineur);
+        for (auto i = 0; i < prims_entree->taille(); ++i) {
+            for (auto j = 0; j < attrs_prims.taille(); ++j) {
+                extrait(attrs_prims[j]->r32(i), ptr_attrs_prims[j][i].valeur);
+            }
+        }
 
-		auto decalage_src = 0;
-		auto decalage_dst = 0;
-		auto decalage_src_prims = 0;
-		auto decalage_dst_prims = 0;
-		for (int niveau = 1; niveau <= niveau_max; ++niveau) {
-			decalage_dst += rafineur->GetLevel(niveau - 1).GetNumVertices();
-			decalage_dst_prims += rafineur->GetLevel(niveau - 1).GetNumFaces();
+        /* Entrepole les sommets */
+        OpenSubdiv::Far::PrimvarRefiner rafineur_primvar(*rafineur);
 
-			auto src_sommets = sommets + decalage_src;
-			auto dst_sommets = sommets + decalage_dst;
+        auto decalage_src = 0;
+        auto decalage_dst = 0;
+        auto decalage_src_prims = 0;
+        auto decalage_dst_prims = 0;
+        for (int niveau = 1; niveau <= niveau_max; ++niveau) {
+            decalage_dst += rafineur->GetLevel(niveau - 1).GetNumVertices();
+            decalage_dst_prims += rafineur->GetLevel(niveau - 1).GetNumFaces();
 
-			rafineur_primvar.Interpolate(niveau, src_sommets, dst_sommets);
+            auto src_sommets = sommets + decalage_src;
+            auto dst_sommets = sommets + decalage_dst;
 
-			for (auto j = 0; j < attrs_points.taille(); ++j) {
-				auto src_attr = ptr_attrs_pnt[j] + decalage_src;
-				auto dst_attr = ptr_attrs_pnt[j] + decalage_dst;
+            rafineur_primvar.Interpolate(niveau, src_sommets, dst_sommets);
 
-				rafineur_primvar.InterpolateVarying(niveau, src_attr, dst_attr);
-			}
+            for (auto j = 0; j < attrs_points.taille(); ++j) {
+                auto src_attr = ptr_attrs_pnt[j] + decalage_src;
+                auto dst_attr = ptr_attrs_pnt[j] + decalage_dst;
 
-			for (auto j = 0; j < attrs_prims.taille(); ++j) {
-				auto src_attr = ptr_attrs_prims[j] + decalage_src_prims;
-				auto dst_attr = ptr_attrs_prims[j] + decalage_dst_prims;
+                rafineur_primvar.InterpolateVarying(niveau, src_attr, dst_attr);
+            }
 
-				rafineur_primvar.InterpolateFaceUniform(niveau, src_attr, dst_attr);
-			}
+            for (auto j = 0; j < attrs_prims.taille(); ++j) {
+                auto src_attr = ptr_attrs_prims[j] + decalage_src_prims;
+                auto dst_attr = ptr_attrs_prims[j] + decalage_dst_prims;
 
-			decalage_src = decalage_dst;
-			decalage_src_prims = decalage_dst_prims;
-		}
+                rafineur_primvar.InterpolateFaceUniform(niveau, src_attr, dst_attr);
+            }
 
-		{
-			auto const ref_der_niv = rafineur->GetLevel(niveau_max);
-			nombre_sommets = ref_der_niv.GetNumVertices();
-			nombre_polygones = ref_der_niv.GetNumFaces();
+            decalage_src = decalage_dst;
+            decalage_src_prims = decalage_dst_prims;
+        }
 
-			auto premier_sommet = rafineur->GetNumVerticesTotal() - nombre_sommets;
+        {
+            auto const ref_der_niv = rafineur->GetLevel(niveau_max);
+            nombre_sommets = ref_der_niv.GetNumVertices();
+            nombre_polygones = ref_der_niv.GetNumFaces();
 
-			auto attr_N = corps_entree->attribut("N");
+            auto premier_sommet = rafineur->GetNumVerticesTotal() - nombre_sommets;
 
-			auto points_sortie = m_corps.points_pour_ecriture();
-			points_sortie.reserve(nombre_sommets);
-			m_corps.prims()->reserve(nombre_polygones);
+            auto attr_N = corps_entree->attribut("N");
 
-			for (long vert = 0; vert < nombre_sommets; ++vert) {
-				points_sortie.ajoute_point(sommets[premier_sommet + vert].valeur);
-			}
+            auto points_sortie = m_corps.points_pour_ecriture();
+            points_sortie.reserve(nombre_sommets);
+            m_corps.prims()->reserve(nombre_polygones);
 
-			for (auto j = 0; j < attrs_points.taille(); ++j) {
-				auto attr = attrs_points[j];
-				auto ptr = ptr_attrs_pnt[j];
-				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->dimensions, attr->portee);
+            for (long vert = 0; vert < nombre_sommets; ++vert) {
+                points_sortie.ajoute_point(sommets[premier_sommet + vert].valeur);
+            }
 
-				for (auto i = 0; i < nattr->taille(); ++i) {
-					assigne(nattr->r32(i), ptr[premier_sommet + i].valeur);
-				}
-			}
+            for (auto j = 0; j < attrs_points.taille(); ++j) {
+                auto attr = attrs_points[j];
+                auto ptr = ptr_attrs_pnt[j];
+                auto nattr = m_corps.ajoute_attribut(
+                    attr->nom(), attr->type(), attr->dimensions, attr->portee);
 
-			for (long face = 0; face < nombre_polygones; ++face) {
-				auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
+                for (auto i = 0; i < nattr->taille(); ++i) {
+                    assigne(nattr->r32(i), ptr[premier_sommet + i].valeur);
+                }
+            }
 
-				auto poly = m_corps.ajoute_polygone(type_polygone::FERME, fverts.size());
+            for (long face = 0; face < nombre_polygones; ++face) {
+                auto fverts = ref_der_niv.GetFaceVertices(static_cast<int>(face));
 
-				for (int i = 0; i < fverts.size(); ++i) {
-					m_corps.ajoute_sommet(poly, fverts[i]);
-				}
-			}
+                auto poly = m_corps.ajoute_polygone(type_polygone::FERME, fverts.size());
 
-			auto premier_poly = rafineur->GetNumFacesTotal() - nombre_polygones;
-			for (auto j = 0; j < attrs_prims.taille(); ++j) {
-				auto attr = attrs_prims[j];
-				auto ptr = ptr_attrs_prims[j];
-				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->dimensions, attr->portee);
+                for (int i = 0; i < fverts.size(); ++i) {
+                    m_corps.ajoute_sommet(poly, fverts[i]);
+                }
+            }
 
-				for (auto i = 0; i < nattr->taille(); ++i) {
-					assigne(nattr->r32(i), ptr[premier_poly + i].valeur);
-				}
-			}
+            auto premier_poly = rafineur->GetNumFacesTotal() - nombre_polygones;
+            for (auto j = 0; j < attrs_prims.taille(); ++j) {
+                auto attr = attrs_prims[j];
+                auto ptr = ptr_attrs_prims[j];
+                auto nattr = m_corps.ajoute_attribut(
+                    attr->nom(), attr->type(), attr->dimensions, attr->portee);
 
-			if (attr_N != nullptr && attr_N->portee == portee_attr::PRIMITIVE) {
-				/* À FAIRE : savoir si les normaux ont été inversé. */
-				calcul_normaux(m_corps, true, false);
-			}
-		}
+                for (auto i = 0; i < nattr->taille(); ++i) {
+                    assigne(nattr->r32(i), ptr[premier_poly + i].valeur);
+                }
+            }
 
-		delete rafineur;
+            if (attr_N != nullptr && attr_N->portee == portee_attr::PRIMITIVE) {
+                /* À FAIRE : savoir si les normaux ont été inversé. */
+                calcul_normaux(m_corps, true, false);
+            }
+        }
 
-		return res_exec::REUSSIE;
-	}
+        delete rafineur;
+
+        return res_exec::REUSSIE;
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_opensubdiv(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceOpenSubDiv>());
+    usine.enregistre_type(cree_desc<OperatriceOpenSubDiv>());
 }
 
 #pragma clang diagnostic pop

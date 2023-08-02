@@ -1,3 +1,4 @@
 menu "Menu Nuanceur" {
 	action(valeur="Ajouter Nuanceur"; attache=ajouter_nuanceur)
+	action(valeur="Ajouter Nuanceur Cycles"; attache=ajouter_nuanceur_cycles)
 }

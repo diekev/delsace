@@ -34,24 +34,24 @@ class QHBoxLayout;
 class QScrollArea;
 
 class EditriceRendu : public BaseEditrice {
-	Q_OBJECT
+    Q_OBJECT
 
-	danjo::Manipulable m_manipulable{};
+    danjo::Manipulable m_manipulable{};
 
-	QWidget *m_widget;
-	QWidget *m_conteneur_disposition;
-	QScrollArea *m_scroll;
-	QVBoxLayout *m_disposition_widget;
+    QWidget *m_widget;
+    QWidget *m_conteneur_disposition;
+    QScrollArea *m_scroll;
+    QVBoxLayout *m_disposition_widget;
 
-public:
-	explicit EditriceRendu(Jorjala &jorjala, QWidget *parent = nullptr);
+  public:
+    explicit EditriceRendu(Jorjala &jorjala, QWidget *parent = nullptr);
 
-	EditriceRendu(EditriceRendu const &) = default;
-	EditriceRendu &operator=(EditriceRendu const &) = default;
+    EditriceRendu(EditriceRendu const &) = default;
+    EditriceRendu &operator=(EditriceRendu const &) = default;
 
-	void ajourne_etat(int evenement) override;
+    void ajourne_etat(int evenement) override;
 
-	void ajourne_manipulable() override;
+    void ajourne_manipulable() override;
 
-	void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
+    void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
 };

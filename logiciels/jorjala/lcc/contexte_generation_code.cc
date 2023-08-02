@@ -30,86 +30,88 @@
 
 ContexteGenerationCode::~ContexteGenerationCode()
 {
-	for (auto &module : modules) {
-		memoire::deloge("DonnessModule", module);
-	}
+    for (auto &module : modules) {
+        memoire::deloge("DonnessModule", module);
+    }
 }
 
 /* ************************************************************************** */
 
 DonneesModule *ContexteGenerationCode::cree_module(const dls::chaine &nom)
 {
-	auto module = memoire::loge<DonneesModule>("DonnessModule");
-	module->id = static_cast<size_t>(modules.taille());
-	module->nom = nom;
+    auto module = memoire::loge<DonneesModule>("DonnessModule");
+    module->id = static_cast<size_t>(modules.taille());
+    module->nom = nom;
 
-	modules.pousse(module);
+    modules.ajoute(module);
 
-	return module;
+    return module;
 }
 
 DonneesModule *ContexteGenerationCode::module(size_t index) const
 {
-	return modules[static_cast<long>(index)];
+    return modules[static_cast<long>(index)];
 }
 
 DonneesModule *ContexteGenerationCode::module(const dls::vue_chaine &nom) const
 {
-	for (auto module : modules) {
-		if (module->nom == nom) {
-			return module;
-		}
-	}
+    for (auto module : modules) {
+        if (module->nom == nom) {
+            return module;
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 bool ContexteGenerationCode::module_existe(const dls::vue_chaine &nom) const
 {
-	for (auto module : modules) {
-		if (module->nom == nom) {
-			return true;
-		}
-	}
+    for (auto module : modules) {
+        if (module->nom == nom) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::pousse_locale(const dls::vue_chaine &nom, int valeur, lcc::type_var donnees_type)
+void ContexteGenerationCode::pousse_locale(const dls::vue_chaine &nom,
+                                           int valeur,
+                                           lcc::type_var donnees_type)
 {
-	for (auto &loc : m_locales) {
-		if (loc.first == nom) {
-			loc.second.type = valeur;
-			loc.second.donnees_type = donnees_type;
-			return;
-		}
-	}
+    for (auto &loc : m_locales) {
+        if (loc.first == nom) {
+            loc.second.type = valeur;
+            loc.second.donnees_type = donnees_type;
+            return;
+        }
+    }
 
-	m_locales.pousse({nom, {valeur, donnees_type}});
+    m_locales.ajoute({nom, {valeur, donnees_type}});
 }
 
 int ContexteGenerationCode::valeur_locale(const dls::vue_chaine &nom)
 {
-	for (auto &loc : m_locales) {
-		if (loc.first == nom) {
-			return loc.second.type;
-		}
-	}
+    for (auto &loc : m_locales) {
+        if (loc.first == nom) {
+            return loc.second.type;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 lcc::type_var ContexteGenerationCode::donnees_type(const dls::vue_chaine &nom)
 {
-	for (auto &loc : m_locales) {
-		if (loc.first == nom) {
-			return loc.second.donnees_type;
-		}
-	}
+    for (auto &loc : m_locales) {
+        if (loc.first == nom) {
+            return loc.second.donnees_type;
+        }
+    }
 
-	return {};
+    return {};
 }
 
 bool ContexteGenerationCode::locale_existe(const dls::vue_chaine &nom)
@@ -129,12 +131,12 @@ bool ContexteGenerationCode::locale_existe(const dls::vue_chaine &nom)
 
 	return true;
 #else
-	for (auto &loc : m_locales) {
-		if (loc.first == nom) {
-			return true;
-		}
-	}
+    for (auto &loc : m_locales) {
+        if (loc.first == nom) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 #endif
 }

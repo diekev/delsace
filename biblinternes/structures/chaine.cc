@@ -34,7 +34,7 @@ chaine::chaine(const char *__c_str)
 	: m_chaine(__c_str)
 {}
 
-chaine::chaine(const char *__c_str, long taille)
+chaine::chaine(const char *__c_str, int64_t taille)
 	: m_chaine(__c_str, static_cast<size_t>(taille))
 {}
 
@@ -46,7 +46,7 @@ chaine::chaine(const vue_chaine_compacte &vue)
 	: m_chaine(&vue[0], static_cast<size_t>(vue.taille()))
 {}
 
-chaine::chaine(long nombre, char c)
+chaine::chaine(int64_t nombre, char c)
 	: m_chaine(static_cast<size_t>(nombre), c)
 {}
 
@@ -65,29 +65,24 @@ void chaine::efface(chaine::iteratrice iter1, chaine::iteratrice iter2)
 	m_chaine.erase(iter1, iter2);
 }
 
-void chaine::efface(long pos, long n)
+void chaine::efface(int64_t pos, int64_t n)
 {
 	m_chaine.erase(static_cast<size_t>(pos), static_cast<size_t>(n));
 }
 
-void chaine::reserve(long combien)
+void chaine::reserve(int64_t combien)
 {
 	m_chaine.reserve(static_cast<size_t>(combien));
 }
 
-void chaine::redimensionne(long combien)
+void chaine::redimensionne(int64_t combien)
 {
 	m_chaine.resize(static_cast<size_t>(combien));
 }
 
-void chaine::redimensionne(long combien, char c)
+void chaine::redimensionne(int64_t combien, char c)
 {
 	m_chaine.resize(static_cast<size_t>(combien), c);
-}
-
-void chaine::pousse(char c)
-{
-	m_chaine.push_back(c);
 }
 
 chaine &chaine::append(const chaine &c)
@@ -101,89 +96,69 @@ bool chaine::est_vide() const
 	return m_chaine.empty();
 }
 
-long chaine::taille() const
+int64_t chaine::capacite() const
 {
-	return static_cast<long>(m_chaine.size());
+	return static_cast<int64_t>(m_chaine.capacity());
 }
 
-long chaine::capacite() const
-{
-	return static_cast<long>(m_chaine.capacity());
-}
-
-chaine chaine::sous_chaine(long pos, long combien) const
+chaine chaine::sous_chaine(int64_t pos, int64_t combien) const
 {
 	return m_chaine.substr(static_cast<size_t>(pos), static_cast<size_t>(combien));
 }
 
-long chaine::trouve(char c, long pos) const
+int64_t chaine::trouve(char c, int64_t pos) const
 {
-	return static_cast<long>(m_chaine.find(c, static_cast<size_t>(pos)));
+	return static_cast<int64_t>(m_chaine.find(c, static_cast<size_t>(pos)));
 }
 
-long chaine::trouve(const chaine &motif, long pos) const
+int64_t chaine::trouve(const chaine &motif, int64_t pos) const
 {
-	return static_cast<long>(m_chaine.find(motif.c_str(), static_cast<size_t>(pos)));
+	return static_cast<int64_t>(m_chaine.find(motif.c_str(), static_cast<size_t>(pos)));
 }
 
-long chaine::trouve_premier_de(char c) const
+int64_t chaine::trouve_premier_de(char c) const
 {
-	return static_cast<long>(m_chaine.find_first_of(c));
+	return static_cast<int64_t>(m_chaine.find_first_of(c));
 }
 
-long chaine::trouve_premier_de(const chaine &c, long pos) const
+int64_t chaine::trouve_premier_de(const chaine &c, int64_t pos) const
 {
-	return static_cast<long>(m_chaine.find_first_of(c.c_str(), static_cast<size_t>(pos)));
+	return static_cast<int64_t>(m_chaine.find_first_of(c.c_str(), static_cast<size_t>(pos)));
 }
 
-long chaine::trouve_premier_non_de(char c, long pos) const
+int64_t chaine::trouve_premier_non_de(char c, int64_t pos) const
 {
-	return static_cast<long>(m_chaine.find_first_not_of(c, static_cast<size_t>(pos)));
+	return static_cast<int64_t>(m_chaine.find_first_not_of(c, static_cast<size_t>(pos)));
 }
 
-long chaine::trouve_premier_non_de(chaine const &c, long pos) const
+int64_t chaine::trouve_premier_non_de(chaine const &c, int64_t pos) const
 {
-	return static_cast<long>(m_chaine.find_first_not_of(c.c_str(), static_cast<size_t>(pos)));
+	return static_cast<int64_t>(m_chaine.find_first_not_of(c.c_str(), static_cast<size_t>(pos)));
 }
 
-long chaine::trouve_dernier_de(char c) const
+int64_t chaine::trouve_dernier_de(char c) const
 {
-	return static_cast<long>(m_chaine.find_last_of(c));
+	return static_cast<int64_t>(m_chaine.find_last_of(c));
 }
 
-long chaine::trouve_dernier_non_de(char c) const
+int64_t chaine::trouve_dernier_non_de(char c) const
 {
-	return static_cast<long>(m_chaine.find_last_not_of(c));
+	return static_cast<int64_t>(m_chaine.find_last_not_of(c));
 }
 
-long chaine::trouve_dernier_non_de(chaine const &c) const
+int64_t chaine::trouve_dernier_non_de(chaine const &c) const
 {
-	return static_cast<long>(m_chaine.find_last_not_of(c.c_str()));
+	return static_cast<int64_t>(m_chaine.find_last_not_of(c.c_str()));
 }
 
-void chaine::insere(long pos, long combien, char c)
+void chaine::insere(int64_t pos, int64_t combien, char c)
 {
 	m_chaine.insert(static_cast<size_t>(pos), static_cast<size_t>(combien), c);
 }
 
-void chaine::remplace(long pos, long combien, const chaine &motif)
+void chaine::remplace(int64_t pos, int64_t combien, const chaine &motif)
 {
 	m_chaine.replace(static_cast<size_t>(pos), static_cast<size_t>(combien), motif.m_chaine);
-}
-
-char &chaine::operator[](long idx)
-{
-	return m_chaine[static_cast<size_t>(idx)];
-}
-
-const char &chaine::operator[](long idx) const
-{
-	return m_chaine[static_cast<size_t>(idx)];
-}
-
-const char *chaine::c_str() const
-{
-	return m_chaine.c_str();
 }
 
 const chaine::type_chaine &chaine::std_str() const
@@ -233,7 +208,7 @@ chaine::const_iteratrice_inverse chaine::fin_inverse() const
 
 chaine &chaine::operator+=(char c)
 {
-	this->pousse(c);
+	this->ajoute(c);
 	return *this;
 }
 
@@ -243,14 +218,9 @@ chaine &chaine::operator+=(const chaine &autre)
 	return *this;
 }
 
-dls::chaine::operator vue_chaine() const
+void chaine::permute(chaine &autre)
 {
-	return vue_chaine(this->c_str(), this->taille());
-}
-
-dls::chaine::operator vue_chaine_compacte() const
-{
-	return vue_chaine_compacte(this->c_str(), this->taille());
+	m_chaine.swap(autre.m_chaine);
 }
 
 /* ************************************************************************** */

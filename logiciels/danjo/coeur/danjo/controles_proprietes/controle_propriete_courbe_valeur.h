@@ -38,49 +38,45 @@ class QVBoxLayout;
 namespace danjo {
 
 class ControleProprieteCourbeValeur final : public ControlePropriete {
-	Q_OBJECT
+    Q_OBJECT
 
-	/* entreface */
-	QVBoxLayout *m_agencement_principal{};
-	QHBoxLayout *m_agencement_nombre{};
+    /* entreface */
+    QVBoxLayout *m_agencement_principal{};
+    QHBoxLayout *m_agencement_nombre{};
 
-	/* courbe */
-	QCheckBox *m_utilise_table{};
-	ControleCourbeCouleur *m_controle_courbe{};
+    /* courbe */
+    QCheckBox *m_utilise_table{};
+    ControleCourbeCouleur *m_controle_courbe{};
 
-	/* controle de la position X du point sélectionné */
-	QPushButton *m_bouton_echelle_x{};
-	ControleEchelleDecimale *m_echelle_x{};
-	ControleNombreDecimal *m_pos_x{};
+    /* controle de la position X du point sélectionné */
+    QPushButton *m_bouton_echelle_x{};
+    ControleNombreDecimal *m_pos_x{};
+    ControleEchelleDecimale *m_echelle_x{};
 
-	/* controle de la position Y du point sélectionné */
-	QPushButton *m_bouton_echelle_y{};
-	ControleEchelleDecimale *m_echelle_y{};
-	ControleNombreDecimal *m_pos_y{};
+    /* controle de la position Y du point sélectionné */
+    QPushButton *m_bouton_echelle_y{};
+    ControleNombreDecimal *m_pos_y{};
+    ControleEchelleDecimale *m_echelle_y{};
 
-	/* connexion */
-	CourbeBezier *m_courbe{};
+    /* connexion */
+    CourbeBezier *m_courbe{};
 
-public:
-	explicit ControleProprieteCourbeValeur(QWidget *parent = nullptr);
-	~ControleProprieteCourbeValeur() override;
+  public:
+    explicit ControleProprieteCourbeValeur(BasePropriete *p, int temps, QWidget *parent = nullptr);
+    ~ControleProprieteCourbeValeur() override;
 
-	ControleProprieteCourbeValeur(ControleProprieteCourbeValeur const &) = default;
-	ControleProprieteCourbeValeur &operator=(ControleProprieteCourbeValeur const &) = default;
+    ControleProprieteCourbeValeur(ControleProprieteCourbeValeur const &) = default;
+    ControleProprieteCourbeValeur &operator=(ControleProprieteCourbeValeur const &) = default;
 
-	void finalise(const DonneesControle &donnees) override;
+    void finalise(const DonneesControle &donnees) override;
 
-private Q_SLOTS:
-//	void ajourne_valeur_pointee(float valeur);
-	void montre_echelle_x();
-	void montre_echelle_y();
+  private Q_SLOTS:
+    void bascule_utilise_table(bool ouinon);
 
-	void bascule_utilise_table(bool ouinon);
-
-	void ajourne_position(float x, float y);
-	void ajourne_position_x(float v);
-	void ajourne_position_y(float v);
-	void ajourne_point_actif();
+    void ajourne_position(float x, float y);
+    void ajourne_position_x(float v);
+    void ajourne_position_y(float v);
+    void ajourne_point_actif();
 };
 
-}  /* namespace danjo */
+} /* namespace danjo */

@@ -1,11 +1,11 @@
 disposition "ligne_temps" {
     ligne {
-	    bouton(infobulle="Va à la première image"; attache=changement_temps; métadonnée="va_image_debut"; icône="icones/icon_jump_first.png")
-		bouton(infobulle="Joue en arrière"; attache=changement_temps; métadonnée="joue_en_arriere"; icône="icones/icon_play_backward.png")
-		bouton(infobulle="Recule d'une image"; attache=changement_temps; métadonnée="pas_en_arriere"; icône="icones/icon_step_backward.png")
-		bouton(infobulle="Arrêt"; attache=changement_temps; métadonnée="arrete_animation"; icône="icones/icon_stop.png")
-		bouton(infobulle="Avance d'une image"; attache=changement_temps; métadonnée="pas_en_avant"; icône="icones/icon_step_forward.png")
-		bouton(infobulle="Joue en avant"; attache=changement_temps; métadonnée="joue_en_avant"; icône="icones/icon_play_forward.png")
-		bouton(infobulle="Va à la dernière image"; attache=changement_temps; métadonnée="va_image_fin"; icône="icones/icon_jump_last.png")
-	}
+        bouton(infobulle="Va à la première image"; attache=changement_temps; métadonnée="va_image_debut"; icône="anim_première_image")
+        bouton(infobulle="Joue en arrière"; attache=changement_temps; métadonnée="joue_en_arriere"; icône="anim_joue_en_arrière")
+        bouton(infobulle="Recule d'une image"; attache=changement_temps; métadonnée="pas_en_arriere"; icône="anim_image_précédente")
+        bouton(infobulle="Arrêt"; attache=changement_temps; métadonnée="arrete_animation"; icône="anim_arrête")
+        bouton(infobulle="Avance d'une image"; attache=changement_temps; métadonnée="pas_en_avant"; icône="anim_image_suivante")
+        bouton(infobulle="Joue en avant"; attache=changement_temps; métadonnée="joue_en_avant"; icône="anim_joue_en_avant")
+        bouton(infobulle="Va à la dernière image"; attache=changement_temps; métadonnée="va_image_fin"; icône="anim_dernière_image")
+    }
 }

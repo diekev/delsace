@@ -1,0 +1,17 @@
+// ambigüité entre des fonctions de mêmes noms et de même paramètres si l'une des deux fonctions est
+// variadique mais aucun argument variadique n'est spécifié dans l'appel
+
+foo :: fonc (args: ...eini)
+{
+    panique("La mauvaise fonction fut appelée !")
+}
+
+foo :: fonc ()
+{
+}
+
+principale :: fonc () -> z32
+{
+    foo()
+    retourne 0
+}

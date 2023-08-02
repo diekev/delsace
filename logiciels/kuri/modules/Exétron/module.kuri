@@ -1,0 +1,67 @@
+charge "interface_exétron"
+
+// ------------------------------------------
+// FilExecution
+
+DonnéesCréationFil :: struct ($T: type_de_données) {
+    rappel: fonc(*T)(rien)
+    données: *T
+}
+
+crée_fil_exécution :: fonc (rappel: fonc(*rien)(rien), données: *rien) -> *FilExecution
+{
+    // __fonction_principale_exétron :: fonc (données_: *rien)
+    // {
+    //     données_création_fil := données_ comme *DonnéesCréationFil(T)
+    //     données_création_fil.rappel(données_création_fil.données)
+    // }
+
+    // données_création_fil : DonnéesCréationFil(T) = ---
+    // données_création_fil.données = données
+    // données_création_fil.rappel = rappel
+
+    ctx := initialise_contexte_kuri()
+
+    retourne EXETRON_cree_fil(*ctx, rappel, données)
+}
+
+join :: fonc (fil: *FilExecution) -> bool
+{
+    retourne EXETRON_joins_fil(fil)
+}
+
+détache :: fonc (fil: *FilExecution)
+{
+    EXTRONT_detache_fil(fil)
+}
+
+détruit :: fonc (fil: &*FilExecution)
+{
+    ctx := initialise_contexte_kuri()
+    EXETRON_detruit_fil(*ctx, fil)
+    fil = nul
+}
+
+// ------------------------------------------
+// Mutex
+
+crée_mutex :: fonc () -> *Mutex
+{
+    retourne EXETRON_cree_mutex()
+}
+
+verrouille :: fonc (mutex: *Mutex)
+{
+    EXETRON_verrouille_mutex(mutex)
+}
+
+déverrouille :: fonc (mutex: *Mutex)
+{
+    EXETRON_deverrouille_mutex(mutex)
+}
+
+détruit :: fonc (mutex: &*Mutex)
+{
+    EXETRON_detruit_mutex(mutex)
+    mutex = nul
+}

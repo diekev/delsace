@@ -1,0 +1,59 @@
+/* Erreur de compilation si deux fonctions polymorphiques avec des
+ * spécifications de types différents sont capable d'être utilisées
+ * pour un appel de fonction.
+ * Voir « $T et []$T sont ambigües » dans Arachné.
+ */
+
+/* $T et []$T sont ambigües, il faudrait un système plus subtil, où le nombre
+ * de déréférencement de types est pris en compte.
+ */
+vole_données_ :: fonc (v: &$T) -> T
+{
+    résultat : T = v
+    v = T()
+    retourne résultat
+}
+
+vole_données_ :: fonc (v: &[]$T) -> T
+{
+    résultat : []T = v
+    v.pointeur = nul
+    v.taille = 0
+    v.capacité = 0
+    retourne résultat
+}
+
+principale :: fonc () -> z32
+{
+    tabl := [0, 1, 2, 3, 4]
+
+    tabl_dyn : []z32 = tabl
+    tabl_dyn_2 := vole_données_(tabl_dyn)
+
+    saufsi tabl_dyn.pointeur == nul {
+        retourne 1
+    }
+
+    saufsi tabl_dyn.taille == 0 {
+        retourne 1
+    }
+
+    saufsi tabl_dyn.capacité == 0 {
+        retourne 1
+    }
+
+    saufsi tabl_dyn_2.pointeur == *tabl[0] {
+        retourne 1
+    }
+
+    saufsi tabl_dyn_2.taille == 5 {
+        retourne 1
+    }
+
+    /* Les conversions de tableau fixes en dynamique n'ont pas de capacité. */
+    saufsi tabl_dyn_2.capacité == 0 {
+        retourne 1
+    }
+
+    retourne 0
+}

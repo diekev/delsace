@@ -26,126 +26,158 @@
 
 #include "biblinternes/ego/outils.h"
 #include "biblinternes/image/pixel.h"
+#include "biblinternes/opengl/contexte_rendu.h"
 
-#include "coeur/kanba.h"
 #include "../editeur_canevas.h"
 
-/* ************************************************************************** */
+#include "coeur/kanba.h"
 
-static const char *vertex_source =
-		"#version 330 core\n"
-		"layout(location = 0) in vec2 vertex;\n"
-		"smooth out vec2 UV;\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = vec4(vertex * 2.0 - 1.0, 0.0, 1.0);\n"
-		"	UV = vertex;\n"
-		"}\n";
+#include "tampons_rendu.hh"
+#include "textures.hh"
 
-static const char *fragment_source =
-		"#version 330 core\n"
-		"layout (location = 0) out vec4 fragment_color;\n"
-		"smooth in vec2 UV;\n"
-		"uniform sampler2D image;\n"
-		" void main()\n"
-		"{\n"
-		"	vec2 flipped = vec2(UV.x, 1.0f - UV.y);\n"
-		"	fragment_color = texture(image, flipped);\n"
-		"}\n";
+/* ------------------------------------------------------------------------- */
+/** \name Tampon pour le rendu des arêtes.
+ * \{ */
 
-static void generate_texture(dls::ego::Texture2D::Ptr &texture, const float *data, GLint size[2])
+static std::unique_ptr<TamponRendu> crée_tampon_arêtes(KNB::Maillage maillage)
 {
-	texture->deloge(true);
-	texture->attache();
-	texture->type(GL_FLOAT, GL_RGBA, GL_RGBA);
-	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
-	texture->enveloppe(GL_CLAMP);
-	texture->remplie(data, size);
-	texture->detache();
+    auto const canaux = maillage.donne_canaux_texture();
+    auto const largeur = canaux.donne_largeur();
+    auto const hauteur = canaux.donne_hauteur();
+
+    std::cerr << "Taille tampon canal : " << largeur << "x" << hauteur << '\n';
+
+    dls::tableau<dls::math::vec3f> sommets;
+    sommets.reserve(maillage.donne_nombre_polygones() * 4);
+
+    dls::tableau<int> index;
+    index.reserve(maillage.donne_nombre_polygones() * 4 * 2);
+
+    for (int i = 0; i < maillage.donne_nombre_polygones(); i++) {
+        auto quad = maillage.donne_quadrilatère(i);
+
+        auto x = float(quad.donne_x()) / float(largeur);
+        auto y = float(quad.donne_y()) / float(hauteur);
+
+        auto l = float(quad.donne_res_u()) / float(largeur);
+        auto h = float(quad.donne_res_v()) / float(hauteur);
+
+        auto px0 = x;
+        auto px1 = x + l;
+        auto py0 = y;
+        auto py1 = y + h;
+
+        px0 = px0 * 2.0f - 1.0f;
+        px1 = px1 * 2.0f - 1.0f;
+        /* Le 0 des seaux est en haut de l'écran, celuis d'OpenGL en bas. */
+        py0 = (1.0f - py0) * 2.0f - 1.0f;
+        py1 = (1.0f - py1) * 2.0f - 1.0f;
+
+        auto p0 = dls::math::vec3f(px0, py0, 0.0f);
+        auto p1 = dls::math::vec3f(px1, py0, 0.0f);
+        auto p2 = dls::math::vec3f(px1, py1, 0.0f);
+        auto p3 = dls::math::vec3f(px0, py1, 0.0f);
+
+        auto decalage_sommets = int(sommets.taille());
+
+        sommets.ajoute(p0);
+        sommets.ajoute(p1);
+        sommets.ajoute(p2);
+        sommets.ajoute(p3);
+
+        index.ajoute(decalage_sommets + 0);
+        index.ajoute(decalage_sommets + 1);
+
+        index.ajoute(decalage_sommets + 1);
+        index.ajoute(decalage_sommets + 2);
+
+        index.ajoute(decalage_sommets + 2);
+        index.ajoute(decalage_sommets + 3);
+
+        index.ajoute(decalage_sommets + 3);
+        index.ajoute(decalage_sommets + 0);
+    }
+
+    auto tampon = crée_tampon_nuanceur_simple(dls::phys::couleur32(0.0f, 1.0f, 0.0f, 1.0f));
+    remplis_tampon_principal(tampon.get(), "sommets", sommets, index);
+
+    ParametresDessin parametres_dessin;
+    parametres_dessin.type_dessin(GL_LINES);
+    parametres_dessin.taille_ligne(1.0f);
+    tampon->parametres_dessin(parametres_dessin);
+
+    return tampon;
 }
 
+/** \} */
+
 /* ************************************************************************** */
 
-VisionneurImage::VisionneurImage(VueCanevas *parent, Kanba *kanba)
-	: m_parent(parent)
-	, m_buffer(nullptr)
-	, m_texture(nullptr)
-	, m_kanba(kanba)
-{}
+VisionneurImage::VisionneurImage(VueCanevas2D *parent, KNB::Kanba &kanba)
+    : m_parent(parent), m_kanba(kanba)
+{
+}
 
 void VisionneurImage::initialise()
 {
-	m_texture = dls::ego::Texture2D::cree_unique(0);
-
-	m_program.charge(dls::ego::Nuanceur::VERTEX, vertex_source);
-	m_program.charge(dls::ego::Nuanceur::FRAGMENT, fragment_source);
-
-	m_program.cree_et_lie_programme();
-
-	m_program.active();
-	{
-		m_program.ajoute_attribut("vertex");
-		m_program.ajoute_uniforme("image");
-
-		glUniform1i(m_program("image"), static_cast<int>(m_texture->code_attache()));
-	}
-	m_program.desactive();
-
-	m_buffer = dls::ego::TamponObjet::cree_unique();
-
-	m_buffer->attache();
-	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
-	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
-	m_buffer->detache();
-
-	charge_image(m_kanba->tampon);
+    m_tampon = crée_tampon_image();
+    charge_image();
 }
 
 void VisionneurImage::peint_opengl()
 {
-	glClearColor(0.5, 0.5, 0.5, 1.0);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable (GL_BLEND);
-	if (m_program.est_valide()) {
-		m_program.active();
-		m_buffer->attache();
-		m_texture->attache();
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
-
-		m_texture->detache();
-		m_buffer->detache();
-		m_program.desactive();
-	}
-	glDisable (GL_BLEND);
+    glEnable(GL_BLEND);
+    if (m_tampon) {
+        m_tampon->dessine({});
+    }
+    if (m_tampon_arêtes) {
+        ContexteRendu m_contexte;
+        m_contexte.modele_vue(dls::math::mat4x4f(1.0f));
+        m_contexte.projection(dls::math::mat4x4f(1.0f));
+        m_contexte.MVP(dls::math::mat4x4f(1.0f));
+        m_contexte.matrice_objet(dls::math::mat4x4f(1.0f));
+        m_tampon_arêtes->dessine(m_contexte);
+    }
+    glDisable(GL_BLEND);
+    dls::ego::util::GPU_check_errors("Erreur lors du dessin de la texture");
 }
 
 void VisionneurImage::redimensionne(int largeur, int hauteur)
 {
-	glViewport(0, 0, largeur, hauteur);
+    glViewport(0, 0, largeur, hauteur);
 }
 
-void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec4f> const &image)
+void VisionneurImage::charge_image()
 {
-	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
-		return;
-	}
+    if (!m_tampon) {
+        return;
+    }
 
-	GLint size[] = {
-		image.nombre_colonnes(),
-		image.nombre_lignes()
-	};
+    auto maillage = m_kanba.donne_maillage();
+    if (maillage == nullptr) {
+        return;
+    }
 
-	if (m_largeur != size[0] || m_hauteur != size[1]) {
-		m_hauteur = size[0];
-		m_largeur = size[1];
+    if (!m_tampon_arêtes) {
+        m_tampon_arêtes = crée_tampon_arêtes(maillage);
+    }
 
-		m_parent->resize(m_hauteur, m_largeur);
-	}
+    auto compositrice = maillage.donne_compositrice();
+    auto canal_fusionné = compositrice.donne_canal_fusionné();
 
-	generate_texture(m_texture, &image[0][0][0], size);
+    GLint size[] = {GLint(canal_fusionné.donne_largeur()), GLint(canal_fusionné.donne_hauteur())};
 
-	dls::ego::util::GPU_check_errors("Unable to create image texture");
+    if (m_largeur != size[0] || m_hauteur != size[1]) {
+        m_hauteur = size[0];
+        m_largeur = size[1];
+    }
+
+    génère_texture(m_tampon->texture(),
+                   reinterpret_cast<float *>(canal_fusionné.donne_tampon_diffusion()),
+                   size);
+
+    dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

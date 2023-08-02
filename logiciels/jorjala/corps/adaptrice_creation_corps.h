@@ -35,37 +35,40 @@ class Attribut;
 /* ************************************************************************** */
 
 class AdaptriceCreationCorps : public objets::AdaptriceCreationObjet {
-public:
-	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
+  public:
+    void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
-	void ajoute_normal(const float x, const float y, const float z) override;
+    void ajoute_normal(const float x, const float y, const float z) override;
 
-	void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override;
+    void ajoute_coord_uv_sommet(const float u, const float v, const float w = 0.0f) override;
 
-	void ajoute_parametres_sommet(const float x, const float y, const float z) override;
+    void ajoute_parametres_sommet(const float x, const float y, const float z) override;
 
-	void ajoute_polygone(const int *index_sommet, const int *index_uv, const int *index_normal, long nombre) override;
+    void ajoute_polygone(const int *index_sommet,
+                         const int *index_uv,
+                         const int *index_normal,
+                         long nombre) override;
 
-	void ajoute_ligne(const int *index, size_t nombre) override;
+    void ajoute_ligne(const int *index, size_t nombre) override;
 
-	void ajoute_objet(dls::chaine const &nom) override;
+    void ajoute_objet(dls::chaine const &nom) override;
 
-	void reserve_polygones(long const nombre) override;
+    void reserve_polygones(long const nombre) override;
 
-	void reserve_sommets(long const nombre) override;
+    void reserve_sommets(long const nombre) override;
 
-	void reserve_normaux(long const nombre) override;
+    void reserve_normaux(long const nombre) override;
 
-	void reserve_uvs(long const nombre) override;
+    void reserve_uvs(long const nombre) override;
 
-	void groupes(dls::tableau<dls::chaine> const &noms) override;
+    void groupes(dls::tableau<dls::chaine> const &noms) override;
 
-	void groupe_nuancage(const int index) override;
+    void groupe_nuancage(const int index) override;
 
-	dls::tableau<GroupePrimitive *> groupes_courant{};
-	Corps *corps{};
-	Attribut *attribut_normal = nullptr;
-	Attribut *attribut_normal_polys = nullptr;
-	Attribut *attribut_uvs = nullptr;
-	dls::tableau<dls::math::vec2f> uvs{};
+    dls::tableau<GroupePrimitive *> groupes_courant{};
+    Corps *corps{};
+    Attribut *attribut_normal = nullptr;
+    Attribut *attribut_normal_polys = nullptr;
+    Attribut *attribut_uvs = nullptr;
+    dls::tableau<dls::math::vec2f> uvs{};
 };

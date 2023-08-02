@@ -35,7 +35,7 @@ struct liste {
 	using type_valeur = T;
 	using type_reference = T&;
 	using type_reference_const = T const&;
-	using type_taille = long;
+	using type_taille = int64_t;
 	using type_liste = std::list<T, memoire::logeuse_guardee<T>>;
 	using iteratrice = typename type_liste::iterator;
 	using const_iteratrice = typename type_liste::const_iterator;
@@ -44,7 +44,7 @@ private:
 	type_liste m_liste{};
 
 public:
-	void pousse(type_reference_const v)
+	void ajoute(type_reference_const v)
 	{
 		m_liste.push_back(v);
 	}
@@ -59,12 +59,19 @@ public:
 		m_liste.push_front(v);
 	}
 
+	type_valeur effronte()
+	{
+		auto v = m_liste.front();
+		m_liste.pop_front();
+		return v;
+	}
+
 	void push_front(type_valeur &&v)
 	{
 		m_liste.push_front(v);
 	}
 
-	void pousse(type_valeur &&v)
+	void ajoute(type_valeur &&v)
 	{
 		m_liste.push_front(v);
 	}

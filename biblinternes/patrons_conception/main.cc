@@ -135,7 +135,7 @@ void echantillonage_reserve(std::ostream &os)
 				}
 			}
 			else {
-				selections.pousse(donnee);
+				selections.ajoute(donnee);
 			}
 		}
 	}

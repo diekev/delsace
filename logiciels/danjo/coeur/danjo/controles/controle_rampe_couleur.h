@@ -24,45 +24,45 @@
 
 #pragma once
 
-#include <QWidget>
+#include "base_controle.hh"
 
 class RampeCouleur;
 class PointRampeCouleur;
 
-class ControleRampeCouleur : public QWidget {
-	Q_OBJECT
+class ControleRampeCouleur : public BaseControle {
+    Q_OBJECT
 
-	RampeCouleur *m_rampe = nullptr;
-	PointRampeCouleur *m_point_courant = nullptr;
-	bool m_point_selectionne = false;
-	char pad[7];
+    RampeCouleur *m_rampe = nullptr;
+    PointRampeCouleur *m_point_courant = nullptr;
+    bool m_point_selectionne = false;
+    char pad[7];
 
-public:
-	explicit ControleRampeCouleur(QWidget *parent = nullptr);
+  public:
+    explicit ControleRampeCouleur(QWidget *parent = nullptr);
 
-	ControleRampeCouleur(ControleRampeCouleur const &) = default;
-	ControleRampeCouleur &operator=(ControleRampeCouleur const &) = default;
+    ControleRampeCouleur(ControleRampeCouleur const &) = default;
+    ControleRampeCouleur &operator=(ControleRampeCouleur const &) = default;
 
-	void installe_rampe(RampeCouleur *rampe);
+    void installe_rampe(RampeCouleur *rampe);
 
-	void paintEvent(QPaintEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_clique_souris(QMouseEvent *event) override;
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+    void gère_mouvement_souris(QMouseEvent *event) override;
 
-	void mouseReleaseEvent(QMouseEvent *event) override;
+    void gère_fin_clique_souris(QMouseEvent *event) override;
 
-	void mouseDoubleClickEvent(QMouseEvent *event) override;
+    RéponseÉvènement gère_double_clique_souris(QMouseEvent *event) override;
 
-	void ajourne_position(float x);
+    void ajourne_position(float x);
 
-private:
-	float position_degrade(float x);
+  private:
+    float position_degrade(float x);
 
-Q_SIGNALS:
-	void point_change();
-	void controle_ajoute();
+  Q_SIGNALS:
+    void point_change();
+    void controle_ajoute();
 
-	void position_modifie(float x);
+    void position_modifie(float x);
 };

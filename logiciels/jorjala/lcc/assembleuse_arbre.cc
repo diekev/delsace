@@ -30,74 +30,73 @@
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
-	contexte.assembleuse = this;
-	this->empile_noeud(lcc::noeud::type_noeud::RACINE, contexte, {});
+    contexte.assembleuse = this;
+    this->empile_noeud(lcc::noeud::type_noeud::RACINE, contexte, {});
 }
 
 assembleuse_arbre::~assembleuse_arbre()
 {
-	for (auto noeud : m_noeuds) {
-		memoire::deloge("lcc::noeud::base", noeud);
-	}
+    for (auto noeud : m_noeuds) {
+        memoire::deloge("lcc::noeud::base", noeud);
+    }
 }
 
-lcc::noeud::base *assembleuse_arbre::empile_noeud(lcc::noeud::type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute)
+lcc::noeud::base *assembleuse_arbre::empile_noeud(lcc::noeud::type_noeud type,
+                                                  ContexteGenerationCode &contexte,
+                                                  DonneesMorceaux const &morceau,
+                                                  bool ajoute)
 {
-	auto noeud = cree_noeud(type, contexte, morceau);
+    auto noeud = cree_noeud(type, contexte, morceau);
 
-	if (!m_pile.est_vide() && ajoute) {
-		this->ajoute_noeud(noeud);
-	}
+    if (!m_pile.est_vide() && ajoute) {
+        this->ajoute_noeud(noeud);
+    }
 
-	m_pile.empile(noeud);
+    m_pile.empile(noeud);
 
-	return noeud;
+    return noeud;
 }
 
 void assembleuse_arbre::ajoute_noeud(lcc::noeud::base *noeud)
 {
-	m_pile.haut()->ajoute_noeud(noeud);
+    m_pile.haut()->ajoute_noeud(noeud);
 }
 
-lcc::noeud::base *assembleuse_arbre::cree_noeud(
-		lcc::noeud::type_noeud type,
-		ContexteGenerationCode &contexte,
-		DonneesMorceaux const &morceau)
+lcc::noeud::base *assembleuse_arbre::cree_noeud(lcc::noeud::type_noeud type,
+                                                ContexteGenerationCode &contexte,
+                                                DonneesMorceaux const &morceau)
 {
-	auto noeud = memoire::loge<lcc::noeud::base>(
-				"lcc::noeud::base",
-				contexte,
-				morceau,
-				type);
+    auto noeud = memoire::loge<lcc::noeud::base>("lcc::noeud::base", contexte, morceau, type);
 
-	if (noeud != nullptr) {
-		m_noeuds.pousse(noeud);
-	}
+    if (noeud != nullptr) {
+        m_noeuds.ajoute(noeud);
+    }
 
-	return noeud;
+    return noeud;
 }
 
 void assembleuse_arbre::depile_noeud(lcc::noeud::type_noeud type)
 {
-	assert(m_pile.haut()->type == type);
-	m_pile.depile();
-	static_cast<void>(type);
+    assert(m_pile.haut()->type == type);
+    m_pile.depile();
+    static_cast<void>(type);
 }
 
 void assembleuse_arbre::imprime_code(std::ostream &os)
 {
-	os << "------------------------------------------------------------------\n";
-	m_pile.haut()->imprime_code(os, 0);
-	os << "------------------------------------------------------------------\n";
+    os << "------------------------------------------------------------------\n";
+    m_pile.haut()->imprime_code(os, 0);
+    os << "------------------------------------------------------------------\n";
 }
 
-void assembleuse_arbre::genere_code(ContexteGenerationCode &contexte_generation, compileuse_lng &compileuse)
+void assembleuse_arbre::genere_code(ContexteGenerationCode &contexte_generation,
+                                    compileuse_lng &compileuse)
 {
-	if (m_pile.est_vide()) {
-		return;
-	}
+    if (m_pile.est_vide()) {
+        return;
+    }
 
-	lcc::noeud::genere_code(m_pile.haut(), contexte_generation, compileuse, false);
+    lcc::noeud::genere_code(m_pile.haut(), contexte_generation, compileuse, false);
 }
 
 void assembleuse_arbre::supprime_noeud(lcc::noeud::base *noeud)
@@ -106,20 +105,20 @@ void assembleuse_arbre::supprime_noeud(lcc::noeud::base *noeud)
 
 size_t assembleuse_arbre::memoire_utilisee() const
 {
-	return m_memoire_utilisee + nombre_noeuds() * sizeof(lcc::noeud::base *);
+    return m_memoire_utilisee + nombre_noeuds() * sizeof(lcc::noeud::base *);
 }
 
 size_t assembleuse_arbre::nombre_noeuds() const
 {
-	return static_cast<size_t>(m_noeuds.taille());
+    return static_cast<size_t>(m_noeuds.taille());
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)
 {
-	os << "------------------------------------------------------------------\n";
-	os << "lcc::noeud::base              : " << sizeof(lcc::noeud::base) << '\n';
-	os << "DonneesMorceaux               : " << sizeof(DonneesMorceaux) << '\n';
-	os << "dls::liste<lcc::noeud::base *> : " << sizeof(dls::liste<lcc::noeud::base *>) << '\n';
-	os << "std::any                      : " << sizeof(std::any) << '\n';
-	os << "------------------------------------------------------------------\n";
+    os << "------------------------------------------------------------------\n";
+    os << "lcc::noeud::base              : " << sizeof(lcc::noeud::base) << '\n';
+    os << "DonneesMorceaux               : " << sizeof(DonneesMorceaux) << '\n';
+    os << "dls::liste<lcc::noeud::base *> : " << sizeof(dls::liste<lcc::noeud::base *>) << '\n';
+    os << "std::any                      : " << sizeof(std::any) << '\n';
+    os << "------------------------------------------------------------------\n";
 }

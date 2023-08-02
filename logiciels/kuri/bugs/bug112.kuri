@@ -1,0 +1,12 @@
+/* Impossible de comparer un opaque de pointeur avec nul. */
+
+importe Chaine
+
+principale :: fonc () -> z32
+{
+    c := ChaineC(nul)
+    saufsi c == nul {
+        retourne 1
+    }
+    retourne 0
+}

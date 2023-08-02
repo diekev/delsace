@@ -34,9 +34,8 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
+#include "commande_kanba.hh"
 
-#include "../evenement.h"
 #include "../kanba.h"
 
 /* ************************************************************************** */
@@ -44,71 +43,94 @@
 template <typename T>
 T distance_carree(T x1, T y1, T x2, T y2)
 {
-	auto x = x1 - x2;
-	auto y = y1 - y2;
+    auto x = x1 - x2;
+    auto y = y1 - y2;
 
-	return x * x + y * y;
+    return x * x + y * y;
 }
 
-class CommandePeinture2D : public Commande {
-public:
-	CommandePeinture2D() = default;
+class CommandePeinture2D : public CommandeKanba {
+    ModeInsertionHistorique donne_mode_insertion_historique() const override
+    {
+        return ModeInsertionHistorique::INSÈRE_TOUJOURS;
+    }
 
-	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
+    int execute_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
 #if 0
 		std::cerr << __func__ << '\n';
 		std::cerr << "Position <" << donnees.x << ',' << donnees.y << ">\n";
 #endif
+        auto maillage = kanba.donne_maillage();
+        if (maillage == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		auto kanba = std::any_cast<Kanba *>(pointeur);
+        auto canaux = maillage.donne_canaux_texture();
+        auto calque = canaux.donne_calque_actif();
 
-		auto const rayon_brosse = 10;
-		auto const rayon_carre = rayon_brosse * rayon_brosse;
-		auto const couleur_brosse = dls::math::vec4f(1.0f, 0.0f, 1.0f, 1.0f);
+        if (calque == nullptr) {
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-		for (int i = -rayon_brosse; i < rayon_brosse; ++i) {
-			for (int j = -rayon_brosse; j < rayon_brosse; ++j) {
-				auto const x = int(donnees.x) + i;
-				auto const y = int(donnees.y) + j;
+        if (calque.est_verrouillé()) {
+            // À FAIRE : message d'erreur dans la barre d'état.
+            return EXECUTION_COMMANDE_ECHOUEE;
+        }
 
-				if (x < 0 || x >= kanba->tampon.nombre_colonnes()) {
-					continue;
-				}
+        auto pinceau = kanba.donne_pinceau();
+        auto tampon = calque.donne_tampon_couleur().données_crues();
+        auto const largeur = canaux.donne_largeur();
+        auto const hauteur = canaux.donne_hauteur();
 
-				if (y < 0 || y >= kanba->tampon.nombre_lignes()) {
-					continue;
-				}
+        auto const rayon_pinceau = int(pinceau.donne_rayon());
+        auto const rayon_carre = rayon_pinceau * rayon_pinceau;
+        auto couleur_pinceau = KNB::CouleurRVBA({});
+        couleur_pinceau.définis_r(1.0f);
+        couleur_pinceau.définis_v(0.0f);
+        couleur_pinceau.définis_b(1.0f);
+        couleur_pinceau.définis_a(1.0f);
 
-				if (distance_carree(x, y, int(donnees.x), int(donnees.y)) > rayon_carre) {
-					continue;
-				}
+        for (int i = -rayon_pinceau; i < rayon_pinceau; ++i) {
+            for (int j = -rayon_pinceau; j < rayon_pinceau; ++j) {
+                auto const x = int(donnees.x) + i;
+                auto const y = int(donnees.y) + j;
 
-				kanba->tampon[y][x] = couleur_brosse;
-			}
-		}
+                if (x < 0 || x >= largeur) {
+                    continue;
+                }
 
-		kanba->notifie_observatrices(type_evenement::dessin | type_evenement::fini);
+                if (y < 0 || y >= hauteur) {
+                    continue;
+                }
 
-		return EXECUTION_COMMANDE_MODALE;
-	}
+                if (distance_carree(x, y, int(donnees.x), int(donnees.y)) > rayon_carre) {
+                    continue;
+                }
 
-	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		execute(pointeur, donnees);
-	}
+                tampon[size_t(x) + size_t(y) * largeur] = couleur_pinceau;
+            }
+        }
 
-	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
-	{
-		execute(pointeur, donnees);
-	}
+        return EXECUTION_COMMANDE_MODALE;
+    }
+
+    void ajourne_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        execute_kanba(kanba, donnees);
+    }
+
+    void termine_execution_modale_kanba(KNB::Kanba &kanba, DonneesCommande const &donnees) override
+    {
+        execute_kanba(kanba, donnees);
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_commandes_vue2d(UsineCommande &usine)
 {
-	usine.enregistre_type("commande_peinture_2d",
-						   description_commande<CommandePeinture2D>(
-							   "vue_2d", Qt::LeftButton, 0, 0, false));
+    usine.enregistre_type(
+        "commande_peinture_2d",
+        description_commande<CommandePeinture2D>("vue_2d", Qt::LeftButton, 0, 0, false));
 }

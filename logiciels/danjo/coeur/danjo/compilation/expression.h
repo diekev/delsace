@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <any>
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
+#include <any>
 
 #include "morceaux.h"
 
@@ -35,8 +35,8 @@ namespace danjo {
 class Manipulable;
 
 struct Symbole {
-	std::any valeur{};
-	id_morceau identifiant{};
+    std::any valeur{};
+    id_morceau genre{};
 };
 
 bool est_operateur(id_morceau identifiant);
@@ -47,4 +47,4 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os);
 
-}  /* namespace danjo */
+} /* namespace danjo */

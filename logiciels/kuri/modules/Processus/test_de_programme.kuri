@@ -1,0 +1,346 @@
+importe Fondation
+importe SysFichier
+
+/* Bibliothèque de test d'un programme.
+ *
+ * Les tests sont performés en ouvrant un canal bidirectionnel avec le programme.
+ * Les tests sont sensés envoyer des commandes au programme et définir la réponse
+ * attendue. Le test passe si la réponse se conforme à l'attente. Les tests sont
+ * regroupées en séries, pouvant avoir chacune leurs propres arguments passés au
+ * programme.
+ * Les tests s'arrête si l'un d'entre eux échoue : les tests suivants ne seront
+ * donc pas performés.
+ *
+ * 1. Définition des tests.
+ *
+ * Les tests d'une série doivent être défini dans un fichier séparé avec l'aide
+ * d'un langage sommaire dédié.
+ *
+ * Le langage est ainsi défini:
+ * - Les cas de tests doivent être séparés par une ligne contenant au moins dix
+ *   caractères '-'.
+ * - La première ligne du fichier doit être une telle ligne.
+ * - Pour définir un cas, la ligne doit commencer par « + Cas : », le reste de
+ *   la ligne défini la raison du cas.
+ * - Les commandes à envoyer au programme sont introduit par une ligne commançant
+ *   par « + Commandes ».
+ * - Les résultat attendus sont introduit par une ligne commençant par « + Résultat ».
+ * - Pour les commandes, chaque ligne est considérée comme une nouvelle commande.
+ *
+ * Exemple pour un programme répondant « Salut ! » si on lui dit « Salut ! »
+ *
+ *         --------------------------------------
+ *         + Cas : Le programme est poli si nous le sommes.
+ *         + Commandes :
+ *         Salut !
+ *         + Résultat :
+ *         Salut !
+ *
+ * Puisque nous utilisons un canal de communication, le test ne s'arrêtera que
+ * si le programme appelé s'arrête. Si le programme ne s'arrête pas de lui-même
+ * après avoir reçu une commande, il devra donc avoir une commande spéciale pour
+ * lui demande de s'arrêter.
+ *
+ * 2. Utilisation de la bibliothèque.
+ *
+ *         test : DonnéesPourTest
+ *         test.programme = CheminFichier("/chemin/du/programme")
+ *         test.ajoute_arguments(...arguments_généraux_du_programme)
+ *         test.ajoute_série_de_tests(CheminFichier("/chemin/du/fichier/de/spécification"), ...arguments_pour_la_série)
+ *
+ *         saufsi lance_les_tests(test) {
+ *             retourne 1
+ *         }
+ */
+
+/* Données pour le test, contient le chemin vers le programme ainsi que toutes
+ * les séries de tests. */
+DonnéesPourTest :: struct {
+    /* Le chemin vers le programme à appeler. */
+    programme: CheminFichier
+
+    /* Arguments du programme. Ces arguments sont toujours passés au programme
+     * peu importe la série de tests en cours. */
+    arguments: []chaine
+
+    /* Les série de test. */
+    séries: []SérieDeTest
+}
+
+détruit :: fonc (empl données_test: &DonnéesPourTest)
+{
+    pour séries {
+        détruit(it)
+    }
+
+    déloge(arguments)
+    déloge(séries)
+}
+
+ajoute_série_de_tests :: fonc (données_test: &DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
+{
+    série : SérieDeTest
+    série.fichier_de_spécification = fichier
+    ajoute_arguments(série, ...args)
+    tableau_ajoute(*données_test.séries, série)
+}
+
+ajoute_arguments :: fonc (données_test: &DonnéesPourTest, args: ...chaine)
+{
+    pour args {
+        tableau_ajoute(*série.arguments, it)
+    }
+}
+
+/* Retourne la liste d'arguments pour le programme afin de lancer cette série de test. */
+arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> []chaine
+{
+    nombre_d_arguments := données_test.arguments.taille + série.arguments.taille
+
+    résultat : []chaine
+
+    saufsi nombre_d_arguments {
+        retourne résultat
+    }
+
+    tableau_réserve(*résultat, nombre_d_arguments)
+
+    pour données_test.arguments {
+        tableau_ajoute(*résultat, it)
+    }
+
+    pour série.arguments {
+        tableau_ajoute(*résultat, it)
+    }
+
+    retourne résultat
+}
+
+/* Série de test. Contient le chemin du fichier de spécification ainsi que
+ * la liste d'arguments pour lancer les tests du fichier. */
+SérieDeTest :: struct {
+    /* Le chemin vers le fichier de spécification pour cette série de tests. */
+    fichier_de_spécification: CheminFichier
+
+    /* Arguments du programme spécifiques à cette série de tests. */
+    arguments: []chaine
+}
+
+détruit :: fonc (empl série: &SérieDeTest)
+{
+    déloge(arguments)
+}
+
+ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
+{
+    pour args {
+        tableau_ajoute(*série.arguments, it)
+    }
+}
+
+lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
+{
+    contenu := contenu_fichier_texte(série.fichier_de_spécification)
+    diffère { déloge(contenu) }
+
+    saufsi contenu {
+        imprime("Le fichier de spécification est vide ou introuvable !\n")
+        retourne faux
+    }
+
+    parseuse: ParseuseCasÀTester
+    ptr_données := *parseuse
+
+    pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne)
+
+    saufsi parseuse.cas {
+        imprime("Aucun cas trouvé dans le fichier de spécification !\n")
+        retourne faux
+    }
+
+    pour parseuse.cas {
+        si lance_test_cas(données_test, série, it) {
+            continue
+        }
+
+        imprime("Erreur : le cas '%' a échoué !\n", it.raison)
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/* Point d'entrée pour lancer tous les tests. Nous nous arrêtons si l'un d'entre
+ * eux échoue, ou si tous les tests passent. */
+lance_les_tests :: fonc (données_test: &DonnéesPourTest) -> bool
+{
+    pour données_test.séries {
+        saufsi lance_les_tests_pour_une_série(données_test, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, commandes: ...chaine) -> []chaine
+{
+    résultat: []chaine
+
+    arguments := arguments_pour_série(données_test, série)
+    diffère déloge(arguments)
+
+    discr ouvre_canal_de_communication(données_test.programme.chn, ...arguments) {
+        Quelque(canal) {
+            pour commandes {
+                canal.écris(it)
+                canal.écris("\n")
+            }
+
+            canal.ferme_écriture()
+
+            texte := canal.lis()
+
+            résultat = divise(texte, '\n')
+        }
+        sinon {
+            retourne résultat
+        }
+    }
+
+    retourne résultat
+}
+
+/* Données pour un cas à tester, extraites du fichier de spécification. */
+CasÀTester :: struct {
+    raison: chaine
+    commandes: []chaine
+    résultat: []chaine
+}
+
+/* Parsage du fichier de spécification donnant des CasÀTester. */
+
+ÉtatParsage :: énum {
+    DANS_CAS
+    DANS_COMMANDES
+    DANS_RÉSULTAT
+    INCONNU
+}
+
+ParseuseCasÀTester :: struct {
+    cas: []CasÀTester
+
+    cas_courant : *CasÀTester
+
+    état : ÉtatParsage
+}
+
+rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
+{
+    si ligne.taille == 0 {
+        retourne
+    }
+
+    /* Supprime la nouvelle ligne. */
+    si ligne[ligne.taille - 1] == '\n' {
+        ligne = recule(ligne, 1)
+    }
+
+    si ligne.taille == 0 {
+        retourne
+    }
+
+    si ligne.commence_par("----------") {
+        parseuse.cas_courant = tableau_ajoute_élément(*parseuse.cas)
+        parseuse.état = ÉtatParsage.INCONNU
+        retourne
+    }
+
+    si ligne.commence_par("+ Cas") {
+        parseuse.cas_courant.raison = avance(ligne, "+ Cas : ".taille)
+        parseuse.état = ÉtatParsage.DANS_CAS
+        retourne
+    }
+
+    si ligne.commence_par("+ Commandes") {
+        parseuse.état = ÉtatParsage.DANS_COMMANDES
+        retourne
+    }
+
+    si ligne.commence_par("+ Résultat") {
+        parseuse.état = ÉtatParsage.DANS_RÉSULTAT
+        retourne
+    }
+
+    discr parseuse.état {
+        DANS_CAS {
+            // erreur
+        }
+        DANS_COMMANDES {
+            tableau_ajoute(*parseuse.cas_courant.commandes, ligne)
+        }
+        DANS_RÉSULTAT {
+            tableau_ajoute(*parseuse.cas_courant.résultat, ligne)
+        }
+        INCONNU {
+            // erreur
+        }
+    }
+}
+
+imprime_cas :: fonc (cas: []CasÀTester)
+{
+    imprime("nombre de cas : %\n", cas.taille)
+
+    pour cas {
+        imprime("-------------------------------\n")
+        imprime("+ Cas : %\n", it.raison)
+        imprime("\n")
+
+        imprime("+ Commandes :\n")
+        pour commande dans it.commandes {
+            imprime("%\n", commande)
+        }
+        imprime("\n")
+
+        imprime("+ Résultat :\n")
+        pour résultat dans it.résultat {
+            imprime("%\n", résultat)
+        }
+        imprime("\n")
+    }
+}
+
+lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, cas: CasÀTester) -> bool
+{
+    résultat := lance_test(données_test, série, ...cas.commandes)
+
+    si résultat.taille != cas.résultat.taille {
+        imprime("Échec !\n")
+        imprime("Requiers % résultats\n", résultat.taille)
+        imprime("Obtenu % résultats\n", cas.résultat.taille)
+
+        imprime("\nRésultat requis :\n")
+        pour résultat {
+            imprime("%\n", it)
+        }
+
+        imprime("\nRésultat obtenu :\n")
+        pour cas.résultat {
+            imprime("%\n", it)
+        }
+
+        retourne faux
+    }
+
+    pour résultat {
+        si it != cas.résultat[index_it] {
+            imprime("Échec !\n")
+            imprime("Requiers : %\n", it)
+            imprime("Obtenu : %\n", cas.résultat[index_it])
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}

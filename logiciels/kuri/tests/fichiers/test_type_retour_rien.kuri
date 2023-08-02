@@ -1,0 +1,13 @@
+// ------------------------------
+// Cas : On ne peut assigner la valeur d'une fonction de type rien.
+
+ne_retourne_rien :: fonc () -> rien
+{
+	retourne;
+}
+
+principale :: fonc () -> z32
+{
+	a := ne_retourne_rien();
+	retourne 0;
+}

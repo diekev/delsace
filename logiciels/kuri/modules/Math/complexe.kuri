@@ -1,0 +1,87 @@
+/* Représentation d'un nombre complexe, avec une part réelle et une part imaginaire.
+ */
+
+Complexe :: struct {
+    réel: r32
+    imaginaire: r32
+}
+
+opérateur + :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+{
+    r : Complexe = ---
+    r.réel = c1.réel + c2.réel
+    r.imaginaire = c1.imaginaire + c2.imaginaire
+    retourne r
+}
+
+opérateur - :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+{
+    r : Complexe = ---
+    r.réel = c1.réel - c2.réel
+    r.imaginaire = c1.imaginaire - c2.imaginaire
+    retourne r
+}
+
+opérateur * :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+{
+    r : Complexe = ---
+
+    tmp_r := c1.réel * c2.réel - c1.imaginaire * c2.imaginaire
+    tmp_i := c1.réel * c2.imaginaire + c1.imaginaire * c2.réel
+
+    r.réel = tmp_r
+    r.imaginaire = tmp_i
+
+    retourne r
+}
+
+opérateur * :: fonc (c1: Complexe, s: r32) -> Complexe
+{
+    r : Complexe = ---
+    r.réel = c1.réel * s
+    r.imaginaire = c1.imaginaire * s
+    retourne r
+}
+
+opérateur / :: fonc (c1: Complexe, s: r32) -> Complexe
+{
+    r : Complexe = ---
+    r.réel = c1.réel / s
+    r.imaginaire = c1.imaginaire / s
+    retourne r
+}
+
+conjugué :: fonc (c: Complexe) -> Complexe
+{
+    r : Complexe = ---
+    r.réel = c.réel
+    r.imaginaire = -c.imaginaire
+    retourne r
+}
+
+/*
+template <typename T>
+auto exp(complexe<T> const &c)
+{
+	auto r = std::exp(c.reel());
+	return complexe<T>(std::cos(c.imag()) * r, std::sin(c.imag()) * r);
+}
+
+template <typename T>
+auto est_nan(complexe<T> const &c)
+{
+	return std::isnan(c.imag()) || std::isnan(c.imag());
+}
+
+template <typename T>
+auto est_fini(complexe<T> const &c)
+{
+	return std::isfinite(c.imag()) && std::isfinite(c.imag());
+}
+
+template <typename T>
+auto est_infini(complexe<T> const &c)
+{
+	return !est_fini(c);
+}
+*/

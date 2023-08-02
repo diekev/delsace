@@ -34,131 +34,87 @@
 
 #include "../manipulable.h"
 
+#include "commun.hh"
 #include "donnees_controle.h"
 
 namespace danjo {
 
-/* Il s'emblerait que std::atof a du mal à convertir les string en float. */
-template <typename T>
-static T convertie(const dls::chaine &valeur)
+ControleProprieteDecimal::ControleProprieteDecimal(BasePropriete *p, int temps, QWidget *parent)
+    : ControlePropriete(p, temps, parent), m_agencement(new QHBoxLayout(this)),
+      m_controle(new ControleNombreDecimal(this)), m_bouton(crée_bouton_échelle_valeur(this)),
+      m_bouton_animation(crée_bouton_animation_controle(this)),
+      m_echelle(new ControleEchelleDecimale(m_controle, m_bouton))
 {
-	std::istringstream ss(valeur.c_str());
-	T result;
+    m_agencement->addWidget(m_bouton_animation);
+    m_agencement->addWidget(m_bouton);
+    m_agencement->addWidget(m_controle);
+    setLayout(m_agencement);
 
-	ss >> result;
+    connecte_signaux_début_fin_changement(m_controle, this);
+    connecte_signaux_début_fin_changement(m_echelle, this);
 
-	return result;
-}
-
-ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
-	: ControlePropriete(parent)
-	, m_agencement(new QHBoxLayout(this))
-	, m_controle(new ControleNombreDecimal(this))
-	, m_bouton(new QPushButton("H", this))
-	, m_bouton_animation(new QPushButton("C", this))
-	, m_echelle(new ControleEchelleDecimale())
-{
-	auto metriques = this->fontMetrics();
-
-	m_bouton->setFixedWidth(metriques.width("H") * 2);
-	m_bouton_animation->setFixedWidth(metriques.width("C") * 2);
-
-	m_agencement->addWidget(m_bouton_animation);
-	m_agencement->addWidget(m_bouton);
-	m_agencement->addWidget(m_controle);
-	setLayout(m_agencement);
-
-	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
-
-	connect(m_controle, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteDecimal::ajourne_valeur_pointee);
-	connect(m_controle, &ControleNombreDecimal::prevaleur_changee, this, &ControleProprieteDecimal::emet_precontrole_change);
-	connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteDecimal::montre_echelle);
-	connect(m_echelle, &ControleEchelleDecimale::prevaleur_changee, this, &ControleProprieteDecimal::emet_precontrole_change);
-	connect(m_echelle, &ControleEchelleDecimale::valeur_changee, m_controle, &ControleNombreDecimal::ajourne_valeur);
-	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteDecimal::bascule_animation);
+    connect(m_controle,
+            &ControleNombreDecimal::valeur_changee,
+            this,
+            &ControleProprieteDecimal::ajourne_valeur_pointee);
+    connect(m_bouton_animation,
+            &QPushButton::pressed,
+            this,
+            &ControleProprieteDecimal::bascule_animation);
 }
 
 ControleProprieteDecimal::~ControleProprieteDecimal()
 {
-	delete m_echelle;
+    delete m_echelle;
 }
 
 void ControleProprieteDecimal::ajourne_valeur_pointee(float valeur)
 {
-	if (m_animation) {
-		m_propriete->ajoute_cle(valeur, m_temps);
-	}
-	else {
-		m_propriete->valeur = valeur;
-	}
+    if (m_animation) {
+        m_propriete->ajoute_cle(valeur, m_temps);
+    }
+    else {
+        m_propriete->définis_valeur_décimal(valeur);
+    }
 
-	Q_EMIT(controle_change());
-}
-
-void ControleProprieteDecimal::montre_echelle()
-{
-	m_echelle->valeur(std::any_cast<float>(m_propriete->valeur));
-	m_echelle->plage(m_controle->min(), m_controle->max());
-	m_echelle->show();
+    Q_EMIT(controle_change());
 }
 
 void ControleProprieteDecimal::bascule_animation()
 {
-	Q_EMIT(precontrole_change());
-	m_animation = !m_animation;
+    émets_controle_changé_simple([this]() {
+        m_animation = !m_animation;
 
-	if (m_animation == false) {
-		m_propriete->supprime_animation();
-		m_controle->valeur(std::any_cast<float>(m_propriete->valeur));
-		m_bouton_animation->setText("C");
-	}
-	else {
-		m_propriete->ajoute_cle(std::any_cast<float>(m_propriete->valeur), m_temps);
-		m_bouton_animation->setText("c");
-	}
+        if (m_animation == false) {
+            m_propriete->supprime_animation();
+            m_controle->valeur(m_propriete->evalue_decimal(m_temps));
+        }
+        else {
+            m_propriete->ajoute_cle(m_propriete->evalue_decimal(m_temps), m_temps);
+        }
 
-	m_controle->marque_anime(m_animation, m_animation);
-	Q_EMIT(controle_change());
+        définis_état_bouton_animation(m_bouton_animation, m_animation);
+        m_controle->marque_anime(m_animation, m_animation);
+    });
 }
 
 void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
 {
-	auto min = -std::numeric_limits<float>::max();
+    if (!m_propriete->est_animable()) {
+        m_bouton_animation->hide();
+    }
 
-	if (donnees.valeur_min != "") {
-		min = convertie<float>(donnees.valeur_min.c_str());
-	}
+    m_animation = m_propriete->est_animee();
+    définis_état_bouton_animation(m_bouton_animation, m_animation);
 
-	auto max = std::numeric_limits<float>::max();
+    if (m_animation) {
+        m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
+    }
 
-	if (donnees.valeur_max != "") {
-		max = convertie<float>(donnees.valeur_max.c_str());
-	}
-
-	m_controle->ajourne_plage(min, max);
-
-	if (donnees.initialisation) {
-		m_propriete->valeur = convertie<float>(donnees.valeur_defaut);
-	}
-
-	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
-		m_bouton_animation->hide();
-	}
-
-	m_animation = m_propriete->est_animee();
-
-	if (m_animation) {
-		m_bouton_animation->setText("c");
-		m_controle->marque_anime(m_animation, m_propriete->possede_cle(m_temps));
-		m_controle->valeur(m_propriete->evalue_decimal(m_temps));
-	}
-	else {
-		m_controle->valeur(std::any_cast<float>(m_propriete->valeur));
-	}
-
-	m_controle->suffixe(donnees.suffixe.c_str());
-
-	setToolTip(donnees.infobulle.c_str());
+    auto plage = m_propriete->plage_valeur_decimal();
+    m_controle->ajourne_plage(plage.min, plage.max);
+    m_controle->valeur(m_propriete->evalue_decimal(m_temps));
+    m_controle->suffixe(donnees.suffixe.c_str());
 }
 
-}  /* namespace danjo */
+} /* namespace danjo */

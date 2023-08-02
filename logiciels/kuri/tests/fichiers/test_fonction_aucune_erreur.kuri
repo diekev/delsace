@@ -1,0 +1,62 @@
+// ------------------------------
+// Cas : Une fonction dont le type de retour est égal au type de son instruction de retour est correcte.
+
+foo :: fonc () -> z32
+{
+	retourne 0;
+}
+
+// ------------------------------
+// Cas : Une fonction dont le type de retour est 'rien' peut ommettre une instruction de retour même après une branche
+
+/* NOTE : ce genre de cas causait un crash à cause de la manière dont on
+ * vérifiait la dernière instruction, donc on le test. */
+
+foo :: fonc () -> rien
+{
+	pour i dans 0 ... 10 {
+	}
+}
+
+// ------------------------------
+// Cas : Une fonction dont le type de retour est 'rien' peut ommettre une instruction de retour
+
+foo :: fonc () -> rien
+{
+}
+
+// ------------------------------
+// Cas : Une variable ou un membre d'une structure peut être un pointeur vers une fonction.
+
+Foo :: struct {
+	x : fonc(z32,*z8,z32)z32;
+}
+
+bar :: fonc (a : fonc(r32, r64)(rien)) -> rien
+{
+	x := a;
+	y : fonc(r32, r64)(rien) = a;
+}
+
+// ------------------------------
+// Cas : Si les types de retour des fonctions est explicit, ce n'est pas nécessaire de typer explicitement les variables stockant leurs valeurs retournées.
+
+ajouter :: fonc (x : z32) -> z32
+{
+	retourne x + 2;
+}
+
+ajouter_r64 :: fonc (x : r64) -> r64
+{
+	retourne x + 2.0;
+}
+
+principale :: fonc (compte : z32, arguments : z8) -> z32
+{
+	a := ajouter(9);
+	b := ajouter(a);
+	x := 9.0;
+	y := ajouter_r64(x);
+	retourne 0;
+}
+

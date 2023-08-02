@@ -29,31 +29,33 @@
 #include "operatrice_corps.h"
 
 class OperatriceSimulation final : public OperatriceCorps {
-	int m_dernier_temps = 0;
-	int pad = 0;
+    int m_dernier_temps = 0;
+    int pad = 0;
 
-	Corps m_corps1{};
-	Corps m_corps2{};
+    Corps m_corps1{};
+    Corps m_corps2{};
 
-public:
-	static constexpr auto NOM = "Simulation";
-	static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
+  public:
+    static constexpr auto NOM = "Simulation";
+    static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
 
-	OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud_);
+    OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud_);
 
-	virtual const char *nom_classe() const override;
+    virtual const char *nom_classe() const override;
 
-	virtual const char *texte_aide() const override;
+    virtual const char *texte_aide() const override;
 
-	const char *chemin_entreface() const override;
+    ResultatCheminEntreface chemin_entreface() const override;
 
-	int type() const override;
+    int type() const override;
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-	bool depend_sur_temps() const override;
+    bool depend_sur_temps() const override;
 
-	void amont_change(PriseEntree *entree) override;
+    void amont_change(PriseEntree *entree) override;
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override;
+    void renseigne_dependance(ContexteEvaluation const &contexte,
+                              CompilatriceReseau &compilatrice,
+                              NoeudReseau *noeud) override;
 };

@@ -344,8 +344,6 @@ struct DonneesAlgorithme {
 	int generations = 0;
 	double meilleur_aptitude = 0.0;
 	double aptitude_moyenne = 0.0;
-
-	DonneesAlgorithme() = default;
 };
 
 /**

@@ -1,0 +1,123 @@
+// Nombre de haute précision limité.
+// Tiré de :
+// https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
+
+DÉCALAGE_MOT : n32 = 32
+COMPTE : n32 = 5
+
+// À FAIRE : template <size_t COMPTE>
+HautePrécision :: struct {
+	// type_valeur  :: n32
+	// type_produit :: n64
+
+    // Les « chiffres » (en réalité des nombres entiers naturels sur 32-bits)
+    // qui composent le nombre. Le chiffre le plus significatif est dans données[0]
+	données : [5]n32
+}
+
+construit_nombre_haute_précision :: fonc() -> HautePrécision
+{
+	hp : HautePrécision
+
+	pour élément dans hp.données {
+		élément = 0
+	}
+
+	retourne hp
+}
+
+// Insère les bits de valeur dans hp.données, décalés depuis le bas (partie
+// la moins significative) par le nombre spécifié de bits. Un décalage de 0
+// ou moins indique qu'aucun des bits ne sera inséré. Un décalage de 1
+// indique que le bit haut de valeur sera en bas du dernier élément de hp.données
+// - le bit le moins significatif. Un décalage de DÉCALAGE_MOT indique que la
+// valeur sera dans l'élément le moins significatif de hp.données, etc.
+insère_bits_du_bas :: fonc(
+	hp : *HautePrécision,
+	valeur : n32,
+	quantité_décalage : z32) -> rien
+{
+	si quantité_décalage <= 0 {
+		retourne
+	}
+
+	sous_décalage := quantité_décalage comme n32 & (DÉCALAGE_MOT - 1)
+	grand_décalage := quantité_décalage comme n32 / DÉCALAGE_MOT
+	résultat := valeur comme n64 << sous_décalage
+	résultat_bas := résultat comme n32
+	résultat_haut := résultat >> DÉCALAGE_MOT comme n64
+
+    // Utilisation d'un type naturel pour que les nombres négatifs déviennent
+    // large, rendant la vérification de la plage plus bas plus simple.
+	high_index := COMPTE - 1 - grand_décalage;
+
+    // Écris les résultats dans le tableau de données. Si l'index est trop
+    // grand alors les données ont été décalées hors du nombre.
+	si high_index < COMPTE {
+		hp.données[high_index] |= résultat_haut comme n32;
+	}
+
+	si high_index + 1 < COMPTE {
+		hp.données[high_index + 1] |= résultat_bas
+	}
+}
+
+// Insère les bits de valeur dans hp.données, décalés depuis le haut (partie la
+// plus significative) par le nombre spécifié de bits. Un décalage de 0 ou moins
+// indique que les bits seront insérés. Un décalage de 1 indique que le bit bas
+// de valeur sera dans le haut du prémier élément de hp.données - le bit le plus
+// significatif. Un décalage de DÉCALAGE_MOT indique que la valeur sera dans
+// l'élément le plus significatif de hp.données, etc.
+insère_bits_du_haut :: fonc(
+	hp : *HautePrécision,
+	valeur : n32,
+	quantité_décalage : z32) -> rien
+{
+	insère_bits_du_bas(hp, valeur, ((COMPTE + 1) * DÉCALAGE_MOT) comme z32 - quantité_décalage);
+}
+
+// Retourne vrai si tous les éléments de hp.données sont égaux à zéro.
+est_zéro :: fonc(hp : *HautePrécision) -> bool
+{
+	pour élément dans hp.données {
+		si élément != 0 {
+			retourne faux
+		}
+	}
+
+	retourne vrai
+}
+
+// Retourne le reste de la division de hp par diviseur, de 0 à diviseur - 1.
+reste_de_la_division :: fonc(hp : *HautePrécision, diviseur : n32) -> n32
+{
+	reste : n32 = 0
+
+	// Algorithme standard de division longue.
+	pour élément dans hp.données {
+		dividende := (reste comme n64 << DÉCALAGE_MOT) + élément
+		résultat := dividende / diviseur
+		reste = (dividende % diviseur) comme n32
+		élément = résultat comme n32
+	}
+
+	retourne reste
+}
+
+// Multiplie par mul et retourne le surplus, de 0 à mul - 1
+surplus_de_la_multiplication :: fonc(hp : *HautePrécision, mul : n32) -> n32
+{
+	surplus : n32 = 0
+
+	pour j dans 0 ... COMPTE - 1 {
+		i := COMPTE - 1 - j
+
+		résultat := mul comme n64 * hp.données[i] + surplus;
+
+		// Put the bottom bits of the results back.
+		hp.données[i] = résultat comme n32
+		surplus = (résultat >> DÉCALAGE_MOT) comme n32
+	}
+
+	retourne surplus;
+}

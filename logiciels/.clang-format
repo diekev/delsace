@@ -1,0 +1,80 @@
+# Formattage de code source C++
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+# AccessModifierOffset: 0
+# AlignAfterOpenBracket: Align
+# AlignEscapedNewlines: Left
+# AllowAllArgumentsOnNextLine: true
+# AllowAllParametersOfDeclarationOnNextLine: true
+# AllowShortCaseLabelsOnASingleLine: false
+# AllowShortEnumsOnASingleLine: false
+# AllowShortLambdasOnASingleLine: All
+# AllowShortLoopsOnASingleLine: false
+# AlwaysBreakAfterReturnType: None
+# AlwaysBreakTemplateDeclarations: true
+# AttributeMacros
+
+AlignAfterOpenBracket: 'Align'
+
+AllowShortBlocksOnASingleLine: false
+
+BinPackArguments: false
+BinPackParameters: false
+
+BreakBeforeBraces: Custom
+BraceWrapping: {
+    AfterClass: 'false'
+    AfterControlStatement: 'false'
+    AfterEnum : 'false'
+    AfterFunction : 'true'
+    AfterNamespace : 'false'
+    AfterStruct : 'false'
+    AfterUnion : 'false'
+    BeforeCatch : 'true'
+    BeforeElse : 'true'
+    IndentBraces : 'false'
+    AfterObjCDeclaration: 'true'
+    AfterCaseLabel: 'true'
+}
+
+UseTab: Never
+TabWidth: 4
+IndentWidth: 4
+
+ForEachMacros:
+  - POUR
+  - POUR_TABLEAU_PAGE
+  - DIFFERE
+  - POUR_NOMME
+  - POUR_INDEX
+
+ReflowComments: true
+
+SpacesBeforeTrailingComments: 2
+
+FixNamespaceComments: true
+
+IndentCaseLabels: true
+
+IndentPPDirectives: AfterHash
+
+ColumnLimit: 99
+
+AllowShortFunctionsOnASingleLine: None
+
+BreakBeforeTernaryOperators: false
+
+SpaceAfterTemplateKeyword: true
+
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+
+PenaltyReturnTypeOnItsOwnLine: 10000
+
+PenaltyBreakAssignment: 100
+
+SortIncludes: true
+
+PenaltyBreakString: 1000000
+
+AlwaysBreakTemplateDeclarations: Yes

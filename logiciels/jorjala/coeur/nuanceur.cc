@@ -24,15 +24,21 @@
 
 #include "nuanceur.hh"
 
-#include "operatrice_graphe_detail.hh"
 #include "noeud.hh"
+#include "operatrice_graphe_detail.hh"
 
-Nuanceur::Nuanceur(Noeud &n)
-	: noeud(n)
+Nuanceur::Nuanceur(Noeud &n) : noeud(n)
 {
-	noeud.peut_avoir_graphe = true;
-	noeud.donnees = this;
-	noeud.graphe.type = type_graphe::DETAIL;
-	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_NUANCAGE));
+    noeud.peut_avoir_graphe = true;
+    noeud.donnees = this;
+    noeud.graphe.type = type_graphe::DETAIL;
+    noeud.graphe.donnees.efface();
+    noeud.graphe.donnees.ajoute(static_cast<int>(DETAIL_NUANCAGE));
+}
+
+void Nuanceur::marque_est_cycles()
+{
+    est_cycles = true;
+    noeud.graphe.type = type_graphe::CYCLES;
+    noeud.graphe.donnees.efface();
 }

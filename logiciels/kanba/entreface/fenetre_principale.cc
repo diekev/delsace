@@ -29,170 +29,216 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#include <QDockWidget>
+#include <QCoreApplication>
+#include <QHBoxLayout>
 #include <QMenuBar>
 #include <QProgressBar>
+#include <QSplitter>
 #include <QStatusBar>
+#include <QVBoxLayout>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
-#include "coeur/evenement.h"
+#include "coeur/kanba.h"
 
-#include "editeur_brosse.h"
-#include "editeur_calques.h"
-#include "editeur_canevas.h"
-#include "editeur_parametres.h"
+#include "evenement_kanba.hh"
+#include "gestionnaire_interface.hh"
+#include "vue_region.hh"
 
-FenetrePrincipale::FenetrePrincipale(QWidget *parent)
-	: QMainWindow(parent)
+FenetrePrincipale::FenetrePrincipale(KNB::Kanba &kanba, QWidget *parent)
+    : QMainWindow(parent), m_kanba(kanba)
 {
-	m_kanba.fenetre_principale = this;
+    KNB::enregistre_commandes(m_kanba);
+    m_kanba.définis_gestionnaire_fenêtre(new GestionnaireInterface(*this));
 
-	m_kanba.enregistre_commandes();
+    m_progress_bar = new QProgressBar(this);
+    statusBar()->addWidget(m_progress_bar);
+    m_progress_bar->setRange(0, 100);
+    m_progress_bar->setVisible(false);
 
-	m_progress_bar = new QProgressBar(this);
-	statusBar()->addWidget(m_progress_bar);
-	m_progress_bar->setRange(0, 100);
-	m_progress_bar->setVisible(false);
+    construit_interface_depuis_kanba();
 
-	ajoute_visionneur_image();
-	ajoute_editeur_proprietes();
+    auto menu = menuBar()->addMenu("Fichier");
+    auto action = menu->addAction("Ouvrir projet");
+    action->setData("ouvrir_projet");
 
-	setCentralWidget(nullptr);
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	auto menu = menuBar()->addMenu("Fichier");
-	auto action = menu->addAction("Ouvrir projet");
-	action->setData("ouvrir_projet");
+    action = menu->addAction("Sauvegarder projet");
+    action->setData("sauvegarder_projet");
 
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+    menu->addSeparator();
 
-	action = menu->addAction("Sauvegarder projet");
-	action->setData("sauvegarder_projet");
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	menu->addSeparator();
+    action = menu->addAction("Ouvrir fichier");
+    action->setData("ouvrir_fichier");
 
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	action = menu->addAction("Ouvrir fichier");
-	action->setData("ouvrir_fichier");
+    menu = menuBar()->addMenu("Édition");
+    action = menu->addAction("Ajouter cube");
+    action->setData("ajouter_cube");
 
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	menu = menuBar()->addMenu("Édition");
-	action = menu->addAction("Ajouter cube");
-	action->setData("ajouter_cube");
+    action = menu->addAction("Ajouter sphere");
+    action->setData("ajouter_sphere");
 
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
 
-	action = menu->addAction("Ajouter sphere");
-	action->setData("ajouter_sphere");
-
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(repond_action()));
+    /* Afin d'utiliser eventFilter pour filtrer les évènements de Kanba. */
+    qApp->installEventFilter(this);
 }
 
-FenetrePrincipale::~FenetrePrincipale()
+static QLayout *qlayout_depuis_disposition(KNB::Disposition &disposition)
 {
-	delete m_viewer_dock;
+    switch (disposition.donne_direction()) {
+        case KNB::DirectionDisposition::HORIZONTAL:
+        {
+            return new QHBoxLayout();
+        }
+        case KNB::DirectionDisposition::VERTICAL:
+        {
+            return new QVBoxLayout();
+        }
+    }
+    return nullptr;
 }
 
-void FenetrePrincipale::ajoute_editeur_proprietes()
+static Qt::Orientation donne_orientation_qsplitter_disposition(KNB::Disposition &disposition)
 {
-	/* Paramètres */
-
-	auto dock_parametres = new QDockWidget("Paramètres", this);
-	dock_parametres->setAttribute(Qt::WA_DeleteOnClose);
-
-	auto editeur_parametres = new EditeurParametres(&m_kanba, dock_parametres);
-	editeur_parametres->ajourne_etat(static_cast<type_evenement>(-1));
-
-	dock_parametres->setWidget(editeur_parametres);
-	dock_parametres->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-	addDockWidget(Qt::RightDockWidgetArea, dock_parametres);
-
-	/* Calques */
-
-	auto dock_calques = new QDockWidget("Calques", this);
-	dock_calques->setAttribute(Qt::WA_DeleteOnClose);
-
-	auto editeur_calques = new EditeurCalques(&m_kanba, dock_calques);
-	editeur_calques->ajourne_etat(static_cast<type_evenement>(-1));
-
-	dock_calques->setWidget(editeur_calques);
-	dock_calques->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-	addDockWidget(Qt::RightDockWidgetArea, dock_calques);
-
-	/* Brosse */
-
-	auto dock_brosse = new QDockWidget("Brosse", this);
-	dock_brosse->setAttribute(Qt::WA_DeleteOnClose);
-
-	auto editeur_brosse = new EditeurBrosse(&m_kanba, dock_brosse);
-	editeur_brosse->ajourne_etat(static_cast<type_evenement>(-1));
-
-	dock_brosse->setWidget(editeur_brosse);
-	dock_brosse->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-	addDockWidget(Qt::RightDockWidgetArea, dock_brosse);
-
-	tabifyDockWidget(dock_parametres, dock_calques);
-	tabifyDockWidget(dock_calques, dock_brosse);
+    switch (disposition.donne_direction()) {
+        case KNB::DirectionDisposition::HORIZONTAL:
+        {
+            return Qt::Horizontal;
+        }
+        case KNB::DirectionDisposition::VERTICAL:
+        {
+            return Qt::Vertical;
+        }
+    }
+    return Qt::Vertical;
 }
 
-void FenetrePrincipale::ajoute_visionneur_image()
+static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
+                                             KNB::Disposition région,
+                                             QVector<VueRegion *> &régions);
+
+static void génère_interface_région(KNB::Kanba &kanba,
+                                    KNB::RégionInterface &région,
+                                    QSplitter *layout,
+                                    QVector<VueRegion *> &régions)
 {
-	/* À FAIRE: figure out a way to have multiple GL context. */
-	if (m_viewer_dock == nullptr) {
-		m_viewer_dock = new QDockWidget("Visionneur", this);
+    auto qwidget_région = new QWidget();
+    layout->addWidget(qwidget_région);
 
-		auto view_2d = new EditeurCanevas(m_kanba, m_viewer_dock);
+    auto qwidget_région_layout = new QVBoxLayout();
+    qwidget_région_layout->setMargin(0);
+    qwidget_région->setLayout(qwidget_région_layout);
 
-		m_viewer_dock->setWidget(view_2d);
-		m_viewer_dock->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-		addDockWidget(Qt::TopDockWidgetArea, m_viewer_dock);
-	}
-
-	m_viewer_dock->show();
+    if (région.donne_type() == KNB::TypeRégion::CONTENEUR_ÉDITRICE) {
+        auto vue_région = new VueRegion(kanba, région, qwidget_région);
+        régions.append(vue_région);
+        qwidget_région_layout->addWidget(vue_région);
+    }
+    else {
+        auto widget = génère_interface_disposition(kanba, région.donne_disposition(), régions);
+        qwidget_région_layout->addWidget(widget);
+    }
 }
 
-void FenetrePrincipale::rendu_fini()
+static QWidget *génère_interface_disposition(KNB::Kanba &kanba,
+                                             KNB::Disposition disposition,
+                                             QVector<VueRegion *> &régions)
 {
-	//	auto moteur_rendu = m_kanba.moteur_rendu;
-	//	moteur_rendu->notifie_observatrices(type_evenement::rendu | type_evenement::fini);
+    auto qsplitter = new QSplitter();
+    qsplitter->setOrientation(donne_orientation_qsplitter_disposition(disposition));
+
+    for (auto région : disposition.donne_régions()) {
+        génère_interface_région(kanba, région, qsplitter, régions);
+    }
+
+    auto qlayout = qlayout_depuis_disposition(disposition);
+    qlayout->setMargin(0);
+    qlayout->addWidget(qsplitter);
+
+    auto qwidget = new QWidget();
+    qwidget->setLayout(qlayout);
+
+    return qwidget;
+}
+
+void FenetrePrincipale::construit_interface_depuis_kanba()
+{
+    auto interface = m_kanba.donne_interface_graphique();
+    m_régions.clear();
+
+    auto disposition = interface.donne_disposition();
+
+    auto qwidget = génère_interface_disposition(m_kanba, disposition, m_régions);
+    setCentralWidget(qwidget);
+
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(KNB::ChangementÉditrice::RAFRAICHIS);
+    }
+}
+
+bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
+{
+    if (event->type() != EvenementKanba::id_type_qt) {
+        return QWidget::eventFilter(object, event);
+    }
+
+    // auto event_kanba = static_cast<EvenementKanba *>(event);
+
+    // À FAIRE : reconstruction de l'interface
+    //    if (event_kanba->pour_quoi() ==
+    //        (KNB::TypeÉvènement::PROJET | KNB::TypeÉvènement::CHARGÉ)) {
+    //        construit_interface_depuis_kanba();
+    //        return true;
+    //    }
+
+    for (auto région : m_régions) {
+        région->ajourne_éditrice_active(KNB::ChangementÉditrice::RAFRAICHIS);
+    }
+
+    return true;
 }
 
 void FenetrePrincipale::tache_commence()
 {
-	m_progress_bar->setValue(0);
-	m_progress_bar->setVisible(true);
+    m_progress_bar->setValue(0);
+    m_progress_bar->setVisible(true);
 }
 
 void FenetrePrincipale::progres_avance(float progress)
 {
-	m_progress_bar->setValue(static_cast<int>(progress));
+    m_progress_bar->setValue(static_cast<int>(progress));
 }
 
-void FenetrePrincipale::progres_temps(int echantillon, float temps_echantillon, float temps_ecoule, float temps_restant)
+void FenetrePrincipale::progres_temps(int echantillon,
+                                      float temps_echantillon,
+                                      float temps_ecoule,
+                                      float temps_restant)
 {
-	//	auto moteur_rendu = m_kanba.moteur_rendu;
-	//	moteur_rendu->notifie_observatrices(type_evenement::rafraichissement);
+    //	auto moteur_rendu = m_kanba.moteur_rendu;
+    //	moteur_rendu->notifie_observatrices(KNB::type_evenement::rafraichissement);
 }
 
 void FenetrePrincipale::tache_fini()
 {
-	m_progress_bar->setVisible(false);
+    m_progress_bar->setVisible(false);
 }
 
 void FenetrePrincipale::repond_action()
 {
-	auto action = qobject_cast<QAction *>(sender());
+    auto action = qobject_cast<QAction *>(sender());
 
-	if (!action) {
-		return;
-	}
+    if (!action) {
+        return;
+    }
 
-	m_kanba.repondant_commande->repond_clique( action->data().toString().toStdString(), "");
+    KNB::donne_repondant_commande()->repond_clique(action->data().toString().toStdString(), "");
 }

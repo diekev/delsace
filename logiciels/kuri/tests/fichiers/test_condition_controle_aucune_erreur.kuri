@@ -1,0 +1,10 @@
+// ------------------------------
+// Cas : L'expression d'un contrôle 'si' doit être booléenne.
+
+foo :: fonc () -> rien
+{
+	a := 5;
+	b := 6;
+	si a == b {
+	}
+}

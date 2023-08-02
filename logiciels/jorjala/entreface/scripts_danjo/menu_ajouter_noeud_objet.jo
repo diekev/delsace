@@ -56,6 +56,7 @@ menu "Noeud Objet" {
 	    action(valeur="Aligne Covariance"; attache=ajouter_noeud; métadonnée="Aligne Covariance")
 		action(valeur="Booléens maillages"; attache=ajouter_noeud; métadonnée="Booléens maillages")
 		action(valeur="Couleur Maillage"; attache=ajouter_noeud; métadonnée="Couleur Maillage")
+		action(valeur="Compression Normaux"; attache=ajouter_noeud; métadonnée="Compression Normaux")
 		action(valeur="Création Normaux"; attache=ajouter_noeud; métadonnée="Création Normaux")
 		action(valeur="Enlève Doublons"; attache=ajouter_noeud; métadonnée="Enlève Doublons")
 		action(valeur="Érosion Maillage"; attache=ajouter_noeud; métadonnée="Érosion Maillage")

@@ -60,139 +60,140 @@
  */
 
 struct mi_triangle_coupe {
-	/*! \brief true if the facet belongs to the first polyhedron*/
-	bool								Facet_from_A{};
-	/*! \brief An exact vector giving the direction of the normal*/
-	dls::math::vec3f norm_dir{};
-	/*! \brief A list of segments (the intersections with the facets of the other polyhedron)*/
-	dls::tableau<dls::tableau<unsigned> >	CutList{};
-	/*! \brief A list of points (when the intersection is a point)*/
-	dls::ensemble<unsigned>					PtList{};
-	/*! \brief The list of the intersections*/
-	dls::dico<unsigned, unsigned>		RefInter{};
+    /*! \brief true if the facet belongs to the first polyhedron*/
+    bool Facet_from_A{};
+    /*! \brief An exact vector giving the direction of the normal*/
+    dls::math::vec3f norm_dir{};
+    /*! \brief A list of segments (the intersections with the facets of the other polyhedron)*/
+    dls::tableau<dls::tableau<unsigned>> CutList{};
+    /*! \brief A list of points (when the intersection is a point)*/
+    dls::ensemble<unsigned> PtList{};
+    /*! \brief The list of the intersections*/
+    dls::dico<unsigned, unsigned> RefInter{};
 
-	/*! \brief Default constructor*/
-	mi_triangle_coupe() {}
-	/*! \brief Constructor
-				 \param V : The normal direction
-				 \param ffA : Must be true if the facet belongs to the first polyhedron*/
-	mi_triangle_coupe(dls::math::vec3f V, bool ffA)
-	{
-		norm_dir=V; Facet_from_A=ffA;
-	} // MT
+    /*! \brief Default constructor*/
+    mi_triangle_coupe()
+    {
+    }
+    /*! \brief Constructor
+                 \param V : The normal direction
+                 \param ffA : Must be true if the facet belongs to the first polyhedron*/
+    mi_triangle_coupe(dls::math::vec3f V, bool ffA)
+    {
+        norm_dir = V;
+        Facet_from_A = ffA;
+    }  // MT
 };
 
 struct DonneesBooleen {
-	dls::tableau<mi_face *> triangles{};
-	dls::tableau<mi_triangle_coupe> triangles_esect{};
-	dls::dico<unsigned int, dls::ensemble<unsigned int>> couples{};
+    dls::tableau<mi_face *> triangles{};
+    dls::tableau<mi_triangle_coupe> triangles_esect{};
+    dls::dico<unsigned int, dls::ensemble<unsigned int>> couples{};
 };
 
 struct delegue_polyedre_hbe {
-	Polyedre const &polyedre;
-	DonneesBooleen &donnees;
-	unsigned j = 0;
-	unsigned i = 0;
-	bool est_A = false;
+    Polyedre const &polyedre;
+    DonneesBooleen &donnees;
+    unsigned j = 0;
+    unsigned i = 0;
+    bool est_A = false;
 
-	delegue_polyedre_hbe(Polyedre const &c, DonneesBooleen &db)
-		: polyedre(c)
-		, donnees(db)
-	{}
+    delegue_polyedre_hbe(Polyedre const &c, DonneesBooleen &db) : polyedre(c), donnees(db)
+    {
+    }
 
-	int nombre_elements() const
-	{
-		return static_cast<int>(polyedre.faces.taille());
-	}
+    int nombre_elements() const
+    {
+        return static_cast<int>(polyedre.faces.taille());
+    }
 
-	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
-	{
-		auto tri = polyedre.faces[idx];
+    void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+    {
+        auto tri = polyedre.faces[idx];
 
-		cos.efface();
-		cos.reserve(3);
+        cos.efface();
+        cos.reserve(3);
 
-		auto arete = tri->arete;
-		cos.pousse(arete->sommet->p);
+        auto arete = tri->arete;
+        cos.ajoute(arete->sommet->p);
 
-		arete = arete->suivante;
-		cos.pousse(arete->sommet->p);
+        arete = arete->suivante;
+        cos.ajoute(arete->sommet->p);
 
-		arete = arete->suivante;
-		cos.pousse(arete->sommet->p);
-	}
+        arete = arete->suivante;
+        cos.ajoute(arete->sommet->p);
+    }
 
-	void element_chevauche(int idx, mi_face *triangle)
-	{
-		if (triangle->label == 0xFFFFFFFF) {
-			this->donnees.triangles.pousse(triangle);
+    void element_chevauche(int idx, mi_face *triangle)
+    {
+        if (triangle->label == 0xFFFFFFFF) {
+            this->donnees.triangles.ajoute(triangle);
 
-			triangle->label = j++;
-			triangle->arete->label = i++;
-			triangle->arete->suivante->label = i++;
-			triangle->arete->suivante->suivante->label = i++;
+            triangle->label = j++;
+            triangle->arete->label = i++;
+            triangle->arete->suivante->label = i++;
+            triangle->arete->suivante->suivante->label = i++;
 
-			this->donnees.triangles_esect.pousse(
-						mi_triangle_coupe(calcul_direction_normal(triangle->arete), !est_A));
-		}
+            this->donnees.triangles_esect.ajoute(
+                mi_triangle_coupe(calcul_direction_normal(triangle->arete), !est_A));
+        }
 
-		auto prim = polyedre.faces[idx];
+        auto prim = polyedre.faces[idx];
 
-		if (prim->label == 0xFFFFFFFF) {
-			this->donnees.triangles.pousse(prim);
+        if (prim->label == 0xFFFFFFFF) {
+            this->donnees.triangles.ajoute(prim);
 
-			prim->label = j++;
-			prim->arete->label = i++;
-			prim->arete->suivante->label = i++;
-			prim->arete->suivante->suivante->label = i++;
+            prim->label = j++;
+            prim->arete->label = i++;
+            prim->arete->suivante->label = i++;
+            prim->arete->suivante->suivante->label = i++;
 
-			this->donnees.triangles_esect.pousse(
-						mi_triangle_coupe(calcul_direction_normal(prim->arete), est_A));
-		}
+            this->donnees.triangles_esect.ajoute(
+                mi_triangle_coupe(calcul_direction_normal(prim->arete), est_A));
+        }
 
-		this->donnees.couples[prim->label].insere(triangle->label);
-	}
+        this->donnees.couples[prim->label].insere(triangle->label);
+    }
 };
 
 static auto chevauche(float *bv, limites3f const &limites)
 {
-	auto limbv = limites3f();
-	limbv.min = dls::math::vec3f(bv[0], bv[2], bv[4]);
-	limbv.max = dls::math::vec3f(bv[1], bv[3], bv[5]);
-	return limbv.chevauchent(limites);
+    auto limbv = limites3f();
+    limbv.min = dls::math::vec3f(bv[0], bv[2], bv[4]);
+    limbv.max = dls::math::vec3f(bv[1], bv[3], bv[5]);
+    return limbv.chevauchent(limites);
 }
 
 template <typename TypeDelegue>
-auto cherche_chevauchement(
-		bli::BVHTree *arbre,
-		TypeDelegue &delegue,
-		mi_face *triangle,
-		limites3f const &limites)
+auto cherche_chevauchement(bli::BVHTree *arbre,
+                           TypeDelegue &delegue,
+                           mi_face *triangle,
+                           limites3f const &limites)
 {
-	auto const &racine = arbre->nodes[arbre->totleaf];
+    auto const &racine = arbre->nodes[arbre->totleaf];
 
-	dls::pile<bli::BVHNode *> noeuds;
+    dls::pile<bli::BVHNode *> noeuds;
 
-	if (chevauche(racine->bv, limites)) {
-		noeuds.empile(racine);
-	}
+    if (chevauche(racine->bv, limites)) {
+        noeuds.empile(racine);
+    }
 
-	while (!noeuds.est_vide()) {
-		auto noeud = noeuds.depile();
+    while (!noeuds.est_vide()) {
+        auto noeud = noeuds.depile();
 
-		if (noeud->totnode == 0) {
-			delegue.element_chevauche(noeud->index, triangle);
-		}
-		else {
-			for (auto i = 0; i < noeud->totnode; ++i) {
-				auto enfant = noeud->children[i];
+        if (noeud->totnode == 0) {
+            delegue.element_chevauche(noeud->index, triangle);
+        }
+        else {
+            for (auto i = 0; i < noeud->totnode; ++i) {
+                auto enfant = noeud->children[i];
 
-				if (chevauche(enfant->bv, limites)) {
-					noeuds.empile(enfant);
-				}
-			}
-		}
-	}
+                if (chevauche(enfant->bv, limites)) {
+                    noeuds.empile(enfant);
+                }
+            }
+        }
+    }
 }
 
 template <class K>
@@ -523,134 +524,134 @@ private:
 };
 
 struct Info_Inter {
-	/*! \brief The facet*/
-	mi_face		*f;
-	/*! \brief The halfedge*/
-	mi_arete	*he;
-	/*! \brief true if the intersection is exactly on the vertex pointed by he*/
-	bool				IsOnVertex;
-	/*! \brief A code for the location of the intersection :\n\n
-		 * 0 : Intersection is strictly in the facet\n
-		 * 1 : Intersection is on the first edge of the facet\n
-		 * 2 : Intersection is on the second edge of the facet\n
-		 * 3 : Intersection is exactly on the first vertex of the facet\n
-		 * 4 : Intersection is on the third edge of the facet\n
-		 * 5 : Intersection is exactly on the third vertex of the facet\n
-		 * 6 : Intersection is exactly on the second vertex of the facet\n
-		 * 7 : There is no intersection */
-	unsigned short		res;
-	/*! \brief The intersection point (exact)*/
-	dls::math::vec3f pt;
-	/*! \brief The Id of the intersection point*/
-	unsigned Id;
+    /*! \brief The facet*/
+    mi_face *f;
+    /*! \brief The halfedge*/
+    mi_arete *he;
+    /*! \brief true if the intersection is exactly on the vertex pointed by he*/
+    bool IsOnVertex;
+    /*! \brief A code for the location of the intersection :\n\n
+     * 0 : Intersection is strictly in the facet\n
+     * 1 : Intersection is on the first edge of the facet\n
+     * 2 : Intersection is on the second edge of the facet\n
+     * 3 : Intersection is exactly on the first vertex of the facet\n
+     * 4 : Intersection is on the third edge of the facet\n
+     * 5 : Intersection is exactly on the third vertex of the facet\n
+     * 6 : Intersection is exactly on the second vertex of the facet\n
+     * 7 : There is no intersection */
+    unsigned short res;
+    /*! \brief The intersection point (exact)*/
+    dls::math::vec3f pt;
+    /*! \brief The Id of the intersection point*/
+    unsigned Id;
 };
 
 class OpBooleensMaillage final : public OperatriceCorps {
-	enum {
-		UNION,
-		INTER,
-		MINUS,
-	};
+    enum {
+        UNION,
+        INTER,
+        MINUS,
+    };
 
-	int m_BOOP = UNION;
+    int m_BOOP = UNION;
 
-	dls::tableau<dls::math::vec3f> InterPts{};
+    dls::tableau<dls::math::vec3f> InterPts{};
 
-public:
-	static constexpr auto NOM = "Booléens maillages";
-	static constexpr auto AIDE = "";
+  public:
+    static constexpr auto NOM = "Booléens maillages";
+    static constexpr auto AIDE = "";
 
-	OpBooleensMaillage(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(2);
-		sorties(1);
-	}
+    OpBooleensMaillage(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(2);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return "";
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        m_corps.reinitialise();
 
-		auto corps_a = entree(0)->requiers_corps(contexte, donnees_aval);
+        auto corps_a = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_a, true, true)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_a, true, true)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto corps_b = entree(1)->requiers_corps(contexte, donnees_aval);
+        auto corps_b = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_b, true, true, 1)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_b, true, true, 1)) {
+            return res_exec::ECHOUEE;
+        }
 
-		/* converti les deux maillages en polyèdres triangulés */
+        /* converti les deux maillages en polyèdres triangulés */
 
-		auto poly_a = construit_corps_polyedre_triangle(*corps_a);
+        auto poly_a = construit_corps_polyedre_triangle(*corps_a);
 
-		if (!valide_polyedre(poly_a)) {
-			this->ajoute_avertissement("Le polyèdre A n'est pas valide");
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_polyedre(poly_a)) {
+            this->ajoute_avertissement("Le polyèdre A n'est pas valide");
+            return res_exec::ECHOUEE;
+        }
 
-		auto poly_b = construit_corps_polyedre_triangle(*corps_b);
+        auto poly_b = construit_corps_polyedre_triangle(*corps_b);
 
-		if (!valide_polyedre(poly_b)) {
-			this->ajoute_avertissement("Le polyèdre B n'est pas valide");
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_polyedre(poly_b)) {
+            this->ajoute_avertissement("Le polyèdre B n'est pas valide");
+            return res_exec::ECHOUEE;
+        }
 
-		/* construit un arbre HBE depuis le polyèdre avec le moins de triangles */
-		// il va falloir trouver tous les noeuds qui intersectent avec celui du
-		// triangle t du deuxième polyèdre
+        /* construit un arbre HBE depuis le polyèdre avec le moins de triangles */
+        // il va falloir trouver tous les noeuds qui intersectent avec celui du
+        // triangle t du deuxième polyèdre
 
-		initialise_donnees(poly_a);
-		initialise_donnees(poly_b);
+        initialise_donnees(poly_a);
+        initialise_donnees(poly_b);
 
-		auto donnees_booleen = DonneesBooleen{};
+        auto donnees_booleen = DonneesBooleen{};
 
-		if (poly_a.faces.taille() < poly_b.faces.taille()) {
-			auto delegue = delegue_polyedre_hbe(poly_a, donnees_booleen);
-			delegue.est_A = true;
+        if (poly_a.faces.taille() < poly_b.faces.taille()) {
+            auto delegue = delegue_polyedre_hbe(poly_a, donnees_booleen);
+            delegue.est_A = true;
 
-			auto arbre = bli::cree_arbre_bvh(delegue);
+            auto arbre = bli::cree_arbre_bvh(delegue);
 
-			for (auto tri : poly_b.faces) {
-				auto limites_tri = limites3f();
+            for (auto tri : poly_b.faces) {
+                auto limites_tri = limites3f();
 
-				auto arete = tri->arete;
-				dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
+                auto arete = tri->arete;
+                dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
 
-				arete = arete->suivante;
-				dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
+                arete = arete->suivante;
+                dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
 
-				arete = arete->suivante;
-				dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
+                arete = arete->suivante;
+                dls::math::extrait_min_max(arete->sommet->p, limites_tri.min, limites_tri.max);
 
-				cherche_chevauchement(arbre, delegue, tri, limites_tri);
-			}
+                cherche_chevauchement(arbre, delegue, tri, limites_tri);
+            }
 
-			memoire::deloge("BVHTree", arbre);
-		}
-		else {
-			auto delegue = delegue_polyedre_hbe(poly_b, donnees_booleen);
-			delegue.est_A = false;
+            memoire::deloge("BVHTree", arbre);
+        }
+        else {
+            auto delegue = delegue_polyedre_hbe(poly_b, donnees_booleen);
+            delegue.est_A = false;
 
-			auto arbre = bli::cree_arbre_bvh(delegue);
+            auto arbre = bli::cree_arbre_bvh(delegue);
 
 			for (auto tri : poly_a.faces) {
 				auto limites_tri = limites3f();
@@ -1750,7 +1751,7 @@ public:
 //		pFacet->arete->suivante->suivante->paire->face->est_ext = true;
 //	}
 };
-#endif // OPBOOLEEN
+#endif  // OPBOOLEEN
 
 /* ************************************************************************** */
 
@@ -1772,205 +1773,215 @@ public:
  */
 
 struct cell {
-	dls::tableau<double> verts{};
-	dls::tableau<int> poly_totvert{};
-	dls::tableau<int> poly_indices{};
-	dls::tableau<int> voisines{};
+    dls::tableau<double> verts{};
+    dls::tableau<int> poly_totvert{};
+    dls::tableau<int> poly_indices{};
+    dls::tableau<int> voisines{};
 
-	float centroid[3] = { 0.0f, 0.0f, 0.0f };
-	float volume = 0.0f;
-	int index = 0;
-	int totvert = 0;
-	int totpoly = 0;
-	int pad = 0;
+    float centroid[3] = {0.0f, 0.0f, 0.0f};
+    float volume = 0.0f;
+    int index = 0;
+    int totvert = 0;
+    int totpoly = 0;
+    int pad = 0;
 
-	cell() = default;
+    cell() = default;
 };
 
 class OperatriceFractureVoronoi final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Fracture Voronoi";
-	static constexpr auto AIDE = "";
+  public:
+    static constexpr auto NOM = "Fracture Voronoi";
+    static constexpr auto AIDE = "";
 
-	OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(2);
-		sorties(1);
-	}
+    OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud &noeud_)
+        : OperatriceCorps(graphe_parent, noeud_)
+    {
+        entrees(2);
+        sorties(1);
+    }
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_fracture_voronoi.jo";
-	}
+    ResultatCheminEntreface chemin_entreface() const override
+    {
+        return CheminFichier{"entreface/operatrice_fracture_voronoi.jo"};
+    }
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+    const char *nom_classe() const override
+    {
+        return NOM;
+    }
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+    const char *texte_aide() const override
+    {
+        return AIDE;
+    }
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		/* À FAIRE : booléens, groupes. */
-		this->ajoute_avertissement("Seuls les cubes sont supportés pour le moment !");
+    res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+    {
+        /* À FAIRE : booléens, groupes. */
+        this->ajoute_avertissement("Seuls les cubes sont supportés pour le moment !");
 
-		m_corps.reinitialise();
+        m_corps.reinitialise();
 
-		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
+        auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_maillage, true, false)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_maillage, true, false)) {
+            return res_exec::ECHOUEE;
+        }
 
-		auto corps_points = entree(1)->requiers_corps(contexte, donnees_aval);
+        auto corps_points = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps_points, true, false, 1)) {
-			return res_exec::ECHOUEE;
-		}
+        if (!valide_corps_entree(*this, corps_points, true, false, 1)) {
+            return res_exec::ECHOUEE;
+        }
 
-		/* création du conteneur */
-		auto limites = calcule_limites_mondiales_corps(*corps_maillage);
-		auto min = dls::math::converti_type<double>(limites.min);
-		auto max = dls::math::converti_type<double>(limites.max);
+        /* création du conteneur */
+        auto limites = calcule_limites_mondiales_corps(*corps_maillage);
+        auto min = dls::math::converti_type<double>(limites.min);
+        auto max = dls::math::converti_type<double>(limites.max);
 
-		/* Divise le domaine de calcul. */
-		auto nombre_block = dls::math::vec3i(8);
+        /* Divise le domaine de calcul. */
+        auto nombre_block = dls::math::vec3i(8);
 
-		auto const periodic_x = evalue_bool("périodic_x");
-		auto const periodic_y = evalue_bool("périodic_y");
-		auto const periodic_z = evalue_bool("périodic_z");
+        auto const periodic_x = evalue_bool("périodic_x");
+        auto const periodic_y = evalue_bool("périodic_y");
+        auto const periodic_z = evalue_bool("périodic_z");
 
-		auto points_entree = corps_points->points_pour_lecture();
+        auto points_entree = corps_points->points_pour_lecture();
 
-		/* À FAIRE : rayon de particules : container_poly. */
-		auto cont_voro = memoire::loge<voro::container>(
-					"voro::container",
-					min.x, max.x, min.y, max.y, min.z, max.z,
-					nombre_block.x, nombre_block.y, nombre_block.z,
-					periodic_x, periodic_y, periodic_z,
-					static_cast<int>(points_entree.taille()));
+        /* À FAIRE : rayon de particules : container_poly. */
+        auto cont_voro = memoire::loge<voro::container>("voro::container",
+                                                        min.x,
+                                                        max.x,
+                                                        min.y,
+                                                        max.y,
+                                                        min.z,
+                                                        max.z,
+                                                        nombre_block.x,
+                                                        nombre_block.y,
+                                                        nombre_block.z,
+                                                        periodic_x,
+                                                        periodic_y,
+                                                        periodic_z,
+                                                        static_cast<int>(points_entree.taille()));
 
-		auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");
+        auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");
 
-		/* ajout des particules */
+        /* ajout des particules */
 
-		for (auto i = 0; i < points_entree.taille(); ++i) {
-			auto point = points_entree.point_local(i);
-			auto point_monde = corps_points->transformation(dls::math::point3d(point.x, point.y, point.z));
-			cont_voro->put(*ordre_parts, i, point_monde.x, point_monde.y, point_monde.z);
-		}
+        for (auto i = 0; i < points_entree.taille(); ++i) {
+            auto point = points_entree.point_local(i);
+            auto point_monde = corps_points->transformation(
+                dls::math::point3d(point.x, point.y, point.z));
+            cont_voro->put(*ordre_parts, i, point_monde.x, point_monde.y, point_monde.z);
+        }
 
-		/* création des cellules */
-		auto cellules = dls::tableau<cell>();
-		cellules.reserve(points_entree.taille());
+        /* création des cellules */
+        auto cellules = dls::tableau<cell>();
+        cellules.reserve(points_entree.taille());
 
-		/* calcul des cellules */
+        /* calcul des cellules */
 
-		container_compute_cells(cont_voro, ordre_parts, cellules);
+        container_compute_cells(cont_voro, ordre_parts, cellules);
 
-		/* conversion des données */
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
-		auto points = m_corps.points_pour_ecriture();
-		auto gna = GNA();
+        /* conversion des données */
+        auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
+        auto points = m_corps.points_pour_ecriture();
+        auto gna = GNA();
 
-		auto poly_index_offset = 0;
+        auto poly_index_offset = 0;
 
-		for (auto &c : cellules) {
-			for (auto i = 0; i < c.totvert; ++i) {
-				auto px = static_cast<float>(c.verts[i * 3]);
-				auto py = static_cast<float>(c.verts[i * 3 + 1]);
-				auto pz = static_cast<float>(c.verts[i * 3 + 2]);
-				points.ajoute_point(px, py, pz);
-			}
+        for (auto &c : cellules) {
+            for (auto i = 0; i < c.totvert; ++i) {
+                auto px = static_cast<float>(c.verts[i * 3]);
+                auto py = static_cast<float>(c.verts[i * 3 + 1]);
+                auto pz = static_cast<float>(c.verts[i * 3 + 2]);
+                points.ajoute_point(px, py, pz);
+            }
 
-			auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
-			auto skip = 0;
+            auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
+            auto skip = 0;
 
-			for (auto i = 0; i < c.totpoly; ++i) {
-				auto nombre_verts = c.poly_totvert[i];
+            for (auto i = 0; i < c.totpoly; ++i) {
+                auto nombre_verts = c.poly_totvert[i];
 
-				auto poly = m_corps.ajoute_polygone(type_polygone::FERME, nombre_verts);
+                auto poly = m_corps.ajoute_polygone(type_polygone::FERME, nombre_verts);
 
-				assigne(attr_C->r32(poly->index), couleur);
-				for (auto j = 0; j < nombre_verts; ++j) {
-					m_corps.ajoute_sommet(poly, poly_index_offset + c.poly_indices[skip + 1 + j]);
-				}
+                assigne(attr_C->r32(poly->index), couleur);
+                for (auto j = 0; j < nombre_verts; ++j) {
+                    m_corps.ajoute_sommet(poly, poly_index_offset + c.poly_indices[skip + 1 + j]);
+                }
 
-				skip += (nombre_verts + 1);
-			}
+                skip += (nombre_verts + 1);
+            }
 
-			poly_index_offset += c.totvert;
-		}
+            poly_index_offset += c.totvert;
+        }
 
-		memoire::deloge("voro::container", cont_voro);
-		memoire::deloge("voro::particle_order", ordre_parts);
+        memoire::deloge("voro::container", cont_voro);
+        memoire::deloge("voro::particle_order", ordre_parts);
 
-		return res_exec::REUSSIE;
-	}
+        return res_exec::REUSSIE;
+    }
 
-	void container_compute_cells(voro::container* cn, voro::particle_order* po, dls::tableau<cell> &cells)
-	{
-		voro::voronoicell_neighbor vc;
-		voro::c_loop_order vl(*cn, *po);
+    void container_compute_cells(voro::container *cn,
+                                 voro::particle_order *po,
+                                 dls::tableau<cell> &cells)
+    {
+        voro::voronoicell_neighbor vc;
+        voro::c_loop_order vl(*cn, *po);
 
-		if (!vl.start()) {
-			return;
-		}
-		cell c;
+        if (!vl.start()) {
+            return;
+        }
+        cell c;
 
-		do {
-			if (!cn->compute_cell(vc, vl)) {
-				/* cellule invalide */
-				continue;
-			}
+        do {
+            if (!cn->compute_cell(vc, vl)) {
+                /* cellule invalide */
+                continue;
+            }
 
-			/* adapté de voro++ */
-			double *pp = vl.p[vl.ijk] + vl.ps * vl.q;
+            /* adapté de voro++ */
+            double *pp = vl.p[vl.ijk] + vl.ps * vl.q;
 
-			/* index de la particule de la cellule */
-			c.index = cn->id[vl.ijk][vl.q];
+            /* index de la particule de la cellule */
+            c.index = cn->id[vl.ijk][vl.q];
 
-			/* sommets */
-			vc.vertices(pp[0], pp[1], pp[2], c.verts);
-			c.totvert = vc.p;
+            /* sommets */
+            vc.vertices(pp[0], pp[1], pp[2], c.verts);
+            c.totvert = vc.p;
 
-			/* polygones */
-			c.totpoly = vc.number_of_faces();
-			vc.face_orders(c.poly_totvert);
-			vc.face_vertices(c.poly_indices);
+            /* polygones */
+            c.totpoly = vc.number_of_faces();
+            vc.face_orders(c.poly_totvert);
+            vc.face_vertices(c.poly_indices);
 
-			/* voisines */
-			vc.neighbors(c.voisines);
+            /* voisines */
+            vc.neighbors(c.voisines);
 
-			/* centroid */
-			double centroid[3];
-			vc.centroid(centroid[0], centroid[1], centroid[2]);
-			c.centroid[0] = static_cast<float>(centroid[0] + pp[0]);
-			c.centroid[1] = static_cast<float>(centroid[1] + pp[1]);
-			c.centroid[2] = static_cast<float>(centroid[2] + pp[2]);
+            /* centroid */
+            double centroid[3];
+            vc.centroid(centroid[0], centroid[1], centroid[2]);
+            c.centroid[0] = static_cast<float>(centroid[0] + pp[0]);
+            c.centroid[1] = static_cast<float>(centroid[1] + pp[1]);
+            c.centroid[2] = static_cast<float>(centroid[2] + pp[2]);
 
-			/* volume */
-			c.volume = static_cast<float>(vc.volume());
+            /* volume */
+            c.volume = static_cast<float>(vc.volume());
 
-			cells.pousse(c);
-		}
-		while(vl.inc());
-	}
+            cells.ajoute(c);
+        } while (vl.inc());
+    }
 };
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_fracture(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceFractureVoronoi>());
+    usine.enregistre_type(cree_desc<OperatriceFractureVoronoi>());
 
 #ifdef OPBOOLEEN
-	usine.enregistre_type(cree_desc<OpBooleensMaillage>());
+    usine.enregistre_type(cree_desc<OpBooleensMaillage>());
 #endif
 }
 

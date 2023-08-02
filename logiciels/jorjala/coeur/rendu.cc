@@ -34,56 +34,55 @@
 #include "noeud_image.h"
 #include "operatrice_image.h"
 
-Rendu::Rendu(Noeud &n)
-	: noeud(n)
+Rendu::Rendu(Noeud &n) : noeud(n)
 {
-	noeud.peut_avoir_graphe = true;
-	noeud.donnees = this;
-	noeud.graphe.type = type_graphe::RENDU;
+    noeud.peut_avoir_graphe = true;
+    noeud.donnees = this;
+    noeud.graphe.type = type_graphe::RENDU;
 }
 
 /* ************************************************************************** */
 
 Rendu *cree_rendu_defaut(Jorjala &jorjala)
 {
-	auto rendu = jorjala.bdd.cree_rendu("rendu");
+    auto rendu = jorjala.bdd.cree_rendu("rendu");
 
-	auto &graphe = rendu->noeud.graphe;
+    auto &graphe = rendu->noeud.graphe;
 
-	auto noeud_sortie = graphe.cree_noeud("Moteur Rendu", type_noeud::OPERATRICE);
-	auto op = jorjala.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
-	synchronise_donnees_operatrice(*noeud_sortie);
-	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
+    auto noeud_sortie = graphe.cree_noeud("Moteur Rendu", type_noeud::OPERATRICE);
+    auto op = jorjala.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
+    synchronise_donnees_operatrice(*noeud_sortie);
+    initialise_entreface(op, op->chemin_entreface());
 
-	auto noeud_objets = graphe.cree_noeud("Cherche Objets", type_noeud::OPERATRICE);
-	op = jorjala.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
-	synchronise_donnees_operatrice(*noeud_objets);
-	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
+    auto noeud_objets = graphe.cree_noeud("Cherche Objets", type_noeud::OPERATRICE);
+    op = jorjala.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
+    synchronise_donnees_operatrice(*noeud_objets);
+    initialise_entreface(op, op->chemin_entreface());
 
-	graphe.connecte(noeud_objets->sortie(0), noeud_sortie->entree(0));
+    graphe.connecte(noeud_objets->sortie(0), noeud_sortie->entree(0));
 
-	return rendu;
+    return rendu;
 }
 
 void evalue_graphe_rendu(Rendu *rendu, ContexteEvaluation &contexte)
 {
-	if (rendu == nullptr) {
-		return;
-	}
+    if (rendu == nullptr) {
+        return;
+    }
 
-	auto noeud_sortie = static_cast<Noeud *>(nullptr);
+    auto noeud_sortie = static_cast<Noeud *>(nullptr);
 
-	for (auto noeud : rendu->noeud.graphe.noeuds()) {
-		if (noeud->sorties.est_vide()) {
-			noeud_sortie = noeud;
-			break;
-		}
-	}
+    for (auto noeud : rendu->noeud.graphe.noeuds()) {
+        if (noeud->sorties.est_vide()) {
+            noeud_sortie = noeud;
+            break;
+        }
+    }
 
-	if (noeud_sortie == nullptr) {
-		return;
-	}
+    if (noeud_sortie == nullptr) {
+        return;
+    }
 
-	auto op = extrait_opimage(noeud_sortie->donnees);
-	op->execute(contexte, nullptr);
+    auto op = extrait_opimage(noeud_sortie->donnees);
+    op->execute(contexte, nullptr);
 }

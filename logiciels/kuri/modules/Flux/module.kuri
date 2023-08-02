@@ -1,0 +1,77 @@
+/* Bibliothèque test pour définir des « Flux » afin d'abstraire la lecture et
+ * l'ecriture de données depuis des sources et vers des destinations.
+ */
+
+importe Fondation
+
+Flux :: struct {
+    écris: fonc (&Flux, octet)(rien)
+    lis: fonc (&Flux)(octet)
+    est_valide_pour_lecture: fonc(&Flux)(bool)
+    est_valide_pour_écriture: fonc(&Flux)(bool)
+
+    données: *rien
+    curseur: z32
+}
+
+écris_flux :: fonc (données: *rien, o: octet)
+{
+    imprime("%", o)
+}
+
+lis_flux :: fonc (données: *rien) -> octet
+{
+    retourne 0
+}
+
+rappel_est_valide_pour_lecture :: fonc (flux: &Flux) -> bool
+{
+    c := flux.données comme *chaine
+    retourne flux.curseur < c.taille
+}
+
+rappel_lis :: fonc (flux: &Flux) -> octet
+{
+    c := flux.données comme *chaine
+    r := c.pointeur[flux.curseur]
+    flux.curseur += 1
+    retourne r comme octet
+}
+
+crée_flux_depuis_chaine :: fonc (chn: *chaine) -> Flux
+{
+    f : Flux
+    f.est_valide_pour_lecture = rappel_est_valide_pour_lecture
+    f.lis = rappel_lis
+    f.données = chn
+    retourne f
+}
+
+rappel_est_valide_pour_écriture :: fonc (flux: &Flux) -> bool
+{
+    retourne vrai
+}
+
+rappel_écris :: fonc (flux: &Flux, o: octet)
+{
+    chn : chaine
+    chn.pointeur = *o comme *z8
+    chn.taille = 1
+    imprime("%", chn)
+}
+
+crée_flux_impression :: fonc () -> Flux
+{
+    f : Flux
+    f.est_valide_pour_écriture = rappel_est_valide_pour_écriture
+    f.écris = rappel_écris
+    retourne f
+}
+
+copie :: fonc (flux_entrée: &Flux, flux_sortie: &Flux)
+{
+    tantque flux_entrée.est_valide_pour_lecture(flux_entrée) {
+        o := flux_entrée.lis(flux_entrée)
+        flux_sortie.écris(flux_sortie, o)
+    }
+}
