@@ -47,7 +47,7 @@ MoteurRendu::~MoteurRendu()
     memoire::deloge("Délégué Scène", m_delegue);
 }
 
-void MoteurRendu::camera(JJL::Caméra3D camera)
+void MoteurRendu::camera(JJL::EnveloppeCaméra3D camera)
 {
     m_camera = camera;
 }
