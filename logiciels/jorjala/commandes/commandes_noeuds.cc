@@ -165,7 +165,7 @@ static bool peut_connecter(JJL::PriseEntrée entree, JJL::PriseSortie sortie)
         return false;
     }
 
-    if (entree.donne_noeud_parent() == sortie.donne_noeud_parent()) {
+    if (entree.donne_noeud_parent().poignee() == sortie.donne_noeud_parent().poignee()) {
         return false;
     }
 
@@ -917,9 +917,9 @@ class CommandeDeplaceGraphe final : public CommandeJorjala {
                                           DonneesCommande const &donnees) override
     {
         auto graphe = jorjala.donne_graphe();
-
-        graphe.définis_centre_x(graphe.donne_centre_x() + m_orig_x - donnees.x);
-        graphe.définis_centre_y(graphe.donne_centre_y() + m_orig_y - donnees.y);
+        auto x = graphe.donne_centre_x() + m_orig_x - donnees.x;
+        auto y = graphe.donne_centre_y() + m_orig_y - donnees.y;
+        graphe.définis_position(x, y);
     }
 
     JJL::TypeCurseur type_curseur_modal() override

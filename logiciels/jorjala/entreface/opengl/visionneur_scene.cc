@@ -47,7 +47,7 @@
 
 /* ************************************************************************** */
 
-static int taille_tampon_camera(JJL::Caméra3D camera)
+static int taille_tampon_camera(JJL::EnveloppeCaméra3D camera)
 {
     return camera.donne_hauteur() * camera.donne_largeur() * 4;
 }
@@ -60,8 +60,6 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, JJL::Jorjala &jorjala)
       m_rendu_manipulatrice_ech(nullptr), m_pos_x(0), m_pos_y(0),
       m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 {
-    auto camera = m_jorjala.donne_caméra_3d();
-    camera.définis_type_projection(JJL::TypeProjection::PERSPECTIVE);
 }
 
 VisionneurScene::~VisionneurScene()
