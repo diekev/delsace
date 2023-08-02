@@ -37,6 +37,8 @@ détruit_données_observable :: fonc (observable: *Observable)
     pour observable.observatrices {
         it.supprime_observable(observable)
     }
+
+    déloge(observable.observatrices)
 }
 
 ajoute_observatrice :: fonc (observable: *Observable, observatrice: *Observatrice)
