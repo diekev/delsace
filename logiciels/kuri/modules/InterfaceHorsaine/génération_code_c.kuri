@@ -755,7 +755,16 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
 
     ajoute_au_tampon(enchaineuse, "};\n\n")
 
-    /* Fonction de transtypage. */
+    /* Fonctions de transtypage entre base et dérivée. */
+
+    /* Déclaration du prototype pour toutes les bases. */
+    si type.drapeaux.TYPE_EST_DÉRIVÉ == vrai {
+        type_base_c := trouve_type(système, type.infos)
+        ajoute_au_tampon(enchaineuse, "template <typename TypeDérivé>")
+        ajoute_au_tampon(enchaineuse, "inline TypeDérivé transtype(", type_base_c.nom_type_cpp, " base);\n\n")
+    }
+
+    /* Définition pour toutes les dérivées. */
     si type.type_base {
         type_base_c := trouve_type(système, type.type_base.infos)
         ajoute_au_tampon(enchaineuse, "template <>\n")
@@ -763,11 +772,6 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
         ajoute_au_tampon(enchaineuse, "{\n")
         ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(reinterpret_cast<", type_c.nom_type_c, " *>(base.poignee()));\n")
         ajoute_au_tampon(enchaineuse, "}\n\n")
-    }
-    sinon si type.drapeaux.TYPE_EST_DÉRIVÉ == vrai {
-        type_base_c := trouve_type(système, type.infos)
-        ajoute_au_tampon(enchaineuse, "template <typename TypeDérivé>")
-        ajoute_au_tampon(enchaineuse, "inline TypeDérivé transtype(", type_base_c.nom_type_cpp, " base);\n\n")
     }
 }
 
