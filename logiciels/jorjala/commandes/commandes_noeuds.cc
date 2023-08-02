@@ -220,8 +220,7 @@ class CommandeDessineGrapheComposite final : public CommandeJorjala {
 
 static bool finalise_ajout_noeud(JJL::Jorjala &jorjala, JJL::Graphe &graphe, JJL::Noeud &noeud)
 {
-    noeud.définis_pos_x(graphe.donne_centre_x());
-    noeud.définis_pos_y(graphe.donne_centre_y());
+    noeud.définis_position(graphe.donne_centre_x(), graphe.donne_centre_y());
 
 #if 0
 	if (graphe.connexion_active != nullptr) {
@@ -703,8 +702,7 @@ class CommandeSelectionGraphe final : public CommandeJorjala {
                 return;
             }
 
-            noeud_actif.définis_pos_x(donnees.x - delta_x);
-            noeud_actif.définis_pos_y(donnees.y - delta_y);
+            noeud_actif.définis_position(donnees.x - delta_x, donnees.y - delta_y);
         }
     }
 
