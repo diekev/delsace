@@ -58,7 +58,7 @@ class CommandeZoomCamera3D : public CommandeJorjala {
     {
         auto const delta = donnees.y;
         auto camera = jorjala.donne_caméra_3d();
-        camera.zoom(delta);
+        camera.applique_zoom(delta);
         return EXECUTION_COMMANDE_REUSSIE;
     }
 };
@@ -92,7 +92,7 @@ class CommandeTourneCamera3D : public CommandeJorjala {
         const float dy = (donnees.y - m_vieil_y);
 
         auto camera = jorjala.donne_caméra_3d();
-        camera.tourne(dx, dy);
+        camera.applique_tourne(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;
@@ -133,7 +133,7 @@ class CommandePanCamera3D : public CommandeJorjala {
         const float dy = (donnees.y - m_vieil_y);
 
         auto camera = jorjala.donne_caméra_3d();
-        camera.pan(dx, dy);
+        camera.applique_pan(dx, dy);
 
         m_vieil_x = donnees.x;
         m_vieil_y = donnees.y;

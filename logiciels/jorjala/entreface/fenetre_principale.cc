@@ -316,6 +316,7 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
     auto éditrice = static_cast<BaseEditrice *>(message.donne_destinataire());
     if (éditrice) {
         éditrice->ajourne_état(message.donne_changement());
+        event->setAccepted(true);
     }
 
     return true;

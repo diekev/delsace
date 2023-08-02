@@ -128,7 +128,7 @@ void EditriceGraphe::ajourne_état(JJL::ChangementÉditrice changement)
     for (auto node_ptr : graphe.donne_noeuds()) {
         auto item = new ItemNoeud(
             node_ptr,
-            node_ptr == graphe.donne_noeud_actif(),
+            node_ptr.poignee() == graphe.donne_noeud_actif().poignee(),
             /*graphe->type == type_graphe::DETAIL || graphe->type == type_graphe::CYCLES*/ false);
         m_scene->addItem(item);
 
@@ -183,7 +183,7 @@ void EditriceGraphe::ajourne_état(JJL::ChangementÉditrice changement)
         m_scene->addItem(ligne);
     }
 
-    if (graphe.donne_noeud_pour_information()) {
+    if (graphe.donne_noeud_pour_information().poignee()) {
         affiche_informations_noeud(graphe.donne_noeud_pour_information());
     }
 }

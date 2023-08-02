@@ -384,7 +384,7 @@ EditriceProprietes::EditriceProprietes(JJL::Jorjala &jorjala,
 
 void EditriceProprietes::ajourne_état(JJL::ChangementÉditrice changement)
 {
-    reinitialise_entreface(false);
+    reinitialise_entreface(changement == JJL::ChangementÉditrice::RAFRAICHIS_POUR_ERREUR);
 
     auto graphe = m_jorjala.donne_graphe();
     if (graphe == nullptr) {
@@ -403,10 +403,9 @@ void EditriceProprietes::ajourne_état(JJL::ChangementÉditrice changement)
      * l'entreface de controles crashera le logiciel car nous sommes dans la
      * méthode du bouton ou controle à l'origine de l'évènement, donc nous ne
      * rafraichissement que les avertissements. */
-    // À FAIRE
-    //    if (creation_avert) {
-    //        return;
-    //    }
+    if (changement == JJL::ChangementÉditrice::RAFRAICHIS_POUR_ERREUR) {
+        return;
+    }
 
     danjo::Manipulable manipulable;
     auto repondant = donne_repondant_commande(m_jorjala);

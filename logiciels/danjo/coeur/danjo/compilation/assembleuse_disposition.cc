@@ -569,7 +569,15 @@ void AssembleurDisposition::ajoute_action()
         return;
     }
 
-    auto action = new Action;
+    QWidget *parent_action;
+    if (m_barre_outils) {
+        parent_action = m_barre_outils;
+    }
+    else {
+        parent_action = m_pile_menus.haut();
+    }
+
+    auto action = new Action(parent_action);
     action->installe_repondant(m_donnees.repondant_bouton);
 
     /* À FAIRE : trouve une meilleure manière de procéder. */

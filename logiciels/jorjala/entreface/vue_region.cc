@@ -136,12 +136,14 @@ void VueRegion::ajoute_page_pour_éditrice(JJL::Éditrice éditrice, bool défin
     addTab(qéditrice, éditrice.donne_nom().vers_std_string().c_str());
 
     if (définis_comme_page_courante) {
+        m_région.définis_éditrice_visible(count() - 1);
         setCurrentIndex(count() - 1);
     }
 }
 
-void VueRegion::ajourne_pour_changement_page(int /*index*/)
+void VueRegion::ajourne_pour_changement_page(int index)
 {
+    m_région.définis_éditrice_visible(index);
     ajourne_éditrice_active(JJL::ChangementÉditrice::RAFRAICHIS);
 }
 
