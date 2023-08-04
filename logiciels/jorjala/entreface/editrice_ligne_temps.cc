@@ -186,7 +186,6 @@ void EditriceLigneTemps::setCurrentFrame(int value)
 {
     this->rend_actif();
     m_jorjala.définis_temps_courant(value);
-    m_jorjala.ajourne_pour_nouveau_temps("éditrice temps");
 }
 
 void EditriceLigneTemps::setFPS(double value)
