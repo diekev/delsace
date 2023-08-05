@@ -26,6 +26,7 @@
 
 #include <numeric>
 
+#include "biblinternes/ego/outils.h"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
@@ -332,12 +333,6 @@ static std::unique_ptr<TamponRendu> cree_tampon_volume(Volume *volume,
 
     auto tampon = TamponRendu::crée_unique(source.value());
 
-    ParametresDessin parametres_dessin;
-    parametres_dessin.type_dessin(GL_LINES);
-    parametres_dessin.taille_ligne(1.0);
-
-    tampon->parametres_dessin(parametres_dessin);
-
     tampon->ajoute_texture_3d();
     auto texture = tampon->texture_3d();
 
@@ -436,8 +431,61 @@ static std::unique_ptr<TamponRendu> cree_tampon_volume(Volume *volume,
     int res[3] = {resolution[0], resolution[1], resolution[2]};
 
     texture->remplie(ptr_donnees, res);
-    texture->genere_mip_map(0, 4);
+    // texture->genere_mip_map(0, 4);
     texture->detache();
+
+    return tampon;
+}
+
+static std::unique_ptr<TamponRendu> cree_tampon_volume(JJL::PrimitiveVolume volume,
+                                                       dls::math::vec3f const &view_dir)
+{
+    auto source = crée_sources_glsl_depuis_fichier("nuanceurs/volume.vert",
+                                                   "nuanceurs/volume.frag");
+    if (!source.has_value()) {
+        std::cerr << __func__ << " erreur : les sources sont invalides !\n";
+        return nullptr;
+    }
+
+    auto données_tampon_dense = volume.donne_tampon_dense();
+    if (!données_tampon_dense.donne_données()) {
+        return nullptr;
+    }
+
+    auto tampon = TamponRendu::crée_unique(source.value());
+
+    tampon->ajoute_texture_3d();
+    auto texture = tampon->texture_3d();
+
+    auto etendue = limites3f(dls::math::vec3f(-1.0f, -1.0f, -1.0f),
+                             dls::math::vec3f(1.0f, 1.0f, 1.0f));
+    auto resolution = dls::math::vec3i(données_tampon_dense.donne_dim_x(),
+                                       données_tampon_dense.donne_dim_y(),
+                                       données_tampon_dense.donne_dim_z());
+
+    auto programme = tampon->programme();
+    programme->active();
+    programme->uniforme("volume", texture->code_attache());
+    programme->uniforme("offset", etendue.min.x, etendue.min.y, etendue.min.z);
+    programme->uniforme("dimension", etendue.taille().x, etendue.taille().y, etendue.taille().z);
+    programme->desactive();
+
+    /* crée vertices */
+    slice(view_dir, -1ul, tampon.get(), etendue.min, etendue.max);
+
+    /* crée texture 3d */
+
+    texture->attache();
+    texture->type(GL_FLOAT, GL_RED, GL_RED);
+    texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
+    texture->enveloppe(GL_CLAMP);
+
+    int res[3] = {resolution[0], resolution[1], resolution[2]};
+
+    texture->remplie(données_tampon_dense.donne_données(), res);
+    texture->detache();
+
+    dls::ego::util::GPU_check_errors("Unable to create image texture");
 
     return tampon;
 }
@@ -464,7 +512,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte,
 
     dls::tableau<char> point_utilise(nombre_de_points, 0);
 
-    extrait_données_primitives(nombre_de_prims, est_instance, point_utilise);
+    extrait_données_primitives(contexte, nombre_de_prims, est_instance, point_utilise);
     extrait_données_points(nombre_de_prims, est_instance, point_utilise);
 
     if (!est_instance) {
@@ -530,10 +578,13 @@ void RenduCorps::dessine(StatistiquesRendu &stats, ContexteRendu const &contexte
 
         m_tampon_volume->dessine(contexte);
         glDisable(GL_BLEND);
+
+        dls::ego::util::GPU_check_errors("Unable to create image texture");
     }
 }
 
-void RenduCorps::extrait_données_primitives(int64_t nombre_de_prims,
+void RenduCorps::extrait_données_primitives(ContexteRendu const &contexte,
+                                            int64_t nombre_de_prims,
                                             bool est_instance,
                                             dls::tableau<char> &points_utilisés)
 {
@@ -554,7 +605,15 @@ void RenduCorps::extrait_données_primitives(int64_t nombre_de_prims,
         m_stats.nombre_polylignes = extractrice.donne_nombre_de_courbes();
     }
     else if (m_corps.ne_contient_que_des_primitives_de_type(JJL::TypePrimitive::VOLUME)) {
-        /* À FAIRE : volumes. */
+        for (auto i = 0; i < m_corps.nombre_de_primitives(); i++) {
+            auto prim_volume = JJL::transtype<JJL::PrimitiveVolume>(
+                m_corps.primitive_pour_index(i));
+
+            m_tampon_volume = cree_tampon_volume(prim_volume, contexte.vue());
+            if (m_tampon_volume) {
+                break;
+            }
+        }
     }
     else {
         auto extractrice = ExtractriceCorpsMixte(m_corps);
