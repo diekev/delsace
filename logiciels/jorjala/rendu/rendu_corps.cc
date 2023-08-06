@@ -457,8 +457,9 @@ static std::unique_ptr<TamponRendu> cree_tampon_volume(JJL::PrimitiveVolume volu
     tampon->ajoute_texture_3d();
     auto texture = tampon->texture_3d();
 
-    auto etendue = limites3f(dls::math::vec3f(-1.0f, -1.0f, -1.0f),
-                             dls::math::vec3f(1.0f, 1.0f, 1.0f));
+    auto dimension = volume.donne_dimension_monde();
+    auto etendue = limites3f(convertis_vecteur(dimension.donne_min()),
+                             convertis_vecteur(dimension.donne_max()));
     auto resolution = dls::math::vec3i(données_tampon_dense.donne_dim_x(),
                                        données_tampon_dense.donne_dim_y(),
                                        données_tampon_dense.donne_dim_z());
@@ -484,6 +485,8 @@ static std::unique_ptr<TamponRendu> cree_tampon_volume(JJL::PrimitiveVolume volu
 
     texture->remplie(données_tampon_dense.donne_données(), res);
     texture->detache();
+
+    volume.détruit_tampon_dense(données_tampon_dense);
 
     dls::ego::util::GPU_check_errors("Unable to create image texture");
 
