@@ -55,8 +55,6 @@ static void anime_image(JJL::Jorjala &jorjala)
     auto ticks_courant = compte_tick_ms();
 
     while (jorjala.donne_animation_en_cours()) {
-        jorjala.ajourne_pour_nouveau_temps("thread animation");
-
         ticks_courant += TICKS_PAR_IMAGE;
         auto temps_sommeil = (ticks_courant - compte_tick_ms());
 
@@ -86,21 +84,18 @@ class CommandeChangementTemps final : public CommandeJorjala {
     {
         if (donnees.metadonnee == "va_image_debut") {
             jorjala.définis_temps_courant(jorjala.donne_temps_début());
-
-            jorjala.ajourne_pour_nouveau_temps("controle image début");
         }
         else if (donnees.metadonnee == "joue_en_arriere") {
             // poseidon->animation = true;
             return EXECUTION_COMMANDE_REUSSIE;
         }
         else if (donnees.metadonnee == "pas_en_arriere") {
-            jorjala.définis_temps_courant(jorjala.donne_temps_courant() - 1);
-
-            if (jorjala.donne_temps_courant() < jorjala.donne_temps_début()) {
-                jorjala.définis_temps_courant(jorjala.donne_temps_fin());
+            auto temps = jorjala.donne_temps_courant() - 1;
+            if (temps < jorjala.donne_temps_début()) {
+                temps = jorjala.donne_temps_début();
             }
 
-            jorjala.ajourne_pour_nouveau_temps("controle pas en arrière");
+            jorjala.définis_temps_courant(temps);
         }
         else if (donnees.metadonnee == "arrete_animation") {
             /* Évite d'envoyer des évènements inutiles. */
@@ -113,13 +108,11 @@ class CommandeChangementTemps final : public CommandeJorjala {
             //          memoire::deloge("thread_animation", jorjala.thread_animation);
         }
         else if (donnees.metadonnee == "pas_en_avant") {
-            jorjala.définis_temps_courant(jorjala.donne_temps_courant() + 1);
-
-            if (jorjala.donne_temps_courant() > jorjala.donne_temps_fin()) {
-                jorjala.définis_temps_courant(jorjala.donne_temps_fin());
+            auto temps = jorjala.donne_temps_courant() + 1;
+            if (temps > jorjala.donne_temps_fin()) {
+                temps = jorjala.donne_temps_fin();
             }
-
-            jorjala.ajourne_pour_nouveau_temps("controle pas en avant");
+            jorjala.définis_temps_courant(temps);
         }
         else if (donnees.metadonnee == "joue_en_avant") {
             /* Évite d'envoyer des évènements inutiles. */
@@ -133,8 +126,6 @@ class CommandeChangementTemps final : public CommandeJorjala {
         }
         else if (donnees.metadonnee == "va_image_fin") {
             jorjala.définis_temps_courant(jorjala.donne_temps_fin());
-
-            jorjala.ajourne_pour_nouveau_temps("controle va image fin");
         }
 
         return EXECUTION_COMMANDE_REUSSIE;

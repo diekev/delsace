@@ -41,8 +41,8 @@ void main()
 	float eps = 0.01;
 
 	float den = fonction(UV);
-	float dif = calcul_lumiere(lumiere1, den, eps, 1.0);
-	dif += calcul_lumiere(lumiere2, den, eps, 0.2);
+        // float dif = calcul_lumiere(lumiere1, den, eps, 1.0);
+        // dif += calcul_lumiere(lumiere2, den, eps, 0.2);
 
-	fragment_color = vec4(dif, dif, dif, den);
+        fragment_color = vec4(den, den, den, 1.0f);
 }
