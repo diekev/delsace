@@ -32,6 +32,13 @@ T *kuri_loge(ContexteKuri *ctx_kuri, Args &&...args)
 }
 
 template <typename T>
+T *kuri_loge_tableau(ContexteKuri *ctx_kuri, uint64_t taille)
+{
+    T *ptr = static_cast<T *>(ctx_kuri->loge_memoire(ctx_kuri, sizeof(T) * taille));
+    return ptr;
+}
+
+template <typename T>
 T *kuri_reloge(ContexteKuri *ctx, T *objet, uint64_t nouvelle_taille)
 {
     void *nouveau_pointeur = ctx->reloge_memoire(ctx, objet, sizeof(T), nouvelle_taille);
@@ -47,5 +54,14 @@ void kuri_deloge(ContexteKuri *ctx_kuri, T *ptr)
 
     ptr->~T();
     ctx_kuri->deloge_memoire(ctx_kuri, ptr, sizeof(T));
+}
+
+template <typename T>
+void kuri_déloge_tableau(ContexteKuri *ctx_kuri, T *tableau, uint64_t taille)
+{
+    if (!tableau) {
+        return;
+    }
+    ctx_kuri->deloge_memoire(ctx_kuri, tableau, sizeof(T) * taille);
 }
 #endif
