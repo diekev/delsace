@@ -64,6 +64,7 @@ macro(definis_bibliotheque __statique_ou_partagee__ __nom__ __nom_cible__ __sour
     add_library(${__nom_cible__} ${__statique_ou_partagee__} ${__sources__})
     target_include_directories(${__nom_cible__} PUBLIC ${__inclusions__})
     target_link_libraries(${__nom_cible__} ${__bibliotheques__})
+    target_link_directories(${__nom_cible__} BEFORE PUBLIC ${CHEMIN_INSTALLATION})
     set_target_properties(${__nom_cible__} PROPERTIES OUTPUT_NAME ${__nom__})
     install(TARGETS ${__nom_cible__} DESTINATION ${CHEMIN_INSTALLATION})
 endmacro()
