@@ -264,7 +264,11 @@ static QWidget *génère_interface_disposition(JJL::Jorjala &jorjala,
 void FenetrePrincipale::construit_interface_depuis_jorjala()
 {
     auto interface = m_jorjala.donne_interface();
+    interface.définis_données_utilisateur_interface(this);
     m_régions.clear();
+
+    auto données = donne_données_programme(m_jorjala);
+    données->editrice_active = nullptr;
 
     auto disposition = interface.donne_disposition();
 
@@ -274,7 +278,6 @@ void FenetrePrincipale::construit_interface_depuis_jorjala()
     for (auto région : m_régions) {
         région->ajourne_éditrice_active(JJL::ChangementÉditrice::RAFRAICHIS);
     }
-    // m_jorjala.notifie_observatrices(JJL::ChangementÉditrice::RAFRAICHIS);
 }
 
 bool FenetrePrincipale::demande_permission_avant_de_fermer()
@@ -312,6 +315,14 @@ bool FenetrePrincipale::eventFilter(QObject *object, QEvent *event)
 
     auto event_jjl = static_cast<EvenementJorjala *>(event);
     auto message = event_jjl->message();
+
+    if (message.donne_destinataire() == this) {
+        if (message.donne_changement() == JJL::ChangementÉditrice::RAFRAICHIS) {
+            construit_interface_depuis_jorjala();
+        }
+        event->setAccepted(true);
+        return true;
+    }
 
     auto éditrice = static_cast<BaseEditrice *>(message.donne_destinataire());
     if (éditrice) {
