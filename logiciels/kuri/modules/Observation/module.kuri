@@ -99,8 +99,10 @@ Observatrice :: struct {
 
 détruit_données_observatrice :: fonc (observatrice: *Observatrice)
 {
-    /* Assurons-nous que plus personne ne nous référence. */
-    pour observatrice.observables {
+    /* Assurons-nous que plus personne ne nous référence.
+     * NOTE : supprime_observatrice appelera supprime_observable qui modifiera la taille du tableau... */
+    tantque observatrice.observables.taille != 0 {
+        it := observatrice.observables[0]
         it.supprime_observatrice(observatrice)
     }
 

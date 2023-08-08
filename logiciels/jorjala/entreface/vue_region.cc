@@ -86,6 +86,8 @@ VueRegion::VueRegion(JJL::Jorjala &jorjala, JJL::RégionInterface région, QWidg
         ajoute_page_pour_éditrice(éditrice, false);
     }
 
+    m_région.définis_éditrice_visible(0);
+
     connect(m_bouton_affichage_liste, &QPushButton::clicked, this, &VueRegion::montre_liste);
 
     setTabsClosable(true);
