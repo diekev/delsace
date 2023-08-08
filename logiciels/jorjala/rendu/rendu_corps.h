@@ -75,7 +75,7 @@ class RenduCorps {
     void dessine(StatistiquesRendu &stats, ContexteRendu const &contexte);
 
   private:
-    void extrait_données_primitives(int64_t nombre_de_prims,
+    void extrait_données_primitives(const ContexteRendu &contexte, int64_t nombre_de_prims,
                                     bool est_instance,
                                     dls::tableau<char> &points_utilisés);
     void extrait_données_points(int64_t nombre_de_prims,
