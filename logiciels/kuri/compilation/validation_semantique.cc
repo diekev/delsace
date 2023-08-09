@@ -4780,8 +4780,16 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
             // @concurrence critique
             if (type_union->decl == nullptr) {
                 auto decl_struct = m_tacheronne.assembleuse->cree_structure(expr->lexeme);
+                decl_struct->bloc_parent = expr->bloc_parent;
                 decl_struct->type = type_union;
+                decl_struct->drapeaux |= DECLARATION_FUT_VALIDEE;
                 type_union->decl = decl_struct;
+                /* Partage la déclaration avec la structure pour que la définition de noms
+                 * portables fonctionne peut importer si c'est la structure est utiliser ou
+                 * l'union. */
+                if (type_union->type_structure) {
+                    type_union->type_structure->decl = type_union->decl;
+                }
             }
 
             return CodeRetourValidation::OK;
