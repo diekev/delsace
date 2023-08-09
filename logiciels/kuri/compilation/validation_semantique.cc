@@ -4779,9 +4779,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
 
             // @concurrence critique
             if (type_union->decl == nullptr) {
-                static Lexeme lexeme_union = {
-                    "anonyme", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-                auto decl_struct = m_tacheronne.assembleuse->cree_structure(&lexeme_union);
+                auto decl_struct = m_tacheronne.assembleuse->cree_structure(expr->lexeme);
                 decl_struct->type = type_union;
                 type_union->decl = decl_struct;
             }
