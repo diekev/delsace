@@ -41,6 +41,109 @@ compilation
     espace->tache_terminee(                                                                       \
         GenreTache::genre, m_compilatrice->messagere, envoyer_changement_de_phase)
 
+/* ------------------------------------------------------------------------- */
+/** \name État chargement fichiers
+ * \{ */
+
+void ÉtatChargementFichiers::ajoute_unité_pour_charge_ou_importe(UniteCompilation *unité)
+{
+    if (file_unités_charge_ou_importe == nullptr) {
+        file_unités_charge_ou_importe = unité;
+        return;
+    }
+
+    unité->suivante = file_unités_charge_ou_importe;
+    file_unités_charge_ou_importe->précédente = unité;
+    file_unités_charge_ou_importe = unité;
+}
+
+void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompilation *unité)
+{
+    assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
+    if (unité->précédente) {
+        unité->précédente->suivante = unité->suivante;
+    }
+
+    if (unité->suivante) {
+        unité->suivante->précédente = unité->précédente;
+    }
+
+    if (unité == file_unités_charge_ou_importe) {
+        file_unités_charge_ou_importe = unité->suivante;
+    }
+
+    unité->précédente = nullptr;
+    unité->suivante = nullptr;
+}
+
+void ÉtatChargementFichiers::enfile(UniteCompilation *unité)
+{
+    défile(unité);
+    unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->raison_d_etre())];
+    unité->enfilée_dans->compte += 1;
+    assert(unité->enfilé_dans->compte >= 1);
+}
+
+void ÉtatChargementFichiers::défile(UniteCompilation *unité)
+{
+    if (unité->enfilée_dans) {
+        unité->enfilée_dans->compte -= 1;
+        assert(unité->enfilé_dans->compte >= 0);
+    }
+
+    unité->enfilée_dans = nullptr;
+}
+
+void ÉtatChargementFichiers::ajoute_unité_pour_chargement_fichier(UniteCompilation *unité)
+{
+    assert(unité->enfilée_dans == nullptr);
+    enfile(unité);
+}
+
+void ÉtatChargementFichiers::déplace_unité_pour_chargement_fichier(UniteCompilation *unité)
+{
+    assert(unité->enfilée_dans != nullptr);
+    enfile(unité);
+}
+
+void ÉtatChargementFichiers::supprime_unité_pour_chargement_fichier(UniteCompilation *unité)
+{
+    défile(unité);
+}
+
+bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
+{
+    const int index[3] = {int(RaisonDEtre::CHARGEMENT_FICHIER),
+                          int(RaisonDEtre::LEXAGE_FICHIER),
+                          int(RaisonDEtre::PARSAGE_FICHIER)};
+
+    /* Vérifie s'il n'y a rien à charger/lexer/parser. */
+    POUR (index) {
+        if (nombre_d_unités_pour_raison[it].compte != 0) {
+            return false;
+        }
+    }
+
+    /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer. */
+    return file_unités_charge_ou_importe == nullptr;
+}
+
+void ÉtatChargementFichiers::imprime_état() const
+{
+    std::cerr << "--------------------------------------------\n";
+    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::CHARGEMENT_FICHIER)].compte
+              << " fichier(s) à charger\n";
+    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::LEXAGE_FICHIER)].compte
+              << " fichier(s) à lexer\n";
+    std::cerr << nombre_d_unités_pour_raison[int(RaisonDEtre::PARSAGE_FICHIER)].compte
+              << " fichier(s) à parser\n";
+
+    std::cerr << "File d'attente chargement est vide : "
+              << (file_unités_charge_ou_importe == nullptr) << '\n';
+}
+
+/** \} */
+
 GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
       m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
@@ -609,12 +712,13 @@ UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
     return unite;
 }
 
-void GestionnaireCode::cree_unite_pour_fichier(EspaceDeTravail *espace,
-                                               Fichier *fichier,
-                                               RaisonDEtre raison)
+UniteCompilation *GestionnaireCode::cree_unite_pour_fichier(EspaceDeTravail *espace,
+                                                            Fichier *fichier,
+                                                            RaisonDEtre raison)
 {
     auto unite = cree_unite(espace, raison, true);
     unite->fichier = fichier;
+    return unite;
 }
 
 UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espace,
@@ -631,21 +735,24 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espac
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
     TACHE_AJOUTEE(CHARGEMENT);
-    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
+    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
+    m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_charge);
     TACHE_AJOUTEE(LEXAGE);
-    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
+    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
+    m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
     assert(fichier->fut_lexe);
     TACHE_AJOUTEE(PARSAGE);
-    cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
+    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
+    m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
@@ -687,6 +794,11 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *esp
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
 {
     if (!type->requiers_création_fonction_initialisation()) {
+        return;
+    }
+
+    if (m_validation_doit_attendre_sur_lexage) {
+        m_fonctions_init_type_requises.ajoute({espace, type});
         return;
     }
 
@@ -847,6 +959,36 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     }
 }
 
+void GestionnaireCode::imprime_état_parsage() const
+{
+    m_état_chargement_fichiers.imprime_état();
+}
+
+bool GestionnaireCode::tous_les_fichiers_à_parser_le_sont() const
+{
+    return m_état_chargement_fichiers.tous_les_fichiers_à_parser_le_sont();
+}
+
+void GestionnaireCode::flush_noeuds_à_typer()
+{
+    /* Désactive ceci directement car requiers_initialisation_type y dépends. */
+    m_validation_doit_attendre_sur_lexage = false;
+
+    POUR (m_fonctions_init_type_requises) {
+        requiers_initialisation_type(it.espace, it.type);
+    }
+    m_fonctions_init_type_requises.efface();
+
+    POUR (m_noeuds_à_valider) {
+        if (it.noeud->unite) {
+            continue;
+        }
+
+        requiers_typage(it.espace, it.noeud);
+    }
+    m_noeuds_à_valider.efface();
+}
+
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
 {
     assert(attente.est_valide());
@@ -884,6 +1026,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
+    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
     ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(LEXAGE);
 }
@@ -898,6 +1041,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
     unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
+    m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
     ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(PARSAGE);
 }
@@ -909,15 +1053,29 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
     auto espace = unite->espace;
     TACHE_TERMINEE(PARSAGE, true);
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
+    m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unite);
 
     POUR (unite->fichier->noeuds_à_valider) {
-        /* Nous avons sans doute déjà requis le typage de ce noeud.
-         * À FAIRE : attend que tous les fichiers connus sont syntaxé avant de requerir un
-         * quelconque typage. */
+        /* Nous avons sans doute déjà requis le typage de ce noeud. */
         if (it->unite) {
             continue;
         }
-        requiers_typage(espace, it);
+
+        if (it->est_charge() || it->est_importe()) {
+            requiers_typage(espace, it);
+            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(it->unite);
+        }
+        else {
+            m_noeuds_à_valider.ajoute({espace, it});
+        }
+    }
+
+    /* Il est possible que tous les noeuds de charge et d'import furent géré alors que des fichiers
+     * qui ne chargent ni n'importe quoi que ce soit sont encore en parsage. Vérifions si plus rien
+     * n'est à charger ici aussi et pas uniquement lors de la notification de typage terminé pour
+     * les chargements/imports. */
+    if (tous_les_fichiers_à_parser_le_sont()) {
+        flush_noeuds_à_typer();
     }
 }
 
@@ -1080,6 +1238,14 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     });
 
     auto espace = unite->espace;
+
+    if (unite->noeud->est_charge() || unite->noeud->est_importe()) {
+        m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unite);
+
+        if (tous_les_fichiers_à_parser_le_sont()) {
+            flush_noeuds_à_typer();
+        }
+    }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
     auto graphe = m_compilatrice->graphe_dependance.verrou_ecriture();
@@ -1384,6 +1550,10 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
     if (m_compilatrice->possede_erreur()) {
         return true;
+    }
+
+    if (m_validation_doit_attendre_sur_lexage) {
+        return false;
     }
 
     auto espace_errone_existe = false;
