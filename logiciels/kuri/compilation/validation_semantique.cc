@@ -132,6 +132,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     NoeudDirectiveExecute *directive)
 {
     auto assembleuse = m_tacheronne.assembleuse;
+    assert(assembleuse->bloc_courant() == nullptr);
 
     // crée une fonction pour l'exécution
     auto decl_entete = assembleuse->cree_entete_fonction(directive->lexeme);
@@ -193,6 +194,22 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = assembleuse->cree_retourne(&lexeme_retourne);
 
+#ifndef NDEBUG
+    /* Dépile manuellement en mode débogage afin de vérifier que les assembleuses sont proprement
+     * réinitialisées. */
+
+    /* Bloc corps. */
+    assembleuse->depile_bloc();
+    /* Bloc paramètres. */
+    assembleuse->depile_bloc();
+    /* Bloc constantes. */
+    assembleuse->depile_bloc();
+    /* Bloc parent. */
+    assembleuse->depile_bloc();
+#else
+    assembleuse->depile_tout();
+#endif
+
     simplifie_arbre(espace, assembleuse, m_compilatrice.typeuse, expression);
 
     if (type_expression != m_compilatrice.typeuse[TypeBase::RIEN]) {
@@ -210,13 +227,6 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     }
 
     decl_corps->bloc->ajoute_expression(expr_ret);
-
-    /* Bloc corps. */
-    assembleuse->depile_bloc();
-    /* Bloc paramètres. */
-    assembleuse->depile_bloc();
-    /* Bloc constantes. */
-    assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
