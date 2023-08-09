@@ -227,6 +227,12 @@ ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
         retourne
     }
 
+    /* À FAIRE(langage) : stocke l'adresse du module Kuri pour comparer plus rapidement, ou utilise une autre manière. */
+    si compilatrice_nom_module(module) == "Kuri" {
+        /* Ignore le module implicite. */
+        retourne
+    }
+
     ensemble_ajoute(*liste.modules, module)
 }
 
