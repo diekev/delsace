@@ -1950,6 +1950,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 
     corps->bloc = assembleuse->cree_bloc_seul(&lexeme_sentinel, entete->bloc_parametres);
 
+    assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
 
     static Lexeme lexeme_decl = {};
@@ -2112,6 +2113,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         }
     }
 
+    assembleuse->depile_bloc();
     simplifie_arbre(espace, assembleuse, typeuse, entete);
     type->assigne_fonction_init(entete);
     corps->drapeaux |= DECLARATION_FUT_VALIDEE;

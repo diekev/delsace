@@ -2294,7 +2294,9 @@ void simplifie_arbre(EspaceDeTravail *espace,
                      NoeudExpression *arbre)
 {
     auto simplificatrice = Simplificatrice(espace, assem, typeuse);
+    assert(assem->bloc_courant() == nullptr);
     simplificatrice.simplifie(arbre);
+    assert(assem->bloc_courant() == nullptr);
 }
 
 /** \} */
