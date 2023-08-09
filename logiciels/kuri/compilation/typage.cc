@@ -1166,11 +1166,11 @@ NoeudDeclaration *Typeuse::decl_pour_info_type(InfoType const *info_type)
 /* ************************************************************************** */
 
 static void chaine_type_structure(Enchaineuse &enchaineuse,
-                                  const TypeStructure *type_structure,
+                                  const TypeCompose *type_structure,
+                                  const NoeudStruct *decl,
                                   bool ajoute_nom_paramètres_polymorphiques)
 {
     enchaineuse << type_structure->nom->nom;
-    auto decl = type_structure->decl;
     const char *virgule = "(";
     if (decl->est_monomorphisation) {
         POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
@@ -1333,15 +1333,15 @@ static void chaine_type(Enchaineuse &enchaineuse,
         }
         case GenreType::UNION:
         {
-            auto type_structure = static_cast<TypeStructure const *>(type);
+            auto type_union = static_cast<TypeUnion const *>(type);
 
-            if (!type_structure->nom || !type_structure->decl) {
+            if (!type_union->nom || !type_union->decl) {
                 enchaineuse.ajoute("union.anonyme");
                 return;
             }
 
             chaine_type_structure(
-                enchaineuse, type_structure, ajoute_nom_paramètres_polymorphiques);
+                enchaineuse, type_union, type_union->decl, ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::STRUCTURE:
@@ -1353,8 +1353,10 @@ static void chaine_type(Enchaineuse &enchaineuse,
                 return;
             }
 
-            chaine_type_structure(
-                enchaineuse, type_structure, ajoute_nom_paramètres_polymorphiques);
+            chaine_type_structure(enchaineuse,
+                                  type_structure,
+                                  type_structure->decl,
+                                  ajoute_nom_paramètres_polymorphiques);
             return;
         }
         case GenreType::TABLEAU_DYNAMIQUE:

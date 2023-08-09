@@ -470,7 +470,8 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
         if (decl && !decl->unite) {
             // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
             // sémantique.
-            if (!(type->est_union() && type->comme_union()->est_anonyme)) {
+            if (!(type->est_union() && type->comme_union()->est_anonyme) &&
+                !(type->est_structure() && type->comme_structure()->union_originelle)) {
                 gestionnaire.requiers_typage(espace, decl);
             }
         }
