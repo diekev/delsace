@@ -131,16 +131,18 @@ static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     NoeudDirectiveExecute *directive)
 {
+    auto assembleuse = m_tacheronne.assembleuse;
+
     // crée une fonction pour l'exécution
-    auto decl_entete = m_tacheronne.assembleuse->cree_entete_fonction(directive->lexeme);
+    auto decl_entete = assembleuse->cree_entete_fonction(directive->lexeme);
     auto decl_corps = decl_entete->corps;
 
     decl_entete->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
-    m_tacheronne.assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
-    decl_entete->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme);
 
     decl_entete->est_metaprogramme = true;
 
@@ -157,8 +159,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
         auto tuple = type_expression->comme_tuple();
 
         POUR (tuple->membres) {
-            auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-                directive->lexeme);
+            auto decl_sortie = assembleuse->cree_declaration_variable(directive->lexeme);
             decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
                 "__ret0");
             decl_sortie->type = it.type;
@@ -166,21 +167,19 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
             decl_entete->params_sorties.ajoute(decl_sortie);
         }
 
-        decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-            directive->lexeme);
+        decl_entete->param_sortie = assembleuse->cree_declaration_variable(directive->lexeme);
         decl_entete->param_sortie->ident =
             m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
         decl_entete->param_sortie->type = type_expression;
     }
     else {
-        auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(directive->lexeme);
+        auto decl_sortie = assembleuse->cree_declaration_variable(directive->lexeme);
         decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
         decl_sortie->type = type_expression;
         decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
         decl_entete->params_sorties.ajoute(decl_sortie);
-        decl_entete->param_sortie = m_tacheronne.assembleuse->cree_declaration_variable(
-            directive->lexeme);
+        decl_entete->param_sortie = assembleuse->cree_declaration_variable(directive->lexeme);
         decl_entete->param_sortie->type = type_expression;
     }
 
@@ -189,12 +188,12 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_tacheronne.assembleuse->empile_bloc(directive->lexeme);
+    decl_corps->bloc = assembleuse->empile_bloc(directive->lexeme);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
-    auto expr_ret = m_tacheronne.assembleuse->cree_retourne(&lexeme_retourne);
+    auto expr_ret = assembleuse->cree_retourne(&lexeme_retourne);
 
-    simplifie_arbre(espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, expression);
+    simplifie_arbre(espace, assembleuse, m_compilatrice.typeuse, expression);
 
     if (type_expression != m_compilatrice.typeuse[TypeBase::RIEN]) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
@@ -213,11 +212,11 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_corps->bloc->ajoute_expression(expr_ret);
 
     /* Bloc corps. */
-    m_tacheronne.assembleuse->depile_bloc();
+    assembleuse->depile_bloc();
     /* Bloc paramètres. */
-    m_tacheronne.assembleuse->depile_bloc();
+    assembleuse->depile_bloc();
     /* Bloc constantes. */
-    m_tacheronne.assembleuse->depile_bloc();
+    assembleuse->depile_bloc();
 
     decl_entete->drapeaux |= DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DECLARATION_FUT_VALIDEE;
