@@ -34,6 +34,72 @@ struct DonnneesResolutionDependances {
     }
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name État chargement fichiers
+ * \{ */
+
+/* Cette structure tient trace du nombre d'unités pour une certaine raison d'être relative à un
+ * chargement de fichier. */
+struct ÉtatFileUnitésChargementFile {
+    int compte = 0;
+};
+
+/**
+ * Cette structure tient trace de l'état de chargement des fichiers (du chargement depuis le disque
+ * jusqu'au parsage).
+ *
+ * Nous ne voulons pas envoyer vers la validation sémantique les unités de compilation tant que
+ * tous les fichiers ne furent pas parsés et chargés afin d'éviter des fausses erreurs de
+ * compilation car des unités attendèrent trop longtemps sur quelque chose qui se trouve dans un
+ * fichier non encore traité.
+ *
+ * Pour l'instant, nous ne bloquons les unités que lors du chargement initial conséquent au
+ * démarrage de la compilation depuis un fichier : nous ne bloquons pas les unités si un
+ * métaprogramme ajoute du code à la compilation.
+ *
+ * Ceci tient trace de deux types d'unités :
+ * - les unités pour le chargement/lexage/parsage,
+ * - les unités pour les instruction « charge » ou « importe ».
+ *
+ * Nous bloquons toutes les autres unités tant que toutes les unités sus-citées ne furent pas
+ * traitées.
+ */
+struct ÉtatChargementFichiers {
+  private:
+    /* Toutes les unités de compilation pour les instructions charge/importe sont ici.
+     */
+    UniteCompilation *file_unités_charge_ou_importe = nullptr;
+
+    /* Le nombre d'unité pour chaque raison d'être relative à des fichiers. Nous avons un nombre
+     * pour chaque raison d'être mais seules les raisons de chargement/lexage/syntaxage sont
+     * utilisées. */
+    ÉtatFileUnitésChargementFile nombre_d_unités_pour_raison[NOMBRE_DE_RAISON_D_ETRE] = {0};
+
+  public:
+    /* Unités correspondants à des « charge » ou « importe ». */
+    void ajoute_unité_pour_charge_ou_importe(UniteCompilation *unité);
+    void supprime_unité_pour_charge_ou_importe(UniteCompilation *unité);
+
+    /* Unités correspondants à des tâches de chargement/lexage/parsage. */
+    void ajoute_unité_pour_chargement_fichier(UniteCompilation *unité);
+
+    /* Quand un chargement ou un lexage est fini, déplace l'unité dans la file suivante. */
+    void déplace_unité_pour_chargement_fichier(UniteCompilation *unité);
+
+    /* Quand un parsage est fini, supprime l'unité de la file de parsage. */
+    void supprime_unité_pour_chargement_fichier(UniteCompilation *unité);
+
+    bool tous_les_fichiers_à_parser_le_sont() const;
+
+    void imprime_état() const;
+
+  private:
+    void enfile(UniteCompilation *unité);
+    void défile(UniteCompilation *unité);
+};
+
+/** \} */
+
 /* Le GestionnaireCode a pour tâches de gérer la compilation des programmes. Il crée les unités de
  * compilation et veille à ce qu'elles ne progressent pas dans la compilation tant qu'une de leurs
  * attentes n'est pas satisfaite, le gestionnaire étant notifié si une unité a fini son étape
@@ -87,6 +153,26 @@ class GestionnaireCode {
     kuri::tableau<NoeudDeclarationEnteteFonction *> m_fonctions_parsees{};
 
     mutable StatistiquesGestion stats{};
+
+    ÉtatChargementFichiers m_état_chargement_fichiers{};
+
+    /* Tous les noeuds autres que les noeuds de charge ou importe d'un fichier. Ces noeuds seront
+     * ajoutés à la compilation lorsque les fichiers seront tous parsés. */
+    struct InfoNoeudÀValider {
+        EspaceDeTravail *espace = nullptr;
+        NoeudExpression *noeud = nullptr;
+    };
+    kuri::tableau<InfoNoeudÀValider> m_noeuds_à_valider{};
+
+    /* Toutes les fonctions d'initialisation de type créées avant que tous les fichiers ne soient
+     * parsés; elles seront ajoutées à la compilation lorsque les fichiers le seront. */
+    struct InfoPourFonctionInit {
+        EspaceDeTravail *espace = nullptr;
+        Type *type = nullptr;
+    };
+    kuri::tableau<InfoPourFonctionInit> m_fonctions_init_type_requises{};
+
+    bool m_validation_doit_attendre_sur_lexage = true;
 
     /* Unités dont la dernière tâche a été terminé. */
     std::mutex m_mutex_unités_terminées{};
@@ -157,7 +243,9 @@ class GestionnaireCode {
 
   private:
     UniteCompilation *cree_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
-    void cree_unite_pour_fichier(EspaceDeTravail *espace, Fichier *fichier, RaisonDEtre raison);
+    UniteCompilation *cree_unite_pour_fichier(EspaceDeTravail *espace,
+                                              Fichier *fichier,
+                                              RaisonDEtre raison);
     UniteCompilation *cree_unite_pour_noeud(EspaceDeTravail *espace,
                                             NoeudExpression *noeud,
                                             RaisonDEtre raison,
@@ -254,6 +342,12 @@ class GestionnaireCode {
     void flush_metaprogrammes_en_attente_de_cree_contexte();
 
     void ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente);
+
+    void imprime_état_parsage() const;
+
+    bool tous_les_fichiers_à_parser_le_sont() const;
+
+    void flush_noeuds_à_typer();
 
     void gère_choses_terminées();
 

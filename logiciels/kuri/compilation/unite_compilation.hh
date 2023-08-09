@@ -37,6 +37,8 @@ enum class RaisonDEtre : unsigned char {
 #undef ENUMERE_RAISON_D_ETRE_EX
 };
 
+#define NOMBRE_DE_RAISON_D_ETRE (int(RaisonDEtre::GENERATION_CODE_MACHINE) + 1)
+
 const char *chaine_raison_d_etre(RaisonDEtre raison_d_etre);
 std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 
@@ -51,6 +53,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
     O(COMPILATION_TERMINÉE)
 
 #undef ENREGISTRE_HISTORIQUE
+
+struct ÉtatFileUnitésChargementFile;
 
 struct UniteCompilation {
     enum class État : uint8_t {
@@ -75,6 +79,11 @@ struct UniteCompilation {
         /* La fonction qui a ajouté cet enregistrement. */
         const char *fonction{};
     };
+
+    /* Pour l'état de chargement des fichiers. */
+    UniteCompilation *suivante = nullptr;
+    UniteCompilation *précédente = nullptr;
+    ÉtatFileUnitésChargementFile *enfilée_dans = nullptr;
 
   private:
     État état = État::EN_COURS_DE_COMPILATION;
