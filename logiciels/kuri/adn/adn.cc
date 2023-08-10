@@ -3,6 +3,8 @@
 
 #include "adn.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/conditions.h"
 
 const IdentifiantADN &Type::accede_nom() const

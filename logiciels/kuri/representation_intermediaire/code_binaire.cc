@@ -886,10 +886,12 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
 {
     POUR (fonctions) {
         /* Évite de recréer le code binaire. */
-        if (it->chunk.code || it->donnees_externe.ptr_fonction != nullptr) {
+        if (it->données_exécution) {
             continue;
         }
 
+        it->données_exécution = memoire::loge<DonnéesExécutionFonction>(
+            "DonnéesExécutionFonction");
         fonction_courante = it->decl;
 
         if (!genere_code_pour_fonction(it)) {
@@ -902,9 +904,11 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
 
 bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 {
+    auto données_exécution = fonction->données_exécution;
+
     /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
     if (fonction->decl && fonction->decl->est_externe) {
-        auto &donnees_externe = fonction->donnees_externe;
+        auto &donnees_externe = données_exécution->donnees_externe;
         auto decl = fonction->decl;
 
         if (decl->possede_drapeau(COMPILATRICE)) {
@@ -963,7 +967,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         return true;
     }
 
-    auto &chunk = fonction->chunk;
+    auto &chunk = données_exécution->chunk;
 
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
@@ -1891,4 +1895,18 @@ int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
 ContexteGenerationCodeBinaire ConvertisseuseRI::contexte() const
 {
     return {espace, fonction_courante};
+}
+
+int64_t DonnéesExécutionFonction::mémoire_utilisée() const
+{
+    int64_t résultat = 0;
+    résultat += chunk.capacite;
+    résultat += chunk.locales.taille_memoire();
+    résultat += chunk.decalages_labels.taille_memoire();
+
+    if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
+        résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);
+    }
+
+    return résultat;
 }
