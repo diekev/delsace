@@ -7,18 +7,22 @@
 
 #include "compilation/transformation_type.hh"
 
-#include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
 
 struct AssembleuseArbre;
+struct Compilatrice;
 struct EspaceDeTravail;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
+struct NoeudExpressionReference;
+struct Type;
 struct Typeuse;
 
 namespace kuri {
 struct chaine;
-}
+struct chaine_statique;
+}  // namespace kuri
 
 enum DrapeauxNoeud : uint32_t {
     AUCUN = 0,
