@@ -3,10 +3,14 @@
 
 #include "outils_dependants_sur_lexemes.hh"
 
+#include <iostream>
+
 #include "biblinternes/langage/erreur.hh"
 
 #include "parsage/modules.hh"
 #include "parsage/site_source.hh"
+
+#include "structures/enchaineuse.hh"
 
 void imprime_erreur(SiteSource site, kuri::chaine message)
 {
