@@ -5,7 +5,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
-#include <iostream>
+#include <cstdint>
+#include <iosfwd>
 #include <variant>
 
 struct Compilatrice;

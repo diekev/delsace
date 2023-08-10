@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 #include "structures/chaine.hh"
 #include "structures/enchaineuse.hh"

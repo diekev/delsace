@@ -4,6 +4,7 @@
 /* Fichier de génération du code pour l'IPA de la Compilatrice. */
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/moultfilage/synchrone.hh"
 

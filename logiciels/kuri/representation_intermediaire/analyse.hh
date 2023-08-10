@@ -11,7 +11,6 @@
 
 struct Atome;
 struct AtomeFonction;
-struct ConstructriceRI;
 struct EspaceDeTravail;
 struct Instruction;
 
