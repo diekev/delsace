@@ -5,19 +5,17 @@
 
 #include "biblinternes/moultfilage/synchrone.hh"
 
-#include "structures/table_hachage.hh"
-
-#include "representation_intermediaire/instructions.hh"
-
-#include "parsage/modules.hh"
-
 #include "erreur.h"
 #include "messagere.hh"
 #include "options.hh"
 #include "tache.hh"
 
+struct Compilatrice;
+struct MetaProgramme;
+struct NoeudDeclarationEnteteFonction;
 struct Programme;
 struct SiteSource;
+struct UniteCompilation;
 
 /* IPA :
  * - crée_un_espace_de_travail
