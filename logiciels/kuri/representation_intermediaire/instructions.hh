@@ -6,10 +6,12 @@
 #include <utility>
 
 #include "biblinternes/outils/definitions.h"
-#include "structures/ensemble.hh"
 
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
+
+#include "structures/chaine_statique.hh"
+#include "structures/ensemble.hh"
 
 #include "code_binaire.hh"
 

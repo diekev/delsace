@@ -5,8 +5,6 @@
 
 #include "instructions.hh"
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "arbre_syntaxique/noeud_code.hh" /* Pour Annotation */
 
 #include "structures/tablet.hh"
