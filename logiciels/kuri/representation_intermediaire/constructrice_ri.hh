@@ -14,13 +14,8 @@
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
-struct NoeudDirectiveExecute;
-struct NoeudDiscr;
 struct NoeudExpression;
-struct NoeudExpressionAppel;
 struct NoeudExpressionMembre;
-struct NoeudPour;
-struct NoeudStruct;
 struct NoeudInstructionTente;
 struct TypeEnum;
 struct TypeTableauFixe;

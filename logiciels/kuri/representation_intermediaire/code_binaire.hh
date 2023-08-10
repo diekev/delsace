@@ -23,26 +23,15 @@ struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
 struct AtomeValeurConstante;
-struct Compilatrice;
 struct DonneesConstantesExecutions;
-struct DonneesExecution;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
 struct InstructionAppel;
 struct MetaProgramme;
-struct NoeudBloc;
-struct NoeudDeclaration;
-struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
-struct NoeudDiscr;
 struct NoeudExpression;
-struct NoeudExpressionAppel;
-struct NoeudInstructionTente;
-struct NoeudPour;
-struct NoeudStruct;
 struct Type;
-struct TypeFonction;
 
 struct ContexteGenerationCodeBinaire {
     EspaceDeTravail *espace = nullptr;
