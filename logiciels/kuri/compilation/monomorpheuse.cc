@@ -3,6 +3,8 @@
 
 #include "monomorpheuse.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/garde_portee.h"
 
 #include "arbre_syntaxique/noeud_expression.hh"

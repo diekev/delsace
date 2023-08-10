@@ -25,6 +25,7 @@
 #include "json.hh"
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/langage/tampon_source.hh"

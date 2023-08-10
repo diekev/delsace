@@ -2,6 +2,7 @@
  * The Original Code is Copyright (C) 2021 Kévin Dietrich. */
 
 #include <fstream>
+#include <iostream>
 #include <sys/inotify.h>
 #include <thread>
 #include <unistd.h>

@@ -6,7 +6,6 @@
 #include "structures/ensemblon.hh"
 #include "structures/tablet.hh"
 
-struct EspaceDeTravail;
 struct Fichier;
 struct IdentifiantCode;
 struct Module;

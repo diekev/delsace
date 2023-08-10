@@ -13,7 +13,6 @@ struct Fichier;
 struct IdentifiantCode;
 struct Message;
 struct MetaProgramme;
-struct NoeudCode;
 struct NoeudDeclaration;
 struct NoeudExpression;
 struct NoeudExpressionReference;

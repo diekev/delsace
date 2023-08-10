@@ -4,6 +4,7 @@
 #include "espace_de_travail.hh"
 
 #include <fstream>
+#include <iostream>
 
 #include "parsage/identifiant.hh"
 #include "parsage/lexeuse.hh"

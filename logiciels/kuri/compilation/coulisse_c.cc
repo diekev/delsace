@@ -4,6 +4,7 @@
 #include "coulisse_c.hh"
 
 #include <fstream>
+#include <iostream>
 #include <set>
 
 #ifndef _MSC_VER

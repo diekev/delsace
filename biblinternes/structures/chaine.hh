@@ -30,8 +30,8 @@
 #include "vue_chaine_compacte.hh"
 
 #include <cstring>
+#include <iosfwd>
 #include <string>
-#include <iostream>
 
 namespace dls {
 

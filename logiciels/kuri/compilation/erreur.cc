@@ -3,6 +3,8 @@
 
 #include "erreur.h"
 
+#include <iostream>
+
 #include "biblinternes/langage/erreur.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/numerique.hh"

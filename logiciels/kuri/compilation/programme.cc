@@ -3,6 +3,8 @@
 
 #include "programme.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/noeud_expression.hh"

@@ -12,11 +12,9 @@
 
 struct AtomeFonction;
 struct Compilatrice;
+struct Erreur;
 struct MetaProgramme;
 struct Statistiques;
-struct TypeFonction;
-
-struct Erreur;
 
 struct FrameAppel {
     AtomeFonction *fonction = nullptr;

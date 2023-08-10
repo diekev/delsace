@@ -3,6 +3,8 @@
 
 #include "graphe_dependance.hh"
 
+#include <iostream>
+
 #include "representation_intermediaire/instructions.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"

@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <iostream>
+#include <cstdint>
+#include <iosfwd>
 #include <variant>
 
 #include "attente.hh"

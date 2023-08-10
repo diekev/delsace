@@ -3,6 +3,7 @@
 
 #include "environnement.hh"
 
+#include <iostream>
 #include <set>
 
 #include "structures/chemin_systeme.hh"

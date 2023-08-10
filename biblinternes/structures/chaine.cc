@@ -24,6 +24,8 @@
 
 #include "chaine.hh"
 
+#include <iostream>
+
 namespace dls {
 
 chaine::chaine(char c)

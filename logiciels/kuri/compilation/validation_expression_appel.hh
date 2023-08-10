@@ -26,8 +26,6 @@ struct NoeudExpression;
 struct NoeudExpressionAppel;
 struct Type;
 
-enum class CodeRetourValidation : int;
-
 struct IdentifiantEtExpression {
     IdentifiantCode *ident;
     NoeudExpression *expr_ident;

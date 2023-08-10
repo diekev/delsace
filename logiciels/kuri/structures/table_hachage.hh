@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "biblinternes/outils/definitions.h"
 
 #include "structures/tableau.hh"

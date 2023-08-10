@@ -24,6 +24,8 @@
 
 #include "tableau_donnees.hh"
 
+#include <iostream>
+
 ChaineUTF8::ChaineUTF8(const char *chn)
 	: chaine(chn)
 {

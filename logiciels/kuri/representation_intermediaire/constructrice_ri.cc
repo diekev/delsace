@@ -4,6 +4,7 @@
 #include "constructrice_ri.hh"
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/assert.hh"

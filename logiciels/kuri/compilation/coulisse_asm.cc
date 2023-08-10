@@ -3,6 +3,8 @@
 
 #include "coulisse_asm.hh"
 
+#include <iostream>
+
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 
