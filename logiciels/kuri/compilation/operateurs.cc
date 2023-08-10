@@ -6,8 +6,10 @@
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
-#include "espace_de_travail.hh"
 #include "statistiques/statistiques.hh"
+
+#include "espace_de_travail.hh"
+#include "typage.hh"
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
 

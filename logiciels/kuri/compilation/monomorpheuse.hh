@@ -5,6 +5,8 @@
 
 #include "monomorphisations.hh"
 
+#include <optional>
+
 #include "parsage/lexemes.hh"
 
 #include "structures/chaine.hh"

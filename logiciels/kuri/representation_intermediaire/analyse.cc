@@ -3,6 +3,8 @@
 
 #include "analyse.hh"
 
+#include <iostream>
+
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/compilatrice.hh"

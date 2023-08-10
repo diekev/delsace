@@ -3,6 +3,8 @@
 
 #include "coulisse_llvm.hh"
 
+#include <iostream>
+
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wclass-memaccess"
