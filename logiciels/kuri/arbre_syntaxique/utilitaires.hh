@@ -12,7 +12,6 @@
 
 struct AssembleuseArbre;
 struct EspaceDeTravail;
-struct NoeudBloc;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct Typeuse;

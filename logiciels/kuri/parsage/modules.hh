@@ -19,15 +19,11 @@
 
 #include "lexemes.hh"
 
-struct Compilatrice;
-struct EspaceDeTravail;
 struct Enchaineuse;
 struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
 struct NoeudBloc;
-struct NoeudDeclaration;
-struct NoeudDeclarationCorpsFonction;
 struct NoeudDirectivePreExecutable;
 struct NoeudExpression;
 struct SiteSource;
