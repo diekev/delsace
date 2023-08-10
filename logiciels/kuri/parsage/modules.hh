@@ -7,13 +7,11 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/tableau_page.hh"
-#include "biblinternes/structures/tuples.hh"
 
 #include <mutex>
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
-#include "structures/enchaineuse.hh"
 #include "structures/ensemblon.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"

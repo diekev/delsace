@@ -4,6 +4,7 @@
 #include "machine_virtuelle.hh"
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
 

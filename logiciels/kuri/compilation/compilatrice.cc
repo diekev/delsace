@@ -3,6 +3,7 @@
 
 #include "compilatrice.hh"
 
+#include <iostream>
 #include <stdarg.h>
 
 #include "biblinternes/flux/outils.h"
