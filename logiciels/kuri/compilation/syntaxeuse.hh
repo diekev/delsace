@@ -11,12 +11,9 @@ struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
-struct NoeudDeclarationVariable;
 struct NoeudExpression;
-struct NoeudExpressionReference;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
-struct NoeudStruct;
 struct Tacheronne;
 struct UniteCompilation;
 

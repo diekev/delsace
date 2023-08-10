@@ -3,6 +3,8 @@
 
 #include "gestionnaire_code.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 

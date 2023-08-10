@@ -3,46 +3,46 @@
 
 #pragma once
 
-#include <iostream>
+#include <ffi.h>  // pour ffi_type qui est un typedef
+#include <iosfwd>
 
-#include <ffi.h>
-
-#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "compilation/operateurs.hh"
 
-#include "structures/chaine_statique.hh"
-#include "structures/pile.hh"
-#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
-#include "structures/tablet.hh"
+
+// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
+// durée de vie de celles-ci ne fonctionne pas
+//           il existe des superposition partiells entre certaines variables
+//           lors de la dernière investigation, il semberait que les instructions de retours au
+//           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
+//           optimisation et alloue de l'espace pour toutes les variables au début de chaque
+//           fonction.
+#undef OPTIMISE_ALLOCS
+
+#ifdef OPTIMISE_ALLOCS
+#    include "structures/pile.hh"
+#endif
 
 struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
 struct AtomeValeurConstante;
-struct Compilatrice;
 struct DonneesConstantesExecutions;
-struct DonneesExecution;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
 struct InstructionAppel;
 struct MetaProgramme;
-struct NoeudBloc;
-struct NoeudDeclaration;
-struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
-struct NoeudDiscr;
 struct NoeudExpression;
-struct NoeudExpressionAppel;
-struct NoeudInstructionTente;
-struct NoeudPour;
-struct NoeudStruct;
 struct Type;
-struct TypeFonction;
+
+namespace kuri {
+struct chaine_statique;
+}
 
 struct ContexteGenerationCodeBinaire {
     EspaceDeTravail *espace = nullptr;
@@ -304,14 +304,19 @@ struct Globale {
     void *adresse_pour_execution = nullptr;
 };
 
-// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
-// durée de vie de celles-ci ne fonctionne pas
-//           il existe des superposition partiells entre certaines variables
-//           lors de la dernière investigation, il semberait que les instructions de retours au
-//           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
-//           optimisation et alloue de l'espace pour toutes les variables au début de chaque
-//           fonction.
-#undef OPTIMISE_ALLOCS
+struct DonnéesExécutionFonction {
+    Chunk chunk{};
+
+    struct DonneesFonctionExterne {
+        kuri::tablet<ffi_type *, 6> types_entrees{};
+        ffi_cif cif{};
+        void (*ptr_fonction)() = nullptr;
+    };
+
+    DonneesFonctionExterne donnees_externe{};
+
+    int64_t mémoire_utilisée() const;
+};
 
 class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;

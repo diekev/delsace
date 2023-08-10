@@ -3,6 +3,8 @@
 
 #include "tache.hh"
 
+#include <ostream>
+
 const char *chaine_genre_tache(GenreTache genre)
 {
 #define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
