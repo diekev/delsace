@@ -3,6 +3,8 @@
 
 #include "bloc_basique.hh"
 
+#include <iostream>
+
 #include "constructrice_ri.hh"
 #include "espace_de_travail.hh"
 #include "impression.hh"

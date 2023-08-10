@@ -26,6 +26,7 @@
 #include "oberver.h"
 #include "singleton.h"
 
+#include <iostream>
 #include <memory>
 #include <thread>
 
