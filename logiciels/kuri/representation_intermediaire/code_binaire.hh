@@ -304,6 +304,20 @@ struct Globale {
     void *adresse_pour_execution = nullptr;
 };
 
+struct DonnéesExécutionFonction {
+    Chunk chunk{};
+
+    struct DonneesFonctionExterne {
+        kuri::tablet<ffi_type *, 6> types_entrees{};
+        ffi_cif cif{};
+        void (*ptr_fonction)() = nullptr;
+    };
+
+    DonneesFonctionExterne donnees_externe{};
+
+    int64_t mémoire_utilisée() const;
+};
+
 class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
     DonneesConstantesExecutions *donnees_executions = nullptr;

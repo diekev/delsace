@@ -13,8 +13,7 @@
 #include "structures/chaine_statique.hh"
 #include "structures/ensemble.hh"
 
-#include "code_binaire.hh"
-
+struct DonnéesExécutionFonction;
 struct IdentifiantCode;
 struct Instruction;
 struct InstructionAccedeIndex;
@@ -359,18 +358,10 @@ struct AtomeFonction : public Atome {
     bool enligne = false;
     NoeudDeclarationEnteteFonction const *decl = nullptr;
 
-    // Pour les exécutions
-    Chunk chunk{};
+    /* Pour les exécutions dans la machine virtuelle. */
+    DonnéesExécutionFonction *données_exécution = nullptr;
 
     int64_t decalage_appel_init_globale = 0;
-
-    struct DonneesFonctionExterne {
-        kuri::tablet<ffi_type *, 6> types_entrees{};
-        ffi_cif cif{};
-        void (*ptr_fonction)() = nullptr;
-    };
-
-    DonneesFonctionExterne donnees_externe{};
 
     AtomeFonction(Lexeme const *lexeme_, kuri::chaine_statique nom_) : nom(nom_), lexeme(lexeme_)
     {
@@ -384,6 +375,8 @@ struct AtomeFonction : public Atome {
     {
         this->params_entrees = std::move(params_);
     }
+
+    ~AtomeFonction();
 
     Instruction *derniere_instruction() const;
 

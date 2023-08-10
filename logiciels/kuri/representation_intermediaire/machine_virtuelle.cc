@@ -30,7 +30,7 @@
 #undef DETECTE_FUITES_DE_MEMOIRE
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
-    ptr_fonction->donnees_externe.ptr_fonction ==                                                 \
+    ptr_fonction->données_exécution->donnees_externe.ptr_fonction ==                              \
         reinterpret_cast<Symbole::type_fonction>(fonction)
 
 inline bool adresse_est_nulle(const void *adresse)
@@ -464,7 +464,7 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;
     frame->site = site;
-    frame->pointeur = fonction->chunk.code;
+    frame->pointeur = fonction->données_exécution->chunk.code;
     frame->pointeur_pile = pointeur_pile;
     return true;
 }
@@ -800,7 +800,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
-    auto &donnees_externe = ptr_fonction->donnees_externe;
+    auto &donnees_externe = ptr_fonction->données_exécution->donnees_externe;
 
     auto pointeur_arguments = pointeur_pile - taille_argument;
 
@@ -1032,7 +1032,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 /* frame->pointeur contient le décalage relatif à l'adresse du début de la
                  * fonction, leur addition nous donne donc le nouveau pointeur. */
-                frame->pointeur = frame->fonction->chunk.code +
+                frame->pointeur = frame->fonction->données_exécution->chunk.code +
                                   *reinterpret_cast<int *>(frame->pointeur);
                 break;
             }
@@ -1043,10 +1043,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto condition = depile<bool>(site);
 
                 if (condition) {
-                    frame->pointeur = frame->fonction->chunk.code + decalage_si_vrai;
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_vrai;
                 }
                 else {
-                    frame->pointeur = frame->fonction->chunk.code + decalage_si_faux;
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_faux;
                 }
 
                 break;
@@ -1550,7 +1552,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_REFERENCE_VARIABLE:
             {
                 auto index = LIS_4_OCTETS();
-                auto const &locale = frame->fonction->chunk.locales[index];
+                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
                 empile(site, &frame->pointeur_pile[locale.adresse]);
                 break;
             }

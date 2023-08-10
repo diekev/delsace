@@ -281,9 +281,11 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
         memoire_fonctions += it.params_entrees.taille_memoire();
         memoire_fonctions += it.instructions.taille_memoire();
-        memoire_fonctions += it.chunk.capacite;
-        memoire_fonctions += it.chunk.locales.taille_memoire();
-        memoire_fonctions += it.chunk.decalages_labels.taille_memoire();
+
+        if (it.données_exécution) {
+            memoire_fonctions += it.données_exécution->mémoire_utilisée();
+            memoire_fonctions += taille_de(DonnéesExécutionFonction);
+        }
     });
 
     donnees_constantes_executions.rassemble_statistiques(stats);
