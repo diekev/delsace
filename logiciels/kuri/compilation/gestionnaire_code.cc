@@ -890,6 +890,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 {
     assert(metaprogramme->fonction);
     assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
+
     /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
     TACHE_AJOUTEE(EXECUTION);
