@@ -24,6 +24,8 @@
 
 #include "objet.hh"
 
+#include <iostream>
+
 namespace tori {
 
 const char *chaine_type(type_objet type)

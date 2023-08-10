@@ -10,8 +10,6 @@
 #include "validation_expression_appel.hh"
 
 struct EspaceDeTravail;
-struct Fichier;
-struct Lexeme;
 struct NoeudExpression;
 struct SiteSource;
 struct Type;

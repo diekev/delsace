@@ -12,8 +12,6 @@
 struct Compilatrice;
 struct EspaceDeTravail;
 struct Module;
-struct NoeudDeclaration;
-struct UniteCompilation;
 
 struct Messagere {
   private:
