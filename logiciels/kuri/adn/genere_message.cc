@@ -4,6 +4,7 @@
 /* Fichier de génération du code pour les options de compilation. */
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/outils/conditions.h"
 
@@ -26,7 +27,7 @@ static void genere_code_cpp(FluxSortieCPP &os,
 
     if (pour_entete) {
         os << "#pragma once\n\n";
-        inclus_systeme(os, "iostream");
+        inclus_systeme(os, "iosfwd");
         os << '\n';
         inclus(os, "biblinternes/outils/definitions.h");
         os << '\n';
@@ -39,6 +40,7 @@ static void genere_code_cpp(FluxSortieCPP &os,
     }
     else {
         inclus(os, "message.hh");
+        inclus_systeme(os, "iostream");
         os << '\n';
     }
 

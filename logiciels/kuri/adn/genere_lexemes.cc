@@ -4,6 +4,7 @@
 /* Fichier de génération du code pour les lexèmes. */
 
 #include <fstream>
+#include <iostream>
 
 #include "biblinternes/outils/definitions.h"
 
@@ -309,7 +310,7 @@ static void genere_fichier_entete(const ListeLexemes &lexemes, std::ostream &os)
 {
     os << "#pragma once\n";
     os << '\n';
-    inclus_systeme(os, "iostream");
+    inclus_systeme(os, "iosfwd");
     inclus(os, "biblinternes/structures/chaine.hh");
     os << '\n';
     prodeclare_struct(os, "IdentifiantCode");
@@ -371,6 +372,7 @@ kuri::chaine_statique chaine_du_lexeme(GenreLexeme genre);
 static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
 {
     inclus(os, "lexemes.hh");
+    inclus_systeme(os, "iostream");
     inclus(os, "structures/chaine_statique.hh");
     genere_impression_lexeme(lexemes, os);
     genere_fonction_cpp_pour_drapeau(lexemes, "est_mot_cle", EST_MOT_CLE, os);

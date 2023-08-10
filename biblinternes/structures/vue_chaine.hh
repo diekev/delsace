@@ -24,9 +24,11 @@
 
 #pragma once
 
+#include <cstdint>
 #include <cstring>
 #include <functional> /* pour la déclaration de std::hash */
-#include <iostream>
+#include <iosfwd>
+#include <string_view>
 
 namespace dls {
 

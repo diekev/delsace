@@ -3,6 +3,14 @@
 
 #include "instructions.hh"
 
+#include "code_binaire.hh"
+
+AtomeFonction::~AtomeFonction()
+{
+    /* À FAIRE : stocke ça quelque part dans un tableau_page. */
+    memoire::deloge("DonnéesExécutionFonction", données_exécution);
+}
+
 Instruction *AtomeFonction::derniere_instruction() const
 {
     if (instructions.taille() == 0) {
