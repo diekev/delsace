@@ -20,7 +20,6 @@
 
 struct Compilatrice;
 struct ContexteAnalyseRI;
-struct MetaProgramme;
 struct Tacheronne;
 
 /* Drapeaux pour les tâches étant dans des files. */

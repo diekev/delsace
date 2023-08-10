@@ -16,8 +16,6 @@
 #include "options.hh"
 #include "tache.hh"
 
-struct Coulisse;
-struct ConstructriceRI;
 struct Programme;
 struct SiteSource;
 
