@@ -82,14 +82,14 @@ void ÉtatChargementFichiers::enfile(UniteCompilation *unité)
     défile(unité);
     unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->raison_d_etre())];
     unité->enfilée_dans->compte += 1;
-    assert(unité->enfilé_dans->compte >= 1);
+    assert(unité->enfilée_dans->compte >= 1);
 }
 
 void ÉtatChargementFichiers::défile(UniteCompilation *unité)
 {
     if (unité->enfilée_dans) {
         unité->enfilée_dans->compte -= 1;
-        assert(unité->enfilé_dans->compte >= 0);
+        assert(unité->enfilée_dans->compte >= 0);
     }
 
     unité->enfilée_dans = nullptr;
