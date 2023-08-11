@@ -32,7 +32,8 @@ FluxSource :: struct {
     source: chaine
 
     runes: []Rune
-    /* Une entrée par rune. Donne le décalage de la rune dans le texte utf8. */
+    /* Une entrée par rune + 1. Donne le décalage de la rune dans le texte utf8.
+     * La dernière entrée est la taille totale. */
     décalage_runes: []z64
 
     début: *Rune
@@ -83,6 +84,7 @@ construit_tableau_runes :: fonc (flux: &FluxSource)
     }
 
     si flux.runes {
+        tableau_ajoute(*flux.décalage_runes, index)
         flux.début = *flux.runes[0]
         flux.fin = flux.début + flux.runes.taille
     }
