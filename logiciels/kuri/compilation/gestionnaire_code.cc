@@ -49,19 +49,39 @@ compilation
 
 void ÉtatChargementFichiers::ajoute_unité_pour_charge_ou_importe(UniteCompilation *unité)
 {
-    if (file_unités_charge_ou_importe == nullptr) {
-        file_unités_charge_ou_importe = unité;
-        return;
-    }
-
-    unité->suivante = file_unités_charge_ou_importe;
-    file_unités_charge_ou_importe->précédente = unité;
-    file_unités_charge_ou_importe = unité;
+    enfile(&file_unités_charge_ou_importe, unité);
 }
 
 void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompilation *unité)
 {
-    assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
+    // assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
+    défile(&file_unités_charge_ou_importe, unité);
+}
+
+void ÉtatChargementFichiers::ajoute_unité_pour_validation_entête(UniteCompilation *unité)
+{
+    enfile(&file_unités_validation_entêtes, unité);
+}
+
+void ÉtatChargementFichiers::supprime_unité_pour_validation_entête(UniteCompilation *unité)
+{
+    défile(&file_unités_validation_entêtes, unité);
+}
+
+void ÉtatChargementFichiers::enfile(UniteCompilation **file, UniteCompilation *unité)
+{
+    if (*file == nullptr) {
+        *file = unité;
+        return;
+    }
+
+    unité->suivante = *file;
+    (*file)->précédente = unité;
+    *file = unité;
+}
+
+void ÉtatChargementFichiers::défile(UniteCompilation **file, UniteCompilation *unité)
+{
     if (unité->précédente) {
         unité->précédente->suivante = unité->suivante;
     }
@@ -70,8 +90,8 @@ void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompil
         unité->suivante->précédente = unité->précédente;
     }
 
-    if (unité == file_unités_charge_ou_importe) {
-        file_unités_charge_ou_importe = unité->suivante;
+    if (unité == *file) {
+        *file = unité->suivante;
     }
 
     unité->précédente = nullptr;
@@ -83,14 +103,14 @@ void ÉtatChargementFichiers::enfile(UniteCompilation *unité)
     défile(unité);
     unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->raison_d_etre())];
     unité->enfilée_dans->compte += 1;
-    assert(unité->enfilé_dans->compte >= 1);
+    assert(unité->enfilée_dans->compte >= 1);
 }
 
 void ÉtatChargementFichiers::défile(UniteCompilation *unité)
 {
     if (unité->enfilée_dans) {
         unité->enfilée_dans->compte -= 1;
-        assert(unité->enfilé_dans->compte >= 0);
+        assert(unité->enfilée_dans->compte >= 0);
     }
 
     unité->enfilée_dans = nullptr;
@@ -128,6 +148,11 @@ bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
 
     /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer. */
     return file_unités_charge_ou_importe == nullptr;
+}
+
+bool ÉtatChargementFichiers::toutes_les_entêtes_à_valider_le_sont() const
+{
+    return file_unités_validation_entêtes == nullptr;
 }
 
 void ÉtatChargementFichiers::imprime_état() const
@@ -971,7 +996,12 @@ bool GestionnaireCode::tous_les_fichiers_à_parser_le_sont() const
     return m_état_chargement_fichiers.tous_les_fichiers_à_parser_le_sont();
 }
 
-void GestionnaireCode::flush_noeuds_à_typer()
+bool GestionnaireCode::toutes_les_entêtes_à_valider_le_sont() const
+{
+    return m_état_chargement_fichiers.toutes_les_entêtes_à_valider_le_sont();
+}
+
+void GestionnaireCode::flush_noeuds_à_typer(int quoi)
 {
     /* Désactive ceci directement car requiers_initialisation_type y dépends. */
     m_validation_doit_attendre_sur_lexage = false;
@@ -981,6 +1011,19 @@ void GestionnaireCode::flush_noeuds_à_typer()
     }
     m_fonctions_init_type_requises.efface();
 
+    if (quoi == FLUSH_ENTÊTES) {
+        POUR (m_entêtes_à_valider) {
+            if (it.noeud->unite) {
+                continue;
+            }
+
+            requiers_typage(it.espace, it.noeud);
+            m_état_chargement_fichiers.ajoute_unité_pour_validation_entête(it.noeud->unite);
+        }
+        m_entêtes_à_valider.efface();
+        return;
+    }
+
     POUR (m_noeuds_à_valider) {
         if (it.noeud->unite) {
             continue;
@@ -989,6 +1032,21 @@ void GestionnaireCode::flush_noeuds_à_typer()
         requiers_typage(it.espace, it.noeud);
     }
     m_noeuds_à_valider.efface();
+}
+
+void GestionnaireCode::flush_noeuds_à_typer()
+{
+    if (tous_les_fichiers_à_parser_le_sont()) {
+        flush_noeuds_à_typer(FLUSH_ENTÊTES);
+    }
+    else {
+        /* Attends sur tous les fichiers pour le reste. */
+        return;
+    }
+
+    if (toutes_les_entêtes_à_valider_le_sont()) {
+        flush_noeuds_à_typer(FLUSH_LE_RESTE);
+    }
 }
 
 void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Attente attente)
@@ -1067,6 +1125,9 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
             requiers_typage(espace, it);
             m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(it->unite);
         }
+        else if (it->est_entete_fonction()) {
+            m_entêtes_à_valider.ajoute({espace, it});
+        }
         else {
             m_noeuds_à_valider.ajoute({espace, it});
         }
@@ -1076,9 +1137,7 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
      * qui ne chargent ni n'importe quoi que ce soit sont encore en parsage. Vérifions si plus rien
      * n'est à charger ici aussi et pas uniquement lors de la notification de typage terminé pour
      * les chargements/imports. */
-    if (tous_les_fichiers_à_parser_le_sont()) {
-        flush_noeuds_à_typer();
-    }
+    flush_noeuds_à_typer();
 }
 
 static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
@@ -1243,10 +1302,11 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     if (unite->noeud->est_charge() || unite->noeud->est_importe()) {
         m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unite);
-
-        if (tous_les_fichiers_à_parser_le_sont()) {
-            flush_noeuds_à_typer();
-        }
+        flush_noeuds_à_typer();
+    }
+    else if (unite->noeud->est_entete_fonction()) {
+        m_état_chargement_fichiers.supprime_unité_pour_validation_entête(unite);
+        flush_noeuds_à_typer();
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale

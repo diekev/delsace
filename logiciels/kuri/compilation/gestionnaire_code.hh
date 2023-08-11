@@ -69,6 +69,8 @@ struct ÉtatChargementFichiers {
      */
     UniteCompilation *file_unités_charge_ou_importe = nullptr;
 
+    UniteCompilation *file_unités_validation_entêtes = nullptr;
+
     /* Le nombre d'unité pour chaque raison d'être relative à des fichiers. Nous avons un nombre
      * pour chaque raison d'être mais seules les raisons de chargement/lexage/syntaxage sont
      * utilisées. */
@@ -78,6 +80,10 @@ struct ÉtatChargementFichiers {
     /* Unités correspondants à des « charge » ou « importe ». */
     void ajoute_unité_pour_charge_ou_importe(UniteCompilation *unité);
     void supprime_unité_pour_charge_ou_importe(UniteCompilation *unité);
+
+    /* Unités correspondants à des « charge » ou « importe ». */
+    void ajoute_unité_pour_validation_entête(UniteCompilation *unité);
+    void supprime_unité_pour_validation_entête(UniteCompilation *unité);
 
     /* Unités correspondants à des tâches de chargement/lexage/parsage. */
     void ajoute_unité_pour_chargement_fichier(UniteCompilation *unité);
@@ -90,9 +96,14 @@ struct ÉtatChargementFichiers {
 
     bool tous_les_fichiers_à_parser_le_sont() const;
 
+    bool toutes_les_entêtes_à_valider_le_sont() const;
+
     void imprime_état() const;
 
   private:
+    static void enfile(UniteCompilation **file, UniteCompilation *unité);
+    static void défile(UniteCompilation **file, UniteCompilation *unité);
+
     void enfile(UniteCompilation *unité);
     void défile(UniteCompilation *unité);
 };
@@ -148,6 +159,7 @@ class GestionnaireCode {
         EspaceDeTravail *espace = nullptr;
         NoeudExpression *noeud = nullptr;
     };
+    kuri::tableau<InfoNoeudÀValider> m_entêtes_à_valider{};
     kuri::tableau<InfoNoeudÀValider> m_noeuds_à_valider{};
 
     /* Toutes les fonctions d'initialisation de type créées avant que tous les fichiers ne soient
@@ -299,6 +311,14 @@ class GestionnaireCode {
     void imprime_état_parsage() const;
 
     bool tous_les_fichiers_à_parser_le_sont() const;
+    bool toutes_les_entêtes_à_valider_le_sont() const;
+
+    enum {
+        FLUSH_ENTÊTES,
+        FLUSH_LE_RESTE,
+    };
+
+    void flush_noeuds_à_typer(int quoi);
 
     void flush_noeuds_à_typer();
 };
