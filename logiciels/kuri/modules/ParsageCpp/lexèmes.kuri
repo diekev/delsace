@@ -10,6 +10,7 @@ TypeCaractère :: énum {
     NOUVELLE_LIGNE
     PONCTUATION
     HASHTAG
+    CHEVRON_GAUCHE
 }
 
 PeutSuivre :: énum_drapeau {
@@ -52,6 +53,7 @@ construit_table_caractères :: fonc () -> [256]TypeCaractère
     résultat['\v'] = TypeCaractère.ESPACE
     résultat[' '] = TypeCaractère.ESPACE
     résultat['@'] = TypeCaractère.ESPACE
+    résultat['<'] = TypeCaractère.CHEVRON_GAUCHE
 
     retourne résultat
 }
@@ -147,6 +149,33 @@ parse_nombre :: fonc (lexeuse: *Lexeuse, peut_suivre: PeutSuivre, c: Rune) -> ch
     }
 
     retourne lexeuse.flux.donne_sous_chaine_source(extraction_nombre)
+}
+
+parse_chaine_littérale :: fonc (lexeuse: *Lexeuse, caractère_final: Rune) -> chaine
+{
+    lexeuse.avance()
+
+    extraction_chaine_littérale := lexeuse.flux.donne_données_extraction_sous_chaine()
+
+    tantque !lexeuse.fini() {
+        c := lexeuse.caractère_courant()
+
+        si c == '\\' && lexeuse.caractère_suivant() == '"' {
+            lexeuse.avance(2)
+            extraction_chaine_littérale.taille += 2
+            continue
+        }
+
+        si c == caractère_final {
+            lexeuse.avance()
+            arrête
+        }
+
+        lexeuse.avance()
+        extraction_chaine_littérale.taille += 1
+    }
+
+    retourne lexeuse.flux.donne_sous_chaine_source(extraction_chaine_littérale)
 }
 
 est_mot_clé :: fonc (identifiant: chaine) -> bool
@@ -247,6 +276,11 @@ Lexeuse :: struct {
 
     ligne : z32 = 1
     colonne : z32 = 1
+
+    dernier_lexème_est_hashtag := faux
+
+    /* Si nous avons '#include <'. */
+    doit_lexer_chevron_gauche_comme_inclusion := faux
 }
 
 fini :: fonc (lexeuse: *Lexeuse) -> bool
@@ -283,6 +317,7 @@ crée_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème, texte: chaine) ->
 
 ajoute_lexème :: fonc (lexeuse: *Lexeuse, genre: GenreLexème, texte: chaine)
 {
+    lexeuse.dernier_lexème_est_hashtag = genre == GenreLexème.HASHTAG
     tableau_ajoute(*lexeuse.lexèmes, lexeuse.crée_lexème(genre, texte))
 }
 
@@ -332,7 +367,20 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
             imprime("%:% : caractère inconnu : %\n", fichier.chemin, lexeuse.ligne + 1, c)
         }
 
+        si type_c == TypeCaractère.CHEVRON_GAUCHE {
+            si lexeuse.doit_lexer_chevron_gauche_comme_inclusion {
+                chaine_littérale := parse_chaine_littérale(lexeuse, Rune('>' comme n32))
+                ajoute_lexème_chaine_littérale(lexeuse, chaine_littérale)
+                lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+                continue
+            }
+
+            type_c = TypeCaractère.PONCTUATION
+        }
+
         si type_c == TypeCaractère.PONCTUATION {
+            lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+
             si c == '/' && lexeuse.caractère_suivant() == '*' {
                 lexeuse.avance(2)
 
@@ -365,29 +413,7 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
                 }
             }
             sinon si c == '"' {
-                lexeuse.avance()
-
-                extraction_chaine_littérale := lexeuse.flux.donne_données_extraction_sous_chaine()
-
-                tantque !lexeuse.fini() {
-                    c = lexeuse.caractère_courant()
-
-                    si c == '\\' && lexeuse.caractère_suivant() == '"' {
-                        lexeuse.avance(2)
-                        extraction_chaine_littérale.taille += 2
-                        continue
-                    }
-
-                    si c == '"' {
-                        lexeuse.avance()
-                        arrête
-                    }
-
-                    lexeuse.avance()
-                    extraction_chaine_littérale.taille += 1
-                }
-
-                chaine_littérale := lexeuse.flux.donne_sous_chaine_source(extraction_chaine_littérale)
+                chaine_littérale := parse_chaine_littérale(lexeuse, c)
                 ajoute_lexème_chaine_littérale(lexeuse, chaine_littérale)
             }
             sinon si c == '\'' {
@@ -432,7 +458,16 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
             }
         }
         sinon si type_c == TypeCaractère.ALPHABÉTIQUE {
+            lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+
             identifiant := parse_identifiant(lexeuse, peut_suivre, c)
+
+            si lexeuse.dernier_lexème_est_hashtag {
+                si identifiant == "include" {
+                    lexeuse.doit_lexer_chevron_gauche_comme_inclusion = vrai
+                }
+            }
+            
             si est_mot_clé(identifiant) {
                 ajoute_lexème_mot_clé(lexeuse, identifiant)
             }
@@ -441,10 +476,14 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
             }
         }
         sinon si type_c == TypeCaractère.NUMÉRIQUE {
+            lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+
             nombre := parse_nombre(lexeuse, peut_suivre, c)
             ajoute_lexème_numérique(lexeuse, nombre)
         }
         sinon si type_c == TypeCaractère.HASHTAG {
+            lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+
             extraction_caractère := lexeuse.flux.donne_données_extraction_sous_chaine()
             extraction_caractère.taille += 1
 
@@ -454,6 +493,8 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
             lexeuse.avance()
         }
         sinon si type_c == TypeCaractère.NOUVELLE_LIGNE {
+            lexeuse.doit_lexer_chevron_gauche_comme_inclusion = faux
+
             lexeuse.avance()
             lexeuse.passe_sur_ligne_suivante()
         }
