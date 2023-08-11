@@ -131,10 +131,19 @@ FichierSource :: struct {
 construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
 {
     contenu := contenu_fichier_texte(chemin)
+    retourne construit_fichier_source(chemin, contenu)
+}
 
+construit_fichier_source :: fonc (contenu: chaine) -> FichierSource
+{
+    retourne construit_fichier_source(CheminFichier("<memoire>"), contenu)
+}
+
+construit_fichier_source :: fonc (chemin: CheminFichier, contenu: chaine) -> FichierSource
+{
     résultat: FichierSource
-    résultat.contenu = contenu
     résultat.chemin = copie_chemin(chemin)
+    résultat.contenu = contenu
     retourne résultat
 }
 
