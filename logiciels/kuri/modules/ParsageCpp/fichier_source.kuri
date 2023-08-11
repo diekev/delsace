@@ -1,0 +1,151 @@
+importe Fondation
+importe SysFichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Unicode.
+ * \{ */
+
+Rune :: #opaque n32
+
+opérateur == :: fonc (rune: Rune, c: z8) -> bool
+{
+    retourne (rune comme n32) == (c comme n32)
+}
+
+opérateur != :: fonc (rune: Rune, c: z8) -> bool
+{
+    retourne !(rune == c)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flux Source
+ * \{ */
+
+DonnéesSousChaineLexée :: struct {
+    décalage: z32
+    taille: z32
+}
+
+FluxSource :: struct {
+    source: chaine
+
+    runes: []Rune
+    /* Une entrée par rune. Donne le décalage de la rune dans le texte utf8. */
+    décalage_runes: []z64
+
+    début: *Rune
+    fin: *Rune
+
+    décalage_courant: z64
+}
+
+détruit_données_flux :: fonc (flux: &FluxSource)
+{
+    déloge(flux.runes)
+    déloge(flux.décalage_runes)
+    init_de(FluxSource)(*flux)
+}
+
+construit_flux :: fonc (source: chaine) -> FluxSource
+{
+    résultat : FluxSource
+    résultat.source = source
+    construit_tableau_runes(résultat)
+    retourne résultat
+}
+
+donne_sous_chaine_source :: fonc (flux: &FluxSource, données: DonnéesSousChaineLexée) -> chaine
+{
+    début_utf8 := flux.décalage_runes[données.décalage]
+    fin_utf8 := flux.décalage_runes[données.décalage + données.taille]
+
+    retourne flux.source.sous_chaine(début_utf8, fin_utf8)
+}
+
+construit_tableau_runes :: fonc (flux: &FluxSource)
+{
+    index : z64 = 0
+    pointeur_source := flux.source.pointeur
+
+    tantque index < flux.source.taille {
+        taille_rune := nombre_octets_utf8(pointeur_source)
+
+        rune_ := converti_utf8_utf32(pointeur_source, taille_rune)
+        rune := Rune(rune_ comme n32)
+
+        tableau_ajoute(*flux.runes, rune)
+        tableau_ajoute(*flux.décalage_runes, index)
+
+        index += taille_rune
+        pointeur_source += taille_rune
+    }
+
+    si flux.runes {
+        flux.début = *flux.runes[0]
+        flux.fin = flux.début + flux.runes.taille
+    }
+}
+
+fini :: fonc (flux: &FluxSource) -> bool
+{
+    retourne flux.début >= flux.fin
+}
+
+caractère_courant :: fonc (flux: &FluxSource) -> Rune
+{
+    retourne mémoire(flux.début)
+}
+
+caractère_suivant :: fonc (flux: &FluxSource) -> Rune
+{
+    retourne mémoire(flux.début + 1)
+}
+
+avance :: fonc (flux: &FluxSource, n: z32)
+{
+    flux.début += n
+    flux.décalage_courant += n
+}
+
+donne_données_extraction_sous_chaine :: fonc (flux: &FluxSource) -> DonnéesSousChaineLexée
+{
+    retourne DonnéesSousChaineLexée(flux.décalage_courant comme z32)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier Source
+ * \{ */
+
+FichierSource :: struct {
+    chemin: CheminFichier
+    contenu: chaine
+    lexèmes: []Lexème
+}
+
+construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
+{
+    contenu := contenu_fichier_texte(chemin)
+
+    résultat: FichierSource
+    résultat.contenu = contenu
+    résultat.chemin = copie_chemin(chemin)
+    retourne résultat
+}
+
+détruit_données_fichier :: fonc (fichier: *FichierSource)
+{
+    déloge(fichier.contenu)
+    déloge(fichier.lexèmes)
+    détruit_chemin(fichier.chemin)
+}
+
+donne_flux_source :: fonc (fichier: *FichierSource) -> FluxSource
+{
+    retourne construit_flux(fichier.contenu)
+}
+
+/** } */

@@ -1,0 +1,225 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parseuse
+ * \{ */
+
+Parseuse :: struct {
+    fichier: *FichierSource
+    lexèmes: []Lexème
+    index_courant: z64
+
+    possède_erreur: bool
+
+    /* Rappels. */
+    sur_prodéclaration_struct_ou_class : fonc(&Parseuse, chaine, bool)(rien)
+    sur_prodéclaration_énum : fonc(&Parseuse, chaine)(rien)
+    sur_identifiant: fonc(&Parseuse, chaine)(rien)
+    sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
+}
+
+initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
+{
+    parseuse.fichier = fichier
+    parseuse.lexèmes = fichier.lexèmes
+}
+
+rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine)
+{
+    si parseuse.possède_erreur {
+        retourne
+    }
+    
+    lexème := parseuse.lexème_courant()
+
+    imprime("%:%:\n", parseuse.fichier.chemin, lexème.ligne)
+    imprime("\tErreur : %\n", message)
+
+    parseuse.possède_erreur = vrai
+}
+
+lexème_courant :: fonc (parseuse: &Parseuse) -> Lexème
+{
+    retourne parseuse.lexèmes[parseuse.index_courant]
+}
+
+avance :: fonc (parseuse: &Parseuse)
+{
+    parseuse.index_courant += 1
+}
+
+fini :: fonc (parseuse: &Parseuse) -> bool
+{
+    retourne parseuse.index_courant >= parseuse.lexèmes.taille
+}
+
+consomme :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.genre == genre_lexème {
+        retourne faux
+    }
+
+    parseuse.avance()
+    retourne vrai
+}
+
+apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == genre_lexème
+}
+
+apparie_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == GenreLexème.MOT_CLÉ && lexème.ident == ident
+}
+
+apparie_identifiant :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == GenreLexème.IDENTIFIANT && lexème.ident == ident
+}
+
+consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
+{
+    ident := parseuse.lexème_courant().ident
+    parseuse.avance()
+    retourne ident
+}
+
+consomme_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
+{
+    saufsi est_mot_clé(parseuse.lexème_courant(), ident) {
+        retourne faux
+    }
+
+    parseuse.avance()
+    retourne vrai
+}
+
+apparie_ponctuation :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == GenreLexème.AUTRE && lexème.ident == ident
+}
+
+parse :: fonc (parseuse: &Parseuse)
+{
+    tantque !fini(parseuse) {
+        si apparie_mot_clé(parseuse, "struct") {
+            parseuse.parse_struct_ou_class(vrai)
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "class") {
+            parseuse.parse_struct_ou_class(faux)
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "enum") {
+            parseuse.parse_enum()
+            continue
+        }
+
+        si apparie(parseuse, GenreLexème.HASHTAG) {
+            parseuse.parse_directive_préprocesseur()
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+        si lexème.genre == GenreLexème.IDENTIFIANT {
+            si parseuse.sur_identifiant {
+                parseuse.sur_identifiant(parseuse, lexème.ident)
+            }
+        }
+
+        parseuse.avance()
+    }
+}
+
+parse_struct_ou_class :: fonc (parseuse: &Parseuse, est_struct: bool)
+{
+    /* Nous sommes sur le mot-clé. */
+    parseuse.avance()
+
+    saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
+        si est_struct {
+            parseuse.rapporte_erreur("Attendu un identifiant après 'struct'\n")
+        }
+        sinon {
+            parseuse.rapporte_erreur("Attendu un identifiant après 'class'\n")
+        }
+
+        retourne
+    }
+
+    nom_struct := parseuse.lexème_courant().ident
+    parseuse.avance()
+
+    si apparie_ponctuation(parseuse, ";") {
+        parseuse.avance()
+
+        si parseuse.sur_prodéclaration_struct_ou_class {
+            parseuse.sur_prodéclaration_struct_ou_class(parseuse, nom_struct, est_struct)
+        }
+        retourne
+    }
+
+    // : final public private
+}
+
+parse_enum :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur le mot-clé. */
+    parseuse.avance()
+
+    est_énum_class := faux
+
+    si apparie_mot_clé(parseuse, "class") {
+        parseuse.avance()
+        est_énum_class = vrai
+    }
+
+    nom_énum := parseuse.lexème_courant().ident
+    parseuse.avance()
+
+    si apparie_ponctuation(parseuse, ":") {
+        parseuse.avance()
+        parseuse.avance() // type
+    }
+
+    si apparie_ponctuation(parseuse, ";") {
+        parseuse.avance()
+
+        si parseuse.sur_prodéclaration_énum {
+            parseuse.sur_prodéclaration_énum(parseuse, nom_énum)
+        }
+
+        retourne
+    }
+}
+
+parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur le hashtag. */
+    parseuse.avance()
+
+    si apparie_identifiant(parseuse, "include") {
+        parseuse.avance()
+
+        lexème := parseuse.lexème_courant()
+        si lexème.genre == GenreLexème.CHAINE_LITTÉRALE {
+            parseuse.avance()
+
+            si parseuse.sur_inclusion {
+                parseuse.sur_inclusion(parseuse, lexème.ident, faux)
+            }
+
+            retourne
+        }
+    }
+}
+
+/** } */
