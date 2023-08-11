@@ -61,7 +61,6 @@ void ÉtatChargementFichiers::ajoute_unité_pour_charge_ou_importe(UniteCompilat
 
 void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompilation *unité)
 {
-    assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
     if (unité->précédente) {
         unité->précédente->suivante = unité->suivante;
     }
