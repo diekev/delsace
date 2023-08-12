@@ -15,27 +15,19 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2020 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2023 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
+#include "assert.hh"
 
-void imprime_message_assert(const char *fichier, int ligne, const char *fonction, const char *texte_ligne);
+#include <iostream>
 
-#ifndef NDEBUG
-#	define assert_rappel(condition, rappel) \
-        do { \
-            if (!(condition)) { \
-                imprime_message_assert(__FILE__, __LINE__, __func__, #condition); \
-                rappel(); \
-                abort(); \
-            } \
-        } \
-        while (0)
-#else
-#	define assert_rappel(condition, rappel)
-#endif
+void imprime_message_assert(const char *fichier, int ligne, const char *fonction, const char *texte_ligne)
+{
+    std::cerr << fichier << ':' << ligne << ": " << fonction << '\n';
+    std::cerr << "ÉCHEC DE L'ASSERTION : " << texte_ligne << '\n';
+}

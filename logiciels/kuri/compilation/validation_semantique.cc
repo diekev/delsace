@@ -3,6 +3,8 @@
 
 #include "validation_semantique.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/definitions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"

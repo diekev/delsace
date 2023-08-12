@@ -613,17 +613,18 @@ struct TypeTuple : public TypeCompose {
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+void imprime_genre_type_pour_assert(GenreType genre);
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
     inline TypeRafine *Type::comme_##nom()                                                        \
     {                                                                                             \
         assert_rappel(genre == GenreType::Genre,                                                  \
-                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
+                      [this] { imprime_genre_type_pour_assert(genre); });                         \
         return static_cast<TypeRafine *>(this);                                                   \
     }                                                                                             \
     inline const TypeRafine *Type::comme_##nom() const                                            \
     {                                                                                             \
         assert_rappel(genre == GenreType::Genre,                                                  \
-                      [this] { std::cerr << "Le type est " << genre << "\n"; });                  \
+                      [this] { imprime_genre_type_pour_assert(genre); });                         \
         return static_cast<const TypeRafine *>(this);                                             \
     }
 
