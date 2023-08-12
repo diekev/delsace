@@ -301,10 +301,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
         auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
                                      IdentifiantCode *nom_fonction) -> ResultatTransformation {
-            if (fonction == nullptr) {
-                return Attente::sur_interface_kuri(nom_fonction);
-            }
-
+            assert(fonction);
             return TransformationType{fonction, type_vers};
         };
 
@@ -375,9 +372,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
             return Attente::sur_type(type_de);
         }
-        if (compilatrice.typeuse.type_annotation == nullptr) {
-            return Attente::sur_interface_kuri(ID::AnnotationCode);
-        }
+        assert(compilatrice.typeuse.type_annotation);
         return TypeTransformation::CONSTRUIT_EINI;
     }
 
@@ -393,12 +388,7 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                 continue;
             }
 
-            auto decl_panique_membre_union =
-                compilatrice.interface_kuri->decl_panique_membre_union;
-            if (decl_panique_membre_union == nullptr) {
-                return Attente::sur_interface_kuri(ID::panique_membre_union);
-            }
-
+            assert(compilatrice.interface_kuri->decl_panique_membre_union);
             return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
         }
 
