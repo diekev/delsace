@@ -54,7 +54,7 @@ void ÉtatChargementFichiers::ajoute_unité_pour_charge_ou_importe(UniteCompilat
 
 void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompilation *unité)
 {
-    // assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
+
     défile(&file_unités_charge_ou_importe, unité);
 }
 
