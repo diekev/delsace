@@ -5,8 +5,8 @@
 
 #include "parsage/outils_lexemes.hh"
 
-#include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "typage.hh"
 #include "validation_semantique.hh"
 
 const char *chaine_transformation(TypeTransformation type)
@@ -157,9 +157,7 @@ static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
  * graphe, qui sera sans doute révisée plus tard.
  */
 template <bool POUR_TRANSTYPAGE>
-ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type const *type_de,
-                                              Type const *type_vers)
+ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
 {
     if (type_de == type_vers) {
         return TypeTransformation::INUTILE;
@@ -299,22 +297,14 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
     }
 
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
-        auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
-                                     IdentifiantCode *nom_fonction) -> ResultatTransformation {
-            assert(fonction);
-            return TransformationType{fonction, type_vers};
-        };
-
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r32,
-                                         ID::DLS_vers_r32);
+                return TransformationType{TypeTransformation::R16_VERS_R32, type_vers};
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r64,
-                                         ID::DLS_vers_r64);
+                return TransformationType{TypeTransformation::R16_VERS_R64, type_vers};
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -323,13 +313,11 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         /* cas spéciaux pour R16 */
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r32,
-                                         ID::DLS_depuis_r32);
+                return TransformationType{TypeTransformation::R32_VERS_R16, type_vers};
             }
 
             if (type_de->taille_octet == 8) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r64,
-                                         ID::DLS_depuis_r64);
+                return TransformationType{TypeTransformation::R64_VERS_R16, type_vers};
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -372,7 +360,6 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         if ((type_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
             return Attente::sur_type(type_de);
         }
-        assert(compilatrice.typeuse.type_annotation);
         return TypeTransformation::CONSTRUIT_EINI;
     }
 
@@ -388,7 +375,6 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
                 continue;
             }
 
-            assert(compilatrice.interface_kuri->decl_panique_membre_union);
             return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
         }
 
@@ -584,25 +570,20 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
     return TypeTransformation::IMPOSSIBLE;
 }
 
-ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type const *type_de,
-                                              Type const *type_vers)
+ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
 {
-    return cherche_transformation<false>(compilatrice, type_de, type_vers);
+    return cherche_transformation<false>(type_de, type_vers);
 }
 
-ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
-                                                               Type const *type_de,
+ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
                                                                Type const *type_vers)
 {
-    return cherche_transformation<true>(compilatrice, type_de, type_vers);
+    return cherche_transformation<true>(type_de, type_vers);
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
-                                                  Type const *type_enf)
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type const *type_enf)
 {
-    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -629,12 +610,11 @@ ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
     return PoidsTransformation{transformation, 0.5};
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg,
                                                   Type const *type_enf,
                                                   NoeudExpression const *enfant)
 {
-    auto resultat = cherche_transformation<false>(compilatrice, type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(type_enf, type_arg);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);

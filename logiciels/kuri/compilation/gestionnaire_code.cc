@@ -344,9 +344,21 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 ajoute_fonction(interface->decl_panique_membre_union);
             }
         }
-        else if (transformation.type == TypeTransformation::FONCTION) {
-            assert(transformation.fonction);
-            ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(transformation.fonction));
+        else if (transformation.type == TypeTransformation::R16_VERS_R32) {
+            assert(interface->decl_dls_vers_r32);
+            ajoute_fonction(interface->decl_dls_vers_r32);
+        }
+        else if (transformation.type == TypeTransformation::R16_VERS_R64) {
+            assert(interface->decl_dls_vers_r64);
+            ajoute_fonction(interface->decl_dls_vers_r64);
+        }
+        else if (transformation.type == TypeTransformation::R32_VERS_R16) {
+            assert(interface->decl_dls_depuis_r32);
+            ajoute_fonction(interface->decl_dls_depuis_r32);
+        }
+        else if (transformation.type == TypeTransformation::R64_VERS_R16) {
+            assert(interface->decl_dls_depuis_r64);
+            ajoute_fonction(interface->decl_dls_depuis_r64);
         }
 
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
