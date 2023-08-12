@@ -1819,17 +1819,17 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
     auto place_fut_utilisee = false;
 
     auto transforme_avec_fonction =
-        [this](NoeudExpression *noeud, Atome *valeur, NoeudDeclarationEnteteFonction *fonction) {
+        [this](NoeudExpression *noeud_, Atome *valeur_, NoeudDeclarationEnteteFonction *fonction) {
             auto atome_fonction = m_compilatrice.trouve_ou_insere_fonction(*this, fonction);
 
-            if (valeur->est_chargeable) {
-                valeur = cree_charge_mem(noeud, valeur);
+            if (valeur_->est_chargeable) {
+                valeur_ = cree_charge_mem(noeud_, valeur_);
             }
 
             auto args = kuri::tableau<Atome *, int>();
-            args.ajoute(valeur);
+            args.ajoute(valeur_);
 
-            return cree_appel(noeud, atome_fonction, std::move(args));
+            return cree_appel(noeud_, atome_fonction, std::move(args));
         };
 
     switch (transformation.type) {

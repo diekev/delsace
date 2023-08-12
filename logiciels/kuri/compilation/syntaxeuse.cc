@@ -4,6 +4,7 @@
 #include "syntaxeuse.hh"
 
 #include <array>
+#include <iostream>
 
 #include "biblinternes/outils/assert.hh"
 

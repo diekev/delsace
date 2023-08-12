@@ -3,6 +3,7 @@
 
 #include "validation_expression_appel.hh"
 
+#include <iostream>
 #include <variant>
 
 #include "biblinternes/chrono/outils.hh"
