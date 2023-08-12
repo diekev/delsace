@@ -299,22 +299,14 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
     }
 
     if (type_de->genre == GenreType::REEL && type_vers->genre == GenreType::REEL) {
-        auto retourne_fonction = [&](NoeudDeclarationEnteteFonction const *fonction,
-                                     IdentifiantCode *nom_fonction) -> ResultatTransformation {
-            assert(fonction);
-            return TransformationType{fonction, type_vers};
-        };
-
         /* cas spéciaux pour R16 */
         if (type_de->taille_octet == 2) {
             if (type_vers->taille_octet == 4) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r32,
-                                         ID::DLS_vers_r32);
+                return TransformationType{TypeTransformation::R16_VERS_R32, type_vers};
             }
 
             if (type_vers->taille_octet == 8) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_vers_r64,
-                                         ID::DLS_vers_r64);
+                return TransformationType{TypeTransformation::R16_VERS_R64, type_vers};
             }
 
             return TypeTransformation::IMPOSSIBLE;
@@ -323,13 +315,11 @@ ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
         /* cas spéciaux pour R16 */
         if (type_vers->taille_octet == 2) {
             if (type_de->taille_octet == 4) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r32,
-                                         ID::DLS_depuis_r32);
+                return TransformationType{TypeTransformation::R32_VERS_R16, type_vers};
             }
 
             if (type_de->taille_octet == 8) {
-                return retourne_fonction(compilatrice.interface_kuri->decl_dls_depuis_r64,
-                                         ID::DLS_depuis_r64);
+                return TransformationType{TypeTransformation::R64_VERS_R16, type_vers};
             }
 
             return TypeTransformation::IMPOSSIBLE;

@@ -56,10 +56,6 @@ static bool verifie_transformation(Compilatrice &compilatrice,
     std::cerr << ", il faut faire : ";
     std::cerr << chaine_transformation(transformation.type);
 
-    if (transformation.type == TypeTransformation::FONCTION) {
-        std::cerr << " (" << transformation.fonction->lexeme->chaine << ')';
-    }
-
     std::cerr << '\n';
     return true;
 }
