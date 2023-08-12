@@ -1698,6 +1698,14 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
 void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
 {
+    auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
+        auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
+        copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
+        copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+        requiers_typage(espace, copie);
+        return copie->comme_entete_fonction();
+    };
+
     // Ne compile le point d'entrée que pour les exécutables
     if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
         if (espace->fonction_point_d_entree != nullptr) {
@@ -1709,12 +1717,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
             return;
         }
 
-        auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-        copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-        copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-        requiers_typage(espace, copie);
-        espace->fonction_point_d_entree = copie->comme_entete_fonction();
+        espace->fonction_point_d_entree = copie_et_valide_point_d_entree(point_d_entree);
     }
     else if (espace->options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         if (espace->fonction_point_d_entree_dynamique == nullptr) {
@@ -1723,12 +1726,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
                 return;
             }
 
-            auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-            copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-            copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            requiers_typage(espace, copie);
-            espace->fonction_point_d_entree_dynamique = copie->comme_entete_fonction();
+            espace->fonction_point_d_entree_dynamique = copie_et_valide_point_d_entree(
+                point_d_entree);
         }
         if (espace->fonction_point_de_sortie_dynamique == nullptr) {
             auto point_d_entree = m_compilatrice->fonction_point_de_sortie_dynamique;
@@ -1736,12 +1735,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
                 return;
             }
 
-            auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-            copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-            copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            requiers_typage(espace, copie);
-            espace->fonction_point_de_sortie_dynamique = copie->comme_entete_fonction();
+            espace->fonction_point_de_sortie_dynamique = copie_et_valide_point_d_entree(
+                point_d_entree);
         }
     }
 }
