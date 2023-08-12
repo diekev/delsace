@@ -687,7 +687,7 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
     }
 
     for (auto const op : op_candidats) {
-        auto poids1_ou_attente = verifie_compatibilite(espace.compilatrice(), op->type1, type1);
+        auto poids1_ou_attente = verifie_compatibilite(op->type1, type1);
 
         if (std::holds_alternative<Attente>(poids1_ou_attente)) {
             return std::get<Attente>(poids1_ou_attente);
@@ -695,7 +695,7 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
 
         auto poids1 = std::get<PoidsTransformation>(poids1_ou_attente);
 
-        auto poids2_ou_attente = verifie_compatibilite(espace.compilatrice(), op->type2, type2);
+        auto poids2_ou_attente = verifie_compatibilite(op->type2, type2);
 
         if (std::holds_alternative<Attente>(poids2_ou_attente)) {
             return std::get<Attente>(poids2_ou_attente);
@@ -716,8 +716,7 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
         candidats.ajoute(candidat);
 
         if (op->est_commutatif && poids != 1.0) {
-            auto poids3_ou_attente = verifie_compatibilite(
-                espace.compilatrice(), op->type1, type2);
+            auto poids3_ou_attente = verifie_compatibilite(op->type1, type2);
 
             if (std::holds_alternative<Attente>(poids3_ou_attente)) {
                 return std::get<Attente>(poids3_ou_attente);
@@ -725,8 +724,7 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
 
             auto poids3 = std::get<PoidsTransformation>(poids3_ou_attente);
 
-            auto poids4_ou_attente = verifie_compatibilite(
-                espace.compilatrice(), op->type2, type1);
+            auto poids4_ou_attente = verifie_compatibilite(op->type2, type1);
 
             if (std::holds_alternative<Attente>(poids4_ou_attente)) {
                 return std::get<Attente>(poids4_ou_attente);

@@ -951,7 +951,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
         type_item = résoud_type_final_impl(item.expression_type);
     }
 
-    auto résultat = cherche_transformation(espace.compilatrice(), candidat.type, type_item);
+    auto résultat = cherche_transformation(candidat.type, type_item);
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
     }
@@ -968,7 +968,7 @@ RésultatCompatibilité Monomorpheuse::sont_compatibles(ItemMonomorphisation con
                                                       ItemMonomorphisation const &candidat)
 {
     if (item.est_type) {
-        auto résultat = cherche_transformation(espace.compilatrice(), candidat.type, item.type);
+        auto résultat = cherche_transformation(candidat.type, item.type);
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
         }
