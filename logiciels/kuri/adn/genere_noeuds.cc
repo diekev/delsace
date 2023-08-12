@@ -623,6 +623,7 @@ struct GeneratriceCodeCPP {
     {
         os << "#pragma once\n";
         os << "#include \"noeud_expression.hh\"\n";
+        os << "#include <iostream>\n";
         os << "#include \"biblinternes/structures/tableau_page.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"structures/tableau.hh\"\n";
