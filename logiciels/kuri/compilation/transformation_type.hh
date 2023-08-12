@@ -9,7 +9,6 @@
 
 #include "attente.hh"
 
-struct Compilatrice;
 struct NoeudExpression;
 struct Type;
 
@@ -129,12 +128,9 @@ std::ostream &operator<<(std::ostream &os, TransformationType type);
 
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
-ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type const *type_de,
-                                              Type const *type_vers);
+ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers);
 
-ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
-                                                               Type const *type_de,
+ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
                                                                Type const *type_vers);
 
 /* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
@@ -147,12 +143,9 @@ struct PoidsTransformation {
 using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
-                                                  Type const *type_enf);
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type const *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg,
                                                   Type const *type_enf,
                                                   NoeudExpression const *enfant);
