@@ -1806,6 +1806,20 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 {
     auto place_fut_utilisee = false;
 
+    auto transforme_avec_fonction =
+        [this](NoeudExpression *noeud, Atome *valeur, NoeudDeclarationEnteteFonction *fonction) {
+            auto atome_fonction = m_compilatrice.trouve_ou_insere_fonction(*this, fonction);
+
+            if (valeur->est_chargeable) {
+                valeur = cree_charge_mem(noeud, valeur);
+            }
+
+            auto args = kuri::tableau<Atome *, int>();
+            args.ajoute(valeur);
+
+            return cree_appel(noeud, atome_fonction, std::move(args));
+        };
+
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
         {
@@ -2290,19 +2304,28 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
             break;
         }
-        case TypeTransformation::FONCTION:
+        case TypeTransformation::R16_VERS_R32:
         {
-            auto atome_fonction = m_compilatrice.trouve_ou_insere_fonction(
-                *this, const_cast<NoeudDeclarationEnteteFonction *>(transformation.fonction));
-
-            if (valeur->est_chargeable) {
-                valeur = cree_charge_mem(noeud, valeur);
-            }
-
-            auto args = kuri::tableau<Atome *, int>();
-            args.ajoute(valeur);
-
-            valeur = cree_appel(noeud, atome_fonction, std::move(args));
+            valeur = transforme_avec_fonction(
+                noeud, valeur, m_compilatrice.interface_kuri->decl_dls_vers_r32);
+            break;
+        }
+        case TypeTransformation::R16_VERS_R64:
+        {
+            valeur = transforme_avec_fonction(
+                noeud, valeur, m_compilatrice.interface_kuri->decl_dls_vers_r64);
+            break;
+        }
+        case TypeTransformation::R32_VERS_R16:
+        {
+            valeur = transforme_avec_fonction(
+                noeud, valeur, m_compilatrice.interface_kuri->decl_dls_depuis_r32);
+            break;
+        }
+        case TypeTransformation::R64_VERS_R16:
+        {
+            valeur = transforme_avec_fonction(
+                noeud, valeur, m_compilatrice.interface_kuri->decl_dls_depuis_r64);
             break;
         }
         case TypeTransformation::PREND_REFERENCE:

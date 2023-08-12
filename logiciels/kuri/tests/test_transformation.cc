@@ -13,7 +13,7 @@ static bool verifie_transformation(Compilatrice &compilatrice,
 {
     auto tacheronne = Tacheronne(compilatrice);
 
-    auto resultat = cherche_transformation(compilatrice, type1, type2);
+    auto resultat = cherche_transformation(type1, type2);
 
     auto transformation = TransformationType();
     if (std::holds_alternative<TransformationType>(resultat)) {
@@ -55,10 +55,6 @@ static bool verifie_transformation(Compilatrice &compilatrice,
     std::cerr << chaine_type(type2);
     std::cerr << ", il faut faire : ";
     std::cerr << chaine_transformation(transformation.type);
-
-    if (transformation.type == TypeTransformation::FONCTION) {
-        std::cerr << " (" << transformation.fonction->lexeme->chaine << ')';
-    }
 
     std::cerr << '\n';
     return true;
