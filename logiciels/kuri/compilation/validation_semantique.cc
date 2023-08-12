@@ -19,11 +19,6 @@
 
 /* ************************************************************************** */
 
-#define VERIFIE_INTERFACE_KURI_CHARGEE(nom, id)                                                   \
-    if (m_compilatrice.interface_kuri->decl_##nom == nullptr) {                                   \
-        return Attente::sur_interface_kuri(id);                                                   \
-    }
-
 #define TENTE_IMPL(var, x)                                                                        \
     auto var = x;                                                                                 \
     if (!est_ok(var)) {                                                                           \
@@ -303,9 +298,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         {
             auto fini_execution = m_compilatrice.interface_kuri->decl_fini_execution_kuri;
-            if (fini_execution == nullptr) {
-                return Attente::sur_interface_kuri(ID::fini_execution_kuri);
-            }
+            assert(fini_execution);
             if (!fini_execution->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(fini_execution);
             }
@@ -321,9 +314,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
         {
             auto init_execution = m_compilatrice.interface_kuri->decl_init_execution_kuri;
-            if (init_execution == nullptr) {
-                return Attente::sur_interface_kuri(ID::init_execution_kuri);
-            }
+            assert(init_execution);
             if (!init_execution->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(init_execution);
             }
@@ -685,8 +676,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 case GenreType::TABLEAU_DYNAMIQUE:
                 {
                     expr->type = type_dereference_pour(type1);
-                    VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau,
-                                                   ID::panique_depassement_limites_tableau);
                     break;
                 }
                 case GenreType::TABLEAU_FIXE:
@@ -706,11 +695,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         /* nous savons que l'accès est dans les limites,
                          * évite d'émettre le code de vérification */
                         expr->aide_generation_code = IGNORE_VERIFICATION;
-                    }
-
-                    if (expr->aide_generation_code != IGNORE_VERIFICATION) {
-                        VERIFIE_INTERFACE_KURI_CHARGEE(panique_tableau,
-                                                       ID::panique_depassement_limites_tableau);
                     }
 
                     break;
@@ -1296,15 +1280,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto inst = noeud->comme_pousse_contexte();
             auto variable = inst->expression;
 
-            if (m_compilatrice.typeuse.type_contexte == nullptr) {
-                return Attente::sur_interface_kuri(ID::ContexteProgramme);
-            }
-
-            if (!m_compilatrice.globale_contexte_programme_est_disponible()) {
-                static auto noeud_expr = NoeudExpressionReference();
-                noeud_expr.ident = ID::__contexte_fil_principal;
-                return Attente::sur_symbole(&noeud_expr);
-            }
+            assert(m_compilatrice.typeuse.type_contexte);
+            assert(m_compilatrice.globale_contexte_programme);
 
             if (!m_compilatrice.globale_contexte_programme->possede_drapeau(
                     DECLARATION_FUT_VALIDEE)) {
@@ -1481,9 +1458,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     return CodeRetourValidation::Erreur;
                 }
             }
-            else {
-                VERIFIE_INTERFACE_KURI_CHARGEE(panique_erreur, ID::panique_erreur_non_geree);
-            }
 
             break;
         }
@@ -1656,7 +1630,6 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
         else if (type->genre == GenreType::UNION) {
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
-            VERIFIE_INTERFACE_KURI_CHARGEE(panique_membre_union, ID::panique_membre_union);
         }
 
         return CodeRetourValidation::OK;
