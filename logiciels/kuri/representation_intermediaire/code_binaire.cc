@@ -4,6 +4,7 @@
 #include "code_binaire.hh"
 
 #include <iomanip>
+#include <iostream>
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/assert.hh"

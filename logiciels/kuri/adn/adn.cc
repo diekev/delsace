@@ -328,8 +328,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
             os << "inline " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "()\n";
             os << "{\n";
             os << "\tassert_rappel(est_" << nom_comme
-               << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))"
-               << ";\n";
+               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
             os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
             os << "}\n\n";
 
@@ -337,8 +336,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
                << "() const\n";
             os << "{\n";
             os << "\tassert_rappel(est_" << nom_comme
-               << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))"
-               << ";\n";
+               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
             os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
             os << "}\n\n";
         });

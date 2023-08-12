@@ -3,6 +3,8 @@
 
 #include "broyage.hh"
 
+#include <iostream>
+
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/numerique.hh"

@@ -3,6 +3,8 @@
 
 #include "operateurs.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 

@@ -59,6 +59,7 @@ set(ENTETES
 )
 
 set(SOURCES
+    assert.cc
 	chaine.cc
 	chemin.cc
 	empreintes.cc

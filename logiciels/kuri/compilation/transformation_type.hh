@@ -63,7 +63,7 @@ struct TransformationType {
     }
 
     TransformationType(TypeTransformation type_, Type const *type_cible_, int64_t index_membre_)
-        : type(type_), type_cible(type_cible_), index_membre(index_membre_)
+        : type(type_), index_membre(index_membre_), type_cible(type_cible_)
     {
     }
 
