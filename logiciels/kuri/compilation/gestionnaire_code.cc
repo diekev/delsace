@@ -850,11 +850,9 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
      */
     auto decl_creation_contexte = m_compilatrice->interface_kuri->decl_creation_contexte;
+    assert(decl_creation_contexte);
 
-    if (!decl_creation_contexte) {
-        return false;
-    }
-
+    // À FAIRE : déplace ceci quand toutes les entêtes seront validées avant le reste.
     programme->ajoute_fonction(decl_creation_contexte);
 
     if (!decl_creation_contexte->unite) {
@@ -1718,28 +1716,19 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
         }
 
         auto point_d_entree = m_compilatrice->fonction_point_d_entree;
-        if (point_d_entree == nullptr) {
-            return;
-        }
-
+        assert(point_d_entree);
         espace->fonction_point_d_entree = copie_et_valide_point_d_entree(point_d_entree);
     }
     else if (espace->options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         if (espace->fonction_point_d_entree_dynamique == nullptr) {
             auto point_d_entree = m_compilatrice->fonction_point_d_entree_dynamique;
-            if (point_d_entree == nullptr) {
-                return;
-            }
-
+            assert(point_d_entree);
             espace->fonction_point_d_entree_dynamique = copie_et_valide_point_d_entree(
                 point_d_entree);
         }
         if (espace->fonction_point_de_sortie_dynamique == nullptr) {
             auto point_d_entree = m_compilatrice->fonction_point_de_sortie_dynamique;
-            if (point_d_entree == nullptr) {
-                return;
-            }
-
+            assert(point_d_entree);
             espace->fonction_point_de_sortie_dynamique = copie_et_valide_point_d_entree(
                 point_d_entree);
         }
