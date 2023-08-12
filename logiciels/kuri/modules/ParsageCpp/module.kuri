@@ -1,0 +1,18 @@
+/* Module de parsage de fichiers C++.
+ * Ceci ne permet pas de parser des fichiers C++ selon le standard du langage,
+ * et ne permettra pas de créer un compilateur C++. Le but est d'avoir un
+ * système pour extraire des données de code C++.
+ */
+
+importe Fondation
+importe SysFichier
+
+charge "fichier_source"
+charge "lexèmes"
+charge "parseuse"
+
+est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
+{
+    extension := chemin.extension()
+    retourne fait_partie_de(extension, ".h", ".hh", ".cc", ".cpp")
+}

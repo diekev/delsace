@@ -61,7 +61,6 @@ void ÉtatChargementFichiers::ajoute_unité_pour_charge_ou_importe(UniteCompilat
 
 void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompilation *unité)
 {
-    assert(unité->raison_d_etre() == RaisonDEtre::PARSAGE_FICHIER);
     if (unité->précédente) {
         unité->précédente->suivante = unité->suivante;
     }
@@ -83,14 +82,14 @@ void ÉtatChargementFichiers::enfile(UniteCompilation *unité)
     défile(unité);
     unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->raison_d_etre())];
     unité->enfilée_dans->compte += 1;
-    assert(unité->enfilé_dans->compte >= 1);
+    assert(unité->enfilée_dans->compte >= 1);
 }
 
 void ÉtatChargementFichiers::défile(UniteCompilation *unité)
 {
     if (unité->enfilée_dans) {
         unité->enfilée_dans->compte -= 1;
-        assert(unité->enfilé_dans->compte >= 0);
+        assert(unité->enfilée_dans->compte >= 0);
     }
 
     unité->enfilée_dans = nullptr;
@@ -1704,6 +1703,14 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
 void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
 {
+    auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
+        auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
+        copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
+        copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+        requiers_typage(espace, copie);
+        return copie->comme_entete_fonction();
+    };
+
     // Ne compile le point d'entrée que pour les exécutables
     if (espace->options.resultat == ResultatCompilation::EXECUTABLE) {
         if (espace->fonction_point_d_entree != nullptr) {
@@ -1715,12 +1722,7 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
             return;
         }
 
-        auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-        copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-        copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-        requiers_typage(espace, copie);
-        espace->fonction_point_d_entree = copie->comme_entete_fonction();
+        espace->fonction_point_d_entree = copie_et_valide_point_d_entree(point_d_entree);
     }
     else if (espace->options.resultat == ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE) {
         if (espace->fonction_point_d_entree_dynamique == nullptr) {
@@ -1729,12 +1731,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
                 return;
             }
 
-            auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-            copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-            copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            requiers_typage(espace, copie);
-            espace->fonction_point_d_entree_dynamique = copie->comme_entete_fonction();
+            espace->fonction_point_d_entree_dynamique = copie_et_valide_point_d_entree(
+                point_d_entree);
         }
         if (espace->fonction_point_de_sortie_dynamique == nullptr) {
             auto point_d_entree = m_compilatrice->fonction_point_de_sortie_dynamique;
@@ -1742,12 +1740,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
                 return;
             }
 
-            auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-            copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-            copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
-
-            requiers_typage(espace, copie);
-            espace->fonction_point_de_sortie_dynamique = copie->comme_entete_fonction();
+            espace->fonction_point_de_sortie_dynamique = copie_et_valide_point_d_entree(
+                point_d_entree);
         }
     }
 }
