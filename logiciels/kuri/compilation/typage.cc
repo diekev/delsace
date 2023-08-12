@@ -6,6 +6,7 @@
 #include "biblinternes/outils/assert.hh"
 
 #include <algorithm>
+#include <iostream>
 
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
@@ -2055,4 +2056,9 @@ Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sorti
         parent->enfants.ajoute(enfant);
     }
     return enfant;
+}
+
+void imprime_genre_type_pour_assert(GenreType genre)
+{
+    std::cerr << "Le type est " << genre << "\n";
 }
