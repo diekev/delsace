@@ -19,6 +19,7 @@
 #include "operateurs.hh"
 
 struct AtomeConstante;
+struct Compilatrice;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
