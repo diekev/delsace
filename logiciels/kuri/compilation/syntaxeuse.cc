@@ -593,6 +593,10 @@ void Syntaxeuse::analyse_une_chose()
 
             if (noeud->est_declaration_variable()) {
                 noeud->bloc_parent->ajoute_membre(noeud->comme_declaration_variable());
+                if (noeud->ident == ID::__contexte_fil_principal) {
+                    m_compilatrice.globale_contexte_programme =
+                        noeud->comme_declaration_variable();
+                }
                 requiers_typage(noeud);
             }
             else if (noeud->est_entete_fonction()) {
