@@ -21,6 +21,7 @@
 #include "plateforme/windows.h"
 
 struct AtomeConstante;
+struct Compilatrice;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;

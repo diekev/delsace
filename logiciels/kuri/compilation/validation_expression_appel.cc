@@ -422,8 +422,7 @@ static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
         }
     }
 
-    return verifie_compatibilite(
-        espace.compilatrice(), type_du_parametre, type_de_l_expression, slot);
+    return verifie_compatibilite(type_du_parametre, type_de_l_expression, slot);
 }
 
 static void cree_tableau_args_variadiques(ContexteValidationCode &contexte,
@@ -1047,7 +1046,7 @@ static ResultatAppariement apparie_appel_structure(
         auto const index_membre = apparieuse_params.index_pour_slot(index_it);
         auto &membre = type_compose->membres[index_membre];
 
-        auto resultat = verifie_compatibilite(espace.compilatrice(), membre.type, it->type, it);
+        auto resultat = verifie_compatibilite(membre.type, it->type, it);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));
@@ -1104,8 +1103,7 @@ static ResultatAppariement apparie_construction_opaque(
             1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
 
-    auto resultat = verifie_compatibilite(
-        espace.compilatrice(), type_opaque->type_opacifie, arg->type);
+    auto resultat = verifie_compatibilite(type_opaque->type_opacifie, arg->type);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));

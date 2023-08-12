@@ -915,8 +915,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
             }
 
-            auto resultat = cherche_transformation_pour_transtypage(
-                m_compilatrice, expr->expression->type, noeud->type);
+            auto resultat = cherche_transformation_pour_transtypage(expr->expression->type,
+                                                                    noeud->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -2334,8 +2334,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
                                           NoeudExpression *variable,
                                           NoeudExpression *expression,
                                           Type *type_de_l_expression) -> ResultatValidation {
-        auto resultat = cherche_transformation(
-            m_compilatrice, type_de_l_expression, variable->type);
+        auto resultat = cherche_transformation(type_de_l_expression, variable->type);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return std::get<Attente>(resultat);
@@ -3928,8 +3927,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
         }
         else {
-            auto resultat = cherche_transformation(
-                m_compilatrice, type_de_l_expression, variable->type);
+            auto resultat = cherche_transformation(type_de_l_expression, variable->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -4174,8 +4172,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
 
         if (var_est_reference && expr_est_reference) {
             // déréférence les deux côtés
-            auto resultat = cherche_transformation(
-                m_compilatrice, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -4195,8 +4192,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             // déréférence var
             type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
 
-            auto resultat = cherche_transformation(
-                m_compilatrice, type_de_l_expression, type_de_la_variable);
+            auto resultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -4213,8 +4209,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else if (expr_est_reference) {
             // déréférence expr
-            auto resultat = cherche_transformation(
-                m_compilatrice, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -4228,8 +4223,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             }
         }
         else {
-            auto resultat = cherche_transformation(
-                m_compilatrice, type_de_l_expression, var->type);
+            auto resultat = cherche_transformation(type_de_l_expression, var->type);
 
             if (std::holds_alternative<Attente>(resultat)) {
                 return std::get<Attente>(resultat);
@@ -4442,7 +4436,7 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
 ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
                                                                    Type *type_cible)
 {
-    auto resultat = cherche_transformation(m_compilatrice, expression->type, type_cible);
+    auto resultat = cherche_transformation(expression->type, type_cible);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -4860,7 +4854,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     if (assignation_composee) {
         expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
 
-        auto resultat_tfm = cherche_transformation(m_compilatrice, expr->type, type1);
+        auto resultat_tfm = cherche_transformation(expr->type, type1);
 
         if (std::holds_alternative<Attente>(resultat_tfm)) {
             return std::get<Attente>(resultat_tfm);

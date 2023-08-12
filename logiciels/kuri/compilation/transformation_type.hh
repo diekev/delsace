@@ -9,8 +9,6 @@
 
 #include "attente.hh"
 
-struct Compilatrice;
-struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct Type;
 
@@ -23,9 +21,12 @@ struct Type;
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TABL_OCTET)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU)                                              \
-    ENUMERE_TYPE_TRANSFORMATION_EX(FONCTION)                                                      \
     ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE)                                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(DEREFERENCE)                                                   \
+    ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R32)                                                  \
+    ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R64)                                                  \
+    ENUMERE_TYPE_TRANSFORMATION_EX(R32_VERS_R16)                                                  \
+    ENUMERE_TYPE_TRANSFORMATION_EX(R64_VERS_R16)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(AUGMENTE_TAILLE_TYPE)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(REDUIT_TAILLE_TYPE)                                            \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_BASE)                                            \
@@ -50,7 +51,6 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type);
 
 struct TransformationType {
     TypeTransformation type{};
-    NoeudDeclarationEnteteFonction const *fonction{};
     Type const *type_cible = nullptr;
     int64_t index_membre = 0;
     /* Pour les transformations entre type base et type dérivé. */
@@ -69,16 +69,6 @@ struct TransformationType {
 
     TransformationType(TypeTransformation type_, Type const *type_cible_)
         : type(type_), type_cible(type_cible_)
-    {
-    }
-
-    TransformationType(NoeudDeclarationEnteteFonction const *fonction_)
-        : type(TypeTransformation::FONCTION), fonction(fonction_)
-    {
-    }
-
-    TransformationType(NoeudDeclarationEnteteFonction const *fonction_, Type const *type_cible_)
-        : type(TypeTransformation::FONCTION), fonction(fonction_), type_cible(type_cible_)
     {
     }
 
@@ -118,10 +108,6 @@ struct TransformationType {
             return false;
         }
 
-        if (fonction != autre.fonction) {
-            return false;
-        }
-
         if (index_membre != autre.index_membre) {
             return false;
         }
@@ -142,12 +128,9 @@ std::ostream &operator<<(std::ostream &os, TransformationType type);
 
 using ResultatTransformation = std::variant<TransformationType, Attente>;
 
-ResultatTransformation cherche_transformation(Compilatrice &compilatrice,
-                                              Type const *type_de,
-                                              Type const *type_vers);
+ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers);
 
-ResultatTransformation cherche_transformation_pour_transtypage(Compilatrice &compilatrice,
-                                                               Type const *type_de,
+ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
                                                                Type const *type_vers);
 
 /* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
@@ -160,12 +143,9 @@ struct PoidsTransformation {
 using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
-                                                  Type const *type_enf);
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type const *type_enf);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-ResultatPoidsTransformation verifie_compatibilite(Compilatrice &compilatrice,
-                                                  Type const *type_arg,
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg,
                                                   Type const *type_enf,
                                                   NoeudExpression const *enfant);
