@@ -1,0 +1,63 @@
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud de base pour tous les noeuds syntaxique.
+ * \{ */
+
+NoeudSyntaxique :: struct {
+    lexème: *Lexème
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud pour référencer un symbole.
+ * \{ */
+
+NoeudRéférenceSymbole :: struct {
+    empl base: NoeudSyntaxique
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Noeud représentation un instruction de prodéclaration de type.
+ * \{ */
+
+NoeudProdéclarationObjet :: struct {
+    empl base: NoeudSyntaxique
+
+    nom_objet: chaine
+    est_struct: bool
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudProdéclarationÉnum
+ * \{ */
+
+NoeudProdéclarationÉnum :: struct {
+    empl base: NoeudSyntaxique
+
+    nom_énum: chaine
+    expression_type: *NoeudSyntaxique
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Créatrice de Noeuds
+ * \{ */
+
+CréatriceNoeuds :: struct {
+    noeuds: []*NoeudSyntaxique
+}
+
+crée_noeud :: fonc (créatrice: &CréatriceNoeuds, lexème: *Lexème, $TypeNoeud: type_de_données) -> *TypeNoeud
+{
+    noeud := loge(TypeNoeud)
+    noeud.lexème = lexème
+    tableau_ajoute(*créatrice.noeuds, noeud)
+    retourne noeud
+}
+
+/** } */

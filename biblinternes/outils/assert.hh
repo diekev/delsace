@@ -24,6 +24,9 @@
 
 #pragma once
 
+// À FAIRE : supprime çà
+#include <iostream>
+
 #ifndef NDEBUG
 #	define assert_rappel(condition, rappel) \
         do { \
