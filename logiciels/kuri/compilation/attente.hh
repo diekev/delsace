@@ -10,7 +10,6 @@ struct Atome;
 struct Attente;
 struct EspaceDeTravail;
 struct Fichier;
-struct IdentifiantCode;
 struct Message;
 struct MetaProgramme;
 struct NoeudDeclaration;
@@ -99,7 +98,6 @@ struct DonnéesAttenteMessage {
 };
 
 using AttenteSurType = AttenteSur<Type const *>;
-using AttenteSurInterfaceKuri = AttenteSur<IdentifiantCode *>;
 using AttenteSurMetaProgramme = AttenteSur<MetaProgramme *>;
 using AttenteSurDeclaration = AttenteSur<NoeudDeclaration *>;
 using AttenteSurSymbole = AttenteSur<NoeudExpressionReference *>;
@@ -134,7 +132,6 @@ DÉCLARE_INFO_TYPE_ATTENTE(opérateur, AttenteSurOperateur);
 DÉCLARE_INFO_TYPE_ATTENTE(métaprogramme, AttenteSurMetaProgramme);
 DÉCLARE_INFO_TYPE_ATTENTE(ri, AttenteSurRI);
 DÉCLARE_INFO_TYPE_ATTENTE(symbole, AttenteSurSymbole);
-DÉCLARE_INFO_TYPE_ATTENTE(interface_kuri, AttenteSurInterfaceKuri);
 DÉCLARE_INFO_TYPE_ATTENTE(message, AttenteSurMessage);
 DÉCLARE_INFO_TYPE_ATTENTE(chargement, AttenteSurChargement);
 DÉCLARE_INFO_TYPE_ATTENTE(lexage, AttenteSurLexage);
@@ -155,7 +152,6 @@ struct Attente {
   protected:
     using TypeAttente = std::variant<std::monostate,
                                      AttenteSurType,
-                                     AttenteSurInterfaceKuri,
                                      AttenteSurMetaProgramme,
                                      AttenteSurDeclaration,
                                      AttenteSurSymbole,
@@ -207,12 +203,6 @@ struct Attente {
     {
         assert(type);
         return AttenteSurType{type};
-    }
-
-    static Attente sur_interface_kuri(IdentifiantCode *nom_fonction)
-    {
-        assert(nom_fonction);
-        return AttenteSurInterfaceKuri{nom_fonction};
     }
 
     static Attente sur_metaprogramme(MetaProgramme *metaprogramme)
@@ -284,12 +274,6 @@ struct Attente {
     {
         assert(est<AttenteSurType>());
         return std::get<AttenteSurType>(attente).valeur;
-    }
-
-    IdentifiantCode *interface_kuri() const
-    {
-        assert(est<AttenteSurInterfaceKuri>());
-        return std::get<AttenteSurInterfaceKuri>(attente).valeur;
     }
 
     MetaProgramme *metaprogramme() const

@@ -145,6 +145,7 @@ RAPPEL_POUR_EST_RÉSOLUE(déclaration)
         return false;
     }
 
+    // À FAIRE : est-ce nécessaire ?
     if (declaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
         /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
          * nous faut le code. */
@@ -486,60 +487,6 @@ InfoTypeAttente info_type_attente_sur_symbole = {nullptr,
                                                  NOM_RAPPEL_POUR_COMMENTAIRE(symbole),
                                                  NOM_RAPPEL_POUR_EST_RÉSOLUE(symbole),
                                                  NOM_RAPPEL_POUR_ERREUR(symbole)};
-
-/** \} */
-
-/** -----------------------------------------------------------------
- * AttenteSurInterfaceKuri
- * \{ */
-
-RAPPEL_POUR_COMMENTAIRE(interface_kuri)
-{
-    return enchaine("(interface kuri) ", attente.interface_kuri()->nom);
-}
-
-RAPPEL_POUR_EST_RÉSOLUE(interface_kuri)
-{
-    auto interface_attendue = attente.interface_kuri();
-    auto &compilatrice = espace->compilatrice();
-
-    if (ident_est_pour_fonction_interface(interface_attendue)) {
-        auto decl = compilatrice.interface_kuri->declaration_pour_ident(interface_attendue);
-        if (!decl || !decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
-            return false;
-        }
-
-        if (decl->ident == ID::cree_contexte) {
-            /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
-             * nous faut le code. */
-            attente = Attente::sur_ri(&decl->atome);
-            return false;
-        }
-
-        return true;
-    }
-
-    assert(ident_est_pour_type_interface(interface_attendue));
-    return est_type_interface_disponible(compilatrice.typeuse, interface_attendue);
-}
-
-RAPPEL_POUR_ERREUR(interface_kuri)
-{
-    auto espace = unite->espace;
-    auto noeud = unite->noeud;
-    espace
-        ->rapporte_erreur(noeud,
-                          "Trop de cycles : arrêt de la compilation car une "
-                          "déclaration attend sur une interface de Kuri")
-        .ajoute_message("Note : l'interface attendue est ", attente.interface_kuri()->nom, "\n");
-}
-
-InfoTypeAttente info_type_attente_sur_interface_kuri = {
-    nullptr,
-    condition_blocage_défaut,
-    NOM_RAPPEL_POUR_COMMENTAIRE(interface_kuri),
-    NOM_RAPPEL_POUR_EST_RÉSOLUE(interface_kuri),
-    NOM_RAPPEL_POUR_ERREUR(interface_kuri)};
 
 /** \} */
 
