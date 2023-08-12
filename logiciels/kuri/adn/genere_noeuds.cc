@@ -173,6 +173,8 @@ struct GeneratriceCodeCPP {
             it->genere_code_cpp(os, true);
         }
 
+        os << "void imprime_genre_noeud_pour_assert(const NoeudExpression *noeud);\n\n";
+
         POUR (proteines_struct) {
             it->genere_code_cpp_apres_declaration(os);
         }
@@ -225,6 +227,12 @@ struct GeneratriceCodeCPP {
         genere_calcul_etendue_noeud(os);
         genere_visite_noeud(os);
         genere_copie_noeud(os);
+
+        os << "void imprime_genre_noeud_pour_assert(const NoeudExpression *noeud)\n";
+        os << "{\n";
+        os << R"(    std::cerr << "Le genre de noeud est " << noeud->genre << "\n";)";
+        os << "\n";
+        os << "}\n\n";
     }
 
     void genere_impression_arbre_syntaxique(FluxSortieCPP &os)
@@ -755,6 +763,8 @@ struct GeneratriceCodeCPP {
             os << "};\n\n";
         }
 
+        os << "void imprime_genre_noeud_pour_assert(const NoeudCode *noeud);\n\n";
+
         // Implémente les fonctions de transtypage
         POUR (proteines_struct) {
             const auto nom_comme = it->accede_nom_comme();
@@ -808,8 +818,7 @@ struct GeneratriceCodeCPP {
             os << "inline " << nom_noeud << " *NoeudCode::comme_" << nom_comme << "()\n";
             os << "{\n";
             os << "\tassert_rappel(est_" << nom_comme
-               << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))"
-               << ";\n";
+               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
             os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
             os << "}\n\n";
 
@@ -817,8 +826,7 @@ struct GeneratriceCodeCPP {
                << "() const\n";
             os << "{\n";
             os << "\tassert_rappel(est_" << nom_comme
-               << R"((), [this]() { std::cerr << "Le genre de noeud est " << this->genre << "\n"; }))"
-               << ";\n";
+               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
             os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
             os << "}\n\n";
         }
@@ -1183,6 +1191,12 @@ struct GeneratriceCodeCPP {
 
         os << "\treturn mem;\n";
         os << "}\n";
+
+        os << "void imprime_genre_noeud_pour_assert(const NoeudCode *noeud)\n";
+        os << "{\n";
+        os << R"(    std::cerr << "Le genre de noeud est " << noeud->genre << "\n";)";
+        os << "\n";
+        os << "}\n\n";
     }
 
     void genere_code_pour_enfant(FluxSortieCPP &os,
