@@ -38,7 +38,6 @@ struct Statistiques;
 struct Typeuse;
 struct TypeCompose;
 struct TypeEnum;
-struct TypeEnum;
 struct TypeFonction;
 struct TypeOpaque;
 struct TypePointeur;
@@ -54,77 +53,77 @@ struct TypeVariadique;
 
 /* ************************************************************************** */
 
-enum class TypeBase : char {
-    N8,
-    N16,
-    N32,
-    N64,
-    Z8,
-    Z16,
-    Z32,
-    Z64,
-    R16,
-    R32,
-    R64,
-    EINI,
-    CHAINE,
-    RIEN,
-    BOOL,
-    OCTET,
-    ENTIER_CONSTANT,
+namespace TypeBase {
+#define ENUMERE_TYPE_FONDAMENTAL(O)                                                               \
+    O(N8)                                                                                         \
+    O(N16)                                                                                        \
+    O(N32)                                                                                        \
+    O(N64)                                                                                        \
+    O(Z8)                                                                                         \
+    O(Z16)                                                                                        \
+    O(Z32)                                                                                        \
+    O(Z64)                                                                                        \
+    O(R16)                                                                                        \
+    O(R32)                                                                                        \
+    O(R64)                                                                                        \
+    O(EINI)                                                                                       \
+    O(CHAINE)                                                                                     \
+    O(RIEN)                                                                                       \
+    O(BOOL)                                                                                       \
+    O(OCTET)                                                                                      \
+    O(ENTIER_CONSTANT)                                                                            \
+    O(PTR_N8)                                                                                     \
+    O(PTR_N16)                                                                                    \
+    O(PTR_N32)                                                                                    \
+    O(PTR_N64)                                                                                    \
+    O(PTR_Z8)                                                                                     \
+    O(PTR_Z16)                                                                                    \
+    O(PTR_Z32)                                                                                    \
+    O(PTR_Z64)                                                                                    \
+    O(PTR_R16)                                                                                    \
+    O(PTR_R32)                                                                                    \
+    O(PTR_R64)                                                                                    \
+    O(PTR_EINI)                                                                                   \
+    O(PTR_CHAINE)                                                                                 \
+    O(PTR_RIEN)                                                                                   \
+    O(PTR_NUL)                                                                                    \
+    O(PTR_BOOL)                                                                                   \
+    O(PTR_OCTET)                                                                                  \
+    O(REF_N8)                                                                                     \
+    O(REF_N16)                                                                                    \
+    O(REF_N32)                                                                                    \
+    O(REF_N64)                                                                                    \
+    O(REF_Z8)                                                                                     \
+    O(REF_Z16)                                                                                    \
+    O(REF_Z32)                                                                                    \
+    O(REF_Z64)                                                                                    \
+    O(REF_R16)                                                                                    \
+    O(REF_R32)                                                                                    \
+    O(REF_R64)                                                                                    \
+    O(REF_EINI)                                                                                   \
+    O(REF_CHAINE)                                                                                 \
+    O(REF_RIEN)                                                                                   \
+    O(REF_BOOL)                                                                                   \
+    O(TABL_N8)                                                                                    \
+    O(TABL_N16)                                                                                   \
+    O(TABL_N32)                                                                                   \
+    O(TABL_N64)                                                                                   \
+    O(TABL_Z8)                                                                                    \
+    O(TABL_Z16)                                                                                   \
+    O(TABL_Z32)                                                                                   \
+    O(TABL_Z64)                                                                                   \
+    O(TABL_R16)                                                                                   \
+    O(TABL_R32)                                                                                   \
+    O(TABL_R64)                                                                                   \
+    O(TABL_EINI)                                                                                  \
+    O(TABL_CHAINE)                                                                                \
+    O(TABL_BOOL)                                                                                  \
+    O(TABL_OCTET)
 
-    PTR_N8,
-    PTR_N16,
-    PTR_N32,
-    PTR_N64,
-    PTR_Z8,
-    PTR_Z16,
-    PTR_Z32,
-    PTR_Z64,
-    PTR_R16,
-    PTR_R32,
-    PTR_R64,
-    PTR_EINI,
-    PTR_CHAINE,
-    PTR_RIEN,
-    PTR_NUL,
-    PTR_BOOL,
-    PTR_OCTET,
-
-    REF_N8,
-    REF_N16,
-    REF_N32,
-    REF_N64,
-    REF_Z8,
-    REF_Z16,
-    REF_Z32,
-    REF_Z64,
-    REF_R16,
-    REF_R32,
-    REF_R64,
-    REF_EINI,
-    REF_CHAINE,
-    REF_RIEN,
-    REF_BOOL,
-
-    TABL_N8,
-    TABL_N16,
-    TABL_N32,
-    TABL_N64,
-    TABL_Z8,
-    TABL_Z16,
-    TABL_Z32,
-    TABL_Z64,
-    TABL_R16,
-    TABL_R32,
-    TABL_R64,
-    TABL_EINI,
-    TABL_CHAINE,
-    TABL_BOOL,
-    TABL_OCTET,
-
-    TOTAL,
-};
+#define DECLARE_EXTERNE_TYPE(nom) extern Type *nom;
+ENUMERE_TYPE_FONDAMENTAL(DECLARE_EXTERNE_TYPE)
+#undef DECLARE_EXTERNE_TYPE
+}  // namespace TypeBase
 
 #define ENUMERE_TYPE(O)                                                                           \
     O(pointeur, POINTEUR, TypePointeur)                                                           \
@@ -542,7 +541,7 @@ struct TypeVariadique final : public TypeCompose {
     Type *type_pointe = nullptr;
     /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
      * tableau dynamique sera []z32. */
-    Type *type_tableau_dyn = nullptr;
+    Type *type_tableau_dynamique = nullptr;
 };
 
 struct TypeTypeDeDonnees : public Type {
@@ -721,7 +720,6 @@ struct Typeuse {
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
     // à différents types de types.
-    kuri::tableau<Type *> types_communs{};
     kuri::tableau_synchrone<Type *> types_simples{};
     tableau_page_synchrone<TypePointeur> types_pointeurs{};
     tableau_page_synchrone<TypeReference> types_references{};
@@ -841,11 +839,6 @@ struct Typeuse {
     TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
     TypeTuple *cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres);
-
-    inline Type *operator[](TypeBase type_base) const
-    {
-        return types_communs[static_cast<int64_t>(type_base)];
-    }
 
     void rassemble_statistiques(Statistiques &stats) const;
 
