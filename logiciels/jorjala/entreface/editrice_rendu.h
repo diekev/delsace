@@ -28,9 +28,6 @@
 
 #include "danjo/manipulable.h"
 
-class QFrame;
-class QGridLayout;
-class QHBoxLayout;
 class QScrollArea;
 
 class EditriceRendu : public BaseEditrice {

@@ -38,7 +38,6 @@
 
 class VisionneurImage;
 class VisionneurScene;
-class QScrollArea;
 
 /* ------------------------------------------------------------------------- */
 /** \name Vue Canevas 2D

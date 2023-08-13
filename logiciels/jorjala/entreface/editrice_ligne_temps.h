@@ -27,10 +27,7 @@
 #include "base_editrice.h"
 
 class QDoubleSpinBox;
-class QGridLayout;
-class QLabel;
 class QSlider;
-class QPushButton;
 class QSpinBox;
 class QVBoxLayout;
 
