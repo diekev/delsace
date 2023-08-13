@@ -26,8 +26,6 @@
 
 #include "base_editrice.h"
 
-class QGridLayout;
-class QHBoxLayout;
 class QScrollArea;
 
 namespace JJL {
