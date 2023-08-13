@@ -36,7 +36,6 @@ class Kanba;
 
 class QFrame;
 class QHBoxLayout;
-class QLineEdit;
 class QVBoxLayout;
 
 class BaseEditrice : public danjo::ConteneurControles {
