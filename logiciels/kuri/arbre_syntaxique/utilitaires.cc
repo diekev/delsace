@@ -1140,20 +1140,20 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
     switch (type->genre) {
         case GenreInfoType::EINI:
         {
-            return typeuse[TypeBase::EINI];
+            return TypeBase::EINI;
         }
         case GenreInfoType::REEL:
         {
             if (type->taille_en_octet == 2) {
-                return typeuse[TypeBase::R16];
+                return TypeBase::R16;
             }
 
             if (type->taille_en_octet == 4) {
-                return typeuse[TypeBase::R32];
+                return TypeBase::R32;
             }
 
             if (type->taille_en_octet == 8) {
-                return typeuse[TypeBase::R64];
+                return TypeBase::R64;
             }
 
             return nullptr;
@@ -1164,57 +1164,57 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
 
             if (info_type_entier->est_signe) {
                 if (type->taille_en_octet == 1) {
-                    return typeuse[TypeBase::Z8];
+                    return TypeBase::Z8;
                 }
 
                 if (type->taille_en_octet == 2) {
-                    return typeuse[TypeBase::Z16];
+                    return TypeBase::Z16;
                 }
 
                 if (type->taille_en_octet == 4) {
-                    return typeuse[TypeBase::Z32];
+                    return TypeBase::Z32;
                 }
 
                 if (type->taille_en_octet == 8) {
-                    return typeuse[TypeBase::Z64];
+                    return TypeBase::Z64;
                 }
 
                 return nullptr;
             }
 
             if (type->taille_en_octet == 1) {
-                return typeuse[TypeBase::N8];
+                return TypeBase::N8;
             }
 
             if (type->taille_en_octet == 2) {
-                return typeuse[TypeBase::N16];
+                return TypeBase::N16;
             }
 
             if (type->taille_en_octet == 4) {
-                return typeuse[TypeBase::N32];
+                return TypeBase::N32;
             }
 
             if (type->taille_en_octet == 8) {
-                return typeuse[TypeBase::N64];
+                return TypeBase::N64;
             }
 
             return nullptr;
         }
         case GenreInfoType::OCTET:
         {
-            return typeuse[TypeBase::OCTET];
+            return TypeBase::OCTET;
         }
         case GenreInfoType::BOOLEEN:
         {
-            return typeuse[TypeBase::BOOL];
+            return TypeBase::BOOL;
         }
         case GenreInfoType::CHAINE:
         {
-            return typeuse[TypeBase::CHAINE];
+            return TypeBase::CHAINE;
         }
         case GenreInfoType::RIEN:
         {
-            return typeuse[TypeBase::RIEN];
+            return TypeBase::RIEN;
         }
         case GenreInfoType::POINTEUR:
         {
@@ -1612,7 +1612,7 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
         auto types_entrees = kuri::tablet<Type *, 6>();
         types_entrees.ajoute(type_param);
 
-        auto type_fonction = typeuse.type_fonction(types_entrees, typeuse[TypeBase::RIEN], false);
+        auto type_fonction = typeuse.type_fonction(types_entrees, TypeBase::RIEN, false);
 
         static Lexeme lexeme_entete = {};
         auto entete = assembleuse->cree_entete_fonction(&lexeme_entete);
@@ -1643,7 +1643,7 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
 
             auto ref = assembleuse->cree_reference_declaration(&lexeme_rien);
             ref->ident = ident;
-            ref->type = typeuse[TypeBase::RIEN];
+            ref->type = TypeBase::RIEN;
 
             auto decl = assembleuse->cree_declaration_variable(ref);
             decl->expression_type = type_declare;
@@ -1716,8 +1716,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             prise_adresse->type = typeuse.type_pointeur_pour(type);
             auto fonction = cree_entete_pour_initialisation_type(
                 type, compilatrice, assembleuse, typeuse);
-            auto appel = assembleuse->cree_appel(
-                &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
+            auto appel = assembleuse->cree_appel(&lexeme_sentinel, fonction, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(prise_adresse);
             assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
@@ -1821,12 +1820,11 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             pour->variable = variable;
             pour->decl_it = decl_it;
             pour->decl_index_it = assembleuse->cree_declaration_variable(
-                &lexeme_sentinel, typeuse[TypeBase::Z64], ID::index_it, nullptr);
+                &lexeme_sentinel, TypeBase::Z64, ID::index_it, nullptr);
 
             auto fonction = cree_entete_pour_initialisation_type(
                 type_pointe, compilatrice, assembleuse, typeuse);
-            auto appel = assembleuse->cree_appel(
-                &lexeme_sentinel, fonction, typeuse[TypeBase::RIEN]);
+            auto appel = assembleuse->cree_appel(&lexeme_sentinel, fonction, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(ref_it);
 
             pour->bloc->ajoute_expression(appel);
@@ -1857,8 +1855,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 
             auto fonc_init = cree_entete_pour_initialisation_type(
                 type_opacifie, compilatrice, assembleuse, typeuse);
-            auto appel = assembleuse->cree_appel(
-                &lexeme_sentinel, fonc_init, typeuse[TypeBase::RIEN]);
+            auto appel = assembleuse->cree_appel(&lexeme_sentinel, fonc_init, TypeBase::RIEN);
             appel->parametres_resolus.ajoute(comme);
             assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
@@ -1877,7 +1874,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 static void assigne_fonction_init_enum(Typeuse &typeuse, TypeEnum *type)
 {
 #define ASSIGNE_SI(ident_maj, ident_min)                                                          \
-    if (type_données == typeuse[TypeBase::ident_maj]) {                                           \
+    if (type_données == TypeBase::ident_maj) {                                                    \
         type->assigne_fonction_init(typeuse.init_type_##ident_min);                               \
         return;                                                                                   \
     }
@@ -1903,7 +1900,7 @@ static void sauvegarde_fonction_init(Typeuse &typeuse,
                                      NoeudDeclarationEnteteFonction *entete)
 {
 #define ASSIGNE_SI(ident_maj, ident_min)                                                          \
-    if (type == typeuse[TypeBase::ident_maj]) {                                                   \
+    if (type == TypeBase::ident_maj) {                                                            \
         typeuse.init_type_##ident_min = entete;                                                   \
         return;                                                                                   \
     }
@@ -2091,9 +2088,9 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                     ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
                     ref_membre->accedee = ref_param;
                     ref_membre->index_membre = 1;
-                    ref_membre->type = typeuse[TypeBase::Z32];
+                    ref_membre->type = TypeBase::Z32;
                     ref_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    cree_initialisation_defaut_pour_type(typeuse[TypeBase::Z32],
+                    cree_initialisation_defaut_pour_type(TypeBase::Z32,
                                                          espace->compilatrice(),
                                                          assembleuse,
                                                          ref_membre,

@@ -150,7 +150,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
 
     /* Le type peut être nul pour les #tests. */
     if (!type_expression && directive->ident == ID::test) {
-        type_expression = m_compilatrice.typeuse[TypeBase::RIEN];
+        type_expression = TypeBase::RIEN;
     }
 
     if (type_expression->est_tuple()) {
@@ -209,7 +209,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
 
     simplifie_arbre(espace, assembleuse, m_compilatrice.typeuse, expression);
 
-    if (type_expression != m_compilatrice.typeuse[TypeBase::RIEN]) {
+    if (type_expression != TypeBase::RIEN) {
         expr_ret->genre = GenreNoeud::INSTRUCTION_RETOUR;
         expr_ret->expression = expression;
 
@@ -538,14 +538,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
-            noeud->type = m_compilatrice.typeuse[TypeBase::R32];
+            noeud->type = TypeBase::R32;
             noeud->comme_litterale_reel()->valeur = noeud->lexeme->valeur_reelle;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
-            noeud->type = m_compilatrice.typeuse[TypeBase::ENTIER_CONSTANT];
+            noeud->type = TypeBase::ENTIER_CONSTANT;
             noeud->comme_litterale_entier()->valeur = noeud->lexeme->valeur_entiere;
             break;
         }
@@ -630,11 +630,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return CodeRetourValidation::Erreur;
                     }
 
-                    expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+                    expr->type = TypeBase::BOOL;
                 }
                 else {
                     if (type->genre == GenreType::ENTIER_CONSTANT) {
-                        type = m_compilatrice.typeuse[TypeBase::Z32];
+                        type = TypeBase::Z32;
                         transtype_si_necessaire(
                             expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
                     }
@@ -708,7 +708,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 case GenreType::CHAINE:
                 {
-                    expr->type = m_compilatrice.typeuse[TypeBase::Z8];
+                    expr->type = TypeBase::Z8;
                     break;
                 }
                 default:
@@ -745,7 +745,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
-            auto type_cible = m_compilatrice.typeuse[TypeBase::Z64];
+            auto type_cible = TypeBase::Z64;
             auto type_index = enfant2->type;
 
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
@@ -767,21 +767,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
         {
-            noeud->type = m_compilatrice.typeuse[TypeBase::CHAINE];
+            noeud->type = TypeBase::CHAINE;
             noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
-            noeud->type = m_compilatrice.typeuse[TypeBase::BOOL];
+            noeud->type = TypeBase::BOOL;
             noeud->comme_litterale_bool()->valeur = noeud->lexeme->chaine == "vrai";
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
-            noeud->type = m_compilatrice.typeuse[TypeBase::Z8];
+            noeud->type = TypeBase::Z8;
             noeud->comme_litterale_caractere()->valeur = static_cast<uint32_t>(
                 noeud->lexeme->valeur_entiere);
             break;
@@ -878,7 +878,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto expressions = inst->expressions.verrou_lecture();
 
             if (expressions->est_vide()) {
-                noeud->type = m_compilatrice.typeuse[TypeBase::RIEN];
+                noeud->type = TypeBase::RIEN;
             }
             else {
                 noeud->type = expressions->a(expressions->taille() - 1)->type;
@@ -942,14 +942,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         {
             noeud->genre_valeur = GenreValeur::DROITE;
-            noeud->type = m_compilatrice.typeuse[TypeBase::PTR_NUL];
+            noeud->type = TypeBase::PTR_NUL;
             break;
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
             auto expr = noeud->comme_taille_de();
             expr->genre_valeur = GenreValeur::DROITE;
-            expr->type = m_compilatrice.typeuse[TypeBase::N32];
+            expr->type = TypeBase::N32;
 
             auto expr_type = expr->expression;
             if (resoud_type_final(expr_type, expr_type->type) == CodeRetourValidation::Erreur) {
@@ -996,7 +996,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
-                type_debut = m_compilatrice.typeuse[TypeBase::Z32];
+                type_debut = TypeBase::Z32;
                 transtype_si_necessaire(
                     inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
                 transtype_si_necessaire(
@@ -1081,7 +1081,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
-                type_feuille = m_compilatrice.typeuse[TypeBase::Z32];
+                type_feuille = TypeBase::Z32;
                 transtype_si_necessaire(
                     feuilles->expressions[0],
                     {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille});
@@ -1206,8 +1206,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto types_entrees = kuri::tablet<Type *, 6>(1);
             types_entrees[0] = m_compilatrice.typeuse.type_pointeur_pour(type);
 
-            auto type_fonction = m_compilatrice.typeuse.type_fonction(
-                types_entrees, m_compilatrice.typeuse[TypeBase::RIEN]);
+            auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
+                                                                      TypeBase::RIEN);
             noeud->type = type_fonction;
             noeud->genre_valeur = GenreValeur::DROITE;
             break;
@@ -1763,13 +1763,12 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
     auto type_fonc = decl->type->comme_fonction();
     auto type_resultat = type_fonc->type_sortie;
 
-    if (type_resultat == m_compilatrice.typeuse[TypeBase::RIEN]) {
+    if (type_resultat == TypeBase::RIEN) {
         rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
         return CodeRetourValidation::Erreur;
     }
 
-    if (est_operateur_bool(decl->lexeme->genre) &&
-        type_resultat != m_compilatrice.typeuse[TypeBase::BOOL]) {
+    if (est_operateur_bool(decl->lexeme->genre) && type_resultat != TypeBase::BOOL) {
         rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
         return CodeRetourValidation::Erreur;
     }
@@ -1956,7 +1955,7 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
             return CodeRetourValidation::Erreur;
         }
 
-        if (decl->param_sortie->type != m_compilatrice.typeuse[TypeBase::Z32]) {
+        if (decl->param_sortie->type != TypeBase::Z32) {
             espace->rapporte_erreur(decl->param_sortie,
                                     "La fonction principale doit retourner un z32 !");
             return CodeRetourValidation::Erreur;
@@ -2207,7 +2206,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     }
 
     if (inst->expression == nullptr) {
-        inst->type = m_compilatrice.typeuse[TypeBase::RIEN];
+        inst->type = TypeBase::RIEN;
 
         auto type_sortie = type_fonc->type_sortie;
 
@@ -2249,7 +2248,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
             return CodeRetourValidation::Erreur;
         }
 
-        inst->type = m_compilatrice.typeuse[TypeBase::CHAINE];
+        inst->type = TypeBase::CHAINE;
 
         DonneesAssignations donnees;
         donnees.expression = inst->expression;
@@ -2682,7 +2681,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 
     auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-    decl_sortie->type = m_compilatrice.typeuse[TypeBase::CHAINE];
+    decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DECLARATION_FUT_VALIDEE;
 
     fonction->params_sorties.ajoute(decl_sortie);
@@ -2690,7 +2689,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
 
-    auto type_sortie = m_compilatrice.typeuse[TypeBase::CHAINE];
+    auto type_sortie = TypeBase::CHAINE;
 
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     fonction->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -3259,7 +3258,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     }
 
     membres.ajoute({nullptr,
-                    m_compilatrice.typeuse[TypeBase::Z32],
+                    TypeBase::Z32,
                     ID::nombre_elements,
                     0,
                     membres.taille(),
@@ -3310,7 +3309,7 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {
-        type_enum->type_donnees = m_compilatrice.typeuse[TypeBase::Z32];
+        type_enum->type_donnees = TypeBase::Z32;
     }
     else if (decl->expression_type != nullptr) {
         TENTE(valide_semantique_noeud(decl->expression_type));
@@ -3346,10 +3345,10 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
         }
     }
     else if (type_enum->est_drapeau) {
-        type_enum->type_donnees = m_compilatrice.typeuse[TypeBase::N32];
+        type_enum->type_donnees = TypeBase::N32;
     }
     else {
-        type_enum->type_donnees = m_compilatrice.typeuse[TypeBase::Z32];
+        type_enum->type_donnees = TypeBase::Z32;
     }
 
     if (type_enum->est_erreur) {
@@ -3505,7 +3504,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             return Attente::sur_type(type_membre);
         }
 
-        if (type_membre != m_compilatrice.typeuse[TypeBase::RIEN]) {
+        if (type_membre != TypeBase::RIEN) {
             if (type_membre->alignement == 0) {
                 unite->espace
                     ->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
@@ -3754,7 +3753,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         if (!decl->est_externe) {
             /* Ajoute un membre, d'un octet de taille. */
             type_compose->membres.ajoute(
-                {nullptr, m_compilatrice.typeuse[TypeBase::BOOL], ID::chaine_vide, 0, 0, nullptr});
+                {nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
             calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
         }
     }
@@ -3910,7 +3909,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                                         Type *type_de_l_expression) -> ResultatValidation {
         if (variable->type == nullptr) {
             if (type_de_l_expression->genre == GenreType::ENTIER_CONSTANT) {
-                variable->type = m_compilatrice.typeuse[TypeBase::Z32];
+                variable->type = TypeBase::Z32;
                 donnees.variables.ajoute(variable);
                 donnees.transformations.ajoute(
                     {TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type});
@@ -4042,7 +4041,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 var->type = donnees->expression->type;
 
                 if (var->type->est_entier_constant()) {
-                    var->type = m_compilatrice.typeuse[TypeBase::Z32];
+                    var->type = TypeBase::Z32;
                     transformation = {TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type};
                 }
             }
@@ -4470,10 +4469,10 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
 
     if (type_cible == nullptr) {
         if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
-            type_cible = m_compilatrice.typeuse[TypeBase::EINI];
+            type_cible = TypeBase::EINI;
         }
         else if (transformation.type == TypeTransformation::CONVERTI_VERS_PTR_RIEN) {
-            type_cible = m_compilatrice.typeuse[TypeBase::PTR_RIEN];
+            type_cible = TypeBase::PTR_RIEN;
         }
         else if (transformation.type == TypeTransformation::PREND_REFERENCE) {
             type_cible = m_compilatrice.typeuse.type_reference_pour(expression->type);
@@ -4482,7 +4481,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
             type_cible = type_dereference_pour(expression->type);
         }
         else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
-            type_cible = m_compilatrice.typeuse[TypeBase::TABL_OCTET];
+            type_cible = TypeBase::TABL_OCTET;
         }
         else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU) {
             auto type_tableau_fixe = expression->type->comme_tableau_fixe();
@@ -4573,7 +4572,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
             }
         }
 
-        expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+        expr->type = TypeBase::BOOL;
         return CodeRetourValidation::OK;
     }
 
@@ -4599,7 +4598,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     auto type1 = enfant1->type;
     auto type2 = enfant2->type;
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-    expr->type = m_compilatrice.typeuse[TypeBase::BOOL];
+    expr->type = TypeBase::BOOL;
 
     auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
     type1 = enfant_expr->operande_droite->type;
@@ -4993,20 +4992,20 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
     if (type_variable_itérée->est_tableau_dynamique() ||
         type_variable_itérée->est_tableau_fixe() || type_variable_itérée->est_variadique()) {
         auto type_itérateur = type_dereference_pour(type_variable_itérée);
-        auto type_index = typeuse[TypeBase::Z64];
+        auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
     if (type_variable_itérée->genre == GenreType::CHAINE) {
-        auto type_itérateur = typeuse[TypeBase::Z8];
-        auto type_index = typeuse[TypeBase::Z64];
+        auto type_itérateur = TypeBase::Z8;
+        auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
     if (est_type_entier(type_variable_itérée) || type_variable_itérée->est_entier_constant()) {
         auto type_itérateur = type_variable_itérée;
         if (type_variable_itérée->est_entier_constant()) {
-            type_itérateur = typeuse[TypeBase::Z32];
+            type_itérateur = TypeBase::Z32;
         }
 
         return TypageItérandeBouclePour{
@@ -5020,7 +5019,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
     auto const opérateur_pour = type_variable_itérée->opérateur_pour;
     auto type_itérateur = opérateur_pour->param_sortie->type;
     /* À FAIRE : typage correct de l'index. */
-    auto type_index = typeuse[TypeBase::Z64];
+    auto type_index = TypeBase::Z64;
     return TypageItérandeBouclePour{BOUCLE_POUR_OPÉRATEUR, type_itérateur, type_index};
 }
 
