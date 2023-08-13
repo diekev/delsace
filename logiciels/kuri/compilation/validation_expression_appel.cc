@@ -1759,7 +1759,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
-        expr->type = espace.compilatrice().typeuse[TypeBase::RIEN];
+        expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_opaque();
