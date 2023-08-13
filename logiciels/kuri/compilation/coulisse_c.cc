@@ -280,14 +280,14 @@ struct ConvertisseuseTypeC {
             {
                 auto variadique = type->comme_variadique();
                 /* Garantie la génération du typedef pour les types tableaux des variadiques. */
-                if (!variadique->type_tableau_dyn) {
+                if (!variadique->type_tableau_dynamique) {
                     type_c.typedef_ = "...";
                     return;
                 }
 
-                auto &type_c_tableau = type_c_pour(variadique->type_tableau_dyn);
+                auto &type_c_tableau = type_c_pour(variadique->type_tableau_dynamique);
                 if (type_c_tableau.typedef_ == "") {
-                    cree_typedef(variadique->type_tableau_dyn, enchaineuse);
+                    cree_typedef(variadique->type_tableau_dynamique, enchaineuse);
                 }
 
                 /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
@@ -550,7 +550,7 @@ struct ConvertisseuseTypeC {
         }
         else if (type->est_variadique()) {
             genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
-            genere_code_pour_type(type->comme_variadique()->type_tableau_dyn, enchaineuse);
+            genere_code_pour_type(type->comme_variadique()->type_tableau_dynamique, enchaineuse);
         }
 
         type_c.code_machine_fut_genere = true;
