@@ -218,7 +218,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_union();
     auto decl = type_union->decl;
-    inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
+    inst->op = TypeBase::Z32->operateur_egt;
 
     if (decl->est_nonsure) {
         rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
@@ -315,7 +315,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
     auto type_union = type->comme_union();
-    inst->op = m_compilatrice.typeuse[TypeBase::Z32]->operateur_egt;
+    inst->op = TypeBase::Z32->operateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
     auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();

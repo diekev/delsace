@@ -28,7 +28,7 @@ construit_table_caractères :: fonc () -> [256]TypeCaractère
 
     résultat['#'] = TypeCaractère.HASHTAG
 
-    caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$"
 
     pour caractères_alphabétique {
         résultat[it] = TypeCaractère.ALPHABÉTIQUE
@@ -61,7 +61,7 @@ construit_table_caractères :: fonc () -> [256]TypeCaractère
 construit_table_peut_suivre :: fonc () -> [256]PeutSuivre
 {
     résultat : [256]PeutSuivre
-    caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$"
 
     pour caractères_alphabétique {
         résultat[it] |= PeutSuivre.IDENTIFIANT

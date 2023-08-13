@@ -45,6 +45,26 @@ NoeudProdéclarationÉnum :: struct {
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom NoeudDéfinitionClasse
+ * \{ */
+
+SpécificationBase :: struct {
+    accès: SpécificationAccès
+    est_virtuel: bool
+    nom: chaine
+}
+
+NoeudDéfinitionClasse :: struct {
+    empl base: NoeudSyntaxique
+
+    nom: chaine
+    clé_classe: CléClasse
+    bases: []SpécificationBase
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Créatrice de Noeuds
  * \{ */
 

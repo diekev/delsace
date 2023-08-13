@@ -15,6 +15,7 @@ Parseuse :: struct {
 
     /* Rappels. */
     sur_prodéclaration_struct_ou_class : fonc(&Parseuse, *NoeudProdéclarationObjet)(rien)
+    sur_définition_classe : fonc (&Parseuse, *NoeudDéfinitionClasse)(rien)
     sur_prodéclaration_énum : fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
     sur_identifiant: fonc(&Parseuse, chaine)(rien)
     sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
@@ -194,9 +195,10 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
         parseuse.avance()
     }
 
+    bases: []SpécificationBase
     si apparie(parseuse, ':') {
         parseuse.avance()
-        parseuse.parse_spécification_base(clé_classe)
+        parseuse.parse_spécification_base(clé_classe, *bases)
     }
 
 /*
@@ -220,6 +222,15 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
     }
     parseuse.avance()
 */
+
+    si parseuse.sur_définition_classe {
+        noeud := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudDéfinitionClasse)
+        noeud.nom = nom_struct
+        noeud.clé_classe = clé_classe
+        noeud.bases = bases
+
+        parseuse.sur_définition_classe(parseuse, noeud)
+    }
 }
 
 /** } */
@@ -255,7 +266,7 @@ parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(Spécific
  * \{ */
 
 /* base-class */
-parse_spécification_base :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
+parse_spécification_base :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, bases: *[]SpécificationBase)
 {
     accès_courant := si clé_classe == CléClasse.STRUCT {
         SpécificationAccès.PUBLIC
@@ -290,7 +301,14 @@ parse_spécification_base :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
             est_virtuel = vrai
         }
 
-        _ := parseuse.parse_classe_ou_decltype()
+        nom_parent := parseuse.parse_classe_ou_decltype()
+
+        spécification_base : SpécificationBase = ---
+        spécification_base.nom = nom_parent
+        spécification_base.accès = accès_courant
+        spécification_base.est_virtuel = est_virtuel
+
+        tableau_ajoute(bases, spécification_base)
         // imprime("Classe parent : % (%, virtuel: %)\n", nom_parent, accès_courant, est_virtuel)
 
         saufsi parseuse.apparie(',') {
