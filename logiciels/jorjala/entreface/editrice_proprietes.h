@@ -48,7 +48,8 @@ class EditriceProprietes : public BaseEditrice {
 
   public:
     explicit EditriceProprietes(JJL::Jorjala &jorjala,
-                                JJL::Éditrice éditrice, QWidget *parent = nullptr);
+                                JJL::Éditrice éditrice,
+                                QWidget *parent = nullptr);
 
     EditriceProprietes(EditriceProprietes const &) = default;
     EditriceProprietes &operator=(EditriceProprietes const &) = default;
