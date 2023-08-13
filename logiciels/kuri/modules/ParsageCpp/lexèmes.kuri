@@ -87,11 +87,41 @@ construit_table_peut_suivre :: fonc () -> [256]PeutSuivre
 }
 
 GenreLexème :: énum {
-    IDENTIFIANT
+    APOSTROPHE :: '\''
+    PARENTHÈSE_OUVRANTE :: '('
+    PARENTHÈSE_FERMANTE :: ')'
+    ACCOLADE_OUVRANTE :: '{'
+    ACCOLADE_FERMANTE :: '}'
+    CROCHE_OUVRANT :: '['
+    CROCHE_FERMANT :: ']'
+
+    SIGNE_PLUS :: '+'
+    SIGNE_MOINS :: '-'
+    SIGNE_DIVISE_PAR :: '/'
+    SIGNE_FOIS :: '*'
+    SIGNE_ÉGAL :: '='
+
+    ESPERLUETTE :: '&'
+    CONJONCTION :: '|'
+    SIGNE_NEGATION_BITS :: '~'
+    SIGNE_CONJONCTION_EXCLUSIVE :: '^'
+    SIGNE_POURCENT :: '%'
+    POINT_EXCLAMATIOn :: '!'
+    POINT_INTERROGATION :: '?'
+    DOUBLE_POINTS :: ':'
+    POINT_VIRGULE :: ';'
+    VIRGUEL :: ','
+    POINT :: '.'
+
+    SIGNE_INFÉRIEURE :: '<'
+    SIGNE_SUPÉRIEURE :: '>'
+
+    SIGNE_ÉCHAPPEMENT :: '\\'
+
+    IDENTIFIANT :: 127
     CHAINE_LITTÉRALE
     MOT_CLÉ
     NOMBRE
-    AUTRE
     HASHTAG
     CARACTÈRE_LITTÉRAL
 }
@@ -453,7 +483,7 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
 
                 chaine_caractère := lexeuse.flux.donne_sous_chaine_source(extraction_caractère)
 
-                ajoute_lexème(lexeuse, GenreLexème.AUTRE, chaine_caractère)
+                ajoute_lexème(lexeuse, (c comme n32 comme z32) comme GenreLexème, chaine_caractère)
                 lexeuse.avance()
             }
         }

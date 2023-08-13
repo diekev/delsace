@@ -72,6 +72,12 @@ apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
     retourne lexème.genre == genre_lexème
 }
 
+apparie :: fonc (parseuse: &Parseuse, caractère: z8) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == (caractère comme z32 comme GenreLexème)
+}
+
 apparie_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 {
     lexème := parseuse.lexème_courant()
@@ -161,7 +167,7 @@ parse_struct_ou_class :: fonc (parseuse: &Parseuse, est_struct: bool)
     nom_struct := parseuse.lexème_courant().ident
     parseuse.avance()
 
-    si apparie_ponctuation(parseuse, ";") {
+    si apparie(parseuse, ';') {
         parseuse.avance()
 
         noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationObjet)
@@ -194,12 +200,12 @@ parse_enum :: fonc (parseuse: &Parseuse)
     nom_énum := parseuse.lexème_courant().ident
     parseuse.avance()
 
-    si apparie_ponctuation(parseuse, ":") {
+    si apparie(parseuse, ':') {
         parseuse.avance()
         parseuse.avance() // type À FAIRE
     }
 
-    si apparie_ponctuation(parseuse, ";") {
+    si apparie(parseuse, ';') {
         parseuse.avance()
 
         noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationÉnum)
