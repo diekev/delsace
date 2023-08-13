@@ -72,6 +72,12 @@ apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
     retourne lexème.genre == genre_lexème
 }
 
+apparie :: fonc (parseuse: &Parseuse, caractère: z8) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    retourne lexème.genre == (caractère comme z32 comme GenreLexème)
+}
+
 apparie_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 {
     lexème := parseuse.lexème_courant()
@@ -101,22 +107,22 @@ consomme_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
     retourne vrai
 }
 
-apparie_ponctuation :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
-{
-    lexème := parseuse.lexème_courant()
-    retourne lexème.genre == GenreLexème.AUTRE && lexème.ident == ident
+CléClasse :: énum {
+    STRUCT
+    CLASS
+    UNION
 }
 
 parse :: fonc (parseuse: &Parseuse)
 {
     tantque !fini(parseuse) {
         si apparie_mot_clé(parseuse, "struct") {
-            parseuse.parse_struct_ou_class(vrai)
+            parseuse.parse_classe(CléClasse.STRUCT)
             continue
         }
 
         si apparie_mot_clé(parseuse, "class") {
-            parseuse.parse_struct_ou_class(faux)
+            parseuse.parse_classe(CléClasse.CLASS)
             continue
         }
 
@@ -141,14 +147,21 @@ parse :: fonc (parseuse: &Parseuse)
     }
 }
 
-parse_struct_ou_class :: fonc (parseuse: &Parseuse, est_struct: bool)
+/* ------------------------------------------------------------------------- */
+/** \nom Parsage d'une classe.
+ * https://en.cppreference.com/w/cpp/language/class
+ * \{ */
+
+parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
 {
     /* Nous sommes sur le mot-clé. */
     lexème := parseuse.lexème_courant()
     parseuse.avance()
 
+    // À FAIRE : attributs (C++11)
+
     saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-        si est_struct {
+        si clé_classe == CléClasse.STRUCT {
             parseuse.rapporte_erreur("Attendu un identifiant après 'struct'\n")
         }
         sinon {
@@ -161,11 +174,11 @@ parse_struct_ou_class :: fonc (parseuse: &Parseuse, est_struct: bool)
     nom_struct := parseuse.lexème_courant().ident
     parseuse.avance()
 
-    si apparie_ponctuation(parseuse, ";") {
+    si apparie(parseuse, ';') {
         parseuse.avance()
 
         noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationObjet)
-        noeud_prodéclaration.est_struct = est_struct
+        noeud_prodéclaration.est_struct = clé_classe == CléClasse.STRUCT
         noeud_prodéclaration.nom_objet = nom_struct
 
         si parseuse.sur_prodéclaration_struct_ou_class {
@@ -175,8 +188,185 @@ parse_struct_ou_class :: fonc (parseuse: &Parseuse, est_struct: bool)
         retourne
     }
 
-    // : final public private
+    est_finale := faux
+    si apparie_mot_clé(parseuse, "final") {
+        est_finale = vrai
+        parseuse.avance()
+    }
+
+    si apparie(parseuse, ':') {
+        parseuse.avance()
+        parseuse.parse_spécification_base(clé_classe)
+    }
+
+/*
+    saufsi parseuse.apparie('{') {
+        parseuse.rapporte_erreur("Attendu '{'")
+        retourne
+    }
+    parseuse.avance()
+
+    parseuse.parse_spécification_membre()
+
+    saufsi parseuse.apparie('}') {
+        parseuse.rapporte_erreur("Attendu '}'")
+        retourne
+    }
+    parseuse.avance()
+
+    saufsi parseuse.apparie(';') {
+        parseuse.rapporte_erreur("Attendu ';'")
+        retourne
+    }
+    parseuse.avance()
+*/
 }
+
+/** } */
+
+// À FAIRE(langage) : n8
+SpécificationAccès :: énum {
+    PUBLIC
+    PROTÉGÉ
+    PRIVÉ
+}
+
+parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(SpécificationAccès)
+{
+    si parseuse.apparie_mot_clé("public") {
+        parseuse.avance()
+        retourne SpécificationAccès.PUBLIC
+    }
+
+    si parseuse.apparie_mot_clé("private") {
+        parseuse.avance()
+        retourne SpécificationAccès.PRIVÉ
+    }
+
+    si parseuse.apparie_mot_clé("protected") {
+        parseuse.avance()
+        retourne SpécificationAccès.PROTÉGÉ
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parsage spécification base.
+ * https://en.cppreference.com/w/cpp/language/derived_class
+ * \{ */
+
+/* base-class */
+parse_spécification_base :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
+{
+    accès_courant := si clé_classe == CléClasse.STRUCT {
+        SpécificationAccès.PUBLIC
+    }
+    sinon {
+        SpécificationAccès.PRIVÉ
+    }
+
+    tantque !parseuse.fini() {
+        // À FAIRE : attributs (C++11)
+
+        est_virtuel := faux
+        eu_virtuel := faux
+
+        si parseuse.apparie_mot_clé("virtual") {
+            parseuse.avance()
+            est_virtuel = vrai
+            eu_virtuel = vrai
+        }
+
+        opt_accès := parseuse.parse_spécification_accès()
+        si opt_accès.possède_valeur() {
+            accès_courant = opt_accès.Quelque
+        }
+
+        /* « virtual » peut-être avant ou après la spécification d'accès. */
+        si parseuse.apparie_mot_clé("virtual") {
+            si eu_virtuel {
+                parseuse.rapporte_erreur("« virtual » fut déjà spécifé")
+            }
+            parseuse.avance()
+            est_virtuel = vrai
+        }
+
+        _ := parseuse.parse_classe_ou_decltype()
+        // imprime("Classe parent : % (%, virtuel: %)\n", nom_parent, accès_courant, est_virtuel)
+
+        saufsi parseuse.apparie(',') {
+            arrête
+        }
+
+        parseuse.avance()
+    }
+}
+
+/* class-or-decltype:
+ * - nested-name-specifier(optional) type-name
+ * - nested-name-specifier `template` simple-template-id
+ * - decltype-specifier (C++11)
+ */
+parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
+{
+    // À FAIRE : decltype
+    // https://en.cppreference.com/w/cpp/language/decltype
+
+    // À FAIRE : scope globale
+    si parseuse.apparie(GenreLexème.OPÉRATEUR_RÉSOLUTION_SCOPE) {
+        parseuse.avance()
+    }
+
+    nom_parent := ""
+
+    tantque !parseuse.fini() {
+        saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
+            parseuse.rapporte_erreur("Attendu un identifiant")
+            retourne ""
+        }
+
+        nom_parent = parseuse.lexème_courant().ident
+        parseuse.avance()
+
+        si parseuse.apparie('<') {
+            parseuse.avance()
+
+            // À FAIRE : parse le contenu
+
+            tantque !parseuse.fini() {
+                si parseuse.apparie('>') {
+                    arrête
+                }
+
+                parseuse.avance()
+            }
+
+            parseuse.avance()
+        }
+
+        // À FAIRE : si template, peut avoir ... après le type
+
+        saufsi parseuse.apparie(GenreLexème.OPÉRATEUR_RÉSOLUTION_SCOPE) {
+            arrête
+        }
+
+        parseuse.avance()
+    }
+
+    retourne nom_parent
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Spécification des membres des classes.
+ * \{ */
+
+parse_spécification_membre :: fonc (parseuse: &Parseuse)
+{
+    // À FAIRE
+}
+
+/** } */
 
 parse_enum :: fonc (parseuse: &Parseuse)
 {
@@ -194,12 +384,12 @@ parse_enum :: fonc (parseuse: &Parseuse)
     nom_énum := parseuse.lexème_courant().ident
     parseuse.avance()
 
-    si apparie_ponctuation(parseuse, ":") {
+    si apparie(parseuse, ':') {
         parseuse.avance()
         parseuse.avance() // type À FAIRE
     }
 
-    si apparie_ponctuation(parseuse, ";") {
+    si apparie(parseuse, ';') {
         parseuse.avance()
 
         noeud_prodéclaration := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudProdéclarationÉnum)
