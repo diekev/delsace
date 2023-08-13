@@ -556,7 +556,7 @@ void Operateurs::ajoute_perso_unaire(GenreLexeme id,
 
 void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
 {
-    auto const &type_bool = typeuse[TypeBase::BOOL];
+    auto const &type_bool = TypeBase::BOOL;
 
     auto indice_type_op = IndiceTypeOp();
     if (type->type_donnees->est_entier_naturel()) {
@@ -595,7 +595,7 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_bool = typeuse[TypeBase::BOOL];
+    auto const &type_bool = TypeBase::BOOL;
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
@@ -608,7 +608,7 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
     /* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
      * gros, la résolution de l'opérateur ajoutera une transformation afin
      * que le type plus petit soit transtyper à la bonne taille. */
-    auto type_entier = typeuse[TypeBase::Z64];
+    auto type_entier = TypeBase::Z64;
 
     ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmetique_pointeur =
         true;
@@ -621,7 +621,7 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
     ajoute_basique(GenreLexeme::MOINS_EGAL, type, type_entier, type, indice)
         ->est_arithmetique_pointeur = true;
 
-    type_entier = typeuse[TypeBase::N64];
+    type_entier = TypeBase::N64;
     indice = IndiceTypeOp::ENTIER_NATUREL;
 
     ajoute_basique(GenreLexeme::PLUS, type, type_entier, type, indice)->est_arithmetique_pointeur =
@@ -638,7 +638,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_bool = typeuse[TypeBase::BOOL];
+    auto const &type_bool = TypeBase::BOOL;
 
     ajoute_basique(GenreLexeme::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
@@ -770,27 +770,27 @@ const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
 void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs)
 {
     Type *types_entiers_naturels[] = {
-        typeuse[TypeBase::N8],
-        typeuse[TypeBase::N16],
-        typeuse[TypeBase::N32],
-        typeuse[TypeBase::N64],
+        TypeBase::N8,
+        TypeBase::N16,
+        TypeBase::N32,
+        TypeBase::N64,
     };
 
     Type *types_entiers_relatifs[] = {
-        typeuse[TypeBase::Z8],
-        typeuse[TypeBase::Z16],
-        typeuse[TypeBase::Z32],
-        typeuse[TypeBase::Z64],
+        TypeBase::Z8,
+        TypeBase::Z16,
+        TypeBase::Z32,
+        TypeBase::Z64,
     };
 
-    auto type_r32 = typeuse[TypeBase::R32];
-    auto type_r64 = typeuse[TypeBase::R64];
+    auto type_r32 = TypeBase::R32;
+    auto type_r64 = TypeBase::R64;
 
     Type *types_reels[] = {type_r32, type_r64};
 
-    auto type_entier_constant = typeuse[TypeBase::ENTIER_CONSTANT];
-    auto type_octet = typeuse[TypeBase::OCTET];
-    auto type_bool = typeuse[TypeBase::BOOL];
+    auto type_entier_constant = TypeBase::ENTIER_CONSTANT;
+    auto type_octet = TypeBase::OCTET;
+    auto type_bool = TypeBase::BOOL;
 
     for (auto op : operateurs_entiers_reels) {
         for (auto type : types_entiers_relatifs) {

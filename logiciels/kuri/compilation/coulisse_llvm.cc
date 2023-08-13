@@ -541,7 +541,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
             // @Incomplet : LLVM n'a pas de pointeur nul
             if (!type_deref || type_deref->genre == GenreType::RIEN) {
-                type_deref = m_espace.compilatrice().typeuse[TypeBase::Z8];
+                type_deref = TypeBase::Z8;
             }
 
             auto type_deref_llvm = converti_type_llvm(type_deref);
@@ -1480,7 +1480,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
 
     // @.chn [N x i8] c"...0"
     auto type_tableau = m_espace.compilatrice().typeuse.type_tableau_fixe(
-        m_espace.compilatrice().typeuse[TypeBase::Z8], static_cast<int>(taille_chaine + 1));
+        TypeBase::Z8, static_cast<int>(taille_chaine + 1));
 
     auto constante = llvm::ConstantDataArray::getString(m_contexte_llvm, vers_std_string(chaine));
 
@@ -1502,7 +1502,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
     auto valeur_taille = llvm::ConstantInt::get(
         llvm::Type::getInt64Ty(m_contexte_llvm), static_cast<uint64_t>(chaine.taille()), false);
 
-    auto type_chaine = converti_type_llvm(m_espace.compilatrice().typeuse[TypeBase::CHAINE]);
+    auto type_chaine = converti_type_llvm(TypeBase::CHAINE);
 
     auto struct_chaine = llvm::ConstantStruct::get(
         static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);

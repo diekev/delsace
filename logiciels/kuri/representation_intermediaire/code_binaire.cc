@@ -1315,7 +1315,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
 {
     if (type->est_entier_constant()) {
-        return typeuse[TypeBase::Z32];
+        return TypeBase::Z32;
     }
 
     if (type->est_enum()) {
@@ -1327,11 +1327,11 @@ static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
     }
 
     if (type->est_type_de_donnees()) {
-        return typeuse[TypeBase::Z64];
+        return TypeBase::Z64;
     }
 
     if (type->est_octet()) {
-        return typeuse[TypeBase::N8];
+        return TypeBase::N8;
     }
 
     return type;
