@@ -45,7 +45,6 @@ namespace danjo {
 
 class Action;
 class Bouton;
-class ConteneurControles;
 class ControlePropriete;
 
 /**
