@@ -38,7 +38,6 @@ struct Statistiques;
 struct Typeuse;
 struct TypeCompose;
 struct TypeEnum;
-struct TypeEnum;
 struct TypeFonction;
 struct TypeOpaque;
 struct TypePointeur;
