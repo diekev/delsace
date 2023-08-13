@@ -288,7 +288,7 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
     if (!type_reçu || !type_reçu->est_type_de_donnees()) {
         /* Garantie que nous n'avons pas d'entiers constants dans les résultats. */
         if (type_reçu && type_reçu->est_entier_constant()) {
-            type_reçu = typeuse()[TypeBase::Z32];
+            type_reçu = TypeBase::Z32;
         }
 
         type_reçu = typeuse().type_type_de_donnees(const_cast<Type *>(type_reçu));
