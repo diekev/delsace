@@ -151,7 +151,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
                 if (type1->est_pointeur() && type2->est_pointeur()) {
-                    auto const &type_z64 = typeuse[TypeBase::Z64];
+                    auto const &type_z64 = TypeBase::Z64;
                     auto type_pointe = type2->comme_pointeur()->type_pointe;
                     auto soustraction = assem->cree_expression_binaire(
                         expr_bin->lexeme,
@@ -409,7 +409,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (expr->type->est_entier_constant() &&
                 inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
-                expr->type = typeuse[TypeBase::Z64];
+                expr->type = TypeBase::Z64;
                 return;
             }
 
@@ -1011,14 +1011,14 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (type_itere->est_tableau_fixe()) {
                 auto taille_tableau = type_itere->comme_tableau_fixe()->taille;
                 expr_taille = assem->cree_litterale_entier(
-                    inst->lexeme, typeuse[TypeBase::Z64], static_cast<uint64_t>(taille_tableau));
+                    inst->lexeme, TypeBase::Z64, static_cast<uint64_t>(taille_tableau));
             }
             else {
                 expr_taille = assem->cree_reference_membre(
-                    inst->lexeme, expression_iteree, typeuse[TypeBase::Z64], 1);
+                    inst->lexeme, expression_iteree, TypeBase::Z64, 1);
             }
 
-            auto type_z64 = typeuse[TypeBase::Z64];
+            auto type_z64 = TypeBase::Z64;
             condition->condition = assem->cree_expression_binaire(
                 inst->lexeme, type_z64->operateur_seg, ref_index, expr_taille);
 
@@ -1368,14 +1368,14 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
 
     auto type_union = type_sortie;
 
-    auto info_membre = type_union->donne_membre_pour_type(typeuse[TypeBase::RIEN]);
+    auto info_membre = type_union->donne_membre_pour_type(TypeBase::RIEN);
     assert(info_membre.has_value());
     auto index_membre = uint32_t(info_membre->index_membre);
 
     auto ref_membre = assem->cree_reference_membre(
-        lexeme_reference, ref_param_sortie, typeuse[TypeBase::Z32], 1);
+        lexeme_reference, ref_param_sortie, TypeBase::Z32, 1);
     auto valeur_index = assem->cree_litterale_entier(
-        lexeme_reference, typeuse[TypeBase::Z32], index_membre + 1);
+        lexeme_reference, TypeBase::Z32, index_membre + 1);
 
     auto assignation = assem->cree_assignation_variable(
         lexeme_reference, ref_membre, valeur_index);
@@ -1471,7 +1471,7 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     auto prise_adresse = assem->cree_expression_unaire(&lexeme_op);
     prise_adresse->operande = expression_à_initialiser;
     prise_adresse->type = typeuse.type_pointeur_pour(type_expression);
-    auto appel = assem->cree_appel(lexeme, fonction_init, typeuse[TypeBase::RIEN]);
+    auto appel = assem->cree_appel(lexeme, fonction_init, TypeBase::RIEN);
     appel->parametres_resolus.ajoute(prise_adresse);
 
     return appel;
@@ -1563,11 +1563,11 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     /* PositionCodeSource.ligne */
     auto pos = position_lexeme(*lexeme_site);
     auto valeur_ligne = assem->cree_litterale_entier(
-        lexeme, typeuse[TypeBase::Z32], static_cast<unsigned>(pos.numero_ligne));
+        lexeme, TypeBase::Z32, static_cast<unsigned>(pos.numero_ligne));
 
     /* PositionCodeSource.colonne */
     auto valeur_colonne = assem->cree_litterale_entier(
-        lexeme, typeuse[TypeBase::Z32], static_cast<unsigned>(pos.pos));
+        lexeme, TypeBase::Z32, static_cast<unsigned>(pos.pos));
 
     /* Création d'une temporaire et assignation des membres. */
 
@@ -1577,13 +1577,11 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     auto ref_position = decl_position->valeur->comme_reference_declaration();
 
     auto ref_membre_fichier = assem->cree_reference_membre(
-        lexeme, ref_position, typeuse[TypeBase::CHAINE], 0);
+        lexeme, ref_position, TypeBase::CHAINE, 0);
     auto ref_membre_fonction = assem->cree_reference_membre(
-        lexeme, ref_position, typeuse[TypeBase::CHAINE], 1);
-    auto ref_membre_ligne = assem->cree_reference_membre(
-        lexeme, ref_position, typeuse[TypeBase::Z32], 2);
-    auto ref_membre_colonne = assem->cree_reference_membre(
-        lexeme, ref_position, typeuse[TypeBase::Z32], 3);
+        lexeme, ref_position, TypeBase::CHAINE, 1);
+    auto ref_membre_ligne = assem->cree_reference_membre(lexeme, ref_position, TypeBase::Z32, 2);
+    auto ref_membre_colonne = assem->cree_reference_membre(lexeme, ref_position, TypeBase::Z32, 3);
 
     NoeudExpression *couples_ref_membre_expression[4][2] = {
         {ref_membre_fichier, valeur_chemin_fichier},
@@ -2164,7 +2162,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         /* La discrimination se fait via le membre actif. Il faudra proprement gérer les unions
          * dans la RI. */
         expression = assem->cree_reference_membre(
-            expression->lexeme, expression, typeuse[TypeBase::Z32], 1);
+            expression->lexeme, expression, TypeBase::Z32, 1);
     }
 
     simplifie(discr->bloc_sinon);
