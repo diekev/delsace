@@ -28,7 +28,6 @@
 
 #include "base_editeur.h"
 
-class QGridLayout;
 class QScrollArea;
 
 class VueParametres : public danjo::Manipulable {
