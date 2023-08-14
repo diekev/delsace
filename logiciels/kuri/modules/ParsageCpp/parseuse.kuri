@@ -8,6 +8,7 @@ Parseuse :: struct {
     fichier: *FichierSource
     lexèmes: []Lexème
     index_courant: z64
+    index_sauvegardé: z64
 
     créatrice_noeuds: CréatriceNoeuds
 
@@ -25,6 +26,16 @@ initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
 {
     parseuse.fichier = fichier
     parseuse.lexèmes = fichier.lexèmes
+}
+
+sauvegarde_position :: fonc (parseuse: &Parseuse)
+{
+    parseuse.index_sauvegardé = parseuse.index_courant
+}
+
+restaure_position :: fonc (parseuse: &Parseuse)
+{
+    parseuse.index_courant = parseuse.index_sauvegardé
 }
 
 rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine)
@@ -170,6 +181,36 @@ ContexteParsageClasse :: énum {
     TYPEDEF
 }
 
+// À FAIRE(langage) : n8
+SpécificationAccès :: énum {
+    PUBLIC
+    PROTÉGÉ
+    PRIVÉ
+}
+
+DonnéesParsageClasse :: struct {
+    nom: chaine
+    clé_classe: CléClasse
+    spécification_accès_défaut: SpécificationAccès
+}
+
+crée_données_parsage_classe :: fonc (nom: chaine, clé_classe: CléClasse) -> DonnéesParsageClasse
+{
+    résultat : DonnéesParsageClasse
+    résultat.nom = nom
+    résultat.clé_classe = clé_classe
+
+    spécification_accès := si clé_classe == CléClasse.STRUCT {
+        SpécificationAccès.PUBLIC
+    }
+    sinon {
+        SpécificationAccès.PRIVÉ
+    }
+
+    résultat.spécification_accès_défaut = spécification_accès
+    retourne résultat
+}
+
 parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_parsage: ContexteParsageClasse)
 {
     /* Nous sommes sur le mot-clé. */
@@ -184,6 +225,8 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
         nom_struct = parseuse.lexème_courant().ident
         parseuse.avance()
     }
+
+    données_parsage_classe := crée_données_parsage_classe(nom_struct, clé_classe)
 
     si apparie(parseuse, ';') {
         parseuse.avance()
@@ -208,17 +251,20 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
     bases: []SpécificationBase
     si apparie(parseuse, ':') {
         parseuse.avance()
-        parseuse.parse_spécification_base(clé_classe, *bases)
+        parseuse.parse_spécification_base(données_parsage_classe, *bases)
     }
 
-/*
     saufsi parseuse.apparie('{') {
+        /* typedef struct XXX YYY; */
+        si contexte_parsage == ContexteParsageClasse.TYPEDEF {
+            retourne
+        }
         parseuse.rapporte_erreur("Attendu '{'")
         retourne
     }
     parseuse.avance()
 
-    parseuse.parse_spécification_membre()
+    parseuse.parse_spécification_membre(données_parsage_classe)
 
     saufsi parseuse.apparie('}') {
         parseuse.rapporte_erreur("Attendu '}'")
@@ -233,7 +279,6 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
         }
         parseuse.avance()
     }
-*/
 
     si parseuse.sur_définition_classe {
         noeud := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudDéfinitionClasse)
@@ -246,13 +291,6 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
 }
 
 /** } */
-
-// À FAIRE(langage) : n8
-SpécificationAccès :: énum {
-    PUBLIC
-    PROTÉGÉ
-    PRIVÉ
-}
 
 parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(SpécificationAccès)
 {
@@ -278,14 +316,9 @@ parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(Spécific
  * \{ */
 
 /* base-class */
-parse_spécification_base :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, bases: *[]SpécificationBase)
+parse_spécification_base :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse, bases: *[]SpécificationBase)
 {
-    accès_courant := si clé_classe == CléClasse.STRUCT {
-        SpécificationAccès.PUBLIC
-    }
-    sinon {
-        SpécificationAccès.PRIVÉ
-    }
+    accès_courant := données_parsage_classe.spécification_accès_défaut
 
     tantque !parseuse.fini() {
         // À FAIRE : attributs (C++11)
@@ -391,9 +424,166 @@ parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
 /** \nom Spécification des membres des classes.
  * \{ */
 
-parse_spécification_membre :: fonc (parseuse: &Parseuse)
+parse_spécification_membre :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse)
 {
+    accès_courant := données_parsage_classe.spécification_accès_défaut
+
     // À FAIRE
+    tantque !fini(parseuse) {
+        si parseuse.apparie('{') {
+            parseuse.parse_bloc()
+            continue
+        }
+
+        si parseuse.apparie('}') {
+            arrête
+        }
+
+        /* Spécification accès. */
+        opt_accès := parseuse.parse_spécification_accès()
+        si opt_accès.possède_valeur() {
+            saufsi parseuse.apparie(':') {
+                parseuse.rapporte_erreur("Attendu ':' après la spécification d'accès.")
+                retourne
+            }
+
+            accès_courant = opt_accès.Quelque
+            parseuse.avance()
+            continue
+        }
+
+        /* Constructeur. */
+        si parseuse.apparie_identifiant(données_parsage_classe.nom) {
+            parseuse.sauvegarde_position()
+
+            parseuse.avance()
+            si parseuse.apparie('(') {
+                // imprime("Constructeur pour %\n", données_parsage_classe.nom)
+                parseuse.parse_constructeur()
+                continue
+            }
+
+            parseuse.restaure_position()
+        }
+
+        /* Parse jusqu'au point virgule où la fin d'un bloc. */
+        tantque !parseuse.fini() {
+            si parseuse.apparie('{') {
+                parseuse.parse_bloc()
+                arrête
+            }
+
+            si parseuse.apparie(';') {
+                parseuse.avance()
+                arrête
+            }
+            parseuse.avance()
+        }
+    }
+}
+
+parse_constructeur :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur la parenthèse. */
+    assert(parseuse.apparie('('))
+    parseuse.avance()
+
+    // À FAIRE : parse les paramètres.
+    profondeur_parenthèse := 0
+    tantque !fini(parseuse) {
+        si parseuse.apparie('(') {
+            parseuse.avance()
+            profondeur_parenthèse += 1
+            continue
+        }
+
+        si parseuse.apparie(')') {
+            si profondeur_parenthèse == 0 {
+                arrête
+            }
+
+            profondeur_parenthèse -= 1
+        }
+
+        parseuse.avance()
+    }
+
+    assert(parseuse.apparie(')'))
+    parseuse.avance()
+
+    /* Nous sommes sur la déclaration. */
+    si parseuse.apparie(';') {
+        retourne
+    }
+
+    /* Nous sommes sur la définition. */
+
+    si parseuse.apparie(':') {
+        parseuse.avance()
+
+        tantque !fini(parseuse) {
+            saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
+                parseuse.rapporte_erreur("Attendu un identifiant pour le membre")
+                retourne
+            }
+
+            /* Nom du membre */
+            _ := parseuse.consomme_ident()
+
+            saufsi parseuse.apparie('(') {
+                parseuse.rapporte_erreur("Attendu un '(' après le nom du membre")
+            }
+
+            parseuse.avance()
+
+            // À FAIRE : parse l'expression
+            tantque !fini(parseuse) {
+                si parseuse.apparie(')') {
+                    arrête
+                }
+
+                parseuse.avance()
+            }
+
+            /* Parenthèse fermante. */
+            parseuse.avance()
+
+            saufsi apparie(parseuse, ',') {
+                arrête
+            }
+
+            parseuse.avance()
+        }
+    }
+
+    saufsi parseuse.apparie('{') {
+        parseuse.rapporte_erreur("Attendu '{'")
+        retourne
+    }
+
+    parseuse.parse_bloc()
+}
+
+parse_bloc :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur l'accolade ouvrante. */
+    parseuse.avance()
+
+    tantque !fini(parseuse) {
+        si parseuse.apparie('{') {
+            parseuse.parse_bloc()
+            continue
+        }
+
+        si parseuse.apparie('}') {
+            arrête
+        }
+
+        parseuse.avance()
+    }
+
+    /* Nous devons être sur l'accolade fermante. */
+    parseuse.avance()
 }
 
 /** } */
