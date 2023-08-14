@@ -118,17 +118,27 @@ parse :: fonc (parseuse: &Parseuse)
 {
     tantque !fini(parseuse) {
         si apparie_mot_clé(parseuse, "struct") {
-            parseuse.parse_classe(CléClasse.STRUCT)
+            parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
             continue
         }
 
         si apparie_mot_clé(parseuse, "class") {
-            parseuse.parse_classe(CléClasse.CLASS)
+            parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "union") {
+            parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
             continue
         }
 
         si apparie_mot_clé(parseuse, "enum") {
             parseuse.parse_enum()
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "typedef") {
+            parseuse.parse_typedef()
             continue
         }
 
@@ -153,7 +163,14 @@ parse :: fonc (parseuse: &Parseuse)
  * https://en.cppreference.com/w/cpp/language/class
  * \{ */
 
-parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
+ContexteParsageClasse :: énum {
+    /* La classe est parsée pour une déclaration. */
+    DÉCLARATION
+    /* La classe est parsée pour un typedef. */
+    TYPEDEF
+}
+
+parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_parsage: ContexteParsageClasse)
 {
     /* Nous sommes sur le mot-clé. */
     lexème := parseuse.lexème_courant()
@@ -161,19 +178,12 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
 
     // À FAIRE : attributs (C++11)
 
-    saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-        si clé_classe == CléClasse.STRUCT {
-            parseuse.rapporte_erreur("Attendu un identifiant après 'struct'\n")
-        }
-        sinon {
-            parseuse.rapporte_erreur("Attendu un identifiant après 'class'\n")
-        }
-
-        retourne
+    nom_struct := ""
+    /* Il est possible de ne pas avoir d'identifiant (par exemple, pour un typedef) */
+    si parseuse.apparie(GenreLexème.IDENTIFIANT) {
+        nom_struct = parseuse.lexème_courant().ident
+        parseuse.avance()
     }
-
-    nom_struct := parseuse.lexème_courant().ident
-    parseuse.avance()
 
     si apparie(parseuse, ';') {
         parseuse.avance()
@@ -216,11 +226,13 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse)
     }
     parseuse.avance()
 
-    saufsi parseuse.apparie(';') {
-        parseuse.rapporte_erreur("Attendu ';'")
-        retourne
+    si contexte_parsage != ContexteParsageClasse.TYPEDEF {
+        saufsi parseuse.apparie(';') {
+            parseuse.rapporte_erreur("Attendu ';'")
+            retourne
+        }
+        parseuse.avance()
     }
-    parseuse.avance()
 */
 
     si parseuse.sur_définition_classe {
@@ -399,12 +411,33 @@ parse_enum :: fonc (parseuse: &Parseuse)
         est_énum_class = vrai
     }
 
-    nom_énum := parseuse.lexème_courant().ident
-    parseuse.avance()
+    nom_énum := ""
+    /* Il est possible de ne pas avoir d'identifiant (par exemple, pour un typedef) */
+    si parseuse.apparie(GenreLexème.IDENTIFIANT) {
+        nom_énum = parseuse.lexème_courant().ident
+        parseuse.avance()
+    }
 
     si apparie(parseuse, ':') {
         parseuse.avance()
         parseuse.avance() // type À FAIRE
+    }
+
+    si apparie(parseuse, '{') {
+        parseuse.avance()
+
+        // À FAIRE : parse membres
+
+        tantque !fini(parseuse) {
+            si parseuse.apparie('}') {
+                arrête
+            }
+
+            parseuse.avance()
+        }
+
+        /* Consomme le '}' */
+        parseuse.avance()
     }
 
     si apparie(parseuse, ';') {
@@ -441,5 +474,59 @@ parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
         }
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parsage typedef.
+ * \{ */
+
+parse_typedef :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur le mot clé. */
+    parseuse.avance()
+
+    si apparie_mot_clé(parseuse, "struct") {
+        parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.TYPEDEF)
+    }
+    sinon si apparie_mot_clé(parseuse, "class") {
+        parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.TYPEDEF)
+    }
+    sinon si apparie_mot_clé(parseuse, "union") {
+        parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.TYPEDEF)
+    }
+    sinon si apparie_mot_clé(parseuse, "enum") {
+        parseuse.parse_enum()
+    }
+    sinon {
+        // À FAIRE
+        tantque !fini(parseuse) {
+            si apparie(parseuse, ';') {
+                arrête
+            }
+
+            parseuse.avance()
+        }
+
+        /* Saute le point-virgule. */
+        parseuse.avance()
+        retourne
+    }
+
+    saufsi apparie(parseuse, GenreLexème.IDENTIFIANT) {
+        parseuse.rapporte_erreur("Attendu un identifiant à la fin du typedef")
+        retourne
+    }
+
+    _ := parseuse.lexème_courant().ident
+    parseuse.avance()
+
+    saufsi apparie(parseuse, ';') {
+        parseuse.rapporte_erreur("Attendu un ';'");
+        retourne
+    }
+
+    parseuse.avance()
+}
+
+/** } */
 
 /** } */
