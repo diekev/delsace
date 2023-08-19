@@ -148,13 +148,10 @@ void texture_glyph_delete(texture_glyph_t *self)
     free(self);
 }
 
-// ---------------------------------------------- texture_glyph_get_kerning ---
-float texture_glyph_get_kerning(const texture_glyph_t *self, const char *codepoint)
+// ---------------------------------------------- texture_glyph_get_kerning_impl ---
+static float texture_glyph_get_kerning_impl(const texture_glyph_t *self, uint32_t ucodepoint)
 {
     size_t i;
-    uint32_t ucodepoint = utf8_to_utf32(codepoint);
-
-    assert(self);
     for (i = 0; i < vector_size(self->kerning); ++i) {
         kerning_t *kerning = (kerning_t *)vector_get(self->kerning, i);
         if (kerning->codepoint == ucodepoint) {
@@ -162,6 +159,19 @@ float texture_glyph_get_kerning(const texture_glyph_t *self, const char *codepoi
         }
     }
     return 0;
+}
+
+// ---------------------------------------------- texture_glyph_get_kerning ---
+float texture_glyph_get_kerning(const texture_glyph_t *self, const char *codepoint)
+{
+    uint32_t ucodepoint = utf8_to_utf32(codepoint);
+    return texture_glyph_get_kerning_impl(self, ucodepoint);
+}
+
+// ---------------------------------------------- texture_glyph_get_kerning_glyph ---
+float texture_glyph_get_kerning_glyph(const texture_glyph_t *self, const texture_glyph_t *other)
+{
+    return texture_glyph_get_kerning_impl(self, other->codepoint);
 }
 
 // ------------------------------------------ texture_font_generate_kerning ---
