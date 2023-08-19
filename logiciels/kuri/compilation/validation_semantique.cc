@@ -5052,6 +5052,11 @@ static bool variables_ne_redéfinissent_rien(EspaceDeTravail *espace,
                                             NoeudBloc const *bloc)
 {
     POUR (variables) {
+        if (it->ident == ID::_) {
+            /* Ignore explicitement la variable. Utile pour les boucles imbriquées. */
+            continue;
+        }
+
         auto decl = trouve_dans_bloc(bloc, it->ident);
         if (decl == nullptr) {
             continue;
