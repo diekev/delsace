@@ -55,6 +55,28 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 - transforme les PositionCode en globales:
     -- ceci nous éviterait de générer pas mal de code, et ainsi d'exécuter pas mal d'instructions
 
+- opérateur <=> pour n'implémenter qu'une seul comparaison
+
+- sécurité pour les comparisons chainées, utiliser les nonsûres résulte en une erreur de compilation :
+    sûres :
+        a < b <= c, etc.
+        a > b >= c, etc.
+        a == b == c
+
+    nonsûres :
+        a != b != c
+        a > b < c
+
+- labels pour toutes les boucles :
+    - boucle xxx {}
+    - répète xxx {}
+    - tantque xxx: x != 10
+
+- expression pour la valeur suivant d'une boucle :
+    - boucle xxx suivant x += 1
+    - tantque xxx: wxvwxv suivant x += 1
+    - répète xxxx suivant x += 1
+    - pour j dans ... suivant x += 1
 
 // -----------------------------------
 // Fonctionnalités diverses
