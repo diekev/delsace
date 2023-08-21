@@ -1,0 +1,7 @@
+Les algorithmes de la STL.
+- nth_element, etc.
+
+HyperLogLog
+Morris Traversal
+Heavy Hitters
+Rervoir Sampling

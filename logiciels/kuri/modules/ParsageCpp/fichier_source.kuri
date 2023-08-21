@@ -78,6 +78,12 @@ construit_tableau_runes :: fonc (flux: &FluxSource)
     tantque index < flux.source.taille {
         taille_rune := nombre_octets_utf8(pointeur_source)
 
+        // À FAIRE : ajout d'une rune invalide (voir HTML)
+        si taille_rune == 0 {
+            index += 1
+            continue
+        }
+
         rune_ := converti_utf8_utf32(pointeur_source, taille_rune)
         rune := Rune(rune_ comme n32)
 

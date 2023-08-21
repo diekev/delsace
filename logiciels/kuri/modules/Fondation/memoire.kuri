@@ -104,6 +104,11 @@ bouge_mem :: fonc(source : []octet, destination : []octet, taille : z64) -> rien
 	copie_mem(source, destination, taille)
 }
 
+déplace_mémoire_nonsur :: fonc(src : *octet, dst : *octet, taille : z64) -> rien
+{
+	_ := memmove(dst, src, taille comme n64)
+}
+
 // À FAIRE : considération pour la surposition de blocs.
 echange_mem :: fonc(a : []octet, b : []octet) -> rien
 {

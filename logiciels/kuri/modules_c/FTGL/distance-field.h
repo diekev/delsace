@@ -6,6 +6,8 @@
 #ifndef __DISTANCE_FIELD_H__
 #define __DISTANCE_FIELD_H__
 
+#include <stdint.h>
+
 /**
  * @file   shader.h
  * @author Nicolas Rougier (Nicolas.Rougier@inria.fr)

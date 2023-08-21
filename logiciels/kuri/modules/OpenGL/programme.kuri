@@ -1,0 +1,133 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Outils pour compiler des programmes OpenGL.
+ * \{ */
+
+/* Compile un programme depuis des les sources pour les nuanceurs de vertex et
+ * de fragment. Si une erreur survient, ne retourne rien, et imprime l'erreur
+ * dans la console. */
+compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> Optionnel(n32)
+{
+    /* Compile les sources. */
+	opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER)
+    saufsi opt_id_nuanceur_vertex.possède_valeur() {
+        retourne
+    }
+    id_nuanceur_vertex := opt_id_nuanceur_vertex.Quelque
+    diffère détruit_nuanceur(id_nuanceur_vertex)
+
+	opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER)
+    saufsi opt_id_nuanceur_fragment.possède_valeur() {
+        retourne
+    }
+    id_nuanceur_fragment := opt_id_nuanceur_fragment.Quelque
+    diffère détruit_nuanceur(id_nuanceur_fragment)
+
+    /* Compile le programme. */
+    id_programme := glCreateProgram()
+    saufsi glIsProgram(id_programme) {
+        retourne
+    }
+
+	glAttachShader(id_programme, id_nuanceur_vertex)
+    diffère { glDetachShader(id_programme, id_nuanceur_vertex) }
+
+    glAttachShader(id_programme, id_nuanceur_fragment)
+    diffère { glDetachShader(id_programme, id_nuanceur_fragment) }
+
+    glLinkProgram(id_programme)
+
+    saufsi vérifie_liaison(id_programme) {
+        glDeleteProgram(id_programme)
+        retourne
+    }
+
+    retourne id_programme
+}
+
+/* Détruit un programme. Il ne sera plus valide de l'utilisé après cette opération. */
+détruit_programme :: fonc (id_programme: n32) -> rien
+{
+    si glIsShader(id_programme) {
+        glDeleteShader(id_programme)
+    }
+}
+
+/* Retourne vrai s'il n'y eu aucune erreur de compilation. Si faux, l'erreur est
+ * imprimée dans la console. */
+vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
+{
+    résultat : z32 = 0
+    longueur_info_log : z32 = 0
+
+    glGetShaderiv(id_nuanceur, GL_COMPILE_STATUS, *résultat)
+    glGetShaderiv(id_nuanceur, GL_INFO_LOG_LENGTH, *longueur_info_log)
+
+    si longueur_info_log > 0 {
+		message_erreur := loge_chaine(longueur_info_log + 1)
+		glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
+
+        imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur)
+
+        déloge(message_erreur)
+
+        retourne faux
+	}
+
+    retourne vrai
+}
+
+/* Retourne vrai s'il n'y eu aucune erreur de liaison. Si faux, l'erreur est
+ * imprimée dans la console. */
+vérifie_liaison :: fonc (id_programme: n32) -> bool
+{
+    résultat : z32 = 0
+    longueur_info_log : z32 = 0
+
+    glGetProgramiv(id_programme, GL_LINK_STATUS, *résultat)
+	glGetProgramiv(id_programme, GL_INFO_LOG_LENGTH, *longueur_info_log)
+
+    si longueur_info_log > 0 {
+		message_erreur := loge_chaine(longueur_info_log + 1)
+		glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
+
+        imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur)
+
+        déloge(message_erreur)
+
+        retourne faux
+	}
+
+    retourne vrai
+}
+
+/* Compile les sources du type de nuanceur spécifié. Si une erreur survient,
+ * elle est imprimée dans la console. Sinon, l'adresse du nuanceur est retournée. */
+compile_source_nuanceur :: fonc (source: chaine, type: n32) -> Optionnel(n32)
+{
+    résultat := glCreateShader(type)
+    saufsi glIsShader(résultat) {
+        retourne
+    }
+
+    taille_src_vertex := source.taille comme z32
+	glShaderSource(résultat, 1, *source.pointeur , *taille_src_vertex)
+	glCompileShader(résultat)
+
+    saufsi vérifie_compilation(résultat) {
+        détruit_nuanceur(résultat)
+    }
+
+    retourne résultat
+}
+
+/* Détruit un nuanceur. Il ne sera plus valide de l'utilisé après cette opération. */
+détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
+{
+    si glIsShader(id_nuanceur) {
+        glDeleteShader(id_nuanceur)
+    }
+}
+
+/** } */
