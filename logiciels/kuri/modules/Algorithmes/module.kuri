@@ -169,3 +169,97 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 
     retourne résultat
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Pivote
+*
+ * Déplace les éléments entre `premier` et `milieu` afin qu'ils se trouvent
+ * après `dernier`.
+ * Retourne la nouvelle position de `premier`.
+ * \{ */
+
+pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
+{
+	taille_début := distance(premier, milieu)
+	taille_fin := distance(milieu, dernier)
+
+	/* À FAIRE : évite d'allouer de la mémoire */
+	tampon : []T
+	diffère déloge(tampon)
+	tableau_redimensionne(tampon, taille_début)
+
+	copie_mem_nonsur(src = premier, dst = tampon.pointeur, taille = taille_début * taille_de(T) comme z64)
+	déplace_mémoire_nonsur(src = milieu, dst = premier, taille = taille_fin * taille_de(T) comme z64)
+	copie_mem_nonsur(src = tampon.pointeur, dst = dernier - taille_début, taille = taille_début * taille_de(T) comme z64)
+
+	retourne suivant(premier, taille_fin)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Partition.
+ *
+ * Tri les éléments entre `premier` et `dernier` tel quel les éléments qui
+ * satisfont le `prédicat` se retrouvent avant les autres.
+ * Retourne le premier élément satisfaisant le `prédicat`.
+ * \{ */
+
+partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
+{
+	boucle {
+		tantque ((premier != dernier) && prédicat(mémoire(premier))) {
+			premier = suivant(premier, 1)
+		}
+
+		si premier == dernier {
+			arrête
+		}
+
+		dernier = suivant(dernier, -1)
+
+		tantque ((premier != dernier) && !prédicat(mémoire(dernier))) {
+			dernier = suivant(dernier, -1)
+		}
+
+		si (premier == dernier) {
+			arrête
+		}
+
+		échange(premier, dernier)
+		premier = suivant(premier, 1)
+	}
+
+	retourne premier
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Partition stable.
+ *
+ * Tri les éléments entre `premier` et `dernier` tel quel les éléments qui
+ * satisfont le `prédicat` se retrouvent avant les autres en préservant leur
+ * ordre relatif.
+ * Retourne le premier élément satisfaisant le `prédicat`.
+ * \{ */
+
+partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
+{
+	taille := distance(premier, dernier)
+	saufsi taille {
+		retourne premier
+	}
+
+	si taille == 1 {
+		retourne suivant(premier, p(mémoire(premier)) comme z32)
+	}
+
+	milieu := suivant(premier, taille / 2)
+
+	retourne pivote(partitionne_stable(premier, milieu, p),
+					milieu,
+					partitionne_stable(milieu, dernier, p))
+}
+
+/** } */
