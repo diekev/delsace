@@ -3762,10 +3762,34 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     }
 
     auto type_struct = type_compose->comme_structure();
+
+#undef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
+#undef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
+
+#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
+    auto rembourrage_total = 0u;
+#endif
     POUR (type_struct->membres) {
         if (it.possède_drapeau(TypeCompose::Membre::EST_UN_EMPLOI)) {
             type_struct->types_employés.ajoute(&it);
         }
+
+#ifdef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
+        auto reste_décalage = it.decalage % 64;
+        if (reste_décalage && (reste_décalage + it.type->taille_octet) > 64) {
+            espace->rapporte_avertissement(it.decl, "Le membre franchis une ligne de cache");
+        }
+#endif
+
+#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
+        /* Revise cette logique ? */
+        if (it.rembourrage && it.type->taille_octet < rembourrage_total) {
+            espace->rapporte_avertissement(
+                it.decl, "Le membre pourrait être stocké dans du rembourrage existant");
+        }
+
+        rembourrage_total += it.rembourrage;
+#endif
     }
 
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
@@ -5028,6 +5052,11 @@ static bool variables_ne_redéfinissent_rien(EspaceDeTravail *espace,
                                             NoeudBloc const *bloc)
 {
     POUR (variables) {
+        if (it->ident == ID::_) {
+            /* Ignore explicitement la variable. Utile pour les boucles imbriquées. */
+            continue;
+        }
+
         auto decl = trouve_dans_bloc(bloc, it->ident);
         if (decl == nullptr) {
             continue;
