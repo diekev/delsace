@@ -424,6 +424,16 @@ void texture_font_enlarge_atlas(texture_font_t *self, size_t width_new, size_t h
 float texture_glyph_get_kerning(const texture_glyph_t *self, const char *codepoint);
 
 /**
+ * Get the kerning between two horizontal glyphs.
+ *
+ * @param self  A valid texture glyph
+ * @param other A valid texture glyph
+ *
+ * @return x kerning value
+ */
+float texture_glyph_get_kerning_glyph(const texture_glyph_t *self, const texture_glyph_t *other);
+
+/**
  * Creates a new empty glyph
  *
  * @return a new empty glyph (not valid)
