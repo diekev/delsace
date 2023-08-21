@@ -1,0 +1,507 @@
+/* Module de génération de labyrinthes. */
+
+importe Aléa
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Labyrinthe
+ * \{ */
+
+Labyrinthe :: struct {
+    /* Vrai si mur, faux sinon. */
+    données: []bool
+    taille_x: z32
+    taille_y: z32
+}
+
+/* Ceci ne fait que créer les données du labyrinthe, pour (re-)générer les murs,
+ * appelez #initialise_murs. */
+crée_labyrinthe :: fonc (taille_x: z32, taille_y: z32) -> Labyrinthe
+{
+    nombre_de_cellules := taille_x * taille_y
+
+    résultat: Labyrinthe
+    résultat.taille_x = taille_x
+    résultat.taille_y = taille_y
+    tableau_redimensionne(résultat.données, nombre_de_cellules)
+
+    retourne résultat
+}
+
+détruit_données_labyrinthe :: fonc (labyrinthe: *Labyrinthe)
+{
+    déloge(labyrinthe.données)
+    init_de(Labyrinthe)(labyrinthe)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Méthode de création d'un labyrinthe.
+ * \{ */
+
+MéthodeCréationLabyrinthe :: énum {
+    PSEUDO_LABYRINTHE
+    ELLER
+}
+
+initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, méthode: MéthodeCréationLabyrinthe)
+{
+    discr méthode {
+        PSEUDO_LABYRINTHE {
+            initialise_murs_pseudo_labyrinthe(labyrinthe, entropie)
+        }
+        ELLER {
+            initialise_murs_eller(labyrinthe, entropie)
+        }
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création d'un pseudo-labyrinthe.
+ *
+ * Ce genre de labyrinthes ne sont pas des vrais labyrinthes, mais des choses
+ * qui y ressemblent.
+ * Ceci permet de créé des cartes dans le style de Wolfenstein 3D.
+ *
+ * Tiré de https://twitter.com/pikuma/status/1688966816226246656.
+ * \{ */
+
+initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+{
+    taille_x := labyrinthe.taille_x
+    taille_y := labyrinthe.taille_y
+    nombre_de_cellules := taille_x * taille_y
+
+    /* Remplis les murs autour du labyrinthe. */
+    pointeur := labyrinthe.données.pointeur
+    pour y dans taille_y {
+        pour x dans taille_x {
+            si x == 0 || y == 0 || y == (taille_y - 1) || x == taille_x - 1 {
+                mémoire(pointeur) = vrai
+            }
+            sinon {
+                mémoire(pointeur) = faux
+            }
+
+            pointeur += 1
+        }
+    }
+
+    est_poste : []bool
+    diffère déloge(est_poste)
+    tableau_redimensionne(est_poste, nombre_de_cellules)
+    tableau_remplis_avec(est_poste, faux)
+
+    /* Remplis chaque cellule de colonne impaire pour chaque ligne paire. */
+    pour y dans taille_y {
+        si y % 2 == 1 {
+            continue
+        }
+
+        pour x dans taille_x {
+            si x % 2 == 1 {
+                continue
+            }
+
+            si entropie.aléatoire_unilatérale() < 0.5 {
+                continue
+            }
+
+            index := x + y * taille_x
+            labyrinthe.données[index] = vrai
+            est_poste[index] = vrai
+        }
+    }
+
+    /* Pour chaque poste, choisit une direction aléatoire et remplis jusqu'à
+     * tomber sur un obstacle. */
+    pour y dans 1 ... taille_y - 2 {
+        pour x dans 1 ... taille_x - 2 {
+            index := x + y * taille_x
+
+            saufsi est_poste[index] {
+                continue
+            }
+
+            direction := (entropie.aléatoire_unilatérale() * 4.0) comme z32
+
+            /* Les deltas sont pour haut, bas, gauche, droite. */
+            deltas := [-1, 1, -taille_x, taille_x]
+            delta := deltas[direction]
+
+            boucle {
+                index += delta
+
+                si labyrinthe.données[index] {
+                    arrête
+                }
+
+                labyrinthe.données[index] = vrai
+            }
+        }
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création d'un labyrinthe selon la méthode d'Eller.
+ *
+ * Ceci permet de créer des labyrinthes parfaits : n'ayant qu'un seul chemin
+ * entre deux cellules.
+ *
+ * Tiré de http://www.neocomputer.org/projects/eller.html.
+ * \{ */
+
+initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+{
+    tableau_remplis_avec(labyrinthe.données, faux)
+
+    constructrice: ConstructriceMéthodeEller
+    initialise_constructrice_eller(*constructrice, labyrinthe)
+    diffère détruit_données_constructrice(*constructrice)
+
+    initialise_première_ligne(*constructrice)
+
+    pour constructrice.taille_y {
+        crée_mur_entre_cellules(*constructrice, entropie)
+
+        si it < constructrice.taille_y - 1 {
+            crée_chemin_sortie_cellules(*constructrice, entropie)
+        }
+        sinon {
+            initialise_dernière_ligne(*constructrice)
+        }
+        
+        copie_ligne_vers_labyrinthe(*constructrice, index_it)
+        avance_ligne_suivante(*constructrice)
+    }
+}
+
+/* Données pour la construction d'un labyrinthe selon la méthode d'Eller. */
+ConstructriceMéthodeEller :: struct {
+    PositionMur :: énum_drapeau {
+        GAUCHE
+        DROITE
+        HAUT
+        BAS
+
+        HAUT_GAUCHE :: HAUT | GAUCHE
+        HAUT_DROITE :: HAUT | DROITE
+        BAS_GAUCHE :: BAS | GAUCHE
+        BAS_DROITE :: BAS | DROITE
+    }
+
+    Cellule :: struct {
+        groupe : *Groupe
+        position_mur : PositionMur
+    }
+
+    Groupe :: struct {
+        suivant: *Groupe
+        précédent: *Groupe
+
+        /* Pour le débogage. */
+        index: z32
+        cellules: []*Cellule
+    }
+
+    taille_x: z32
+    taille_y: z32
+    ligne_courante: []Cellule
+
+    labyrinthe: *Labyrinthe
+
+    groupe_courant: z32
+
+    groupes: *Groupe
+    /* Réutilise la mémoire. */
+    groupes_libres: *Groupe
+}
+
+initialise_constructrice_eller :: fonc (constructrice: *ConstructriceMéthodeEller, labyrinthe: *Labyrinthe)
+{
+    taille_x := labyrinthe.taille_x / 2
+    taille_y := labyrinthe.taille_y / 2
+
+    constructrice.taille_x = taille_x
+    constructrice.taille_y = taille_y
+    constructrice.labyrinthe = labyrinthe
+    tableau_redimensionne(constructrice.ligne_courante, taille_x)
+}
+
+détruit_données_constructrice :: fonc (constructrice: *ConstructriceMéthodeEller)
+{
+    détruit_groupes(constructrice.groupes)
+    détruit_groupes(constructrice.groupes_libres)
+    déloge(constructrice.ligne_courante)
+}
+
+détruit_groupes :: fonc (groupes: *ConstructriceMéthodeEller.Groupe)
+{
+    groupe := groupes
+    tantque groupe != nul {
+        groupe_suivant := groupe.suivant
+
+        déloge(groupe.cellules)
+        déloge(groupe)
+
+        groupe = groupe_suivant
+    }
+}
+
+crée_groupe :: fonc (constructrice: *ConstructriceMéthodeEller) -> *ConstructriceMéthodeEller.Groupe
+{
+    résultat : *ConstructriceMéthodeEller.Groupe
+
+    si constructrice.groupes_libres {
+        résultat = constructrice.groupes_libres
+        constructrice.groupes_libres = résultat.suivant
+
+        si résultat.suivant {
+            résultat.suivant.précédent = nul
+        }
+    }
+    sinon {
+        résultat = loge(ConstructriceMéthodeEller.Groupe)
+    }
+
+    résultat.précédent = nul
+    résultat.suivant = nul
+
+    résultat.suivant = constructrice.groupes
+    si résultat.suivant {
+        résultat.suivant.précédent = résultat
+    }
+    constructrice.groupes = résultat
+
+    résultat.index = constructrice.groupe_courant
+    constructrice.groupe_courant += 1
+    retourne résultat
+}
+
+vérifie_comptes_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller)
+{
+    nombre_de_cellules := 0
+
+    groupe := constructrice.groupes
+    tantque groupe != nul {
+        nombre_de_cellules += groupe.cellules.taille comme z32
+        groupe = groupe.suivant
+    }
+
+    assert(nombre_de_cellules == taille_x)
+    // imprime("nombre de cellules %\n", nombre_de_cellules)
+}
+
+supprime_groupes_vides :: fonc (constructrice: *ConstructriceMéthodeEller)
+{
+    groupe := constructrice.groupes
+
+    tantque groupe != nul {
+
+        groupe_suivant := groupe.suivant
+
+        si groupe.cellules.taille == 0 {
+            si groupe.suivant {
+                groupe.suivant.précédent = groupe.précédent
+            }
+            si groupe.précédent {
+                groupe.précédent.suivant = groupe.suivant
+            }
+
+            si groupe == constructrice.groupes {
+                constructrice.groupes = groupe.suivant
+            }
+
+            groupe.précédent = nul
+            groupe.suivant = nul
+
+            si constructrice.groupes_libres {
+                constructrice.groupes_libres.précédent = groupe
+                groupe.suivant = constructrice.groupes_libres
+            }
+
+            constructrice.groupes_libres = groupe
+        }
+
+        groupe = groupe_suivant
+    }
+
+    vérifie_comptes_cellules(constructrice)
+}
+
+initialise_première_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEller)
+{
+    pour * ligne_courante {
+        init_de(ConstructriceMéthodeEller.Cellule)(it)
+
+        it.groupe = constructrice.crée_groupe()
+        tableau_ajoute(*it.groupe.cellules, it)
+
+        si index_it == 0 {
+            it.position_mur.GAUCHE = vrai
+        }
+        sinon si index_it == taille_x - 1 {
+            it.position_mur.DROITE = vrai
+        }
+
+        it.position_mur.HAUT = vrai
+    }
+}
+
+initialise_dernière_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEller)
+{
+    /* Toutes les cellules doivent avoir un mur en bas. */
+    pour * ligne_courante {
+        it.position_mur.BAS = vrai
+    }
+
+    pour x dans taille_x - 1 {
+        cx0 := *ligne_courante[x]
+        cx1 := *ligne_courante[x + 1]
+
+        si cx0.groupe != cx1.groupe {
+            cx0.position_mur.DROITE = faux
+            cx1.position_mur.GAUCHE = faux
+            
+            tableau_supprime_valeur(*cx1.groupe.cellules, cx1)
+            tableau_ajoute(*cx0.groupe.cellules, cx1)
+            cx1.groupe = cx0.groupe
+        }
+    }
+
+    supprime_groupes_vides(constructrice)
+}
+
+avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
+{
+    pour *ligne_courante {
+        si it.position_mur.BAS == vrai {
+            /* Supprime la cellule de son groupe, et ajoute-là dans son propre groupe. */
+            tableau_supprime_valeur(*it.groupe.cellules, it)
+            it.groupe = constructrice.crée_groupe()
+            tableau_ajoute(*it.groupe.cellules, it)
+        }
+
+        it.position_mur = ConstructriceMéthodeEller.PositionMur.zéro
+
+        si index_it == 0 {
+            it.position_mur.GAUCHE = vrai
+        }
+        sinon si index_it == taille_x - 1 {
+            it.position_mur.DROITE = vrai
+        }
+    }
+    supprime_groupes_vides(constructrice)
+}
+
+/* Crée des murs à droite des cellules. */
+crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+{
+    pour x dans 1 ... taille_x - 1 {
+        cx0 := *ligne_courante[x - 1]
+        cx1 := *ligne_courante[x]
+
+        si cx0.groupe != cx1.groupe {
+            xi := entropie.aléatoire_unilatérale()
+            si xi < 0.5 {
+                // ajoutons un mur
+                cx0.position_mur.DROITE = vrai
+                cx1.position_mur.GAUCHE = vrai
+            }
+            sinon {
+                // fusionons les cellules
+                tableau_supprime_valeur(*cx1.groupe.cellules, cx1)
+                tableau_ajoute(*cx0.groupe.cellules, cx1)
+                cx1.groupe = cx0.groupe
+            }
+        }
+        sinon {
+            /* Les cellules sont dans la même groupe, nous devons ajouter un mur afin d'éviter les boucles. */
+            cx0.position_mur.DROITE = vrai
+            cx1.position_mur.GAUCHE = vrai
+        }
+    }
+
+    supprime_groupes_vides(constructrice)
+}
+
+crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+{
+    /* Garantis qu'au moins une cellule de chaque groupe possède une sortie (aucun mur en bas). */
+    groupe := constructrice.groupes
+
+    tantque groupe != nul {
+        diffère groupe = groupe.suivant
+
+        si groupe.cellules.taille == 0 {
+            continue
+        }
+
+        si groupe.cellules.taille == 1 {
+            groupe.cellules[0].position_mur.BAS = faux
+            continue
+        }
+
+        nombre_de_cellules_avec_sortie := 0
+
+        pour groupe.cellules {
+            xi := entropie.aléatoire_unilatérale()
+            si xi < 0.5 {
+                /* Ajoutons un mur. */
+                it.position_mur.BAS = vrai
+            }
+            sinon {
+                nombre_de_cellules_avec_sortie += 1
+            }
+        }
+
+        si nombre_de_cellules_avec_sortie == 0 {
+            groupe.cellules[groupe.cellules.taille - 1].position_mur.BAS = faux
+        }
+    }
+
+    vérifie_comptes_cellules(constructrice)
+}
+
+copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeEller, index_ligne: z32)
+{
+    /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
+    données_sortie := labyrinthe.données.pointeur + labyrinthe.taille_x * (index_ligne * 2 + 1)
+
+    pour ligne_courante {
+        /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
+        index_sortie := (index_it * 2) + 1
+
+        si it.position_mur.GAUCHE == vrai {
+            données_sortie[index_sortie - 1] = vrai
+        }
+        si it.position_mur.DROITE == vrai {
+            données_sortie[index_sortie + 1] = vrai
+        }
+        si it.position_mur.HAUT == vrai {
+            données_sortie[index_sortie - labyrinthe.taille_x] = vrai
+        }
+        si it.position_mur.BAS == vrai {
+            données_sortie[index_sortie + labyrinthe.taille_x] = vrai
+        }
+        si it.position_mur.HAUT_GAUCHE == vrai {
+            données_sortie[index_sortie - labyrinthe.taille_x - 1] = vrai
+        }
+        si it.position_mur.BAS_GAUCHE == vrai {
+            données_sortie[index_sortie + labyrinthe.taille_x - 1] = vrai
+        }
+        si it.position_mur.HAUT_DROITE == vrai {
+            données_sortie[index_sortie - labyrinthe.taille_x + 1] = vrai
+        }
+        si it.position_mur.BAS_DROITE == vrai {
+            données_sortie[index_sortie + labyrinthe.taille_x + 1] = vrai
+        }
+    }
+}
+
+/** } */
