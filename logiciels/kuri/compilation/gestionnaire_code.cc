@@ -118,15 +118,12 @@ bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
                           int(RaisonDEtre::LEXAGE_FICHIER),
                           int(RaisonDEtre::PARSAGE_FICHIER)};
 
-    /* Vérifie s'il n'y a rien à charger/lexer/parser. */
-    POUR (index) {
-        if (nombre_d_unités_pour_raison[it].compte != 0) {
-            return false;
-        }
-    }
-
-    /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer. */
-    return file_unités_charge_ou_importe == nullptr;
+    /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer et que les unités de
+     * chargement/lexage/parsage ont toutes été traitées. */
+    return file_unités_charge_ou_importe == nullptr &&
+           std::all_of(std::begin(index), std::end(index), [&](int it) {
+               return nombre_d_unités_pour_raison[it].compte == 0;
+           });
 }
 
 void ÉtatChargementFichiers::imprime_état() const
@@ -1690,25 +1687,21 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         return false;
     }
 
-    bool ok = true;
-    POUR (programmes_en_cours) {
-        auto espace = it->espace();
+    return std::all_of(
+        programmes_en_cours.begin(), programmes_en_cours.end(), [](Programme const *it) {
+            /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
+             * avons un, la compilation ne peut se terminée. */
+            if (it->pour_metaprogramme()) {
+                return false;
+            }
 
-        /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
-         * avons un, la compilation ne peut se terminée. */
-        if (it->pour_metaprogramme()) {
-            ok = false;
-            continue;
-        }
-
-        /* Attend que tous les espaces eurent leur compilation terminée. */
-        if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
-            ok = false;
-            continue;
-        }
-    }
-
-    return ok;
+            /* Attend que tous les espaces eurent leur compilation terminée. */
+            auto espace = it->espace();
+            if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINEE) {
+                return false;
+            }
+            return true;
+        });
 }
 
 void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)

@@ -1561,7 +1561,9 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
             });
 
             alignement_max = std::max(alignement_type, alignement_max);
-            decalage += marge_pour_alignement(alignement_type, decalage);
+            auto rembourrage = marge_pour_alignement(alignement_type, decalage);
+            it.rembourrage = rembourrage;
+            decalage += rembourrage;
         }
 
         it.decalage = decalage;
