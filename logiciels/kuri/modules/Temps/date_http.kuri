@@ -233,3 +233,11 @@ imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
 
     ajoute_au_tampon(enchaineuse, chn)
 }
+
+imprime_date_http :: fonc (date: DateHTTP) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_date_http(*enchaineuse, date)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
