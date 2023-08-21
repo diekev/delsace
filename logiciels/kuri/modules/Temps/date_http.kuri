@@ -34,7 +34,7 @@ date_http_depuis_date :: fonc (date: Date) -> DateHTTP
     date_http : DateHTTP = ---
     date_http.jour_semaine = date.jour_semaine
     date_http.jour = date.jour
-    date_http.mois = date.mois
+    date_http.mois = date.mois - 1
     date_http.année = date.année
     date_http.heure = date.heure
     date_http.minute = date.minute
@@ -49,7 +49,7 @@ date_depuis_date_http :: fonc (date_http: DateHTTP) -> Date
     date : Date = ---
     date.jour_semaine = date_http.jour_semaine
     date.jour = date_http.jour
-    date.mois = date_http.mois
+    date.mois = date_http.mois + 1
     date.année = date_http.année
     date.heure = date_http.heure
     date.minute = date_http.minute
