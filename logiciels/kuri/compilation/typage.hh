@@ -356,6 +356,7 @@ struct TypeCompose : public Type {
         int valeur = 0;                                       // pour les énumérations
         NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
         int drapeaux = 0;
+        uint32_t rembourrage = 0;
 
         inline bool possède_drapeau(int drapeau) const
         {
