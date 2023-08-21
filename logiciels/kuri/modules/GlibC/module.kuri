@@ -539,6 +539,7 @@ printf :: fonc (fmt: ChaineC, args: ...) -> z32 #externe libc
 
 memset :: fonc (ptr: *rien, valeur: z32, taille: n64) -> *rien #externe libc
 memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc
+memmove :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc
 
 // -------------------------------------
 
