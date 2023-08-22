@@ -93,6 +93,8 @@ private:
 	 * Construit le vecteur contenant les données de chaque ligne du tampon.
 	 */
 	void construit_lignes();
+    void construit_lignes_lent();
+    void construit_lignes_avx();
 };
 
 }  /* namespace lng */

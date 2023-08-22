@@ -1,0 +1,10 @@
+/* Crash quand les #test ne font pas grand chose. */
+
+#test {
+    x := 1
+}
+
+principale :: fonc () -> z32
+{
+    retourne 0
+}
