@@ -3,37 +3,18 @@
 
 importe Fondation
 
+__chaine_jour_pour_tm := ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
 chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
 {
-    discr tm_wday {
-        0 { retourne "Sun" }
-        1 { retourne "Mon" }
-        2 { retourne "Tue" }
-        3 { retourne "Wed" }
-        4 { retourne "Thu" }
-        5 { retourne "Fri" }
-        6 { retourne "Sat" }
-        sinon { retourne "erreur" }
-    }
+    retourne __chaine_jour_pour_tm[tm_wday]
 }
+
+__chaine_mois_pour_tm := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
 {
-    discr tm_mon {
-         0 { retourne "Jan" }
-         1 { retourne "Feb" }
-         2 { retourne "Mar" }
-         3 { retourne "Apr" }
-         4 { retourne "May" }
-         5 { retourne "Jun" }
-         6 { retourne "Jul" }
-         7 { retourne "Aug" }
-         8 { retourne "Sep" }
-         9 { retourne "Oct" }
-        10 { retourne "Nov" }
-        11 { retourne "Dec" }
-        sinon { retourne "erreur" }
-    }
+    retourne __chaine_mois_pour_tm[tm_mon]
 }
 
 DateHTTP :: struct {
@@ -53,7 +34,7 @@ date_http_depuis_date :: fonc (date: Date) -> DateHTTP
     date_http : DateHTTP = ---
     date_http.jour_semaine = date.jour_semaine
     date_http.jour = date.jour
-    date_http.mois = date.mois
+    date_http.mois = date.mois - 1
     date_http.année = date.année
     date_http.heure = date.heure
     date_http.minute = date.minute
@@ -68,7 +49,7 @@ date_depuis_date_http :: fonc (date_http: DateHTTP) -> Date
     date : Date = ---
     date.jour_semaine = date_http.jour_semaine
     date.jour = date_http.jour
-    date.mois = date_http.mois
+    date.mois = date_http.mois + 1
     date.année = date_http.année
     date.heure = date_http.heure
     date.minute = date_http.minute
@@ -100,7 +81,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
     parseuse := ParseuseChaine(chn = chn)
 
     // parse nom jour
-    index := apparie_un_de(*parseuse, "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    index := apparie_un_de(*parseuse, ...__chaine_jour_pour_tm)
 
     si index == -1 {
         retourne ErreurParsageDate.NomJourMalformé
@@ -130,7 +111,7 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
     }
 
     // parse mois
-    index = apparie_un_de(*parseuse, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    index = apparie_un_de(*parseuse, ...__chaine_mois_pour_tm)
 
     si index == -1 {
         retourne ErreurParsageDate.MoisMalformé
@@ -251,4 +232,12 @@ imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
     chn.taille = tampon.curseur
 
     ajoute_au_tampon(enchaineuse, chn)
+}
+
+imprime_date_http :: fonc (date: DateHTTP) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_date_http(*enchaineuse, date)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
