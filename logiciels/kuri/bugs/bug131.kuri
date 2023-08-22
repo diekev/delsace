@@ -1,0 +1,28 @@
+/* Passer une union nonsure par adresse ne fonctionne pas. */
+
+importe Fondation 
+
+UnionTest :: union nonsûr {
+    e: z32
+    f: r32
+}
+
+modifie_entier :: fonc (u: *UnionTest)
+{
+    u.e = 127
+}
+
+modifie_réel :: fonc (u: *UnionTest)
+{
+    u.f = 0.5
+}
+
+principale :: fonc () -> z32
+{
+    u : UnionTest
+    modifie_entier(*u)
+    assert(u.e == 127)
+    modifie_réel(*u)
+    assert(u.f == 0.5)
+    retourne 0
+}

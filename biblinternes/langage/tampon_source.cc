@@ -26,6 +26,13 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include <immintrin.h>
+#include <iostream>
+
+#if !(defined(_MSC_VER) || defined(__SCE__)) || defined(__AVX__)
+#define SUPPORTE_AVX
+#endif
+
 /* ************************************************************************** */
 
 /**
@@ -141,22 +148,110 @@ void tampon_source::construit_lignes()
 		return;
 	}
 
-	auto nombre_de_lignes = 0;
+#ifdef SUPPORTE_AVX
+    construit_lignes_avx();
+#else
+    construit_lignes_lent();
+#endif
+}
 
-    for (auto i = int64_t(0); i < m_tampon.taille(); ++i) {
-		nombre_de_lignes += m_tampon[i] == '\n';
-	}
+void tampon_source::construit_lignes_lent()
+{
+    /* Compte le nombre de lignes. */
 
-	m_lignes.reserve(nombre_de_lignes);
+    auto taille_modulo_8 = m_tampon.taille() % 8;
+    auto taille_sure = m_tampon.taille() - taille_modulo_8;
+
+    auto nombre_de_lignes = 0;
+    for (auto i = int64_t(0); i < taille_sure; i += 8) {
+        nombre_de_lignes += m_tampon[i] == '\n';
+        nombre_de_lignes += m_tampon[i + 1] == '\n';
+        nombre_de_lignes += m_tampon[i + 2] == '\n';
+        nombre_de_lignes += m_tampon[i + 3] == '\n';
+        nombre_de_lignes += m_tampon[i + 4] == '\n';
+        nombre_de_lignes += m_tampon[i + 5] == '\n';
+        nombre_de_lignes += m_tampon[i + 6] == '\n';
+        nombre_de_lignes += m_tampon[i + 7] == '\n';
+    }
+
+    for (auto i = taille_sure; i < m_tampon.taille(); ++i) {
+        nombre_de_lignes += m_tampon[i] == '\n';
+    }
+
+    nombre_de_lignes += (m_tampon[m_tampon.taille() - 1] != '\n');
+
+    /* Construit le tampon. */
+
+    m_lignes.reserve(nombre_de_lignes);
 
     for (auto i = int64_t(0); i < m_tampon.taille();) {
-		auto pos = &m_tampon[i];
-		auto taille = trouve_fin_ligne(pos, this->fin());
+        auto pos = &m_tampon[i];
+        auto taille = trouve_fin_ligne(pos, this->fin());
 
-		m_lignes.ajoute(dls::vue_chaine{pos, taille});
+        m_lignes.ajoute(dls::vue_chaine{pos, taille});
 
-		i += taille;
-	}
+        i += taille;
+    }
+}
+
+void tampon_source::construit_lignes_avx()
+{
+#ifdef SUPPORTE_AVX
+    /* Compte le nombre de lignes. */
+
+    auto taille_modulo_32 = m_tampon.taille() % 32;
+    auto taille_sure = m_tampon.taille() - taille_modulo_32;
+    const __m256i __cmp_mask = _mm256_set1_epi8('\n');
+
+    auto nombre_de_lignes = 0;
+    for (auto i = int64_t(0); i < taille_sure; i += 32) {
+        const auto __32 = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&m_tampon[i]));
+        const auto __cmp_result = _mm256_cmpeq_epi8(__32, __cmp_mask);
+        nombre_de_lignes += __builtin_popcount(uint32_t(_mm256_movemask_epi8(__cmp_result)));
+    }
+
+    for (auto i = taille_sure; i < m_tampon.taille(); ++i) {
+        nombre_de_lignes += m_tampon[i] == '\n';
+    }
+
+    nombre_de_lignes += (m_tampon[m_tampon.taille() - 1] != '\n');
+
+    /* Construit le tampon. */
+
+    m_lignes.reserve(nombre_de_lignes);
+    auto pos_début_ligne = &m_tampon[0];
+    auto pos_courante = pos_début_ligne;
+
+    for (auto i = int64_t(0); i < taille_sure; i += 32) {
+        const auto __32 = _mm256_loadu_si256(reinterpret_cast<__m256i *>(pos_courante));
+        const auto __cmp_result = _mm256_cmpeq_epi8(__32, __cmp_mask);
+        auto n = __builtin_popcount(uint32_t(_mm256_movemask_epi8(__cmp_result)));
+        if (n == 0) {
+            pos_courante += 32;
+            continue;
+        }
+
+        auto j = 32;
+        while (n != 0) {
+            if (*pos_courante++ == '\n') {
+                m_lignes.ajoute(dls::vue_chaine{pos_début_ligne, pos_courante - pos_début_ligne});
+                pos_début_ligne = pos_courante;
+                n -= 1;
+            }
+            j -= 1;
+        }
+        pos_courante += j;
+    }
+
+    for (auto i = taille_sure; i < m_tampon.taille();) {
+        auto pos = &m_tampon[i];
+        auto taille = trouve_fin_ligne(pos, this->fin());
+
+        m_lignes.ajoute(dls::vue_chaine{pos, taille});
+
+        i += taille;
+    }
+#endif
 }
 
 }  /* namespace lng */
