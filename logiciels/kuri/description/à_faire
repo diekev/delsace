@@ -1,3 +1,13 @@
+supprime :
+
+    renomme TypeCompose::Membre MembreTypeComposé
+
+    static TypeCompose *cree_eini();
+
+    static TypeCompose *cree_chaine();
+
+réusine opérateurs (stocke table par pointeur, partage entre types)
+
 // -----------------------------------
 // Directives
 
