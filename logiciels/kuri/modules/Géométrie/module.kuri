@@ -1,0 +1,102 @@
+/* Module de représentation de formes géométriques. */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Point
+ * \{ */
+
+Point :: struct {
+    x: z32
+    y: z32
+}
+
+opérateur == :: fonc (p0: Point, p1: Point) -> bool
+{
+    retourne p0.x == p1.x && p0.y == p1.y
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ligne
+ * \{ */
+
+Ligne :: struct {
+    p0: Point
+    p1: Point
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Triangle
+ * \{ */
+
+Triangle :: struct {
+    p0: Point
+    p1: Point
+    p2: Point
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rectangle.
+ * \{ */
+
+Rectangle :: struct {
+    x: z32
+    y: z32
+    hauteur: z32
+    largeur: z32
+}
+
+réduis :: fonc (rect: &Rectangle, taille: z32)
+{
+    rect.x += taille
+    rect.y += taille
+    rect.hauteur -= taille * 2
+    rect.largeur -= taille * 2
+}
+
+donne_point_central :: fonc (rect: Rectangle) -> Point
+{
+    x := (rect.x + rect.largeur) / 2
+    y := (rect.y + rect.hauteur) / 2
+    retourne Point(x, y)
+}
+
+possède :: fonc (rect: Rectangle, point: Point) -> bool
+{
+    si point.x < rect.x || point.x > (rect.x + rect.largeur) {
+        retourne faux
+    }
+
+    si point.y < rect.y || point.y > (rect.y + rect.hauteur) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Cercle
+ * \{ */
+
+Cercle :: struct {
+    centre_x: z32
+    centre_y: z32
+    rayon: z32
+}
+
+réduis :: fonc (cercle: &Cercle, taille: z32)
+{
+    si taille >= cercle.rayon {
+        cercle.rayon = 0
+    }
+
+    cercle.rayon -= taille
+}
+
+/** } */
