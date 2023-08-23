@@ -63,6 +63,32 @@ struct EntreeTaille {
     }
 };
 
+struct EntreeTailleTableau {
+    kuri::chaine nom = "";
+    int64_t taille_max = 0;
+    int64_t taille_min = std::numeric_limits<int64_t>::max();
+    kuri::tableau<int64_t> valeurs{};
+
+    EntreeTailleTableau &operator+=(EntreeTailleTableau const &autre)
+    {
+        if (valeurs.est_vide()) {
+            valeurs.ajoute(taille_max);
+        }
+
+        taille_max = std::max(taille_max, autre.taille_max);
+        taille_min = std::min(taille_min, autre.taille_max);
+
+        valeurs.ajoute(autre.taille_max);
+
+        return *this;
+    }
+
+    bool peut_fusionner_avec(EntreeTailleTableau const &autre) const
+    {
+        return autre.nom == nom;
+    }
+};
+
 struct EntreeFichier {
     kuri::chaine chemin = "";
     kuri::chaine nom = "";
@@ -167,7 +193,7 @@ using StatistiquesOperateurs = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesNoeudCode = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesMessage = EntreesStats<EntreeNombreMemoire>;
 using StatistiquesRI = EntreesStats<EntreeNombreMemoire>;
-using StatistiquesTableaux = EntreesStats<EntreeTaille>;
+using StatistiquesTableaux = EntreesStats<EntreeTailleTableau>;
 
 struct Statistiques {
     int64_t nombre_modules = 0l;

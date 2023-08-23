@@ -1,0 +1,123 @@
+importe Chaine
+importe FTGL
+importe SysFichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonte
+ * \{ */
+
+Fonte :: struct {
+    atlas : *texture_atlas_t
+    font : *texture_font_t
+}
+
+crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
+{
+    fonte := loge(Fonte)
+
+    chemin_c := crée_chaine_c(chemin.chn)
+    diffère détruit_chaine_c(chemin_c)
+
+    fonte.atlas = texture_atlas_new(512, 512, 1)
+    fonte.font = texture_font_new_from_file(fonte.atlas, taille_police, chemin_c comme *z8)
+
+    retourne fonte
+}
+
+détruit_fonte :: fonc (fonte: *Fonte)
+{
+    texture_atlas_delete(fonte.atlas)
+    texture_font_delete(fonte.font)
+    déloge(fonte)
+}
+
+donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
+{
+    retourne texture_font_get_glyph(fonte.font, c)
+}
+
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: chaine) -> z32
+{
+    résultat := 0.0
+    utilise_crénage := fonte.font.kerning != 0
+    dernier_glyphe : *texture_glyph_t
+    pour * texte {
+        glyph := donne_glyphe(fonte, it)
+        saufsi glyph {
+            continue
+        }
+
+        si utilise_crénage {
+            crénage := donne_crénage_avec(glyph, dernier_glyphe)
+            résultat += crénage
+        }
+        dernier_glyphe = glyph
+        résultat += glyph.advance_x
+    }
+    retourne résultat comme z32
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Métriques fonte.
+ * \{ */
+
+MétriquesFonte :: struct {
+    /* Hauteur au-dessus de la ligne de base. */
+    jambage_supérieur: r32
+    /* Hauteur en-dessous de la ligne de base. */
+    jambage_inférieur: r32
+    /* Espace entre deux lignes. */
+    interligne: r32
+    /* Taille maximal d'un caractère. */
+    // À FAIRE
+    // largeur_maximale: r32
+}
+
+donne_métriques_fonte :: fonc (fonte: *Fonte) -> MétriquesFonte
+{
+    résultat: MétriquesFonte = ---
+    résultat.jambage_supérieur = fonte.font.ascender
+    résultat.jambage_inférieur = fonte.font.descender
+    résultat.interligne = fonte.font.linegap
+    retourne résultat
+}
+
+donne_hauteur_ligne :: fonc (empl métriques: MétriquesFonte) -> r32
+{
+    retourne jambage_supérieur - jambage_inférieur + interligne
+}
+
+donne_hauteur_caractère :: fonc (empl métriques: MétriquesFonte) -> r32
+{
+    retourne jambage_supérieur - jambage_inférieur
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Glyphe
+ * \{ */
+
+/* Retourne le crénage de glyphe selon le caractère qui le précède. */
+donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, caractère: *z8) -> r32 #enligne
+{
+    saufsi caractère {
+        retourne 0.0
+    }
+
+    retourne texture_glyph_get_kerning(glyphe, caractère)
+}
+
+/* Retourne le crénage de glyphe selon le glyphe qui le précède. */
+donne_crénage_avec :: fonc (glyphe: *texture_glyph_t, glyphe_précédent: *texture_glyph_t) -> r32 #enligne
+{
+    saufsi glyphe_précédent {
+        retourne 0.0
+    }
+
+    retourne texture_glyph_get_kerning_glyph(glyphe, glyphe_précédent)
+}
+
+/** } */

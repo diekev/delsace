@@ -169,17 +169,36 @@ Date :: struct {
     seconde : z32
 }
 
-est_année_bissextile :: fonc (année: z64) -> bool
+opérateur < :: fonc (date1: Date, date2: Date) -> bool
 {
-    si (année % 100 == 0) {
-        si (année % 400 == 0) {
+    si date1.année < date2.année {
+        retourne vrai
+    }
+
+    si date1.année == date2.année {
+        si date1.mois < date2.mois {
             retourne vrai
         }
 
-        retourne faux
+        si date1.mois == date2.mois {
+            retourne date1.jour < date2.jour
+        }
     }
 
-    retourne (année % 4 == 0)
+    retourne faux
+}
+
+est_année_bissextile :: fonc (année: z32) -> bool #sanstrace
+{
+    /* Une année est bissextile si elle est divisible par 400, mais pas par 100.
+     * Si nous savons qu'une année est divisible par 100 (branche sinon ci-bas),
+     * elle n'est divisible par 400 que si elle est également divisible par 16 
+     * (qui est une puissance de 2, donc optimisable par la compilation).
+     * Si X | 100, alors X | 4, or 400 = 4*100, donc si X | 100 et X | 400, alors
+     * X | 16.
+     */
+    d := si année % 100 != 0 { 4 } sinon { 16 }
+    retourne (année & (d - 1)) == 0
 }
 
 hui_système :: fonc () -> Date
@@ -272,6 +291,40 @@ nombre_de_jours_entre :: fonc (date1: Date, date2: Date) -> z32
     jours_date2 := days_from_civil(date2)
 
     retourne jours_date2 - jours_date1
+}
+
+nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
+{
+    assert(mois >= 1)
+    assert(mois <= 12)
+
+    si mois == 2 {
+        retourne 28 + (est_année_bissextile(année) comme z32)
+    }
+
+    /* La représentation binaire de 30 est 11110.
+     * Nous devons ajouter un 1 (pour 31 jours) si nous sommes sur un
+     * mois impair entre janvier et juillet, mais pair entre août et
+     * décembre.
+     *
+     * Diviser le mois par 8 (mois >> 3) nous donnera 1 si nous sommes
+     * entre août et décembre inclus :
+     *
+     * mois | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+     * >> 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |  1 |  1 |  1 |
+     *
+     * Ceci nous permettra de garantir que la disjonction exclusive
+     * fonctionne pour tous les cas (seul le dernier bit est présenté) :
+     *
+     * M            | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+     * dernier bit  | 1 | 0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 |  0 |  1 |  0 |
+     * M >> 3       | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 |  1 |  1 |  1 |
+     * M ^ (M >> 3) | 1 | 0 | 1 | 0 | 1 | 0 | 1 | 1 | 0 |  1 |  0 |  1 |
+     *
+     * Alternativement, nous pouvons utiliser la fonction euclidienne affine :
+     * 30 | (9 * M / 8)
+     */
+    retourne 30 | (mois ^ (mois >> 3))
 }
 
 /*
