@@ -1,3 +1,4 @@
+importe Algorithmes
 importe Fondation
 
 /* Réprésentation d'un nombre « infini », c'est-à-dire un nombre qui n'a pas de limite quant au nombre de
@@ -84,12 +85,12 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
     résultat : NombreInfini
 
-    tableau_inverse(*n0.chiffres)
-    tableau_inverse(*n1.chiffres)
+    tableau_inverse(n0.chiffres)
+    tableau_inverse(n1.chiffres)
 
     diffère {
-        tableau_inverse(*n0.chiffres)
-        tableau_inverse(*n1.chiffres)
+        tableau_inverse(n0.chiffres)
+        tableau_inverse(n1.chiffres)
     }
 
     taille := n0.nombre_de_chiffres()
@@ -120,7 +121,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
         tableau_ajoute(*résultat.chiffres, retenue)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retourne résultat
 }
@@ -136,13 +137,13 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
             tableau_ajoute(*résultat.chiffres, tmp comme n8)
         }
 
-        tableau_inverse(*résultat.chiffres)
+        tableau_inverse(résultat.chiffres)
         retourne résultat
     }
 
     résultat.chiffres = tableau_copie(n0.chiffres)
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retenue := n1
     index := 0
@@ -168,7 +169,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
         tableau_ajoute(*résultat.chiffres, tmp comme n8)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retourne résultat
 }
@@ -183,12 +184,12 @@ opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
         retourne résultat
     }
 
-    tableau_inverse(*n0.chiffres)
-    tableau_inverse(*n1.chiffres)
+    tableau_inverse(n0.chiffres)
+    tableau_inverse(n1.chiffres)
 
     diffère {
-        tableau_inverse(*n0.chiffres)
-        tableau_inverse(*n1.chiffres)
+        tableau_inverse(n0.chiffres)
+        tableau_inverse(n1.chiffres)
     }
 
     emprunt : n8
@@ -220,7 +221,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 
     supprime_zéro_en_début(*résultat)
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retourne résultat
 }
@@ -242,7 +243,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
 
     résultat.chiffres = tableau_copie(n0.chiffres)
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     emprunt := n1 comme n8
     index := 0
@@ -264,7 +265,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
 
     supprime_zéro_en_début(*résultat)
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retourne résultat
 }
@@ -298,7 +299,7 @@ opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
     résultat : NombreInfini
     résultat.chiffres = tableau_copie(n0.chiffres)
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retenue : n64
     index := 0
@@ -324,7 +325,7 @@ opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
         tableau_ajoute(*résultat.chiffres, tmp comme n8)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     retourne résultat
 }
