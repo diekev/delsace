@@ -222,17 +222,47 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> const &stats)
     imprime_tableau(tableau);
 }
 
-static void imprime_stats_tableaux(EntreesStats<EntreeTaille> const &stats)
+static void imprime_stats_tableaux(EntreesStats<EntreeTailleTableau> const &stats)
 {
     std::sort(stats.entrees.begin(),
               stats.entrees.end(),
-              [](const EntreeTaille &a, const EntreeTaille &b) { return a.taille > b.taille; });
+              [](const EntreeTailleTableau &a, const EntreeTailleTableau &b) {
+                  return a.taille_max > b.taille_max;
+              });
 
-    auto tableau = Tableau({"Nom", "Taille Maximum"});
+    auto tableau = Tableau({"Nom", "Taille Minimum", "Mode", "Taille Maximum"});
     tableau.alignement(1, Alignement::DROITE);
+    tableau.alignement(2, Alignement::DROITE);
 
     POUR (stats.entrees) {
-        tableau.ajoute_ligne({dls::chaine(it.nom), formatte_nombre(it.taille)});
+        std::sort(it.valeurs.begin(), it.valeurs.end());
+
+        auto mode = 0;
+        if (!it.valeurs.est_vide()) {
+            auto valeur_courante = it.valeurs[0];
+            auto nombre_valeurs_courante = 1;
+            auto nombre_valeurs_mode = 0;
+            for (int64_t i = 1; i < it.valeurs.taille(); i++) {
+                auto v = it.valeurs[i];
+
+                if (v != valeur_courante) {
+                    if (nombre_valeurs_courante > nombre_valeurs_mode) {
+                        nombre_valeurs_mode = nombre_valeurs_courante;
+                        mode = valeur_courante;
+                    }
+
+                    valeur_courante = v;
+                    nombre_valeurs_courante = 0;
+                }
+
+                nombre_valeurs_courante += 1;
+            }
+        }
+
+        tableau.ajoute_ligne({dls::chaine(it.nom),
+                              formatte_nombre(it.taille_min),
+                              formatte_nombre(mode),
+                              formatte_nombre(it.taille_max)});
     }
 
     imprime_tableau(tableau);
