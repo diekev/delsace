@@ -13,6 +13,7 @@ Le système donne des rappels au programme :
  */
 
 importe Chaine
+importe Compilatrice
 importe Dessin
 importe Fondation
 importe Géométrie
@@ -123,7 +124,10 @@ exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
         }
     }
 
-    détruit_tampon_texture(app.tampon_texture)
+    si app.tampon_texture {
+        détruit_tampon_texture(app.tampon_texture)
+    }
+
     détruit_tampon_de_rendu(*app.tampon_de_rendu)
     SDL_GL_DeleteContext(app.contexte)
     SDL_Quit()
@@ -131,39 +135,115 @@ exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
     retourne 0
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Dessin de fenêtre.
+ * \{ */
+
 dessine_application :: fonc (app: *Application, cliente: *$TypeCliente)
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
+    ajoute_au_tampon(*enchaineuse, "glClear(GL_COLOR_BUFFER_BIT)\n")
+
     info_cliente := info_de(TypeCliente)
+    info_pointeur_cliente := info_de(*TypeCliente)
 
-    pour info_cliente.membres {
-        saufsi it.nom == "sur_rendu_fenêtre" {
-            continue
+    mode_dessin := détermine_mode_dessin_fenêtre(info_cliente, info_pointeur_cliente)
+    discr mode_dessin {
+        AUCUN {
+            /* Rien à faire. */
         }
-
-        // À FAIRE : valide le type
-        ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.tampon_de_rendu)\n")
+        TAMPON_DE_RENDU {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.tampon_de_rendu)\n")
+            ajoute_au_tampon(*enchaineuse, "dessine_tampon_de_rendu(app)\n")
+        }
+        PERSONNALISÉ {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente)\n")
+        }
     }
 
-    texte_fonction := «
-    glClear(GL_COLOR_BUFFER_BIT)
+    ajoute_au_tampon(*enchaineuse, "SDL_GL_SwapWindow(app.fenêtre)\n")
 
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+dessine_tampon_de_rendu :: fonc (app: *Application)
+{
     si app.tampon_texture == nul {
         app.tampon_texture = crée_tampon_texture()
     }
 
     génère_texture(app.tampon_texture, app.tampon_de_rendu)
     dessine_tampon_texture(app.tampon_texture)
-
-    SDL_GL_SwapWindow(app.fenêtre)
-»
-
-    ajoute_au_tampon(*enchaineuse, texte_fonction)
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+ModeDessinFenêtre :: énum {
+    /* L'application cliente a un rappel de la forme fonc (*TypeCliente)(rien). */
+    PERSONNALISÉ
+    /* L'application cliente a un rappel de la forme fonc (*TypeCliente, *TamponDeRendu)(rien). */
+    TAMPON_DE_RENDU
+    /* L'application cliente n'a pas de rappel. */
+    AUCUN
+}
+
+détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_pointeur_cliente: *InfoTypePointeur) -> ModeDessinFenêtre
+{
+    /* À FAIRE(langage) : typage des tableaux fixes selon le dénominateur commun. */
+    types_entrée_mode_perso := [info_pointeur_cliente comme *InfoType]
+    types_entrée_mode_tampon := [info_pointeur_cliente comme *InfoType, info_de(*TamponDeRendu) comme *InfoType]
+    types_sortie := [info_de(rien)]
+
+    pour info_cliente.membres {
+        saufsi it.nom == "sur_rendu_fenêtre" {
+            continue
+        }
+
+        type_membre := it.id
+
+        si type_membre.id != id_info.FONCTION {
+            retourne ModeDessinFenêtre.AUCUN
+        }
+
+        type_fonction := type_membre comme *InfoTypeFonction
+
+        si apparie_type_fonction(type_fonction, types_entrée_mode_perso, types_sortie) {
+            retourne ModeDessinFenêtre.PERSONNALISÉ
+        }
+
+        si apparie_type_fonction(type_fonction, types_entrée_mode_tampon, types_sortie) {
+            retourne ModeDessinFenêtre.TAMPON_DE_RENDU
+        }
+
+        rapporte_erreur_membre_sur_dessin(info_cliente, it)
+        retourne ModeDessinFenêtre.AUCUN
+    }
+
+    retourne ModeDessinFenêtre.AUCUN
+}
+
+rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "Le membre '%.%' ne possède pas un type de fonction compatible pour sur_dessin_fenêtre.\n\n", info_cliente.nom, membre.nom)
+
+    ajoute_au_tampon(*enchaineuse, "Les types possibles sont :\n")
+    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%)(rien), pour un dessin de fenêtre personnalisé,\n", info_cliente.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *TamponDeRendu)(rien), pour un dessin de fenêtre utilisant le module Dessin.\n", info_cliente.nom)
+
+    ajoute_au_tampon(*enchaineuse, "\nNote : le type du membre est '")
+    imprime_type(*enchaineuse, membre.id)
+    ajoute_au_tampon(*enchaineuse, "'\n")
+
+    message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(message_erreur)
+
+    compilatrice_rapporte_erreur(message_erreur)
+}
+
+/** } */
 
 donne_clique_souris_depuis_sdl_event :: fonc (app: *Application, évènement: SDL_Event, action: ActionSouris) -> CliqueSouris
 {
