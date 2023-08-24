@@ -35,69 +35,16 @@ charge_programme :: fonc() -> n32
     }
     "
 
-    // crée les nuanceurs
-	VertexShaderID := glCreateShader(GL_VERTEX_SHADER)
-	FragmentShaderID := glCreateShader(GL_FRAGMENT_SHADER)
+    discr compile_un_programme(source_vertex, source_fragment) {
+        Quelque(programme) {
+            retourne programme
+        }
+        sinon {
+            imprime("Impossible de compiler le programme.")
+        }
+    }
 
-    taille_src_vertex := source_vertex.taille comme z32
-	glShaderSource(VertexShaderID, 1, *source_vertex.pointeur , *taille_src_vertex)
-	glCompileShader(VertexShaderID)
-
-    // verifie la compilation
-    Result : z32 = 0
-    InfoLogLength : z32 = 0
-    glGetShaderiv(VertexShaderID, GL_LINK_STATUS, *Result)
-	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime("!!!!! Erreur compilation : VertexShaderID %\n", ProgramErrorMessage)
-        déloge(ProgramErrorMessage)
-	}
-
-    taille_src_fragment := source_fragment.taille comme z32
-	glShaderSource(FragmentShaderID, 1, *source_fragment.pointeur , *taille_src_fragment)
-	glCompileShader(FragmentShaderID)
-
-    // verifie la compilation
-    Result = 0
-    InfoLogLength = 0
-    glGetShaderiv(FragmentShaderID, GL_LINK_STATUS, *Result)
-	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, *InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime("!!!!! Erreur compilation : FragmentShaderID %\n", ProgramErrorMessage)
-        déloge(ProgramErrorMessage)
-	}
-
-    ProgramID_ := glCreateProgram()
-	glAttachShader(ProgramID_, VertexShaderID)
-	glAttachShader(ProgramID_, FragmentShaderID)
-	glLinkProgram(ProgramID_)
-
-    // verifie la liaison
-    Result = 0
-    InfoLogLength = 0
-    glGetProgramiv(ProgramID_, GL_COMPILE_STATUS, *Result)
-	glGetProgramiv(ProgramID_, GL_INFO_LOG_LENGTH, *InfoLogLength)
-
-    si InfoLogLength > 0 {
-		ProgramErrorMessage := loge_chaine(InfoLogLength+1)
-		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
-		imprime("!!!!! Erreur liaison : ProgramID %\n", ProgramErrorMessage)
-        déloge(ProgramErrorMessage)
-	}
-
-	glDetachShader(ProgramID_, VertexShaderID)
-	glDetachShader(ProgramID_, FragmentShaderID)
-
-	glDeleteShader(VertexShaderID)
-	glDeleteShader(FragmentShaderID)
-
-    retourne ProgramID_
+    retourne 0
 }
 
 initialise_tampon_dessin :: fonc() -> rien
@@ -294,16 +241,4 @@ dessine_rect_arrondi :: fonc(largeur : r32, hauteur : r32, arrondis_pixel : r32)
 
     // dessine coin bas-droite
     dessine_quart_cercle(px + tx, py, rx, ry, 3)
-}
-
-dessine_bouton :: fonc() -> rien
-{
-
-}
-
-dessine_image :: fonc() -> rien
-{
-    // crée texture
-
-    // rempli UV
 }
