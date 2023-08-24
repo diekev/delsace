@@ -37,7 +37,7 @@ importe Temps
 
 éditeur_ouvre :: fonc (éditeur: *Éditeur, chemin: chaine) -> rien
 {
-    chm := construit_chemin(chemin)
+    chm := CheminFichier(chemin)
     si !fichier_existe(chm) {
         éditeur_ajourne_message_status(éditeur, "Le fichier n'existe pas !")
         retourne

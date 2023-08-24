@@ -201,7 +201,7 @@ opérateur == :: fonc (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNum
 
 parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérotageCheminFichier
 {
-    chemin = construit_chemin(copie_chaine(chemin.chn))
+    chemin = copie_chemin(chemin)
 
     nom_fichier := chemin.nom_fichier()
 
