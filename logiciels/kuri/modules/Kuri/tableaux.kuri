@@ -117,15 +117,6 @@ tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc(T)(T)) -> []T
     retourne résultat
 }
 
-tableau_inverse :: fonc (tabl: *[]n8)
-{
-    pour tabl.taille / 2 {
-        tmp := tabl.pointeur[it]
-        tabl.pointeur[it] = tabl.pointeur[tabl.taille - it - 1]
-        tabl.pointeur[tabl.taille - it - 1] = tmp
-    }
-}
-
 tableau_insère_index :: fonc (tabl: *[]$T, valeur: T, où: z64) -> rien
 {
     tmp := mémoire(tabl)

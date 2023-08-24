@@ -1,4 +1,4 @@
-importe Fondation // pour échange
+importe Algorithmes // pour échange
 importe GlibC
 
 tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> rien

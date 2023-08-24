@@ -1,5 +1,7 @@
 // Bibliothèque de diverses fonctions utiles dans différents domaines.
 
+importe Algorithmes // pour échange
+
 // Retourne la valeur passée en paramètre si le drapeau est vrai, sinon, retourne 0.
 // À FAIRE : ceci ne devrait être que pour des entiers naturels puisque que -1 doit être
 //           une valeur où tous les bits sont actifs.
