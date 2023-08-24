@@ -7,13 +7,6 @@ XYZ :: struct {
     b : type_de(a)
 }
 
-copie_vNvN :: fonc(a : [3]z32, b : [3]z32) -> rien
-{
-    pour v, i dans b {
-        a[i] = v
-    }
-}
-
 principale :: fonc () -> type_de(N)
 {
     x := 5.0
