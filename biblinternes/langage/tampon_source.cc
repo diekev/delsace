@@ -243,13 +243,10 @@ void tampon_source::construit_lignes_avx()
         pos_courante += j;
     }
 
-    for (auto i = taille_sure; i < m_tampon.taille();) {
-        auto pos = &m_tampon[i];
-        auto taille = trouve_fin_ligne(pos, this->fin());
-
-        m_lignes.ajoute(dls::vue_chaine{pos, taille});
-
-        i += taille;
+    while (pos_début_ligne < this->fin()) {
+        auto taille = trouve_fin_ligne(pos_début_ligne, this->fin());
+        m_lignes.ajoute(dls::vue_chaine{pos_début_ligne, taille});
+        pos_début_ligne += taille;
     }
 #endif
 }
