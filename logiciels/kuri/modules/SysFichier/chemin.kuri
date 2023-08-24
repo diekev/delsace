@@ -21,12 +21,6 @@ str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
     retourne copie_chaine(chm.chn)
 } @Python "str"
 
-construit_chemin :: fonc(chn : chaine) -> CheminFichier
-{
-    chemin := CheminFichier( chn = chn )
-    retourne chemin
-}
-
 détruit_chemin :: fonc (chemin: &CheminFichier)
 {
     déloge(chemin.chn)
@@ -366,6 +360,31 @@ premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chai
     }
 
     retourne pile.dépile()
+}
+
+/* Retourne vrai si le chemin `base` est un chemin parent de `chemin`. */
+est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> bool
+{
+    pile_base := divise_et_empile_chemin(base)
+    diffère détruit(pile_base)
+
+    pile_chemin := divise_et_empile_chemin(chemin)
+    diffère détruit(pile_chemin)
+
+    /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
+    pile_base.renverse()
+    pile_chemin.renverse()
+
+    tantque !pile_base.est_vide() {
+        dossier_base := pile_base.dépile()
+        dossier_chemin := pile_chemin.dépile()
+
+        si dossier_base != dossier_chemin {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 /*

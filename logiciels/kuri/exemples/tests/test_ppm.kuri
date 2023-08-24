@@ -71,13 +71,6 @@ génére_image_noire :: fonc() -> Image
 
 écris_ppm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
-        imprime("impossible d'ouvrir le fichier %\n", chemin)
-        retourne
-    }
-
-    diffère { _ := ferme(*fichier) }
-
     entete := "P1";
     taille_x := image.largeur;
     taille_y := image.hauteur;
@@ -105,19 +98,16 @@ génére_image_noire :: fonc() -> Image
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
 
     debut := maintenant_précis();
-    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
+        imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
+        retourne
+    }
+
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
 écris_pnm :: fonc(image : Image, chemin : CheminFichier) -> rien
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège err {
-        imprime("impossible d'ouvrir le fichier %\n", chemin)
-        retourne
-    }
-
-    diffère { _ := ferme(*fichier) }
-
     entete : chaine;
 
     discr image.channels {
@@ -152,7 +142,10 @@ génére_image_noire :: fonc() -> Image
     }
 
     debut := maintenant_précis();
-    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
+    tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
+        imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
+        retourne
+    }
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
