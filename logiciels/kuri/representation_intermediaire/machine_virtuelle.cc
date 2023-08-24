@@ -1017,6 +1017,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             site = site_courant;
         }
 
+#ifdef STATS_OP_CODES
+        m_metaprogramme->donnees_execution->compte_instructions[instruction] += 1;
+#endif
+
         /* Ce site est utilisé pour déterminer où se trouve le dernier site valide
          * au cas où le pointeur est désynchroniser et une instruction est invalide. */
         static NoeudExpression *dernier_site = nullptr;
@@ -1785,6 +1789,14 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
+
+#ifdef STATS_OP_CODES
+            std::cerr << "------------------------------------ Instructions :\n";
+            for (auto j = 0; j < NOMBRE_OP_CODE; j++) {
+                std::cerr << chaine_code_operation(octet_t(j)) << " : "
+                          << it->donnees_execution->compte_instructions[j] << '\n';
+            }
+#endif
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
             auto données = it->donnees_execution;
