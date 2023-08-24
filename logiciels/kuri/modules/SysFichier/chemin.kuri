@@ -21,12 +21,6 @@ str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
     retourne copie_chaine(chm.chn)
 } @Python "str"
 
-construit_chemin :: fonc(chn : chaine) -> CheminFichier
-{
-    chemin := CheminFichier( chn = chn )
-    retourne chemin
-}
-
 détruit_chemin :: fonc (chemin: &CheminFichier)
 {
     déloge(chemin.chn)
