@@ -126,6 +126,7 @@ exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
     détruit_tampon_texture(app.tampon_texture)
     détruit_tampon_de_rendu(*app.tampon_de_rendu)
     SDL_GL_DeleteContext(app.contexte)
+    SDL_Quit()
 
     retourne 0
 }
