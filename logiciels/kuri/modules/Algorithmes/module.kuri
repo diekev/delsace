@@ -171,6 +171,42 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom Permutation de valeur.
+ * \{ */
+
+// À FAIRE(langage) : collision si appelée permute
+échange :: fonc (a: *$T, b: *T) #enligne
+{
+	tmp := mémoire(a)
+	mémoire(a) = mémoire(b)
+	mémoire(b) = tmp
+}
+
+permute :: fonc (a: &$T, b: &T) #enligne
+{
+    tmp : T = a
+    a = b
+    b = tmp
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Inversion d'une séquence.
+ * \{ */
+
+inverse :: fonc (premier: *$T, dernier: *T)
+{
+	tantque premier < dernier {
+		dernier -= 1
+		échange(premier, dernier)
+		premier += 1
+	}
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Pivote
 *
  * Déplace les éléments entre `premier` et `milieu` afin qu'ils se trouvent

@@ -1,5 +1,7 @@
 // Fonctions de manipulation de chaines.
 
+importe Algorithmes
+
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)
 {
@@ -54,17 +56,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
 
 inverse :: fonc (chn: *chaine) -> rien
 {
-    chn_tmp := mémoire(chn)
-
-	taille := chn.taille / 2
-
-	pour i dans 0 ... taille - 1 {
-		tmp := chn_tmp[i]
-		chn_tmp[i] = chn_tmp[chn.taille - i - 1]
-		chn_tmp[chn.taille - i - 1] = tmp
-	}
-
-    mémoire(chn) = chn_tmp
+    inverse(chn.pointeur, chn.pointeur + chn.pointeur.taille)
 }
 
 copie_chaine :: fonc (chn: chaine) -> chaine

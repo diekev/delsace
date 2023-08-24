@@ -1,3 +1,4 @@
+importe Algorithmes // pour échange
 importe Fondation
 
 Mat4r :: struct {

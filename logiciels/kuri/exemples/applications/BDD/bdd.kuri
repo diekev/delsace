@@ -38,9 +38,7 @@ Ligne :: struct {
 // @XXX
 copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
 {
-    pour c, idx dans chn {
-        tabl[idx] = c
-    }
+    copie_mem_nonsur(src = chn.pointeur, dst = tabl, taille = chn.taille)
 }
 
 sérialise_ligne :: fonc (ligne: *Ligne, dest: *rien) -> rien

@@ -1,16 +1,3 @@
-échange :: fonc(a : *$T, b : *T) -> rien #enligne
-{
-	temp := mémoire(a);
-	mémoire(a) = mémoire(b);
-	mémoire(b) = temp;
-}
-
-permute :: fonc (a: &$T, b: &T) #enligne
-{
-    tmp : T = a
-    a = b
-    b = tmp
-}
 
 // Type pour représenter un résultat optionnel
 Optionnel :: union ($T: type_de_données) {

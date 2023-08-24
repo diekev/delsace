@@ -19,7 +19,7 @@ commence_fichier :: fonc (fichier: *FichierTexte) -> rien
         retourne
     }
 
-    chm := construit_chemin(fichier.chemin)
+    chm := CheminFichier(fichier.chemin)
     fichier.données = contenu_fichier_texte(chm)
     fichier.succès = vrai
 }

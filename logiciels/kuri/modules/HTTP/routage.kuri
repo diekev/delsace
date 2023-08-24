@@ -197,7 +197,7 @@ chemin_pour_fichier :: fonc (chemin: chaine) -> CheminFichier
 {
     // enlève le premier slash
     chemin_fichier := avance(chemin, 1)
-    retourne construit_chemin(chemin_fichier)
+    retourne CheminFichier(chemin_fichier)
 }
 
 est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine) -> bool

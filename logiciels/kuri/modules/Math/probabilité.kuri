@@ -1,3 +1,4 @@
+importe Algorithmes
 importe Numérique
 
 // -------------------------------------------
@@ -142,7 +143,7 @@ opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
         tableau_ajoute(*résultat.chiffres, it_rés)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     résultat.unité = p1.unité + p2.unité + retenue
 
@@ -192,7 +193,7 @@ opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
         tableau_ajoute(*résultat.chiffres, it_rés)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     résultat.unité = p1.unité - p2.unité - emprunt
 
@@ -232,9 +233,9 @@ divise_par_dix :: fonc (p: *Probabilité)
     unité := (p.unité % 10) comme n8
     p.unité /= 10
 
-    tableau_inverse(*p.chiffres)
+    tableau_inverse(p.chiffres)
     tableau_ajoute(*p.chiffres, unité)
-    tableau_inverse(*p.chiffres)
+    tableau_inverse(p.chiffres)
 }
 
 opérateur * :: fonc (p1: Probabilité, n: n64) -> Probabilité
@@ -252,7 +253,7 @@ opérateur * :: fonc (p1: Probabilité, n: n64) -> Probabilité
         tableau_ajoute(*résultat.chiffres, it_rés comme n8)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     résultat.unité = p1.unité * n + retenue
 
@@ -308,7 +309,7 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
         tableau_ajoute(*résultat.chiffres, it)
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     taille := résultat.chiffres.taille - n comme z64 + 1
 
@@ -327,7 +328,7 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
         résultat.chiffres[it] = it_p
     }
 
-    tableau_inverse(*résultat.chiffres)
+    tableau_inverse(résultat.chiffres)
 
     résultat.chiffres.taille = n comme z64
 

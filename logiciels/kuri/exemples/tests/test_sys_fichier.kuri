@@ -10,7 +10,7 @@ test_chemin_courant :: fonc() -> rien
     imprime("chemin courant : %\n", chemin.chn)
     déloge(chemin.chn)
 
-    chemin = construit_chemin("/tmp/")
+    chemin = CheminFichier("/tmp/")
     chemin_courant(chemin)
 
     chemin = chemin_courant()
@@ -21,7 +21,7 @@ test_chemin_courant :: fonc() -> rien
 
 test_itération_dossier :: fonc() -> rien
 {
-    chemin := construit_chemin("/tmp/")
+    chemin := CheminFichier("/tmp/")
 
     pour entrée dans chaque_chemin(chemin) {
         imprime("%\n", entrée.chn)
@@ -40,10 +40,10 @@ test_itération_dossier :: fonc() -> rien
 
 principale :: fonc () -> z32
 {
-    chm := construit_chemin("/tmp/test_parcer.cc")
+    chm := CheminFichier("/tmp/test_parcer.cc")
     contenu := contenu_fichier_texte(chm)
 
-    chm_sortie := construit_chemin("/tmp/SORITE_test_parcer.cc")
+    chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc")
 
     fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie, pour_écriture) piège nonatteignable
     diffère { _ := ferme(*fd) }

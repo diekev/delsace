@@ -433,7 +433,7 @@ système_chemin_pour_dossier :: fonc (poignée: TypePoignéeEntréeDossier) -> C
     chn_c := ChaineC(*entrée.d_name[0])
     taille := taille_chaine_c(chn_c)
     chn := construit_chaine(chn_c comme *z8, taille)
-    retourne construit_chemin(chn)
+    retourne CheminFichier(chn)
 }
 
 système_lis_une_entrée_du_dossier :: fonc (poignée: TypePoignéeDossier) -> Optionnel(TypePoignéeEntréeDossier)
@@ -506,7 +506,7 @@ système_chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
     }
 
     ret := copie_chaine_c(pointeur)
-    retourne construit_chemin(ret)
+    retourne CheminFichier(ret)
 }
 
 système_chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
