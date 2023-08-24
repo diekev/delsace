@@ -237,7 +237,7 @@ static void imprime_stats_tableaux(EntreesStats<EntreeTailleTableau> const &stat
     POUR (stats.entrees) {
         std::sort(it.valeurs.begin(), it.valeurs.end());
 
-        auto mode = 0;
+        auto mode = int64_t(0);
         if (!it.valeurs.est_vide()) {
             auto valeur_courante = it.valeurs[0];
             auto nombre_valeurs_courante = 1;

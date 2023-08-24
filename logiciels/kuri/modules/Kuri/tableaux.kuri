@@ -289,3 +289,18 @@ tableau_trouve_index_élément :: fonc (tableau: []$T, valeur: T) -> Optionnel(z
         }
     }
 }
+
+tableaux_sont_égaux :: fonc (tableau1: []$T, tableau2: []T) -> bool
+{
+    saufsi tableau1.taille == tableau2.taille {
+        retourne faux
+    }
+
+    pour tableau1 {
+        si tableau2[index_it] != it {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}

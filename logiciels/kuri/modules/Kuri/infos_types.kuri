@@ -134,6 +134,13 @@ InfoTypeFonction :: struct #interface {
 	est_coroutine : bool
 }
 
+/* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
+ * mêmes que ceux données en paramtères. */
+apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée : []*InfoType, types_sortie: []*InfoType) -> bool
+{
+    retourne tableaux_sont_égaux(info_type.types_entrée, types_entrée) && tableaux_sont_égaux(info_type.types_sortie, types_sortie)
+}
+
 InfoTypeÉnum :: struct #interface {
 	empl base : InfoType
 

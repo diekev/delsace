@@ -1,0 +1,321 @@
+/* Module pour dessiner des formes dans un tampon de rendu. */
+
+importe Algorithmes // pour permute
+importe Fondation
+importe Géométrie
+importe Math
+
+CouleurRVBAN8 :: struct {
+    r: n8
+    v: n8
+    b: n8
+    a: n8
+}
+
+couleur_rouge := CouleurRVBAN8(255, 0, 0, 255)
+couleur_vert := CouleurRVBAN8(0, 255, 0, 255)
+couleur_bleu := CouleurRVBAN8(0, 0, 255, 255)
+couleur_blanche := CouleurRVBAN8(255, 255, 255, 255)
+couleur_noire := CouleurRVBAN8(0, 0, 0, 255)
+couleur_grise_claire := CouleurRVBAN8(192, 192, 192, 255)
+couleur_grise := CouleurRVBAN8(128, 128, 128, 255)
+couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tampon de rendu.
+ * \{ */
+
+TamponDeRendu :: struct {
+    rect: Rectangle
+    données: []CouleurRVBAN8
+}
+
+crée_tampon_de_rendu :: fonc (rect: Rectangle) -> TamponDeRendu
+{
+    résultat : TamponDeRendu
+    redimensionne_tampon_de_rendu(*résultat, rect)
+    retourne résultat
+}
+
+redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: Rectangle)
+{
+    tampon.rect = rect
+    tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur)
+}
+
+détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
+{
+    déloge(tampon.données)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ligne
+ * \{ */
+
+dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne, couleur: CouleurRVBAN8)
+{
+    si ligne.p0 == ligne.p1 {
+        // À FAIRE : dessine point
+        retourne
+    }
+
+    x_min := ligne.p0.x
+    x_max := ligne.p1.x
+    y_min := ligne.p0.y
+    y_max := ligne.p1.y
+
+    restreint(*x_min, 0, tampon_de_rendu.rect.largeur - 1)
+    restreint(*x_max, 0, tampon_de_rendu.rect.largeur - 1)
+    restreint(*y_min, 0, tampon_de_rendu.rect.hauteur - 1)
+    restreint(*y_max, 0, tampon_de_rendu.rect.hauteur - 1)
+    
+    si x_min == x_max {
+        /* Ligne verticale. */
+        si y_min > y_max {
+            permute(y_min, y_max)
+        }
+
+        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
+
+        tantque y_min < y_max {
+            mémoire(dest) = couleur
+            dest += tampon_de_rendu.rect.largeur
+            y_min += 1
+        }
+    }
+    sinon si y_min == y_max {
+        /* Ligne horizontale. */
+        si x_min > x_max {
+            permute(x_min, x_max)
+        }
+
+        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
+
+        tantque x_min < x_max {
+            mémoire(dest) = couleur
+            dest += 1
+            x_min += 1
+        }
+    }
+    sinon {
+        /* Diagonale. */
+        dessine_ligne_bresenham(tampon_de_rendu, x_min, y_min, x_max, y_max, couleur)
+    }
+}
+
+/* Ceci utilise l'algorithme de Bresenham, on pourrait essayer celui de Wu :
+ * https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
+ */
+dessine_ligne_bresenham :: fonc(
+    tampon_de_rendu: *TamponDeRendu,
+    x1 : z32,
+    y1 : z32,
+    x2 : z32,
+    y2 : z32,
+    couleur: CouleurRVBAN8)
+{
+    dx := (x2 - x1) comme r32
+    dy := (y2 - y1) comme r32
+    enjambée: r32
+
+    si abs(dx) >= abs(dy) {
+        enjambée = abs(dx)
+    }
+    sinon {
+        enjambée = abs(dy)
+    }
+
+    dx /= enjambée
+    dy /= enjambée
+    x := x1 comme r32
+    y := y1 comme r32
+    i := 0
+    enjambée_i := enjambée comme z32
+
+    dest := tampon_de_rendu.données.pointeur
+    enjambée_dest := tampon_de_rendu.rect.largeur
+
+    tantque i < enjambée_i {
+        xi := x comme z32
+        yi := y comme z32
+        index := xi + yi * enjambée_dest
+        dest[index] = couleur
+
+        x += dx
+        y += dy
+        i += 1
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Triangle
+ * \{ */
+
+dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle, couleur: CouleurRVBAN8)
+{
+    dessine_ligne(tampon_de_rendu, Ligne(triangle.p0, triangle.p1), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(triangle.p1, triangle.p2), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(triangle.p2, triangle.p0), couleur)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rectangle.
+ * \{ */
+
+dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: Rectangle, couleur: CouleurRVBAN8)
+{
+    p0 := Point(rect.x,                rect.y)
+    p1 := Point(rect.x + rect.largeur, rect.y)
+    p2 := Point(rect.x + rect.largeur, rect.y + rect.hauteur)
+    p3 := Point(rect.x,                rect.y + rect.hauteur)
+
+    dessine_ligne(tampon_de_rendu, Ligne(p0, p1), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(p1, p2), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(p2, p3), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(p3, p0), couleur)
+}
+
+remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: Rectangle, couleur: CouleurRVBAN8)
+{
+    // À FAIRE : intersection du rectangle
+    pointeur_source := tampon_de_rendu.données.pointeur
+    largeur_source := tampon_de_rendu.rect.largeur
+
+    pour y dans rect.hauteur {
+        pointeur := pointeur_source + (rect.y + y) * largeur_source + rect.x
+
+        pour rect.largeur {
+            mémoire(pointeur) = couleur
+            pointeur += 1
+        }
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Cercle
+ * \{ */
+
+dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur: CouleurRVBAN8)
+{
+    cx := cercle.centre_x
+    cy := cercle.centre_y
+    r := cercle.rayon
+
+    si r == 0 {
+        retourne
+    }
+
+    // À FAIRE : intersection du rectangle
+    pointeur_source := tampon_de_rendu.données.pointeur
+    largeur_source := tampon_de_rendu.rect.largeur
+    index_centre_cercle := cy * largeur_source + cx
+
+    /* Boucle pour dessiner le cercle. */
+    r2 := r + r
+
+    x := r
+    y := 0
+    dx := r2 + r2 - 4
+    dy := -2
+    d := r2 - 1
+
+    tantque y <= x {
+        /* Dessine les octants du cercle dans cet ordre :
+         *    7 8
+         *  3     4
+         *  1     2
+         *    5 6 
+         */
+        pointeur_source[index_centre_cercle - y * largeur_source - x] = couleur
+        pointeur_source[index_centre_cercle - y * largeur_source + x] = couleur
+        pointeur_source[index_centre_cercle + y * largeur_source - x] = couleur
+        pointeur_source[index_centre_cercle + y * largeur_source + x] = couleur
+        pointeur_source[index_centre_cercle - x * largeur_source - y] = couleur
+        pointeur_source[index_centre_cercle - x * largeur_source + y] = couleur
+        pointeur_source[index_centre_cercle + x * largeur_source - y] = couleur
+        pointeur_source[index_centre_cercle + x * largeur_source + y] = couleur
+
+        d += dy
+        dy -= 4
+        y += 1
+
+        /* Version sans branche de :
+         * si d < 0 {
+         *     d += dx
+         *     dx -= 4
+         *     x -= 1
+         * }
+         */
+        masque := (d >> 31)
+        d += dx & masque
+        dx -= 4 & masque
+        x += masque
+    }
+}
+
+remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur: CouleurRVBAN8)
+{
+    cx := cercle.centre_x
+    cy := cercle.centre_y
+    r := cercle.rayon
+
+    si r == 0 {
+        retourne
+    }
+
+    // À FAIRE : intersection du rectangle
+    pointeur_source := tampon_de_rendu.données.pointeur
+    largeur_source := tampon_de_rendu.rect.largeur
+    index_centre_cercle := cy * largeur_source + cx
+
+    /* Boucle pour dessiner le cercle. */
+    r2 := r + r
+
+    x := r
+    y := 0
+    dx := r2 + r2 - 4
+    dy := -2
+    d := r2 - 1
+
+    tantque y <= x {
+        /* À FAIRE : optimise */
+        pour x {
+            enjambée_x := it * largeur_source
+            enjambée_y := y * largeur_source
+            pointeur_source[index_centre_cercle - enjambée_y - it] = couleur
+            pointeur_source[index_centre_cercle - enjambée_y + it] = couleur
+            pointeur_source[index_centre_cercle + enjambée_y - it] = couleur
+            pointeur_source[index_centre_cercle + enjambée_y + it] = couleur
+            pointeur_source[index_centre_cercle - enjambée_x - y] = couleur
+            pointeur_source[index_centre_cercle - enjambée_x + y] = couleur
+            pointeur_source[index_centre_cercle + enjambée_x - y] = couleur
+            pointeur_source[index_centre_cercle + enjambée_x + y] = couleur
+        }
+
+        d += dy
+        dy -= 4
+        y += 1
+
+        /* Version sans branche de :
+         * si d < 0 {
+         *     d += dx
+         *     dx -= 4
+         *     x -= 1
+         * }
+         */
+        masque := (d >> 31)
+        d += dx & masque
+        dx -= 4 & masque
+        x += masque
+    }
+}
+
+/** } */

@@ -1,10 +1,10 @@
 importe Couleur
 importe Fondation
+importe IGUMI
 importe OpenGL
 importe Structures
 importe Temps
 
-charge "dessin_opengl"
 charge "evenements"
 charge "glfw"
 
@@ -133,7 +133,7 @@ initialise_opengl :: fonc(app : &Application) -> rien
         imprime("Erreur lors de l'initilisation de GLEW !\n")
     }
 
-    initialise_tampon_dessin()
+    initialise_igumi()
 
     glfwSwapInterval(1)
 }
@@ -154,7 +154,12 @@ dessine_fenetre :: fonc(app : &Application) -> rien
 
 	couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
 
-	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+
+    quad_immédiat(pos_x, pos_y, taille_x, taille_y, couleur)
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
 
 	glfwSwapBuffers(app.fenetre)
 }
@@ -317,7 +322,7 @@ lance_application :: fonc(app : &Application) -> z32
 
     boucle_principale(app)
 
-    issitialise_tampon_dessin()
+    issitialise_igumi()
 
     glfwDestroyWindow(fenetre)
 
