@@ -262,6 +262,13 @@ gère_évènement :: fonc (app: *Application, cliente: *$TypeCliente)
         ajoute_au_tampon(*enchaineuse, "            }\n")
     }
 
+    si évènements_requis.TOUCHE_CLAVIER {
+        ajoute_au_tampon(*enchaineuse, "            SDL_KEYDOWN {\n")
+        ajoute_au_tampon(*enchaineuse, "                clé_clavier := clé_clavier_depuis_sdl(évènement.key.keysym.scancode)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_touche_clavier(cliente, clé_clavier)\n")
+        ajoute_au_tampon(*enchaineuse, "            }\n")
+    }
+
     ajoute_au_tampon(*enchaineuse, "            SDL_WINDOWEVENT {\n")
     ajoute_au_tampon(*enchaineuse, "                si évènement.window.event == SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED {\n")
     ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
