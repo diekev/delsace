@@ -1,0 +1,57 @@
+/* Structures de données pour réprésenter des menus et des barres de menu pour
+ * des applications. */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Barre de menu.
+ * \{ */
+
+BarreDeMenu :: struct {
+    menus: []*Menu
+}
+
+crée_barre_de_menu :: fonc () -> *BarreDeMenu
+{
+    résultat := loge(BarreDeMenu)
+
+    tableau_ajoute(*résultat.menus, crée_menu("Fichier", ["Nouveau", "Ouvrir", "Sauvegarder", "Sauvegarder sous...", "Fermer"]))
+    tableau_ajoute(*résultat.menus, crée_menu("Édition", ["Refaire", "Défaire"]))
+    tableau_ajoute(*résultat.menus, crée_menu("Sélection", ["Tout déselectionner"]))
+    tableau_ajoute(*résultat.menus, crée_menu("Affichage", ["Rechercher"]))
+    tableau_ajoute(*résultat.menus, crée_menu("Aide", ["À Propos", "Manuel"]))
+
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Menu
+ * \{ */
+
+Menu :: struct {
+    Élément :: struct {
+        texte: chaine
+    }
+
+    texte: chaine
+    éléments: []Élément
+}
+
+crée_menu :: fonc (texte: chaine, éléments: []chaine) -> *Menu
+{
+    résultat := loge(Menu)
+    résultat.texte = texte
+
+    pour éléments {
+        résultat.ajoute_élément(it)
+    }
+
+    retourne résultat
+}
+
+ajoute_élément :: fonc (menu: *Menu, texte: chaine)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément(texte))
+}
+
+/** } */
