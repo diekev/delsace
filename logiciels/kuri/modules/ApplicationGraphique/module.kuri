@@ -1,5 +1,4 @@
-/* Module de création d'application avec fenêtres.
- * Basé pour le moment sur SDL2. */
+/* Module de création d'application avec fenêtres utilisant SDL2 ou GLFW. */
 
 /*
 
