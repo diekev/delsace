@@ -86,11 +86,25 @@ contient :: fonc (rect: RectanglePosDim($T), x: T, y: T) -> bool
 contient :: fonc (rect: RectanglePosDim($T), point: Point2D(T)) -> bool
 {
     retourne contient(rect, point.x, point.y)
+}
+
+/* À FAIRE(langage) : les polymorphes ne font pas partie des fonctions_parsées
+ * de la compilatrice. Quand nous représenterons les types dans l'arbre syntaxique
+ * il faudra avoir un système pour passer les fonctions/types polymorphiques aux
+ * métaprogrammes. */
+contient :: fonc (rect: RectanglePosDim(r32), point: Point2D(r32)) -> bool
+{
+    retourne contient(rect, point.x, point.y)
 } @Python "méthode"
 
 donne_point_central :: fonc (rect: RectanglePosDim($T)) -> Point2D(T)
 {
     retourne Point2D(T)(rect.x + rect.largeur / 2, rect.y + rect.hauteur / 2)
+}
+
+donne_point_central :: fonc (rect: RectanglePosDim(r32)) -> Point2D(r32)
+{
+    retourne Point2D(r32)(rect.x + rect.largeur / 2, rect.y + rect.hauteur / 2)
 } @Python "méthode"
 
 position_interne :: fonc (rect:  RectanglePosDim($T), pos: Point2D(r32)) -> Point2D(r32)
