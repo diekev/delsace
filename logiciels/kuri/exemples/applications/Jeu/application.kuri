@@ -13,87 +13,71 @@ importe Temps
 VG_file_évènements : File(T = Évènement)
 
 rappel_clavier :: fonc(fenetre : *GLFWwindow @inutilisée, cle : type_cle, scancode : z32 @inutilisée, action : z32, mods : type_mod) -> rien
-{
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        évènement : Évènement
+pousse_contexte __contexte_fil_principal {
+    évènement : Évènement
 
-        si action == 1 {
-            évènement.type = type_évènement.CLE_PRESSEE
-        }
-        sinon si action == 0 {
-            évènement.type = type_évènement.CLE_RELACHEE
-        }
-        sinon si action == 2 {
-            évènement.type = type_évènement.CLE_REPETEE
-        }
-
-        évènement.mods = mods
-        évènement.cle = cle
-
-        enfile(VG_file_évènements, évènement)
+    si action == 1 {
+        évènement.type = type_évènement.CLE_PRESSEE
     }
+    sinon si action == 0 {
+        évènement.type = type_évènement.CLE_RELACHEE
+    }
+    sinon si action == 2 {
+        évènement.type = type_évènement.CLE_REPETEE
+    }
+
+    évènement.mods = mods
+    évènement.cle = cle
+
+    enfile(VG_file_évènements, évènement)
 }
 
 rappel_bouton_souris :: fonc(fenetre : *GLFWwindow @inutilisée, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
-{
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        évènement : Évènement
+pousse_contexte __contexte_fil_principal {
+    évènement : Évènement
 
-        si action == 1 {
-            évènement.type = type_évènement.SOURIS_PRESSEE
-        }
-        sinon si action == 0 {
-            évènement.type = type_évènement.SOURIS_RELACHEE
-        }
-
-        évènement.mods = mods
-        évènement.souris = bouton
-
-        enfile(VG_file_évènements, évènement)
+    si action == 1 {
+        évènement.type = type_évènement.SOURIS_PRESSEE
     }
+    sinon si action == 0 {
+        évènement.type = type_évènement.SOURIS_RELACHEE
+    }
+
+    évènement.mods = mods
+    évènement.souris = bouton
+
+    enfile(VG_file_évènements, évènement)
 }
 
 rappel_position_souris :: fonc(fenetre : *GLFWwindow @inutilisée, pos_x : r64, pos_y : r64) -> rien
-{
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        évènement : Évènement
-        évènement.type = type_évènement.SOURIS_BOUGEE
-        évènement.pos_x = pos_x comme r32
-        évènement.pos_y = pos_y comme r32
+pousse_contexte __contexte_fil_principal {
+    évènement : Évènement
+    évènement.type = type_évènement.SOURIS_BOUGEE
+    évènement.pos_x = pos_x comme r32
+    évènement.pos_y = pos_y comme r32
 
-        enfile(VG_file_évènements, évènement)
-    }
+    enfile(VG_file_évènements, évènement)
 }
 
 rappel_roulette :: fonc(fenetre : *GLFWwindow @inutilisée, delta_x : r64, delta_y : r64) -> rien
-{
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        évènement : Évènement
-        évènement.type = type_évènement.SOURIS_ROULETTE
-        évènement.delta_x = delta_x comme r32
-        évènement.delta_y = delta_y comme r32
+pousse_contexte __contexte_fil_principal {
+    évènement : Évènement
+    évènement.type = type_évènement.SOURIS_ROULETTE
+    évènement.delta_x = delta_x comme r32
+    évènement.delta_y = delta_y comme r32
 
-        enfile(VG_file_évènements, évènement)
-    }
+    enfile(VG_file_évènements, évènement)
 }
 
 rappel_dimension :: fonc(fenetre : *GLFWwindow @inutilisée, x : z32, y : z32) -> rien
-{
+pousse_contexte __contexte_fil_principal {
     glViewport(0, 0, x, y)
+    évènement : Évènement
+    évènement.type = type_évènement.REDIMENSION
+    évènement.delta_x = x comme r32
+    évènement.delta_y = y comme r32
 
-    contexte := __contexte_fil_principal
-    pousse_contexte contexte {
-        évènement : Évènement
-        évènement.type = type_évènement.REDIMENSION
-        évènement.delta_x = x comme r32
-        évènement.delta_y = y comme r32
-
-        enfile(VG_file_évènements, évènement)
-    }
+    enfile(VG_file_évènements, évènement)
 }
 
 //###############################################################################
