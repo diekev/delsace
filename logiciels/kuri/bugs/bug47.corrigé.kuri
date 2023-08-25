@@ -1,4 +1,6 @@
-// les paramètres des fonctions ne sont pas reconnus via type_de
+/* Les paramètres des fonctions ne sont pas reconnus via type_de
+ * Catégorie : [validation sémantique, paramètre fonction, expression type_de]
+ */
 
 importe Fondation
 

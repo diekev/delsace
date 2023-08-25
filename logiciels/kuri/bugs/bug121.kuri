@@ -1,5 +1,7 @@
 /* Crash si un type polymorphique n'a pas ses paramètres dans une déclaration
- * de fonction. */
+ * de fonction.
+ * Catégorie : [crash, type polymorphique, paramètre fonction]
+ */
 
 importe Fondation
 importe Math

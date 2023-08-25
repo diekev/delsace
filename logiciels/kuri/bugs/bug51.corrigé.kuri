@@ -1,4 +1,7 @@
-// aucune erreur n'est lancée quand on ne peut déterminer une expression appel se basant sur un type polymorphique
+/* Aucune erreur n'est lancée quand on ne peut déterminer une expression appel
+ * se basant sur un type polymorphique
+ * Catégorie : [validation sémantique, validation appel, type polymorphique]
+ */
 
 importe Support
 

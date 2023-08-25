@@ -1,4 +1,6 @@
-/* Duplication de membres dans une structure d'une fonction nichée. */
+/* Duplication de membres dans une structure d'une fonction nichée.
+ * Catégorie : [validation sémantique, type structure]
+ */
 
 importe Exétron
 

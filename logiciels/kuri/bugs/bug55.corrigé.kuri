@@ -1,4 +1,7 @@
-// erreur de compilation quand nous accédons à une soustructure via une expression d'appel
+/* Erreur de compilation quand nous accédons à une soustructure via une
+ * expression d'appel
+ * Catégorie : [validation sémantique, construction type, structure nichée]
+ */
 
 importe Support
 
