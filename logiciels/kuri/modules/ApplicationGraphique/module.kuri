@@ -22,12 +22,10 @@ importe Périphériques
 importe SDL2
 
 /* ------------------------------------------------------------------------- */
-/** \nom Application
+/** \nom Fenêtre
  * \{ */
 
-Application :: struct {
-    est_en_exécution: bool
-
+Fenêtre :: struct {
     /* Données par fenêtre. */
     fenêtre : *SDL_Window = nul
     tampon_de_rendu: TamponDeRendu
@@ -39,6 +37,85 @@ Application :: struct {
 
     hauteur : z32
     largeur : z32
+}
+
+ArgumentsCréationFenêtre :: struct {
+    titre: chaine
+    rect: RectanglePosDim(z32)
+    plein_écran: bool
+}
+
+crée_fenêtre_sdl :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(Fenêtre)
+{
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+
+    drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE
+    si args.plein_écran {
+        drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
+    }
+
+    chn_titre := crée_chaine_c(args.titre)
+    diffère détruit_chaine_c(chn_titre)
+
+    rect := args.rect
+
+    fenêtre_sdl := SDL_CreateWindow(chn_titre comme *z8, rect.x, rect.y, rect.largeur, rect.hauteur, drapeaux)
+
+    si fenêtre_sdl == nul {
+        imprime("Impossible de créer la fenêtre !\n")
+        retourne
+    }
+
+    contexte_gl := SDL_GL_CreateContext(fenêtre_sdl)
+    si contexte == nul {
+        imprime("Impossible de créer le contexte OpenGL !\n")
+        retourne
+    }
+
+    résultat : Fenêtre
+    résultat.fenêtre = fenêtre_sdl
+    résultat.contexte = contexte_gl
+    résultat.tampon_de_rendu = crée_tampon_de_rendu(rect)
+    résultat.hauteur = rect.hauteur
+    résultat.largeur = rect.largeur
+    retourne résultat
+}
+
+détruit_fenêtre :: fonc (fenêtre: *Fenêtre)
+{
+    si fenêtre.tampon_texture {
+        détruit_tampon_texture(fenêtre.tampon_texture)
+        fenêtre.tampon_texture = nul
+    }
+
+    détruit_tampon_de_rendu(*fenêtre.tampon_de_rendu)
+    SDL_GL_DeleteContext(fenêtre.contexte)
+}
+
+redimensionne_fenêtre :: fonc (fenêtre: *Fenêtre, largeur: z32, hauteur: z32)
+{
+    redimensionne_tampon_de_rendu(*fenêtre.tampon_de_rendu, RectanglePosDim(z32)(0, 0, hauteur, largeur))
+    fenêtre.hauteur = hauteur
+    fenêtre.largeur = largeur
+    si fenêtre.tampon_texture {
+        détruit_tampon_texture(fenêtre.tampon_texture)
+        fenêtre.tampon_texture = nul
+    }
+    glViewport(0, 0, largeur, hauteur)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Application
+ * \{ */
+
+Application :: struct {
+    est_en_exécution: bool
+    fenêtre: Fenêtre
 }
 
 application_globale : Application
@@ -57,53 +134,34 @@ crée_application :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran
         retourne nul
     }
 
-    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+    args_création_fenêtre : ArgumentsCréationFenêtre
+    args_création_fenêtre.titre = nom
+    args_création_fenêtre.rect = rect
+    args_création_fenêtre.plein_écran = plein_écran
 
-    drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE
-
-    si plein_écran {
-        drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
+    discr crée_fenêtre_sdl(*args_création_fenêtre) {
+        Quelque(fenêtre) {
+            app.fenêtre = fenêtre
+        }
+        sinon {
+            retourne nul
+        }
     }
 
-    chn_titre := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chn_titre)
-    app.fenêtre = SDL_CreateWindow(chn_titre comme *z8, rect.x, rect.y, rect.largeur, rect.hauteur, drapeaux)
-
-    si app.fenêtre == nul {
-        imprime("Impossible de créer la fenêtre !\n")
-        retourne nul
-    }
-
-    app.contexte = SDL_GL_CreateContext(app.fenêtre)
-    si app.contexte == nul {
-        imprime("Impossible de créer le contexte OpenGL !\n")
-        retourne nul
-    }
-
-    si !initialise_opengl() {
+    /* Nous devons avoir un contexte pour ceci. */
+    saufsi initialise_opengl() {
         imprime("Erreur lors de l'initilisation de GLEW !\n")
         retourne nul
     }
 
     app.est_en_exécution = vrai
-    app.tampon_de_rendu = crée_tampon_de_rendu(rect)
-    app.hauteur = rect.hauteur
-    app.largeur = rect.largeur
 
     retourne app
 }
 
 redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
 {
-    redimensionne_tampon_de_rendu(*app.tampon_de_rendu, RectanglePosDim(z32)(0, 0, hauteur, largeur))
-    app.hauteur = hauteur
-    app.largeur = largeur
-    détruit_tampon_texture(app.tampon_texture)
-    app.tampon_texture = nul
-    glViewport(0, 0, largeur, hauteur)
+    redimensionne_fenêtre(*app.fenêtre, largeur, hauteur)
 }
 
 exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
@@ -124,14 +182,8 @@ exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
         }
     }
 
-    si app.tampon_texture {
-        détruit_tampon_texture(app.tampon_texture)
-    }
-
-    détruit_tampon_de_rendu(*app.tampon_de_rendu)
-    SDL_GL_DeleteContext(app.contexte)
+    détruit_fenêtre(*app.fenêtre)
     SDL_Quit()
-
     retourne 0
 }
 
@@ -155,7 +207,7 @@ dessine_application :: fonc (app: *Application, cliente: *$TypeCliente)
             /* Rien à faire. */
         }
         TAMPON_DE_RENDU {
-            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.tampon_de_rendu)\n")
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.fenêtre.tampon_de_rendu)\n")
             ajoute_au_tampon(*enchaineuse, "dessine_tampon_de_rendu(app)\n")
         }
         PERSONNALISÉ {
@@ -163,19 +215,19 @@ dessine_application :: fonc (app: *Application, cliente: *$TypeCliente)
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "SDL_GL_SwapWindow(app.fenêtre)\n")
+    ajoute_au_tampon(*enchaineuse, "SDL_GL_SwapWindow(app.fenêtre.fenêtre)\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 dessine_tampon_de_rendu :: fonc (app: *Application)
 {
-    si app.tampon_texture == nul {
-        app.tampon_texture = crée_tampon_texture()
+    si app.fenêtre.tampon_texture == nul {
+        app.fenêtre.tampon_texture = crée_tampon_texture()
     }
 
-    génère_texture(app.tampon_texture, app.tampon_de_rendu)
-    dessine_tampon_texture(app.tampon_texture)
+    génère_texture(app.fenêtre.tampon_texture, app.fenêtre.tampon_de_rendu)
+    dessine_tampon_texture(app.fenêtre.tampon_texture)
 }
 
 ModeDessinFenêtre :: énum {
@@ -251,7 +303,7 @@ donne_clique_souris_depuis_sdl_event :: fonc (app: *Application, évènement: SD
 
     état_souris: ÉtatSouris
     état_souris.où.x = évènement.button.x
-    état_souris.où.y = app.hauteur - évènement.button.y
+    état_souris.où.y = app.fenêtre.hauteur - évènement.button.y
 
     résultat : CliqueSouris
     résultat.état = état_souris
@@ -326,7 +378,7 @@ gère_évènement :: fonc (app: *Application, cliente: *$TypeCliente)
         ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEMOTION {\n")
         ajoute_au_tampon(*enchaineuse, "                état_souris: ÉtatSouris\n")
         ajoute_au_tampon(*enchaineuse, "                état_souris.où.x = évènement.motion.x\n")
-        ajoute_au_tampon(*enchaineuse, "                état_souris.où.y = app.hauteur - évènement.motion.y\n")
+        ajoute_au_tampon(*enchaineuse, "                état_souris.où.y = app.fenêtre.hauteur - évènement.motion.y\n")
         ajoute_au_tampon(*enchaineuse, "                cliente.sur_mouvement_souris(cliente, état_souris)\n")
         ajoute_au_tampon(*enchaineuse, "            }\n")
     }
