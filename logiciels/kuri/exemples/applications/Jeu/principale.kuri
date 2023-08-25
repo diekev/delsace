@@ -1,8 +1,16 @@
+importe ApplicationGraphique
+importe Couleur
+importe Géométrie
 importe Fondation
+importe IGUMI
+importe OpenGL
+importe Périphériques
 
-charge "application"
+// À FAIRE : rendu texte, chargement image
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
 
 principale :: fonc () -> z32
 {
@@ -10,6 +18,113 @@ principale :: fonc () -> z32
 	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 	}
 
-    app : Application
-    retourne lance_application(app)
+    largeur : z32 = TAILLE_TUILE * TUILES_X
+    hauteur : z32 = TAILLE_TUILE * TUILES_Y
+
+	app := crée_application_glfw("Jeu", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux)
+
+	jeu := crée_jeu()
+	jeu.largeur = largeur
+	jeu.hauteur = hauteur
+
+    initialise_igumi()
+	diffère issitialise_igumi()
+
+    retourne app.exécute(*jeu)
 }
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Jeu
+ * \{ */
+
+TAILLE_TUILE := 32
+TUILES_X := 20
+TUILES_Y := 15
+
+Entite :: struct {
+    pos_x := TAILLE_TUILE * 10
+    pos_y := TAILLE_TUILE * 7
+}
+
+Jeu :: struct {
+    personnage : Entite
+
+	hauteur : z32
+	largeur : z32
+
+	sur_rendu_fenêtre: fonc (*Jeu)(rien)
+	sur_touche_clavier: fonc (*Jeu, CléClavier)(rien)
+}
+
+crée_jeu :: fonc () -> Jeu
+{
+	résultat: Jeu
+	résultat.sur_rendu_fenêtre = ajourne_dessin_fenêtre
+	résultat.sur_touche_clavier = traite_touche_clavier
+	retourne résultat
+}
+
+traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
+{
+	discr clé_clavier {
+		CLÉ_FLÈCHE_GAUCHE {
+            jeu.personnage.pos_x -= TAILLE_TUILE
+
+            // vérifie collision
+            si jeu.personnage.pos_x < 0 {
+               jeu.personnage.pos_x = 0
+            }
+		}
+		CLÉ_FLÈCHE_DROITE {
+            jeu.personnage.pos_x += TAILLE_TUILE
+
+            // vérifie collision
+            si jeu.personnage.pos_x >= jeu.largeur {
+               jeu.personnage.pos_x = jeu.largeur - TAILLE_TUILE
+            }
+		}
+		CLÉ_FLÈCHE_HAUT {
+            jeu.personnage.pos_y += TAILLE_TUILE
+
+            // vérifie collision
+            si jeu.personnage.pos_y >= jeu.hauteur {
+               jeu.personnage.pos_y = jeu.hauteur - TAILLE_TUILE
+            }
+		}
+		CLÉ_FLÈCHE_BAS {
+            jeu.personnage.pos_y -= TAILLE_TUILE
+
+            // vérifie collision
+            si jeu.personnage.pos_y < 0 {
+               jeu.personnage.pos_y = 0
+            }
+		}
+		sinon {}
+	}
+}
+
+ajourne_dessin_fenêtre :: fonc (jeu: *Jeu)
+{
+	glViewport(0, 0, jeu.largeur, jeu.hauteur)
+    // dessine l'arrière plan
+	glClearColor(0.5, 0.5, 1.0, 1.0)
+
+    // dessine les personnages
+	taille_x := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
+	taille_y := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
+	pos_x := jeu.personnage.pos_x comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
+	pos_y := jeu.personnage.pos_y comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
+
+	couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+
+    quad_immédiat(pos_x, pos_y, taille_x, taille_y, couleur)
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+/** } */
