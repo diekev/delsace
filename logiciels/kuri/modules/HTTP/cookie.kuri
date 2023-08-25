@@ -235,7 +235,7 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
         retourne résultat
     }
 
-    résultat = crée_cooke(cookie_nom_valeur.nom, cookie_nom_valeur.valeur)
+    résultat = crée_cookie(cookie_nom_valeur.nom, cookie_nom_valeur.valeur)
 
     tantque !fini(*parseuse) {
         si apparie(*parseuse, ';') {
