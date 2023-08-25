@@ -530,14 +530,18 @@ static JJL::Noeud trouve_noeud(JJL::Graphe &graphe, float x, float y)
     JJL::Noeud noeud_le_plus_proche(nullptr);
     float distance_la_plus_proche = std::numeric_limits<float>::max();
 
+    auto point = JJL::Point2D_r32_({});
+    point.définis_x(x);
+    point.définis_y(y);
+
     for (auto noeud : graphe.donne_noeuds()) {
         auto rectangle_noeud = noeud.rectangle();
 
-        if (!rectangle_noeud.contient(x, y)) {
+        if (!rectangle_noeud.contient(point)) {
             continue;
         }
 
-        auto centre = rectangle_noeud.position_centrale();
+        auto centre = rectangle_noeud.donne_point_central();
 
         auto dx = centre.donne_x() - x;
         auto dy = centre.donne_y() - y;
@@ -555,8 +559,11 @@ static JJL::Noeud trouve_noeud(JJL::Graphe &graphe, float x, float y)
 
 static JJL::PriseSortie trouve_prise_sortie(JJL::Noeud &noeud, float x, float y)
 {
+    auto point = JJL::Point2D_r32_({});
+    point.définis_x(x);
+    point.définis_y(y);
     for (auto sortie : noeud.donne_sorties()) {
-        if (sortie.donne_rectangle().contient(x, y)) {
+        if (sortie.donne_rectangle().contient(point)) {
             return sortie;
         }
     }
@@ -577,8 +584,11 @@ static JJL::PriseSortie trouve_prise_sortie(JJL::Graphe &graphe, float x, float 
 
 static JJL::PriseEntrée trouve_prise_entree(JJL::Noeud &noeud, float x, float y)
 {
+    auto point = JJL::Point2D_r32_({});
+    point.définis_x(x);
+    point.définis_y(y);
     for (auto entree : noeud.donne_entrées()) {
-        if (entree.donne_rectangle().contient(x, y)) {
+        if (entree.donne_rectangle().contient(point)) {
             return entree;
         }
     }
