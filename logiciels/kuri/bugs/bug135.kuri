@@ -1,0 +1,26 @@
+/* Aucune erreur de compilation si une virgule manque dans une expression de
+ * construction de structure divisée sur plusieurs lignes.
+ * Catégorie : [syntaxage, expression virgule]
+ */
+
+importe Fondation
+
+Structure :: struct {
+    x: z32
+    y: z32
+    z: z32
+}
+
+principale :: fonc () -> z32
+{
+    s := Structure(
+        x = 1,
+        y = 2
+        z = 3
+    )
+
+    assert(s.x == 1)
+    assert(s.y == 2)
+    assert(s.z == 3)
+    retourne 0
+}
