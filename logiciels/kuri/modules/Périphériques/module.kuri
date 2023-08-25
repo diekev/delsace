@@ -98,6 +98,11 @@ CléClavier :: énum {
     CLÉ_POINT_VIRGULE
     CLÉ_DOUBLE_POINT
     CLÉ_POINT_EXCLAMATION
+
+    CLÉ_FLÈCHE_GAUCHE
+    CLÉ_FLÈCHE_DROITE
+    CLÉ_FLÈCHE_HAUT
+    CLÉ_FLÈCHE_BAS
 }
 
 __caractères_clé_clavier : [CléClavier.nombre_éléments]z8
