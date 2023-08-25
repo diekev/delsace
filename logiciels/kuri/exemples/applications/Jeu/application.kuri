@@ -1,12 +1,10 @@
 importe Couleur
 importe Fondation
+importe GLFW
 importe IGUMI
 importe OpenGL
 importe Structures
 importe Temps
-
-charge "evenements"
-charge "glfw"
 
 // À FAIRE : rendu texte, chargement image
 

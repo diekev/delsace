@@ -1,3 +1,5 @@
+charge "interface_glfw"
+
 type_évènement :: énum z32 {
     NUL :: 0
 	SOURIS_BOUGEE :: 1
