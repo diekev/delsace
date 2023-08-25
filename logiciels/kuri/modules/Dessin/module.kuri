@@ -26,18 +26,18 @@ couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
  * \{ */
 
 TamponDeRendu :: struct {
-    rect: Rectangle
+    rect: RectanglePosDim(z32)
     données: []CouleurRVBAN8
 }
 
-crée_tampon_de_rendu :: fonc (rect: Rectangle) -> TamponDeRendu
+crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu
 {
     résultat : TamponDeRendu
     redimensionne_tampon_de_rendu(*résultat, rect)
     retourne résultat
 }
 
-redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: Rectangle)
+redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
 {
     tampon.rect = rect
     tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur)
@@ -51,10 +51,10 @@ détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Ligne
+/** \nom Ligne(z32)
  * \{ */
 
-dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne, couleur: CouleurRVBAN8)
+dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), couleur: CouleurRVBAN8)
 {
     si ligne.p0 == ligne.p1 {
         // À FAIRE : dessine point
@@ -72,7 +72,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne, couleur: C
     restreint(*y_max, 0, tampon_de_rendu.rect.hauteur - 1)
     
     si x_min == x_max {
-        /* Ligne verticale. */
+        /* Ligne(z32) verticale. */
         si y_min > y_max {
             permute(y_min, y_max)
         }
@@ -86,7 +86,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne, couleur: C
         }
     }
     sinon si y_min == y_max {
-        /* Ligne horizontale. */
+        /* Ligne(z32) horizontale. */
         si x_min > x_max {
             permute(x_min, x_max)
         }
@@ -157,31 +157,31 @@ dessine_ligne_bresenham :: fonc(
 
 dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle, couleur: CouleurRVBAN8)
 {
-    dessine_ligne(tampon_de_rendu, Ligne(triangle.p0, triangle.p1), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(triangle.p1, triangle.p2), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(triangle.p2, triangle.p0), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p0, triangle.p1), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p1, triangle.p2), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p2, triangle.p0), couleur)
 }
 
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Rectangle.
+/** \nom RectanglePosDim(z32).
  * \{ */
 
-dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: Rectangle, couleur: CouleurRVBAN8)
+dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    p0 := Point(rect.x,                rect.y)
-    p1 := Point(rect.x + rect.largeur, rect.y)
-    p2 := Point(rect.x + rect.largeur, rect.y + rect.hauteur)
-    p3 := Point(rect.x,                rect.y + rect.hauteur)
+    p0 := Point2D(z32)(rect.x,                rect.y)
+    p1 := Point2D(z32)(rect.x + rect.largeur, rect.y)
+    p2 := Point2D(z32)(rect.x + rect.largeur, rect.y + rect.hauteur)
+    p3 := Point2D(z32)(rect.x,                rect.y + rect.hauteur)
 
-    dessine_ligne(tampon_de_rendu, Ligne(p0, p1), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(p1, p2), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(p2, p3), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(p3, p0), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p0, p1), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p1, p2), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p2, p3), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p3, p0), couleur)
 }
 
-remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: Rectangle, couleur: CouleurRVBAN8)
+remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
     // À FAIRE : intersection du rectangle
     pointeur_source := tampon_de_rendu.données.pointeur

@@ -1,15 +1,20 @@
 /* Module de représentation de formes géométriques. */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Point
+/** \nom Point2D
  * \{ */
 
-Point :: struct {
-    x: z32
-    y: z32
+Point2D :: struct ($T: type_de_données) {
+	x: T @mutable
+	y: T @mutable
 }
 
-opérateur == :: fonc (p0: Point, p1: Point) -> bool
+opérateur == :: fonc (p0: Point2D(z32), p1: Point2D(z32)) -> bool
+{
+    retourne p0.x == p1.x && p0.y == p1.y
+}
+
+opérateur == :: fonc (p0: Point2D(r32), p1: Point2D(r32)) -> bool
 {
     retourne p0.x == p1.x && p0.y == p1.y
 }
@@ -20,9 +25,9 @@ opérateur == :: fonc (p0: Point, p1: Point) -> bool
 /** \nom Ligne
  * \{ */
 
-Ligne :: struct {
-    p0: Point
-    p1: Point
+Ligne :: struct ($T: type_de_données) {
+    p0: Point2D(T)
+    p1: Point2D(T)
 }
 
 /** } */
@@ -31,26 +36,28 @@ Ligne :: struct {
 /** \nom Triangle
  * \{ */
 
-Triangle :: struct {
-    p0: Point
-    p1: Point
-    p2: Point
+Triangle :: struct ($T: type_de_données) {
+    p0: Point2D(T)
+    p1: Point2D(T)
+    p2: Point2D(T)
 }
 
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Rectangle.
+/** \nom RectanglePosDim
+ * Rectangle défini selon sa position dans l'espace, ainsi que ses dimensions,
+ * hauteur et largeur, à partir de cette position.
  * \{ */
 
-Rectangle :: struct {
-    x: z32
-    y: z32
-    hauteur: z32
-    largeur: z32
+RectanglePosDim :: struct ($T: type_de_données) {
+    x: T @mutable
+    y: T @mutable
+    hauteur: T @mutable
+    largeur: T @mutable
 }
 
-réduis :: fonc (rect: &Rectangle, taille: z32)
+réduis :: fonc (rect: &RectanglePosDim($T), taille: T)
 {
     rect.x += taille
     rect.y += taille
@@ -58,24 +65,85 @@ réduis :: fonc (rect: &Rectangle, taille: z32)
     rect.largeur -= taille * 2
 }
 
-donne_point_central :: fonc (rect: Rectangle) -> Point
+donne_position :: fonc (rect: RectanglePosDim($T)) -> Point2D(T) #enligne
 {
-    x := (rect.x + rect.largeur) / 2
-    y := (rect.y + rect.hauteur) / 2
-    retourne Point(x, y)
+    retourne Point2D(T)(rect.x, rect.y)
 }
 
-possède :: fonc (rect: Rectangle, point: Point) -> bool
+contient :: fonc (rect: RectanglePosDim($T), x: T, y: T) -> bool
 {
-    si point.x < rect.x || point.x > (rect.x + rect.largeur) {
+    saufsi rect.x <= x <= (rect.x + rect.largeur) {
         retourne faux
     }
 
-    si point.y < rect.y || point.y > (rect.y + rect.hauteur) {
+    saufsi rect.y <= y <= (rect.y + rect.hauteur) {
         retourne faux
     }
 
     retourne vrai
+} @Python "méthode"
+
+contient :: fonc (rect: RectanglePosDim($T), point: Point2D(T)) -> bool
+{
+    retourne contient(rect, point.x, point.y)
+} @Python "méthode"
+
+donne_point_central :: fonc (rect: RectanglePosDim($T)) -> Point2D(T)
+{
+    retourne Point2D(T)(rect.x + rect.largeur / 2, rect.y + rect.hauteur / 2)
+} @Python "méthode"
+
+position_interne :: fonc (rect:  RectanglePosDim($T), pos: Point2D(r32)) -> Point2D(r32)
+{
+    résultat: Point2D(T) = ---
+    résultat.x = rect.largeur * pos.x
+    résultat.y = rect.hauteur * pos.y
+    résultat.x += rect.x
+    résultat.y += rect.y
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RectanglePur
+ * Un rectangle pur est défini selon ses limites x et y dans l'espace
+ * Cartésien.
+ * \{ */
+
+RectanglePur :: struct ($T: type_de_données) {
+    /* X min. */
+    gauche: T
+    /* X max. */
+    droite: T
+    /* Y min. */
+    haut: T
+    /* Y max. */
+    bas: T
+}
+
+/* À FAIRE(langage) : les fonctions ne sont pas sélectionnées si nous n'avons pas de références. */
+donne_largeur :: fonc (rect: &RectanglePur($T)) -> T
+{
+    retourne rect.droite - rect.gauche
+}
+
+donne_hauteur :: fonc (rect: &RectanglePur($T)) -> T
+{
+    retourne rect.haut - rect.bas
+}
+
+/* Limite `rect` afin que ses positions ne dépassent pas celles de `bornes`. */
+découpe_selon :: fonc (rect: &RectanglePur($T), bornes: RectanglePur(T))
+{
+    si rect.donne_largeur() > bornes.donne_largeur() {
+        rect.gauche = bornes.gauche
+        rect.droite = bornes.droite
+    }
+    si rect.donne_hauteur() > bornes.donne_hauteur() {
+        rect.bas = bornes.bas
+        rect.haut = bornes.haut
+    }
 }
 
 /** } */
@@ -84,13 +152,13 @@ possède :: fonc (rect: Rectangle, point: Point) -> bool
 /** \nom Cercle
  * \{ */
 
-Cercle :: struct {
-    centre_x: z32
-    centre_y: z32
-    rayon: z32
+Cercle :: struct ($T: type_de_données) {
+    centre_x: T
+    centre_y: T
+    rayon: T
 }
 
-réduis :: fonc (cercle: &Cercle, taille: z32)
+réduis :: fonc (cercle: &Cercle($T), taille: T)
 {
     si taille >= cercle.rayon {
         cercle.rayon = 0

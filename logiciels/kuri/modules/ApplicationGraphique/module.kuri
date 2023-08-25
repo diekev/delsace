@@ -48,7 +48,7 @@ donne_application :: fonc () -> *Application
     retourne *application_globale
 }
 
-crée_application :: fonc (nom: chaine, rect: Rectangle, plein_écran := faux) -> *Application
+crée_application :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *Application
 {
     app := donne_application()
 
@@ -98,7 +98,7 @@ crée_application :: fonc (nom: chaine, rect: Rectangle, plein_écran := faux) -
 
 redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
 {
-    redimensionne_tampon_de_rendu(*app.tampon_de_rendu, Rectangle(0, 0, hauteur, largeur))
+    redimensionne_tampon_de_rendu(*app.tampon_de_rendu, RectanglePosDim(z32)(0, 0, hauteur, largeur))
     app.hauteur = hauteur
     app.largeur = largeur
     détruit_tampon_texture(app.tampon_texture)
