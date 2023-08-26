@@ -72,8 +72,8 @@ ParamètresTexture2D :: struct {
  */
 définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
 {
-    glBindTextureUnit(0, code_texture)
-    vérifie_erreur("définis_texture_2d : glBindTexture\n")
+    glBindTexture(GL_TEXTURE_2D, code_texture)
+    vérifie_erreur("définis_texture_2d : glBindTexture")
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -83,7 +83,7 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
     vérifie_erreur("définis_texture_2d : glTexImage2D")
 
-    glBindTextureUnit(0, 0)
+    glBindTexture(GL_TEXTURE_2D, 0)
     vérifie_erreur("définis_texture_2d : glBindTexture 0")
 }
 
