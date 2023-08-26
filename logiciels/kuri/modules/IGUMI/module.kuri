@@ -7,8 +7,6 @@ importe OpenGL
 importe SysFichier
 importe Typographie
 
-charge "dessin_texte"
-
 // --------------------------
 
 NuanceurGL :: struct {
