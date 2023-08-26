@@ -124,6 +124,8 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     commence_immédiat()
     glUseProgram(nuanceur_texte.programme)
 
+    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
+
     nuanceur_uniforme_z32(nuanceur_texte, "atlas\0", 0)
     nuanceur_uniforme_z32(nuanceur_texte, "largeur_fenetre\0", IGUMI_largeur_fenetre)
     nuanceur_uniforme_z32(nuanceur_texte, "hauteur_fenetre\0", IGUMI_hauteur_fenetre)
