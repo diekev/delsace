@@ -17,6 +17,8 @@ NuanceurGL :: struct {
     loc_normal : n32 = -1 comme n32
     loc_couleur : n32 = -1 comme n32
     loc_uv : n32 = -1 comme n32
+    loc_atlas : n32 = -1 comme n32
+    loc_projection : n32 = -1 comme n32
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
@@ -45,6 +47,10 @@ crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: c
     vérifie_erreur("glGetAttribLocation uv")
     nuanceur.loc_normal = glGetAttribLocation(nuanceur.programme, "normal\0".pointeur)
     vérifie_erreur("glGetAttribLocation normal")
+    nuanceur.loc_atlas = glGetUniformLocation(nuanceur.programme, "atlas\0".pointeur)
+    vérifie_erreur("glGetAttribLocation atlas")
+    nuanceur.loc_projection = glGetUniformLocation(nuanceur.programme, "projection\0".pointeur)
+    vérifie_erreur("glGetAttribLocation projection")
 
     glUseProgram(0)
 
@@ -66,33 +72,43 @@ détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
     détruit_programme(nuanceur.programme)
 }
 
+définis_uniforme :: fonc (location: n32, valeur: z32)
+{
+    si location != (-1 comme n32) {
+        glUniform1i(location, valeur)
+    }
+}
+
+définis_uniforme :: fonc (location: n32, valeur: n32)
+{
+    si location != (-1 comme n32) {
+        glUniform1ui(location, valeur)
+    }
+}
+
+définis_uniforme :: fonc (location: n32, mat: Mat4r)
+{
+    si location != (-1 comme n32) {
+        glUniformMatrix4fv(location, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
+    }
+}
+
 nuanceur_uniforme_n32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: n32)
 {
     loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    vérifie_erreur("glGetUniformLocation")
-    si loc != -1 comme n32 {
-        glUniform1ui(loc, v);
-    }
-    vérifie_erreur("glUniform1ui")
+    définis_uniforme(loc, v)
 }
 
 nuanceur_uniforme_z32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: z32)
 {
     loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    si loc != -1 comme n32 {
-        glUniform1i(loc, v);
-    }
-    vérifie_erreur("glUniform1i")
+    définis_uniforme(loc, v)
 }
 
 nuanceur_uniforme_matrice :: fonc (nuanceur: *NuanceurGL, nom: chaine, mat: Mat4r)
 {
     loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    vérifie_erreur("glGetUniformLocation")
-    si loc != (-1 comme n32) {
-        glUniformMatrix4fv(loc, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
-    }
-    vérifie_erreur("glUniformMatrix4fv")
+    définis_uniforme(loc, mat)
 }
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
@@ -138,8 +154,8 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
     glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
 
-    nuanceur_uniforme_z32(nuanceur_texte, "atlas\0", 0)
-    nuanceur_uniforme_matrice(nuanceur_texte, "projection\0", projection)
+    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
+    définis_uniforme(nuanceur_texte.loc_projection, projection)
 
     dernier_caractère : *texture_glyph_t = nul
     pour c dans texte {
