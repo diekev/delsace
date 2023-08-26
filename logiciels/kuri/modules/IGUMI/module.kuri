@@ -85,8 +85,20 @@ nuanceur_uniforme_z32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: z32)
     vérifie_erreur("glUniform1i")
 }
 
-IGUMI_largeur_fenetre := 0
-IGUMI_hauteur_fenetre := 0
+nuanceur_uniforme_matrice :: fonc (nuanceur: *NuanceurGL, nom: chaine, mat: Mat4r)
+{
+    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
+    vérifie_erreur("glGetUniformLocation")
+    si loc != (-1 comme n32) {
+        glUniformMatrix4fv(loc, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
+    }
+    vérifie_erreur("glUniformMatrix4fv")
+}
+
+définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
+{
+    projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
+}
 
 donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> ParamètresTexture2D
 {
@@ -127,8 +139,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
 
     nuanceur_uniforme_z32(nuanceur_texte, "atlas\0", 0)
-    nuanceur_uniforme_z32(nuanceur_texte, "largeur_fenetre\0", IGUMI_largeur_fenetre)
-    nuanceur_uniforme_z32(nuanceur_texte, "hauteur_fenetre\0", IGUMI_hauteur_fenetre)
+    nuanceur_uniforme_matrice(nuanceur_texte, "projection\0", projection)
 
     dernier_caractère : *texture_glyph_t = nul
     pour c dans texte {
@@ -141,7 +152,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 		kerning := glyph.donne_crénage_avec(dernier_caractère)
 		x += kerning
 
-        // À FAIRE: inv_taille
 		x0 := (x + glyph.offset_x comme r32)
 		y0 := (y + glyph.offset_y comme r32)
 		x1 := x0 + glyph.width comme r32
@@ -189,7 +199,7 @@ DÉCALAGE_COULEUR :: 12
 DÉCALAGE_NORMAL  :: 28
 DÉCALAGE_UV      :: 40
 
-// À FAIRE : matrice de vue
+projection : Mat4r
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
 sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU
