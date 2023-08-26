@@ -133,11 +133,11 @@ glCreateTextures :: fonc (target: GLenum, n: GLsizei, textures: *GLuint) -> rien
 
 glTexImage2D :: fonc (
     cible: GLenum,
-    x: GLenum,
+    level: GLint,
     format_interne: GLenum,
-    taille_x: z32,
-    taille_z: z32,
-    bordure: GLenum,
+    taille_x: GLsizei,
+    taille_z: GLsizei,
+    bordure: GLint,
     format: GLenum,
     type: GLenum,
     données: *rien) -> rien #externe libGL

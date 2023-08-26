@@ -153,14 +153,8 @@ dessine_lettres :: fonc (rendeuse: *RendeuseTexte, tampon: *rien, texte: chaine,
 	}
 
 	glGenTextures(1, *atlas.id )
-	glBindTexture(_GL_TEXTURE_2D, atlas.id)
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_S, _GL_CLAMP_TO_EDGE );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_WRAP_T, _GL_CLAMP_TO_EDGE );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MAG_FILTER, _GL_LINEAR );
-	glTexParameteri(_GL_TEXTURE_2D, _GL_TEXTURE_MIN_FILTER, _GL_LINEAR );
-
-    glTexImage2D(_GL_TEXTURE_2D, 0, _GL_RED, atlas.width comme z32, atlas.height comme z32,
-				  0, _GL_RED, _GL_UNSIGNED_BYTE, atlas.data )
+	params := donne_paramètres_texture_atlas_fonte(atlas)
+	définis_texture_2d(atlas.id, *params)
 
 	{
 		glUseProgram(rendeuse.programme)

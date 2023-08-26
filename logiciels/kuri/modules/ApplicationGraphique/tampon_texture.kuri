@@ -119,29 +119,23 @@ détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
     déloge(tampon_texture)
 }
 
+donne_paramètres_texture_pour_tampon_de_rendu :: fonc (données: TamponDeRendu) -> ParamètresTexture2D
+{
+    résultat: ParamètresTexture2D
+    résultat.largeur = données.rect.largeur
+    résultat.hauteur = données.rect.hauteur
+    résultat.données = données.données.pointeur
+    résultat.bordure = 0
+    résultat.type = GL_UNSIGNED_BYTE
+    résultat.format = GL_RGBA
+    retourne résultat
+}
+
 génère_texture :: fonc (tampon_texture: *TamponTexture, données: TamponDeRendu)
 {
     vérifie_erreur("génère_texture entrée")
-
-    // si glIsTexture(tampon_texture.code_texture) {
-	// 	glDeleteTextures(1, *tampon_texture.code_texture);
-    //     glCreateTextures(GL_TEXTURE_2D, 1, *tampon_texture.code_texture);
-    //     vérifie_erreur("génère_texture glGenTextures")
-	// }
-
-	glBindTextureUnit(0, tampon_texture.code_texture);
-    vérifie_erreur("génère_texture glBindTexture")
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, données.rect.largeur, données.rect.hauteur, 0, GL_RGBA, GL_UNSIGNED_BYTE, données.données.pointeur)
-    vérifie_erreur("génère_texture glTexImage2D")
-
-	glBindTextureUnit(0, 0);
-    vérifie_erreur("génère_texture glBindTexture 0")
+    params := donne_paramètres_texture_pour_tampon_de_rendu(tampon_texture)
+    définis_texture_2d(tampon_texture.code_texture, *params)
 }
 
 /** } */

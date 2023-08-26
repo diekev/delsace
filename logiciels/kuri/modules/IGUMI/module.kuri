@@ -90,6 +90,18 @@ nuanceur_uniforme_z32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: z32)
 IGUMI_largeur_fenetre := 0
 IGUMI_hauteur_fenetre := 0
 
+donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> ParamètresTexture2D
+{
+    résultat: ParamètresTexture2D
+    résultat.largeur = atlas.width comme z32
+    résultat.hauteur = atlas.height comme z32
+    résultat.données = atlas.data
+    résultat.bordure = 0
+    résultat.type = GL_UNSIGNED_BYTE
+    résultat.format = GL_RED
+    retourne résultat
+}
+
 /*
     EffetTexte :: énum {
         RIEN
@@ -107,16 +119,9 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
     // met en place la texture de la fonte sur le nuanceur
 	glGenTextures(1, *fonte.atlas.id )
-	glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    vérifie_erreur("glGenTextures")
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, fonte.atlas.width comme z32, fonte.atlas.height comme z32,
-				  0, GL_RED, GL_UNSIGNED_BYTE, fonte.atlas.data )
-    vérifie_erreur("glTexImage2D")
+    // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
+    params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+    définis_texture_2d(fonte.atlas.id, *params)
 
     commence_immédiat()
     glUseProgram(nuanceur_texte.programme)
