@@ -155,7 +155,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
 
     définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
-    définis_uniforme(nuanceur_texte.loc_projection, projection)
 
     dernier_caractère : *texture_glyph_t = nul
     pour c dans texte {
@@ -484,6 +483,8 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
+
+    définis_uniforme(nuanceur.loc_projection, projection)
 
     installe_format_xcnu(nuanceur)
 
