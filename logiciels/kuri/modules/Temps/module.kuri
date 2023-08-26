@@ -153,9 +153,13 @@ depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
 
 // ----------------------------------------------------------------------------
 
-secondes_par_an :: fonc () -> z32
-{
-    retourne 31_556_952
+Constantes :: struct ($T: type_de_données) {
+    SECONDES_PAR_AN : T : 31_556_952 /* SECONDES_PAR_JOUR * 365.2425 */
+    SECONDES_PAR_JOUR : T : 86_400
+    SECONDES_PAR_HEURE : T : 3_600
+    MILLISECONDES_PAR_AN : T : 31_556_952_000
+    MILLISECONDES_PAR_JOUR : T : 86_400_000
+    MILLISECONDES_PAR_HEURE : T : 3_600_000
 }
 
 Date :: struct {
