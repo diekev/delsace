@@ -1,51 +1,6 @@
 importe Fondation
 importe Math
 
-crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32) -> Mat4r
-{
-    résultat : Mat4r = construit_mat4r_neutre()
-	résultat.m[0][0] = 2.0 / (droite - gauche)
-	résultat.m[1][1] = 2.0 / (haut - bas)
-	résultat.m[2][2] = - 1.0
-	résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
-	résultat.m[3][1] = - (haut + bas) / (haut - bas)
-	retourne résultat
-}
-
-crée_matrice_projection_orthographique :: fonc (largeur: r32, hauteur: r32) -> Mat4r
-{
-	retourne crée_matrice_projection_orthographique(-largeur, largeur, -hauteur, hauteur)
-}
-
-crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
-{
-    résultat : Mat4r = construit_mat4r_neutre()
-	résultat.m[0][0] = 2.0 / (droite - gauche)
-	résultat.m[1][1] = 2.0 / (haut - bas)
-	résultat.m[2][2] = - 2.0 / (plan_éloigné - plan_proche)
-	résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
-	résultat.m[3][1] = - (haut + bas) / (haut - bas)
-	résultat.m[3][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-	retourne résultat
-}
-
-crée_matrice_projection_perspective :: fonc (fovy: r32, aspect: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
-{
-	assert(aspect != 0.0)
-	assert(plan_éloigné != plan_proche)
-
-	rad := fovy
-	tanHalfFovy := tan(rad / 2.0)
-
-	résultat : Mat4r
-	résultat.m[0][0] = 1.0 / (aspect * tanHalfFovy)
-	résultat.m[1][1] = 1.0 / (tanHalfFovy)
-	résultat.m[2][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-	résultat.m[2][3] = - 1.0
-	résultat.m[3][2] = - (2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
-	retourne résultat
-}
-
 mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
 {
 	f := normalise(centre - oeil)
