@@ -322,9 +322,10 @@ pousse_contexte __contexte_fil_principal {
     enfile(VG_file_évènements, évènement)
 }
 
-rappel_bouton_souris :: fonc(fenetre : *GLFWwindow @inutilisée, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
+rappel_bouton_souris :: fonc(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
 pousse_contexte __contexte_fil_principal {
     évènement : Évènement
+    évènement.fenêtre = fenetre
 
     si action == 1 {
         évènement.type = type_évènement.SOURIS_PRESSEE
@@ -339,9 +340,10 @@ pousse_contexte __contexte_fil_principal {
     enfile(VG_file_évènements, évènement)
 }
 
-rappel_position_souris :: fonc(fenetre : *GLFWwindow @inutilisée, pos_x : r64, pos_y : r64) -> rien
+rappel_position_souris :: fonc(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien
 pousse_contexte __contexte_fil_principal {
     évènement : Évènement
+    évènement.fenêtre = fenetre
     évènement.type = type_évènement.SOURIS_BOUGEE
     évènement.pos_x = pos_x comme r32
     évènement.pos_y = pos_y comme r32
@@ -349,9 +351,10 @@ pousse_contexte __contexte_fil_principal {
     enfile(VG_file_évènements, évènement)
 }
 
-rappel_roulette :: fonc(fenetre : *GLFWwindow @inutilisée, delta_x : r64, delta_y : r64) -> rien
+rappel_roulette :: fonc(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien
 pousse_contexte __contexte_fil_principal {
     évènement : Évènement
+    évènement.fenêtre = fenetre
     évènement.type = type_évènement.SOURIS_ROULETTE
     évènement.delta_x = delta_x comme r32
     évènement.delta_y = delta_y comme r32
@@ -359,10 +362,11 @@ pousse_contexte __contexte_fil_principal {
     enfile(VG_file_évènements, évènement)
 }
 
-rappel_dimension :: fonc(fenetre : *GLFWwindow @inutilisée, x : z32, y : z32) -> rien
+rappel_dimension :: fonc(fenetre : *GLFWwindow, x : z32, y : z32) -> rien
 pousse_contexte __contexte_fil_principal {
     glViewport(0, 0, x, y)
     évènement : Évènement
+    évènement.fenêtre = fenetre
     évènement.type = type_évènement.REDIMENSION
     évènement.delta_x = x comme r32
     évènement.delta_y = y comme r32
