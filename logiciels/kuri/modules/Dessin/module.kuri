@@ -70,7 +70,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
     restreint(*x_max, 0, tampon_de_rendu.rect.largeur - 1)
     restreint(*y_min, 0, tampon_de_rendu.rect.hauteur - 1)
     restreint(*y_max, 0, tampon_de_rendu.rect.hauteur - 1)
-    
+
     si x_min == x_max {
         /* Ligne(z32) verticale. */
         si y_min > y_max {
@@ -232,7 +232,7 @@ dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur
          *    7 8
          *  3     4
          *  1     2
-         *    5 6 
+         *    5 6
          */
         pointeur_source[index_centre_cercle - y * largeur_source - x] = couleur
         pointeur_source[index_centre_cercle - y * largeur_source + x] = couleur

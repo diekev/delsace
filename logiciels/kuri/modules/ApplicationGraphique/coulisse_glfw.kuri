@@ -104,7 +104,7 @@ crée_application_glfw :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_�
         imprime("Erreur lors de l'initilisation de GLEW !\n")
         retourne nul
     }
-    
+
     app := loge(ApplicationGLFW)
     app.fenêtre = fenêtre
     retourne app

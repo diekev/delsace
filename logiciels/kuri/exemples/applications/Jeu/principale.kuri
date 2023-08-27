@@ -1,7 +1,7 @@
 importe ApplicationGraphique
 importe Couleur
-importe Géométrie
 importe Fondation
+importe Géométrie
 importe IGUMI
 importe OpenGL
 importe Périphériques

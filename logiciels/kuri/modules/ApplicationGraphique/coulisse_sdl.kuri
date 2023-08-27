@@ -105,7 +105,7 @@ crée_application_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_é
         imprime("Erreur lors de l'initilisation de GLEW !\n")
         retourne nul
     }
-    
+
     app := loge(ApplicationSDL)
     app.fenêtre = fenêtre
     app.est_en_exécution = vrai

@@ -150,15 +150,15 @@ glUniform1f :: fonc (location: GLint, v0: GLfloat) -> rien #externe libGL
 glUniform2f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat) -> rien #externe libGL
 glUniform3f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat) -> rien #externe libGL
 glUniform4f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat, v3: GLfloat) -> rien #externe libGL
-glUniform1i :: fonc (location: GLint, v0: GLint) -> rien #externe libGL 
-glUniform2i :: fonc (location: GLint, v0: GLint, v1: GLint) -> rien #externe libGL 
+glUniform1i :: fonc (location: GLint, v0: GLint) -> rien #externe libGL
+glUniform2i :: fonc (location: GLint, v0: GLint, v1: GLint) -> rien #externe libGL
 glUniform3i :: fonc (location: GLint, v0: GLint, v1: GLint, v2: GLint) -> rien #externe libGL
 glUniform4i :: fonc (location: GLint, v0: GLint, v1: GLint, v2: GLint, v3: GLint) -> rien #externe libGL
 glUniform1ui :: fonc (location: GLint, v0: GLuint) -> rien #externe libGL
 glUniform2ui :: fonc (location: GLint, v0: GLuint, v1: GLuint) -> rien #externe libGL
 glUniform3ui :: fonc (location: GLint, v0: GLuint, v1: GLuint, v2: GLuint) -> rien #externe libGL
 glUniform4ui :: fonc (location: GLint, v0: GLuint, v1: GLuint, v2: GLuint, v3: GLuint) -> rien #externe libGL
-glUniform1fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL 
+glUniform1fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
 glUniform2fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
 glUniform3fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
 glUniform4fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL

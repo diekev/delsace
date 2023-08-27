@@ -47,7 +47,7 @@ détruit_fenêtre :: fonc (fenêtre: *Fenêtre)
     }
 
     détruit_tampon_de_rendu(*fenêtre.tampon_de_rendu)
-    
+
     si fenêtre.sur_destruction {
         fenêtre.sur_destruction(fenêtre)
     }

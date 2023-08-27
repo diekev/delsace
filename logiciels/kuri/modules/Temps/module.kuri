@@ -196,7 +196,7 @@ est_année_bissextile :: fonc (année: z32) -> bool #sanstrace
 {
     /* Une année est bissextile si elle est divisible par 400, mais pas par 100.
      * Si nous savons qu'une année est divisible par 100 (branche sinon ci-bas),
-     * elle n'est divisible par 400 que si elle est également divisible par 16 
+     * elle n'est divisible par 400 que si elle est également divisible par 16
      * (qui est une puissance de 2, donc optimisable par la compilation).
      * Si X | 100, alors X | 4, or 400 = 4*100, donc si X | 100 et X | 400, alors
      * X | 16.

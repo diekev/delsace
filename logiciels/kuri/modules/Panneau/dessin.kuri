@@ -1,8 +1,8 @@
 /* Extensions de Dessin. */
 
 importe Dessin
-importe Géométrie
 importe FTGL
+importe Géométrie
 importe Typographie
 
 /* ------------------------------------------------------------------------- */

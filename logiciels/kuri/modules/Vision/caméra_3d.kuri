@@ -186,7 +186,7 @@ Caméra3D :: struct {
 
 /* Initialise une caméra dans un espace où l'axe vertical est +Y.
  * La caméra regarde vers le centre de la scène, à une distance d'environ 25 mètre :
- * 
+ *
  *   caméra
  *   |\
  *   | \  hypothénus = 25m
