@@ -371,79 +371,98 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
     ajoute_sommets(p1, couleur)
 }
 
-cercle_immédiat :: fonc (cx : r32, cy : r32, rx : r32, ry : r32, couleur: CouleurRVBA)
+cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := 32
     phi := 0.0
-    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur)
+    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
 
-quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32, couleur: CouleurRVBA)
+quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, quadrant : z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := 8
 	phi := quadrant comme r32 * (3.14159 / 2.0)
-    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur)
+    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
 
-cercle_immédiat_impl :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, segs: z32, phi: r32, couleur: CouleurRVBA)
+cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     p0 := Vec3(cx, cy, 0.0)
 	phi_delta := 2.0 * 3.14159 / 32.0
 
     pour segs {
-        ca0 := cx + cos(phi) comme r32 * rx
-        sa0 := cy + sin(phi) comme r32 * ry
+        ca0 := cx + cos(phi) comme r32 * r
+        sa0 := cy + sin(phi) comme r32 * r
 
         phi += phi_delta
 
-        ca1 := cx + cos(phi) comme r32 * rx
-        sa1 := cy + sin(phi) comme r32 * ry
+        ca1 := cx + cos(phi) comme r32 * r
+        sa1 := cy + sin(phi) comme r32 * r
 
         p1 := Vec3(ca0, sa0, 0.0)
         p2 := Vec3(ca1, sa1, 0.0)
 
-        ajoute_sommets(p0, couleur)
+        si ajoute_centre {
+            ajoute_sommets(p0, couleur)
+        }
+
         ajoute_sommets(p1, couleur)
         ajoute_sommets(p2, couleur)
     }
 }
 
-quad_arrondis_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, arrondis_pixel: r32, couleur: CouleurRVBA)
+quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
-    rx := arrondis_pixel / largeur
-    ry := arrondis_pixel / hauteur
+	px := pos_x + rayon
+	py := pos_y + rayon
+    tx := largeur - 2.0 * rayon
+    ty := hauteur - 2.0 * rayon
 
-	px := pos_x + rx
-	py := pos_y + ry
-    tx := largeur - 2.0 * rx
-    ty := hauteur - 2.0 * ry
-
-    // dessine centre
+    /* Centre. */
     quad_immédiat(px, py, tx, ty, couleur)
+    /* Rectangle gauche. */
+    quad_immédiat(pos_x, py, rayon, ty, couleur)
+    /* Rectangle droite. */
+    quad_immédiat(px + tx, py, rayon, ty, couleur)
+    /* Rectangle haut. */
+    quad_immédiat(px, py + ty, tx, rayon, couleur)
+    /* Rectangle bas. */
+    quad_immédiat(px, pos_y, tx, rayon, couleur)
 
-    // dessine rect gauche
-    quad_immédiat(px - rx, py, rx, ty, couleur)
+    /* Haut gauche. */
+    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, vrai)
+    /* Haut droite. */
+    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, vrai)
+    /* Bas gauche. */
+    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, vrai)
+    /* Bas droite. */
+    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, vrai)
+}
 
-    // dessine rect droite
-    quad_immédiat(px + tx, py, rx, ty, couleur)
+contour_quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+{
+	px := pos_x + rayon
+	py := pos_y + rayon
+    tx := largeur - 2.0 * rayon
+    ty := hauteur - 2.0 * rayon
 
-    // dessine rect dessus
-    quad_immédiat(px, py + ty, tx, ry, couleur)
+    /* Haut. */
+    segment_immédiat(px, pos_y, px + tx, pos_y, couleur)
+    /* Bas. */
+    segment_immédiat(px, pos_y + hauteur, px + tx, pos_y + hauteur, couleur)
+    /* Gauche. */
+    segment_immédiat(pos_x, py, pos_x, py + ty, couleur)
+    /* Droite. */
+    segment_immédiat(pos_x + largeur, py, pos_x + largeur, py + ty, couleur)
 
-    // dessine rect dessous
-    quad_immédiat(px, py - ry, tx, ry, couleur)
-
-    // dessine coin haut-gauche
-    quadrant_cercle_immédiat(px, py + ty, rx, ry, 1, couleur)
-
-    // dessine coin haut-droite
-    quadrant_cercle_immédiat(px + tx, py + ty, rx, ry, 0, couleur)
-
-    // dessine coin bas-gauche
-    quadrant_cercle_immédiat(px, py, rx, ry, 2, couleur)
-
-    // dessine coin bas-droite
-    quadrant_cercle_immédiat(px + tx, py, rx, ry, 3, couleur)
+    /* Haut gauche. */
+    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, faux)
+    /* Haut droite. */
+    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, faux)
+    /* Bas gauche. */
+    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, faux)
+    /* Bas droite. */
+    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, faux)
 }
 
 commence_immédiat :: fonc ()
