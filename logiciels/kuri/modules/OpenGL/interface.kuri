@@ -119,6 +119,14 @@ glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe lib
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
 
 /* ------------------------------------------------------------------------- */
+/** \nom Attributes.
+ * \{ */
+
+glGetAttribLocation :: fonc (programme: GLuint, nom: ChaineC) -> GLint #externe libGL
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Uniforms.
  * \{ */
 
@@ -198,7 +206,6 @@ glGetShaderiv :: fonc (shader : n32, pname : n32, params : *z32) -> rien #extern
 glGetShaderInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
 glGetProgramiv :: fonc (program : n32, pname : n32, params : *z32) -> rien #externe libGL
 glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
-glGetAttribLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe libGL
 glIsShader :: fonc (shader: n32) -> bool #externe libGL
 glIsProgram :: fonc (program: GLuint) -> GLboolean #externe libGL
 
