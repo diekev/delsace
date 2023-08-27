@@ -378,7 +378,8 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
             return CodeRetourValidation::Erreur;
         }
 
-        /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
+        /* À FAIRE(discr) : meilleure structure pour stocker les informations de chaque expression,
+         * ceci n'est que pour la simplification du code. */
         feuille->ident = membre.nom;
 
         membres_rencontres.insere(membre.nom);
