@@ -466,19 +466,27 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    utilise_nuanceur(nuanceur_texte)
+    commence_immédiat()
 
-    // À FAIRE : restore état
+    ancienne_fonction_mélange: z32
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
+
+    utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
 	glGenTextures(1, *fonte.atlas.id )
+    diffère glDeleteTextures(1, *fonte.atlas.id)
+
     // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
     params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
     définis_texture_2d(fonte.atlas.id, *params)
 
-    commence_immédiat()
     glUseProgram(nuanceur_texte.programme)
 
     glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
@@ -523,10 +531,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 	}
 
     termine_immédiat(ModeImmédiat.TRIANGLES)
-
-	glDeleteTextures(1, *fonte.atlas.id)
-
-    glDisable(GL_BLEND)
 }
 
 /** } */
