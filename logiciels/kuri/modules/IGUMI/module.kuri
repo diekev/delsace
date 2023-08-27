@@ -2,6 +2,7 @@ importe Compilatrice
 importe Couleur
 importe FTGL
 importe Fondation
+importe Image
 importe Math
 importe OpenGL
 importe SysFichier
@@ -17,6 +18,7 @@ initialise_igumi :: fonc ()
 
     nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
     nuanceur_base = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
+    nuanceur_image = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
 
     chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
     fonte_globale = crée_fonte(chemin_fonte, 14.0)
@@ -37,6 +39,7 @@ issitialise_igumi :: fonc ()
 
     détruit_nuanceur(nuanceur_base)
     détruit_nuanceur(nuanceur_texte)
+    détruit_nuanceur(nuanceur_image)
 }
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
@@ -60,6 +63,7 @@ NuanceurGL :: struct {
     loc_uv : z32 = -1
     loc_atlas : z32 = -1
     loc_projection : z32 = -1
+    adresse_image: z32 = -1
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
@@ -86,6 +90,7 @@ crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: c
     nuanceur.loc_normal = donne_adresse_attribut(nuanceur.programme, "normal")
     nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas")
     nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection")
+    nuanceur.adresse_image = donne_adresse_uniforme(nuanceur.programme, "image")
 
     glUseProgram(0)
 
@@ -112,6 +117,8 @@ CheminsNuanceurs :: struct {
     chemin_fragment_texte: chaine
     chemin_vertex_base: chaine
     chemin_fragment_base: chaine
+    chemin_vertex_image: chaine
+    chemin_fragment_image: chaine
 }
 
 donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
@@ -124,6 +131,8 @@ donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
     résultat.chemin_fragment_texte = (chemin_module / "nuanceurs/nuanceur_texte_fragment.glsl").chn
     résultat.chemin_vertex_base = (chemin_module / "nuanceurs/nuanceur_base_vertex.glsl").chn
     résultat.chemin_fragment_base = (chemin_module / "nuanceurs/nuanceur_base_fragment.glsl").chn
+    résultat.chemin_vertex_image = (chemin_module / "nuanceurs/nuanceur_image_vertex.glsl").chn
+    résultat.chemin_fragment_image = (chemin_module / "nuanceurs/nuanceur_image_fragment.glsl").chn
     retourne résultat
 }
 
@@ -157,6 +166,7 @@ vbo_immédiat_index : n32
 nuanceur_global : *NuanceurGL
 nuanceur_base : *NuanceurGL
 nuanceur_texte : *NuanceurGL
+nuanceur_image : *NuanceurGL
 
 fonte_globale : *Fonte
 
@@ -529,6 +539,54 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
         dernier_caractère = glyph
 	}
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Image
+ * \{ */
+
+image_immédiat :: fonc (image: ImageIO, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    commence_immédiat()
+
+    ancienne_fonction_mélange: z32
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    glEnable(GL_BLEND)
+
+    utilise_nuanceur(nuanceur_image)
+
+    code_texture: n32
+    glGenTextures(1, *code_texture)
+    diffère glDeleteTextures(1, *code_texture)
+    params := donne_paramètres_texture_pour_image(image)
+    définis_texture_2d(code_texture, *params)
+
+    glUseProgram(nuanceur_image.programme)
+    diffère glUseProgram(0)
+
+    glBindTexture(GL_TEXTURE_2D, code_texture)
+    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
+
+    p0 := Vec3(x = x          , y = y)
+    p1 := Vec3(x = x + largeur, y = y)
+    p2 := Vec3(x = x + largeur, y = y + hauteur)
+    p3 := Vec3(x = x          , y = y + hauteur)
+
+    u0 := Vec2(0.0, 0.0)
+    u1 := Vec2(1.0, 0.0)
+    u2 := Vec2(1.0, 1.0)
+    u3 := Vec2(0.0, 1.0)
+
+    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA())
 
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }
