@@ -13,12 +13,12 @@ NuanceurGL :: struct {
     programme: n32
 
     /* stocke les locations pour les attributes pour les nuanceurs de bases */
-    loc_position : n32 = -1 comme n32
-    loc_normal : n32 = -1 comme n32
-    loc_couleur : n32 = -1 comme n32
-    loc_uv : n32 = -1 comme n32
-    loc_atlas : n32 = -1 comme n32
-    loc_projection : n32 = -1 comme n32
+    loc_position : z32 = -1
+    loc_normal : z32 = -1
+    loc_couleur : z32 = -1
+    loc_uv : z32 = -1
+    loc_atlas : z32 = -1
+    loc_projection : z32 = -1
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
@@ -39,18 +39,12 @@ crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: c
 
     glUseProgram(nuanceur.programme)
 
-    nuanceur.loc_position = glGetAttribLocation(nuanceur.programme, "position\0".pointeur)
-    vérifie_erreur("glGetAttribLocation position")
-    nuanceur.loc_couleur = glGetAttribLocation(nuanceur.programme, "couleur\0".pointeur)
-    vérifie_erreur("glGetAttribLocation couleur")
-    nuanceur.loc_uv = glGetAttribLocation(nuanceur.programme, "uv\0".pointeur)
-    vérifie_erreur("glGetAttribLocation uv")
-    nuanceur.loc_normal = glGetAttribLocation(nuanceur.programme, "normal\0".pointeur)
-    vérifie_erreur("glGetAttribLocation normal")
-    nuanceur.loc_atlas = glGetUniformLocation(nuanceur.programme, "atlas\0".pointeur)
-    vérifie_erreur("glGetAttribLocation atlas")
-    nuanceur.loc_projection = glGetUniformLocation(nuanceur.programme, "projection\0".pointeur)
-    vérifie_erreur("glGetAttribLocation projection")
+    nuanceur.loc_position = donne_adresse_attribut(nuanceur.programme, "position")
+    nuanceur.loc_couleur = donne_adresse_attribut(nuanceur.programme, "couleur")
+    nuanceur.loc_uv = donne_adresse_attribut(nuanceur.programme, "uv")
+    nuanceur.loc_normal = donne_adresse_attribut(nuanceur.programme, "normal")
+    nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas")
+    nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection")
 
     glUseProgram(0)
 
@@ -70,45 +64,6 @@ recharge_nuanceur :: fonc (nuanceur: *NuanceurGL, source_vertex: chaine, source_
 détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
 {
     détruit_programme(nuanceur.programme)
-}
-
-définis_uniforme :: fonc (location: n32, valeur: z32)
-{
-    si location != (-1 comme n32) {
-        glUniform1i(location, valeur)
-    }
-}
-
-définis_uniforme :: fonc (location: n32, valeur: n32)
-{
-    si location != (-1 comme n32) {
-        glUniform1ui(location, valeur)
-    }
-}
-
-définis_uniforme :: fonc (location: n32, mat: Mat4r)
-{
-    si location != (-1 comme n32) {
-        glUniformMatrix4fv(location, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
-    }
-}
-
-nuanceur_uniforme_n32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: n32)
-{
-    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    définis_uniforme(loc, v)
-}
-
-nuanceur_uniforme_z32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: z32)
-{
-    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    définis_uniforme(loc, v)
-}
-
-nuanceur_uniforme_matrice :: fonc (nuanceur: *NuanceurGL, nom: chaine, mat: Mat4r)
-{
-    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    définis_uniforme(loc, mat)
 }
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
@@ -286,31 +241,31 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 {
     stride := taille_de(FormatVertexXCNU)
 
-    si nuanceur.loc_position != -1 comme n32 {
-	    glVertexAttribPointer(nuanceur.loc_position, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
+    si nuanceur.loc_position != -1 {
+	    glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
-	    glEnableVertexAttribArray(nuanceur.loc_position)
+	    glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
     }
 
-    si nuanceur.loc_couleur != -1 comme n32 {
-	    glVertexAttribPointer(nuanceur.loc_couleur, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
+    si nuanceur.loc_couleur != -1 {
+	    glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
-	    glEnableVertexAttribArray(nuanceur.loc_couleur)
+	    glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
     }
 
-    si nuanceur.loc_normal != -1 comme n32 {
-	    glEnableVertexAttribArray(nuanceur.loc_normal)
+    si nuanceur.loc_normal != -1 {
+	    glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
-	    glVertexAttribPointer(nuanceur.loc_normal, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
+	    glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
     }
 
-    si nuanceur.loc_uv != -1 comme n32 {
-	    glEnableVertexAttribArray(nuanceur.loc_uv)
+    si nuanceur.loc_uv != -1 {
+	    glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
-	    glVertexAttribPointer(nuanceur.loc_uv, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
+	    glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
     }
 }
