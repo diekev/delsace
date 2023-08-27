@@ -47,6 +47,10 @@ GL_LINK_STATUS : GLenum : 0x8B82
 GL_INFO_LOG_LENGTH : GLenum : 0x8B84
 GL_COMPILE_STATUS : GLenum : 0x8B81
 GL_BLEND : GLenum : 0x0BE2
+GL_BLEND_DST_RGB : GLenum : 0x80C8
+GL_BLEND_SRC_RGB : GLenum : 0x80C9
+GL_BLEND_DST_ALPHA : GLenum : 0x80CA
+GL_BLEND_SRC_ALPHA : GLenum : 0x80CB
 GL_SRC_ALPHA : GLenum : 0x0302
 GL_ONE_MINUS_SRC_ALPHA : GLenum : 0x0303
 GL_TEXTURE0 : GLenum : 0x84C0
@@ -94,8 +98,6 @@ glewInit :: fonc () -> z32 #externe libGLEW
 glClear :: fonc (bit : n32) -> rien #externe libGL
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
 
-glEnable :: fonc (cap: GLenum) -> rien #externe libGL
-glDisable :: fonc (cap: GLenum) -> rien #externe libGL
 glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe libGL
 
 glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe libGL
@@ -117,6 +119,18 @@ glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL
 glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe libGL
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
+
+/* ------------------------------------------------------------------------- */
+/** \nom Capacités.
+ * \{ */
+
+glIsEnabled :: fonc (cap: GLenum) -> GLboolean #externe libGL
+glIsEnabledi :: fonc (cap: GLenum, index: GLuint) -> GLboolean #externe libGL
+
+glEnable :: fonc (cap: GLenum) -> rien #externe libGL
+glDisable :: fonc (cap: GLenum) -> rien #externe libGL
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Attributes.
