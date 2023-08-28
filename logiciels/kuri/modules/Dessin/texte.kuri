@@ -6,7 +6,7 @@ importe Géométrie
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
-/** \nom Dessine de texte.
+/** \nom Dessin de texte.
  * \{ */
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
