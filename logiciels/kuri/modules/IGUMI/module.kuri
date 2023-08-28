@@ -17,8 +17,11 @@ initialise_igumi :: fonc ()
     chemins := #exécute donne_chemins_nuanceurs()
 
     nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
+    nuanceur_texte.nom = "texte"
     nuanceur_base = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
+    nuanceur_base.nom = "base"
     nuanceur_image = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
+    nuanceur_image.nom = "image"
 
     chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
     fonte_globale = crée_fonte(chemin_fonte, 14.0)
@@ -54,6 +57,7 @@ définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
  * \{ */
 
 NuanceurGL :: struct {
+    nom: chaine
     programme: n32
 
     /* stocke les locations pour les attributes pour les nuanceurs de bases */
