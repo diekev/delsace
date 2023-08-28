@@ -21,9 +21,13 @@ principale :: fonc () -> z32
     largeur : z32 = TAILLE_TUILE * TUILES_X
     hauteur : z32 = TAILLE_TUILE * TUILES_Y
 
-	app := crée_application_glfw("Jeu", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux)
+	app := crée_application_glfw()
 
 	jeu := crée_jeu()
+	saufsi crée_fenêtre_principale(app, *jeu, "Jeu", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux) {
+		retourne 1
+	}
+
 	jeu.largeur = largeur
 	jeu.hauteur = hauteur
 
@@ -107,15 +111,16 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 
 ajourne_dessin_fenêtre :: fonc (jeu: *Jeu)
 {
+	IGUMI.définis_fenêtre(jeu.largeur, jeu.hauteur)
 	glViewport(0, 0, jeu.largeur, jeu.hauteur)
     // dessine l'arrière plan
 	glClearColor(0.5, 0.5, 1.0, 1.0)
 
     // dessine les personnages
-	taille_x := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
-	taille_y := TAILLE_TUILE comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
-	pos_x := jeu.personnage.pos_x comme r32 / (TAILLE_TUILE * TUILES_X) comme r32
-	pos_y := jeu.personnage.pos_y comme r32 / (TAILLE_TUILE * TUILES_Y) comme r32
+	taille_x := TAILLE_TUILE comme r32
+	taille_y := TAILLE_TUILE comme r32
+	pos_x := jeu.personnage.pos_x comme r32
+	pos_y := jeu.personnage.pos_y comme r32
 
 	couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0 )
 
