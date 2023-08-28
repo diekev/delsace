@@ -5,6 +5,8 @@ importe Fondation
 importe Géométrie
 importe Math
 
+charge "texte"
+
 CouleurRVBAN8 :: struct {
     r: n8
     v: n8
