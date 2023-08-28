@@ -57,7 +57,7 @@ crée_tampon_texture :: fonc () -> *TamponTexture
     glUseProgram(tampon_texture.programme)
     vérifie_erreur("crée_tampon_texture glUseProgram")
 
-    loc := glGetUniformLocation(tampon_texture.programme, "image\0".pointeur)
+    loc := donne_adresse_uniforme(tampon_texture.programme, "image")
     vérifie_erreur("crée_tampon_texture glGetUniformLocation")
 
 	glUniform1i(loc, 0);
@@ -134,7 +134,7 @@ donne_paramètres_texture_pour_tampon_de_rendu :: fonc (données: TamponDeRendu)
 génère_texture :: fonc (tampon_texture: *TamponTexture, données: TamponDeRendu)
 {
     vérifie_erreur("génère_texture entrée")
-    params := donne_paramètres_texture_pour_tampon_de_rendu(tampon_texture)
+    params := donne_paramètres_texture_pour_tampon_de_rendu(données)
     définis_texture_2d(tampon_texture.code_texture, *params)
 }
 
