@@ -1,5 +1,6 @@
 /* Extensions de Dessin. */
 
+importe Couleur
 importe FTGL
 importe Géométrie
 importe Typographie

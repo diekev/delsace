@@ -1,5 +1,6 @@
 /* Module pour dessiner et gérer des interfaces graphiques. */
 
+importe Couleur
 importe Dessin
 importe Fondation
 importe Géométrie
