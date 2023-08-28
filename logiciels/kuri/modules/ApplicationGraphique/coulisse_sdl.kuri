@@ -1,5 +1,4 @@
 importe Chaine
-importe Dessin
 importe Fondation
 importe Géométrie
 importe OpenGL
@@ -51,7 +50,6 @@ crée_fenêtre_sdl :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*Fen
     résultat := loge(FenêtreSDL)
     résultat.fenêtre = fenêtre_sdl
     résultat.contexte = contexte_gl
-    résultat.tampon_de_rendu = crée_tampon_de_rendu(rect)
     résultat.hauteur = rect.hauteur
     résultat.largeur = rect.largeur
     résultat.sur_destruction = sur_destruction_fenêtre_sdl
@@ -66,6 +64,12 @@ sur_destruction_fenêtre_sdl :: fonc (fenêtre: *Fenêtre)
     déloge(fenêtre_sdl)
 }
 
+donne_fenêtre_pour_id :: fonc (app: *ApplicationSDL, id: n32) -> *Fenêtre
+{
+    // À FAIRE : plusieurs fenêtre
+    retourne app.fenêtre
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -77,13 +81,66 @@ ApplicationSDL :: struct {
     est_en_exécution: bool
 }
 
-crée_application_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *ApplicationSDL
+crée_application_sdl :: fonc () -> *ApplicationSDL
 {
     si SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING) != 0 {
         imprime("Impossible d'intialiser SDL !\n")
         retourne nul
     }
 
+    app := loge(ApplicationSDL)
+    app.est_en_exécution = vrai
+    retourne app
+}
+
+crée_fenêtre_principale :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente, nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> bool
+#corps_texte {
+    info_cliente := info_de(TypeCliente)
+
+    possède_sur_création_fenêtre := faux
+    pour info_cliente.membres {
+        si it.nom == "sur_création_fenêtre" {
+            types_entrées := [info_de(*TypeCliente) comme *InfoType, info_de(*Fenêtre) comme *InfoType]
+            type_sortie := [info_de(rien)]
+
+            si it.id.id != id_info.FONCTION {
+                // À FAIRE : erreur
+                arrête
+            }
+
+            saufsi apparie_type_fonction(it.id comme *InfoTypeFonction, types_entrées, type_sortie) {
+                arrête
+            }
+
+            possède_sur_création_fenêtre = vrai
+            arrête
+        }
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    préambule := «
+    fenêtre := crée_fenêtre_principal_impl_sdl(nom, rect, plein_écran)
+    saufsi fenêtre {
+        retourne faux
+    }
+    app.fenêtre = fenêtre
+    »
+
+    ajoute_au_tampon(*enchaineuse, préambule)
+    si possède_sur_création_fenêtre {
+        ajoute_au_tampon(*enchaineuse, "cliente.sur_création_fenêtre(cliente, fenêtre)\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+crée_fenêtre_principal_impl_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *FenêtreSDL
+{
     args_création_fenêtre : ArgumentsCréationFenêtre
     args_création_fenêtre.titre = nom
     args_création_fenêtre.rect = rect
@@ -106,14 +163,15 @@ crée_application_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_é
         retourne nul
     }
 
-    app := loge(ApplicationSDL)
-    app.fenêtre = fenêtre
-    app.est_en_exécution = vrai
-    retourne app
+    retourne fenêtre
 }
 
 exécute :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente) -> z32
 {
+    saufsi app.fenêtre {
+        retourne 0
+    }
+
     // À FAIRE : définis le taux/la stratégie de rafraichissement
     ips : n32 = 30
     débit_image_min : n32 = 1000 / ips
@@ -151,9 +209,8 @@ dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
         AUCUN {
             /* Rien à faire. */
         }
-        TAMPON_DE_RENDU {
-            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.fenêtre.tampon_de_rendu)\n")
-            ajoute_au_tampon(*enchaineuse, "dessine_tampon_de_rendu(app)\n")
+        FENÊTRE {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, app.fenêtre)\n")
         }
         PERSONNALISÉ {
             ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente)\n")
@@ -237,9 +294,10 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     ajoute_au_tampon(*enchaineuse, "                si évènement.window.event == SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED {\n")
     ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
     ajoute_au_tampon(*enchaineuse, "                    hauteur := évènement.window.data2\n")
-    ajoute_au_tampon(*enchaineuse, "                    redimensionne_app(app, largeur, hauteur)\n")
+    ajoute_au_tampon(*enchaineuse, "                    fenêtre := donne_fenêtre_pour_id(app, évènement.window.windowID)\n")
+    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, hauteur, largeur)\n")
     si évènements_requis.REDIMENSION_FENÊTRE {
-        ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, hauteur, largeur)\n")
+        ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, fenêtre)\n")
     }
     ajoute_au_tampon(*enchaineuse, "                }\n")
     ajoute_au_tampon(*enchaineuse, "            }\n")

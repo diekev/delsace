@@ -22,10 +22,6 @@ importe OpenGL
  * \{ */
 
 Fenêtre :: struct {
-    tampon_de_rendu: TamponDeRendu
-    // dessin OpenGL
-    tampon_texture: *TamponTexture
-
     hauteur : z32
     largeur : z32
 
@@ -41,13 +37,6 @@ ArgumentsCréationFenêtre :: struct {
 
 détruit_fenêtre :: fonc (fenêtre: *Fenêtre)
 {
-    si fenêtre.tampon_texture {
-        détruit_tampon_texture(fenêtre.tampon_texture)
-        fenêtre.tampon_texture = nul
-    }
-
-    détruit_tampon_de_rendu(*fenêtre.tampon_de_rendu)
-
     si fenêtre.sur_destruction {
         fenêtre.sur_destruction(fenêtre)
     }
@@ -55,14 +44,8 @@ détruit_fenêtre :: fonc (fenêtre: *Fenêtre)
 
 redimensionne_fenêtre :: fonc (fenêtre: *Fenêtre, largeur: z32, hauteur: z32)
 {
-    redimensionne_tampon_de_rendu(*fenêtre.tampon_de_rendu, RectanglePosDim(z32)(0, 0, hauteur, largeur))
     fenêtre.hauteur = hauteur
     fenêtre.largeur = largeur
-    si fenêtre.tampon_texture {
-        détruit_tampon_texture(fenêtre.tampon_texture)
-        fenêtre.tampon_texture = nul
-    }
-    glViewport(0, 0, largeur, hauteur)
 }
 
 /** } */
@@ -93,21 +76,11 @@ redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
 /** \nom Dessin de fenêtre.
  * \{ */
 
-dessine_tampon_de_rendu :: fonc (app: *Application)
-{
-    si app.fenêtre.tampon_texture == nul {
-        app.fenêtre.tampon_texture = crée_tampon_texture()
-    }
-
-    génère_texture(app.fenêtre.tampon_texture, app.fenêtre.tampon_de_rendu)
-    dessine_tampon_texture(app.fenêtre.tampon_texture)
-}
-
 ModeDessinFenêtre :: énum {
     /* L'application cliente a un rappel de la forme fonc (*TypeCliente)(rien). */
     PERSONNALISÉ
-    /* L'application cliente a un rappel de la forme fonc (*TypeCliente, *TamponDeRendu)(rien). */
-    TAMPON_DE_RENDU
+    /* L'application cliente a un rappel de la forme fonc (*TypeCliente, *Fenêtre)(rien). */
+    FENÊTRE
     /* L'application cliente n'a pas de rappel. */
     AUCUN
 }
@@ -116,7 +89,7 @@ détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_
 {
     /* À FAIRE(langage) : typage des tableaux fixes selon le dénominateur commun. */
     types_entrée_mode_perso := [info_pointeur_cliente comme *InfoType]
-    types_entrée_mode_tampon := [info_pointeur_cliente comme *InfoType, info_de(*TamponDeRendu) comme *InfoType]
+    types_entrée_mode_fenêtre := [info_pointeur_cliente comme *InfoType, info_de(*Fenêtre) comme *InfoType]
     types_sortie := [info_de(rien)]
 
     pour info_cliente.membres {
@@ -136,8 +109,8 @@ détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_
             retourne ModeDessinFenêtre.PERSONNALISÉ
         }
 
-        si apparie_type_fonction(type_fonction, types_entrée_mode_tampon, types_sortie) {
-            retourne ModeDessinFenêtre.TAMPON_DE_RENDU
+        si apparie_type_fonction(type_fonction, types_entrée_mode_fenêtre, types_sortie) {
+            retourne ModeDessinFenêtre.FENÊTRE
         }
 
         rapporte_erreur_membre_sur_dessin(info_cliente, it)
@@ -156,7 +129,7 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
 
     ajoute_au_tampon(*enchaineuse, "Les types possibles sont :\n")
     imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%)(rien), pour un dessin de fenêtre personnalisé,\n", info_cliente.nom)
-    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *TamponDeRendu)(rien), pour un dessin de fenêtre utilisant le module Dessin.\n", info_cliente.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *Fenêtre)(rien), pour un dessiner la fenêtre donnée.\n", info_cliente.nom)
 
     ajoute_au_tampon(*enchaineuse, "\nNote : le type du membre est '")
     imprime_type(*enchaineuse, membre.id)

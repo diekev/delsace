@@ -1,5 +1,4 @@
 importe Chaine
-importe Dessin
 importe Fondation
 importe Géométrie
 importe GLFW
@@ -49,7 +48,6 @@ crée_fenêtre_glfw :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*Fe
 
     résultat := loge(FenêtreGLFW)
     résultat.fenêtre = fenêtre_glfw
-    résultat.tampon_de_rendu = crée_tampon_de_rendu(args.rect)
     résultat.hauteur = args.rect.hauteur
     résultat.largeur = args.rect.largeur
     résultat.sur_destruction = sur_destruction_fenêtre_glfw
@@ -76,13 +74,65 @@ ApplicationGLFW :: struct {
     état_souris: ÉtatSouris
 }
 
-crée_application_glfw :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *ApplicationGLFW
+crée_application_glfw :: fonc () -> *ApplicationGLFW
 {
     si glfwInit() == 0 {
         imprime("Impossible d'initialiser GLFW !\n")
         retourne nul
     }
 
+    app := loge(ApplicationGLFW)
+    retourne app
+}
+
+crée_fenêtre_principale :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente, nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> bool
+#corps_texte {
+    info_cliente := info_de(TypeCliente)
+
+    possède_sur_création_fenêtre := faux
+    pour info_cliente.membres {
+        si it.nom == "sur_création_fenêtre" {
+            types_entrées := [info_de(*TypeCliente) comme *InfoType, info_de(*Fenêtre) comme *InfoType]
+            type_sortie := [info_de(rien)]
+
+            si it.id.id != id_info.FONCTION {
+                // À FAIRE : erreur
+                arrête
+            }
+
+            saufsi apparie_type_fonction(it.id comme *InfoTypeFonction, types_entrées, type_sortie) {
+                arrête
+            }
+
+            possède_sur_création_fenêtre = vrai
+            arrête
+        }
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    préambule := «
+    fenêtre := crée_fenêtre_principal_impl_glfw(nom, rect, plein_écran)
+    saufsi fenêtre {
+        retourne faux
+    }
+    app.fenêtre = fenêtre
+    »
+
+    ajoute_au_tampon(*enchaineuse, préambule)
+    si possède_sur_création_fenêtre {
+        ajoute_au_tampon(*enchaineuse, "cliente.sur_création_fenêtre(cliente, fenêtre)\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+crée_fenêtre_principal_impl_glfw :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *FenêtreGLFW
+{
     args_création_fenêtre : ArgumentsCréationFenêtre
     args_création_fenêtre.titre = nom
     args_création_fenêtre.rect = rect
@@ -105,13 +155,15 @@ crée_application_glfw :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_�
         retourne nul
     }
 
-    app := loge(ApplicationGLFW)
-    app.fenêtre = fenêtre
-    retourne app
+    retourne fenêtre
 }
 
 exécute :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente) -> z32
 {
+    saufsi app.fenêtre {
+        retourne 0
+    }
+
     // À FAIRE : définis le taux/la stratégie de rafraichissement
     fenêtre_principale := app.fenêtre comme *FenêtreGLFW
 
@@ -143,9 +195,8 @@ dessine_application :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
         AUCUN {
             /* Rien à faire. */
         }
-        TAMPON_DE_RENDU {
-            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.fenêtre.tampon_de_rendu)\n")
-            ajoute_au_tampon(*enchaineuse, "dessine_tampon_de_rendu(app)\n")
+        FENÊTRE {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, app.fenêtre)\n")
         }
         PERSONNALISÉ {
             ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente)\n")
