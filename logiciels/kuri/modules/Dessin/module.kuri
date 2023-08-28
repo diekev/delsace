@@ -205,7 +205,7 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
 /** \nom Cercle
  * \{ */
 
-dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur: CouleurRVBAN8)
+dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), couleur: CouleurRVBAN8)
 {
     cx := cercle.centre_x
     cy := cercle.centre_y
@@ -263,7 +263,7 @@ dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur
     }
 }
 
-remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle, couleur: CouleurRVBAN8)
+remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), couleur: CouleurRVBAN8)
 {
     cx := cercle.centre_x
     cy := cercle.centre_y
