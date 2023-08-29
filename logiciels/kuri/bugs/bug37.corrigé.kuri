@@ -1,4 +1,6 @@
-// r16 est utilisé dans certaines conversions entre r32 et r64
+/* r16 est utilisé dans certaines conversions entre r32 et r64
+ * Catégorie : [validation sémantique, génération code, conversion implicite, type r16]
+ */
 
 // À FAIRE : avoir une bonne manière de tester ceci
 

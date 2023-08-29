@@ -1,0 +1,16 @@
+/* Aucune erreur de compilation si nous sauvegardons l'adresse d'une variable
+ * d'un bloc dans une variable hors de ce bloc.
+ * Catégorie : [cohérence, correctitude, génération de code, portée]
+ */
+
+principale :: fonc () -> z32
+{
+    a : *z32
+    {
+        /* Ceci pourrait être le corps d'une boucle où nous pourrions réutiliser
+         * l'adresse pour l'itération suivante. */
+        b: z32
+        a = *b
+    }
+    retourne 0
+}

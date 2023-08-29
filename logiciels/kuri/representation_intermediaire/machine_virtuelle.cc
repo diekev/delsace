@@ -1012,15 +1012,17 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         auto instruction = LIS_OCTET();
         auto site_courant = LIS_POINTEUR(NoeudExpression);
 
-        /* Fais en sorte d'avoir toujours un site valide. */
-        static NoeudExpression *site = nullptr;
+        NoeudExpression *site = site_courant;
         if (site_courant) {
-            site = site_courant;
+            m_metaprogramme->donnees_execution->site = site_courant;
+        }
+        else {
+            site = m_metaprogramme->donnees_execution->site;
         }
 
-        /* Ce site est utilisé pour déterminer où se trouve le dernier site valide
-         * au cas où le pointeur est désynchroniser et une instruction est invalide. */
-        static NoeudExpression *dernier_site = nullptr;
+#ifdef STATS_OP_CODES
+        m_metaprogramme->donnees_execution->compte_instructions[instruction] += 1;
+#endif
 
         switch (instruction) {
             case OP_LABEL:
@@ -1595,13 +1597,14 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             default:
             {
                 m_metaprogramme->unite->espace->rapporte_erreur(
-                    dernier_site, "Erreur interne : Opération inconnue dans la MV !");
+                    m_metaprogramme->donnees_execution->dernier_site,
+                    "Erreur interne : Opération inconnue dans la MV !");
                 compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
         }
 
-        dernier_site = site;
+        m_metaprogramme->donnees_execution->dernier_site = site;
     }
 
     compte_executees = INSTRUCTIONS_PAR_BATCH;
@@ -1786,6 +1789,14 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
+
+#ifdef STATS_OP_CODES
+            std::cerr << "------------------------------------ Instructions :\n";
+            for (auto j = 0; j < NOMBRE_OP_CODE; j++) {
+                std::cerr << chaine_code_operation(octet_t(j)) << " : "
+                          << it->donnees_execution->compte_instructions[j] << '\n';
+            }
+#endif
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
             auto données = it->donnees_execution;

@@ -1,4 +1,7 @@
-// pas d'erreur de compilation quand nous redéfinissons une fonction via un métaprogramme (ici, la fonction principale)
+/* Pas d'erreur de compilation quand nous redéfinissons une fonction via un
+ * métaprogramme (ici, la fonction principale)
+ * Catégorie : [validation sémantique, métaprogramme, redéfinition symbole]
+ */
 
 importe Compilatrice
 importe Fondation

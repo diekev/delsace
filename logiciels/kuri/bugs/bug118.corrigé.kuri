@@ -1,6 +1,8 @@
 /* Les plages implicites des boucles pour de type entier naturel prennent la
  * valeur maximale du type si le nombre de boucle = 0.
- * Similaire à bug89. */
+ * Similaire à bug89.
+ * Catégorie : [génération code, boucle pour, type entier naturel]
+ */
 
 principale :: fonc () -> z32
 {

@@ -1,5 +1,8 @@
+/* Aucune erreur de compilation quand le nom d'une structure n'est pas une
+ * chaine simple.
+ * Catégorie : [syntaxage]
+ */
 
-/* Aucune erreur de compilation quand le nom d'une structure n'est pas une chaine simple. */
 ParamètresGénérationTige (object) :: struct {
     x: z32
 }

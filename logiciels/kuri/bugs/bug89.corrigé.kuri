@@ -1,4 +1,6 @@
-/* Boucle infini si une boucle « pour » utilise « > » avec un nombre naturel. */
+/* Boucle infini si une boucle « pour » utilise « > » avec un nombre naturel.
+ * Catégorie : [génération code, boucle pour, type entier naturel]
+ */
 
 principale :: fonc () -> z32
 {

@@ -1,4 +1,6 @@
-// aucune erreur quand la valeur de retour d'un appel n'est pas utilisée
+/* Aucune erreur quand la valeur de retour d'un appel n'est pas utilisée.
+ * Catégorie : [validation sémantique, utilisation retour fonction]
+ */
 
 fonction :: fonc () -> z32
 {

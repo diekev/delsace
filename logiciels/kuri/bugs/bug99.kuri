@@ -1,4 +1,6 @@
-/* Aucune erreur de compilation si une expression n'étant pas valide dans le contexte globale y est utilisée. */
+/* Aucune erreur de compilation si une expression n'étant pas valide dans le contexte globale y est utilisée.
+ * Catégorie : [validation sémantique]
+ */
 
  - ça marche
 
