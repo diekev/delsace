@@ -1788,8 +1788,8 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 
     if (accede->est_reference_declaration()) {
         if (accede->comme_reference_declaration()->declaration_referee->est_declaration_module()) {
-            ref_membre->substitution = accede;
-            simplifie(accede);
+            ref_membre->substitution = ref_membre->membre;
+            simplifie(ref_membre->membre);
             return;
         }
     }
