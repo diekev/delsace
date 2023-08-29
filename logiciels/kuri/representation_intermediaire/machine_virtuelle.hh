@@ -45,6 +45,11 @@ struct DonneesExecution {
 #ifdef STATS_OP_CODES
     int compte_instructions[NOMBRE_OP_CODE] = {};
 #endif
+
+    /* Ces sites sont utilisés pour déterminer où se trouve le dernier site valide
+     * au cas où le pointeur est désynchronisé et une instruction est invalide. */
+    NoeudExpression *site = nullptr;
+    NoeudExpression *dernier_site = nullptr;
 };
 
 struct EchantillonProfilage {
