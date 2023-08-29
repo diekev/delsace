@@ -1,6 +1,7 @@
 /* Génération de code C, et de fonctions Kuri ayant la même IBA afin de proprement
  * appeler les fonctions depuis C. */
 
+importe Bits
 importe Compilatrice
 importe Fondation
 importe SysFichier

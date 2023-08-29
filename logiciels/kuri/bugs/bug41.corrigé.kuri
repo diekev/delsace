@@ -1,4 +1,6 @@
-// Impossible d'utiliser une globale avant sa déclaration
+/* Impossible d'utiliser une globale avant sa déclaration
+ * Catégorie : [validation sémantique, résolution symbole, variable globale]
+ */
 
 importe Support
 

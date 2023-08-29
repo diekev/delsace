@@ -3,10 +3,6 @@ importe Fondation
 // ----------------------------------------------------------------------------
 // Extraction d'une valeur depuis une union.
 
-Optionnel :: union ($T: type_de_données) {
-    Quelque: T
-}
-
 imprime_optionnel :: fonc (optionnel: Optionnel(z32))
 {
     discr optionnel {

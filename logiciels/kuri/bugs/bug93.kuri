@@ -2,6 +2,7 @@
  * spécifications de types différents sont capable d'être utilisées
  * pour un appel de fonction.
  * Voir « $T et []$T sont ambigües » dans Arachné.
+ * Catégorie : [validation sémantique, expression appel, fonction polymorphique]
  */
 
 /* $T et []$T sont ambigües, il faudrait un système plus subtil, où le nombre

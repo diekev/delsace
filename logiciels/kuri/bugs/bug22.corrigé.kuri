@@ -1,4 +1,6 @@
-// crash quand un paramètre de fonction n'a pas de type
+/* Crash quand un paramètre de fonction n'a pas de type
+ * Catégorie : [crash, validation sémantique, fonction]
+ */
 
 foo :: fonc (a) -> rien
 {

@@ -1,7 +1,6 @@
 importe Fondation
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-
 //##############################################################################
 
 ret_simple :: fonc() -> z32

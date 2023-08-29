@@ -1,4 +1,6 @@
-/* Erreur de syntaxage si le fichier ne fini pas sur une nouvelle ligne. */
+/* Erreur de syntaxage si le fichier ne fini pas sur une nouvelle ligne.
+ * Catégorie : [syntaxage]
+ */
 
 principale :: fonc () -> z32
 {
