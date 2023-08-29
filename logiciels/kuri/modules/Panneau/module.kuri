@@ -1,10 +1,10 @@
 /* Module pour dessiner et gérer des interfaces graphiques. */
 
 importe Couleur
-importe Dessin
 importe Fondation
 importe Géométrie
 importe Périphériques
+importe PeintureInterface
 importe Typographie
 
 charge "menu"
@@ -14,7 +14,7 @@ charge "menu"
  * \{ */
 
 ContexteAffichage :: struct {
-    tampon_de_rendu: *TamponDeRendu
+    peintre: *Peintre
     fonte: *Fonte
 }
 
@@ -359,7 +359,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau, ctx)
 
-    remplis_rectangle(ctx.tampon_de_rendu, rect, couleur_blanche)
+    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
 
     si état.élément_pressé != -1 {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_pressé)
@@ -371,7 +371,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         }
 
         couleur := CouleurRVBAN8(valeur, valeur, valeur, 255)
-        remplis_rectangle(ctx.tampon_de_rendu, rect_élément, couleur)
+        remplis_rectangle(ctx.peintre, rect_élément, couleur)
     }
 
     rect_élément : RectanglePosDim(z32)
@@ -383,7 +383,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         rect_élément.largeur = it.largeur
 
         menu := barre_de_menu.menus[index_it]
-        dessine_texte(ctx.tampon_de_rendu, menu.texte, ctx.fonte, rect_élément, couleur_noire)
+        dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, couleur_noire)
     }
 }
 
@@ -605,12 +605,12 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
 dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau, ctx)
-    remplis_rectangle(ctx.tampon_de_rendu, rect, couleur_blanche)
-    dessine_rectangle(ctx.tampon_de_rendu, rect, couleur_grise)
+    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
+    dessine_rectangle(ctx.peintre, rect, couleur_grise)
 
     si état.élément_survolé != -1 {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
-        remplis_rectangle(ctx.tampon_de_rendu, rect_élément, couleur_grise_claire)
+        remplis_rectangle(ctx.peintre, rect_élément, couleur_grise_claire)
     }
 
     métriques := donne_métriques_fonte(ctx.fonte)
@@ -624,7 +624,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         rect_élément.y = rect.y + it.décalage
 
         texte := menu.éléments[index_it].texte
-        dessine_texte(ctx.tampon_de_rendu, texte, ctx.fonte, rect_élément, couleur_noire)
+        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, couleur_noire)
     }
 }
 
