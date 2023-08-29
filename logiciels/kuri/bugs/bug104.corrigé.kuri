@@ -1,5 +1,7 @@
 /* Crash si la définition d'une fonction externe n'a pas de type de retour,
- * mais que la flèche est présente. */
+ * mais que la flèche est présente.
+ * Catégorie : [crash, syntaxage]
+ */
 
 principale :: fonc () -> z32
 {

@@ -1,4 +1,6 @@
-// ne peut pas passer un pointeur à un eini via l'opérateur de prise d'adresse
+/* Ne peut pas passer un pointeur à un eini via l'opérateur de prise d'adresse
+ * Catégorie : [validation sémantique, conversion implicite, eini]
+ */
 
 passe_eini :: fonc (e: eini) -> bool
 {

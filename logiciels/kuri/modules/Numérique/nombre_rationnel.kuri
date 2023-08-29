@@ -2,6 +2,7 @@
 // fractions, afin d'être plus précis que des nombres à point flottant.
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
+importe Bits
 importe Fondation
 
 NombreRationnel :: struct {
@@ -236,22 +237,4 @@ pgdc :: fonc(u: n64, v: n64) -> n64
 
     // restore common factors of 2 */
     retourne u << shift
-}
-
-nombre_de_bits_zéro_en_fin :: fonc(i: n64) -> n32
-{
-    si i == 0 {
-        retourne 64
-    }
-
-    n : n32 = 63
-    y : n64
-
-    y = i << 32; si y != 0 { n = n - 32; i = y; }
-    y = i << 16; si y != 0 { n = n - 16; i = y; }
-    y = i <<  8; si y != 0 { n = n -  8; i = y; }
-    y = i <<  4; si y != 0 { n = n -  4; i = y; }
-    y = i <<  2; si y != 0 { n = n -  2; i = y; }
-
-	retourne (n - (i << 1) >> 63) comme n32
 }

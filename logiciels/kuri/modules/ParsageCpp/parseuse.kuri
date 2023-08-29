@@ -43,7 +43,7 @@ rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine)
     si parseuse.possède_erreur {
         retourne
     }
-    
+
     lexème := parseuse.lexème_courant()
 
     imprime("%:%:\n", parseuse.fichier.chemin, lexème.ligne)

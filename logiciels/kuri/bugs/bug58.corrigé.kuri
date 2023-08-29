@@ -1,5 +1,7 @@
-// impossible de construire une structure depuis une monomorphisation
-// NOTE : voir cas dans test_structure_poly.kuri
+/* Impossible de construire une structure depuis une monomorphisation.
+ * NOTE : voir cas dans test_structure_poly.kuri
+ * Catégorie : [validation sémantique, construction structure, type polymorphique]
+ */
 
 importe Support
 
