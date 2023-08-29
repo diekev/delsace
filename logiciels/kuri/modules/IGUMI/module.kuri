@@ -569,6 +569,31 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
 image_immédiat :: fonc (image: ImageIO, x: r32, y: r32, largeur: r32, hauteur: r32)
 {
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageGrise8Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    /* À FAIRE : dessine en noir et blanc. */
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageRVBA8Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageRVBA32Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
     commence_immédiat()
 
     ancienne_fonction_mélange: z32
@@ -585,8 +610,7 @@ image_immédiat :: fonc (image: ImageIO, x: r32, y: r32, largeur: r32, hauteur: 
     code_texture: n32
     glGenTextures(1, *code_texture)
     diffère glDeleteTextures(1, *code_texture)
-    params := donne_paramètres_texture_pour_image(image)
-    définis_texture_2d(code_texture, *params)
+    définis_texture_2d(code_texture, params)
 
     glUseProgram(nuanceur_image.programme)
     diffère glUseProgram(0)
