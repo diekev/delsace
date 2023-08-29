@@ -1,5 +1,8 @@
-// deux fonctions externes dans le même module peuvent avoir le même nom mais des types différents
-// il faut une erreur de compilation
+/* Deux fonctions externes dans le même module peuvent avoir le même nom mais
+ * des types différents
+ * il faut une erreur de compilation
+ * Catégorie : [validation sémantique, redéfinition symbole externe]
+ */
 
 libc :: #bibliothèque "c"
 send :: fonc (a: z32) #externe libc

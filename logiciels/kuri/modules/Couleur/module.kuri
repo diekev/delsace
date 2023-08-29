@@ -76,6 +76,29 @@ luminance :: fonc (c: CouleurRVBA) -> r32
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom CouleurRVBA sur 8-bit
+ * \{ */
+
+CouleurRVBAN8 :: struct {
+    r: n8
+    v: n8
+    b: n8
+    a: n8
+}
+
+couleur_rouge := CouleurRVBAN8(255, 0, 0, 255)
+couleur_vert := CouleurRVBAN8(0, 255, 0, 255)
+couleur_bleu := CouleurRVBAN8(0, 0, 255, 255)
+couleur_blanche := CouleurRVBAN8(255, 255, 255, 255)
+couleur_noire := CouleurRVBAN8(0, 0, 0, 255)
+couleur_grise_claire := CouleurRVBAN8(192, 192, 192, 255)
+couleur_grise := CouleurRVBAN8(128, 128, 128, 255)
+couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
+
+/** } */
+
+
+/* ------------------------------------------------------------------------- */
 /** \nom Couleur Teinte-Saturation-Valeur
  * \{ */
 

@@ -1,6 +1,8 @@
 importe Compilatrice
 importe Fondation
 
+variable_globale : z32
+
 attend_compilation_terminée :: fonc (espace: *EspaceDeTravail)
 {
     boucle {

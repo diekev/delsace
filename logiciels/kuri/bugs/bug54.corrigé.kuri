@@ -1,4 +1,7 @@
-// crash quand nous passons un pointeur de fonction polymorphique à une fonction
+/* Crash quand nous passons un pointeur de fonction polymorphique à une
+ * fonction polymorphique.
+ * Catégorie : [crash, validation sémantique, type fonction, type polymorphique]
+ */
 
 importe Support
 

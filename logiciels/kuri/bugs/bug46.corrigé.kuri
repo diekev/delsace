@@ -1,4 +1,6 @@
-// boucle infinie quand il manque le ':' avant un type
+/* Boucle infini quand il manque le ':' avant un type
+ * Catégorie : [syntaxage, compilation infini]
+ */
 
 fonction :: fonc (a *rien) // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
 {

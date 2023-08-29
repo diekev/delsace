@@ -1,6 +1,7 @@
-// Bug corrigé par le commit : 740b281a8738e1b71a5e916f686ec27a878c6c1d
-
-// On ne peut avoir plusieurs blocs pousse_contexte dans un même bloc (coulisse C)
+/* Bug corrigé par le commit : 740b281a8738e1b71a5e916f686ec27a878c6c1d
+ * On ne peut avoir plusieurs blocs pousse_contexte dans un même bloc (coulisse C)
+ * Catégorie : [génération code, pousse_contexte]
+ */
 
 importe Fondation
 

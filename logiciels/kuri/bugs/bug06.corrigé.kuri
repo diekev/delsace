@@ -1,6 +1,9 @@
-// Bug corrigé par le commit : 054839e1f0fbdec63286ee69b56717dbcfad3810
-
-// La coulisse C possède un bug où le déloge de pointeur déréférencé ne compile pas
+/* Bug corrigé par le commit : 054839e1f0fbdec63286ee69b56717dbcfad3810
+ *
+ * La coulisse C possède un bug où le déloge de pointeur déréférencé ne compile pas
+ *
+ * Catégorie : [génération code, expression déloge]
+ */
 
 importe Support
 

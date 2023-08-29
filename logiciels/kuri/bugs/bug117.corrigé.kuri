@@ -1,4 +1,6 @@
-/* Erreur de compilation si nous utilisons #exécute pour une globale. */
+/* Erreur de compilation si nous utilisons #exécute pour une globale.
+ * Catégorie : [directive exécute, variable globale]
+ */
 
 a := #exécute 4 * 5
 

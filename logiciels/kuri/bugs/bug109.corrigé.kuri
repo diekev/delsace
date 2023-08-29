@@ -1,5 +1,7 @@
 /* Collision de symbole dans la coulisse C si deux structures de mêmes noms
- * sont définies dans des fonctions différentes. */
+ * sont définies dans des fonctions différentes.
+ * Catégorie : [généraction code, portée, type nommé]
+ */
 
 principale :: fonc () -> z32
 {

@@ -1,4 +1,5 @@
 /* Erreur de compilation si un pointeur de fonction reçoit une expansion variadique.
+ * Catégorie : [validation sémantique, type fonction, type variadique]
  */
 
 importe Fondation

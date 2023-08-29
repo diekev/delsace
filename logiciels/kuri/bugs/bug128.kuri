@@ -1,5 +1,7 @@
 /* Les constantes de types tableaux fixes ne sont pas correctement
- * convertis en tableau dynamique pour les expansions variadiques. */
+ * convertis en tableau dynamique pour les expansions variadiques.
+ * Catégorie : [génération code, tableau fixe]
+ */
 
 importe Fondation
 

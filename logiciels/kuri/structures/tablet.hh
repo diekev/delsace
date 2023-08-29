@@ -483,21 +483,25 @@ class tablet {
 
     T &front()
     {
+        assert(m_taille > 0);
         return m_memoire[0];
     }
 
     T const &front() const
     {
+        assert(m_taille > 0);
         return m_memoire[0];
     }
 
     T &back()
     {
+        assert(m_taille > 0);
         return m_memoire[m_taille - 1];
     }
 
     T const &back() const
     {
+        assert(m_taille > 0);
         return m_memoire[m_taille - 1];
     }
 

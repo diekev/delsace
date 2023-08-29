@@ -1,4 +1,6 @@
-/* Impossible de comparer un opaque de pointeur avec nul. */
+/* Impossible de comparer un opaque de pointeur avec nul.
+ * Catégorie : [validation sémantique, opérateur, type opaque]
+ */
 
 importe Chaine
 

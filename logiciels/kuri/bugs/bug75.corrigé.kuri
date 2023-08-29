@@ -1,5 +1,7 @@
 /* Mauvaise génération de RI pour des controles de flux complexe.
- * Il semblerait que « sansarrêt » produise une erreur. */
+ * Il semblerait que « sansarrêt » produise une erreur.
+ * Catégorie : [génération code, controle boucle]
+ */
 
 principale :: fonc () -> z32
 {

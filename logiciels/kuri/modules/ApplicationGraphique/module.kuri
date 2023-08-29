@@ -1,5 +1,4 @@
-/* Module de création d'application avec fenêtres.
- * Basé pour le moment sur SDL2. */
+/* Module de création d'application avec fenêtres utilisant SDL2 ou GLFW. */
 
 /*
 
@@ -12,177 +11,76 @@ Le système donne des rappels au programme :
 
  */
 
-importe Chaine
 importe Compilatrice
 importe Dessin
 importe Fondation
 importe Géométrie
 importe OpenGL
-importe Périphériques
-importe SDL2
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fenêtre
+ * \{ */
+
+Fenêtre :: struct {
+    hauteur : z32
+    largeur : z32
+
+    /* Rappels pour les coulisses. */
+    sur_destruction: fonc(*Fenêtre)(rien)
+}
+
+ArgumentsCréationFenêtre :: struct {
+    titre: chaine
+    rect: RectanglePosDim(z32)
+    plein_écran: bool
+}
+
+détruit_fenêtre :: fonc (fenêtre: *Fenêtre)
+{
+    si fenêtre.sur_destruction {
+        fenêtre.sur_destruction(fenêtre)
+    }
+}
+
+redimensionne_fenêtre :: fonc (fenêtre: *Fenêtre, largeur: z32, hauteur: z32)
+{
+    fenêtre.hauteur = hauteur
+    fenêtre.largeur = largeur
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Application
  * \{ */
 
 Application :: struct {
-    est_en_exécution: bool
-
-    /* Données par fenêtre. */
-    fenêtre : *SDL_Window = nul
-    tampon_de_rendu: TamponDeRendu
-    // dessin OpenGL
-    tampon_texture: *TamponTexture
-
-    /* Contexte OpenGL. */
-    contexte: *rien
-
-    hauteur : z32
-    largeur : z32
+    fenêtre: *Fenêtre
 }
 
-application_globale : Application
+application_globale : *Application
 
 donne_application :: fonc () -> *Application
 {
-    retourne *application_globale
-}
-
-crée_application :: fonc (nom: chaine, rect: Rectangle, plein_écran := faux) -> *Application
-{
-    app := donne_application()
-
-    si SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING) != 0 {
-        imprime("Impossible d'intialiser SDL !\n")
-        retourne nul
-    }
-
-    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
-
-    drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE
-
-    si plein_écran {
-        drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
-    }
-
-    chn_titre := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chn_titre)
-    app.fenêtre = SDL_CreateWindow(chn_titre comme *z8, rect.x, rect.y, rect.largeur, rect.hauteur, drapeaux)
-
-    si app.fenêtre == nul {
-        imprime("Impossible de créer la fenêtre !\n")
-        retourne nul
-    }
-
-    app.contexte = SDL_GL_CreateContext(app.fenêtre)
-    si app.contexte == nul {
-        imprime("Impossible de créer le contexte OpenGL !\n")
-        retourne nul
-    }
-
-    si !initialise_opengl() {
-        imprime("Erreur lors de l'initilisation de GLEW !\n")
-        retourne nul
-    }
-
-    app.est_en_exécution = vrai
-    app.tampon_de_rendu = crée_tampon_de_rendu(rect)
-    app.hauteur = rect.hauteur
-    app.largeur = rect.largeur
-
-    retourne app
+    retourne application_globale
 }
 
 redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
 {
-    redimensionne_tampon_de_rendu(*app.tampon_de_rendu, Rectangle(0, 0, hauteur, largeur))
-    app.hauteur = hauteur
-    app.largeur = largeur
-    détruit_tampon_texture(app.tampon_texture)
-    app.tampon_texture = nul
-    glViewport(0, 0, largeur, hauteur)
+    redimensionne_fenêtre(app.fenêtre, largeur, hauteur)
 }
 
-exécute :: fonc (app: *Application, cliente: *$TypeCliente) -> z32
-{
-    // À FAIRE : définis le taux/la stratégie de rafraichissement
-    ips : n32 = 30
-    débit_image_min : n32 = 1000 / ips
-
-    tantque app.est_en_exécution {
-        temps_image := SDL_GetTicks()
-
-        gère_évènement(app, cliente)
-        dessine_application(app, cliente)
-
-        si (SDL_GetTicks() - temps_image) < débit_image_min {
-            durée := débit_image_min - (SDL_GetTicks() - temps_image)
-            SDL_Delay(durée)
-        }
-    }
-
-    si app.tampon_texture {
-        détruit_tampon_texture(app.tampon_texture)
-    }
-
-    détruit_tampon_de_rendu(*app.tampon_de_rendu)
-    SDL_GL_DeleteContext(app.contexte)
-    SDL_Quit()
-
-    retourne 0
-}
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Dessin de fenêtre.
  * \{ */
 
-dessine_application :: fonc (app: *Application, cliente: *$TypeCliente)
-#corps_texte {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    ajoute_au_tampon(*enchaineuse, "glClear(GL_COLOR_BUFFER_BIT)\n")
-
-    info_cliente := info_de(TypeCliente)
-    info_pointeur_cliente := info_de(*TypeCliente)
-
-    mode_dessin := détermine_mode_dessin_fenêtre(info_cliente, info_pointeur_cliente)
-    discr mode_dessin {
-        AUCUN {
-            /* Rien à faire. */
-        }
-        TAMPON_DE_RENDU {
-            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, *app.tampon_de_rendu)\n")
-            ajoute_au_tampon(*enchaineuse, "dessine_tampon_de_rendu(app)\n")
-        }
-        PERSONNALISÉ {
-            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente)\n")
-        }
-    }
-
-    ajoute_au_tampon(*enchaineuse, "SDL_GL_SwapWindow(app.fenêtre)\n")
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
-dessine_tampon_de_rendu :: fonc (app: *Application)
-{
-    si app.tampon_texture == nul {
-        app.tampon_texture = crée_tampon_texture()
-    }
-
-    génère_texture(app.tampon_texture, app.tampon_de_rendu)
-    dessine_tampon_texture(app.tampon_texture)
-}
-
 ModeDessinFenêtre :: énum {
     /* L'application cliente a un rappel de la forme fonc (*TypeCliente)(rien). */
     PERSONNALISÉ
-    /* L'application cliente a un rappel de la forme fonc (*TypeCliente, *TamponDeRendu)(rien). */
-    TAMPON_DE_RENDU
+    /* L'application cliente a un rappel de la forme fonc (*TypeCliente, *Fenêtre)(rien). */
+    FENÊTRE
     /* L'application cliente n'a pas de rappel. */
     AUCUN
 }
@@ -191,7 +89,7 @@ détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_
 {
     /* À FAIRE(langage) : typage des tableaux fixes selon le dénominateur commun. */
     types_entrée_mode_perso := [info_pointeur_cliente comme *InfoType]
-    types_entrée_mode_tampon := [info_pointeur_cliente comme *InfoType, info_de(*TamponDeRendu) comme *InfoType]
+    types_entrée_mode_fenêtre := [info_pointeur_cliente comme *InfoType, info_de(*Fenêtre) comme *InfoType]
     types_sortie := [info_de(rien)]
 
     pour info_cliente.membres {
@@ -211,8 +109,8 @@ détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_
             retourne ModeDessinFenêtre.PERSONNALISÉ
         }
 
-        si apparie_type_fonction(type_fonction, types_entrée_mode_tampon, types_sortie) {
-            retourne ModeDessinFenêtre.TAMPON_DE_RENDU
+        si apparie_type_fonction(type_fonction, types_entrée_mode_fenêtre, types_sortie) {
+            retourne ModeDessinFenêtre.FENÊTRE
         }
 
         rapporte_erreur_membre_sur_dessin(info_cliente, it)
@@ -231,7 +129,7 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
 
     ajoute_au_tampon(*enchaineuse, "Les types possibles sont :\n")
     imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%)(rien), pour un dessin de fenêtre personnalisé,\n", info_cliente.nom)
-    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *TamponDeRendu)(rien), pour un dessin de fenêtre utilisant le module Dessin.\n", info_cliente.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *Fenêtre)(rien), pour un dessiner la fenêtre donnée.\n", info_cliente.nom)
 
     ajoute_au_tampon(*enchaineuse, "\nNote : le type du membre est '")
     imprime_type(*enchaineuse, membre.id)
@@ -245,271 +143,57 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
 
 /** } */
 
-donne_clique_souris_depuis_sdl_event :: fonc (app: *Application, évènement: SDL_Event, action: ActionSouris) -> CliqueSouris
-{
-    mappage_bouton := [BoutonSouris.PRIMAIRE, BoutonSouris.TERTIAIRE, BoutonSouris.CONTEXTUEL, BoutonSouris.AVANT, BoutonSouris.ARRIÈRE]
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
 
-    état_souris: ÉtatSouris
-    état_souris.où.x = évènement.button.x
-    état_souris.où.y = app.hauteur - évènement.button.y
-
-    résultat : CliqueSouris
-    résultat.état = état_souris
-    résultat.bouton = mappage_bouton[évènement.button.button - 1]
-    résultat.action = action
-    retourne résultat
+ÉvènementRequis :: énum_drapeau {
+    CLIQUE_SOURIS
+    DOUBLE_CLIQUE
+    MOUVEMENT_SOURIS
+    TOUCHE_CLAVIER
+    FIN_APPLICATION
+    REDIMENSION_FENÊTRE
 }
 
-gère_évènement :: fonc (app: *Application, cliente: *$TypeCliente)
-#corps_texte {
-    ÉvènementRequis :: énum_drapeau {
-        CLIQUE_SOURIS
-        DOUBLE_CLIQUE
-        MOUVEMENT_SOURIS
-        TOUCHE_CLAVIER
-        FIN_APPLICATION
-        REDIMENSION_FENÊTRE
-    }
-
-    info_cliente := info_de(TypeCliente)
-
-    évènements_requis : ÉvènementRequis
+détermine_évènements_requis :: fonc (info_cliente: *InfoTypeStructure) -> ÉvènementRequis
+{
+    résultat : ÉvènementRequis
 
     pour info_cliente.membres {
         // À FAIRE : valide les types
         si it.nom == "sur_clique_souris" {
-            évènements_requis.CLIQUE_SOURIS = vrai
+            résultat.CLIQUE_SOURIS = vrai
             continue
         }
 
         si it.nom == "sur_mouvement_souris" {
-            évènements_requis.MOUVEMENT_SOURIS = vrai
+            résultat.MOUVEMENT_SOURIS = vrai
             continue
         }
 
         si it.nom == "sur_double_clique_souris" {
-            évènements_requis.DOUBLE_CLIQUE = vrai
+            résultat.DOUBLE_CLIQUE = vrai
             continue
         }
 
         si it.nom == "sur_fin_application" {
-            évènements_requis.FIN_APPLICATION = vrai
+            résultat.FIN_APPLICATION = vrai
             continue
         }
 
         si it.nom == "sur_touche_clavier" {
-            évènements_requis.TOUCHE_CLAVIER = vrai
+            résultat.TOUCHE_CLAVIER = vrai
             continue
         }
 
         si it.nom == "sur_redimension_fenêtre" {
-            évènements_requis.REDIMENSION_FENÊTRE = vrai
+            résultat.REDIMENSION_FENÊTRE = vrai
+            continue
         }
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    // -------------
-    ajoute_au_tampon(*enchaineuse, "    évènement: SDL_Event\n")
-    ajoute_au_tampon(*enchaineuse, "    tantque SDL_PollEvent(*évènement) != 0 {\n")
-    ajoute_au_tampon(*enchaineuse, "        discr évènement.type {\n")
-
-    ajoute_au_tampon(*enchaineuse, "            SDL_QUIT {\n")
-    ajoute_au_tampon(*enchaineuse, "                app.est_en_exécution = faux\n")
-    si évènements_requis.FIN_APPLICATION {
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_fin_application(cliente)\n")
-    }
-    ajoute_au_tampon(*enchaineuse, "            }\n")
-
-    si évènements_requis.MOUVEMENT_SOURIS {
-        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEMOTION {\n")
-        ajoute_au_tampon(*enchaineuse, "                état_souris: ÉtatSouris\n")
-        ajoute_au_tampon(*enchaineuse, "                état_souris.où.x = évènement.motion.x\n")
-        ajoute_au_tampon(*enchaineuse, "                état_souris.où.y = app.hauteur - évènement.motion.y\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_mouvement_souris(cliente, état_souris)\n")
-        ajoute_au_tampon(*enchaineuse, "            }\n")
-    }
-
-    si évènements_requis.CLIQUE_SOURIS {
-        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONDOWN {\n")
-        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.PRESSÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
-        ajoute_au_tampon(*enchaineuse, "            }\n")
-        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONUP {\n")
-        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.RELACHÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
-        ajoute_au_tampon(*enchaineuse, "            }\n")
-    }
-
-    si évènements_requis.TOUCHE_CLAVIER {
-        ajoute_au_tampon(*enchaineuse, "            SDL_KEYDOWN {\n")
-        ajoute_au_tampon(*enchaineuse, "                clé_clavier := clé_clavier_depuis_sdl(évènement.key.keysym.scancode)\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_touche_clavier(cliente, clé_clavier)\n")
-        ajoute_au_tampon(*enchaineuse, "            }\n")
-    }
-
-    ajoute_au_tampon(*enchaineuse, "            SDL_WINDOWEVENT {\n")
-    ajoute_au_tampon(*enchaineuse, "                si évènement.window.event == SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED {\n")
-    ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
-    ajoute_au_tampon(*enchaineuse, "                    hauteur := évènement.window.data2\n")
-    ajoute_au_tampon(*enchaineuse, "                    redimensionne_app(app, largeur, hauteur)\n")
-    si évènements_requis.REDIMENSION_FENÊTRE {
-        ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, hauteur, largeur)\n")
-    }
-    ajoute_au_tampon(*enchaineuse, "                }\n")
-    ajoute_au_tampon(*enchaineuse, "            }\n")
-
-    ajoute_au_tampon(*enchaineuse, "            sinon {\n")
-    ajoute_au_tampon(*enchaineuse, "            }\n")
-    ajoute_au_tampon(*enchaineuse, "        }\n")
-    ajoute_au_tampon(*enchaineuse, "    }\n")
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TamponTexture
- * \{ */
-
-TamponTexture :: struct {
-    programme : n32
-
-    id_tampon_vertex : n32
-    id_tampon_index : n32
-    id_tableau_vertex : n32
-
-    code_texture : n32
-}
-
-crée_tampon_texture :: fonc () -> *TamponTexture
-{
-    source_vertex := "
-    #version 330 core
-    layout(location = 0) in vec2 sommets;
-    smooth out vec2 UV;
-    void main()
-    {
-        gl_Position = vec4(sommets * 2.0 - 1.0, 0.0, 1.0);
-        UV = sommets;
-    }
-    "
-
-    source_fragment := "
-    #version 330 core
-    layout (location = 0) out vec4 couleur_fragment;
-    smooth in vec2 UV;
-    uniform sampler2D image;
-    void main()
-    {
-        vec2 flipped = vec2(UV.x, UV.y);
-        couleur_fragment = texture(image, flipped);
-    }
-    "
-
-    id_programme := compile_un_programme(source_vertex, source_fragment)
-    saufsi id_programme.possède_valeur() {
-        retourne nul
-    }
-
-    tampon_texture := loge(TamponTexture)
-    tampon_texture.programme = id_programme
-
-    // ------------------
-
-    glCreateTextures(GL_TEXTURE_2D, 1, *tampon_texture.code_texture)
-    vérifie_erreur("crée_tampon_texture glGenTextures")
-
-    glUseProgram(tampon_texture.programme)
-    vérifie_erreur("crée_tampon_texture glUseProgram")
-
-    loc := glGetUniformLocation(tampon_texture.programme, "image\0".pointeur)
-    vérifie_erreur("crée_tampon_texture glGetUniformLocation")
-
-	glUniform1i(loc, 0);
-    vérifie_erreur("crée_tampon_texture glUniform1i")
-
-    glUseProgram(0)
-
-    // ------------------
-
-    glGenVertexArrays(1, *tampon_texture.id_tableau_vertex)
-    vérifie_erreur("crée_tampon_texture glGenVertexArrays")
-    glGenBuffers(1, *tampon_texture.id_tampon_index)
-    glGenBuffers(1, *tampon_texture.id_tampon_vertex)
-    vérifie_erreur("crée_tampon_texture glGenBuffers")
-
-    // création du tableau de sommets
-    glBindVertexArray(tampon_texture.id_tableau_vertex)
-    diffère glBindVertexArray(0)
-
-    sommets := [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ]
-
-	glBindBuffer(GL_ARRAY_BUFFER, tampon_texture.id_tampon_vertex);
-	glBufferData(GL_ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), *sommets[0], GL_STATIC_DRAW);
-    vérifie_erreur("crée_tampon_texture glBufferData")
-
-    index := [ 0, 1, 2, 0, 2, 3 ];
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), *index[0], GL_STATIC_DRAW);
-    vérifie_erreur("crée_tampon_texture glBufferData index")
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nul);
-
-    retourne tampon_texture
-}
-
-dessine_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
-{
-    glUseProgram(tampon_texture.programme)
-    diffère glUseProgram(0)
-
-    glBindVertexArray(tampon_texture.id_tableau_vertex)
-    diffère glBindVertexArray(0)
-
-	glBindTextureUnit(0, tampon_texture.code_texture)
-    diffère glBindTextureUnit(0, 0)
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nul)
-}
-
-détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
-{
-    glDeleteVertexArrays(1, *tampon_texture.id_tableau_vertex)
-    glDeleteBuffers(1, *tampon_texture.id_tampon_vertex)
-    glDeleteBuffers(1, *tampon_texture.id_tampon_index)
-    détruit_programme(tampon_texture.programme)
-
-    déloge(tampon_texture)
-}
-
-génère_texture :: fonc (tampon_texture: *TamponTexture, données: TamponDeRendu)
-{
-    vérifie_erreur("génère_texture entrée")
-
-    // si glIsTexture(tampon_texture.code_texture) {
-	// 	glDeleteTextures(1, *tampon_texture.code_texture);
-    //     glCreateTextures(GL_TEXTURE_2D, 1, *tampon_texture.code_texture);
-    //     vérifie_erreur("génère_texture glGenTextures")
-	// }
-
-	glBindTextureUnit(0, tampon_texture.code_texture);
-    vérifie_erreur("génère_texture glBindTexture")
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, données.rect.largeur, données.rect.hauteur, 0, GL_RGBA, GL_UNSIGNED_BYTE, données.données.pointeur)
-    vérifie_erreur("génère_texture glTexImage2D")
-
-	glBindTextureUnit(0, 0);
-    vérifie_erreur("génère_texture glBindTexture 0")
+    retourne résultat
 }
 
 /** } */

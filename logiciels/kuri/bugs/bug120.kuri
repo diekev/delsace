@@ -1,6 +1,8 @@
 /* Une fonction polymorphique peut accéder des paramètres d'une autre
  * fonction sans qu'ils ne le sont passés. Ceci ne crée pas d'erreur de
- * compilation de notre côté, mais dans la coulisse C. */
+ * compilation de notre côté, mais dans la coulisse C.
+ * Catégorie : [validation sémantique, portée, fonction polymorphique]
+ */
 
 ne_passe_pas_variable :: fonc (variable: z32) -> z32
 {

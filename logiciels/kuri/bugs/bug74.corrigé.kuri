@@ -1,4 +1,6 @@
-/* Aucune erreur de compilation quand un type variadique est utilisé dans une structure. */
+/* Aucune erreur de compilation quand un type variadique est utilisé dans une structure.
+ * Catégorie : [validation sémantique, type structure, type variadique]
+ */
 
 Maçon :: struct {
     param: ...

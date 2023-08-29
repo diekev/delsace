@@ -1,5 +1,7 @@
 /* Les boucles « pour » personnalisées contenant des instructions de controle 
- * de boucle peuvent accéder aux instructions diffère hors de leurs portées. */
+ * de boucle peuvent accéder aux instructions diffère hors de leurs portées.
+ * Catégorie : [validation sémantique, portée, diffère, opérateur pour]
+ */
 
 importe Fondation
 

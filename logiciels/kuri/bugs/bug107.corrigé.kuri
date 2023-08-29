@@ -1,4 +1,6 @@
-/* Mauvaise génération de code pour les raccourcis booléens des énums drapeaux. */
+/* Mauvaise génération de code pour les raccourcis booléens des énums drapeaux.
+ * Catégorie : [génération code, type énum drapeau]
+ */
 
 ÉnumDrapeau :: énum_drapeau {
     X

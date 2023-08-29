@@ -1,5 +1,7 @@
 /* Aucune erreur de compilation si nous tentons d'utiliser une fonction de la
- * compilatrice dans le code final. */
+ * compilatrice dans le code final.
+ * Catégorie : [validation sémantique, ipa compilatrice]
+ */
 
 importe Compilatrice
 

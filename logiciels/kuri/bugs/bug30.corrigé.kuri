@@ -1,5 +1,6 @@
-// une expression de type x : z32 := 0 devrait résulter en une erreur de compilation, ou
-// nous devrions régler l'arbre syntaxique
+/* Une expression de type x : z32 := 0 devrait résulter en une erreur de compilation.
+ * Catégorie : [syntaxage, syntaxe malformée]
+ */
 
 importe Support
 

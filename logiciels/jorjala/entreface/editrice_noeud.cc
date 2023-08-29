@@ -141,8 +141,8 @@ void EditriceGraphe::ajourne_état(JJL::ChangementÉditrice changement)
             auto rectangle_prise = prise.donne_rectangle();
             auto rectangle_lien = connexion.donne_prise_sortie().donne_rectangle();
 
-            auto const p1 = rectangle_prise.position_centrale();
-            auto const p2 = rectangle_lien.position_centrale();
+            auto const p1 = rectangle_prise.donne_point_central();
+            auto const p2 = rectangle_lien.donne_point_central();
 
             auto ligne = new QGraphicsLineItem();
 
@@ -163,14 +163,14 @@ void EditriceGraphe::ajourne_état(JJL::ChangementÉditrice changement)
 
     if (graphe.donne_connexion_interactive()) {
         auto connexion = graphe.donne_connexion_interactive();
-        JJL::Vec2 p1({});
+        JJL::Point2D_r32_ p1({});
         if (connexion.donne_prise_entrée() != nullptr) {
             auto prise_entree = connexion.donne_prise_entrée();
-            p1 = prise_entree.donne_rectangle().position_centrale();
+            p1 = prise_entree.donne_rectangle().donne_point_central();
         }
         else {
             auto prise_sortie = connexion.donne_prise_sortie();
-            p1 = prise_sortie.donne_rectangle().position_centrale();
+            p1 = prise_sortie.donne_rectangle().donne_point_central();
         }
 
         auto const x2 = connexion.donne_x();

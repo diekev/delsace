@@ -1,4 +1,7 @@
-/* Duplication d'une fonction quand opérateur pour ExplotriceFichier est utilisée. */
+/* Duplication d'une fonction quand opérateur pour ExplotriceFichier est
+ * utilisée.
+ * Catégorie : [validation sémantique, opérateur pour]
+ */
 
 importe Fondation
 importe SysFichier

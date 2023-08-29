@@ -76,17 +76,4 @@ supprime_caractère_unicode :: fonc (chn: *chaine)
     chn.taille = ptr_dest - chn.pointeur
 }
 
-// À FAIRE(langage) : crash dans la MV si le type retour est n32 (la conversion vers z64 pour l'indexage ne fonctionne pas)
-index_bit_taille_octet :: fonc (taille: n32) -> z32
-{
-    résultat : z32 = 0
-
-    tantque taille / 2 != 0 {
-        résultat += 1
-        taille /= 2
-    }
-
-    retourne résultat
-}
-
 /** } */

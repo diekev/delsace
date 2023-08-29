@@ -1,4 +1,7 @@
-// Verrou mort lorsqu'une erreur survient dans une compilation d'un script erroné
+/* Verrou mort lorsqu'une erreur survient dans une compilation d'un script
+ * erroné.
+ * Catégorie : [compilation infini]
+ */
 
 importe Support
 

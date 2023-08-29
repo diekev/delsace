@@ -246,8 +246,11 @@ convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, t
     résultat := MéthodeIPA(noeud_code = entête)
     résultat.nom = entête.nom
     si type_méthode {
-        résultat.nom_rappel_pour_table = enchaine(type_méthode.nom, "_", entête.nom)
-        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", type_méthode.nom, "_", entête.nom)
+        nom_type := copie_chaine(type_méthode.nom)
+        diffère déloge(nom_type)
+        supprime_points_et_parenthèses(*nom_type)
+        résultat.nom_rappel_pour_table = enchaine(nom_type, "_", entête.nom)
+        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_type, "_", entête.nom)
     }
     sinon {
         nom_premier_param := nom_pour_premier_param(entête)

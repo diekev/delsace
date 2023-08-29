@@ -1,7 +1,9 @@
-// mauvaise génération de RI quand nous retournons un pointeur d'une fonction
-// retournant un type dérivé d'une fonction retournant un type de base
-// NOTE : modifier noeud_courant dans la parseuse de HTML, où le bug a été
-//        détecté quand il sera résolu
+/* Mauvaise génération de RI quand nous retournons un pointeur d'une fonction
+ * retournant un type dérivé d'une fonction retournant un type de base
+ * NOTE : modifier noeud_courant dans la parseuse de HTML, où le bug a été
+ *        détecté quand il sera résolu
+ * Catégorie : [génération code, conversion implicite, struct employée]
+ */
 
 importe Support
 

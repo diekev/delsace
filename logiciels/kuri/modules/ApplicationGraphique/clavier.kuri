@@ -1,5 +1,5 @@
-importe SDL2
 importe Périphériques
+importe SDL2
 
 // --------------------------------------------------
 // Compatibilité avec SDL2

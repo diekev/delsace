@@ -1,4 +1,7 @@
-// la génération de la RI ou du code C est mauvaise pour les déréférencement de tableau fixe
+/* La génération de la RI ou du code C est mauvaise pour les déréférencement
+ * de tableau fixe
+ * Catégorie : [génération code, expression mémoire, type tableau]
+ */
 
 /* Démonstration du bug. */
 remplis_tableau_via_mémoire :: fonc (tabl: *[3]z32)

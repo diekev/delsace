@@ -1,7 +1,9 @@
-// Les conditions des controles de flux ne sont pas court-circuitées
-// quand ont a une condition du style a && b, si a est faux nous pourrions
-// ne pas évaluer b
-// de même, pour une conditoin a || b, si a est vrai, b n'a pas besoin d'être évaluée
+/* Les conditions des controles de flux ne sont pas court-circuitées
+ * quand ont a une condition du style a && b, si a est faux nous pourrions
+ * ne pas évaluer b
+ * de même, pour une conditoin a || b, si a est vrai, b n'a pas besoin d'être évaluée
+ * Catégorie : [génération code, court-circuit comparaison]
+ */
 
 principale :: fonc () -> z32
 {

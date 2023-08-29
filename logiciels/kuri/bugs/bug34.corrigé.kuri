@@ -1,4 +1,7 @@
-// crash quand nous appelons un pointeur de fonction avec des paramètres ménombrés
+/* Crash quand nous appelons un pointeur de fonction avec des paramètres
+ * ménombrés.
+ * Catégorie : [validation sémantique, validation appel, type fonction, pointeur fonction]
+ */
 
 importe Support
 

@@ -1,4 +1,6 @@
-/* Crash quand nous discriminons une union en se basant sur les types des membres. */
+/* Crash quand nous discriminons une union en se basant sur les types des membres.
+ * Catégorie : [crash, discr, type union]
+ */
 
 Structure1 :: struct {
     x: r32

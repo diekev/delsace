@@ -190,6 +190,16 @@ calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y:
     retourne résultat
 }
 
+TamponImage :: struct ($T: type_de_données) {
+    données: *T
+    largeur: z32
+    hauteur: z32
+}
+
+TamponImageGrise8Bit :: TamponImage(n8)
+TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
+TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
+
 /*
 
 // tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C

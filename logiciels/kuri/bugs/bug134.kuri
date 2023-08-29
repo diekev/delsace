@@ -1,0 +1,20 @@
+/* Compilation infini si nous utilisons un type polymorphique dans les
+ * paramètres d'un type pointeur de fonction sans déclarer les paramètres
+ * polymorphiques.
+ * Catégorie : [compilation infini, validation sémantique, type polymorphique]
+ */
+
+Polymorphe :: struct ($T: type_de_données) {
+    x: T
+}
+
+Interface :: struct {
+    /* Les paramètres de monomorphisation manquent. */
+    rappel: fonc(Polymorphe)(rien)
+}
+
+principale :: fonc () -> z32
+{
+    i : Interface
+    retourne 0
+}

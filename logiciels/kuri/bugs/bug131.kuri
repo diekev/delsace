@@ -1,4 +1,6 @@
-/* Passer une union nonsure par adresse ne fonctionne pas. */
+/* Passer une union nonsure par adresse ne fonctionne pas.
+ * Catégorie : [génération code, union]
+ */
 
 importe Fondation 
 

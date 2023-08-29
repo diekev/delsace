@@ -1,4 +1,6 @@
-/* Impossible de convertir implicitement un opaque de pointeur vers un *octet. */
+/* Impossible de convertir implicitement un opaque de pointeur vers un *octet.
+ * Catégorie : [validation sémantique, conversion implicite, type opaque]
+ */
 
 importe Chaine
 

@@ -1,4 +1,6 @@
-// Les arithmétiques de pointeurs échouent dans la MV dans certains cas.
+/* Les arithmétiques de pointeurs échouent dans la MV dans certains cas.
+ * Catégorie : [exécution code, arithmétique pointeur]
+ */
 
 importe Compilatrice
 importe Support

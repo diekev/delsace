@@ -1,3 +1,5 @@
+importe Chaine
+
 // À FAIRE : trouve quels symboles sont dans quelle bibliothèque
 libGL :: #bibliothèque "GL"
 libGLEW :: #bibliothèque "GLEW"
@@ -45,6 +47,10 @@ GL_LINK_STATUS : GLenum : 0x8B82
 GL_INFO_LOG_LENGTH : GLenum : 0x8B84
 GL_COMPILE_STATUS : GLenum : 0x8B81
 GL_BLEND : GLenum : 0x0BE2
+GL_BLEND_DST_RGB : GLenum : 0x80C8
+GL_BLEND_SRC_RGB : GLenum : 0x80C9
+GL_BLEND_DST_ALPHA : GLenum : 0x80CA
+GL_BLEND_SRC_ALPHA : GLenum : 0x80CB
 GL_SRC_ALPHA : GLenum : 0x0302
 GL_ONE_MINUS_SRC_ALPHA : GLenum : 0x0303
 GL_TEXTURE0 : GLenum : 0x84C0
@@ -92,8 +98,6 @@ glewInit :: fonc () -> z32 #externe libGLEW
 glClear :: fonc (bit : n32) -> rien #externe libGL
 glClearColor :: fonc (r : r32, g : r32, b : r32, a : r32) -> rien #externe libGL
 
-glEnable :: fonc (cap: GLenum) -> rien #externe libGL
-glDisable :: fonc (cap: GLenum) -> rien #externe libGL
 glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe libGL
 
 glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe libGL
@@ -115,9 +119,68 @@ glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL
 glDrawArrays :: fonc (mode : n32, first : z32, count : z64) -> rien #externe libGL
 glDrawElements :: fonc (mode : GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
-glUniform1ui :: fonc (loc: n32, uniform: n32) -> rien #externe libGL
-glUniform1i :: fonc (loc: n32, uniform: z32) -> rien #externe libGL
-glUniformMatrix4fv :: fonc (loc: n32, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+
+/* ------------------------------------------------------------------------- */
+/** \nom Capacités.
+ * \{ */
+
+glIsEnabled :: fonc (cap: GLenum) -> GLboolean #externe libGL
+glIsEnabledi :: fonc (cap: GLenum, index: GLuint) -> GLboolean #externe libGL
+
+glEnable :: fonc (cap: GLenum) -> rien #externe libGL
+glDisable :: fonc (cap: GLenum) -> rien #externe libGL
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Attributes.
+ * \{ */
+
+glGetAttribLocation :: fonc (programme: GLuint, nom: ChaineC) -> GLint #externe libGL
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Uniforms.
+ * \{ */
+
+glGetUniformLocation :: fonc (programme: GLuint, name: ChaineC) -> GLint #externe libGL
+
+glUniform1f :: fonc (location: GLint, v0: GLfloat) -> rien #externe libGL
+glUniform2f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat) -> rien #externe libGL
+glUniform3f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat) -> rien #externe libGL
+glUniform4f :: fonc (location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat, v3: GLfloat) -> rien #externe libGL
+glUniform1i :: fonc (location: GLint, v0: GLint) -> rien #externe libGL
+glUniform2i :: fonc (location: GLint, v0: GLint, v1: GLint) -> rien #externe libGL
+glUniform3i :: fonc (location: GLint, v0: GLint, v1: GLint, v2: GLint) -> rien #externe libGL
+glUniform4i :: fonc (location: GLint, v0: GLint, v1: GLint, v2: GLint, v3: GLint) -> rien #externe libGL
+glUniform1ui :: fonc (location: GLint, v0: GLuint) -> rien #externe libGL
+glUniform2ui :: fonc (location: GLint, v0: GLuint, v1: GLuint) -> rien #externe libGL
+glUniform3ui :: fonc (location: GLint, v0: GLuint, v1: GLuint, v2: GLuint) -> rien #externe libGL
+glUniform4ui :: fonc (location: GLint, v0: GLuint, v1: GLuint, v2: GLuint, v3: GLuint) -> rien #externe libGL
+glUniform1fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
+glUniform2fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
+glUniform3fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
+glUniform4fv :: fonc (location: GLint, count: GLsizei, value: *GLfloat) -> rien #externe libGL
+glUniform1iv :: fonc (location: GLint, count: GLsizei, value: *GLint) -> rien #externe libGL
+glUniform2iv :: fonc (location: GLint, count: GLsizei, value: *GLint) -> rien #externe libGL
+glUniform3iv :: fonc (location: GLint, count: GLsizei, value: *GLint) -> rien #externe libGL
+glUniform4iv :: fonc (location: GLint, count: GLsizei, value: *GLint) -> rien #externe libGL
+glUniform1uiv :: fonc (location: GLint, count: GLsizei, value: *GLuint) -> rien #externe libGL
+glUniform2uiv :: fonc (location: GLint, count: GLsizei, value: *GLuint) -> rien #externe libGL
+glUniform3uiv :: fonc (location: GLint, count: GLsizei, value: *GLuint) -> rien #externe libGL
+glUniform4uiv :: fonc (location: GLint, count: GLsizei, value: *GLuint) -> rien #externe libGL
+glUniformMatrix2fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix3fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix4fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix2x3fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix3x2fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix2x4fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix4x2fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix3x4fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+glUniformMatrix4x3fv :: fonc (location: GLint, count: GLsizei, transpose: GLboolean, value: *GLfloat) -> rien #externe libGL
+
+/** } */
 
 glGetIntegerv :: fonc (pname: GLenum, data: *GLint) -> GLvoid #externe libGL
 
@@ -133,11 +196,11 @@ glCreateTextures :: fonc (target: GLenum, n: GLsizei, textures: *GLuint) -> rien
 
 glTexImage2D :: fonc (
     cible: GLenum,
-    x: GLenum,
+    level: GLint,
     format_interne: GLenum,
-    taille_x: z32,
-    taille_z: z32,
-    bordure: GLenum,
+    taille_x: GLsizei,
+    taille_z: GLsizei,
+    bordure: GLint,
     format: GLenum,
     type: GLenum,
     données: *rien) -> rien #externe libGL
@@ -157,8 +220,6 @@ glGetShaderiv :: fonc (shader : n32, pname : n32, params : *z32) -> rien #extern
 glGetShaderInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
 glGetProgramiv :: fonc (program : n32, pname : n32, params : *z32) -> rien #externe libGL
 glGetProgramInfoLog :: fonc (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien #externe libGL
-glGetAttribLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe libGL
-glGetUniformLocation :: fonc (programme : n32, nom: *z8) -> n32 #externe libGL
 glIsShader :: fonc (shader: n32) -> bool #externe libGL
 glIsProgram :: fonc (program: GLuint) -> GLboolean #externe libGL
 

@@ -1,6 +1,5 @@
 importe Fondation
 
-
 TypeCaractère :: énum {
     INCONNU
 
@@ -509,7 +508,7 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
                     lexeuse.doit_lexer_chevron_gauche_comme_inclusion = vrai
                 }
             }
-            
+
             si est_mot_clé(identifiant) {
                 ajoute_lexème_mot_clé(lexeuse, identifiant)
             }

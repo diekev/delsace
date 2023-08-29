@@ -1,4 +1,6 @@
-/* Crash quand nous référençons une fonction polymorphique. */
+/* Crash quand nous référençons une fonction polymorphique.
+ * Catégorie : [crash, validation sémantique, référence symbole, fonction polymorphique]
+ */
 
 importe Fondation
 

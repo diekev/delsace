@@ -1,4 +1,6 @@
-// crash lors de la construction d'un tableau d'octet depuis un pointeur nul
+/* Crash lors de la construction d'un tableau d'octet depuis un pointeur nul
+ * Catégorie : [crash, conversion implicite, type tableau octet, pointeur nul]
+ */
 
 principale :: fonc () -> z32
 {

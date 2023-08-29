@@ -175,7 +175,7 @@ initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléato
         sinon {
             initialise_dernière_ligne(*constructrice)
         }
-        
+
         copie_ligne_vers_labyrinthe(*constructrice, index_it)
         avance_ligne_suivante(*constructrice)
     }
@@ -367,7 +367,7 @@ initialise_dernière_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEl
         si cx0.groupe != cx1.groupe {
             cx0.position_mur.DROITE = faux
             cx1.position_mur.GAUCHE = faux
-            
+
             tableau_supprime_valeur(*cx1.groupe.cellules, cx1)
             tableau_ajoute(*cx0.groupe.cellules, cx1)
             cx1.groupe = cx0.groupe

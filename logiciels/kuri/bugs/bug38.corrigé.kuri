@@ -1,4 +1,6 @@
-// Impossible de compiler un programme quand nous avons une constante de type de fonction
+/* Impossible de compiler un programme quand nous avons une constante de type de fonction
+ * Catégorie : [validation sémantique, déclaration constante, type fonction]
+ */
 
 importe Support
 

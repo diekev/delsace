@@ -1,5 +1,7 @@
 /* Crash si l'expression par défaut d'un membre d'une structure référence un
- * membre de celle-ci. */
+ * membre de celle-ci.
+ * Catégorie : [crash, type structure, expression membre]
+ */
 
 MaStructure :: struct {
     x : z32 = 1

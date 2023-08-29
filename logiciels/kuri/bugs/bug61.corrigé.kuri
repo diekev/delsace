@@ -1,4 +1,6 @@
-// les nombres réels ne sont pas imprimés correctement via les métaprogrammes
+/* Les nombres réels ne sont pas imprimés correctement via les métaprogrammes
+ * Catégorie : [exécution code, type réel]
+ */
 
 importe Fondation
 

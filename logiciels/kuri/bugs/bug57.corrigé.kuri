@@ -1,5 +1,8 @@
-// les arithmétiques de pointeurs ne prennent pas en compte la taille du type pointé, dans la machine virtuelle
-// NOTE : voir cas dans Documentation/construit_documentation.kuri
+/* Les arithmétiques de pointeurs ne prennent pas en compte la taille du type
+ * pointé, dans la machine virtuelle
+ * NOTE : voir cas dans Documentation/construit_documentation.kuri
+ * Catégorie : [exécution code, arithmétique pointeur]
+ */
 
 importe Support
 

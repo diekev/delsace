@@ -1,6 +1,7 @@
 /* Erreur de compilation si les paramètres d'un opérateur sont des références.
  * Voir note « les prises de références n'ont pas l'air de fonctionner pour les opérateurs »
  * dans Jorjala.
+ * Catégorie : [validation sémantique, opérateur, conversion implicite]
  */
 
 Structure :: struct {

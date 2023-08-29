@@ -1,4 +1,6 @@
-/* Crash quand les #test ne font pas grand chose. */
+/* Crash quand les #test ne font pas grand chose.
+ * Catégorie : [crash, directive test]
+ */
 
 #test {
     x := 1

@@ -1024,7 +1024,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            auto locale = static_cast<NoeudDeclarationSymbole *>(decl_ref)->atome;
+            auto locale = decl_ref->comme_declaration_symbole()->atome;
             assert_rappel(locale, [&]() {
                 erreur::imprime_site(*m_espace, noeud);
                 std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " ("

@@ -1,4 +1,7 @@
-// Ce code ne devrait pas compiler car nous ne pouvons pas savoir s'il faut appeler la fonction ou le pointeur de fonction
+/* Ce code ne devrait pas compiler car nous ne pouvons pas savoir s'il faut
+ * appeler la fonction ou le pointeur de fonction
+ * Catégorie : [validation sémantique, redéfinition symbole]
+ */
 
 importe Support
 

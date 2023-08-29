@@ -1,4 +1,7 @@
-// L'impression de la valeur des énumérations ne fonctionnent pas dans les métaprogrammes
+/* L'impression de la valeur des énumérations ne fonctionnent pas dans les
+ * métaprogrammes
+ * Catégorie : [exécution code, info type, type énum]
+ */
 
 importe Fondation
 

@@ -1,0 +1,11 @@
+/* Crash si nous accédons à une variable globale non constante d'un module
+ * importé depuis une expression de référence de membre.
+ * Catégorie : [crash]
+ */
+
+importe Support
+
+principale :: fonc () -> z32
+{
+    retourne Support.variable_globale
+}

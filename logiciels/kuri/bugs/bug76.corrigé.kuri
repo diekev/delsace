@@ -1,5 +1,7 @@
 /* Crash dans la Machine virtuelle quand un entier constant est
- * transtypé. */
+ * transtypé.
+ * Catégorie : [crash, exécution code, conversion type, type entier constant]
+ */
 
 absolue :: fonc (a: $T) -> T
 {

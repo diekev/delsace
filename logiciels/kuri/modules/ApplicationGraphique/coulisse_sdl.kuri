@@ -1,0 +1,313 @@
+importe Chaine
+importe Fondation
+importe Géométrie
+importe OpenGL
+importe Périphériques
+importe SDL2
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fenêtre SDL
+ * \{ */
+
+FenêtreSDL :: struct {
+    empl base: Fenêtre
+
+    fenêtre : *SDL_Window = nul
+    /* Contexte OpenGL. */
+    contexte: *rien
+}
+
+crée_fenêtre_sdl :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*FenêtreSDL)
+{
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
+    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+
+    drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE
+    si args.plein_écran {
+        drapeaux |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN
+    }
+
+    chn_titre := crée_chaine_c(args.titre)
+    diffère détruit_chaine_c(chn_titre)
+
+    rect := args.rect
+
+    fenêtre_sdl := SDL_CreateWindow(chn_titre comme *z8, rect.x, rect.y, rect.largeur, rect.hauteur, drapeaux)
+    si fenêtre_sdl == nul {
+        imprime("Impossible de créer la fenêtre !\n")
+        retourne
+    }
+
+    contexte_gl := SDL_GL_CreateContext(fenêtre_sdl)
+    si contexte == nul {
+        SDL_DestroyWindow(fenêtre_sdl)
+        imprime("Impossible de créer le contexte OpenGL !\n")
+        retourne
+    }
+
+    résultat := loge(FenêtreSDL)
+    résultat.fenêtre = fenêtre_sdl
+    résultat.contexte = contexte_gl
+    résultat.hauteur = rect.hauteur
+    résultat.largeur = rect.largeur
+    résultat.sur_destruction = sur_destruction_fenêtre_sdl
+    retourne résultat
+}
+
+sur_destruction_fenêtre_sdl :: fonc (fenêtre: *Fenêtre)
+{
+    fenêtre_sdl := fenêtre comme *FenêtreSDL
+    SDL_DestroyWindow(fenêtre_sdl.fenêtre)
+    SDL_GL_DeleteContext(fenêtre_sdl.contexte)
+    déloge(fenêtre_sdl)
+}
+
+donne_fenêtre_pour_id :: fonc (app: *ApplicationSDL, id: n32) -> *Fenêtre
+{
+    // À FAIRE : plusieurs fenêtre
+    retourne app.fenêtre
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ApplicationSDL
+ * \{ */
+
+ApplicationSDL :: struct {
+    empl base: Application
+    est_en_exécution: bool
+}
+
+crée_application_sdl :: fonc () -> *ApplicationSDL
+{
+    si SDL_Init(DrapeauxInit.SDL_INIT_EVERYTHING) != 0 {
+        imprime("Impossible d'intialiser SDL !\n")
+        retourne nul
+    }
+
+    app := loge(ApplicationSDL)
+    app.est_en_exécution = vrai
+    retourne app
+}
+
+crée_fenêtre_principale :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente, nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> bool
+#corps_texte {
+    info_cliente := info_de(TypeCliente)
+
+    possède_sur_création_fenêtre := faux
+    pour info_cliente.membres {
+        si it.nom == "sur_création_fenêtre" {
+            types_entrées := [info_de(*TypeCliente) comme *InfoType, info_de(*Fenêtre) comme *InfoType]
+            type_sortie := [info_de(rien)]
+
+            si it.id.id != id_info.FONCTION {
+                // À FAIRE : erreur
+                arrête
+            }
+
+            saufsi apparie_type_fonction(it.id comme *InfoTypeFonction, types_entrées, type_sortie) {
+                arrête
+            }
+
+            possède_sur_création_fenêtre = vrai
+            arrête
+        }
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    préambule := «
+    fenêtre := crée_fenêtre_principal_impl_sdl(nom, rect, plein_écran)
+    saufsi fenêtre {
+        retourne faux
+    }
+    app.fenêtre = fenêtre
+    »
+
+    ajoute_au_tampon(*enchaineuse, préambule)
+    si possède_sur_création_fenêtre {
+        ajoute_au_tampon(*enchaineuse, "cliente.sur_création_fenêtre(cliente, fenêtre)\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+crée_fenêtre_principal_impl_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> *FenêtreSDL
+{
+    args_création_fenêtre : ArgumentsCréationFenêtre
+    args_création_fenêtre.titre = nom
+    args_création_fenêtre.rect = rect
+    args_création_fenêtre.plein_écran = plein_écran
+
+    fenêtre : *FenêtreSDL
+    discr crée_fenêtre_sdl(*args_création_fenêtre) {
+        Quelque(fenêtre_sdl) {
+            fenêtre = fenêtre_sdl
+        }
+        sinon {
+            retourne nul
+        }
+    }
+
+    /* Nous devons avoir un contexte pour ceci. */
+    saufsi initialise_opengl() {
+        détruit_fenêtre(fenêtre)
+        imprime("Erreur lors de l'initilisation de GLEW !\n")
+        retourne nul
+    }
+
+    retourne fenêtre
+}
+
+exécute :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente) -> z32
+{
+    saufsi app.fenêtre {
+        retourne 0
+    }
+
+    // À FAIRE : définis le taux/la stratégie de rafraichissement
+    ips : n32 = 30
+    débit_image_min : n32 = 1000 / ips
+
+    tantque app.est_en_exécution {
+        temps_image := SDL_GetTicks()
+
+        gère_évènement(app, cliente)
+        dessine_application(app, cliente)
+
+        si (SDL_GetTicks() - temps_image) < débit_image_min {
+            durée := débit_image_min - (SDL_GetTicks() - temps_image)
+            SDL_Delay(durée)
+        }
+    }
+
+    détruit_fenêtre(app.fenêtre)
+    déloge(app)
+    SDL_Quit()
+    retourne 0
+}
+
+dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "glClear(GL_COLOR_BUFFER_BIT)\n")
+
+    info_cliente := info_de(TypeCliente)
+    info_pointeur_cliente := info_de(*TypeCliente)
+
+    mode_dessin := détermine_mode_dessin_fenêtre(info_cliente, info_pointeur_cliente)
+    discr mode_dessin {
+        AUCUN {
+            /* Rien à faire. */
+        }
+        FENÊTRE {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente, app.fenêtre)\n")
+        }
+        PERSONNALISÉ {
+            ajoute_au_tampon(*enchaineuse, "cliente.sur_rendu_fenêtre(cliente)\n")
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "SDL_GL_SwapWindow((app.fenêtre comme *FenêtreSDL).fenêtre)\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
+
+donne_clique_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement: SDL_Event, action: ActionSouris) -> CliqueSouris
+{
+    mappage_bouton := [BoutonSouris.PRIMAIRE, BoutonSouris.TERTIAIRE, BoutonSouris.CONTEXTUEL, BoutonSouris.AVANT, BoutonSouris.ARRIÈRE]
+
+    état_souris: ÉtatSouris
+    état_souris.où.x = évènement.button.x
+    état_souris.où.y = app.fenêtre.hauteur - évènement.button.y
+
+    résultat : CliqueSouris
+    résultat.état = état_souris
+    résultat.bouton = mappage_bouton[évènement.button.button - 1]
+    résultat.action = action
+    retourne résultat
+}
+
+gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
+#corps_texte {
+    info_cliente := info_de(TypeCliente)
+    évènements_requis := détermine_évènements_requis(info_cliente)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    // -------------
+    ajoute_au_tampon(*enchaineuse, "    évènement: SDL_Event\n")
+    ajoute_au_tampon(*enchaineuse, "    tantque SDL_PollEvent(*évènement) != 0 {\n")
+    ajoute_au_tampon(*enchaineuse, "        discr évènement.type {\n")
+
+    ajoute_au_tampon(*enchaineuse, "            SDL_QUIT {\n")
+    ajoute_au_tampon(*enchaineuse, "                app.est_en_exécution = faux\n")
+    si évènements_requis.FIN_APPLICATION {
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_fin_application(cliente)\n")
+    }
+    ajoute_au_tampon(*enchaineuse, "            }\n")
+
+    si évènements_requis.MOUVEMENT_SOURIS {
+        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEMOTION {\n")
+        ajoute_au_tampon(*enchaineuse, "                état_souris: ÉtatSouris\n")
+        ajoute_au_tampon(*enchaineuse, "                état_souris.où.x = évènement.motion.x\n")
+        ajoute_au_tampon(*enchaineuse, "                état_souris.où.y = app.fenêtre.hauteur - évènement.motion.y\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_mouvement_souris(cliente, état_souris)\n")
+        ajoute_au_tampon(*enchaineuse, "            }\n")
+    }
+
+    si évènements_requis.CLIQUE_SOURIS {
+        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONDOWN {\n")
+        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.PRESSÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "            }\n")
+        ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONUP {\n")
+        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.RELACHÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "            }\n")
+    }
+
+    si évènements_requis.TOUCHE_CLAVIER {
+        ajoute_au_tampon(*enchaineuse, "            SDL_KEYDOWN {\n")
+        ajoute_au_tampon(*enchaineuse, "                clé_clavier := clé_clavier_depuis_sdl(évènement.key.keysym.scancode)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_touche_clavier(cliente, clé_clavier)\n")
+        ajoute_au_tampon(*enchaineuse, "            }\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "            SDL_WINDOWEVENT {\n")
+    ajoute_au_tampon(*enchaineuse, "                si évènement.window.event == SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED {\n")
+    ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
+    ajoute_au_tampon(*enchaineuse, "                    hauteur := évènement.window.data2\n")
+    ajoute_au_tampon(*enchaineuse, "                    fenêtre := donne_fenêtre_pour_id(app, évènement.window.windowID)\n")
+    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, hauteur, largeur)\n")
+    si évènements_requis.REDIMENSION_FENÊTRE {
+        ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, fenêtre)\n")
+    }
+    ajoute_au_tampon(*enchaineuse, "                }\n")
+    ajoute_au_tampon(*enchaineuse, "            }\n")
+
+    ajoute_au_tampon(*enchaineuse, "            sinon {\n")
+    ajoute_au_tampon(*enchaineuse, "            }\n")
+    ajoute_au_tampon(*enchaineuse, "        }\n")
+    ajoute_au_tampon(*enchaineuse, "    }\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+/** } */

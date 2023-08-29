@@ -1,6 +1,8 @@
 /* Mauvaise commande de compilation si #dépendance_bibliothèque réfèrence une
  * bibliothèque inconnue.
- * Le bug survient également si le module de la bibliothèque est importé. */
+ * Le bug survient également si le module de la bibliothèque est importé.
+ * Catégorie : [liaison programme, bibliothèque]
+ */
 
 #dépendance_bibliothèque libc libm
 

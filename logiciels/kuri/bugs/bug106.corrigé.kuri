@@ -1,5 +1,7 @@
 /* Les blocs « diffère » se retrouvent dans les fonctions nichées si
- * celles-ci utilise une fonction polymorphique. */
+ * celles-ci utilise une fonction polymorphique.
+ * Catégorie : [génération code, fonction polymorphique, portée, diffère]
+ */
 
 importe Fondation
 
