@@ -1,4 +1,7 @@
-// les types variadiques n'ayant pas de types tableaux correspondant ne sont pas convertis en C
+/* Les types variadiques n'ayant pas de types tableaux correspondant ne sont
+ * pas convertis en C
+ * Catégorie : [génération code C, type variadique]
+ */
 
 Struct :: struct {
     x : z32

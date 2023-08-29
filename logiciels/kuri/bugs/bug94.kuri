@@ -1,6 +1,7 @@
 /* Impossible de construire un type opaque depuis la liste des membres du type
  * opacifié, ou sans nommer les arguments.
  * Voir note « construction d'opaque depuis la liste des membres... » dans Calculatrice.
+ * Catégorie : [validation sémantique, construction type, type opaque]
  */
 
 Structure :: struct {

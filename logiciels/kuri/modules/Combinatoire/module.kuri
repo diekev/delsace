@@ -1,5 +1,5 @@
+importe Bits
 importe Fondation
-importe Outils
 
 /* Divers algorithmes de génération de la suite de Prouet-Thue-Morse
  * https://fr.wikipedia.org/wiki/Suite_de_Prouhet-Thue-Morse

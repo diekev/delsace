@@ -1,4 +1,6 @@
-// ne peut pas utiliser une accès de type dans l'entête d'une fonction
+/* Ne peut pas utiliser une accès de type dans l'entête d'une fonction
+ * Catégorie : [validation sémantique, type fonction, type structure, structure nichée]
+ */
 
 Struct :: struct {
     SousStruct :: struct {
