@@ -4,6 +4,7 @@ importe Algorithmes // pour permute
 importe Couleur
 importe Fondation
 importe Géométrie
+importe Image
 importe Math
 
 charge "texte"
@@ -302,6 +303,92 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
         d += dx & masque
         dx -= 4 & masque
         x += masque
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Images
+ * \{ */
+
+dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageGrise8Bit, rect: RectanglePosDim(z32))
+{
+    largeur := image.largeur
+    hauteur := image.hauteur
+    source := image.données
+
+    dest := tampon_de_rendu.données.pointeur
+    ligne_dest := dest + tampon_de_rendu.rect.largeur * (rect.hauteur - 1) + rect.x
+
+    pour _ dans hauteur {
+        pixel := ligne_dest
+
+        pour _ dans largeur {
+            valeur := mémoire(source)
+
+            si valeur != 0 {
+                mémoire(pixel) = CouleurRVBAN8(valeur, valeur, valeur, 255)
+            }
+
+            source += 1
+            pixel += 1
+        }
+
+        ligne_dest -= tampon_de_rendu.rect.largeur
+    }
+}
+
+dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8Bit, rect: RectanglePosDim(z32))
+{
+    source := image.données
+    largeur_source := image.largeur
+
+    dest := tampon_de_rendu.données.pointeur
+    largeur_dest := tampon_de_rendu.rect.largeur
+
+    /* Dessine l'image du bas vers le haut. */
+    ligne_source := source + (image.hauteur - 1) * largeur_source
+
+    largeur_image_à_dessiner := min(image.largeur, rect.largeur)
+    hauteur_image_à_dessiner := min(image.hauteur, rect.hauteur)
+
+    pour y dans hauteur_image_à_dessiner {
+        ligne_dest := dest + (rect.y + y) * largeur_dest
+
+        pixel_source := ligne_source
+        pixel_dest := ligne_dest + rect.x
+
+        pour _ dans largeur_image_à_dessiner {
+            pixel := mémoire(pixel_source)
+
+            si pixel.a == 255 {
+                mémoire(pixel_dest) = pixel
+            }
+            sinon {
+                r_dest := (pixel_dest.r comme r32) / 255.0
+                v_dest := (pixel_dest.v comme r32) / 255.0
+                b_dest := (pixel_dest.b comme r32) / 255.0
+
+                r_source := (pixel.r comme r32) / 255.0
+                v_source := (pixel.v comme r32) / 255.0
+                b_source := (pixel.b comme r32) / 255.0
+
+                alpha := (pixel.a comme r32) / 255.0
+
+                r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
+                v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
+                b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
+                a := 255 comme n8
+
+                mémoire(pixel_dest) = CouleurRVBAN8(r, v, b, a)
+            }
+
+            pixel_source += 1
+            pixel_dest += 1
+        }
+
+        ligne_source -= largeur_source
     }
 }
 
