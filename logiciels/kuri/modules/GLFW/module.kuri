@@ -1,3 +1,5 @@
+charge "interface_glfw"
+
 type_évènement :: énum z32 {
     NUL :: 0
 	SOURIS_BOUGEE :: 1
@@ -165,6 +167,7 @@ type_mod :: énum z32 {
 }
 
 Évènement :: struct {
+	fenêtre: *GLFWwindow
     type := type_évènement.NUL
 	mods := type_mod.AUCUN
 	cle := type_cle.INCONNU

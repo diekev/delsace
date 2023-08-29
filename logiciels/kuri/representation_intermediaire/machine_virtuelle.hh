@@ -26,6 +26,7 @@ struct FrameAppel {
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 #undef UTILISE_NOTRE_TABLE
+#undef STATS_OP_CODES
 
 struct DonneesExecution {
     octet_t *pile = nullptr;
@@ -40,6 +41,15 @@ struct DonneesExecution {
 #else
     std::unordered_map<void *, kuri::tableau<FrameAppel>> table_allocations{};
 #endif
+
+#ifdef STATS_OP_CODES
+    int compte_instructions[NOMBRE_OP_CODE] = {};
+#endif
+
+    /* Ces sites sont utilisés pour déterminer où se trouve le dernier site valide
+     * au cas où le pointeur est désynchronisé et une instruction est invalide. */
+    NoeudExpression *site = nullptr;
+    NoeudExpression *dernier_site = nullptr;
 };
 
 struct EchantillonProfilage {

@@ -1,0 +1,140 @@
+importe Fondation
+importe OpenGL
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponTexture
+ * \{ */
+
+TamponTexture :: struct {
+    programme : n32
+
+    id_tampon_vertex : n32
+    id_tampon_index : n32
+    id_tableau_vertex : n32
+
+    code_texture : n32
+}
+
+crée_tampon_texture :: fonc () -> *TamponTexture
+{
+    source_vertex := "
+    #version 330 core
+    layout(location = 0) in vec2 sommets;
+    smooth out vec2 UV;
+    void main()
+    {
+        gl_Position = vec4(sommets * 2.0 - 1.0, 0.0, 1.0);
+        UV = sommets;
+    }
+    "
+
+    source_fragment := "
+    #version 330 core
+    layout (location = 0) out vec4 couleur_fragment;
+    smooth in vec2 UV;
+    uniform sampler2D image;
+    void main()
+    {
+        vec2 flipped = vec2(UV.x, UV.y);
+        couleur_fragment = texture(image, flipped);
+    }
+    "
+
+    id_programme := compile_un_programme(source_vertex, source_fragment)
+    saufsi id_programme.possède_valeur() {
+        retourne nul
+    }
+
+    tampon_texture := loge(TamponTexture)
+    tampon_texture.programme = id_programme
+
+    // ------------------
+
+    glCreateTextures(GL_TEXTURE_2D, 1, *tampon_texture.code_texture)
+    vérifie_erreur("crée_tampon_texture glGenTextures")
+
+    glUseProgram(tampon_texture.programme)
+    vérifie_erreur("crée_tampon_texture glUseProgram")
+
+    loc := donne_adresse_uniforme(tampon_texture.programme, "image")
+    vérifie_erreur("crée_tampon_texture glGetUniformLocation")
+
+	glUniform1i(loc, 0);
+    vérifie_erreur("crée_tampon_texture glUniform1i")
+
+    glUseProgram(0)
+
+    // ------------------
+
+    glGenVertexArrays(1, *tampon_texture.id_tableau_vertex)
+    vérifie_erreur("crée_tampon_texture glGenVertexArrays")
+    glGenBuffers(1, *tampon_texture.id_tampon_index)
+    glGenBuffers(1, *tampon_texture.id_tampon_vertex)
+    vérifie_erreur("crée_tampon_texture glGenBuffers")
+
+    // création du tableau de sommets
+    glBindVertexArray(tampon_texture.id_tableau_vertex)
+    diffère glBindVertexArray(0)
+
+    sommets := [ 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0 ]
+
+	glBindBuffer(GL_ARRAY_BUFFER, tampon_texture.id_tampon_vertex);
+	glBufferData(GL_ARRAY_BUFFER, sommets.taille comme n64 * taille_de(r32), *sommets[0], GL_STATIC_DRAW);
+    vérifie_erreur("crée_tampon_texture glBufferData")
+
+    index := [ 0, 1, 2, 0, 2, 3 ];
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tampon_texture.id_tampon_index);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index.taille comme n64 * taille_de(z32), *index[0], GL_STATIC_DRAW);
+    vérifie_erreur("crée_tampon_texture glBufferData index")
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nul);
+
+    retourne tampon_texture
+}
+
+dessine_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
+{
+    glUseProgram(tampon_texture.programme)
+    diffère glUseProgram(0)
+
+    glBindVertexArray(tampon_texture.id_tableau_vertex)
+    diffère glBindVertexArray(0)
+
+	glBindTextureUnit(0, tampon_texture.code_texture)
+    diffère glBindTextureUnit(0, 0)
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nul)
+}
+
+détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
+{
+    glDeleteVertexArrays(1, *tampon_texture.id_tableau_vertex)
+    glDeleteBuffers(1, *tampon_texture.id_tampon_vertex)
+    glDeleteBuffers(1, *tampon_texture.id_tampon_index)
+    détruit_programme(tampon_texture.programme)
+
+    déloge(tampon_texture)
+}
+
+donne_paramètres_texture_pour_tampon_de_rendu :: fonc (données: TamponDeRendu) -> ParamètresTexture2D
+{
+    résultat: ParamètresTexture2D
+    résultat.largeur = données.rect.largeur
+    résultat.hauteur = données.rect.hauteur
+    résultat.données = données.données.pointeur
+    résultat.bordure = 0
+    résultat.type = GL_UNSIGNED_BYTE
+    résultat.format = GL_RGBA
+    retourne résultat
+}
+
+génère_texture :: fonc (tampon_texture: *TamponTexture, données: TamponDeRendu)
+{
+    vérifie_erreur("génère_texture entrée")
+    params := donne_paramètres_texture_pour_tampon_de_rendu(données)
+    définis_texture_2d(tampon_texture.code_texture, *params)
+}
+
+/** } */

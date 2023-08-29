@@ -1,4 +1,6 @@
-// mauvais résultats quand nous avons des retours multiples dans la MV
+/* Mauvais résultats quand nous avons des retours multiples dans la MV
+ * Catégorie : [exécution code, retour fonction, type tuple]
+ */
 
 importe Support
 

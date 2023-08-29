@@ -1,5 +1,7 @@
 /* « diffère » ne fonctionne pas avec « retourne » dans les blocs de boucles
- * d'opérateur pour. */
+ * d'opérateur pour.
+ * Catégorie : [génération code, opérateur pour, diffère]
+ */
 
 importe Fondation
 

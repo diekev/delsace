@@ -1,4 +1,7 @@
-/* Utiliser un type polymorphique d'une fonction dans une structure nichée échoue. */
+/* Utiliser un type polymorphique d'une fonction dans une structure nichée
+ * échoue.
+ * Catégorie : [validation sémantique, portée, fonction polymorphique, type structure]
+ */
 
 importe Exétron
 

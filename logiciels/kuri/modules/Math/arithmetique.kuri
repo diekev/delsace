@@ -1,7 +1,8 @@
-// À FAIRE : implémente les fonctions suivantes avec notre langage
+importe Bits
 
 libcmath :: #bibliothèque "m"
 
+// À FAIRE : implémente les fonctions suivantes avec notre langage
 sqrt :: fonc (v: r64) -> r64 #externe libcmath
 cos :: fonc (a : r64) -> r64 #externe libcmath
 sin :: fonc (a : r64) -> r64 #externe libcmath
@@ -333,22 +334,6 @@ divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
     }
 
     retourne résultat
-}
-
-bit_est_actif :: fonc (n: n64, index_bit: n64) -> bool #enligne
-{
-    retourne (n & (1 << index_bit)) != 0
-}
-
-index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
-{
-    pour > 64 {
-        si bit_est_actif(v, it comme n64) {
-            retourne it comme n64
-        }
-    }
-
-    retourne 0
 }
 
 /* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */

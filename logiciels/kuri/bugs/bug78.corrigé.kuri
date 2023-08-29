@@ -1,4 +1,6 @@
-/* Crash dans la machine virtuelle que des énums sont utilisés pour indexer. */
+/* Crash dans la machine virtuelle lorsque des énums sont utilisés pour indexer.
+ * Catégorie : [crash, exécution code, conversion implicite, type énum]
+ */
 
 importe Fondation
 

@@ -741,3 +741,17 @@ Vec4z :: struct {
     z := 0
     w := 0
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions auxilliaires.
+ * \{ */
+
+/* Retourne la position sur une sphère de rayon `r` des coordonnées <u, v>
+ * données. `u` doit être entre [-PI, PI], et `v` [-PI/2, PI/2].
+ * La sphère est défini pour un système de coordonnées où Y est vertical. */
+position_sphérique :: fonc (u: r32, v: r32, r := 1.0) -> Vec3 #enligne
+{
+    retourne Vec3(cosinus(u) * sinus(v) * r, cosinus(v) * r, sinus(u) * sinus(v) * r)
+}
+
+/** } */

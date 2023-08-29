@@ -1,5 +1,7 @@
 /* Erreur de syntaxage si nous utilisons #exécute pour une constante globale
- * (ou locale, mais le bug fut découvert avec les globales). */
+ * (ou locale, mais le bug fut découvert avec les globales).
+ * Catégorie : [syntaxage, directive exéctive, déclaration constante]
+ */
 
 a :: #exécute 4 * 5
 

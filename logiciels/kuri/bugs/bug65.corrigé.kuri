@@ -1,4 +1,6 @@
-/* La recherche de Symbole d'une structure dans une fonction échoue. */
+/* La recherche de Symbole d'une structure dans une fonction échoue.
+ * Catégorie : [validation sémantique, structure nichée, fonction]
+ */
 
 importe Exétron
 

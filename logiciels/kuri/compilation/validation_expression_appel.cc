@@ -1574,33 +1574,6 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
                   VALIDATION_APPEL__COPIE_DONNEES);
 
-#if 0
-	struct StatisExprs {
-		int nombre_exprs = 0;
-		kuri::tableau<int> tailles{};
-
-		~StatisExprs()
-		{
-			std::cerr << "Stats pour les tailles des expressions d'appels\n";
-			std::cerr << "-- nombre d'expressions : " << nombre_exprs << '\n';
-			for (int i = 0; i < tailles.taille(); ++i) {
-				std::cerr << "-- taille " << i << " : " << tailles[i]
-							 << " (" << static_cast<float>(tailles[i]) / static_cast<float>(nombre_exprs) << "%)" << '\n';
-			}
-		}
-
-		void ajoute_taille(int t)
-		{
-			tailles.redimensionne(t + 1, 0);
-			tailles[t] += 1;
-			nombre_exprs += 1;
-		}
-	};
-
-	static StatisExprs statis_exprs;
-	statis_exprs.ajoute_taille(static_cast<int>(candidate->exprs.taille()));
-#endif
-
     expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
 
     for (auto enfant : candidate->exprs) {

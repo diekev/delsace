@@ -160,6 +160,7 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
         /* instructions */
         case GenreLexeme::ARRETE:
         case GenreLexeme::CONTINUE:
+        case GenreLexeme::REPRENDS:
         case GenreLexeme::RETOURNE:
         /* fermeture */
         case GenreLexeme::PARENTHESE_FERMANTE:
@@ -196,13 +197,13 @@ Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux)
 
 void Lexeuse::performe_lexage()
 {
-#define POUSSE_CARACTERE(id)                                                                      \
+#define AJOUTE_CARACTERE(id)                                                                      \
     this->enregistre_pos_mot();                                                                   \
     this->ajoute_caractère();                                                                     \
     this->ajoute_mot(id);                                                                         \
     this->avance_fixe<1>();
 
-#define POUSSE_MOT_SI_NECESSAIRE                                                                  \
+#define AJOUTE_MOT_SI_NECESSAIRE                                                                  \
     if (m_taille_mot_courant != 0) {                                                              \
         this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));                                \
     }
@@ -210,15 +211,15 @@ void Lexeuse::performe_lexage()
 #define CAS_CARACTERE(c, id)                                                                      \
     case c:                                                                                       \
     {                                                                                             \
-        POUSSE_MOT_SI_NECESSAIRE                                                                  \
-        POUSSE_CARACTERE(id);                                                                     \
+        AJOUTE_MOT_SI_NECESSAIRE                                                                  \
+        AJOUTE_CARACTERE(id);                                                                     \
         break;                                                                                    \
     }
 
 #define CAS_CARACTERE_EGAL(c, id_sans_egal, id_avec_egal)                                         \
     case c:                                                                                       \
     {                                                                                             \
-        POUSSE_MOT_SI_NECESSAIRE                                                                  \
+        AJOUTE_MOT_SI_NECESSAIRE                                                                  \
         if (this->caractère_voisin(1) == '=') {                                                   \
             this->enregistre_pos_mot();                                                           \
             this->ajoute_caractère();                                                             \
@@ -227,7 +228,7 @@ void Lexeuse::performe_lexage()
             this->avance_fixe<2>();                                                               \
         }                                                                                         \
         else {                                                                                    \
-            POUSSE_CARACTERE(id_sans_egal);                                                       \
+            AJOUTE_CARACTERE(id_sans_egal);                                                       \
         }                                                                                         \
         break;                                                                                    \
     }
@@ -310,7 +311,7 @@ void Lexeuse::performe_lexage()
                                     this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
                                 }
 
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
 
                                 break;
                             }
@@ -324,10 +325,10 @@ void Lexeuse::performe_lexage()
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                                     this->enregistre_pos_mot();
                                     this->ajoute_caractère(nombre_octet);
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                 }
                                 else {
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                     this->enregistre_pos_mot();
                                 }
 
@@ -349,7 +350,7 @@ void Lexeuse::performe_lexage()
                                         --profondeur;
                                     }
 
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                     this->ajoute_caractère(nombre_octet);
                                 }
 
@@ -358,7 +359,7 @@ void Lexeuse::performe_lexage()
                                     this->ajoute_caractère(nombre_octet);
                                 }
 
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
 
                                 this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
                                 break;
@@ -366,7 +367,7 @@ void Lexeuse::performe_lexage()
                             default:
                             {
                                 m_taille_mot_courant += nombre_octet;
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
                                 break;
                             }
                         }
@@ -444,7 +445,7 @@ void Lexeuse::performe_lexage()
             case '\n':
             case ' ':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                     this->enregistre_pos_mot();
@@ -482,7 +483,7 @@ void Lexeuse::performe_lexage()
             }
             case '"':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 /* Saute le premier guillemet si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -516,7 +517,7 @@ void Lexeuse::performe_lexage()
             }
             case '\'':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 /* Saute la première apostrophe si nécessaire. */
                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
@@ -566,7 +567,7 @@ void Lexeuse::performe_lexage()
                 CAS_CARACTERE_EGAL('^', GenreLexeme::CHAPEAU, GenreLexeme::OUX_EGAL)
             case '*':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 if (this->caractère_voisin(1) == '/') {
                     rapporte_erreur("fin de commentaire bloc en dehors d'un commentaire",
@@ -576,12 +577,12 @@ void Lexeuse::performe_lexage()
                 }
 
                 APPARIE_SUIVANT('=', GenreLexeme::MULTIPLIE_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::FOIS)
+                AJOUTE_CARACTERE(GenreLexeme::FOIS)
                 break;
             }
             case '/':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 if (this->caractère_voisin(1) == '*') {
                     lexe_commentaire_bloc();
@@ -594,83 +595,83 @@ void Lexeuse::performe_lexage()
                 }
 
                 APPARIE_SUIVANT('=', GenreLexeme::DIVISE_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::DIVISE)
+                AJOUTE_CARACTERE(GenreLexeme::DIVISE)
                 break;
             }
             case '-':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 // '-' ou -= ou ---
                 APPARIE_2_SUIVANTS('-', '-', GenreLexeme::NON_INITIALISATION)
                 APPARIE_SUIVANT('=', GenreLexeme::MOINS_EGAL)
                 APPARIE_SUIVANT('>', GenreLexeme::RETOUR_TYPE)
-                POUSSE_CARACTERE(GenreLexeme::MOINS)
+                AJOUTE_CARACTERE(GenreLexeme::MOINS)
                 break;
             }
             case '.':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 // . ou ...
                 APPARIE_2_SUIVANTS('.', '.', GenreLexeme::TROIS_POINTS)
-                POUSSE_CARACTERE(GenreLexeme::POINT)
+                AJOUTE_CARACTERE(GenreLexeme::POINT)
                 break;
             }
             case '<':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 // <, <=, << ou <<=
                 APPARIE_2_SUIVANTS('<', '=', GenreLexeme::DEC_GAUCHE_EGAL)
                 APPARIE_SUIVANT('<', GenreLexeme::DECALAGE_GAUCHE)
                 APPARIE_SUIVANT('=', GenreLexeme::INFERIEUR_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::INFERIEUR)
+                AJOUTE_CARACTERE(GenreLexeme::INFERIEUR)
                 break;
             }
             case '>':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 // >, >=, >> ou >>=
                 APPARIE_2_SUIVANTS('>', '=', GenreLexeme::DEC_DROITE_EGAL)
                 APPARIE_SUIVANT('>', GenreLexeme::DECALAGE_DROITE)
                 APPARIE_SUIVANT('=', GenreLexeme::SUPERIEUR_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::SUPERIEUR)
+                AJOUTE_CARACTERE(GenreLexeme::SUPERIEUR)
                 break;
             }
             case ':':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 // :, :=, ::
                 APPARIE_SUIVANT(':', GenreLexeme::DECLARATION_CONSTANTE)
                 APPARIE_SUIVANT('=', GenreLexeme::DECLARATION_VARIABLE)
-                POUSSE_CARACTERE(GenreLexeme::DOUBLE_POINTS)
+                AJOUTE_CARACTERE(GenreLexeme::DOUBLE_POINTS)
                 break;
             }
             case '&':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 APPARIE_SUIVANT('&', GenreLexeme::ESP_ESP)
                 APPARIE_SUIVANT('=', GenreLexeme::ET_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::ESPERLUETTE)
+                AJOUTE_CARACTERE(GenreLexeme::ESPERLUETTE)
                 break;
             }
             case '|':
             {
-                POUSSE_MOT_SI_NECESSAIRE
+                AJOUTE_MOT_SI_NECESSAIRE
 
                 APPARIE_SUIVANT('|', GenreLexeme::BARRE_BARRE)
                 APPARIE_SUIVANT('=', GenreLexeme::OU_EGAL)
-                POUSSE_CARACTERE(GenreLexeme::BARRE)
+                AJOUTE_CARACTERE(GenreLexeme::BARRE)
                 break;
             }
             case '`':
             {
-                POUSSE_MOT_SI_NECESSAIRE
-                POUSSE_CARACTERE(GenreLexeme::ACCENT_GRAVE)
+                AJOUTE_MOT_SI_NECESSAIRE
+                AJOUTE_CARACTERE(GenreLexeme::ACCENT_GRAVE)
                 break;
             }
         }
@@ -799,47 +800,73 @@ void Lexeuse::ajoute_mot(GenreLexeme identifiant, unsigned valeur)
 void Lexeuse::lexe_commentaire()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+        lexe_commentaire_impl<true>();
+    }
+    else {
+        lexe_commentaire_impl<false>();
+    }
+}
+
+template <bool INCLUS_COMMENTAIRE>
+void Lexeuse::lexe_commentaire_impl()
+{
+    if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
     }
 
-    /* ignore commentaire */
     while (!this->fini() && this->caractère_courant() != '\n') {
         this->avance_fixe<1>();
-        this->ajoute_caractère();
+        if (INCLUS_COMMENTAIRE) {
+            this->ajoute_caractère();
+        }
     }
 
-    if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+    if (INCLUS_COMMENTAIRE) {
         this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
-
-    /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
-     * caractères poussées. */
-    m_taille_mot_courant = 0;
 }
 
 void Lexeuse::lexe_commentaire_bloc()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+        lexe_commentaire_bloc_impl<true>();
+    }
+    else {
+        lexe_commentaire_bloc_impl<false>();
+    }
+}
+
+template <bool INCLUS_COMMENTAIRE>
+void Lexeuse::lexe_commentaire_bloc_impl()
+{
+    if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
     }
 
     this->avance_fixe<2>();
-    this->ajoute_caractère(2);
+
+    if (INCLUS_COMMENTAIRE) {
+        this->ajoute_caractère(2);
+    }
 
     // permet d'avoir des blocs de commentaires nichés
     auto compte_blocs = 0;
 
     while (!this->fini()) {
         if (this->caractère_courant() == '/' && this->caractère_voisin(1) == '*') {
-            this->avance(2);
-            this->ajoute_caractère(2);
+            this->avance_fixe<2>();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère(2);
+            }
             compte_blocs += 1;
             continue;
         }
 
         if (this->caractère_courant() == '*' && this->caractère_voisin(1) == '/') {
-            this->avance(2);
-            this->ajoute_caractère(2);
+            this->avance_fixe<2>();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère(2);
+            }
 
             if (compte_blocs == 0) {
                 break;
@@ -849,17 +876,15 @@ void Lexeuse::lexe_commentaire_bloc()
         }
         else {
             this->avance(1);
-            this->ajoute_caractère();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère();
+            }
         }
     }
 
-    if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+    if (INCLUS_COMMENTAIRE) {
         this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
-
-    /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
-     * caractères poussées. */
-    m_taille_mot_courant = 0;
 }
 
 void Lexeuse::lexe_nombre()
