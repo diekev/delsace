@@ -47,7 +47,19 @@ issitialise_igumi :: fonc ()
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
 {
+    largeur_cannevas = largeur
+    hauteur_cannevas = hauteur
     projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
+}
+
+donne_largeur_cannevas :: fonc () -> z32
+{
+    retourne largeur_cannevas
+}
+
+donne_hauteur_cannevas :: fonc () -> z32
+{
+    retourne hauteur_cannevas
 }
 
 /** } */
@@ -159,6 +171,8 @@ DÉCALAGE_NORMAL  :: 28
 DÉCALAGE_UV      :: 40
 
 projection : Mat4r
+largeur_cannevas : z32
+hauteur_cannevas : z32
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
 sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU
