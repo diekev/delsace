@@ -122,6 +122,8 @@ enum : octet_t {
 #undef ENUMERE_CODE_OPERATION_EX
 };
 
+#define NOMBRE_OP_CODE (OP_VERIFIE_CIBLE_APPEL + 1)
+
 const char *chaine_code_operation(octet_t code_operation);
 
 enum : octet_t {

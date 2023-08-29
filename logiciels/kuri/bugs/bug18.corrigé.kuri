@@ -1,6 +1,7 @@
-// Bug corrigé par le commit : db78100b0ff8c23d4eeec24a56bd096552b45b75
-
-// mauvais typage pour les tableaux fixes de tableaux dynamique
+/* Mauvais typage pour les tableaux fixes de tableaux dynamique
+ * Bug corrigé par le commit : db78100b0ff8c23d4eeec24a56bd096552b45b75
+ * Catégorie : [validation sémantique, conversion implicite, type tableau]
+ */
 
 importe Support
 

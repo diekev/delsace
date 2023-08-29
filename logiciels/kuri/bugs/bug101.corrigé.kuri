@@ -1,5 +1,7 @@
 /* Erreur de génération de code C si un type variadique est utilisé
- * dans une expression quelconque. */
+ * dans une expression quelconque.
+ * Catégorie : [génération code C, type variadique]
+ */
 
 Struct :: struct {
     x : z32

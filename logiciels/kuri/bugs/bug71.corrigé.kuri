@@ -1,5 +1,7 @@
 /* Compilation infinie et erreur de compilation quand la fonction principale est
- * également définit dans un autre espace de travail. */
+ * également définit dans un autre espace de travail.
+ * Catégorie : [compilation infini]
+ */
 
 importe Support
 

@@ -1,4 +1,6 @@
-// Prendre un pointeur depuis une référence échoue
+/* Prendre un pointeur depuis une référence échoue.
+ * Catégorie : [génération code, conversion implicite, type pointeur, type référence]
+ */
 
 importe Support
 

@@ -1,4 +1,6 @@
-/* Crash si un type tableau est retourner sans que le type d'élément soit valide. */
+/* Crash si un type tableau est retourné sans que le type d'élément soit valide.
+ * Catégorie : [crash, validation sémantique, type nommé, module]
+ */
 
 importe Couleur
 
