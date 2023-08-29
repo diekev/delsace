@@ -108,6 +108,12 @@ struct Lexeuse {
 
     void lexe_commentaire_bloc();
 
+    template <bool INCLUS_COMMENTAIRE>
+    void lexe_commentaire_impl();
+
+    template <bool INCLUS_COMMENTAIRE>
+    void lexe_commentaire_bloc_impl();
+
     void lexe_nombre();
     void lexe_nombre_decimal();
     void lexe_nombre_hexadecimal();

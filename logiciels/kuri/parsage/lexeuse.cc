@@ -800,47 +800,73 @@ void Lexeuse::ajoute_mot(GenreLexeme identifiant, unsigned valeur)
 void Lexeuse::lexe_commentaire()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+        lexe_commentaire_impl<true>();
+    }
+    else {
+        lexe_commentaire_impl<false>();
+    }
+}
+
+template <bool INCLUS_COMMENTAIRE>
+void Lexeuse::lexe_commentaire_impl()
+{
+    if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
     }
 
-    /* ignore commentaire */
     while (!this->fini() && this->caractère_courant() != '\n') {
         this->avance_fixe<1>();
-        this->ajoute_caractère();
+        if (INCLUS_COMMENTAIRE) {
+            this->ajoute_caractère();
+        }
     }
 
-    if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+    if (INCLUS_COMMENTAIRE) {
         this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
-
-    /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
-     * caractères poussées. */
-    m_taille_mot_courant = 0;
 }
 
 void Lexeuse::lexe_commentaire_bloc()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+        lexe_commentaire_bloc_impl<true>();
+    }
+    else {
+        lexe_commentaire_bloc_impl<false>();
+    }
+}
+
+template <bool INCLUS_COMMENTAIRE>
+void Lexeuse::lexe_commentaire_bloc_impl()
+{
+    if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
     }
 
     this->avance_fixe<2>();
-    this->ajoute_caractère(2);
+
+    if (INCLUS_COMMENTAIRE) {
+        this->ajoute_caractère(2);
+    }
 
     // permet d'avoir des blocs de commentaires nichés
     auto compte_blocs = 0;
 
     while (!this->fini()) {
         if (this->caractère_courant() == '/' && this->caractère_voisin(1) == '*') {
-            this->avance(2);
-            this->ajoute_caractère(2);
+            this->avance_fixe<2>();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère(2);
+            }
             compte_blocs += 1;
             continue;
         }
 
         if (this->caractère_courant() == '*' && this->caractère_voisin(1) == '/') {
-            this->avance(2);
-            this->ajoute_caractère(2);
+            this->avance_fixe<2>();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère(2);
+            }
 
             if (compte_blocs == 0) {
                 break;
@@ -850,17 +876,15 @@ void Lexeuse::lexe_commentaire_bloc()
         }
         else {
             this->avance(1);
-            this->ajoute_caractère();
+            if (INCLUS_COMMENTAIRE) {
+                this->ajoute_caractère();
+            }
         }
     }
 
-    if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+    if (INCLUS_COMMENTAIRE) {
         this->ajoute_mot(GenreLexeme::COMMENTAIRE);
     }
-
-    /* Lorsqu'on inclus pas les commentaires, il faut ignorer les
-     * caractères poussées. */
-    m_taille_mot_courant = 0;
 }
 
 void Lexeuse::lexe_nombre()
