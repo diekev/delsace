@@ -1,4 +1,6 @@
-// les chaines globales ne compilent pas en C
+/* Les chaines globales ne compilent pas en C.
+ * Catégorie : [génération code C, variable globale, type chaine]
+ */
 
 importe Support
 

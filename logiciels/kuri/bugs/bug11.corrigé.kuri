@@ -1,4 +1,7 @@
-// Les blocs différés contenu dans le corps des boucles ne sont pas exécutés lors des instructions continue ou arrête
+/* Les blocs différés contenu dans le corps des boucles ne sont pas exécutés
+ * lors des instructions continue ou arrête
+ * Catégorie : [génération code, diffère, controle boucle]
+ */
 
 importe Fondation
 importe Support

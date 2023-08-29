@@ -1804,8 +1804,8 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 
     if (accede->est_reference_declaration()) {
         if (accede->comme_reference_declaration()->declaration_referee->est_declaration_module()) {
-            ref_membre->substitution = accede;
-            simplifie(accede);
+            ref_membre->substitution = ref_membre->membre;
+            simplifie(ref_membre->membre);
             return;
         }
     }
@@ -2215,7 +2215,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             }
             else if (N == DISCR_UNION_ANONYME) {
                 auto const type_union = discr->expression_discriminee->type->comme_union();
-                auto index = type_union->donne_membre_pour_type(expr->type)->index_membre;
+                auto index = type_union->donne_membre_pour_nom(expr->ident)->index_membre;
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;

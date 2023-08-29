@@ -1,6 +1,8 @@
 /* Les assertions dans les structures #corps_texte sont toujours lancées,
  * même si la structure est polymorphique, et qu'elle n'a pas encore été
- * monomorphée. */
+ * monomorphée.
+ * Catégorie : [métaprogramme, directive assert]
+ */
 
 StructTexte :: struct ($T: type_de_données) #corps_texte {
     #assert info_de(T).id == id_info.STRUCTURE

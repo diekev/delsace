@@ -1,5 +1,7 @@
 /* Collision de symboles entre les valeurs capturées via discr et les symboles
- * globaux. */
+ * globaux.
+ * Catégorie : [validation sémantique, discr]
+ */
 
 importe Fondation
 

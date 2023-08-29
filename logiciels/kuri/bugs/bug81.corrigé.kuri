@@ -1,4 +1,6 @@
-/* Pas d'erreur de compilation si nous tentons de décaler un bit de plus de place que le type le permet. */
+/* Pas d'erreur de compilation si nous tentons de décaler un bit de plus de place que le type le permet.
+ * Catégorie : [validation sémantique, limites, type entier]
+ */
 
 principale :: fonc () -> z32
 {

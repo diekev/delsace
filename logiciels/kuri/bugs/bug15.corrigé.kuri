@@ -1,6 +1,7 @@
-// Bug corrigé par le commit : 0cab5ae23ddb96691fda8dbac3799c1c8a5e4571
-
-// On ne peut pas comparer un pointeur de fonction avec "nul"
+/* Bug corrigé par le commit : 0cab5ae23ddb96691fda8dbac3799c1c8a5e4571
+ * On ne peut pas comparer un pointeur de fonction avec "nul"
+ * Catégorie : [validation sémantique, opérateur, type pointeur, pointeur nul]
+ */
 
 importe Support
 

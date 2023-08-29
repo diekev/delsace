@@ -1,0 +1,25 @@
+/* Impossible de passer un type polymorphique par valeur depuis une référence.
+ * NOTE : voir Géométrie.RectanglePur.donne_largeur
+ * Catégorie : [validation sémantique, type polymorphique, conversion implicite]
+ */
+
+Polymorphe :: struct ($T: type_de_données) {
+    x: T
+}
+
+donne_x :: fonc (poly: Polymorphe($T)) -> T
+{
+    retourne poly.x
+}
+
+donne_valeur :: fonc (poly: &Polymorphe($T)) -> T
+{
+    /* poly doit être implicitement déréférencé. */
+    retourne poly.donne_x()
+}
+
+principale :: fonc () -> z32
+{
+    poly : Polymorphe(z32)
+    retourne poly.donne_valeur()
+}
