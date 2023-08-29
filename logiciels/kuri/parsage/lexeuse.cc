@@ -160,6 +160,7 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
         /* instructions */
         case GenreLexeme::ARRETE:
         case GenreLexeme::CONTINUE:
+        case GenreLexeme::REPRENDS:
         case GenreLexeme::RETOURNE:
         /* fermeture */
         case GenreLexeme::PARENTHESE_FERMANTE:
