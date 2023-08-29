@@ -311,7 +311,7 @@ void Lexeuse::performe_lexage()
                                     this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
                                 }
 
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
 
                                 break;
                             }
@@ -325,10 +325,10 @@ void Lexeuse::performe_lexage()
                                 if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
                                     this->enregistre_pos_mot();
                                     this->ajoute_caractère(nombre_octet);
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                 }
                                 else {
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                     this->enregistre_pos_mot();
                                 }
 
@@ -350,7 +350,7 @@ void Lexeuse::performe_lexage()
                                         --profondeur;
                                     }
 
-                                    this->avance(nombre_octet);
+                                    this->avance_sans_nouvelle_ligne(nombre_octet);
                                     this->ajoute_caractère(nombre_octet);
                                 }
 
@@ -359,7 +359,7 @@ void Lexeuse::performe_lexage()
                                     this->ajoute_caractère(nombre_octet);
                                 }
 
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
 
                                 this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
                                 break;
@@ -367,7 +367,7 @@ void Lexeuse::performe_lexage()
                             default:
                             {
                                 m_taille_mot_courant += nombre_octet;
-                                this->avance(nombre_octet);
+                                this->avance_sans_nouvelle_ligne(nombre_octet);
                                 break;
                             }
                         }

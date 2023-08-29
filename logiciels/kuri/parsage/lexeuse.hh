@@ -74,6 +74,12 @@ struct Lexeuse {
         m_debut += N;
     }
 
+    void avance_sans_nouvelle_ligne(int n)
+    {
+        m_position_ligne += n;
+        m_debut += n;
+    }
+
     void avance(int n = 1);
 
     ENLIGNE_TOUJOURS char caractère_courant() const
