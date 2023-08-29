@@ -4,9 +4,10 @@ layout(location = 1) in vec4 couleur;
 
 smooth out vec4 couleur_vertex;
 
+uniform mat4 projection;
+
 void main()
 {
-    vec3 P = position;
-    gl_Position = vec4(P * 2.0 - 1.0, 1.0);
+    gl_Position = projection * vec4(position, 1.0);
     couleur_vertex = couleur;
 }

@@ -1,4 +1,6 @@
-/* Crash sur une discrimination qui ne fait rien. */
+/* Crash sur une discrimination qui ne fait rien.
+ * Catégorie : [crash, discr]
+ */
 
 Union :: union {
     A: z32

@@ -1,0 +1,692 @@
+/* Module de peinture de formes dans une interface graphique.
+ * Ce module définit un type "Peintre" qui encapsule les fonction de Dessin et
+ * d'IGUMI pour dessiner des formes dans une interface graphique.
+ */
+
+importe Couleur
+importe Dessin
+importe Géométrie
+importe IGUMI
+importe Image
+importe OpenGL
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom Peintre.
+ * \{ */
+
+RectanglePeintre :: RectanglePosDim(r32) | RectanglePosDim(z32)
+CerclePeintre :: Cercle(r32) | Cercle(z32)
+LignePeintre :: Ligne(r32) | Ligne(z32)
+CouleurPeintre :: CouleurRVBA | CouleurRVBAN8
+
+Largeur :: #opaque z32
+Hauteur :: #opaque z32
+Taille :: struct {
+    largeur: Largeur
+    hauteur: Hauteur
+}
+
+Peintre :: struct {
+    /* Définis la taille du cannevas. */
+    rappel_définis_taille_cannevas : fonc (*Peintre, Taille)(rien)
+    /* Donne la taille du cannevas. */
+    rappel_donne_taille_cannevas : fonc (*Peintre)(Taille)
+
+    /* Remplis la totalité du cannevas avec la couleur donnée. */
+    rappel_remplis_arrière_plan : fonc (*Peintre, CouleurPeintre)(rien)
+
+    /* Dessine le contour du rectangle avec la couleur donnée. */
+    rappel_dessine_rectangle : fonc (*Peintre, RectanglePeintre, CouleurPeintre)(rien)
+    /* Remplis le rectangle avec la couleur donnée. */
+    rappel_remplis_rectangle : fonc (*Peintre, RectanglePeintre, CouleurPeintre)(rien)
+
+    /* Dessine le contour du rectangle arrondi avec la couleur donnée. */
+    rappel_dessine_rectangle_arrondi : fonc (*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
+    /* Remplis le rectangle arrondi avec la couleur donnée. */
+    rappel_remplis_rectangle_arrondi : fonc (*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
+
+    /* Dessine le contour du cercle avec la couleur donnée. */
+    rappel_dessine_cercle : fonc (*Peintre, CerclePeintre, CouleurPeintre)(rien)
+    /* Remplis le cercle avec la couleur donnée. */
+    rappel_remplis_cercle : fonc (*Peintre, CerclePeintre, CouleurPeintre)(rien)
+
+    /* Dessine le segment avec la couleur donnée. */
+    rappel_dessine_segment : fonc (*Peintre, LignePeintre, CouleurPeintre)(rien)
+
+    /* Dessine le texte avec la fonte et la couleur données. */
+    rappel_dessine_texte : fonc (*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
+
+    /* Dessine l'image dans le rectangle donné. */
+    rappel_dessine_image: fonc (*Peintre, ImageIO, RectanglePeintre)(rien)
+    rappel_dessine_image_grise_8bit: fonc (*Peintre, TamponImageGrise8Bit, RectanglePeintre)(rien)
+    rappel_dessine_image_rvba_8bit: fonc (*Peintre, TamponImageRVBA8Bit, RectanglePeintre)(rien)
+    rappel_dessine_image_rvba_32bit: fonc (*Peintre, TamponImageRVBA32Bit, RectanglePeintre)(rien)
+
+    /* Retourne la fonte utilisée pour le dessin de texte. */
+    rappel_donne_fonte : fonc (*Peintre)(*Fonte)
+
+    /* Dessine le tampon sur l'écran.
+     * À FAIRE : ceci est une mauvaise architecture ? Le peintre ne devrait pas
+     * être responsable du dessiner sur l'écran. Le système serait plus flexible,
+     * mais nous ne voulons pas que les détails d'implémentation des peintres se
+     * retrouve exposés aux applications clientes. */
+    rappel_dessine_tampon_sur_écran : fonc (*Peintre)(rien)
+}
+
+définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
+{
+    peintre.rappel_définis_taille_cannevas(peintre, taille)
+}
+
+donne_taille_cannevas :: fonc (peintre: *Peintre) -> Taille #enligne
+{
+    retourne peintre.rappel_donne_taille_cannevas(peintre)
+}
+
+remplis_arrière_plan :: fonc (peintre: *Peintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_remplis_arrière_plan(peintre, couleur)
+}
+
+dessine_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_rectangle(peintre, rectangle, couleur)
+}
+
+remplis_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_remplis_rectangle(peintre, rectangle, couleur)
+}
+
+dessine_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: r32, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+}
+
+remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: r32, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+}
+
+dessine_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_cercle(peintre, cercle, couleur)
+}
+
+remplis_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_remplis_cercle(peintre, cercle, couleur)
+}
+
+dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_segment(peintre, ligne, couleur)
+}
+
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
+}
+
+dessine_image:: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_image(peintre, image, rectangle)
+}
+
+dessine_image:: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_image_grise_8bit(peintre, image, rectangle)
+}
+
+dessine_image:: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_image_rvba_8bit(peintre, TamponImageRVBA32Bit, rectangle)
+}
+
+dessine_image:: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_image_rvba_32bit(peintre, image, rectangle)
+}
+
+donne_fonte :: fonc (peintre: *Peintre) -> *Fonte #enligne
+{
+    retourne peintre.rappel_donne_fonte(peintre)
+}
+
+dessine_tampon_sur_écran :: fonc (peintre: *Peintre) -> rien #enligne
+{
+    peintre.rappel_dessine_tampon_sur_écran(peintre)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Peintre pour le module Dessin. À FAIRE
+ * \{ */
+
+PeintreDessin :: struct {
+    empl base: Peintre
+
+    tampon_de_rendu: TamponDeRendu
+    tampon_texture: *TamponTexture
+}
+
+crée_peintre_module_dessin :: fonc () -> *PeintreDessin
+{
+    peintre := loge(PeintreDessin)
+    peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
+    peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
+    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
+    peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
+    peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
+    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
+    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_dessin
+    peintre.rappel_dessine_cercle = dessine_cercle_dessin
+    peintre.rappel_remplis_cercle = remplis_cercle_dessin
+    peintre.rappel_dessine_segment = dessine_segment_dessin
+    peintre.rappel_dessine_texte = dessine_texte_dessin
+    peintre.rappel_dessine_image = dessine_image_dessin
+    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
+    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
+    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
+    peintre.rappel_donne_fonte = donne_fonte_dessin
+    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
+    retourne peintre
+}
+
+donne_cercle_dessin :: fonc (cercle: CerclePeintre) -> Cercle(z32)
+{
+    Cercle_r32 :: Cercle(r32)
+    Cercle_z32 :: Cercle(z32)
+
+    discr cercle {
+        Cercle_r32(c) {
+            retourne Cercle(z32)(c.centre_x comme z32, c.centre_y comme z32, c.rayon comme z32)
+        }
+        Cercle_z32(c) {
+            retourne c
+        }
+        sinon {}
+    }
+
+    résultat: Cercle(z32)
+    retourne résultat
+}
+
+donne_rectangle_dessin :: fonc (rectangle: RectanglePeintre) -> RectanglePosDim(z32)
+{
+    Rectangle_r32 :: RectanglePosDim(r32)
+    Rectangle_z32 :: RectanglePosDim(z32)
+
+    discr rectangle {
+        Rectangle_r32(r) {
+            retourne RectanglePosDim(z32)(r.x comme z32, r.y comme z32, r.hauteur comme z32, r.largeur comme z32)
+        }
+        Rectangle_z32(r) {
+            retourne r
+        }
+        sinon {}
+    }
+
+    résultat: RectanglePosDim(z32)
+    retourne résultat
+}
+
+donne_ligne_dessin :: fonc (ligne: LignePeintre) -> Ligne(z32)
+{
+    Ligne_r32 :: Ligne(r32)
+    Ligne_z32 :: Ligne(z32)
+
+    discr ligne {
+        Ligne_r32(l) {
+            retourne Ligne(z32)(Point2D(z32)(l.p0.x comme z32, l.p0.y comme z32), Point2D(z32)(l.p1.x comme z32, l.p1.y comme z32))
+        }
+        Ligne_z32(l) {
+            retourne l
+        }
+        sinon {}
+    }
+
+    résultat: Ligne(z32)
+    retourne résultat
+}
+
+donne_couleur_dessin :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBAN8
+{
+    discr couleur_peintre {
+        CouleurRVBA(couleur) {
+            retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+        }
+        CouleurRVBAN8(couleur) {
+            retourne couleur
+        }
+        sinon {}
+    }
+
+    résultat: CouleurRVBAN8
+    retourne résultat
+}
+
+définis_taille_cannevas_dessin :: fonc (peintre: *Peintre, taille: Taille)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := RectanglePosDim(z32)(largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32)
+    redimensionne_tampon_de_rendu(*peintre_dessin.tampon_de_rendu, rect)
+
+    si peintre_dessin.tampon_texture {
+        détruit_tampon_texture(peintre_dessin.tampon_texture)
+        peintre_dessin.tampon_texture = nul
+    }
+}
+
+donne_taille_cannevas_dessin :: fonc (peintre: *Peintre) -> Taille
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := peintre_dessin.tampon_de_rendu.rect
+    retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
+}
+
+remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    couleur := donne_couleur_dessin(couleur_peintre)
+    rect := peintre_dessin.tampon_de_rendu.rect
+    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rect, couleur)
+}
+
+dessine_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+}
+
+remplis_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+}
+
+dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: r32 @inutilisée, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    // À FAIRE : rectangle arrondi
+    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+}
+
+remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: r32 @inutilisée, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    // À FAIRE : rectangle arrondi
+    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+}
+
+dessine_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    cercle := donne_cercle_dessin(cercle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur)
+}
+
+remplis_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    cercle := donne_cercle_dessin(cercle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    remplis_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur)
+}
+
+dessine_segment_dessin :: fonc (peintre: *Peintre, segment_peintre: LignePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    segment := donne_ligne_dessin(segment_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
+}
+
+dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
+}
+
+dessine_image_dessin :: fonc (peintre: *Peintre @inutilisée, image: ImageIO @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
+{
+    // À FAIRE
+}
+
+dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+}
+
+dessine_image_rvba_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+}
+
+dessine_image_rvba_32bit_dessin :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
+{
+    // À FAIRE
+}
+
+donne_fonte_dessin :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
+{
+    // À FAIRE
+    retourne nul
+}
+
+dessine_tampon_sur_écran_dessin :: fonc (peintre: *Peintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+
+    si peintre_dessin.tampon_texture == nul {
+        peintre_dessin.tampon_texture = crée_tampon_texture()
+    }
+
+    génère_texture(peintre_dessin.tampon_texture, peintre_dessin.tampon_de_rendu)
+
+    rect := peintre_dessin.tampon_de_rendu.rect
+    glViewport(0, 0, rect.largeur, rect.hauteur)
+    dessine_tampon_texture(peintre_dessin.tampon_texture)
+}
+
+détruit_peintre_dessin :: fonc (peintre: *PeintreDessin)
+{
+    détruit_tampon_de_rendu(*peintre.tampon_de_rendu)
+    si peintre_dessin.tampon_texture {
+        détruit_tampon_texture(peintre.tampon_texture)
+    }
+    déloge(peintre)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Peintre IGUMI.
+ *
+ * Peintre utilisant IGUMI pour dessiner l'interface.
+ * \{ */
+
+crée_peintre_igumi :: fonc () -> *Peintre
+{
+    initialise_igumi()
+
+    peintre := loge(Peintre)
+    peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_igumi
+    peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_igumi
+    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
+    peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
+    peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
+    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
+    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_igumi
+    peintre.rappel_dessine_cercle = dessine_cercle_igumi
+    peintre.rappel_remplis_cercle = remplis_cercle_igumi
+    peintre.rappel_dessine_segment = dessine_segment_igumi
+    peintre.rappel_dessine_texte = dessine_texte_igumi
+    peintre.rappel_dessine_image = dessine_image_igumi
+    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
+    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_igumi
+    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_igumi
+    peintre.rappel_donne_fonte = donne_fonte_igumi
+    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
+    retourne peintre
+}
+
+donne_cercle_igumi :: fonc (cercle: CerclePeintre) -> Cercle(r32)
+{
+    Cercle_r32 :: Cercle(r32)
+    Cercle_z32 :: Cercle(z32)
+
+    discr cercle {
+        Cercle_r32(c) {
+            retourne c
+        }
+        Cercle_z32(c) {
+            retourne Cercle(r32)(c.centre_x comme r32, c.centre_y comme r32, c.rayon comme r32)
+        }
+        sinon {}
+    }
+
+    résultat: Cercle(r32)
+    retourne résultat
+}
+
+donne_rectangle_igumi :: fonc (rectangle: RectanglePeintre) -> RectanglePosDim(r32)
+{
+    Rectangle_r32 :: RectanglePosDim(r32)
+    Rectangle_z32 :: RectanglePosDim(z32)
+
+    discr rectangle {
+        Rectangle_r32(r) {
+            retourne r
+        }
+        Rectangle_z32(r) {
+            retourne RectanglePosDim(r32)(r.x comme r32, r.y comme r32, r.hauteur comme r32, r.largeur comme r32)
+        }
+        sinon {}
+    }
+
+    résultat: RectanglePosDim(r32)
+    retourne résultat
+}
+
+donne_ligne_igumi :: fonc (ligne: LignePeintre) -> Ligne(r32)
+{
+    Ligne_r32 :: Ligne(r32)
+    Ligne_z32 :: Ligne(z32)
+
+    discr ligne {
+        Ligne_r32(l) {
+            retourne l
+        }
+        Ligne_z32(l) {
+            retourne Ligne(r32)(Point2D(r32)(l.p0.x comme r32, l.p0.y comme r32), Point2D(r32)(l.p1.x comme r32, l.p1.y comme r32))
+        }
+        sinon {}
+    }
+
+    résultat: Ligne(r32)
+    retourne résultat
+}
+
+donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
+{
+    discr couleur_peintre {
+        CouleurRVBA(couleur) {
+            retourne couleur
+        }
+        CouleurRVBAN8(couleur) {
+            retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0)
+        }
+        sinon {}
+    }
+
+    résultat: CouleurRVBA
+    retourne résultat
+}
+
+définis_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée, taille: Taille)
+{
+    IGUMI.définis_fenêtre(taille.largeur comme z32, taille.hauteur comme z32)
+}
+
+donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
+{
+    retourne Taille(Largeur(IGUMI.donne_largeur_cannevas()), Hauteur(IGUMI.donne_hauteur_cannevas()))
+}
+
+remplis_arrière_plan_igumi :: fonc (peintre: *Peintre @inutilisée, couleur_peintre: CouleurPeintre)
+{
+    couleur := donne_couleur_igumi(couleur_peintre)
+    glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
+}
+
+dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.LIGNES)
+
+    p0 := Point2D(r32)(rectangle.x,                     rectangle.y)
+    p1 := Point2D(r32)(rectangle.x,                     rectangle.y + rectangle.hauteur)
+    p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur)
+    p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y)
+
+    segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur)
+    segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur)
+    segment_immédiat(p2.x, p2.y, p3.x, p3.y, couleur)
+    segment_immédiat(p3.x, p3.y, p0.x, p0.y, couleur)
+}
+
+remplis_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+
+    quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur)
+}
+
+dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: r32, couleur_peintre: CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.LIGNES)
+
+    rayon_double := rayon * 2.0
+    si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
+        position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+        cercle_immédiat(position.x, position.y, rayon, couleur, faux)
+        retourne
+    }
+
+    contour_quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
+}
+
+remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: r32, couleur_peintre: CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+
+    rayon_double := rayon * 2.0
+    si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
+        position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+        cercle_immédiat(position.x, position.y, rayon, couleur, vrai)
+        retourne
+    }
+
+    quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
+}
+
+dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
+{
+    cercle := donne_cercle_igumi(cercle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.LIGNES)
+
+    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, faux)
+}
+
+remplis_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
+{
+    cercle := donne_cercle_igumi(cercle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+
+    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, vrai)
+}
+
+dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: LignePeintre, couleur_peintre: CouleurPeintre)
+{
+    segment := donne_ligne_igumi(segment_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.LIGNES)
+
+    segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
+}
+
+dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur)
+}
+
+dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_peintre: RectanglePeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+dessine_image_grise_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+dessine_image_rvba_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit, rectangle_peintre: RectanglePeintre)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
+{
+    retourne fonte_globale
+}
+
+dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
+{
+    /* Rien à faire pour le moment. */
+}
+
+détruit_peintre_igumi :: fonc (peintre: *Peintre)
+{
+    issitialise_igumi()
+}
+
+/** } */

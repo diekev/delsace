@@ -1,0 +1,11 @@
+/* Impossible d'accéder au module Kuri par nom, bien qu'il soit inclus par
+ * défaut dans tous les modules.
+ * Catégorie : [validation sémantique, portée]
+ */
+
+principale :: fonc () -> z32
+{
+    tableau: []z32
+    Kuri.tableau_ajoute(*tableau, 1)
+    retourne 0
+}

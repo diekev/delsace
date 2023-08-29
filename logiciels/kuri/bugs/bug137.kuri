@@ -1,0 +1,23 @@
+/* Crash quand nous capturons la valeur discriminée dans une discrimination
+ * d'une expression de type fonction.
+ * Catégorie : [crash, discr, type fonction, capture discr]
+ */
+
+UnionAnonyme :: z32 | r32
+
+fonction :: fonc (y: UnionAnonyme)
+{
+    discr fonction2 {
+        r32(x) {}
+        z32(x) {}
+        sinon {}
+    }
+}
+
+fonction2 :: fonc () {}
+
+principale :: fonc () -> z32
+{
+    fonction(123)
+    retourne 0
+}

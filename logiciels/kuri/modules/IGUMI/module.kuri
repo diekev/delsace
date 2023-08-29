@@ -2,23 +2,84 @@ importe Compilatrice
 importe Couleur
 importe FTGL
 importe Fondation
+importe Image
 importe Math
 importe OpenGL
 importe SysFichier
 importe Typographie
 
-charge "dessin_texte"
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation et issitialisation.
+ * \{ */
 
-// --------------------------
+initialise_igumi :: fonc ()
+{
+    chemins := #exécute donne_chemins_nuanceurs()
+
+    nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
+    nuanceur_texte.nom = "texte"
+    nuanceur_base = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
+    nuanceur_base.nom = "base"
+    nuanceur_image = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
+    nuanceur_image.nom = "image"
+
+    chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
+    fonte_globale = crée_fonte(chemin_fonte, 14.0)
+
+    glGenVertexArrays(1, *va_immédiat)
+    glGenBuffers(1, *vbo_immédiat)
+    glGenBuffers(1, *vbo_immédiat_index)
+    vérifie_erreur("création des VBO immédiats")
+}
+
+issitialise_igumi :: fonc ()
+{
+    glDeleteVertexArrays(1, *va_immédiat)
+    glDeleteBuffers(1, *vbo_immédiat)
+    glDeleteBuffers(1, *vbo_immédiat_index)
+
+    détruit_fonte(fonte_globale)
+
+    détruit_nuanceur(nuanceur_base)
+    détruit_nuanceur(nuanceur_texte)
+    détruit_nuanceur(nuanceur_image)
+}
+
+définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
+{
+    largeur_cannevas = largeur
+    hauteur_cannevas = hauteur
+    projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
+}
+
+donne_largeur_cannevas :: fonc () -> z32
+{
+    retourne largeur_cannevas
+}
+
+donne_hauteur_cannevas :: fonc () -> z32
+{
+    retourne hauteur_cannevas
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Nuanceur.
+ * \{ */
 
 NuanceurGL :: struct {
+    nom: chaine
     programme: n32
 
     /* stocke les locations pour les attributes pour les nuanceurs de bases */
-    loc_position : n32 = -1 comme n32
-    loc_normal : n32 = -1 comme n32
-    loc_couleur : n32 = -1 comme n32
-    loc_uv : n32 = -1 comme n32
+    loc_position : z32 = -1
+    loc_normal : z32 = -1
+    loc_couleur : z32 = -1
+    loc_uv : z32 = -1
+    loc_atlas : z32 = -1
+    loc_projection : z32 = -1
+    adresse_image: z32 = -1
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
@@ -39,14 +100,13 @@ crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: c
 
     glUseProgram(nuanceur.programme)
 
-    nuanceur.loc_position = glGetAttribLocation(nuanceur.programme, "position\0".pointeur)
-    vérifie_erreur("glGetAttribLocation position")
-    nuanceur.loc_couleur = glGetAttribLocation(nuanceur.programme, "couleur\0".pointeur)
-    vérifie_erreur("glGetAttribLocation couleur")
-    nuanceur.loc_uv = glGetAttribLocation(nuanceur.programme, "uv\0".pointeur)
-    vérifie_erreur("glGetAttribLocation uv")
-    nuanceur.loc_normal = glGetAttribLocation(nuanceur.programme, "normal\0".pointeur)
-    vérifie_erreur("glGetAttribLocation normal")
+    nuanceur.loc_position = donne_adresse_attribut(nuanceur.programme, "position")
+    nuanceur.loc_couleur = donne_adresse_attribut(nuanceur.programme, "couleur")
+    nuanceur.loc_uv = donne_adresse_attribut(nuanceur.programme, "uv")
+    nuanceur.loc_normal = donne_adresse_attribut(nuanceur.programme, "normal")
+    nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas")
+    nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection")
+    nuanceur.adresse_image = donne_adresse_uniforme(nuanceur.programme, "image")
 
     glUseProgram(0)
 
@@ -68,109 +128,35 @@ détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
     détruit_programme(nuanceur.programme)
 }
 
-nuanceur_uniforme_n32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: n32)
-{
-    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    vérifie_erreur("glGetUniformLocation")
-    si loc != -1 comme n32 {
-        glUniform1ui(loc, v);
-    }
-    vérifie_erreur("glUniform1ui")
+CheminsNuanceurs :: struct {
+    chemin_vertex_texte: chaine
+    chemin_fragment_texte: chaine
+    chemin_vertex_base: chaine
+    chemin_fragment_base: chaine
+    chemin_vertex_image: chaine
+    chemin_fragment_image: chaine
 }
 
-nuanceur_uniforme_z32 :: fonc (nuanceur: *NuanceurGL, nom: chaine, v: z32)
+donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
 {
-    loc := glGetUniformLocation(nuanceur.programme, nom.pointeur)
-    si loc != -1 comme n32 {
-        glUniform1i(loc, v);
-    }
-    vérifie_erreur("glUniform1i")
+    module := compilatrice_module_courant()
+    chemin_module := CheminFichier(compilatrice_chemin_module(module))
+
+    résultat: CheminsNuanceurs
+    résultat.chemin_vertex_texte = (chemin_module / "nuanceurs/nuanceur_texte_vertex.glsl").chn
+    résultat.chemin_fragment_texte = (chemin_module / "nuanceurs/nuanceur_texte_fragment.glsl").chn
+    résultat.chemin_vertex_base = (chemin_module / "nuanceurs/nuanceur_base_vertex.glsl").chn
+    résultat.chemin_fragment_base = (chemin_module / "nuanceurs/nuanceur_base_fragment.glsl").chn
+    résultat.chemin_vertex_image = (chemin_module / "nuanceurs/nuanceur_image_vertex.glsl").chn
+    résultat.chemin_fragment_image = (chemin_module / "nuanceurs/nuanceur_image_fragment.glsl").chn
+    retourne résultat
 }
 
-IGUMI_largeur_fenetre := 0
-IGUMI_hauteur_fenetre := 0
+/** } */
 
-/*
-    EffetTexte :: énum {
-        RIEN
-    }
-
-    dessine_texte :: fonc (fonte: &Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
-*/
-dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
-{
-    utilise_nuanceur(nuanceur_texte)
-
-    // À FAIRE : restore état
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    glEnable(GL_BLEND)
-
-    // met en place la texture de la fonte sur le nuanceur
-	glGenTextures(1, *fonte.atlas.id )
-	glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    vérifie_erreur("glGenTextures")
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, fonte.atlas.width comme z32, fonte.atlas.height comme z32,
-				  0, GL_RED, GL_UNSIGNED_BYTE, fonte.atlas.data )
-    vérifie_erreur("glTexImage2D")
-
-    commence_immédiat()
-    glUseProgram(nuanceur_texte.programme)
-
-    nuanceur_uniforme_z32(nuanceur_texte, "atlas\0", 0)
-    nuanceur_uniforme_z32(nuanceur_texte, "largeur_fenetre\0", IGUMI_largeur_fenetre)
-    nuanceur_uniforme_z32(nuanceur_texte, "hauteur_fenetre\0", IGUMI_hauteur_fenetre)
-
-    dernier_caractère : *texture_glyph_t = nul
-    pour c dans texte {
-		glyph := fonte.donne_glyphe(*c)
-
-		si glyph == nul {
-			continue
-		}
-
-		kerning := glyph.donne_crénage_avec(dernier_caractère)
-		x += kerning
-
-        // À FAIRE: inv_taille
-		x0 := (x + glyph.offset_x comme r32)
-		y0 := (y + glyph.offset_y comme r32)
-		x1 := x0 + glyph.width comme r32
-		y1 := y0 - glyph.height comme r32
-		s0 := glyph.s0;
-		t0 := glyph.t0;
-		s1 := glyph.s1;
-		t1 := glyph.t1;
-
-		p0 := Vec3(x = x0, y = y0)
-		p1 := Vec3(x = x0, y = y1)
-		p2 := Vec3(x = x1, y = y1)
-        p3 := Vec3(x = x1, y = y0)
-
-		uv0 := Vec2(x = s0, y = t0)
-		uv1 := Vec2(x = s0, y = t1)
-		uv2 := Vec2(x = s1, y = t1)
-		uv3 := Vec2(x = s1, y = t0)
-
-        quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
-
-		x += glyph.advance_x
-
-        dernier_caractère = glyph
-	}
-
-    termine_immédiat(ModeImmédiat.TRIANGLES)
-
-	glDeleteTextures(1, *fonte.atlas.id)
-
-    glDisable(GL_BLEND)
-}
-
-// ----------------------------------------------------------------------------
+/* ------------------------------------------------------------------------- */
+/** \nom Données globales.
+ * \{ */
 
 FormatVertexXCNU :: struct {
     position : Vec3
@@ -184,7 +170,9 @@ DÉCALAGE_COULEUR :: 12
 DÉCALAGE_NORMAL  :: 28
 DÉCALAGE_UV      :: 40
 
-// À FAIRE : matrice de vue
+projection : Mat4r
+largeur_cannevas : z32
+hauteur_cannevas : z32
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
 sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU
@@ -196,225 +184,15 @@ vbo_immédiat_index : n32
 nuanceur_global : *NuanceurGL
 nuanceur_base : *NuanceurGL
 nuanceur_texte : *NuanceurGL
+nuanceur_image : *NuanceurGL
 
 fonte_globale : *Fonte
 
-utilise_nuanceur :: fonc (nuanceur: *NuanceurGL)
-{
-    nuanceur_global = nuanceur
-}
+/** } */
 
-CheminsNuanceurs :: struct {
-    chemin_vertex_texte: chaine
-    chemin_fragment_texte: chaine
-    chemin_vertex_base: chaine
-    chemin_fragment_base: chaine
-}
-
-donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
-{
-    module := compilatrice_module_courant()
-    chemin_module := CheminFichier(compilatrice_chemin_module(module))
-
-    résultat: CheminsNuanceurs
-    résultat.chemin_vertex_texte = (chemin_module / "nuanceurs/nuanceur_texte_vertex.glsl").chn
-    résultat.chemin_fragment_texte = (chemin_module / "nuanceurs/nuanceur_texte_fragment.glsl").chn
-    résultat.chemin_vertex_base = (chemin_module / "nuanceurs/nuanceur_base_vertex.glsl").chn
-    résultat.chemin_fragment_base = (chemin_module / "nuanceurs/nuanceur_base_fragment.glsl").chn
-    retourne résultat
-}
-
-initialise_igumi :: fonc ()
-{
-    chemins := #exécute donne_chemins_nuanceurs()
-
-    nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
-    nuanceur_base = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
-
-    chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
-    fonte_globale = crée_fonte(chemin_fonte, 14.0)
-
-    glGenVertexArrays(1, *va_immédiat)
-    glGenBuffers(1, *vbo_immédiat)
-    glGenBuffers(1, *vbo_immédiat_index)
-    vérifie_erreur("création des VBO immédiats")
-}
-
-issitialise_igumi :: fonc ()
-{
-    glDeleteVertexArrays(1, *va_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat_index)
-
-    détruit_fonte(fonte_globale)
-
-    détruit_nuanceur(nuanceur_base)
-    détruit_nuanceur(nuanceur_texte)
-}
-
-installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
-{
-    stride := taille_de(FormatVertexXCNU)
-
-    si nuanceur.loc_position != -1 comme n32 {
-	    glVertexAttribPointer(nuanceur.loc_position, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
-	    glEnableVertexAttribArray(nuanceur.loc_position)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
-    }
-
-    si nuanceur.loc_couleur != -1 comme n32 {
-	    glVertexAttribPointer(nuanceur.loc_couleur, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
-	    glEnableVertexAttribArray(nuanceur.loc_couleur)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
-    }
-
-    si nuanceur.loc_normal != -1 comme n32 {
-	    glEnableVertexAttribArray(nuanceur.loc_normal)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
-	    glVertexAttribPointer(nuanceur.loc_normal, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
-    }
-
-    si nuanceur.loc_uv != -1 comme n32 {
-	    glEnableVertexAttribArray(nuanceur.loc_uv)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
-	    glVertexAttribPointer(nuanceur.loc_uv, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
-    }
-}
-
-ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
-{
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    num_sommets_immédiat += 1
-}
-
-ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
-{
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    sommets_immédiat[num_sommets_immédiat].uv = uv
-    num_sommets_immédiat += 1
-}
-
-quad_immédiat :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, couleur: CouleurRVBA)
-{
-    p0 := Vec3(x = x          , y = y)
-    p1 := Vec3(x = x + largeur, y = y)
-    p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x          , y = y + hauteur)
-
-    quad_immédiat(p0, p1, p2, p3, couleur)
-}
-
-quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, couleur: CouleurRVBA)
-{
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p1, couleur)
-    ajoute_sommets(p2, couleur)
-
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p2, couleur)
-    ajoute_sommets(p3, couleur)
-}
-
-quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, uv3: Vec2, couleur: CouleurRVBA)
-{
-    ajoute_sommets(p0, uv0, couleur)
-    ajoute_sommets(p1, uv1, couleur)
-    ajoute_sommets(p2, uv2, couleur)
-
-    ajoute_sommets(p0, uv0, couleur)
-    ajoute_sommets(p2, uv2, couleur)
-    ajoute_sommets(p3, uv3, couleur)
-}
-
-segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurRVBA)
-{
-    p0 := Vec3(x0, y0)
-    p1 := Vec3(x1, y1)
-
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p1, couleur)
-}
-
-cercle_immédiat :: fonc (cx : r32, cy : r32, rx : r32, ry : r32, couleur: CouleurRVBA)
-{
-    segs := 32
-    phi := 0.0
-    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur)
-}
-
-quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32, couleur: CouleurRVBA)
-{
-    segs := 8
-	phi := quadrant comme r32 * (3.14159 / 2.0)
-    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur)
-}
-
-cercle_immédiat_impl :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, segs: z32, phi: r32, couleur: CouleurRVBA)
-{
-    p0 := Vec3(cx, cy, 0.0)
-	phi_delta := 2.0 * 3.14159 / 32.0
-
-    pour segs {
-        ca0 := cx + cos(phi) comme r32 * rx
-        sa0 := cy + sin(phi) comme r32 * ry
-
-        phi += phi_delta
-
-        ca1 := cx + cos(phi) comme r32 * rx
-        sa1 := cy + sin(phi) comme r32 * ry
-
-        p1 := Vec3(ca0, sa0, 0.0)
-        p2 := Vec3(ca1, sa1, 0.0)
-
-        ajoute_sommets(p0, couleur)
-        ajoute_sommets(p1, couleur)
-        ajoute_sommets(p2, couleur)
-    }
-}
-
-quad_arrondis_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, arrondis_pixel: r32, couleur: CouleurRVBA)
-{
-    rx := arrondis_pixel / largeur
-    ry := arrondis_pixel / hauteur
-
-	px := pos_x + rx
-	py := pos_y + ry
-    tx := largeur - 2.0 * rx
-    ty := hauteur - 2.0 * ry
-
-    // dessine centre
-    quad_immédiat(px, py, tx, ty, couleur)
-
-    // dessine rect gauche
-    quad_immédiat(px - rx, py, rx, ty, couleur)
-
-    // dessine rect droite
-    quad_immédiat(px + tx, py, rx, ty, couleur)
-
-    // dessine rect dessus
-    quad_immédiat(px, py + ty, tx, ry, couleur)
-
-    // dessine rect dessous
-    quad_immédiat(px, py - ry, tx, ry, couleur)
-
-    // dessine coin haut-gauche
-    quadrant_cercle_immédiat(px, py + ty, rx, ry, 1, couleur)
-
-    // dessine coin haut-droite
-    quadrant_cercle_immédiat(px + tx, py + ty, rx, ry, 0, couleur)
-
-    // dessine coin bas-gauche
-    quadrant_cercle_immédiat(px, py, rx, ry, 2, couleur)
-
-    // dessine coin bas-droite
-    quadrant_cercle_immédiat(px + tx, py, rx, ry, 3, couleur)
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Dessin.
+ * \{ */
 
 commence_immédiat :: fonc ()
 {
@@ -454,6 +232,8 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
     glBindBuffer(GL_ARRAY_BUFFER, vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
 
+    définis_uniforme(nuanceur.loc_projection, projection)
+
     installe_format_xcnu(nuanceur)
 
 	glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_STREAM_DRAW)
@@ -474,3 +254,383 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
 
     vérifie_erreur("termine_immédiat")
 }
+
+utilise_nuanceur :: fonc (nuanceur: *NuanceurGL)
+{
+    nuanceur_global = nuanceur
+}
+
+installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
+{
+    stride := taille_de(FormatVertexXCNU)
+
+    si nuanceur.loc_position != -1 {
+	    glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
+	    glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
+    }
+
+    si nuanceur.loc_couleur != -1 {
+	    glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
+	    glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
+    }
+
+    si nuanceur.loc_normal != -1 {
+	    glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
+	    glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
+    }
+
+    si nuanceur.loc_uv != -1 {
+	    glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
+	    glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
+    }
+}
+
+ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
+{
+    sommets_immédiat[num_sommets_immédiat].position = pos
+    sommets_immédiat[num_sommets_immédiat].couleur = couleur
+    num_sommets_immédiat += 1
+}
+
+ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
+{
+    sommets_immédiat[num_sommets_immédiat].position = pos
+    sommets_immédiat[num_sommets_immédiat].couleur = couleur
+    sommets_immédiat[num_sommets_immédiat].uv = uv
+    num_sommets_immédiat += 1
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Quad.
+ * \{ */
+
+quad_immédiat :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, couleur: CouleurRVBA)
+{
+    p0 := Vec3(x = x          , y = y)
+    p1 := Vec3(x = x + largeur, y = y)
+    p2 := Vec3(x = x + largeur, y = y + hauteur)
+    p3 := Vec3(x = x          , y = y + hauteur)
+
+    quad_immédiat(p0, p1, p2, p3, couleur)
+}
+
+quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, couleur: CouleurRVBA)
+{
+    ajoute_sommets(p0, couleur)
+    ajoute_sommets(p1, couleur)
+    ajoute_sommets(p2, couleur)
+
+    ajoute_sommets(p0, couleur)
+    ajoute_sommets(p2, couleur)
+    ajoute_sommets(p3, couleur)
+}
+
+quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, uv3: Vec2, couleur: CouleurRVBA)
+{
+    ajoute_sommets(p0, uv0, couleur)
+    ajoute_sommets(p1, uv1, couleur)
+    ajoute_sommets(p2, uv2, couleur)
+
+    ajoute_sommets(p0, uv0, couleur)
+    ajoute_sommets(p2, uv2, couleur)
+    ajoute_sommets(p3, uv3, couleur)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Segment/Ligne.
+ * \{ */
+
+segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurRVBA)
+{
+    p0 := Vec3(x0, y0)
+    p1 := Vec3(x1, y1)
+
+    ajoute_sommets(p0, couleur)
+    ajoute_sommets(p1, couleur)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Cercle.
+ * \{ */
+
+cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    segs := 32
+    phi := 0.0
+    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
+}
+
+quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, quadrant : z32, couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    segs := 8
+	phi := quadrant comme r32 * (3.14159 / 2.0)
+    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
+}
+
+cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    p0 := Vec3(cx, cy, 0.0)
+	phi_delta := 2.0 * 3.14159 / 32.0
+
+    pour segs {
+        ca0 := cx + cos(phi) comme r32 * r
+        sa0 := cy + sin(phi) comme r32 * r
+
+        phi += phi_delta
+
+        ca1 := cx + cos(phi) comme r32 * r
+        sa1 := cy + sin(phi) comme r32 * r
+
+        p1 := Vec3(ca0, sa0, 0.0)
+        p2 := Vec3(ca1, sa1, 0.0)
+
+        si ajoute_centre {
+            ajoute_sommets(p0, couleur)
+        }
+
+        ajoute_sommets(p1, couleur)
+        ajoute_sommets(p2, couleur)
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Quad arrondi.
+ * \{ */
+
+quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+{
+	px := pos_x + rayon
+	py := pos_y + rayon
+    tx := largeur - 2.0 * rayon
+    ty := hauteur - 2.0 * rayon
+
+    /* Centre. */
+    quad_immédiat(px, py, tx, ty, couleur)
+    /* Rectangle gauche. */
+    quad_immédiat(pos_x, py, rayon, ty, couleur)
+    /* Rectangle droite. */
+    quad_immédiat(px + tx, py, rayon, ty, couleur)
+    /* Rectangle haut. */
+    quad_immédiat(px, py + ty, tx, rayon, couleur)
+    /* Rectangle bas. */
+    quad_immédiat(px, pos_y, tx, rayon, couleur)
+
+    /* Haut gauche. */
+    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, vrai)
+    /* Haut droite. */
+    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, vrai)
+    /* Bas gauche. */
+    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, vrai)
+    /* Bas droite. */
+    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, vrai)
+}
+
+contour_quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+{
+	px := pos_x + rayon
+	py := pos_y + rayon
+    tx := largeur - 2.0 * rayon
+    ty := hauteur - 2.0 * rayon
+
+    /* Haut. */
+    segment_immédiat(px, pos_y, px + tx, pos_y, couleur)
+    /* Bas. */
+    segment_immédiat(px, pos_y + hauteur, px + tx, pos_y + hauteur, couleur)
+    /* Gauche. */
+    segment_immédiat(pos_x, py, pos_x, py + ty, couleur)
+    /* Droite. */
+    segment_immédiat(pos_x + largeur, py, pos_x + largeur, py + ty, couleur)
+
+    /* Haut gauche. */
+    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, faux)
+    /* Haut droite. */
+    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, faux)
+    /* Bas gauche. */
+    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, faux)
+    /* Bas droite. */
+    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, faux)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Texte.
+ * \{ */
+
+donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> ParamètresTexture2D
+{
+    résultat: ParamètresTexture2D
+    résultat.largeur = atlas.width comme z32
+    résultat.hauteur = atlas.height comme z32
+    résultat.données = atlas.data
+    résultat.bordure = 0
+    résultat.type = GL_UNSIGNED_BYTE
+    résultat.format = GL_RED
+    retourne résultat
+}
+
+/*
+    EffetTexte :: énum {
+        RIEN
+    }
+
+    dessine_texte :: fonc (fonte: &Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
+*/
+dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
+{
+    commence_immédiat()
+
+    ancienne_fonction_mélange: z32
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    glEnable(GL_BLEND)
+
+    utilise_nuanceur(nuanceur_texte)
+
+    // met en place la texture de la fonte sur le nuanceur
+	glGenTextures(1, *fonte.atlas.id )
+    diffère glDeleteTextures(1, *fonte.atlas.id)
+
+    // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
+    params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+    définis_texture_2d(fonte.atlas.id, *params)
+
+    glUseProgram(nuanceur_texte.programme)
+
+    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
+
+    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
+
+    dernier_caractère : *texture_glyph_t = nul
+    pour * c dans texte {
+		glyph := fonte.donne_glyphe(c)
+
+		si glyph == nul {
+			continue
+		}
+
+		kerning := glyph.donne_crénage_avec(dernier_caractère)
+		x += kerning
+
+		x0 := (x + glyph.offset_x comme r32)
+		y0 := (y + glyph.offset_y comme r32)
+		x1 := x0 + glyph.width comme r32
+		y1 := y0 - glyph.height comme r32
+		s0 := glyph.s0;
+		t0 := glyph.t0;
+		s1 := glyph.s1;
+		t1 := glyph.t1;
+
+		p0 := Vec3(x = x0, y = y0)
+		p1 := Vec3(x = x0, y = y1)
+		p2 := Vec3(x = x1, y = y1)
+        p3 := Vec3(x = x1, y = y0)
+
+		uv0 := Vec2(x = s0, y = t0)
+		uv1 := Vec2(x = s0, y = t1)
+		uv2 := Vec2(x = s1, y = t1)
+		uv3 := Vec2(x = s1, y = t0)
+
+        quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+
+		x += glyph.advance_x
+
+        dernier_caractère = glyph
+	}
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Image
+ * \{ */
+
+image_immédiat :: fonc (image: ImageIO, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageGrise8Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    /* À FAIRE : dessine en noir et blanc. */
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageRVBA8Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (image: TamponImageRVBA32Bit, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    params := donne_paramètres_texture_pour_image(image)
+    image_immédiat(*params, x, y, largeur, hauteur)
+}
+
+image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur: r32, hauteur: r32)
+{
+    commence_immédiat()
+
+    ancienne_fonction_mélange: z32
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    glEnable(GL_BLEND)
+
+    utilise_nuanceur(nuanceur_image)
+
+    code_texture: n32
+    glGenTextures(1, *code_texture)
+    diffère glDeleteTextures(1, *code_texture)
+    définis_texture_2d(code_texture, params)
+
+    glUseProgram(nuanceur_image.programme)
+    diffère glUseProgram(0)
+
+    glBindTexture(GL_TEXTURE_2D, code_texture)
+    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
+
+    p0 := Vec3(x = x          , y = y)
+    p1 := Vec3(x = x + largeur, y = y)
+    p2 := Vec3(x = x + largeur, y = y + hauteur)
+    p3 := Vec3(x = x          , y = y + hauteur)
+
+    u0 := Vec2(0.0, 0.0)
+    u1 := Vec2(1.0, 0.0)
+    u2 := Vec2(1.0, 1.0)
+    u3 := Vec2(0.0, 1.0)
+
+    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA())
+
+    termine_immédiat(ModeImmédiat.TRIANGLES)
+}
+
+/** } */

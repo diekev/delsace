@@ -1,10 +1,8 @@
 importe Fondation
 
-millisecondes_par_jours : z64 : 24 * 60 * 60 * 1000
-
 temps_millis_depuis_époque :: fonc (date: Date) -> z64
 {
-    millis_jours := days_from_civil(date) * millisecondes_par_jours
+    millis_jours := days_from_civil(date) * Constantes(z64).MILLISECONDES_PAR_JOUR
     retourne millis_jours + date.heure * 60 * 60 * 1000 + date.minute * 60 * 1000 + date.seconde * 1000
 }
 

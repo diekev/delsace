@@ -1,5 +1,7 @@
 /* Impossible d'utiliser les types opaques dans les conditions si le type
- * opacifié est convertible en bool. */
+ * opacifié est convertible en bool.
+ * Catégorie : [validation sémantique, booléen implicite, type opaque]
+ */
 
 importe Chaine
 
