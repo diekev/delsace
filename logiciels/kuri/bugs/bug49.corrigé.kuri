@@ -1,4 +1,6 @@
-// les infos_types des z64 ne sont pas générés correctement dans les métaprogrammes, la taille_en_octet est de 0...
+/* Les infos_types des z64 ne sont pas générés correctement dans les métaprogrammes, la taille_en_octet est de 0...
+ * Catégorie : [génération code, info type]
+ */
 
 importe Fondation
 

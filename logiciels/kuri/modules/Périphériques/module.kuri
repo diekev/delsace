@@ -17,7 +17,7 @@ ModificateurClavié :: énum {
 
 ÉtatSouris :: struct {
     quand: z64 // le temps où l'état a été enregistré
-    où: Point // là où la souris se trouve
+    où: Point2D(z32) // là où la souris se trouve
     modificateur: ModificateurClavié
 }
 
@@ -98,6 +98,11 @@ CléClavier :: énum {
     CLÉ_POINT_VIRGULE
     CLÉ_DOUBLE_POINT
     CLÉ_POINT_EXCLAMATION
+
+    CLÉ_FLÈCHE_GAUCHE
+    CLÉ_FLÈCHE_DROITE
+    CLÉ_FLÈCHE_HAUT
+    CLÉ_FLÈCHE_BAS
 }
 
 __caractères_clé_clavier : [CléClavier.nombre_éléments]z8

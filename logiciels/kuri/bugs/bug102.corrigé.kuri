@@ -1,5 +1,7 @@
 /* Erreur de typage sur des arguments variadiques polymorphiques
- * alors que les types sont les mêmes. */
+ * alors que les types sont les mêmes.
+ * Catégorie : [validation sémantique, fonction polymorphique, type variadique]
+ */
 
 importe Fondation
 

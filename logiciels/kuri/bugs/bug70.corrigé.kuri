@@ -1,4 +1,6 @@
-/* Crash dans la création d'un tableau global de structures. */
+/* Crash dans la création d'un tableau global de structures.
+ * Catégorie : [crash, variable globale, type tableau, type structure]
+ */
 
 importe Math
 

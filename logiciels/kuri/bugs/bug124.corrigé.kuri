@@ -1,5 +1,6 @@
 /* Aucune itération si les boucles se font sur des entiers naturels.
  * Voir note dans Audio.
+ * Catégorie : [génération code, boucle pour, type entier naturel]
  */
 
 importe Fondation

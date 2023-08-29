@@ -1,5 +1,7 @@
 /* Crash quand une constante de tableau fixe est passé à une fonction variadique
- * via une expansion. */
+ * via une expansion.
+ * Catégorie : [crash, tableau fixe]
+ */
 
 importe Fondation
 

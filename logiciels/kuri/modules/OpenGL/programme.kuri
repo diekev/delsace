@@ -1,4 +1,6 @@
+importe Chaine
 importe Fondation
+importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom Outils pour compiler des programmes OpenGL.
@@ -127,6 +129,115 @@ détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
 {
     si glIsShader(id_nuanceur) {
         glDeleteShader(id_nuanceur)
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête et définition d'attributs.
+ * \{ */
+
+donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
+{
+    nom_c := crée_chaine_c(nom)
+    diffère détruit_chaine_c(nom_c)
+    retourne glGetAttribLocation(programme, nom_c)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête et définition de valeurs uniformes.
+ * \{ */
+
+donne_adresse_uniforme :: fonc (programme: n32, nom: chaine) -> z32
+{
+    nom_c := crée_chaine_c(nom)
+    diffère détruit_chaine_c(nom_c)
+    retourne glGetUniformLocation(programme, nom_c)
+}
+
+définis_uniforme :: fonc (programme: n32, nom: chaine, valeur: $T)
+{
+    adresse := donne_adresse_uniforme(programme, nom)
+    définis_uniforme(adresse, valeur)
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: bool)
+{
+    si adresse != -1 {
+        glUniform1i(adresse, valeur comme z32)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: z32)
+{
+    si adresse != -1 {
+        glUniform1i(adresse, valeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: n32)
+{
+    si adresse != -1 {
+        glUniform1ui(adresse, valeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: r32)
+{
+    si adresse != -1 {
+        glUniform1f(adresse, valeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: []z32)
+{
+    si adresse != -1 {
+        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: []n32)
+{
+    si adresse != -1 {
+        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: []r32)
+{
+    si adresse != -1 {
+        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: Vec2)
+{
+    si adresse != -1 {
+        glUniform2f(adresse, valeur.x, valeur.y)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: Vec3)
+{
+    si adresse != -1 {
+        glUniform3f(adresse, valeur.x, valeur.y, valeur.z)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, valeur: Vec4)
+{
+    si adresse != -1 {
+        glUniform4f(adresse, valeur.x, valeur.y, valeur.z, valeur.w)
+    }
+}
+
+définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
+{
+    si adresse != -1 {
+        glUniformMatrix4fv(adresse, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
     }
 }
 

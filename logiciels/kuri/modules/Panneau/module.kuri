@@ -1,9 +1,10 @@
 /* Module pour dessiner et gérer des interfaces graphiques. */
 
-importe Dessin
+importe Couleur
 importe Fondation
 importe Géométrie
 importe Périphériques
+importe PeintureInterface
 importe Typographie
 
 charge "menu"
@@ -13,7 +14,7 @@ charge "menu"
  * \{ */
 
 ContexteAffichage :: struct {
-    tampon_de_rendu: *TamponDeRendu
+    peintre: *Peintre
     fonte: *Fonte
 }
 
@@ -29,14 +30,14 @@ Panneau :: struct {
     enfants: []*Panneau
 
     /* Dimension du panneau. */
-    rect: Rectangle
+    rect: RectanglePosDim(z32)
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc(*Panneau)(rien)
     sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
     sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
-    sur_redimension_parent: fonc(*Panneau, Rectangle)(rien)
+    sur_redimension_parent: fonc(*Panneau, RectanglePosDim(z32))(rien)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
@@ -46,7 +47,7 @@ ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
     tableau_ajoute(*panneau.enfants, enfant)
 }
 
-redimensionne_panneau :: fonc (panneau: *Panneau, rect: Rectangle)
+redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
 {
     panneau.rect = rect
     pour panneau.enfants {
@@ -106,7 +107,7 @@ PanneauInterface :: struct {
     empl base: Panneau
 
     barre_de_menu: *PanneauBarreDeMenu
-    
+
     MémoireVive :: struct {
         menu_actif: *PanneauMenu
     }
@@ -114,7 +115,7 @@ PanneauInterface :: struct {
     mémoire_vive: MémoireVive
 }
 
-crée_panneau_interface :: fonc (rect: Rectangle) -> *PanneauInterface
+crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterface
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -244,7 +245,7 @@ PanneauBarreDeMenu :: struct {
     }
 
     barre_de_menu: *BarreDeMenu
-    
+
     éléments: []Élément
 
     hauteur_élément: z32
@@ -285,7 +286,7 @@ crée_panneau_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu) -> *PanneauBar
         détruit_panneau_barre_de_menu(panneau_menu)
     }
 
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: Rectangle @inutilisée)
+    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32) @inutilisée)
     {
         panneau_menu := panneau comme *PanneauBarreDeMenu
         panneau_menu.besoin_ajournement_disposition = vrai
@@ -358,7 +359,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau, ctx)
 
-    remplis_rectangle(ctx.tampon_de_rendu, rect, couleur_blanche)
+    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
 
     si état.élément_pressé != -1 {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_pressé)
@@ -370,10 +371,10 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         }
 
         couleur := CouleurRVBAN8(valeur, valeur, valeur, 255)
-        remplis_rectangle(ctx.tampon_de_rendu, rect_élément, couleur)
+        remplis_rectangle(ctx.peintre, rect_élément, couleur)
     }
 
-    rect_élément : Rectangle
+    rect_élément : RectanglePosDim(z32)
     rect_élément.hauteur = hauteur_élément
 
     pour éléments {
@@ -382,13 +383,13 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         rect_élément.largeur = it.largeur
 
         menu := barre_de_menu.menus[index_it]
-        dessine_texte(ctx.tampon_de_rendu, menu.texte, ctx.fonte, rect_élément, couleur_noire)
+        dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, couleur_noire)
     }
 }
 
 observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
 {
-    saufsi rect.possède(souris.où) {
+    saufsi rect.contient(souris.où) {
         retourne
     }
 
@@ -398,7 +399,7 @@ observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
 
     pour éléments {
         rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.possède(souris.où) {
+        saufsi rect_élément.contient(souris.où) {
             continue
         }
 
@@ -408,7 +409,7 @@ observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
 
 observe_clique :: fonc (empl panneau: *PanneauBarreDeMenu, souris: CliqueSouris) -> bool
 {
-    saufsi rect.possède(souris.état.où) {
+    saufsi rect.contient(souris.état.où) {
         retourne faux
     }
 
@@ -418,7 +419,7 @@ observe_clique :: fonc (empl panneau: *PanneauBarreDeMenu, souris: CliqueSouris)
 
     pour éléments {
         rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.possède(souris.état.où) {
+        saufsi rect_élément.contient(souris.état.où) {
             continue
         }
 
@@ -448,21 +449,21 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
 
         si index_élément != -1 {
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
-            panneau_menu := crée_panneau_menu(barre_de_menu.menus[index_élément], Point(rect_élément.x, rect_élément.y))
+            panneau_menu := crée_panneau_menu(barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
             panneau_interface.définis_panneau_menu(panneau_menu)
         }
     }
 }
 
 /* Retourne les limites de l'élément pour les cliques. */
-donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64) -> Rectangle
+donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64) -> RectanglePosDim(z32)
 {
     assert(index_élément >= 0)
     assert(index_élément < éléments.taille)
 
     élément := éléments[index_élément]
 
-    résultat : Rectangle = ---
+    résultat : RectanglePosDim(z32) = ---
     résultat.x = rect.x + élément.décalage - décalage_élément_x
     résultat.y = rect.y
     résultat.hauteur = rect.hauteur
@@ -498,7 +499,7 @@ PanneauMenu :: struct {
 
     menu: *Menu
     éléments: []Élément
-    position: Point
+    position: Point2D(z32)
 
     hauteur_élément: z32
     espaçage_élément: z32
@@ -509,7 +510,7 @@ PanneauMenu :: struct {
     besoin_ajournement_disposition := vrai
 }
 
-crée_panneau_menu :: fonc (menu: *Menu, position: Point) -> *PanneauMenu
+crée_panneau_menu :: fonc (menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -604,17 +605,17 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
 dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau, ctx)
-    remplis_rectangle(ctx.tampon_de_rendu, rect, couleur_blanche)
-    dessine_rectangle(ctx.tampon_de_rendu, rect, couleur_grise)
+    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
+    dessine_rectangle(ctx.peintre, rect, couleur_grise)
 
     si état.élément_survolé != -1 {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
-        remplis_rectangle(ctx.tampon_de_rendu, rect_élément, couleur_grise_claire)
+        remplis_rectangle(ctx.peintre, rect_élément, couleur_grise_claire)
     }
 
     métriques := donne_métriques_fonte(ctx.fonte)
 
-    rect_élément : Rectangle
+    rect_élément : RectanglePosDim(z32)
     rect_élément.x = rect.x + décalage_élément_x
     rect_élément.hauteur = métriques.donne_hauteur_ligne() comme z32
 
@@ -623,20 +624,20 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         rect_élément.y = rect.y + it.décalage
 
         texte := menu.éléments[index_it].texte
-        dessine_texte(ctx.tampon_de_rendu, texte, ctx.fonte, rect_élément, couleur_noire)
+        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, couleur_noire)
     }
 }
 
 observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
 {
-    saufsi rect.possède(souris.où) {
+    saufsi rect.contient(souris.où) {
         état.élément_survolé = -1
         retourne
     }
 
     pour éléments {
         rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.possède(souris.où) {
+        saufsi rect_élément.contient(souris.où) {
             continue
         }
 
@@ -645,14 +646,14 @@ observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
     }
 }
 
-donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauMenu, index_élément: z64) -> Rectangle
+donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauMenu, index_élément: z64) -> RectanglePosDim(z32)
 {
     assert(index_élément >= 0)
     assert(index_élément < éléments.taille)
 
     élément := éléments[index_élément]
 
-    résultat: Rectangle
+    résultat: RectanglePosDim(z32)
     résultat.x = rect.x
     résultat.y = rect.y + élément.décalage - 5
     résultat.hauteur = élément.hauteur
