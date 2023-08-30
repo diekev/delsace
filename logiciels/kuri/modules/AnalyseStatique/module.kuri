@@ -2,6 +2,7 @@
 // À FAIRE : préserve l'information qu'une fonction est marquée comme enlignée
 
 importe Compilatrice
+importe Fondation
 
 /*
 
@@ -39,8 +40,43 @@ importe Compilatrice
 */
 
 VérificatriceNasa :: struct {
+    GenreViolation :: énum {
+        FONCTION_LONGUE
+        POINTEUR_FONCTION_UTILISÉ
+    }
+
+    Violation :: struct {
+        code: *NoeudCode
+        genre: GenreViolation
+    }
+
     espace: *EspaceDeTravail
     avertissement_est_erreur := faux
+
+    violations_directives: []Violation
+}
+
+ajoute_violation :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode, genre: VérificatriceNasa.GenreViolation)
+{
+    élément := tableau_ajoute_élément(*vérificatrice.violations_directives)
+    élément.code = code
+    élément.genre = genre
+}
+
+imprime_diagnostique :: fonc (vérificatrice: *VérificatriceNasa)
+{
+    pour vérificatrice.violations_directives {
+        discr it.genre {
+            FONCTION_LONGUE {
+                vérificatrice.avertis(it.code, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
+            }
+            POINTEUR_FONCTION_UTILISÉ {
+                vérificatrice.avertis(it.code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
+            }
+        }
+    }
+
+    imprime("% violations\n", vérificatrice.violations_directives.taille)
 }
 
 initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: *EspaceDeTravail)
@@ -61,67 +97,83 @@ vérifie_code :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
     }
 }
 
-vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa @inutilisée, code: *NoeudCode @inutilisée)
+vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
 {
-    // À FAIRE: crash dans la MachineVirtuelle
-    // type := code.type
+    type := code.type
+    saufsi type {
+        /* À FAIRE(langage) : dépendance des noeuds codes sur les types pour
+         * éviter d'avoir des types nuls. */
+        retourne
+    }
 
-    // discr type.id {
-    //     STRUCTURE {
-    //         type_structure := type comme *InfoTypeStructure
+    discr type.id {
+        STRUCTURE {
+            type_structure := type comme *InfoTypeStructure
 
-    //         pour type_structure.membres {
-    //             si it.id.id == id_info.FONCTION {
-    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-    //             }
-    //         }
-    //     }
-    //     FONCTION {
-    //         type_fonction := type comme *InfoTypeFonction
+            pour type_structure.membres {
+                si it.id.id == id_info.FONCTION {
+                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
+                }
+            }
+        }
+        FONCTION {
+            type_fonction := type comme *InfoTypeFonction
 
-    //         pour type_fonction.types_entrée {
-    //             si it.id == id_info.FONCTION {
-    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-    //             }
-    //         }
+            pour type_fonction.types_entrée {
+                si it.id == id_info.FONCTION {
+                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
+                }
+            }
 
-    //         pour type_fonction.types_sortie {
-    //             si it.id == id_info.FONCTION {
-    //                 vérificatrice.avertis(code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-    //             }
-    //         }
-    //     }
-    //     sinon {
-    //         retourne
-    //     }
-    // }
+            pour type_fonction.types_sortie {
+                si it.id == id_info.FONCTION {
+                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
+                }
+            }
+        }
+        OPAQUE {}
+        POINTEUR {}
+        UNION {}
+        RIEN {}
+        ENTIER {}
+        RÉEL {}
+        BOOLÉEN {}
+        OCTET {}
+        TYPE_DE_DONNÉES {}
+        TABLEAU {}
+        ÉNUM {}
+        CHAINE {}
+        EINI {}
+    }
 }
 
 vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: *NoeudCodeCorpsFonction)
 {
     bloc := corps.bloc
-    entête := corps.entête
+    saufsi bloc.expressions {
+        retourne
+    }
 
+    dernière_expression := bloc.expressions[bloc.expressions.taille - 1]
+    début_bloc := bloc.numéro_ligne
+    fin_bloc := dernière_expression.numéro_ligne
+
+    si (fin_bloc - début_bloc) <= 60 {
+        retourne
+    }
+
+    entête := corps.entête
     pour entête.annotations {
         si it.nom == "FonctionLongue" {
             retourne
         }
     }
 
-    si bloc.expressions {
-        dernière_expression := bloc.expressions[bloc.expressions.taille - 1]
-        début_bloc := bloc.numéro_ligne
-        fin_bloc := dernière_expression.numéro_ligne
-
-        si (fin_bloc - début_bloc) > 60 {
-            vérificatrice.avertis(corps, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
-        }
-    }
+    ajoute_violation(vérificatrice, entête, VérificatriceNasa.GenreViolation.FONCTION_LONGUE)
 }
 
 vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
 {
-    // À FAIRE: crash dans la MV si nous avons une discrimination avec juste un sinon
     saufsi code {
         retourne
     }

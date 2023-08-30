@@ -17,6 +17,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "numerique.hh"
 #include "typage.hh"
 
 enum {
@@ -1276,9 +1277,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     return noeud_fonction;
                 }
                 case GenreLexeme::STRUCT:
-                case GenreLexeme::UNION:
                 {
                     return analyse_declaration_structure(gauche);
+                }
+                case GenreLexeme::UNION:
+                {
+                    return analyse_declaration_union(gauche);
                 }
                 case GenreLexeme::ENUM:
                 case GenreLexeme::ENUM_DRAPEAU:
@@ -2692,11 +2696,9 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
     }
 }
 
-template <typename T>
-static inline bool est_puissance_de_2(T x)
-{
-    return (x != 0) && (x & (x - 1)) == 0;
-}
+/* ------------------------------------------------------------------------- */
+/** \name Structures et unions.
+ * \{ */
 
 NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauche)
 {
@@ -2709,7 +2711,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
     }
 
     auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
-    noeud_decl->est_union = (lexeme_mot_cle->genre == GenreLexeme::UNION);
+    noeud_decl->est_union = false;
 
     if (gauche->ident == ID::InfoType) {
         noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
@@ -2724,172 +2726,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         type_contexte->nom = noeud_decl->ident;
     }
     else {
-        if (noeud_decl->est_union) {
-            noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
-        }
-        else {
-            noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
-        }
+        noeud_decl->type = m_compilatrice.typeuse.reserve_type_structure(noeud_decl);
     }
 
-    if (apparie(GenreLexeme::NONSUR)) {
-        noeud_decl->est_nonsure = true;
-        consomme();
-    }
-
-    /* paramètres polymorphiques */
-    if (apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
-        noeud_decl->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
-
-        bloc_constantes_polymorphiques.empile(noeud_decl->bloc_constantes);
-        DIFFERE {
-            auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-            if (bloc_constantes->nombre_de_membres() != 0) {
-                noeud_decl->est_polymorphe = true;
-            }
-        };
-
-        consomme();
-
-        while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
-            auto expression = analyse_expression(
-                {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
-
-            if (!expression->est_declaration_variable()) {
-                m_unite->espace->rapporte_erreur(expression,
-                                                 "Attendu une déclaration de variable dans les "
-                                                 "paramètres polymorphiques de la structure");
-            }
-
-            if (!apparie(GenreLexeme::VIRGULE)) {
-                break;
-            }
-
-            consomme();
-        }
-
-        consomme();
-    }
-
-    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
-        consomme();
-
-        auto ident_directive = lexeme_courant()->ident;
-
-        if (ident_directive == ID::interface) {
-            renseigne_type_interface(m_compilatrice.typeuse, noeud_decl->ident, noeud_decl->type);
-        }
-        else if (ident_directive == ID::externe) {
-            noeud_decl->est_externe = true;
-            // #externe implique nonsûr
-            noeud_decl->est_nonsure = noeud_decl->est_union;
-        }
-        else if (ident_directive == ID::corps_texte) {
-            noeud_decl->est_corps_texte = true;
-        }
-        else if (ident_directive == ID::compacte) {
-            if (noeud_decl->est_union) {
-                rapporte_erreur("Directive « compacte » impossible pour une union\n");
-            }
-
-            noeud_decl->est_compacte = true;
-        }
-        else if (ident_directive == ID::aligne) {
-            consomme();
-
-            if (!apparie(GenreLexeme::NOMBRE_ENTIER)) {
-                rapporte_erreur("Un nombre entier est requis après « aligne »");
-            }
-
-            noeud_decl->alignement_desire = static_cast<uint32_t>(
-                lexeme_courant()->valeur_entiere);
-
-            if (!est_puissance_de_2(noeud_decl->alignement_desire)) {
-                rapporte_erreur("Un alignement doit être une puissance de 2");
-            }
-        }
-        else {
-            rapporte_erreur("Directive inconnue");
-        }
-
-        consomme();
-    }
-
-    auto analyse_membres = true;
-
-    if (noeud_decl->est_externe) {
-        analyse_membres = !ignore_point_virgule_implicite();
-        if (!analyse_membres) {
-            noeud_decl->type->drapeaux |= TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
-        }
-    }
-
-    if (analyse_membres) {
-        auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
-        consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
-
-        auto expressions = kuri::tablet<NoeudExpression *, 16>();
-
-        while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
-            if (ignore_point_virgule_implicite()) {
-                continue;
-            }
-
-            if (apparie_expression()) {
-                auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
-
-                if (!noeud_decl->est_corps_texte && !noeud->est_declaration() &&
-                    !noeud->est_assignation_variable() && !noeud->est_empl() &&
-                    !noeud->est_reference_declaration()) {
-                    m_unite->espace->rapporte_erreur(
-                        noeud,
-                        "Attendu une déclaration ou une assignation dans le bloc de la structure");
-                }
-
-                if (noeud->est_reference_declaration()) {
-                    if (!noeud_decl->est_union || noeud_decl->est_nonsure) {
-                        m_unite->espace->rapporte_erreur(
-                            noeud,
-                            "Seules les unions sûres peuvent avoir des déclarations sans type");
-                    }
-
-                    auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(
-                        noeud->comme_reference_declaration());
-                    noeud = decl_membre;
-
-                    static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-                    auto type_declare = m_tacheronne.assembleuse->cree_reference_type(
-                        &lexeme_rien);
-                    decl_membre->expression_type = type_declare;
-                }
-
-                if (noeud->est_declaration_variable()) {
-                    auto decl_membre = noeud->comme_declaration_variable();
-                    analyse_annotations(decl_membre->annotations);
-                    noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
-                }
-
-                expressions.ajoute(noeud);
-            }
-            else if (apparie_instruction()) {
-                auto inst = analyse_instruction();
-                expressions.ajoute(inst);
-            }
-            else {
-                rapporte_erreur("attendu une expression ou une instruction");
-            }
-        }
-
-        copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
-
-        consomme(GenreLexeme::ACCOLADE_FERMANTE,
-                 "Attendu '}' à la fin de la déclaration de la structure");
-
-        m_tacheronne.assembleuse->depile_bloc();
-        noeud_decl->bloc = bloc;
-        bloc->ident = noeud_decl->ident;
-    }
-
+    analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
+    analyse_directives_structure_ou_union(noeud_decl);
+    analyse_membres_structure_ou_union(noeud_decl);
     analyse_annotations(noeud_decl->annotations);
 
     if (noeud_decl->bloc_constantes) {
@@ -2904,6 +2746,216 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     return noeud_decl;
 }
+
+NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
+{
+    auto lexeme_mot_cle = lexeme_courant();
+    empile_etat("dans le syntaxage de l'union", lexeme_mot_cle);
+    consomme();
+
+    if (!gauche->est_reference_declaration()) {
+        this->rapporte_erreur("Expression inattendue pour nommer l'union");
+    }
+
+    auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
+    noeud_decl->est_union = true;
+    noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
+
+    if (apparie(GenreLexeme::NONSUR)) {
+        noeud_decl->est_nonsure = true;
+        consomme();
+    }
+
+    analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
+    analyse_directives_structure_ou_union(noeud_decl);
+    analyse_membres_structure_ou_union(noeud_decl);
+    analyse_annotations(noeud_decl->annotations);
+
+    if (noeud_decl->bloc_constantes) {
+        m_tacheronne.assembleuse->depile_bloc();
+    }
+
+    depile_etat();
+
+    /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
+     * sémantique pourrait accéder un bloc nul. */
+    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
+
+    return noeud_decl;
+}
+
+void Syntaxeuse::analyse_directives_structure_ou_union(NoeudStruct *noeud)
+{
+    while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
+        consomme();
+
+        auto ident_directive = lexeme_courant()->ident;
+
+        if (ident_directive == ID::interface) {
+            renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud->type);
+        }
+        else if (ident_directive == ID::externe) {
+            noeud->est_externe = true;
+            // #externe implique nonsûr
+            noeud->est_nonsure = noeud->est_union;
+        }
+        else if (ident_directive == ID::corps_texte) {
+            noeud->est_corps_texte = true;
+        }
+        else if (ident_directive == ID::compacte) {
+            if (noeud->est_union) {
+                rapporte_erreur("Directive « compacte » impossible pour une union\n");
+            }
+
+            noeud->est_compacte = true;
+        }
+        else if (ident_directive == ID::aligne) {
+            consomme();
+
+            if (!apparie(GenreLexeme::NOMBRE_ENTIER)) {
+                rapporte_erreur("Un nombre entier est requis après « aligne »");
+            }
+
+            noeud->alignement_desire = static_cast<uint32_t>(lexeme_courant()->valeur_entiere);
+
+            if (!est_puissance_de_2(noeud->alignement_desire)) {
+                rapporte_erreur("Un alignement doit être une puissance de 2");
+            }
+        }
+        else {
+            rapporte_erreur("Directive inconnue");
+        }
+
+        consomme();
+    }
+}
+
+void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(NoeudStruct *noeud)
+{
+    if (!apparie(GenreLexeme::PARENTHESE_OUVRANTE)) {
+        return;
+    }
+
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+
+    bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+    DIFFERE {
+        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        if (bloc_constantes->nombre_de_membres() != 0) {
+            noeud->est_polymorphe = true;
+        }
+    };
+
+    consomme();
+
+    while (!fini() && !apparie(GenreLexeme::PARENTHESE_FERMANTE)) {
+        auto expression = analyse_expression(
+            {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
+
+        if (!expression->est_declaration_variable()) {
+            m_unite->espace->rapporte_erreur(expression,
+                                             "Attendu une déclaration de variable dans les "
+                                             "paramètres polymorphiques de la structure");
+        }
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        consomme();
+    }
+
+    consomme();
+}
+
+void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
+{
+    if (decl_struct->est_externe && ignore_point_virgule_implicite()) {
+        decl_struct->type->drapeaux |= TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
+        return;
+    }
+
+    NoeudBloc *bloc;
+    if (decl_struct->est_corps_texte) {
+        bloc = analyse_bloc();
+    }
+    else {
+        bloc = analyse_bloc_membres_structure_ou_union(decl_struct);
+    }
+
+    decl_struct->bloc = bloc;
+    bloc->ident = decl_struct->ident;
+}
+
+static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
+{
+    if (noeud->est_execute()) {
+        return noeud->ident == ID::assert_;
+    }
+
+    return noeud->est_declaration() || noeud->est_assignation_variable() || noeud->est_empl() ||
+           noeud->est_reference_declaration();
+}
+
+NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct)
+{
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+    consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
+
+    auto expressions = kuri::tablet<NoeudExpression *, 16>();
+
+    while (!fini() && !apparie(GenreLexeme::ACCOLADE_FERMANTE)) {
+        if (ignore_point_virgule_implicite()) {
+            continue;
+        }
+
+        if (!apparie_expression()) {
+            rapporte_erreur("attendu une expression");
+            continue;
+        }
+
+        auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+
+        if (!expression_est_valide_pour_bloc_structure(noeud)) {
+            m_unite->espace->rapporte_erreur(noeud,
+                                             "Expression invalide pour le bloc de la structure");
+        }
+
+        if (noeud->est_reference_declaration()) {
+            if (!decl_struct->est_union || decl_struct->est_nonsure) {
+                m_unite->espace->rapporte_erreur(
+                    noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
+            }
+
+            auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(
+                noeud->comme_reference_declaration());
+            noeud = decl_membre;
+
+            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(&lexeme_rien);
+            decl_membre->expression_type = type_declare;
+        }
+
+        if (noeud->est_declaration_variable()) {
+            auto decl_membre = noeud->comme_declaration_variable();
+            analyse_annotations(decl_membre->annotations);
+            noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
+        }
+
+        expressions.ajoute(noeud);
+    }
+
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+
+    consomme(GenreLexeme::ACCOLADE_FERMANTE,
+             "Attendu '}' à la fin de la déclaration de la structure");
+
+    m_tacheronne.assembleuse->depile_bloc();
+
+    return bloc;
+}
+
+/** \} */
 
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
