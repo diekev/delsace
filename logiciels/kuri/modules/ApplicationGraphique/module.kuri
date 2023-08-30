@@ -15,7 +15,9 @@ importe Compilatrice
 importe Dessin
 importe Fondation
 importe Géométrie
+importe Introspection
 importe OpenGL
+importe Périphériques
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fenêtre
@@ -73,6 +75,110 @@ redimensionne_app :: fonc (app: *Application, largeur: z32, hauteur: z32)
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Typage des rappels pour les clientes.
+ * \{ */
+
+TypesFonctionRappel :: struct {
+    /* Fenêtres. */
+    sur_création_fenêtre: *InfoTypeFonction
+    sur_redimension_fenêtre: *InfoTypeFonction
+    sur_rendu_fenêtre_perso: *InfoTypeFonction
+    sur_rendu_fenêtre: *InfoTypeFonction
+    /* Évènements */
+    sur_clique_souris: *InfoTypeFonction
+    sur_double_clique_souris: *InfoTypeFonction
+    sur_mouvement_souris: *InfoTypeFonction
+    sur_fin_application: *InfoTypeFonction
+    sur_touche_clavier: *InfoTypeFonction
+}
+
+détermine_types_rappels_pour_cliente :: fonc ($TypeCliente: type_de_données) -> TypesFonctionRappel
+{
+    résultat : TypesFonctionRappel
+    résultat.sur_création_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
+    résultat.sur_redimension_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
+    résultat.sur_rendu_fenêtre_perso = info_de(fonc(*TypeCliente)(rien))
+    résultat.sur_rendu_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
+    résultat.sur_clique_souris = info_de(fonc(*TypeCliente, CliqueSouris)(rien))
+    résultat.sur_double_clique_souris = info_de(fonc(*TypeCliente, CliqueSouris)(rien))
+    résultat.sur_mouvement_souris = info_de(fonc(*TypeCliente, ÉtatSouris)(rien))
+    résultat.sur_fin_application = info_de(fonc(*TypeCliente)(rien))
+    résultat.sur_touche_clavier = info_de(fonc(*TypeCliente, CléClavier)(rien))
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Membres des rappels clientes.
+ * \{ */
+
+MembresRappelsCliente :: struct {
+    sur_création_fenêtre: *InfoTypeMembreStructure
+    sur_redimension_fenêtre: *InfoTypeMembreStructure
+    sur_rendu_fenêtre: *InfoTypeMembreStructure
+    sur_clique_souris: *InfoTypeMembreStructure
+    sur_double_clique_souris: *InfoTypeMembreStructure
+    sur_mouvement_souris: *InfoTypeMembreStructure
+    sur_fin_application: *InfoTypeMembreStructure
+    sur_touche_clavier: *InfoTypeMembreStructure
+}
+
+donne_membres_rappels_cliente :: fonc ($TypeCliente: type_de_données) -> MembresRappelsCliente
+{
+    info_cliente := info_de(TypeCliente)
+    info_résultat := info_de(MembresRappelsCliente)
+
+    résultat : MembresRappelsCliente
+
+    pour info_résultat.membres {
+        membre_cliente := trouve_info_membre(info_cliente, it.nom)
+        saufsi membre_cliente {
+            continue
+        }
+
+        valeur_membre_résultat := eini_depuis_info_membre(résultat, it)
+        assigne_pointeur(valeur_membre_résultat, membre_cliente)
+    }
+
+    retourne résultat
+}
+
+cliente_possède_sur_création_fenêtre :: fonc ($TypeCliente: type_de_données) -> bool
+{
+    membres_rappels := donne_membres_rappels_cliente(TypeCliente)
+    saufsi membres_rappels.sur_création_fenêtre {
+        retourne faux
+    }
+
+    types_rappels := détermine_types_rappels_pour_cliente(TypeCliente)
+    membre_cliente := membres_rappels.sur_création_fenêtre
+
+    si types_rappels.sur_création_fenêtre != membre_cliente.id {
+        rapporte_erreur_typage_rappel(info_de(TypeCliente), membre_cliente, types_rappels.sur_création_fenêtre)            
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+raporte_erreur_si_membre_invalide :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure, type_attendu: *InfoTypeFonction)
+{
+    /* Aucun rappel peut avoir été défini. */
+    saufsi membre {
+        retourne
+    }
+
+    si membre.id == type_attendu {
+        retourne
+    }
+
+    rapporte_erreur_typage_rappel(info_cliente, membre, type_attendu)   
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Dessin de fenêtre.
  * \{ */
 
@@ -85,38 +191,25 @@ ModeDessinFenêtre :: énum {
     AUCUN
 }
 
-détermine_mode_dessin_fenêtre :: fonc (info_cliente: *InfoTypeStructure, info_pointeur_cliente: *InfoTypePointeur) -> ModeDessinFenêtre
+détermine_mode_dessin_fenêtre :: fonc ($TypeCliente: type_de_données) -> ModeDessinFenêtre
 {
-    /* À FAIRE(langage) : typage des tableaux fixes selon le dénominateur commun. */
-    types_entrée_mode_perso := [info_pointeur_cliente comme *InfoType]
-    types_entrée_mode_fenêtre := [info_pointeur_cliente comme *InfoType, info_de(*Fenêtre) comme *InfoType]
-    types_sortie := [info_de(rien)]
-
-    pour info_cliente.membres {
-        saufsi it.nom == "sur_rendu_fenêtre" {
-            continue
-        }
-
-        type_membre := it.id
-
-        si type_membre.id != id_info.FONCTION {
-            retourne ModeDessinFenêtre.AUCUN
-        }
-
-        type_fonction := type_membre comme *InfoTypeFonction
-
-        si apparie_type_fonction(type_fonction, types_entrée_mode_perso, types_sortie) {
-            retourne ModeDessinFenêtre.PERSONNALISÉ
-        }
-
-        si apparie_type_fonction(type_fonction, types_entrée_mode_fenêtre, types_sortie) {
-            retourne ModeDessinFenêtre.FENÊTRE
-        }
-
-        rapporte_erreur_membre_sur_dessin(info_cliente, it)
+    membres_rappels := donne_membres_rappels_cliente(TypeCliente)
+    saufsi membres_rappels.sur_rendu_fenêtre {
         retourne ModeDessinFenêtre.AUCUN
     }
 
+    types_rappels := détermine_types_rappels_pour_cliente(TypeCliente)
+    type_membre_cliente := membres_rappels.sur_rendu_fenêtre.id
+
+    si types_rappels.sur_rendu_fenêtre_perso == type_membre_cliente {
+        retourne ModeDessinFenêtre.PERSONNALISÉ
+    }
+
+    si types_rappels.sur_rendu_fenêtre == type_membre_cliente {
+        retourne ModeDessinFenêtre.FENÊTRE
+    }
+
+    rapporte_erreur_membre_sur_dessin(info_de(TypeCliente), membres_rappels.sur_rendu_fenêtre)
     retourne ModeDessinFenêtre.AUCUN
 }
 
@@ -125,13 +218,34 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    imprime_dans_enchaineuse(*enchaineuse, "Le membre '%.%' ne possède pas un type de fonction compatible pour sur_dessin_fenêtre.\n\n", info_cliente.nom, membre.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "Le membre '%.%' ne possède pas un type de fonction compatible pour être un rappel valide.\n\n", info_cliente.nom, membre.nom)
 
     ajoute_au_tampon(*enchaineuse, "Les types possibles sont :\n")
     imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%)(rien), pour un dessin de fenêtre personnalisé,\n", info_cliente.nom)
     imprime_dans_enchaineuse(*enchaineuse, "\tfonc (*%, *Fenêtre)(rien), pour un dessiner la fenêtre donnée.\n", info_cliente.nom)
 
     ajoute_au_tampon(*enchaineuse, "\nNote : le type du membre est '")
+    imprime_type(*enchaineuse, membre.id)
+    ajoute_au_tampon(*enchaineuse, "'\n")
+
+    message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(message_erreur)
+
+    compilatrice_rapporte_erreur(message_erreur)
+}
+
+rapporte_erreur_typage_rappel :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure, type_attendu: *InfoTypeFonction)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "Le membre '%.%' ne possède pas un type de fonction compatible pour être un rappel valide.\n\n", info_cliente.nom, membre.nom)
+
+    ajoute_au_tampon(*enchaineuse, "Le type attendu est : '")
+    imprime_type(*enchaineuse, type_attendu)
+    ajoute_au_tampon(*enchaineuse, "'\n")
+
+    ajoute_au_tampon(*enchaineuse, "Alors que le type du membre est '")
     imprime_type(*enchaineuse, membre.id)
     ajoute_au_tampon(*enchaineuse, "'\n")
 
@@ -156,43 +270,26 @@ rapporte_erreur_membre_sur_dessin :: fonc (info_cliente: *InfoTypeStructure, mem
     REDIMENSION_FENÊTRE
 }
 
-détermine_évènements_requis :: fonc (info_cliente: *InfoTypeStructure) -> ÉvènementRequis
+détermine_évènements_requis :: fonc ($TypeCliente: type_de_données) -> ÉvènementRequis
 {
+    info_cliente := info_de(TypeCliente)
+    membres_rappels := donne_membres_rappels_cliente(TypeCliente)
+    types_rappels := détermine_types_rappels_pour_cliente(TypeCliente)
+
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_clique_souris, types_rappels.sur_clique_souris)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_mouvement_souris, types_rappels.sur_mouvement_souris)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_double_clique_souris, types_rappels.sur_double_clique_souris)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_fin_application, types_rappels.sur_fin_application)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_touche_clavier, types_rappels.sur_touche_clavier)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_redimension_fenêtre, types_rappels.sur_redimension_fenêtre)
+
     résultat : ÉvènementRequis
-
-    pour info_cliente.membres {
-        // À FAIRE : valide les types
-        si it.nom == "sur_clique_souris" {
-            résultat.CLIQUE_SOURIS = vrai
-            continue
-        }
-
-        si it.nom == "sur_mouvement_souris" {
-            résultat.MOUVEMENT_SOURIS = vrai
-            continue
-        }
-
-        si it.nom == "sur_double_clique_souris" {
-            résultat.DOUBLE_CLIQUE = vrai
-            continue
-        }
-
-        si it.nom == "sur_fin_application" {
-            résultat.FIN_APPLICATION = vrai
-            continue
-        }
-
-        si it.nom == "sur_touche_clavier" {
-            résultat.TOUCHE_CLAVIER = vrai
-            continue
-        }
-
-        si it.nom == "sur_redimension_fenêtre" {
-            résultat.REDIMENSION_FENÊTRE = vrai
-            continue
-        }
-    }
-
+    résultat.CLIQUE_SOURIS = membres_rappels.sur_clique_souris != nul
+    résultat.MOUVEMENT_SOURIS = membres_rappels.sur_mouvement_souris != nul
+    résultat.DOUBLE_CLIQUE = membres_rappels.sur_double_clique_souris != nul
+    résultat.FIN_APPLICATION = membres_rappels.sur_fin_application != nul
+    résultat.TOUCHE_CLAVIER = membres_rappels.sur_touche_clavier != nul
+    résultat.REDIMENSION_FENÊTRE = membres_rappels.sur_redimension_fenêtre != nul
     retourne résultat
 }
 

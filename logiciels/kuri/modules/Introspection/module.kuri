@@ -750,8 +750,8 @@ parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
 }
 
 // À FAIRE: considère utiliser des tables de recherches, en se basant sur la table de type
-// À FAIRE: contrainte que T est une fonction
 FonctionInstrospection :: struct ($T: type_de_données) {
+    #assert info_de(T).id == id_info.FONCTION
     info: *InfoType
     fonction : T
 }
