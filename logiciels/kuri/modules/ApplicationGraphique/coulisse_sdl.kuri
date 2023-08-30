@@ -95,27 +95,7 @@ crée_application_sdl :: fonc () -> *ApplicationSDL
 
 crée_fenêtre_principale :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente, nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> bool
 #corps_texte {
-    info_cliente := info_de(TypeCliente)
-
-    possède_sur_création_fenêtre := faux
-    pour info_cliente.membres {
-        si it.nom == "sur_création_fenêtre" {
-            types_entrées := [info_de(*TypeCliente) comme *InfoType, info_de(*Fenêtre) comme *InfoType]
-            type_sortie := [info_de(rien)]
-
-            si it.id.id != id_info.FONCTION {
-                // À FAIRE : erreur
-                arrête
-            }
-
-            saufsi apparie_type_fonction(it.id comme *InfoTypeFonction, types_entrées, type_sortie) {
-                arrête
-            }
-
-            possède_sur_création_fenêtre = vrai
-            arrête
-        }
-    }
+    possède_sur_création_fenêtre := cliente_possède_sur_création_fenêtre(TypeCliente)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -201,10 +181,7 @@ dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 
     ajoute_au_tampon(*enchaineuse, "glClear(GL_COLOR_BUFFER_BIT)\n")
 
-    info_cliente := info_de(TypeCliente)
-    info_pointeur_cliente := info_de(*TypeCliente)
-
-    mode_dessin := détermine_mode_dessin_fenêtre(info_cliente, info_pointeur_cliente)
+    mode_dessin := détermine_mode_dessin_fenêtre(TypeCliente)
     discr mode_dessin {
         AUCUN {
             /* Rien à faire. */
@@ -245,8 +222,7 @@ donne_clique_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement:
 
 gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 #corps_texte {
-    info_cliente := info_de(TypeCliente)
-    évènements_requis := détermine_évènements_requis(info_cliente)
+    évènements_requis := détermine_évènements_requis(TypeCliente)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)

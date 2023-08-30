@@ -242,6 +242,12 @@ struct table_hachage {
         return nombre_elements;
     }
 
+    int64_t taille_mémoire() const
+    {
+        return int64_t(occupes.taille_memoire()) + int64_t(empreintes.taille_memoire()) +
+               int64_t(cles.taille_memoire()) + int64_t(valeurs.taille_memoire());
+    }
+
     void efface()
     {
         occupes.efface();

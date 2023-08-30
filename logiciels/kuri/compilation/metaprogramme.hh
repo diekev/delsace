@@ -73,6 +73,7 @@ struct MetaProgramme {
     UniteCompilation *unite = nullptr;
 
     bool fut_execute = false;
+    bool a_rapporté_une_erreur = false;
 
     ResultatExecution resultat{};
 

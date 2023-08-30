@@ -3,9 +3,9 @@ importe GlibC
 // À FAIRE
 sched_param :: struct #externe { sched_priority: z32; }
 cpu_set_t :: struct #externe;
-__clockid_t :: struct #externe { d: z32; } // z32
-pthread_once_t :: struct #externe { d: z32; } // z32
-pthread_spinlock_t :: struct #externe { d: z32; } // z32
+__clockid_t :: #opaque z32
+pthread_once_t :: #opaque z32
+pthread_spinlock_t :: #opaque z32
 
 libpthread :: #bibliothèque "pthread"
 

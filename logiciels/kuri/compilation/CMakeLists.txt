@@ -71,6 +71,7 @@ set(SOURCES
     metaprogramme.hh
     monomorpheuse.hh
     monomorphisations.hh
+    numerique.hh
     operateurs.hh
     programme.hh
     portee.hh
@@ -104,6 +105,7 @@ set(SOURCES
     metaprogramme.cc
     monomorpheuse.cc
     monomorphisations.cc
+    numerique.cc
     operateurs.cc
     programme.cc
     portee.cc

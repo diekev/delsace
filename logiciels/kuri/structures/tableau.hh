@@ -174,7 +174,7 @@ struct tableau {
 
     TypeIndex taille_memoire() const
     {
-        return taille_ * static_cast<TypeIndex>(taille_de(T));
+        return capacite * static_cast<TypeIndex>(taille_de(T));
     }
 
     void efface()

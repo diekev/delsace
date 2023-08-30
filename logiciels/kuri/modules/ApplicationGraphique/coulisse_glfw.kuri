@@ -87,27 +87,7 @@ crée_application_glfw :: fonc () -> *ApplicationGLFW
 
 crée_fenêtre_principale :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente, nom: chaine, rect: RectanglePosDim(z32), plein_écran := faux) -> bool
 #corps_texte {
-    info_cliente := info_de(TypeCliente)
-
-    possède_sur_création_fenêtre := faux
-    pour info_cliente.membres {
-        si it.nom == "sur_création_fenêtre" {
-            types_entrées := [info_de(*TypeCliente) comme *InfoType, info_de(*Fenêtre) comme *InfoType]
-            type_sortie := [info_de(rien)]
-
-            si it.id.id != id_info.FONCTION {
-                // À FAIRE : erreur
-                arrête
-            }
-
-            saufsi apparie_type_fonction(it.id comme *InfoTypeFonction, types_entrées, type_sortie) {
-                arrête
-            }
-
-            possède_sur_création_fenêtre = vrai
-            arrête
-        }
-    }
+    possède_sur_création_fenêtre := cliente_possède_sur_création_fenêtre(TypeCliente)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -187,10 +167,7 @@ dessine_application :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 
     ajoute_au_tampon(*enchaineuse, "glClear(GL_COLOR_BUFFER_BIT)\n")
 
-    info_cliente := info_de(TypeCliente)
-    info_pointeur_cliente := info_de(*TypeCliente)
-
-    mode_dessin := détermine_mode_dessin_fenêtre(info_cliente, info_pointeur_cliente)
+    mode_dessin := détermine_mode_dessin_fenêtre(TypeCliente)
     discr mode_dessin {
         AUCUN {
             /* Rien à faire. */
@@ -216,8 +193,7 @@ dessine_application :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 
 gère_évènement :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 #corps_texte {
-    info_cliente := info_de(TypeCliente)
-    évènements_requis := détermine_évènements_requis(info_cliente)
+    évènements_requis := détermine_évènements_requis(TypeCliente)
 
     // À FAIRE : implémente tous les évènements, ainsi que les rappels associés
     enchaineuse: Enchaineuse
