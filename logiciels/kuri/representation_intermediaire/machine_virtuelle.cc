@@ -625,6 +625,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
+        m_metaprogramme->a_rapporté_une_erreur = true;
         return;
     }
 
