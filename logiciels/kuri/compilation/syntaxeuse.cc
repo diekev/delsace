@@ -17,6 +17,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "ipa.hh"
+#include "numerique.hh"
 #include "typage.hh"
 
 enum {
@@ -2690,12 +2691,6 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
         consomme(GenreLexeme::PARENTHESE_FERMANTE,
                  "attendu une parenthèse fermante après la liste des retours de la fonction");
     }
-}
-
-template <typename T>
-static inline bool est_puissance_de_2(T x)
-{
-    return (x != 0) && (x & (x - 1)) == 0;
 }
 
 NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauche)
