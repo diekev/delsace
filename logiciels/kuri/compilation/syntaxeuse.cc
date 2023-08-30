@@ -2887,6 +2887,16 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
     bloc->ident = decl_struct->ident;
 }
 
+static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
+{
+    if (noeud->est_execute()) {
+        return noeud->ident == ID::assert_;
+    }
+
+    return noeud->est_declaration() || noeud->est_assignation_variable() || noeud->est_empl() ||
+           noeud->est_reference_declaration();
+}
+
 NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct)
 {
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
@@ -2906,10 +2916,9 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl
 
         auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
-        if (!noeud->est_declaration() && !noeud->est_assignation_variable() &&
-            !noeud->est_empl() && !noeud->est_reference_declaration()) {
-            m_unite->espace->rapporte_erreur(
-                noeud, "Attendu une déclaration ou une assignation dans le bloc de la structure");
+        if (!expression_est_valide_pour_bloc_structure(noeud)) {
+            m_unite->espace->rapporte_erreur(noeud,
+                                             "Expression invalide pour le bloc de la structure");
         }
 
         if (noeud->est_reference_declaration()) {
