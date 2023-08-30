@@ -618,7 +618,7 @@ void Tacheronne::execute_metaprogrammes()
         if (it->resultat == MetaProgramme::ResultatExecution::ERREUR) {
             espace->rapporte_erreur(it->directive, "Erreur lors de l'exécution du métaprogramme");
         }
-        else {
+        else if (!it->a_rapporté_une_erreur) {
             if (it->directive && it->directive->ident == ID::assert_) {
                 auto resultat = *reinterpret_cast<bool *>(it->donnees_execution->pointeur_pile);
 
