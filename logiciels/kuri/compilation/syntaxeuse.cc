@@ -2875,6 +2875,20 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
         return;
     }
 
+    NoeudBloc *bloc;
+    if (decl_struct->est_corps_texte) {
+        bloc = analyse_bloc();
+    }
+    else {
+        bloc = analyse_bloc_membres_structure_ou_union(decl_struct);
+    }
+
+    decl_struct->bloc = bloc;
+    bloc->ident = decl_struct->ident;
+}
+
+NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct)
+{
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
     consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
@@ -2885,47 +2899,41 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
             continue;
         }
 
-        if (apparie_expression()) {
-            auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+        if (!apparie_expression()) {
+            rapporte_erreur("attendu une expression");
+            continue;
+        }
 
-            if (!decl_struct->est_corps_texte && !noeud->est_declaration() &&
-                !noeud->est_assignation_variable() && !noeud->est_empl() &&
-                !noeud->est_reference_declaration()) {
+        auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+
+        if (!noeud->est_declaration() && !noeud->est_assignation_variable() &&
+            !noeud->est_empl() && !noeud->est_reference_declaration()) {
+            m_unite->espace->rapporte_erreur(
+                noeud, "Attendu une déclaration ou une assignation dans le bloc de la structure");
+        }
+
+        if (noeud->est_reference_declaration()) {
+            if (!decl_struct->est_union || decl_struct->est_nonsure) {
                 m_unite->espace->rapporte_erreur(
-                    noeud,
-                    "Attendu une déclaration ou une assignation dans le bloc de la structure");
+                    noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
             }
 
-            if (noeud->est_reference_declaration()) {
-                if (!decl_struct->est_union || decl_struct->est_nonsure) {
-                    m_unite->espace->rapporte_erreur(
-                        noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
-                }
+            auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(
+                noeud->comme_reference_declaration());
+            noeud = decl_membre;
 
-                auto decl_membre = m_tacheronne.assembleuse->cree_declaration_variable(
-                    noeud->comme_reference_declaration());
-                noeud = decl_membre;
-
-                static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-                auto type_declare = m_tacheronne.assembleuse->cree_reference_type(&lexeme_rien);
-                decl_membre->expression_type = type_declare;
-            }
-
-            if (noeud->est_declaration_variable()) {
-                auto decl_membre = noeud->comme_declaration_variable();
-                analyse_annotations(decl_membre->annotations);
-                noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
-            }
-
-            expressions.ajoute(noeud);
+            static const Lexeme lexeme_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(&lexeme_rien);
+            decl_membre->expression_type = type_declare;
         }
-        else if (apparie_instruction()) {
-            auto inst = analyse_instruction();
-            expressions.ajoute(inst);
+
+        if (noeud->est_declaration_variable()) {
+            auto decl_membre = noeud->comme_declaration_variable();
+            analyse_annotations(decl_membre->annotations);
+            noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
         }
-        else {
-            rapporte_erreur("attendu une expression ou une instruction");
-        }
+
+        expressions.ajoute(noeud);
     }
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
@@ -2934,8 +2942,8 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudStruct *decl_struct)
              "Attendu '}' à la fin de la déclaration de la structure");
 
     m_tacheronne.assembleuse->depile_bloc();
-    decl_struct->bloc = bloc;
-    bloc->ident = decl_struct->ident;
+
+    return bloc;
 }
 
 /** \} */
