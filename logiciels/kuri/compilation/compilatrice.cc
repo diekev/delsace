@@ -539,6 +539,9 @@ Fichier *Compilatrice::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogra
     auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
     resultat->metaprogramme_corps_texte = metaprogramme_;
     metaprogramme_->fichier = resultat;
+    /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
+     * également accéder aux symboles de ces modules. */
+    resultat->modules_importes = fichier_racine->modules_importes;
     return resultat;
 }
 
