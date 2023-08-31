@@ -657,9 +657,10 @@ void Tacheronne::execute_metaprogrammes()
                 auto fichier = it->fichier;
                 assert(it->fichier);
 
-                fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+                fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
 
-                compilatrice.chaines_ajoutees_a_la_compilation->ajoute(resultat);
+                fichier->decalage_fichier = compilatrice.chaines_ajoutees_a_la_compilation->ajoute(
+                    resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
                 /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler

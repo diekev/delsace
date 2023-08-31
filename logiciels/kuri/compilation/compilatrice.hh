@@ -280,8 +280,13 @@ struct Compilatrice {
   public:
     OptionsDeCompilation *options_compilation();
     void ajourne_options_compilation(OptionsDeCompilation *options);
-    void ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c);
-    void ajoute_chaine_au_module(EspaceDeTravail *espace, Module *module, kuri::chaine_statique c);
+    void ajoute_chaine_compilation(EspaceDeTravail *espace,
+                                   NoeudExpression const *site,
+                                   kuri::chaine_statique c);
+    void ajoute_chaine_au_module(EspaceDeTravail *espace,
+                                 NoeudExpression const *site,
+                                 Module *module,
+                                 kuri::chaine_statique c);
     void ajoute_fichier_compilation(EspaceDeTravail *espace,
                                     kuri::chaine_statique c,
                                     const NoeudExpression *site);

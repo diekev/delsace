@@ -581,7 +581,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto chaine = depile<kuri::chaine_statique>(site);
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_chaine_compilation(espace, chaine);
+        compilatrice.ajoute_chaine_compilation(espace, site, chaine);
         return;
     }
 
@@ -599,7 +599,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_chaine_au_module(espace, module, chaine);
+        compilatrice.ajoute_chaine_au_module(espace, site, module, chaine);
         return;
     }
 
