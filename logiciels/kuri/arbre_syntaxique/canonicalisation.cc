@@ -1922,11 +1922,22 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     simplifie(expression);
     auto ref_b = expression->substitution ? expression->substitution : expression;
 
+    /* Convertis l'expression booléenne vers n8 car ils ont la même taille en octet. */
     auto comme = assem->cree_comme(var->lexeme);
-    comme->type = type_sous_jacent;
+    comme->type = TypeBase::N8;
     comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
     comme->expression = ref_b;
-    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_sous_jacent};
+    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, TypeBase::N8};
+
+    /* Augmente la taille du n8 si ce n'est pas le type sous-jacent de l'énum drapeau. */
+    if (type_sous_jacent != TypeBase::N8) {
+        auto ancien_comme = comme;
+        comme = assem->cree_comme(var->lexeme);
+        comme->type = type_sous_jacent;
+        comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+        comme->expression = ancien_comme;
+        comme->transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_sous_jacent};
+    }
 
     /* -b */
     auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_donnees, 0);

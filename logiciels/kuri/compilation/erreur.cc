@@ -436,7 +436,14 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 
     auto lexeme = site->lexeme;
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
-    std::cerr << fichier->chemin() << ':' << lexeme->ligne + 1 << '\n';
+
+    if (fichier->source == SourceFichier::DISQUE) {
+        std::cerr << fichier->chemin();
+    }
+    else {
+        std::cerr << ".chaine_ajoutées";
+    }
+    std::cerr << ':' << lexeme->ligne + 1 << '\n';
 
     Enchaineuse enchaineuse;
 
@@ -538,6 +545,25 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     flux << "\n\n" << COULEUR_NORMALE;
 
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
+
+    auto fichier = site.fichier;
+    if (fichier->source == SourceFichier::CHAINE_AJOUTEE) {
+        if (fichier->metaprogramme_corps_texte) {
+            auto métaprogramme = fichier->metaprogramme_corps_texte;
+            auto site_métaprogramme =
+                métaprogramme->corps_texte_pour_fonction ?
+                    espace->site_source_pour(métaprogramme->corps_texte_pour_fonction) :
+                    espace->site_source_pour(métaprogramme->corps_texte_pour_structure);
+            flux << "Dans le code ajouté à la compilation par le #corps_texte situé "
+                 << site_métaprogramme.fichier->chemin() << ':'
+                 << site_métaprogramme.index_ligne + 1 << " :\n";
+        }
+        else {
+            auto site_exécute = espace->site_source_pour(fichier->site);
+            flux << "Dans le code ajouté à la compilation via " << site_exécute.fichier->chemin()
+                 << ':' << site_exécute.index_ligne + 1 << " :\n";
+        }
+    }
 
     if (genre != erreur::Genre::AVERTISSEMENT) {
         flux << "\nErreur : ";
