@@ -101,13 +101,12 @@ tampon_source &tampon_source::operator=(tampon_source &&autre)
 
 const char *tampon_source::debut() const noexcept
 {
-	return &m_tampon[0];
+    return m_tampon.c_str();
 }
 
 const char *tampon_source::fin() const noexcept
 {
-	/* cppcheck-suppress containerOutOfBoundsIndexExpression */
-	return &m_tampon[m_tampon.taille()];
+    return debut() + m_tampon.taille();
 }
 
 dls::vue_chaine tampon_source::operator[](int64_t i) const noexcept
