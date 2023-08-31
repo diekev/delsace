@@ -134,7 +134,7 @@ struct Fichier {
 
     void charge_tampon(lng::tampon_source &&t)
     {
-        tampon_ = std::move(t);
+        tampon_ = t;
         fut_charge = true;
     }
 };
