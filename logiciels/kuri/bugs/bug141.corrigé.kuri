@@ -1,0 +1,35 @@
+/* Crash/erreur d'exécution dans la MV si un bit d'un énum drapeau est
+ * initialisé avec une expression booléenne non constante.
+ * NOTE : le crash n'est pas toujours réplicable, l'erreur survient si
+ * la compilation se fait avec --débogue_exécution. Quoi qu'il en est,
+ * l'énum drapeau n'est pas initialisé correctement.
+ * Catégorie : [exécution, génération code, énum drapeau]
+ */
+
+importe Fondation
+
+Structure :: struct {
+    x: *z32
+}
+
+ÉnumDrapeau :: énum_drapeau {
+    VALEUR1
+    VALEUR2
+}
+
+imprime_énum_drapeau :: fonc ()
+{
+    s : Structure
+
+    e: ÉnumDrapeau
+    e.VALEUR1 = s.x != nul
+    e.VALEUR2 = s.x == nul
+}
+
+#exécute imprime_énum_drapeau()
+
+principale :: fonc () -> z32
+{
+    imprime_énum_drapeau()
+    retourne 0
+}
