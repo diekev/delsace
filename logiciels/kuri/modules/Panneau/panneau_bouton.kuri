@@ -1,0 +1,125 @@
+importe Couleur
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Bouton
+ * \{ */
+
+Bouton :: struct {
+    // À FAIRE : icone
+    // À FAIRE : métadonnées
+    texte: chaine
+    sur_clique: fonc(*Bouton)(rien)
+}
+
+PanneauBouton :: struct {
+    empl base: Panneau
+
+    bouton: *Bouton
+    souris_pressée := faux
+    souris_dans_rect := faux
+}
+
+crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
+{
+    sur_destruction :: fonc (panneau: *Panneau)
+    {
+        panneau_bouton := panneau comme *PanneauBouton
+        déloge(panneau_bouton)
+    }
+
+    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    {
+        panneau_bouton := panneau comme *PanneauBouton
+        panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où)
+    }
+
+    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    {
+        panneau_bouton := panneau comme *PanneauBouton
+        saufsi panneau_bouton.rect.contient(clique.état.où) {
+            panneau_bouton.souris_pressée = faux
+            retourne faux
+        }
+
+        si clique.action == ActionSouris.PRESSÉE {
+            panneau_bouton.souris_pressée = vrai
+        }
+        sinon si clique.action == ActionSouris.RELACHÉE {
+            si panneau_bouton.souris_pressée {
+                bouton := panneau_bouton.bouton
+                si bouton.sur_clique {
+                    bouton.sur_clique(bouton)
+                }
+            }
+            panneau_bouton.souris_pressée = faux
+        }
+
+        retourne vrai
+    }
+
+    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    {
+        panneau_bouton := panneau comme *PanneauBouton
+        peintre := ctx.peintre
+
+        fonte := ctx.fonte
+        métriques := donne_métriques_fonte(fonte)
+
+        /* Calcul rect. */
+        hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+        hauteur_bouton := hauteur_de_ligne + 10
+        espaçage := donne_largeur_texte(ctx.fonte, "0")
+        largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte)
+
+        largeur_bouton := largeur_texte + espaçage * 2
+
+        // À FAIRE : codé en dur !
+        rect_parent := panneau_bouton.rect
+        rect := rect_parent
+        // rect.x = rect_parent.largeur - largeur_bouton - 10
+        // rect.y = rect_parent.hauteur - hauteur_bouton - 64 - 10
+        rect.largeur = largeur_bouton
+        rect.hauteur = hauteur_bouton
+
+        panneau_bouton.rect = rect
+
+        couleur := couleur_grise
+        si panneau_bouton.souris_pressée {
+            couleur = couleur_blanche
+        }
+        sinon si panneau_bouton.souris_dans_rect {
+            couleur = couleur_grise_claire
+        }
+
+        peintre.remplis_rectangle(panneau_bouton.rect, couleur)
+
+        rect_texte := rect
+        rect_texte.x += espaçage
+        rect_texte.y += 5
+
+        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, couleur_noire)
+    }
+
+    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32))
+    {
+        panneau_bouton := panneau comme *PanneauBouton
+    }
+
+    résultat := loge(PanneauBouton)
+    résultat.bouton = bouton
+    ajoute_enfant(parent, résultat)
+
+    résultat.sur_destruction = sur_destruction
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
+    résultat.sur_redimension_parent = sur_redimension_parent
+    retourne résultat
+}
+
+/** } */

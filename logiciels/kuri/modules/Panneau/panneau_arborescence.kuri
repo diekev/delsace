@@ -1,0 +1,198 @@
+importe Couleur
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Arborescence
+ * \{ */
+
+PanneauArborescence :: struct {
+    empl base: Panneau
+
+    Élément :: struct {
+        // À FAIRE : icone pour le développement, rappels...
+        texte: chaine
+        est_développé: bool
+
+        rect: RectanglePosDim(z32)
+        rect_texte: RectanglePosDim(z32)
+        rect_bouton: RectanglePosDim(z32)
+
+        enfants: []*Élément
+    }
+
+    éléments: []*Élément
+    éléments_visibles: []*Élément
+    besoin_ajournement_disposition := vrai
+}
+
+ajoute_élément :: fonc (empl panneau: *PanneauArborescence, texte: chaine) -> *PanneauArborescence.Élément
+{
+    résultat := loge(PanneauArborescence.Élément)
+    résultat.texte = texte
+    tableau_ajoute(*panneau.éléments, résultat)
+    panneau.besoin_ajournement_disposition = vrai
+    retourne résultat
+}
+
+ajoute_élément :: fonc (parent: *PanneauArborescence.Élément, texte: chaine) -> *PanneauArborescence.Élément
+{
+    assert(parent != nul)
+    résultat := loge(PanneauArborescence.Élément)
+    résultat.texte = texte
+    tableau_ajoute(*parent.enfants, résultat)
+    retourne résultat
+}
+
+ajourne_disposition :: fonc (empl panneau: *PanneauArborescence, ctx: *ContexteAffichage)
+{
+    saufsi besoin_ajournement_disposition {
+        retourne
+    }
+    diffère besoin_ajournement_disposition = faux
+
+    fonte := ctx.fonte
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    hauteur_élément := hauteur_de_ligne + 10
+    espaçage := donne_largeur_texte(ctx.fonte, "0")
+
+    panneau.éléments_visibles.taille = 0
+
+    // ESPAÇAGE BOUTON ESPAÇAGE TEXTE ESPAÇAGE
+    rect_élément := panneau.rect
+    rect_élément.x = rect.x + 5
+    rect_élément.hauteur = hauteur_élément
+    rect_élément.largeur -= 10
+    rect_élément.y = parent.rect.hauteur - 64
+
+    rect_bouton : RectanglePosDim(z32)
+    rect_bouton.hauteur = hauteur_de_ligne
+    rect_bouton.largeur = hauteur_de_ligne
+
+    pour éléments {
+        rect_élément.y -= hauteur_élément
+        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, ctx.fonte)
+
+        si it.est_développé {
+            rect_élément.y -= hauteur_élément * it.enfants.taille comme z32
+        }
+    }
+}
+
+ajourne_rect_élément :: fonc (panneau: *PanneauArborescence, élément: *PanneauArborescence.Élément, rect_élément: RectanglePosDim(z32), rect_bouton: RectanglePosDim(z32), espaçage: z32, fonte: *Fonte)
+{
+    tableau_ajoute(*panneau.éléments_visibles, élément)
+
+    élément.rect = rect_élément
+    élément.rect.largeur = donne_largeur_texte(fonte, élément.texte) + 2 * espaçage + rect_bouton.largeur + espaçage
+
+    élément.rect_bouton = rect_bouton
+    élément.rect_bouton.x = élément.rect.x + espaçage
+    élément.rect_bouton.y = élément.rect.y + 5
+
+    élément.rect_texte = élément.rect
+    élément.rect_texte.x += rect_bouton.largeur + 2 * espaçage
+    élément.rect_texte.largeur -= 2 * espaçage
+    élément.rect_texte.y += 5
+
+    saufsi élément.est_développé {
+        retourne
+    }
+
+    rect_élément = élément.rect
+    rect_élément.x += rect_bouton.largeur / 2 + espaçage
+    rect_élément.largeur -= rect_bouton.largeur / 2 + espaçage
+
+    pour élément.enfants {
+        rect_élément.y -= rect_élément.hauteur
+        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, fonte)
+
+        si it.est_développé {
+            rect_élément.y -= rect_élément.hauteur * it.enfants.taille comme z32
+        }
+    }
+}
+
+dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *Peintre, fonte: *Fonte)
+{
+    peintre.dessine_rectangle(élément.rect, couleur_rouge)
+    saufsi élément.est_développé {
+        peintre.dessine_rectangle(élément.rect_bouton, couleur_vert)
+    }
+    sinon {
+        peintre.remplis_rectangle(élément.rect_bouton, couleur_vert)
+    }
+    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, couleur_blanche)
+}
+
+crée_panneau_arborescence :: fonc (parent: *Panneau) -> *PanneauArborescence
+{
+    sur_destruction :: fonc (panneau: *Panneau)
+    {
+        panneau_arborescence := panneau comme *PanneauArborescence
+        déloge(panneau_arborescence)
+    }
+
+    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    {
+        panneau_arborescence := panneau comme *PanneauArborescence
+    }
+
+    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    {
+        panneau_arborescence := panneau comme *PanneauArborescence
+        saufsi panneau_arborescence.rect.contient(clique.état.où) {
+            retourne faux
+        }
+
+        pour panneau_arborescence.éléments_visibles {
+            saufsi it.rect_bouton.contient(clique.état.où) {
+                continue
+            }
+
+            si clique.action == ActionSouris.RELACHÉE {
+                it.est_développé = !it.est_développé
+                panneau_arborescence.besoin_ajournement_disposition = vrai
+            }
+
+            arrête
+        }
+
+        retourne vrai
+    }
+
+    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    {
+        panneau_arborescence := panneau comme *PanneauArborescence
+        peintre := ctx.peintre
+        fonte := ctx.fonte
+        métriques := donne_métriques_fonte(fonte)
+
+        ajourne_disposition(panneau_arborescence, ctx)
+
+        pour panneau_arborescence.éléments_visibles {
+            dessine_élément(it, peintre, fonte)
+        }
+    }
+
+    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32))
+    {
+        panneau_arborescence := panneau comme *PanneauArborescence
+    }
+
+    résultat := loge(PanneauArborescence)
+    ajoute_enfant(parent, résultat)
+
+    résultat.sur_destruction = sur_destruction
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
+    résultat.sur_redimension_parent = sur_redimension_parent
+    retourne résultat
+}
+
+/** } */

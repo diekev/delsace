@@ -361,12 +361,15 @@ void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
     gestionnaire_code->ajourne_espace_pour_nouvelles_options(espace_de_travail_defaut);
 }
 
-void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace, kuri::chaine_statique c)
+void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace,
+                                             NoeudExpression const *site,
+                                             kuri::chaine_statique c)
 {
-    ajoute_chaine_au_module(espace, module_racine_compilation, c);
+    ajoute_chaine_au_module(espace, site, module_racine_compilation, c);
 }
 
 void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
+                                           NoeudExpression const *site,
                                            Module *module,
                                            kuri::chaine_statique c)
 {
@@ -388,6 +391,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
     fichier->source = SourceFichier::CHAINE_AJOUTEE;
     fichier->decalage_fichier = decalage;
+    fichier->site = site;
     fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
     gestionnaire_code->requiers_lexage(espace, fichier);
 }
@@ -538,7 +542,11 @@ Fichier *Compilatrice::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogra
     assert(resultat_fichier.est<FichierNeuf>());
     auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
     resultat->metaprogramme_corps_texte = metaprogramme_;
+    resultat->source = SourceFichier::CHAINE_AJOUTEE;
     metaprogramme_->fichier = resultat;
+    /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
+     * également accéder aux symboles de ces modules. */
+    resultat->modules_importes = fichier_racine->modules_importes;
     return resultat;
 }
 

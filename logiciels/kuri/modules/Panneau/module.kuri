@@ -27,7 +27,7 @@ ContexteAffichage :: struct {
 
 Panneau :: struct {
     parent: *Panneau
-    enfants: []*Panneau
+    disposition: Disposition
 
     /* Dimension du panneau. */
     rect: RectanglePosDim(z32)
@@ -44,25 +44,18 @@ ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
 {
     assert(enfant.parent == nul)
     enfant.parent = panneau
-    tableau_ajoute(*panneau.enfants, enfant)
+    ajoute_panneau(*panneau.disposition, enfant)
 }
 
 redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
 {
     panneau.rect = rect
-    pour panneau.enfants {
-        si it.sur_redimension_parent {
-            it.sur_redimension_parent(it, rect)
-        }
-    }
+    définis_rectangle(*panneau.disposition, rect)
 }
 
 détruit_panneau :: fonc (panneau: *Panneau)
 {
-    pour panneau.enfants {
-        détruit_panneau(it)
-    }
-    déloge(panneau.enfants)
+    détruit_données_disposition(*panneau.disposition)
 
     si panneau.sur_destruction {
         panneau.sur_destruction(panneau)
@@ -77,9 +70,7 @@ dessine :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
         panneau.sur_dessin(panneau, ctx)
     }
 
-    pour panneau.enfants {
-        dessine(it, ctx)
-    }
+    dessine(*panneau.disposition, ctx)
 }
 
 gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
@@ -144,7 +135,7 @@ crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterfac
 
     résultat := loge(PanneauInterface)
 
-    résultat.rect = rect
+    résultat.redimensionne_panneau(rect)
 
     /* Rappels. */
     résultat.sur_clique_souris = sur_clique_souris
@@ -159,7 +150,8 @@ installe_barre_de_menu :: fonc (panneau: *PanneauInterface, barre_de_menu: *Barr
 {
     assert(panneau.barre_de_menu == nul)
     panneau.barre_de_menu = crée_panneau_barre_de_menu(barre_de_menu)
-    ajoute_enfant(panneau, panneau.barre_de_menu)
+    // ajoute_enfant(panneau, panneau.barre_de_menu)
+    panneau.barre_de_menu.parent = panneau
     panneau.barre_de_menu.panneau_interface = panneau
 }
 
@@ -212,6 +204,16 @@ reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSo
     si barre_de_menu {
         barre_de_menu.sur_menu_fermé()
     }
+
+    pour panneau.disposition.panneaux {
+        saufsi it.sur_clique_souris {
+            continue
+        }
+
+        si it.sur_clique_souris(it, clique) {
+            retourne
+        }
+    }
 }
 
 observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
@@ -222,6 +224,14 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
 
     si mémoire_vive.menu_actif {
         mémoire_vive.menu_actif.sur_déplacement_souris(mémoire_vive.menu_actif, souris)
+    }
+
+    pour panneau.disposition.panneaux {
+        saufsi it.sur_déplacement_souris {
+            continue
+        }
+
+        it.sur_déplacement_souris(it, souris)
     }
 }
 
