@@ -91,8 +91,12 @@ struct Fichier {
     Module *module = nullptr;
     MetaProgramme *metaprogramme_corps_texte = nullptr;
 
-    /* Pour les fichier venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
+    /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t decalage_fichier = 0;
+
+    /* Pour les fichiers venant de CHAINE_AJOUTEE, le site de l'expression ayant ajouté le code.
+     * Ceci ne concerne pas les #corps_texte, le site étant donné via le métaprogramme. */
+    NoeudExpression const *site = nullptr;
 
     /* Mis en place par la Syntaxeuse, c'est la liste de toutes les déclarations dans le bloc
      * global du module à valider impérativement (sans attendre que quelque chose d'autre le
