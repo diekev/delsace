@@ -2667,6 +2667,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     auto fonction = m_tacheronne.assembleuse->cree_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
+    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
     m_tacheronne.assembleuse->bloc_courant(bloc_parent);
 
     fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
@@ -2701,6 +2702,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
 
     m_tacheronne.assembleuse->depile_bloc();
     m_tacheronne.assembleuse->depile_bloc();
+    m_tacheronne.assembleuse->depile_bloc();
+    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
 }
