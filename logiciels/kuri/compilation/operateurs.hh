@@ -30,17 +30,18 @@ enum class IndiceTypeOp {
     REEL,
 };
 
+/* Non genre, chaine RI. */
 #define ENUMERE_OPERATEURS_UNAIRE                                                                 \
-    ENUMERE_GENRE_OPUNAIRE_EX(Invalide)                                                           \
-    ENUMERE_GENRE_OPUNAIRE_EX(Positif)                                                            \
-    ENUMERE_GENRE_OPUNAIRE_EX(Complement)                                                         \
-    ENUMERE_GENRE_OPUNAIRE_EX(Non_Logique)                                                        \
-    ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire)                                                        \
-    ENUMERE_GENRE_OPUNAIRE_EX(Prise_Adresse)
+    ENUMERE_GENRE_OPUNAIRE_EX(Invalide, invalide)                                                 \
+    ENUMERE_GENRE_OPUNAIRE_EX(Positif, plus)                                                      \
+    ENUMERE_GENRE_OPUNAIRE_EX(Complement, moins)                                                  \
+    ENUMERE_GENRE_OPUNAIRE_EX(Non_Logique, nonl)                                                  \
+    ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire, nonb)                                                  \
+    ENUMERE_GENRE_OPUNAIRE_EX(Prise_Adresse, addr)
 
 struct OperateurUnaire {
     enum class Genre : char {
-#define ENUMERE_GENRE_OPUNAIRE_EX(genre) genre,
+#define ENUMERE_GENRE_OPUNAIRE_EX(genre, nom) genre,
         ENUMERE_OPERATEURS_UNAIRE
 #undef ENUMERE_GENRE_OPUNAIRE_EX
     };
@@ -56,46 +57,47 @@ struct OperateurUnaire {
 
 const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
 
+/* Nom genre, chaine RI, code opération MV. */
 #define ENUMERE_OPERATEURS_BINAIRE                                                                \
-    ENUMERE_GENRE_OPBINAIRE_EX(Invalide)                                                          \
-    ENUMERE_GENRE_OPBINAIRE_EX(Addition)                                                          \
-    ENUMERE_GENRE_OPBINAIRE_EX(Addition_Reel)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction)                                                      \
-    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction_Reel)                                                 \
-    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication)                                                    \
-    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication_Reel)                                               \
-    ENUMERE_GENRE_OPBINAIRE_EX(Division_Naturel)                                                  \
-    ENUMERE_GENRE_OPBINAIRE_EX(Division_Relatif)                                                  \
-    ENUMERE_GENRE_OPBINAIRE_EX(Division_Reel)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Naturel)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Relatif)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal)                                                         \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal)                                                       \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf)                                                          \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup)                                                          \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Nat)                                                      \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Nat)                                                 \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Nat)                                                      \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Nat)                                                 \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal_Reel)                                                    \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal_Reel)                                                  \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Reel)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Reel)                                                \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Reel)                                                     \
-    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Reel)                                                \
-    ENUMERE_GENRE_OPBINAIRE_EX(Et_Binaire)                                                        \
-    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Binaire)                                                        \
-    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif)                                                       \
-    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche)                                                        \
-    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm)                                                 \
-    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique)                                                \
-    ENUMERE_GENRE_OPBINAIRE_EX(Indexage)
+    ENUMERE_GENRE_OPBINAIRE_EX(Invalide, invalide, octet_t(-1))                                   \
+    ENUMERE_GENRE_OPBINAIRE_EX(Addition, ajt, OP_AJOUTE)                                          \
+    ENUMERE_GENRE_OPBINAIRE_EX(Addition_Reel, ajtr, OP_AJOUTE_REEL)                               \
+    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction, sst, OP_SOUSTRAIT)                                   \
+    ENUMERE_GENRE_OPBINAIRE_EX(Soustraction_Reel, sstr, OP_SOUSTRAIT_REEL)                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication, mul, OP_MULTIPLIE)                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Multiplication_Reel, mulr, OP_MULTIPLIE_REEL)                      \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Naturel, divn, OP_DIVISE)                                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Relatif, divz, OP_DIVISE_RELATIF)                         \
+    ENUMERE_GENRE_OPBINAIRE_EX(Division_Reel, divr, OP_DIVISE_REEL)                               \
+    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Naturel, modn, OP_RESTE_NATUREL)                             \
+    ENUMERE_GENRE_OPBINAIRE_EX(Reste_Relatif, modz, OP_RESTE_RELATIF)                             \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal, eg, OP_COMP_EGAL)                                       \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal, neg, OP_COMP_INEGAL)                                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf, inf, OP_COMP_INF)                                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal, infeg, OP_COMP_INF_EGAL)                            \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup, sup, OP_COMP_SUP)                                        \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal, supeg, OP_COMP_SUP_EGAL)                            \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Nat, infn, OP_COMP_INF_NATUREL)                           \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Nat, infegn, OP_COMP_INF_EGAL_NATUREL)               \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Nat, supn, OP_COMP_SUP_NATUREL)                           \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Nat, supegn, OP_COMP_SUP_EGAL_NATUREL)               \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Egal_Reel, egr, OP_COMP_EGAL_REEL)                            \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inegal_Reel, negr, OP_COMP_INEGAL_REEL)                       \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Reel, infr, OP_COMP_INF_REEL)                             \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Inf_Egal_Reel, infegr, OP_COMP_INF_EGAL_REEL)                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Reel, supr, OP_COMP_SUP_REEL)                             \
+    ENUMERE_GENRE_OPBINAIRE_EX(Comp_Sup_Egal_Reel, supegr, OP_COMP_SUP_EGAL_REEL)                 \
+    ENUMERE_GENRE_OPBINAIRE_EX(Et_Binaire, et, OP_ET_BINAIRE)                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Binaire, ou, OP_OU_BINAIRE)                                     \
+    ENUMERE_GENRE_OPBINAIRE_EX(Ou_Exclusif, oux, OP_OU_EXCLUSIF)                                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche, decg, OP_DEC_GAUCHE)                                   \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm, decda, OP_DEC_DROITE_ARITHM)                    \
+    ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique, decdl, OP_DEC_DROITE_LOGIQUE)                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Indexage, idx, octet_t(-1))
 
 struct OperateurBinaire {
     enum class Genre : char {
-#define ENUMERE_GENRE_OPBINAIRE_EX(genre) genre,
+#define ENUMERE_GENRE_OPBINAIRE_EX(genre, id, op_code) genre,
         ENUMERE_OPERATEURS_BINAIRE
 #undef ENUMERE_GENRE_OPBINAIRE_EX
     };
