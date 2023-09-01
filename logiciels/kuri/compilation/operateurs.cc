@@ -250,177 +250,26 @@ static bool est_commutatif(GenreLexeme id)
 
 const char *chaine_pour_genre_op(OperateurBinaire::Genre genre)
 {
+#define ENUMERE_GENRE_OPBINAIRE_EX(genre, id, op_code)                                            \
+    case OperateurBinaire::Genre::genre:                                                          \
+        return #id;
     switch (genre) {
-        case OperateurBinaire::Genre::Addition:
-        {
-            return "ajt";
-        }
-        case OperateurBinaire::Genre::Addition_Reel:
-        {
-            return "ajtr";
-        }
-        case OperateurBinaire::Genre::Soustraction:
-        {
-            return "sst";
-        }
-        case OperateurBinaire::Genre::Soustraction_Reel:
-        {
-            return "sstr";
-        }
-        case OperateurBinaire::Genre::Multiplication:
-        {
-            return "mul";
-        }
-        case OperateurBinaire::Genre::Multiplication_Reel:
-        {
-            return "mulr";
-        }
-        case OperateurBinaire::Genre::Division_Naturel:
-        {
-            return "divn";
-        }
-        case OperateurBinaire::Genre::Division_Relatif:
-        {
-            return "divz";
-        }
-        case OperateurBinaire::Genre::Division_Reel:
-        {
-            return "divr";
-        }
-        case OperateurBinaire::Genre::Reste_Naturel:
-        {
-            return "modn";
-        }
-        case OperateurBinaire::Genre::Reste_Relatif:
-        {
-            return "modz";
-        }
-        case OperateurBinaire::Genre::Comp_Egal:
-        {
-            return "eg";
-        }
-        case OperateurBinaire::Genre::Comp_Inegal:
-        {
-            return "neg";
-        }
-        case OperateurBinaire::Genre::Comp_Inf:
-        {
-            return "inf";
-        }
-        case OperateurBinaire::Genre::Comp_Inf_Egal:
-        {
-            return "infeg";
-        }
-        case OperateurBinaire::Genre::Comp_Sup:
-        {
-            return "sup";
-        }
-        case OperateurBinaire::Genre::Comp_Sup_Egal:
-        {
-            return "supeg";
-        }
-        case OperateurBinaire::Genre::Comp_Inf_Nat:
-        {
-            return "infn";
-        }
-        case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
-        {
-            return "infegn";
-        }
-        case OperateurBinaire::Genre::Comp_Sup_Nat:
-        {
-            return "supn";
-        }
-        case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
-        {
-            return "supegn";
-        }
-        case OperateurBinaire::Genre::Comp_Egal_Reel:
-        {
-            return "egr";
-        }
-        case OperateurBinaire::Genre::Comp_Inegal_Reel:
-        {
-            return "negr";
-        }
-        case OperateurBinaire::Genre::Comp_Inf_Reel:
-        {
-            return "infr";
-        }
-        case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
-        {
-            return "infegr";
-        }
-        case OperateurBinaire::Genre::Comp_Sup_Reel:
-        {
-            return "supr";
-        }
-        case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
-        {
-            return "supegr";
-        }
-        case OperateurBinaire::Genre::Et_Binaire:
-        {
-            return "et";
-        }
-        case OperateurBinaire::Genre::Ou_Binaire:
-        {
-            return "ou";
-        }
-        case OperateurBinaire::Genre::Ou_Exclusif:
-        {
-            return "oux";
-        }
-        case OperateurBinaire::Genre::Dec_Gauche:
-        {
-            return "decg";
-        }
-        case OperateurBinaire::Genre::Dec_Droite_Arithm:
-        {
-            return "decda";
-        }
-        case OperateurBinaire::Genre::Dec_Droite_Logique:
-        {
-            return "decdl";
-        }
-        case OperateurBinaire::Genre::Indexage:
-        case OperateurBinaire::Genre::Invalide:
-        {
-            return "invalide";
-        }
+        ENUMERE_OPERATEURS_BINAIRE;
     }
+#undef ENUMERE_GENRE_OPBINAIRE_EX
 
     return "inconnu";
 }
 
 const char *chaine_pour_genre_op(OperateurUnaire::Genre genre)
 {
+#define ENUMERE_GENRE_OPUNAIRE_EX(genre, nom)                                                     \
+    case OperateurUnaire::Genre::genre:                                                           \
+        return #nom;
     switch (genre) {
-        case OperateurUnaire::Genre::Positif:
-        {
-            return "plus";
-        }
-        case OperateurUnaire::Genre::Complement:
-        {
-            return "moins";
-        }
-        case OperateurUnaire::Genre::Non_Logique:
-        {
-            return "non";
-        }
-        case OperateurUnaire::Genre::Non_Binaire:
-        {
-            return "non";
-        }
-        case OperateurUnaire::Genre::Prise_Adresse:
-        {
-            return "addr";
-        }
-        case OperateurUnaire::Genre::Invalide:
-        {
-            return "invalide";
-        }
+        ENUMERE_OPERATEURS_UNAIRE;
     }
+#undef ENUMERE_GENRE_OPUNAIRE_EX
 
     return "inconnu";
 }
@@ -439,7 +288,7 @@ inline int index_op_unaire(GenreLexeme lexeme)
 constexpr inline int nombre_genre_op_binaires()
 {
     int compte = 0;
-#define ENUMERE_GENRE_OPBINAIRE_EX(x) compte += 1;
+#define ENUMERE_GENRE_OPBINAIRE_EX(x, y, z) compte += 1;
     ENUMERE_OPERATEURS_BINAIRE
 #undef ENUMERE_GENRE_OPBINAIRE_EX
     return compte;
@@ -448,7 +297,7 @@ constexpr inline int nombre_genre_op_binaires()
 constexpr inline int nombre_genre_op_unaires()
 {
     int compte = 0;
-#define ENUMERE_GENRE_OPUNAIRE_EX(x) compte += 1;
+#define ENUMERE_GENRE_OPUNAIRE_EX(x, nom) compte += 1;
     ENUMERE_OPERATEURS_UNAIRE
 #undef ENUMERE_GENRE_OPUNAIRE_EX
     return compte;
