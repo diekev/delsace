@@ -624,7 +624,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_reference_membre(NoeudExpression 
 
     auto type = type_compose->membres[index].type;
     assert_rappel(
-        (type_compose->membres[index].drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) == 0,
+        (type_compose->membres[index].drapeaux & MembreTypeComposé::PROVIENT_D_UN_EMPOI) == 0,
         [&]() {
             std::cerr << chaine_type(type_compose) << '\n';
             erreur::imprime_site(*espace(), site_);
@@ -3033,7 +3033,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             valeurs_enum.reserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
-                if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 
@@ -3045,7 +3045,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             noms_enum.reserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
-                if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 
@@ -3171,7 +3171,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
                     continue;
                 }
 
-                if (it.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                if (it.possède_drapeau(MembreTypeComposé::PROVIENT_D_UN_EMPOI)) {
                     continue;
                 }
 
