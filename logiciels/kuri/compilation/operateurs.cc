@@ -324,6 +324,18 @@ const TableOperateurs::type_conteneur &TableOperateurs::operateurs(GenreLexeme l
     return operateurs_[index_op_binaire(lexeme)];
 }
 
+int64_t TableOperateurs::memoire_utilisée() const
+{
+    int64_t résultat(0);
+
+    résultat += operateurs_.taille_memoire();
+    POUR (operateurs_) {
+        résultat += it.taille_memoire();
+    }
+
+    return résultat;
+}
+
 RegistreDesOpérateurs::RegistreDesOpérateurs()
 {
     operateurs_unaires.redimensionne(nombre_genre_op_unaires());
@@ -532,9 +544,17 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
         nombre_binaires += it.taille();
     }
 
+    auto nombre_tables = m_tables_opérateurs.nombre_elements;
+    auto memoire_tables = m_tables_opérateurs.memoire_utilisee();
+
+    POUR_TABLEAU_PAGE (m_tables_opérateurs) {
+        memoire_tables += it.memoire_utilisée();
+    }
+
     auto &stats_ops = stats.stats_operateurs;
     stats_ops.fusionne_entree({"OperateurUnaire", nombre_unaires, memoire_unaires});
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
+    stats_ops.fusionne_entree({"TableOpérateurs", nombre_tables, memoire_tables});
 }
 
 static void rassemble_opérateurs_pour_type(Type const &type,
