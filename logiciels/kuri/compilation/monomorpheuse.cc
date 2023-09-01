@@ -781,11 +781,11 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
     }
 
     if (decl_type_fonction->params_sorties.taille() > 1) {
-        kuri::tablet<TypeCompose::Membre, 6> types_sorties;
+        kuri::tablet<MembreTypeComposé, 6> types_sorties;
 
         for (auto i = 0; i < decl_type_fonction->params_sorties.taille(); i++) {
             auto type = résoud_type_final_impl(decl_type_fonction->params_sorties[i]);
-            TypeCompose::Membre membre;
+            MembreTypeComposé membre;
             membre.type = type;
             types_sorties.ajoute(membre);
         }

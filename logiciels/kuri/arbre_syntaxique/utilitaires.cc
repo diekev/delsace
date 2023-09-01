@@ -988,7 +988,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
                     continue;
                 }
 
-                if (it.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                if (it.possède_drapeau(MembreTypeComposé::PROVIENT_D_UN_EMPOI)) {
                     continue;
                 }
 
@@ -1074,7 +1074,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->valeurs.reserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
-                if (it.drapeaux == TypeCompose::Membre::EST_IMPLICITE) {
+                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 

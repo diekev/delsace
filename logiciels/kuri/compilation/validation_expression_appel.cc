@@ -1021,8 +1021,8 @@ static ResultatAppariement apparie_appel_structure(
 
     POUR_INDEX (type_compose->membres) {
         /* Ignore les membres employés pour le moment. */
-        if (it.possède_drapeau(TypeCompose::Membre::EST_CONSTANT |
-                               TypeCompose::Membre::EST_UN_EMPLOI)) {
+        if (it.possède_drapeau(MembreTypeComposé::EST_CONSTANT |
+                               MembreTypeComposé::EST_UN_EMPLOI)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false, index_it);
             continue;
         }
