@@ -330,9 +330,7 @@ RegistreDesOpérateurs::RegistreDesOpérateurs()
     operateurs_binaires.redimensionne(nombre_genre_op_binaires());
 }
 
-RegistreDesOpérateurs::~RegistreDesOpérateurs()
-{
-}
+RegistreDesOpérateurs::~RegistreDesOpérateurs() = default;
 
 const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(
     GenreLexeme id) const

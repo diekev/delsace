@@ -14,6 +14,8 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
+Coulisse::~Coulisse() = default;
+
 Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
 {
     switch (options.coulisse) {
