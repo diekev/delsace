@@ -158,7 +158,7 @@ struct TableOperateurs {
 
     type_conteneur const &operateurs(GenreLexeme lexeme);
 
-    uint64_t memoire_utilisée() const;
+    int64_t memoire_utilisée() const;
 };
 
 /* ------------------------------------------------------------------------- */

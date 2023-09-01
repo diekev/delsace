@@ -324,9 +324,9 @@ const TableOperateurs::type_conteneur &TableOperateurs::operateurs(GenreLexeme l
     return operateurs_[index_op_binaire(lexeme)];
 }
 
-uint64_t TableOperateurs::memoire_utilisée() const
+int64_t TableOperateurs::memoire_utilisée() const
 {
-    uint64_t résultat(0);
+    int64_t résultat(0);
 
     résultat += operateurs_.taille_memoire();
     POUR (operateurs_) {
