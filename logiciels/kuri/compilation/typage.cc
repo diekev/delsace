@@ -288,7 +288,7 @@ std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_nom
 
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
-                                 kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                                 kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeTableauFixe()
 {
     assert(type_pointe_);
@@ -308,7 +308,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
 }
 
 TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
-                                           kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                                           kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeTableauDynamique()
 {
     assert(type_pointe_);
@@ -327,7 +327,7 @@ TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
 }
 
 TypeVariadique::TypeVariadique(Type *type_pointe_,
-                               kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                               kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeVariadique()
 {
     this->type_pointe = type_pointe_;
@@ -513,13 +513,13 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     type_contexte = reserve_type_structure(nullptr);
     type_info_type_ = reserve_type_structure(nullptr);
 
-    auto membres_eini = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres_eini = kuri::tableau<MembreTypeComposé, int>();
     membres_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
     type_eini->drapeaux |= (TYPE_FUT_VALIDE);
 
-    auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres_chaine = kuri::tableau<MembreTypeComposé, int>();
     membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
     membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
@@ -722,7 +722,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     }
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute(
         {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 0});
@@ -751,7 +751,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
         }
     }
 
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
@@ -778,7 +778,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         }
     }
 
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
@@ -910,7 +910,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     return type;
 }
 
-TypeUnion *Typeuse::union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres)
+TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &membres)
 {
     auto types_unions_ = types_unions.verrou_ecriture();
 
@@ -1015,7 +1015,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
     return type;
 }
 
-TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres)
+TypeTuple *Typeuse::cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres)
 {
     auto types_tuples_ = types_tuples.verrou_ecriture();
 
@@ -1513,13 +1513,13 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     type_structure = typeuse.reserve_type_structure(nullptr);
 
     if (type_le_plus_grand) {
-        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
         membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
         membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type_structure->membres = std::move(membres_);
     }
     else {
-        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(1);
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
         membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type_structure->membres = std::move(membres_);
     }

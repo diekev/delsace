@@ -56,7 +56,7 @@ struct InfoTypeTableau : public InfoType {
 };
 
 struct InfoTypeMembreStructure {
-    // Les Drapeaux sont définis dans TypeCompose::Membre
+    // Les Drapeaux sont définis dans MembreTypeComposé
 
     kuri::chaine_statique nom{};
     InfoType *info = nullptr;

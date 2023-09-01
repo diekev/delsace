@@ -327,74 +327,74 @@ struct TypeFonction : public Type {
     void marque_polymorphique();
 };
 
+struct MembreTypeComposé {
+    enum {
+        // si le membre est une constante (par exemple, la définition d'une énumération, ou une
+        // simple valeur)
+        EST_CONSTANT = (1 << 0),
+        // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
+        // énumérations)
+        EST_IMPLICITE = (1 << 1),
+        // si le membre provient d'une instruction empl
+        PROVIENT_D_UN_EMPOI = (1 << 2),
+        // si le membre est employé
+        EST_UN_EMPLOI = (1 << 3),
+        // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
+        // pour x déclaré en amont)
+        POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
+
+        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
+    };
+
+    NoeudDeclarationVariable *decl = nullptr;
+    Type *type = nullptr;
+    IdentifiantCode *nom = nullptr;
+    unsigned decalage = 0;
+    int valeur = 0;                                       // pour les énumérations
+    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
+    int drapeaux = 0;
+    uint32_t rembourrage = 0;
+
+    inline bool possède_drapeau(int drapeau) const
+    {
+        return (drapeaux & drapeau) != 0;
+    }
+
+    inline bool est_implicite() const
+    {
+        return possède_drapeau(EST_IMPLICITE);
+    }
+
+    inline bool est_constant() const
+    {
+        return possède_drapeau(EST_CONSTANT);
+    }
+
+    inline bool est_utilisable_pour_discrimination() const
+    {
+        return !est_implicite() && !est_constant();
+    }
+
+    inline bool ne_doit_pas_être_dans_code_machine() const
+    {
+        return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
+    }
+
+    inline bool expression_initialisation_est_spéciale() const
+    {
+        return possède_drapeau(POSSÈDE_EXPRESSION_SPÉCIALE);
+    }
+
+    inline bool est_un_emploi() const
+    {
+        return possède_drapeau(EST_UN_EMPLOI);
+    }
+};
+
 /* Type de base pour tous les types ayant des membres (structures, énumérations, etc.).
  */
 struct TypeCompose : public Type {
-    struct Membre {
-        enum {
-            // si le membre est une constante (par exemple, la définition d'une énumération, ou une
-            // simple valeur)
-            EST_CONSTANT = (1 << 0),
-            // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
-            // énumérations)
-            EST_IMPLICITE = (1 << 1),
-            // si le membre provient d'une instruction empl
-            PROVIENT_D_UN_EMPOI = (1 << 2),
-            // si le membre est employé
-            EST_UN_EMPLOI = (1 << 3),
-            // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
-            // pour x déclaré en amont)
-            POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
-
-            MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
-        };
-
-        NoeudDeclarationVariable *decl = nullptr;
-        Type *type = nullptr;
-        IdentifiantCode *nom = nullptr;
-        unsigned decalage = 0;
-        int valeur = 0;                                       // pour les énumérations
-        NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
-        int drapeaux = 0;
-        uint32_t rembourrage = 0;
-
-        inline bool possède_drapeau(int drapeau) const
-        {
-            return (drapeaux & drapeau) != 0;
-        }
-
-        inline bool est_implicite() const
-        {
-            return possède_drapeau(EST_IMPLICITE);
-        }
-
-        inline bool est_constant() const
-        {
-            return possède_drapeau(EST_CONSTANT);
-        }
-
-        inline bool est_utilisable_pour_discrimination() const
-        {
-            return !est_implicite() && !est_constant();
-        }
-
-        inline bool ne_doit_pas_être_dans_code_machine() const
-        {
-            return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
-        }
-
-        inline bool expression_initialisation_est_spéciale() const
-        {
-            return possède_drapeau(POSSÈDE_EXPRESSION_SPÉCIALE);
-        }
-
-        inline bool est_un_emploi() const
-        {
-            return possède_drapeau(EST_UN_EMPLOI);
-        }
-    };
-
-    kuri::tableau<Membre, int> membres{};
+    kuri::tableau<MembreTypeComposé, int> membres{};
 
     /* Le nom tel que donné dans le script (p.e. Structure, pour Structure :: struct ...). */
     IdentifiantCode *nom = nullptr;
@@ -416,7 +416,7 @@ struct TypeCompose : public Type {
     void marque_polymorphique();
 
     struct InformationMembre {
-        Membre membre{};
+        MembreTypeComposé membre{};
         int index_membre = -1;
     };
 
@@ -449,7 +449,7 @@ struct TypeStructure final : public TypeCompose {
     COPIE_CONSTRUCT(TypeStructure);
 
     /* Stocke les membres pour avoir accès à leurs décalages. */
-    kuri::tableau<Membre const *, int> types_employés{};
+    kuri::tableau<MembreTypeComposé const *, int> types_employés{};
 
     NoeudStruct *decl = nullptr;
 
@@ -508,7 +508,9 @@ struct TypeTableauFixe final : public TypeCompose {
         genre = GenreType::TABLEAU_FIXE;
     }
 
-    TypeTableauFixe(Type *type_pointe, int taille, kuri::tableau<Membre, int> &&membres);
+    TypeTableauFixe(Type *type_pointe,
+                    int taille,
+                    kuri::tableau<MembreTypeComposé, int> &&membres);
 
     COPIE_CONSTRUCT(TypeTableauFixe);
 
@@ -522,7 +524,7 @@ struct TypeTableauDynamique final : public TypeCompose {
         genre = GenreType::TABLEAU_DYNAMIQUE;
     }
 
-    TypeTableauDynamique(Type *type_pointe, kuri::tableau<TypeCompose::Membre, int> &&membres);
+    TypeTableauDynamique(Type *type_pointe, kuri::tableau<MembreTypeComposé, int> &&membres);
 
     COPIE_CONSTRUCT(TypeTableauDynamique);
 
@@ -535,7 +537,7 @@ struct TypeVariadique final : public TypeCompose {
         genre = GenreType::VARIADIQUE;
     }
 
-    TypeVariadique(Type *type_pointe, kuri::tableau<TypeCompose::Membre, int> &&membres);
+    TypeVariadique(Type *type_pointe, kuri::tableau<MembreTypeComposé, int> &&membres);
 
     COPIE_CONSTRUCT(TypeVariadique);
 
@@ -824,7 +826,7 @@ struct Typeuse {
 
     TypeUnion *reserve_type_union(NoeudStruct *decl);
 
-    TypeUnion *union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres);
+    TypeUnion *union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &membres);
 
     TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
@@ -834,7 +836,7 @@ struct Typeuse {
 
     TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
-    TypeTuple *cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres);
+    TypeTuple *cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
