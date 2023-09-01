@@ -435,7 +435,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
             else {
-                kuri::tablet<TypeCompose::Membre, 6> membres;
+                kuri::tablet<MembreTypeComposé, 6> membres;
                 membres.reserve(decl->params_sorties.taille());
 
                 for (auto &type_declare : decl->params_sorties) {
@@ -1505,7 +1505,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             POUR_INDEX (type_structure->membres) {
-                if (it.drapeaux & TypeCompose::Membre::EST_CONSTANT) {
+                if (it.drapeaux & MembreTypeComposé::EST_CONSTANT) {
                     continue;
                 }
 
@@ -1591,9 +1591,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
 
         auto const index_membre = info_membre->index_membre;
         auto const membre_est_constant = info_membre->membre.drapeaux &
-                                         TypeCompose::Membre::EST_CONSTANT;
+                                         MembreTypeComposé::EST_CONSTANT;
         auto const membre_est_implicite = info_membre->membre.drapeaux &
-                                          TypeCompose::Membre::EST_IMPLICITE;
+                                          MembreTypeComposé::EST_IMPLICITE;
         auto const decl_membre = info_membre->membre.decl;
 
         membre->comme_reference_declaration()->declaration_referee = decl_membre;
@@ -1918,7 +1918,7 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
         }
     }
     else {
-        kuri::tablet<TypeCompose::Membre, 6> membres;
+        kuri::tablet<MembreTypeComposé, 6> membres;
         membres.reserve(decl->params_sorties.taille());
 
         for (auto &expr : decl->params_sorties) {
@@ -3129,21 +3129,21 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                     0,
                     membres.taille(),
                     nullptr,
-                    TypeCompose::Membre::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
                     type_enum,
                     ID::min,
                     0,
                     static_cast<int>(valeur_enum_min),
                     nullptr,
-                    TypeCompose::Membre::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE});
     membres.ajoute({nullptr,
                     type_enum,
                     ID::max,
                     0,
                     static_cast<int>(valeur_enum_max),
                     nullptr,
-                    TypeCompose::Membre::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
         membres.ajoute({nullptr,
@@ -3152,16 +3152,16 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
                         0,
                         static_cast<int>(valeurs_legales),
                         nullptr,
-                        TypeCompose::Membre::EST_IMPLICITE});
+                        MembreTypeComposé::EST_IMPLICITE});
         membres.ajoute({nullptr,
                         type_enum,
                         ID::valeurs_illegales,
                         0,
                         static_cast<int>(~valeurs_legales),
                         nullptr,
-                        TypeCompose::Membre::EST_IMPLICITE});
+                        MembreTypeComposé::EST_IMPLICITE});
         membres.ajoute(
-            {nullptr, type_enum, ID::zero, 0, 0, nullptr, TypeCompose::Membre::EST_IMPLICITE});
+            {nullptr, type_enum, ID::zero, 0, 0, nullptr, MembreTypeComposé::EST_IMPLICITE});
     }
 
     decl->drapeaux |= DECLARATION_FUT_VALIDEE;
@@ -3415,7 +3415,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                                               0,
                                               0,
                                               nullptr,
-                                              TypeCompose::Membre::EST_CONSTANT});
+                                              MembreTypeComposé::EST_CONSTANT});
                 continue;
             }
 
@@ -3428,7 +3428,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                                               0,
                                               0,
                                               decl_var->expression,
-                                              TypeCompose::Membre::EST_CONSTANT});
+                                              MembreTypeComposé::EST_CONSTANT});
                 continue;
             }
 
@@ -3500,7 +3500,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                                           0,
                                           0,
                                           nullptr,
-                                          TypeCompose::Membre::EST_CONSTANT});
+                                          MembreTypeComposé::EST_CONSTANT});
             continue;
         }
 
@@ -3511,7 +3511,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            TENTE(ajoute_donnees_membre(it, nullptr, TypeCompose::Membre::EST_UN_EMPLOI));
+            TENTE(ajoute_donnees_membre(it, nullptr, MembreTypeComposé::EST_UN_EMPLOI));
             continue;
         }
 
@@ -3529,13 +3529,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                                           0,
                                           0,
                                           decl_var->expression,
-                                          TypeCompose::Membre::EST_CONSTANT});
+                                          MembreTypeComposé::EST_CONSTANT});
             continue;
         }
 
         if (decl_var->declaration_vient_d_un_emploi) {
             TENTE(ajoute_donnees_membre(
-                decl_var, decl_var->expression, TypeCompose::Membre::PROVIENT_D_UN_EMPOI));
+                decl_var, decl_var->expression, MembreTypeComposé::PROVIENT_D_UN_EMPOI));
             continue;
         }
 
@@ -3598,7 +3598,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 continue;
             }
 
-            membre.drapeaux |= TypeCompose::Membre::POSSÈDE_EXPRESSION_SPÉCIALE;
+            membre.drapeaux |= MembreTypeComposé::POSSÈDE_EXPRESSION_SPÉCIALE;
             membre.expression_valeur_defaut = expr_assign->expression;
             break;
         }
@@ -3608,7 +3608,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
     POUR (type_compose->membres) {
         if (it.drapeaux &
-            (TypeCompose::Membre::EST_CONSTANT | TypeCompose::Membre::EST_IMPLICITE)) {
+            (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
             continue;
         }
 
@@ -3636,7 +3636,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto rembourrage_total = 0u;
 #endif
     POUR (type_struct->membres) {
-        if (it.possède_drapeau(TypeCompose::Membre::EST_UN_EMPLOI)) {
+        if (it.possède_drapeau(MembreTypeComposé::EST_UN_EMPLOI)) {
             type_struct->types_employés.ajoute(&it);
         }
 
@@ -4635,7 +4635,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
                 return Attente::sur_type(type_type2->type_connu);
             }
 
-            auto membres = kuri::tablet<TypeCompose::Membre, 6>(2);
+            auto membres = kuri::tablet<MembreTypeComposé, 6>(2);
             membres[0] = {nullptr, type_type1->type_connu, ID::_0};
             membres[1] = {nullptr, type_type2->type_connu, ID::_1};
 

@@ -27,7 +27,7 @@ static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre 
                                                            Lexeme const *lexeme,
                                                            NoeudExpression *expression_accédée,
                                                            TypeCompose *type_composé,
-                                                           TypeCompose::Membre const &membre);
+                                                           MembreTypeComposé const &membre);
 
 /** \} */
 
@@ -367,7 +367,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     auto membre =
                         type_composé->membres[declaration_variable->index_membre_employe];
 
-                    if (membre.possède_drapeau(TypeCompose::Membre::PROVIENT_D_UN_EMPOI)) {
+                    if (membre.possède_drapeau(MembreTypeComposé::PROVIENT_D_UN_EMPOI)) {
                         auto accès_membre = crée_référence_pour_membre_employé(
                             assem, expr_ref->lexeme, ref_decl_var, type_composé, membre);
                         expr_ref->substitution = accès_membre;
@@ -1623,11 +1623,11 @@ void Simplificatrice::simplifie_construction_structure_impl(
     POUR_INDEX (construction->parametres_resolus) {
         const auto &membre = type_struct->membres[index_it];
 
-        if ((membre.drapeaux & TypeCompose::Membre::EST_CONSTANT) != 0) {
+        if ((membre.drapeaux & MembreTypeComposé::EST_CONSTANT) != 0) {
             continue;
         }
 
-        if (membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) {
+        if (membre.drapeaux & MembreTypeComposé::PROVIENT_D_UN_EMPOI) {
             if (it == nullptr || (!membre.expression_initialisation_est_spéciale() &&
                                   it == membre.expression_valeur_defaut)) {
                 /* Le membre de base ayant ajouté ce membre est également initialisé, il est donc
@@ -1720,7 +1720,7 @@ static std::optional<TypeCompose::InformationMembre> trouve_information_membre_a
  * - x
  */
 static kuri::tableau<TypeCompose::InformationMembre, int> trouve_hiérarchie_emploi_membre(
-    TypeCompose *type_composé, TypeCompose::Membre const &membre)
+    TypeCompose *type_composé, MembreTypeComposé const &membre)
 {
     kuri::tableau<TypeCompose::InformationMembre, int> hiérarchie;
 
@@ -1740,7 +1740,7 @@ static kuri::tableau<TypeCompose::InformationMembre, int> trouve_hiérarchie_emp
                                                                        membre_courant.nom);
         assert(info_membre.has_value());
 
-        if ((info_membre->membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) == 0) {
+        if ((info_membre->membre.drapeaux & MembreTypeComposé::PROVIENT_D_UN_EMPOI) == 0) {
             /* Nous sommes au bout de la hiérarchie, ajoutons le membre, et arrêtons. */
             hiérarchie.ajoute(info_membre.value());
             break;
@@ -1757,7 +1757,7 @@ static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre 
                                                            Lexeme const *lexeme,
                                                            NoeudExpression *expression_accédée,
                                                            TypeCompose *type_composé,
-                                                           TypeCompose::Membre const &membre)
+                                                           MembreTypeComposé const &membre)
 {
     auto hiérarchie = trouve_hiérarchie_emploi_membre(type_composé, membre);
     auto ref_membre_courant = expression_accédée;
@@ -1842,13 +1842,13 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
     auto type_compose = static_cast<TypeCompose *>(type_accede);
     auto &membre = type_compose->membres[ref_membre->index_membre];
 
-    if (membre.drapeaux == TypeCompose::Membre::EST_CONSTANT) {
+    if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
         simplifie(membre.expression_valeur_defaut);
         ref_membre->substitution = membre.expression_valeur_defaut;
         return;
     }
 
-    if (membre.drapeaux & TypeCompose::Membre::PROVIENT_D_UN_EMPOI) {
+    if (membre.drapeaux & MembreTypeComposé::PROVIENT_D_UN_EMPOI) {
         /* Transforme x.y en x.base.y. */
         ref_membre->substitution = crée_référence_pour_membre_employé(
             assem, lexeme, ref_membre->accedee, type_compose, membre);
