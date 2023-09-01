@@ -23,7 +23,7 @@ struct Compilatrice;
 struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
-struct Operateurs;
+struct RegistreDesOpérateurs;
 struct OperateurBinaire;
 struct OperateurUnaire;
 struct NoeudDeclarationVariable;
@@ -708,7 +708,7 @@ struct Trie {
 // types
 struct Typeuse {
     dls::outils::Synchrone<GrapheDependance> &graphe_;
-    dls::outils::Synchrone<Operateurs> &operateurs_;
+    dls::outils::Synchrone<RegistreDesOpérateurs> &operateurs_;
 
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
@@ -773,7 +773,7 @@ struct Typeuse {
 
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<Operateurs> &o);
+    Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<RegistreDesOpérateurs> &o);
 
     Typeuse(Typeuse const &) = delete;
     Typeuse &operator=(Typeuse const &) = delete;

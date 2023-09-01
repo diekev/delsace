@@ -324,22 +324,22 @@ const TableOperateurs::type_conteneur &TableOperateurs::operateurs(GenreLexeme l
     return operateurs_[index_op_binaire(lexeme)];
 }
 
-Operateurs::Operateurs()
+RegistreDesOpérateurs::RegistreDesOpérateurs()
 {
     operateurs_unaires.redimensionne(nombre_genre_op_unaires());
     operateurs_binaires.redimensionne(nombre_genre_op_binaires());
 }
 
-Operateurs::~Operateurs()
+RegistreDesOpérateurs::~RegistreDesOpérateurs()
 {
 }
 
-const Operateurs::type_conteneur_unaire &Operateurs::trouve_unaire(GenreLexeme id) const
+const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(GenreLexeme id) const
 {
     return operateurs_unaires[index_op_unaire(id)];
 }
 
-OperateurBinaire *Operateurs::ajoute_basique(GenreLexeme id,
+OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexeme id,
                                              Type *type,
                                              Type *type_resultat,
                                              IndiceTypeOp indice_type)
@@ -347,7 +347,7 @@ OperateurBinaire *Operateurs::ajoute_basique(GenreLexeme id,
     return ajoute_basique(id, type, type, type_resultat, indice_type);
 }
 
-OperateurBinaire *Operateurs::ajoute_basique(
+OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type)
 {
     assert(type1);
@@ -364,7 +364,7 @@ OperateurBinaire *Operateurs::ajoute_basique(
     return op;
 }
 
-OperateurUnaire *Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
+OperateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
 {
     auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_operande = type;
@@ -374,7 +374,7 @@ OperateurUnaire *Operateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, T
     return op;
 }
 
-void Operateurs::ajoute_perso(GenreLexeme id,
+void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
                               Type *type1,
                               Type *type2,
                               Type *type_resultat,
@@ -390,7 +390,7 @@ void Operateurs::ajoute_perso(GenreLexeme id,
     type1->operateurs.ajoute(id, op);
 }
 
-void Operateurs::ajoute_perso_unaire(GenreLexeme id,
+void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
                                      Type *type,
                                      Type *type_resultat,
                                      NoeudDeclarationEnteteFonction *decl)
@@ -403,7 +403,7 @@ void Operateurs::ajoute_perso_unaire(GenreLexeme id,
     op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
-void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
+void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
 {
     auto const &type_bool = TypeBase::BOOL;
 
@@ -440,7 +440,7 @@ void Operateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum 
     type->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
-void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, TypePointeur *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, TypePointeur *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -483,7 +483,7 @@ void Operateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, Typ
         ->est_arithmetique_pointeur = true;
 }
 
-void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, TypeFonction *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, TypeFonction *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -493,7 +493,7 @@ void Operateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, Typ
     ajoute_basique(GenreLexeme::DIFFERENCE, type, type_bool, indice);
 }
 
-void Operateurs::rassemble_statistiques(Statistiques &stats) const
+void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
 {
     auto nombre_unaires = int64_t(0);
     auto memoire_unaires = operateurs_unaires.taille_memoire();
@@ -599,7 +599,7 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
     return {};
 }
 
-const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
+const OperateurUnaire *cherche_operateur_unaire(RegistreDesOpérateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op)
 {
@@ -616,7 +616,7 @@ const OperateurUnaire *cherche_operateur_unaire(Operateurs const &operateurs,
     return nullptr;
 }
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs)
+void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &operateurs)
 {
     Type *types_entiers_naturels[] = {
         TypeBase::N8,
