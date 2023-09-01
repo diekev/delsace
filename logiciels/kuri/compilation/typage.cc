@@ -459,7 +459,7 @@ static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
     }
 }
 
-Typeuse::Typeuse(dls::outils::Synchrone<Operateurs> &o) : operateurs_(o)
+Typeuse::Typeuse(dls::outils::Synchrone<RegistreDesOpérateurs> &o) : operateurs_(o)
 {
     /* initialise les types communs */
     type_eini = crée_type_eini();
