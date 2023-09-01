@@ -459,7 +459,7 @@ static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
 }
 
 Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
-                 dls::outils::Synchrone<Operateurs> &o)
+                 dls::outils::Synchrone<RegistreDesOpérateurs> &o)
     : graphe_(g), operateurs_(o)
 {
     /* initialise les types communs */
