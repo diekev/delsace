@@ -220,13 +220,6 @@ struct Type {
 
     POINTEUR_NUL(Type)
 
-    static Type *cree_entier(unsigned taille_octet, bool est_naturel);
-    static Type *cree_entier_constant();
-    static Type *cree_reel(unsigned taille_octet);
-    static Type *cree_rien();
-    static Type *cree_bool();
-    static Type *cree_octet();
-
 #define __DEFINIS_DISCRIMINATIONS(nom, Genre, TypeRafine)                                         \
     inline bool est_##nom() const                                                                 \
     {                                                                                             \
@@ -408,10 +401,6 @@ struct TypeCompose : public Type {
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
     kuri::chaine nom_hierarchique_ = "";
-
-    static TypeCompose *cree_eini();
-
-    static TypeCompose *cree_chaine();
 
     void marque_polymorphique();
 

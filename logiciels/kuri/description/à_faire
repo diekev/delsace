@@ -1,9 +1,3 @@
-supprime :
-
-    static TypeCompose *cree_eini();
-
-    static TypeCompose *cree_chaine();
-
 réusine opérateurs (stocke table par pointeur, partage entre types)
 
 - ne crée pas de trace d'appels pour les fonctions pures
