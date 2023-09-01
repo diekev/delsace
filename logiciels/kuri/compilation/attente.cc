@@ -214,22 +214,22 @@ static void imprime_operateurs_pour(Erreur &e,
                                     Type &type,
                                     NoeudExpression const &operateur_attendu)
 {
-    auto &operateurs = type.operateurs.operateurs(operateur_attendu.lexeme->genre);
-
-    if (operateurs.taille() == 0) {
+    if (!type.table_opérateurs) {
         e.ajoute_message("\nNOTE : le type ", chaine_type(&type), " n'a aucun opérateur\n");
+        return;
     }
-    else {
-        e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
-        POUR (operateurs.plage()) {
-            e.ajoute_message("    ",
-                             chaine_type(it->type1),
-                             " ",
-                             operateur_attendu.lexeme->chaine,
-                             " ",
-                             chaine_type(it->type2),
-                             "\n");
-        }
+
+    auto &operateurs = type.table_opérateurs->operateurs(operateur_attendu.lexeme->genre);
+
+    e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
+    POUR (operateurs.plage()) {
+        e.ajoute_message("    ",
+                         chaine_type(it->type1),
+                         " ",
+                         operateur_attendu.lexeme->chaine,
+                         " ",
+                         chaine_type(it->type2),
+                         "\n");
     }
 }
 
@@ -672,7 +672,7 @@ RAPPEL_POUR_COMMENTAIRE(opérateur_pour)
 RAPPEL_POUR_EST_RÉSOLUE(opérateur_pour)
 {
     auto type = attente.opérateur_pour();
-    return type->opérateur_pour != nullptr;
+    return type->table_opérateurs != nullptr && type->table_opérateurs->opérateur_pour != nullptr;
 }
 
 RAPPEL_POUR_ERREUR(opérateur_pour)
