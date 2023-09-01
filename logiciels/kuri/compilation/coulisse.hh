@@ -17,7 +17,7 @@ struct Coulisse {
     double temps_fichier_objet = 0.0;
     double temps_executable = 0.0;
 
-    virtual ~Coulisse() = default;
+    virtual ~Coulisse();
 
     static Coulisse *cree_pour_options(OptionsDeCompilation options);
 

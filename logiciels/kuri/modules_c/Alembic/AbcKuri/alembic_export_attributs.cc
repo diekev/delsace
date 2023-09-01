@@ -2,4 +2,3 @@
  * The Original Code is Copyright (C) 2023 Kévin Dietrich. */
 
 #include "alembic_export_attributs.hh"
-

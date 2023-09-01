@@ -15,6 +15,8 @@ BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexemes(fichier->lexemes), 
     }
 }
 
+BaseSyntaxeuse::~BaseSyntaxeuse() = default;
+
 void BaseSyntaxeuse::analyse()
 {
     m_position = 0;

@@ -1,4 +1,4 @@
-réusine opérateurs (stocke table par pointeur, partage entre types)
+réusine opérateurs (partage entre types)
 
 - ne crée pas de trace d'appels pour les fonctions pures
 

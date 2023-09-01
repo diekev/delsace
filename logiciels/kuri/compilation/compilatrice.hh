@@ -104,7 +104,7 @@ struct Compilatrice {
 
     dls::outils::Synchrone<GrapheDependance> graphe_dependance{};
 
-    dls::outils::Synchrone<Operateurs> operateurs{};
+    dls::outils::Synchrone<RegistreDesOpérateurs> operateurs{};
 
     Typeuse typeuse;
 

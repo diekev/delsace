@@ -5,6 +5,19 @@
 
 #include "code_binaire.hh"
 
+AtomeValeurConstante::Valeur::~Valeur()
+{
+    if (genre == Genre::STRUCTURE) {
+        memoire::deloge_tableau(
+            "valeur_structure", valeur_structure.pointeur, valeur_structure.capacite);
+    }
+
+    if (genre == Genre::TABLEAU_FIXE) {
+        memoire::deloge_tableau(
+            "valeur_tableau", valeur_tableau.pointeur, valeur_tableau.capacite);
+    }
+}
+
 AtomeFonction::~AtomeFonction()
 {
     /* À FAIRE : stocke ça quelque part dans un tableau_page. */

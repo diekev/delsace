@@ -37,7 +37,7 @@ struct BaseSyntaxeuse {
 
     COPIE_CONSTRUCT(BaseSyntaxeuse);
 
-    virtual ~BaseSyntaxeuse() = default;
+    virtual ~BaseSyntaxeuse();
 
     void analyse();
 

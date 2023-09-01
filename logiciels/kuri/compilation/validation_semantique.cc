@@ -1805,13 +1805,14 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur_pour(
     }
 
     auto type_itéré = opérateur->params[0]->type;
+    auto table_opérateurs = m_compilatrice.operateurs->donne_ou_crée_table_opérateurs(type_itéré);
 
-    if (type_itéré->opérateur_pour != nullptr) {
-        rapporte_erreur_redefinition_fonction(opérateur, type_itéré->opérateur_pour);
+    if (table_opérateurs->opérateur_pour != nullptr) {
+        rapporte_erreur_redefinition_fonction(opérateur, table_opérateurs->opérateur_pour);
         return CodeRetourValidation::Erreur;
     }
 
-    type_itéré->opérateur_pour = opérateur;
+    table_opérateurs->opérateur_pour = opérateur;
 
     opérateur->drapeaux |= DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
@@ -2044,17 +2045,19 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
     auto type1 = type_fonc->types_entrees[0];
     auto type2 = type_fonc->types_entrees[1];
 
-    for (auto &op : type1->operateurs.operateurs(decl->lexeme->genre).plage()) {
-        if (op->type2 == type2) {
-            if (op->est_basique) {
-                rapporte_erreur("redéfinition de l'opérateur basique", decl);
+    if (type1->table_opérateurs) {
+        for (auto &op : type1->table_opérateurs->operateurs(decl->lexeme->genre).plage()) {
+            if (op->type2 == type2) {
+                if (op->est_basique) {
+                    rapporte_erreur("redéfinition de l'opérateur basique", decl);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                    .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                    .ajoute_site(op->decl);
                 return CodeRetourValidation::Erreur;
             }
-
-            espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                .ajoute_site(op->decl);
-            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -3612,8 +3615,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto nombre_membres_non_constants = 0;
 
     POUR (type_compose->membres) {
-        if (it.drapeaux &
-            (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
+        if (it.drapeaux & (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
             continue;
         }
 
@@ -4907,11 +4909,16 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
             GENERE_BOUCLE_PLAGE_IMPLICITE, type_itérateur, type_itérateur};
     }
 
-    if (type_variable_itérée->opérateur_pour == nullptr) {
+    /* N'accèdons pas à la table via le registre pour éviter de la créer. */
+    auto table_opérateurs = type_variable_itérée->table_opérateurs;
+    if (table_opérateurs == nullptr || table_opérateurs->opérateur_pour == nullptr) {
         return Attente::sur_opérateur_pour(type_variable_itérée);
     }
 
-    auto const opérateur_pour = type_variable_itérée->opérateur_pour;
+    /* Utilisons le registre pour obtenir la table afin de ne pas avoir à revérifier si le type
+     * possède une table d'opérateurs. */
+    table_opérateurs = typeuse.operateurs_->donne_ou_crée_table_opérateurs(type_variable_itérée);
+    auto const opérateur_pour = table_opérateurs->opérateur_pour;
     auto type_itérateur = opérateur_pour->param_sortie->type;
     /* À FAIRE : typage correct de l'index. */
     auto type_index = TypeBase::Z64;
@@ -5112,11 +5119,15 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         expression->type = type_variable_itérée;
     }
 
+    auto table_opérateurs = type_variable_itérée->table_opérateurs;
+    /* Si nous sommes ici, la table due être créée. */
+    assert(table_opérateurs);
+    auto opérateur_pour = table_opérateurs->opérateur_pour;
+
     /* Copie le corps du macro.
      * À FAIRE : ne copie que le corps. */
-    auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
-                                   type_variable_itérée->opérateur_pour,
-                                   type_variable_itérée->opérateur_pour->bloc_parent);
+    auto copie_macro = copie_noeud(
+        m_tacheronne.assembleuse, opérateur_pour, opérateur_pour->bloc_parent);
 
     /* Fais pointer le corps du macro vers l'entête originale, ceci est nécessaire car
      * nous copions aussi l'entête, mais nous ne voulons et ne devons pas la revalider.
@@ -5124,7 +5135,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     auto entête_copie_macro = copie_macro->comme_operateur_pour();
     auto corps_copie_macro = entête_copie_macro->corps;
 
-    corps_copie_macro->entete = type_variable_itérée->opérateur_pour;
+    corps_copie_macro->entete = opérateur_pour;
     corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
 
     /* Installe les pointeurs de contexte. */
