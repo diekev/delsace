@@ -157,6 +157,8 @@ struct TableOperateurs {
     void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
 
     type_conteneur const &operateurs(GenreLexeme lexeme);
+
+    uint64_t memoire_utilisée() const;
 };
 
 /* ------------------------------------------------------------------------- */
