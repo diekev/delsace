@@ -773,7 +773,8 @@ struct Typeuse {
 
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDependance> &g, dls::outils::Synchrone<RegistreDesOpérateurs> &o);
+    Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
+            dls::outils::Synchrone<RegistreDesOpérateurs> &o);
 
     Typeuse(Typeuse const &) = delete;
     Typeuse &operator=(Typeuse const &) = delete;

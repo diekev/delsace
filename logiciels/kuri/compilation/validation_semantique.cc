@@ -3612,8 +3612,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     auto nombre_membres_non_constants = 0;
 
     POUR (type_compose->membres) {
-        if (it.drapeaux &
-            (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
+        if (it.drapeaux & (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
             continue;
         }
 

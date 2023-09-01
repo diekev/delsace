@@ -334,15 +334,16 @@ RegistreDesOpérateurs::~RegistreDesOpérateurs()
 {
 }
 
-const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(GenreLexeme id) const
+const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(
+    GenreLexeme id) const
 {
     return operateurs_unaires[index_op_unaire(id)];
 }
 
 OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexeme id,
-                                             Type *type,
-                                             Type *type_resultat,
-                                             IndiceTypeOp indice_type)
+                                                        Type *type,
+                                                        Type *type_resultat,
+                                                        IndiceTypeOp indice_type)
 {
     return ajoute_basique(id, type, type, type_resultat, indice_type);
 }
@@ -364,7 +365,9 @@ OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     return op;
 }
 
-OperateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat)
+OperateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id,
+                                                              Type *type,
+                                                              Type *type_resultat)
 {
     auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_operande = type;
@@ -375,10 +378,10 @@ OperateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexeme id, T
 }
 
 void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
-                              Type *type1,
-                              Type *type2,
-                              Type *type_resultat,
-                              NoeudDeclarationEnteteFonction *decl)
+                                         Type *type1,
+                                         Type *type2,
+                                         Type *type_resultat,
+                                         NoeudDeclarationEnteteFonction *decl)
 {
     auto op = operateurs_binaires[index_op_binaire(id)].ajoute_element();
     op->type1 = type1;
@@ -391,9 +394,9 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
 }
 
 void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
-                                     Type *type,
-                                     Type *type_resultat,
-                                     NoeudDeclarationEnteteFonction *decl)
+                                                Type *type,
+                                                Type *type_resultat,
+                                                NoeudDeclarationEnteteFonction *decl)
 {
     auto op = operateurs_unaires[index_op_unaire(id)].ajoute_element();
     op->type_operande = type;
@@ -440,7 +443,8 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
     type->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
-void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse, TypePointeur *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse,
+                                                                TypePointeur *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -483,7 +487,8 @@ void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &
         ->est_arithmetique_pointeur = true;
 }
 
-void RegistreDesOpérateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse, TypeFonction *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse,
+                                                                TypeFonction *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
