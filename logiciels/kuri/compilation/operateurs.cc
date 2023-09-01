@@ -330,6 +330,17 @@ RegistreDesOpérateurs::RegistreDesOpérateurs()
     operateurs_binaires.redimensionne(nombre_genre_op_binaires());
 }
 
+TableOperateurs *RegistreDesOpérateurs::donne_ou_crée_table_opérateurs(Type *type)
+{
+    if (type->table_opérateurs) {
+        return type->table_opérateurs;
+    }
+
+    auto résultat = m_tables_opérateurs.ajoute_element();
+    type->table_opérateurs = résultat;
+    return résultat;
+}
+
 RegistreDesOpérateurs::~RegistreDesOpérateurs() = default;
 
 const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(
@@ -352,6 +363,8 @@ OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     assert(type1);
     assert(type2);
 
+    auto table = donne_ou_crée_table_opérateurs(type1);
+
     auto op = operateurs_binaires[index_op_binaire(id)].ajoute_element();
     op->type1 = type1;
     op->type2 = type2;
@@ -359,7 +372,7 @@ OperateurBinaire *RegistreDesOpérateurs::ajoute_basique(
     op->est_commutatif = est_commutatif(id);
     op->est_basique = true;
     op->genre = genre_op_binaire_pour_lexeme(id, indice_type);
-    type1->operateurs.ajoute(id, op);
+    table->ajoute(id, op);
     return op;
 }
 
@@ -381,6 +394,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
                                          Type *type_resultat,
                                          NoeudDeclarationEnteteFonction *decl)
 {
+    auto table = donne_ou_crée_table_opérateurs(type1);
     auto op = operateurs_binaires[index_op_binaire(id)].ajoute_element();
     op->type1 = type1;
     op->type2 = type2;
@@ -388,7 +402,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexeme id,
     op->est_commutatif = est_commutatif(id);
     op->est_basique = false;
     op->decl = decl;
-    type1->operateurs.ajoute(id, op);
+    table->ajoute(id, op);
 }
 
 void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
@@ -407,6 +421,7 @@ void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
 void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
 {
     auto const &type_bool = TypeBase::BOOL;
+    auto table = donne_ou_crée_table_opérateurs(type);
 
     auto indice_type_op = IndiceTypeOp();
     if (type->type_donnees->est_entier_naturel()) {
@@ -420,10 +435,10 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
         auto op_bin = this->ajoute_basique(op, type, type_bool, indice_type_op);
 
         if (op == GenreLexeme::EGALITE) {
-            type->operateur_egt = op_bin;
+            table->operateur_egt = op_bin;
         }
         else if (op == GenreLexeme::DIFFERENCE) {
-            type->operateur_dif = op_bin;
+            table->operateur_dif = op_bin;
         }
     }
 
@@ -431,14 +446,14 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
         auto ptr_op = this->ajoute_basique(op, type, type, indice_type_op);
 
         if (op == GenreLexeme::ESPERLUETTE) {
-            type->operateur_etb = ptr_op;
+            table->operateur_etb = ptr_op;
         }
         else if (op == GenreLexeme::BARRE) {
-            type->operateur_oub = ptr_op;
+            table->operateur_oub = ptr_op;
         }
     }
 
-    type->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
+    table->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
 void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse,
@@ -519,6 +534,19 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
 }
 
+static void rassemble_opérateurs_pour_type(Type const &type,
+                                           GenreLexeme const type_op,
+                                           kuri::tablet<OperateurBinaire const *, 10> &résultat)
+{
+    if (!type.table_opérateurs) {
+        return;
+    }
+
+    POUR (type.table_opérateurs->operateurs(type_op).plage()) {
+        résultat.ajoute(it);
+    }
+}
+
 std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
                                                     Type *type1,
                                                     Type *type2,
@@ -529,15 +557,10 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
     assert(type2);
 
     auto op_candidats = kuri::tablet<OperateurBinaire const *, 10>();
-
-    POUR (type1->operateurs.operateurs(type_op).plage()) {
-        op_candidats.ajoute(it);
-    }
+    rassemble_opérateurs_pour_type(*type1, type_op, op_candidats);
 
     if (type1 != type2) {
-        POUR (type2->operateurs.operateurs(type_op).plage()) {
-            op_candidats.ajoute(it);
-        }
+        rassemble_opérateurs_pour_type(*type2, type_op, op_candidats);
     }
 
     for (auto const op : op_candidats) {
@@ -649,52 +672,56 @@ void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &op
             auto operateur = operateurs.ajoute_basique(
                 op, type, type, IndiceTypeOp::ENTIER_RELATIF);
 
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
+
             if (op == GenreLexeme::PLUS) {
-                type->operateur_ajt = operateur;
+                table->operateur_ajt = operateur;
             }
             else if (op == GenreLexeme::MOINS) {
-                type->operateur_sst = operateur;
+                table->operateur_sst = operateur;
             }
             else if (op == GenreLexeme::FOIS) {
-                type->operateur_mul = operateur;
+                table->operateur_mul = operateur;
             }
             else if (op == GenreLexeme::DIVISE) {
-                type->operateur_div = operateur;
+                table->operateur_div = operateur;
             }
         }
 
         for (auto type : types_entiers_naturels) {
             auto operateur = operateurs.ajoute_basique(
                 op, type, type, IndiceTypeOp::ENTIER_NATUREL);
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
 
             if (op == GenreLexeme::PLUS) {
-                type->operateur_ajt = operateur;
+                table->operateur_ajt = operateur;
             }
             else if (op == GenreLexeme::MOINS) {
-                type->operateur_sst = operateur;
+                table->operateur_sst = operateur;
             }
             else if (op == GenreLexeme::FOIS) {
-                type->operateur_mul = operateur;
+                table->operateur_mul = operateur;
             }
             else if (op == GenreLexeme::DIVISE) {
-                type->operateur_div = operateur;
+                table->operateur_div = operateur;
             }
         }
 
         for (auto type : types_reels) {
             auto operateur = operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL);
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
 
             if (op == GenreLexeme::PLUS) {
-                type->operateur_ajt = operateur;
+                table->operateur_ajt = operateur;
             }
             else if (op == GenreLexeme::MOINS) {
-                type->operateur_sst = operateur;
+                table->operateur_sst = operateur;
             }
             else if (op == GenreLexeme::FOIS) {
-                type->operateur_mul = operateur;
+                table->operateur_mul = operateur;
             }
             else if (op == GenreLexeme::DIVISE) {
-                type->operateur_div = operateur;
+                table->operateur_div = operateur;
             }
         }
 
@@ -707,62 +734,65 @@ void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &op
         for (auto type : types_entiers_relatifs) {
             auto operateur = operateurs.ajoute_basique(
                 op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF);
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
 
             if (op == GenreLexeme::SUPERIEUR) {
-                type->operateur_sup = operateur;
+                table->operateur_sup = operateur;
             }
             else if (op == GenreLexeme::SUPERIEUR_EGAL) {
-                type->operateur_seg = operateur;
+                table->operateur_seg = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR) {
-                type->operateur_inf = operateur;
+                table->operateur_inf = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR_EGAL) {
-                type->operateur_ieg = operateur;
+                table->operateur_ieg = operateur;
             }
             else if (op == GenreLexeme::EGALITE) {
-                type->operateur_egt = operateur;
+                table->operateur_egt = operateur;
             }
         }
 
         for (auto type : types_entiers_naturels) {
             auto operateur = operateurs.ajoute_basique(
                 op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
 
             if (op == GenreLexeme::SUPERIEUR) {
-                type->operateur_sup = operateur;
+                table->operateur_sup = operateur;
             }
             else if (op == GenreLexeme::SUPERIEUR_EGAL) {
-                type->operateur_seg = operateur;
+                table->operateur_seg = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR) {
-                type->operateur_inf = operateur;
+                table->operateur_inf = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR_EGAL) {
-                type->operateur_ieg = operateur;
+                table->operateur_ieg = operateur;
             }
             else if (op == GenreLexeme::EGALITE) {
-                type->operateur_egt = operateur;
+                table->operateur_egt = operateur;
             }
         }
 
         for (auto type : types_reels) {
             auto operateur = operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL);
+            auto table = operateurs.donne_ou_crée_table_opérateurs(type);
 
             if (op == GenreLexeme::SUPERIEUR) {
-                type->operateur_sup = operateur;
+                table->operateur_sup = operateur;
             }
             else if (op == GenreLexeme::SUPERIEUR_EGAL) {
-                type->operateur_seg = operateur;
+                table->operateur_seg = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR) {
-                type->operateur_inf = operateur;
+                table->operateur_inf = operateur;
             }
             else if (op == GenreLexeme::INFERIEUR_EGAL) {
-                type->operateur_ieg = operateur;
+                table->operateur_ieg = operateur;
             }
             else if (op == GenreLexeme::EGALITE) {
-                type->operateur_egt = operateur;
+                table->operateur_egt = operateur;
             }
         }
 

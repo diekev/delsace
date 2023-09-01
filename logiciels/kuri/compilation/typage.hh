@@ -194,29 +194,10 @@ struct Type {
 
     NoeudDeclarationEnteteFonction *fonction_init = nullptr;
 
-    TableOperateurs operateurs{};
-
-    /* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les
-     * généraliser */
-    OperateurBinaire *operateur_ajt = nullptr;
-    OperateurBinaire *operateur_sst = nullptr;
-    OperateurBinaire *operateur_sup = nullptr;
-    OperateurBinaire *operateur_seg = nullptr;
-    OperateurBinaire *operateur_inf = nullptr;
-    OperateurBinaire *operateur_ieg = nullptr;
-    OperateurBinaire *operateur_egt = nullptr;
-    OperateurBinaire *operateur_oub = nullptr;
-    OperateurBinaire *operateur_etb = nullptr;
-    OperateurBinaire *operateur_dif = nullptr;
-    OperateurBinaire *operateur_mul = nullptr;
-    OperateurBinaire *operateur_div = nullptr;
-    OperateurUnaire *operateur_non = nullptr;
+    TableOperateurs *table_opérateurs = nullptr;
 
     /* À FAIRE: déplace ceci dans une table? */
     TypePointeur *type_pointeur = nullptr;
-
-    /* Opérateur 'pour'. */
-    NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
 
     POINTEUR_NUL(Type)
 
