@@ -108,9 +108,29 @@ std::ostream &operator<<(std::ostream &os, GenreType genre)
     return os;
 }
 
-/* ************************************************************************** */
+/* ------------------------------------------------------------------------- */
+/** \name Création de types de bases.
+ * \{ */
 
-Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
+static TypeCompose *crée_type_eini()
+{
+    auto type = memoire::loge<TypeCompose>("TypeCompose");
+    type->genre = GenreType::EINI;
+    type->taille_octet = 16;
+    type->alignement = 8;
+    return type;
+}
+
+static TypeCompose *crée_type_chaine()
+{
+    auto type = memoire::loge<TypeCompose>("TypeCompose");
+    type->genre = GenreType::CHAINE;
+    type->taille_octet = 16;
+    type->alignement = 8;
+    return type;
+}
+
+static Type *crée_type_entier(unsigned taille_octet, bool est_naturel)
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = est_naturel ? GenreType::ENTIER_NATUREL : GenreType::ENTIER_RELATIF;
@@ -120,7 +140,7 @@ Type *Type::cree_entier(unsigned taille_octet, bool est_naturel)
     return type;
 }
 
-Type *Type::cree_entier_constant()
+static Type *crée_type_entier_constant()
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::ENTIER_CONSTANT;
@@ -128,7 +148,7 @@ Type *Type::cree_entier_constant()
     return type;
 }
 
-Type *Type::cree_reel(unsigned taille_octet)
+static Type *crée_type_reel(unsigned taille_octet)
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::REEL;
@@ -138,7 +158,7 @@ Type *Type::cree_reel(unsigned taille_octet)
     return type;
 }
 
-Type *Type::cree_rien()
+static Type *crée_type_rien()
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::RIEN;
@@ -147,7 +167,7 @@ Type *Type::cree_rien()
     return type;
 }
 
-Type *Type::cree_bool()
+static Type *crée_type_bool()
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::BOOL;
@@ -157,7 +177,7 @@ Type *Type::cree_bool()
     return type;
 }
 
-Type *Type::cree_octet()
+static Type *crée_type_octet()
 {
     auto type = memoire::loge<Type>("Type");
     type->genre = GenreType::OCTET;
@@ -166,6 +186,8 @@ Type *Type::cree_octet()
     type->drapeaux |= (TYPE_FUT_VALIDE);
     return type;
 }
+
+/** \} */
 
 TypePointeur::TypePointeur(Type *type_pointe_) : TypePointeur()
 {
@@ -234,24 +256,6 @@ void TypeFonction::marque_polymorphique()
     }
 }
 
-TypeCompose *TypeCompose::cree_eini()
-{
-    auto type = memoire::loge<TypeCompose>("TypeCompose");
-    type->genre = GenreType::EINI;
-    type->taille_octet = 16;
-    type->alignement = 8;
-    return type;
-}
-
-TypeCompose *TypeCompose::cree_chaine()
-{
-    auto type = memoire::loge<TypeCompose>("TypeCompose");
-    type->genre = GenreType::CHAINE;
-    type->taille_octet = 16;
-    type->alignement = 8;
-    return type;
-}
-
 void TypeCompose::marque_polymorphique()
 {
     POUR (membres) {
@@ -288,7 +292,7 @@ std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_nom
 
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
                                  int taille_,
-                                 kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                                 kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeTableauFixe()
 {
     assert(type_pointe_);
@@ -308,7 +312,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
 }
 
 TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
-                                           kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                                           kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeTableauDynamique()
 {
     assert(type_pointe_);
@@ -327,7 +331,7 @@ TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
 }
 
 TypeVariadique::TypeVariadique(Type *type_pointe_,
-                               kuri::tableau<TypeCompose::Membre, int> &&membres_)
+                               kuri::tableau<MembreTypeComposé, int> &&membres_)
     : TypeVariadique()
 {
     this->type_pointe = type_pointe_;
@@ -393,59 +397,59 @@ static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
     switch (lexeme) {
         case GenreLexeme::BOOL:
         {
-            return Type::cree_bool();
+            return crée_type_bool();
         }
         case GenreLexeme::OCTET:
         {
-            return Type::cree_octet();
+            return crée_type_octet();
         }
         case GenreLexeme::N8:
         {
-            return Type::cree_entier(1, true);
+            return crée_type_entier(1, true);
         }
         case GenreLexeme::Z8:
         {
-            return Type::cree_entier(1, false);
+            return crée_type_entier(1, false);
         }
         case GenreLexeme::N16:
         {
-            return Type::cree_entier(2, true);
+            return crée_type_entier(2, true);
         }
         case GenreLexeme::Z16:
         {
-            return Type::cree_entier(2, false);
+            return crée_type_entier(2, false);
         }
         case GenreLexeme::N32:
         {
-            return Type::cree_entier(4, true);
+            return crée_type_entier(4, true);
         }
         case GenreLexeme::Z32:
         {
-            return Type::cree_entier(4, false);
+            return crée_type_entier(4, false);
         }
         case GenreLexeme::N64:
         {
-            return Type::cree_entier(8, true);
+            return crée_type_entier(8, true);
         }
         case GenreLexeme::Z64:
         {
-            return Type::cree_entier(8, false);
+            return crée_type_entier(8, false);
         }
         case GenreLexeme::R16:
         {
-            return Type::cree_reel(2);
+            return crée_type_reel(2);
         }
         case GenreLexeme::R32:
         {
-            return Type::cree_reel(4);
+            return crée_type_reel(4);
         }
         case GenreLexeme::R64:
         {
-            return Type::cree_reel(8);
+            return crée_type_reel(8);
         }
         case GenreLexeme::RIEN:
         {
-            return Type::cree_rien();
+            return crée_type_rien();
         }
         default:
         {
@@ -459,8 +463,8 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     : graphe_(g), operateurs_(o)
 {
     /* initialise les types communs */
-    type_eini = TypeCompose::cree_eini();
-    type_chaine = TypeCompose::cree_chaine();
+    type_eini = crée_type_eini();
+    type_chaine = crée_type_chaine();
 
     TypeBase::N8 = cree_type_pour_lexeme(GenreLexeme::N8);
     TypeBase::N16 = cree_type_pour_lexeme(GenreLexeme::N16);
@@ -478,7 +482,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     TypeBase::RIEN = cree_type_pour_lexeme(GenreLexeme::RIEN);
     TypeBase::BOOL = cree_type_pour_lexeme(GenreLexeme::BOOL);
     TypeBase::OCTET = cree_type_pour_lexeme(GenreLexeme::OCTET);
-    TypeBase::ENTIER_CONSTANT = Type::cree_entier_constant();
+    TypeBase::ENTIER_CONSTANT = crée_type_entier_constant();
 
     type_type_de_donnees_ = types_type_de_donnees->ajoute_element(nullptr);
 
@@ -513,13 +517,13 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     type_contexte = reserve_type_structure(nullptr);
     type_info_type_ = reserve_type_structure(nullptr);
 
-    auto membres_eini = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres_eini = kuri::tableau<MembreTypeComposé, int>();
     membres_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     type_eini->membres = std::move(membres_eini);
     type_eini->drapeaux |= (TYPE_FUT_VALIDE);
 
-    auto membres_chaine = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres_chaine = kuri::tableau<MembreTypeComposé, int>();
     membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
     membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
@@ -722,7 +726,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     }
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute(
         {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 0});
@@ -751,7 +755,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
         }
     }
 
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
@@ -778,7 +782,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         }
     }
 
-    auto membres = kuri::tableau<TypeCompose::Membre, int>();
+    auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
@@ -910,7 +914,7 @@ TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
     return type;
 }
 
-TypeUnion *Typeuse::union_anonyme(const kuri::tablet<TypeCompose::Membre, 6> &membres)
+TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &membres)
 {
     auto types_unions_ = types_unions.verrou_ecriture();
 
@@ -1015,7 +1019,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
     return type;
 }
 
-TypeTuple *Typeuse::cree_tuple(const kuri::tablet<TypeCompose::Membre, 6> &membres)
+TypeTuple *Typeuse::cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres)
 {
     auto types_tuples_ = types_tuples.verrou_ecriture();
 
@@ -1513,13 +1517,13 @@ void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre
     type_structure = typeuse.reserve_type_structure(nullptr);
 
     if (type_le_plus_grand) {
-        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(2);
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
         membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
         membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type_structure->membres = std::move(membres_);
     }
     else {
-        auto membres_ = kuri::tableau<TypeCompose::Membre, int>(1);
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
         membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type_structure->membres = std::move(membres_);
     }
