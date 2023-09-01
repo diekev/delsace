@@ -17,6 +17,7 @@
 enum class GenreLexeme : uint32_t;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationOperateurPour;
 struct Statistiques;
 struct Type;
 struct Typeuse;
@@ -134,14 +135,46 @@ struct TableOperateurs {
     kuri::tableau<type_conteneur, int> operateurs_{};
 
   public:
+    /* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les
+     * généraliser */
+    OperateurBinaire *operateur_ajt = nullptr;
+    OperateurBinaire *operateur_sst = nullptr;
+    OperateurBinaire *operateur_sup = nullptr;
+    OperateurBinaire *operateur_seg = nullptr;
+    OperateurBinaire *operateur_inf = nullptr;
+    OperateurBinaire *operateur_ieg = nullptr;
+    OperateurBinaire *operateur_egt = nullptr;
+    OperateurBinaire *operateur_oub = nullptr;
+    OperateurBinaire *operateur_etb = nullptr;
+    OperateurBinaire *operateur_dif = nullptr;
+    OperateurBinaire *operateur_mul = nullptr;
+    OperateurBinaire *operateur_div = nullptr;
+    OperateurUnaire *operateur_non = nullptr;
+    OperateurBinaire *operateur_indexage = nullptr;
+
+    /* Opérateur 'pour'. */
+    NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
+
     void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
 
     type_conteneur const &operateurs(GenreLexeme lexeme);
 };
 
-// À FAIRE : considère synchroniser les conteneurs des opérateurs au lieu de la structure, il
-// faudra sans doute revoir l'interface afin de ne pas avoir à trop prendre de verrous
-struct Operateurs {
+/* ------------------------------------------------------------------------- */
+/** \name Registre des opérateurs.
+ * Cette structure posède et alloue dynamiquement tous les opérateurs de tous
+ * les types, ainsi que les TableOpérateurs de ces types.
+ *
+ * À FAIRE(opérateurs) : considère ne synchroniser que les conteneurs des
+ * opérateurs au lieu du registre. Il faudra sans doute revoir l'interface afin
+ * de ne pas avoir à trop prendre de verrous.
+ * \{ */
+
+struct RegistreDesOpérateurs {
+  private:
+    tableau_page<TableOperateurs> m_tables_opérateurs{};
+
+  public:
     using type_conteneur_binaire = tableau_page<OperateurBinaire>;
     using type_conteneur_unaire = tableau_page<OperateurUnaire>;
 
@@ -151,10 +184,13 @@ struct Operateurs {
     OperateurBinaire *op_comp_egal_types = nullptr;
     OperateurBinaire *op_comp_diff_types = nullptr;
 
-    Operateurs();
-    ~Operateurs();
+    RegistreDesOpérateurs();
+    ~RegistreDesOpérateurs();
 
-    COPIE_CONSTRUCT(Operateurs);
+    COPIE_CONSTRUCT(RegistreDesOpérateurs);
+
+    /** Retourne la table d'opérateur du type, ou s'il n'en a pas, crées-en une et retourne-la. */
+    TableOperateurs *donne_ou_crée_table_opérateurs(Type *type);
 
     type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
@@ -187,11 +223,13 @@ struct Operateurs {
     void rassemble_statistiques(Statistiques &stats) const;
 };
 
-OperateurUnaire const *cherche_operateur_unaire(Operateurs const &operateurs,
+/** \} */
+
+OperateurUnaire const *cherche_operateur_unaire(RegistreDesOpérateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, Operateurs &operateurs);
+void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &operateurs);
 
 struct OperateurCandidat {
     OperateurBinaire const *op = nullptr;

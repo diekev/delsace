@@ -1486,7 +1486,7 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme,
     auto type = valeur->type;
 
     auto inc = cree_expression_binaire(lexeme);
-    inc->op = type->operateur_ajt;
+    inc->op = type->table_opérateurs->operateur_ajt;
     assert(inc->op);
     inc->operande_gauche = valeur;
     inc->type = type;
@@ -1508,7 +1508,7 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme,
     auto type = valeur->type;
 
     auto inc = cree_expression_binaire(lexeme);
-    inc->op = type->operateur_sst;
+    inc->op = type->table_opérateurs->operateur_sst;
     assert(inc->op);
     inc->operande_gauche = valeur;
     inc->type = type;
