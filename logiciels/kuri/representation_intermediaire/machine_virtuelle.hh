@@ -132,7 +132,7 @@ struct MachineVirtuelle {
     explicit MachineVirtuelle(Compilatrice &compilatrice_);
     ~MachineVirtuelle();
 
-    COPIE_CONSTRUCT(MachineVirtuelle);
+    EMPECHE_COPIE(MachineVirtuelle);
 
     void ajoute_metaprogramme(MetaProgramme *metaprogramme);
 

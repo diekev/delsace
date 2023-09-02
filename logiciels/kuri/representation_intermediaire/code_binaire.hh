@@ -351,7 +351,7 @@ class ConvertisseuseRI {
   public:
     ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
 
-    COPIE_CONSTRUCT(ConvertisseuseRI);
+    EMPECHE_COPIE(ConvertisseuseRI);
 
     bool genere_code(const kuri::tableau<AtomeFonction *> &fonctions);
 

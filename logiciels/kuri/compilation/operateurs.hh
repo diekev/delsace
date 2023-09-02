@@ -189,7 +189,7 @@ struct RegistreDesOpérateurs {
     RegistreDesOpérateurs();
     ~RegistreDesOpérateurs();
 
-    COPIE_CONSTRUCT(RegistreDesOpérateurs);
+    EMPECHE_COPIE(RegistreDesOpérateurs);
 
     /** Retourne la table d'opérateur du type, ou s'il n'en a pas, crées-en une et retourne-la. */
     TableOperateurs *donne_ou_crée_table_opérateurs(Type *type);
@@ -240,9 +240,6 @@ struct OperateurCandidat {
     double poids = 0.0;
     bool permute_operandes = false;
 
-    OperateurCandidat() = default;
-
-    COPIE_CONSTRUCT(OperateurCandidat);
     POINTEUR_NUL(OperateurCandidat)
 };
 
