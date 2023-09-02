@@ -46,7 +46,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
 
-    COPIE_CONSTRUCT(Syntaxeuse);
+    EMPECHE_COPIE(Syntaxeuse);
 
   private:
     void quand_commence() override;

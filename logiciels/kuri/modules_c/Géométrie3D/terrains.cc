@@ -461,7 +461,7 @@ struct erodeuse {
     {
     }
 
-    COPIE_CONSTRUCT(erodeuse);
+    EMPECHE_COPIE(erodeuse);
 
     ~erodeuse()
     {

@@ -35,7 +35,7 @@ struct GeneratriceCodeASM {
 
     GeneratriceCodeASM(EspaceDeTravail &espace);
 
-    COPIE_CONSTRUCT(GeneratriceCodeASM);
+    EMPECHE_COPIE(GeneratriceCodeASM);
 
     kuri::chaine genere_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 

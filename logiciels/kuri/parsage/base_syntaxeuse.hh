@@ -35,7 +35,7 @@ struct BaseSyntaxeuse {
   public:
     BaseSyntaxeuse(Fichier *fichier);
 
-    COPIE_CONSTRUCT(BaseSyntaxeuse);
+    EMPECHE_COPIE(BaseSyntaxeuse);
 
     virtual ~BaseSyntaxeuse();
 

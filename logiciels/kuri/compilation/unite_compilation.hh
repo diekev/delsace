@@ -109,7 +109,7 @@ struct UniteCompilation {
     {
     }
 
-    COPIE_CONSTRUCT(UniteCompilation);
+    EMPECHE_COPIE(UniteCompilation);
 
     void ajoute_attente(Attente attente)
     {

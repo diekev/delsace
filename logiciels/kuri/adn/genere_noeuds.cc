@@ -680,7 +680,7 @@ struct GeneratriceCodeCPP {
                 os << "\t" << it->accede_nom_code()
                    << "() { genre =  " << it->enum_discriminante()->nom()
                    << "::" << it->accede_nom_genre() << "; }\n";
-                os << "\tCOPIE_CONSTRUCT(" << it->accede_nom_code() << ");\n";
+                os << "\tEMPECHE_COPIE(" << it->accede_nom_code() << ");\n";
                 os << "\n";
             }
 

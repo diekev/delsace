@@ -202,6 +202,22 @@ void Chunk::emets_appel_externe(NoeudExpression const *site,
     emets(inst_appel);
 }
 
+void Chunk::emets_appel_compilatrice(const NoeudExpression *site,
+                                     const AtomeFonction *fonction,
+                                     bool ajoute_verification)
+{
+    if (ajoute_verification) {
+        emets(OP_VERIFIE_CIBLE_APPEL);
+        emets(site);
+        emets(false); /* est pointeur */
+        emets(fonction);
+    }
+
+    emets(OP_APPEL_COMPILATRICE);
+    emets(site);
+    emets(fonction);
+}
+
 void Chunk::emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
 {
     emets(OP_APPEL_INTRINSÈQUE);
@@ -562,6 +578,7 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
         case OP_APPEL_INTRINSÈQUE:
+        case OP_APPEL_COMPILATRICE:
         {
             return instruction_3d<void *, int, void *>(
                 chunk, chaine_code_operation(instruction), decalage, os);
@@ -1018,6 +1035,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
                 if (atome_appelee->decl && atome_appelee->decl->est_intrinseque) {
                     chunk.emets_appel_intrinsèque(appel->site, atome_appelee);
+                }
+                else if (atome_appelee->decl &&
+                         atome_appelee->decl->possede_drapeau(COMPILATRICE)) {
+                    chunk.emets_appel_compilatrice(appel->site, atome_appelee, verifie_adresses);
                 }
                 else if (atome_appelee->est_externe) {
                     chunk.emets_appel_externe(

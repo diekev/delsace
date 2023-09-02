@@ -155,7 +155,7 @@ struct Tacheronne {
 
     ~Tacheronne();
 
-    COPIE_CONSTRUCT(Tacheronne);
+    EMPECHE_COPIE(Tacheronne);
 
     void gere_tache();
 

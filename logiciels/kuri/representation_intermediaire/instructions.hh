@@ -55,7 +55,7 @@ struct Atome {
 
     Atome() = default;
 
-    COPIE_CONSTRUCT(Atome);
+    EMPECHE_COPIE(Atome);
 
     inline Instruction *comme_instruction();
     inline Instruction const *comme_instruction() const;
@@ -234,7 +234,7 @@ struct AtomeGlobale : public AtomeConstante {
      * InfoType créé par la compilatrice. */
     const Type *est_info_type_de = nullptr;
 
-    COPIE_CONSTRUCT(AtomeGlobale);
+    EMPECHE_COPIE(AtomeGlobale);
 
     AtomeGlobale(Type const *type_,
                  AtomeConstante *initialisateur_,
@@ -257,7 +257,7 @@ struct TranstypeConstant : public AtomeConstante {
 
     AtomeConstante *valeur = nullptr;
 
-    COPIE_CONSTRUCT(TranstypeConstant);
+    EMPECHE_COPIE(TranstypeConstant);
 
     TranstypeConstant(Type const *type_, AtomeConstante *valeur_) : TranstypeConstant()
     {
@@ -276,7 +276,7 @@ struct OpBinaireConstant : public AtomeConstante {
     AtomeConstante *operande_gauche = nullptr;
     AtomeConstante *operande_droite = nullptr;
 
-    COPIE_CONSTRUCT(OpBinaireConstant);
+    EMPECHE_COPIE(OpBinaireConstant);
 
     OpBinaireConstant(Type const *type_,
                       OperateurBinaire::Genre op_,
@@ -300,7 +300,7 @@ struct OpUnaireConstant : public AtomeConstante {
     OperateurUnaire::Genre op{};
     AtomeConstante *operande = nullptr;
 
-    COPIE_CONSTRUCT(OpUnaireConstant);
+    EMPECHE_COPIE(OpUnaireConstant);
 
     OpUnaireConstant(Type const *type_, OperateurUnaire::Genre op_, AtomeConstante *operande_)
         : OpUnaireConstant()
@@ -320,7 +320,7 @@ struct AccedeIndexConstant : public AtomeConstante {
     AtomeConstante *accede = nullptr;
     AtomeConstante *index = nullptr;
 
-    COPIE_CONSTRUCT(AccedeIndexConstant);
+    EMPECHE_COPIE(AccedeIndexConstant);
 
     AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, AtomeConstante *index_)
         : AccedeIndexConstant()
@@ -369,7 +369,7 @@ struct AtomeFonction : public Atome {
 
     Instruction *derniere_instruction() const;
 
-    COPIE_CONSTRUCT(AtomeFonction);
+    EMPECHE_COPIE(AtomeFonction);
 };
 
 struct Instruction : public Atome {
@@ -505,7 +505,7 @@ struct InstructionAppel : public Instruction {
     kuri::tableau<Atome *, int> args{};
     InstructionAllocation *adresse_retour = nullptr;
 
-    COPIE_CONSTRUCT(InstructionAppel);
+    EMPECHE_COPIE(InstructionAppel);
 
     InstructionAppel(NoeudExpression *site_, Atome *appele_) : InstructionAppel(site_)
     {
@@ -556,7 +556,7 @@ struct InstructionRetour : public Instruction {
 
     Atome *valeur = nullptr;
 
-    COPIE_CONSTRUCT(InstructionRetour);
+    EMPECHE_COPIE(InstructionRetour);
 
     InstructionRetour(NoeudExpression *site_, Atome *valeur_) : InstructionRetour(site_)
     {
@@ -575,7 +575,7 @@ struct InstructionOpBinaire : public Instruction {
     Atome *valeur_gauche = nullptr;
     Atome *valeur_droite = nullptr;
 
-    COPIE_CONSTRUCT(InstructionOpBinaire);
+    EMPECHE_COPIE(InstructionOpBinaire);
 
     InstructionOpBinaire(NoeudExpression *site_,
                          Type const *type_,
@@ -601,7 +601,7 @@ struct InstructionOpUnaire : public Instruction {
     OperateurUnaire::Genre op{};
     Atome *valeur = nullptr;
 
-    COPIE_CONSTRUCT(InstructionOpUnaire);
+    EMPECHE_COPIE(InstructionOpUnaire);
 
     InstructionOpUnaire(NoeudExpression *site_,
                         Type const *type_,
@@ -625,7 +625,7 @@ struct InstructionChargeMem : public Instruction {
 
     Atome *chargee = nullptr;
 
-    COPIE_CONSTRUCT(InstructionChargeMem);
+    EMPECHE_COPIE(InstructionChargeMem);
 
     InstructionChargeMem(NoeudExpression *site_, Type const *type_, Atome *chargee_)
         : InstructionChargeMem(site_)
@@ -646,7 +646,7 @@ struct InstructionStockeMem : public Instruction {
     Atome *ou = nullptr;
     Atome *valeur = nullptr;
 
-    COPIE_CONSTRUCT(InstructionStockeMem);
+    EMPECHE_COPIE(InstructionStockeMem);
 
     InstructionStockeMem(NoeudExpression *site_, Type const *type_, Atome *ou_, Atome *valeur_)
         : InstructionStockeMem(site_)
@@ -681,7 +681,7 @@ struct InstructionBranche : public Instruction {
 
     InstructionLabel *label = nullptr;
 
-    COPIE_CONSTRUCT(InstructionBranche);
+    EMPECHE_COPIE(InstructionBranche);
 
     InstructionBranche(NoeudExpression *site_, InstructionLabel *label_)
         : InstructionBranche(site_)
@@ -701,7 +701,7 @@ struct InstructionBrancheCondition : public Instruction {
     InstructionLabel *label_si_vrai = nullptr;
     InstructionLabel *label_si_faux = nullptr;
 
-    COPIE_CONSTRUCT(InstructionBrancheCondition);
+    EMPECHE_COPIE(InstructionBrancheCondition);
 
     InstructionBrancheCondition(NoeudExpression *site_,
                                 Atome *condition_,
@@ -726,7 +726,7 @@ struct InstructionAccedeMembre : public Instruction {
     Atome *accede = nullptr;
     Atome *index = nullptr;
 
-    COPIE_CONSTRUCT(InstructionAccedeMembre);
+    EMPECHE_COPIE(InstructionAccedeMembre);
 
     InstructionAccedeMembre(NoeudExpression *site_,
                             Type const *type_,
@@ -751,7 +751,7 @@ struct InstructionAccedeIndex : public Instruction {
     Atome *accede = nullptr;
     Atome *index = nullptr;
 
-    COPIE_CONSTRUCT(InstructionAccedeIndex);
+    EMPECHE_COPIE(InstructionAccedeIndex);
 
     InstructionAccedeIndex(NoeudExpression *site_,
                            Type const *type_,
@@ -791,7 +791,7 @@ struct InstructionTranstype : public Instruction {
     Atome *valeur = nullptr;
     TypeTranstypage op{};
 
-    COPIE_CONSTRUCT(InstructionTranstype);
+    EMPECHE_COPIE(InstructionTranstype);
 
     InstructionTranstype(NoeudExpression *site_,
                          Type const *type_,

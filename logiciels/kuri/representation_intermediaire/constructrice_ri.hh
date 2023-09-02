@@ -65,7 +65,7 @@ struct ConstructriceRI {
 
     explicit ConstructriceRI(Compilatrice &compilatrice);
 
-    COPIE_CONSTRUCT(ConstructriceRI);
+    EMPECHE_COPIE(ConstructriceRI);
 
     ~ConstructriceRI();
 

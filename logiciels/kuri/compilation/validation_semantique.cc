@@ -99,33 +99,6 @@ ResultatValidation ContexteValidationCode::valide()
     return CodeRetourValidation::Erreur;
 }
 
-static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
-{
-    auto est_enum_ou_reference_enum = [](Type *t) -> TypeEnum * {
-        if (t->est_enum()) {
-            return t->comme_enum();
-        }
-
-        if (t->est_reference() && t->comme_reference()->type_pointe->est_enum()) {
-            return t->comme_reference()->type_pointe->comme_enum();
-        }
-
-        return nullptr;
-    };
-
-    auto type1 = noeud->operande_gauche->type;
-    auto type1_est_enum = est_enum_ou_reference_enum(type1);
-    if (type1_est_enum && (type1_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        return Attente::sur_type(type1_est_enum);
-    }
-    auto type2 = noeud->operande_droite->type;
-    auto type2_est_enum = est_enum_ou_reference_enum(type2);
-    if (type2_est_enum && (type2_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        return Attente::sur_type(type2_est_enum);
-    }
-    return Attente::sur_operateur(noeud);
-}
-
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     NoeudDirectiveExecute *directive)
 {
@@ -714,35 +687,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 default:
                 {
-                    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-                    auto resultat = cherche_candidats_operateurs(
-                        *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
-                    if (resultat.has_value()) {
-                        return resultat.value();
+                    auto resultat = trouve_opérateur_pour_expression(
+                        *espace, expr, type1, type2, GenreLexeme::CROCHET_OUVRANT);
+
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        return std::get<Attente>(resultat);
                     }
 
-                    auto meilleur_candidat = OperateurCandidat::nul_const();
-                    auto poids = 0.0;
+                    auto candidat = std::get<OperateurCandidat>(resultat);
+                    expr->type = candidat.op->type_resultat;
+                    expr->op = candidat.op;
+                    expr->permute_operandes = candidat.permute_operandes;
 
-                    for (auto const &candidat : candidats) {
-                        if (candidat.poids > poids) {
-                            poids = candidat.poids;
-                            meilleur_candidat = &candidat;
-                        }
-                    }
-
-                    if (meilleur_candidat == nullptr) {
-                        return attente_sur_operateur_ou_type(expr);
-                    }
-
-                    expr->type = meilleur_candidat->op->type_resultat;
-                    expr->op = meilleur_candidat->op;
-                    expr->permute_operandes = meilleur_candidat->permute_operandes;
-
-                    transtype_si_necessaire(expr->operande_gauche,
-                                            meilleur_candidat->transformation_type1);
-                    transtype_si_necessaire(expr->operande_droite,
-                                            meilleur_candidat->transformation_type2);
+                    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+                    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
                 }
             }
 
@@ -4486,42 +4444,81 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
     return valide_operateur_binaire_generique(expr);
 }
 
-ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
-    NoeudExpressionBinaire *expr)
+/* Retourne vrai si les opérations sont compatibles pour une expression de comparaisons enchainées.
+ * Les opérations sont compatibles si :
+ * - elles sont similaires ('<' et '<'), ou
+ * - elles sont similaires mais l'une d'entre elles utilise '='
+ *
+ * Tout autre cas est considérer comme malformé, par exemple : 'a < b > c'. Même si nous pourrions
+ * généré du code pour ces expressions, elle ne sont pas vraiment sûres puisque, dans l'exemple,
+ * 'a' pourrait également être supérieur à 'c', et peut-être que le programmeur eu l'intention de
+ * garantir que 'a' est _inférieur_ à 'c'.
+ */
+static bool sont_opérations_compatibles_pour_comparaison_chainée(
+    GenreLexeme const opération_droite, GenreLexeme const opération_gauche)
 {
-    auto type_op = expr->lexeme->genre;
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto type1 = enfant1->type;
-    auto type2 = enfant2->type;
-    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-    expr->type = TypeBase::BOOL;
-
-    auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
-    type1 = enfant_expr->operande_droite->type;
-
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    if (opération_droite == opération_gauche) {
+        /* Si les opérations sont les mêmes, vérifions qu'elles ne sont pas une différence ("!="),
+         * car ceci est également ambigüe.) */
+        return opération_droite != GenreLexeme::DIFFERENCE;
     }
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
 
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
+    const GenreLexeme opérations_compatibles[][2] = {
+        {GenreLexeme::INFERIEUR, GenreLexeme::INFERIEUR_EGAL},
+        {GenreLexeme::SUPERIEUR, GenreLexeme::SUPERIEUR_EGAL},
+    };
+
+    POUR (opérations_compatibles) {
+        if (opération_droite == it[0] && opération_gauche == it[1]) {
+            return true;
+        }
+
+        if (opération_gauche == it[0] && opération_droite == it[1]) {
+            return true;
         }
     }
 
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
+    return false;
+}
+
+ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
+    NoeudExpressionBinaire *expr)
+{
+    auto const type_op = expr->lexeme->genre;
+
+    auto const expression_binaire_gauche = expr->operande_gauche->comme_expression_binaire();
+    auto const opération_gauche = expression_binaire_gauche->lexeme->genre;
+
+    if (!sont_opérations_compatibles_pour_comparaison_chainée(type_op, opération_gauche)) {
+        auto e = espace->rapporte_erreur(expr, "Enchainement de comparaison invalide.");
+        e.ajoute_message("L'enchainement de comparaison n'est pas valide car les comparaisons "
+                         "peuvent être ambigües.\n");
+        e.ajoute_message("Les enchainements valides sont :\n");
+        e.ajoute_message("    ('<' ou '<=') et ('<' ou '<=')\n");
+        e.ajoute_message("    ('>' ou '>=') et ('>' ou '>=')\n");
+        e.ajoute_message("    '==' et '=='\n");
+        return CodeRetourValidation::Erreur;
     }
 
-    expr->op = meilleur_candidat->op;
-    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    auto const type_gauche = expression_binaire_gauche->operande_droite->type;
+
+    auto const expression_comparée = expr->operande_droite;
+    auto const type_droite = expression_comparée->type;
+
+    auto resultat = trouve_opérateur_pour_expression(
+        *espace, expr, type_gauche, type_droite, type_op);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
+    }
+
+    auto candidat = std::get<OperateurCandidat>(resultat);
+
+    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
+    expr->type = TypeBase::BOOL;
+    expr->op = candidat.op;
+    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
     return CodeRetourValidation::OK;
 }
 
@@ -4715,39 +4712,27 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         }
     }
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type1, type2, type_op);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
+    auto candidat = std::get<OperateurCandidat>(resultat);
 
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
-    }
-
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
-    }
-
-    expr->type = meilleur_candidat->op->type_resultat;
-    expr->op = meilleur_candidat->op;
-    expr->permute_operandes = meilleur_candidat->permute_operandes;
+    expr->type = candidat.op->type_resultat;
+    expr->op = candidat.op;
+    expr->permute_operandes = candidat.permute_operandes;
 
     if (type_gauche_est_reference &&
-        meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
+        candidat.transformation_type1.type != TypeTransformation::INUTILE) {
         espace->rapporte_erreur(expr->operande_gauche,
                                 "Impossible de transtyper la valeur à gauche pour une "
                                 "assignation composée.");
     }
 
-    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
 
     if (assignation_composee) {
         expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
@@ -4804,29 +4789,14 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
     }
 
     auto type_bool = expr_bool->type;
+    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type_bool, type_bool, type_op);
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(
-        *espace, type_bool, type_bool, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
-
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
-    }
-
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
-    }
-
-    expr->op = meilleur_candidat->op;
+    auto candidat = std::get<OperateurCandidat>(resultat);
+    expr->op = candidat.op;
     expr->type = type_bool;
     return CodeRetourValidation::OK;
 }
