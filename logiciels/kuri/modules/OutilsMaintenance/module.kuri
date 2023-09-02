@@ -1,5 +1,6 @@
 /* Module d'outils pour automatiser la maintenance du code source des fichiers .kuri */
 
+importe Chaine
 importe Fondation
 importe SysFichier
 importe Triage
@@ -233,9 +234,7 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
     lignes_furent_modifiés := faux
     pour & données_fichier.lignes {
         ancienne_taille := it.taille
-        tantque it.taille != 0 && est_espace_blanc(it[it.taille - 1]) {
-            it = recule(it, 1)
-        }
+        it = supprime_espaces_blancs_à_la_fin(it)
 
         si it.taille != ancienne_taille {
             lignes_furent_modifiés = vrai
