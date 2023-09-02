@@ -431,24 +431,14 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(
-        *espace, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    auto resultat = trouve_opérateur_pour_expression(
+        *espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
-
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
-    }
-
-    if (meilleur_candidat == nullptr) {
+    if (std::holds_alternative<bool>(resultat)) {
         espace
             ->rapporte_erreur(inst,
                               "Je ne peux pas valider l'expression de discrimination car "
@@ -466,7 +456,8 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         return CodeRetourValidation::Erreur;
     }
 
-    inst->op = meilleur_candidat->op;
+    auto candidat = std::get<OperateurCandidat>(resultat);
+    inst->op = candidat.op;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
         auto expr_paire = inst->paires_discr[i]->expression;
