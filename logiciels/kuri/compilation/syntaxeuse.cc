@@ -10,6 +10,7 @@
 
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
+#include "parsage/site_source.hh"
 
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -2421,6 +2422,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::debogue) {
                 noeud->drapeaux |= DEBOGUE;
             }
+            else if (ident_directive == ID::intrinsèque) {
+                noeud->drapeaux |= FORCE_SANSTRACE;
+                noeud->est_intrinseque = true;
+                noeud->est_externe = true;
+
+                consomme();
+
+                if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
+                    rapporte_erreur("Attendu le symbole de l'intrinsèque");
+                }
+
+                noeud->nom_symbole = lexeme_courant()->chaine;
+            }
             else {
                 rapporte_erreur("Directive inconnue");
             }
@@ -2959,7 +2973,8 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl
 
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
-    m_unite->espace->rapporte_erreur_sans_site(message_erreur, erreur::Genre::SYNTAXAGE);
+    m_unite->espace->rapporte_erreur(
+        SiteSource::cree(m_fichier, lexeme_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }
