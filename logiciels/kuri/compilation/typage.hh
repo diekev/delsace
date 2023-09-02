@@ -267,7 +267,7 @@ struct TypePointeur : public Type {
 
     explicit TypePointeur(Type *type_pointe);
 
-    COPIE_CONSTRUCT(TypePointeur);
+    EMPECHE_COPIE(TypePointeur);
 
     Type *type_pointe = nullptr;
 };
@@ -280,7 +280,7 @@ struct TypeReference : public Type {
 
     explicit TypeReference(Type *type_pointe);
 
-    COPIE_CONSTRUCT(TypeReference);
+    EMPECHE_COPIE(TypeReference);
 
     Type *type_pointe = nullptr;
 };
@@ -293,7 +293,7 @@ struct TypeFonction : public Type {
 
     TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie);
 
-    COPIE_CONSTRUCT(TypeFonction);
+    EMPECHE_COPIE(TypeFonction);
 
     kuri::tableau<Type *, int> types_entrees{};
     Type *type_sortie{};
@@ -416,7 +416,7 @@ struct TypeStructure final : public TypeCompose {
         genre = GenreType::STRUCTURE;
     }
 
-    COPIE_CONSTRUCT(TypeStructure);
+    EMPECHE_COPIE(TypeStructure);
 
     /* Stocke les membres pour avoir accès à leurs décalages. */
     kuri::tableau<MembreTypeComposé const *, int> types_employés{};
@@ -437,7 +437,7 @@ struct TypeUnion final : public TypeCompose {
         genre = GenreType::UNION;
     }
 
-    COPIE_CONSTRUCT(TypeUnion);
+    EMPECHE_COPIE(TypeUnion);
 
     Type *type_le_plus_grand = nullptr;
     TypeStructure *type_structure = nullptr;
@@ -460,7 +460,7 @@ struct TypeEnum final : public TypeCompose {
         genre = GenreType::ENUM;
     }
 
-    COPIE_CONSTRUCT(TypeEnum);
+    EMPECHE_COPIE(TypeEnum);
 
     Type *type_donnees{};
 
@@ -482,7 +482,7 @@ struct TypeTableauFixe final : public TypeCompose {
                     int taille,
                     kuri::tableau<MembreTypeComposé, int> &&membres);
 
-    COPIE_CONSTRUCT(TypeTableauFixe);
+    EMPECHE_COPIE(TypeTableauFixe);
 
     Type *type_pointe = nullptr;
     int taille = 0;
@@ -496,7 +496,7 @@ struct TypeTableauDynamique final : public TypeCompose {
 
     TypeTableauDynamique(Type *type_pointe, kuri::tableau<MembreTypeComposé, int> &&membres);
 
-    COPIE_CONSTRUCT(TypeTableauDynamique);
+    EMPECHE_COPIE(TypeTableauDynamique);
 
     Type *type_pointe = nullptr;
 };
@@ -509,7 +509,7 @@ struct TypeVariadique final : public TypeCompose {
 
     TypeVariadique(Type *type_pointe, kuri::tableau<MembreTypeComposé, int> &&membres);
 
-    COPIE_CONSTRUCT(TypeVariadique);
+    EMPECHE_COPIE(TypeVariadique);
 
     Type *type_pointe = nullptr;
     /* Type tableau dynamique pour la génération de code, si le type est ...z32, le type
@@ -525,7 +525,7 @@ struct TypeTypeDeDonnees : public Type {
 
     explicit TypeTypeDeDonnees(Type *type_connu);
 
-    COPIE_CONSTRUCT(TypeTypeDeDonnees);
+    EMPECHE_COPIE(TypeTypeDeDonnees);
 
     // Non-nul si le type est connu lors de la compilation.
     Type *type_connu = nullptr;
@@ -540,7 +540,7 @@ struct TypePolymorphique : public Type {
 
     explicit TypePolymorphique(IdentifiantCode *ident);
 
-    COPIE_CONSTRUCT(TypePolymorphique);
+    EMPECHE_COPIE(TypePolymorphique);
 
     IdentifiantCode *ident = nullptr;
 
@@ -556,7 +556,7 @@ struct TypeOpaque : public Type {
 
     TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie);
 
-    COPIE_CONSTRUCT(TypeOpaque);
+    EMPECHE_COPIE(TypeOpaque);
 
     NoeudDeclarationTypeOpaque *decl = nullptr;
     IdentifiantCode *ident = nullptr;
