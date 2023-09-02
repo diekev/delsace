@@ -458,11 +458,9 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
         rapporte_erreur_execution(site, message);                                                 \
     }
 
-void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
-                                              int taille_argument,
-                                              InstructionAppel *inst_appel,
-                                              NoeudExpression *site,
-                                              ResultatInterpretation &resultat)
+void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
+                                                   NoeudExpression *site,
+                                                   ResultatInterpretation &resultat)
 {
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
@@ -761,6 +759,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         notre_free(ptr);
         return;
     }
+}
+
+void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
+                                              int taille_argument,
+                                              InstructionAppel *inst_appel,
+                                              NoeudExpression *site)
+{
 
     auto type_fonction = ptr_fonction->decl->type->comme_fonction();
     auto &donnees_externe = ptr_fonction->données_exécution->donnees_externe;
@@ -1406,10 +1411,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
+                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site);
+                break;
+            }
+            case OP_APPEL_COMPILATRICE:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
                 auto resultat = ResultatInterpretation::OK;
-                appel_fonction_externe(
-                    ptr_fonction, taille_argument, ptr_inst_appel, site, resultat);
+                appel_fonction_compilatrice(ptr_fonction, site, resultat);
 
                 if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
@@ -1432,16 +1442,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-                if (ptr_fonction->est_externe) {
+                if (ptr_fonction->decl && ptr_fonction->decl->possede_drapeau(COMPILATRICE)) {
                     auto resultat = ResultatInterpretation::OK;
-                    appel_fonction_externe(
-                        ptr_fonction, taille_argument, ptr_inst_appel, site, resultat);
+                    appel_fonction_compilatrice(ptr_fonction, site, resultat);
 
                     if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
                         compte_executees = i + 1;
                         return resultat;
                     }
+                }
+                else if (ptr_fonction->est_externe) {
+                    appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site);
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
