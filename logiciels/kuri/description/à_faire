@@ -61,16 +61,6 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 
 - opérateur <=> pour n'implémenter qu'une seul comparaison
 
-- sécurité pour les comparisons chainées, utiliser les nonsûres résulte en une erreur de compilation :
-    sûres :
-        a < b <= c, etc.
-        a > b >= c, etc.
-        a == b == c
-
-    nonsûres :
-        a != b != c
-        a > b < c
-
 - labels pour toutes les boucles :
     - boucle xxx {}
     - répète xxx {}
