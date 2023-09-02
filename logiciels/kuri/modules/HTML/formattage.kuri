@@ -77,7 +77,6 @@ initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
     ctx.insère_nouvelle_lignes_après_tags = faux
     ctx.supprime_espaces_blancs_texte = vrai
     ctx.indente_tags = faux
-    ctx.supprime_espaces_blancs_texte = vrai
     ctx.supprime_guillemets_attributs = vrai
     ctx.supprime_slash_tags_auto_fermant = vrai
     ctx.supprime_commentaire = vrai

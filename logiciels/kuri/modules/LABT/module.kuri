@@ -1,3 +1,4 @@
+importe Chaine
 importe Courriel
 importe Fondation
 
@@ -364,34 +365,6 @@ imprime_tab :: fonc (enchaineuse: *Enchaineuse, n: z32)
     }
 }
 
-est_espace_blanche :: fonc (unité: z8) -> bool #enligne
-{
-    retourne unité == ('\n') || unité == (' ') || unité == ('\t')
-}
-
-supprime_espaces_blanches :: fonc (texte: chaine) -> chaine
-{
-    tantque texte.taille != 0 {
-        si est_espace_blanche(texte[0]) {
-            texte = avance(texte, 1)
-            continue
-        }
-
-        arrête
-    }
-
-    tantque texte.taille != 0 {
-        si est_espace_blanche(texte[texte.taille - 1]) {
-            texte = recule(texte, 1)
-            continue
-        }
-
-        arrête
-    }
-
-    retourne texte
-}
-
 imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
 {
     imprime_tab(enchaineuse, profondeur)
@@ -445,7 +418,7 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32
         }
         Texte {
             noeud_texte := racine comme *Texte
-            texte := supprime_espaces_blanches(noeud_texte.texte)
+            texte := supprime_espaces_blancs(noeud_texte.texte)
             imprime_dans_enchaineuse(enchaineuse, "<p>%</p>", texte)
         }
         Lien {
@@ -522,7 +495,7 @@ imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profond
         }
         Texte {
             noeud_texte := racine comme *Texte
-            texte := supprime_espaces_blanches(noeud_texte.texte)
+            texte := supprime_espaces_blancs(noeud_texte.texte)
             ajoute_au_tampon(enchaineuse, texte)
         }
         Lien {

@@ -2,10 +2,6 @@ importe AnalyseStatique
 importe Compilatrice
 importe Fondation
 
-/*
-    À FAIRE : pour les messages d'erreurs, inclus la colonne, et utilise une recherche binaire pour trouver les lexèmes
-*/
-
 test_compilation :: fonc ()
 {
     désactive_compilation_espace_défaut()
