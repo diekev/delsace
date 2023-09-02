@@ -139,3 +139,25 @@ target_compile_definitions(genere_noeuds PUBLIC ACCES_LEXEMES_EST_POSSIBLE)
 target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")
+
+################################################################################
+
+set(NOM_EXECUTABLE genere_intrinseques)
+
+set(BIBLIOTHEQUES
+    kuri_adn
+    kuri_outils_adn
+    kuri_outils_dependants_sur_lexemes_adn
+    kuri_parsage
+    kuri_structures
+    bib_structures
+    bib_moultfilage
+    langage
+)
+
+add_executable(${NOM_EXECUTABLE} genere_intrinseques.cc)
+
+target_compile_definitions(genere_noeuds PUBLIC ACCES_LEXEMES_EST_POSSIBLE)
+target_include_directories(${NOM_EXECUTABLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_EXECUTABLE} "${BIBLIOTHEQUES}")

@@ -20,6 +20,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "intrinseques.hh"
 #include "ipa.hh"
 #include "portee.hh"
 #include "programme.hh"
@@ -65,6 +66,7 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(graphe_dependance, this->operateurs)
 {
+    initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
     auto ops = operateurs.verrou_ecriture();

@@ -414,6 +414,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
     bool est_monomorphisation
     bool est_métaprogramme
     bool est_initialisation_type
+    bool est_intrinsèque
 
     /* pour les fonctions externes :
      * - nom du symbole dans la bibliothèque

@@ -31,9 +31,11 @@ endmacro()
 genere_code_adn(kuri_ipa_compilatrice genere_ipa ipa)
 genere_code_adn(kuri_options_compilatrice genere_options options)
 genere_code_adn(kuri_message_compilatrice genere_message message)
+genere_code_adn(kuri_intrinseques_compilatrice genere_intrinseques intrinseques)
 
 set(BIBLIOTHEQUES
     kuri_arbre_syntaxique
+    kuri_intrinseques_compilatrice
     kuri_ipa_compilatrice
     kuri_message_compilatrice
     kuri_options_compilatrice
@@ -143,3 +145,4 @@ target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 add_dependencies(${NOM_CIBLE} kuri_ipa_compilatrice)
 add_dependencies(${NOM_CIBLE} kuri_options_compilatrice)
 add_dependencies(${NOM_CIBLE} kuri_message_compilatrice)
+add_dependencies(${NOM_CIBLE} kuri_intrinseques_compilatrice)

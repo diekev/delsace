@@ -7,6 +7,8 @@
 
 #include "biblinternes/outils/conditions.h"
 
+#include "structures/ensemble.hh"
+
 const IdentifiantADN &Type::accede_nom() const
 {
     if (est_pointeur()) {
@@ -596,8 +598,16 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
     }
 
     os << ")"
-       << " -> " << *m_type_sortie << " #compilatrice"
-       << "\n\n";
+       << " -> " << *m_type_sortie;
+
+    if (m_est_intrinsèque) {
+        os << " #intrinsèque \"" << m_symbole_gcc << "\"";
+    }
+    else if (m_est_ipa_compilatrice) {
+        os << " #compilatrice";
+    }
+
+    os << "\n\n";
 }
 
 void ProteineFonction::ajoute_parametre(Parametre const parametre)
@@ -686,6 +696,42 @@ void SyntaxeuseADN::parse_fonction()
 
     if (apparie(GenreLexeme::POINT_VIRGULE)) {
         consomme();
+    }
+
+    while (apparie(GenreLexeme::AROBASE)) {
+        consomme();
+
+        if (apparie("gcc")) {
+            consomme();
+            fonction->définis_symbole_gcc(lexeme_courant()->chaine);
+            consomme();
+        }
+        else if (apparie("intrinsèque")) {
+            if (fonction->est_marquée_ipa_compilarice()) {
+                rapporte_erreur("Fonction marquée comme intrinsèque alors qu'elle fut marquée "
+                                "comme faisant partie de l'IPA compilatrice");
+            }
+
+            consomme();
+            fonction->marque_intrinsèque();
+        }
+        else if (apparie("compilatrice")) {
+            if (fonction->est_marquée_intrinsèque()) {
+                rapporte_erreur("Fonction marquée comme faisant partie de l'IPA compilatrice "
+                                "alors qu'elle fut marquée comme intrinsèque");
+            }
+
+            consomme();
+            fonction->marque_ipa_compilarice();
+        }
+        else {
+            consomme();
+            rapporte_erreur("Attribut inconnu pour l'énumération");
+        }
+
+        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+            consomme();
+        }
     }
 }
 
@@ -1025,3 +1071,55 @@ void SyntaxeuseADN::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
     std::cerr << message_erreur << "\n";
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxillaires.
+ * \{ */
+
+void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &proteines,
+                                          FluxSortieCPP &os,
+                                          bool pour_entête,
+                                          kuri::chaine_statique identifiant_fonction)
+{
+    if (pour_entête) {
+        prodeclare_struct(os, "IdentifiantCode");
+        prodeclare_struct(os, "TableIdentifiant");
+        os << "\n";
+    }
+    else {
+        inclus(os, "parsage/identifiant.hh");
+        os << "\n";
+    }
+
+    kuri::ensemble<kuri::chaine_statique> identifiants;
+    POUR (proteines) {
+        if (!it->est_fonction()) {
+            continue;
+        }
+        identifiants.insere(it->nom().nom_kuri());
+    }
+
+    os << "namespace ID {\n";
+    identifiants.pour_chaque_element([&](kuri::chaine_statique it) {
+        if (pour_entête) {
+            os << "extern ";
+        }
+        os << "IdentifiantCode *" << it << ";\n";
+    });
+    os << "}\n\n";
+
+    os << "void initialise_identifiants_" << identifiant_fonction << "(TableIdentifiant &table)";
+
+    if (pour_entête) {
+        os << ";\n\n";
+        return;
+    }
+
+    os << "\n{\n";
+    identifiants.pour_chaque_element([&](kuri::chaine_statique it) {
+        os << "\tID::" << it << " = table.identifiant_pour_chaine(\"" << it << "\");\n";
+    });
+    os << "}\n\n";
+}
+
+/** \} */
