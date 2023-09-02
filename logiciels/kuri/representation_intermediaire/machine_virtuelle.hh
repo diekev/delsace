@@ -132,7 +132,7 @@ struct MachineVirtuelle {
     explicit MachineVirtuelle(Compilatrice &compilatrice_);
     ~MachineVirtuelle();
 
-    COPIE_CONSTRUCT(MachineVirtuelle);
+    EMPECHE_COPIE(MachineVirtuelle);
 
     void ajoute_metaprogramme(MetaProgramme *metaprogramme);
 
@@ -200,8 +200,10 @@ struct MachineVirtuelle {
     void appel_fonction_externe(AtomeFonction *ptr_fonction,
                                 int taille_argument,
                                 InstructionAppel *inst_appel,
-                                NoeudExpression *site,
-                                ResultatInterpretation &resultat);
+                                NoeudExpression *site);
+    void appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
+                                     NoeudExpression *site,
+                                     ResultatInterpretation &resultat);
     void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction, NoeudExpression *site);
 
     inline void empile_constante(NoeudExpression *site, FrameAppel *frame);

@@ -294,7 +294,7 @@ struct Typeuse {
         m_type_rien = cree_type_nominal("void", "rien");
     }
 
-    COPIE_CONSTRUCT(Typeuse);
+    EMPECHE_COPIE(Typeuse);
 
     Type *type_rien()
     {
@@ -584,7 +584,7 @@ class ProteineEnum final : public Proteine {
   public:
     explicit ProteineEnum(IdentifiantADN nom);
 
-    COPIE_CONSTRUCT(ProteineEnum);
+    EMPECHE_COPIE(ProteineEnum);
 
     void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
@@ -639,7 +639,7 @@ class ProteineFonction final : public Proteine {
   public:
     explicit ProteineFonction(IdentifiantADN nom);
 
-    COPIE_CONSTRUCT(ProteineFonction);
+    EMPECHE_COPIE(ProteineFonction);
 
     void genere_code_cpp(FluxSortieCPP &os, bool pour_entete) override;
 
