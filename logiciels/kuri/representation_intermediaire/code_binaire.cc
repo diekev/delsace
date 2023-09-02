@@ -202,6 +202,13 @@ void Chunk::emets_appel_externe(NoeudExpression const *site,
     emets(inst_appel);
 }
 
+void Chunk::emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
+{
+    emets(OP_APPEL_INTRINSÈQUE);
+    emets(site);
+    emets(fonction);
+}
+
 void Chunk::emets_appel_pointeur(NoeudExpression const *site,
                                  unsigned taille_arguments,
                                  InstructionAppel const *inst_appel,
@@ -554,6 +561,7 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         }
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
+        case OP_APPEL_INTRINSÈQUE:
         {
             return instruction_3d<void *, int, void *>(
                 chunk, chaine_code_operation(instruction), decalage, os);
@@ -776,6 +784,10 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
     if (fonction->decl && fonction->decl->est_externe) {
+        if (fonction->decl->est_intrinseque) {
+            return true;
+        }
+
         auto &donnees_externe = données_exécution->donnees_externe;
         auto decl = fonction->decl;
 
@@ -1004,7 +1016,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             if (appelee->genre_atome == Atome::Genre::FONCTION) {
                 auto atome_appelee = static_cast<AtomeFonction *>(appelee);
 
-                if (atome_appelee->est_externe) {
+                if (atome_appelee->decl && atome_appelee->decl->est_intrinseque) {
+                    chunk.emets_appel_intrinsèque(appel->site, atome_appelee);
+                }
+                else if (atome_appelee->est_externe) {
                     chunk.emets_appel_externe(
                         appel->site, atome_appelee, taille_arguments, appel, verifie_adresses);
                 }

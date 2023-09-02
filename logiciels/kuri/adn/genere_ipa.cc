@@ -49,11 +49,9 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         inclus(os, "structures/tableau.hh");
         os << "\n";
         prodeclare_struct(os, "EspaceDeTravail");
-        prodeclare_struct(os, "IdentifiantCode");
         prodeclare_struct(os, "Message");
         prodeclare_struct(os, "Module");
         prodeclare_struct(os, "OptionsDeCompilation");
-        prodeclare_struct(os, "TableIdentifiant");
         prodeclare_struct(os, "NoeudCode");
         prodeclare_struct(os, "NoeudCodeEnteteFonction");
         prodeclare_struct(os, "InfoType");
@@ -65,8 +63,6 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         inclus(os, "ipa.hh");
         os << "\n";
         inclus_systeme(os, "cassert");
-        os << "\n";
-        inclus(os, "parsage/identifiant.hh");
         os << "\n\n";
 
         os << "// -----------------------------------------------------------------------------\n";
@@ -78,45 +74,10 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
         os << "\n";
     }
 
+    genere_déclaration_identifiants_code(proteines, os, pour_entete, "ipa");
+
     POUR (proteines) {
         it->genere_code_cpp(os, pour_entete);
-    }
-
-    // identifiants
-    os << "namespace ID {\n";
-    if (pour_entete) {
-        POUR (proteines) {
-            if (!it->est_fonction()) {
-                continue;
-            }
-            os << "extern IdentifiantCode *" << it->nom().nom_cpp() << ";\n";
-        }
-    }
-    else {
-        POUR (proteines) {
-            if (!it->est_fonction()) {
-                continue;
-            }
-            os << "IdentifiantCode *" << it->nom().nom_cpp() << ";\n";
-        }
-    }
-    os << "}\n\n";
-
-    os << "void initialise_identifiants_ipa(TableIdentifiant &table)";
-
-    if (pour_entete) {
-        os << ";\n\n";
-    }
-    else {
-        os << "\n{\n";
-        POUR (proteines) {
-            if (!it->est_fonction()) {
-                continue;
-            }
-            os << "\tID::" << it->nom().nom_cpp() << " = table.identifiant_pour_chaine(\""
-               << it->nom().nom_kuri() << "\");\n";
-        }
-        os << "}\n\n";
     }
 
     if (pour_entete) {
@@ -134,7 +95,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
             if (!it->est_fonction()) {
                 continue;
             }
-            os << "\tif (ident == ID::" << it->nom().nom_cpp() << ") {\n";
+            os << "\tif (ident == ID::" << it->nom().nom_kuri() << ") {\n";
             os << "\t\treturn reinterpret_cast<type_fonction_compilatrice>(" << it->nom().nom_cpp()
                << ");\n";
             os << "\t}\n\n";
@@ -155,7 +116,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
             if (!it->est_fonction()) {
                 continue;
             }
-            os << "\tif (ident == ID::" << it->nom().nom_cpp() << ") {\n";
+            os << "\tif (ident == ID::" << it->nom().nom_kuri() << ") {\n";
             os << "\t\treturn true;\n";
             os << "\t}\n\n";
         }
