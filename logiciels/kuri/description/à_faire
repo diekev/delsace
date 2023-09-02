@@ -302,8 +302,6 @@ vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
 
-- avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
-
 - utilise des métaprogrammes pour exécuter les #si
 
 - optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
