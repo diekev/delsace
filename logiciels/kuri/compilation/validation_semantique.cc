@@ -4497,7 +4497,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
 
-    auto enfant_expr = static_cast<NoeudExpressionBinaire *>(enfant1);
+    auto enfant_expr = enfant1->comme_expression_binaire();
     type1 = enfant_expr->operande_droite->type;
 
     auto candidats = kuri::tablet<OperateurCandidat, 10>();
