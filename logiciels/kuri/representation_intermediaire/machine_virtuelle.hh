@@ -91,6 +91,8 @@ struct MachineVirtuelle {
         PASSE_AU_SUIVANT,
     };
 
+    static constexpr auto TAILLE_PILE = 1024 * 1024;
+
   private:
     Compilatrice &compilatrice;
 
@@ -154,10 +156,38 @@ struct MachineVirtuelle {
 
   private:
     template <typename T>
-    inline void empile(NoeudExpression *site, T valeur);
+    inline void empile(NoeudExpression *site, T valeur)
+    {
+        *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
+#ifndef NDEBUG
+        if (pointeur_pile > (pile + TAILLE_PILE)) {
+            rapporte_erreur_execution(site,
+                                      "Erreur interne : surrentamponnage de la pile de données");
+        }
+#else
+        static_cast<void>(site);
+#endif
+        this->pointeur_pile += static_cast<int64_t>(sizeof(T));
+        // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
+        // static_cast<int>(pointeur_pile - pile) << '\n';
+    }
 
     template <typename T>
-    inline T depile(NoeudExpression *site);
+    inline T depile(NoeudExpression *site)
+    {
+        this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
+        // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
+        // static_cast<int>(pointeur_pile - pile) << '\n';
+#ifndef NDEBUG
+        if (pointeur_pile < pile) {
+            rapporte_erreur_execution(site,
+                                      "Erreur interne : sousentamponnage de la pile de données");
+        }
+#else
+        static_cast<void>(site);
+#endif
+        return *reinterpret_cast<T *>(this->pointeur_pile);
+    }
 
     void depile(NoeudExpression *site, int64_t n);
 

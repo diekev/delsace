@@ -385,8 +385,6 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
-static constexpr auto TAILLE_PILE = 1024 * 1024;
-
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
 {
 }
@@ -403,42 +401,10 @@ MachineVirtuelle::~MachineVirtuelle()
 }
 
 template <typename T>
-inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
-{
-    *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
-#ifndef NDEBUG
-    if (pointeur_pile > (pile + TAILLE_PILE)) {
-        rapporte_erreur_execution(site, "Erreur interne : surrentamponnage de la pile de données");
-    }
-#else
-    static_cast<void>(site);
-#endif
-    this->pointeur_pile += static_cast<int64_t>(sizeof(T));
-    // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
-    // static_cast<int>(pointeur_pile - pile) << '\n';
-}
-
-template <typename T>
 inline T depile(NoeudExpression *site, octet_t *&pointeur_pile)
 {
     pointeur_pile -= static_cast<int64_t>(sizeof(T));
     return *reinterpret_cast<T *>(pointeur_pile);
-}
-
-template <typename T>
-inline T MachineVirtuelle::depile(NoeudExpression *site)
-{
-    this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
-    // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
-    // static_cast<int>(pointeur_pile - pile) << '\n';
-#ifndef NDEBUG
-    if (pointeur_pile < pile) {
-        rapporte_erreur_execution(site, "Erreur interne : sousentamponnage de la pile de données");
-    }
-#else
-    static_cast<void>(site);
-#endif
-    return *reinterpret_cast<T *>(this->pointeur_pile);
 }
 
 void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
