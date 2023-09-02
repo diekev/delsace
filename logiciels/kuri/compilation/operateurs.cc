@@ -645,6 +645,68 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
     return {};
 }
 
+static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
+{
+    auto est_enum_ou_reference_enum = [](Type *t) -> TypeEnum * {
+        if (t->est_enum()) {
+            return t->comme_enum();
+        }
+
+        if (t->est_reference() && t->comme_reference()->type_pointe->est_enum()) {
+            return t->comme_reference()->type_pointe->comme_enum();
+        }
+
+        return nullptr;
+    };
+
+    auto type1 = noeud->operande_gauche->type;
+    auto type1_est_enum = est_enum_ou_reference_enum(type1);
+    if (type1_est_enum && (type1_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        return Attente::sur_type(type1_est_enum);
+    }
+    auto type2 = noeud->operande_droite->type;
+    auto type2_est_enum = est_enum_ou_reference_enum(type2);
+    if (type2_est_enum && (type2_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        return Attente::sur_type(type2_est_enum);
+    }
+    return Attente::sur_operateur(noeud);
+}
+
+RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
+                                                            NoeudExpressionBinaire *site,
+                                                            Type *type1,
+                                                            Type *type2,
+                                                            GenreLexeme type_op)
+{
+    auto candidats = kuri::tablet<OperateurCandidat, 10>();
+    auto attente_potentielle = cherche_candidats_operateurs(
+        espace, type1, type2, type_op, candidats);
+    if (attente_potentielle.has_value()) {
+        return attente_potentielle.value();
+    }
+
+    auto meilleur_candidat = OperateurCandidat::nul_const();
+    auto poids = 0.0;
+
+    for (auto const &candidat : candidats) {
+        if (candidat.poids > poids) {
+            poids = candidat.poids;
+            meilleur_candidat = &candidat;
+        }
+    }
+
+    if (meilleur_candidat == nullptr) {
+        if (site) {
+            return attente_sur_operateur_ou_type(site);
+        }
+
+        /* Pour les erreurs dans les discriminations... */
+        return false;
+    }
+
+    return *meilleur_candidat;
+}
+
 const OperateurUnaire *cherche_operateur_unaire(RegistreDesOpérateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op)
