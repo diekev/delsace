@@ -596,8 +596,13 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
     }
 
     os << ")"
-       << " -> " << *m_type_sortie << " #compilatrice"
-       << "\n\n";
+       << " -> " << *m_type_sortie;
+
+    if (m_est_ipa_compilatrice) {
+        os << " #compilatrice";
+    }
+
+    os << "\n\n";
 }
 
 void ProteineFonction::ajoute_parametre(Parametre const parametre)
@@ -686,6 +691,23 @@ void SyntaxeuseADN::parse_fonction()
 
     if (apparie(GenreLexeme::POINT_VIRGULE)) {
         consomme();
+    }
+
+    while (apparie(GenreLexeme::AROBASE)) {
+        consomme();
+
+        if (apparie("compilatrice")) {
+            consomme();
+            fonction->marque_ipa_compilarice();
+        }
+        else {
+            consomme();
+            rapporte_erreur("Attribut inconnu pour l'énumération");
+        }
+
+        if (apparie(GenreLexeme::POINT_VIRGULE)) {
+            consomme();
+        }
     }
 }
 

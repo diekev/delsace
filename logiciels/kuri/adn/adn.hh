@@ -631,6 +631,7 @@ struct Parametre {
 class ProteineFonction final : public Proteine {
     kuri::tableau<Parametre> m_parametres{};
     Type *m_type_sortie = nullptr;
+    bool m_est_ipa_compilatrice = false;
 
   public:
     explicit ProteineFonction(IdentifiantADN nom);
@@ -651,6 +652,15 @@ class ProteineFonction final : public Proteine {
     bool est_fonction() const override
     {
         return true;
+    }
+
+    bool est_marquée_ipa_compilarice() const
+    {
+        return m_est_ipa_compilatrice;
+    }
+    void marque_ipa_compilarice()
+    {
+        m_est_ipa_compilatrice = true;
     }
 };
 
