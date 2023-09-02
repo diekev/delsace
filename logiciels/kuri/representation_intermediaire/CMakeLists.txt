@@ -21,6 +21,12 @@ set(BIBLIOTHEQUES
     ${BIBLIOTHEQUE_DL}
 )
 
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/machine_virtuelle_intrinseques.cc
+    COMMAND genere_intrinseques "${CMAKE_CURRENT_SOURCE_DIR}/machine_virtuelle_intrinseques.cc" -i ${CMAKE_CURRENT_SOURCE_DIR}/../adn/intrinseques.adn
+    DEPENDS genere_intrinseques ${CMAKE_CURRENT_SOURCE_DIR}/../adn/intrinseques.adn
+)
+
 set(SOURCES
     analyse.cc
     bloc_basique.cc
@@ -30,6 +36,7 @@ set(SOURCES
     instructions.cc
     log.cc
     machine_virtuelle.cc
+    machine_virtuelle_intrinseques.cc
     optimisations.cc
 
     analyse.hh
