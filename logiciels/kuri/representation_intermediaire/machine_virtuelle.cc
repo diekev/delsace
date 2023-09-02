@@ -386,8 +386,6 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
 
 /* ************************************************************************** */
 
-static constexpr auto TAILLE_PILE = 1024 * 1024;
-
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
 {
 }
@@ -404,45 +402,10 @@ MachineVirtuelle::~MachineVirtuelle()
 }
 
 template <typename T>
-inline void MachineVirtuelle::empile(NoeudExpression *site, T valeur)
-{
-    *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
-#ifndef NDEBUG
-    if (pointeur_pile > (pile + TAILLE_PILE)) {
-        m_metaprogramme->unite->espace->rapporte_erreur(
-            site, "Erreur interne : surrentamponnage de la pile de données");
-    }
-#else
-    static_cast<void>(site);
-#endif
-    this->pointeur_pile += static_cast<int64_t>(sizeof(T));
-    // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
-    // static_cast<int>(pointeur_pile - pile) << '\n';
-}
-
-template <typename T>
 inline T depile(NoeudExpression *site, octet_t *&pointeur_pile)
 {
     pointeur_pile -= static_cast<int64_t>(sizeof(T));
     return *reinterpret_cast<T *>(pointeur_pile);
-}
-
-template <typename T>
-inline T MachineVirtuelle::depile(NoeudExpression *site)
-{
-    this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
-    // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
-    // static_cast<int>(pointeur_pile - pile) << '\n';
-#ifndef NDEBUG
-    if (pointeur_pile < pile) {
-        m_metaprogramme->unite->espace
-            ->rapporte_erreur(site, "Erreur interne : sousentamponnage de la pile de données")
-            .ajoute_message("Le type du site est « ", chaine_type(site->type), " »");
-    }
-#else
-    static_cast<void>(site);
-#endif
-    return *reinterpret_cast<T *>(this->pointeur_pile);
 }
 
 void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
@@ -452,8 +415,7 @@ void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
     // pile) << '\n';
 #ifndef NDEBUG
     if (pointeur_pile < pile) {
-        m_metaprogramme->unite->espace->rapporte_erreur(
-            site, "Erreur interne : sous-tamponnage de la pile de données");
+        rapporte_erreur_execution(site, "Erreur interne : sous-tamponnage de la pile de données");
     }
 #else
     static_cast<void>(site);
@@ -1457,6 +1419,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
+            case OP_APPEL_INTRINSÈQUE:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                appel_fonction_intrinsèque(ptr_fonction, site);
+                break;
+            }
             case OP_APPEL_POINTEUR:
             {
                 auto taille_argument = LIS_4_OCTETS();
@@ -1597,9 +1565,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             default:
             {
-                m_metaprogramme->unite->espace->rapporte_erreur(
-                    m_metaprogramme->donnees_execution->dernier_site,
-                    "Erreur interne : Opération inconnue dans la MV !");
+                rapporte_erreur_execution(m_metaprogramme->donnees_execution->dernier_site,
+                                          "Erreur interne : Opération inconnue dans la MV !");
                 compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
@@ -1624,6 +1591,10 @@ void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
                                                  kuri::chaine_statique message)
 {
     auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
+
+    if (site) {
+        e.ajoute_message("Le type du site est « ", chaine_type(site->type), " »\n\n");
+    }
 
     e.ajoute_message("Trace d'appel :\n\n");
     ajoute_trace_appel(e);

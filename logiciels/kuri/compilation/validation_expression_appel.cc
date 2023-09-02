@@ -15,6 +15,7 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "gestionnaire_code.hh"
+#include "intrinseques.hh"
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"
 #include "portee.hh"
@@ -1436,6 +1437,55 @@ static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expres
 
 /* ************************************************************************** */
 
+/* Cette fonction est utilisée pour valider les appels aux intrinsèques afin de faire en sorte que
+ * les intrinsèques requérant des paramètres constants reçurent des valeurs constantes. */
+static bool appel_fonction_est_valide(EspaceDeTravail &espace,
+                                      NoeudDeclarationEnteteFonction *fonction,
+                                      kuri::tableau<IdentifiantEtExpression> const &args)
+{
+    if (!fonction->est_intrinseque) {
+        return true;
+    }
+
+    if (fonction->ident == ID::intrinsèque_précharge) {
+        /* Le deuxième et troisième argument doivent être des valeurs droites. */
+        if (args[1].expr->genre_valeur != GenreValeur::DROITE) {
+            espace.rapporte_erreur(
+                args[1].expr,
+                "Le deuxième argument de « intrinsèque_précharge » ne peut pas être une variable, "
+                "vous devez utiliser une valeur de RaisonPréchargement directement.");
+            return false;
+        }
+
+        if (args[2].expr->genre_valeur != GenreValeur::DROITE) {
+            espace.rapporte_erreur(
+                args[2].expr,
+                "Le troisième argument de « intrinsèque_précharge » ne peut pas être une "
+                "variable, vous devez utiliser une valeur de TemporalitéPréchargement "
+                "directement.");
+            return false;
+        }
+
+        return true;
+    }
+
+    if (fonction->ident == ID::intrinsèque_prédit_avec_probabilité) {
+        /* Le troisième argument doit être une constante. */
+
+        if (args[2].expr->genre_valeur != GenreValeur::DROITE) {
+            espace.rapporte_erreur(
+                args[2].expr,
+                "Le troisième argument de « intrinsèque_prédit_avec_probabilité » ne peut pas "
+                "être une variable, vous devez utiliser une valeur constante.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/* ************************************************************************** */
+
 // À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous
 // arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
@@ -1583,6 +1633,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
+
+        if (!appel_fonction_est_valide(espace, decl_fonction_appelee, ctx.args)) {
+            return CodeRetourValidation::Erreur;
+        }
 
         if (!candidate->items_monomorphisation.est_vide()) {
             auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
