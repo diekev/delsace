@@ -695,3 +695,24 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
 
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxillaires.
+ * \{ */
+
+/** Pour le code créant des IdentifiantCodes, génère les déclarations et initialisation de ces
+ * IdentifiantCodes.
+ *
+ * Le paramètre `identifiant_fonction` est utilisé pour créer une fonction d'initialisation appelée
+ * « initialise_identifiants_{identifiant_fonction} ». Cette fonction devra être appelée
+ * manuellement.
+ *
+ * Le code généré inclus également toutes les déclarations et inclusions de fichiers nécessaire,
+ * cette fonction ne doit pas être appelé pour générer du code dans un espace de nom.
+ */
+void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &proteines,
+                                          FluxSortieCPP &os,
+                                          bool pour_entête,
+                                          kuri::chaine_statique identifiant_fonction);
+
+/** \} */

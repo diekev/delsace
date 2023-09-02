@@ -7,6 +7,8 @@
 
 #include "biblinternes/outils/conditions.h"
 
+#include "structures/ensemble.hh"
+
 const IdentifiantADN &Type::accede_nom() const
 {
     if (est_pointeur()) {
@@ -1047,3 +1049,55 @@ void SyntaxeuseADN::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
     std::cerr << message_erreur << "\n";
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxillaires.
+ * \{ */
+
+void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &proteines,
+                                          FluxSortieCPP &os,
+                                          bool pour_entête,
+                                          kuri::chaine_statique identifiant_fonction)
+{
+    if (pour_entête) {
+        prodeclare_struct(os, "IdentifiantCode");
+        prodeclare_struct(os, "TableIdentifiant");
+        os << "\n";
+    }
+    else {
+        inclus(os, "parsage/identifiant.hh");
+        os << "\n";
+    }
+
+    kuri::ensemble<kuri::chaine_statique> identifiants;
+    POUR (proteines) {
+        if (!it->est_fonction()) {
+            continue;
+        }
+        identifiants.insere(it->nom().nom_kuri());
+    }
+
+    os << "namespace ID {\n";
+    identifiants.pour_chaque_element([&](kuri::chaine_statique it) {
+        if (pour_entête) {
+            os << "extern ";
+        }
+        os << "IdentifiantCode *" << it << ";\n";
+    });
+    os << "}\n\n";
+
+    os << "void initialise_identifiants_" << identifiant_fonction << "(TableIdentifiant &table)";
+
+    if (pour_entête) {
+        os << ";\n\n";
+        return;
+    }
+
+    os << "\n{\n";
+    identifiants.pour_chaque_element([&](kuri::chaine_statique it) {
+        os << "\tID::" << it << " = table.identifiant_pour_chaine(\"" << it << "\");\n";
+    });
+    os << "}\n\n";
+}
+
+/** \} */
