@@ -2065,7 +2065,7 @@ ResultatValidation ContexteValidationCode::valide_symbole_fonction(
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
     if (!(decl->est_externe && decl->ident && decl->ident != ID::__principale &&
-          !decl->possede_drapeau(COMPILATRICE))) {
+          !decl->possede_drapeau(COMPILATRICE) && !decl->est_intrinseque)) {
         return CodeRetourValidation::OK;
     }
 
