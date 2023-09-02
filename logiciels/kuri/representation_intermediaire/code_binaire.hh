@@ -58,6 +58,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_ALLOUE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_APPEL_COMPILATRICE)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_INTRINSÈQUE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
@@ -272,6 +273,9 @@ struct Chunk {
                              unsigned taille_arguments,
                              InstructionAppel const *inst_appel,
                              bool ajoute_verification);
+    void emets_appel_compilatrice(NoeudExpression const *site,
+                                  AtomeFonction const *fonction,
+                                  bool ajoute_verification);
     void emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
     void emets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
