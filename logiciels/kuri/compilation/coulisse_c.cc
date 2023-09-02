@@ -807,6 +807,11 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
         case Atome::Genre::FONCTION:
         {
             auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+
+            if (atome_fonc->decl && atome_fonc->decl->est_intrinseque) {
+                return atome_fonc->decl->nom_symbole;
+            }
+
             return atome_fonc->nom;
         }
         case Atome::Genre::CONSTANTE:
@@ -1641,6 +1646,10 @@ void GeneratriceCodeC::declare_globale(Enchaineuse &os,
 
 void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
+    if (atome_fonc->decl && atome_fonc->decl->est_intrinseque) {
+        return;
+    }
+
     if (atome_fonc->enligne) {
         os << "static __attribute__((always_inline)) inline ";
     }

@@ -547,7 +547,8 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
 
     auto fichier = site.fichier;
-    if (fichier->source == SourceFichier::CHAINE_AJOUTEE) {
+    /* Fichier peut être nul si nous n'avons pas de site. */
+    if (fichier && fichier->source == SourceFichier::CHAINE_AJOUTEE) {
         if (fichier->metaprogramme_corps_texte) {
             auto métaprogramme = fichier->metaprogramme_corps_texte;
             auto site_métaprogramme =
