@@ -11,107 +11,12 @@ execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : []&Objet @inutilisée) 
 
 imprime_type :: fonc(info : *InfoType) -> rien
 {
-    discr info.id {
-	    ENTIER {
-		    info_arg := info comme *InfoTypeEntier
-
-            si info_arg.est_signé {
-			    si info_arg.taille_en_octet == 1 {
-				    imprime("z8")
-				}
-				sinon si info_arg.taille_en_octet == 2 {
-				    imprime("z16")
-				}
-				sinon si info_arg.taille_en_octet == 4 {
-				    imprime("z32")
-				}
-				sinon si info_arg.taille_en_octet == 8 {
-				    imprime("z64")
-				}
-			}
-			sinon {
-			    si info_arg.taille_en_octet == 1 {
-				    imprime("n8")
-				}
-				sinon si info_arg.taille_en_octet == 2 {
-				    imprime("n16")
-				}
-				sinon si info_arg.taille_en_octet == 4 {
-				    imprime("n32")
-				}
-				sinon si info_arg.taille_en_octet == 8 {
-				    imprime("n64")
-				}
-			}
-		}
-		RÉEL {
-            si info.taille_en_octet == 2 {
-			    imprime("r16")
-			}
-			sinon si info.taille_en_octet == 4 {
-			    imprime("r32")
-			}
-			sinon si info.taille_en_octet == 8 {
-			    imprime("r64")
-			}
-		}
-		BOOLÉEN {
-			imprime("bool")
-		}
-		CHAINE {
-			imprime("chaine")
-		}
-		STRUCTURE {
-		    info_arg := info comme *InfoTypeStructure
-			imprime(info_arg.nom)
-		}
-		POINTEUR {
-		    info_arg := info comme *InfoTypePointeur
-
-		    si info_arg.est_référence {
-			    imprime("&")
-		    }
-		    sinon {
-			    imprime("*")
-		    }
-
-			imprime_type(info_arg.type_pointé)
-		}
-		FONCTION {
-		    // À FAIRE : types paramètres
-			imprime("fonction()")
-		}
-		EINI {
-			imprime("eini")
-		}
-		RIEN {
-			imprime("rien")
-		}
-		OCTET {
-			imprime("octet")
-		}
-		UNION {
-		    info_arg := info comme *InfoTypeStructure
-			imprime(info_arg.nom)
-		}
-		TYPE_DE_DONNÉES {
-			// À FAIRE : imprime le type
-			imprime("type_de_données")
-		}
-		TABLEAU {
-		    info_arg := info comme *InfoTypeTableau
-			imprime("[]")
-			imprime_type(info_arg.type_pointé)
-		}
-		ÉNUM {
-		    info_arg := info comme *InfoTypeÉnum
-			imprime(info_arg.nom)
-		}
-		OPAQUE {
-			info_arg := info comme *InfoTypeOpaque
-			imprime(info_arg.nom)
-		}
-	}
+	enchaineuse: Enchaineuse
+	initialise_enchaineuse(*enchaineuse)
+	imprime_type(*enchaineuse, info)
+	chn := chaine_depuis_enchaineuse(*enchaineuse)
+	diffère déloge(chn)
+	imprime("%\n", chn)
 }
 
 enregistre_noeud :: fonc(fonc_exec : eini) -> rien
