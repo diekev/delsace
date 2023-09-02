@@ -18,6 +18,7 @@ enum class GenreLexeme : uint32_t;
 struct EspaceDeTravail;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationOperateurPour;
+struct NoeudExpressionBinaire;
 struct Statistiques;
 struct Type;
 struct Typeuse;
@@ -251,3 +252,11 @@ std::optional<Attente> cherche_candidats_operateurs(
     Type *type2,
     GenreLexeme type_op,
     kuri::tablet<OperateurCandidat, 10> &candidats);
+
+using RésultatRechercheOpérateur = std::variant<Attente, OperateurCandidat, bool>;
+
+RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
+                                                            NoeudExpressionBinaire *site,
+                                                            Type *type1,
+                                                            Type *type2,
+                                                            GenreLexeme type_op);

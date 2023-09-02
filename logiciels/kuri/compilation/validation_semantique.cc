@@ -99,33 +99,6 @@ ResultatValidation ContexteValidationCode::valide()
     return CodeRetourValidation::Erreur;
 }
 
-static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
-{
-    auto est_enum_ou_reference_enum = [](Type *t) -> TypeEnum * {
-        if (t->est_enum()) {
-            return t->comme_enum();
-        }
-
-        if (t->est_reference() && t->comme_reference()->type_pointe->est_enum()) {
-            return t->comme_reference()->type_pointe->comme_enum();
-        }
-
-        return nullptr;
-    };
-
-    auto type1 = noeud->operande_gauche->type;
-    auto type1_est_enum = est_enum_ou_reference_enum(type1);
-    if (type1_est_enum && (type1_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        return Attente::sur_type(type1_est_enum);
-    }
-    auto type2 = noeud->operande_droite->type;
-    auto type2_est_enum = est_enum_ou_reference_enum(type2);
-    if (type2_est_enum && (type2_est_enum->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        return Attente::sur_type(type2_est_enum);
-    }
-    return Attente::sur_operateur(noeud);
-}
-
 MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     NoeudDirectiveExecute *directive)
 {
@@ -714,35 +687,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 default:
                 {
-                    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-                    auto resultat = cherche_candidats_operateurs(
-                        *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
-                    if (resultat.has_value()) {
-                        return resultat.value();
+                    auto resultat = trouve_opérateur_pour_expression(
+                        *espace, expr, type1, type2, GenreLexeme::CROCHET_OUVRANT);
+
+                    if (std::holds_alternative<Attente>(resultat)) {
+                        return std::get<Attente>(resultat);
                     }
 
-                    auto meilleur_candidat = OperateurCandidat::nul_const();
-                    auto poids = 0.0;
+                    auto candidat = std::get<OperateurCandidat>(resultat);
+                    expr->type = candidat.op->type_resultat;
+                    expr->op = candidat.op;
+                    expr->permute_operandes = candidat.permute_operandes;
 
-                    for (auto const &candidat : candidats) {
-                        if (candidat.poids > poids) {
-                            poids = candidat.poids;
-                            meilleur_candidat = &candidat;
-                        }
-                    }
-
-                    if (meilleur_candidat == nullptr) {
-                        return attente_sur_operateur_ou_type(expr);
-                    }
-
-                    expr->type = meilleur_candidat->op->type_resultat;
-                    expr->op = meilleur_candidat->op;
-                    expr->permute_operandes = meilleur_candidat->permute_operandes;
-
-                    transtype_si_necessaire(expr->operande_gauche,
-                                            meilleur_candidat->transformation_type1);
-                    transtype_si_necessaire(expr->operande_droite,
-                                            meilleur_candidat->transformation_type2);
+                    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+                    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
                 }
             }
 
@@ -4547,31 +4505,20 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     auto const expression_comparée = expr->operande_droite;
     auto const type_droite = expression_comparée->type;
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto const resultat = cherche_candidats_operateurs(
-        *espace, type_gauche, type_droite, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
-    }
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
+    auto resultat = trouve_opérateur_pour_expression(
+        *espace, expr, type_gauche, type_droite, type_op);
 
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
-    }
+    auto candidat = std::get<OperateurCandidat>(resultat);
 
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
-    expr->op = meilleur_candidat->op;
-    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    expr->op = candidat.op;
+    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
     return CodeRetourValidation::OK;
 }
 
@@ -4765,39 +4712,27 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         }
     }
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type1, type2, type_op);
+
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
+    auto candidat = std::get<OperateurCandidat>(resultat);
 
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
-    }
-
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
-    }
-
-    expr->type = meilleur_candidat->op->type_resultat;
-    expr->op = meilleur_candidat->op;
-    expr->permute_operandes = meilleur_candidat->permute_operandes;
+    expr->type = candidat.op->type_resultat;
+    expr->op = candidat.op;
+    expr->permute_operandes = candidat.permute_operandes;
 
     if (type_gauche_est_reference &&
-        meilleur_candidat->transformation_type1.type != TypeTransformation::INUTILE) {
+        candidat.transformation_type1.type != TypeTransformation::INUTILE) {
         espace->rapporte_erreur(expr->operande_gauche,
                                 "Impossible de transtyper la valeur à gauche pour une "
                                 "assignation composée.");
     }
 
-    transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
+    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
+    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
 
     if (assignation_composee) {
         expr->drapeaux |= EST_ASSIGNATION_COMPOSEE;
@@ -4854,29 +4789,14 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
     }
 
     auto type_bool = expr_bool->type;
+    auto resultat = trouve_opérateur_pour_expression(*espace, expr, type_bool, type_bool, type_op);
 
-    auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(
-        *espace, type_bool, type_bool, type_op, candidats);
-    if (resultat.has_value()) {
-        return resultat.value();
+    if (std::holds_alternative<Attente>(resultat)) {
+        return std::get<Attente>(resultat);
     }
 
-    auto meilleur_candidat = OperateurCandidat::nul_const();
-    auto poids = 0.0;
-
-    for (auto const &candidat : candidats) {
-        if (candidat.poids > poids) {
-            poids = candidat.poids;
-            meilleur_candidat = &candidat;
-        }
-    }
-
-    if (meilleur_candidat == nullptr) {
-        return attente_sur_operateur_ou_type(expr);
-    }
-
-    expr->op = meilleur_candidat->op;
+    auto candidat = std::get<OperateurCandidat>(resultat);
+    expr->op = candidat.op;
     expr->type = type_bool;
     return CodeRetourValidation::OK;
 }
