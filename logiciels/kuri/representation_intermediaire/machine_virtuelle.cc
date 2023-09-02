@@ -1418,6 +1418,12 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
+            case OP_APPEL_INTRINSÈQUE:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                appel_fonction_intrinsèque(ptr_fonction, site);
+                break;
+            }
             case OP_APPEL_POINTEUR:
             {
                 auto taille_argument = LIS_4_OCTETS();

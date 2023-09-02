@@ -202,6 +202,7 @@ struct MachineVirtuelle {
                                 InstructionAppel *inst_appel,
                                 NoeudExpression *site,
                                 ResultatInterpretation &resultat);
+    void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction, NoeudExpression *site);
 
     inline void empile_constante(NoeudExpression *site, FrameAppel *frame);
 

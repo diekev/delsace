@@ -632,6 +632,9 @@ class ProteineFonction final : public Proteine {
     kuri::tableau<Parametre> m_parametres{};
     Type *m_type_sortie = nullptr;
     bool m_est_ipa_compilatrice = false;
+    bool m_est_intrinsèque = false;
+    /* Pour les intrinsèques, le symbole GCC correspondant. */
+    kuri::chaine_statique m_symbole_gcc = "";
 
   public:
     explicit ProteineFonction(IdentifiantADN nom);
@@ -652,6 +655,34 @@ class ProteineFonction final : public Proteine {
     bool est_fonction() const override
     {
         return true;
+    }
+
+    const kuri::tableau<Parametre> &donne_paramètres() const
+    {
+        return m_parametres;
+    }
+
+    Type *donne_type_sortie() const
+    {
+        return m_type_sortie;
+    }
+
+    kuri::chaine_statique donne_symbole_gcc() const
+    {
+        return m_symbole_gcc;
+    }
+    void définis_symbole_gcc(kuri::chaine_statique symbole)
+    {
+        m_symbole_gcc = symbole;
+    }
+
+    bool est_marquée_intrinsèque() const
+    {
+        return m_est_intrinsèque;
+    }
+    void marque_intrinsèque()
+    {
+        m_est_intrinsèque = true;
     }
 
     bool est_marquée_ipa_compilarice() const

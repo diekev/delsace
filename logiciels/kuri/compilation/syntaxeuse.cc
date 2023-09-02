@@ -2422,6 +2422,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::debogue) {
                 noeud->drapeaux |= DEBOGUE;
             }
+            else if (ident_directive == ID::intrinsèque) {
+                noeud->drapeaux |= FORCE_SANSTRACE;
+                noeud->est_intrinseque = true;
+                noeud->est_externe = true;
+
+                consomme();
+
+                if (!apparie(GenreLexeme::CHAINE_LITTERALE)) {
+                    rapporte_erreur("Attendu le symbole de l'intrinsèque");
+                }
+
+                noeud->nom_symbole = lexeme_courant()->chaine;
+            }
             else {
                 rapporte_erreur("Directive inconnue");
             }

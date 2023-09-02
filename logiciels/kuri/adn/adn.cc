@@ -600,7 +600,10 @@ void ProteineFonction::genere_code_kuri(FluxSortieKuri &os)
     os << ")"
        << " -> " << *m_type_sortie;
 
-    if (m_est_ipa_compilatrice) {
+    if (m_est_intrinsèque) {
+        os << " #intrinsèque \"" << m_symbole_gcc << "\"";
+    }
+    else if (m_est_ipa_compilatrice) {
         os << " #compilatrice";
     }
 
@@ -698,7 +701,26 @@ void SyntaxeuseADN::parse_fonction()
     while (apparie(GenreLexeme::AROBASE)) {
         consomme();
 
-        if (apparie("compilatrice")) {
+        if (apparie("gcc")) {
+            consomme();
+            fonction->définis_symbole_gcc(lexeme_courant()->chaine);
+            consomme();
+        }
+        else if (apparie("intrinsèque")) {
+            if (fonction->est_marquée_ipa_compilarice()) {
+                rapporte_erreur("Fonction marquée comme intrinsèque alors qu'elle fut marquée "
+                                "comme faisant partie de l'IPA compilatrice");
+            }
+
+            consomme();
+            fonction->marque_intrinsèque();
+        }
+        else if (apparie("compilatrice")) {
+            if (fonction->est_marquée_intrinsèque()) {
+                rapporte_erreur("Fonction marquée comme faisant partie de l'IPA compilatrice "
+                                "alors qu'elle fut marquée comme intrinsèque");
+            }
+
             consomme();
             fonction->marque_ipa_compilarice();
         }
