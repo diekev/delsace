@@ -4490,18 +4490,16 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     NoeudExpressionBinaire *expr)
 {
     auto type_op = expr->lexeme->genre;
-    auto enfant1 = expr->operande_gauche;
-    auto enfant2 = expr->operande_droite;
-    auto type1 = enfant1->type;
-    auto type2 = enfant2->type;
-    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
-    expr->type = TypeBase::BOOL;
 
-    auto enfant_expr = enfant1->comme_expression_binaire();
-    type1 = enfant_expr->operande_droite->type;
+    auto expression_binaire_gauche = expr->operande_gauche->comme_expression_binaire();
+    auto type_gauche = expression_binaire_gauche->operande_droite->type;
+
+    auto expression_comparée = expr->operande_droite;
+    auto type_droite = expression_comparée->type;
 
     auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(*espace, type1, type2, type_op, candidats);
+    auto resultat = cherche_candidats_operateurs(
+        *espace, type_gauche, type_droite, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
     }
@@ -4519,6 +4517,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
         return attente_sur_operateur_ou_type(expr);
     }
 
+    expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
+    expr->type = TypeBase::BOOL;
     expr->op = meilleur_candidat->op;
     transtype_si_necessaire(expr->operande_gauche, meilleur_candidat->transformation_type1);
     transtype_si_necessaire(expr->operande_droite, meilleur_candidat->transformation_type2);
