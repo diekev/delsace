@@ -19,7 +19,7 @@ struct Copieuse {
   public:
     Copieuse(AssembleuseArbre *assembleuse);
 
-    COPIE_CONSTRUCT(Copieuse);
+    EMPECHE_COPIE(Copieuse);
 
     /* L'implémentation de cette fonction est générée par l'ADN. */
     NoeudExpression *copie_noeud(const NoeudExpression *racine, NoeudBloc *bloc_parent);
