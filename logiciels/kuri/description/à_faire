@@ -61,16 +61,6 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 
 - opérateur <=> pour n'implémenter qu'une seul comparaison
 
-- sécurité pour les comparisons chainées, utiliser les nonsûres résulte en une erreur de compilation :
-    sûres :
-        a < b <= c, etc.
-        a > b >= c, etc.
-        a == b == c
-
-    nonsûres :
-        a != b != c
-        a > b < c
-
 - labels pour toutes les boucles :
     - boucle xxx {}
     - répète xxx {}
@@ -312,8 +302,6 @@ vérifie que les entrées des métaprogrammes sont des constantes
 
 - pouvoir changer le contenu d'une fonction (par exemple pour profiler l'exécutable)
 
-- avoir une manière de définir le module où nous ajoutons une chaine ou un fichier à la compilation
-
 - utilise des métaprogrammes pour exécuter les #si
 
 - optimise la quantité de mémoire utilisée pour stocker les variables dans les métaprogrammes
@@ -365,16 +353,8 @@ typage un peu libre des énumérations
         EXR  :: "exr"
     }
 
-    peut-être pourrions nous reprendre les énums de Rust pour les unions nonsûres
+    peut-être pourrions nous reprendre les énums de Rust pour les unions sûres
     mais une énumération est sensé être un ensemble de constantes
-
-évite de nommer les membres des unions sûres
-
-    Union :: struct {
-        Type1
-        Type2
-        Type3
-    }
 
 ajout d'un type pour les caractères, au lieu de z8 ou n32 (peut se faire via une opacité, mais les chaines seraient brisées)
 
@@ -387,7 +367,7 @@ avoir une gestion de la correctitude de constance
 investigue l'utilisation des types entiers, des représentations binaires et des opérations
     https://stackoverflow.com/questions/13224273/difference-between-signed-and-unsigned-on-bitwise-operations
 
-meilleur gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
+meilleure gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
 
 amélioration du typage des expressions de tableaux constants
     plusieurs problèmes de l'approche courrante
@@ -416,8 +396,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
     également dans les expressions des types :
         a : struct { x, y, z }  // il faudra définir comment initialisé via une expression
         b : énum ...
-
-- réusine les emplois de variables dans les structures, pour les infos types, il nous faut la structure, mais pour la validation la structure et ses membres, ses membres ne doivent être ceux de l'employeuse
 
 - explore représenter les types comme de noeuds_syntaxiques afin de simplifier les appariements de gabarits
 
