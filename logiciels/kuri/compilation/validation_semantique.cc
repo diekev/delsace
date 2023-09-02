@@ -4489,16 +4489,16 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
 ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     NoeudExpressionBinaire *expr)
 {
-    auto type_op = expr->lexeme->genre;
+    auto const type_op = expr->lexeme->genre;
 
-    auto expression_binaire_gauche = expr->operande_gauche->comme_expression_binaire();
-    auto type_gauche = expression_binaire_gauche->operande_droite->type;
+    auto const expression_binaire_gauche = expr->operande_gauche->comme_expression_binaire();
+    auto const type_gauche = expression_binaire_gauche->operande_droite->type;
 
-    auto expression_comparée = expr->operande_droite;
-    auto type_droite = expression_comparée->type;
+    auto const expression_comparée = expr->operande_droite;
+    auto const type_droite = expression_comparée->type;
 
     auto candidats = kuri::tablet<OperateurCandidat, 10>();
-    auto resultat = cherche_candidats_operateurs(
+    auto const resultat = cherche_candidats_operateurs(
         *espace, type_gauche, type_droite, type_op, candidats);
     if (resultat.has_value()) {
         return resultat.value();
