@@ -155,7 +155,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
-                                               TypeCompose::InformationMembre const &info_membre,
+                                               InformationMembreTypeCompose const &info_membre,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
