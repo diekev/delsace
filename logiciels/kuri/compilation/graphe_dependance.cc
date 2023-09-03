@@ -321,7 +321,7 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
     /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et
      * les constantes. */
     if (noeud->est_declaration_variable()) {
-        assert_rappel(noeud->possede_drapeau(EST_GLOBALE), [&]() {
+        assert_rappel(noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
             erreur::imprime_site(*espace, noeud);
             std::cerr << *noeud;
         });

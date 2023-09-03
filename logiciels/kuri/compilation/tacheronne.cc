@@ -568,7 +568,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
         analyseuse_ri->analyse_ri(*unite->espace, static_cast<AtomeFonction *>(entete->atome));
     }
 
-    noeud->drapeaux |= RI_FUT_GENEREE;
+    noeud->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
     return true;
 }
 
@@ -593,7 +593,7 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
 void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 {
     auto metaprogramme = unite->metaprogramme;
-    assert(metaprogramme->fonction->drapeaux & RI_FUT_GENEREE);
+    assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
 
     metaprogramme->donnees_execution = mv.loge_donnees_execution();
     mv.ajoute_metaprogramme(metaprogramme);
@@ -628,7 +628,7 @@ void Tacheronne::execute_metaprogrammes()
                 if (!it->directive->unite) {
                     auto resultat = noeud_syntaxique_depuis_resultat(
                         espace, it->directive, it->directive->lexeme, type, pointeur);
-                    resultat->drapeaux |= NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
+                    resultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
                     it->directive->substitution = resultat;
                 }
             }
@@ -866,7 +866,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             comme->type = type_opaque;
             comme->expression = expr;
             comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
-            comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+            comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
             return comme;
         }
         case GenreType::TABLEAU_FIXE:
@@ -911,7 +911,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             comme->type = type_tableau;
             comme->expression = construction;
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU, type_tableau};
-            comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+            comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
             return comme;
         }

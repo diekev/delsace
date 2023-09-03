@@ -61,7 +61,7 @@ static const char *copie_extra_entete_fonction = R"(
 				auto expr_corps = orig->corps;
 				auto nexpr_corps = copie->corps;
 				nexpr_corps->bloc_parent = bloc_parent;
-				nexpr_corps->drapeaux = (expr_corps->drapeaux & ~DECLARATION_FUT_VALIDEE);
+                nexpr_corps->drapeaux = (expr_corps->drapeaux & ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
 				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille());
                 nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(expr_corps->bloc, bloc_parent));
@@ -474,7 +474,8 @@ struct GeneratriceCodeCPP {
             os << "\t\t\tnracine->ident = racine->ident;\n";
             os << "\t\t\tnracine->type = racine->type;\n";
             os << "\t\t\tnracine->bloc_parent = bloc_parent;\n";
-            os << "\t\t\tnracine->drapeaux = (racine->drapeaux & ~DECLARATION_FUT_VALIDEE);\n";
+            os << "\t\t\tnracine->drapeaux = (racine->drapeaux & "
+                  "~DrapeauxNoeud::DECLARATION_FUT_VALIDEE);\n";
 
             if (!it->possede_enfants() && !it->possede_membre_a_copier()) {
                 os << "\t\t\tbreak;\n";

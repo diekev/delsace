@@ -886,14 +886,14 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto decl = noeud->comme_entete_fonction();
             genere_ri_pour_fonction(decl);
             if (!decl->est_externe) {
-                assert(decl->corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
+                assert(decl->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
             }
             break;
         }
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
             auto corps = noeud->comme_corps_fonction();
-            assert(corps->possede_drapeau(DECLARATION_FUT_VALIDEE));
+            assert(corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
             genere_ri_pour_fonction(corps->entete);
             break;
         }
@@ -1019,7 +1019,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            if (decl_ref->possede_drapeau(EST_GLOBALE)) {
+            if (decl_ref->possede_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
                 empile_valeur(m_compilatrice.trouve_ou_insere_globale(decl_ref));
                 return;
             }
@@ -1552,7 +1552,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto inst = noeud->comme_arrete();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
 
-            if (inst->possede_drapeau(EST_IMPLICITE)) {
+            if (inst->possede_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
                 auto label = boucle_controlee->comme_boucle()->label_pour_arrete_implicite;
                 cree_branche(noeud, label);
             }
@@ -1747,7 +1747,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     auto atome_fonc = m_compilatrice.trouve_ou_insere_fonction(*this, decl);
 
     if (decl->est_externe) {
-        decl->drapeaux |= RI_FUT_GENEREE;
+        decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
         atome_fonc->ri_generee = true;
         return;
     }
@@ -1758,11 +1758,11 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     genere_ri_pour_noeud(decl->corps->bloc);
 
-    decl->drapeaux |= RI_FUT_GENEREE;
-    decl->corps->drapeaux |= RI_FUT_GENEREE;
+    decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
+    decl->corps->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
     fonction_courante->ri_generee = true;
 
-    if (decl->possede_drapeau(DEBOGUE)) {
+    if (decl->possede_drapeau(DrapeauxNoeud::DEBOGUE)) {
         imprime_fonction(atome_fonc, std::cerr);
     }
 
@@ -3549,7 +3549,7 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
 
     genere_ri_pour_noeud(fonction->corps->bloc);
 
-    fonction->drapeaux |= RI_FUT_GENEREE;
+    fonction->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 
     fonction_courante = nullptr;
 }
@@ -3601,7 +3601,7 @@ static TypeConstructionGlobale type_construction_globale(NoeudExpression const *
 
 void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
 {
-    if (decl->possede_drapeau(EST_CONSTANTE)) {
+    if (decl->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
         return;
     }
 
@@ -3609,7 +3609,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
         POUR (decl->donnees_decl.plage()) {
             for (auto i = 0; i < it.variables.taille(); ++i) {
                 auto var = it.variables[i];
-                auto est_externe = dls::outils::possede_drapeau(decl->drapeaux, EST_EXTERNE);
+                auto est_externe = decl->possede_drapeau(DrapeauxNoeud::EST_EXTERNE);
                 auto valeur = static_cast<AtomeConstante *>(nullptr);
                 auto atome = m_compilatrice.trouve_ou_insere_globale(decl);
                 atome->est_externe = est_externe;
@@ -3673,7 +3673,7 @@ void ConstructriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariab
         }
 
         decl->atome->ri_generee = true;
-        decl->drapeaux |= RI_FUT_GENEREE;
+        decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
         return;
     }
 

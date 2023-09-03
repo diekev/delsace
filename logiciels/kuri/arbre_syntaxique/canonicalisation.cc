@@ -225,7 +225,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     expr_bin->substitution = comme_pointeur;
                 }
 
-                if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
+                if (expr_bin->possede_drapeau(DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE)) {
                     expr_bin->substitution = assem->cree_assignation_variable(
                         expr_bin->lexeme, expr_bin->operande_gauche, expr_bin->substitution);
                 }
@@ -233,7 +233,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (expr_bin->possede_drapeau(EST_ASSIGNATION_COMPOSEE)) {
+            if (expr_bin->possede_drapeau(DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE)) {
                 noeud->substitution = assem->cree_assignation_variable(
                     expr_bin->lexeme,
                     expr_bin->operande_gauche,
@@ -307,7 +307,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             auto expr_ref = noeud->comme_reference_declaration();
             auto decl_ref = expr_ref->declaration_referee;
 
-            if (decl_ref->drapeaux & EST_CONSTANTE) {
+            if (decl_ref->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
                 auto decl_const = decl_ref->comme_declaration_variable();
 
                 if (decl_ref->type->est_type_de_donnees()) {
@@ -632,7 +632,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 comme->expression = appel->parametres_resolus[0];
                 comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                          appel->type};
-                comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+                comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
                 appel->substitution = comme;
                 m_site_pour_position_code_source = ancien_site_pour_position_code_source;
@@ -668,7 +668,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto expression_fut_simplifiee = false;
 
                 for (auto var : it.variables.plage()) {
-                    if (var->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+                    if (var->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
                         /* NOTE : pour le moment nous ne pouvons déclarer de nouvelle variables ici
                          * pour les valeurs temporaires, et puisque nous ne pouvons pas utiliser
                          * l'expression dans sa substitution, nous modifions l'expression
@@ -1071,7 +1071,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 noeud_comme->type = it->type;
                 noeud_comme->expression = indexage;
                 noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
-                noeud_comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+                noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
                 expression_assignee = noeud_comme;
             }
@@ -1517,7 +1517,7 @@ void Simplificatrice::simplifie_construction_union(
      * cas d'union sûre. */
     auto comme = assem->cree_comme(lexeme);
     comme->type = type_union;
-    comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
     comme->expression = expression_initialisation;
     comme->transformation = {TypeTransformation::CONSTRUIT_UNION, type_union, index_membre};
 
@@ -1776,7 +1776,7 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
     auto accede = ref_membre->accedee;
     auto type_accede = accede->type;
 
-    if (ref_membre->possede_drapeau(ACCES_EST_ENUM_DRAPEAU)) {
+    if (ref_membre->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
         simplifie(accede);
 
         // a.DRAPEAU => (a & DRAPEAU) != 0
@@ -1919,7 +1919,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* Convertis l'expression booléenne vers n8 car ils ont la même taille en octet. */
     auto comme = assem->cree_comme(var->lexeme);
     comme->type = TypeBase::N8;
-    comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
     comme->expression = ref_b;
     comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, TypeBase::N8};
 
@@ -1928,7 +1928,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
         auto ancien_comme = comme;
         comme = assem->cree_comme(var->lexeme);
         comme->type = type_sous_jacent;
-        comme->drapeaux |= TRANSTYPAGE_IMPLICITE;
+        comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
         comme->expression = ancien_comme;
         comme->transformation = {TypeTransformation::AUGMENTE_TAILLE_TYPE, type_sous_jacent};
     }
@@ -1943,7 +1943,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
      */
     auto moins_b = assem->cree_comme(var->lexeme);
     moins_b->type = type_enum;
-    moins_b->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    moins_b->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
     moins_b->expression = moins_b_type_sous_jacent;
     moins_b->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_enum};
 
@@ -1957,7 +1957,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
      */
     auto b_moins_un = assem->cree_comme(var->lexeme);
     b_moins_un->type = type_enum;
-    b_moins_un->drapeaux |= TRANSTYPAGE_IMPLICITE;
+    b_moins_un->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
     b_moins_un->expression = b_moins_un_type_sous_jacent;
     b_moins_un->transformation = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                                     type_enum};
@@ -2277,7 +2277,7 @@ NoeudSi *Simplificatrice::cree_condition_boucle(NoeudExpression *inst, GenreNoeu
     auto bloc_si_vrai = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
 
     auto arrete = assem->cree_arrete(&lexeme_arrete);
-    arrete->drapeaux |= EST_IMPLICITE;
+    arrete->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
     arrete->boucle_controlee = inst;
     arrete->bloc_parent = bloc_si_vrai;
 

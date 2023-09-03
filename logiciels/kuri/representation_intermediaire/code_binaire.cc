@@ -808,7 +808,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         auto &donnees_externe = données_exécution->donnees_externe;
         auto decl = fonction->decl;
 
-        if (decl->possede_drapeau(COMPILATRICE)) {
+        if (decl->possede_drapeau(DrapeauxNoeud::COMPILATRICE)) {
             donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
@@ -1037,7 +1037,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                     chunk.emets_appel_intrinsèque(appel->site, atome_appelee);
                 }
                 else if (atome_appelee->decl &&
-                         atome_appelee->decl->possede_drapeau(COMPILATRICE)) {
+                         atome_appelee->decl->possede_drapeau(DrapeauxNoeud::COMPILATRICE)) {
                     chunk.emets_appel_compilatrice(appel->site, atome_appelee, verifie_adresses);
                 }
                 else if (atome_appelee->est_externe) {
