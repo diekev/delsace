@@ -749,7 +749,7 @@ ffi_type *converti_type_ffi(Type const *type)
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_donnees);
+            return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
         }
         case GenreType::TYPE_DE_DONNEES:
         {
@@ -1222,11 +1222,11 @@ static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
     }
 
     if (type->est_type_enum()) {
-        return type->comme_type_enum()->type_donnees;
+        return type->comme_type_enum()->type_sous_jacent;
     }
 
     if (type->est_type_erreur()) {
-        return type->comme_type_erreur()->type_donnees;
+        return type->comme_type_erreur()->type_sous_jacent;
     }
 
     if (type->est_type_type_de_donnees()) {
