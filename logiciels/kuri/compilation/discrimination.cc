@@ -203,7 +203,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
                                                             init_decl);
     decl_expr->bloc_parent = bloc_insertion;
     decl_expr->type = type_membre;
-    decl_expr->drapeaux |= DECLARATION_FUT_VALIDEE;
+    decl_expr->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     bloc_insertion->expressions->pousse_front(decl_expr);
     bloc_insertion->ajoute_membre(decl_expr);

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <iosfwd>
+
 #include "biblinternes/outils/definitions.h"
 
 #include "compilation/transformation_type.hh"
@@ -24,7 +26,7 @@ struct chaine;
 struct chaine_statique;
 }  // namespace kuri
 
-enum DrapeauxNoeud : uint32_t {
+enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                          // decl var
     EST_EXTERNE = (1 << 1),                      // decl var, decl fonction
@@ -61,6 +63,8 @@ enum DrapeauxNoeud : uint32_t {
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
+
+std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux);
 
 enum {
     /* instruction 'pour' */
