@@ -52,7 +52,7 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
-    if (fonction->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (fonction->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insere(fonction);
     }
 }
@@ -67,7 +67,7 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
-    if (globale->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (globale->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insere(globale);
     }
 }
@@ -103,7 +103,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 #endif
 
     auto decl = decl_pour_type(type);
-    if (decl && decl->possede_drapeau(DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (decl && decl->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insere(decl);
     }
 }
@@ -112,12 +112,13 @@ bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) cons
 {
     if (elements_sont_sales[FONCTIONS][POUR_TYPAGE]) {
         POUR (m_fonctions) {
-            if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (!it->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.declaration_a_valider = it;
                 return false;
             }
 
-            if (!it->est_externe && !it->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (!it->est_externe &&
+                !it->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.declaration_a_valider = it;
                 return false;
             }
@@ -127,7 +128,7 @@ bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) cons
 
     if (elements_sont_sales[GLOBALES][POUR_TYPAGE]) {
         POUR (m_globales) {
-            if (!it->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (!it->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.declaration_a_valider = it;
                 return false;
             }
@@ -159,10 +160,11 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     if (elements_sont_sales[FONCTIONS][POUR_RI]) {
         POUR (m_fonctions) {
-            if (!it->possede_drapeau(RI_FUT_GENEREE) && !est_element(it->ident,
-                                                                     ID::init_execution_kuri,
-                                                                     ID::fini_execution_kuri,
-                                                                     ID::init_globales_kuri)) {
+            if (!it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
+                !est_element(it->ident,
+                             ID::init_execution_kuri,
+                             ID::fini_execution_kuri,
+                             ID::init_globales_kuri)) {
                 assert_rappel(it->unite, [&]() {
                     std::cerr << "Aucune unité pour de compilation pour :\n";
                     erreur::imprime_site(*m_espace, it);
@@ -176,7 +178,7 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     if (elements_sont_sales[GLOBALES][POUR_RI]) {
         POUR (m_globales) {
-            if (!it->possede_drapeau(RI_FUT_GENEREE)) {
+            if (!it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_declaration_a_generer = it;
                 return false;
             }
@@ -195,7 +197,8 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
                 return false;
             }
 
-            if (it->fonction_init && !it->fonction_init->possede_drapeau(RI_FUT_GENEREE)) {
+            if (it->fonction_init &&
+                !it->fonction_init->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_type_a_generer = it;
                 return false;
             }
@@ -653,7 +656,7 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
 
     /* Extrait les atomes pour les fonctions. */
     POUR (programme.fonctions()) {
-        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&]() {
+        assert_rappel(it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(*programme.espace(), it);
         });
@@ -666,7 +669,7 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
 
     /* Extrait les atomes pour les globales. */
     POUR (programme.globales()) {
-        assert_rappel(it->possede_drapeau(RI_FUT_GENEREE), [&]() {
+        assert_rappel(it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(*programme.espace(), it);
         });

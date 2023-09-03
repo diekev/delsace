@@ -592,7 +592,7 @@ void Syntaxeuse::analyse_une_chose()
         }
 
         if (noeud->est_declaration()) {
-            noeud->drapeaux |= EST_GLOBALE;
+            noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
 
             if (noeud->est_declaration_variable()) {
                 noeud->bloc_parent->ajoute_membre(noeud->comme_declaration_variable());
@@ -736,7 +736,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
             lexeme = lexeme_courant();
             consomme();
             auto noeud = m_tacheronne.assembleuse->cree_reference_declaration(lexeme);
-            noeud->drapeaux |= IDENTIFIANT_EST_ACCENTUÉ_GRAVE;
+            noeud->drapeaux |= DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE;
             return noeud;
         }
         default:
@@ -850,7 +850,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             consomme();
 
             auto expr = analyse_expression({}, GenreLexeme::EXTERNE, GenreLexeme::INCONNU);
-            expr->drapeaux |= EST_EXTERNE;
+            expr->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
 
             consomme();
 
@@ -1115,12 +1115,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud_decl_param->expression_type = analyse_expression(
                     {}, racine_expression, lexeme_final);
                 /* Nous avons une déclaration de valeur polymorphique, retournons-la. */
-                noeud_decl_param->drapeaux |= (EST_VALEUR_POLYMORPHIQUE | EST_CONSTANTE);
+                noeud_decl_param->drapeaux |= (DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                               DrapeauxNoeud::EST_CONSTANTE);
                 return noeud_decl_param;
             }
 
-            noeud->drapeaux |= DECLARATION_TYPE_POLYMORPHIQUE;
-            noeud_decl_param->drapeaux |= (DECLARATION_TYPE_POLYMORPHIQUE | EST_CONSTANTE);
+            noeud->drapeaux |= DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+            noeud_decl_param->drapeaux |= (DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE |
+                                           DrapeauxNoeud::EST_CONSTANTE);
             return noeud;
         }
         case GenreLexeme::FONC:
@@ -1268,8 +1270,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         noeud->ident = gauche->ident;
                         noeud->valeur = gauche;
                         noeud->expression = noeud_fonction;
-                        noeud->drapeaux |= EST_CONSTANTE;
-                        gauche->drapeaux |= EST_CONSTANTE;
+                        noeud->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
+                        gauche->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
                         gauche->comme_reference_declaration()->declaration_referee = noeud;
 
                         return noeud;
@@ -1345,8 +1347,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
                 donnees_precedence, racine_expression, lexeme_final);
-            noeud->drapeaux |= EST_CONSTANTE;
-            gauche->drapeaux |= EST_CONSTANTE;
+            noeud->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
+            gauche->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -1401,7 +1403,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 auto decl = gauche->comme_declaration_variable();
                 decl->expression = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
-                decl->drapeaux |= EST_CONSTANTE;
+                decl->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
                 return decl;
             }
 
@@ -2177,7 +2179,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
             if (noeud->est_reference_declaration()) {
                 auto decl_variable = m_tacheronne.assembleuse->cree_declaration_variable(
                     noeud->comme_reference_declaration());
-                decl_variable->drapeaux |= EST_CONSTANTE;
+                decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
                 expressions.ajoute(decl_variable);
             }
             else {
@@ -2225,7 +2227,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         }
 
         m_unite->espace->fonction_principale = noeud;
-        noeud->drapeaux |= EST_RACINE;
+        noeud->drapeaux |= DrapeauxNoeud::EST_RACINE;
     }
 
     auto lexeme_bloc = lexeme_courant();
@@ -2264,7 +2266,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
         if (param->est_declaration_variable()) {
             auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
-            decl_var->drapeaux |= EST_PARAMETRE;
+            decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
             params.ajoute(decl_var);
 
             eu_declarations = true;
@@ -2338,7 +2340,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
             decl->expression_type = type_declare;
 
-            decl->drapeaux |= EST_PARAMETRE;
+            decl->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
             noeud->params_sorties.ajoute(decl);
             noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
@@ -2352,13 +2354,13 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             auto ident_directive = lexeme_courant()->ident;
 
             if (ident_directive == ID::enligne) {
-                noeud->drapeaux |= FORCE_ENLIGNE;
+                noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
             }
             else if (ident_directive == ID::horsligne) {
-                noeud->drapeaux |= FORCE_HORSLIGNE;
+                noeud->drapeaux |= DrapeauxNoeud::FORCE_HORSLIGNE;
             }
             else if (ident_directive == ID::externe) {
-                noeud->drapeaux |= EST_EXTERNE;
+                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
                 noeud->est_externe = true;
 
                 if (lexeme_mot_cle->genre == GenreLexeme::COROUT) {
@@ -2387,22 +2389,22 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                                     "fonction __principale");
                 }
 
-                noeud->drapeaux |= EST_EXTERNE;
+                noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
                 noeud->est_externe = true;
             }
             else if (ident_directive == ID::sanstrace) {
-                noeud->drapeaux |= FORCE_SANSTRACE;
+                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
             }
             else if (ident_directive == ID::interface) {
                 m_compilatrice.interface_kuri->mute_membre(noeud);
             }
             else if (ident_directive == ID::creation_contexte) {
-                noeud->drapeaux |= FORCE_SANSTRACE;
-                noeud->drapeaux |= EST_RACINE;
+                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
+                noeud->drapeaux |= DrapeauxNoeud::EST_RACINE;
                 m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
             }
             else if (ident_directive == ID::compilatrice) {
-                noeud->drapeaux |= (FORCE_SANSTRACE | COMPILATRICE);
+                noeud->drapeaux |= (DrapeauxNoeud::FORCE_SANSTRACE | DrapeauxNoeud::COMPILATRICE);
                 noeud->est_externe = true;
 
                 if (!est_fonction_compilatrice(noeud->ident)) {
@@ -2411,19 +2413,19 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 }
             }
             else if (ident_directive == ID::sansbroyage) {
-                noeud->drapeaux |= (FORCE_SANSBROYAGE);
+                noeud->drapeaux |= (DrapeauxNoeud::FORCE_SANSBROYAGE);
             }
             else if (ident_directive == ID::racine) {
-                noeud->drapeaux |= (EST_RACINE);
+                noeud->drapeaux |= (DrapeauxNoeud::EST_RACINE);
             }
             else if (ident_directive == ID::corps_texte) {
                 noeud->corps->est_corps_texte = true;
             }
             else if (ident_directive == ID::debogue) {
-                noeud->drapeaux |= DEBOGUE;
+                noeud->drapeaux |= DrapeauxNoeud::DEBOGUE;
             }
             else if (ident_directive == ID::intrinsèque) {
-                noeud->drapeaux |= FORCE_SANSTRACE;
+                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
                 noeud->est_intrinseque = true;
                 noeud->est_externe = true;
 
@@ -2554,7 +2556,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         }
 
         auto decl_var = param->comme_declaration_variable();
-        decl_var->drapeaux |= EST_PARAMETRE;
+        decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
         params.ajoute(decl_var);
 
         if (!apparie(GenreLexeme::VIRGULE)) {
@@ -2603,10 +2605,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         auto directive = lexeme_courant()->ident;
 
         if (directive == ID::enligne) {
-            noeud->drapeaux |= FORCE_ENLIGNE;
+            noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
         }
         else if (directive == ID::horsligne) {
-            noeud->drapeaux |= FORCE_HORSLIGNE;
+            noeud->drapeaux |= DrapeauxNoeud::FORCE_HORSLIGNE;
         }
         else {
             rapporte_erreur("Directive inconnue");
@@ -2615,8 +2617,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         consomme();
     }
 
-    if (!dls::outils::possede_drapeau(noeud->drapeaux, FORCE_HORSLIGNE)) {
-        noeud->drapeaux |= FORCE_ENLIGNE;
+    if (!noeud->possede_drapeau(DrapeauxNoeud::FORCE_HORSLIGNE)) {
+        noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
     }
 
     ignore_point_virgule_implicite();
@@ -2668,7 +2670,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
             decl_sortie = decl;
         }
 
-        decl_sortie->drapeaux |= EST_PARAMETRE;
+        decl_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
         noeud->params_sorties.ajoute(decl_sortie->comme_declaration_variable());
 
@@ -2702,7 +2704,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
         noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();
     }
 
-    noeud->param_sortie->drapeaux |= EST_PARAMETRE;
+    noeud->param_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
     if (eu_parenthese) {
         consomme(GenreLexeme::PARENTHESE_FERMANTE,
@@ -2953,7 +2955,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl
         if (noeud->est_declaration_variable()) {
             auto decl_membre = noeud->comme_declaration_variable();
             analyse_annotations(decl_membre->annotations);
-            noeud->drapeaux |= EST_MEMBRE_STRUCTURE;
+            noeud->drapeaux |= DrapeauxNoeud::EST_MEMBRE_STRUCTURE;
         }
 
         expressions.ajoute(noeud);
