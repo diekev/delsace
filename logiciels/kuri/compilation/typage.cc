@@ -1832,7 +1832,7 @@ bool est_type_polymorphique(Type const *type)
     }
 
     auto decl = decl_pour_type(type);
-    if (decl && decl->est_structure() && decl->comme_structure()->est_polymorphe) {
+    if (decl && decl->est_type_structure() && decl->comme_type_structure()->est_polymorphe) {
         return true;
     }
 

@@ -475,7 +475,7 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
 
 struct NoeudStruct : NoeudDéclarationType {
     @genre DÉCLARATION_STRUCTURE
-    @comme structure
+    @comme type_structure
     @code  NoeudCodeStructure
 
     NoeudBloc *bloc [code enfant]
@@ -506,7 +506,7 @@ struct NoeudStruct : NoeudDéclarationType {
 
 struct NoeudEnum : NoeudDéclarationType {
     @genre DÉCLARATION_ÉNUM
-    @comme énum
+    @comme type_énum
     @code  NoeudCodeÉnum
 
     NoeudExpression *expression_type [code enfant]
