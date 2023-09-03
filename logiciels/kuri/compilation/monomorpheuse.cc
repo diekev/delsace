@@ -1044,7 +1044,7 @@ RésultatMonomorphisation détermine_monomorphisation(
 {
 #if 0
     DIFFERE {
-        if (entête->possede_drapeau(DEBOGUE)) {
+        if (entête->possede_drapeau(DrapeauxNoeud::DEBOGUE)) {
             monomorpheuse.logue();
         }
     };
