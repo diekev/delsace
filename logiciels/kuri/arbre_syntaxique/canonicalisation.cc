@@ -129,7 +129,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_bin = noeud->comme_expression_binaire();
 
-            if (expr_bin->type->est_type_de_donnees()) {
+            if (expr_bin->type->est_type_type_de_donnees()) {
                 noeud->substitution = assem->cree_reference_type(expr_bin->lexeme, expr_bin->type);
                 return;
             }
@@ -150,9 +150,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto type2 = expr_bin->operande_droite->type;
 
                 // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointe)
-                if (type1->est_pointeur() && type2->est_pointeur()) {
+                if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
                     auto const &type_z64 = TypeBase::Z64;
-                    auto type_pointe = type2->comme_pointeur()->type_pointe;
+                    auto type_pointe = type2->comme_type_pointeur()->type_pointe;
                     auto soustraction = assem->cree_expression_binaire(
                         expr_bin->lexeme,
                         type_z64->table_opérateurs->operateur_sst,
@@ -192,7 +192,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                         expr_pointeur = expr_bin->operande_gauche;
                     }
 
-                    auto type_pointe = type_pointeur->comme_pointeur()->type_pointe;
+                    auto type_pointe = type_pointeur->comme_type_pointeur()->type_pointe;
 
                     auto taille_de = assem->cree_litterale_entier(
                         expr_entier->lexeme, type_entier, std::max(type_pointe->taille_octet, 1u));
@@ -255,7 +255,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_un = noeud->comme_expression_unaire();
 
-            if (expr_un->type->est_type_de_donnees()) {
+            if (expr_un->type->est_type_type_de_donnees()) {
                 expr_un->substitution = assem->cree_reference_type(expr_un->lexeme, expr_un->type);
                 return;
             }
@@ -310,19 +310,19 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (decl_ref->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
                 auto decl_const = decl_ref->comme_declaration_variable();
 
-                if (decl_ref->type->est_type_de_donnees()) {
+                if (decl_ref->type->est_type_type_de_donnees()) {
                     expr_ref->substitution = assem->cree_reference_type(
                         expr_ref->lexeme, typeuse.type_type_de_donnees(decl_ref->type));
                     return;
                 }
 
-                if (decl_ref->type->est_reel()) {
+                if (decl_ref->type->est_type_reel()) {
                     expr_ref->substitution = assem->cree_litterale_reel(
                         expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reelle());
                     return;
                 }
 
-                if (decl_ref->type->est_bool()) {
+                if (decl_ref->type->est_type_bool()) {
                     expr_ref->substitution = assem->cree_litterale_bool(
                         expr_ref->lexeme,
                         decl_ref->type,
@@ -330,8 +330,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
-                if (est_type_entier(decl_ref->type) || decl_ref->type->est_entier_constant() ||
-                    decl_ref->type->est_enum() || decl_ref->type->est_erreur()) {
+                if (est_type_entier(decl_ref->type) ||
+                    decl_ref->type->est_type_entier_constant() ||
+                    decl_ref->type->est_type_enum() || decl_ref->type->est_type_erreur()) {
                     expr_ref->substitution = assem->cree_litterale_entier(
                         expr_ref->lexeme,
                         decl_ref->type,
@@ -339,12 +340,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
-                if (decl_ref->type->est_chaine()) {
+                if (decl_ref->type->est_type_chaine()) {
                     expr_ref->substitution = decl_const->expression;
                     return;
                 }
 
-                if (decl_ref->type->est_tableau_fixe()) {
+                if (decl_ref->type->est_type_tableau_fixe()) {
                     expr_ref->substitution = decl_const->expression;
                 }
 
@@ -365,11 +366,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                         expr_ref->lexeme, declaration_variable->declaration_vient_d_un_emploi);
 
                     auto type = ref_decl_var->type;
-                    while (type->est_pointeur() || type->est_reference()) {
+                    while (type->est_type_pointeur() || type->est_type_reference()) {
                         type = type_dereference_pour(type);
                     }
 
-                    auto type_composé = type->comme_compose();
+                    auto type_composé = type->comme_type_compose();
                     auto membre =
                         type_composé->membres[declaration_variable->index_membre_employe];
 
@@ -413,7 +414,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (expr->type->est_entier_constant() &&
+            if (expr->type->est_type_entier_constant() &&
                 inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
                 expr->type = TypeBase::Z64;
                 return;
@@ -783,7 +784,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPANSION_VARIADIQUE:
         {
             auto expr = noeud->comme_expansion_variadique();
-            if (expr->type->est_type_de_donnees()) {
+            if (expr->type->est_type_type_de_donnees()) {
                 /* Nous avons un type variadique. */
                 expr->substitution = assem->cree_reference_type(expr->lexeme, expr->type);
             }
@@ -879,8 +880,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
     auto const inverse_boucle = inst->lexeme_op == GenreLexeme::SUPERIEUR;
 
-    auto type_itere = expression_iteree->type->est_opaque() ?
-                          expression_iteree->type->comme_opaque()->type_opacifie :
+    auto type_itere = expression_iteree->type->est_type_opaque() ?
+                          expression_iteree->type->comme_type_opaque()->type_opacifie :
                           expression_iteree->type;
     expression_iteree->type = type_itere;
 
@@ -1015,8 +1016,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             /* condition */
             auto expr_taille = NoeudExpression::nul();
 
-            if (type_itere->est_tableau_fixe()) {
-                auto taille_tableau = type_itere->comme_tableau_fixe()->taille;
+            if (type_itere->est_type_tableau_fixe()) {
+                auto taille_tableau = type_itere->comme_type_tableau_fixe()->taille;
                 expr_taille = assem->cree_litterale_entier(
                     inst->lexeme, TypeBase::Z64, static_cast<uint64_t>(taille_tableau));
             }
@@ -1031,9 +1032,9 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             auto expr_pointeur = NoeudExpression::nul();
 
-            auto type_compose = type_itere->comme_compose();
+            auto type_compose = type_itere->comme_type_compose();
 
-            if (type_itere->est_tableau_fixe()) {
+            if (type_itere->est_type_tableau_fixe()) {
                 auto indexage = assem->cree_indexage(inst->lexeme, expression_iteree, zero, true);
 
                 static const Lexeme lexeme_adresse = {",", {}, GenreLexeme::FOIS_UNAIRE, 0, 0, 0};
@@ -1353,7 +1354,7 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
                                                    NoeudBloc *bloc_d_insertion,
                                                    Lexeme const *lexeme_reference)
 {
-    auto type_sortie = entete->type->comme_fonction()->type_sortie->comme_union();
+    auto type_sortie = entete->type->comme_type_fonction()->type_sortie->comme_type_union();
     auto retourne = assem->cree_retourne(lexeme_reference);
     retourne->bloc_parent = bloc_d_insertion;
 
@@ -1385,10 +1386,10 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
 void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 {
     // crée une assignation pour chaque sortie
-    auto type_fonction = fonction_courante->type->comme_fonction();
+    auto type_fonction = fonction_courante->type->comme_type_fonction();
     auto type_sortie = type_fonction->type_sortie;
 
-    if (type_sortie->est_rien()) {
+    if (type_sortie->est_type_rien()) {
         return;
     }
 
@@ -1415,7 +1416,7 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 
     auto retour = assem->cree_retourne(inst->lexeme);
 
-    if (type_sortie->est_rien()) {
+    if (type_sortie->est_type_rien()) {
         retour->expression = nullptr;
     }
     else {
@@ -1439,7 +1440,7 @@ void Simplificatrice::simplifie_construction_structure(
         simplifie(it);
     }
 
-    if (construction->type->est_union()) {
+    if (construction->type->est_type_union()) {
         simplifie_construction_union(construction);
         return;
     }
@@ -1476,7 +1477,7 @@ void Simplificatrice::simplifie_construction_union(
 {
     auto const site = construction;
     auto const lexeme = construction->lexeme;
-    auto type_union = construction->type->comme_union();
+    auto type_union = construction->type->comme_type_union();
 
     if (construction->parametres_resolus.est_vide()) {
         /* Initialise à zéro. */
@@ -1604,7 +1605,7 @@ void Simplificatrice::simplifie_construction_structure_impl(
 {
     auto const site = construction;
     auto const lexeme = construction->lexeme;
-    auto type_struct = construction->type->comme_structure();
+    auto type_struct = construction->type->comme_type_structure();
 
     auto decl_position = assem->cree_declaration_variable(
         lexeme, type_struct, nullptr, &non_initialisation);
@@ -1729,7 +1730,7 @@ static kuri::tableau<TypeCompose::InformationMembre, int> trouve_hiérarchie_emp
 
         hiérarchie.ajoute(info.value());
 
-        auto type_employé = info->membre.type->comme_compose();
+        auto type_employé = info->membre.type->comme_type_compose();
         auto info_membre = trouve_information_membre_ajouté_par_emploi(type_employé,
                                                                        membre_courant.nom);
         assert(info_membre.has_value());
@@ -1804,22 +1805,22 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         }
     }
 
-    while (type_accede->est_pointeur() || type_accede->est_reference()) {
+    while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
         type_accede = type_dereference_pour(type_accede);
     }
 
-    if (type_accede->est_opaque()) {
-        type_accede = type_accede->comme_opaque()->type_opacifie;
+    if (type_accede->est_type_opaque()) {
+        type_accede = type_accede->comme_type_opaque()->type_opacifie;
     }
 
-    if (type_accede->est_tableau_fixe()) {
-        auto taille = type_accede->comme_tableau_fixe()->taille;
+    if (type_accede->est_type_tableau_fixe()) {
+        auto taille = type_accede->comme_type_tableau_fixe()->taille;
         ref_membre->substitution = assem->cree_litterale_entier(
             lexeme, ref_membre->type, static_cast<uint64_t>(taille));
         return;
     }
 
-    if (type_accede->est_enum() || type_accede->est_erreur()) {
+    if (type_accede->est_type_enum() || type_accede->est_type_erreur()) {
         auto type_enum = static_cast<TypeEnum *>(type_accede);
         auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
         ref_membre->substitution = assem->cree_litterale_entier(
@@ -1827,7 +1828,8 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         return;
     }
 
-    if (type_accede->est_type_de_donnees() && ref_membre->genre_valeur == GenreValeur::DROITE) {
+    if (type_accede->est_type_type_de_donnees() &&
+        ref_membre->genre_valeur == GenreValeur::DROITE) {
         ref_membre->substitution = assem->cree_reference_type(
             lexeme, typeuse.type_type_de_donnees(ref_membre->type));
         return;
@@ -2212,14 +2214,14 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
                 comparaison.operande_droite = constante;
             }
             else if (N == DISCR_UNION) {
-                auto const type_union = discr->expression_discriminee->type->comme_union();
+                auto const type_union = discr->expression_discriminee->type->comme_type_union();
                 auto index = type_union->donne_membre_pour_nom(expr->ident)->index_membre;
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;
             }
             else if (N == DISCR_UNION_ANONYME) {
-                auto const type_union = discr->expression_discriminee->type->comme_union();
+                auto const type_union = discr->expression_discriminee->type->comme_type_union();
                 auto index = type_union->donne_membre_pour_nom(expr->ident)->index_membre;
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
@@ -2251,7 +2253,7 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
 void Simplificatrice::simplifie_discr(NoeudDiscr *discr)
 {
     if (discr->genre == GenreNoeud::INSTRUCTION_DISCR_UNION) {
-        auto const type_union = discr->expression_discriminee->type->comme_union();
+        auto const type_union = discr->expression_discriminee->type->comme_type_union();
 
         if (type_union->est_anonyme) {
             simplifie_discr_impl<DISCR_UNION_ANONYME>(discr);

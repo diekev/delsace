@@ -311,7 +311,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
 
         if (transformation.type == TypeTransformation::EXTRAIT_UNION) {
             assert(interface->decl_panique_membre_union);
-            auto type_union = type->comme_union();
+            auto type_union = type->comme_type_union();
             if (!type_union->est_nonsure) {
                 ajoute_fonction(interface->decl_panique_membre_union);
             }
@@ -362,8 +362,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
             /* Ne faisons pas dépendre les types d'eux-mêmes. */
             /* Note: les fonctions polymorphiques n'ont pas de types. */
             if (!(noeud->est_structure() || noeud->est_enum()) && noeud->type) {
-                if (noeud->type->est_type_de_donnees()) {
-                    auto type_de_donnees = noeud->type->comme_type_de_donnees();
+                if (noeud->type->est_type_type_de_donnees()) {
+                    auto type_de_donnees = noeud->type->comme_type_type_de_donnees();
                     if (type_de_donnees->type_connu) {
                         ajoute_type(type_de_donnees->type_connu);
                     }
@@ -417,8 +417,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
                 auto type_indexe = indexage->operande_gauche->type;
-                if (type_indexe->est_opaque()) {
-                    type_indexe = type_indexe->comme_opaque()->type_opacifie;
+                if (type_indexe->est_type_opaque()) {
+                    type_indexe = type_indexe->comme_type_opaque()->type_opacifie;
                 }
 
                 switch (type_indexe->genre) {
@@ -474,7 +474,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                 ajoute_type(construction_tableau->type);
 
                 /* Ajout également du type de pointeur pour la génération de code C. */
-                auto type_feuille = construction_tableau->type->comme_tableau_fixe()->type_pointe;
+                auto type_feuille =
+                    construction_tableau->type->comme_type_tableau_fixe()->type_pointe;
                 auto type_ptr = compilatrice->typeuse.type_pointeur_pour(type_feuille);
                 ajoute_type(type_ptr);
             }
@@ -583,16 +584,16 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
         if (decl && !decl->unite) {
             // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
             // sémantique.
-            if (!(type->est_union() && type->comme_union()->est_anonyme) &&
-                !(type->est_structure() && type->comme_structure()->union_originelle)) {
+            if (!(type->est_type_union() && type->comme_type_union()->est_anonyme) &&
+                !(type->est_type_structure() && type->comme_type_structure()->union_originelle)) {
                 gestionnaire.requiers_typage(espace, decl);
             }
         }
 
         gestionnaire.requiers_initialisation_type(espace, type);
 
-        if (type->est_fonction()) {
-            auto type_fonction = type->comme_fonction();
+        if (type->est_type_fonction()) {
+            auto type_fonction = type->comme_type_fonction();
             auto type_retour = type_fonction->type_sortie;
             /* Les types fonctions peuvent retourner une référence à la structure que nous essayons
              * de valider :
@@ -611,9 +612,9 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
              * sortie n'ont aucune influence sur leurs taille), nous calculons au fur et à mesure
              * du besoin des types la taille de leurs tuples.
              */
-            if (type_retour->est_tuple() && type_retour->taille_octet == 0 &&
+            if (type_retour->est_type_tuple() && type_retour->taille_octet == 0 &&
                 (type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-                calcule_taille_type_compose(type_retour->comme_tuple(), false, 0);
+                calcule_taille_type_compose(type_retour->comme_type_tuple(), false, 0);
             }
         }
 

@@ -216,7 +216,7 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
 ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
-    auto type_union = type->comme_union();
+    auto type_union = type->comme_type_union();
     auto decl = type_union->decl;
     inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
 
@@ -283,7 +283,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
-            if (membre.type->est_rien()) {
+            if (membre.type->est_type_rien()) {
                 espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
@@ -314,7 +314,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
 ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
-    auto type_union = type->comme_union();
+    auto type_union = type->comme_type_union();
     inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -386,7 +386,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
-            if (ref_type->type->est_rien()) {
+            if (ref_type->type->est_type_rien()) {
                 espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
@@ -495,14 +495,14 @@ ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *ins
 
     if (type->genre == GenreType::REFERENCE) {
         transtype_si_necessaire(inst->expression_discriminee, TypeTransformation::DEREFERENCE);
-        type = type->comme_reference()->type_pointe;
+        type = type->comme_type_reference()->type_pointe;
     }
 
     if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
         return Attente::sur_type(type);
     }
 
-    if (type->genre == GenreType::UNION && type->comme_union()->est_anonyme) {
+    if (type->genre == GenreType::UNION && type->comme_type_union()->est_anonyme) {
         return valide_discr_union_anonyme(inst, type);
     }
 
