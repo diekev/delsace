@@ -231,63 +231,8 @@ TypeFonction::TypeFonction(kuri::tablet<Type *, 6> const &entrees, Type *sortie)
     this->type_sortie = sortie;
     this->taille_octet = 8;
     this->alignement = 8;
-    this->marque_polymorphique();
+    marque_polymorphique(this);
     this->drapeaux |= (TYPE_FUT_VALIDE);
-}
-
-void TypeFonction::marque_polymorphique()
-{
-    POUR (types_entrees) {
-        if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-            return;
-        }
-    }
-
-    // À FAIRE(architecture) : il est possible que le type_sortie soit nul car ce peut être une
-    // union non encore validée, donc son type_le_plus_grand ou type_structure n'est pas encore
-    // généré. Il y a plusieurs problèmes à résoudre :
-    // - une unité de compilation ne doit aller en RI tant qu'une de ses dépendances n'est pas
-    // encore validée (requiers de se débarrasser du graphe et utiliser les unités comme « noeud »)
-    // - la gestion des types polymorphiques est à revoir, notamment la manière ils sont stockés
-    // - nous ne devrions pas marquée comme polymorphique lors de la génération de RI
-    if (type_sortie && type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-    }
-}
-
-void TypeCompose::marque_polymorphique()
-{
-    POUR (membres) {
-        if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-            return;
-        }
-    }
-}
-
-std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_type(
-    const Type *type) const
-{
-    POUR_INDEX (membres) {
-        if (it.type == type) {
-            return TypeCompose::InformationMembre{it, index_it};
-        }
-    }
-
-    return {};
-}
-
-std::optional<TypeCompose::InformationMembre> TypeCompose::donne_membre_pour_nom(
-    const IdentifiantCode *nom_membre) const
-{
-    POUR_INDEX (membres) {
-        if (it.nom == nom_membre) {
-            return TypeCompose::InformationMembre{it, index_it};
-        }
-    }
-
-    return {};
 }
 
 TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
@@ -377,16 +322,6 @@ TypeOpaque::TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie) : Type
 
     if (opacifie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
         this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-    }
-}
-
-void TypeTuple::marque_polymorphique()
-{
-    POUR (membres) {
-        if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            this->drapeaux |= TYPE_EST_POLYMORPHIQUE;
-            return;
-        }
     }
 }
 
@@ -685,7 +620,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
      * pour chacun d'entre eux.
      * Lors de la création de la typeuse, les fonction sauvegardées sont nulles. */
     if (init_type_pointeur) {
-        resultat->assigne_fonction_init(init_type_pointeur);
+        assigne_fonction_init(resultat, init_type_pointeur);
     }
 
     return resultat;
@@ -862,7 +797,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
 
     /* Les rappels de fonctions sont des pointeurs, donc nous utilisons la même fonction
      * d'initialisation que pour les pointeurs. */
-    type->assigne_fonction_init(init_type_pointeur);
+    assigne_fonction_init(type, init_type_pointeur);
 
     return type;
 }
@@ -952,11 +887,11 @@ TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &mem
     type->est_anonyme = true;
     type->drapeaux |= (TYPE_FUT_VALIDE);
 
-    type->marque_polymorphique();
+    marque_polymorphique(type);
 
     if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
         calcule_taille_type_compose(type, false, 0);
-        type->cree_type_structure(*this, type->decalage_index);
+        cree_type_structure(*this, type, type->decalage_index);
     }
 
     return type;
@@ -1050,7 +985,7 @@ TypeTuple *Typeuse::cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membre
         graphe_->connecte_type_type(type, it.type);
     }
 
-    type->marque_polymorphique();
+    marque_polymorphique(type);
 
     type->drapeaux |= (TYPE_FUT_VALIDE);
 
@@ -1156,6 +1091,295 @@ NoeudDeclaration *Typeuse::decl_pour_info_type(InfoType const *info_type)
     }
     return nullptr;
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions diverses pour les types.
+ * \{ */
+
+void assigne_fonction_init(Type *type, NoeudDeclarationEnteteFonction *fonction)
+{
+    type->fonction_init = fonction;
+    type->drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
+}
+
+/* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
+ * ou non.
+ */
+bool requiers_fonction_initialisation(Type const *type)
+{
+    return (type->drapeaux & TYPE_NE_REQUIERS_PAS_D_INITIALISATION) == 0;
+}
+
+/* Retourne vrai si une fonction d'initialisation doit être créée pour ce type, s'il en besoin
+ * et qu'elle n'a pas encore été créée.
+ */
+bool requiers_création_fonction_initialisation(Type const *type)
+{
+    if (!requiers_fonction_initialisation(type)) {
+        return false;
+    }
+
+    /* #fonction_init peut être non-nulle si seulement l'entête est créée. Le drapeaux n'est
+     * mis en place que lorsque la fonction et son corps furent créés. */
+    if ((type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0) {
+        return false;
+    }
+
+    if (est_type_polymorphique(type)) {
+        return false;
+    }
+
+    return true;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux membres des types composés.
+ * \{ */
+
+std::optional<TypeCompose::InformationMembre> donne_membre_pour_type(
+    TypeCompose const *type_composé, Type const *type)
+{
+    POUR_INDEX (type_composé->membres) {
+        if (it.type == type) {
+            return TypeCompose::InformationMembre{it, index_it};
+        }
+    }
+
+    return {};
+}
+
+std::optional<TypeCompose::InformationMembre> donne_membre_pour_nom(
+    TypeCompose const *type_composé, IdentifiantCode const *nom_membre)
+{
+    POUR_INDEX (type_composé->membres) {
+        if (it.nom == nom_membre) {
+            return TypeCompose::InformationMembre{it, index_it};
+        }
+    }
+
+    return {};
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux noms hiérarchiques des types.
+ * \{ */
+
+static kuri::tablet<kuri::chaine_statique, 6> noms_hierarchie(NoeudBloc *bloc)
+{
+    kuri::tablet<kuri::chaine_statique, 6> noms;
+
+    while (bloc) {
+        if (bloc->ident) {
+            noms.ajoute(bloc->ident->nom);
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return noms;
+}
+
+static kuri::chaine nom_hierarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
+{
+    auto const noms = noms_hierarchie(bloc);
+
+    Enchaineuse enchaineuse;
+    /* -2 pour éviter le nom du module. */
+    for (auto i = noms.taille() - 2; i >= 0; --i) {
+        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(".");
+    }
+    enchaineuse.ajoute(ident);
+
+    return enchaineuse.chaine();
+}
+
+kuri::chaine_statique donne_nom_hierarchique(TypeUnion *type)
+{
+    if (type->nom_hierarchique_ != "") {
+        return type->nom_hierarchique_;
+    }
+
+    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+                                               chaine_type(type, false));
+    return type->nom_hierarchique_;
+}
+
+kuri::chaine_statique donne_nom_hierarchique(TypeEnum *type)
+{
+    if (type->nom_hierarchique_ != "") {
+        return type->nom_hierarchique_;
+    }
+
+    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+                                               chaine_type(type, false));
+    return type->nom_hierarchique_;
+}
+
+kuri::chaine_statique donne_nom_hierarchique(TypeOpaque *type)
+{
+    if (type->nom_hierarchique_ != "") {
+        return type->nom_hierarchique_;
+    }
+
+    type->nom_hierarchique_ = nom_hierarchique(type->decl->bloc_parent, chaine_type(type, false));
+    return type->nom_hierarchique_;
+}
+
+kuri::chaine_statique donne_nom_hierarchique(TypeStructure *type)
+{
+    if (type->nom_hierarchique_ != "") {
+        return type->nom_hierarchique_;
+    }
+
+    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+                                               chaine_type(type, false));
+    return type->nom_hierarchique_;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux noms portables des types.
+ * \{ */
+
+static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
+{
+    auto const noms = noms_hierarchie(bloc);
+
+    Enchaineuse enchaineuse;
+    for (auto i = noms.taille() - 1; i >= 0; --i) {
+        enchaineuse.ajoute(noms[i]);
+    }
+    enchaineuse.ajoute(nom);
+
+    return enchaineuse.chaine();
+}
+
+kuri::chaine const &donne_nom_portable(TypeUnion *type)
+{
+    if (type->nom_portable_ != "") {
+        return type->nom_portable_;
+    }
+
+    type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
+                                       type->nom->nom);
+    return type->nom_portable_;
+}
+
+kuri::chaine const &donne_nom_portable(TypeEnum *type)
+{
+    if (type->nom_portable_ != "") {
+        return type->nom_portable_;
+    }
+
+    type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
+                                       type->nom->nom);
+    return type->nom_portable_;
+}
+
+kuri::chaine const &donne_nom_portable(TypeOpaque *type)
+{
+    if (type->nom_portable_ != "") {
+        return type->nom_portable_;
+    }
+
+    type->nom_portable_ = nom_portable(type->decl->bloc_parent, type->ident->nom);
+    return type->nom_portable_;
+}
+
+kuri::chaine const &donne_nom_portable(TypeStructure *type)
+{
+    if (type->nom_portable_ != "") {
+        return type->nom_portable_;
+    }
+
+    type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
+                                       type->nom->nom);
+    return type->nom_portable_;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Marquage des types comme étant polymorphiques.
+ * \{ */
+
+void marque_polymorphique(TypeFonction *type)
+{
+    POUR (type->types_entrees) {
+        if (it->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+            return;
+        }
+    }
+
+    // À FAIRE(architecture) : il est possible que le type_sortie soit nul car ce peut être une
+    // union non encore validée, donc son type_le_plus_grand ou type_structure n'est pas encore
+    // généré. Il y a plusieurs problèmes à résoudre :
+    // - une unité de compilation ne doit aller en RI tant qu'une de ses dépendances n'est pas
+    // encore validée (requiers de se débarrasser du graphe et utiliser les unités comme « noeud »)
+    // - la gestion des types polymorphiques est à revoir, notamment la manière ils sont stockés
+    // - nous ne devrions pas marquée comme polymorphique lors de la génération de RI
+    if (type->type_sortie && type->type_sortie->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+    }
+}
+
+void marque_polymorphique(TypeCompose *type)
+{
+    POUR (type->membres) {
+        if (it.type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            type->drapeaux |= TYPE_EST_POLYMORPHIQUE;
+            return;
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions pour les unions.
+ * \{ */
+
+void cree_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif)
+{
+    assert(!type->est_nonsure);
+
+    type->type_structure = typeuse.reserve_type_structure(nullptr);
+
+    if (type->type_le_plus_grand) {
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
+        membres_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
+        membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
+        type->type_structure->membres = std::move(membres_);
+    }
+    else {
+        auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
+        membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
+        type->type_structure->membres = std::move(membres_);
+    }
+
+    type->type_structure->taille_octet = type->taille_octet;
+    type->type_structure->alignement = type->alignement;
+    type->type_structure->nom = type->nom;
+    type->type_structure->est_anonyme = type->est_anonyme;
+    // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
+    // dans la coulisse pour chaque monomorphisation.
+    type->type_structure->decl = type->decl;
+    type->type_structure->union_originelle = type;
+    /* L'initialisation est créée avec le type de l'union et non celui de la structure. */
+    type->type_structure->drapeaux |= (TYPE_FUT_VALIDE | INITIALISATION_TYPE_FUT_CREEE |
+                                       UNITE_POUR_INITIALISATION_FUT_CREE);
+
+    typeuse.graphe_->connecte_type_type(type, type->type_structure);
+}
+
+/** \} */
 
 /* ************************************************************************** */
 
@@ -1510,39 +1734,6 @@ bool est_type_booleen_implicite(Type *type)
                                     GenreType::TABLEAU_DYNAMIQUE);
 }
 
-void TypeUnion::cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif)
-{
-    assert(!est_nonsure);
-
-    type_structure = typeuse.reserve_type_structure(nullptr);
-
-    if (type_le_plus_grand) {
-        auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
-        membres_[0] = {nullptr, type_le_plus_grand, ID::valeur, 0};
-        membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
-        type_structure->membres = std::move(membres_);
-    }
-    else {
-        auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
-        membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
-        type_structure->membres = std::move(membres_);
-    }
-
-    type_structure->taille_octet = this->taille_octet;
-    type_structure->alignement = this->alignement;
-    type_structure->nom = this->nom;
-    type_structure->est_anonyme = this->est_anonyme;
-    // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
-    // dans la coulisse pour chaque monomorphisation.
-    type_structure->decl = this->decl;
-    type_structure->union_originelle = this;
-    /* L'initialisation est créée avec le type de l'union et non celui de la structure. */
-    type_structure->drapeaux |= (TYPE_FUT_VALIDE | INITIALISATION_TYPE_FUT_CREEE |
-                                 UNITE_POUR_INITIALISATION_FUT_CREE);
-
-    typeuse.graphe_->connecte_type_type(this, type_structure);
-}
-
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
                                              const uint32_t taille_octet)
 {
@@ -1672,132 +1863,6 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
             calcule_taille_structure<false>(type, alignement_desire);
         }
     }
-}
-
-static kuri::tablet<kuri::chaine_statique, 6> noms_hierarchie(NoeudBloc *bloc)
-{
-    kuri::tablet<kuri::chaine_statique, 6> noms;
-
-    while (bloc) {
-        if (bloc->ident) {
-            noms.ajoute(bloc->ident->nom);
-        }
-
-        bloc = bloc->bloc_parent;
-    }
-
-    return noms;
-}
-
-static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
-{
-    auto const noms = noms_hierarchie(bloc);
-
-    Enchaineuse enchaineuse;
-    for (auto i = noms.taille() - 1; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
-    }
-    enchaineuse.ajoute(nom);
-
-    return enchaineuse.chaine();
-}
-
-static kuri::chaine nom_hierarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
-{
-    auto const noms = noms_hierarchie(bloc);
-
-    Enchaineuse enchaineuse;
-    /* -2 pour éviter le nom du module. */
-    for (auto i = noms.taille() - 2; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
-        enchaineuse.ajoute(".");
-    }
-    enchaineuse.ajoute(ident);
-
-    return enchaineuse.chaine();
-}
-
-const kuri::chaine &TypeStructure::nom_portable()
-{
-    if (nom_portable_ != "") {
-        return nom_portable_;
-    }
-
-    nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
-    return nom_portable_;
-}
-
-kuri::chaine_statique TypeStructure::nom_hierarchique()
-{
-    if (nom_hierarchique_ != "") {
-        return nom_hierarchique_;
-    }
-
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
-                                           chaine_type(this, false));
-    return nom_hierarchique_;
-}
-
-const kuri::chaine &TypeUnion::nom_portable()
-{
-    if (nom_portable_ != "") {
-        return nom_portable_;
-    }
-
-    nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
-    return nom_portable_;
-}
-
-kuri::chaine_statique TypeUnion::nom_hierarchique()
-{
-    if (nom_hierarchique_ != "") {
-        return nom_hierarchique_;
-    }
-
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
-                                           chaine_type(this, false));
-    return nom_hierarchique_;
-}
-
-const kuri::chaine &TypeEnum::nom_portable()
-{
-    if (nom_portable_ != "") {
-        return nom_portable_;
-    }
-
-    nom_portable_ = ::nom_portable(decl ? decl->bloc_parent : nullptr, nom->nom);
-    return nom_portable_;
-}
-
-kuri::chaine_statique TypeEnum::nom_hierarchique()
-{
-    if (nom_hierarchique_ != "") {
-        return nom_hierarchique_;
-    }
-
-    nom_hierarchique_ = ::nom_hierarchique(decl ? decl->bloc_parent : nullptr,
-                                           chaine_type(this, false));
-    return nom_hierarchique_;
-}
-
-const kuri::chaine &TypeOpaque::nom_portable()
-{
-    if (nom_portable_ != "") {
-        return nom_portable_;
-    }
-
-    nom_portable_ = ::nom_portable(decl->bloc_parent, ident->nom);
-    return nom_portable_;
-}
-
-kuri::chaine_statique TypeOpaque::nom_hierarchique()
-{
-    if (nom_hierarchique_ != "") {
-        return nom_hierarchique_;
-    }
-
-    nom_hierarchique_ = ::nom_hierarchique(decl->bloc_parent, chaine_type(this, false));
-    return nom_hierarchique_;
 }
 
 NoeudDeclaration *decl_pour_type(const Type *type)
