@@ -202,7 +202,7 @@ struct Type {
     POINTEUR_NUL(Type)
 
 #define __DEFINIS_DISCRIMINATIONS(nom, Genre, TypeRafine)                                         \
-    inline bool est_##nom() const                                                                 \
+    inline bool est_type_##nom() const                                                            \
     {                                                                                             \
         return genre == GenreType::Genre;                                                         \
     }
@@ -212,15 +212,15 @@ struct Type {
 #undef __DEFINIS_DISCRIMINATIONS
 
 #define __DECLARE_COMME_TYPE(nom, Genre, TypeRafine)                                              \
-    inline TypeRafine *comme_##nom();                                                             \
-    inline const TypeRafine *comme_##nom() const;
+    inline TypeRafine *comme_type_##nom();                                                        \
+    inline const TypeRafine *comme_type_##nom() const;
 
     ENUMERE_TYPE(__DECLARE_COMME_TYPE)
 
 #undef __DECLARE_COMME_TYPE
 
-    inline TypeCompose *comme_compose();
-    inline const TypeCompose *comme_compose() const;
+    inline TypeCompose *comme_type_compose();
+    inline const TypeCompose *comme_type_compose() const;
 
     void assigne_fonction_init(NoeudDeclarationEnteteFonction *fonction)
     {
@@ -251,7 +251,7 @@ struct Type {
             return false;
         }
 
-        if (est_type_polymorphique(this)) {
+        if (::est_type_polymorphique(this)) {
             return false;
         }
 
@@ -586,13 +586,13 @@ struct TypeTuple : public TypeCompose {
 #endif
 void imprime_genre_type_pour_assert(GenreType genre);
 #define __DEFINIS_COMME_TYPE(nom, Genre, TypeRafine)                                              \
-    inline TypeRafine *Type::comme_##nom()                                                        \
+    inline TypeRafine *Type::comme_type_##nom()                                                   \
     {                                                                                             \
         assert_rappel(genre == GenreType::Genre,                                                  \
                       [this] { imprime_genre_type_pour_assert(genre); });                         \
         return static_cast<TypeRafine *>(this);                                                   \
     }                                                                                             \
-    inline const TypeRafine *Type::comme_##nom() const                                            \
+    inline const TypeRafine *Type::comme_type_##nom() const                                       \
     {                                                                                             \
         assert_rappel(genre == GenreType::Genre,                                                  \
                       [this] { imprime_genre_type_pour_assert(genre); });                         \
@@ -606,13 +606,13 @@ ENUMERE_TYPE(__DEFINIS_COMME_TYPE)
 #    pragma GCC diagnostic pop
 #endif
 
-inline TypeCompose *Type::comme_compose()
+inline TypeCompose *Type::comme_type_compose()
 {
     assert(est_type_compose(this));
     return static_cast<TypeCompose *>(this);
 }
 
-inline const TypeCompose *Type::comme_compose() const
+inline const TypeCompose *Type::comme_type_compose() const
 {
     assert(est_type_compose(this));
     return static_cast<const TypeCompose *>(this);

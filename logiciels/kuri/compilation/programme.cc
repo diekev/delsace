@@ -526,19 +526,19 @@ struct VisiteuseType {
             }
             case GenreType::REFERENCE:
             {
-                auto reference = type->comme_reference();
+                auto reference = type->comme_type_reference();
                 visite_type(reference->type_pointe, rappel);
                 break;
             }
             case GenreType::POINTEUR:
             {
-                auto pointeur = type->comme_pointeur();
+                auto pointeur = type->comme_type_pointeur();
                 visite_type(pointeur->type_pointe, rappel);
                 break;
             }
             case GenreType::UNION:
             {
-                auto type_union = type->comme_union();
+                auto type_union = type->comme_type_union();
                 POUR (type_union->membres) {
                     visite_type(it.type, rappel);
                 }
@@ -546,7 +546,7 @@ struct VisiteuseType {
             }
             case GenreType::STRUCTURE:
             {
-                auto type_structure = type->comme_structure();
+                auto type_structure = type->comme_type_structure();
                 POUR (type_structure->membres) {
                     visite_type(it.type, rappel);
                 }
@@ -554,25 +554,25 @@ struct VisiteuseType {
             }
             case GenreType::TABLEAU_DYNAMIQUE:
             {
-                auto tableau = type->comme_tableau_dynamique();
+                auto tableau = type->comme_type_tableau_dynamique();
                 visite_type(tableau->type_pointe, rappel);
                 break;
             }
             case GenreType::TABLEAU_FIXE:
             {
-                auto tableau = type->comme_tableau_fixe();
+                auto tableau = type->comme_type_tableau_fixe();
                 visite_type(tableau->type_pointe, rappel);
                 break;
             }
             case GenreType::VARIADIQUE:
             {
-                auto variadique = type->comme_variadique();
+                auto variadique = type->comme_type_variadique();
                 visite_type(variadique->type_pointe, rappel);
                 break;
             }
             case GenreType::FONCTION:
             {
-                auto fonction = type->comme_fonction();
+                auto fonction = type->comme_type_fonction();
                 POUR (fonction->types_entrees) {
                     visite_type(it, rappel);
                 }

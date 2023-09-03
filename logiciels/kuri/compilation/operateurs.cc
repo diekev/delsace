@@ -439,7 +439,7 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
     auto table = donne_ou_crée_table_opérateurs(type);
 
     auto indice_type_op = IndiceTypeOp();
-    if (type->type_donnees->est_entier_naturel()) {
+    if (type->type_donnees->est_type_entier_naturel()) {
         indice_type_op = IndiceTypeOp::ENTIER_NATUREL;
     }
     else {
@@ -651,12 +651,12 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
 static Attente attente_sur_operateur_ou_type(NoeudExpressionBinaire *noeud)
 {
     auto est_enum_ou_reference_enum = [](Type *t) -> TypeEnum * {
-        if (t->est_enum()) {
-            return t->comme_enum();
+        if (t->est_type_enum()) {
+            return t->comme_type_enum();
         }
 
-        if (t->est_reference() && t->comme_reference()->type_pointe->est_enum()) {
-            return t->comme_reference()->type_pointe->comme_enum();
+        if (t->est_type_reference() && t->comme_type_reference()->type_pointe->est_type_enum()) {
+            return t->comme_type_reference()->type_pointe->comme_type_enum();
         }
 
         return nullptr;

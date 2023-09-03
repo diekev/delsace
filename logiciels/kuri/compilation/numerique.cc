@@ -7,7 +7,7 @@
 
 bool est_hors_des_limites(int64_t valeur, Type *type)
 {
-    if (type->est_entier_naturel()) {
+    if (type->est_type_entier_naturel()) {
         if (type->taille_octet == 1) {
             return valeur >= std::numeric_limits<unsigned char>::max();
         }
@@ -45,7 +45,7 @@ bool est_hors_des_limites(int64_t valeur, Type *type)
 
 int64_t valeur_min(Type *type)
 {
-    if (type->est_entier_naturel()) {
+    if (type->est_type_entier_naturel()) {
         if (type->taille_octet == 1) {
             return std::numeric_limits<unsigned char>::min();
         }
@@ -78,7 +78,7 @@ int64_t valeur_min(Type *type)
 
 uint64_t valeur_max(Type *type)
 {
-    if (type->est_entier_naturel()) {
+    if (type->est_type_entier_naturel()) {
         if (type->taille_octet == 1) {
             return std::numeric_limits<unsigned char>::max();
         }
@@ -111,8 +111,8 @@ uint64_t valeur_max(Type *type)
 
 int nombre_de_bits_pour_type(Type *type)
 {
-    while (type->est_opaque()) {
-        type = type->comme_opaque()->type_opacifie;
+    while (type->est_type_opaque()) {
+        type = type->comme_type_opaque()->type_opacifie;
     }
 
     /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
@@ -125,7 +125,7 @@ int nombre_de_bits_pour_type(Type *type)
         return std::numeric_limits<unsigned short>::digits;
     }
 
-    if (type->taille_octet == 4 || type->est_entier_constant()) {
+    if (type->taille_octet == 4 || type->est_type_entier_constant()) {
         return std::numeric_limits<uint32_t>::digits;
     }
 
