@@ -622,10 +622,10 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
         decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->est_externe;
-    atome_fonc->sanstrace = decl->possede_drapeau(FORCE_SANSTRACE);
+    atome_fonc->sanstrace = decl->possede_drapeau(DrapeauxNoeud::FORCE_SANSTRACE);
     atome_fonc->decl = decl;
     atome_fonc->param_sortie = atome_param_sortie;
-    atome_fonc->enligne = decl->possede_drapeau(FORCE_ENLIGNE);
+    atome_fonc->enligne = decl->possede_drapeau(DrapeauxNoeud::FORCE_ENLIGNE);
 
     decl->atome = atome_fonc;
 
