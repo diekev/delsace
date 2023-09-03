@@ -529,7 +529,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
     auto entete_possible = entete_fonction(noeud);
-    if (entete_possible && !entete_possible->est_initialisation_type) {
+    if (entete_possible &&
+        !entete_possible->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         /* À FAIRE : déplace ceci dans le GestionnaireCode afin de ne pas retravailler sur des
          * entêtes que nous avons déjà vu. */
         auto types_utilises = kuri::ensemblon<Type *, 16>();
@@ -578,7 +579,7 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
     auto entete = entete_fonction(noeud);
     assert(entete);
 
-    if (entete->est_externe) {
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 

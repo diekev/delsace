@@ -116,7 +116,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme);
     decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme);
 
-    decl_entete->est_metaprogramme = true;
+    decl_entete->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
 
     // le type de la fonction est fonc () -> (type_expression)
     auto expression = directive->expression;
@@ -1671,7 +1671,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     TENTE(valide_parametres_fonction(decl))
 
-    if (decl->est_polymorphe) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         /* Puisque les types sont polymorphiques, nous n'avons pas besoin de les valider.
          * Ce sera fait lors de la monomorphisation de la fonction. */
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -1775,7 +1775,7 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur_pour(
 void ContexteValidationCode::valide_parametres_constants_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
-    if (!decl->est_polymorphe) {
+    if (!decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         /* Seules les fonctions polymorphiques ont des constantes. */
         return;
     }
@@ -1839,12 +1839,13 @@ ResultatValidation ContexteValidationCode::valide_parametres_fonction(
 
         if (param->type->est_type_variadique()) {
             param->drapeaux |= DrapeauxNoeud::EST_VARIADIQUE;
-            decl->est_variadique = true;
+            decl->drapeaux_fonction |= DrapeauxNoeudFonction::EST_VARIADIQUE;
             dernier_est_variadic = true;
 
             auto type_var = param->type->comme_type_variadique();
 
-            if (!decl->est_externe && type_var->type_pointe == nullptr) {
+            if (!decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+                type_var->type_pointe == nullptr) {
                 rapporte_erreur("La déclaration de fonction variadique sans type n'est"
                                 " implémentée que pour les fonctions externes",
                                 param);
@@ -2023,8 +2024,10 @@ ResultatValidation ContexteValidationCode::valide_symbole_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
-    if (!(decl->est_externe && decl->ident && decl->ident != ID::__principale &&
-          !decl->possede_drapeau(DrapeauxNoeud::COMPILATRICE) && !decl->est_intrinseque)) {
+    if (!(decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) && decl->ident &&
+          decl->ident != ID::__principale &&
+          !decl->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
+          !decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE))) {
         return CodeRetourValidation::OK;
     }
 
@@ -2389,7 +2392,7 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
 {
     if (decl->est_entete_fonction()) {
         auto const entete = decl->comme_entete_fonction();
-        return entete->est_polymorphe;
+        return entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
     }
 
     if (decl->est_type_structure()) {
@@ -2487,7 +2490,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
 
     if (decl == nullptr) {
-        if (fonction_courante() && fonction_courante()->est_monomorphisation) {
+        if (fonction_courante() &&
+            fonction_courante()->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             auto site_monomorphisation = fonction_courante()->site_monomorphisation;
 
             fichier = m_compilatrice.fichier(site_monomorphisation->lexeme->fichier);
@@ -2580,7 +2584,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
-    if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->est_polymorphe) {
+    if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->possede_drapeau(
+                                           DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         expr->genre_valeur = GenreValeur::DROITE;
     }
 
@@ -2638,7 +2643,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     nouveau_corps->bloc = bloc_corps_texte;
 
     /* mise en place du type de la fonction : () -> chaine */
-    fonction->est_metaprogramme = true;
+    fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
 
     auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
@@ -2698,7 +2703,7 @@ Type *ContexteValidationCode::union_ou_structure_courante() const
 static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                                              NoeudDeclarationEnteteFonction const &entete)
 {
-    if (entete.est_externe) {
+    if (entete.possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 
@@ -2822,7 +2827,8 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 {
     auto entete = decl->entete;
 
-    if (entete->est_polymorphe && !entete->est_monomorphisation) {
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+        !entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
         // nous ferons l'analyse sémantique plus tard
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         return CodeRetourValidation::OK;
@@ -2851,11 +2857,16 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         fonction->bloc_parent = entete->bloc_parent;
         nouveau_corps->bloc_parent = decl->bloc_parent;
 
-        fonction->est_monomorphisation = entete->est_monomorphisation;
+        if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+            fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
+        }
+        else {
+            fonction->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MONOMORPHISATION;
+        }
         fonction->site_monomorphisation = entete->site_monomorphisation;
 
         // préserve les constantes polymorphiques
-        if (fonction->est_monomorphisation) {
+        if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
                 fonction->bloc_constantes->ajoute_membre(it);
             }

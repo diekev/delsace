@@ -37,7 +37,7 @@ static NoeudDeclarationEnteteFonction *est_appel_fonction_initialisation(
 {
     if (expression->est_entete_fonction()) {
         auto entete = expression->comme_entete_fonction();
-        if (entete->est_initialisation_type) {
+        if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
             return entete;
         }
         return nullptr;
@@ -886,7 +886,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto decl = noeud->comme_entete_fonction();
             genere_ri_pour_fonction(decl);
-            if (!decl->est_externe) {
+            if (!decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
                 assert(decl->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
             }
             break;
@@ -1733,7 +1733,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 
     auto atome_fonc = m_compilatrice.trouve_ou_insere_fonction(*this, decl);
 
-    if (decl->est_externe) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
         atome_fonc->ri_generee = true;
         return;
@@ -1749,7 +1749,7 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
     decl->corps->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
     fonction_courante->ri_generee = true;
 
-    if (decl->possede_drapeau(DrapeauxNoeud::DEBOGUE)) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::DEBOGUE)) {
         imprime_fonction(atome_fonc, std::cerr);
     }
 
@@ -3515,7 +3515,7 @@ void ConstructriceRI::genere_ri_pour_initialisation_globales(
 void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     NoeudDeclarationEnteteFonction *fonction)
 {
-    assert(fonction->est_metaprogramme);
+    assert(fonction->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME));
     auto atome_fonc = m_compilatrice.trouve_ou_insere_fonction(*this, fonction);
 
     fonction_courante = atome_fonc;
