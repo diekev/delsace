@@ -267,7 +267,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
                 if (it->lexeme->fichier == appelee->lexeme->fichier &&
                     it->lexeme->ligne >= appelee->lexeme->ligne &&
-                    !it->possede_drapeau(EST_GLOBALE)) {
+                    !it->possede_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
                     continue;
                 }
             }
@@ -696,8 +696,9 @@ static ResultatAppariement apparie_appel_fonction(
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = parametres_entree[i];
-        apparieuse_params.ajoute_param(
-            param->ident, param->expression, param->possede_drapeau(EST_VARIADIQUE));
+        apparieuse_params.ajoute_param(param->ident,
+                                       param->expression,
+                                       param->possede_drapeau(DrapeauxNoeud::EST_VARIADIQUE));
     }
 
     POUR (args) {
@@ -839,7 +840,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
 
-        if (param->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+        if (param->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
         }
 
@@ -875,7 +876,7 @@ static ResultatAppariement apparie_appel_fonction(
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (expr->drapeaux & POUR_CUISSON) {
+    if (expr->possede_drapeau(DrapeauxNoeud::POUR_CUISSON)) {
         return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
     }
 
@@ -894,7 +895,8 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     if (expr->est_reference_declaration()) {
         auto ref_decl = expr->comme_reference_declaration();
 
-        if (ref_decl->declaration_referee->drapeaux & EST_VALEUR_POLYMORPHIQUE) {
+        if (ref_decl->declaration_referee->possede_drapeau(
+                DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             return true;
         }
     }
@@ -953,7 +955,7 @@ static ResultatAppariement apparie_appel_structure(
             auto param = params_polymorphiques->membre_pour_index(index_param);
             index_param += 1;
 
-            if (!param->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+            if (!param->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                 assert_rappel(false, []() {
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
@@ -1219,7 +1221,7 @@ static std::optional<Attente> apparies_candidates(
             }
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
-                if (!decl_opaque->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                if (!decl_opaque->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_opaque);
                 }
                 resultat.resultats.ajoute(apparie_construction_opaque(
@@ -1228,7 +1230,7 @@ static std::optional<Attente> apparies_candidates(
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
 
-                if (!decl_fonc->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+                if (!decl_fonc->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_fonc);
                 }
 
@@ -1238,7 +1240,7 @@ static std::optional<Attente> apparies_candidates(
             else if (decl->est_declaration_variable()) {
                 auto type = decl->type;
 
-                if ((decl->drapeaux & DECLARATION_FUT_VALIDEE) == 0) {
+                if (!decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl->comme_declaration_variable());
                 }
 
@@ -1334,8 +1336,10 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
     POUR (items_monomorphisation) {
         auto decl_constante =
             trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_declaration_variable();
-        decl_constante->drapeaux |= (EST_CONSTANTE | DECLARATION_FUT_VALIDEE);
-        decl_constante->drapeaux &= ~(EST_VALEUR_POLYMORPHIQUE | DECLARATION_TYPE_POLYMORPHIQUE);
+        decl_constante->drapeaux |= (DrapeauxNoeud::EST_CONSTANTE |
+                                     DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+        decl_constante->drapeaux &= ~(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                                      DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->type = const_cast<Type *>(it.type);
 
         if (!it.est_type) {
@@ -1646,7 +1650,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 expr,
                 std::move(candidate->items_monomorphisation));
 
-            if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (doit_monomorpher ||
+                !noeud_decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(noeud_decl);
             }
 
@@ -1657,7 +1662,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_fonc = decl_fonction_appelee->type->comme_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
-        auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
         if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
             espace
                 .rapporte_erreur(
@@ -1678,7 +1683,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         applique_transformations(contexte, candidate, expr);
 
         expr->noeud_fonction_appelee = decl_fonction_appelee;
-        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
+        decl_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -1696,7 +1701,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 expr,
                 std::move(candidate->items_monomorphisation));
 
-            if (doit_monomorpher || !noeud_decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+            if (doit_monomorpher ||
+                !noeud_decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(noeud_decl);
             }
 
@@ -1705,7 +1711,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->type = decl_fonction_appelee->type;
         expr->expression = decl_fonction_appelee;
-        decl_fonction_appelee->drapeaux |= EST_UTILISEE;
+        decl_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
@@ -1721,7 +1727,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
-                copie->drapeaux |= EST_UTILISEE;
+                copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
             expr->noeud_fonction_appelee = copie;
@@ -1738,7 +1744,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
             expr->noeud_fonction_appelee = candidate->noeud_decl;
 
-            if (!expr->possede_drapeau(DROITE_ASSIGNATION)) {
+            if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
                 espace.rapporte_erreur(
                     expr,
                     "La valeur de l'expression de construction de structure n'est pas "
@@ -1760,7 +1766,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         applique_transformations(contexte, candidate, expr);
 
-        auto expr_gauche = !expr->possede_drapeau(DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
         if (expr->type->genre != GenreType::RIEN && expr_gauche) {
             espace
                 .rapporte_erreur(expr,
@@ -1781,7 +1787,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         if (expr->expression->est_reference_declaration()) {
             auto ref = expr->expression->comme_reference_declaration();
-            ref->declaration_referee->drapeaux |= EST_UTILISEE;
+            ref->declaration_referee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {

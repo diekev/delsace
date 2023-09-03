@@ -22,6 +22,18 @@
 #include "canonicalisation.hh"
 #include "noeud_code.hh"
 
+/* ------------------------------------------------------------------------- */
+/** \name DrapeauxNoeud
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
+{
+    os << static_cast<uint32_t>(drapeaux);
+    return os;
+}
+
+/** \} */
+
 /* ************************************************************************** */
 
 static void aplatis_arbre(NoeudExpression *racine,
@@ -101,7 +113,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto opaque = racine->comme_type_opaque();
             /* Évite les déclarations de types polymorphiques car cela gène la validation puisque
              * la déclaration n'est dans aucun bloc. */
-            if (!opaque->expression_type->possede_drapeau(DECLARATION_TYPE_POLYMORPHIQUE)) {
+            if (!opaque->expression_type->possede_drapeau(
+                    DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
                 aplatis_arbre(opaque->expression_type, arbre_aplatis, drapeau);
             }
             arbre_aplatis.ajoute(racine);
@@ -202,11 +215,13 @@ static void aplatis_arbre(NoeudExpression *racine,
                 // de l'accédée, la branche de membre pouvant être une fonction, ferait échouer la
                 // validation sémantique
                 auto ref_membre = static_cast<NoeudExpressionMembre *>(appelee);
-                aplatis_arbre(
-                    ref_membre->accedee, arbre_aplatis, drapeau | GAUCHE_EXPRESSION_APPEL);
+                aplatis_arbre(ref_membre->accedee,
+                              arbre_aplatis,
+                              drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
             }
             else {
-                aplatis_arbre(appelee, arbre_aplatis, drapeau | GAUCHE_EXPRESSION_APPEL);
+                aplatis_arbre(
+                    appelee, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
             }
 
             POUR (expr->parametres) {
@@ -297,8 +312,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto cuisine = racine->comme_cuisine();
             cuisine->drapeaux |= drapeau;
 
-            drapeau |= DROITE_ASSIGNATION;
-            drapeau |= POUR_CUISSON;
+            drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
+            drapeau |= DrapeauxNoeud::POUR_CUISSON;
 
             aplatis_arbre(cuisine->expression, arbre_aplatis, drapeau);
             arbre_aplatis.ajoute(cuisine);
@@ -310,7 +325,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->drapeaux |= drapeau;
 
             if (expr->ident == ID::assert_ || expr->ident == ID::test) {
-                drapeau |= DROITE_ASSIGNATION;
+                drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
             }
 
             aplatis_arbre(expr->expression, arbre_aplatis, drapeau);
@@ -481,14 +496,14 @@ void aplatis_arbre(NoeudExpression *declaration)
         if (entete->arbre_aplatis.taille() == 0) {
             /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
             POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-                if (!it->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                if (!it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                     continue;
                 }
                 aplatis_arbre(it, entete->arbre_aplatis, {});
             }
 
             POUR (entete->params) {
-                if (it->possede_drapeau(EST_VALEUR_POLYMORPHIQUE)) {
+                if (it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                     continue;
                 }
                 aplatis_arbre(it, entete->arbre_aplatis, {});
@@ -644,7 +659,8 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
         return nom_broye_;
     }
 
-    if (ident != ID::principale && !possede_drapeau(EST_EXTERNE | FORCE_SANSBROYAGE)) {
+    if (ident != ID::principale &&
+        !possede_drapeau(DrapeauxNoeud::EST_EXTERNE | DrapeauxNoeud::FORCE_SANSBROYAGE)) {
         auto fichier = espace->compilatrice().fichier(lexeme->fichier);
         nom_broye_ = broyeuse.broye_nom_fonction(this, fichier->module->nom());
     }
@@ -1547,9 +1563,9 @@ void imprime_details_fonction(EspaceDeTravail *espace,
     os << "-- Est #corps_texte        : " << std::boolalpha << entete->corps->est_corps_texte
        << '\n';
     os << "-- Entête fut validée      : " << std::boolalpha
-       << entete->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
+       << entete->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) << '\n';
     os << "-- Corps fut validé        : " << std::boolalpha
-       << entete->corps->possede_drapeau(DECLARATION_FUT_VALIDEE) << '\n';
+       << entete->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) << '\n';
     os << "-- Est monomorphisation    : " << std::boolalpha << entete->est_monomorphisation
        << '\n';
     os << "-- Est initialisation type : " << std::boolalpha << entete->est_initialisation_type
@@ -1628,7 +1644,7 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
                 &lexeme_decl, type_param, ID::pointeur, nullptr);
 
             decl_param->type = type_param;
-            decl_param->drapeaux |= DECLARATION_FUT_VALIDEE;
+            decl_param->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
             entete->params.ajoute(decl_param);
         }
@@ -1653,7 +1669,9 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
         }
 
         entete->type = type_fonction;
-        entete->drapeaux |= (FORCE_ENLIGNE | DECLARATION_FUT_VALIDEE | FORCE_SANSTRACE);
+        entete->drapeaux |= (DrapeauxNoeud::FORCE_ENLIGNE |
+                             DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
+                             DrapeauxNoeud::FORCE_SANSTRACE);
 
         type->fonction_init = entete;
 
@@ -2113,7 +2131,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
     assembleuse->depile_bloc();
     simplifie_arbre(espace, assembleuse, typeuse, entete);
     type->assigne_fonction_init(entete);
-    corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+    corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 }
 
 /* Retourne la référence de déclaration de l'expression racine pour l'expression à droite d'une
