@@ -93,6 +93,11 @@ struct IdentifiantADN {
     {
         return nom == "";
     }
+
+    void préserve_accents()
+    {
+        nom_sans_accent = nom;
+    }
 };
 
 FluxSortieCPP &operator<<(FluxSortieCPP &flux, IdentifiantADN const &ident);

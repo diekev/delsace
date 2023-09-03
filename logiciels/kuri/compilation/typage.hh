@@ -327,6 +327,11 @@ struct MembreTypeComposé {
     }
 };
 
+struct InformationMembreTypeCompose {
+    MembreTypeComposé membre{};
+    int index_membre = -1;
+};
+
 /* Type de base pour tous les types ayant des membres (structures, énumérations, etc.).
  */
 struct TypeCompose : public Type {
@@ -344,11 +349,6 @@ struct TypeCompose : public Type {
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
     kuri::chaine nom_hierarchique_ = "";
-
-    struct InformationMembre {
-        MembreTypeComposé membre{};
-        int index_membre = -1;
-    };
 };
 
 inline bool est_type_compose(const Type *type)
@@ -780,10 +780,10 @@ bool requiers_création_fonction_initialisation(Type const *type);
 /** \name Accès aux membres des types composés.
  * \{ */
 
-std::optional<TypeCompose::InformationMembre> donne_membre_pour_type(
+std::optional<InformationMembreTypeCompose> donne_membre_pour_type(
     TypeCompose const *type_composé, Type const *type);
 
-std::optional<TypeCompose::InformationMembre> donne_membre_pour_nom(
+std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_membre);
 
 /** \} */
