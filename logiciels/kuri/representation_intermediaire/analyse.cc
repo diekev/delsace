@@ -310,7 +310,7 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
             {
                 auto appel = it->comme_appel();
 
-                if (appel->type->genre == GenreType::RIEN) {
+                if (appel->type->est_type_rien()) {
                     incremente_nombre_utilisations_recursif(it);
                 }
 

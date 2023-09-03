@@ -357,13 +357,13 @@ void membre_inconnu(EspaceDeTravail const &espace,
 
     const char *message;
 
-    if (type->genre == GenreType::ENUM) {
+    if (type->est_type_enum()) {
         message = "de l'énumération";
     }
-    else if (type->genre == GenreType::UNION) {
+    else if (type->est_type_union()) {
         message = "de l'union";
     }
-    else if (type->genre == GenreType::ERREUR) {
+    else if (type->est_type_erreur()) {
         message = "de l'erreur";
     }
     else {

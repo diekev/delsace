@@ -343,7 +343,7 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
     auto index_entree = 0;
     auto pointeur_lecture_retour = pointeur_debut_retour;
     POUR (type_fonction->types_sorties) {
-        if (it->genre == GenreType::RIEN) {
+        if (it->est_type_rien()) {
             continue;
         }
 
@@ -441,8 +441,10 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     pointeur_pile -= taille_argument;
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-    imprime_valeurs_entrees(
-        pointeur_pile, ptr_fonction->type->comme_type_fonction(), ptr_fonction->nom, profondeur_appel);
+    imprime_valeurs_entrees(pointeur_pile,
+                            ptr_fonction->type->comme_type_fonction(),
+                            ptr_fonction->nom,
+                            profondeur_appel);
 #endif
 
     if (!appel(ptr_fonction, site)) {
@@ -795,7 +797,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
             auto ptr = &pointeur_arguments[decalage_argument];
             pointeurs_arguments.ajoute(ptr);
 
-            if (it->type->genre == GenreType::ENTIER_CONSTANT) {
+            if (it->type->est_type_entier_constant()) {
                 decalage_argument += 4;
             }
             else {
