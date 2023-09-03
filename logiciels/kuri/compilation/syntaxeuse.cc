@@ -517,7 +517,7 @@ void Syntaxeuse::quand_commence()
 
         recipiente->corps->bloc = analyse_bloc(false);
         recipiente->corps->est_corps_texte = false;
-        recipiente->est_metaprogramme = false;
+        recipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
     }
     else if (metaprogramme->corps_texte_pour_structure) {
         auto recipiente = metaprogramme->corps_texte_pour_structure;
@@ -2227,7 +2227,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         }
 
         m_unite->espace->fonction_principale = noeud;
-        noeud->drapeaux |= DrapeauxNoeud::EST_RACINE;
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
     }
 
     auto lexeme_bloc = lexeme_courant();
@@ -2241,7 +2241,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     DIFFERE {
         auto bloc_constantes = bloc_constantes_polymorphiques.depile();
         if (bloc_constantes->nombre_de_membres() != 0) {
-            noeud->est_polymorphe = true;
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
         }
 
         /* Ajoute les constantes polymorphiques de ce type dans ceux du bloc de constantes
@@ -2348,20 +2348,21 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
         ignore_point_virgule_implicite();
 
+        DrapeauxNoeudFonction drapeaux_fonction = DrapeauxNoeudFonction::AUCUN;
         while (!fini() && apparie(GenreLexeme::DIRECTIVE)) {
             consomme();
 
             auto ident_directive = lexeme_courant()->ident;
 
             if (ident_directive == ID::enligne) {
-                noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
             }
             else if (ident_directive == ID::horsligne) {
-                noeud->drapeaux |= DrapeauxNoeud::FORCE_HORSLIGNE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
             }
             else if (ident_directive == ID::externe) {
                 noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                noeud->est_externe = true;
+                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
 
                 if (lexeme_mot_cle->genre == GenreLexeme::COROUT) {
                     rapporte_erreur("Une coroutine ne peut pas être externe");
@@ -2390,22 +2391,23 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 }
 
                 noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-                noeud->est_externe = true;
+                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
             }
             else if (ident_directive == ID::sanstrace) {
-                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
             }
             else if (ident_directive == ID::interface) {
                 m_compilatrice.interface_kuri->mute_membre(noeud);
             }
             else if (ident_directive == ID::creation_contexte) {
-                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
-                noeud->drapeaux |= DrapeauxNoeud::EST_RACINE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
                 m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
             }
             else if (ident_directive == ID::compilatrice) {
-                noeud->drapeaux |= (DrapeauxNoeud::FORCE_SANSTRACE | DrapeauxNoeud::COMPILATRICE);
-                noeud->est_externe = true;
+                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                      DrapeauxNoeudFonction::EST_IPA_COMPILATRICE |
+                                      DrapeauxNoeudFonction::EST_EXTERNE);
 
                 if (!est_fonction_compilatrice(noeud->ident)) {
                     rapporte_erreur("#compilatrice utilisé sur une fonction ne faisant pas partie "
@@ -2413,21 +2415,21 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 }
             }
             else if (ident_directive == ID::sansbroyage) {
-                noeud->drapeaux |= (DrapeauxNoeud::FORCE_SANSBROYAGE);
+                drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_SANSBROYAGE);
             }
             else if (ident_directive == ID::racine) {
-                noeud->drapeaux |= (DrapeauxNoeud::EST_RACINE);
+                drapeaux_fonction |= (DrapeauxNoeudFonction::EST_RACINE);
             }
             else if (ident_directive == ID::corps_texte) {
                 noeud->corps->est_corps_texte = true;
             }
             else if (ident_directive == ID::debogue) {
-                noeud->drapeaux |= DrapeauxNoeud::DEBOGUE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::DEBOGUE;
             }
             else if (ident_directive == ID::intrinsèque) {
-                noeud->drapeaux |= DrapeauxNoeud::FORCE_SANSTRACE;
-                noeud->est_intrinseque = true;
-                noeud->est_externe = true;
+                drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::EST_INTRINSÈQUE;
+                drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
 
                 consomme();
 
@@ -2444,7 +2446,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             consomme();
         }
 
-        if (noeud->est_externe) {
+        noeud->drapeaux_fonction |= drapeaux_fonction;
+
+        if (noeud->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
             if (noeud->params_sorties.taille() > 1) {
                 rapporte_erreur(
                     "Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -2605,10 +2609,10 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         auto directive = lexeme_courant()->ident;
 
         if (directive == ID::enligne) {
-            noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
         }
         else if (directive == ID::horsligne) {
-            noeud->drapeaux |= DrapeauxNoeud::FORCE_HORSLIGNE;
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
         }
         else {
             rapporte_erreur("Directive inconnue");
@@ -2617,8 +2621,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         consomme();
     }
 
-    if (!noeud->possede_drapeau(DrapeauxNoeud::FORCE_HORSLIGNE)) {
-        noeud->drapeaux |= DrapeauxNoeud::FORCE_ENLIGNE;
+    if (!noeud->possede_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
     }
 
     ignore_point_virgule_implicite();
