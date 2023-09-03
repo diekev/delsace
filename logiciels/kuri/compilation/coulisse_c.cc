@@ -227,7 +227,7 @@ struct ConvertisseuseTypeC {
                     return;
                 }
 
-                auto nom_struct = broyeuse.broye_nom_simple(type_struct->nom_portable());
+                auto nom_struct = broyeuse.broye_nom_simple(donne_nom_portable(type_struct));
 
                 // struct anomyme
                 if (type_struct->est_anonyme) {
@@ -249,7 +249,7 @@ struct ConvertisseuseTypeC {
                     cree_typedef(it.type, enchaineuse);
                 }
 
-                auto nom_union = broyeuse.broye_nom_simple(type_union->nom_portable());
+                auto nom_union = broyeuse.broye_nom_simple(donne_nom_portable(type_union));
 
                 if (type_union->est_anonyme) {
                     type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
@@ -567,7 +567,7 @@ void ConvertisseuseTypeC::genere_declaration_structure(Enchaineuse &enchaineuse,
                                                        TypeStructure *type_compose,
                                                        int quoi)
 {
-    auto nom_broye = broyeuse.broye_nom_simple(type_compose->nom_portable());
+    auto nom_broye = broyeuse.broye_nom_simple(donne_nom_portable(type_compose));
 
     if (type_compose->decl && type_compose->decl->est_monomorphisation) {
         nom_broye = enchaine(nom_broye, type_compose);
