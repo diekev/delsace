@@ -434,12 +434,12 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
 
     auto type_fonc = decl->type->comme_type_fonction();
 
-    if (decl->est_metaprogramme) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME)) {
         stockage_temp << "metaprogramme" << decl;
         return chaine_finale_pour_stockage_temp();
     }
 
-    if (decl->est_initialisation_type) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         auto type_param = decl->parametre_entree(0)->type->comme_type_pointeur()->type_pointe;
         // Ajout du pointeur du type pour différencier les types monomorphés.
         stockage_temp << "initialise_" << type_param;
