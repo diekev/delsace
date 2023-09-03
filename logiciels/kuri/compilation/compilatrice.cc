@@ -475,7 +475,8 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
     auto resultat = kuri::tableau<NoeudCodeEnteteFonction *>();
     resultat.reserve(entetes.taille());
     POUR (entetes) {
-        if (it->est_operateur || it->est_coroutine || it->est_polymorphe) {
+        if (it->est_operateur || it->est_coroutine ||
+            it->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }
         auto code_entete = convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, it);
@@ -624,11 +625,11 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
     auto atome_fonc = fonctions.ajoute_element(
         decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
     atome_fonc->type = decl->type;
-    atome_fonc->est_externe = decl->est_externe;
-    atome_fonc->sanstrace = decl->possede_drapeau(DrapeauxNoeud::FORCE_SANSTRACE);
+    atome_fonc->est_externe = decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
+    atome_fonc->sanstrace = decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
     atome_fonc->decl = decl;
     atome_fonc->param_sortie = atome_param_sortie;
-    atome_fonc->enligne = decl->possede_drapeau(DrapeauxNoeud::FORCE_ENLIGNE);
+    atome_fonc->enligne = decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE);
 
     decl->atome = atome_fonc;
 

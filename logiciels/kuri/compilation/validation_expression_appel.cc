@@ -245,7 +245,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         if (contexte.fonction_courante()) {
             auto fonction_courante = contexte.fonction_courante();
 
-            if (fonction_courante->est_monomorphisation) {
+            if (fonction_courante->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 auto site_monomorphisation = fonction_courante->site_monomorphisation;
                 auto fichier_site = espace.compilatrice().fichier(
                     site_monomorphisation->lexeme->fichier);
@@ -634,7 +634,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (!decl->est_polymorphe) {
+    if (!decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
@@ -673,8 +673,10 @@ static ResultatAppariement apparie_appel_fonction(
     Monomorpheuse *monomorpheuse)
 {
     auto const nombre_args = decl->params.taille();
+    auto const est_variadique = decl->possede_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE);
+    auto const est_externe = decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
 
-    if (!decl->est_variadique && (args.taille() > nombre_args)) {
+    if (!est_variadique && (args.taille() > nombre_args)) {
         return ErreurAppariement::mecomptage_arguments(expr, nombre_args, args.taille());
     }
 
@@ -689,9 +691,9 @@ static ResultatAppariement apparie_appel_fonction(
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
 
-    auto fonction_variadique_interne = decl->est_variadique && !decl->est_externe;
-    auto apparieuse_params = ApparieuseParams(
-        decl->est_externe ? ChoseÀApparier::FONCTION_EXTERNE : ChoseÀApparier::FONCTION_INTERNE);
+    auto fonction_variadique_interne = est_variadique && !est_externe;
+    auto apparieuse_params = ApparieuseParams(est_externe ? ChoseÀApparier::FONCTION_EXTERNE :
+                                                            ChoseÀApparier::FONCTION_INTERNE);
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -716,7 +718,7 @@ static ResultatAppariement apparie_appel_fonction(
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    if (decl->est_polymorphe) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         auto résultat_monomorphisation = détermine_monomorphisation(*monomorpheuse, decl, slots);
         if (std::holds_alternative<Attente>(résultat_monomorphisation)) {
             return ErreurAppariement::dependance_non_satisfaite(
@@ -856,7 +858,7 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-    if (decl->est_polymorphe) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         copie_tablet_tableau(monomorpheuse->résultat_pour_monomorphisation(),
                              items_monomorphisation);
     }
@@ -880,7 +882,7 @@ static ResultatAppariement apparie_appel_fonction(
         return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
     }
 
-    if (decl->est_polymorphe) {
+    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         Monomorpheuse monomorpheuse(espace, decl);
         return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
     }
@@ -1370,8 +1372,8 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
         return {entete, false};
     }
 
-    entete->est_monomorphisation = true;
-    entete->est_polymorphe = false;
+    entete->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
+    entete->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     entete->site_monomorphisation = site;
 
     // Supprime les valeurs polymorphiques
@@ -1446,7 +1448,7 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
                                       NoeudDeclarationEnteteFonction *fonction,
                                       kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (!fonction->est_intrinseque) {
+    if (!fonction->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return true;
     }
 
