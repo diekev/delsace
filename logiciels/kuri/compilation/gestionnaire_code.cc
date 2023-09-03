@@ -805,7 +805,7 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *esp
 
 void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Type *type)
 {
-    if (!type->requiers_création_fonction_initialisation()) {
+    if (!requiers_création_fonction_initialisation(type)) {
         return;
     }
 
