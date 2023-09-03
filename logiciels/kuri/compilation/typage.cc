@@ -1138,24 +1138,24 @@ bool requiers_création_fonction_initialisation(Type const *type)
 /** \name Accès aux membres des types composés.
  * \{ */
 
-std::optional<TypeCompose::InformationMembre> donne_membre_pour_type(
+std::optional<InformationMembreTypeCompose> donne_membre_pour_type(
     TypeCompose const *type_composé, Type const *type)
 {
     POUR_INDEX (type_composé->membres) {
         if (it.type == type) {
-            return TypeCompose::InformationMembre{it, index_it};
+            return InformationMembreTypeCompose{it, index_it};
         }
     }
 
     return {};
 }
 
-std::optional<TypeCompose::InformationMembre> donne_membre_pour_nom(
+std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_membre)
 {
     POUR_INDEX (type_composé->membres) {
         if (it.nom == nom_membre) {
-            return TypeCompose::InformationMembre{it, index_it};
+            return InformationMembreTypeCompose{it, index_it};
         }
     }
 
