@@ -172,6 +172,14 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tkuri::chaine_statique nom_broye(EspaceDeTravail *espace, Broyeuse "
                   "&broyeuse);\n";
             os << "\tType *type_initialisé() const;\n";
+            os << "\tinline bool possede_drapeau(DrapeauxNoeud drapeaux_) const\n";
+            os << "\t{\n";
+            os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
+            os << "\t}\n";
+            os << "\tinline bool possede_drapeau(DrapeauxNoeudFonction drapeaux_) const\n";
+            os << "\t{\n";
+            os << "\t\treturn (drapeaux_fonction & drapeaux_) != DrapeauxNoeudFonction::AUCUN;\n";
+            os << "\t}\n";
         }
         else if (m_nom.nom_cpp() == "NoeudBloc") {
             os << "\tmutable int nombre_recherches = 0;\n";

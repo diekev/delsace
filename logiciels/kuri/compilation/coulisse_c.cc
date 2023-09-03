@@ -811,7 +811,8 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
         {
             auto atome_fonc = static_cast<AtomeFonction const *>(atome);
 
-            if (atome_fonc->decl && atome_fonc->decl->est_intrinseque) {
+            if (atome_fonc->decl &&
+                atome_fonc->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
                 return atome_fonc->decl->nom_symbole;
             }
 
@@ -1651,7 +1652,8 @@ void GeneratriceCodeC::declare_globale(Enchaineuse &os,
 
 void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
-    if (atome_fonc->decl && atome_fonc->decl->est_intrinseque) {
+    if (atome_fonc->decl &&
+        atome_fonc->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return;
     }
 
@@ -2023,7 +2025,8 @@ static void rassemble_bibliotheques_utilisees(ProgrammeRepreInter &repr_inter_pr
 {
     kuri::ensemble<Bibliotheque *> bibliotheques_utilisees;
     POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->est_externe && it->decl->symbole) {
+        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+            it->decl->symbole) {
             rassemble_bibliotheques_utilisee(
                 bibliotheques, bibliotheques_utilisees, it->decl->symbole->bibliotheque);
         }
@@ -2088,7 +2091,7 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeud::EST_RACINE)) {
+        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
             ++nombre_fonctions_racines;
         }
 
