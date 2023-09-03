@@ -456,7 +456,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TypeTransformation::CONSTRUIT_TABL_OCTET;
         }
 
-        if (type_de->genre != GenreType::TABLEAU_FIXE) {
+        if (!type_de->est_type_tableau_fixe()) {
             return TypeTransformation::IMPOSSIBLE;
         }
 

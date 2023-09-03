@@ -572,7 +572,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         // stockage de la valeur de retour dans l'ancienne adresse
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
-        if (appel->type->genre != GenreType::RIEN) {
+        if (!appel->type->est_type_rien()) {
             adresse_retour = constructrice.cree_allocation(nullptr, appel->type, nullptr, true);
             nouvelle_instructions.ajoute(adresse_retour);
         }
