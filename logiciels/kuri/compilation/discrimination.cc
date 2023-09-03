@@ -68,7 +68,7 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
                 return CodeRetourValidation::Erreur;
             }
 
-            auto info_membre = type_enum->donne_membre_pour_nom(f->ident);
+            auto info_membre = donne_membre_pour_nom(type_enum, f->ident);
 
             if (!info_membre) {
                 rapporte_erreur_membre_inconnu(inst, f, type_enum);
@@ -248,7 +248,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
             return CodeRetourValidation::Erreur;
         }
 
-        auto info_membre = type_union->donne_membre_pour_nom(expression_valide->ident);
+        auto info_membre = donne_membre_pour_nom(type_union, expression_valide->ident);
 
         if (!info_membre) {
             rapporte_erreur_membre_inconnu(inst, feuille, type_union);
@@ -351,7 +351,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         expr_paire->type = type_expr;
 
-        auto info_membre = type_union->donne_membre_pour_type(type_expr);
+        auto info_membre = donne_membre_pour_type(type_union, type_expr);
         if (!info_membre) {
             rapporte_erreur("Le type n'est pas membre de l'union", feuille);
             return CodeRetourValidation::Erreur;
