@@ -214,21 +214,21 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_de->genre == GenreType::ENUM) {
-            if (type_vers == static_cast<TypeEnum const *>(type_de)->type_donnees) {
+            if (type_vers == static_cast<TypeEnum const *>(type_de)->type_sous_jacent) {
                 // on pourrait se passer de la conversion, ou normaliser le type
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
         if (type_de->genre == GenreType::ERREUR) {
-            if (type_vers == type_de->comme_type_erreur()->type_donnees) {
+            if (type_vers == type_de->comme_type_erreur()->type_sous_jacent) {
                 // on pourrait se passer de la conversion, ou normaliser le type
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
         }
 
         if (type_vers->genre == GenreType::ENUM &&
-            static_cast<TypeEnum const *>(type_vers)->type_donnees == type_de) {
+            static_cast<TypeEnum const *>(type_vers)->type_sous_jacent == type_de) {
             // on pourrait se passer de la conversion, ou normaliser le type
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
