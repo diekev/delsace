@@ -1675,8 +1675,8 @@ void Simplificatrice::simplifie_construction_structure_impl(
 
 /**
  * Trouve le membre de \a type_composé ayant ajouté via `empl base: ...` la \a decl_employée et
- * retourne son #TypeCompose::InformationMembre. */
-static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ayant_ajouté_decl(
+ * retourne son #InformationMembreTypeCompose. */
+static std::optional<InformationMembreTypeCompose> trouve_information_membre_ayant_ajouté_decl(
     TypeCompose *type_composé, NoeudDeclarationSymbole *decl_employée)
 {
     auto info_membre = donne_membre_pour_type(type_composé, decl_employée->type);
@@ -1693,8 +1693,8 @@ static std::optional<TypeCompose::InformationMembre> trouve_information_membre_a
 
 /**
  * Trouve le membre de \a type_composé ayant pour nom le \a nom donné et
- * retourne son #TypeCompose::InformationMembre. */
-static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ajouté_par_emploi(
+ * retourne son #InformationMembreTypeCompose. */
+static std::optional<InformationMembreTypeCompose> trouve_information_membre_ajouté_par_emploi(
     TypeCompose *type_composé, IdentifiantCode *nom)
 {
     return donne_membre_pour_nom(type_composé, nom);
@@ -1703,7 +1703,7 @@ static std::optional<TypeCompose::InformationMembre> trouve_information_membre_a
 /**
  * Construit la hiérarchie des structures employées par \a type_composé jusqu'à la structure
  * employée ayant ajoutée \a membre à \a type_composé.
- * Le résultat contiendra une #TypeCompose::InformationMembre pour chaque membre employé de chaque
+ * Le résultat contiendra une #InformationMembreTypeCompose pour chaque membre employé de chaque
  * structure rencontrée + le membre de la structure à l'origine du membre ajouté par emploi.
  *
  * Par exemple, pour :
@@ -1730,10 +1730,10 @@ static std::optional<TypeCompose::InformationMembre> trouve_information_membre_a
  * - base1
  * - x
  */
-static kuri::tableau<TypeCompose::InformationMembre, int> trouve_hiérarchie_emploi_membre(
+static kuri::tableau<InformationMembreTypeCompose, int> trouve_hiérarchie_emploi_membre(
     TypeCompose *type_composé, MembreTypeComposé const &membre)
 {
-    kuri::tableau<TypeCompose::InformationMembre, int> hiérarchie;
+    kuri::tableau<InformationMembreTypeCompose, int> hiérarchie;
 
     auto type_composé_courant = type_composé;
     auto membre_courant = membre;
