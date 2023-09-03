@@ -118,8 +118,8 @@ struct ConvertisseuseTypeC {
             case GenreType::ENUM:
             {
                 auto type_enum = static_cast<TypeEnum *>(type);
-                cree_typedef(type_enum->type_donnees, enchaineuse);
-                auto nom_broye_type_donnees = broyeuse.nom_broye_type(type_enum->type_donnees);
+                cree_typedef(type_enum->type_sous_jacent, enchaineuse);
+                auto nom_broye_type_donnees = broyeuse.nom_broye_type(type_enum->type_sous_jacent);
                 type_c.typedef_ = nom_broye_type_donnees;
                 break;
             }
@@ -490,7 +490,7 @@ struct ConvertisseuseTypeC {
         }
         else if (type->est_type_enum()) {
             auto type_enum = type->comme_type_enum();
-            genere_code_pour_type(type_enum->type_donnees, enchaineuse);
+            genere_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
         }
         else if (type->est_type_tableau_fixe()) {
             auto tableau_fixe = type->comme_type_tableau_fixe();

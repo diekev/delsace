@@ -2962,10 +2962,10 @@ template <int N>
 ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
 {
     auto &graphe = m_compilatrice.graphe_dependance;
-    graphe->connecte_type_type(type_enum, type_enum->type_donnees);
+    graphe->connecte_type_type(type_enum, type_enum->type_sous_jacent);
 
-    type_enum->taille_octet = type_enum->type_donnees->taille_octet;
-    type_enum->alignement = type_enum->type_donnees->alignement;
+    type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
+    type_enum->alignement = type_enum->type_sous_jacent->alignement;
 
     m_compilatrice.operateurs->ajoute_operateur_basique_enum(m_compilatrice.typeuse, type_enum);
 
@@ -3068,16 +3068,16 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
             }
         }
 
-        if (est_hors_des_limites(valeur.entiere(), type_enum->type_donnees)) {
+        if (est_hors_des_limites(valeur.entiere(), type_enum->type_sous_jacent)) {
             auto e = espace->rapporte_erreur(
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
-                             chaine_type(type_enum->type_donnees),
+                             chaine_type(type_enum->type_sous_jacent),
                              " ».");
             e.ajoute_message("Les valeurs légales pour un tel type se trouvent entre ",
-                             valeur_min(type_enum->type_donnees),
+                             valeur_min(type_enum->type_sous_jacent),
                              " et ",
-                             valeur_max(type_enum->type_donnees),
+                             valeur_max(type_enum->type_sous_jacent),
                              ".\n");
             e.ajoute_message("Or, la valeur courante est de ", valeur.entiere(), ".\n");
             return CodeRetourValidation::Erreur;
@@ -3147,19 +3147,19 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (type_enum->est_erreur) {
-        type_enum->type_donnees = TypeBase::Z32;
+        type_enum->type_sous_jacent = TypeBase::Z32;
     }
     else if (decl->expression_type != nullptr) {
         TENTE(valide_semantique_noeud(decl->expression_type));
 
-        if (resoud_type_final(decl->expression_type, type_enum->type_donnees) ==
+        if (resoud_type_final(decl->expression_type, type_enum->type_sous_jacent) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
 
         /* les énum_drapeaux doivent être des types naturels pour éviter les problèmes
          * d'arithmétiques binaire */
-        if (type_enum->est_drapeau && !type_enum->type_donnees->est_type_entier_naturel()) {
+        if (type_enum->est_drapeau && !type_enum->type_sous_jacent->est_type_entier_naturel()) {
             espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Les énum_drapeaux doivent être de type entier naturel (n8, "
@@ -3175,7 +3175,7 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
             return CodeRetourValidation::Erreur;
         }
 
-        if (!est_type_entier(type_enum->type_donnees)) {
+        if (!est_type_entier(type_enum->type_sous_jacent)) {
             espace->rapporte_erreur(
                 decl->expression_type,
                 "Le type de données d'une énumération doit être de type entier");
@@ -3183,10 +3183,10 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
         }
     }
     else if (type_enum->est_drapeau) {
-        type_enum->type_donnees = TypeBase::N32;
+        type_enum->type_sous_jacent = TypeBase::N32;
     }
     else {
-        type_enum->type_donnees = TypeBase::Z32;
+        type_enum->type_sous_jacent = TypeBase::Z32;
     }
 
     if (type_enum->est_erreur) {
