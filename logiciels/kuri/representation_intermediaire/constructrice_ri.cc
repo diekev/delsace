@@ -1872,7 +1872,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                     noeud, transformation.type_cible, valeur, type_transtypage);
             }
 
-            assert_rappel(valeur->type->genre != GenreType::ENTIER_CONSTANT, [=]() {
+            assert_rappel(!valeur->type->est_type_entier_constant(), [=]() {
                 std::cerr << "Type de la valeur : " << chaine_type(valeur->type) << "\n.";
             });
             break;

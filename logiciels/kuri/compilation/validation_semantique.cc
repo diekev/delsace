@@ -962,9 +962,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
             }
 
-            if (type_debut->genre != GenreType::ENTIER_NATUREL &&
-                type_debut->genre != GenreType::ENTIER_RELATIF &&
-                type_debut->genre != GenreType::REEL) {
+            if (!type_debut->est_type_entier_naturel() && !type_debut->est_type_entier_relatif() &&
+                !type_debut->est_type_reel()) {
                 rapporte_erreur("Attendu des types réguliers dans la plage de la boucle 'pour'",
                                 noeud,
                                 erreur::Genre::TYPE_DIFFERENTS);
@@ -1008,7 +1007,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (inst->condition->type->genre != GenreType::BOOL) {
+            if (!inst->condition->type->est_type_bool()) {
                 rapporte_erreur("Une expression booléenne est requise pour la boucle 'tantque'",
                                 inst->condition,
                                 erreur::Genre::TYPE_ARGUMENT);
@@ -1197,7 +1196,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto type = expr->expression->type;
 
-            if (type->genre != GenreType::POINTEUR) {
+            if (!type->est_type_pointeur()) {
                 rapporte_erreur("Un pointeur est requis pour le déréférencement via 'mémoire'",
                                 expr->expression,
                                 erreur::Genre::TYPE_DIFFERENTS);
@@ -1441,7 +1440,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 type_employe = type_dereference_pour(type_employe);
             }
 
-            if (type_employe->genre != GenreType::STRUCTURE) {
+            if (!type_employe->est_type_structure()) {
                 unite->espace
                     ->rapporte_erreur(
                         decl, "Impossible d'employer une variable n'étant pas une structure.")
@@ -2903,7 +2902,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
             }
         }
         else {
-            if ((type_fonc->type_sortie->genre != GenreType::RIEN && !entete->est_coroutine) ||
+            if ((!type_fonc->type_sortie->est_type_rien() && !entete->est_coroutine) ||
                 est_corps_texte) {
                 rapporte_erreur(
                     "Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
@@ -4218,7 +4217,7 @@ CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *
         return CodeRetourValidation::Erreur;
     }
 
-    if (type_var->genre != GenreType::TYPE_DE_DONNEES) {
+    if (!type_var->est_type_type_de_donnees()) {
         rapporte_erreur("attendu un type de données", expression_type);
         return CodeRetourValidation::Erreur;
     }
@@ -4558,7 +4557,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
         return CodeRetourValidation::Erreur;
     }
 
-    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+    if (!type2->est_type_type_de_donnees()) {
         rapporte_erreur("Attendu une expression de type après la déclaration de type tableau",
                         enfant2);
         return CodeRetourValidation::Erreur;
@@ -4619,7 +4618,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
     auto type1 = enfant1->type;
     auto type2 = enfant2->type;
 
-    if (type2->genre != GenreType::TYPE_DE_DONNEES) {
+    if (!type2->est_type_type_de_donnees()) {
         rapporte_erreur("Opération impossible entre un type et autre chose", expr);
         return CodeRetourValidation::Erreur;
     }
