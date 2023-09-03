@@ -632,7 +632,7 @@ struct InstructionChargeMem : public Instruction {
     {
         this->type = type_;
         this->chargee = chargee_;
-        this->est_chargeable = type->genre == GenreType::POINTEUR;
+        this->est_chargeable = type->est_type_pointeur();
     }
 };
 
