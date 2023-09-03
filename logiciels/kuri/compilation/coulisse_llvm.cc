@@ -643,7 +643,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         case GenreType::ERREUR:
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
-            type_llvm = converti_type_llvm(type_enum->type_donnees);
+            type_llvm = converti_type_llvm(type_enum->type_sous_jacent);
             break;
         }
         case GenreType::OPAQUE:
