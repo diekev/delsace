@@ -347,8 +347,7 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
 
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
-        assert(type_gauche->est_type_entier_constant() &&
-               type_droite->est_type_entier_constant());
+        assert(type_gauche->est_type_entier_constant() && type_droite->est_type_entier_constant());
         emets(4);
     }
     else {
@@ -1502,8 +1501,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
                     auto type = constante->type;
 
-                    if (type->est_type_entier_naturel() ||
-                        type->est_type_enum() || type->est_type_erreur()) {
+                    if (type->est_type_entier_naturel() || type->est_type_enum() ||
+                        type->est_type_erreur()) {
                         if (type->taille_octet == 1) {
                             *donnees = static_cast<unsigned char>(valeur_entiere);
                         }

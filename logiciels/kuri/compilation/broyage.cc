@@ -455,7 +455,8 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
                 broye_nom_simple(it->ident);
 
                 auto type = it->type;
-                if (type->est_type_type_de_donnees() && type->comme_type_type_de_donnees()->type_connu) {
+                if (type->est_type_type_de_donnees() &&
+                    type->comme_type_type_de_donnees()->type_connu) {
                     type = type->comme_type_type_de_donnees()->type_connu;
                 }
 
@@ -502,7 +503,8 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
                 stockage_temp << nom_ascii;
 
                 auto type = it->type;
-                if (type->est_type_type_de_donnees() && type->comme_type_type_de_donnees()->type_connu) {
+                if (type->est_type_type_de_donnees() &&
+                    type->comme_type_type_de_donnees()->type_connu) {
                     type = type->comme_type_type_de_donnees()->type_connu;
                 }
 

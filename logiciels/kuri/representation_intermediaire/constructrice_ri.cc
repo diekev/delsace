@@ -474,11 +474,10 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_,
                                                        bool cree_seulement)
 {
     /* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
-    assert_rappel(
-        ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
-            std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
-            erreur::imprime_site(*m_espace, site_);
-        });
+    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
+        std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
+        erreur::imprime_site(*m_espace, site_);
+    });
 
     assert_rappel(
         ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE,
@@ -606,8 +605,7 @@ InstructionAccedeMembre *ConstructriceRI::cree_reference_membre(NoeudExpression 
                                                                 int index,
                                                                 bool cree_seulement)
 {
-    assert_rappel(accede->type->est_type_pointeur() ||
-                      accede->type->est_type_reference(),
+    assert_rappel(accede->type->est_type_pointeur() || accede->type->est_type_reference(),
                   [=]() { std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 
     auto type_pointe = type_dereference_pour(accede->type);
@@ -1276,8 +1274,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            if (type_gauche->est_type_tableau_dynamique() ||
-                type_gauche->est_type_variadique()) {
+            if (type_gauche->est_type_tableau_dynamique() || type_gauche->est_type_variadique()) {
                 if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
                     genere_protection_limites(
@@ -2538,8 +2535,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
     genere_ri_pour_noeud(accede);
     auto pointeur_accede = depile_valeur();
 
-    while (type_accede->est_type_pointeur() ||
-           type_accede->est_type_reference()) {
+    while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
         type_accede = type_dereference_pour(type_accede);
         pointeur_accede = cree_charge_mem(noeud, pointeur_accede);
     }

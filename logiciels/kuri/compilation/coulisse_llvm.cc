@@ -1131,8 +1131,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     auto type_llvm = converti_type_llvm(inst_un->valeur->type);
                     valeur = m_builder.CreateXor(
                         valeur,
-                        llvm::ConstantInt::get(
-                            type_llvm, 0, type->est_type_entier_relatif()));
+                        llvm::ConstantInt::get(type_llvm, 0, type->est_type_entier_relatif()));
                     break;
                 }
                 case OperateurUnaire::Genre::Non_Logique:

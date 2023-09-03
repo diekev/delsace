@@ -321,8 +321,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             }
         }
         else {
-            while (type_accede->est_type_pointeur() ||
-                   type_accede->est_type_reference()) {
+            while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
                 type_accede = type_dereference_pour(type_accede);
             }
         }

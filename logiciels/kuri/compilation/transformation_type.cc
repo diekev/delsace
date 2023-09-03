@@ -165,8 +165,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     /* nous avons un type de données pour chaque type connu lors de la
      * compilation, donc testons manuellement la compatibilité */
-    if (type_de->est_type_type_de_donnees() &&
-        type_vers->est_type_type_de_donnees()) {
+    if (type_de->est_type_type_de_donnees() && type_vers->est_type_type_de_donnees()) {
         return TypeTransformation::INUTILE;
     }
 
@@ -200,8 +199,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
         }
 
-        if (type_vers->est_type_erreur() &&
-            type_de->est_type_entier_constant()) {
+        if (type_vers->est_type_erreur() && type_de->est_type_entier_constant()) {
             return TransformationType{TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
         }
 
@@ -245,8 +243,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
     }
 
-    if (type_de->est_type_entier_naturel() &&
-        type_vers->est_type_entier_naturel()) {
+    if (type_de->est_type_entier_naturel() && type_vers->est_type_entier_naturel()) {
         if (type_de->taille_octet < type_vers->taille_octet) {
             return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
         }
@@ -260,8 +257,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         return TypeTransformation::IMPOSSIBLE;
     }
 
-    if (type_de->est_type_entier_relatif() &&
-        type_vers->est_type_entier_relatif()) {
+    if (type_de->est_type_entier_relatif() && type_vers->est_type_entier_relatif()) {
         if (type_de->taille_octet < type_vers->taille_octet) {
             return TransformationType{TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers};
         }
@@ -510,8 +506,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
-        if (type_pointe_de->est_type_structure() &&
-            type_pointe_vers->est_type_structure()) {
+        if (type_pointe_de->est_type_structure() && type_pointe_vers->est_type_structure()) {
             auto ts_de = type_pointe_de->comme_type_structure();
             auto ts_vers = type_pointe_vers->comme_type_structure();
 

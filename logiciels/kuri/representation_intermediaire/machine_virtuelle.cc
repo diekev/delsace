@@ -441,8 +441,10 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     pointeur_pile -= taille_argument;
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-    imprime_valeurs_entrees(
-        pointeur_pile, ptr_fonction->type->comme_type_fonction(), ptr_fonction->nom, profondeur_appel);
+    imprime_valeurs_entrees(pointeur_pile,
+                            ptr_fonction->type->comme_type_fonction(),
+                            ptr_fonction->nom,
+                            profondeur_appel);
 #endif
 
     if (!appel(ptr_fonction, site)) {

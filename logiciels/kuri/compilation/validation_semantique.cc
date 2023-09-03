@@ -942,8 +942,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     transtype_si_necessaire(
                         inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
                 }
-                else if (type_fin->est_type_entier_constant() &&
-                         est_type_entier(type_debut)) {
+                else if (type_fin->est_type_entier_constant() && est_type_entier(type_debut)) {
                     type_fin = type_debut;
                     enfant2->type = type_fin;
                     transtype_si_necessaire(
