@@ -1443,7 +1443,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-                if (ptr_fonction->decl && ptr_fonction->decl->possede_drapeau(COMPILATRICE)) {
+                if (ptr_fonction->decl &&
+                    ptr_fonction->decl->possede_drapeau(DrapeauxNoeud::COMPILATRICE)) {
                     auto resultat = ResultatInterpretation::OK;
                     appel_fonction_compilatrice(ptr_fonction, site, resultat);
 
