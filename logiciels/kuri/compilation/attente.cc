@@ -141,7 +141,7 @@ RAPPEL_POUR_COMMENTAIRE(declaration)
 RAPPEL_POUR_EST_RÉSOLUE(déclaration)
 {
     auto declaration_attendue = attente.declaration();
-    if (!declaration_attendue->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+    if (!declaration_attendue->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
