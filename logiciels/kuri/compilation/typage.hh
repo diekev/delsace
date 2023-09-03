@@ -462,7 +462,7 @@ struct TypeEnum final : public TypeCompose {
 
     EMPECHE_COPIE(TypeEnum);
 
-    Type *type_donnees{};
+    Type *type_sous_jacent{};
 
     NoeudEnum *decl = nullptr;
     bool est_drapeau = false;

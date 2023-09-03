@@ -1929,7 +1929,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
 
     /* Crée une expression pour convertir l'expression en une valeur du type sous-jacent de
      * l'énumération. */
-    auto type_sous_jacent = type_enum->type_donnees;
+    auto type_sous_jacent = type_enum->type_sous_jacent;
 
     simplifie(expression);
     auto ref_b = expression->substitution ? expression->substitution : expression;
@@ -1952,7 +1952,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     }
 
     /* -b */
-    auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_donnees, 0);
+    auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_sous_jacent, 0);
     auto moins_b_type_sous_jacent = assem->cree_expression_binaire(
         lexeme, type_sous_jacent->table_opérateurs->operateur_sst, zero, comme);
 

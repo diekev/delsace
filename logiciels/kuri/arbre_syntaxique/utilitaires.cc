@@ -1083,7 +1083,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
             info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
-                cree_info_type_pour(type_enum->type_donnees));
+                cree_info_type_pour(type_enum->type_sous_jacent));
 
             info_type->noms.reserve(type_enum->membres.taille());
             info_type->valeurs.reserve(type_enum->membres.taille());
@@ -1896,7 +1896,7 @@ static void assigne_fonction_init_enum(Typeuse &typeuse, TypeEnum *type)
         return;                                                                                   \
     }
 
-    auto type_données = type->type_donnees;
+    auto type_données = type->type_sous_jacent;
 
     ASSIGNE_SI(N8, n8);
     ASSIGNE_SI(N16, n16);

@@ -1985,7 +1985,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
             // À FAIRE(transtypage) : tous les cas
             if (type_cible->est_type_entier_naturel()) {
                 if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_donnees;
+                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
 
                     if (type_valeur->taille_octet < type_cible->taille_octet) {
                         type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
@@ -1995,7 +1995,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                     }
                 }
                 else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_donnees;
+                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
 
                     if (type_valeur->taille_octet < type_cible->taille_octet) {
                         type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
@@ -2007,7 +2007,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
             }
             else if (type_cible->est_type_entier_relatif()) {
                 if (type_valeur->est_type_enum()) {
-                    type_valeur = type_valeur->comme_type_enum()->type_donnees;
+                    type_valeur = type_valeur->comme_type_enum()->type_sous_jacent;
 
                     if (type_valeur->taille_octet < type_cible->taille_octet) {
                         type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
@@ -2017,7 +2017,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                     }
                 }
                 else if (type_valeur->est_type_erreur()) {
-                    type_valeur = type_valeur->comme_type_erreur()->type_donnees;
+                    type_valeur = type_valeur->comme_type_erreur()->type_sous_jacent;
 
                     if (type_valeur->taille_octet < type_cible->taille_octet) {
                         type_transtypage = TypeTranstypage::AUGMENTE_RELATIF;
@@ -3056,7 +3056,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
             valeurs[4] = cree_constante_booleenne(type_enum->est_drapeau);
-            valeurs[5] = cree_info_type(type_enum->type_donnees, site);
+            valeurs[5] = cree_info_type(type_enum->type_sous_jacent, site);
 
             type->atome_info_type = cree_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_enum, std::move(valeurs));

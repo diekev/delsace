@@ -439,7 +439,7 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
     auto table = donne_ou_crée_table_opérateurs(type);
 
     auto indice_type_op = IndiceTypeOp();
-    if (type->type_donnees->est_type_entier_naturel()) {
+    if (type->type_sous_jacent->est_type_entier_naturel()) {
         indice_type_op = IndiceTypeOp::ENTIER_NATUREL;
     }
     else {
