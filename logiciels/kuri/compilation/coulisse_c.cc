@@ -2083,7 +2083,7 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possede_drapeau(EST_RACINE)) {
+        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeud::EST_RACINE)) {
             ++nombre_fonctions_racines;
         }
 
