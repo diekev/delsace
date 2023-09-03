@@ -208,11 +208,11 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
         return false;
     }
 
-    if (noeud->possede_drapeau(EST_CONSTANTE)) {
+    if (noeud->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
         return false;
     }
 
-    return noeud->possede_drapeau(EST_GLOBALE);
+    return noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE);
 }
 
 static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
@@ -226,7 +226,8 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
 
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (fonction->possede_drapeau(COMPILATRICE) && !programme.pour_metaprogramme()) {
+        if (fonction->possede_drapeau(DrapeauxNoeud::COMPILATRICE) &&
+            !programme.pour_metaprogramme()) {
             possede_erreur = true;
 
             /* À FAIRE : site pour la dépendance. */
@@ -696,7 +697,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     }
 
     /* Ajoute les racines aux programmes courants de l'espace. */
-    if (noeud->est_entete_fonction() && noeud->possede_drapeau(EST_RACINE)) {
+    if (noeud->est_entete_fonction() && noeud->possede_drapeau(DrapeauxNoeud::EST_RACINE)) {
         DÉBUTE_STAT(AJOUTE_RACINES);
         auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
@@ -880,7 +881,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    if (!decl_creation_contexte->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+    if (!decl_creation_contexte->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
@@ -891,13 +892,13 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    if (!decl_creation_contexte->corps->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+    if (!decl_creation_contexte->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
     determine_dependances(decl_creation_contexte->corps, espace, graphe);
 
-    if (!decl_creation_contexte->corps->possede_drapeau(RI_FUT_GENEREE)) {
+    if (!decl_creation_contexte->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
     }
 
@@ -908,7 +909,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
                                                           MetaProgramme *metaprogramme)
 {
     assert(metaprogramme->fonction);
-    assert(metaprogramme->fonction->possede_drapeau(DECLARATION_FUT_VALIDEE));
+    assert(metaprogramme->fonction->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
 
     /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
@@ -1184,7 +1185,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
                (!entete->est_polymorphe || entete->est_monomorphisation);
     }
 
-    if (noeud->possede_drapeau(EST_GLOBALE) && !noeud->est_structure() && !noeud->est_enum()) {
+    if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_structure() &&
+        !noeud->est_enum()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1230,7 +1232,7 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 
 static bool declaration_est_invalide(NoeudExpression *decl)
 {
-    if (decl->possede_drapeau(DECLARATION_FUT_VALIDEE)) {
+    if (decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
@@ -1300,7 +1302,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unite->noeud);
-    assert_rappel(unite->noeud->possede_drapeau(DECLARATION_FUT_VALIDEE), [&] {
+    assert_rappel(unite->noeud->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
@@ -1369,7 +1371,7 @@ static inline bool est_corps_de(NoeudExpression const *noeud,
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
-    assert_rappel(unite->noeud->possede_drapeau(RI_FUT_GENEREE), [&] {
+    assert_rappel(unite->noeud->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n";
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
@@ -1703,8 +1705,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
 {
     auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
         auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-        copie->drapeaux |= (DECLARATION_FUT_VALIDEE | EST_RACINE);
-        copie->comme_entete_fonction()->corps->drapeaux |= DECLARATION_FUT_VALIDEE;
+        copie->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE | DrapeauxNoeud::EST_RACINE);
+        copie->comme_entete_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         requiers_typage(espace, copie);
         return copie->comme_entete_fonction();
     };
@@ -1782,15 +1784,15 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     auto decl_init_globales = m_compilatrice->interface_kuri->decl_init_globales_kuri;
 
     auto ri_requise = false;
-    if (!decl_ajoute_fini->corps->possede_drapeau(RI_FUT_GENEREE)) {
+    if (!decl_ajoute_fini->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_fini);
         ri_requise = true;
     }
-    if (!decl_ajoute_init->corps->possede_drapeau(RI_FUT_GENEREE)) {
+    if (!decl_ajoute_init->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_init);
         ri_requise = true;
     }
-    if (!decl_init_globales->corps->possede_drapeau(RI_FUT_GENEREE)) {
+    if (!decl_init_globales->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_init_globales);
         ri_requise = true;
     }
