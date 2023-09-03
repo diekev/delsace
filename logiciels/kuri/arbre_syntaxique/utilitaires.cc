@@ -981,7 +981,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->genre = GenreInfoType::POINTEUR;
             info_type->type_pointe = cree_info_type_pour(type_dereference_pour(type));
             info_type->taille_en_octet = type->taille_octet;
-            info_type->est_reference = type->genre == GenreType::REFERENCE;
+            info_type->est_reference = type->est_type_reference();
 
             type->info_type = info_type;
             break;

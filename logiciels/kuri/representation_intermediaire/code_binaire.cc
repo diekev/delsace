@@ -72,7 +72,7 @@ void Chunk::agrandis_si_necessaire(int64_t taille)
 int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
-    if (type->genre == GenreType::ENTIER_CONSTANT) {
+    if (type->est_type_entier_constant()) {
         const_cast<Type *>(type)->taille_octet = 4;
     }
     assert(type->taille_octet);
@@ -302,7 +302,7 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
                                    Type const *type)
 {
     if (op == OperateurUnaire::Genre::Complement) {
-        if (type->genre == GenreType::REEL) {
+        if (type->est_type_reel()) {
             emets(OP_COMPLEMENT_REEL);
             emets(site);
         }
@@ -316,7 +316,7 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
         emets(site);
     }
 
-    if (type->genre == GenreType::ENTIER_CONSTANT) {
+    if (type->est_type_entier_constant()) {
         emets(4);
     }
     else {
@@ -347,8 +347,8 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
 
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
-        assert(type_gauche->genre == GenreType::ENTIER_CONSTANT &&
-               type_droite->genre == GenreType::ENTIER_CONSTANT);
+        assert(type_gauche->est_type_entier_constant() &&
+               type_droite->est_type_entier_constant());
         emets(4);
     }
     else {
@@ -1022,7 +1022,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             POUR (appel->args) {
                 genere_code_binaire_pour_atome(it, chunk, true);
 
-                if (it->type->genre == GenreType::ENTIER_CONSTANT) {
+                if (it->type->est_type_entier_constant()) {
                     taille_arguments += 4;
                 }
                 else {
@@ -1163,7 +1163,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 auto type_accede = accede->type->comme_type_pointeur()->type_pointe;
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
-                if (type_accede->genre == GenreType::POINTEUR) {
+                if (type_accede->est_type_pointeur()) {
                     chunk.emets_charge(index->site, type_pointeur, verifie_adresses);
                 }
             }
@@ -1318,7 +1318,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
                                                 valeur_constante->type);
 
-            if (type->genre == GenreType::ENTIER_NATUREL) {
+            if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
                     chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
                 }
@@ -1332,7 +1332,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(valeur_entiere);
                 }
             }
-            else if (type->genre == GenreType::ENTIER_RELATIF) {
+            else if (type->est_type_entier_relatif()) {
                 if (type->taille_octet == 1) {
                     chunk.emets_constante(static_cast<char>(valeur_entiere));
                 }
@@ -1407,7 +1407,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             auto type = valeur_constante->type;
             auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
 
-            if (type->genre == GenreType::CHAINE) {
+            if (type->est_type_chaine()) {
                 if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
                     // valeur nulle pour les chaines initilisées à zéro
                     chunk.emets(OP_CHAINE_CONSTANTE);
@@ -1502,8 +1502,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
                     auto type = constante->type;
 
-                    if (type->genre == GenreType::ENTIER_NATUREL ||
-                        type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+                    if (type->est_type_entier_naturel() ||
+                        type->est_type_enum() || type->est_type_erreur()) {
                         if (type->taille_octet == 1) {
                             *donnees = static_cast<unsigned char>(valeur_entiere);
                         }
@@ -1519,7 +1519,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             *reinterpret_cast<uint64_t *>(donnees) = valeur_entiere;
                         }
                     }
-                    else if (type->genre == GenreType::ENTIER_RELATIF) {
+                    else if (type->est_type_entier_relatif()) {
                         if (type->taille_octet == 1) {
                             *reinterpret_cast<char *>(donnees) = static_cast<char>(valeur_entiere);
                         }
@@ -1535,7 +1535,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 valeur_entiere);
                         }
                     }
-                    else if (type->genre == GenreType::ENTIER_CONSTANT) {
+                    else if (type->est_type_entier_constant()) {
                         *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
                     }
 
@@ -1606,7 +1606,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                         auto decalage_membre = type->membres[i].decalage;
 
-                        if (type_membre->genre == GenreType::CHAINE) {
+                        if (type_membre->est_type_chaine()) {
                             auto valeur_chaine = static_cast<AtomeValeurConstante *>(
                                 tableau_valeur[index_membre]);
                             auto acces_index = static_cast<AccedeIndexConstant *>(
@@ -1625,7 +1625,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<int64_t *>(donnees_ + 8) = taille_chaine;
                         }
-                        else if (type_membre->genre == GenreType::TABLEAU_DYNAMIQUE) {
+                        else if (type_membre->est_type_tableau_dynamique()) {
                             auto valeur_tableau = static_cast<AtomeValeurConstante *>(
                                 tableau_valeur[index_membre]);
                             auto acces_index = static_cast<AccedeIndexConstant *>(

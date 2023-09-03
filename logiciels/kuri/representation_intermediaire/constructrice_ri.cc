@@ -475,7 +475,7 @@ InstructionChargeMem *ConstructriceRI::cree_charge_mem(NoeudExpression *site_,
 {
     /* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
     assert_rappel(
-        ou->type->genre == GenreType::POINTEUR || ou->type->genre == GenreType::REFERENCE, [&]() {
+        ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
             std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
             erreur::imprime_site(*m_espace, site_);
         });
@@ -577,7 +577,7 @@ InstructionAccedeIndex *ConstructriceRI::cree_acces_index(NoeudExpression *site_
         type_pointe = accede->type;
     }
     else {
-        assert_rappel(accede->type->genre == GenreType::POINTEUR, [=]() {
+        assert_rappel(accede->type->est_type_pointeur(), [=]() {
             std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n";
         });
         auto type_pointeur = accede->type->comme_type_pointeur();
@@ -606,8 +606,8 @@ InstructionAccedeMembre *ConstructriceRI::cree_reference_membre(NoeudExpression 
                                                                 int index,
                                                                 bool cree_seulement)
 {
-    assert_rappel(accede->type->genre == GenreType::POINTEUR ||
-                      accede->type->genre == GenreType::REFERENCE,
+    assert_rappel(accede->type->est_type_pointeur() ||
+                      accede->type->est_type_reference(),
                   [=]() { std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
 
     auto type_pointe = type_dereference_pour(accede->type);
@@ -696,7 +696,7 @@ OpBinaireConstant *ConstructriceRI::cree_op_comparaison_constant(OperateurBinair
 AccedeIndexConstant *ConstructriceRI::cree_acces_index_constant(AtomeConstante *accede,
                                                                 AtomeConstante *index)
 {
-    assert_rappel(accede->type->genre == GenreType::POINTEUR,
+    assert_rappel(accede->type->est_type_pointeur(),
                   [=]() { std::cerr << "Type accédé : '" << chaine_type(accede->type) << "'\n"; });
     auto type_pointeur = accede->type->comme_type_pointeur();
     assert_rappel(
@@ -1210,7 +1210,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             genere_ri_pour_expression_droite(expr_bin->operande_droite, nullptr);
             auto valeur = depile_valeur();
 
-            if (type_gauche->genre == GenreType::POINTEUR) {
+            if (type_gauche->est_type_pointeur()) {
                 empile_valeur(cree_acces_index(noeud, pointeur, valeur));
                 return;
             }
@@ -1262,7 +1262,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     insere_label(label4);
                 };
 
-            if (type_gauche->genre == GenreType::TABLEAU_FIXE) {
+            if (type_gauche->est_type_tableau_fixe()) {
                 if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
                     auto acces_taille = cree_z64(static_cast<unsigned>(type_tableau_fixe->taille));
@@ -1276,8 +1276,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            if (type_gauche->genre == GenreType::TABLEAU_DYNAMIQUE ||
-                type_gauche->genre == GenreType::VARIADIQUE) {
+            if (type_gauche->est_type_tableau_dynamique() ||
+                type_gauche->est_type_variadique()) {
                 if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
                     genere_protection_limites(
@@ -1291,7 +1291,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            if (type_gauche->genre == GenreType::CHAINE) {
+            if (type_gauche->est_type_chaine()) {
                 if (noeud->aide_generation_code != IGNORE_VERIFICATION) {
                     auto acces_taille = cree_reference_membre_et_charge(noeud, pointeur, 1);
                     genere_protection_limites(
@@ -1315,7 +1315,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             if (noeud->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
                 genere_ri_pour_noeud(expr_un->operande);
                 auto valeur = depile_valeur();
-                if (expr_un->operande->type->genre == GenreType::REFERENCE) {
+                if (expr_un->operande->type->est_type_reference()) {
                     valeur = cree_charge_mem(noeud, valeur);
                 }
 
@@ -2084,23 +2084,23 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 valeur = cree_charge_mem(noeud, valeur);
             }
 
-            if (noeud->type->genre == GenreType::REEL) {
+            if (noeud->type->est_type_reel()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_REEL);
             }
-            else if (noeud->type->genre == GenreType::ENTIER_NATUREL) {
+            else if (noeud->type->est_type_entier_naturel()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->genre == GenreType::ENTIER_RELATIF) {
+            else if (noeud->type->est_type_entier_relatif()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RELATIF);
             }
-            else if (noeud->type->genre == GenreType::BOOL) {
+            else if (noeud->type->est_type_bool()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->genre == GenreType::OCTET) {
+            else if (noeud->type->est_type_octet()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
@@ -2131,19 +2131,19 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 valeur = cree_charge_mem(noeud, valeur);
             }
 
-            if (noeud->type->genre == GenreType::REEL) {
+            if (noeud->type->est_type_reel()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_REEL);
             }
-            else if (noeud->type->genre == GenreType::ENTIER_NATUREL) {
+            else if (noeud->type->est_type_entier_naturel()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }
-            else if (noeud->type->genre == GenreType::ENTIER_RELATIF) {
+            else if (noeud->type->est_type_entier_relatif()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RELATIF);
             }
-            else if (noeud->type->genre == GenreType::BOOL) {
+            else if (noeud->type->est_type_bool()) {
                 valeur = cree_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }
@@ -2214,7 +2214,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                     valeur = cree_transtype(noeud, type_cible, valeur, TypeTranstypage::BITS);
                     valeur_pointeur = valeur;
 
-                    if (noeud->type->genre == GenreType::ENTIER_CONSTANT) {
+                    if (noeud->type->est_type_entier_constant()) {
                         valeur_taille = cree_z64(4);
                     }
                     else {
@@ -2405,7 +2405,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         Type const *type_variable = nullptr;
     };
 
-    if (noeud->expression_appelee->type->genre == GenreType::ERREUR) {
+    if (noeud->expression_appelee->type->est_type_erreur()) {
 
         DonneesGenerationCodeTente gen_tente;
         gen_tente.type_piege = noeud->expression_appelee->type;
@@ -2446,13 +2446,13 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         empile_valeur(valeur_expression);
         return;
     }
-    else if (noeud->expression_appelee->type->genre == GenreType::UNION) {
+    else if (noeud->expression_appelee->type->est_type_union()) {
         DonneesGenerationCodeTente gen_tente;
         auto type_union = noeud->expression_appelee->type->comme_type_union();
         auto index_membre_erreur = 0;
 
         if (type_union->membres.taille() == 2) {
-            if (type_union->membres[0].type->genre == GenreType::ERREUR) {
+            if (type_union->membres[0].type->est_type_erreur()) {
                 gen_tente.type_piege = type_union->membres[0].type;
                 gen_tente.type_variable = type_union->membres[1].type;
             }
@@ -2538,8 +2538,8 @@ void ConstructriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
     genere_ri_pour_noeud(accede);
     auto pointeur_accede = depile_valeur();
 
-    while (type_accede->genre == GenreType::POINTEUR ||
-           type_accede->genre == GenreType::REFERENCE) {
+    while (type_accede->est_type_pointeur() ||
+           type_accede->est_type_reference()) {
         type_accede = type_dereference_pour(type_accede);
         pointeur_accede = cree_charge_mem(noeud, pointeur_accede);
     }
@@ -2561,7 +2561,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
     auto type = noeud->accedee->type;
 
     // À FAIRE(union) : doit déréférencer le pointeur
-    while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
+    while (type->est_type_pointeur() || type->est_type_reference()) {
         type = type_dereference_pour(type);
     }
 
@@ -3019,7 +3019,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::POINTEUR, type);
             valeurs[1] = cree_info_type_avec_transtype(type_deref, site);
-            valeurs[2] = cree_constante_booleenne(type->genre == GenreType::REFERENCE);
+            valeurs[2] = cree_constante_booleenne(type->est_type_reference());
 
             type->atome_info_type = cree_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_pointeur, std::move(valeurs));

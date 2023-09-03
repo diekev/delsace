@@ -402,7 +402,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
          * être des pointeurs, mais les types fonctions sont partagés entre les
          * fonctions et les variables, donc un type venant d'une fonction n'aura
          * pas le pointeur. Ajoutons-le. */
-        if (type->genre == GenreType::FONCTION && !type_llvm->isPointerTy()) {
+        if (type->est_type_fonction() && !type_llvm->isPointerTy()) {
             return llvm::PointerType::get(type_llvm, 0);
         }
 
@@ -540,7 +540,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
 
             // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
             // @Incomplet : LLVM n'a pas de pointeur nul
-            if (!type_deref || type_deref->genre == GenreType::RIEN) {
+            if (!type_deref || type_deref->est_type_rien()) {
                 type_deref = TypeBase::Z8;
             }
 
@@ -667,7 +667,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
     auto est_variadique = false;
 
     POUR (type->types_entrees) {
-        if (it->genre == GenreType::VARIADIQUE) {
+        if (it->est_type_variadique()) {
             est_variadique = true;
 
             /* les arguments variadiques sont transformés en un tableau */
@@ -1117,7 +1117,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     auto type_llvm = converti_type_llvm(inst_un->valeur->type);
                     if (est_type_entier(type)) {
                         auto zero = llvm::ConstantInt::get(
-                            type_llvm, 0, type->genre == GenreType::ENTIER_RELATIF);
+                            type_llvm, 0, type->est_type_entier_relatif());
                         valeur = m_builder.CreateSub(zero, valeur);
                     }
                     else {
@@ -1132,7 +1132,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     valeur = m_builder.CreateXor(
                         valeur,
                         llvm::ConstantInt::get(
-                            type_llvm, 0, type->genre == GenreType::ENTIER_RELATIF));
+                            type_llvm, 0, type->est_type_entier_relatif()));
                     break;
                 }
                 case OperateurUnaire::Genre::Non_Logique:
