@@ -362,7 +362,7 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 {
     /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
      * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
-    if (atome->decl && atome->decl->est_initialisation_type) {
+    if (atome->decl && atome->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         return true;
     }
 
