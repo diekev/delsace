@@ -608,7 +608,7 @@ void Syntaxeuse::analyse_une_chose()
             else if (noeud->est_type_opaque()) {
                 requiers_typage(noeud);
             }
-            else if (noeud->est_structure()) {
+            else if (noeud->est_type_structure()) {
                 requiers_typage(noeud);
             }
         }
@@ -2143,7 +2143,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     empile_etat("dans le syntaxage de l'énumération", lexeme);
     consomme();
 
-    auto noeud_decl = m_tacheronne.assembleuse->cree_enum(gauche->lexeme);
+    auto noeud_decl = m_tacheronne.assembleuse->cree_type_enum(gauche->lexeme);
 
     if (lexeme->genre != GenreLexeme::ERREUR) {
         if (!apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
@@ -2726,7 +2726,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
         this->rapporte_erreur("Expression inattendue pour nommer la structure");
     }
 
-    auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
+    auto noeud_decl = m_tacheronne.assembleuse->cree_type_structure(gauche->lexeme);
     noeud_decl->est_union = false;
 
     if (gauche->ident == ID::InfoType) {
@@ -2773,7 +2773,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_union(NoeudExpression *gauche)
         this->rapporte_erreur("Expression inattendue pour nommer l'union");
     }
 
-    auto noeud_decl = m_tacheronne.assembleuse->cree_structure(gauche->lexeme);
+    auto noeud_decl = m_tacheronne.assembleuse->cree_type_structure(gauche->lexeme);
     noeud_decl->est_union = true;
     noeud_decl->type = m_compilatrice.typeuse.reserve_type_union(noeud_decl);
 

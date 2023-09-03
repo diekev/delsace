@@ -759,7 +759,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            auto structure = noeud->comme_structure();
+            auto structure = noeud->comme_type_structure();
             auto type = static_cast<TypeCompose *>(structure->type);
 
             POUR (type->membres) {
