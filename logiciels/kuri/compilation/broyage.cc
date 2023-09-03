@@ -205,7 +205,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_union = static_cast<TypeUnion const *>(type);
             enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, static_cast<TypeUnion *>(type)->nom_portable());
+            broye_nom_simple(enchaineuse, donne_nom_portable(const_cast<TypeUnion *>(type_union)));
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
@@ -220,7 +220,8 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
             enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, static_cast<TypeStructure *>(type)->nom_portable());
+            broye_nom_simple(enchaineuse,
+                             donne_nom_portable(const_cast<TypeStructure *>(type_structure)));
 
             // ajout du pointeur au nom afin de différencier les différents types anonymes ou
             // monomorphisations
@@ -272,7 +273,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_enum = static_cast<TypeEnum *>(type);
             enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, type_enum->nom_portable());
+            broye_nom_simple(enchaineuse, donne_nom_portable(type_enum));
             break;
         }
         case GenreType::TYPE_DE_DONNEES:
@@ -284,7 +285,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         {
             auto type_opaque = type->comme_type_opaque();
             enchaineuse << "Ks";
-            broye_nom_simple(enchaineuse, type_opaque->nom_portable());
+            broye_nom_simple(enchaineuse, donne_nom_portable(type_opaque));
             /* inclus le nom du type opacifié afin de prendre en compte les monomorphisations */
             nom_broye_type(enchaineuse, type_opaque->type_opacifie);
             break;

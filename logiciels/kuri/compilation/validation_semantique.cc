@@ -1545,7 +1545,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
 
         auto type_compose = static_cast<TypeCompose *>(type);
-        auto info_membre = type_compose->donne_membre_pour_nom(membre->ident);
+        auto info_membre = donne_membre_pour_nom(type_compose, membre->ident);
         if (!info_membre.has_value()) {
             rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
             return CodeRetourValidation::Erreur;
@@ -3451,7 +3451,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         calcule_taille_type_compose(type_union, false, 0);
 
         if (!decl->est_nonsure) {
-            type_union->cree_type_structure(m_compilatrice.typeuse, type_union->decalage_index);
+            cree_type_structure(m_compilatrice.typeuse, type_union, type_union->decalage_index);
         }
 
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;

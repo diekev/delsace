@@ -3060,7 +3060,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENUM, type);
-            valeurs[1] = cree_chaine(const_cast<TypeEnum *>(type_enum)->nom_hierarchique());
+            valeurs[1] = cree_chaine(donne_nom_hierarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
             valeurs[4] = cree_constante_booleenne(type_enum->est_drapeau);
@@ -3129,7 +3129,7 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
 
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::UNION, type);
-            valeurs[1] = cree_chaine(const_cast<TypeUnion *>(type_union)->nom_hierarchique());
+            valeurs[1] = cree_chaine(donne_nom_hierarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = cree_z64(type_union->decalage_index);
@@ -3214,7 +3214,8 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::STRUCTURE, type);
-            valeurs[1] = cree_chaine(const_cast<TypeStructure *>(type_struct)->nom_hierarchique());
+            valeurs[1] = cree_chaine(
+                donne_nom_hierarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
             valeurs[3] = tableau_structs_employees;
             if (type_struct->decl) {
@@ -3329,7 +3330,8 @@ AtomeConstante *ConstructriceRI::cree_info_type(Type const *type, NoeudExpressio
             /* { membres basiques, nom, type_opacifié } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::OPAQUE, type_opaque);
-            valeurs[1] = cree_chaine(const_cast<TypeOpaque *>(type_opaque)->nom_hierarchique());
+            valeurs[1] = cree_chaine(
+                donne_nom_hierarchique(const_cast<TypeOpaque *>(type_opaque)));
             valeurs[2] = cree_info_type_avec_transtype(type_opacifie, site);
 
             type->atome_info_type = cree_globale_info_type(
