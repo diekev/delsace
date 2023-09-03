@@ -26,45 +26,77 @@ struct chaine;
 struct chaine_statique;
 }  // namespace kuri
 
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux génériques pour les noeuds.
+ * \{ */
+
 enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
-    EMPLOYE = (1 << 0),                          // decl var
-    EST_EXTERNE = (1 << 1),                      // decl var, decl fonction
-    FORCE_ENLIGNE = (1 << 2),                    // decl fonction
-    FORCE_HORSLIGNE = (1 << 3),                  // decl fonction
-    EST_MEMBRE_STRUCTURE = (1 << 4),             // decl structure, decl union
-    FORCE_SANSTRACE = (1 << 5),                  // decl fonction
-    EST_ASSIGNATION_COMPOSEE = (1 << 6),         // operateur binaire
-    EST_VARIADIQUE = (1 << 7),                   // decl var
-    EST_IMPLICITE = (1 << 8),                    // controle boucle
-    EST_GLOBALE = (1 << 9),                      // decl var
-    EST_CONSTANTE = (1 << 10),                   // decl var
-    DECLARATION_TYPE_POLYMORPHIQUE = (1 << 11),  // decl var
-    DROITE_ASSIGNATION = (1 << 12),              // générique
-    DECLARATION_FUT_VALIDEE = (1 << 13),         // déclaration
-    RI_FUT_GENEREE = (1 << 14),                  // déclaration
-    CODE_BINAIRE_FUT_GENERE = (1 << 15),         // déclaration
-    COMPILATRICE = (1 << 16),                    // decl fonction
-    FORCE_SANSBROYAGE = (1 << 17),               // decl fonction
-    EST_RACINE = (1 << 18),                      // decl fonction
-    TRANSTYPAGE_IMPLICITE = (1 << 19),           // expr comme
-    EST_PARAMETRE = (1 << 20),                   // decl var
-    EST_VALEUR_POLYMORPHIQUE = (1 << 21),        // decl var
-    POUR_CUISSON = (1 << 22),                    // appel
-    ACCES_EST_ENUM_DRAPEAU = (1 << 23),          // accès membre
-    DROITE_CONDITION = (1 << 24),
-    EST_UTILISEE = (1 << 25),  // decl var
-    DEBOGUE = (1 << 26),
-    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 27),
-    GAUCHE_EXPRESSION_APPEL = (1 << 28),
-    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 29),
-    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 30),
-    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 31),
+    EMPLOYE = (1 << 0),                         // decl var
+    EST_EXTERNE = (1 << 1),                     // decl var
+    EST_MEMBRE_STRUCTURE = (1 << 2),            // decl structure, decl union
+    EST_ASSIGNATION_COMPOSEE = (1 << 3),        // operateur binaire
+    EST_VARIADIQUE = (1 << 4),                  // decl var
+    EST_IMPLICITE = (1 << 5),                   // controle boucle
+    EST_GLOBALE = (1 << 6),                     // decl var
+    EST_CONSTANTE = (1 << 7),                   // decl var
+    DECLARATION_TYPE_POLYMORPHIQUE = (1 << 8),  // decl var
+    DROITE_ASSIGNATION = (1 << 9),              // générique
+    DECLARATION_FUT_VALIDEE = (1 << 10),        // déclaration
+    RI_FUT_GENEREE = (1 << 11),                 // déclaration
+    CODE_BINAIRE_FUT_GENERE = (1 << 12),        // déclaration
+    TRANSTYPAGE_IMPLICITE = (1 << 13),          // expr comme
+    EST_PARAMETRE = (1 << 14),                  // decl var
+    EST_VALEUR_POLYMORPHIQUE = (1 << 15),       // decl var
+    POUR_CUISSON = (1 << 16),                   // appel
+    ACCES_EST_ENUM_DRAPEAU = (1 << 17),         // accès membre
+    DROITE_CONDITION = (1 << 18),
+    EST_UTILISEE = (1 << 19),  // decl var
+    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 20),
+    GAUCHE_EXPRESSION_APPEL = (1 << 21),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 22),
+    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 23),
+    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 24),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux pour les fonctions.
+ * \{ */
+
+enum class DrapeauxNoeudFonction : uint32_t {
+    AUCUN = 0,
+    DEBOGUE = (1 << 0),
+
+    FORCE_ENLIGNE = (1 << 1),
+    FORCE_HORSLIGNE = (1 << 2),
+    FORCE_SANSTRACE = (1 << 3),
+    FORCE_SANSBROYAGE = (1 << 4),
+
+    EST_EXTERNE = (1 << 5),
+    EST_IPA_COMPILATRICE = (1 << 6),
+    EST_RACINE = (1 << 7),
+    EST_INTRINSÈQUE = (1 << 8),
+    EST_INITIALISATION_TYPE = (1 << 9),
+    EST_MÉTAPROGRAMME = (1 << 10),
+    EST_VARIADIQUE = (1 << 11),
+    EST_POLYMORPHIQUE = (1 << 12),
+    EST_MONOMORPHISATION = (1 << 13),
+
+    /* Ne copions pas certains bits. */
+    BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
+                       EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeudFonction)
+
+std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux);
+
+/** \} */
 
 enum {
     /* instruction 'pour' */

@@ -67,7 +67,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto entete = noeud->comme_entete_fonction();
 
-            if (entete->est_externe) {
+            if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
                 return;
             }
 

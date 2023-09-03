@@ -405,16 +405,11 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
 
     Annotation [] annotations [code copie]
 
+    DrapeauxNoeudFonction drapeaux_fonction;
+
     bool est_opérateur [code copie]
     bool est_coroutine [code copie]
-    bool est_polymorphe
-    bool est_variadique
-    bool est_externe
     bool est_déclaration_type [copie]
-    bool est_monomorphisation
-    bool est_métaprogramme
-    bool est_initialisation_type
-    bool est_intrinsèque
 
     /* pour les fonctions externes :
      * - nom du symbole dans la bibliothèque

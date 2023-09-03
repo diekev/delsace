@@ -782,7 +782,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     auto pointeurs_arguments = kuri::tablet<void *, 12>();
     auto decalage_argument = 0u;
 
-    if (ptr_fonction->decl->est_variadique) {
+    if (ptr_fonction->decl->possede_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
         auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille() -
                                                             1);
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
@@ -1444,8 +1444,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-                if (ptr_fonction->decl &&
-                    ptr_fonction->decl->possede_drapeau(DrapeauxNoeud::COMPILATRICE)) {
+                if (ptr_fonction->decl && ptr_fonction->decl->possede_drapeau(
+                                              DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     auto resultat = ResultatInterpretation::OK;
                     appel_fonction_compilatrice(ptr_fonction, site, resultat);
 

@@ -518,11 +518,11 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
     }
 
     if (fonction->decl) {
-        if (fonction->decl->possede_drapeau(DrapeauxNoeud::FORCE_ENLIGNE)) {
+        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
             return true;
         }
 
-        if (fonction->decl->possede_drapeau(DrapeauxNoeud::FORCE_HORSLIGNE)) {
+        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
             log(std::cerr, "-- ignore la candidate car nous forçons un horslignage...");
             return false;
         }
