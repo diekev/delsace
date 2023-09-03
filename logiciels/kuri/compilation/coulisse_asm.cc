@@ -166,7 +166,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
              * @Incomplet : vérifie l'alignement.
              * @Incomplet : fusionne plusieurs telles instructions.
              * @Incomplet : assigne l'adresse à l'atome */
-            auto type_pointeur = inst->type->comme_pointeur();
+            auto type_pointeur = inst->type->comme_type_pointeur();
             taille_allouee += static_cast<int>(type_pointeur->type_pointe->taille_octet);
             os << "  sub " << RSP << ' ' << type_pointeur->type_pointe->taille_octet << '\n';
             break;
@@ -397,7 +397,7 @@ void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &global
     //            continue;
     //        }
 
-    //        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+    //        auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
 
     //        os << "static const " << nom_broye_type(type) << ' ';
 

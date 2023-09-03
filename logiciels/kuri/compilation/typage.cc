@@ -649,7 +649,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
                                           bool insere_dans_graphe)
 {
     if (!type) {
-        return TypeBase::PTR_NUL->comme_pointeur();
+        return TypeBase::PTR_NUL->comme_type_pointeur();
     }
 
     auto types_pointeurs_ = types_pointeurs.verrou_ecriture();
@@ -1176,8 +1176,8 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                 enchaineuse << it->ident->nom << ": ";
             }
 
-            if (it->type->est_type_de_donnees()) {
-                enchaineuse << chaine_type(it->type->comme_type_de_donnees()->type_connu);
+            if (it->type->est_type_type_de_donnees()) {
+                enchaineuse << chaine_type(it->type->comme_type_type_de_donnees()->type_connu);
             }
             else {
                 enchaineuse << it->comme_declaration_variable()->valeur_expression;
@@ -1317,7 +1317,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
         }
         case GenreType::POINTEUR:
         {
-            auto const type_pointe = type->comme_pointeur()->type_pointe;
+            auto const type_pointe = type->comme_type_pointeur()->type_pointe;
             if (type_pointe == nullptr) {
                 enchaineuse.ajoute("type_de(nul)");
             }
@@ -1411,7 +1411,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
         }
         case GenreType::TYPE_DE_DONNEES:
         {
-            auto type_de_donnees = type->comme_type_de_donnees();
+            auto type_de_donnees = type->comme_type_type_de_donnees();
             enchaineuse << "type_de_données";
             if (type_de_donnees->type_connu) {
                 enchaineuse << '(' << chaine_type(type_de_donnees->type_connu) << ')';
@@ -1472,27 +1472,27 @@ kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorph
 Type *type_dereference_pour(Type const *type)
 {
     if (type->genre == GenreType::POINTEUR) {
-        return type->comme_pointeur()->type_pointe;
+        return type->comme_type_pointeur()->type_pointe;
     }
 
     if (type->genre == GenreType::REFERENCE) {
-        return type->comme_reference()->type_pointe;
+        return type->comme_type_reference()->type_pointe;
     }
 
     if (type->genre == GenreType::TABLEAU_FIXE) {
-        return type->comme_tableau_fixe()->type_pointe;
+        return type->comme_type_tableau_fixe()->type_pointe;
     }
 
     if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
-        return type->comme_tableau_dynamique()->type_pointe;
+        return type->comme_type_tableau_dynamique()->type_pointe;
     }
 
     if (type->genre == GenreType::VARIADIQUE) {
-        return type->comme_variadique()->type_pointe;
+        return type->comme_type_variadique()->type_pointe;
     }
 
-    if (type->est_opaque()) {
-        return type_dereference_pour(type->comme_opaque()->type_opacifie);
+    if (type->est_type_opaque()) {
+        return type_dereference_pour(type->comme_type_opaque()->type_opacifie);
     }
 
     return nullptr;
@@ -1606,7 +1606,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire)
 {
     if (type->genre == GenreType::UNION) {
-        auto type_union = type->comme_union();
+        auto type_union = type->comme_type_union();
 
         auto max_alignement = 0u;
         auto taille_union = 0u;
@@ -1621,7 +1621,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
             auto taille = type_membre->taille_octet;
 
             /* Ignore les membres qui n'ont pas de type. */
-            if (type_membre->est_rien()) {
+            if (type_membre->est_type_rien()) {
                 continue;
             }
 
@@ -1666,7 +1666,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
         type_union->taille_octet = taille_union;
         type_union->alignement = max_alignement;
     }
-    else if (type->genre == GenreType::STRUCTURE || type->est_tuple()) {
+    else if (type->genre == GenreType::STRUCTURE || type->est_type_tuple()) {
         if (compacte) {
             calcule_taille_structure<true>(type, alignement_desire);
         }
@@ -1804,20 +1804,20 @@ kuri::chaine_statique TypeOpaque::nom_hierarchique()
 
 NoeudDeclaration *decl_pour_type(const Type *type)
 {
-    if (type->est_structure()) {
-        return type->comme_structure()->decl;
+    if (type->est_type_structure()) {
+        return type->comme_type_structure()->decl;
     }
 
-    if (type->est_enum()) {
-        return type->comme_enum()->decl;
+    if (type->est_type_enum()) {
+        return type->comme_type_enum()->decl;
     }
 
-    if (type->est_erreur()) {
-        return type->comme_erreur()->decl;
+    if (type->est_type_erreur()) {
+        return type->comme_type_erreur()->decl;
     }
 
-    if (type->est_union()) {
-        return type->comme_union()->decl;
+    if (type->est_type_union()) {
+        return type->comme_type_union()->decl;
     }
 
     return nullptr;
@@ -1825,7 +1825,7 @@ NoeudDeclaration *decl_pour_type(const Type *type)
 
 bool est_type_polymorphique(Type const *type)
 {
-    if (type->est_polymorphique()) {
+    if (type->est_type_polymorphique()) {
         return true;
     }
 
@@ -1891,7 +1891,7 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
             }
             case GenreType::FONCTION:
             {
-                auto type_fonction = type_courant->comme_fonction();
+                auto type_fonction = type_courant->comme_type_fonction();
                 POUR (type_fonction->types_entrees) {
                     pile.empile(it);
                 }
@@ -1909,32 +1909,32 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
             }
             case GenreType::REFERENCE:
             {
-                pile.empile(type_courant->comme_reference()->type_pointe);
+                pile.empile(type_courant->comme_type_reference()->type_pointe);
                 break;
             }
             case GenreType::POINTEUR:
             {
-                pile.empile(type_courant->comme_pointeur()->type_pointe);
+                pile.empile(type_courant->comme_type_pointeur()->type_pointe);
                 break;
             }
             case GenreType::VARIADIQUE:
             {
-                pile.empile(type_courant->comme_variadique()->type_pointe);
+                pile.empile(type_courant->comme_type_variadique()->type_pointe);
                 break;
             }
             case GenreType::TABLEAU_DYNAMIQUE:
             {
-                pile.empile(type_courant->comme_tableau_dynamique()->type_pointe);
+                pile.empile(type_courant->comme_type_tableau_dynamique()->type_pointe);
                 break;
             }
             case GenreType::TABLEAU_FIXE:
             {
-                pile.empile(type_courant->comme_tableau_fixe()->type_pointe);
+                pile.empile(type_courant->comme_type_tableau_fixe()->type_pointe);
                 break;
             }
             case GenreType::OPAQUE:
             {
-                pile.empile(type_courant->comme_opaque()->type_opacifie);
+                pile.empile(type_courant->comme_type_opaque()->type_opacifie);
                 break;
             }
         }
@@ -2031,7 +2031,8 @@ Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type 
     }
 
     /* Le type fonction est dans l'arbre, retournons-le. */
-    return const_cast<TypeFonction *>(enfant_suivant->enfants.enfants[0]->type->comme_fonction());
+    return const_cast<TypeFonction *>(
+        enfant_suivant->enfants.enfants[0]->type->comme_type_fonction());
 }
 
 Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sortie)

@@ -36,7 +36,7 @@ static std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dériv
                                                 TypeStructure const *type_base_potentiel)
 {
     POUR (type_dérivé->types_employés) {
-        auto struct_employée = it->type->comme_structure();
+        auto struct_employée = it->type->comme_type_structure();
         if (struct_employée == type_base_potentiel) {
             return it->decalage;
         }
@@ -54,9 +54,9 @@ static std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dériv
 static std::optional<uint32_t> est_type_de_base(Type const *type_dérivé,
                                                 Type const *type_base_potentiel)
 {
-    if (type_dérivé->est_structure() && type_base_potentiel->est_structure()) {
-        return est_type_de_base(type_dérivé->comme_structure(),
-                                type_base_potentiel->comme_structure());
+    if (type_dérivé->est_type_structure() && type_base_potentiel->est_type_structure()) {
+        return est_type_de_base(type_dérivé->comme_type_structure(),
+                                type_base_potentiel->comme_type_structure());
     }
 
     return {};
@@ -81,7 +81,7 @@ using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, Aucu
 
 static bool est_type_pointeur_nul(Type const *type)
 {
-    return type->est_pointeur() && type->comme_pointeur()->type_pointe == nullptr;
+    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointe == nullptr;
 }
 
 static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
@@ -98,7 +98,7 @@ static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
 
             index_membre = index_courant;
         }
-        else if (type_a_tester->est_pointeur() && it.type->est_pointeur()) {
+        else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
             if (pointeur_nul) {
                 if (index_membre != -1) {
                     return PlusieursMembres{-1};
@@ -107,8 +107,8 @@ static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
                 index_membre = index_courant;
             }
             else {
-                auto type_pointe_de = type_a_tester->comme_pointeur()->type_pointe;
-                auto type_pointe_vers = it.type->comme_pointeur()->type_pointe;
+                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointe;
+                auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointe;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
                     if (index_membre != -1) {
@@ -119,7 +119,7 @@ static ResultatRechercheMembre trouve_index_membre_unique_type_compatible(
                 }
             }
         }
-        else if (est_type_entier(it.type) && type_a_tester->est_entier_constant()) {
+        else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
             if (index_membre != -1) {
                 return PlusieursMembres{-1};
             }
@@ -172,7 +172,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     // À FAIRE(r16)
     if (type_de->genre == GenreType::ENTIER_CONSTANT &&
-        (est_type_entier(type_vers) || type_vers->est_octet() || type_vers->est_reel())) {
+        (est_type_entier(type_vers) || type_vers->est_type_octet() ||
+         type_vers->est_type_reel())) {
         return TransformationType{TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_vers};
     }
 
@@ -220,7 +221,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
 
         if (type_de->genre == GenreType::ERREUR) {
-            if (type_vers == type_de->comme_erreur()->type_donnees) {
+            if (type_vers == type_de->comme_type_erreur()->type_donnees) {
                 // on pourrait se passer de la conversion, ou normaliser le type
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
@@ -232,7 +233,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
-        if (type_de->est_opaque() && type_vers == type_de->comme_opaque()->type_opacifie) {
+        if (type_de->est_type_opaque() &&
+            type_vers == type_de->comme_type_opaque()->type_opacifie) {
             // on pourrait se passer de la conversion, ou normaliser le type
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
@@ -337,7 +339,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->genre == GenreType::UNION) {
-        auto type_union = type_vers->comme_union();
+        auto type_union = type_vers->comme_type_union();
 
         if ((type_vers->drapeaux & TYPE_FUT_VALIDE) == 0) {
             return Attente::sur_type(type_vers);
@@ -364,7 +366,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->genre == GenreType::UNION) {
-        auto type_union = type_de->comme_union();
+        auto type_union = type_de->comme_type_union();
 
         if ((type_union->drapeaux & TYPE_FUT_VALIDE) == 0) {
             return Attente::sur_type(type_union);
@@ -388,7 +390,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     if (type_vers->genre == GenreType::FONCTION) {
         /* x : fonc()rien = nul; */
         if (type_de->genre == GenreType::POINTEUR &&
-            type_de->comme_pointeur()->type_pointe == nullptr) {
+            type_de->comme_type_pointeur()->type_pointe == nullptr) {
             return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
 
@@ -398,10 +400,10 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->genre == GenreType::REFERENCE) {
-        auto type_élément_vers = type_vers->comme_reference()->type_pointe;
+        auto type_élément_vers = type_vers->comme_type_reference()->type_pointe;
 
-        if (type_de->est_reference()) {
-            auto type_élément_de = type_de->comme_reference()->type_pointe;
+        if (type_de->est_type_reference()) {
+            auto type_élément_de = type_de->comme_type_reference()->type_pointe;
 
             if ((type_élément_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 return Attente::sur_type(type_élément_de);
@@ -437,18 +439,18 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->genre == GenreType::REFERENCE) {
-        if (type_de->comme_reference()->type_pointe == type_vers) {
+        if (type_de->comme_type_reference()->type_pointe == type_vers) {
             return TypeTransformation::DEREFERENCE;
         }
     }
 
     if (type_vers->genre == GenreType::TABLEAU_DYNAMIQUE) {
-        auto type_pointe = type_vers->comme_tableau_dynamique()->type_pointe;
+        auto type_pointe = type_vers->comme_type_tableau_dynamique()->type_pointe;
 
         if (type_pointe->genre == GenreType::OCTET) {
             // a : []octet = nul, voir bug19
             if (type_de->genre == GenreType::POINTEUR) {
-                auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
+                auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
 
                 if (type_pointe_de == nullptr) {
                     return TypeTransformation::IMPOSSIBLE;
@@ -462,7 +464,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TypeTransformation::IMPOSSIBLE;
         }
 
-        if (type_pointe == type_de->comme_tableau_fixe()->type_pointe) {
+        if (type_pointe == type_de->comme_type_tableau_fixe()->type_pointe) {
             return TypeTransformation::CONVERTI_TABLEAU;
         }
 
@@ -470,7 +472,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::FONCTION) {
-        auto type_pointe_vers = type_vers->comme_pointeur()->type_pointe;
+        auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointe;
 
         /* x : *z8 = y (*rien) */
         if (type_pointe_vers->genre == GenreType::RIEN) {
@@ -479,8 +481,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_vers->genre == GenreType::POINTEUR && type_de->genre == GenreType::POINTEUR) {
-        auto type_pointe_de = type_de->comme_pointeur()->type_pointe;
-        auto type_pointe_vers = type_vers->comme_pointeur()->type_pointe;
+        auto type_pointe_de = type_de->comme_type_pointeur()->type_pointe;
+        auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointe;
 
         /* x = nul; */
         if (type_pointe_de == nullptr) {
@@ -510,8 +512,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         if (type_pointe_de->genre == GenreType::STRUCTURE &&
             type_pointe_vers->genre == GenreType::STRUCTURE) {
-            auto ts_de = type_pointe_de->comme_structure();
-            auto ts_vers = type_pointe_vers->comme_structure();
+            auto ts_de = type_pointe_de->comme_type_structure();
+            auto ts_vers = type_pointe_vers->comme_type_structure();
 
             if ((ts_de->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 return Attente::sur_type(ts_de);
@@ -541,8 +543,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (POUR_TRANSTYPAGE) {
-        if ((type_de->est_pointeur() || type_de->est_fonction()) && est_type_entier(type_vers) &&
-            type_vers->taille_octet == 8) {
+        if ((type_de->est_type_pointeur() || type_de->est_type_fonction()) &&
+            est_type_entier(type_vers) && type_vers->taille_octet == 8) {
             return TransformationType{TypeTransformation::POINTEUR_VERS_ENTIER, type_vers};
         }
 
@@ -551,13 +553,13 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             return TransformationType{TypeTransformation::ENTIER_VERS_POINTEUR, type_vers};
         }
 
-        if (type_de->est_reference() && type_vers->est_reference()) {
-            auto type_pointe_de = type_de->comme_reference()->type_pointe;
-            auto type_pointe_vers = type_vers->comme_reference()->type_pointe;
+        if (type_de->est_type_reference() && type_vers->est_type_reference()) {
+            auto type_pointe_de = type_de->comme_type_reference()->type_pointe;
+            auto type_pointe_vers = type_vers->comme_type_reference()->type_pointe;
 
-            if (type_pointe_de->est_structure() && type_pointe_vers->est_structure()) {
-                auto ts_de = type_pointe_de->comme_structure();
-                auto ts_vers = type_pointe_vers->comme_structure();
+            if (type_pointe_de->est_type_structure() && type_pointe_vers->est_type_structure()) {
+                auto ts_de = type_pointe_de->comme_type_structure();
+                auto ts_vers = type_pointe_vers->comme_type_structure();
 
                 auto décalage_type_base = est_type_de_base(ts_vers, ts_de);
                 if (décalage_type_base) {
@@ -593,8 +595,8 @@ ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type con
 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
-        if (type_arg->est_pointeur() && type_arg->comme_pointeur()->type_pointe == nullptr &&
-            type_arg != type_enf) {
+        if (type_arg->est_type_pointeur() &&
+            type_arg->comme_type_pointeur()->type_pointe == nullptr && type_arg != type_enf) {
             return PoidsTransformation{transformation, 0.0};
         }
 

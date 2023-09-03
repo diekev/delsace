@@ -367,7 +367,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         }
         case Instruction::Genre::ALLOCATION:
         {
-            auto type_pointeur = inst->type->comme_pointeur();
+            auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  alloue " << chaine_type(type_pointeur->type_pointe) << ' ';
 
             if (inst->ident != nullptr) {
@@ -541,7 +541,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
         os << virgule;
         os << param->ident->nom << ' ';
 
-        auto type_pointeur = param->type->comme_pointeur();
+        auto type_pointeur = param->type->comme_type_pointeur();
         os << chaine_type(type_pointeur->type_pointe);
 
         virgule = ", ";
@@ -551,7 +551,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
         os << virgule;
     }
 
-    auto type_fonction = atome_fonc->type->comme_fonction();
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
 
     os << ") -> ";
     os << chaine_type(type_fonction->type_sortie);
@@ -571,7 +571,7 @@ int numerote_instructions(AtomeFonction const &fonction)
         it->comme_instruction()->numero = resultat++;
     }
 
-    if (!fonction.param_sortie->type->est_rien()) {
+    if (!fonction.param_sortie->type->est_type_rien()) {
         fonction.param_sortie->comme_instruction()->numero = resultat++;
     }
 

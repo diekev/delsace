@@ -385,8 +385,8 @@ void DonneesDependance::fusionne(const DonneesDependance &autre)
 {
     /* Ajoute les nouveaux types aux dépendances courantes. */
     pour_chaque_element(autre.types_utilises, [&](auto &type) {
-        if (type->est_type_de_donnees()) {
-            auto type_de_donnees = type->comme_type_de_donnees();
+        if (type->est_type_type_de_donnees()) {
+            auto type_de_donnees = type->comme_type_type_de_donnees();
             if (type_de_donnees->type_connu) {
                 types_utilises.insere(type_de_donnees->type_connu);
             }

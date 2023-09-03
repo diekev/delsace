@@ -334,12 +334,12 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
             return CastOps::IntToPtr;
         case TypeTranstypage::REEL_VERS_ENTIER:
-            if (type_vers->est_entier_naturel()) {
+            if (type_vers->est_type_entier_naturel()) {
                 return CastOps::FPToUI;
             }
             return CastOps::FPToSI;
         case TypeTranstypage::ENTIER_VERS_REEL:
-            if (type_de->est_entier_naturel()) {
+            if (type_de->est_type_entier_naturel()) {
                 return CastOps::UIToFP;
             }
             return CastOps::SIToFP;
@@ -422,7 +422,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::TUPLE:
         {
-            auto tuple = type->comme_tuple();
+            auto tuple = type->comme_type_tuple();
 
             std::vector<llvm::Type *> types_membres;
             types_membres.reserve(static_cast<size_t>(tuple->membres.taille()));
@@ -435,7 +435,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::FONCTION:
         {
-            auto type_fonc = type->comme_fonction();
+            auto type_fonc = type->comme_type_fonction();
 
             std::vector<llvm::Type *> parametres;
             POUR (type_fonc->types_entrees) {
@@ -550,7 +550,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::UNION:
         {
-            auto type_struct = type->comme_union();
+            auto type_struct = type->comme_type_union();
             auto decl_struct = type_struct->decl;
             auto nom_nonsur = enchaine("union_nonsure.", type_struct->nom->nom);
             auto nom = enchaine("union.", type_struct->nom->nom);
@@ -575,7 +575,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::STRUCTURE:
         {
-            auto type_struct = type->comme_structure();
+            auto type_struct = type->comme_type_structure();
             auto nom = enchaine("struct.", type_struct->nom->nom);
 
             /* Pour les structures récursives, il faut créer un type
@@ -605,7 +605,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::VARIADIQUE:
         {
-            auto type_var = type->comme_variadique();
+            auto type_var = type->comme_type_variadique();
 
             // Utilise le type de tableau dynamique afin que le code IR LLVM
             // soit correcte (pointe vers le même type)
@@ -634,7 +634,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         case GenreType::TABLEAU_FIXE:
         {
             auto type_deref_llvm = converti_type_llvm(type_dereference_pour(type));
-            auto const taille = type->comme_tableau_fixe()->taille;
+            auto const taille = type->comme_type_tableau_fixe()->taille;
 
             type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
             break;
@@ -648,7 +648,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
         case GenreType::OPAQUE:
         {
-            auto type_opaque = type->comme_opaque();
+            auto type_opaque = type->comme_type_opaque();
             type_llvm = converti_type_llvm(type_opaque->type_opacifie);
             break;
         }
@@ -672,7 +672,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
 
             /* les arguments variadiques sont transformés en un tableau */
             if (!est_externe) {
-                auto type_var = it->comme_variadique();
+                auto type_var = it->comme_type_variadique();
                 auto type_tabl = m_espace.compilatrice().typeuse.type_tableau_dynamique(
                     type_var->type_pointe);
                 parametres.push_back(converti_type_llvm(type_tabl));
@@ -769,7 +769,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
                     auto index_array = std::vector<llvm::Value *>();
                     auto type_accede = acces->accede->type;
-                    if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+                    if (type_accede->comme_type_pointeur()->type_pointe->est_type_pointeur()) {
                         index_array.resize(1);
                         index_array[0] = index;
                     }
@@ -822,7 +822,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
                         {
                             // À FAIRE : la RI peut modifier le type mais pas le genre de l'atome.
-                            if (atome->type->est_reel()) {
+                            if (atome->type->est_type_reel()) {
                                 auto valeur_reelle = static_cast<double>(
                                     valeur_const->valeur.valeur_entiere);
                                 return llvm::ConstantFP::get(type_llvm, valeur_reelle);
@@ -956,7 +956,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         }
         case Instruction::Genre::ALLOCATION:
         {
-            auto type_pointeur = inst->type->comme_pointeur();
+            auto type_pointeur = inst->type->comme_type_pointeur();
             auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
             alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
@@ -1221,7 +1221,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_index = genere_code_pour_atome(inst_acces->index, false);
 
             auto type_accede = inst_acces->accede->type;
-            if (type_accede->comme_pointeur()->type_pointe->est_pointeur()) {
+            if (type_accede->comme_type_pointeur()->type_pointe->est_type_pointeur()) {
                 auto index = std::vector<llvm::Value *>(1);
                 index[0] = valeur_index;
 
@@ -1248,13 +1248,13 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto index_membre =
                 static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere;
 
-            auto type_pointe = accede->type->comme_pointeur()->type_pointe;
+            auto type_pointe = accede->type->comme_type_pointeur()->type_pointe;
 
             auto index_reel = index_reel_pour_membre(
-                *accede->type->comme_pointeur()->type_pointe->comme_compose(),
+                *accede->type->comme_type_pointeur()->type_pointe->comme_type_compose(),
                 static_cast<uint32_t>(index_membre));
 
-            if (!type_pointe->est_pointeur()) {
+            if (!type_pointe->est_type_pointeur()) {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
                 index[1] = m_builder.getInt32(index_reel);
@@ -1302,7 +1302,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
-        auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+        auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
         auto type_llvm = converti_type_llvm(type);
 
         auto nom_globale = llvm::StringRef();
@@ -1345,7 +1345,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
     POUR (repr_inter.fonctions) {
         auto atome_fonc = it;
 
-        auto type_fonction = atome_fonc->type->comme_fonction();
+        auto type_fonction = atome_fonc->type->comme_type_fonction();
         auto type_llvm = converti_type_fonction(type_fonction,
                                                 atome_fonc->instructions.taille() == 0);
 
@@ -1396,7 +1396,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto valeur = &(*valeurs_args++);
             valeur->setName(vers_std_string(nom_argument));
 
-            auto type = param->type->comme_pointeur()->type_pointe;
+            auto type = param->type->comme_type_pointeur()->type_pointe;
             auto type_llvm = converti_type_llvm(type);
 
             auto alloc = m_builder.CreateAlloca(type_llvm, 0u);
@@ -1429,10 +1429,10 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         //		}
 
         /* crée une variable local pour la valeur de sortie */
-        auto type_fonction = atome_fonc->type->comme_fonction();
-        if (!type_fonction->type_sortie->est_rien()) {
+        auto type_fonction = atome_fonc->type->comme_type_fonction();
+        if (!type_fonction->type_sortie->est_type_rien()) {
             auto param = atome_fonc->param_sortie;
-            auto type_pointeur = param->type->comme_pointeur();
+            auto type_pointeur = param->type->comme_type_pointeur();
             auto type_pointe = type_pointeur->type_pointe;
             auto type_llvm = converti_type_llvm(type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);

@@ -183,14 +183,14 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         case GenreType::REFERENCE:
         {
             enchaineuse << "KR";
-            nom_broye_type(enchaineuse, type->comme_reference()->type_pointe);
+            nom_broye_type(enchaineuse, type->comme_type_reference()->type_pointe);
             break;
         }
         case GenreType::POINTEUR:
         {
             enchaineuse << "KP";
 
-            auto type_pointe = type->comme_pointeur()->type_pointe;
+            auto type_pointe = type->comme_type_pointeur()->type_pointe;
 
             if (type_pointe == nullptr) {
                 enchaineuse << "nul";
@@ -233,7 +233,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreType::VARIADIQUE:
         {
-            auto type_pointe = type->comme_variadique()->type_pointe;
+            auto type_pointe = type->comme_type_variadique()->type_pointe;
 
             // les arguments variadiques sont transformés en tableaux, donc utilise Kt
             if (type_pointe != nullptr) {
@@ -249,12 +249,12 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         case GenreType::TABLEAU_DYNAMIQUE:
         {
             enchaineuse << "Kt";
-            nom_broye_type(enchaineuse, type->comme_tableau_dynamique()->type_pointe);
+            nom_broye_type(enchaineuse, type->comme_type_tableau_dynamique()->type_pointe);
             break;
         }
         case GenreType::TABLEAU_FIXE:
         {
-            auto type_tabl = type->comme_tableau_fixe();
+            auto type_tabl = type->comme_type_tableau_fixe();
 
             enchaineuse << "KT";
             enchaineuse << type_tabl->taille;
@@ -282,7 +282,7 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
         }
         case GenreType::OPAQUE:
         {
-            auto type_opaque = type->comme_opaque();
+            auto type_opaque = type->comme_type_opaque();
             enchaineuse << "Ks";
             broye_nom_simple(enchaineuse, type_opaque->nom_portable());
             /* inclus le nom du type opacifié afin de prendre en compte les monomorphisations */
@@ -431,7 +431,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
 {
     stockage_temp.reinitialise();
 
-    auto type_fonc = decl->type->comme_fonction();
+    auto type_fonc = decl->type->comme_type_fonction();
 
     if (decl->est_metaprogramme) {
         stockage_temp << "metaprogramme" << decl;
@@ -439,7 +439,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
     }
 
     if (decl->est_initialisation_type) {
-        auto type_param = decl->parametre_entree(0)->type->comme_pointeur()->type_pointe;
+        auto type_param = decl->parametre_entree(0)->type->comme_type_pointeur()->type_pointe;
         // Ajout du pointeur du type pour différencier les types monomorphés.
         stockage_temp << "initialise_" << type_param;
         return chaine_finale_pour_stockage_temp();
@@ -455,8 +455,8 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
                 broye_nom_simple(it->ident);
 
                 auto type = it->type;
-                if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu) {
-                    type = type->comme_type_de_donnees()->type_connu;
+                if (type->est_type_type_de_donnees() && type->comme_type_type_de_donnees()->type_connu) {
+                    type = type->comme_type_type_de_donnees()->type_connu;
                 }
 
                 nom_broye_type(type);
@@ -502,8 +502,8 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
                 stockage_temp << nom_ascii;
 
                 auto type = it->type;
-                if (type->est_type_de_donnees() && type->comme_type_de_donnees()->type_connu) {
-                    type = type->comme_type_de_donnees()->type_connu;
+                if (type->est_type_type_de_donnees() && type->comme_type_type_de_donnees()->type_connu) {
+                    type = type->comme_type_type_de_donnees()->type_connu;
                 }
 
                 auto nom_broye = type->nom_broye;
