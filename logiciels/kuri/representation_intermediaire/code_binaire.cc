@@ -732,12 +732,12 @@ ffi_type *converti_type_ffi(Type const *type)
         }
         case GenreType::OPAQUE:
         {
-            auto type_opaque = type->comme_opaque();
+            auto type_opaque = type->comme_type_opaque();
             return converti_type_ffi(type_opaque->type_opacifie);
         }
         case GenreType::UNION:
         {
-            auto type_union = type->comme_union();
+            auto type_union = type->comme_type_union();
 
             if (type_union->est_nonsure) {
                 return converti_type_ffi(type_union->type_le_plus_grand);
@@ -817,7 +817,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
              * exécutable (pour le système d'exploitation) mais l'adresse de l'AtomeFonction
              * correspondant qui est utilisée dans la machine virtuelle. */
             POUR (decl->params) {
-                if (it->type->est_fonction()) {
+                if (it->type->est_type_fonction()) {
                     espace->rapporte_erreur(fonction->decl,
                                             "Impossible d'appeler dans un métaprogramme une "
                                             "fonction externe utilisant un pointeur de fonction");
@@ -838,7 +838,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             return true;
         }
 
-        auto type_fonction = fonction->type->comme_fonction();
+        auto type_fonction = fonction->type->comme_type_fonction();
         donnees_externe.types_entrees.reserve(type_fonction->types_entrees.taille());
 
         POUR (type_fonction->types_entrees) {
@@ -868,7 +868,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
-        auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+        auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
         auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
         alloc->index_locale = chunk.locales.taille();
         chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
@@ -878,9 +878,9 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     if (fonction->param_sortie) {
         auto param = fonction->param_sortie;
         auto alloc = param->comme_instruction()->comme_alloc();
-        auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+        auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
-        if (!type_pointe->est_rien()) {
+        if (!type_pointe->est_type_rien()) {
             auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
             alloc->index_locale = chunk.locales.taille();
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
@@ -891,7 +891,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
             auto alloc = it->comme_alloc();
-            auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+            auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
             auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
             alloc->index_locale = chunk.locales.taille();
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
@@ -979,7 +979,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                     chunk.taille_allouee = pile_taille.depile();
                 }
 
-                auto type_pointe = alloc->type->comme_pointeur()->type_pointe;
+                auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
                 auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
                 alloc->index_locale = static_cast<int>(chunk.locales.taille);
                 chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
@@ -1154,13 +1154,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case Instruction::Genre::ACCEDE_INDEX:
         {
             auto index = instruction->comme_acces_index();
-            auto type_pointeur = index->type->comme_pointeur();
+            auto type_pointeur = index->type->comme_type_pointeur();
             genere_code_binaire_pour_atome(index->index, chunk, true);
             genere_code_binaire_pour_atome(index->accede, chunk, true);
 
             if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
                 auto accede = index->accede->comme_instruction();
-                auto type_accede = accede->type->comme_pointeur()->type_pointe;
+                auto type_accede = accede->type->comme_type_pointeur()->type_pointe;
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
                 if (type_accede->genre == GenreType::POINTEUR) {
@@ -1180,8 +1180,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto type_compose = static_cast<TypeCompose *>(
                 type_dereference_pour(membre->accede->type));
 
-            if (type_compose->est_union()) {
-                type_compose = type_compose->comme_union()->type_structure;
+            if (type_compose->est_type_union()) {
+                type_compose = type_compose->comme_type_union()->type_structure;
             }
 
             auto decalage = type_compose->membres[index_membre].decalage;
@@ -1217,23 +1217,23 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
 static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
 {
-    if (type->est_entier_constant()) {
+    if (type->est_type_entier_constant()) {
         return TypeBase::Z32;
     }
 
-    if (type->est_enum()) {
-        return type->comme_enum()->type_donnees;
+    if (type->est_type_enum()) {
+        return type->comme_type_enum()->type_donnees;
     }
 
-    if (type->est_erreur()) {
-        return type->comme_erreur()->type_donnees;
+    if (type->est_type_erreur()) {
+        return type->comme_type_erreur()->type_donnees;
     }
 
-    if (type->est_type_de_donnees()) {
+    if (type->est_type_type_de_donnees()) {
         return TypeBase::Z64;
     }
 
-    if (type->est_octet()) {
+    if (type->est_type_octet()) {
         return TypeBase::N8;
     }
 
@@ -1281,7 +1281,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
             auto index_constant = static_cast<AccedeIndexConstant const *>(constante);
-            auto type_pointeur = index_constant->type->comme_pointeur();
+            auto type_pointeur = index_constant->type->comme_type_pointeur();
             genere_code_binaire_pour_constante(index_constant->index, chunk);
             genere_code_binaire_pour_constante(index_constant->accede, chunk);
             chunk.emets_acces_index(nullptr, type_pointeur->type_pointe);
@@ -1346,7 +1346,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     chunk.emets_constante(static_cast<int64_t>(valeur_entiere));
                 }
             }
-            else if (type->est_reel()) {
+            else if (type->est_type_reel()) {
                 if (type->taille_octet == 4) {
                     chunk.emets_constante(static_cast<float>(valeur_entiere));
                 }
@@ -1639,7 +1639,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto pointeur = tableau->valeur.valeur_tableau.pointeur;
                             auto taille = tableau->valeur.valeur_tableau.taille;
 
-                            auto type_tableau = tableau->type->comme_tableau_fixe();
+                            auto type_tableau = tableau->type->comme_type_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
                             auto decalage_valeur = donnees_executions->donnees_constantes.taille();
                             auto adresse_tableau = decalage_valeur;
@@ -1768,7 +1768,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
 {
     assert(globale->index == -1);
-    auto type_globale = globale->type->comme_pointeur()->type_pointe;
+    auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
     auto index = donnees_executions->ajoute_globale(
         type_globale, globale->ident, globale->est_info_type_de);
     globale->index = index;

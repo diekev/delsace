@@ -2731,12 +2731,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_structure(NoeudExpression *gauc
 
     if (gauche->ident == ID::InfoType) {
         noeud_decl->type = m_compilatrice.typeuse.type_info_type_;
-        auto type_info_type = m_compilatrice.typeuse.type_info_type_->comme_structure();
+        auto type_info_type = m_compilatrice.typeuse.type_info_type_->comme_type_structure();
         type_info_type->decl = noeud_decl;
         type_info_type->nom = noeud_decl->ident;
     }
     else if (gauche->ident == ID::ContexteProgramme) {
-        auto type_contexte = m_compilatrice.typeuse.type_contexte->comme_structure();
+        auto type_contexte = m_compilatrice.typeuse.type_contexte->comme_type_structure();
         noeud_decl->type = type_contexte;
         type_contexte->decl = noeud_decl;
         type_contexte->nom = noeud_decl->ident;

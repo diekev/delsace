@@ -244,7 +244,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             }
 
             if (decl_var->expression == nullptr) {
-                if (decl_var->type->est_enum()) {
+                if (decl_var->type->est_type_enum()) {
                     auto type_enum = static_cast<TypeEnum *>(decl_var->type);
 
                     auto info_membre = type_enum->donne_membre_pour_nom(decl_var->ident);
@@ -412,7 +412,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 return ValeurExpression(valeur_enum);
             }
 
-            if (type_accede->est_tableau_fixe()) {
+            if (type_accede->est_type_tableau_fixe()) {
                 if (!ref_membre->membre->est_reference_declaration()) {
                     return erreur_evaluation(
                         b, "L'expression n'est pas constante et ne peut être calculée !");
@@ -421,7 +421,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
 
                 if (ref_decl_membre->ident->nom == "taille") {
-                    return ValeurExpression(type_accede->comme_tableau_fixe()->taille);
+                    return ValeurExpression(type_accede->comme_type_tableau_fixe()->taille);
                 }
             }
 
