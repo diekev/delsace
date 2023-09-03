@@ -1379,7 +1379,7 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
 
     auto type_union = type_sortie;
 
-    auto info_membre = type_union->donne_membre_pour_type(TypeBase::RIEN);
+    auto info_membre = donne_membre_pour_type(type_union, TypeBase::RIEN);
     assert(info_membre.has_value());
     auto index_membre = uint32_t(info_membre->index_membre);
 
@@ -1679,7 +1679,7 @@ void Simplificatrice::simplifie_construction_structure_impl(
 static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ayant_ajouté_decl(
     TypeCompose *type_composé, NoeudDeclarationSymbole *decl_employée)
 {
-    auto info_membre = type_composé->donne_membre_pour_type(decl_employée->type);
+    auto info_membre = donne_membre_pour_type(type_composé, decl_employée->type);
     if (!info_membre) {
         return {};
     }
@@ -1697,7 +1697,7 @@ static std::optional<TypeCompose::InformationMembre> trouve_information_membre_a
 static std::optional<TypeCompose::InformationMembre> trouve_information_membre_ajouté_par_emploi(
     TypeCompose *type_composé, IdentifiantCode *nom)
 {
-    return type_composé->donne_membre_pour_nom(nom);
+    return donne_membre_pour_nom(type_composé, nom);
 }
 
 /**
@@ -2231,14 +2231,14 @@ void Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
             }
             else if (N == DISCR_UNION) {
                 auto const type_union = discr->expression_discriminee->type->comme_type_union();
-                auto index = type_union->donne_membre_pour_nom(expr->ident)->index_membre;
+                auto index = donne_membre_pour_nom(type_union, expr->ident)->index_membre;
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;
             }
             else if (N == DISCR_UNION_ANONYME) {
                 auto const type_union = discr->expression_discriminee->type->comme_type_union();
-                auto index = type_union->donne_membre_pour_nom(expr->ident)->index_membre;
+                auto index = donne_membre_pour_nom(type_union, expr->ident)->index_membre;
                 auto constante = assem->cree_litterale_entier(
                     expr->lexeme, expression->type, static_cast<uint64_t>(index + 1));
                 comparaison.operande_droite = constante;

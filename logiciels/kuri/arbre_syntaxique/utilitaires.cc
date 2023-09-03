@@ -994,7 +994,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             info_type->genre = GenreInfoType::STRUCTURE;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->nom = type_struct->nom_hierarchique();
+            info_type->nom = donne_nom_hierarchique(type_struct);
 
             info_type->membres.reserve(type_struct->membres.taille());
 
@@ -1045,7 +1045,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
             info_type->type_le_plus_grand = cree_info_type_pour(type_union->type_le_plus_grand);
             info_type->decalage_index = type_union->decalage_index;
             info_type->taille_en_octet = type_union->taille_octet;
-            info_type->nom = type_union->nom_hierarchique();
+            info_type->nom = donne_nom_hierarchique(type_union);
 
             info_type->membres.reserve(type_union->membres.taille());
 
@@ -1079,7 +1079,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
             info_type->genre = GenreInfoType::ENUM;
-            info_type->nom = type_enum->nom_hierarchique();
+            info_type->nom = donne_nom_hierarchique(type_enum);
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
             info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
@@ -1139,7 +1139,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
             info_type->genre = GenreInfoType::OPAQUE;
-            info_type->nom = type_opaque->nom_hierarchique();
+            info_type->nom = donne_nom_hierarchique(type_opaque);
             info_type->type_opacifie = cree_info_type_pour(type_opaque->type_opacifie);
 
             type->info_type = info_type;
@@ -1892,7 +1892,7 @@ static void assigne_fonction_init_enum(Typeuse &typeuse, TypeEnum *type)
 {
 #define ASSIGNE_SI(ident_maj, ident_min)                                                          \
     if (type_données == TypeBase::ident_maj) {                                                    \
-        type->assigne_fonction_init(typeuse.init_type_##ident_min);                               \
+        assigne_fonction_init(type, typeuse.init_type_##ident_min);                               \
         return;                                                                                   \
     }
 
@@ -1951,7 +1951,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
      * pointeur faisant partie des TypeBase, pour les autres, l'assignation de la fonction se fait
      * lors de la création du type pointeur. */
     if (type->est_type_pointeur() && typeuse.init_type_pointeur) {
-        type->assigne_fonction_init(typeuse.init_type_pointeur);
+        assigne_fonction_init(type, typeuse.init_type_pointeur);
         return;
     }
 
@@ -2130,7 +2130,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 
     assembleuse->depile_bloc();
     simplifie_arbre(espace, assembleuse, typeuse, entete);
-    type->assigne_fonction_init(entete);
+    assigne_fonction_init(type, entete);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 }
 

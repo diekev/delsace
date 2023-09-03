@@ -188,11 +188,11 @@ bool Programme::ri_generees(DiagnostiqueEtatCompilation &diagnostique) const
 
     if (elements_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types) {
-            if (!it->requiers_fonction_initialisation()) {
+            if (!requiers_fonction_initialisation(it)) {
                 continue;
             }
 
-            if (it->requiers_création_fonction_initialisation()) {
+            if (requiers_création_fonction_initialisation(it)) {
                 diagnostique.fonction_initialisation_type_a_creer = it;
                 return false;
             }
