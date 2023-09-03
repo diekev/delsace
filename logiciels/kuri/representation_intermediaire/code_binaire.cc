@@ -1011,7 +1011,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
              * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
              * être opérandes. */
-            if (appel->type->genre != GenreType::RIEN && !pour_operande) {
+            if (!appel->type->est_type_rien() && !pour_operande) {
                 return;
             }
 

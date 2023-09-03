@@ -1664,7 +1664,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_sortie = type_fonc->type_sortie;
 
         auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
-        if (type_sortie->genre != GenreType::RIEN && expr_gauche) {
+        if (!type_sortie->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(
                     expr,
@@ -1770,7 +1770,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         applique_transformations(contexte, candidate, expr);
 
         auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
-        if (expr->type->genre != GenreType::RIEN && expr_gauche) {
+        if (!expr->type->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(expr,
                                  "La valeur de retour du pointeur de fonction n'est pas utilisée. "
