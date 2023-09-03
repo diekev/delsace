@@ -406,7 +406,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             auto ref_membre = b->comme_reference_membre();
             auto type_accede = ref_membre->accedee->type;
 
-            if (type_accede->genre == GenreType::ENUM || type_accede->genre == GenreType::ERREUR) {
+            if (type_accede->est_type_enum() || type_accede->est_type_erreur()) {
                 auto type_enum = static_cast<TypeEnum *>(type_accede);
                 auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
                 return ValeurExpression(valeur_enum);

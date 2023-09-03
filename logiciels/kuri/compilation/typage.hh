@@ -828,7 +828,7 @@ Type *type_dereference_pour(Type const *type);
 
 inline bool est_type_entier(Type const *type)
 {
-    return type->genre == GenreType::ENTIER_NATUREL || type->genre == GenreType::ENTIER_RELATIF;
+    return type->est_type_entier_naturel() || type->est_type_entier_relatif();
 }
 
 bool est_type_booleen_implicite(Type *type);
