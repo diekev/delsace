@@ -583,7 +583,7 @@ struct VisiteuseType {
             case GenreType::ERREUR:
             {
                 auto type_enum = static_cast<TypeEnum *>(type);
-                visite_type(type_enum->type_donnees, rappel);
+                visite_type(type_enum->type_sous_jacent, rappel);
                 break;
             }
             case GenreType::TYPE_DE_DONNEES:
