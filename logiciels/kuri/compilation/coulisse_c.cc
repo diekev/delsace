@@ -125,7 +125,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::OPAQUE:
             {
-                auto type_opaque = type->comme_opaque();
+                auto type_opaque = type->comme_type_opaque();
                 cree_typedef(type_opaque->type_opacifie, enchaineuse);
                 auto nom_broye_type_opacifie = broyeuse.nom_broye_type(type_opaque->type_opacifie);
                 type_c.typedef_ = nom_broye_type_opacifie;
@@ -196,7 +196,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::REFERENCE:
             {
-                auto type_pointe = type->comme_reference()->type_pointe;
+                auto type_pointe = type->comme_type_reference()->type_pointe;
                 cree_typedef(type_pointe, enchaineuse);
                 auto &type_c_pointe = type_c_pour(type_pointe);
                 type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
@@ -204,7 +204,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::POINTEUR:
             {
-                auto type_pointe = type->comme_pointeur()->type_pointe;
+                auto type_pointe = type->comme_type_pointeur()->type_pointe;
 
                 if (type_pointe) {
                     cree_typedef(type_pointe, enchaineuse);
@@ -219,7 +219,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::STRUCTURE:
             {
-                auto type_struct = type->comme_structure();
+                auto type_struct = type->comme_type_structure();
 
                 if (type_struct->decl && type_struct->decl->est_polymorphe) {
                     /* Aucun typedef. */
@@ -244,7 +244,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::UNION:
             {
-                auto type_union = type->comme_union();
+                auto type_union = type->comme_type_union();
                 POUR (type_union->membres) {
                     cree_typedef(it.type, enchaineuse);
                 }
@@ -278,7 +278,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::VARIADIQUE:
             {
-                auto variadique = type->comme_variadique();
+                auto variadique = type->comme_type_variadique();
                 /* Garantie la génération du typedef pour les types tableaux des variadiques. */
                 if (!variadique->type_tableau_dynamique) {
                     type_c.typedef_ = "...";
@@ -297,7 +297,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::TABLEAU_DYNAMIQUE:
             {
-                auto type_pointe = type->comme_tableau_dynamique()->type_pointe;
+                auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
 
                 if (type_pointe == nullptr) {
                     /* Aucun typedef. */
@@ -311,7 +311,7 @@ struct ConvertisseuseTypeC {
             }
             case GenreType::FONCTION:
             {
-                auto type_fonc = type->comme_fonction();
+                auto type_fonc = type->comme_type_fonction();
 
                 POUR (type_fonc->types_entrees) {
                     cree_typedef(it, enchaineuse);
@@ -416,8 +416,8 @@ struct ConvertisseuseTypeC {
             return;
         }
 
-        if (type->est_structure()) {
-            auto type_struct = type->comme_structure();
+        if (type->est_type_structure()) {
+            auto type_struct = type->comme_type_structure();
 
             if (type_struct->decl && type_struct->decl->est_polymorphe) {
                 return;
@@ -425,13 +425,13 @@ struct ConvertisseuseTypeC {
 
             type_c.code_machine_fut_genere = true;
             POUR (type_struct->membres) {
-                if (it.type->est_pointeur()) {
+                if (it.type->est_type_pointeur()) {
                     continue;
                 }
                 /* Une fonction peut retourner via un tuple la structure dont nous essayons de
                  * générer le type. Évitons de générer le code du tuple avant la génération du code
                  * de cette structure. */
-                if (it.type->est_fonction()) {
+                if (it.type->est_type_fonction()) {
                     continue;
                 }
                 genere_code_pour_type(it.type, enchaineuse);
@@ -441,14 +441,15 @@ struct ConvertisseuseTypeC {
             genere_declaration_structure(enchaineuse, type_struct, quoi);
 
             POUR (type_struct->membres) {
-                if (it.type->est_pointeur()) {
-                    genere_code_pour_type(it.type->comme_pointeur()->type_pointe, enchaineuse);
+                if (it.type->est_type_pointeur()) {
+                    genere_code_pour_type(it.type->comme_type_pointeur()->type_pointe,
+                                          enchaineuse);
                     continue;
                 }
             }
         }
-        else if (type->est_tuple()) {
-            auto type_tuple = type->comme_tuple();
+        else if (type->est_type_tuple()) {
+            auto type_tuple = type->comme_type_tuple();
 
             if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
                 return;
@@ -479,29 +480,29 @@ struct ConvertisseuseTypeC {
 
             enchaineuse << "} " << nom_broye << ";\n";
         }
-        else if (type->est_union()) {
-            auto type_union = type->comme_union();
+        else if (type->est_type_union()) {
+            auto type_union = type->comme_type_union();
             type_c.code_machine_fut_genere = true;
             POUR (type_union->membres) {
                 genere_code_pour_type(it.type, enchaineuse);
             }
             genere_code_pour_type(type_union->type_structure, enchaineuse);
         }
-        else if (type->est_enum()) {
-            auto type_enum = type->comme_enum();
+        else if (type->est_type_enum()) {
+            auto type_enum = type->comme_type_enum();
             genere_code_pour_type(type_enum->type_donnees, enchaineuse);
         }
-        else if (type->est_tableau_fixe()) {
-            auto tableau_fixe = type->comme_tableau_fixe();
+        else if (type->est_type_tableau_fixe()) {
+            auto tableau_fixe = type->comme_type_tableau_fixe();
             genere_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
             auto const &nom_broye = broyeuse.nom_broye_type(type);
             enchaineuse << "typedef struct TableauFixe_" << nom_broye << "{ "
                         << broyeuse.nom_broye_type(tableau_fixe->type_pointe);
-            enchaineuse << " d[" << type->comme_tableau_fixe()->taille << "];";
+            enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];";
             enchaineuse << " } TableauFixe_" << nom_broye << ";\n\n";
         }
-        else if (type->est_tableau_dynamique()) {
-            auto tableau_dynamique = type->comme_tableau_dynamique();
+        else if (type->est_type_tableau_dynamique()) {
+            auto tableau_dynamique = type->comme_type_tableau_dynamique();
             auto type_pointe = tableau_dynamique->type_pointe;
 
             if (type_pointe == nullptr) {
@@ -531,26 +532,27 @@ struct ConvertisseuseTypeC {
                 enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
             }
         }
-        else if (type->est_opaque()) {
-            auto opaque = type->comme_opaque();
+        else if (type->est_type_opaque()) {
+            auto opaque = type->comme_type_opaque();
             genere_code_pour_type(opaque->type_opacifie, enchaineuse);
         }
-        else if (type->est_fonction()) {
-            auto type_fonction = type->comme_fonction();
+        else if (type->est_type_fonction()) {
+            auto type_fonction = type->comme_type_fonction();
             POUR (type_fonction->types_entrees) {
                 genere_code_pour_type(it, enchaineuse);
             }
             genere_code_pour_type(type_fonction->type_sortie, enchaineuse);
         }
-        else if (type->est_pointeur()) {
-            genere_code_pour_type(type->comme_pointeur()->type_pointe, enchaineuse);
+        else if (type->est_type_pointeur()) {
+            genere_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
         }
-        else if (type->est_reference()) {
-            genere_code_pour_type(type->comme_reference()->type_pointe, enchaineuse);
+        else if (type->est_type_reference()) {
+            genere_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
         }
-        else if (type->est_variadique()) {
-            genere_code_pour_type(type->comme_variadique()->type_pointe, enchaineuse);
-            genere_code_pour_type(type->comme_variadique()->type_tableau_dynamique, enchaineuse);
+        else if (type->est_type_variadique()) {
+            genere_code_pour_type(type->comme_type_variadique()->type_pointe, enchaineuse);
+            genere_code_pour_type(type->comme_type_variadique()->type_tableau_dynamique,
+                                  enchaineuse);
         }
 
         type_c.code_machine_fut_genere = true;
@@ -695,17 +697,18 @@ static void genere_code_debut_fichier(Enchaineuse &enchaineuse, kuri::chaine con
 
 static bool est_type_tableau_fixe(Type *type)
 {
-    return type->est_tableau_fixe() ||
-           (type->est_opaque() && type->comme_opaque()->type_opacifie->est_tableau_fixe());
+    return type->est_type_tableau_fixe() ||
+           (type->est_type_opaque() &&
+            type->comme_type_opaque()->type_opacifie->est_type_tableau_fixe());
 }
 
 static bool est_pointeur_vers_tableau_fixe(Type const *type)
 {
-    if (!type->est_pointeur()) {
+    if (!type->est_type_pointeur()) {
         return false;
     }
 
-    auto const type_pointeur = type->comme_pointeur();
+    auto const type_pointeur = type->comme_type_pointeur();
 
     if (!type_pointeur->type_pointe) {
         return false;
@@ -856,7 +859,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                     auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
                     if (est_type_tableau_fixe(
-                            inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+                            inst_acces->accede->type->comme_type_pointeur()->type_pointe)) {
                         valeur_accede = enchaine(valeur_accede, ".d");
                     }
 
@@ -874,8 +877,8 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                         case AtomeValeurConstante::Valeur::Genre::TYPE:
                         {
                             auto type = valeur_const->valeur.type;
-                            if (type->est_type_de_donnees()) {
-                                auto type_de_donnees = type->comme_type_de_donnees();
+                            if (type->est_type_type_de_donnees()) {
+                                auto type_de_donnees = type->comme_type_type_de_donnees();
                                 if (type_de_donnees->type_connu) {
                                     return enchaine(
                                         type_de_donnees->type_connu->index_dans_table_types);
@@ -902,7 +905,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                             auto type = valeur_const->type;
                             auto valeur_entiere = valeur_const->valeur.valeur_entiere;
 
-                            if (type->est_entier_naturel()) {
+                            if (type->est_type_entier_naturel()) {
                                 if (type->taille_octet == 1) {
                                     return enchaine(static_cast<uint32_t>(valeur_entiere));
                                 }
@@ -1196,7 +1199,7 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
         }
         case Instruction::Genre::ALLOCATION:
         {
-            auto type_pointeur = inst->type->comme_pointeur();
+            auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  " << broyeuse.nom_broye_type(type_pointeur->type_pointe);
 
             // les portées ne sont plus respectées : deux variables avec le même nom dans deux
@@ -1229,8 +1232,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
 
             os << "  ";
 
-            auto type_fonction = inst_appel->appele->type->comme_fonction();
-            if (!type_fonction->type_sortie->est_rien()) {
+            auto type_fonction = inst_appel->appele->type->comme_type_fonction();
+            if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = enchaine("__ret", inst->numero);
                 os << broyeuse.nom_broye_type(const_cast<Type *>(inst_appel->type)) << ' '
                    << nom_ret << " = ";
@@ -1293,7 +1296,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
                  * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
                  * membre de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
-                if (est_pointeur_vers_tableau_fixe(charge->type->comme_pointeur()->type_pointe)) {
+                if (est_pointeur_vers_tableau_fixe(
+                        charge->type->comme_type_pointeur()->type_pointe)) {
                     table_valeurs.insere(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
                 }
                 else {
@@ -1531,7 +1535,8 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
             auto valeur_accede = genere_code_pour_atome(inst_acces->accede, os, false);
             auto valeur_index = genere_code_pour_atome(inst_acces->index, os, false);
 
-            if (est_type_tableau_fixe(inst_acces->accede->type->comme_pointeur()->type_pointe)) {
+            if (est_type_tableau_fixe(
+                    inst_acces->accede->type->comme_type_pointeur()->type_pointe)) {
                 valeur_accede = enchaine(valeur_accede, ".d");
             }
 
@@ -1557,23 +1562,23 @@ void GeneratriceCodeC::genere_code_pour_instruction(const Instruction *inst, Enc
 
             auto type_accede = inst_acces->accede->type;
             auto type_pointe = Type::nul();
-            if (type_accede->est_pointeur()) {
-                type_pointe = type_accede->comme_pointeur()->type_pointe;
+            if (type_accede->est_type_pointeur()) {
+                type_pointe = type_accede->comme_type_pointeur()->type_pointe;
             }
-            else if (type_accede->est_reference()) {
-                type_pointe = type_accede->comme_reference()->type_pointe;
+            else if (type_accede->est_type_reference()) {
+                type_pointe = type_accede->comme_type_reference()->type_pointe;
             }
 
-            if (type_pointe->est_opaque()) {
-                type_pointe = type_pointe->comme_opaque()->type_opacifie;
+            if (type_pointe->est_type_opaque()) {
+                type_pointe = type_pointe->comme_type_opaque()->type_opacifie;
             }
 
             auto type_compose = static_cast<TypeCompose *>(type_pointe);
 
             /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
              * + index. */
-            if (type_compose->est_union()) {
-                type_compose = type_compose->comme_union()->type_structure;
+            if (type_compose->est_type_union()) {
+                type_compose = type_compose->comme_type_union()->type_structure;
             }
 
             auto index_membre = static_cast<int>(
@@ -1629,7 +1634,7 @@ void GeneratriceCodeC::declare_globale(Enchaineuse &os,
 {
     declare_visibilite_globale(os, valeur_globale, pour_entete);
 
-    auto type = valeur_globale->type->comme_pointeur()->type_pointe;
+    auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
     os << broyeuse.nom_broye_type(type) << ' ';
 
     if (valeur_globale->ident) {
@@ -1654,7 +1659,7 @@ void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *at
         os << "static __attribute__((always_inline)) inline ";
     }
 
-    auto type_fonction = atome_fonc->type->comme_fonction();
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
     os << broyeuse.nom_broye_type(type_fonction->type_sortie) << " ";
     os << atome_fonc->nom;
 
@@ -1663,14 +1668,14 @@ void GeneratriceCodeC::declare_fonction(Enchaineuse &os, const AtomeFonction *at
     for (auto param : atome_fonc->params_entrees) {
         os << virgule;
 
-        auto type_pointeur = param->type->comme_pointeur();
+        auto type_pointeur = param->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointe;
         os << broyeuse.nom_broye_type(type_param) << ' ';
 
         // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
         // (void fonction(...)), n'imprime pas de nom
-        if (type_param->est_variadique() &&
-            type_param->comme_variadique()->type_pointe == nullptr) {
+        if (type_param->est_type_variadique() &&
+            type_param->comme_type_variadique()->type_pointe == nullptr) {
             continue;
         }
 
@@ -1732,10 +1737,10 @@ void GeneratriceCodeC::genere_code_fonction(AtomeFonction const *atome_fonc, Enc
     auto numero_inst = atome_fonc->params_entrees.taille();
 
     /* Créons une variable locale pour la valeur de sortie. */
-    auto type_fonction = atome_fonc->type->comme_fonction();
-    if (!type_fonction->type_sortie->est_rien()) {
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
+    if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
-        auto type_pointeur = param->type->comme_pointeur();
+        auto type_pointeur = param->type->comme_type_pointeur();
         os << broyeuse.nom_broye_type(type_pointeur->type_pointe) << ' ';
         os << broyeuse.broye_nom_simple(param->ident);
         os << ";\n";

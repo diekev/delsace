@@ -509,7 +509,7 @@ struct InstructionAppel : public Instruction {
 
     InstructionAppel(NoeudExpression *site_, Atome *appele_) : InstructionAppel(site_)
     {
-        auto type_fonction = appele_->type->comme_fonction();
+        auto type_fonction = appele_->type->comme_type_fonction();
         this->type = type_fonction->type_sortie;
 
         this->appele = appele_;
