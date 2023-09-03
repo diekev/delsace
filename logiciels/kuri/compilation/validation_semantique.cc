@@ -577,7 +577,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
                           OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
-            if (type->genre == GenreType::REFERENCE) {
+            if (type->est_type_reference()) {
                 type = type_dereference_pour(type);
 
                 /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
@@ -608,7 +608,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->type = TypeBase::BOOL;
                 }
                 else {
-                    if (type->genre == GenreType::ENTIER_CONSTANT) {
+                    if (type->est_type_entier_constant()) {
                         type = TypeBase::Z32;
                         transtype_si_necessaire(
                             expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
@@ -638,7 +638,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type1 = enfant1->type;
             auto type2 = enfant2->type;
 
-            if (type1->genre == GenreType::REFERENCE) {
+            if (type1->est_type_reference()) {
                 transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
                 type1 = type_dereference_pour(type1);
             }
@@ -937,14 +937,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             assert(type_fin);
 
             if (type_debut != type_fin) {
-                if (type_debut->genre == GenreType::ENTIER_CONSTANT && est_type_entier(type_fin)) {
+                if (type_debut->est_type_entier_constant() && est_type_entier(type_fin)) {
                     type_debut = type_fin;
                     enfant1->type = type_debut;
                     transtype_si_necessaire(
                         inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
                 }
-                else if (type_fin->genre == GenreType::ENTIER_CONSTANT &&
-                         est_type_entier(type_debut)) {
+                else if (type_fin->est_type_entier_constant() && est_type_entier(type_debut)) {
                     type_fin = type_debut;
                     enfant2->type = type_fin;
                     transtype_si_necessaire(
@@ -955,7 +954,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     return CodeRetourValidation::Erreur;
                 }
             }
-            else if (type_debut->genre == GenreType::ENTIER_CONSTANT) {
+            else if (type_debut->est_type_entier_constant()) {
                 type_debut = TypeBase::Z32;
                 transtype_si_necessaire(
                     inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
@@ -1040,7 +1039,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (type_feuille->genre == GenreType::ENTIER_CONSTANT) {
+            if (type_feuille->est_type_entier_constant()) {
                 type_feuille = TypeBase::Z32;
                 transtype_si_necessaire(
                     feuilles->expressions[0],
@@ -1183,7 +1182,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (expr_type->type->genre == GenreType::TYPE_DE_DONNEES) {
+            if (expr_type->type->est_type_type_de_donnees()) {
                 noeud->type = expr_type->type;
             }
             else {
@@ -1279,7 +1278,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto type_expr = expr->expression->type;
 
-            if (type_expr->genre == GenreType::TYPE_DE_DONNEES) {
+            if (type_expr->est_type_type_de_donnees()) {
                 auto type_de_donnees = type_expr->comme_type_type_de_donnees();
                 auto type_var = m_compilatrice.typeuse.type_variadique(
                     type_de_donnees->type_connu);
@@ -1330,15 +1329,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return Attente::sur_type(inst->type);
             }
 
-            if (inst->type->genre == GenreType::ERREUR) {
+            if (inst->type->est_type_erreur()) {
                 type_de_l_erreur = inst->type;
             }
-            else if (inst->type->genre == GenreType::UNION) {
+            else if (inst->type->est_type_union()) {
                 auto type_union = inst->type->comme_type_union();
                 auto possede_type_erreur = false;
 
                 POUR (type_union->membres) {
-                    if (it.type->genre == GenreType::ERREUR) {
+                    if (it.type->est_type_erreur()) {
                         possede_type_erreur = true;
                     }
                 }
@@ -1351,7 +1350,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
 
                 if (type_union->membres.taille() == 2) {
-                    if (type_union->membres[0].type->genre == GenreType::ERREUR) {
+                    if (type_union->membres[0].type->est_type_erreur()) {
                         type_de_l_erreur = type_union->membres[0].type;
                         inst->type = type_union->membres[1].type;
                     }
@@ -1521,7 +1520,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     auto type = structure->type;
 
     /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-    while (type->genre == GenreType::POINTEUR || type->genre == GenreType::REFERENCE) {
+    while (type->est_type_pointeur() || type->est_type_reference()) {
         type = type_dereference_pour(type);
     }
 
@@ -1530,7 +1529,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     }
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
-    if (type->genre == GenreType::TYPE_DE_DONNEES) {
+    if (type->est_type_type_de_donnees()) {
         auto type_de_donnees = type->comme_type_type_de_donnees();
 
         if (type_de_donnees->type_connu != nullptr) {
@@ -1565,7 +1564,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         expression_membre->type = info_membre->membre.type;
         expression_membre->index_membre = index_membre;
 
-        if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+        if (type->est_type_enum() || type->est_type_erreur()) {
             expression_membre->genre_valeur = GenreValeur::DROITE;
 
             /* Nous voulons détecter les accès à des constantes d'énumérations via une variable,
@@ -1596,7 +1595,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         else if (membre_est_constant) {
             expression_membre->genre_valeur = GenreValeur::DROITE;
         }
-        else if (type->genre == GenreType::UNION) {
+        else if (type->est_type_union()) {
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
         }
 
@@ -1844,7 +1843,7 @@ ResultatValidation ContexteValidationCode::valide_parametres_fonction(
 
         noms.insere(variable->ident);
 
-        if (param->type->genre == GenreType::VARIADIQUE) {
+        if (param->type->est_type_variadique()) {
             param->drapeaux |= DrapeauxNoeud::EST_VARIADIQUE;
             decl->est_variadique = true;
             dernier_est_variadic = true;
@@ -3317,7 +3316,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
 
         auto type_base = enf->type;
 
-        if (type_base->genre == GenreType::TABLEAU_FIXE) {
+        if (type_base->est_type_tableau_fixe()) {
             auto type_deref = type_dereference_pour(type_base);
 
             if (type_deref == decl->type) {
@@ -3769,7 +3768,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                                         NoeudExpression *expression,
                                         Type *type_de_l_expression) -> ResultatValidation {
         if (variable->type == nullptr) {
-            if (type_de_l_expression->genre == GenreType::ENTIER_CONSTANT) {
+            if (type_de_l_expression->est_type_entier_constant()) {
                 variable->type = TypeBase::Z32;
                 donnees.variables.ajoute(variable);
                 donnees.transformations.ajoute(
@@ -4393,7 +4392,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
     auto enfant2 = expr->operande_droite;
     auto type1 = enfant1->type;
 
-    if (type1->genre == GenreType::TYPE_DE_DONNEES) {
+    if (type1->est_type_type_de_donnees()) {
         return valide_operateur_binaire_type(expr);
     }
 
@@ -4874,7 +4873,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
-    if (type_variable_itérée->genre == GenreType::CHAINE) {
+    if (type_variable_itérée->est_type_chaine()) {
         auto type_itérateur = TypeBase::Z8;
         auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};

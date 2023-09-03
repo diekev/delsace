@@ -427,7 +427,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
 {
     auto type_pour_la_recherche = type;
-    if (type->genre == GenreType::TYPE_DE_DONNEES) {
+    if (type->est_type_type_de_donnees()) {
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
@@ -493,7 +493,7 @@ ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *ins
     auto expression = inst->expression_discriminee;
     auto type = expression->type;
 
-    if (type->genre == GenreType::REFERENCE) {
+    if (type->est_type_reference()) {
         transtype_si_necessaire(inst->expression_discriminee, TypeTransformation::DEREFERENCE);
         type = type->comme_type_reference()->type_pointe;
     }
@@ -502,15 +502,15 @@ ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *ins
         return Attente::sur_type(type);
     }
 
-    if (type->genre == GenreType::UNION && type->comme_type_union()->est_anonyme) {
+    if (type->est_type_union() && type->comme_type_union()->est_anonyme) {
         return valide_discr_union_anonyme(inst, type);
     }
 
-    if (type->genre == GenreType::UNION) {
+    if (type->est_type_union()) {
         return valide_discr_union(inst, type);
     }
 
-    if (type->genre == GenreType::ENUM || type->genre == GenreType::ERREUR) {
+    if (type->est_type_enum() || type->est_type_erreur()) {
         return valide_discr_enum(inst, type);
     }
 

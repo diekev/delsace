@@ -1461,23 +1461,23 @@ kuri::chaine chaine_type(const Type *type, bool ajoute_nom_paramètres_polymorph
 
 Type *type_dereference_pour(Type const *type)
 {
-    if (type->genre == GenreType::POINTEUR) {
+    if (type->est_type_pointeur()) {
         return type->comme_type_pointeur()->type_pointe;
     }
 
-    if (type->genre == GenreType::REFERENCE) {
+    if (type->est_type_reference()) {
         return type->comme_type_reference()->type_pointe;
     }
 
-    if (type->genre == GenreType::TABLEAU_FIXE) {
+    if (type->est_type_tableau_fixe()) {
         return type->comme_type_tableau_fixe()->type_pointe;
     }
 
-    if (type->genre == GenreType::TABLEAU_DYNAMIQUE) {
+    if (type->est_type_tableau_dynamique()) {
         return type->comme_type_tableau_dynamique()->type_pointe;
     }
 
-    if (type->genre == GenreType::VARIADIQUE) {
+    if (type->est_type_variadique()) {
         return type->comme_type_variadique()->type_pointe;
     }
 
@@ -1595,7 +1595,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire)
 {
-    if (type->genre == GenreType::UNION) {
+    if (type->est_type_union()) {
         auto type_union = type->comme_type_union();
 
         auto max_alignement = 0u;
@@ -1656,7 +1656,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
         type_union->taille_octet = taille_union;
         type_union->alignement = max_alignement;
     }
-    else if (type->genre == GenreType::STRUCTURE || type->est_type_tuple()) {
+    else if (type->est_type_structure() || type->est_type_tuple()) {
         if (compacte) {
             calcule_taille_structure<true>(type, alignement_desire);
         }

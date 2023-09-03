@@ -322,13 +322,12 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             }
         }
         else {
-            while (type_accede->genre == GenreType::POINTEUR ||
-                   type_accede->genre == GenreType::REFERENCE) {
+            while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
                 type_accede = type_dereference_pour(type_accede);
             }
         }
 
-        if (type_accede->genre == GenreType::STRUCTURE) {
+        if (type_accede->est_type_structure()) {
             auto type_struct = type_accede->comme_type_structure();
 
             if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
@@ -377,7 +376,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         return CodeRetourValidation::OK;
     }
 
-    if (appelee->type->genre == GenreType::FONCTION) {
+    if (appelee->type->est_type_fonction()) {
         candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
         return CodeRetourValidation::OK;
     }
@@ -528,8 +527,8 @@ static ResultatAppariement apparie_appel_pointeur(
     ApparieuseParams apparieuse(ChoseÀApparier::POINTEUR_DE_FONCTION);
     for (auto i = 0; i < type_fonction->types_entrees.taille(); ++i) {
         auto type_prm = type_fonction->types_entrees[i];
-        fonction_variadique |= type_prm->genre == GenreType::VARIADIQUE;
-        apparieuse.ajoute_param(nullptr, nullptr, type_prm->genre == GenreType::VARIADIQUE);
+        fonction_variadique |= type_prm->est_type_variadique();
+        apparieuse.ajoute_param(nullptr, nullptr, type_prm->est_type_variadique());
     }
 
     POUR (args) {
