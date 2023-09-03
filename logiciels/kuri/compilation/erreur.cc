@@ -180,7 +180,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                     e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
                 }
                 else if (decl && decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-                    auto decl_struct = decl->comme_structure();
+                    auto decl_struct = decl->comme_type_structure();
 
                     if (decl_struct->est_polymorphe) {
                         e.ajoute_message("\tLes paramètres de la structure sont : \n");

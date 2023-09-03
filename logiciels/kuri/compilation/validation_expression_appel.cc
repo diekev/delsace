@@ -1312,8 +1312,8 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression *noeud)
     if (noeud->est_entete_fonction()) {
         return noeud->comme_entete_fonction()->bloc_constantes;
     }
-    if (noeud->est_structure()) {
-        return noeud->comme_structure()->bloc_constantes;
+    if (noeud->est_type_structure()) {
+        return noeud->comme_type_structure()->bloc_constantes;
     }
     return nullptr;
 }
@@ -1405,7 +1405,7 @@ static NoeudStruct *monomorphise_au_besoin(
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation));
 
-    auto structure = copie->comme_structure();
+    auto structure = copie->comme_type_structure();
 
     if (!copie_nouvelle) {
         return structure;
@@ -1714,8 +1714,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         decl_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
-        if (candidate->noeud_decl && candidate->noeud_decl->comme_structure()->est_polymorphe) {
-            auto decl_struct = candidate->noeud_decl->comme_structure();
+        if (candidate->noeud_decl &&
+            candidate->noeud_decl->comme_type_structure()->est_polymorphe) {
+            auto decl_struct = candidate->noeud_decl->comme_type_structure();
 
             auto copie = monomorphise_au_besoin(
                 contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));

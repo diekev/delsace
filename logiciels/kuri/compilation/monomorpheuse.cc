@@ -312,8 +312,8 @@ void Monomorpheuse::ajoute_candidat_depuis_reference_declaration(
     if (decl->possede_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
         ajoute_candidat(decl->ident, type_reçu);
     }
-    else if (decl->est_structure()) {
-        auto const structure = decl->comme_structure();
+    else if (decl->est_type_structure()) {
+        auto const structure = decl->comme_type_structure();
         ajoute_candidats_depuis_declaration_structure(structure, type_reçu);
     }
 }
@@ -377,7 +377,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStr
         return;
     }
 
-    auto decl_struct = decl_pour_type(type_reçu)->comme_structure();
+    auto decl_struct = decl_pour_type(type_reçu)->comme_type_structure();
     if (decl_struct->polymorphe_de_base != structure) {
         erreur_genre_type(nullptr, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -423,7 +423,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto structure_construite = declaration_appelee->comme_structure();
+    auto structure_construite = declaration_appelee->comme_type_structure();
     if (!structure_construite->est_polymorphe) {
         return;
     }
@@ -433,7 +433,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
         return;
     }
 
-    auto decl_struct_type = decl_pour_type(type_reçu)->comme_structure();
+    auto decl_struct_type = decl_pour_type(type_reçu)->comme_type_structure();
     if (decl_struct_type->polymorphe_de_base != structure_construite) {
         erreur_genre_type(site, type_reçu, "n'est pas une forme du polymorphe");
         return;
@@ -807,7 +807,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
         return résoud_type_final_pour_construction_opaque(construction);
     }
 
-    auto structure_construite = declaration_appelee->comme_structure();
+    auto structure_construite = declaration_appelee->comme_type_structure();
     if (!structure_construite->est_polymorphe) {
         return structure_construite->type;
     }
