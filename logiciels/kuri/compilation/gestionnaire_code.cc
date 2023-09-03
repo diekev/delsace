@@ -356,13 +356,13 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
         PreferenceVisiteNoeud::SUBSTITUTION,
         [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
             /* N'ajoutons pas de dépendances sur les déclarations de types nichées. */
-            if ((noeud->est_structure() || noeud->est_enum()) && noeud != racine) {
+            if ((noeud->est_type_structure() || noeud->est_type_enum()) && noeud != racine) {
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
             /* Ne faisons pas dépendre les types d'eux-mêmes. */
             /* Note: les fonctions polymorphiques n'ont pas de types. */
-            if (!(noeud->est_structure() || noeud->est_enum()) && noeud->type) {
+            if (!(noeud->est_type_structure() || noeud->est_type_enum()) && noeud->type) {
                 if (noeud->type->est_type_type_de_donnees()) {
                     auto type_de_donnees = noeud->type->comme_type_type_de_donnees();
                     if (type_de_donnees->type_connu) {
@@ -507,7 +507,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                     if (appelee->est_entete_fonction()) {
                         ajoute_fonction(appelee->comme_entete_fonction());
                     }
-                    else if (appelee->est_structure()) {
+                    else if (appelee->est_type_structure()) {
                         ajoute_type(appelee->type);
                     }
                 }
@@ -639,7 +639,7 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
         return programme->possede(noeud->comme_declaration_variable());
     }
 
-    if (noeud->est_structure() || noeud->est_enum()) {
+    if (noeud->est_type_structure() || noeud->est_type_enum()) {
         return programme->possede(noeud->type);
     }
 
@@ -1156,8 +1156,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
                (!entete->est_polymorphe || entete->est_monomorphisation);
     }
 
-    if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_structure() &&
-        !noeud->est_enum()) {
+    if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
+        !noeud->est_type_enum()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1175,7 +1175,7 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
             return false;
         }
 
-        if (noeud->est_structure() && noeud->comme_structure()->est_polymorphe) {
+        if (noeud->est_type_structure() && noeud->comme_type_structure()->est_polymorphe) {
             return false;
         }
 

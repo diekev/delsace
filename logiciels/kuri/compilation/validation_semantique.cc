@@ -57,13 +57,13 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_fonction(corps);
     }
 
-    if (racine_validation()->est_enum()) {
-        auto enumeration = racine_validation()->comme_enum();
+    if (racine_validation()->est_type_enum()) {
+        auto enumeration = racine_validation()->comme_type_enum();
         return valide_enum(enumeration);
     }
 
-    if (racine_validation()->est_structure()) {
-        auto structure = racine_validation()->comme_structure();
+    if (racine_validation()->est_type_structure()) {
+        auto structure = racine_validation()->comme_type_structure();
         return valide_structure(structure);
     }
 
@@ -1213,11 +1213,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            return valide_structure(noeud->comme_structure());
+            return valide_structure(noeud->comme_type_structure());
         }
         case GenreNoeud::DECLARATION_ENUM:
         {
-            return valide_enum(noeud->comme_enum());
+            return valide_enum(noeud->comme_type_enum());
         }
         case GenreNoeud::INSTRUCTION_DISCR:
         case GenreNoeud::INSTRUCTION_DISCR_ENUM:
@@ -2058,10 +2058,10 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
     for (; unite->index_courant < arbre_aplatis.taille(); ++unite->index_courant) {
         auto noeud_enfant = arbre_aplatis[unite->index_courant];
 
-        if (noeud_enfant->est_structure()) {
+        if (noeud_enfant->est_type_structure()) {
             /* Les structures nichées ont leurs propres unités de compilation */
             if (!noeud_enfant->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_enfant->comme_structure());
+                return Attente::sur_declaration(noeud_enfant->comme_type_structure());
             }
 
             continue;
@@ -2399,8 +2399,8 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
         return entete->est_polymorphe;
     }
 
-    if (decl->est_structure()) {
-        auto const structure = decl->comme_structure();
+    if (decl->est_type_structure()) {
+        auto const structure = decl->comme_type_structure();
         return structure->est_polymorphe;
     }
 
@@ -2695,7 +2695,7 @@ NoeudDeclarationEnteteFonction *ContexteValidationCode::fonction_courante() cons
 
 Type *ContexteValidationCode::union_ou_structure_courante() const
 {
-    if (racine_validation()->est_structure()) {
+    if (racine_validation()->est_type_structure()) {
         return racine_validation()->type;
     }
 
@@ -2734,7 +2734,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
     visite_noeud(corps.bloc,
                  PreferenceVisiteNoeud::ORIGINAL,
                  [&espace, entete](const NoeudExpression *noeud) {
-                     if (noeud->est_structure()) {
+                     if (noeud->est_type_structure()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
@@ -4658,7 +4658,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
 
             // @concurrence critique
             if (type_union->decl == nullptr) {
-                auto decl_struct = m_tacheronne.assembleuse->cree_structure(expr->lexeme);
+                auto decl_struct = m_tacheronne.assembleuse->cree_type_structure(expr->lexeme);
                 decl_struct->bloc_parent = expr->bloc_parent;
                 decl_struct->type = type_union;
                 decl_struct->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
