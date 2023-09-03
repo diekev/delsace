@@ -56,6 +56,7 @@ static const char *copie_extra_entete_fonction = R"(
                 auto copie_membre = copie_noeud(it, copie->bloc_constantes);
                 copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
             }
+            copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
 			/* copie le corps du noeud directement */
 			{
 				auto expr_corps = orig->corps;

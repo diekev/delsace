@@ -117,7 +117,7 @@ bool Programme::typages_termines(DiagnostiqueEtatCompilation &diagnostique) cons
                 return false;
             }
 
-            if (!it->est_externe &&
+            if (!it->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
                 !it->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.declaration_a_valider = it;
                 return false;

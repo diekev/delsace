@@ -200,7 +200,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
 
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (fonction->possede_drapeau(DrapeauxNoeud::COMPILATRICE) &&
+        if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
             !programme.pour_metaprogramme()) {
             possede_erreur = true;
 
@@ -391,7 +391,8 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                     ajoute_globale(decl->comme_declaration_variable());
                 }
                 else if (decl->est_entete_fonction() &&
-                         !decl->comme_entete_fonction()->est_polymorphe) {
+                         !decl->comme_entete_fonction()->possede_drapeau(
+                             DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
                     auto decl_fonc = decl->comme_entete_fonction();
                     ajoute_fonction(decl_fonc);
                 }
@@ -563,8 +564,9 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (!fonction->corps->unite && !fonction->est_externe &&
-            !fonction->est_initialisation_type) {
+        if (!fonction->corps->unite &&
+            !fonction->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
+                                       DrapeauxNoeudFonction::EST_EXTERNE)) {
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
         return kuri::DecisionIteration::Continue;
@@ -672,7 +674,8 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     }
 
     /* Ajoute les racines aux programmes courants de l'espace. */
-    if (noeud->est_entete_fonction() && noeud->possede_drapeau(DrapeauxNoeud::EST_RACINE)) {
+    if (noeud->est_entete_fonction() &&
+        noeud->comme_entete_fonction()->possede_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
         DÉBUTE_STAT(AJOUTE_RACINES);
         auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
@@ -1102,7 +1105,9 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme && !entete->est_polymorphe && entete->est_externe &&
+        return !entete->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+               !entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+               entete->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
                !entete->est_operateur_pour();
     }
 
@@ -1122,8 +1127,10 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->est_metaprogramme && !entete->est_operateur_pour() &&
-               (!entete->est_polymorphe || entete->est_monomorphisation);
+        return !entete->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+               !entete->est_operateur_pour() &&
+               (!entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
+                entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
     }
 
     if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
@@ -1141,7 +1148,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
-        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->est_polymorphe) {
+        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->possede_drapeau(
+                                                DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             return false;
         }
 
@@ -1645,7 +1653,8 @@ void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail
 {
     auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
         auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
-        copie->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE | DrapeauxNoeud::EST_RACINE);
+        copie->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+        copie->comme_entete_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
         copie->comme_entete_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         requiers_typage(espace, copie);
         return copie->comme_entete_fonction();

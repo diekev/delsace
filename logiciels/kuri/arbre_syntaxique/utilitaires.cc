@@ -34,6 +34,18 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name DrapeauxNoeudFonction
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
+{
+    os << static_cast<uint32_t>(drapeaux);
+    return os;
+}
+
+/** \} */
+
 /* ************************************************************************** */
 
 static void aplatis_arbre(NoeudExpression *racine,
@@ -660,8 +672,8 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
         return nom_broye_;
     }
 
-    if (ident != ID::principale &&
-        !possede_drapeau(DrapeauxNoeud::EST_EXTERNE | DrapeauxNoeud::FORCE_SANSBROYAGE)) {
+    if (ident != ID::principale && !possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE |
+                                                    DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
         auto fichier = espace->compilatrice().fichier(lexeme->fichier);
         nom_broye_ = broyeuse.broye_nom_fonction(this, fichier->module->nom());
     }
@@ -674,7 +686,7 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
 
 Type *NoeudDeclarationEnteteFonction::type_initialisé() const
 {
-    assert(est_initialisation_type);
+    assert(possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE));
     return params[0]->type->comme_type_pointeur()->type_pointe;
 }
 
@@ -1560,18 +1572,19 @@ void imprime_details_fonction(EspaceDeTravail *espace,
 {
     os << "Détail pour " << ordre_fonction(entete) << " " << entete->lexeme->chaine << " :\n";
     os << "-- Type                    : " << chaine_type(entete->type) << '\n';
-    os << "-- Est polymorphique       : " << std::boolalpha << entete->est_polymorphe << '\n';
+    os << "-- Est polymorphique       : " << std::boolalpha
+       << entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) << '\n';
     os << "-- Est #corps_texte        : " << std::boolalpha << entete->corps->est_corps_texte
        << '\n';
     os << "-- Entête fut validée      : " << std::boolalpha
        << entete->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) << '\n';
     os << "-- Corps fut validé        : " << std::boolalpha
        << entete->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) << '\n';
-    os << "-- Est monomorphisation    : " << std::boolalpha << entete->est_monomorphisation
-       << '\n';
-    os << "-- Est initialisation type : " << std::boolalpha << entete->est_initialisation_type
-       << '\n';
-    if (entete->est_monomorphisation) {
+    os << "-- Est monomorphisation    : " << std::boolalpha
+       << entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION) << '\n';
+    os << "-- Est initialisation type : " << std::boolalpha
+       << entete->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE) << '\n';
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
         os << "-- Paramètres de monomorphisation :\n";
         POUR ((*entete->bloc_constantes->membres.verrou_lecture())) {
             os << "     " << it->ident->nom << " : " << chaine_type(it->type) << '\n';
@@ -1588,7 +1601,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
     if (noeud->est_entete_fonction()) {
         auto entete = noeud->comme_entete_fonction();
 
-        if (entete->est_initialisation_type) {
+        if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
             return enchaine("init_de(", chaine_type(entete->type_initialisé()), ")");
         }
 
@@ -1632,7 +1645,7 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
 
         static Lexeme lexeme_entete = {};
         auto entete = assembleuse->cree_entete_fonction(&lexeme_entete);
-        entete->est_initialisation_type = true;
+        entete->drapeaux_fonction |= DrapeauxNoeudFonction::EST_INITIALISATION_TYPE;
 
         entete->bloc_constantes = assembleuse->cree_bloc_seul(&lexeme_sentinel, nullptr);
         entete->bloc_parametres = assembleuse->cree_bloc_seul(&lexeme_sentinel,
@@ -1670,9 +1683,9 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
         }
 
         entete->type = type_fonction;
-        entete->drapeaux |= (DrapeauxNoeud::FORCE_ENLIGNE |
-                             DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
-                             DrapeauxNoeud::FORCE_SANSTRACE);
+        entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        entete->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
+                                      DrapeauxNoeudFonction::FORCE_SANSTRACE);
 
         type->fonction_init = entete;
 
