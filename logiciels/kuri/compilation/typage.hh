@@ -221,42 +221,6 @@ struct Type {
 
     inline TypeCompose *comme_type_compose();
     inline const TypeCompose *comme_type_compose() const;
-
-    void assigne_fonction_init(NoeudDeclarationEnteteFonction *fonction)
-    {
-        fonction_init = fonction;
-        drapeaux |= INITIALISATION_TYPE_FUT_CREEE;
-    }
-
-    /* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
-     * ou non.
-     */
-    bool requiers_fonction_initialisation() const
-    {
-        return (drapeaux & TYPE_NE_REQUIERS_PAS_D_INITIALISATION) == 0;
-    }
-
-    /* Retourne vrai si une fonction d'initialisation doit être créée pour ce type, s'il en besoin
-     * et qu'elle n'a pas encore été créée.
-     */
-    bool requiers_création_fonction_initialisation() const
-    {
-        if (!requiers_fonction_initialisation()) {
-            return false;
-        }
-
-        /* #fonction_init peut être non-nulle si seulement l'entête est créée. Le drapeaux n'est
-         * mis en place que lorsque la fonction et son corps furent créés. */
-        if ((drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0) {
-            return false;
-        }
-
-        if (::est_type_polymorphique(this)) {
-            return false;
-        }
-
-        return true;
-    }
 };
 
 struct TypePointeur : public Type {
@@ -297,8 +261,6 @@ struct TypeFonction : public Type {
 
     kuri::tableau<Type *, int> types_entrees{};
     Type *type_sortie{};
-
-    void marque_polymorphique();
 };
 
 struct MembreTypeComposé {
@@ -383,16 +345,10 @@ struct TypeCompose : public Type {
      * type parent. */
     kuri::chaine nom_hierarchique_ = "";
 
-    void marque_polymorphique();
-
     struct InformationMembre {
         MembreTypeComposé membre{};
         int index_membre = -1;
     };
-
-    std::optional<InformationMembre> donne_membre_pour_type(Type const *type) const;
-    std::optional<InformationMembre> donne_membre_pour_nom(
-        IdentifiantCode const *nom_membre) const;
 };
 
 inline bool est_type_compose(const Type *type)
@@ -426,9 +382,6 @@ struct TypeStructure final : public TypeCompose {
     TypeUnion *union_originelle = nullptr;
 
     bool est_anonyme = false;
-
-    kuri::chaine const &nom_portable();
-    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeUnion final : public TypeCompose {
@@ -447,11 +400,6 @@ struct TypeUnion final : public TypeCompose {
     unsigned decalage_index = 0;
     bool est_nonsure = false;
     bool est_anonyme = false;
-
-    void cree_type_structure(Typeuse &typeuse, unsigned alignement_membre_actif);
-
-    kuri::chaine const &nom_portable();
-    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeEnum final : public TypeCompose {
@@ -467,9 +415,6 @@ struct TypeEnum final : public TypeCompose {
     NoeudEnum *decl = nullptr;
     bool est_drapeau = false;
     bool est_erreur = false;
-
-    kuri::chaine const &nom_portable();
-    kuri::chaine_statique nom_hierarchique();
 };
 
 struct TypeTableauFixe final : public TypeCompose {
@@ -563,9 +508,6 @@ struct TypeOpaque : public Type {
     Type *type_opacifie = nullptr;
     kuri::chaine nom_portable_ = "";
     kuri::chaine nom_hierarchique_ = "";
-
-    kuri::chaine const &nom_portable();
-    kuri::chaine_statique nom_hierarchique();
 };
 
 /* Pour les sorties multiples des fonctions. */
@@ -574,8 +516,6 @@ struct TypeTuple : public TypeCompose {
     {
         genre = GenreType::TUPLE;
     }
-
-    void marque_polymorphique();
 };
 
 /* ************************************************************************** */
@@ -817,6 +757,75 @@ struct Typeuse {
 
     NoeudDeclaration *decl_pour_info_type(const InfoType *info_type);
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions diverses pour les types.
+ * \{ */
+
+void assigne_fonction_init(Type *type, NoeudDeclarationEnteteFonction *fonction);
+
+/* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
+ * ou non.
+ */
+bool requiers_fonction_initialisation(Type const *type);
+
+/* Retourne vrai si une fonction d'initialisation doit être créée pour ce type, s'il en besoin
+ * et qu'elle n'a pas encore été créée.
+ */
+bool requiers_création_fonction_initialisation(Type const *type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux membres des types composés.
+ * \{ */
+
+std::optional<TypeCompose::InformationMembre> donne_membre_pour_type(
+    TypeCompose const *type_composé, Type const *type);
+
+std::optional<TypeCompose::InformationMembre> donne_membre_pour_nom(
+    TypeCompose const *type_composé, IdentifiantCode const *nom_membre);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux noms hiérarchiques des types.
+ * \{ */
+
+kuri::chaine_statique donne_nom_hierarchique(TypeUnion *type);
+kuri::chaine_statique donne_nom_hierarchique(TypeEnum *type);
+kuri::chaine_statique donne_nom_hierarchique(TypeOpaque *type);
+kuri::chaine_statique donne_nom_hierarchique(TypeStructure *type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Accès aux noms portables des types.
+ * \{ */
+
+kuri::chaine const &donne_nom_portable(TypeUnion *type);
+kuri::chaine const &donne_nom_portable(TypeEnum *type);
+kuri::chaine const &donne_nom_portable(TypeOpaque *type);
+kuri::chaine const &donne_nom_portable(TypeStructure *type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Marquage des types comme étant polymorphiques.
+ * \{ */
+
+void marque_polymorphique(TypeFonction *type);
+void marque_polymorphique(TypeCompose *type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions pour les unions.
+ * \{ */
+
+void cree_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif);
+
+/** \} */
 
 /* ************************************************************************** */
 

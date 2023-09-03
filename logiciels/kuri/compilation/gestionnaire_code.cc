@@ -817,7 +817,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
         return;
     }
 
-    if (!type->requiers_création_fonction_initialisation()) {
+    if (!requiers_création_fonction_initialisation(type)) {
         return;
     }
 

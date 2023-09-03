@@ -334,7 +334,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                 return Attente::sur_type(type_accede);
             }
 
-            auto info_membre = type_struct->donne_membre_pour_nom(membre->ident);
+            auto info_membre = donne_membre_pour_nom(type_struct, membre->ident);
 
             if (info_membre.has_value()) {
                 acces->type = info_membre->membre.type;
