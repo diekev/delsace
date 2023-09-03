@@ -128,8 +128,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
         type_expression = TypeBase::RIEN;
     }
 
-    if (type_expression->est_tuple()) {
-        auto tuple = type_expression->comme_tuple();
+    if (type_expression->est_type_tuple()) {
+        auto tuple = type_expression->comme_type_tuple();
 
         POUR (tuple->membres) {
             auto decl_sortie = assembleuse->cree_declaration_variable(directive->lexeme);
@@ -221,27 +221,27 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
  * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
 static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
 {
-    if (type->est_entier_naturel()) {
+    if (type->est_type_entier_naturel()) {
         return true;
     }
 
-    if (type->est_octet()) {
+    if (type->est_type_octet()) {
         return true;
     }
 
-    if (type->est_enum()) {
+    if (type->est_type_enum()) {
         /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
          * arbitrairement larges. */
-        return !type->comme_enum()->est_drapeau;
+        return !type->comme_type_enum()->est_drapeau;
     }
 
-    if (type->est_bool()) {
+    if (type->est_type_bool()) {
         return true;
     }
 
-    if (type->est_opaque()) {
+    if (type->est_type_opaque()) {
         return est_type_implicitement_utilisable_pour_indexage(
-            type->comme_opaque()->type_opacifie);
+            type->comme_type_opaque()->type_opacifie);
     }
 
     return false;
@@ -547,11 +547,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (type->est_type_de_donnees() && dls::outils::est_element(expr->lexeme->genre,
-                                                                        GenreLexeme::FOIS_UNAIRE,
-                                                                        GenreLexeme::ESP_UNAIRE)) {
+            if (type->est_type_type_de_donnees() &&
+                dls::outils::est_element(
+                    expr->lexeme->genre, GenreLexeme::FOIS_UNAIRE, GenreLexeme::ESP_UNAIRE)) {
                 CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
-                auto type_de_donnees = type->comme_type_de_donnees();
+                auto type_de_donnees = type->comme_type_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu;
 
                 if (type_connu == nullptr) {
@@ -644,8 +644,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             // À FAIRE : vérifie qu'aucun opérateur ne soit définie sur le type opaque
-            if (type1->est_opaque()) {
-                type1 = type1->comme_opaque()->type_opacifie;
+            if (type1->est_type_opaque()) {
+                type1 = type1->comme_type_opaque()->type_opacifie;
             }
 
             switch (type1->genre) {
@@ -657,7 +657,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
                 case GenreType::TABLEAU_FIXE:
                 {
-                    auto type_tabl = type1->comme_tableau_fixe();
+                    auto type_tabl = type1->comme_type_tableau_fixe();
                     expr->type = type_dereference_pour(type1);
 
                     auto res = evalue_expression(m_compilatrice, enfant2->bloc_parent, enfant2);
@@ -873,7 +873,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            if (enfant->type->est_reference() && !noeud->type->est_reference()) {
+            if (enfant->type->est_type_reference() && !noeud->type->est_type_reference()) {
                 transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
             }
 
@@ -1033,7 +1033,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             auto type_feuille = premiere_feuille->type;
 
-            if (type_feuille->est_rien()) {
+            if (type_feuille->est_type_rien()) {
                 espace->rapporte_erreur(
                     premiere_feuille,
                     "Impossible d'avoir un élément de type « rien » dans un tableau");
@@ -1205,7 +1205,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            auto type_pointeur = type->comme_pointeur();
+            auto type_pointeur = type->comme_type_pointeur();
             noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
             noeud->type = type_pointeur->type_pointe;
 
@@ -1280,7 +1280,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_expr = expr->expression->type;
 
             if (type_expr->genre == GenreType::TYPE_DE_DONNEES) {
-                auto type_de_donnees = type_expr->comme_type_de_donnees();
+                auto type_de_donnees = type_expr->comme_type_type_de_donnees();
                 auto type_var = m_compilatrice.typeuse.type_variadique(
                     type_de_donnees->type_connu);
                 expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_var);
@@ -1299,8 +1299,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         .ajoute_message("\n");
                 }
 
-                if (type_expr->est_tableau_fixe()) {
-                    auto type_tableau_fixe = type_expr->comme_tableau_fixe();
+                if (type_expr->est_type_tableau_fixe()) {
+                    auto type_tableau_fixe = type_expr->comme_type_tableau_fixe();
                     type_expr = m_compilatrice.typeuse.type_tableau_dynamique(
                         type_tableau_fixe->type_pointe);
                     transtype_si_necessaire(expr->expression,
@@ -1334,7 +1334,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 type_de_l_erreur = inst->type;
             }
             else if (inst->type->genre == GenreType::UNION) {
-                auto type_union = inst->type->comme_union();
+                auto type_union = inst->type->comme_type_union();
                 auto possede_type_erreur = false;
 
                 POUR (type_union->membres) {
@@ -1438,7 +1438,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_employe = decl->type;
 
             // permet le déréférencement de pointeur, mais uniquement sur un niveau
-            if (type_employe->est_pointeur() || type_employe->est_reference()) {
+            if (type_employe->est_type_pointeur() || type_employe->est_type_reference()) {
                 type_employe = type_dereference_pour(type_employe);
             }
 
@@ -1456,7 +1456,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return Attente::sur_type(type_employe);
             }
 
-            auto type_structure = type_employe->comme_structure();
+            auto type_structure = type_employe->comme_type_structure();
 
             // pour les structures, prend le bloc_parent qui sera celui de la structure
             auto bloc_parent = decl->bloc_parent;
@@ -1525,13 +1525,13 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         type = type_dereference_pour(type);
     }
 
-    if (type->est_opaque()) {
-        type = type->comme_opaque()->type_opacifie;
+    if (type->est_type_opaque()) {
+        type = type->comme_type_opaque()->type_opacifie;
     }
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
     if (type->genre == GenreType::TYPE_DE_DONNEES) {
-        auto type_de_donnees = type->comme_type_de_donnees();
+        auto type_de_donnees = type->comme_type_type_de_donnees();
 
         if (type_de_donnees->type_connu != nullptr) {
             type = type_de_donnees->type_connu;
@@ -1577,8 +1577,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
              * compilation
              * - MonÉnum.CONSTANTE, où MonÉnum est un type -> OK
              */
-            if (structure->type->est_enum() && structure->genre_valeur != GenreValeur::DROITE) {
-                if (type->est_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
+            if (structure->type->est_type_enum() &&
+                structure->genre_valeur != GenreValeur::DROITE) {
+                if (type->est_type_enum() && static_cast<TypeEnum *>(type)->est_drapeau) {
                     if (!membre_est_implicite) {
                         expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
                         expression_membre->drapeaux |= DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU;
@@ -1721,7 +1722,7 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
     TENTE(valide_types_parametres_fonction(decl));
 
     CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_OPERATEURS);
-    auto type_fonc = decl->type->comme_fonction();
+    auto type_fonc = decl->type->comme_type_fonction();
     auto type_resultat = type_fonc->type_sortie;
 
     if (type_resultat == TypeBase::RIEN) {
@@ -1848,7 +1849,7 @@ ResultatValidation ContexteValidationCode::valide_parametres_fonction(
             decl->est_variadique = true;
             dernier_est_variadic = true;
 
-            auto type_var = param->type->comme_variadique();
+            auto type_var = param->type->comme_type_variadique();
 
             if (!decl->est_externe && type_var->type_pointe == nullptr) {
                 rapporte_erreur("La déclaration de fonction variadique sans type n'est"
@@ -1910,7 +1911,7 @@ ResultatValidation ContexteValidationCode::valide_types_parametres_fonction(
             return CodeRetourValidation::Erreur;
         }
 
-        if (decl->param_sortie->type->est_tuple()) {
+        if (decl->param_sortie->type->est_type_tuple()) {
             espace->rapporte_erreur(
                 decl->param_sortie,
                 "La fonction principale ne peut retourner qu'une seule valeur !");
@@ -1975,7 +1976,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
     CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions,
                   ENTETE_FONCTION__REDEFINITION_OPERATEUR);
     auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
-    auto type_fonc = decl->type->comme_fonction();
+    auto type_fonc = decl->type->comme_type_fonction();
     auto type_resultat = type_fonc->type_sortie;
 
     if (decl->params.taille() == 1) {
@@ -2150,7 +2151,7 @@ static void rassemble_expressions(NoeudExpression *expr,
 static bool peut_construire_union_via_rien(TypeUnion *type_union)
 {
     POUR (type_union->membres) {
-        if (it.type->est_rien()) {
+        if (it.type->est_type_rien()) {
             return true;
         }
     }
@@ -2160,7 +2161,7 @@ static bool peut_construire_union_via_rien(TypeUnion *type_union)
 
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
-    auto type_fonc = fonction_courante()->type->comme_fonction();
+    auto type_fonc = fonction_courante()->type->comme_type_fonction();
     auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
 
     auto const bloc_parent = inst->bloc_parent;
@@ -2176,8 +2177,8 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
 
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
          * du type ayant le membre « rien » actif. */
-        if (type_sortie->est_union() && !type_sortie->comme_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_fonc->type_sortie->comme_union())) {
+        if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
+            if (peut_construire_union_via_rien(type_fonc->type_sortie->comme_type_union())) {
                 inst->aide_generation_code = RETOURNE_UNE_UNION_VIA_RIEN;
                 return CodeRetourValidation::OK;
             }
@@ -2206,7 +2207,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
             return CodeRetourValidation::Erreur;
         }
 
-        if (!expr->type->est_chaine()) {
+        if (!expr->type->est_type_chaine()) {
             rapporte_erreur("Attendu un type chaine pour le retour de #corps_texte",
                             inst->expression);
             return CodeRetourValidation::Erreur;
@@ -2223,7 +2224,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::OK;
     }
 
-    if (type_fonc->type_sortie->est_rien()) {
+    if (type_fonc->type_sortie->est_type_rien()) {
         espace->rapporte_erreur(inst->expression,
                                 "Retour d'une valeur d'une fonction qui ne retourne rien");
         return CodeRetourValidation::Erreur;
@@ -2254,7 +2255,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         if (it.ident) {
             eu_nom = true;
 
-            if (expr->type->est_tuple()) {
+            if (expr->type->est_type_tuple()) {
                 espace->rapporte_erreur(
                     it.expression,
                     "Impossible de nommer les variables de retours si l'expression retourne "
@@ -2324,15 +2325,15 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         DonneesAssignations donnees;
         donnees.expression = it;
 
-        if (it->type->est_rien()) {
+        if (it->type->est_type_rien()) {
             rapporte_erreur(
                 "impossible de retourner une expression de type « rien » à une variable",
                 it,
                 erreur::Genre::ASSIGNATION_RIEN);
             return CodeRetourValidation::Erreur;
         }
-        else if (it->type->est_tuple()) {
-            auto type_tuple = it->type->comme_tuple();
+        else if (it->type->est_type_tuple()) {
+            auto type_tuple = it->type->comme_type_tuple();
 
             donnees.multiple_retour = true;
 
@@ -2382,7 +2383,7 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
             expr, "L'expression d'une directive de cuisson doit être une expression d'appel !");
     }
 
-    if (!expr->type->est_fonction()) {
+    if (!expr->type->est_type_fonction()) {
         espace->rapporte_erreur(
             expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
     }
@@ -2883,11 +2884,11 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
     /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
     if (inst_ret == nullptr) {
-        auto type_fonc = entete->type->comme_fonction();
+        auto type_fonc = entete->type->comme_type_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
-        if (type_sortie->est_union() && !type_sortie->comme_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_sortie->comme_union())) {
+        if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
+            if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 decl->aide_generation_code = REQUIERS_RETOUR_UNION_VIA_RIEN;
             }
         }
@@ -3158,7 +3159,7 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
 
         /* les énum_drapeaux doivent être des types naturels pour éviter les problèmes
          * d'arithmétiques binaire */
-        if (type_enum->est_drapeau && !type_enum->type_donnees->est_entier_naturel()) {
+        if (type_enum->est_drapeau && !type_enum->type_donnees->est_type_entier_naturel()) {
             espace
                 ->rapporte_erreur(decl->expression_type,
                                   "Les énum_drapeaux doivent être de type entier naturel (n8, "
@@ -3301,7 +3302,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
     }
 
-    auto type_compose = decl->type->comme_compose();
+    auto type_compose = decl->type->comme_type_compose();
     // @réinitialise en cas d'erreurs passées
     type_compose->membres.efface();
     type_compose->membres.reserve(decl->bloc->nombre_de_membres());
@@ -3372,7 +3373,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     };
 
     if (decl->est_union) {
-        auto type_union = decl->type->comme_union();
+        auto type_union = decl->type->comme_type_union();
         type_union->est_nonsure = decl->est_nonsure;
 
         POUR (*decl->bloc->membres.verrou_ecriture()) {
@@ -3407,21 +3408,21 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 for (auto i = 0; i < donnees.variables.taille(); ++i) {
                     auto var = donnees.variables[i];
 
-                    if (var->type->est_rien() && decl->est_nonsure) {
+                    if (var->type->est_type_rien() && decl->est_nonsure) {
                         rapporte_erreur("Ne peut avoir un type « rien » dans une union nonsûre",
                                         decl_var,
                                         erreur::Genre::TYPE_DIFFERENTS);
                         return CodeRetourValidation::Erreur;
                     }
 
-                    if (var->type->est_variadique()) {
+                    if (var->type->est_type_variadique()) {
                         rapporte_erreur("Ne peut avoir un type variadique dans une union",
                                         decl_var,
                                         erreur::Genre::TYPE_DIFFERENTS);
                         return CodeRetourValidation::Erreur;
                     }
 
-                    if (var->type->est_structure() || var->type->est_union()) {
+                    if (var->type->est_type_structure() || var->type->est_type_union()) {
                         if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                             return Attente::sur_type(var->type);
                         }
@@ -3476,7 +3477,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
 
         if (it->possede_drapeau(DrapeauxNoeud::EMPLOYE)) {
-            if (!it->type->est_structure()) {
+            if (!it->type->est_type_structure()) {
                 espace->rapporte_erreur(it,
                                         "Ne peut pas employer un type n'étant pas une structure");
                 return CodeRetourValidation::Erreur;
@@ -3514,21 +3515,21 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             for (auto i = 0; i < donnees.variables.taille(); ++i) {
                 auto var = donnees.variables[i];
 
-                if (var->type->est_rien()) {
+                if (var->type->est_type_rien()) {
                     rapporte_erreur("Ne peut avoir un type « rien » dans une structure",
                                     decl_var,
                                     erreur::Genre::TYPE_DIFFERENTS);
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (var->type->est_variadique()) {
+                if (var->type->est_type_variadique()) {
                     rapporte_erreur("Ne peut avoir un type variadique dans une structure",
                                     decl_var,
                                     erreur::Genre::TYPE_DIFFERENTS);
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (var->type->est_structure() || var->type->est_union()) {
+                if (var->type->est_type_structure() || var->type->est_type_union()) {
                     if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                         return Attente::sur_type(var->type);
                     }
@@ -3597,7 +3598,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
     }
 
-    auto type_struct = type_compose->comme_structure();
+    auto type_struct = type_compose->comme_type_structure();
 
 #undef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
 #undef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
@@ -3775,8 +3776,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     {TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type});
             }
             else {
-                if (type_de_l_expression->est_reference()) {
-                    variable->type = type_de_l_expression->comme_reference()->type_pointe;
+                if (type_de_l_expression->est_type_reference()) {
+                    variable->type = type_de_l_expression->comme_type_reference()->type_pointe;
                     donnees.variables.ajoute(variable);
                     donnees.transformations.ajoute({TypeTransformation::DEREFERENCE});
                 }
@@ -3806,7 +3807,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         }
 
         if (decl->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE) &&
-            !type_de_l_expression->est_type_de_donnees()) {
+            !type_de_l_expression->est_type_type_de_donnees()) {
             if (!peut_etre_type_constante(type_de_l_expression)) {
                 rapporte_erreur("L'expression de la constante n'a pas un type pouvant être celui "
                                 "d'une expression constante",
@@ -3862,8 +3863,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                 donnees.variables.ajoute(variables.defile());
                 donnees.transformations.ajoute({TypeTransformation::INUTILE});
             }
-            else if (it->type->est_tuple()) {
-                auto type_tuple = it->type->comme_tuple();
+            else if (it->type->est_type_tuple()) {
+                auto type_tuple = it->type->comme_type_tuple();
 
                 donnees.multiple_retour = true;
 
@@ -3875,7 +3876,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
                     TENTE(ajoute_variable(donnees, variables.defile(), it, membre.type));
                 }
             }
-            else if (it->type->est_rien()) {
+            else if (it->type->est_type_rien()) {
                 rapporte_erreur(
                     "impossible d'assigner une expression de type « rien » à une variable",
                     it,
@@ -3902,7 +3903,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             if (donnees->expression) {
                 var->type = donnees->expression->type;
 
-                if (var->type->est_entier_constant()) {
+                if (var->type->est_type_entier_constant()) {
                     var->type = TypeBase::Z32;
                     transformation = {TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type};
                 }
@@ -4012,13 +4013,13 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                                   NoeudExpression *expression,
                                   Type *type_de_l_expression) -> ResultatValidation {
         auto type_de_la_variable = var->type;
-        auto var_est_reference = type_de_la_variable->est_reference();
-        auto expr_est_reference = type_de_l_expression->est_reference();
+        auto var_est_reference = type_de_la_variable->est_type_reference();
+        auto expr_est_reference = type_de_l_expression->est_type_reference();
 
         auto transformation = TransformationType();
 
         if (var->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
-            if (!expression->type->est_bool()) {
+            if (!expression->type->est_type_bool()) {
                 espace
                     ->rapporte_erreur(expression,
                                       "L'assignation d'une valeur d'une énum_drapeau doit être "
@@ -4053,7 +4054,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         }
         else if (var_est_reference) {
             // déréférence var
-            type_de_la_variable = type_de_la_variable->comme_reference()->type_pointe;
+            type_de_la_variable = type_de_la_variable->comme_type_reference()->type_pointe;
 
             auto resultat = cherche_transformation(type_de_l_expression, type_de_la_variable);
 
@@ -4121,7 +4122,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
             return CodeRetourValidation::Erreur;
         }
 
-        if (it->type->est_rien()) {
+        if (it->type->est_type_rien()) {
             rapporte_erreur("Impossible d'assigner une expression de type 'rien' à une variable !",
                             inst,
                             erreur::Genre::ASSIGNATION_RIEN);
@@ -4131,8 +4132,8 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
         auto donnees = DonneesAssignations();
         donnees.expression = it;
 
-        if (it->type->est_tuple()) {
-            auto type_tuple = it->type->comme_tuple();
+        if (it->type->est_type_tuple()) {
+            auto type_tuple = it->type->comme_type_tuple();
 
             donnees.multiple_retour = true;
 
@@ -4212,7 +4213,7 @@ CodeRetourValidation ContexteValidationCode::resoud_type_final(NoeudExpression *
         return CodeRetourValidation::Erreur;
     }
 
-    auto type_de_donnees = type_var->comme_type_de_donnees();
+    auto type_de_donnees = type_var->comme_type_type_de_donnees();
 
     if (type_de_donnees->type_connu == nullptr) {
         rapporte_erreur("impossible de définir le type selon l'expression", expression_type);
@@ -4346,7 +4347,7 @@ void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expressio
             type_cible = TypeBase::TABL_OCTET;
         }
         else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU) {
-            auto type_tableau_fixe = expression->type->comme_tableau_fixe();
+            auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
             type_cible = m_compilatrice.typeuse.type_tableau_dynamique(
                 type_tableau_fixe->type_pointe);
         }
@@ -4553,7 +4554,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_tableau(
         return CodeRetourValidation::Erreur;
     }
 
-    auto type_de_donnees = type2->comme_type_de_donnees();
+    auto type_de_donnees = type2->comme_type_type_de_donnees();
     auto type_connu = type_de_donnees->type_connu ? type_de_donnees->type_connu : type_de_donnees;
 
     auto taille_tableau = int64_t(0);
@@ -4613,8 +4614,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
         return CodeRetourValidation::Erreur;
     }
 
-    auto type_type1 = type1->comme_type_de_donnees();
-    auto type_type2 = type2->comme_type_de_donnees();
+    auto type_type1 = type1->comme_type_type_de_donnees();
+    auto type_type2 = type2->comme_type_type_de_donnees();
 
     switch (expr->lexeme->genre) {
         default:
@@ -4714,9 +4715,9 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     if (assignation_composee) {
         type_op = operateur_pour_assignation_composee(type_op);
 
-        if (type1->est_reference()) {
+        if (type1->est_type_reference()) {
             type_gauche_est_reference = true;
-            type1 = type1->comme_reference()->type_pointe;
+            type1 = type1->comme_type_reference()->type_pointe;
             transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
         }
     }
@@ -4853,8 +4854,8 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
                                                       Typeuse &typeuse)
 {
     auto type_variable_itérée = itéré->type;
-    while (type_variable_itérée->est_opaque()) {
-        type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+    while (type_variable_itérée->est_type_opaque()) {
+        type_variable_itérée = type_variable_itérée->comme_type_opaque()->type_opacifie;
     }
 
     /* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
@@ -4865,8 +4866,9 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
             GENERE_BOUCLE_PLAGE, type_variable_itérée, type_variable_itérée};
     }
 
-    if (type_variable_itérée->est_tableau_dynamique() ||
-        type_variable_itérée->est_tableau_fixe() || type_variable_itérée->est_variadique()) {
+    if (type_variable_itérée->est_type_tableau_dynamique() ||
+        type_variable_itérée->est_type_tableau_fixe() ||
+        type_variable_itérée->est_type_variadique()) {
         auto type_itérateur = type_dereference_pour(type_variable_itérée);
         auto type_index = TypeBase::Z64;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
@@ -4878,9 +4880,10 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
-    if (est_type_entier(type_variable_itérée) || type_variable_itérée->est_entier_constant()) {
+    if (est_type_entier(type_variable_itérée) ||
+        type_variable_itérée->est_type_entier_constant()) {
         auto type_itérateur = type_variable_itérée;
-        if (type_variable_itérée->est_entier_constant()) {
+        if (type_variable_itérée->est_type_entier_constant()) {
             type_itérateur = TypeBase::Z32;
         }
 
@@ -5022,8 +5025,8 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
      * donc nous pouvons directement l'assigner à enfant2->type.
      * Ceci est nécessaire car la simplification du code accède aux opérateurs
      * selon le type de enfant2. */
-    if (expression->type->est_entier_constant()) {
-        assert(!typage_itérande.type_variable->est_entier_constant());
+    if (expression->type->est_type_entier_constant()) {
+        assert(!typage_itérande.type_variable->est_type_entier_constant());
         expression->type = typage_itérande.type_variable;
     }
 
@@ -5093,8 +5096,8 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     }
 
     auto type_variable_itérée = expression->type;
-    if (type_variable_itérée->est_opaque()) {
-        type_variable_itérée = type_variable_itérée->comme_opaque()->type_opacifie;
+    if (type_variable_itérée->est_type_opaque()) {
+        type_variable_itérée = type_variable_itérée->comme_type_opaque()->type_opacifie;
         expression->type = type_variable_itérée;
     }
 

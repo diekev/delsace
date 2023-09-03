@@ -276,7 +276,7 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
         }
         case GenreType::STRUCTURE:
         {
-            auto type_structure = type->comme_structure();
+            auto type_structure = type->comme_type_structure();
 
             auto virgule = "{ ";
 
@@ -378,7 +378,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
         }
 
         os << " = ";
-        lis_valeur(pointeur_locale, it.type->comme_pointeur()->type_pointe, std::cerr);
+        lis_valeur(pointeur_locale, it.type->comme_type_pointeur()->type_pointe, std::cerr);
         os << '\n';
     }
 }
@@ -443,7 +443,7 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
 
 #ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
     imprime_valeurs_entrees(
-        pointeur_pile, ptr_fonction->type->comme_fonction(), ptr_fonction->nom, profondeur_appel);
+        pointeur_pile, ptr_fonction->type->comme_type_fonction(), ptr_fonction->nom, profondeur_appel);
 #endif
 
     if (!appel(ptr_fonction, site)) {
@@ -768,7 +768,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               NoeudExpression *site)
 {
 
-    auto type_fonction = ptr_fonction->decl->type->comme_fonction();
+    auto type_fonction = ptr_fonction->decl->type->comme_type_fonction();
     auto &donnees_externe = ptr_fonction->données_exécution->donnees_externe;
 
     auto pointeur_arguments = pointeur_pile - taille_argument;
@@ -1328,7 +1328,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_RETOURNE:
             {
-                auto type_fonction = frame->fonction->type->comme_fonction();
+                auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
                 auto pointeur_debut_retour = pointeur_pile - taille_retour;
 

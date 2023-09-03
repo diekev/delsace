@@ -706,7 +706,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::TUPLE:
         {
             // pour les tuples de retours, nous les convertissons en expression-virgule
-            auto tuple = type->comme_tuple();
+            auto tuple = type->comme_type_tuple();
             auto virgule = assembleuse->cree_virgule(lexeme);
 
             POUR (tuple->membres) {
@@ -782,7 +782,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         }
         case GenreType::STRUCTURE:
         {
-            auto type_structure = type->comme_structure();
+            auto type_structure = type->comme_type_structure();
 
             auto construction_structure = assembleuse->cree_construction_structure(lexeme,
                                                                                    type_structure);
@@ -802,7 +802,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         }
         case GenreType::UNION:
         {
-            auto type_union = type->comme_union();
+            auto type_union = type->comme_type_union();
             auto construction_union = assembleuse->cree_construction_structure(lexeme, type_union);
 
             if (type_union->est_nonsure) {
@@ -862,7 +862,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         }
         case GenreType::OPAQUE:
         {
-            auto type_opaque = type->comme_opaque();
+            auto type_opaque = type->comme_type_opaque();
             auto expr = noeud_syntaxique_depuis_resultat(
                 espace, directive, lexeme, type_opaque->type_opacifie, pointeur);
 
@@ -877,7 +877,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         }
         case GenreType::TABLEAU_FIXE:
         {
-            auto type_tableau = type->comme_tableau_fixe();
+            auto type_tableau = type->comme_type_tableau_fixe();
 
             auto virgule = assembleuse->cree_virgule(lexeme);
             virgule->expressions.reserve(type_tableau->taille);
@@ -897,7 +897,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         }
         case GenreType::TABLEAU_DYNAMIQUE:
         {
-            auto type_tableau = type->comme_tableau_dynamique();
+            auto type_tableau = type->comme_type_tableau_dynamique();
 
             auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
             auto taille_donnees = *reinterpret_cast<int64_t *>(pointeur + 8);

@@ -675,7 +675,7 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
 Type *NoeudDeclarationEnteteFonction::type_initialisé() const
 {
     assert(est_initialisation_type);
-    return params[0]->type->comme_pointeur()->type_pointe;
+    return params[0]->type->comme_type_pointeur()->type_pointe;
 }
 
 int NoeudBloc::nombre_de_membres() const
@@ -887,7 +887,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::TABLEAU_DYNAMIQUE:
         {
-            auto type_tableau = type->comme_tableau_dynamique();
+            auto type_tableau = type->comme_type_tableau_dynamique();
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
             info_type->genre = GenreInfoType::TABLEAU;
@@ -901,7 +901,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::VARIADIQUE:
         {
-            auto type_variadique = type->comme_variadique();
+            auto type_variadique = type->comme_type_variadique();
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
             info_type->genre = GenreInfoType::TABLEAU;
@@ -920,7 +920,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::TABLEAU_FIXE:
         {
-            auto type_tableau = type->comme_tableau_fixe();
+            auto type_tableau = type->comme_type_tableau_fixe();
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
             info_type->genre = GenreInfoType::TABLEAU;
@@ -988,7 +988,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::STRUCTURE:
         {
-            auto type_struct = type->comme_structure();
+            auto type_struct = type->comme_type_structure();
 
             auto info_type = allocatrice_infos_types.infos_types_structures.ajoute_element();
             type->info_type = info_type;
@@ -1038,7 +1038,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::UNION:
         {
-            auto type_union = type->comme_union();
+            auto type_union = type->comme_type_union();
 
             auto info_type = allocatrice_infos_types.infos_types_unions.ajoute_element();
             info_type->genre = GenreInfoType::UNION;
@@ -1103,7 +1103,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::FONCTION:
         {
-            auto type_fonction = type->comme_fonction();
+            auto type_fonction = type->comme_type_fonction();
 
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_element();
             info_type->genre = GenreInfoType::FONCTION;
@@ -1118,8 +1118,8 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
 
             auto type_sortie = type_fonction->type_sortie;
 
-            if (type_sortie->est_tuple()) {
-                auto tuple = type_sortie->comme_tuple();
+            if (type_sortie->est_type_tuple()) {
+                auto tuple = type_sortie->comme_type_tuple();
                 info_type->types_sorties.reserve(tuple->membres.taille());
 
                 POUR (tuple->membres) {
@@ -1136,7 +1136,7 @@ InfoType *ConvertisseuseNoeudCode::cree_info_type_pour(Type *type)
         }
         case GenreType::OPAQUE:
         {
-            auto type_opaque = type->comme_opaque();
+            auto type_opaque = type->comme_type_opaque();
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
             info_type->genre = GenreInfoType::OPAQUE;
@@ -1447,13 +1447,13 @@ NoeudExpressionAppel *AssembleuseArbre::cree_construction_structure(const Lexeme
     structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
     structure->parametres_resolus.reserve(type->membres.taille());
 
-    if (type->est_structure()) {
-        structure->expression = type->comme_structure()->decl;
-        structure->noeud_fonction_appelee = type->comme_structure()->decl;
+    if (type->est_type_structure()) {
+        structure->expression = type->comme_type_structure()->decl;
+        structure->noeud_fonction_appelee = type->comme_type_structure()->decl;
     }
-    else if (type->est_union()) {
-        structure->expression = type->comme_union()->decl;
-        structure->noeud_fonction_appelee = type->comme_union()->decl;
+    else if (type->est_type_union()) {
+        structure->expression = type->comme_type_union()->decl;
+        structure->noeud_fonction_appelee = type->comme_type_union()->decl;
     }
 
     structure->type = type;
@@ -1511,7 +1511,7 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme,
     if (est_type_entier(type)) {
         inc->operande_droite = cree_litterale_entier(valeur->lexeme, type, 1);
     }
-    else if (type->est_reel()) {
+    else if (type->est_type_reel()) {
         // À FAIRE(r16)
         inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
     }
@@ -1533,7 +1533,7 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme,
     if (est_type_entier(type)) {
         inc->operande_droite = cree_litterale_entier(valeur->lexeme, type, 1);
     }
-    else if (type->est_reel()) {
+    else if (type->est_type_reel()) {
         // À FAIRE(r16)
         inc->operande_droite = cree_litterale_reel(valeur->lexeme, type, 1.0);
     }
@@ -1621,7 +1621,7 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
 {
     if (!type->fonction_init) {
         auto type_param = typeuse.type_pointeur_pour(type);
-        if (type->est_union() && !type->comme_union()->est_nonsure) {
+        if (type->est_type_union() && !type->comme_type_union()->est_nonsure) {
             type_param = typeuse.type_pointeur_pour(type, false, false);
         }
 
@@ -1676,10 +1676,10 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
 
         type->fonction_init = entete;
 
-        if (type->est_union()) {
+        if (type->est_type_union()) {
             /* Assigne également la fonction au type structure car c'est lui qui est utilisé lors
              * de la génération de RI. */
-            auto type_structure = type->comme_union()->type_structure;
+            auto type_structure = type->comme_type_union()->type_structure;
             if (type_structure) {
                 type_structure->fonction_init = entete;
             }
@@ -1795,7 +1795,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         }
         case GenreType::TABLEAU_FIXE:
         {
-            auto type_tableau = type->comme_tableau_fixe();
+            auto type_tableau = type->comme_type_tableau_fixe();
             auto type_pointe = type_tableau->type_pointe;
 
             auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(type_pointe, false, false);
@@ -1856,7 +1856,7 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         }
         case GenreType::OPAQUE:
         {
-            auto opaque = type->comme_opaque();
+            auto opaque = type->comme_type_opaque();
             auto type_opacifie = opaque->type_opacifie;
 
             // Transtype vers le type opacifié, et crée l'initialisation pour le type opacifié.
@@ -1942,8 +1942,8 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
 {
     auto &typeuse = espace->compilatrice().typeuse;
 
-    if (type->est_enum()) {
-        assigne_fonction_init_enum(typeuse, type->comme_enum());
+    if (type->est_type_enum()) {
+        assigne_fonction_init_enum(typeuse, type->comme_type_enum());
         return;
     }
 
@@ -1951,7 +1951,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
      * création des tâches préliminaire à la compilation. Si nous avons un pointeur ici, c'est un
      * pointeur faisant partie des TypeBase, pour les autres, l'assignation de la fonction se fait
      * lors de la création du type pointeur. */
-    if (type->est_pointeur() && typeuse.init_type_pointeur) {
+    if (type->est_type_pointeur() && typeuse.init_type_pointeur) {
         type->assigne_fonction_init(typeuse.init_type_pointeur);
         return;
     }
@@ -2002,7 +2002,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         }
         case GenreType::OPAQUE:
         {
-            auto type_opacifie = type->comme_opaque()->type_opacifie;
+            auto type_opacifie = type->comme_type_opaque()->type_opacifie;
             auto type_pointeur_opacifie = typeuse.type_pointeur_pour(type_opacifie);
 
             auto comme_type_opacifie = assembleuse->cree_comme(&lexeme_sentinel);
@@ -2028,8 +2028,8 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
             static Lexeme lexeme = {};
             auto type_compose = static_cast<TypeCompose *>(type);
 
-            if (type_compose->est_structure()) {
-                auto decl = type_compose->comme_structure()->decl;
+            if (type_compose->est_type_structure()) {
+                auto decl = type_compose->comme_type_structure()->decl;
                 if (decl && decl->est_polymorphe) {
                     espace->rapporte_erreur_sans_site(
                         "Erreur interne : création d'une fonction d'initialisation pour un type "
@@ -2062,7 +2062,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         }
         case GenreType::UNION:
         {
-            auto type_union = type->comme_union();
+            auto type_union = type->comme_type_union();
             // À FAIRE(union) : test proprement cette logique
             POUR (type_union->membres) {
                 if (it.type != type_union->type_le_plus_grand) {

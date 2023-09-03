@@ -312,9 +312,9 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
         auto type_accede = accede->type;
 
-        if (type_accede->est_type_de_donnees()) {
+        if (type_accede->est_type_type_de_donnees()) {
             /* Construction d'une structure ou union. */
-            type_accede = type_accede->comme_type_de_donnees()->type_connu;
+            type_accede = type_accede->comme_type_type_de_donnees()->type_connu;
 
             if (!type_accede) {
                 contexte.rapporte_erreur("Impossible d'accéder à un « type_de_données »", acces);
@@ -329,7 +329,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         }
 
         if (type_accede->genre == GenreType::STRUCTURE) {
-            auto type_struct = type_accede->comme_structure();
+            auto type_struct = type_accede->comme_type_structure();
 
             if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
                 return Attente::sur_type(type_accede);
@@ -340,8 +340,8 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             if (info_membre.has_value()) {
                 acces->type = info_membre->membre.type;
 
-                if (acces->type->est_type_de_donnees()) {
-                    auto type_membre = acces->type->comme_type_de_donnees()->type_connu;
+                if (acces->type->est_type_type_de_donnees()) {
+                    auto type_membre = acces->type->comme_type_type_de_donnees()->type_connu;
                     if (!type_accede) {
                         contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
                                                  "dans une expression d'appel",
@@ -349,15 +349,15 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                         return CodeRetourValidation::Erreur;
                     }
 
-                    if (type_membre->est_structure()) {
-                        candidates.ajoute(
-                            {CANDIDATE_EST_DECLARATION, type_membre->comme_structure()->decl});
+                    if (type_membre->est_type_structure()) {
+                        candidates.ajoute({CANDIDATE_EST_DECLARATION,
+                                           type_membre->comme_type_structure()->decl});
                         return CodeRetourValidation::OK;
                     }
 
-                    if (type_membre->est_union()) {
+                    if (type_membre->est_type_union()) {
                         candidates.ajoute(
-                            {CANDIDATE_EST_DECLARATION, type_membre->comme_union()->decl});
+                            {CANDIDATE_EST_DECLARATION, type_membre->comme_type_union()->decl});
                         return CodeRetourValidation::OK;
                     }
                 }
@@ -383,16 +383,16 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     }
 
     if (appelee->est_construction_structure() || appelee->est_appel()) {
-        if (appelee->type->est_type_de_donnees()) {
-            auto type = appelee->type->comme_type_de_donnees()->type_connu;
+        if (appelee->type->est_type_type_de_donnees()) {
+            auto type = appelee->type->comme_type_type_de_donnees()->type_connu;
 
-            if (type->est_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_structure()->decl});
+            if (type->est_type_structure()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_structure()->decl});
                 return CodeRetourValidation::OK;
             }
 
-            if (type->est_union()) {
-                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_union()->decl});
+            if (type->est_type_union()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_union()->decl});
                 return CodeRetourValidation::OK;
             }
         }
@@ -408,7 +408,7 @@ static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
     Type *type_du_parametre,
     Type *type_de_l_expression)
 {
-    if (type_du_parametre->est_variadique()) {
+    if (type_du_parametre->est_type_variadique()) {
         /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
          * sinon nous apparierons, par exemple, un « z32 » avec « ...z32 ».
          */
@@ -509,7 +509,7 @@ static ResultatAppariement apparie_appel_pointeur(
     // au lieu de
     //    membre : fonc()(rien)
     // il faudra un système plus robuste
-    if (!type->est_fonction()) {
+    if (!type->est_type_fonction()) {
         return ErreurAppariement::type_non_fonction(b->expression, type);
     }
 
@@ -522,7 +522,7 @@ static ResultatAppariement apparie_appel_pointeur(
     }
 
     /* Apparie les arguments au type. */
-    auto type_fonction = type->comme_fonction();
+    auto type_fonction = type->comme_type_fonction();
     auto fonction_variadique = false;
 
     ApparieuseParams apparieuse(ChoseÀApparier::POINTEUR_DE_FONCTION);
@@ -609,7 +609,7 @@ static ResultatAppariement apparie_appel_init_de(
         return ErreurAppariement::mecomptage_arguments(expr, 1, args.taille());
     }
 
-    auto type_fonction = expr->type->comme_fonction();
+    auto type_fonction = expr->type->comme_type_fonction();
     auto type_pointeur = type_fonction->types_entrees[0];
 
     if (type_pointeur != args[0].expr->type) {
@@ -657,7 +657,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
             return ErreurAppariement::menommage_arguments(it.expr, it.ident);
         }
 
-        auto type = it.expr->type->comme_type_de_donnees();
+        auto type = it.expr->type->comme_type_type_de_donnees();
         items_monomorphisation.ajoute({it.ident, type, ValeurExpression(), true});
     }
 
@@ -902,8 +902,8 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
         }
     }
 
-    if (expr->type->est_type_de_donnees()) {
-        auto type_connu = expr->type->comme_type_de_donnees()->type_connu;
+    if (expr->type->est_type_type_de_donnees()) {
+        auto type_connu = expr->type->comme_type_type_de_donnees()->type_connu;
 
         if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             return true;
@@ -919,7 +919,7 @@ static ResultatAppariement apparie_appel_structure(
     NoeudStruct *decl_struct,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
-    auto type_compose = decl_struct->type->comme_compose();
+    auto type_compose = decl_struct->type->comme_type_compose();
 
     if (decl_struct->est_polymorphe) {
         auto params_polymorphiques = decl_struct->bloc_constantes;
@@ -970,8 +970,8 @@ static ResultatAppariement apparie_appel_structure(
             }
 
             // vérifie la contrainte
-            if (param->type->est_type_de_donnees()) {
-                if (!it->type->est_type_de_donnees()) {
+            if (param->type->est_type_type_de_donnees()) {
+                if (!it->type->est_type_type_de_donnees()) {
                     return ErreurAppariement::metypage_argument(it, param->type, it->type);
                 }
 
@@ -979,7 +979,7 @@ static ResultatAppariement apparie_appel_structure(
             }
             else {
                 if (!(it->type == param->type ||
-                      (it->type->est_entier_constant() && est_type_entier(param->type)))) {
+                      (it->type->est_type_entier_constant() && est_type_entier(param->type)))) {
                     return ErreurAppariement::metypage_argument(it, param->type, it->type);
                 }
 
@@ -1097,7 +1097,7 @@ static ResultatAppariement apparie_construction_opaque(
     auto arg = arguments[0].expr;
 
     if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        if (arg->type->est_type_de_donnees()) {
+        if (arg->type->est_type_type_de_donnees()) {
             auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
             return CandidateAppariement::monomorphisation_opaque(
                 1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
@@ -1226,7 +1226,7 @@ static std::optional<Attente> apparies_candidates(
                     return Attente::sur_declaration(decl_opaque);
                 }
                 resultat.resultats.ajoute(apparie_construction_opaque(
-                    espace, expr, decl_opaque->type->comme_opaque(), args));
+                    espace, expr, decl_opaque->type->comme_type_opaque(), args));
             }
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
@@ -1246,8 +1246,8 @@ static std::optional<Attente> apparies_candidates(
                 }
 
                 /* Nous pouvons avoir une constante polymorphique ou un alias. */
-                if (type->est_type_de_donnees()) {
-                    auto type_de_donnees = decl->type->comme_type_de_donnees();
+                if (type->est_type_type_de_donnees()) {
+                    auto type_de_donnees = decl->type->comme_type_type_de_donnees();
                     auto type_connu = type_de_donnees->type_connu;
 
                     if (!type_connu) {
@@ -1255,20 +1255,20 @@ static std::optional<Attente> apparies_candidates(
                             ErreurAppariement::type_non_fonction(expr, type_de_donnees));
                     }
 
-                    if (type_connu->est_structure()) {
-                        auto type_struct = type_connu->comme_structure();
+                    if (type_connu->est_type_structure()) {
+                        auto type_struct = type_connu->comme_type_structure();
 
                         resultat.resultats.ajoute(
                             apparie_appel_structure(espace, expr, type_struct->decl, args));
                     }
-                    else if (type_connu->est_union()) {
-                        auto type_union = type_connu->comme_union();
+                    else if (type_connu->est_type_union()) {
+                        auto type_union = type_connu->comme_type_union();
 
                         resultat.resultats.ajoute(
                             apparie_appel_structure(espace, expr, type_union->decl, args));
                     }
-                    else if (type_connu->est_opaque()) {
-                        auto type_opaque = type_connu->comme_opaque();
+                    else if (type_connu->est_type_opaque()) {
+                        auto type_opaque = type_connu->comme_type_opaque();
 
                         resultat.resultats.ajoute(
                             apparie_construction_opaque(espace, expr, type_opaque, args));
@@ -1278,12 +1278,12 @@ static std::optional<Attente> apparies_candidates(
                             ErreurAppariement::type_non_fonction(expr, type_connu));
                     }
                 }
-                else if (type->est_fonction()) {
+                else if (type->est_type_fonction()) {
                     resultat.resultats.ajoute(
                         apparie_appel_pointeur(contexte, expr, decl, espace, args));
                 }
-                else if (type->est_opaque()) {
-                    auto type_opaque = type->comme_opaque();
+                else if (type->est_type_opaque()) {
+                    auto type_opaque = type->comme_type_opaque();
 
                     resultat.resultats.ajoute(
                         apparie_construction_opaque(espace, expr, type_opaque, args));
@@ -1660,7 +1660,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         // nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça
-        auto type_fonc = decl_fonction_appelee->type->comme_fonction();
+        auto type_fonc = decl_fonction_appelee->type->comme_type_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
         auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
@@ -1757,12 +1757,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = candidate->type;
-        expr->noeud_fonction_appelee =
-            (expr->type->comme_type_de_donnees()->type_connu->comme_polymorphique()->structure);
+        expr->noeud_fonction_appelee = (expr->type->comme_type_type_de_donnees()
+                                            ->type_connu->comme_type_polymorphique()
+                                            ->structure);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
-            expr->type = candidate->type->comme_fonction()->type_sortie;
+            expr->type = candidate->type->comme_type_fonction()->type_sortie;
         }
 
         applique_transformations(contexte, candidate, expr);
@@ -1796,7 +1797,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        auto type_opaque = candidate->type->comme_opaque();
+        auto type_opaque = candidate->type->comme_type_opaque();
 
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
@@ -1817,8 +1818,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
-        auto type_opaque = candidate->type->comme_opaque();
-        auto type_opacifie = candidate->exprs[0]->type->comme_type_de_donnees();
+        auto type_opaque = candidate->type->comme_type_opaque();
+        auto type_opacifie = candidate->exprs[0]->type->comme_type_type_de_donnees();
 
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
         if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
