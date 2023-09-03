@@ -987,7 +987,7 @@ static bool est_stockage_valide(InstructionStockeMem const &stockage,
     auto const valeur = stockage.valeur;
 
     /* Nous ne sommes intéressés que par les stockage d'adresses. */
-    if (!valeur->type->est_pointeur()) {
+    if (!valeur->type->est_type_pointeur()) {
         return true;
     }
 
