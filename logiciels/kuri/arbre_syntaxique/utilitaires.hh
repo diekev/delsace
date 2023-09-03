@@ -26,6 +26,10 @@ struct chaine;
 struct chaine_statique;
 }  // namespace kuri
 
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux génériques pour les noeuds.
+ * \{ */
+
 enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                         // decl var
@@ -58,6 +62,8 @@ enum class DrapeauxNoeud : uint32_t {
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux);
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Drapeaux pour les fonctions.
