@@ -1018,8 +1018,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return m_tacheronne.assembleuse->cree_directive_corps_boucle(lexeme);
             }
             else if (directive == ID::si) {
-                return analyse_instruction_si_statique(lexeme);
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
+                return analyse_instruction_si_statique(lexeme);
             }
             else if (directive == ID::cuisine) {
                 auto noeud = m_tacheronne.assembleuse->cree_cuisine(lexeme);
