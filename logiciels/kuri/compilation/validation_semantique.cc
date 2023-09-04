@@ -5265,7 +5265,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
         auto const poids_transformation = std::get<PoidsTransformation>(résultat_compatibilité);
         auto const transformation = poids_transformation.transformation;
 
-        if (transformation.type != TypeTransformation::INUTILE) {
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             espace->rapporte_erreur(expr, "Expression incompatible pour l'assignation via « si »")
                 .ajoute_message("Le type inféré jusqu'ici est « ",
                                 chaine_type(type_inféré),
