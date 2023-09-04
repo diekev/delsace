@@ -95,6 +95,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(realloc_, "realloc")                                        \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(free_, "free")                                              \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(si, "si")                                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(saufsi, "saufsi")                                           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(pointeur, "pointeur")                                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(corps_texte, "corps_texte")                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cuisine, "cuisine")                                         \

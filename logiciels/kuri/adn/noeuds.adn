@@ -550,6 +550,12 @@ struct NoeudSiStatique : NoeudExpression {
     bool visite
 }
 
+struct NoeudSaufsiStatique : NoeudSiStatique {
+    @genre INSTRUCTION_SAUFSI_STATIQUE
+    @comme saufsi_statique
+    @code NoeudCodeSaufsiStatique
+}
+
 struct NoeudPour : NoeudExpression {
     @genre INSTRUCTION_POUR
     @comme pour
