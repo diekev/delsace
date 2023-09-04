@@ -1320,6 +1320,10 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
         auto bloc = expr->comme_bloc();
 
         auto di = bloc->expressions->derniere();
+        if (di->est_retourne() || di->est_retiens()) {
+            return;
+        }
+
         di = assem->cree_assignation_variable(di->lexeme, ref_temp, di);
         bloc->expressions->supprime_dernier();
         bloc->ajoute_expression(di);
