@@ -82,7 +82,7 @@ struct BaseSyntaxeuse {
     {
         if (m_lexemes[m_position].genre != genre_lexeme) {
             rapporte_erreur(message);
-            return;
+            /* Ne retournons pas ici, afin que consomme() fasse progresser la compilation. */
         }
 
         return consomme();
