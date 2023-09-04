@@ -441,6 +441,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+        case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         {
             auto inst = racine->comme_si_statique();
             aplatis_arbre(inst->condition, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);

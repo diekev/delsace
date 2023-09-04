@@ -791,6 +791,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             break;
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
+        case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         {
             auto inst = noeud->comme_si_statique();
 
@@ -811,9 +812,17 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 auto condition_est_vraie = res.valeur.booleenne();
                 inst->condition_est_vraie = condition_est_vraie;
 
-                if (!condition_est_vraie) {
-                    // dis à l'unité de sauter les instructions jusqu'au prochain point
-                    unite->index_courant = inst->index_bloc_si_faux;
+                if (inst->est_saufsi_statique()) {
+                    if (condition_est_vraie) {
+                        // dis à l'unité de sauter les instructions jusqu'au prochain point
+                        unite->index_courant = inst->index_bloc_si_faux;
+                    }
+                }
+                else {
+                    if (!condition_est_vraie) {
+                        // dis à l'unité de sauter les instructions jusqu'au prochain point
+                        unite->index_courant = inst->index_bloc_si_faux;
+                    }
                 }
 
                 inst->visite = true;
