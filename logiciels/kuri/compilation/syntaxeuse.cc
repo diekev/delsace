@@ -1018,8 +1018,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 return m_tacheronne.assembleuse->cree_directive_corps_boucle(lexeme);
             }
             else if (directive == ID::si) {
-                return analyse_instruction_si_statique(lexeme);
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
+                return analyse_instruction_si_statique(lexeme);
+            }
+            else if (directive == ID::saufsi) {
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::SI_STATIQUE;
+                return analyse_instruction_si_statique(lexeme);
             }
             else if (directive == ID::cuisine) {
                 auto noeud = m_tacheronne.assembleuse->cree_cuisine(lexeme);
@@ -2084,7 +2088,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
 {
     empile_etat("dans l'analyse de l'instruction #si", lexeme);
 
-    auto noeud = m_tacheronne.assembleuse->cree_si_statique(lexeme);
+    auto noeud = (lexeme->genre == GenreLexeme::SI) ?
+                     m_tacheronne.assembleuse->cree_si_statique(lexeme) :
+                     m_tacheronne.assembleuse->cree_saufsi_statique(lexeme);
 
     noeud->condition = analyse_expression({}, GenreLexeme::SI, GenreLexeme::INCONNU);
 
@@ -2092,7 +2098,28 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
 
     if (apparie(GenreLexeme::SINON)) {
         consomme();
-        noeud->bloc_si_faux = analyse_bloc();
+
+        if (apparie(GenreLexeme::SI)) {
+            /* analyse_instruction_si_statique doit commencer par le lexème suivant vu la manière
+             * dont les directives sont parsées. */
+            lexeme = lexeme_courant();
+            consomme();
+            noeud->bloc_si_faux = analyse_instruction_si_statique(lexeme);
+        }
+        else if (apparie(GenreLexeme::SAUFSI)) {
+            /* analyse_instruction_si_statique doit commencer par le lexème suivant vu la manière
+             * dont les directives sont parsées. */
+            lexeme = lexeme_courant();
+            consomme();
+            noeud->bloc_si_faux = analyse_instruction_si_statique(lexeme);
+        }
+        else if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
+            noeud->bloc_si_faux = analyse_bloc();
+        }
+        else {
+            rapporte_erreur("l'instruction « sinon » des #si statiques doit être suivie par soit "
+                            "un « si », soit un « saufsi », ou alors un bloc");
+        }
     }
 
     depile_etat();
