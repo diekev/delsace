@@ -542,7 +542,7 @@ struct NoeudSiStatique : NoeudExpression {
 
     NoeudExpression *condition [code enfant]
     NoeudBloc *bloc_si_vrai [code enfant]
-    NoeudBloc *bloc_si_faux [code enfant]
+    NoeudExpression *bloc_si_faux [code enfant]
 
     int index_bloc_si_faux
     int index_apres

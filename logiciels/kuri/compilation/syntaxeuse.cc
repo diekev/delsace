@@ -2092,7 +2092,21 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexeme *lexeme)
 
     if (apparie(GenreLexeme::SINON)) {
         consomme();
-        noeud->bloc_si_faux = analyse_bloc();
+
+        if (apparie(GenreLexeme::SI)) {
+            /* analyse_instruction_si_statique doit commencer par le lexème suivant vu la manière
+             * dont les directives sont parsées. */
+            lexeme = lexeme_courant();
+            consomme();
+            noeud->bloc_si_faux = analyse_instruction_si_statique(lexeme);
+        }
+        else if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
+            noeud->bloc_si_faux = analyse_bloc();
+        }
+        else {
+            rapporte_erreur("l'instruction « sinon » des #si statiques doit être suivie par soit "
+                            "un « si », soit un bloc");
+        }
     }
 
     depile_etat();
