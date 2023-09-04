@@ -302,6 +302,20 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             inst->substitution = inst->bloc_si_faux;
             return;
         }
+        case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
+        {
+            auto inst = noeud->comme_saufsi_statique();
+
+            if (!inst->condition_est_vraie) {
+                simplifie(inst->bloc_si_vrai);
+                inst->substitution = inst->bloc_si_vrai;
+                return;
+            }
+
+            simplifie(inst->bloc_si_faux);
+            inst->substitution = inst->bloc_si_faux;
+            return;
+        }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
             auto expr_ref = noeud->comme_reference_declaration();

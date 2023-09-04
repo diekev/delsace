@@ -697,6 +697,9 @@ void Lexeuse::performe_lexage()
             else if (it.genre == GenreLexeme::SI) {
                 it.ident = ID::si;
             }
+            else if (it.genre == GenreLexeme::SAUFSI) {
+                it.ident = ID::saufsi;
+            }
             else if (it.genre == GenreLexeme::CHAINE_CARACTERE) {
                 it.ident = table_identifiants->identifiant_pour_chaine(it.chaine);
             }

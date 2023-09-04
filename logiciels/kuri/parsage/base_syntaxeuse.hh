@@ -80,9 +80,9 @@ struct BaseSyntaxeuse {
 
     inline void consomme(GenreLexeme genre_lexeme, kuri::chaine_statique message)
     {
-        if (m_lexemes[m_position].genre != genre_lexeme) {
+        if (fini() || m_lexemes[m_position].genre != genre_lexeme) {
             rapporte_erreur(message);
-            return;
+            /* Ne retournons pas ici, afin que consomme() fasse progresser la compilation. */
         }
 
         return consomme();
