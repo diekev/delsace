@@ -835,6 +835,20 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             break;
         }
+        case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
+        {
+            auto inst = noeud->comme_saufsi_statique();
+
+            if (inst->condition_est_vraie && inst->bloc_si_faux) {
+                assert_rappel(false, [&]() {
+                    std::cerr
+                        << "Erreur interne : une directive #saufsi ne fut pas simplifiée !\n";
+                    erreur::imprime_site(*m_espace, noeud);
+                });
+            }
+
+            break;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto directive = noeud->comme_execute();
