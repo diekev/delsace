@@ -33,6 +33,7 @@ struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionMembre;
 struct NoeudPour;
 struct NoeudRetour;
+struct NoeudSi;
 struct NoeudStruct;
 struct Tacheronne;
 struct TransformationType;
@@ -210,4 +211,6 @@ struct ContexteValidationCode {
     MetaProgramme *cree_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 
     ResultatValidation valide_instruction_pour(NoeudPour *inst);
+
+    CodeRetourValidation valide_instruction_si(NoeudSi *inst);
 };

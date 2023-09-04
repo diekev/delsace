@@ -749,51 +749,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_SI:
         {
             auto inst = static_cast<NoeudSi *>(noeud);
-
-            auto type_condition = inst->condition->type;
-
-            if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
-                rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!est_expression_convertible_en_bool(inst->condition)) {
-                espace
-                    ->rapporte_erreur(inst->condition,
-                                      "Impossible de convertir implicitement l'expression vers "
-                                      "une expression booléenne",
-                                      erreur::Genre::TYPE_DIFFERENTS)
-                    .ajoute_message(
-                        "Le type de l'expression est ", chaine_type(type_condition), "\n");
-                return CodeRetourValidation::Erreur;
-            }
-
-            /* pour les expressions x = si y { z } sinon { w } */
-            if (inst->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
-                inst->type = inst->bloc_si_vrai->type;
-
-                // À FAIRE : vérifie que tous les blocs ont le même type
-
-                // vérifie que l'arbre s'arrête sur un sinon
-                auto racine = inst;
-                while (true) {
-                    if (!inst->bloc_si_faux) {
-                        espace->rapporte_erreur(racine,
-                                                "Bloc « sinon » manquant dans la condition si "
-                                                "utilisée comme expression !");
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
-                        inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
-                        continue;
-                    }
-
-                    break;
-                }
-            }
-
-            break;
+            return valide_instruction_si(inst);
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
@@ -5146,6 +5102,62 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
 
     /* Attend sur la validation sémantique du macro. */
     return Attente::sur_declaration(corps_copie_macro);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Instruction si/saufsi.
+ * \{ */
+
+CodeRetourValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
+{
+
+    auto type_condition = inst->condition->type;
+
+    if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
+        rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_expression_convertible_en_bool(inst->condition)) {
+        espace
+            ->rapporte_erreur(inst->condition,
+                              "Impossible de convertir implicitement l'expression vers "
+                              "une expression booléenne",
+                              erreur::Genre::TYPE_DIFFERENTS)
+            .ajoute_message("Le type de l'expression est ", chaine_type(type_condition), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!inst->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        return CodeRetourValidation::OK;
+    }
+
+    /* Pour les expressions x = si y { z } sinon { w }. */
+    inst->type = inst->bloc_si_vrai->type;
+
+    // À FAIRE : vérifie que tous les blocs ont le même type
+
+    // vérifie que l'arbre s'arrête sur un sinon
+    auto racine = inst;
+    while (true) {
+        if (!inst->bloc_si_faux) {
+            espace->rapporte_erreur(racine,
+                                    "Bloc « sinon » manquant dans la condition si "
+                                    "utilisée comme expression !");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
+            inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+            continue;
+        }
+
+        break;
+    }
+
+    return CodeRetourValidation::OK;
 }
 
 /** \} */
