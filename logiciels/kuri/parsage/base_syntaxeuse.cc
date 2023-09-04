@@ -69,6 +69,8 @@ kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
 {
     if (m_possede_erreur) {
+        /* Avance pour ne pas être bloqué. */
+        consomme();
         return;
     }
 
