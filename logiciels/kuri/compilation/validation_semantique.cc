@@ -5110,7 +5110,73 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
 /** \name Instruction si/saufsi.
  * \{ */
 
-CodeRetourValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
+/* Rassemble tous les blocs des branches de l'instruction si utilisée comme expression pour
+ * initialiser ou assigner une variable.
+ * Retourne faux si une erreur est rapportée.
+ */
+static bool rassemble_blocs_pour_expression_si(NoeudSi const *inst,
+                                               EspaceDeTravail *espace,
+                                               kuri::tablet<NoeudBloc *, 6> &blocs)
+{
+    while (true) {
+        if (!inst->bloc_si_faux) {
+            espace->rapporte_erreur(inst, "Branche « sinon » manquante dans l'expression « si »");
+            return false;
+        }
+
+        blocs.ajoute(inst->bloc_si_vrai->comme_bloc());
+
+        if (inst->bloc_si_faux->est_bloc()) {
+            blocs.ajoute(inst->bloc_si_faux->comme_bloc());
+            break;
+        }
+
+        if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
+            inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+            continue;
+        }
+
+        /* Nous pouvons avoir d'autres instructions (pour, tantque, etc.).
+         * Rapporte une erreur dans ces cas.
+         */
+        espace->rapporte_erreur(inst->bloc_si_faux, "Branche invalide dans l'expression « si »")
+            .ajoute_message(
+                "Seules les branches « sinon », « sinon si », et « sinon saufsi » sont "
+                "possibles dans une expression d'assignation conditionnelle « si »");
+        return false;
+    }
+
+    return true;
+}
+
+static bool expression_est_valide_pour_assignation_via_si(NoeudExpression const *expr)
+{
+    return (expr->genre_valeur & GenreValeur::DROITE) != 0;
+}
+
+/* Vérifie si l'expression est d'un type valide pour assignation via « si ». Sinon, rapporte une
+ * erreur et retourne faux. */
+static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
+                                                    EspaceDeTravail *espace)
+{
+    auto type = expr->type;
+    if (!type) {
+        espace->rapporte_erreur(
+            expr, "Impossible d'assigner l'expression via « si » car l'expression n'a aucun type");
+        return false;
+    }
+
+    if (type->est_type_rien()) {
+        espace->rapporte_erreur(
+            expr,
+            "Impossible d'assigner l'expression via « si » car l'expression est de type « rien »");
+        return false;
+    }
+
+    return true;
+}
+
+ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
 {
 
     auto type_condition = inst->condition->type;
@@ -5135,27 +5201,83 @@ CodeRetourValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst
     }
 
     /* Pour les expressions x = si y { z } sinon { w }. */
-    inst->type = inst->bloc_si_vrai->type;
 
-    // À FAIRE : vérifie que tous les blocs ont le même type
+    kuri::tablet<NoeudBloc *, 6> blocs;
+    if (!rassemble_blocs_pour_expression_si(inst, espace, blocs)) {
+        return CodeRetourValidation::Erreur;
+    }
 
-    // vérifie que l'arbre s'arrête sur un sinon
-    auto racine = inst;
-    while (true) {
-        if (!inst->bloc_si_faux) {
-            espace->rapporte_erreur(racine,
-                                    "Bloc « sinon » manquant dans la condition si "
-                                    "utilisée comme expression !");
+    kuri::tablet<NoeudExpression *, 6> expressions_finales;
+
+    POUR (blocs) {
+        if (it->expressions->est_vide()) {
+            espace->rapporte_erreur(it, "Bloc vide pour l'expression « si »");
             return CodeRetourValidation::Erreur;
         }
 
-        if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
-            inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+        auto dernière_expression = it->expressions->derniere();
+        if (dernière_expression->est_retourne() || dernière_expression->est_retiens()) {
             continue;
         }
 
-        break;
+        if (!expression_est_valide_pour_assignation_via_si(dernière_expression)) {
+            espace
+                ->rapporte_erreur(dernière_expression,
+                                  "Expression invalide l'assignation via « si »")
+                .ajoute_message(
+                    "Une expression valide est une expression qui produit une valeur.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        expressions_finales.ajoute(dernière_expression);
     }
+
+    if (expressions_finales.est_vide()) {
+        espace->rapporte_erreur(inst, "Aucune expression trouvée pour l'assignation via « si »");
+        return CodeRetourValidation::Erreur;
+    }
+
+    /* Détermine le type de l'expression selon les dernières expressions des blocs. */
+
+    if (!type_est_valide_pour_assignation_via_si(expressions_finales[0], espace)) {
+        return CodeRetourValidation::Erreur;
+    }
+
+    /* À FAIRE : pour l'instant nous requérons que tous les blocs ont le même type. Il faudra
+     * peut-être relaxer cette condition en permettant certaines transformations. */
+    auto type_inféré = expressions_finales[0]->type;
+    if (type_inféré->est_type_entier_constant()) {
+        type_inféré = TypeBase::Z32;
+    }
+
+    for (auto i = 1; i < expressions_finales.taille(); i++) {
+        auto const expr = expressions_finales[i];
+        if (!type_est_valide_pour_assignation_via_si(expr, espace)) {
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto const résultat_compatibilité = verifie_compatibilite(type_inféré, expr->type);
+
+        if (std::holds_alternative<Attente>(résultat_compatibilité)) {
+            return std::get<Attente>(résultat_compatibilité);
+        }
+
+        auto const poids_transformation = std::get<PoidsTransformation>(résultat_compatibilité);
+        auto const transformation = poids_transformation.transformation;
+
+        if (transformation.type != TypeTransformation::INUTILE) {
+            espace->rapporte_erreur(expr, "Expression incompatible pour l'assignation via « si »")
+                .ajoute_message("Le type inféré jusqu'ici est « ",
+                                chaine_type(type_inféré),
+                                " », mais l'expression est de type « ",
+                                chaine_type(expr->type),
+                                " »");
+
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    inst->type = type_inféré;
 
     return CodeRetourValidation::OK;
 }

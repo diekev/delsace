@@ -212,5 +212,5 @@ struct ContexteValidationCode {
 
     ResultatValidation valide_instruction_pour(NoeudPour *inst);
 
-    CodeRetourValidation valide_instruction_si(NoeudSi *inst);
+    ResultatValidation valide_instruction_si(NoeudSi *inst);
 };
