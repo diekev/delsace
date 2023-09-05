@@ -24,7 +24,7 @@ PanneauBouton :: struct {
     souris_dans_rect := faux
 }
 
-crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
+crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
     sur_destruction :: fonc (panneau: *Panneau)
     {
@@ -110,7 +110,7 @@ crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBout
         panneau_bouton := panneau comme *PanneauBouton
     }
 
-    résultat := loge(PanneauBouton)
+    résultat := ctx.crée_panneau(PanneauBouton)
     résultat.bouton = bouton
     ajoute_enfant(parent, résultat)
 

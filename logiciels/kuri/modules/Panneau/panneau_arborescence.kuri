@@ -129,7 +129,7 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
     peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, couleur_blanche)
 }
 
-crée_panneau_arborescence :: fonc (parent: *Panneau) -> *PanneauArborescence
+crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
 {
     sur_destruction :: fonc (panneau: *Panneau)
     {
@@ -184,7 +184,7 @@ crée_panneau_arborescence :: fonc (parent: *Panneau) -> *PanneauArborescence
         panneau_arborescence := panneau comme *PanneauArborescence
     }
 
-    résultat := loge(PanneauArborescence)
+    résultat := ctx.crée_panneau(PanneauArborescence)
     ajoute_enfant(parent, résultat)
 
     résultat.sur_destruction = sur_destruction

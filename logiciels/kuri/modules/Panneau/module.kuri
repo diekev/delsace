@@ -21,11 +21,53 @@ ContexteAffichage :: struct {
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ContexteInterface.
+ * \{ */
+
+/* Le ContexteInterface doit être instancié par fenêtre.
+ * Il permet de créer les panneaux pour chaque fenêtre.
+ * Il stocke l'état de l'interface : les éléments actifs/focalisés.
+ * Chaque panneau possède une référence à ce contexte.
+ */
+ContexteInterface :: struct {
+    /* Le menu étant affiché. */
+    menu_affiché: *PanneauMenu
+}
+
+initialise_un_contexte_interface :: fonc () -> ContexteInterface
+{
+    résultat: ContexteInterface
+    retourne résultat
+}
+
+crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_données) -> *TypePanneau
+{
+    résultat := loge(TypePanneau)
+    résultat.contexte = contexte
+    retourne résultat
+}
+
+définis_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMenu)
+{
+    contexte.menu_affiché = panneau
+}
+
+détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
+{
+    si contexte.menu_affiché {
+        détruit_panneau_menu(contexte.menu_affiché)
+    }
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Panneau
  * Structure pour représenter un élément de l'interface graphique.
  * \{ */
 
 Panneau :: struct {
+    contexte: *ContexteInterface
     parent: *Panneau
     disposition: Disposition
 
@@ -98,15 +140,9 @@ PanneauInterface :: struct {
     empl base: Panneau
 
     barre_de_menu: *PanneauBarreDeMenu
-
-    MémoireVive :: struct {
-        menu_actif: *PanneauMenu
-    }
-
-    mémoire_vive: MémoireVive
 }
 
-crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterface
+crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32)) -> *PanneauInterface
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -133,7 +169,7 @@ crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterfac
         détruit_panneau_interface(panneau_interface)
     }
 
-    résultat := loge(PanneauInterface)
+    résultat := ctx.crée_panneau(PanneauInterface)
 
     résultat.redimensionne_panneau(rect)
 
@@ -149,33 +185,15 @@ crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterfac
 installe_barre_de_menu :: fonc (panneau: *PanneauInterface, barre_de_menu: *BarreDeMenu)
 {
     assert(panneau.barre_de_menu == nul)
-    panneau.barre_de_menu = crée_panneau_barre_de_menu(barre_de_menu)
+    panneau.barre_de_menu = crée_panneau_barre_de_menu(panneau.contexte, barre_de_menu)
     // ajoute_enfant(panneau, panneau.barre_de_menu)
     panneau.barre_de_menu.parent = panneau
-    panneau.barre_de_menu.panneau_interface = panneau
 }
 
 détruit_panneau_interface :: fonc (panneau: &*PanneauInterface)
 {
-    si panneau.mémoire_vive.menu_actif {
-        détruit_panneau(panneau.mémoire_vive.menu_actif)
-    }
-
     déloge(panneau)
     panneau = nul
-}
-
-détruit_panneau_menu :: fonc (empl panneau_interface: *PanneauInterface)
-{
-    si mémoire_vive.menu_actif {
-        détruit_panneau_menu(mémoire_vive.menu_actif)
-    }
-}
-
-définis_panneau_menu :: fonc (empl panneau_interface: *PanneauInterface, panneau_menu: *PanneauMenu)
-{
-    assert(mémoire_vive.menu_actif == nul)
-    mémoire_vive.menu_actif = panneau_menu
 }
 
 dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *ContexteAffichage)
@@ -184,14 +202,14 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
         barre_de_menu.sur_dessin(barre_de_menu, ctx)
     }
 
-    si mémoire_vive.menu_actif {
-        mémoire_vive.menu_actif.sur_dessin(mémoire_vive.menu_actif, ctx)
+    si contexte.menu_affiché {
+        contexte.menu_affiché.sur_dessin(contexte.menu_affiché, ctx)
     }
 }
 
 reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris)
 {
-    si gère_clique_souris(mémoire_vive.menu_actif, clique) {
+    si gère_clique_souris(contexte.menu_affiché, clique) {
         retourne
     }
 
@@ -200,7 +218,7 @@ reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSo
     }
 
     /* Ni le menu actif, ni la barre de menu n'ont géré le clique, n'affiche plus le menu. */
-    panneau.détruit_panneau_menu()
+    contexte.détruit_panneau_menu()
     si barre_de_menu {
         barre_de_menu.sur_menu_fermé()
     }
@@ -222,8 +240,8 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
         barre_de_menu.sur_déplacement_souris(barre_de_menu, souris)
     }
 
-    si mémoire_vive.menu_actif {
-        mémoire_vive.menu_actif.sur_déplacement_souris(mémoire_vive.menu_actif, souris)
+    si contexte.menu_affiché {
+        contexte.menu_affiché.sur_déplacement_souris(contexte.menu_affiché, souris)
     }
 
     pour panneau.disposition.panneaux {
@@ -265,12 +283,9 @@ PanneauBarreDeMenu :: struct {
 
     état: État
     besoin_ajournement_disposition := vrai
-
-    /* À FAIRE : déplace ça */
-    panneau_interface: *PanneauInterface
 }
 
-crée_panneau_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
+crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -302,7 +317,7 @@ crée_panneau_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu) -> *PanneauBar
         panneau_menu.besoin_ajournement_disposition = vrai
     }
 
-    résultat := loge(PanneauBarreDeMenu)
+    résultat := ctx.crée_panneau(PanneauBarreDeMenu)
 
     /* Données spécifiques. */
     résultat.barre_de_menu = barre_de_menu
@@ -449,18 +464,18 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
         si indéfinis_élément {
             état.élément_pressé = -1
             état.temps_élément_pressé = 0
-            panneau_interface.détruit_panneau_menu()
+            contexte.détruit_panneau_menu()
         }
     }
     sinon {
         état.élément_pressé = index_élément comme z32
         état.temps_élément_pressé = 0
-        panneau_interface.détruit_panneau_menu()
+        contexte.détruit_panneau_menu()
 
         si index_élément != -1 {
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
-            panneau_menu := crée_panneau_menu(barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
-            panneau_interface.définis_panneau_menu(panneau_menu)
+            panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
+            contexte.définis_panneau_menu(panneau_menu)
         }
     }
 }
@@ -520,7 +535,7 @@ PanneauMenu :: struct {
     besoin_ajournement_disposition := vrai
 }
 
-crée_panneau_menu :: fonc (menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
+crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -546,7 +561,7 @@ crée_panneau_menu :: fonc (menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
         détruit_panneau_menu(panneau_menu)
     }
 
-    résultat := loge(PanneauMenu)
+    résultat := ctx.crée_panneau(PanneauMenu)
 
     /* Données spécifiques. */
     résultat.menu = menu
