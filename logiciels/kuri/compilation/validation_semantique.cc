@@ -701,6 +701,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
                     transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+                    break;
                 }
             }
 
