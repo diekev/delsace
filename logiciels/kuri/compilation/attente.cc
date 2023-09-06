@@ -478,8 +478,10 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
 RAPPEL_POUR_ERREUR(symbole)
 {
     auto espace = unite->espace;
-    espace->rapporte_erreur(attente.symbole(),
-                            "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
+    espace
+        ->rapporte_erreur(attente.symbole(),
+                          "Trop de cycles : arrêt de la compilation sur un symbole inconnu")
+        .ajoute_message("Le symbole attendu est « ", attente.symbole()->ident->nom, " »");
 }
 
 InfoTypeAttente info_type_attente_sur_symbole = {nullptr,
