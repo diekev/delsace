@@ -236,7 +236,7 @@ OperateurUnaire const *cherche_operateur_unaire(RegistreDesOpérateurs const &op
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &operateurs);
+void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre);
 
 struct OperateurCandidat {
     OperateurBinaire const *op = nullptr;

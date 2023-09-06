@@ -767,7 +767,7 @@ const OperateurUnaire *cherche_operateur_unaire(RegistreDesOpérateurs const &op
     return nullptr;
 }
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &operateurs)
+void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre)
 {
     auto type_entier_constant = TypeBase::ENTIER_CONSTANT;
     auto type_octet = TypeBase::OCTET;
@@ -796,44 +796,44 @@ void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &op
     auto type_bool = TypeBase::BOOL;
 
     for (auto type : types_entiers_relatifs) {
-        operateurs.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_RELATIF);
-        operateurs.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_RELATIF);
-        operateurs.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_RELATIF);
-        operateurs.ajoute_opérateurs_entiers_unaires(type);
+        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_RELATIF);
+        registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_RELATIF);
+        registre.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_RELATIF);
+        registre.ajoute_opérateurs_entiers_unaires(type);
     }
 
     for (auto type : types_entiers_naturels) {
-        operateurs.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_NATUREL);
-        operateurs.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_NATUREL);
-        operateurs.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_NATUREL);
-        operateurs.ajoute_opérateurs_entiers_unaires(type);
+        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_NATUREL);
+        registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_NATUREL);
+        registre.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_NATUREL);
+        registre.ajoute_opérateurs_entiers_unaires(type);
     }
 
     for (auto type : types_reels) {
-        operateurs.ajoute_opérateurs_comparaison(type, IndiceTypeOp::REEL);
-        operateurs.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::REEL);
+        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::REEL);
+        registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::REEL);
 
         // opérateurs unaires + -
-        operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
-        operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
+        registre.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
+        registre.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
     }
 
     // operateurs booléens & | ^ == !=
-    operateurs.ajoute_basique(
+    registre.ajoute_basique(
         GenreLexeme::CHAPEAU, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-    operateurs.ajoute_basique(
+    registre.ajoute_basique(
         GenreLexeme::ESPERLUETTE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-    operateurs.ajoute_basique(
+    registre.ajoute_basique(
         GenreLexeme::BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-    operateurs.ajoute_basique(
+    registre.ajoute_basique(
         GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-    operateurs.ajoute_basique(
+    registre.ajoute_basique(
         GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 
     auto type_type_de_donnees = typeuse.type_type_de_donnees_;
 
-    operateurs.op_comp_egal_types = operateurs.ajoute_basique(
+    registre.op_comp_egal_types = registre.ajoute_basique(
         GenreLexeme::EGALITE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
-    operateurs.op_comp_diff_types = operateurs.ajoute_basique(
+    registre.op_comp_diff_types = registre.ajoute_basique(
         GenreLexeme::DIFFERENCE, type_type_de_donnees, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 }
