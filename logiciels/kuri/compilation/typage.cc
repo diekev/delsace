@@ -612,6 +612,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
 
     if (ajoute_operateurs) {
         operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
+        resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
     }
 
     type->type_pointeur = resultat;
