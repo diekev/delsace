@@ -223,6 +223,11 @@ struct RegistreDesOpérateurs {
     void ajoute_operateurs_basiques_fonction(Typeuse const &typeuse, TypeFonction *type);
 
     void rassemble_statistiques(Statistiques &stats) const;
+
+    void ajoute_opérateurs_comparaison(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers_réel(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers_unaires(Type *pour_type);
 };
 
 /** \} */
