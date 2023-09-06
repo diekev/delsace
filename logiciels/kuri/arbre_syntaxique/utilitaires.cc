@@ -2104,8 +2104,28 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                                      typeuse);
             }
             else {
+                /* Transtype l'argument vers le type de la structure.
+                 *
+                 * Nous ne pouvons pas utiliser une expression de référence de membre d'union ici
+                 * car la RI se base sur le fait qu'une telle expression se fait sur le type
+                 * d'union et convertira vers le type structure dans ce cas.
+                 *
+                 * Nous ne pouvons pas utiliser une expression de référence de membre de structure
+                 * en utilisant le type union comme type d'accès, car sinon l'accès se ferait sur
+                 * les membres de l'union alors que nous voulons que l'accès se fasse sur les
+                 * membres de la structure de l'union (membre le plus grand + index).
+                 */
+                auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
+                    type_union->type_structure, false, false);
+
+                auto param_comme_structure = assembleuse->cree_comme(&lexeme_sentinel);
+                param_comme_structure->type = type_pointeur_type_structure;
+                param_comme_structure->expression = ref_param;
+                param_comme_structure->transformation = TransformationType{
+                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
+
                 auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
-                ref_membre->accedee = ref_param;
+                ref_membre->accedee = param_comme_structure;
                 ref_membre->index_membre = 0;
                 ref_membre->type = membre.type;
                 ref_membre->aide_generation_code = IGNORE_VERIFICATION;
@@ -2117,7 +2137,7 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                                      typeuse);
 
                 ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
-                ref_membre->accedee = ref_param;
+                ref_membre->accedee = param_comme_structure;
                 ref_membre->index_membre = 1;
                 ref_membre->type = TypeBase::Z32;
                 ref_membre->aide_generation_code = IGNORE_VERIFICATION;
