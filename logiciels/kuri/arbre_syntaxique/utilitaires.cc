@@ -2076,61 +2076,57 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         }
         case GenreType::UNION:
         {
-            auto type_union = type->comme_type_union();
+            auto const type_union = type->comme_type_union();
+            auto const info_membre = donne_membre_pour_type(type_union,
+                                                            type_union->type_le_plus_grand);
+            assert(info_membre.has_value());
+            auto const membre = info_membre->membre;
+
             // À FAIRE(union) : test proprement cette logique
-            POUR (type_union->membres) {
-                if (it.type != type_union->type_le_plus_grand) {
-                    continue;
-                }
+            if (type_union->est_nonsure) {
+                /* Stocke directement dans le paramètre. */
+                auto transtype = assembleuse->cree_comme(&lexeme_sentinel);
+                transtype->expression = ref_param;
+                transtype->transformation = TransformationType{
+                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                    typeuse.type_pointeur_pour(membre.type)};
+                transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
-                if (type_union->est_nonsure) {
-                    /* Stocke directement dans le paramètre. */
-                    auto type_le_plus_grand = type_union->type_le_plus_grand;
-                    auto transtype = assembleuse->cree_comme(&lexeme_sentinel);
-                    transtype->expression = ref_param;
-                    transtype->transformation = TransformationType{
-                        TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                        typeuse.type_pointeur_pour(type_le_plus_grand)};
-                    transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
+                auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
+                deref->expression = transtype;
+                deref->type = membre.type;
 
-                    auto deref = assembleuse->cree_memoire(&lexeme_sentinel);
-                    deref->expression = transtype;
-                    deref->type = type_le_plus_grand;
+                cree_initialisation_defaut_pour_type(membre.type,
+                                                     espace->compilatrice(),
+                                                     assembleuse,
+                                                     deref,
+                                                     membre.expression_valeur_defaut,
+                                                     typeuse);
+            }
+            else {
+                auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
+                ref_membre->accedee = ref_param;
+                ref_membre->index_membre = 0;
+                ref_membre->type = membre.type;
+                ref_membre->aide_generation_code = IGNORE_VERIFICATION;
+                cree_initialisation_defaut_pour_type(membre.type,
+                                                     espace->compilatrice(),
+                                                     assembleuse,
+                                                     ref_membre,
+                                                     membre.expression_valeur_defaut,
+                                                     typeuse);
 
-                    cree_initialisation_defaut_pour_type(it.type,
-                                                         espace->compilatrice(),
-                                                         assembleuse,
-                                                         deref,
-                                                         it.expression_valeur_defaut,
-                                                         typeuse);
-                }
-                else {
-                    auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
-                    ref_membre->accedee = ref_param;
-                    ref_membre->index_membre = 0;
-                    ref_membre->type = it.type;
-                    ref_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    cree_initialisation_defaut_pour_type(it.type,
-                                                         espace->compilatrice(),
-                                                         assembleuse,
-                                                         ref_membre,
-                                                         it.expression_valeur_defaut,
-                                                         typeuse);
-
-                    ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
-                    ref_membre->accedee = ref_param;
-                    ref_membre->index_membre = 1;
-                    ref_membre->type = TypeBase::Z32;
-                    ref_membre->aide_generation_code = IGNORE_VERIFICATION;
-                    cree_initialisation_defaut_pour_type(TypeBase::Z32,
-                                                         espace->compilatrice(),
-                                                         assembleuse,
-                                                         ref_membre,
-                                                         nullptr,
-                                                         typeuse);
-                }
-
-                break;
+                ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
+                ref_membre->accedee = ref_param;
+                ref_membre->index_membre = 1;
+                ref_membre->type = TypeBase::Z32;
+                ref_membre->aide_generation_code = IGNORE_VERIFICATION;
+                cree_initialisation_defaut_pour_type(TypeBase::Z32,
+                                                     espace->compilatrice(),
+                                                     assembleuse,
+                                                     ref_membre,
+                                                     nullptr,
+                                                     typeuse);
             }
 
             break;
