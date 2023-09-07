@@ -277,7 +277,7 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
     ajoute_au_tampon(*enchaineuse, "                    hauteur := évènement.window.data2\n")
     ajoute_au_tampon(*enchaineuse, "                    fenêtre := donne_fenêtre_pour_id(app, évènement.window.windowID)\n")
-    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, hauteur, largeur)\n")
+    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, largeur, hauteur)\n")
     si évènements_requis.REDIMENSION_FENÊTRE {
         ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, fenêtre)\n")
     }
