@@ -29,9 +29,7 @@ dessine :: fonc (empl disposition: *Disposition, ctx: *ContexteAffichage)
     ajourne_disposition(disposition)
 
     pour panneaux {
-        si it.sur_dessin {
-            it.sur_dessin(it, ctx)
-        }
+        dessine(it, ctx)
     }
 }
 
