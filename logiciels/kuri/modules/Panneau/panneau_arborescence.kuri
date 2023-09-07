@@ -176,11 +176,6 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         }
     }
 
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32))
-    {
-        panneau_arborescence := panneau comme *PanneauArborescence
-    }
-
     résultat := ctx.crée_panneau(PanneauArborescence)
     ajoute_enfant(parent, résultat)
 
@@ -188,7 +183,6 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     résultat.sur_déplacement_souris = sur_déplacement_souris
     résultat.sur_clique_souris = sur_clique_souris
     résultat.sur_dessin = sur_dessin
-    résultat.sur_redimension_parent = sur_redimension_parent
     retourne résultat
 }
 

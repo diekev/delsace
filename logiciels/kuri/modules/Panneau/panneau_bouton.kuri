@@ -105,11 +105,6 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, couleur_noire)
     }
 
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32))
-    {
-        panneau_bouton := panneau comme *PanneauBouton
-    }
-
     résultat := ctx.crée_panneau(PanneauBouton)
     résultat.bouton = bouton
     ajoute_enfant(parent, résultat)
@@ -118,7 +113,6 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     résultat.sur_déplacement_souris = sur_déplacement_souris
     résultat.sur_clique_souris = sur_clique_souris
     résultat.sur_dessin = sur_dessin
-    résultat.sur_redimension_parent = sur_redimension_parent
     retourne résultat
 }
 

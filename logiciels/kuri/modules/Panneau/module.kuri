@@ -46,6 +46,7 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
 {
     résultat := loge(TypePanneau)
     résultat.contexte = contexte
+    résultat.sur_redimension = sur_redimension_impl_défaut
     retourne résultat
 }
 
@@ -83,7 +84,7 @@ Panneau :: struct {
     sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
     sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
-    sur_redimension_parent: fonc(*Panneau, RectanglePosDim(z32))(rien)
+    sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
@@ -93,10 +94,17 @@ ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
     ajoute_panneau(*panneau.disposition, enfant)
 }
 
+/* Implémentation par défaut du rappel sur_redimension */
+sur_redimension_impl_défaut :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
+{
+    panneau.rect = rect_disponible
+    panneau.besoin_ajournement_disposition = vrai
+    définis_rectangle(*panneau.disposition, rect)
+}
+
 redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
 {
-    panneau.rect = rect
-    définis_rectangle(*panneau.disposition, rect)
+    panneau.sur_redimension(panneau, rect)
 }
 
 détruit_panneau :: fonc (panneau: *Panneau)
@@ -314,12 +322,6 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
         détruit_panneau_barre_de_menu(panneau_menu)
     }
 
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32) @inutilisée)
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        panneau_menu.besoin_ajournement_disposition = vrai
-    }
-
     résultat := ctx.crée_panneau(PanneauBarreDeMenu)
 
     /* Données spécifiques. */
@@ -330,7 +332,6 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
     résultat.sur_déplacement_souris = sur_déplacement_souris
     résultat.sur_dessin = sur_dessin
     résultat.sur_destruction = sur_destruction
-    résultat.sur_redimension_parent = sur_redimension_parent
 
     retourne résultat
 }
