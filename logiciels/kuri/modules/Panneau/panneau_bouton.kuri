@@ -67,13 +67,13 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         panneau_bouton := panneau comme *PanneauBouton
         peintre := ctx.peintre
 
-        fonte := ctx.fonte
+        fonte := panneau.contexte.fonte
         métriques := donne_métriques_fonte(fonte)
 
         /* Calcul rect. */
         hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
         hauteur_bouton := hauteur_de_ligne + 10
-        espaçage := donne_largeur_texte(ctx.fonte, "0")
+        espaçage := donne_largeur_texte(fonte, "0")
         largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte)
 
         largeur_bouton := largeur_texte + espaçage * 2

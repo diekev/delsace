@@ -46,18 +46,18 @@ ajoute_élément :: fonc (parent: *PanneauArborescence.Élément, texte: chaine)
     retourne résultat
 }
 
-ajourne_disposition :: fonc (empl panneau: *PanneauArborescence, ctx: *ContexteAffichage)
+ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
 {
     saufsi besoin_ajournement_disposition {
         retourne
     }
     diffère besoin_ajournement_disposition = faux
 
-    fonte := ctx.fonte
+    fonte := contexte.fonte
     métriques := donne_métriques_fonte(fonte)
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
     hauteur_élément := hauteur_de_ligne + 10
-    espaçage := donne_largeur_texte(ctx.fonte, "0")
+    espaçage := donne_largeur_texte(fonte, "0")
 
     panneau.éléments_visibles.taille = 0
 
@@ -74,7 +74,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauArborescence, ctx: *ContexteA
 
     pour éléments {
         rect_élément.y -= hauteur_élément
-        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, ctx.fonte)
+        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, fonte)
 
         si it.est_développé {
             rect_élément.y -= hauteur_élément * it.enfants.taille comme z32
@@ -168,13 +168,11 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     {
         panneau_arborescence := panneau comme *PanneauArborescence
         peintre := ctx.peintre
-        fonte := ctx.fonte
-        métriques := donne_métriques_fonte(fonte)
 
-        ajourne_disposition(panneau_arborescence, ctx)
+        ajourne_disposition(panneau_arborescence)
 
         pour panneau_arborescence.éléments_visibles {
-            dessine_élément(it, peintre, fonte)
+            dessine_élément(it, peintre, panneau.contexte.fonte)
         }
     }
 

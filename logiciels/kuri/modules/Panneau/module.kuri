@@ -32,11 +32,13 @@ ContexteAffichage :: struct {
 ContexteInterface :: struct {
     /* Le menu étant affiché. */
     menu_affiché: *PanneauMenu
+    fonte: *Fonte
 }
 
-initialise_un_contexte_interface :: fonc () -> ContexteInterface
+initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
 {
     résultat: ContexteInterface
+    résultat.fonte = fonte
     retourne résultat
 }
 
@@ -340,14 +342,15 @@ détruit_panneau_barre_de_menu :: fonc (panneau: &*PanneauBarreDeMenu)
     panneau = nul
 }
 
-ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
+ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     saufsi besoin_ajournement_disposition {
         retourne
     }
     diffère besoin_ajournement_disposition = faux
 
-    métriques := donne_métriques_fonte(ctx.fonte)
+    fonte := contexte.fonte
+    métriques := donne_métriques_fonte(fonte)
 
     /* Calcul rect. */
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
@@ -362,7 +365,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAf
 
     /* Calcul taille éléments. */
     hauteur_élément = métriques.donne_hauteur_caractère() comme z32
-    espaçage_élément = donne_largeur_texte(ctx.fonte, "0")
+    espaçage_élément = donne_largeur_texte(fonte, "0")
     décalage_élément_x = espaçage_élément * 2
     décalage_élément_y = (rect.hauteur - hauteur_élément) / 2
 
@@ -373,7 +376,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAf
     pour barre_de_menu.menus {
         élément: PanneauBarreDeMenu.Élément
         élément.décalage = décalage_élément
-        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
+        élément.largeur = donne_largeur_texte(fonte, it.texte)
 
         éléments[index_it] = élément
 
@@ -383,7 +386,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAf
 
 dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
-    ajourne_disposition(panneau, ctx)
+    ajourne_disposition(panneau)
 
     remplis_rectangle(ctx.peintre, rect, couleur_blanche)
 
