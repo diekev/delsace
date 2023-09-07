@@ -1,0 +1,138 @@
+importe Couleur
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Diviseur
+ * \{ */
+
+PanneauDiviseur :: struct {
+    empl base: Panneau
+
+    rect_diviseur: RectanglePosDim(z32)
+    position_relative: r32 = 0.5
+    est_survolé: bool
+    souris_pressée: bool
+}
+
+crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
+{
+    sur_destruction :: fonc (panneau: *Panneau)
+    {
+        panneau_diviseur := panneau comme *PanneauDiviseur
+        déloge(panneau_diviseur)
+    }
+
+    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    {
+        panneau_diviseur := panneau comme *PanneauDiviseur
+        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect_diviseur.contient(souris.où)
+
+        si panneau_diviseur.souris_pressée {
+            /* À FAIRE : position relative de la souris dans le rect parent ! */
+            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect.largeur comme r32
+            panneau_diviseur.besoin_ajournement_disposition = vrai
+        }
+    }
+
+    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    {
+        panneau_diviseur := panneau comme *PanneauDiviseur
+        saufsi panneau_diviseur.rect_diviseur.contient(clique.état.où) {
+            panneau_diviseur.souris_pressée = faux
+            retourne faux
+        }
+
+        si clique.action == ActionSouris.PRESSÉE {
+            panneau_diviseur.souris_pressée = vrai
+        }
+        sinon si clique.action == ActionSouris.RELACHÉE {
+            panneau_diviseur.souris_pressée = faux
+        }
+
+        retourne vrai
+    }
+
+    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    {
+        panneau_diviseur := panneau comme *PanneauDiviseur
+
+        ajourne_disposition(panneau_diviseur)
+
+        peintre := ctx.peintre
+
+        couleur := si panneau_diviseur.est_survolé {
+            couleur_rouge
+        }
+        sinon {
+            couleur_blanche
+        }
+
+        peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur)
+    }
+
+    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
+    {
+        panneau.rect = rect_disponible
+        panneau_diviseur := panneau comme *PanneauDiviseur
+        panneau_diviseur.besoin_ajournement_disposition = vrai
+        ajourne_disposition(panneau_diviseur)
+    }
+
+    résultat := ctx.crée_panneau(PanneauDiviseur)
+    résultat.sur_destruction = sur_destruction
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
+    résultat.sur_redimension = sur_redimension
+    retourne résultat
+}
+
+ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
+{
+    saufsi panneau.besoin_ajournement_disposition {
+        retourne
+    }
+    diffère panneau.besoin_ajournement_disposition = faux
+
+    position := Point2D(r32)(panneau.position_relative, 1.0)
+    point_central := panneau.rect.position_interne(position)
+
+    rect_diviseur : RectanglePosDim(z32)
+    rect_diviseur.x = point_central.x comme z32 - 1
+    rect_diviseur.largeur = 3
+    rect_diviseur.y = panneau.rect.y
+    rect_diviseur.hauteur = panneau.rect.hauteur
+
+    panneau.rect_diviseur = rect_diviseur
+
+    nombre_enfants := panneau.enfants.taille
+    si nombre_enfants == 0 {
+        /* Rien à faire. */
+    }
+    sinon si nombre_enfants == 1 {
+        /* Place l'enfant dans le rect de gauche. */
+        panneau_gauche := panneau.enfants[0]
+        rect_gauche := panneau.rect
+        rect_gauche.largeur = rect_diviseur.x
+        redimensionne_panneau(panneau_gauche, rect_gauche)
+    }
+    sinon {
+        panneau_gauche := panneau.enfants[0]
+        panneau_droit := panneau.enfants[1]
+
+        rect_gauche := panneau.rect
+        rect_gauche.largeur = rect_diviseur.x
+        redimensionne_panneau(panneau_gauche, rect_gauche)
+
+        rect_droit := panneau.rect
+        rect_droit.x = rect_diviseur.x
+        rect_droit.largeur = panneau.rect.largeur - rect_diviseur.x
+        redimensionne_panneau(panneau_droit, rect_droit)
+    }
+}
+
+/** } */
