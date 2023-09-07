@@ -2941,7 +2941,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
     type_enum->alignement = type_enum->type_sous_jacent->alignement;
 
-    m_compilatrice.operateurs->ajoute_operateur_basique_enum(m_compilatrice.typeuse, type_enum);
+    m_compilatrice.operateurs->ajoute_operateur_basique_enum(type_enum);
 
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 

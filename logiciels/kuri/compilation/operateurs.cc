@@ -431,7 +431,7 @@ void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexeme id,
     op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
-void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeuse, TypeEnum *type)
+void RegistreDesOpérateurs::ajoute_operateur_basique_enum(TypeEnum *type)
 {
     auto table = donne_ou_crée_table_opérateurs(type);
 
@@ -449,8 +449,7 @@ void RegistreDesOpérateurs::ajoute_operateur_basique_enum(Typeuse const &typeus
     table->operateur_non = this->ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 }
 
-void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &typeuse,
-                                                                TypePointeur *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(TypePointeur *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
@@ -485,8 +484,7 @@ void RegistreDesOpérateurs::ajoute_operateurs_basiques_pointeur(const Typeuse &
         ->est_arithmetique_pointeur = true;
 }
 
-void RegistreDesOpérateurs::ajoute_operateurs_basiques_fonction(const Typeuse &typeuse,
-                                                                TypeFonction *type)
+void RegistreDesOpérateurs::ajoute_operateurs_basiques_fonction(TypeFonction *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
