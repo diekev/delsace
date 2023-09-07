@@ -152,9 +152,10 @@ PanneauInterface :: struct {
     empl base: Panneau
 
     barre_de_menu: *PanneauBarreDeMenu
+    élément_central: *Panneau
 }
 
-crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32)) -> *PanneauInterface
+crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
     sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
     {
@@ -181,15 +182,25 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
         détruit_panneau_interface(panneau_interface)
     }
 
-    résultat := ctx.crée_panneau(PanneauInterface)
+    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+    {
+        panneau_interface := panneau comme *PanneauInterface
+        panneau_interface.rect = rect
+        calcule_rect_interne(panneau_interface)
+    }
 
-    résultat.redimensionne_panneau(rect)
+    résultat := ctx.crée_panneau(PanneauInterface)
+    résultat.élément_central = élément_central
+    ajoute_enfant(résultat, élément_central)
 
     /* Rappels. */
     résultat.sur_clique_souris = sur_clique_souris
     résultat.sur_déplacement_souris = sur_déplacement_souris
     résultat.sur_dessin = sur_dessin
     résultat.sur_destruction = sur_destruction
+    résultat.sur_redimension = sur_redimension
+
+    résultat.redimensionne_panneau(rect)
 
     retourne résultat
 }
@@ -200,6 +211,30 @@ installe_barre_de_menu :: fonc (panneau: *PanneauInterface, barre_de_menu: *Barr
     panneau.barre_de_menu = crée_panneau_barre_de_menu(panneau.contexte, barre_de_menu)
     // ajoute_enfant(panneau, panneau.barre_de_menu)
     panneau.barre_de_menu.parent = panneau
+    calcule_rect_interne(panneau)
+}
+
+calcule_rect_interne :: fonc (panneau: *PanneauInterface)
+{
+    rect_interne := panneau.rect
+
+    si panneau.barre_de_menu {
+        panneau.barre_de_menu.besoin_ajournement_disposition = vrai
+        ajourne_disposition(panneau.barre_de_menu)
+        rect_interne.hauteur -= panneau.barre_de_menu.rect.hauteur
+    }
+
+    // redimensionne_panneau(panneau, rect_interne)
+    si panneau.élément_central {
+        panneau.élément_central.besoin_ajournement_disposition = vrai
+        redimensionne_panneau(panneau.élément_central, rect_interne)
+    }
+}
+
+installe_élément_central :: fonc (panneau: *PanneauInterface)
+{
+    panneau.élément_central = élément_central
+    panneau.calcule_rect_interne()
 }
 
 détruit_panneau_interface :: fonc (panneau: &*PanneauInterface)
