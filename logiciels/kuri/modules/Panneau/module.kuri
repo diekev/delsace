@@ -74,6 +74,8 @@ Panneau :: struct {
     /* Dimension du panneau. */
     rect: RectanglePosDim(z32)
 
+    besoin_ajournement_disposition := vrai
+
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc(*Panneau)(rien)
     sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
@@ -282,7 +284,6 @@ PanneauBarreDeMenu :: struct {
     décalage_élément_y: z32
 
     état: État
-    besoin_ajournement_disposition := vrai
 }
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
@@ -532,7 +533,6 @@ PanneauMenu :: struct {
     décalage_élément_y: z32
 
     état : État
-    besoin_ajournement_disposition := vrai
 }
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu

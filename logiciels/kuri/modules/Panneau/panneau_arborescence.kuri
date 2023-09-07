@@ -26,7 +26,6 @@ PanneauArborescence :: struct {
 
     éléments: []*Élément
     éléments_visibles: []*Élément
-    besoin_ajournement_disposition := vrai
 }
 
 ajoute_élément :: fonc (empl panneau: *PanneauArborescence, texte: chaine) -> *PanneauArborescence.Élément
