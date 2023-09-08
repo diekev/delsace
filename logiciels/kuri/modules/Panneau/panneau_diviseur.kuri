@@ -103,7 +103,7 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
     point_central := panneau.rect.position_interne(position)
 
     rect_diviseur : RectanglePosDim(z32)
-    rect_diviseur.x = point_central.x comme z32 - 1
+    rect_diviseur.x = point_central.x - 1
     rect_diviseur.largeur = 3
     rect_diviseur.y = panneau.rect.y
     rect_diviseur.hauteur = panneau.rect.hauteur

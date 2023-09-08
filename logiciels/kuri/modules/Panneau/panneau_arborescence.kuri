@@ -136,9 +136,8 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         déloge(panneau_arborescence)
     }
 
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau: *Panneau @inutilisé, souris: ÉtatSouris @inutilisé)
     {
-        panneau_arborescence := panneau comme *PanneauArborescence
     }
 
     sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
