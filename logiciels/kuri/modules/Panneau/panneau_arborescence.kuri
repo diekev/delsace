@@ -1,6 +1,7 @@
 importe Couleur
 importe Fondation
 importe Géométrie
+importe Math
 importe PeintureInterface
 importe Périphériques
 importe Typographie
@@ -26,6 +27,8 @@ PanneauArborescence :: struct {
 
     éléments: []*Élément
     éléments_visibles: []*Élément
+
+    hauteur_élément: z32
 }
 
 ajoute_élément :: fonc (empl panneau: *PanneauArborescence, texte: chaine) -> *PanneauArborescence.Élément
@@ -56,28 +59,26 @@ ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
     fonte := contexte.fonte
     métriques := donne_métriques_fonte(fonte)
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-    hauteur_élément := hauteur_de_ligne + 10
+    hauteur_élément = hauteur_de_ligne + 10
     espaçage := donne_largeur_texte(fonte, "0")
 
     panneau.éléments_visibles.taille = 0
 
     // ESPAÇAGE BOUTON ESPAÇAGE TEXTE ESPAÇAGE
-    rect_élément := panneau.rect
-    rect_élément.x = rect.x + 5
-    rect_élément.hauteur = hauteur_élément
-    rect_élément.largeur -= 10
-    rect_élément.y = parent.rect.hauteur - 64
+    rect_ligne := panneau.rect
+    rect_ligne.hauteur = hauteur_élément
+    rect_ligne.y = parent.rect.hauteur - hauteur_élément
 
     rect_bouton : RectanglePosDim(z32)
     rect_bouton.hauteur = hauteur_de_ligne
     rect_bouton.largeur = hauteur_de_ligne
 
     pour éléments {
-        rect_élément.y -= hauteur_élément
-        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, fonte)
+        ajourne_rect_élément(panneau, it, rect_ligne, rect_bouton, espaçage, fonte)
+        rect_ligne.y -= hauteur_élément
 
         si it.est_développé {
-            rect_élément.y -= hauteur_élément * it.enfants.taille comme z32
+            rect_ligne.y -= hauteur_élément * it.enfants.taille comme z32
         }
     }
 }
@@ -116,16 +117,16 @@ ajourne_rect_élément :: fonc (panneau: *PanneauArborescence, élément: *Panne
     }
 }
 
-dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *Peintre, fonte: *Fonte)
+dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *Peintre, fonte: *Fonte, thème: *Thème)
 {
-    peintre.dessine_rectangle(élément.rect, couleur_rouge)
+    // peintre.dessine_rectangle(élément.rect, couleur_rouge)
     saufsi élément.est_développé {
         peintre.dessine_rectangle(élément.rect_bouton, couleur_vert)
     }
     sinon {
         peintre.remplis_rectangle(élément.rect_bouton, couleur_vert)
     }
-    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, couleur_blanche)
+    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, thème.couleur_texte)
 }
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
@@ -167,12 +168,32 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     {
         panneau_arborescence := panneau comme *PanneauArborescence
         peintre := ctx.peintre
+        thème := ctx.thème
 
         ajourne_disposition(panneau_arborescence)
 
-        pour panneau_arborescence.éléments_visibles {
-            dessine_élément(it, peintre, panneau.contexte.fonte)
+        rect_ligne := panneau.rect
+        rect_ligne.hauteur = panneau_arborescence.hauteur_élément
+        rect_ligne.y = panneau.rect.hauteur - panneau_arborescence.hauteur_élément
+
+        nombre_de_lignes := divise_avec_surarrondis(panneau.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64)
+        pour nombre_de_lignes {
+            couleur_ligne := si index_it % 2 == 0 {
+                thème.couleur_table_ligne_paire
+            }
+            sinon {
+                thème.couleur_table_ligne_impaire
+            }
+
+            remplis_rectangle(peintre, rect_ligne, couleur_ligne)
+            rect_ligne.y -= panneau_arborescence.hauteur_élément
         }
+
+        pour panneau_arborescence.éléments_visibles {
+            dessine_élément(it, peintre, panneau.contexte.fonte, thème)
+        }
+
+        dessine_rectangle(peintre, panneau.rect, thème.couleur_contour)
     }
 
     résultat := ctx.crée_panneau(PanneauArborescence)

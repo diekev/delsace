@@ -22,6 +22,10 @@ Thème :: struct {
     /* Pour les diviseurs. */
     couleur_diviseur: CouleurRVBAN8
     couleur_diviseur_survolé: CouleurRVBAN8
+
+    /* Pour les tables/arborescences. */
+    couleur_table_ligne_paire: CouleurRVBAN8
+    couleur_table_ligne_impaire: CouleurRVBAN8
 }
 
 /** } */
