@@ -63,12 +63,13 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         ajourne_disposition(panneau_diviseur)
 
         peintre := ctx.peintre
+        thème := ctx.thème
 
         couleur := si panneau_diviseur.est_survolé {
-            couleur_rouge
+            thème.couleur_diviseur_survolé
         }
         sinon {
-            couleur_blanche
+            thème.couleur_diviseur
         }
 
         peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur)

@@ -1,0 +1,27 @@
+importe Couleur
+
+/* ------------------------------------------------------------------------- */
+/** \nom Thème pour le dessin des panneaux.
+ * \{ */
+
+Thème :: struct {
+    couleur_texte: CouleurRVBAN8
+    couleur_arrière_plan: CouleurRVBAN8
+    couleur_avant_plan: CouleurRVBAN8
+    couleur_contour: CouleurRVBAN8
+
+    /* Pour les menus. */
+    couleur_menu_survolé: CouleurRVBAN8
+    couleur_menu_pressé: CouleurRVBAN8
+
+    /* Pour les boutons. */
+    couleur_bouton: CouleurRVBAN8
+    couleur_bouton_survolé: CouleurRVBAN8
+    couleur_bouton_pressé: CouleurRVBAN8
+
+    /* Pour les diviseurs. */
+    couleur_diviseur: CouleurRVBAN8
+    couleur_diviseur_survolé: CouleurRVBAN8
+}
+
+/** } */

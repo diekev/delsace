@@ -66,6 +66,7 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     {
         panneau_bouton := panneau comme *PanneauBouton
         peintre := ctx.peintre
+        thème := ctx.thème
 
         fonte := panneau.contexte.fonte
         métriques := donne_métriques_fonte(fonte)
@@ -88,12 +89,12 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
 
         panneau_bouton.rect = rect
 
-        couleur := couleur_grise
+        couleur := thème.couleur_bouton
         si panneau_bouton.souris_pressée {
-            couleur = couleur_blanche
+            couleur = thème.couleur_bouton_pressé
         }
         sinon si panneau_bouton.souris_dans_rect {
-            couleur = couleur_grise_claire
+            couleur = thème.couleur_bouton_survolé
         }
 
         peintre.remplis_rectangle(panneau_bouton.rect, couleur)
@@ -102,7 +103,7 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         rect_texte.x += espaçage
         rect_texte.y += 5
 
-        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, couleur_noire)
+        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte)
     }
 
     résultat := ctx.crée_panneau(PanneauBouton)
