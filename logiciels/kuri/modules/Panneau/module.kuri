@@ -110,6 +110,20 @@ sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: État
     sur_déplacement_souris_récursif(panneau_racine, état)
 }
 
+dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage: *ContexteAffichage)
+{
+    saufsi panneau_racine {
+        retourne
+    }
+
+    sur_dessin_récursif(panneau_racine, contexte_affichage)
+
+    /* Dessine le menu au dessus du reste. */
+    si menu_affiché {
+        sur_dessin_récursif(menu_affiché, contexte_affichage)
+    }
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -151,11 +165,6 @@ sur_redimension_impl_défaut :: fonc (panneau: *Panneau, rect_disponible: Rectan
     panneau.besoin_ajournement_disposition = vrai
 }
 
-redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
-{
-    panneau.sur_redimension(panneau, rect)
-}
-
 détruit_panneau :: fonc (panneau: *Panneau)
 {
     déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau)
@@ -165,16 +174,20 @@ détruit_panneau :: fonc (panneau: *Panneau)
     }
 }
 
-/* Enveloppe pour les rappels. */
+/** } */
 
-dessine :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppes pour les rappels de Panneau.
+ * \{ */
+
+sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
 {
     si panneau.sur_dessin {
         panneau.sur_dessin(panneau, ctx)
     }
 
     pour panneau.enfants {
-        dessine(it, ctx)
+        sur_dessin_récursif(it, ctx)
     }
 }
 
@@ -190,6 +203,11 @@ gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
     }
 
     retourne panneau.sur_clique_souris(panneau, clique)
+}
+
+redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+{
+    panneau.sur_redimension(panneau, rect)
 }
 
 sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris)
@@ -289,7 +307,6 @@ calcule_rect_interne :: fonc (panneau: *PanneauInterface)
         rect_interne.hauteur -= panneau.barre_de_menu.rect.hauteur
     }
 
-    // redimensionne_panneau(panneau, rect_interne)
     si panneau.élément_central {
         panneau.élément_central.besoin_ajournement_disposition = vrai
         redimensionne_panneau(panneau.élément_central, rect_interne)
@@ -312,10 +329,6 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
 {
     si barre_de_menu {
         barre_de_menu.sur_dessin(barre_de_menu, ctx)
-    }
-
-    si contexte.menu_affiché {
-        contexte.menu_affiché.sur_dessin(contexte.menu_affiché, ctx)
     }
 }
 
