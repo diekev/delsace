@@ -471,6 +471,19 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
     }
 }
 
+/* Utilise une courbe exponentielle auto-corrigeante pour calculer la nouvelle
+ * valeur de l'animation.
+ *
+ * La vitesse est la vitesse à laquelle nous atteignons la cible, et peut être
+ * variable durant l'animation.
+ *
+ * Source : https://www.rfleury.com/p/ui-part-2-build-it-every-frame-immediate/comment/6495247
+ */
+ajourne_temps_animation :: fonc (courant: z32, cible: z32, vitesse: r32) -> z32
+{
+    retourne courant + ((cible - courant) comme r32 * vitesse) comme z32
+}
+
 dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau)
@@ -483,10 +496,8 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_pressé)
 
         // À FAIRE : animation pour quand nous désactivons l'élément
-        valeur := (état.temps_élément_pressé) comme n8
-        si état.temps_élément_pressé < 64 {
-            état.temps_élément_pressé += 8
-        }
+        état.temps_élément_pressé = ajourne_temps_animation(état.temps_élément_pressé, 64, 1.0 / 8.0)
+        valeur := état.temps_élément_pressé comme n8
 
         poids := 1.0 - (valeur comme r32 / 64.0)
         couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan)
