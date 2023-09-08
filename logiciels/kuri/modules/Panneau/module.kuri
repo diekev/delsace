@@ -104,6 +104,11 @@ trouve_panneau_cliqué :: fonc (panneau_racine: *Panneau, clique: CliqueSouris) 
     retourne nul
 }
 
+sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
+{
+    sur_déplacement_souris_récursif(panneau_racine, état)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -184,6 +189,21 @@ gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
     }
 
     retourne panneau.sur_clique_souris(panneau, clique)
+}
+
+sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris)
+{
+    saufsi panneau {
+        retourne
+    }
+
+    si panneau.sur_déplacement_souris {
+        panneau.sur_déplacement_souris(panneau, état)
+    }
+
+    pour panneau.enfants {
+        sur_déplacement_souris_récursif(it, état)
+    }
 }
 
 /** } */
@@ -327,14 +347,6 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
 
     si contexte.menu_affiché {
         contexte.menu_affiché.sur_déplacement_souris(contexte.menu_affiché, souris)
-    }
-
-    pour panneau.enfants {
-        saufsi it.sur_déplacement_souris {
-            continue
-        }
-
-        it.sur_déplacement_souris(it, souris)
     }
 }
 
