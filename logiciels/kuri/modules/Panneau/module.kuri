@@ -33,6 +33,10 @@ ContexteInterface :: struct {
     /* Le menu étant affiché. */
     menu_affiché: *PanneauMenu
     fonte: *Fonte
+
+    panneau_racine: *Panneau
+
+    panneau_cliqué: *Panneau
 }
 
 initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
@@ -47,6 +51,7 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
     résultat := loge(TypePanneau)
     résultat.contexte = contexte
     résultat.sur_redimension = sur_redimension_impl_défaut
+    résultat.identifiant = info_de(TypePanneau).nom
     retourne résultat
 }
 
@@ -62,6 +67,43 @@ détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
     }
 }
 
+gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
+{
+    si gère_clique_souris(panneau_cliqué, clique) {
+        // imprime("Clique géré par %\n", panneau_cliqué.identifiant)
+        retourne
+    }
+
+    panneau_cliqué = trouve_panneau_cliqué(contexte.panneau_racine, clique)
+
+    // si panneau_cliqué {
+    //     imprime("Clique sur panneau '%'\n", panneau_cliqué.identifiant)
+    // }
+    // sinon {
+    //     imprime("Cliqué sur aucun panneau\n")
+    // }
+}
+
+trouve_panneau_cliqué :: fonc (panneau_racine: *Panneau, clique: CliqueSouris) -> *Panneau
+{
+    saufsi panneau_racine {
+        retourne nul
+    }
+
+    pour panneau_racine.enfants {
+        panneau_candidat := trouve_panneau_cliqué(it, clique)
+        si panneau_candidat {
+            retourne panneau_candidat
+        }
+    }
+
+    si gère_clique_souris(panneau_racine, clique) {
+        retourne panneau_racine
+    }
+
+    retourne nul
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -73,6 +115,8 @@ Panneau :: struct {
     contexte: *ContexteInterface
     parent: *Panneau
     enfants: []*Panneau
+
+    identifiant : chaine
 
     /* Dimension du panneau. */
     rect: RectanglePosDim(z32)
@@ -167,8 +211,7 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
     sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
     {
         panneau_interface := panneau comme *PanneauInterface
-        reçoie_clique_souris(panneau_interface, clique)
-        retourne vrai
+        retourne reçoie_clique_souris(panneau_interface, clique)
     }
 
     sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
@@ -255,14 +298,16 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
     }
 }
 
-reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris)
+reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
 {
     si gère_clique_souris(contexte.menu_affiché, clique) {
-        retourne
+        imprime("Clique dans menu affiché !\n")
+        retourne vrai
     }
 
     si gère_clique_souris(barre_de_menu, clique) {
-        retourne
+        imprime("Clique dans barre de menu !\n")
+        retourne vrai
     }
 
     /* Ni le menu actif, ni la barre de menu n'ont géré le clique, n'affiche plus le menu. */
@@ -271,15 +316,7 @@ reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSo
         barre_de_menu.sur_menu_fermé()
     }
 
-    pour panneau.enfants {
-        saufsi it.sur_clique_souris {
-            continue
-        }
-
-        si it.sur_clique_souris(it, clique) {
-            retourne
-        }
-    }
+    retourne faux
 }
 
 observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)

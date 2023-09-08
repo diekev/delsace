@@ -117,7 +117,7 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
         /* Place l'enfant dans le rect de gauche. */
         panneau_gauche := panneau.enfants[0]
         rect_gauche := panneau.rect
-        rect_gauche.largeur = rect_diviseur.x
+        rect_gauche.largeur = rect_diviseur.x - 2
         redimensionne_panneau(panneau_gauche, rect_gauche)
     }
     sinon {
@@ -125,12 +125,12 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
         panneau_droit := panneau.enfants[1]
 
         rect_gauche := panneau.rect
-        rect_gauche.largeur = rect_diviseur.x
+        rect_gauche.largeur = rect_diviseur.x - 2
         redimensionne_panneau(panneau_gauche, rect_gauche)
 
         rect_droit := panneau.rect
-        rect_droit.x = rect_diviseur.x
-        rect_droit.largeur = panneau.rect.largeur - rect_diviseur.x
+        rect_droit.x = rect_diviseur.x + 3
+        rect_droit.largeur = panneau.rect.largeur - rect_diviseur.x - 3
         redimensionne_panneau(panneau_droit, rect_droit)
     }
 }
