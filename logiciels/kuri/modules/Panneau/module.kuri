@@ -363,11 +363,11 @@ PanneauBarreDeMenu :: struct {
     Élément :: struct {
         décalage: z32
         largeur: z32
+        animation: Animation
     }
 
     État :: struct {
         élément_pressé := -1
-        temps_élément_pressé := 0
     }
 
     barre_de_menu: *BarreDeMenu
@@ -484,6 +484,22 @@ ajourne_temps_animation :: fonc (courant: z32, cible: z32, vitesse: r32) -> z32
     retourne courant + ((cible - courant) comme r32 * vitesse) comme z32
 }
 
+Animation :: struct {
+    temps: z32
+    cible: z32
+    vitesse: r32
+}
+
+ajourne_animation :: fonc (animation: *Animation)
+{
+    animation.temps = ajourne_temps_animation(animation.temps, animation.cible, animation.vitesse)
+}
+
+animation_est_fini :: fonc (animation: Animation) -> bool #enligne
+{
+    retourne animation.temps == animation.cible
+}
+
 dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
     ajourne_disposition(panneau)
@@ -492,22 +508,25 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 
     remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
 
-    si état.élément_pressé != -1 {
-        rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_pressé)
-
-        // À FAIRE : animation pour quand nous désactivons l'élément
-        état.temps_élément_pressé = ajourne_temps_animation(état.temps_élément_pressé, 64, 1.0 / 8.0)
-        valeur := état.temps_élément_pressé comme n8
-
-        poids := 1.0 - (valeur comme r32 / 64.0)
-        couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan)
-        remplis_rectangle(ctx.peintre, rect_élément, couleur)
-    }
-
     rect_élément : RectanglePosDim(z32)
     rect_élément.hauteur = hauteur_élément
 
-    pour éléments {
+    pour * éléments {
+        saufsi animation_est_fini(it.animation) {
+            ajourne_animation(*it.animation)
+            rect_pour_animation := donne_rect_élément_pour_clique(panneau, index_it comme z32)
+            valeur := it.animation.temps comme n8
+
+            poids := 1.0 - (valeur comme r32 / 64.0)
+            couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan)
+            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
+        }
+        sinon si index_it == état.élément_pressé {
+            couleur := thème.couleur_menu_pressé
+            rect_pour_animation := donne_rect_élément_pour_clique(panneau, index_it comme z32)
+            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
+        }
+
         rect_élément.x = rect.x + it.décalage
         rect_élément.y = rect.y + décalage_élément_y
         rect_élément.largeur = it.largeur
@@ -567,17 +586,19 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
 
     si état.élément_pressé == index_élément {
         si indéfinis_élément {
+            anime_élément_pour_dépression(panneau)
             état.élément_pressé = -1
-            état.temps_élément_pressé = 0
             contexte.détruit_panneau_menu()
         }
     }
     sinon {
+        anime_élément_pour_dépression(panneau)
+
         état.élément_pressé = index_élément comme z32
-        état.temps_élément_pressé = 0
         contexte.détruit_panneau_menu()
 
         si index_élément != -1 {
+            anime_élément_pour_pression(panneau)
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
             panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
             contexte.définis_panneau_menu(panneau_menu)
@@ -604,7 +625,28 @@ donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauBarreDeMenu, ind
 /* Appelé par PanneauInterface quand le menu actif est fermé. */
 sur_menu_fermé :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
+    anime_élément_pour_dépression(panneau)
     état.élément_pressé = -1
+}
+
+anime_élément_pour_pression :: fonc (empl panneau: *PanneauBarreDeMenu)
+{
+    si état.élément_pressé != -1 {
+        élément := *éléments[état.élément_pressé]
+        élément.animation.temps = 0
+        élément.animation.cible = 64
+        élément.animation.vitesse = 1.0 / 8.0
+    }
+}
+
+anime_élément_pour_dépression :: fonc (empl panneau: *PanneauBarreDeMenu)
+{
+    si état.élément_pressé != -1 {
+        élément := *éléments[état.élément_pressé]
+        élément.animation.temps = 64
+        élément.animation.cible = 0
+        élément.animation.vitesse = 1.0 / 8.0
+    }
 }
 
 /** } */
