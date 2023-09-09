@@ -99,14 +99,8 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
     }
     diffère panneau.besoin_ajournement_disposition = faux
 
-    position := Point2D(r32)(panneau.position_relative, 1.0)
-    point_central := panneau.rect.position_interne(position)
-
-    rect_diviseur : RectanglePosDim(z32)
-    rect_diviseur.x = point_central.x - 1
-    rect_diviseur.largeur = 3
-    rect_diviseur.y = panneau.rect.y
-    rect_diviseur.hauteur = panneau.rect.hauteur
+    rect_diviseur := donne_rect_interne_vertical(panneau.rect, panneau.position_relative, 3)
+    rect_gauche, rect_droit := divise_verticalement(panneau.rect, rect_diviseur)
 
     panneau.rect_diviseur = rect_diviseur
 
@@ -116,23 +110,11 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
     }
     sinon si nombre_enfants == 1 {
         /* Place l'enfant dans le rect de gauche. */
-        panneau_gauche := panneau.enfants[0]
-        rect_gauche := panneau.rect
-        rect_gauche.largeur = rect_diviseur.x - 2
-        redimensionne_panneau(panneau_gauche, rect_gauche)
+        redimensionne_panneau(panneau.enfants[0], rect_gauche)
     }
     sinon {
-        panneau_gauche := panneau.enfants[0]
-        panneau_droit := panneau.enfants[1]
-
-        rect_gauche := panneau.rect
-        rect_gauche.largeur = rect_diviseur.x - 2
-        redimensionne_panneau(panneau_gauche, rect_gauche)
-
-        rect_droit := panneau.rect
-        rect_droit.x = rect_diviseur.x + 3
-        rect_droit.largeur = panneau.rect.largeur - rect_diviseur.x - 3
-        redimensionne_panneau(panneau_droit, rect_droit)
+        redimensionne_panneau(panneau.enfants[0], rect_gauche)
+        redimensionne_panneau(panneau.enfants[1], rect_droit)
     }
 }
 
