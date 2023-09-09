@@ -117,6 +117,39 @@ position_interne :: fonc (rect:  RectanglePosDim($T), pos: Point2D(r32)) -> Poin
     retourne résultat
 }
 
+/* Divise le rect verticalement selon le rect_diviseur.
+ * Retourne, dans l'ordre, le rectangle à gauche du rect_diviseur, et celui à droite.
+ * Cette fonction présume que rect_diviseur se trouve dans rect.
+ */
+divise_verticalement :: fonc (rect: RectanglePosDim($T), rect_diviseur: RectanglePosDim(T)) -> (RectanglePosDim(T), RectanglePosDim(T))
+{
+    résultat_gauche := rect
+    résultat_gauche.largeur = rect_diviseur.x
+
+    résultat_droite := rect
+    résultat_droite.x = rect_diviseur.x + rect_diviseur.largeur
+    résultat_droite.largeur = rect.largeur - (résultat_gauche.largeur + rect_diviseur.largeur)
+
+    retourne résultat_gauche, résultat_droite
+}
+
+/* Retourne un rectangle interne à `rect`.
+ * Le rectangle retourné aura la `largeur` donnée, et sera centré à la
+ * position relative à la largeur de du rectangle d'origine.
+ */
+donne_rect_interne_vertical :: fonc (rect: RectanglePosDim($T), position_relative: r32, largeur: T) -> RectanglePosDim(T)
+{
+    position := Point2D(r32)(position_relative, 1.0)
+    point := rect.position_interne(position)
+
+    résultat : RectanglePosDim(T) = ---
+    résultat.x = point.x - largeur / 2
+    résultat.largeur = largeur
+    résultat.y = rect.y
+    résultat.hauteur = rect.hauteur
+    retourne résultat
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
