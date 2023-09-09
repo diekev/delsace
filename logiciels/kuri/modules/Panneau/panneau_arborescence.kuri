@@ -131,19 +131,12 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
 {
-    sur_destruction :: fonc (panneau: *Panneau)
-    {
-        panneau_arborescence := panneau comme *PanneauArborescence
-        déloge(panneau_arborescence)
-    }
-
-    sur_déplacement_souris :: fonc (panneau: *Panneau @inutilisé, souris: ÉtatSouris @inutilisé)
+    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisé, souris: ÉtatSouris @inutilisé)
     {
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_arborescence: *PanneauArborescence, clique: CliqueSouris) -> bool
     {
-        panneau_arborescence := panneau comme *PanneauArborescence
         saufsi panneau_arborescence.rect.contient(clique.état.où) {
             retourne faux
         }
@@ -164,19 +157,18 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         retourne vrai
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_arborescence: *PanneauArborescence, ctx: *ContexteAffichage)
     {
-        panneau_arborescence := panneau comme *PanneauArborescence
         peintre := ctx.peintre
         thème := ctx.thème
 
         ajourne_disposition(panneau_arborescence)
 
-        rect_ligne := panneau.rect
+        rect_ligne := panneau_arborescence.rect
         rect_ligne.hauteur = panneau_arborescence.hauteur_élément
-        rect_ligne.y = panneau.rect.hauteur - panneau_arborescence.hauteur_élément
+        rect_ligne.y = panneau_arborescence.rect.hauteur - panneau_arborescence.hauteur_élément
 
-        nombre_de_lignes := divise_avec_surarrondis(panneau.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64)
+        nombre_de_lignes := divise_avec_surarrondis(panneau_arborescence.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64)
         pour nombre_de_lignes {
             couleur_ligne := si index_it % 2 == 0 {
                 thème.couleur_table_ligne_paire
@@ -190,19 +182,18 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         }
 
         pour panneau_arborescence.éléments_visibles {
-            dessine_élément(it, peintre, panneau.contexte.fonte, thème)
+            dessine_élément(it, peintre, panneau_arborescence.contexte.fonte, thème)
         }
 
-        dessine_rectangle(peintre, panneau.rect, thème.couleur_contour)
+        dessine_rectangle(peintre, panneau_arborescence.rect, thème.couleur_contour)
     }
 
     résultat := ctx.crée_panneau(PanneauArborescence)
     ajoute_enfant(parent, résultat)
 
-    résultat.sur_destruction = sur_destruction
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_dessin = sur_dessin
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     retourne résultat
 }
 

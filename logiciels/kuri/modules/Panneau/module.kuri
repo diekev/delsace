@@ -52,6 +52,7 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
     résultat := loge(TypePanneau)
     résultat.contexte = contexte
     résultat.sur_redimension = sur_redimension_impl_défaut
+    résultat.sur_destruction = sur_destruction_générique(TypePanneau)
     résultat.identifiant = info_de(TypePanneau).nom
     retourne résultat
 }
@@ -241,28 +242,19 @@ PanneauInterface :: struct {
 
 crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_interface: *PanneauInterface, souris: ÉtatSouris)
     {
-        panneau_interface := panneau comme *PanneauInterface
         observe_souris(panneau_interface, souris)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_interface: *PanneauInterface, clique: CliqueSouris) -> bool
     {
-        panneau_interface := panneau comme *PanneauInterface
         retourne reçoie_clique_souris(panneau_interface, clique)
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage)
     {
-        panneau_interface := panneau comme *PanneauInterface
         dessine_panneau_interface(panneau_interface, contexte_affichage)
-    }
-
-    sur_destruction :: fonc (panneau: *Panneau)
-    {
-        panneau_interface := panneau comme *PanneauInterface
-        détruit_panneau_interface(panneau_interface)
     }
 
     sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
@@ -277,10 +269,9 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
     ajoute_enfant(résultat, élément_central)
 
     /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_redimension = sur_redimension
 
     résultat.redimensionne_panneau(rect)
@@ -317,12 +308,6 @@ installe_élément_central :: fonc (panneau: *PanneauInterface)
 {
     panneau.élément_central = élément_central
     panneau.calcule_rect_interne()
-}
-
-détruit_panneau_interface :: fonc (panneau: &*PanneauInterface)
-{
-    déloge(panneau)
-    panneau = nul
 }
 
 dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *ContexteAffichage)

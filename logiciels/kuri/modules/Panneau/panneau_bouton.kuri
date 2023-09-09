@@ -26,21 +26,13 @@ PanneauBouton :: struct {
 
 crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
-    sur_destruction :: fonc (panneau: *Panneau)
+    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
     {
-        panneau_bouton := panneau comme *PanneauBouton
-        déloge(panneau_bouton)
-    }
-
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
-    {
-        panneau_bouton := panneau comme *PanneauBouton
         panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_bouton: *PanneauBouton, clique: CliqueSouris) -> bool
     {
-        panneau_bouton := panneau comme *PanneauBouton
         saufsi panneau_bouton.rect.contient(clique.état.où) {
             panneau_bouton.souris_pressée = faux
             retourne faux
@@ -62,13 +54,12 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         retourne vrai
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage)
     {
-        panneau_bouton := panneau comme *PanneauBouton
         peintre := ctx.peintre
         thème := ctx.thème
 
-        fonte := panneau.contexte.fonte
+        fonte := panneau_bouton.contexte.fonte
         métriques := donne_métriques_fonte(fonte)
 
         /* Calcul rect. */
@@ -110,10 +101,9 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     résultat.bouton = bouton
     ajoute_enfant(parent, résultat)
 
-    résultat.sur_destruction = sur_destruction
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_dessin = sur_dessin
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     retourne résultat
 }
 

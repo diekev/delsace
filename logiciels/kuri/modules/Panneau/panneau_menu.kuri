@@ -36,21 +36,18 @@ PanneauBarreDeMenu :: struct {
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, souris: ÉtatSouris)
     {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
         observe_souris(panneau_menu, souris)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clique: CliqueSouris) -> bool
     {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
         retourne observe_clique(panneau_menu, clique)
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_menu: *PanneauBarreDeMenu, contexte_affichage: *ContexteAffichage)
     {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
         dessine(panneau_menu, contexte_affichage)
     }
 
@@ -66,9 +63,9 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
     résultat.barre_de_menu = barre_de_menu
 
     /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_destruction = sur_destruction
 
     retourne résultat
@@ -306,21 +303,19 @@ PanneauMenu :: struct {
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris)
     {
-        panneau_menu := panneau comme *PanneauMenu
         observe_souris(panneau_menu, souris)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau @inutilisée, clique: CliqueSouris @inutilisée) -> bool
+    sur_clique_souris :: fonc (panneau_menu: *PanneauMenu @inutilisée, clique: CliqueSouris @inutilisée) -> bool
     {
         // À FAIRE
         retourne faux
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_menu: *PanneauMenu, contexte_affichage: *ContexteAffichage)
     {
-        panneau_menu := panneau comme *PanneauMenu
         dessine(panneau_menu, contexte_affichage)
     }
 
@@ -337,9 +332,9 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
     résultat.position = position
 
     /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_destruction = sur_destruction
 
     retourne résultat
