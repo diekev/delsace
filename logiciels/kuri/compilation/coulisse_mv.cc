@@ -84,7 +84,7 @@ bool CoulisseMV::cree_executable(Compilatrice &compilatrice,
     metaprogramme->donnees_globales = donnees_constantes.donnees_globales;
     metaprogramme->donnees_constantes = donnees_constantes.donnees_constantes;
 
-    /* Nous devons utiliser nos propres données pour les globales, afin que les pointeurs utilisées
+    /* Nous devons utiliser nos propres données pour les globales, afin que les pointeurs utilisés
      * pour les initialisations des globales (`ptr_donnees_globales + decalage` ici-bas)
      * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_donnees_globales +
      * globale.adresse` là-bas). */
