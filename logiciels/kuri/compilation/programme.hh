@@ -72,7 +72,7 @@ struct DiagnostiqueEtatCompilation {
     NoeudDeclaration *ri_declaration_a_generer = nullptr;
 };
 
-void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnositic);
+void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnostique);
 
 enum RaisonAjoutType {
     DÉPENDANCE_DIRECTE,

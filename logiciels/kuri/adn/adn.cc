@@ -984,7 +984,7 @@ void SyntaxeuseADN::parse_struct()
                 else if (apparie("copie")) {
                     membre.est_a_copier = true;
                 }
-                else if (apparie("préseve_accents")) {
+                else if (apparie("préserve_accents")) {
                     membre.nom.préserve_accents();
                 }
                 else {
