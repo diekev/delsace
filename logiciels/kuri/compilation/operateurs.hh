@@ -216,13 +216,18 @@ struct RegistreDesOpérateurs {
                              Type *type_resultat,
                              NoeudDeclarationEnteteFonction *decl);
 
-    void ajoute_operateur_basique_enum(const Typeuse &typeuse, TypeEnum *type);
+    void ajoute_operateur_basique_enum(TypeEnum *type);
 
-    void ajoute_operateurs_basiques_pointeur(Typeuse const &typeuse, TypePointeur *type);
+    void ajoute_operateurs_basiques_pointeur(TypePointeur *type);
 
-    void ajoute_operateurs_basiques_fonction(Typeuse const &typeuse, TypeFonction *type);
+    void ajoute_operateurs_basiques_fonction(TypeFonction *type);
 
     void rassemble_statistiques(Statistiques &stats) const;
+
+    void ajoute_opérateurs_comparaison(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers_réel(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_entiers_unaires(Type *pour_type);
 };
 
 /** \} */
@@ -231,7 +236,7 @@ OperateurUnaire const *cherche_operateur_unaire(RegistreDesOpérateurs const &op
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &operateurs);
+void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre);
 
 struct OperateurCandidat {
     OperateurBinaire const *op = nullptr;

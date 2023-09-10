@@ -1,0 +1,110 @@
+importe Couleur
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Diviseur
+ * \{ */
+
+PanneauDiviseur :: struct {
+    empl base: Panneau
+
+    rect_diviseur: RectanglePosDim(z32)
+    position_relative: r32 = 0.5
+    est_survolé: bool
+    souris_pressée: bool
+}
+
+crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
+{
+    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
+    {
+        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect_diviseur.contient(souris.où)
+
+        si panneau_diviseur.souris_pressée {
+            /* À FAIRE : position relative de la souris dans le rect parent ! */
+            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect.largeur comme r32
+            panneau_diviseur.besoin_ajournement_disposition = vrai
+        }
+    }
+
+    sur_clique_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clique: CliqueSouris) -> bool
+    {
+        saufsi panneau_diviseur.rect_diviseur.contient(clique.état.où) {
+            panneau_diviseur.souris_pressée = faux
+            retourne faux
+        }
+
+        si clique.action == ActionSouris.PRESSÉE {
+            panneau_diviseur.souris_pressée = vrai
+        }
+        sinon si clique.action == ActionSouris.RELACHÉE {
+            panneau_diviseur.souris_pressée = faux
+        }
+
+        retourne vrai
+    }
+
+    sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
+    {
+        ajourne_disposition(panneau_diviseur)
+
+        peintre := ctx.peintre
+        thème := ctx.thème
+
+        couleur := si panneau_diviseur.est_survolé {
+            thème.couleur_diviseur_survolé
+        }
+        sinon {
+            thème.couleur_diviseur
+        }
+
+        peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur)
+    }
+
+    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
+    {
+        panneau.rect = rect_disponible
+        panneau_diviseur := panneau comme *PanneauDiviseur
+        panneau_diviseur.besoin_ajournement_disposition = vrai
+        ajourne_disposition(panneau_diviseur)
+    }
+
+    résultat := ctx.crée_panneau(PanneauDiviseur)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_redimension = sur_redimension
+    retourne résultat
+}
+
+ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
+{
+    saufsi panneau.besoin_ajournement_disposition {
+        retourne
+    }
+    diffère panneau.besoin_ajournement_disposition = faux
+
+    rect_diviseur := donne_rect_interne_vertical(panneau.rect, panneau.position_relative, 3)
+    rect_gauche, rect_droit := divise_verticalement(panneau.rect, rect_diviseur)
+
+    panneau.rect_diviseur = rect_diviseur
+
+    nombre_enfants := panneau.enfants.taille
+    si nombre_enfants == 0 {
+        /* Rien à faire. */
+    }
+    sinon si nombre_enfants == 1 {
+        /* Place l'enfant dans le rect de gauche. */
+        redimensionne_panneau(panneau.enfants[0], rect_gauche)
+    }
+    sinon {
+        redimensionne_panneau(panneau.enfants[0], rect_gauche)
+        redimensionne_panneau(panneau.enfants[1], rect_droit)
+    }
+}
+
+/** } */
