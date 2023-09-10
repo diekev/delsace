@@ -2300,6 +2300,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
             analyse_annotations(decl_var->annotations);
         }
+        else if (param->est_empl()) {
+            auto decl_var = param->comme_empl()->expression->comme_declaration_variable();
+            analyse_annotations(decl_var->annotations);
+            params.ajoute(param);
+        }
         else {
             params.ajoute(param);
         }
