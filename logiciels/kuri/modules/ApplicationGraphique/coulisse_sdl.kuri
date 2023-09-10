@@ -64,7 +64,7 @@ sur_destruction_fenêtre_sdl :: fonc (fenêtre: *Fenêtre)
     déloge(fenêtre_sdl)
 }
 
-donne_fenêtre_pour_id :: fonc (app: *ApplicationSDL, id: n32) -> *Fenêtre
+donne_fenêtre_pour_id :: fonc (app: *ApplicationSDL, id: n32 @inutilisée) -> *Fenêtre
 {
     // À FAIRE : plusieurs fenêtre
     retourne app.fenêtre

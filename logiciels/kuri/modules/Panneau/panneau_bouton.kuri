@@ -99,7 +99,10 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
 
     résultat := ctx.crée_panneau(PanneauBouton)
     résultat.bouton = bouton
-    ajoute_enfant(parent, résultat)
+
+    si parent {
+        ajoute_enfant(parent, résultat)
+    }
 
     résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
     résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)

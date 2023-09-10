@@ -1,0 +1,179 @@
+importe Couleur
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+
+Dossier :: struct {
+    onglets: []chaine
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Dossier
+ * \{ */
+
+PanneauDossier :: struct {
+    empl base: Panneau
+
+    Élément :: struct {
+        texte: chaine
+        panneau: *Panneau
+        rect: RectanglePosDim(z32)
+        rect_texte: RectanglePosDim(z32)
+    }
+
+    éléments: []Élément
+
+    /* Le rectangle où se trouveront les onglets. */
+    rect_onglets: RectanglePosDim(z32)
+    /* Le rectangle où se trouvera le panneau de l'onglet actif. */
+    rect_central: RectanglePosDim(z32)
+
+    onglet_actif := 0
+}
+
+crée_panneau_dossier :: fonc (contexte: *ContexteInterface, parent: *Panneau) -> *PanneauDossier
+{
+    résultat := contexte.crée_panneau(PanneauDossier)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin_panneau_dossier)
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris_panneau_dossier)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris_panneau_dossier)
+    parent.ajoute_enfant(résultat)
+    retourne résultat
+}
+
+sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *ContexteAffichage)
+{
+    ajourne_disposition(panneau)
+
+    thème := ctx.thème
+    peintre := ctx.peintre
+    fonte := contexte.fonte
+
+    /* Dessine les onglets. */
+    remplis_rectangle(peintre, rect_onglets, thème.couleur_arrière_plan)
+
+    pour éléments {
+        couleur := si index_it == onglet_actif {
+            thème.couleur_arrière_plan
+        }
+        sinon {
+            couleur_grise_claire
+        }
+
+        remplis_rectangle(peintre, it.rect, couleur)
+
+        si index_it != onglet_actif {
+            dessine_rectangle(peintre, it.rect, thème.couleur_contour)
+        }
+
+        dessine_texte(peintre, fonte, it.texte, it.rect_texte, thème.couleur_texte)
+    }
+
+    /* Dessine l'arrière plan pour l'élément central, qui sera dessiner via la récursion. */
+    remplis_rectangle(peintre, rect_central, thème.couleur_arrière_plan)
+
+    /* Dessine notre contour. */
+    dessine_rectangle(peintre, rect, thème.couleur_contour)
+}
+
+sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @inutilisée, état: ÉtatSouris @inutilisée)
+{
+}
+
+sur_clique_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clique: CliqueSouris) -> bool
+{
+    saufsi rect.contient(clique.état.où) {
+        retourne faux
+    }
+
+    saufsi éléments {
+        retourne faux
+    }
+
+    pour éléments {
+        saufsi it.rect.contient(clique.état.où) {
+            continue
+        }
+
+        si index_it == onglet_actif {
+            retourne vrai
+        }
+
+        onglet_actif = index_it comme z32
+        arrête
+    }
+    sansarrêt {
+        retourne faux
+    }
+
+    /* Change d'enfants. */
+    enfants[0] = éléments[onglet_actif].panneau
+    enfants[0].parent = panneau
+
+    retourne vrai
+}
+
+ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
+{
+    saufsi besoin_ajournement_disposition {
+        retourne
+    }
+    diffère besoin_ajournement_disposition = faux
+
+    fonte := contexte.fonte
+    métriques := donne_métriques_fonte(fonte)
+
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    hauteur_onglets := hauteur_de_ligne + 10
+    espaçage_élément := donne_largeur_texte(fonte, "0")
+
+    décalage_élément := 0
+
+    rect_onglets = rect
+    rect_onglets.y = rect.hauteur - hauteur_onglets
+    rect_onglets.hauteur = hauteur_onglets
+
+    rect_central = rect
+    rect_central.hauteur = rect.hauteur - hauteur_onglets
+
+    pour * éléments {
+        largeur_texte := donne_largeur_texte(fonte, it.texte)
+
+        it.rect.x = décalage_élément
+        it.rect.y = rect_onglets.y
+        it.rect.hauteur = rect_onglets.hauteur
+        it.rect.largeur = espaçage_élément * 2 + largeur_texte
+
+        it.rect_texte.x = décalage_élément + espaçage_élément
+        it.rect_texte.y = rect_onglets.y + 5
+        it.rect_texte.hauteur = hauteur_de_ligne
+        it.rect_texte.largeur = largeur_texte
+
+        décalage_élément += it.rect.largeur
+
+        si it.panneau {
+            redimensionne_panneau(it.panneau, rect_central)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Édition des onglets.
+ * \{ */
+
+ajoute_onglet :: fonc (empl panneau: *PanneauDossier, nom: chaine, panneau_onglet: *Panneau)
+{
+    élément := tableau_ajoute_élément(*panneau.éléments)
+    élément.texte = nom
+    élément.panneau = panneau_onglet
+
+    si enfants.taille == 0 {
+        panneau.ajoute_enfant(panneau_onglet)
+    }
+}
+
+/** } */
