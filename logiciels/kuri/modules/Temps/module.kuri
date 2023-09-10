@@ -235,7 +235,7 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     doy := doe - (365*yoe + yoe/4 - yoe/100)                // [0, 365]
     mp := (5*doy + 2)/153                                   // [0, 11]
     d := doy - (153*mp+2)/5 + 1                             // [1, 31]
-    m := mp + si mp < 10 { 3 } sinon { -9 }                 // [1, 12]
+    m := mp comme z32 + si mp < 10 { 3 } sinon { -9 }                 // [1, 12]
 
     /* Le calendrier de référence commence en mars (après un possible 29 février)
      * donc nous devons corriger l'année au besoin. */
@@ -251,7 +251,7 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
 
     date : Date = ---
     date.jour = d comme z32
-    date.mois = m comme z32
+    date.mois = m
     date.année = années comme z32
     date.heure = heures comme z32
     date.minute = minutes comme z32
