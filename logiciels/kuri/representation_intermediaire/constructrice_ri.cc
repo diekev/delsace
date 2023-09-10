@@ -2570,9 +2570,9 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
     auto ptr_union = depile_valeur();
     auto type = noeud->accedee->type;
 
-    // À FAIRE(union) : doit déréférencer le pointeur
     while (type->est_type_pointeur() || type->est_type_reference()) {
         type = type_dereference_pour(type);
+        ptr_union = cree_charge_mem(noeud, ptr_union);
     }
 
     auto type_union = type->comme_type_union();

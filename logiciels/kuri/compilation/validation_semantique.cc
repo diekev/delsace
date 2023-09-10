@@ -701,6 +701,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
                     transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
                     transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+                    break;
                 }
             }
 
@@ -2940,7 +2941,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
     type_enum->alignement = type_enum->type_sous_jacent->alignement;
 
-    m_compilatrice.operateurs->ajoute_operateur_basique_enum(m_compilatrice.typeuse, type_enum);
+    m_compilatrice.operateurs->ajoute_operateur_basique_enum(type_enum);
 
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 
@@ -5265,7 +5266,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
         auto const poids_transformation = std::get<PoidsTransformation>(résultat_compatibilité);
         auto const transformation = poids_transformation.transformation;
 
-        if (transformation.type != TypeTransformation::INUTILE) {
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
             espace->rapporte_erreur(expr, "Expression incompatible pour l'assignation via « si »")
                 .ajoute_message("Le type inféré jusqu'ici est « ",
                                 chaine_type(type_inféré),
