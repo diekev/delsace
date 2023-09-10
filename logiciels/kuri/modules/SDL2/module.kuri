@@ -587,3 +587,99 @@ SDL_BUTTON_MIDDLE :: 2
 SDL_BUTTON_RIGHT :: 3
 SDL_BUTTON_X1 :: 4
 SDL_BUTTON_X2 :: 5
+
+/* ------------------------------------------------------------------------- */
+/** \nom Curseur.
+ * \{ */
+
+/**
+ * \brief Cursor types for SDL_CreateSystemCursor().
+ */
+SDL_SystemCursor :: énum {
+    SDL_SYSTEM_CURSOR_ARROW     /**< Arrow */
+    SDL_SYSTEM_CURSOR_IBEAM     /**< I-beam */
+    SDL_SYSTEM_CURSOR_WAIT      /**< Wait */
+    SDL_SYSTEM_CURSOR_CROSSHAIR /**< Crosshair */
+    SDL_SYSTEM_CURSOR_WAITARROW /**< Small wait cursor (or Wait if not available) */
+    SDL_SYSTEM_CURSOR_SIZENWSE  /**< Double arrow pointing northwest and southeast */
+    SDL_SYSTEM_CURSOR_SIZENESW  /**< Double arrow pointing northeast and southwest */
+    SDL_SYSTEM_CURSOR_SIZEWE    /**< Double arrow pointing west and east */
+    SDL_SYSTEM_CURSOR_SIZENS    /**< Double arrow pointing north and south */
+    SDL_SYSTEM_CURSOR_SIZEALL   /**< Four pointed arrow pointing north, south, east, and west */
+    SDL_SYSTEM_CURSOR_NO        /**< Slashed circle or crossbones */
+    SDL_SYSTEM_CURSOR_HAND      /**< Hand */
+    /* SDL_NUM_SYSTEM_CURSORS */
+}
+
+SDL_Cursor :: struct #externe
+SDL_Surface :: struct #externe
+
+/**
+ *  \brief Create a cursor, using the specified bitmap data and
+ *         mask (in MSB format).
+ *
+ *  The cursor width must be a multiple of 8 bits.
+ *
+ *  The cursor is created in black and white according to the following:
+ *  <table>
+ *  <tr><td> data </td><td> mask </td><td> resulting pixel on screen </td></tr>
+ *  <tr><td>  0   </td><td>  1   </td><td> White </td></tr>
+ *  <tr><td>  1   </td><td>  1   </td><td> Black </td></tr>
+ *  <tr><td>  0   </td><td>  0   </td><td> Transparent </td></tr>
+ *  <tr><td>  1   </td><td>  0   </td><td> Inverted color if possible, black
+ *                                         if not. </td></tr>
+ *  </table>
+ *
+ *  \sa SDL_FreeCursor()
+ */
+SDL_CreateCursor :: fonc (data: *n8, mask: *n8, w: z32, h: z32, hot_x: z32, hot_y: z32) -> *SDL_Cursor #externe libSDL2
+
+/**
+ *  \brief Create a color cursor.
+ *
+ *  \sa SDL_FreeCursor()
+ */
+SDL_CreateColorCursor :: fonc (surface: *SDL_Surface, hot_x: z32, hot_y: z32) -> *SDL_Cursor #externe libSDL2
+
+/**
+ *  \brief Create a system cursor.
+ *
+ *  \sa SDL_FreeCursor()
+ */
+SDL_CreateSystemCursor :: fonc (id: SDL_SystemCursor) -> *SDL_Cursor #externe libSDL2
+
+/**
+ *  \brief Set the active cursor.
+ */
+SDL_SetCursor :: fonc (cursor: *SDL_Cursor) -> rien #externe libSDL2
+
+/**
+ *  \brief Return the active cursor.
+ */
+SDL_GetCursor :: fonc () -> *SDL_Cursor #externe libSDL2
+
+/**
+ *  \brief Return the default cursor.
+ */
+SDL_GetDefaultCursor :: fonc () -> *SDL_Cursor #externe libSDL2
+
+/**
+ *  \brief Frees a cursor created with SDL_CreateCursor() or similar functions.
+ *
+ *  \sa SDL_CreateCursor()
+ *  \sa SDL_CreateColorCursor()
+ *  \sa SDL_CreateSystemCursor()
+ */
+SDL_FreeCursor :: fonc (cursor: *SDL_Cursor) -> rien #externe libSDL2
+
+/**
+ *  \brief Toggle whether or not the cursor is shown.
+ *
+ *  \param toggle 1 to show the cursor, 0 to hide it, -1 to query the current
+ *                state.
+ *
+ *  \return 1 if the cursor is shown, or 0 if the cursor is hidden.
+ */
+SDL_ShowCursor :: fonc (toggle: z32) -> z32 #externe libSDL2
+
+/** } */

@@ -110,6 +110,12 @@ crée_fenêtre_principale :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente,
     »
 
     ajoute_au_tampon(*enchaineuse, préambule)
+
+    si cliente_possède_pilote_application(info_de(TypeCliente)) {
+        ajoute_au_tampon(*enchaineuse, "initialise_pilote_application_sdl()\n")
+        ajoute_au_tampon(*enchaineuse, "cliente.pilote_application = *pilote_application_sdl\n")
+    }
+
     si possède_sur_création_fenêtre {
         ajoute_au_tampon(*enchaineuse, "cliente.sur_création_fenêtre(cliente, fenêtre)\n")
     }
@@ -271,7 +277,7 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     ajoute_au_tampon(*enchaineuse, "                    largeur := évènement.window.data1\n")
     ajoute_au_tampon(*enchaineuse, "                    hauteur := évènement.window.data2\n")
     ajoute_au_tampon(*enchaineuse, "                    fenêtre := donne_fenêtre_pour_id(app, évènement.window.windowID)\n")
-    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, hauteur, largeur)\n")
+    ajoute_au_tampon(*enchaineuse, "                    redimensionne_fenêtre(fenêtre, largeur, hauteur)\n")
     si évènements_requis.REDIMENSION_FENÊTRE {
         ajoute_au_tampon(*enchaineuse, "                    cliente.sur_redimension_fenêtre(cliente, fenêtre)\n")
     }
@@ -284,6 +290,95 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Implémentation du pilote pour SDL.
+ * \{ */
+
+PiloteApplicationSDL :: struct {
+    empl base: PiloteApplication
+}
+
+pilote_application_sdl: PiloteApplicationSDL
+
+initialise_pilote_application_sdl :: fonc ()
+{
+    rappel_crée_curseur :: fonc (pilote: *PiloteApplication @inutilisée, type: TypeCurseurSystème) -> Curseur
+    {
+        type_curseur_sdl := convertis_type_curseur(type)
+        retourne SDL_CreateSystemCursor(type_curseur_sdl)
+    }
+
+    rappel_détruit_curseur :: fonc (pilote: *PiloteApplication @inutilisée, curseur: Curseur)
+    {
+        SDL_FreeCursor(curseur.CurseurSDL)
+    }
+
+    rappel_montre_curseur :: fonc (pilote: *PiloteApplication @inutilisée)
+    {
+        résultat := SDL_ShowCursor(1)
+        assert(résultat == 1)
+    }
+
+    rappel_cache_curseur :: fonc (pilote: *PiloteApplication @inutilisée)
+    {
+        résultat := SDL_ShowCursor(0)
+        assert(résultat == 0)
+    }
+
+    rappel_est_curseur_affiché :: fonc (pilote: *PiloteApplication @inutilisée) -> bool
+    {
+        résultat := SDL_ShowCursor(-1)
+        retourne résultat == 1
+    }
+
+    rappel_définis_curseur :: fonc (pilote: *PiloteApplication @inutilisée, curseur: Curseur)
+    {
+        SDL_SetCursor(curseur.CurseurSDL)
+    }
+
+    rappel_donne_curseur_courant :: fonc (pilote: *PiloteApplication @inutilisée) -> Curseur
+    {
+        retourne SDL_GetCursor()
+    }
+
+    rappel_donne_curseur_défaut :: fonc (pilote: *PiloteApplication @inutilisée) -> Curseur
+    {
+        retourne SDL_GetDefaultCursor()
+    }
+
+    pilote_application_sdl.rappel_crée_curseur = rappel_crée_curseur
+    pilote_application_sdl.rappel_détruit_curseur = rappel_détruit_curseur
+    pilote_application_sdl.rappel_montre_curseur = rappel_montre_curseur
+    pilote_application_sdl.rappel_cache_curseur = rappel_cache_curseur
+    pilote_application_sdl.rappel_est_curseur_affiché = rappel_est_curseur_affiché
+    pilote_application_sdl.rappel_définis_curseur = rappel_définis_curseur
+    pilote_application_sdl.rappel_donne_curseur_courant = rappel_donne_curseur_courant
+    pilote_application_sdl.rappel_donne_curseur_défaut = rappel_donne_curseur_défaut
+}
+
+convertis_type_curseur :: fonc (type_curseur: TypeCurseurSystème) -> SDL_SystemCursor
+{
+    discr type_curseur {
+        FLÈCHE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW }
+        TEXTE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM }
+        ATTENTE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_WAIT }
+        CROIX { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR }
+        FLÈCHE_AVEC_ATTENTE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_WAITARROW }
+        FLÈCHE_DOUBLE_NOSE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE }
+        FLÈCHE_DOUBLE_NESO { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW }
+        FLÈCHE_DOUBLE_HORIZONTALE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE }
+        FLÈCHE_DOUBLE_VERTICALE { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS }
+        FLÈCHE_DOUBLE_TOUT { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEALL }
+        INTERDIT { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO }
+        MAIN { retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND }
+        sinon {}
+    }
+
+    retourne SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW
 }
 
 /** } */

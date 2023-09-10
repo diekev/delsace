@@ -24,23 +24,15 @@ PanneauBouton :: struct {
     souris_dans_rect := faux
 }
 
-crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
+crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
-    sur_destruction :: fonc (panneau: *Panneau)
+    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
     {
-        panneau_bouton := panneau comme *PanneauBouton
-        déloge(panneau_bouton)
-    }
-
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
-    {
-        panneau_bouton := panneau comme *PanneauBouton
         panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_bouton: *PanneauBouton, clique: CliqueSouris) -> bool
     {
-        panneau_bouton := panneau comme *PanneauBouton
         saufsi panneau_bouton.rect.contient(clique.état.où) {
             panneau_bouton.souris_pressée = faux
             retourne faux
@@ -62,18 +54,18 @@ crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBout
         retourne vrai
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage)
     {
-        panneau_bouton := panneau comme *PanneauBouton
         peintre := ctx.peintre
+        thème := ctx.thème
 
-        fonte := ctx.fonte
+        fonte := panneau_bouton.contexte.fonte
         métriques := donne_métriques_fonte(fonte)
 
         /* Calcul rect. */
         hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
         hauteur_bouton := hauteur_de_ligne + 10
-        espaçage := donne_largeur_texte(ctx.fonte, "0")
+        espaçage := donne_largeur_texte(fonte, "0")
         largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte)
 
         largeur_bouton := largeur_texte + espaçage * 2
@@ -88,12 +80,12 @@ crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBout
 
         panneau_bouton.rect = rect
 
-        couleur := couleur_grise
+        couleur := thème.couleur_bouton
         si panneau_bouton.souris_pressée {
-            couleur = couleur_blanche
+            couleur = thème.couleur_bouton_pressé
         }
         sinon si panneau_bouton.souris_dans_rect {
-            couleur = couleur_grise_claire
+            couleur = thème.couleur_bouton_survolé
         }
 
         peintre.remplis_rectangle(panneau_bouton.rect, couleur)
@@ -102,23 +94,16 @@ crée_panneau_bouton :: fonc (parent: *Panneau, bouton: *Bouton) -> *PanneauBout
         rect_texte.x += espaçage
         rect_texte.y += 5
 
-        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, couleur_noire)
+        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte)
     }
 
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32))
-    {
-        panneau_bouton := panneau comme *PanneauBouton
-    }
-
-    résultat := loge(PanneauBouton)
+    résultat := ctx.crée_panneau(PanneauBouton)
     résultat.bouton = bouton
     ajoute_enfant(parent, résultat)
 
-    résultat.sur_destruction = sur_destruction
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_redimension_parent = sur_redimension_parent
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     retourne résultat
 }
 

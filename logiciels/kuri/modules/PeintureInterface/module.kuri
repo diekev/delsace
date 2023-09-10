@@ -172,7 +172,7 @@ PeintreDessin :: struct {
     tampon_texture: *TamponTexture
 }
 
-crée_peintre_module_dessin :: fonc () -> *PeintreDessin
+crée_peintre_module_dessin :: fonc (taille_cannevas: Taille) -> *PeintreDessin
 {
     peintre := loge(PeintreDessin)
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
@@ -192,6 +192,7 @@ crée_peintre_module_dessin :: fonc () -> *PeintreDessin
     peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
+    définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }
 
@@ -423,7 +424,7 @@ détruit_peintre_dessin :: fonc (peintre: *PeintreDessin)
  * Peintre utilisant IGUMI pour dessiner l'interface.
  * \{ */
 
-crée_peintre_igumi :: fonc () -> *Peintre
+crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
 {
     initialise_igumi()
 
@@ -445,6 +446,7 @@ crée_peintre_igumi :: fonc () -> *Peintre
     peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_igumi
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
+    définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }
 
@@ -524,6 +526,7 @@ donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
 définis_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée, taille: Taille)
 {
     IGUMI.définis_fenêtre(taille.largeur comme z32, taille.hauteur comme z32)
+    glViewport(0, 0, taille.largeur comme z32, taille.hauteur comme z32)
 }
 
 donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille

@@ -77,8 +77,8 @@ bool Symbole::charge(EspaceDeTravail *espace,
     switch (raison) {
         case RaisonRechercheSymbole::EXECUTION_METAPROGRAMME:
         {
-            /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de le charger.
-             */
+            /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de charger le
+             * symbole. */
             if (adresse_execution || etat_recherche == EtatRechercheSymbole::TROUVE) {
                 return true;
             }

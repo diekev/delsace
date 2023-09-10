@@ -14,7 +14,7 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
     adjMoment := temps_millis_depuis_époque(moment) - temps_millis_depuis_époque(raisin)
     // imprime("adj_moment : %\n", adjMoment)
 
-    d :: millisecondes_par_jours;
+    d := Constantes(z64).MILLISECONDES_PAR_JOUR;
 	quantité_leap :: 20925216
     début_équinoxe :: 34284216
 
@@ -69,5 +69,5 @@ donne_chaine_date_républicaine :: fonc (date: Date) -> chaine
     chaine_année := chaine_chiffre_romain(date.année)
     diffère déloge(chaine_année)
 
-    retourne imprime_chaine("% % % An %", chn_jour[date.jour], date.jour, chn_mois[date.mois], chaine_chiffre_romain(date.année))
+    retourne imprime_chaine("% % % An %", chn_jour[(date.jour - 1) % 10], date.jour, chn_mois[date.mois], chaine_chiffre_romain(date.année))
 }

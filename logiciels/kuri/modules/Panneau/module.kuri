@@ -16,6 +16,113 @@ charge "menu"
 ContexteAffichage :: struct {
     peintre: *Peintre
     fonte: *Fonte
+    thème: *Thème
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteInterface.
+ * \{ */
+
+/* Le ContexteInterface doit être instancié par fenêtre.
+ * Il permet de créer les panneaux pour chaque fenêtre.
+ * Il stocke l'état de l'interface : les éléments actifs/focalisés.
+ * Chaque panneau possède une référence à ce contexte.
+ */
+ContexteInterface :: struct {
+    /* Le menu étant affiché. */
+    menu_affiché: *PanneauMenu
+    fonte: *Fonte
+
+    panneau_racine: *Panneau
+
+    panneau_cliqué: *Panneau
+}
+
+initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
+{
+    résultat: ContexteInterface
+    résultat.fonte = fonte
+    retourne résultat
+}
+
+crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_données) -> *TypePanneau
+{
+    résultat := loge(TypePanneau)
+    résultat.contexte = contexte
+    résultat.sur_redimension = sur_redimension_impl_défaut
+    résultat.sur_destruction = sur_destruction_générique(TypePanneau)
+    résultat.identifiant = info_de(TypePanneau).nom
+    retourne résultat
+}
+
+définis_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMenu)
+{
+    contexte.menu_affiché = panneau
+}
+
+détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
+{
+    si contexte.menu_affiché {
+        détruit_panneau_menu(contexte.menu_affiché)
+    }
+}
+
+gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
+{
+    si gère_clique_souris(panneau_cliqué, clique) {
+        // imprime("Clique géré par %\n", panneau_cliqué.identifiant)
+        retourne
+    }
+
+    panneau_cliqué = trouve_panneau_cliqué(contexte.panneau_racine, clique)
+
+    // si panneau_cliqué {
+    //     imprime("Clique sur panneau '%'\n", panneau_cliqué.identifiant)
+    // }
+    // sinon {
+    //     imprime("Cliqué sur aucun panneau\n")
+    // }
+}
+
+trouve_panneau_cliqué :: fonc (panneau_racine: *Panneau, clique: CliqueSouris) -> *Panneau
+{
+    saufsi panneau_racine {
+        retourne nul
+    }
+
+    pour panneau_racine.enfants {
+        panneau_candidat := trouve_panneau_cliqué(it, clique)
+        si panneau_candidat {
+            retourne panneau_candidat
+        }
+    }
+
+    si gère_clique_souris(panneau_racine, clique) {
+        retourne panneau_racine
+    }
+
+    retourne nul
+}
+
+sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
+{
+    sur_déplacement_souris_récursif(panneau_racine, état)
+}
+
+dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage: *ContexteAffichage)
+{
+    saufsi panneau_racine {
+        retourne
+    }
+
+    sur_dessin_récursif(panneau_racine, contexte_affichage)
+
+    /* Dessine le menu au dessus du reste. */
+    si menu_affiché {
+        sur_dessin_récursif(menu_affiché, contexte_affichage)
+    }
 }
 
 /** } */
@@ -26,51 +133,63 @@ ContexteAffichage :: struct {
  * \{ */
 
 Panneau :: struct {
+    contexte: *ContexteInterface
     parent: *Panneau
-    disposition: Disposition
+    enfants: []*Panneau
+
+    identifiant : chaine
 
     /* Dimension du panneau. */
     rect: RectanglePosDim(z32)
+
+    besoin_ajournement_disposition := vrai
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc(*Panneau)(rien)
     sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
     sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
-    sur_redimension_parent: fonc(*Panneau, RectanglePosDim(z32))(rien)
+    sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
 {
     assert(enfant.parent == nul)
     enfant.parent = panneau
-    ajoute_panneau(*panneau.disposition, enfant)
+    tableau_ajoute(*panneau.enfants, enfant)
 }
 
-redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+/* Implémentation par défaut du rappel sur_redimension */
+sur_redimension_impl_défaut :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
 {
-    panneau.rect = rect
-    définis_rectangle(*panneau.disposition, rect)
+    panneau.rect = rect_disponible
+    panneau.besoin_ajournement_disposition = vrai
 }
 
 détruit_panneau :: fonc (panneau: *Panneau)
 {
-    détruit_données_disposition(*panneau.disposition)
+    déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau)
 
     si panneau.sur_destruction {
         panneau.sur_destruction(panneau)
     }
 }
 
-/* Enveloppe pour les rappels. */
+/** } */
 
-dessine :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppes pour les rappels de Panneau.
+ * \{ */
+
+sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
 {
     si panneau.sur_dessin {
         panneau.sur_dessin(panneau, ctx)
     }
 
-    dessine(*panneau.disposition, ctx)
+    pour panneau.enfants {
+        sur_dessin_récursif(it, ctx)
+    }
 }
 
 gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
@@ -87,6 +206,26 @@ gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
     retourne panneau.sur_clique_souris(panneau, clique)
 }
 
+redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+{
+    panneau.sur_redimension(panneau, rect)
+}
+
+sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris)
+{
+    saufsi panneau {
+        retourne
+    }
+
+    si panneau.sur_déplacement_souris {
+        panneau.sur_déplacement_souris(panneau, état)
+    }
+
+    pour panneau.enfants {
+        sur_déplacement_souris_récursif(it, état)
+    }
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -98,50 +237,44 @@ PanneauInterface :: struct {
     empl base: Panneau
 
     barre_de_menu: *PanneauBarreDeMenu
-
-    MémoireVive :: struct {
-        menu_actif: *PanneauMenu
-    }
-
-    mémoire_vive: MémoireVive
+    élément_central: *Panneau
 }
 
-crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterface
+crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_interface: *PanneauInterface, souris: ÉtatSouris)
     {
-        panneau_interface := panneau comme *PanneauInterface
         observe_souris(panneau_interface, souris)
     }
 
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+    sur_clique_souris :: fonc (panneau_interface: *PanneauInterface, clique: CliqueSouris) -> bool
     {
-        panneau_interface := panneau comme *PanneauInterface
-        reçoie_clique_souris(panneau_interface, clique)
-        retourne vrai
+        retourne reçoie_clique_souris(panneau_interface, clique)
     }
 
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage)
     {
-        panneau_interface := panneau comme *PanneauInterface
         dessine_panneau_interface(panneau_interface, contexte_affichage)
     }
 
-    sur_destruction :: fonc (panneau: *Panneau)
+    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
     {
         panneau_interface := panneau comme *PanneauInterface
-        détruit_panneau_interface(panneau_interface)
+        panneau_interface.rect = rect
+        calcule_rect_interne(panneau_interface)
     }
 
-    résultat := loge(PanneauInterface)
-
-    résultat.redimensionne_panneau(rect)
+    résultat := ctx.crée_panneau(PanneauInterface)
+    résultat.élément_central = élément_central
+    ajoute_enfant(résultat, élément_central)
 
     /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
+    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
+    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
+    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_redimension = sur_redimension
+
+    résultat.redimensionne_panneau(rect)
 
     retourne résultat
 }
@@ -149,33 +282,32 @@ crée_panneau_interface :: fonc (rect: RectanglePosDim(z32)) -> *PanneauInterfac
 installe_barre_de_menu :: fonc (panneau: *PanneauInterface, barre_de_menu: *BarreDeMenu)
 {
     assert(panneau.barre_de_menu == nul)
-    panneau.barre_de_menu = crée_panneau_barre_de_menu(barre_de_menu)
+    panneau.barre_de_menu = crée_panneau_barre_de_menu(panneau.contexte, barre_de_menu)
     // ajoute_enfant(panneau, panneau.barre_de_menu)
     panneau.barre_de_menu.parent = panneau
-    panneau.barre_de_menu.panneau_interface = panneau
+    calcule_rect_interne(panneau)
 }
 
-détruit_panneau_interface :: fonc (panneau: &*PanneauInterface)
+calcule_rect_interne :: fonc (panneau: *PanneauInterface)
 {
-    si panneau.mémoire_vive.menu_actif {
-        détruit_panneau(panneau.mémoire_vive.menu_actif)
+    rect_interne := panneau.rect
+
+    si panneau.barre_de_menu {
+        panneau.barre_de_menu.besoin_ajournement_disposition = vrai
+        ajourne_disposition(panneau.barre_de_menu)
+        rect_interne.hauteur -= panneau.barre_de_menu.rect.hauteur
     }
 
-    déloge(panneau)
-    panneau = nul
-}
-
-détruit_panneau_menu :: fonc (empl panneau_interface: *PanneauInterface)
-{
-    si mémoire_vive.menu_actif {
-        détruit_panneau_menu(mémoire_vive.menu_actif)
+    si panneau.élément_central {
+        panneau.élément_central.besoin_ajournement_disposition = vrai
+        redimensionne_panneau(panneau.élément_central, rect_interne)
     }
 }
 
-définis_panneau_menu :: fonc (empl panneau_interface: *PanneauInterface, panneau_menu: *PanneauMenu)
+installe_élément_central :: fonc (panneau: *PanneauInterface)
 {
-    assert(mémoire_vive.menu_actif == nul)
-    mémoire_vive.menu_actif = panneau_menu
+    panneau.élément_central = élément_central
+    panneau.calcule_rect_interne()
 }
 
 dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *ContexteAffichage)
@@ -183,37 +315,27 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
     si barre_de_menu {
         barre_de_menu.sur_dessin(barre_de_menu, ctx)
     }
-
-    si mémoire_vive.menu_actif {
-        mémoire_vive.menu_actif.sur_dessin(mémoire_vive.menu_actif, ctx)
-    }
 }
 
-reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris)
+reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
 {
-    si gère_clique_souris(mémoire_vive.menu_actif, clique) {
-        retourne
+    si gère_clique_souris(contexte.menu_affiché, clique) {
+        imprime("Clique dans menu affiché !\n")
+        retourne vrai
     }
 
     si gère_clique_souris(barre_de_menu, clique) {
-        retourne
+        imprime("Clique dans barre de menu !\n")
+        retourne vrai
     }
 
     /* Ni le menu actif, ni la barre de menu n'ont géré le clique, n'affiche plus le menu. */
-    panneau.détruit_panneau_menu()
+    contexte.détruit_panneau_menu()
     si barre_de_menu {
         barre_de_menu.sur_menu_fermé()
     }
 
-    pour panneau.disposition.panneaux {
-        saufsi it.sur_clique_souris {
-            continue
-        }
-
-        si it.sur_clique_souris(it, clique) {
-            retourne
-        }
-    }
+    retourne faux
 }
 
 observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
@@ -222,453 +344,9 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
         barre_de_menu.sur_déplacement_souris(barre_de_menu, souris)
     }
 
-    si mémoire_vive.menu_actif {
-        mémoire_vive.menu_actif.sur_déplacement_souris(mémoire_vive.menu_actif, souris)
+    si contexte.menu_affiché {
+        contexte.menu_affiché.sur_déplacement_souris(contexte.menu_affiché, souris)
     }
-
-    pour panneau.disposition.panneaux {
-        saufsi it.sur_déplacement_souris {
-            continue
-        }
-
-        it.sur_déplacement_souris(it, souris)
-    }
-}
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Panneau barre de menu
- * \{ */
-
-PanneauBarreDeMenu :: struct {
-    empl base: Panneau
-
-    Élément :: struct {
-        décalage: z32
-        largeur: z32
-    }
-
-    État :: struct {
-        élément_pressé := -1
-        temps_élément_pressé := 0
-    }
-
-    barre_de_menu: *BarreDeMenu
-
-    éléments: []Élément
-
-    hauteur_élément: z32
-    espaçage_élément: z32
-    décalage_élément_x: z32
-    décalage_élément_y: z32
-
-    état: État
-    besoin_ajournement_disposition := vrai
-
-    /* À FAIRE : déplace ça */
-    panneau_interface: *PanneauInterface
-}
-
-crée_panneau_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
-{
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        observe_souris(panneau_menu, souris)
-    }
-
-    sur_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        retourne observe_clique(panneau_menu, clique)
-    }
-
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        dessine(panneau_menu, contexte_affichage)
-    }
-
-    sur_destruction :: fonc (panneau: *Panneau)
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        détruit_panneau_barre_de_menu(panneau_menu)
-    }
-
-    sur_redimension_parent :: fonc (panneau: *Panneau, rect_parent: RectanglePosDim(z32) @inutilisée)
-    {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        panneau_menu.besoin_ajournement_disposition = vrai
-    }
-
-    résultat := loge(PanneauBarreDeMenu)
-
-    /* Données spécifiques. */
-    résultat.barre_de_menu = barre_de_menu
-
-    /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
-    résultat.sur_redimension_parent = sur_redimension_parent
-
-    retourne résultat
-}
-
-détruit_panneau_barre_de_menu :: fonc (panneau: &*PanneauBarreDeMenu)
-{
-    déloge(panneau.éléments)
-    déloge(panneau)
-    panneau = nul
-}
-
-ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
-{
-    saufsi besoin_ajournement_disposition {
-        retourne
-    }
-    diffère besoin_ajournement_disposition = faux
-
-    métriques := donne_métriques_fonte(ctx.fonte)
-
-    /* Calcul rect. */
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-    hauteur_menu := hauteur_de_ligne + 10
-
-    rect_parent := parent.rect
-
-    rect.x = 0
-    rect.y = rect_parent.hauteur - hauteur_menu
-    rect.largeur = rect_parent.largeur
-    rect.hauteur = hauteur_menu
-
-    /* Calcul taille éléments. */
-    hauteur_élément = métriques.donne_hauteur_caractère() comme z32
-    espaçage_élément = donne_largeur_texte(ctx.fonte, "0")
-    décalage_élément_x = espaçage_élément * 2
-    décalage_élément_y = (rect.hauteur - hauteur_élément) / 2
-
-    tableau_redimensionne(éléments, barre_de_menu.menus.taille)
-
-    décalage_élément := décalage_élément_x
-
-    pour barre_de_menu.menus {
-        élément: PanneauBarreDeMenu.Élément
-        élément.décalage = décalage_élément
-        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
-
-        éléments[index_it] = élément
-
-        décalage_élément += (élément.largeur + décalage_élément_x * 2)
-    }
-}
-
-dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
-{
-    ajourne_disposition(panneau, ctx)
-
-    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
-
-    si état.élément_pressé != -1 {
-        rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_pressé)
-
-        // À FAIRE : animation pour quand nous désactivons l'élément
-        valeur := (255 - état.temps_élément_pressé) comme n8
-        si état.temps_élément_pressé < 64 {
-            état.temps_élément_pressé += 8
-        }
-
-        couleur := CouleurRVBAN8(valeur, valeur, valeur, 255)
-        remplis_rectangle(ctx.peintre, rect_élément, couleur)
-    }
-
-    rect_élément : RectanglePosDim(z32)
-    rect_élément.hauteur = hauteur_élément
-
-    pour éléments {
-        rect_élément.x = rect.x + it.décalage
-        rect_élément.y = rect.y + décalage_élément_y
-        rect_élément.largeur = it.largeur
-
-        menu := barre_de_menu.menus[index_it]
-        dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, couleur_noire)
-    }
-}
-
-observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
-{
-    saufsi rect.contient(souris.où) {
-        retourne
-    }
-
-    si état.élément_pressé == -1 {
-        retourne
-    }
-
-    pour éléments {
-        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.contient(souris.où) {
-            continue
-        }
-
-        définis_élément_pressé(panneau, index_it, faux)
-    }
-}
-
-observe_clique :: fonc (empl panneau: *PanneauBarreDeMenu, souris: CliqueSouris) -> bool
-{
-    saufsi rect.contient(souris.état.où) {
-        retourne faux
-    }
-
-    si souris.action != ActionSouris.PRESSÉE {
-        retourne vrai
-    }
-
-    pour éléments {
-        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.contient(souris.état.où) {
-            continue
-        }
-
-        définis_élément_pressé(panneau, index_it, vrai)
-        arrête
-    }
-
-    retourne vrai
-}
-
-définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64, indéfinis_élément: bool)
-{
-    assert(index_élément >= -1)
-    assert(index_élément < éléments.taille)
-
-    si état.élément_pressé == index_élément {
-        si indéfinis_élément {
-            état.élément_pressé = -1
-            état.temps_élément_pressé = 0
-            panneau_interface.détruit_panneau_menu()
-        }
-    }
-    sinon {
-        état.élément_pressé = index_élément comme z32
-        état.temps_élément_pressé = 0
-        panneau_interface.détruit_panneau_menu()
-
-        si index_élément != -1 {
-            rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
-            panneau_menu := crée_panneau_menu(barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
-            panneau_interface.définis_panneau_menu(panneau_menu)
-        }
-    }
-}
-
-/* Retourne les limites de l'élément pour les cliques. */
-donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64) -> RectanglePosDim(z32)
-{
-    assert(index_élément >= 0)
-    assert(index_élément < éléments.taille)
-
-    élément := éléments[index_élément]
-
-    résultat : RectanglePosDim(z32) = ---
-    résultat.x = rect.x + élément.décalage - décalage_élément_x
-    résultat.y = rect.y
-    résultat.hauteur = rect.hauteur
-    résultat.largeur = élément.largeur + décalage_élément_x * 2
-    retourne résultat
-}
-
-/* Appelé par PanneauInterface quand le menu actif est fermé. */
-sur_menu_fermé :: fonc (empl panneau: *PanneauBarreDeMenu)
-{
-    état.élément_pressé = -1
-}
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Panneau Menu
- * \{ */
-
-PanneauMenu :: struct {
-    empl base: Panneau
-
-    Élément :: struct {
-        décalage: z32
-        hauteur: z32
-        largeur: z32
-    }
-
-    État :: struct {
-        élément_pressé : z32 = -1
-        élément_survolé : z32 = -1
-    }
-
-    menu: *Menu
-    éléments: []Élément
-    position: Point2D(z32)
-
-    hauteur_élément: z32
-    espaçage_élément: z32
-    décalage_élément_x: z32
-    décalage_élément_y: z32
-
-    état : État
-    besoin_ajournement_disposition := vrai
-}
-
-crée_panneau_menu :: fonc (menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
-{
-    sur_déplacement_souris :: fonc (panneau: *Panneau, souris: ÉtatSouris)
-    {
-        panneau_menu := panneau comme *PanneauMenu
-        observe_souris(panneau_menu, souris)
-    }
-
-    sur_clique_souris :: fonc (panneau: *Panneau @inutilisée, clique: CliqueSouris @inutilisée) -> bool
-    {
-        // À FAIRE
-        retourne faux
-    }
-
-    sur_dessin :: fonc (panneau: *Panneau, contexte_affichage: *ContexteAffichage)
-    {
-        panneau_menu := panneau comme *PanneauMenu
-        dessine(panneau_menu, contexte_affichage)
-    }
-
-    sur_destruction :: fonc (panneau: *Panneau)
-    {
-        panneau_menu := panneau comme *PanneauMenu
-        détruit_panneau_menu(panneau_menu)
-    }
-
-    résultat := loge(PanneauMenu)
-
-    /* Données spécifiques. */
-    résultat.menu = menu
-    résultat.position = position
-
-    /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
-
-    retourne résultat
-}
-
-détruit_panneau_menu :: fonc (panneau: &*PanneauMenu)
-{
-    déloge(panneau.éléments)
-    déloge(panneau)
-    panneau = nul
-}
-
-ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
-{
-    saufsi besoin_ajournement_disposition {
-        retourne
-    }
-    diffère besoin_ajournement_disposition = faux
-
-    métriques := donne_métriques_fonte(ctx.fonte)
-
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-
-    /* Calcul taille éléments. */
-    hauteur_élément = hauteur_de_ligne + 10
-    espaçage_élément = donne_largeur_texte(ctx.fonte, "0")
-    décalage_élément_x = espaçage_élément * 2
-
-    tableau_redimensionne(éléments, menu.éléments.taille)
-
-    largeur_max_élément := 0
-
-    hauteur_éléments := (éléments.taille comme z32) * hauteur_élément
-    décalage_élément := hauteur_éléments - hauteur_élément
-
-    pour menu.éléments {
-        élément: PanneauMenu.Élément
-        élément.décalage = décalage_élément + 5
-        élément.hauteur = hauteur_élément
-        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
-
-        si élément.largeur > largeur_max_élément {
-            largeur_max_élément = élément.largeur
-        }
-
-        éléments[index_it] = élément
-
-        décalage_élément -= hauteur_élément
-    }
-
-    rect.x = position.x
-    rect.largeur = largeur_max_élément + décalage_élément_x * 2
-    rect.hauteur = hauteur_éléments
-    rect.y = position.y - rect.hauteur
-}
-
-dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
-{
-    ajourne_disposition(panneau, ctx)
-    remplis_rectangle(ctx.peintre, rect, couleur_blanche)
-    dessine_rectangle(ctx.peintre, rect, couleur_grise)
-
-    si état.élément_survolé != -1 {
-        rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
-        remplis_rectangle(ctx.peintre, rect_élément, couleur_grise_claire)
-    }
-
-    métriques := donne_métriques_fonte(ctx.fonte)
-
-    rect_élément : RectanglePosDim(z32)
-    rect_élément.x = rect.x + décalage_élément_x
-    rect_élément.hauteur = métriques.donne_hauteur_ligne() comme z32
-
-    pour éléments {
-        rect_élément.largeur = it.largeur
-        rect_élément.y = rect.y + it.décalage
-
-        texte := menu.éléments[index_it].texte
-        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, couleur_noire)
-    }
-}
-
-observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
-{
-    saufsi rect.contient(souris.où) {
-        état.élément_survolé = -1
-        retourne
-    }
-
-    pour éléments {
-        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.contient(souris.où) {
-            continue
-        }
-
-        état.élément_survolé = index_it comme z32
-        arrête
-    }
-}
-
-donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauMenu, index_élément: z64) -> RectanglePosDim(z32)
-{
-    assert(index_élément >= 0)
-    assert(index_élément < éléments.taille)
-
-    élément := éléments[index_élément]
-
-    résultat: RectanglePosDim(z32)
-    résultat.x = rect.x
-    résultat.y = rect.y + élément.décalage - 5
-    résultat.hauteur = élément.hauteur
-    résultat.largeur = rect.largeur
-    retourne résultat
 }
 
 /** } */

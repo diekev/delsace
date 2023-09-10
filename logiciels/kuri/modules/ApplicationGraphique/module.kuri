@@ -162,6 +162,20 @@ cliente_possède_sur_création_fenêtre :: fonc ($TypeCliente: type_de_données)
     retourne vrai
 }
 
+cliente_possède_pilote_application :: fonc (infos: *InfoTypeStructure) -> bool
+{
+    membre_cliente := trouve_info_membre(infos, "pilote_application")
+    saufsi membre_cliente {
+        retourne faux
+    }
+
+    saufsi membre_cliente.id == info_de(*PiloteApplication) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 raporte_erreur_si_membre_invalide :: fonc (info_cliente: *InfoTypeStructure, membre: *InfoTypeMembreStructure, type_attendu: *InfoTypeFonction)
 {
     /* Aucun rappel peut avoir été défini. */

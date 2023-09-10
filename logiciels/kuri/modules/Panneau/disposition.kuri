@@ -29,9 +29,7 @@ dessine :: fonc (empl disposition: *Disposition, ctx: *ContexteAffichage)
     ajourne_disposition(disposition)
 
     pour panneaux {
-        si it.sur_dessin {
-            it.sur_dessin(it, ctx)
-        }
+        dessine(it, ctx)
     }
 }
 
@@ -43,39 +41,46 @@ définis_rectangle :: fonc (empl disposition: *Disposition, nouveau_rect: Rectan
 
 ajourne_disposition :: fonc (empl disposition: *Disposition)
 {
-    saufsi besoin_ajournement_disposition {
-        retourne
-    }
     diffère besoin_ajournement_disposition = faux
 
-    discr direction {
-        HORIZONTAL {
-            largeur_par_élément := rect.largeur / panneaux.taille comme z32
+    si panneaux.taille == 0 {
+        retourne
+    }
 
-            rect_panneau : RectanglePosDim(z32) = ---
-            rect_panneau.x = rect.x
-            rect_panneau.y = rect.y
-            rect_panneau.hauteur = rect.hauteur
-            rect_panneau.largeur = largeur_par_élément
+    si besoin_ajournement_disposition {
+        discr direction {
+            HORIZONTAL {
+                largeur_par_élément := rect.largeur / panneaux.taille comme z32
 
-            pour panneaux {
-                it.redimensionne_panneau(rect_panneau)
-                rect_panneau.x += largeur_par_élément
+                rect_panneau : RectanglePosDim(z32) = ---
+                rect_panneau.x = rect.x
+                rect_panneau.y = rect.y
+                rect_panneau.hauteur = rect.hauteur
+                rect_panneau.largeur = largeur_par_élément
+
+                pour panneaux {
+                    it.redimensionne_panneau(rect_panneau)
+                    rect_panneau.x += largeur_par_élément
+                }
+            }
+            VERTICAL {
+                hauteur_par_élément := rect.hauteur / panneaux.taille comme z32
+
+                rect_panneau : RectanglePosDim(z32) = ---
+                rect_panneau.x = rect.x
+                rect_panneau.y = rect.y
+                rect_panneau.hauteur = hauteur_par_élément
+                rect_panneau.largeur = rect.largeur
+
+                pour panneaux {
+                    it.redimensionne_panneau(rect_panneau)
+                    rect_panneau.y += hauteur_par_élément
+                }
             }
         }
-        VERTICAL {
-            hauteur_par_élément := rect.hauteur / panneaux.taille comme z32
+    }
 
-            rect_panneau : RectanglePosDim(z32) = ---
-            rect_panneau.x = rect.x
-            rect_panneau.y = rect.y
-            rect_panneau.hauteur = hauteur_par_élément
-            rect_panneau.largeur = rect.largeur
-
-            pour panneaux {
-                it.redimensionne_panneau(rect_panneau)
-                rect_panneau.y += hauteur_par_élément
-            }
-        }
+    pour panneaux {
+        ajourne_disposition(*it.disposition)
     }
 }
