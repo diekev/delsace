@@ -73,7 +73,7 @@ struct ÉtatChargementFichiers {
     /* Le nombre d'unité pour chaque raison d'être relative à des fichiers. Nous avons un nombre
      * pour chaque raison d'être mais seules les raisons de chargement/lexage/syntaxage sont
      * utilisées. */
-    ÉtatFileUnitésChargementFile nombre_d_unités_pour_raison[NOMBRE_DE_RAISON_D_ETRE] = {0};
+    ÉtatFileUnitésChargementFile nombre_d_unités_pour_raison[NOMBRE_DE_RAISON_D_ETRE] = {{}};
 
   public:
     /* Unités correspondants à des « charge » ou « importe ». */
