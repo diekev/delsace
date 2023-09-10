@@ -660,7 +660,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (appel->noeud_fonction_appelee) {
                 appel->expression->substitution = assem->cree_reference_declaration(
-                    appel->lexeme, appel->noeud_fonction_appelee->comme_entete_fonction());
+                    appel->lexeme, appel->noeud_fonction_appelee->comme_declaration_symbole());
             }
             else {
                 simplifie(appel->expression);

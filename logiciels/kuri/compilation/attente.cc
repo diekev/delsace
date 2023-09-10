@@ -50,7 +50,7 @@ static void émets_erreur_pour_attente_défaut(UniteCompilation const *unite, At
     espace
         ->rapporte_erreur(noeud,
                           "Je ne peux pas continuer la compilation car une unité est "
-                          "bloqué dans un cycle")
+                          "bloquée dans un cycle")
         .ajoute_message("\nNote : l'unité est dans l'état : ")
         .ajoute_message(unite->chaine_attentes_recursives())
         .ajoute_message("\n");
@@ -478,8 +478,10 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
 RAPPEL_POUR_ERREUR(symbole)
 {
     auto espace = unite->espace;
-    espace->rapporte_erreur(attente.symbole(),
-                            "Trop de cycles : arrêt de la compilation sur un symbole inconnu");
+    espace
+        ->rapporte_erreur(attente.symbole(),
+                          "Trop de cycles : arrêt de la compilation sur un symbole inconnu")
+        .ajoute_message("Le symbole attendu est « ", attente.symbole()->ident->nom, " »");
 }
 
 InfoTypeAttente info_type_attente_sur_symbole = {nullptr,
@@ -528,7 +530,7 @@ RAPPEL_POUR_COMMENTAIRE(message)
                 resultat << " " << message_code->code->nom;
             }
             else {
-                resultat << " noeud code nom généré";
+                resultat << " noeud code non encore généré";
             }
             break;
         }

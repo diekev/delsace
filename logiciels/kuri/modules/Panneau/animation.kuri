@@ -1,0 +1,36 @@
+/* ------------------------------------------------------------------------- */
+/** \nom Animation
+ * Structure pour représenter une animation d'une valeur source vers une valeur
+ * cible.
+ * \{ */
+
+Animation :: struct {
+    temps: z32
+    cible: z32
+    vitesse: r32
+}
+
+ajourne_animation :: fonc (animation: *Animation)
+{
+    animation.temps = ajourne_temps_animation(animation.temps, animation.cible, animation.vitesse)
+}
+
+animation_est_fini :: fonc (animation: Animation) -> bool #enligne
+{
+    retourne animation.temps == animation.cible
+}
+
+/** } */
+
+/* Utilise une courbe exponentielle auto-corrigeante pour calculer la nouvelle
+ * valeur de l'animation.
+ *
+ * La vitesse est la vitesse à laquelle nous atteignons la cible, et peut être
+ * variable durant l'animation.
+ *
+ * Source : https://www.rfleury.com/p/ui-part-2-build-it-every-frame-immediate/comment/6495247
+ */
+ajourne_temps_animation :: fonc (courant: z32, cible: z32, vitesse: r32) -> z32
+{
+    retourne courant + ((cible - courant) comme r32 * vitesse) comme z32
+}
