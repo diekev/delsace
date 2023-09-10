@@ -594,7 +594,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
          * validation sémantique plus tard. */
         if ((resultat->drapeaux & TYPE_POSSEDE_OPERATEURS_DE_BASE) == 0) {
             if (ajoute_operateurs) {
-                operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
+                operateurs_->ajoute_operateurs_basiques_pointeur(resultat);
             }
             resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
         }
@@ -609,7 +609,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     }
 
     if (ajoute_operateurs) {
-        operateurs_->ajoute_operateurs_basiques_pointeur(*this, resultat);
+        operateurs_->ajoute_operateurs_basiques_pointeur(resultat);
+        resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
     }
 
     type->type_pointeur = resultat;
@@ -775,7 +776,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     noeud->type = type;
 
     if (ajoute_operateurs) {
-        operateurs_->ajoute_operateurs_basiques_fonction(*this, type);
+        operateurs_->ajoute_operateurs_basiques_fonction(type);
     }
 
     POUR (type->types_entrees) {
@@ -1130,8 +1131,8 @@ bool requiers_création_fonction_initialisation(Type const *type)
 /** \name Accès aux membres des types composés.
  * \{ */
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_type(
-    TypeCompose const *type_composé, Type const *type)
+std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose const *type_composé,
+                                                                   Type const *type)
 {
     POUR_INDEX (type_composé->membres) {
         if (it.type == type) {
