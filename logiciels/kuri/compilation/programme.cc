@@ -691,31 +691,31 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
     return resultat;
 }
 
-void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnositic)
+void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnostique)
 {
-    if (!diagnositic.toutes_les_declarations_a_typer_le_sont) {
-        if (diagnositic.type_a_valider) {
+    if (!diagnostique.toutes_les_declarations_a_typer_le_sont) {
+        if (diagnostique.type_a_valider) {
             std::cerr << "-- validation non performée pour le type : "
-                      << chaine_type(diagnositic.type_a_valider) << '\n';
+                      << chaine_type(diagnostique.type_a_valider) << '\n';
         }
-        if (diagnositic.declaration_a_valider) {
+        if (diagnostique.declaration_a_valider) {
             std::cerr << "-- validation non performée pour déclaration "
-                      << nom_humainement_lisible(diagnositic.declaration_a_valider) << '\n';
+                      << nom_humainement_lisible(diagnostique.declaration_a_valider) << '\n';
         }
         return;
     }
 
-    if (diagnositic.fonction_initialisation_type_a_creer) {
+    if (diagnostique.fonction_initialisation_type_a_creer) {
         std::cerr << "-- fonction d'initialisation non-créée pour le type : "
-                  << chaine_type(diagnositic.ri_type_a_generer) << '\n';
+                  << chaine_type(diagnostique.ri_type_a_generer) << '\n';
     }
-    if (diagnositic.ri_type_a_generer) {
+    if (diagnostique.ri_type_a_generer) {
         std::cerr << "-- RI non générée pour la fonction d'initialisation du type : "
-                  << chaine_type(diagnositic.ri_type_a_generer) << '\n';
+                  << chaine_type(diagnostique.ri_type_a_generer) << '\n';
     }
-    if (diagnositic.ri_declaration_a_generer) {
+    if (diagnostique.ri_declaration_a_generer) {
         std::cerr << "-- RI non générée pour déclaration "
-                  << diagnositic.ri_declaration_a_generer->lexeme->chaine << '\n';
+                  << diagnostique.ri_declaration_a_generer->lexeme->chaine << '\n';
     }
 }
 
