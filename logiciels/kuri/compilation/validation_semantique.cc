@@ -1399,6 +1399,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_EMPL:
         {
             auto empl = noeud->comme_empl();
+
+            if (!empl->expression->est_declaration_variable()) {
+                espace->rapporte_erreur(empl->expression,
+                                        "Les directives empl ne sont pas supportées sur autre "
+                                        "chose que des déclarations de variables.");
+                return CodeRetourValidation::Erreur;
+            }
+
             auto decl = empl->expression->comme_declaration_variable();
 
             empl->type = decl->type;
