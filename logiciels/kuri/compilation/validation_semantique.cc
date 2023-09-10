@@ -852,7 +852,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto transformation = std::get<TransformationType>(resultat);
 
             if (transformation.type == TypeTransformation::INUTILE) {
-                espace->rapporte_avertissement(expr, "transtypage inutile");
+                /* À FAIRE : ne rapporte pas d'avertissements si le transtypage se fait vers le
+                 * type monomorphé. */
+                if (fonction_courante() && !fonction_courante()->possede_drapeau(
+                                               DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+                    espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
+                }
             }
 
             if (transformation.type == TypeTransformation::IMPOSSIBLE) {
@@ -1394,6 +1399,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_EMPL:
         {
             auto empl = noeud->comme_empl();
+
+            if (!empl->expression->est_declaration_variable()) {
+                espace->rapporte_erreur(empl->expression,
+                                        "Les directives empl ne sont pas supportées sur autre "
+                                        "chose que des déclarations de variables.");
+                return CodeRetourValidation::Erreur;
+            }
+
             auto decl = empl->expression->comme_declaration_variable();
 
             empl->type = decl->type;
