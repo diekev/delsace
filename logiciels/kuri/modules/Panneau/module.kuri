@@ -41,6 +41,8 @@ ContexteInterface :: struct {
     menu_affiché: *PanneauMenu
     fonte: *Fonte
 
+    diviseurs: []*PanneauDiviseur
+
     panneau_racine: *Panneau
 
     panneau_cliqué: *Panneau
