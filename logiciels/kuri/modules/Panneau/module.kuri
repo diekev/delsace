@@ -1,4 +1,19 @@
-/* Module pour dessiner et gérer des interfaces graphiques. */
+/* Module pour dessiner et gérer des interfaces graphiques.
+ *
+ * Comportement pour les évènements.
+ *
+ * Panneau.sur_clique_souris doit retourner vrai si le panneau a gérer le
+ * clique. Les évènements de mouvement et de clique souris suivant seront
+ * envoyés à ce panneau jusqu'au prochain évènement de clique ayant comme
+ * action ActionSouris.RELACHÉE
+ *
+ * Panneau.sur_début_survol est émis quand la souris entre dans le rect du
+ * panneau.
+ *
+ * Panneau.sur_fin_survol est émis quand la souris sors du rect du panneau.
+ * Additionnellement, précédemment à l'émission de cet évènement,
+ * Panneau.sur_déplacement_souris est émis.
+ */
 
 importe Couleur
 importe Fondation
@@ -46,6 +61,7 @@ ContexteInterface :: struct {
     panneau_racine: *Panneau
 
     panneau_cliqué: *Panneau
+    panneau_survolé: *Panneau
 
     rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
 }
@@ -79,12 +95,29 @@ détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
 {
+    diffère {
+        si clique.action == ActionSouris.RELACHÉE {
+            panneau_cliqué = nul
+        }
+    }
+
     si gère_clique_souris(panneau_cliqué, clique) {
         // imprime("Clique géré par %\n", panneau_cliqué.identifiant)
         retourne
     }
 
-    panneau_cliqué = trouve_panneau_cliqué(contexte.panneau_racine, clique)
+    saufsi panneau_survolé {
+        nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clique.état)
+        si nouveau_panneau_survolé != panneau_survolé {
+            fini_survol_panneau(panneau_survolé, clique.état)
+            débute_survol_panneau(nouveau_panneau_survolé)
+        }
+        nouveau_panneau_survolé = panneau_survolé
+    }
+
+    si panneau_survolé && gère_clique_souris(panneau_survolé, clique) {
+        panneau_cliqué = panneau_survolé
+    }
 
     // si panneau_cliqué {
     //     imprime("Clique sur panneau '%'\n", panneau_cliqué.identifiant)
@@ -94,29 +127,68 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
     // }
 }
 
-trouve_panneau_cliqué :: fonc (panneau_racine: *Panneau, clique: CliqueSouris) -> *Panneau
+sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
+{
+    si panneau_cliqué {
+        si panneau_cliqué.sur_déplacement_souris {
+            panneau_cliqué.sur_déplacement_souris(panneau_cliqué, état)
+        }
+
+        retourne
+    }
+
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état)
+    si nouveau_panneau_survolé != panneau_survolé {
+        fini_survol_panneau(panneau_survolé, état)
+        débute_survol_panneau(nouveau_panneau_survolé)
+    }
+
+    panneau_survolé = nouveau_panneau_survolé
+
+    saufsi panneau_survolé {
+        // imprime("Aucun panneau survolé\n")
+        retourne
+    }
+
+    // imprime("Survole panneau : %\n", panneau_survolé.identifiant)
+    si panneau_survolé.sur_déplacement_souris {
+        panneau_survolé.sur_déplacement_souris(panneau_survolé, état)
+    }
+}
+
+trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris) -> *Panneau
+{
+    si menu_affiché && menu_affiché.rect.contient(état.où) {
+        retourne menu_affiché
+    }
+
+    pour diviseurs {
+        si it.rect.contient(état.où) {
+            retourne it
+        }
+    }
+
+    retourne trouve_panneau_survolé_récursif(panneau_racine, état)
+}
+
+trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: ÉtatSouris) -> *Panneau
 {
     saufsi panneau_racine {
         retourne nul
     }
 
     pour panneau_racine.enfants {
-        panneau_candidat := trouve_panneau_cliqué(it, clique)
+        panneau_candidat := trouve_panneau_survolé_récursif(it, état)
         si panneau_candidat {
             retourne panneau_candidat
         }
     }
 
-    si gère_clique_souris(panneau_racine, clique) {
+    si panneau_racine.rect.contient(état.où) {
         retourne panneau_racine
     }
 
     retourne nul
-}
-
-sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
-{
-    sur_déplacement_souris_récursif(panneau_racine, état)
 }
 
 dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage: *ContexteAffichage)
