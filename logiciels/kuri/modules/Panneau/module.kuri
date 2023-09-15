@@ -48,11 +48,9 @@ ContexteInterface :: struct {
     rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
 }
 
-initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
+initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
 {
-    résultat: ContexteInterface
-    résultat.fonte = fonte
-    retourne résultat
+    contexte.fonte = fonte
 }
 
 crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_données) -> *TypePanneau
