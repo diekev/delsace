@@ -29,6 +29,12 @@ ContexteAffichage :: struct {
  * Il permet de créer les panneaux pour chaque fenêtre.
  * Il stocke l'état de l'interface : les éléments actifs/focalisés.
  * Chaque panneau possède une référence à ce contexte.
+ *
+ * rappel_définis_curseur_souris peut être mise en place par les applications
+ * cliente afin que les panneaux puissent définir un curseur (par exemple
+ * lorsque survolé). Il est suggéré d'utiliser son propre type de contexte par
+ * composition avec celui-ci afin de pouvoir savoir pour quel contexte le
+ * curseur doit être définis.
  */
 ContexteInterface :: struct {
     /* Le menu étant affiché. */
@@ -38,6 +44,8 @@ ContexteInterface :: struct {
     panneau_racine: *Panneau
 
     panneau_cliqué: *Panneau
+
+    rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
 }
 
 initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
@@ -123,6 +131,15 @@ dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage:
     si menu_affiché {
         sur_dessin_récursif(menu_affiché, contexte_affichage)
     }
+}
+
+définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur: TypeCurseurSystème)
+{
+    saufsi rappel_définis_curseur_souris {
+        retourne
+    }
+
+    rappel_définis_curseur_souris(contexte, type_curseur)
 }
 
 /** } */
