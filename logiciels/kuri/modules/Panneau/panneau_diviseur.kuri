@@ -57,6 +57,16 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         retourne vrai
     }
 
+    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    {
+        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE_DOUBLE_HORIZONTALE)
+    }
+
+    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    {
+        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE)
+    }
+
     sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
     {
         ajourne_disposition(panneau_diviseur)
@@ -89,6 +99,8 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
     résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
     résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_redimension = sur_redimension
+    résultat.sur_début_survol = enveloppe_rappel(sur_début_survol)
+    résultat.sur_fin_survol = enveloppe_rappel(sur_fin_survol)
     retourne résultat
 }
 

@@ -167,6 +167,8 @@ Panneau :: struct {
     sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
     sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
+    sur_début_survol: fonc(*Panneau)(rien)
+    sur_fin_survol: fonc(*Panneau)(rien)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
@@ -240,6 +242,34 @@ sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris
 
     pour panneau.enfants {
         sur_déplacement_souris_récursif(it, état)
+    }
+}
+
+débute_survol_panneau :: fonc (panneau: *Panneau)
+{
+    /* Permet de passer nul. */
+    saufsi panneau && panneau.sur_début_survol {
+        retourne
+    }
+
+    panneau.sur_début_survol(panneau)
+}
+
+fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
+{
+    /* Permet de passer nul. */
+    saufsi panneau {
+        retourne
+    }
+
+    /* Émets un évènement de déplacement de souris pour permettre au panneau de
+     * réinitialiser son état. */
+    si panneau.sur_déplacement_souris {
+        panneau.sur_déplacement_souris(panneau, état)
+    }
+
+    si panneau.sur_fin_survol {
+        panneau.sur_fin_survol(panneau)
     }
 }
 
