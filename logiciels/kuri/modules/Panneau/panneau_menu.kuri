@@ -310,9 +310,26 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
         observe_souris(panneau_menu, souris)
     }
 
-    sur_clique_souris :: fonc (panneau_menu: *PanneauMenu @inutilisée, clique: CliqueSouris @inutilisée) -> bool
+    sur_clique_souris :: fonc (empl panneau_menu: *PanneauMenu, clique: CliqueSouris) -> bool
     {
-        // À FAIRE
+        saufsi rect.contient(clique.état.où) {
+            retourne faux
+        }
+
+        si clique.action == ActionSouris.PRESSÉE {
+            état.élément_pressé = état.élément_survolé
+            retourne vrai
+        }
+
+        si clique.action == ActionSouris.RELACHÉE {
+            élément := menu.éléments[état.élément_pressé]
+            si élément.bouton && élément.bouton.sur_clique {
+                élément.bouton.sur_clique(élément.bouton)
+            }
+            panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            retourne vrai
+        }
+
         retourne faux
     }
 
