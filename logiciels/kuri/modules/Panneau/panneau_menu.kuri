@@ -221,6 +221,7 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
             anime_élément_pour_pression(panneau)
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
             panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
+            panneau_menu.panneau_barre_de_menu = panneau
             contexte.définis_panneau_menu(panneau_menu)
         }
     }
@@ -289,6 +290,7 @@ PanneauMenu :: struct {
         élément_survolé : z32 = -1
     }
 
+    panneau_barre_de_menu: *PanneauBarreDeMenu
     menu: *Menu
     éléments: []Élément
     position: Point2D(z32)

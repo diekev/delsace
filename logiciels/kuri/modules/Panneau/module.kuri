@@ -86,11 +86,22 @@ définis_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMe
     contexte.menu_affiché = panneau
 }
 
-détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
+détruit_panneau_menu :: fonc (empl contexte: *ContexteInterface)
 {
-    si contexte.menu_affiché {
-        détruit_panneau_menu(contexte.menu_affiché)
+    saufsi menu_affiché {
+        retourne
     }
+
+    si menu_affiché == panneau_survolé {
+        panneau_survolé = nul
+    }
+
+    si menu_affiché == panneau_cliqué {
+        panneau_cliqué = nul
+    }
+
+    détruit_panneau_menu(menu_affiché)
+    menu_affiché = nul
 }
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
@@ -117,6 +128,13 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
 
     si panneau_survolé && gère_clique_souris(panneau_survolé, clique) {
         panneau_cliqué = panneau_survolé
+    }
+
+    /* À FAIRE : bouge ça d'ici. */
+    si menu_affiché && panneau_cliqué != menu_affiché {
+        si clique.action != ActionSouris.PRESSÉE {
+            menu_affiché.panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+        }
     }
 
     // si panneau_cliqué {
@@ -438,11 +456,6 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
 
 reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
 {
-    si gère_clique_souris(contexte.menu_affiché, clique) {
-        imprime("Clique dans menu affiché !\n")
-        retourne vrai
-    }
-
     si gère_clique_souris(barre_de_menu, clique) {
         imprime("Clique dans barre de menu !\n")
         retourne vrai
@@ -461,10 +474,6 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
 {
     si barre_de_menu {
         barre_de_menu.sur_déplacement_souris(barre_de_menu, souris)
-    }
-
-    si contexte.menu_affiché {
-        contexte.menu_affiché.sur_déplacement_souris(contexte.menu_affiché, souris)
     }
 }
 
