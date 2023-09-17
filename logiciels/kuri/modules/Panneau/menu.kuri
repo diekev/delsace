@@ -28,6 +28,12 @@ crée_barre_de_menu :: fonc () -> *BarreDeMenu
 /** \nom Menu
  * \{ */
 
+/* À FAIRE :
+ * - icones
+ * - raccouricis clavier
+ * - séparateur
+ * - sous-menu
+ */
 Menu :: struct {
     Élément :: struct {
         texte: chaine
