@@ -291,6 +291,18 @@ static void imprime_noeud_index_courant_unité(
 
     auto site = arbre_aplatis[unité->index_courant];
     os << "-- " << *site << '\n';
+
+    if (site->est_appel()) {
+        auto appel = site->comme_appel();
+
+        if (appel->état_résolution_appel) {
+            std::cerr << "-- " << static_cast<int>(appel->état_résolution_appel->état) << '\n';
+        }
+        else {
+            std::cerr << "-- aucun état de résolution pour l'expression "
+                         "d'appel\n";
+        }
+    }
 }
 
 void imprime_noeud_index_courant_unité(std::ostream &os,
