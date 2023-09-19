@@ -150,6 +150,32 @@ donne_rect_interne_vertical :: fonc (rect: RectanglePosDim($T), position_relativ
     retourne résultat
 }
 
+/* Retourne les positions des coins du rectangle dans l'ordre suivant :
+ *    3 +--------+ 2
+ *      |        |
+ *      |        |
+ *      |        |
+ *    0 +--------+ 1
+ */
+donne_positions_coins :: fonc (rect: RectanglePosDim($T)) -> [4]Point2D(T)
+{
+    résultat : [4]Point2D(T) = ---
+
+    résultat[0].x = rect.x
+    résultat[0].y = rect.y
+
+    résultat[1].x = rect.x + rect.largeur
+    résultat[1].y = rect.y
+
+    résultat[2].x = rect.x + rect.largeur
+    résultat[2].y = rect.y + rect.hauteur
+
+    résultat[3].x = rect.x
+    résultat[3].y = rect.y + rect.hauteur
+
+    retourne résultat
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */

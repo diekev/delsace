@@ -28,30 +28,44 @@ crée_barre_de_menu :: fonc () -> *BarreDeMenu
 /** \nom Menu
  * \{ */
 
+/* À FAIRE :
+ * - icones
+ * - raccouricis clavier
+ * - séparateur
+ * - sous-menu
+ */
 Menu :: struct {
     Élément :: struct {
         texte: chaine
+        bouton: *Bouton
     }
 
     texte: chaine
     éléments: []Élément
 }
 
+importe Fondation
+
 crée_menu :: fonc (texte: chaine, éléments: []chaine) -> *Menu
 {
     résultat := loge(Menu)
     résultat.texte = texte
 
+    sur_clique_bouton :: fonc (b: *Bouton)
+    {
+        imprime("Clique bouton : %\n", b.texte)
+    }
+
     pour éléments {
-        résultat.ajoute_élément(it)
+        résultat.ajoute_élément(crée_bouton(it, sur_clique_bouton))
     }
 
     retourne résultat
 }
 
-ajoute_élément :: fonc (menu: *Menu, texte: chaine)
+ajoute_élément :: fonc (menu: *Menu, bouton: *Bouton)
 {
-    tableau_ajoute(*menu.éléments, Menu.Élément(texte))
+    tableau_ajoute(*menu.éléments, Menu.Élément(bouton.texte, bouton))
 }
 
 /** } */
