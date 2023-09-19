@@ -12,7 +12,16 @@ importe Typographie
 PanneauDiviseur :: struct {
     empl base: Panneau
 
+    /* Rect du diviseur pour le dessin hors survol/modification. */
     rect_diviseur: RectanglePosDim(z32)
+
+    /* Rect du diviseur pour le dessin lors de survol/modification. */
+    rect_édition: RectanglePosDim(z32)
+
+    /* Le rect passé à sur_redimension. Notre rect sera uniquement le rect
+     * utilisé pour les survols de souris et l'édition. */
+    rect_orig: RectanglePosDim(z32)
+
     position_relative: r32 = 0.5
     est_survolé: bool
     souris_pressée: bool
@@ -22,18 +31,18 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 {
     sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
     {
-        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect_diviseur.contient(souris.où)
+        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect.contient(souris.où)
 
         si panneau_diviseur.souris_pressée {
             /* À FAIRE : position relative de la souris dans le rect parent ! */
-            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect.largeur comme r32
+            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect_orig.largeur comme r32
             panneau_diviseur.besoin_ajournement_disposition = vrai
         }
     }
 
     sur_clique_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clique: CliqueSouris) -> bool
     {
-        saufsi panneau_diviseur.rect_diviseur.contient(clique.état.où) {
+        saufsi panneau_diviseur.rect.contient(clique.état.où) {
             panneau_diviseur.souris_pressée = faux
             retourne faux
         }
@@ -46,6 +55,16 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         }
 
         retourne vrai
+    }
+
+    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    {
+        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE_DOUBLE_HORIZONTALE)
+    }
+
+    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    {
+        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE)
     }
 
     sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
@@ -70,14 +89,18 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         panneau.rect = rect_disponible
         panneau_diviseur := panneau comme *PanneauDiviseur
         panneau_diviseur.besoin_ajournement_disposition = vrai
+        panneau_diviseur.rect_orig = panneau.rect
         ajourne_disposition(panneau_diviseur)
     }
 
     résultat := ctx.crée_panneau(PanneauDiviseur)
+    tableau_ajoute(*ctx.diviseurs, résultat)
     résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
     résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
     résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_redimension = sur_redimension
+    résultat.sur_début_survol = enveloppe_rappel(sur_début_survol)
+    résultat.sur_fin_survol = enveloppe_rappel(sur_fin_survol)
     retourne résultat
 }
 
@@ -88,10 +111,16 @@ ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
     }
     diffère panneau.besoin_ajournement_disposition = faux
 
-    rect_diviseur := donne_rect_interne_vertical(panneau.rect, panneau.position_relative, 3)
-    rect_gauche, rect_droit := divise_verticalement(panneau.rect, rect_diviseur)
+    rect_diviseur := donne_rect_interne_vertical(panneau.rect_orig, panneau.position_relative, 3)
+    rect_gauche, rect_droit := divise_verticalement(panneau.rect_orig, rect_diviseur)
+
+    rect_édition := rect_diviseur
+    rect_édition.x -= 1
+    rect_édition.largeur += 2
 
     panneau.rect_diviseur = rect_diviseur
+    panneau.rect_édition = rect_édition
+    panneau.rect = rect_édition
 
     nombre_enfants := panneau.enfants.taille
     si nombre_enfants == 0 {
