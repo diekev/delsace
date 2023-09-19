@@ -53,6 +53,7 @@ Peintre :: struct {
 
     /* Dessine le segment avec la couleur donnée. */
     rappel_dessine_segment : fonc (*Peintre, LignePeintre, CouleurPeintre)(rien)
+    rappel_dessine_segments : fonc (*Peintre, []LignePeintre, CouleurPeintre)(rien)
 
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte : fonc (*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
@@ -124,6 +125,11 @@ dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: Couleu
     peintre.rappel_dessine_segment(peintre, ligne, couleur)
 }
 
+dessine_segments :: fonc (peintre: *Peintre, ligne: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_segments(peintre, ligne, couleur)
+}
+
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
@@ -185,6 +191,7 @@ crée_peintre_module_dessin :: fonc (taille_cannevas: Taille) -> *PeintreDessin
     peintre.rappel_dessine_cercle = dessine_cercle_dessin
     peintre.rappel_remplis_cercle = remplis_cercle_dessin
     peintre.rappel_dessine_segment = dessine_segment_dessin
+    peintre.rappel_dessine_segments = dessine_segments_dessin
     peintre.rappel_dessine_texte = dessine_texte_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
@@ -354,6 +361,17 @@ dessine_segment_dessin :: fonc (peintre: *Peintre, segment_peintre: LignePeintre
     dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
 }
 
+dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    couleur := donne_couleur_dessin(couleur_peintre)
+
+    pour segments_peintre {
+        segment := donne_ligne_dessin(it)
+        dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
+    }
+}
+
 dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
@@ -439,6 +457,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_dessine_cercle = dessine_cercle_igumi
     peintre.rappel_remplis_cercle = remplis_cercle_igumi
     peintre.rappel_dessine_segment = dessine_segment_igumi
+    peintre.rappel_dessine_segments = dessine_segments_igumi
     peintre.rappel_dessine_texte = dessine_texte_igumi
     peintre.rappel_dessine_image = dessine_image_igumi
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
@@ -644,6 +663,20 @@ dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: 
     diffère termine_immédiat(ModeImmédiat.LIGNES)
 
     segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
+}
+
+dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
+{
+    couleur := donne_couleur_igumi(couleur_peintre)
+
+    utilise_nuanceur(nuanceur_base)
+    commence_immédiat()
+    diffère termine_immédiat(ModeImmédiat.LIGNES)
+
+    pour segments_peintre {
+        segment := donne_ligne_igumi(it)
+        segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
+    }
 }
 
 dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
