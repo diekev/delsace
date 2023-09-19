@@ -1,4 +1,19 @@
-/* Module pour dessiner et gérer des interfaces graphiques. */
+/* Module pour dessiner et gérer des interfaces graphiques.
+ *
+ * Comportement pour les évènements.
+ *
+ * Panneau.sur_clique_souris doit retourner vrai si le panneau a gérer le
+ * clique. Les évènements de mouvement et de clique souris suivant seront
+ * envoyés à ce panneau jusqu'au prochain évènement de clique ayant comme
+ * action ActionSouris.RELACHÉE
+ *
+ * Panneau.sur_début_survol est émis quand la souris entre dans le rect du
+ * panneau.
+ *
+ * Panneau.sur_fin_survol est émis quand la souris sors du rect du panneau.
+ * Additionnellement, précédemment à l'émission de cet évènement,
+ * Panneau.sur_déplacement_souris est émis.
+ */
 
 importe Couleur
 importe Fondation
@@ -29,22 +44,31 @@ ContexteAffichage :: struct {
  * Il permet de créer les panneaux pour chaque fenêtre.
  * Il stocke l'état de l'interface : les éléments actifs/focalisés.
  * Chaque panneau possède une référence à ce contexte.
+ *
+ * rappel_définis_curseur_souris peut être mise en place par les applications
+ * cliente afin que les panneaux puissent définir un curseur (par exemple
+ * lorsque survolé). Il est suggéré d'utiliser son propre type de contexte par
+ * composition avec celui-ci afin de pouvoir savoir pour quel contexte le
+ * curseur doit être définis.
  */
 ContexteInterface :: struct {
     /* Le menu étant affiché. */
     menu_affiché: *PanneauMenu
     fonte: *Fonte
 
+    diviseurs: []*PanneauDiviseur
+
     panneau_racine: *Panneau
 
     panneau_cliqué: *Panneau
+    panneau_survolé: *Panneau
+
+    rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
 }
 
-initialise_un_contexte_interface :: fonc (fonte: *Fonte) -> ContexteInterface
+initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
 {
-    résultat: ContexteInterface
-    résultat.fonte = fonte
-    retourne résultat
+    contexte.fonte = fonte
 }
 
 crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_données) -> *TypePanneau
@@ -62,21 +86,56 @@ définis_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMe
     contexte.menu_affiché = panneau
 }
 
-détruit_panneau_menu :: fonc (contexte: *ContexteInterface)
+détruit_panneau_menu :: fonc (empl contexte: *ContexteInterface)
 {
-    si contexte.menu_affiché {
-        détruit_panneau_menu(contexte.menu_affiché)
+    saufsi menu_affiché {
+        retourne
     }
+
+    si menu_affiché == panneau_survolé {
+        panneau_survolé = nul
+    }
+
+    si menu_affiché == panneau_cliqué {
+        panneau_cliqué = nul
+    }
+
+    détruit_panneau_menu(menu_affiché)
+    menu_affiché = nul
 }
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
 {
+    diffère {
+        si clique.action == ActionSouris.RELACHÉE {
+            panneau_cliqué = nul
+        }
+    }
+
     si gère_clique_souris(panneau_cliqué, clique) {
         // imprime("Clique géré par %\n", panneau_cliqué.identifiant)
         retourne
     }
 
-    panneau_cliqué = trouve_panneau_cliqué(contexte.panneau_racine, clique)
+    saufsi panneau_survolé {
+        nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clique.état)
+        si nouveau_panneau_survolé != panneau_survolé {
+            fini_survol_panneau(panneau_survolé, clique.état)
+            débute_survol_panneau(nouveau_panneau_survolé)
+        }
+        nouveau_panneau_survolé = panneau_survolé
+    }
+
+    si panneau_survolé && gère_clique_souris(panneau_survolé, clique) {
+        panneau_cliqué = panneau_survolé
+    }
+
+    /* À FAIRE : bouge ça d'ici. */
+    si menu_affiché && panneau_cliqué != menu_affiché {
+        si clique.action != ActionSouris.PRESSÉE {
+            menu_affiché.panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+        }
+    }
 
     // si panneau_cliqué {
     //     imprime("Clique sur panneau '%'\n", panneau_cliqué.identifiant)
@@ -86,29 +145,68 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
     // }
 }
 
-trouve_panneau_cliqué :: fonc (panneau_racine: *Panneau, clique: CliqueSouris) -> *Panneau
+sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
+{
+    si panneau_cliqué {
+        si panneau_cliqué.sur_déplacement_souris {
+            panneau_cliqué.sur_déplacement_souris(panneau_cliqué, état)
+        }
+
+        retourne
+    }
+
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état)
+    si nouveau_panneau_survolé != panneau_survolé {
+        fini_survol_panneau(panneau_survolé, état)
+        débute_survol_panneau(nouveau_panneau_survolé)
+    }
+
+    panneau_survolé = nouveau_panneau_survolé
+
+    saufsi panneau_survolé {
+        // imprime("Aucun panneau survolé\n")
+        retourne
+    }
+
+    // imprime("Survole panneau : %\n", panneau_survolé.identifiant)
+    si panneau_survolé.sur_déplacement_souris {
+        panneau_survolé.sur_déplacement_souris(panneau_survolé, état)
+    }
+}
+
+trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris) -> *Panneau
+{
+    si menu_affiché && menu_affiché.rect.contient(état.où) {
+        retourne menu_affiché
+    }
+
+    pour diviseurs {
+        si it.rect.contient(état.où) {
+            retourne it
+        }
+    }
+
+    retourne trouve_panneau_survolé_récursif(panneau_racine, état)
+}
+
+trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: ÉtatSouris) -> *Panneau
 {
     saufsi panneau_racine {
         retourne nul
     }
 
     pour panneau_racine.enfants {
-        panneau_candidat := trouve_panneau_cliqué(it, clique)
+        panneau_candidat := trouve_panneau_survolé_récursif(it, état)
         si panneau_candidat {
             retourne panneau_candidat
         }
     }
 
-    si gère_clique_souris(panneau_racine, clique) {
+    si panneau_racine.rect.contient(état.où) {
         retourne panneau_racine
     }
 
     retourne nul
-}
-
-sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
-{
-    sur_déplacement_souris_récursif(panneau_racine, état)
 }
 
 dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage: *ContexteAffichage)
@@ -123,6 +221,15 @@ dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage:
     si menu_affiché {
         sur_dessin_récursif(menu_affiché, contexte_affichage)
     }
+}
+
+définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur: TypeCurseurSystème)
+{
+    saufsi rappel_définis_curseur_souris {
+        retourne
+    }
+
+    rappel_définis_curseur_souris(contexte, type_curseur)
 }
 
 /** } */
@@ -150,6 +257,8 @@ Panneau :: struct {
     sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
     sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
+    sur_début_survol: fonc(*Panneau)(rien)
+    sur_fin_survol: fonc(*Panneau)(rien)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
@@ -223,6 +332,34 @@ sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris
 
     pour panneau.enfants {
         sur_déplacement_souris_récursif(it, état)
+    }
+}
+
+débute_survol_panneau :: fonc (panneau: *Panneau)
+{
+    /* Permet de passer nul. */
+    saufsi panneau && panneau.sur_début_survol {
+        retourne
+    }
+
+    panneau.sur_début_survol(panneau)
+}
+
+fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
+{
+    /* Permet de passer nul. */
+    saufsi panneau {
+        retourne
+    }
+
+    /* Émets un évènement de déplacement de souris pour permettre au panneau de
+     * réinitialiser son état. */
+    si panneau.sur_déplacement_souris {
+        panneau.sur_déplacement_souris(panneau, état)
+    }
+
+    si panneau.sur_fin_survol {
+        panneau.sur_fin_survol(panneau)
     }
 }
 
@@ -319,11 +456,6 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
 
 reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
 {
-    si gère_clique_souris(contexte.menu_affiché, clique) {
-        imprime("Clique dans menu affiché !\n")
-        retourne vrai
-    }
-
     si gère_clique_souris(barre_de_menu, clique) {
         imprime("Clique dans barre de menu !\n")
         retourne vrai
@@ -342,10 +474,6 @@ observe_souris :: fonc (empl panneau: *PanneauInterface, souris: ÉtatSouris)
 {
     si barre_de_menu {
         barre_de_menu.sur_déplacement_souris(barre_de_menu, souris)
-    }
-
-    si contexte.menu_affiché {
-        contexte.menu_affiché.sur_déplacement_souris(contexte.menu_affiché, souris)
     }
 }
 

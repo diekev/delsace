@@ -299,3 +299,31 @@ partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Copie
+ * \{ */
+
+/* Copie les éléments entre [début_src, fin_scr) dans la zone commençant à
+ * début_dst selon le prédicat p. Seuls les éléments satisfaisant le prédicat
+ * seront copiés.
+ * Retourne l'adresse suivant le dernier élément dans début_dst (le nombre
+ * d'éléments copiés sera (résultat - début_dst). */
+copie_si :: fonc (début_src: *$T, fin_src: *T, début_dst: *T, p: fonc(T)(bool)) -> *T
+{
+	tantque début != fin_src {
+		valeur := mémoire(début_src)
+		début_src += 1
+
+		saufsi p(valeur) {
+			continue
+		}
+
+		mémoire(début_dst) = valeur
+		début_dst += 1
+	}
+
+	retourne début_dst
+}
+
+/** } */
