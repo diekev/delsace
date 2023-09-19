@@ -123,69 +123,6 @@ Test pour les retours de pointeurs
 
 nettoye la syntaxeuse pour dédupliquer les logiques de parsage des déclarations
 
--- ajout d'un état aux validations des appels
-    - étape rassemble candidates
-    - valide candidates
-    - candidate choisie
-
-struct EtatValidationAppel {
-    enum {
-        NON_COMMENCE,
-        CANDIDATES_RASSEMBLEES,
-        CANDIDATES_VALIDEES,
-        CANDIDATE_CHOISIE,
-        VALIDATION_TERMINEE,
-    };
-
-    int etat = NON_COMMENCE;
-
-    dls::tablet<Candidates> candidates{};
-    Candidate *candidate_choisie = nullptr;
-
-    /* l'index pour reprendre la validation des candidates */
-    int index = 0;
-
-
-};
-
-switch (expr->etat_validation.etat) {
-    case EtatValidationAppel::NON_COMMENCE:
-    {
-        break;
-    }
-    case EtatValidationAppel::CANDIDATES_RASSEMBLEES:
-    {
-        /* reprend la validation des candidates là où nous sommes arrêtés */
-        if (valide_candidates(...)) {
-            return true;
-        }
-
-        auto candidate_choisie = ...;
-
-
-        expr->etat_validation.candidate_choisie = candidate_choisie;
-        expr->etat_validation.etat = EtatValidationAppel.CANDIDATES_VALIDEES;
-
-        if (valide_candidate_choisie()) {
-
-        }
-
-        break;
-    }
-    case EtatValidationAppel::CANDIDATE_CHOISIE:
-    {
-        if (valide_candidate_choisie(...)) {
-
-        }
-
-        break;
-    }
-    case EtatValidationAppel::VALIDATION_TERMINEE:
-    {
-        break;
-    }
-}
-
 plusieurs threads d'exécutions pour le typage ou la génération de RI
 
 remplace les noeuds de dépendances par des unités de compilations

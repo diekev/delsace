@@ -13,6 +13,8 @@
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
+struct NoeudDeclarationCorpsFonction;
+struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
 struct Programme;
 
@@ -177,6 +179,11 @@ struct UniteCompilation {
         return m_historique;
     }
 
+    kuri::tableau_statique<Attente> donne_attentes() const
+    {
+        return m_attentes;
+    }
+
     inline Attente *attend_sur_message(Message const *message_)
     {
         POUR (m_attentes) {
@@ -244,3 +251,22 @@ struct UniteCompilation {
 
 const char *chaine_état_unité_compilation(UniteCompilation::État état);
 std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxilliaires pour le débogage.
+ * \{ */
+
+void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité);
+
+void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité);
+
+/** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
+void imprime_état_unité(std::ostream &os, const UniteCompilation *unité);
+
+void imprime_noeud_index_courant_unité(std::ostream &os,
+                                       const NoeudDeclarationEnteteFonction *entête);
+
+void imprime_noeud_index_courant_unité(std::ostream &os,
+                                       const NoeudDeclarationCorpsFonction *corps);
+
+/** \} */

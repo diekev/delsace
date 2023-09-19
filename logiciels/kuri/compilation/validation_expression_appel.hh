@@ -403,6 +403,74 @@ struct CandidateAppariement {
     }
 };
 
+using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
+
+static constexpr auto TAILLE_CANDIDATES_DEFAUT = 10;
+
+struct CandidateExpressionAppel {
+    int quoi = 0;
+    NoeudExpression *decl = nullptr;
+};
+
+using ListeCandidatesExpressionAppel =
+    kuri::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
+
+/* ------------------------------------------------------------------------- */
+/** \name État de la résolution d'une expression d'appel.
+ * \{ */
+
+/**
+ * Cette structure stocke l'état de la résolution d'une expression d'appel afin
+ * de pouvoir reprendre la résolution de l'expression après qu'une attente fut
+ * émise pour ne pas refaire du travail redondant.
+ */
+struct EtatResolutionAppel {
+    enum class État {
+        RÉSOLUTION_NON_COMMENCÉE,
+        ARGUMENTS_RASSEMBLÉS,
+        LISTE_CANDIDATES_CRÉÉE,
+        APPARIEMENT_CANDIDATES_FAIT,
+        CANDIDATE_SÉLECTIONNÉE,
+        TERMINÉ,
+    };
+
+    État état = État::RÉSOLUTION_NON_COMMENCÉE;
+
+    /* Les arguments de l'expression d'appel mis sous forme de paires
+     * ident-expression. Les identifiants code peuvent être nuls si les
+     * arguments ne sont pas nommés. Ceci est utilisé pour simplifier
+     * l'accès à ces données ; pour ne pas avoir à toujours les parser. */
+    kuri::tableau<IdentifiantEtExpression> args{};
+
+    /* La liste de chaque déclaration pouvant être choisi pour déterminer
+     * ce qui est appelé. */
+    ListeCandidatesExpressionAppel liste_candidates{};
+
+    /* Les #ResultatAppariements pour chaque déclaration candidate à l'élection
+     * de l'expression appelée. */
+    kuri::tablet<ResultatAppariement, 10> résultats{};
+
+    /* Les candidates choisis lors de l'appariement. */
+    kuri::tablet<CandidateAppariement, 10> candidates{};
+    /* Erreurs survenues durant l'élection. */
+    kuri::tablet<ErreurAppariement, 10> erreurs{};
+
+    CandidateAppariement *candidate_finale = nullptr;
+
+    void réinitialise()
+    {
+        état = État::RÉSOLUTION_NON_COMMENCÉE;
+        args.efface();
+        résultats.efface();
+        liste_candidates.efface();
+        candidates.efface();
+        erreurs.efface();
+        candidate_finale = nullptr;
+    }
+};
+
+/** \} */
+
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          ContexteValidationCode &contexte_validation,

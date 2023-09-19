@@ -20,8 +20,6 @@
 #include "portee.hh"
 #include "validation_semantique.hh"
 
-using ResultatAppariement = std::variant<ErreurAppariement, CandidateAppariement>;
-
 enum class ChoseÀApparier : int8_t {
     FONCTION_EXTERNE,
     FONCTION_INTERNE,
@@ -218,13 +216,6 @@ enum {
     CANDIDATE_EST_APPEL_UNIFORME,
     CANDIDATE_EST_INIT_DE,
     CANDIDATE_EST_EXPRESSION_QUELCONQUE,
-};
-
-static constexpr auto TAILLE_CANDIDATES_DEFAUT = 10;
-
-struct CandidateExpressionAppel {
-    int quoi = 0;
-    NoeudExpression *decl = nullptr;
 };
 
 static ResultatValidation trouve_candidates_pour_fonction_appelee(
@@ -1134,20 +1125,6 @@ static ResultatAppariement apparie_construction_opaque(
 
 /* ************************************************************************** */
 
-struct ContexteValidationAppel {
-    kuri::tableau<IdentifiantEtExpression> args{};
-    kuri::tablet<ResultatAppariement, 10> resultats{};
-
-    void efface()
-    {
-        args.efface();
-        resultats.efface();
-    }
-};
-
-using ListeCandidatesExpressionAppel =
-    kuri::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT>;
-
 static ResultatValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
@@ -1194,18 +1171,18 @@ static ResultatValidation trouve_candidates_pour_appel(
     return CodeRetourValidation::OK;
 }
 
-static std::optional<Attente> apparies_candidates(
-    EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
-    kuri::tableau<IdentifiantEtExpression> &args,
-    ListeCandidatesExpressionAppel const &candidates_appel,
-    ContexteValidationAppel &resultat)
+static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
+                                                  ContexteValidationCode &contexte,
+                                                  NoeudExpressionAppel *expr,
+                                                  EtatResolutionAppel *état)
 {
-    POUR (candidates_appel) {
+    /* Réinitialise en cas d'attentes passées. */
+    état->résultats.efface();
+
+    POUR (état->liste_candidates) {
         if (it.quoi == CANDIDATE_EST_ACCES) {
-            resultat.resultats.ajoute(
-                apparie_appel_pointeur(contexte, expr, it.decl, espace, args));
+            état->résultats.ajoute(
+                apparie_appel_pointeur(contexte, expr, it.decl, espace, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1217,16 +1194,16 @@ static std::optional<Attente> apparies_candidates(
                     return Attente::sur_type(decl->type);
                 }
 
-                resultat.resultats.ajoute(
-                    apparie_appel_structure(espace, expr, decl_struct, args));
+                état->résultats.ajoute(
+                    apparie_appel_structure(espace, expr, decl_struct, état->args));
             }
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
                 if (!decl_opaque->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_opaque);
                 }
-                resultat.resultats.ajoute(apparie_construction_opaque(
-                    espace, expr, decl_opaque->type->comme_type_opaque(), args));
+                état->résultats.ajoute(apparie_construction_opaque(
+                    espace, expr, decl_opaque->type->comme_type_opaque(), état->args));
             }
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
@@ -1235,8 +1212,8 @@ static std::optional<Attente> apparies_candidates(
                     return Attente::sur_declaration(decl_fonc);
                 }
 
-                resultat.resultats.ajoute(
-                    apparie_appel_fonction(espace, contexte, expr, decl_fonc, args));
+                état->résultats.ajoute(
+                    apparie_appel_fonction(espace, contexte, expr, decl_fonc, état->args));
             }
             else if (decl->est_declaration_variable()) {
                 auto type = decl->type;
@@ -1251,55 +1228,55 @@ static std::optional<Attente> apparies_candidates(
                     auto type_connu = type_de_donnees->type_connu;
 
                     if (!type_connu) {
-                        resultat.resultats.ajoute(
+                        état->résultats.ajoute(
                             ErreurAppariement::type_non_fonction(expr, type_de_donnees));
                     }
 
                     if (type_connu->est_type_structure()) {
                         auto type_struct = type_connu->comme_type_structure();
 
-                        resultat.resultats.ajoute(
-                            apparie_appel_structure(espace, expr, type_struct->decl, args));
+                        état->résultats.ajoute(
+                            apparie_appel_structure(espace, expr, type_struct->decl, état->args));
                     }
                     else if (type_connu->est_type_union()) {
                         auto type_union = type_connu->comme_type_union();
 
-                        resultat.resultats.ajoute(
-                            apparie_appel_structure(espace, expr, type_union->decl, args));
+                        état->résultats.ajoute(
+                            apparie_appel_structure(espace, expr, type_union->decl, état->args));
                     }
                     else if (type_connu->est_type_opaque()) {
                         auto type_opaque = type_connu->comme_type_opaque();
 
-                        resultat.resultats.ajoute(
-                            apparie_construction_opaque(espace, expr, type_opaque, args));
+                        état->résultats.ajoute(
+                            apparie_construction_opaque(espace, expr, type_opaque, état->args));
                     }
                     else {
-                        resultat.resultats.ajoute(
+                        état->résultats.ajoute(
                             ErreurAppariement::type_non_fonction(expr, type_connu));
                     }
                 }
                 else if (type->est_type_fonction()) {
-                    resultat.resultats.ajoute(
-                        apparie_appel_pointeur(contexte, expr, decl, espace, args));
+                    état->résultats.ajoute(
+                        apparie_appel_pointeur(contexte, expr, decl, espace, état->args));
                 }
                 else if (type->est_type_opaque()) {
                     auto type_opaque = type->comme_type_opaque();
 
-                    resultat.resultats.ajoute(
-                        apparie_construction_opaque(espace, expr, type_opaque, args));
+                    état->résultats.ajoute(
+                        apparie_construction_opaque(espace, expr, type_opaque, état->args));
                 }
                 else {
-                    resultat.resultats.ajoute(ErreurAppariement::type_non_fonction(expr, type));
+                    état->résultats.ajoute(ErreurAppariement::type_non_fonction(expr, type));
                 }
             }
         }
         else if (it.quoi == CANDIDATE_EST_INIT_DE) {
             // ici nous pourrions directement retourner si le type est correcte...
-            resultat.resultats.ajoute(apparie_appel_init_de(it.decl, args));
+            état->résultats.ajoute(apparie_appel_init_de(it.decl, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            resultat.resultats.ajoute(
-                apparie_appel_pointeur(contexte, expr, it.decl, espace, args));
+            état->résultats.ajoute(
+                apparie_appel_pointeur(contexte, expr, it.decl, espace, état->args));
         }
     }
 
@@ -1490,8 +1467,118 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
 
 /* ************************************************************************** */
 
-// À FAIRE : ajout d'un état de résolution des appels afin de savoir à quelle étape nous nous
-// arrêté en cas d'erreur recouvrable (typage fait, tri des arguments fait, etc.)
+static void rassemble_expressions_paramètres(NoeudExpressionAppel *expr, EtatResolutionAppel *état)
+{
+    auto &args = état->args;
+    args.reserve(expr->parametres.taille());
+    POUR (expr->parametres) {
+        // l'argument est nommé
+        if (it->est_assignation_variable()) {
+            auto assign = it->comme_assignation_variable();
+            auto nom_arg = assign->variable;
+            auto arg = assign->expression;
+
+            args.ajoute({nom_arg->ident, nom_arg, arg});
+        }
+        else {
+            args.ajoute({nullptr, nullptr, it});
+        }
+    }
+
+    état->état = EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS;
+}
+
+static std::optional<Attente> crée_liste_candidates(NoeudExpressionAppel *expr,
+                                                    EtatResolutionAppel *état,
+                                                    EspaceDeTravail &espace,
+                                                    ContexteValidationCode &contexte)
+{
+    /* Si nous revenons ici suite à une attente nous devons recommencer donc vide la liste pour
+     * éviter d'avoir des doublons. */
+    état->liste_candidates.efface();
+
+    auto resultat_validation = trouve_candidates_pour_appel(
+        espace, contexte, expr, état->args, état->liste_candidates);
+    if (est_attente(resultat_validation)) {
+        return std::get<Attente>(resultat_validation);
+    }
+
+    if (!est_ok(resultat_validation)) {
+        // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans doute
+        //           granulariser ResultatValidation pour différencier d'une erreur lourde ou
+        //           rattrappable
+        return Attente::sur_symbole(symbole_pour_expression(expr->expression));
+    }
+
+    état->état = EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
+    return {};
+}
+
+static ResultatValidation sélectionne_candidate(NoeudExpressionAppel *expr,
+                                                EtatResolutionAppel *état,
+                                                EspaceDeTravail &espace)
+{
+    POUR (état->résultats) {
+        if (std::holds_alternative<ErreurAppariement>(it)) {
+            auto erreur = std::get<ErreurAppariement>(it);
+
+            if (erreur.raison == ERREUR_DEPENDANCE) {
+                /* Si nous devons attendre sur quoi que ce soit, nous devrons recommencer
+                 * l'appariement. */
+                état->résultats.efface();
+                état->candidates.efface();
+                état->erreurs.efface();
+                état->état = EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
+                return erreur.attente;
+            }
+
+            état->erreurs.ajoute(erreur);
+        }
+        else {
+            auto &candidate_test = std::get<CandidateAppariement>(it);
+            état->candidates.ajoute(candidate_test);
+        }
+    }
+
+    if (état->candidates.est_vide()) {
+        erreur::lance_erreur_fonction_inconnue(espace, expr, état->erreurs);
+        return CodeRetourValidation::Erreur;
+    }
+
+    std::sort(état->candidates.debut(), état->candidates.fin(), [](auto &a, auto &b) {
+        return a.poids_args > b.poids_args;
+    });
+
+    /* À FAIRE(appel) : utilise des poids différents selon la distance entre le site d'appel et la
+     * candidate. Si un paramètre possède le même nom qu'une fonction externe, il y aura collision
+     * et nous ne pourrons pas choisir quelle fonction appelée.
+     * Pour tester, renommer "comp" de Algorithmes.limite_basse et compiler SGBD.
+     */
+    if (état->candidates.taille() > 1 &&
+        (état->candidates[0].poids_args == état->candidates[1].poids_args)) {
+        auto e = espace.rapporte_erreur(
+            expr,
+            "Je ne peux pas déterminer quelle fonction appeler car "
+            "plusieurs fonctions correspondent à l'expression d'appel.");
+
+        if (état->candidates[0].noeud_decl && état->candidates[1].noeud_decl) {
+            e.ajoute_message("Candidate possible :\n");
+            e.ajoute_site(état->candidates[0].noeud_decl);
+            e.ajoute_message("Candidate possible :\n");
+            e.ajoute_site(état->candidates[1].noeud_decl);
+        }
+        else {
+            e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
+        }
+
+        return CodeRetourValidation::Erreur;
+    }
+
+    état->candidate_finale = &état->candidates[0];
+    état->état = EtatResolutionAppel::État::CANDIDATE_SÉLECTIONNÉE;
+    return CodeRetourValidation::OK;
+}
+
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          ContexteValidationCode &contexte,
@@ -1508,120 +1595,49 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             {"valide_appel_fonction", temps});
     });
 #endif
-
-    // ------------
-    // valide d'abord les expressions, leurs types sont nécessaire pour trouver les candidates
-
-    static ContexteValidationAppel ctx;
-    ctx.efface();
-
-    auto &args = ctx.args;
-    args.reserve(expr->parametres.taille());
-
-    {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
-                      VALIDATION_APPEL__PREPARE_ARGUMENTS);
-
-        POUR (expr->parametres) {
-            // l'argument est nommé
-            if (it->est_assignation_variable()) {
-                auto assign = it->comme_assignation_variable();
-                auto nom_arg = assign->variable;
-                auto arg = assign->expression;
-
-                args.ajoute({nom_arg->ident, nom_arg, arg});
-            }
-            else {
-                args.ajoute({nullptr, nullptr, it});
-            }
-        }
+    if (!expr->état_résolution_appel) {
+        expr->état_résolution_appel = memoire::loge<EtatResolutionAppel>("EtatResolutionAppel");
     }
 
-    // ------------
-    // trouve la fonction, pour savoir ce que l'on a
+    EtatResolutionAppel &état = *expr->état_résolution_appel;
 
-    ListeCandidatesExpressionAppel liste_candidates;
-    {
+    if (état.état == EtatResolutionAppel::État::RÉSOLUTION_NON_COMMENCÉE) {
+        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+                      VALIDATION_APPEL__PREPARE_ARGUMENTS);
+        rassemble_expressions_paramètres(expr, &état);
+    }
+
+    if (état.état == EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS) {
         CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
                       VALIDATION_APPEL__TROUVE_CANDIDATES);
 
-        auto resultat_validation = trouve_candidates_pour_appel(
-            espace, contexte, expr, args, liste_candidates);
-        if (est_attente(resultat_validation)) {
-            return std::get<Attente>(resultat_validation);
-        }
-        if (!est_ok(resultat_validation)) {
-            // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans doute
-            //           granulariser ResultatValidation pour différencier d'une erreur lourde ou
-            //           rattrappable
-            return Attente::sur_symbole(symbole_pour_expression(expr->expression));
+        auto attente_potentielle = crée_liste_candidates(expr, &état, espace, contexte);
+
+        if (attente_potentielle.has_value()) {
+            return attente_potentielle.value();
         }
     }
 
-    {
+    if (état.état == EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE) {
         CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
                       VALIDATION_APPEL__APPARIE_CANDIDATES);
-
-        auto attente_possible = apparies_candidates(
-            espace, contexte, expr, args, liste_candidates, ctx);
+        auto attente_possible = apparies_candidates(espace, contexte, expr, &état);
         if (attente_possible.has_value()) {
             return attente_possible.value();
         }
+        état.état = EtatResolutionAppel::État::APPARIEMENT_CANDIDATES_FAIT;
     }
 
-    kuri::tablet<CandidateAppariement, 10> candidates;
-    kuri::tablet<ErreurAppariement, 10> erreurs;
-
-    POUR (ctx.resultats) {
-        if (std::holds_alternative<ErreurAppariement>(it)) {
-            auto &erreur = std::get<ErreurAppariement>(it);
-
-            if (erreur.raison == ERREUR_DEPENDANCE) {
-                return erreur.attente;
-            }
-
-            erreurs.ajoute(erreur);
-        }
-        else {
-            auto &candidate_test = std::get<CandidateAppariement>(it);
-            candidates.ajoute(candidate_test);
+    if (état.état == EtatResolutionAppel::État::APPARIEMENT_CANDIDATES_FAIT) {
+        auto résultat = sélectionne_candidate(expr, &état, espace);
+        if (!est_ok(résultat)) {
+            return résultat;
         }
     }
 
-    if (candidates.est_vide()) {
-        erreur::lance_erreur_fonction_inconnue(espace, expr, erreurs);
-        return CodeRetourValidation::Erreur;
-    }
+    assert(état.état == EtatResolutionAppel::État::CANDIDATE_SÉLECTIONNÉE);
 
-    std::sort(candidates.debut(), candidates.fin(), [](auto &a, auto &b) {
-        return a.poids_args > b.poids_args;
-    });
-
-    /* À FAIRE(appel) : utilise des poids différents selon la distance entre le site d'appel et la
-     * candidate. Si un paramètre possède le même nom qu'une fonction externe, il y aura collision
-     * et nous ne pourrons pas choisir quelle fonction appelée.
-     * Pour tester, renommer "comp" de Algorithmes.limite_basse et compiler SGBD.
-     */
-    if (candidates.taille() > 1 && (candidates[0].poids_args == candidates[1].poids_args)) {
-        auto e = espace.rapporte_erreur(
-            expr,
-            "Je ne peux pas déterminer quelle fonction appeler car "
-            "plusieurs fonctions correspondent à l'expression d'appel.");
-
-        if (candidates[0].noeud_decl && candidates[1].noeud_decl) {
-            e.ajoute_message("Candidate possible :\n");
-            e.ajoute_site(candidates[0].noeud_decl);
-            e.ajoute_message("Candidate possible :\n");
-            e.ajoute_site(candidates[1].noeud_decl);
-        }
-        else {
-            e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
-        }
-
-        return CodeRetourValidation::Erreur;
-    }
-
-    auto candidate = &candidates[0];
+    auto candidate = état.candidate_finale;
 
     // ------------
     // copie les données
@@ -1629,6 +1645,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
                   VALIDATION_APPEL__COPIE_DONNEES);
 
+    expr->parametres_resolus.efface();
     expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
 
     for (auto enfant : candidate->exprs) {
@@ -1638,7 +1655,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelee = candidate->noeud_decl->comme_entete_fonction();
 
-        if (!appel_fonction_est_valide(espace, decl_fonction_appelee, ctx.args)) {
+        if (!appel_fonction_est_valide(espace, decl_fonction_appelee, état.args)) {
             return CodeRetourValidation::Erreur;
         }
 
