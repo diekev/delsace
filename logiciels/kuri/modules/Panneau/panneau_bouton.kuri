@@ -6,7 +6,7 @@ importe Périphériques
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
-/** \nom Panneau Bouton
+/** \nom Bouton
  * \{ */
 
 Bouton :: struct {
@@ -15,6 +15,20 @@ Bouton :: struct {
     texte: chaine
     sur_clique: fonc(*Bouton)(rien)
 }
+
+crée_bouton :: fonc (texte: chaine, sur_clique: fonc(*Bouton)(rien)) -> *Bouton
+{
+    résultat := loge(Bouton)
+    résultat.texte = texte
+    résultat.sur_clique = sur_clique
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Panneau Bouton
+ * \{ */
 
 PanneauBouton :: struct {
     empl base: Panneau
