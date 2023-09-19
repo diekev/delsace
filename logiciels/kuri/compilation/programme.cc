@@ -691,6 +691,40 @@ ProgrammeRepreInter representation_intermediaire_programme(Programme const &prog
     return resultat;
 }
 
+static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDeclaration *déclaration)
+{
+
+    if (!déclaration->est_entete_fonction()) {
+        os << "-- validation non performée pour déclaration "
+           << nom_humainement_lisible(déclaration) << '\n';
+        return;
+    }
+
+    if (!déclaration->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        os << "-- validation non performée pour l'entête " << nom_humainement_lisible(déclaration)
+           << '\n';
+        return;
+    }
+
+    auto corps = déclaration->comme_entete_fonction();
+    if (corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        os << "-- erreur : le corps et l'entête de " << nom_humainement_lisible(déclaration)
+           << " sont marqués comme validés, mais le diagnostique considère le corps comme non "
+              "validé\n";
+        return;
+    }
+
+    auto unité_corps = corps->unite;
+    if (!unité_corps) {
+        std::cerr << "-- validation non performée car aucune unité pour le corps de "
+                  << nom_humainement_lisible(déclaration) << "\n";
+        return;
+    }
+
+    std::cerr << "-- validation non performée pour le corps de "
+              << nom_humainement_lisible(déclaration) << "\n";
+}
+
 void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnostique)
 {
     if (!diagnostique.toutes_les_declarations_a_typer_le_sont) {
@@ -699,8 +733,7 @@ void imprime_diagnostique(const DiagnostiqueEtatCompilation &diagnostique)
                       << chaine_type(diagnostique.type_a_valider) << '\n';
         }
         if (diagnostique.declaration_a_valider) {
-            std::cerr << "-- validation non performée pour déclaration "
-                      << nom_humainement_lisible(diagnostique.declaration_a_valider) << '\n';
+            imprime_détails_déclaration_à_valider(std::cerr, diagnostique.declaration_a_valider);
         }
         return;
     }
