@@ -449,8 +449,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto expr = noeud->comme_appel();
             expr->genre_valeur = GenreValeur::DROITE;
-            // @réinitialise en cas d'erreurs passées
-            expr->parametres_resolus.efface();
             return valide_appel_fonction(m_compilatrice, *espace, *this, expr);
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
