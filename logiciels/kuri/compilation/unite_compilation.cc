@@ -245,3 +245,76 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
 {
     return os << chaine_état_unité_compilation(état);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxilliaires pour le débogage.
+ * \{ */
+
+void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité)
+{
+    auto historique = unité->donne_historique();
+    POUR (historique) {
+        os << "---- " << it.fonction << " ; " << it.raison << " ; " << it.état << '\n';
+    }
+}
+
+void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité)
+{
+    POUR (unité->donne_attentes()) {
+        if (it.info && it.info->commentaire) {
+            std::cerr << "---- " << it.info->commentaire(it) << '\n';
+        }
+        else {
+            std::cerr << "---- attente sans commentaire\n";
+        }
+    }
+}
+
+void imprime_état_unité(std::ostream &os, const UniteCompilation *unité)
+{
+    os << "-- " << unité->donne_état() << '\n';
+    os << "-- historique :\n";
+    imprime_historique_unité(os, unité);
+    os << "-- attentes :\n";
+    imprime_attentes_unité(os, unité);
+}
+
+static void imprime_noeud_index_courant_unité(
+    std::ostream &os,
+    kuri::tableau_statique<NoeudExpression *> const &arbre_aplatis,
+    UniteCompilation const *unité)
+{
+    if (arbre_aplatis.taille() == 0) {
+        os << "-- l'arbre est vide\n";
+        return;
+    }
+
+    auto site = arbre_aplatis[unité->index_courant];
+    os << "-- " << *site << '\n';
+
+    if (site->est_appel()) {
+        auto appel = site->comme_appel();
+
+        if (appel->état_résolution_appel) {
+            std::cerr << "-- " << static_cast<int>(appel->état_résolution_appel->état) << '\n';
+        }
+        else {
+            std::cerr << "-- aucun état de résolution pour l'expression "
+                         "d'appel\n";
+        }
+    }
+}
+
+void imprime_noeud_index_courant_unité(std::ostream &os,
+                                       const NoeudDeclarationEnteteFonction *entête)
+{
+    imprime_noeud_index_courant_unité(os, entête->arbre_aplatis, entête->unite);
+}
+
+void imprime_noeud_index_courant_unité(std::ostream &os,
+                                       const NoeudDeclarationCorpsFonction *corps)
+{
+    imprime_noeud_index_courant_unité(os, corps->arbre_aplatis, corps->unite);
+}
+
+/** \} */
