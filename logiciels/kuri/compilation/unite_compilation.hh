@@ -177,6 +177,11 @@ struct UniteCompilation {
         return m_historique;
     }
 
+    kuri::tableau_statique<Attente> donne_attentes() const
+    {
+        return m_attentes;
+    }
+
     inline Attente *attend_sur_message(Message const *message_)
     {
         POUR (m_attentes) {
