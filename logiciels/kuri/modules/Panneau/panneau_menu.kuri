@@ -221,6 +221,7 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
             anime_élément_pour_pression(panneau)
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
             panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
+            panneau_menu.panneau_barre_de_menu = panneau
             contexte.définis_panneau_menu(panneau_menu)
         }
     }
@@ -289,6 +290,7 @@ PanneauMenu :: struct {
         élément_survolé : z32 = -1
     }
 
+    panneau_barre_de_menu: *PanneauBarreDeMenu
     menu: *Menu
     éléments: []Élément
     position: Point2D(z32)
@@ -308,9 +310,26 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
         observe_souris(panneau_menu, souris)
     }
 
-    sur_clique_souris :: fonc (panneau_menu: *PanneauMenu @inutilisée, clique: CliqueSouris @inutilisée) -> bool
+    sur_clique_souris :: fonc (empl panneau_menu: *PanneauMenu, clique: CliqueSouris) -> bool
     {
-        // À FAIRE
+        saufsi rect.contient(clique.état.où) {
+            retourne faux
+        }
+
+        si clique.action == ActionSouris.PRESSÉE {
+            état.élément_pressé = état.élément_survolé
+            retourne vrai
+        }
+
+        si clique.action == ActionSouris.RELACHÉE {
+            élément := menu.éléments[état.élément_pressé]
+            si élément.bouton && élément.bouton.sur_clique {
+                élément.bouton.sur_clique(élément.bouton)
+            }
+            panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+            retourne vrai
+        }
+
         retourne faux
     }
 

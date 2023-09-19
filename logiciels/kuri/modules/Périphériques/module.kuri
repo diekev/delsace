@@ -4,6 +4,39 @@
 importe Géométrie
 
 /* ------------------------------------------------------------------------- */
+/** \nom TypeCurseurSystème.
+ * \{ */
+
+TypeCurseurSystème :: énum {
+    /* Curseur en forme de flèche (défaut sur la plupart des systèmes). */
+    FLÈCHE
+    /* Curseur en forme de I pour indiquer une insertion de texte. */
+    TEXTE
+    /* Curseur indiquant d'attendre sur une tâche. */
+    ATTENTE
+    /* Curseur en forme de cible. */
+    CROIX
+    /* Flèche avec une attente. */
+    FLÈCHE_AVEC_ATTENTE
+    /* Double flèche diagonale pointant nord-ouest sud-est. */
+    FLÈCHE_DOUBLE_NOSE
+    /* Double flèche diagonale pointant nord-est sud-ouest. */
+    FLÈCHE_DOUBLE_NESO
+    /* Double flèche horizontale. */
+    FLÈCHE_DOUBLE_HORIZONTALE
+    /* Double flèche verticale. */
+    FLÈCHE_DOUBLE_VERTICALE
+    /* Superposition de toutes les doubles flèches. */
+    FLÈCHE_DOUBLE_TOUT
+    /* Curseur indiquant que quelque chose est interdit. */
+    INTERDIT
+    /* Curseur représentant une main. */
+    MAIN
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom CliqueSouris
  * \{ */
 

@@ -35,6 +35,16 @@ enveloppe_rappel :: fonc ($rappel: fonc(*$T, *ContexteAffichage)(rien)) -> fonc(
     retourne fonction_enveloppe
 }
 
+/* enveloppe pour sur_début_survol, sur_fin_survol */
+enveloppe_rappel :: fonc ($rappel: fonc(*$T)(rien)) -> fonc(*Panneau)(rien)
+{
+    fonction_enveloppe :: fonc (panneau: *Panneau) -> rien
+    {
+        rappel(panneau comme *T)
+    }
+    retourne fonction_enveloppe
+}
+
 /* enveloppe pour sur_redimension */
 TypeRectangle :: RectanglePosDim(z32)
 enveloppe_rappel :: fonc ($rappel: fonc(*$T, TypeRectangle)(rien)) -> fonc(*Panneau, RectanglePosDim(z32))(rien)
