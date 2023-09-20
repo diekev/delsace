@@ -1369,7 +1369,7 @@ void cree_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_
     type->type_structure->drapeaux |= (TYPE_FUT_VALIDE | INITIALISATION_TYPE_FUT_CREEE |
                                        UNITE_POUR_INITIALISATION_FUT_CREE);
 
-    typeuse.types_à_insérer_dans_graphe.ajoute_aux_données_globales({this, type_structure});
+    typeuse.types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type->type_structure});
 }
 
 /** \} */

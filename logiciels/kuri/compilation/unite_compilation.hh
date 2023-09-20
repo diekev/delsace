@@ -174,11 +174,6 @@ struct UniteCompilation {
         return m_raison_d_etre;
     }
 
-    kuri::tableau_statique<Attente> donne_attentes() const
-    {
-        return m_attentes;
-    }
-
     kuri::tableau_statique<Historique> donne_historique() const
     {
         return m_historique;
