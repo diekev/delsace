@@ -293,7 +293,10 @@ détruit_panneau :: fonc (panneau: *Panneau)
 sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
 {
     si panneau.sur_dessin {
+        peintre := ctx.peintre
+        peintre.définis_ciseau(panneau.rect)
         panneau.sur_dessin(panneau, ctx)
+        peintre.restaure_ciseau()
     }
 
     pour panneau.enfants {
