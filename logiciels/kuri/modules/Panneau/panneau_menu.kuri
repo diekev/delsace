@@ -416,7 +416,6 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 
     thème := ctx.thème
     remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
-    dessine_rectangle(ctx.peintre, rect, thème.couleur_contour)
 
     si état.élément_survolé != -1 {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
@@ -436,6 +435,14 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         texte := menu.éléments[index_it].texte
         dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
     }
+
+    /* À FAIRE : les lignes du bas et de du côté gauche sont manquantes. Peut-être à cause du ciseau? */
+    rect_corrigé := rect
+    rect_corrigé.x += 1
+    rect_corrigé.largeur -= 1
+    rect_corrigé.y += 1
+    rect_corrigé.hauteur -= 1
+    dessine_rectangle(ctx.peintre, rect_corrigé, thème.couleur_contour)
 }
 
 observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
