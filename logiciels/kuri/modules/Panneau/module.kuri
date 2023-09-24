@@ -460,7 +460,6 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
 reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
 {
     si gère_clique_souris(barre_de_menu, clique) {
-        imprime("Clique dans barre de menu !\n")
         retourne vrai
     }
 
