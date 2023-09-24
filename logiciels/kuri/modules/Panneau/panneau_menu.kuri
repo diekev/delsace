@@ -436,7 +436,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
     }
 
-    /* À FAIRE : les lignes du bas et de du côté gauche sont manquantes. Peut-être à cause du ciseau? */
+    /* À FAIRE : les lignes du bas et du côté gauche sont manquantes. Peut-être à cause du ciseau ? */
     rect_corrigé := rect
     rect_corrigé.x += 1
     rect_corrigé.largeur -= 1
