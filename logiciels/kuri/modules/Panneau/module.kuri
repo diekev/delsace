@@ -53,7 +53,7 @@ ContexteAffichage :: struct {
  */
 ContexteInterface :: struct {
     /* Le menu étant affiché. */
-    menu_affiché: *PanneauMenu
+    menus_affichés: []*PanneauMenu
     fonte: *Fonte
 
     diviseurs: []*PanneauDiviseur
@@ -81,27 +81,42 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
     retourne résultat
 }
 
-définis_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMenu)
+affiche_panneau_menu :: fonc (contexte: *ContexteInterface, panneau: *PanneauMenu)
 {
-    contexte.menu_affiché = panneau
+    tableau_ajoute(*contexte.menus_affichés, panneau)
+}
+
+dépile_panneau_menu :: fonc (empl contexte: *ContexteInterface)
+{
+    panneau_menu := contexte.menus_affichés[contexte.menus_affichés.taille - 1]
+    détruit_panneau_menu(contexte, panneau_menu)
+    contexte.menus_affichés.taille -= 1
 }
 
 détruit_panneau_menu :: fonc (empl contexte: *ContexteInterface)
 {
-    saufsi menu_affiché {
+    saufsi menus_affichés {
         retourne
     }
 
-    si menu_affiché == panneau_survolé {
+    pour menus_affichés {
+        détruit_panneau_menu(contexte, it)
+    }
+
+    déloge(menus_affichés)
+}
+
+détruit_panneau_menu :: fonc (empl contexte: *ContexteInterface, panneau_menu: *PanneauMenu)
+{
+    si panneau_menu == panneau_survolé {
         panneau_survolé = nul
     }
 
-    si menu_affiché == panneau_cliqué {
+    si panneau_menu == panneau_cliqué {
         panneau_cliqué = nul
     }
 
-    détruit_panneau_menu(menu_affiché)
-    menu_affiché = nul
+    détruit_panneau_menu(panneau_menu)
 }
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
@@ -131,11 +146,21 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
     }
 
     /* À FAIRE : bouge ça d'ici. */
-    si menu_affiché && panneau_cliqué != menu_affiché {
-        si clique.action != ActionSouris.PRESSÉE {
-            menu_affiché.panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+    pour menus_affichés {
+        si it == panneau_cliqué {
+            arrête
         }
     }
+    sansarrêt {
+        si clique.action != ActionSouris.PRESSÉE {
+            menus_affichés[0].panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+        }
+    }
+    // si menu_affiché && panneau_cliqué != menu_affiché {
+    //     si clique.action != ActionSouris.PRESSÉE {
+    //         menu_affiché.panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+    //     }
+    // }
 
     // si panneau_cliqué {
     //     imprime("Clique sur panneau '%'\n", panneau_cliqué.identifiant)
@@ -176,8 +201,10 @@ sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: État
 
 trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris) -> *Panneau
 {
-    si menu_affiché && menu_affiché.rect.contient(état.où) {
-        retourne menu_affiché
+    pour menus_affichés {
+        si it.rect.contient(état.où) {
+            retourne it
+        }
     }
 
     pour diviseurs {
@@ -218,8 +245,8 @@ dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage:
     sur_dessin_récursif(panneau_racine, contexte_affichage)
 
     /* Dessine le menu au dessus du reste. */
-    si menu_affiché {
-        sur_dessin_récursif(menu_affiché, contexte_affichage)
+    pour menus_affichés {
+        sur_dessin_récursif(it, contexte_affichage)
     }
 }
 

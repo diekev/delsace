@@ -222,7 +222,7 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
             panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
             panneau_menu.panneau_barre_de_menu = panneau
-            contexte.définis_panneau_menu(panneau_menu)
+            contexte.affiche_panneau_menu(panneau_menu)
         }
     }
 }
@@ -284,6 +284,7 @@ PanneauMenu :: struct {
         hauteur: z32
         largeur: z32
         est_séparateur: bool
+        est_sous_menu: bool
     }
 
     État :: struct {
@@ -302,6 +303,8 @@ PanneauMenu :: struct {
     décalage_élément_y: z32
 
     état : État
+
+    menu_fut_affiché: *PanneauMenu
 }
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
@@ -404,6 +407,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
             }
             SousMenu {
                 hauteur_panneau += hauteur_élément_texte
+                élément.est_sous_menu = vrai
             }
             Séparateur {
                 hauteur_panneau += hauteur_élément_séparateur
@@ -496,7 +500,9 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
 {
     saufsi rect.contient(souris.où) {
-        état.élément_survolé = -1
+        saufsi menu_fut_affiché {
+            définis_index_élément_survolé(panneau, -1)
+        }
         retourne
     }
 
@@ -506,7 +512,7 @@ observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
             continue
         }
 
-        état.élément_survolé = index_it comme z32
+        définis_index_élément_survolé(panneau, index_it comme z32)
         arrête
     }
 }
@@ -524,6 +530,38 @@ donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauMenu, index_él�
     résultat.hauteur = élément.hauteur
     résultat.largeur = rect.largeur
     retourne résultat
+}
+
+définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_élément: z32)
+{
+    si index_élément == état.élément_survolé {
+        retourne
+    }
+
+    // sors élément précédent
+    si état.élément_survolé != -1 {
+        élément := éléments[état.élément_survolé]
+        si élément.est_sous_menu {
+            contexte.dépile_panneau_menu()
+            menu_fut_affiché = nul
+        }
+    }
+
+    état.élément_survolé = index_élément
+
+    // entre dans le nouvel élément
+    si état.élément_survolé != -1 {
+        élément := éléments[état.élément_survolé]
+        si élément.est_sous_menu {
+            rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
+
+            panneau_menu := crée_panneau_menu(contexte, menu.éléments[état.élément_survolé].données.SousMenu, Point2D(z32)(rect_élément.x + rect_élément.largeur, rect_élément.y + rect_élément.hauteur))
+            panneau_menu.panneau_barre_de_menu = panneau_barre_de_menu
+            contexte.affiche_panneau_menu(panneau_menu)
+
+            menu_fut_affiché = panneau_menu
+        }
+    }
 }
 
 /** } */
