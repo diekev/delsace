@@ -283,6 +283,7 @@ PanneauMenu :: struct {
         décalage: z32
         hauteur: z32
         largeur: z32
+        est_séparateur: bool
     }
 
     État :: struct {
@@ -323,9 +324,7 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
 
         si clique.action == ActionSouris.RELACHÉE {
             élément := menu.éléments[état.élément_pressé]
-            si élément.bouton && élément.bouton.sur_clique {
-                élément.bouton.sur_clique(élément.bouton)
-            }
+            gère_clique_souris(élément)
             panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
             retourne vrai
         }
@@ -378,7 +377,9 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
 
     /* Calcul taille éléments. */
-    hauteur_élément = hauteur_de_ligne + 10
+    hauteur_élément_texte := hauteur_de_ligne + 10
+    hauteur_élément = hauteur_élément_texte
+    hauteur_élément_séparateur := 10
     espaçage_élément = donne_largeur_texte(ctx.fonte, "0")
     décalage_élément_x = espaçage_élément * 2
 
@@ -386,27 +387,67 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
 
     largeur_max_élément := 0
 
-    hauteur_éléments := (éléments.taille comme z32) * hauteur_élément
-    décalage_élément := hauteur_éléments - hauteur_élément
+    hauteur_panneau := 0
 
+    /* Calcule la largeur du panneau et des éléments textes. */
     pour menu.éléments {
         élément: PanneauMenu.Élément
-        élément.décalage = décalage_élément + 5
-        élément.hauteur = hauteur_élément
         élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
 
         si élément.largeur > largeur_max_élément {
             largeur_max_élément = élément.largeur
         }
 
-        éléments[index_it] = élément
+        discr it.données {
+            Action {
+                hauteur_panneau += hauteur_élément_texte
+            }
+            SousMenu {
+                hauteur_panneau += hauteur_élément_texte
+            }
+            Séparateur {
+                hauteur_panneau += hauteur_élément_séparateur
+                élément.est_séparateur = vrai
+            }
+            sinon {}
+        }
 
-        décalage_élément -= hauteur_élément
+        éléments[index_it] = élément
+    }
+
+    largeur_panneau := largeur_max_élément + décalage_élément_x * 2
+    décalage_élément := hauteur_panneau
+
+    pour menu.éléments {
+        élément := *éléments[index_it]
+
+        discr it.données {
+            Action {
+                décalage_élément -= hauteur_élément_texte
+
+                élément.décalage = décalage_élément + 5
+                élément.hauteur = hauteur_élément
+            }
+            SousMenu {
+                décalage_élément -= hauteur_élément_texte
+
+                élément.décalage = décalage_élément + 5
+                élément.hauteur = hauteur_élément
+            }
+            Séparateur {
+                décalage_élément -= hauteur_élément_séparateur
+
+                élément.décalage = décalage_élément + 5
+                élément.hauteur = hauteur_élément_séparateur
+                élément.largeur = largeur_panneau
+            }
+            sinon {}
+        }
     }
 
     rect.x = position.x
-    rect.largeur = largeur_max_élément + décalage_élément_x * 2
-    rect.hauteur = hauteur_éléments
+    rect.largeur = largeur_panneau
+    rect.hauteur = hauteur_panneau
     rect.y = position.y - rect.hauteur
 }
 
@@ -417,7 +458,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
     thème := ctx.thème
     remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
 
-    si état.élément_survolé != -1 {
+    si état.élément_survolé != -1 && !éléments[état.élément_survolé].est_séparateur {
         rect_élément := donne_rect_élément_pour_clique(panneau, état.élément_survolé)
         remplis_rectangle(ctx.peintre, rect_élément, thème.couleur_menu_survolé)
     }
@@ -432,8 +473,15 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         rect_élément.largeur = it.largeur
         rect_élément.y = rect.y + it.décalage
 
-        texte := menu.éléments[index_it].texte
-        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
+        si it.est_séparateur {
+            p0 := Point2D(z32)(rect.x, rect_élément.y)
+            p1 := Point2D(z32)(rect.x + rect.largeur, rect_élément.y)
+            dessine_segment(ctx.peintre, Ligne(z32)(p0, p1), thème.couleur_contour)
+        }
+        sinon {
+            texte := menu.éléments[index_it].texte
+            dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
+        }
     }
 
     /* À FAIRE : les lignes du bas et du côté gauche sont manquantes. Peut-être à cause du ciseau ? */
