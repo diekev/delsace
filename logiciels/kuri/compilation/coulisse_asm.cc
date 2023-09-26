@@ -482,7 +482,7 @@ void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &global
     }
 }
 
-bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
+bool CoulisseASM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
                                      EspaceDeTravail &espace,
                                      Programme *programme,
                                      ConstructriceRI &constructrice_ri,
@@ -496,7 +496,7 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     }
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = representation_intermediaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
 
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
@@ -511,7 +511,7 @@ bool CoulisseASM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseASM::cree_executable(Compilatrice & /*compilatrice*/,
+bool CoulisseASM::crée_exécutable(Compilatrice & /*compilatrice*/,
                                   EspaceDeTravail & /*espace*/,
                                   Programme * /* programme */)
 {

@@ -918,13 +918,13 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     pile = de->pile;
     pointeur_pile = de->pointeur_pile;
     frames = de->frames;
-    ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
-    ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
-    donnees_constantes = &compilatrice.donnees_constantes_executions;
+    ptr_donnees_constantes = metaprogramme->données_constantes.donnees();
+    ptr_donnees_globales = metaprogramme->données_globales.donnees();
+    donnees_constantes = &compilatrice.données_constantes_exécutions;
 
     intervalle_adresses_globales.min = ptr_donnees_globales;
     intervalle_adresses_globales.max = ptr_donnees_globales +
-                                       metaprogramme->donnees_globales.taille();
+                                       metaprogramme->données_globales.taille();
 
     intervalle_adresses_pile_execution.min = pile;
     intervalle_adresses_pile_execution.max = pile + TAILLE_PILE;
@@ -1763,14 +1763,14 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             // RÀF
         }
         else if (res == ResultatInterpretation::ERREUR) {
-            it->resultat = MetaProgramme::ResultatExecution::ERREUR;
+            it->resultat = MetaProgramme::RésultatExécution::ERREUR;
             m_metaprogrammes_termines.ajoute(it);
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
         }
         else if (res == ResultatInterpretation::TERMINE) {
-            it->resultat = MetaProgramme::ResultatExecution::SUCCES;
+            it->resultat = MetaProgramme::RésultatExécution::SUCCÈS;
             m_metaprogrammes_termines.ajoute(it);
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
@@ -1858,7 +1858,7 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
     os << "Patch données constantes :\n";
 
     os << "-- où           : ";
-    if (patch.ou == DONNEES_CONSTANTES) {
+    if (patch.où == DONNÉES_CONSTANTES) {
         os << "données constantes\n";
     }
     else {
@@ -1873,8 +1873,8 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
         os << "adresse globale\n";
     }
 
-    os << "-- adresse quoi : " << patch.decalage_quoi << '\n';
-    os << "-- adresse où   : " << patch.decalage_ou << '\n';
+    os << "-- adresse quoi : " << patch.décalage_quoi << '\n';
+    os << "-- adresse où   : " << patch.décalage_où << '\n';
 
     return os;
 }

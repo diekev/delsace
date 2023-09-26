@@ -14,20 +14,20 @@
 #include "metaprogramme.hh"
 #include "programme.hh"
 
-bool CoulisseMV::cree_fichier_objet(Compilatrice &compilatrice,
+bool CoulisseMV::crée_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
                                     ConstructriceRI &constructrice_ri,
                                     Broyeuse &)
 {
-    auto repr_inter = representation_intermediaire_programme(*programme);
-    auto metaprogramme = programme->pour_metaprogramme();
-    assert(metaprogramme);
+    auto repr_inter = représentation_intermédiaire_programme(*programme);
+    auto métaprogramme = programme->pour_métaprogramme();
+    assert(métaprogramme);
 
-    auto fonction = static_cast<AtomeFonction *>(metaprogramme->fonction->atome);
+    auto fonction = static_cast<AtomeFonction *>(métaprogramme->fonction->atome);
 
     if (!fonction) {
-        espace.rapporte_erreur(metaprogramme->fonction,
+        espace.rapporte_erreur(métaprogramme->fonction,
                                "Impossible de trouver la fonction pour le métaprogramme");
         return false;
     }
@@ -56,58 +56,58 @@ bool CoulisseMV::cree_fichier_objet(Compilatrice &compilatrice,
     }
 
     POUR (repr_inter.fonctions) {
-        metaprogramme->cibles_appels.insere(it);
+        métaprogramme->cibles_appels.insere(it);
     }
 
-    std::unique_lock verrou(compilatrice.mutex_donnees_constantes_executions);
+    std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
-    auto convertisseuse_ri = ConvertisseuseRI(&espace, metaprogramme);
+    auto convertisseuse_ri = ConvertisseuseRI(&espace, métaprogramme);
     return convertisseuse_ri.genere_code(repr_inter.fonctions);
 }
 
-bool CoulisseMV::cree_executable(Compilatrice &compilatrice,
+bool CoulisseMV::crée_exécutable(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme)
 {
-    std::unique_lock verrou(compilatrice.mutex_donnees_constantes_executions);
+    std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
-    auto metaprogramme = programme->pour_metaprogramme();
-    assert(metaprogramme);
+    auto métaprogramme = programme->pour_métaprogramme();
+    assert(métaprogramme);
 
     /* Liaison du code binaire du métaprogramme (application des patchs). */
-    auto &donnees_constantes = compilatrice.donnees_constantes_executions;
+    auto &données_constantes = compilatrice.données_constantes_exécutions;
 
     /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire car le code binaire
      * des fonctions n'est généré qu'une seule fois, mais l'exécution des métaprogrammes a besoin
      * de pointeurs valides pour trouver les globales et les constantes ; pointeurs qui seraient
      * invalidés lors de l'ajout d'autres globales ou constantes. */
-    metaprogramme->donnees_globales = donnees_constantes.donnees_globales;
-    metaprogramme->donnees_constantes = donnees_constantes.donnees_constantes;
+    métaprogramme->données_globales = données_constantes.données_globales;
+    métaprogramme->données_constantes = données_constantes.données_constantes;
 
     /* Nous devons utiliser nos propres données pour les globales, afin que les pointeurs utilisés
-     * pour les initialisations des globales (`ptr_donnees_globales + decalage` ici-bas)
-     * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_donnees_globales +
+     * pour les initialisations des globales (`ptr_données_globales + decalage` ici-bas)
+     * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_données_globales +
      * globale.adresse` là-bas). */
-    auto ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
-    auto ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
+    auto ptr_données_globales = métaprogramme->données_globales.donnees();
+    auto ptr_données_constantes = métaprogramme->données_constantes.donnees();
 
     // initialise les globales pour le métaprogramme
-    POUR (donnees_constantes.patchs_donnees_constantes) {
+    POUR (données_constantes.patchs_données_constantes) {
         void *adresse_ou = nullptr;
         void *adresse_quoi = nullptr;
 
         if (it.quoi == ADRESSE_CONSTANTE) {
-            adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
+            adresse_quoi = ptr_données_constantes + it.décalage_quoi;
         }
         else {
-            adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
+            adresse_quoi = ptr_données_globales + it.décalage_quoi;
         }
 
-        if (it.ou == DONNEES_CONSTANTES) {
-            adresse_ou = ptr_donnees_constantes + it.decalage_ou;
+        if (it.où == DONNÉES_CONSTANTES) {
+            adresse_ou = ptr_données_constantes + it.décalage_où;
         }
         else {
-            adresse_ou = ptr_donnees_globales + it.decalage_ou;
+            adresse_ou = ptr_données_globales + it.décalage_où;
         }
 
         *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
