@@ -32,5 +32,17 @@ animation_est_fini :: fonc (animation: Animation) -> bool #enligne
  */
 ajourne_temps_animation :: fonc (courant: z32, cible: z32, vitesse: r32) -> z32
 {
-    retourne courant + ((cible - courant) comme r32 * vitesse) comme z32
+    delta := ((cible - courant) comme r32 * vitesse) comme z32
+    /* Garantis que l'animation progresse, puisque la conversion vers un nombre entier
+     * peut nous bloquer en arrondissant une valeur non-nulle vers 0. */
+    si delta == 0 {
+        /* Préserve la direction. */
+        si cible > courant {
+            delta = 1
+        }
+        sinon {
+            delta = -1
+        }
+    }
+    retourne courant + delta
 }
