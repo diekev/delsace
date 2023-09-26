@@ -2060,7 +2060,7 @@ static bool genere_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
     }
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = representation_intermediaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
 
     genere_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
 
@@ -2084,7 +2084,7 @@ static bool genere_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    Broyeuse &broyeuse)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = representation_intermediaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
 
     /* Garantie l'utilisation des fonctions racines. */
     auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
@@ -2134,7 +2134,7 @@ static bool genere_code_C(Compilatrice &compilatrice,
         compilatrice, constructrice_ri, espace, coulisse, programme, bibliotheques, broyeuse);
 }
 
-bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
+bool CoulisseC::crée_fichier_objet(Compilatrice &compilatrice,
                                    EspaceDeTravail &espace,
                                    Programme *programme,
                                    ConstructriceRI &constructrice_ri,
@@ -2221,7 +2221,7 @@ bool CoulisseC::cree_fichier_objet(Compilatrice &compilatrice,
     return true;
 }
 
-bool CoulisseC::cree_executable(Compilatrice &compilatrice,
+bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
                                 EspaceDeTravail &espace,
                                 Programme * /*programme*/)
 {

@@ -201,7 +201,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
-            !programme.pour_metaprogramme()) {
+            !programme.pour_métaprogramme()) {
             possede_erreur = true;
 
             /* À FAIRE : site pour la dépendance. */
@@ -645,7 +645,7 @@ static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Pr
     }
 
     if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
-        return !programme->pour_metaprogramme();
+        return !programme->pour_métaprogramme();
     }
 
     return false;
@@ -1393,7 +1393,7 @@ void GestionnaireCode::generation_code_machine_terminee(UniteCompilation *unite)
     auto programme = unite->programme;
     auto espace = unite->espace;
 
-    if (programme->pour_metaprogramme()) {
+    if (programme->pour_métaprogramme()) {
         programme->change_de_phase(PhaseCompilation::APRES_GENERATION_OBJET);
         programme->change_de_phase(PhaseCompilation::AVANT_LIAISON_EXECUTABLE);
         requiers_liaison_executable(espace, unite->programme);
@@ -1422,8 +1422,8 @@ void GestionnaireCode::liaison_programme_terminee(UniteCompilation *unite)
     auto programme = unite->programme;
     auto espace = unite->espace;
 
-    if (programme->pour_metaprogramme()) {
-        auto metaprogramme = programme->pour_metaprogramme();
+    if (programme->pour_métaprogramme()) {
+        auto metaprogramme = programme->pour_métaprogramme();
         programme->change_de_phase(PhaseCompilation::APRES_LIAISON_EXECUTABLE);
         programme->change_de_phase(PhaseCompilation::COMPILATION_TERMINEE);
         requiers_execution(unite->espace, metaprogramme);
@@ -1603,7 +1603,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
         tente_de_garantir_fonction_point_d_entree(espace);
 
-        if (it->pour_metaprogramme()) {
+        if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_etat_compilation();
 
             if (etat.phase_courante() == PhaseCompilation::GENERATION_CODE_TERMINEE) {
@@ -1636,7 +1636,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         programmes_en_cours.begin(), programmes_en_cours.end(), [](Programme const *it) {
             /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
              * avons un, la compilation ne peut se terminée. */
-            if (it->pour_metaprogramme()) {
+            if (it->pour_métaprogramme()) {
                 return false;
             }
 
