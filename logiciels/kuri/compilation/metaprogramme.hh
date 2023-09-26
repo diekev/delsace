@@ -51,6 +51,26 @@ struct DonneesConstantesExecutions {
     void rassemble_statistiques(Statistiques &stats) const;
 };
 
+/* ------------------------------------------------------------------------- */
+/** \name ComportementMétaprogramme
+ * Drapeaux pour savoir ce qu'un métaprogramme fera lors de son exécution.
+ * Les drapaux dérivent des fonctions ajoutées au programme du métaprogramme.
+ * \{ */
+
+enum class ComportementMétaprogramme : uint32_t {
+    /* Le métaprogramme possède des appels à #compilatrice_commence_interception. */
+    COMMENCE_INTERCEPTION = (1 << 0),
+    /* Le métaprogramme possède des appels à #compilatrice_termine_interception. */
+    TERMINE_INTERCEPTION = (1 << 1),
+    /* Le métaprogramme va ajouter du code à la compilation. */
+    AJOUTE_CODE = (1 << 2),
+
+    REQUIERS_MESSAGE = COMMENCE_INTERCEPTION | TERMINE_INTERCEPTION,
+};
+DEFINIS_OPERATEURS_DRAPEAU(ComportementMétaprogramme)
+
+/** \} */
+
 struct MetaProgramme {
     enum class RésultatExécution : int {
         ERREUR,
@@ -95,4 +115,18 @@ struct MetaProgramme {
      * À FAIRE : cibles des branches.
      */
     kuri::ensemble<AtomeFonction *> cibles_appels{};
+
+    ComportementMétaprogramme comportement{};
+
+    bool ajoutera_du_code() const
+    {
+        return (comportement & ComportementMétaprogramme::AJOUTE_CODE) !=
+               static_cast<ComportementMétaprogramme>(0);
+    }
+
+    bool écoutera_les_messages() const
+    {
+        return (comportement & ComportementMétaprogramme::REQUIERS_MESSAGE) !=
+               static_cast<ComportementMétaprogramme>(0);
+    }
 };
