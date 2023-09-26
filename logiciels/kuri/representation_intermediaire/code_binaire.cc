@@ -1469,7 +1469,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             auto valeur_constante = static_cast<AtomeValeurConstante *>(constante);
             unsigned char *donnees = nullptr;
 
-            if (ou_patcher == DONNEES_GLOBALES) {
+            if (ou_patcher == DONNÉES_GLOBALES) {
                 donnees = donnees_executions->donnees_globales.donnees() + decalage;
             }
             else {
@@ -1652,15 +1652,15 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             for (auto j = 0; j < taille; ++j) {
                                 auto pointeur_valeur = pointeur[j];
                                 genere_code_binaire_pour_initialisation_globale(
-                                    pointeur_valeur, decalage_valeur, DONNEES_CONSTANTES);
+                                    pointeur_valeur, decalage_valeur, DONNÉES_CONSTANTES);
                                 decalage_valeur += static_cast<int>(type_pointe->taille_octet);
                             }
 
                             auto patch = PatchDonneesConstantes{};
-                            patch.ou = DONNEES_GLOBALES;
+                            patch.où = DONNÉES_GLOBALES;
                             patch.quoi = ADRESSE_CONSTANTE;
-                            patch.decalage_ou = decalage + static_cast<int>(decalage_membre);
-                            patch.decalage_quoi = adresse_tableau;
+                            patch.décalage_où = decalage + static_cast<int>(decalage_membre);
+                            patch.décalage_quoi = adresse_tableau;
 
                             donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
@@ -1691,10 +1691,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             auto globale = donnees_executions->globales[index_globale];
 
             auto patch = PatchDonneesConstantes{};
-            patch.ou = ou_patcher;
+            patch.où = ou_patcher;
             patch.quoi = ADRESSE_GLOBALE;
-            patch.decalage_ou = decalage;
-            patch.decalage_quoi = globale.adresse;
+            patch.décalage_où = decalage;
+            patch.décalage_quoi = globale.adresse;
 
             donnees_executions->patchs_donnees_constantes.ajoute(patch);
 
@@ -1790,7 +1790,7 @@ int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
         auto globale = donnees_executions->globales[index];
         auto initialisateur = atome_globale->initialisateur;
         genere_code_binaire_pour_initialisation_globale(
-            initialisateur, globale.adresse, DONNEES_GLOBALES);
+            initialisateur, globale.adresse, DONNÉES_GLOBALES);
     }
 
     return index;

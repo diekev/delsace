@@ -18,8 +18,8 @@ struct Statistiques;
 struct UniteCompilation;
 
 enum {
-    DONNEES_CONSTANTES,
-    DONNEES_GLOBALES,
+    DONNÉES_CONSTANTES,
+    DONNÉES_GLOBALES,
 };
 
 enum {
@@ -32,10 +32,10 @@ enum {
 // membres des structures sont écris dans un tableau constant, et le pointeur du tableau constant
 // doit être écris dans la zone mémoire où se trouve le tableau de membres de l'InfoTypeStructure.
 struct PatchDonneesConstantes {
-    int ou;
+    int où;
     int quoi;
-    int decalage_ou;
-    int decalage_quoi;
+    int décalage_où;
+    int décalage_quoi;
 };
 
 std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
@@ -52,10 +52,9 @@ struct DonneesConstantesExecutions {
 };
 
 struct MetaProgramme {
-    enum class ResultatExecution : int {
-        NON_INITIALISE,
+    enum class RésultatExécution : int {
         ERREUR,
-        SUCCES,
+        SUCCÈS,
     };
 
     /* non-nul pour les directives d'exécutions (exécute, corps texte, etc.) */
@@ -75,7 +74,7 @@ struct MetaProgramme {
     bool fut_execute = false;
     bool a_rapporté_une_erreur = false;
 
-    ResultatExecution resultat{};
+    RésultatExécution resultat{};
 
     DonneesExecution *donnees_execution = nullptr;
 

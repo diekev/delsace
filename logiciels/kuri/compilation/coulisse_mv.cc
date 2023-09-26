@@ -97,17 +97,17 @@ bool CoulisseMV::cree_executable(Compilatrice &compilatrice,
         void *adresse_quoi = nullptr;
 
         if (it.quoi == ADRESSE_CONSTANTE) {
-            adresse_quoi = ptr_donnees_constantes + it.decalage_quoi;
+            adresse_quoi = ptr_donnees_constantes + it.décalage_quoi;
         }
         else {
-            adresse_quoi = ptr_donnees_globales + it.decalage_quoi;
+            adresse_quoi = ptr_donnees_globales + it.décalage_quoi;
         }
 
-        if (it.ou == DONNEES_CONSTANTES) {
-            adresse_ou = ptr_donnees_constantes + it.decalage_ou;
+        if (it.où == DONNÉES_CONSTANTES) {
+            adresse_ou = ptr_donnees_constantes + it.décalage_où;
         }
         else {
-            adresse_ou = ptr_donnees_globales + it.decalage_ou;
+            adresse_ou = ptr_donnees_globales + it.décalage_où;
         }
 
         *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
