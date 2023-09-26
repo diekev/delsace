@@ -33,7 +33,7 @@ struct Coulisse {
      * constructrice_ri est requise pour :
      * - générer la fonction principale du programme
      */
-    virtual bool cree_fichier_objet(Compilatrice &compilatrice,
+    virtual bool crée_fichier_objet(Compilatrice &compilatrice,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
                                     ConstructriceRI &constructrice_ri,
@@ -44,7 +44,7 @@ struct Coulisse {
      * compilatrice est requise pour :
      * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
      */
-    virtual bool cree_executable(Compilatrice &compilatrice,
+    virtual bool crée_exécutable(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme) = 0;
 };

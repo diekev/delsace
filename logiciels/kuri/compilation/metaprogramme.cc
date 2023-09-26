@@ -14,7 +14,7 @@ int DonneesConstantesExecutions::ajoute_globale(Type *type,
     auto globale = Globale{};
     globale.type = type;
     globale.ident = ident;
-    globale.adresse = donnees_globales.taille();
+    globale.adresse = données_globales.taille();
 
     if (pour_info_type) {
         globale.adresse_pour_execution = pour_info_type->info_type;
@@ -23,7 +23,7 @@ int DonneesConstantesExecutions::ajoute_globale(Type *type,
         globale.adresse_pour_execution = nullptr;
     }
 
-    donnees_globales.redimensionne(donnees_globales.taille() +
+    données_globales.redimensionne(données_globales.taille() +
                                    static_cast<int>(type->taille_octet));
 
     auto ptr = globales.taille();
@@ -37,9 +37,9 @@ void DonneesConstantesExecutions::rassemble_statistiques(Statistiques &stats) co
 {
     auto memoire_mv = 0l;
     memoire_mv += globales.taille_memoire();
-    memoire_mv += donnees_constantes.taille_memoire();
-    memoire_mv += donnees_globales.taille_memoire();
-    memoire_mv += patchs_donnees_constantes.taille_memoire();
+    memoire_mv += données_constantes.taille_memoire();
+    memoire_mv += données_globales.taille_memoire();
+    memoire_mv += patchs_données_constantes.taille_memoire();
 
     stats.memoire_mv += memoire_mv;
 }
