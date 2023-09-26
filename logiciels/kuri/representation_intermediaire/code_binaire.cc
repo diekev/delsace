@@ -768,7 +768,7 @@ ffi_type *converti_type_ffi(Type const *type)
 /* ************************************************************************** */
 
 ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_)
-    : espace(espace_), donnees_executions(&espace_->compilatrice().donnees_constantes_executions),
+    : espace(espace_), donnees_executions(&espace_->compilatrice().données_constantes_exécutions),
       metaprogramme(metaprogramme_)
 {
     verifie_adresses = espace->compilatrice().arguments.debogue_execution;
@@ -1470,10 +1470,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             unsigned char *donnees = nullptr;
 
             if (ou_patcher == DONNÉES_GLOBALES) {
-                donnees = donnees_executions->donnees_globales.donnees() + decalage;
+                donnees = donnees_executions->données_globales.donnees() + decalage;
             }
             else {
-                donnees = donnees_executions->donnees_constantes.donnees() + decalage;
+                donnees = donnees_executions->données_constantes.donnees() + decalage;
             }
 
             switch (valeur_constante->valeur.genre) {
@@ -1620,7 +1620,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                             auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                            auto donnees_ = donnees_executions->données_globales.donnees() +
                                             decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<int64_t *>(donnees_ + 8) = taille_chaine;
@@ -1641,11 +1641,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto type_tableau = tableau->type->comme_type_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
-                            auto decalage_valeur = donnees_executions->donnees_constantes.taille();
+                            auto decalage_valeur = donnees_executions->données_constantes.taille();
                             auto adresse_tableau = decalage_valeur;
 
-                            donnees_executions->donnees_constantes.redimensionne(
-                                donnees_executions->donnees_constantes.taille() +
+                            donnees_executions->données_constantes.redimensionne(
+                                donnees_executions->données_constantes.taille() +
                                 static_cast<int>(type_pointe->taille_octet) *
                                     type_tableau->taille);
 
@@ -1662,9 +1662,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             patch.décalage_où = decalage + static_cast<int>(decalage_membre);
                             patch.décalage_quoi = adresse_tableau;
 
-                            donnees_executions->patchs_donnees_constantes.ajoute(patch);
+                            donnees_executions->patchs_données_constantes.ajoute(patch);
 
-                            auto donnees_ = donnees_executions->donnees_globales.donnees() +
+                            auto donnees_ = donnees_executions->données_globales.donnees() +
                                             decalage + static_cast<int>(decalage_membre);
                             *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
                         }
@@ -1696,7 +1696,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             patch.décalage_où = decalage;
             patch.décalage_quoi = globale.adresse;
 
-            donnees_executions->patchs_donnees_constantes.ajoute(patch);
+            donnees_executions->patchs_données_constantes.ajoute(patch);
 
             break;
         }

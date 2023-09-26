@@ -918,13 +918,13 @@ void MachineVirtuelle::installe_metaprogramme(MetaProgramme *metaprogramme)
     pile = de->pile;
     pointeur_pile = de->pointeur_pile;
     frames = de->frames;
-    ptr_donnees_constantes = metaprogramme->donnees_constantes.donnees();
-    ptr_donnees_globales = metaprogramme->donnees_globales.donnees();
-    donnees_constantes = &compilatrice.donnees_constantes_executions;
+    ptr_donnees_constantes = metaprogramme->données_constantes.donnees();
+    ptr_donnees_globales = metaprogramme->données_globales.donnees();
+    donnees_constantes = &compilatrice.données_constantes_exécutions;
 
     intervalle_adresses_globales.min = ptr_donnees_globales;
     intervalle_adresses_globales.max = ptr_donnees_globales +
-                                       metaprogramme->donnees_globales.taille();
+                                       metaprogramme->données_globales.taille();
 
     intervalle_adresses_pile_execution.min = pile;
     intervalle_adresses_pile_execution.max = pile + TAILLE_PILE;

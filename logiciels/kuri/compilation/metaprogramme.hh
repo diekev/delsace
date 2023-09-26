@@ -42,9 +42,9 @@ std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
 
 struct DonneesConstantesExecutions {
     kuri::tableau<Globale, int> globales{};
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
-    kuri::tableau<PatchDonneesConstantes, int> patchs_donnees_constantes{};
+    kuri::tableau<unsigned char, int> données_globales{};
+    kuri::tableau<unsigned char, int> données_constantes{};
+    kuri::tableau<PatchDonneesConstantes, int> patchs_données_constantes{};
 
     int ajoute_globale(Type *type, IdentifiantCode *ident, const Type *pour_info_type);
 
@@ -101,8 +101,8 @@ struct MetaProgramme {
     Programme *programme = nullptr;
 
     /* Pour les exécutions. */
-    kuri::tableau<unsigned char, int> donnees_globales{};
-    kuri::tableau<unsigned char, int> donnees_constantes{};
+    kuri::tableau<unsigned char, int> données_globales{};
+    kuri::tableau<unsigned char, int> données_constantes{};
 
     /* Ensemble de toutes les fonctions potentiellement appelable lors de l'exécution du
      * métaprogramme. Ceci est utilisé pour chaque instruction d'appel afin de vérifier que
