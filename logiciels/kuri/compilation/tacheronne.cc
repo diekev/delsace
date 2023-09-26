@@ -132,9 +132,16 @@ Tache OrdonnanceuseTache::tache_suivante(Tache &tache_terminee, DrapeauxTacheron
             continue;
         }
 
-        if (!taches[i].est_vide()) {
+        while (!taches[i].est_vide()) {
             auto tache = taches[i].defile();
-            assert(!tache.unite->espace->possede_erreur);
+            /* Ignore les tâches des espaces possédant des erreurs. Nous pouvons toujours en avoir
+             * dans nos files car il n'y a pas de synchronisation entre le fil du GesionnaireCode
+             * et les fils des Tâcheronnes
+             * (OrdonnanceuseTache::supprime_toutes_les_taches_pour_espace peut alors ignorer
+             * certaines tâches). */
+            if (tache.unite->espace->possede_erreur) {
+                continue;
+            }
             return tache;
         }
     }
