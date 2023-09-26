@@ -224,3 +224,14 @@ glIsShader :: fonc (shader: n32) -> bool #externe libGL
 glIsProgram :: fonc (program: GLuint) -> GLboolean #externe libGL
 
 glGetError :: fonc () -> n32 #externe libGL
+
+/* ------------------------------------------------------------------------- */
+/** \nom Ciseau.
+ * \{ */
+
+GL_SCISSOR_BOX : GLenum : 0x0C10
+GL_SCISSOR_TEST : GLenum : 0x0C11
+
+glScissor :: fonc (x: GLint, y: GLint, width: GLsizei, height: GLsizei) -> rien #externe libGL
+
+/** } */

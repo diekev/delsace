@@ -9,16 +9,11 @@ BarreDeMenu :: struct {
     menus: []*Menu
 }
 
-crée_barre_de_menu :: fonc () -> *BarreDeMenu
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, texte: chaine) -> *Menu
 {
-    résultat := loge(BarreDeMenu)
-
-    tableau_ajoute(*résultat.menus, crée_menu("Fichier", ["Nouveau", "Ouvrir", "Sauvegarder", "Sauvegarder sous...", "Fermer"]))
-    tableau_ajoute(*résultat.menus, crée_menu("Édition", ["Refaire", "Défaire"]))
-    tableau_ajoute(*résultat.menus, crée_menu("Sélection", ["Tout déselectionner"]))
-    tableau_ajoute(*résultat.menus, crée_menu("Affichage", ["Rechercher"]))
-    tableau_ajoute(*résultat.menus, crée_menu("Aide", ["À Propos", "Manuel"]))
-
+    résultat := loge(Menu)
+    résultat.texte = texte
+    tableau_ajoute(*barre_de_menu.menus, résultat)
     retourne résultat
 }
 
@@ -35,37 +30,46 @@ crée_barre_de_menu :: fonc () -> *BarreDeMenu
  * - sous-menu
  */
 Menu :: struct {
+    DonnéesÉlément :: union {
+        SousMenu: *Menu
+        Séparateur: z32
+        Action: *Bouton
+    }
+
     Élément :: struct {
         texte: chaine
-        bouton: *Bouton
+        données: DonnéesÉlément
     }
 
     texte: chaine
     éléments: []Élément
 }
 
-importe Fondation
-
-crée_menu :: fonc (texte: chaine, éléments: []chaine) -> *Menu
-{
-    résultat := loge(Menu)
-    résultat.texte = texte
-
-    sur_clique_bouton :: fonc (b: *Bouton)
-    {
-        imprime("Clique bouton : %\n", b.texte)
-    }
-
-    pour éléments {
-        résultat.ajoute_élément(crée_bouton(it, sur_clique_bouton))
-    }
-
-    retourne résultat
-}
-
-ajoute_élément :: fonc (menu: *Menu, bouton: *Bouton)
+ajoute_bouton :: fonc (menu: *Menu, bouton: *Bouton)
 {
     tableau_ajoute(*menu.éléments, Menu.Élément(bouton.texte, bouton))
+}
+
+ajoute_séparateur :: fonc (menu: *Menu)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément("", 0))
+}
+
+ajoute_menu :: fonc (menu: *Menu, sous_menu: *Menu)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément(sous_menu.texte, sous_menu))
+}
+
+gère_clique_souris :: fonc (élément: Menu.Élément)
+{
+    discr élément.données {
+        Action(bouton) {
+            si bouton.sur_clique {
+                bouton.sur_clique(bouton)
+            }
+        }
+        sinon {}
+    }
 }
 
 /** } */
