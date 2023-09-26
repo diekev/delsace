@@ -17,6 +17,7 @@
 #include "coulisse.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "ipa.hh"
 #include "typage.hh"
 
 Programme *Programme::cree(EspaceDeTravail *espace)
@@ -54,6 +55,26 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insere(fonction);
+    }
+    if (pour_métaprogramme()) {
+        if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
+            if (fonction->ident == ID::compilatrice_commence_interception) {
+                pour_métaprogramme()->comportement |=
+                    ComportementMétaprogramme::COMMENCE_INTERCEPTION;
+                return;
+            }
+            if (fonction->ident == ID::compilatrice_termine_interception) {
+                pour_métaprogramme()->comportement |=
+                    ComportementMétaprogramme::TERMINE_INTERCEPTION;
+                return;
+            }
+            if (fonction->ident == ID::ajoute_chaine_au_module ||
+                fonction->ident == ID::ajoute_chaine_à_la_compilation ||
+                fonction->ident == ID::ajoute_fichier_à_la_compilation) {
+                pour_métaprogramme()->comportement |= ComportementMétaprogramme::AJOUTE_CODE;
+                return;
+            }
+        }
     }
 }
 
@@ -340,7 +361,7 @@ void Programme::ajoute_fichier(Fichier *fichier)
 
 void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
 {
-    if (pour_metaprogramme()) {
+    if (pour_métaprogramme()) {
         /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de
          * l'exécutable. */
         if (racine->ident == ID::cree_contexte) {
@@ -644,7 +665,7 @@ static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
     }
 }
 
-ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme)
+ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &programme)
 {
     auto resultat = ProgrammeRepreInter{};
 

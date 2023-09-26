@@ -293,7 +293,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
         }
     });
 
-    donnees_constantes_executions.rassemble_statistiques(stats);
+    données_constantes_exécutions.rassemble_statistiques(stats);
 
     stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
     stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});

@@ -1773,7 +1773,7 @@ static bool cree_executable(EspaceDeTravail const &espace,
     return true;
 }
 
-bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
+bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
                                       EspaceDeTravail &espace,
                                       Programme *programme,
                                       ConstructriceRI & /*constructrice_ri*/,
@@ -1793,7 +1793,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
         return 1;
     }
 
-    auto repr_inter = representation_intermediaire_programme(*programme);
+    auto repr_inter = représentation_intermédiaire_programme(*programme);
 
     auto CPU = "generic";
     auto feature = "";
@@ -1841,7 +1841,7 @@ bool CoulisseLLVM::cree_fichier_objet(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseLLVM::cree_executable(Compilatrice &compilatrice,
+bool CoulisseLLVM::crée_exécutable(Compilatrice &compilatrice,
                                    EspaceDeTravail &espace,
                                    Programme * /*programme*/)
 {

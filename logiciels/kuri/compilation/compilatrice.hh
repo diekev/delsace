@@ -117,8 +117,8 @@ struct Compilatrice {
     NoeudDeclarationVariable *globale_contexte_programme = nullptr;
 
     /* Pour les executions des métaprogrammes. */
-    std::mutex mutex_donnees_constantes_executions{};
-    DonneesConstantesExecutions donnees_constantes_executions{};
+    std::mutex mutex_données_constantes_exécutions{};
+    DonneesConstantesExecutions données_constantes_exécutions{};
 
     tableau_page<AtomeFonction> fonctions{};
     tableau_page<AtomeGlobale> globales{};
