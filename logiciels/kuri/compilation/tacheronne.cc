@@ -386,7 +386,7 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
-                if (coulisse->cree_fichier_objet(compilatrice,
+                if (coulisse->crée_fichier_objet(compilatrice,
                                                  *tache.unite->espace,
                                                  programme,
                                                  constructrice_ri,
@@ -403,7 +403,7 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
-                if (coulisse->cree_executable(compilatrice, *tache.espace, programme)) {
+                if (coulisse->crée_exécutable(compilatrice, *tache.espace, programme)) {
                     compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
                 }
                 temps_executable += coulisse->temps_executable;
@@ -610,7 +610,7 @@ void Tacheronne::execute_metaprogrammes()
         auto espace = it->unite->espace;
 
         // À FAIRE : précision des messages d'erreurs
-        if (it->resultat == MetaProgramme::ResultatExecution::ERREUR) {
+        if (it->resultat == MetaProgramme::RésultatExécution::ERREUR) {
             espace->rapporte_erreur(it->directive, "Erreur lors de l'exécution du métaprogramme");
         }
         else if (!it->a_rapporté_une_erreur) {
