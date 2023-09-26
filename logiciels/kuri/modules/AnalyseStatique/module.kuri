@@ -150,7 +150,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
 vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: *NoeudCodeCorpsFonction)
 {
     bloc := corps.bloc
-    saufsi bloc.expressions {
+    saufsi bloc && bloc.expressions {
         retourne
     }
 
