@@ -73,6 +73,12 @@ Peintre :: struct {
      * mais nous ne voulons pas que les détails d'implémentation des peintres se
      * retrouve exposés aux applications clientes. */
     rappel_dessine_tampon_sur_écran : fonc (*Peintre)(rien)
+
+    /* Définis le ciseau pour les dessins subséquents. Le ciseau définit les
+     * limites d'une zone hors de laquelle rien n'est dessiné. */
+    rappel_définis_ciseau : fonc (*Peintre, RectanglePeintre)(rien)
+
+    ciseaux: []RectanglePeintre
 }
 
 définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
@@ -165,6 +171,32 @@ dessine_tampon_sur_écran :: fonc (peintre: *Peintre) -> rien #enligne
     peintre.rappel_dessine_tampon_sur_écran(peintre)
 }
 
+définis_ciseau :: fonc (peintre: *Peintre, rectangle: RectanglePeintre) -> rien #enligne
+{
+    tableau_ajoute(*peintre.ciseaux, rectangle)
+    peintre.rappel_définis_ciseau(peintre, rectangle)
+}
+
+restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
+{
+    saufsi peintre.ciseaux {
+        retourne
+    }
+
+    peintre.ciseaux.taille -= 1
+
+    saufsi peintre.ciseaux {
+        /* Par défaut, le ciseau doit être le cannevas. */
+        taille := donne_taille_cannevas(peintre)
+        rectangle := RectanglePosDim(z32)(0, 0, largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32)
+        peintre.rappel_définis_ciseau(peintre, rectangle)
+        retourne
+    }
+
+    rectangle := peintre.ciseaux[peintre.ciseaux.taille - 1]
+    peintre.rappel_définis_ciseau(peintre, rectangle)
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -199,6 +231,7 @@ crée_peintre_module_dessin :: fonc (taille_cannevas: Taille) -> *PeintreDessin
     peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
+    peintre.rappel_définis_ciseau = définis_ciseau_dessin
     définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }
@@ -434,6 +467,11 @@ détruit_peintre_dessin :: fonc (peintre: *PeintreDessin)
     déloge(peintre)
 }
 
+définis_ciseau_dessin :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre @inutilisée)
+{
+    // À FAIRE
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -465,6 +503,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_igumi
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
+    peintre.rappel_définis_ciseau = définis_ciseau_igumi
     définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }
@@ -723,6 +762,19 @@ dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
 détruit_peintre_igumi :: fonc (peintre: *Peintre)
 {
     issitialise_igumi()
+}
+
+définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)
+{
+    /* Nous utilisons donne_rectangle_dessin afin d'avoir un rectangle dont
+     * les valeurs sont des nombres entiers, car les paramètres de glScissor
+     * sont des nombres entiers. */
+    rect := donne_rectangle_dessin(rectangle)
+
+    /* À FAIRE : tient trace de l'état dans pour chaque ciseau sauvegarder dans le peintre. */
+    glEnable(GL_SCISSOR_TEST)
+
+    glScissor(rect.x, rect.y, rect.largeur, rect.hauteur)
 }
 
 /** } */
