@@ -9,13 +9,13 @@ bool initialise_llvm();
 void issitialise_llvm();
 
 struct CoulisseLLVM final : public Coulisse {
-    bool cree_fichier_objet(Compilatrice &compilatrice,
+    bool crée_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
                             Programme *programme,
                             ConstructriceRI &constructrice_ri,
                             Broyeuse &) override;
 
-    bool cree_executable(Compilatrice &compilatrice,
+    bool crée_exécutable(Compilatrice &compilatrice,
                          EspaceDeTravail &espace,
                          Programme *programme) override;
 };
