@@ -191,7 +191,7 @@ struct Programme {
 
     bool ri_generees() const;
 
-    MetaProgramme *pour_metaprogramme() const
+    MetaProgramme *pour_métaprogramme() const
     {
         return m_pour_metaprogramme;
     }
@@ -254,4 +254,4 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
                                uint32_t quoi,
                                std::ostream &os);
 
-ProgrammeRepreInter representation_intermediaire_programme(Programme const &programme);
+ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &programme);
