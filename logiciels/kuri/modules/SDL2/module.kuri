@@ -520,7 +520,7 @@ SDL_KeyboardEvent :: struct {
  *  \brief Mouse motion event structure (event.motion.*)
  */
 SDL_MouseMotionEvent :: struct {
-    type: n32        /**< ::SDL_MOUSEMOTION */
+    type: SDL_EventType        /**< ::SDL_MOUSEMOTION */
     timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
     windowID: n32    /**< The window with mouse focus, if any */
     which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
@@ -535,7 +535,7 @@ SDL_MouseMotionEvent :: struct {
  *  \brief Mouse button event structure (event.button.*)
  */
 SDL_MouseButtonEvent :: struct {
-    type: n32       /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
+    type: SDL_EventType       /**< ::SDL_MOUSEBUTTONDOWN or ::SDL_MOUSEBUTTONUP */
     timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
     windowID: n32    /**< The window with mouse focus, if any */
     which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
@@ -551,7 +551,7 @@ SDL_MouseButtonEvent :: struct {
  *  \brief Mouse wheel event structure (event.wheel.*)
  */
 SDL_MouseWheelEvent :: struct {
-    type: n32        /**< ::SDL_MOUSEWHEEL */
+    type: SDL_EventType        /**< ::SDL_MOUSEWHEEL */
     timestamp: n32   /**< In milliseconds, populated using SDL_GetTicks() */
     windowID: n32    /**< The window with mouse focus, if any */
     which: n32       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
