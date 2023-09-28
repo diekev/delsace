@@ -581,6 +581,7 @@ SDL_Event :: union nonsûr #externe {
 
 SDL_PollEvent :: fonc (event: *SDL_Event) -> z32 #externe libSDL2
 SDL_WaitEvent :: fonc (event: *SDL_Event) -> z32 #externe libSDL2
+SDL_PushEvent :: fonc (event: *SDL_Event) -> z32 #externe libSDL2
 
 // SDL_GLContext :: *rien
 
