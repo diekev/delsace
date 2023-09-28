@@ -560,10 +560,16 @@ SDL_MouseWheelEvent :: struct {
     direction: n32   /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
 }
 
+SDL_QuitEvent :: struct {
+    type: SDL_EventType
+    timestamp: n32
+}
+
 SDL_Event :: union nonsûr #externe {
     type : SDL_EventType
-    key : SDL_KeyboardEvent
 
+    key : SDL_KeyboardEvent
+    quit: SDL_QuitEvent
     window: SDL_WindowEvent         /**< Window event data */
     motion: SDL_MouseMotionEvent    /**< Mouse motion event data */
     button: SDL_MouseButtonEvent    /**< Mouse button event data */
