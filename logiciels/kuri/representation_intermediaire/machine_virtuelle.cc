@@ -1853,28 +1853,28 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     }
 }
 
-std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch)
+std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
 {
     os << "Patch données constantes :\n";
 
-    os << "-- où           : ";
-    if (patch.où == DONNÉES_CONSTANTES) {
+    os << "-- destination         : ";
+    if (patch.destination.type == DONNÉES_CONSTANTES) {
         os << "données constantes\n";
     }
     else {
         os << "données globales\n";
     }
 
-    os << "-- quoi         : ";
-    if (patch.quoi == ADRESSE_CONSTANTE) {
+    os << "-- source              : ";
+    if (patch.source.type == ADRESSE_CONSTANTE) {
         os << "adresse constante\n";
     }
     else {
         os << "adresse globale\n";
     }
 
-    os << "-- adresse quoi : " << patch.décalage_quoi << '\n';
-    os << "-- adresse où   : " << patch.décalage_où << '\n';
+    os << "-- adresse source      : " << patch.source.décalage << '\n';
+    os << "-- adresse destination : " << patch.destination.décalage << '\n';
 
     return os;
 }
