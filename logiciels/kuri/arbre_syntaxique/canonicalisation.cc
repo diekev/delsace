@@ -817,6 +817,12 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             expr_empl->substitution = expr_empl->expression;
             return;
         }
+        case GenreNoeud::EXPRESSION_MEMOIRE:
+        {
+            auto expr_mémoire = noeud->comme_memoire();
+            simplifie(expr_mémoire->expression);
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::DECLARATION_OPAQUE:
@@ -828,7 +834,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-        case GenreNoeud::EXPRESSION_MEMOIRE:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::INSTRUCTION_CHARGE:
