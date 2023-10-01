@@ -27,24 +27,27 @@ enum {
     ADRESSE_GLOBALE,
 };
 
+struct AdresseDonnéesExécution {
+    int type{};
+    int décalage{};
+};
+
 // Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
 // dans les données d'exécution des métaprogrammes. Par exemple, les pointeurs des infos types des
 // membres des structures sont écris dans un tableau constant, et le pointeur du tableau constant
 // doit être écris dans la zone mémoire où se trouve le tableau de membres de l'InfoTypeStructure.
-struct PatchDonneesConstantes {
-    int où;
-    int quoi;
-    int décalage_où;
-    int décalage_quoi;
+struct PatchDonnéesConstantes {
+    AdresseDonnéesExécution destination{};
+    AdresseDonnéesExécution source{};
 };
 
-std::ostream &operator<<(std::ostream &os, PatchDonneesConstantes const &patch);
+std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch);
 
 struct DonneesConstantesExecutions {
     kuri::tableau<Globale, int> globales{};
     kuri::tableau<unsigned char, int> données_globales{};
     kuri::tableau<unsigned char, int> données_constantes{};
-    kuri::tableau<PatchDonneesConstantes, int> patchs_données_constantes{};
+    kuri::tableau<PatchDonnéesConstantes, int> patchs_données_constantes{};
 
     int ajoute_globale(Type *type, IdentifiantCode *ident, const Type *pour_info_type);
 

@@ -1656,11 +1656,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 decalage_valeur += static_cast<int>(type_pointe->taille_octet);
                             }
 
-                            auto patch = PatchDonneesConstantes{};
-                            patch.où = DONNÉES_GLOBALES;
-                            patch.quoi = ADRESSE_CONSTANTE;
-                            patch.décalage_où = decalage + static_cast<int>(decalage_membre);
-                            patch.décalage_quoi = adresse_tableau;
+                            auto patch = PatchDonnéesConstantes{};
+                            patch.destination = {DONNÉES_GLOBALES,
+                                                 decalage + static_cast<int>(decalage_membre)};
+                            patch.source = {ADRESSE_CONSTANTE, adresse_tableau};
 
                             donnees_executions->patchs_données_constantes.ajoute(patch);
 
@@ -1690,12 +1689,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             auto index_globale = genere_code_pour_globale(atome_globale);
             auto globale = donnees_executions->globales[index_globale];
 
-            auto patch = PatchDonneesConstantes{};
-            patch.où = ou_patcher;
-            patch.quoi = ADRESSE_GLOBALE;
-            patch.décalage_où = decalage;
-            patch.décalage_quoi = globale.adresse;
-
+            auto patch = PatchDonnéesConstantes{};
+            patch.destination = {ou_patcher, decalage};
+            patch.source = {ADRESSE_GLOBALE, globale.adresse};
             donnees_executions->patchs_données_constantes.ajoute(patch);
 
             break;

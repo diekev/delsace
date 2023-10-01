@@ -93,24 +93,23 @@ bool CoulisseMV::crée_exécutable(Compilatrice &compilatrice,
 
     // initialise les globales pour le métaprogramme
     POUR (données_constantes.patchs_données_constantes) {
-        void *adresse_ou = nullptr;
-        void *adresse_quoi = nullptr;
-
-        if (it.quoi == ADRESSE_CONSTANTE) {
-            adresse_quoi = ptr_données_constantes + it.décalage_quoi;
+        void *adresse_source = nullptr;
+        if (it.source.type == ADRESSE_CONSTANTE) {
+            adresse_source = ptr_données_constantes + it.source.décalage;
         }
         else {
-            adresse_quoi = ptr_données_globales + it.décalage_quoi;
+            adresse_source = ptr_données_globales + it.source.décalage;
         }
 
-        if (it.où == DONNÉES_CONSTANTES) {
-            adresse_ou = ptr_données_constantes + it.décalage_où;
+        void *adresse_destination = nullptr;
+        if (it.destination.type == DONNÉES_CONSTANTES) {
+            adresse_destination = ptr_données_constantes + it.destination.décalage;
         }
         else {
-            adresse_ou = ptr_données_globales + it.décalage_où;
+            adresse_destination = ptr_données_globales + it.destination.décalage;
         }
 
-        *reinterpret_cast<void **>(adresse_ou) = adresse_quoi;
+        *reinterpret_cast<void **>(adresse_destination) = adresse_source;
         // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
     }
 

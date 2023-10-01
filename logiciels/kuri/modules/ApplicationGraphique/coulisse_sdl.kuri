@@ -350,6 +350,14 @@ initialise_pilote_application_sdl :: fonc ()
         retourne SDL_GetDefaultCursor()
     }
 
+    rappel_ferme_application :: fonc (pilote: *PiloteApplication @inutilisée)
+    {
+        évènement: SDL_Event
+        évènement.type = SDL_EventType.SDL_QUIT
+        évènement.quit.timestamp = SDL_GetTicks()
+        _ := SDL_PushEvent(*évènement)
+    }
+
     pilote_application_sdl.rappel_crée_curseur = rappel_crée_curseur
     pilote_application_sdl.rappel_détruit_curseur = rappel_détruit_curseur
     pilote_application_sdl.rappel_montre_curseur = rappel_montre_curseur
@@ -358,6 +366,7 @@ initialise_pilote_application_sdl :: fonc ()
     pilote_application_sdl.rappel_définis_curseur = rappel_définis_curseur
     pilote_application_sdl.rappel_donne_curseur_courant = rappel_donne_curseur_courant
     pilote_application_sdl.rappel_donne_curseur_défaut = rappel_donne_curseur_défaut
+    pilote_application_sdl.rappel_ferme_application = rappel_ferme_application
 }
 
 convertis_type_curseur :: fonc (type_curseur: TypeCurseurSystème) -> SDL_SystemCursor

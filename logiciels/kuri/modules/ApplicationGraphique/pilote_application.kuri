@@ -27,6 +27,9 @@ PiloteApplication :: struct {
     rappel_définis_curseur: fonc(*PiloteApplication, Curseur)(rien)
     rappel_donne_curseur_courant: fonc(*PiloteApplication)(Curseur)
     rappel_donne_curseur_défaut: fonc(*PiloteApplication)(Curseur)
+
+    /* Rappels pour la boucle d'évènement. */
+    rappel_ferme_application: fonc(*PiloteApplication)(rien)
 }
 
 /** } */
@@ -81,6 +84,12 @@ donne_curseur_courant :: fonc (pilote: *PiloteApplication) -> Curseur
 donne_curseur_défaut :: fonc (pilote: *PiloteApplication) -> Curseur
 {
     retourne pilote.rappel_donne_curseur_défaut(pilote)
+}
+
+/* Ferme l'application : génère un évènement sur_fin_application. */
+requiers_fermeture_application :: fonc (pilote: *PiloteApplication)
+{
+    pilote.rappel_ferme_application(pilote)
 }
 
 /** } */
