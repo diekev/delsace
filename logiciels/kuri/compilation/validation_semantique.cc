@@ -116,7 +116,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme);
     decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme);
 
-    decl_entete->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+    decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                       DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
     // le type de la fonction est fonc () -> (type_expression)
     auto expression = directive->expression;
@@ -2624,7 +2625,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     nouveau_corps->bloc = bloc_corps_texte;
 
     /* mise en place du type de la fonction : () -> chaine */
-    fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+    fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
     auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");

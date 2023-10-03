@@ -100,7 +100,6 @@ Test pour les retours de pointeurs
 
 - ajout de Kuri/InformationExécution contenant la table de type ainsi que la liste de tous les segments écrivables globaux (ceci pourra être utile pour faire des collecteurs de miettes en trouvant aisément toutes les globales, etc.) (il faudra également prendre en compte les bibliothèques statiques et dynamiques)
 
-- ajout d'un drapeaux de fonction "GÉNÉRÉE_PAR_LA_COMPILATRICE"
 - passe les drapeaux de fonction aux métaprogrammes
 
 discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte erreur si deux noms de valeurs égales sont utilisés en même temps

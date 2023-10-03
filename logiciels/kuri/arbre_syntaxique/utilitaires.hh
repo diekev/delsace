@@ -88,6 +88,8 @@ enum class DrapeauxNoeudFonction : uint32_t {
     EST_POLYMORPHIQUE = (1 << 12),
     EST_MONOMORPHISATION = (1 << 13),
 
+    FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE = (1 << 14),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
                        EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),
