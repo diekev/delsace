@@ -63,6 +63,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             arbre_aplatis.ajoute(racine);

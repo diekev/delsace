@@ -880,6 +880,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";

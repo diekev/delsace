@@ -1462,6 +1462,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             break;
         }
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        {
+            if (noeud->ident == ID::nom_de_cette_fonction) {
+                if (!fonction_courante()) {
+                    espace->rapporte_erreur(
+                        noeud, "#noeud_de_cette_fonction utilisé en dehors d'une fonction");
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
+            noeud->type = TypeBase::CHAINE;
+            noeud->genre_valeur = GenreValeur::DROITE;
+            break;
+        }
     }
 
     return CodeRetourValidation::OK;

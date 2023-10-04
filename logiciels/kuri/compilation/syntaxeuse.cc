@@ -1077,6 +1077,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::PRÉ_EXÉCUTABLE;
                 return noeud;
             }
+            else if (directive == ID::nom_de_cette_fonction ||
+                     directive == ID::chemin_de_ce_fichier ||
+                     directive == ID::chemin_de_ce_module) {
+                auto noeud = m_tacheronne.assembleuse->cree_directive_instrospection(lexeme);
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */

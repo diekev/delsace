@@ -132,7 +132,10 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__contexte_fil_principal, "__contexte_fil_principal")       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(debogue, "débogue")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(_, "_")                                                     \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(corps_boucle, "corps_boucle")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(corps_boucle, "corps_boucle")                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin_de_ce_fichier, "chemin_de_ce_fichier")               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin_de_ce_module, "chemin_de_ce_module")                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nom_de_cette_fonction, "nom_de_cette_fonction")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;
