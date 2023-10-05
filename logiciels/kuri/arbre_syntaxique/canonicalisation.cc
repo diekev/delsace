@@ -817,6 +817,41 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             expr_empl->substitution = expr_empl->expression;
             return;
         }
+        case GenreNoeud::EXPRESSION_MEMOIRE:
+        {
+            auto expr_mémoire = noeud->comme_memoire();
+            simplifie(expr_mémoire->expression);
+            return;
+        }
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        {
+            if (noeud->ident == ID::chemin_de_ce_fichier) {
+                auto &compilatrice = espace->compilatrice();
+                auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
+                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                    fichier->chemin());
+                noeud->substitution = littérale_chaine;
+            }
+            else if (noeud->ident == ID::chemin_de_ce_module) {
+                auto &compilatrice = espace->compilatrice();
+                auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
+                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                    fichier->module->chemin());
+                noeud->substitution = littérale_chaine;
+            }
+            else if (noeud->ident == ID::nom_de_cette_fonction) {
+                assert(fonction_courante);
+                auto &compilatrice = espace->compilatrice();
+                auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
+                    fonction_courante->ident->nom);
+                noeud->substitution = littérale_chaine;
+            }
+
+            return;
+        }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         case GenreNoeud::DECLARATION_ENUM:
         case GenreNoeud::DECLARATION_OPAQUE:
@@ -828,7 +863,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-        case GenreNoeud::EXPRESSION_MEMOIRE:
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
         case GenreNoeud::INSTRUCTION_NON_INITIALISATION:
         case GenreNoeud::INSTRUCTION_CHARGE:

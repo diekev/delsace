@@ -304,7 +304,7 @@ sur_redimension_impl_défaut :: fonc (panneau: *Panneau, rect_disponible: Rectan
 
 détruit_panneau :: fonc (panneau: *Panneau)
 {
-    déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau)
+    déloge_tableau_et_ses_éléments(panneau.enfants, détruit_panneau)
 
     si panneau.sur_destruction {
         panneau.sur_destruction(panneau)
