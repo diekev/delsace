@@ -16,6 +16,11 @@ réusine opérateurs (partage entre types)
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
 - renomme #assert #vérifie
+- ajout de #support_exécution pour discriminer les fonctions de support pour l'exécution
+- ajout de #allocatrice pour les fonction d'allocations de mémoire (alloc, réalloc, déalloc)
+    ce pourra être utile pour l'optimisation du code
+- directive pour définir quelle fonction doit-être la fonction principale
+    les programmeurs pourront alors définir une fonction qui ne s'appelle pas « principale »
 
 // -----------------------------------
 // Bugs
@@ -73,7 +78,6 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 - "kuri init" pour créer des projets ?
-- directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
@@ -90,9 +94,6 @@ Test pour les retours de pointeurs
     {
         retourne globale.adresse
     }
-
-À voir si ceci fonctionne :
-    Module.StructurePoly(T = z32)(x = 5)
 
 - ajout de Kuri/InformationExécution contenant la table de type ainsi que la liste de tous les segments écrivables globaux (ceci pourra être utile pour faire des collecteurs de miettes en trouvant aisément toutes les globales, etc.) (il faudra également prendre en compte les bibliothèques statiques et dynamiques)
 
@@ -143,15 +144,14 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
     membre
         accédé
 
-// stabilité de pointeur pour les infos types
-
-- utilisation d'une poule de mémoire
-- pour les chaines, prise de pointeurs via la gérante de chaine
-- pour les membres des structures, création des infos-types des membres avant ceux-ci
-- pour les noms des énumérations, prise de pointeurs via la gérant de chaine
-- pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
-  -- prise d'un pointeur
-- création des globales pour la RI via les InfoType
+- stabilité de pointeur pour les infos types
+    - utilisation d'une poule de mémoire
+    - pour les chaines, prise de pointeurs via la gérante de chaine
+    - pour les membres des structures, création des infos-types des membres avant ceux-ci
+    - pour les noms des énumérations, prise de pointeurs via la gérant de chaine
+    - pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
+    -- prise d'un pointeur
+    - création des globales pour la RI via les InfoType
 
 - déduplique TypeTranstypage et TypeTransformation
 
