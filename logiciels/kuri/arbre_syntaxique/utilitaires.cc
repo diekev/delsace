@@ -63,6 +63,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             break;
         }
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
             arbre_aplatis.ajoute(racine);
@@ -1685,7 +1686,8 @@ NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
         entete->type = type_fonction;
         entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         entete->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
-                                      DrapeauxNoeudFonction::FORCE_SANSTRACE);
+                                      DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                      DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
         type->fonction_init = entete;
 
