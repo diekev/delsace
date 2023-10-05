@@ -785,3 +785,11 @@ struct NoeudDirectivePréExécutable : NoeudDirectiveExécute {
     @comme pré_exécutable
     @code NoeudCodePréExécutable
 }
+
+/* Noeuds syntaxiques pour les directives #chemin_de_ce_fichier,
+ * #chemin_de_ce_module, et #nom_de_cette_fonction. */
+struct NoeudDirectiveIntrospection : NoeudExpression {
+    @genre DIRECTIVE_INTROSPECTION
+    @comme directive_instrospection
+    @code NoeudCodeDirectiveIntrospection
+}
