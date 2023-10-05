@@ -789,6 +789,13 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
         if (!genere_code_pour_fonction(it)) {
             return false;
         }
+
+        /* Les fonction d'initialisation de globales n'ont pas de déclarations. */
+        if (it->decl) {
+            if (it->decl->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS)) {
+                desassemble(it->données_exécution->chunk, it->nom, std::cerr);
+            }
+        }
     }
 
     return true;
@@ -925,7 +932,6 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
     patchs_labels.efface();
 
-    // desassemble(chunk, fonction->nom.c_str(), std::cerr);
     return true;
 }
 
