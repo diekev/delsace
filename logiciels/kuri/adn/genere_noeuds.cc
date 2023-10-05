@@ -257,6 +257,7 @@ struct GeneratriceCodeCPP {
         os << "\t}\n";
         os << "\tif (substitution && racine->substitution) {\n";
         os << "\t\timprime_arbre(racine->substitution, os, profondeur, substitution);\n";
+        os << "\t\treturn;\n";
         os << "\t}\n";
         os << "\tswitch (racine->genre) {\n";
 
