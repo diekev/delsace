@@ -66,6 +66,10 @@ BoutonSouris :: énum {
     TERTIAIRE
     AVANT
     ARRIÈRE
+
+    GAUCHE :: PRIMAIRE
+    DROIT :: CONTEXTUEL
+    MOLETTE :: TERTIAIRE
 }
 
 CliqueSouris :: struct {
