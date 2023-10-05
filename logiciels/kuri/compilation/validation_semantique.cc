@@ -117,7 +117,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme);
     decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme);
 
-    decl_entete->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+    decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                       DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
     // le type de la fonction est fonc () -> (type_expression)
     auto expression = directive->expression;
@@ -1462,6 +1463,20 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             break;
         }
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        {
+            if (noeud->ident == ID::nom_de_cette_fonction) {
+                if (!fonction_courante()) {
+                    espace->rapporte_erreur(
+                        noeud, "#noeud_de_cette_fonction utilisé en dehors d'une fonction");
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
+            noeud->type = TypeBase::CHAINE;
+            noeud->genre_valeur = GenreValeur::DROITE;
+            break;
+        }
     }
 
     return CodeRetourValidation::OK;
@@ -2625,7 +2640,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     nouveau_corps->bloc = bloc_corps_texte;
 
     /* mise en place du type de la fonction : () -> chaine */
-    fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+    fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
     auto decl_sortie = m_tacheronne.assembleuse->cree_declaration_variable(lexeme);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
@@ -2910,6 +2926,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     avertis_declarations_inutilisees(*espace, *entete);
+
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
+        imprime_arbre(entete, std::cerr, 0);
+    }
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)) {
+        imprime_arbre_substitue(entete, std::cerr, 0);
+    }
 
     return CodeRetourValidation::OK;
 }
