@@ -2461,8 +2461,42 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             else if (ident_directive == ID::corps_texte) {
                 noeud->corps->est_corps_texte = true;
             }
-            else if (ident_directive == ID::debogue) {
-                drapeaux_fonction |= DrapeauxNoeudFonction::DEBOGUE;
+            else if (ident_directive == ID::cliche) {
+                consomme();
+                if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                    rapporte_erreur("Attendu un identifiant après #cliche");
+                }
+
+                while (apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                    auto ident_cliché = lexeme_courant()->ident;
+
+                    if (ident_cliché == ID::asa) {
+                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS;
+                    }
+                    else if (ident_cliché == ID::asa_canon) {
+                        drapeaux_fonction |=
+                            DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS;
+                    }
+                    else if (ident_cliché == ID::ri) {
+                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
+                    }
+                    else if (ident_cliché == ID::inst_mv) {
+                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
+                    }
+                    else {
+                        rapporte_erreur("Identifiant inconnu après #cliche");
+                    }
+                    consomme();
+
+                    if (!apparie(GenreLexeme::VIRGULE)) {
+                        break;
+                    }
+                    consomme();
+                }
+
+                /* Pour le consomme plus bas qui est sensé consommer l'identifiant de la directive.
+                 */
+                recule();
             }
             else if (ident_directive == ID::intrinsèque) {
                 drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;

@@ -15,8 +15,6 @@ réusine opérateurs (partage entre types)
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
-- ajout de #dump pour imprimer des informations (code binaire, etc.)
-- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
 
 // -----------------------------------

@@ -2926,6 +2926,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 
     avertis_declarations_inutilisees(*espace, *entete);
 
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
+        imprime_arbre(entete, std::cerr, 0);
+    }
+    if (entete->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)) {
+        imprime_arbre_substitue(entete, std::cerr, 0);
+    }
+
     return CodeRetourValidation::OK;
 }
 
