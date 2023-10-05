@@ -11,19 +11,20 @@ réusine opérateurs (partage entre types)
 - ajout de #convention_c
 - ajout de #thread_local
 - ajout de #macro
-- ajout de #boucle_pour
 - ajout de #insère pour controler où nous collons du code
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
-- ajout de #dump pour imprimer des informations (code binaire, etc.)
-- granuralise #débogue (imprime RI, imprime ASA, etc.)
 - renomme #assert #vérifie
+- ajout de #support_exécution pour discriminer les fonctions de support pour l'exécution
+- ajout de #allocatrice pour les fonction d'allocations de mémoire (alloc, réalloc, déalloc)
+    ce pourra être utile pour l'optimisation du code
+- directive pour définir quelle fonction doit-être la fonction principale
+    les programmeurs pourront alors définir une fonction qui ne s'appelle pas « principale »
 
 // -----------------------------------
 // Bugs
 
-- collision de symbole pour les retours des fonctions dans les fonctions
 - crash dans les exécutables quand nous prenons l'adresse d'une référence
 - compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
@@ -77,7 +78,6 @@ Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent 
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 - "kuri init" pour créer des projets ?
-- directive pour définir quelle fonction doit-être la fonction principale
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
@@ -95,8 +95,11 @@ Test pour les retours de pointeurs
         retourne globale.adresse
     }
 
-À voir si ceci fonctionne :
-    Module.StructurePoly(T = z32)(x = 5)
+- ajout de Kuri/InformationExécution contenant la table de type ainsi que la liste de tous les segments écrivables globaux (ceci pourra être utile pour faire des collecteurs de miettes en trouvant aisément toutes les globales, etc.) (il faudra également prendre en compte les bibliothèques statiques et dynamiques)
+
+- passe les drapeaux de fonction aux métaprogrammes
+
+discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte erreur si deux noms de valeurs égales sont utilisés en même temps
 
 // -----------------------------------
 // Avertissements
@@ -141,15 +144,14 @@ considère revoir l'arbre syntaxique des références de membres, pour simpilfie
     membre
         accédé
 
-// stabilité de pointeur pour les infos types
-
-- utilisation d'une poule de mémoire
-- pour les chaines, prise de pointeurs via la gérante de chaine
-- pour les membres des structures, création des infos-types des membres avant ceux-ci
-- pour les noms des énumérations, prise de pointeurs via la gérant de chaine
-- pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
-  -- prise d'un pointeur
-- création des globales pour la RI via les InfoType
+- stabilité de pointeur pour les infos types
+    - utilisation d'une poule de mémoire
+    - pour les chaines, prise de pointeurs via la gérante de chaine
+    - pour les membres des structures, création des infos-types des membres avant ceux-ci
+    - pour les noms des énumérations, prise de pointeurs via la gérant de chaine
+    - pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
+    -- prise d'un pointeur
+    - création des globales pour la RI via les InfoType
 
 - déduplique TypeTranstypage et TypeTransformation
 
@@ -516,12 +518,10 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - stack canaries (coulisse LLVM)
 - coroutines en dehors de boucles
 - renomme InfoType -> DescType, id_info -> Genre{Info|Desc} ?
-- diffère_err pour différer un bloc si une erreur est retournée
 - possibilité de déclarer une variable dans une condition (si a := foo() { ... })
 
 - généralisation de l'utilisation de temporaires pour simplifier la génération de la RI, supprimant les cas spéciaux
 -- paramètres des appels
-- optimisations de l'accès aux membres des blocs (table de hachage avec tableau continu)
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)
@@ -569,34 +569,24 @@ Idées
 - transformer les messages d'erreur en tutoriaux
 - ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
-- concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
-- opérateurs prenant des listes :
-	a += (c, d, e, f, g, h, i, j)
-
-	équivalent à
-
-	a += b + c + d + e + f + g
-
-	si a == (c, d, e, f, g, h, i, j) {
-
-	}
-
-	équivalent à
-
-	si a == c || a == d || a == e ... {
-
-	}
-
-	comment pour a && c
-
-lit + var
-var + lit
-lit + lit
-
 - controler la génération d'exécutable depuis les métaprogrammes
 
 - type.[] pour créer des tableaux d'un certain type :
     z32.[0, 1, 2, 3]
+
+- court-circuit pour les assignations logiques :
+    a ||= expression_complexe_à_calculer()
+
+    devient :
+
+    saufsi a {
+        a = expression_complexe_à_calculer
+    }
+
+    a &&= expression_complexe_à_calculer()
+    si a {
+        a = expression_complexe_à_calculer()
+    }
 
 Zones d'ombres
 --------------

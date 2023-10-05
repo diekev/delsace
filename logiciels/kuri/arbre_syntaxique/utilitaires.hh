@@ -71,7 +71,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux);
 
 enum class DrapeauxNoeudFonction : uint32_t {
     AUCUN = 0,
-    DEBOGUE = (1 << 0),
+    /* DISPONIBLE = (1 << 0), */
 
     FORCE_ENLIGNE = (1 << 1),
     FORCE_HORSLIGNE = (1 << 2),
@@ -87,6 +87,17 @@ enum class DrapeauxNoeudFonction : uint32_t {
     EST_VARIADIQUE = (1 << 11),
     EST_POLYMORPHIQUE = (1 << 12),
     EST_MONOMORPHISATION = (1 << 13),
+
+    FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE = (1 << 14),
+
+    /* La fontion fut marquée avec #cliche asa */
+    CLICHÉ_ASA_FUT_REQUIS = (1 << 15),
+    /* La fontion fut marquée avec #cliche asa_canon */
+    CLICHÉ_ASA_CANONIQUE_FUT_REQUIS = (1 << 16),
+    /* La fontion fut marquée avec #cliche ri */
+    CLICHÉ_RI_FUT_REQUIS = (1 << 17),
+    /* La fontion fut marquée avec #cliche inst_mv */
+    CLICHÉ_CODE_BINAIRE_FUT_REQUIS = (1 << 18),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
