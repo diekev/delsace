@@ -57,6 +57,10 @@ enum class DrapeauxNoeud : uint32_t {
     NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 22),
     DÉPENDANCES_FURENT_RÉSOLUES = (1 << 23),
     IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 24),
+    /* Certaines assertions dans le code se base sur les lexèmes des littérales, mais la
+     * canonicalisation peut réutiliser les lexèmes des sites sources faisant échouer les précitées
+     * assertions. */
+    LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 25),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

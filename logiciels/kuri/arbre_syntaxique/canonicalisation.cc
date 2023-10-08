@@ -831,6 +831,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (noeud->ident == ID::chemin_de_ce_fichier) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->chemin());
@@ -839,6 +841,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             else if (noeud->ident == ID::chemin_de_ce_module) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->module->chemin());
@@ -848,6 +852,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 assert(fonction_courante);
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
                 noeud->substitution = littérale_chaine;
@@ -1599,6 +1605,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
      * nom dans le module). */
     auto const fichier = compilatrice.fichier(lexeme_site->fichier);
     auto valeur_chemin_fichier = assem->cree_litterale_chaine(lexeme);
+    valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
 
     /* PositionCodeSource.fonction */
@@ -1608,6 +1615,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     }
 
     auto valeur_nom_fonction = assem->cree_litterale_chaine(lexeme);
+    valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
 
     /* PositionCodeSource.ligne */
