@@ -123,8 +123,11 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto expression = directive->expression;
     auto type_expression = expression->type;
 
-    /* Le type peut être nul pour les #tests. */
-    if (!type_expression && directive->ident == ID::test) {
+    /* Les #tests ne doivent retourner rien, mais l'expression étant un bloc prend le type de la
+     * dernière expression du bloc qui peut être d'autre type que « rien ».
+     * À FAIRE : garantis que le #test ne retourne rien différement (valide proprement, vérifie
+     * s'il est utile d'assigner un type aux blocs, etc.). */
+    if (directive->ident == ID::test) {
         type_expression = TypeBase::RIEN;
     }
 
