@@ -459,13 +459,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto noeud_directive = noeud->comme_execute();
+            auto expression = noeud_directive->expression;
+            auto type_expression = expression->type;
+
+            if (noeud_directive->ident == ID::assert_) {
+                if (type_expression != TypeBase::BOOL) {
+                    espace->rapporte_erreur(expression, "Expression non booléenne pour #assert")
+                        .ajoute_message("L'expression d'une directive #assert doit être de type "
+                                        "booléen, hors le type de l'expression est : ",
+                                        chaine_type(type_expression));
+                    return CodeRetourValidation::Erreur;
+                }
+            }
 
             auto metaprogramme = cree_metaprogramme_pour_directive(noeud_directive);
 
             m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                                  metaprogramme);
 
-            noeud->type = noeud_directive->expression->type;
+            noeud->type = expression->type;
 
             if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
