@@ -802,6 +802,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 /* Nous avons un type variadique. */
                 expr->substitution = assem->cree_reference_type(expr->lexeme, expr->type);
             }
+            else {
+                simplifie(expr->expression);
+            }
             return;
         }
         case GenreNoeud::INSTRUCTION_EMPL:
