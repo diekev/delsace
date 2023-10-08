@@ -1231,8 +1231,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                         état->résultats.ajoute(
                             ErreurAppariement::type_non_fonction(expr, type_de_donnees));
                     }
-
-                    if (type_connu->est_type_structure()) {
+                    else if (type_connu->est_type_structure()) {
                         auto type_struct = type_connu->comme_type_structure();
 
                         état->résultats.ajoute(
