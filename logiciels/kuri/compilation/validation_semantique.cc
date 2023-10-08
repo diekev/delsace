@@ -2165,8 +2165,30 @@ static bool peut_construire_union_via_rien(TypeUnion *type_union)
 
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
-    auto type_fonc = fonction_courante()->type->comme_type_fonction();
-    auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
+    auto fonction = fonction_courante();
+    auto type_sortie = Type::nul();
+    auto est_coroutine = false;
+    auto est_corps_texte = false;
+
+    if (fonction) {
+        auto type_fonc = fonction_courante()->type->comme_type_fonction();
+        type_sortie = type_fonc->type_sortie;
+        est_corps_texte = fonction_courante()->corps->est_corps_texte;
+        est_coroutine = fonction_courante()->est_coroutine;
+    }
+    else {
+        /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
+         * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
+        if (!(racine_validation()->est_execute() && racine_validation()->ident == ID::test)) {
+            espace->rapporte_erreur(inst,
+                                    "Utilisation de « retourne » en dehors d'une fonction, d'un "
+                                    "opérateur, ou d'un #test");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Un #test ne doit rien retourner. */
+        type_sortie = TypeBase::RIEN;
+    }
 
     auto const bloc_parent = inst->bloc_parent;
     if (bloc_est_dans_differe(bloc_parent)) {
@@ -2177,19 +2199,16 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     if (inst->expression == nullptr) {
         inst->type = TypeBase::RIEN;
 
-        auto type_sortie = type_fonc->type_sortie;
-
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
          * du type ayant le membre « rien » actif. */
         if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_fonc->type_sortie->comme_type_union())) {
+            if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 inst->aide_generation_code = RETOURNE_UNE_UNION_VIA_RIEN;
                 return CodeRetourValidation::OK;
             }
         }
 
-        if ((!fonction_courante()->est_coroutine && type_sortie != inst->type) ||
-            est_corps_texte) {
+        if ((!est_coroutine && type_sortie != inst->type) || est_corps_texte) {
             rapporte_erreur("Expression de retour manquante", inst);
             return CodeRetourValidation::Erreur;
         }
@@ -2228,7 +2247,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::OK;
     }
 
-    if (type_fonc->type_sortie->est_type_rien()) {
+    if (type_sortie->est_type_rien()) {
         espace->rapporte_erreur(inst->expression,
                                 "Retour d'une valeur d'une fonction qui ne retourne rien");
         return CodeRetourValidation::Erreur;
@@ -2368,7 +2387,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::Erreur;
     }
 
-    inst->type = type_fonc->type_sortie;
+    inst->type = type_sortie;
 
     inst->donnees_exprs.reserve(static_cast<int>(donnees_retour.taille()));
     POUR (donnees_retour) {

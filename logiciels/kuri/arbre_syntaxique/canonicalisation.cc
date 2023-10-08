@@ -1446,9 +1446,9 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
  * et d'un chargement pour les retours simples. */
 void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 {
-    // crée une assignation pour chaque sortie
-    auto type_fonction = fonction_courante->type->comme_type_fonction();
-    auto type_sortie = type_fonction->type_sortie;
+    /* Nous n'utilisons pas le type de la fonction_courante car elle peut être nulle dans le cas où
+     * nous avons un #test. */
+    auto type_sortie = inst->type;
 
     if (type_sortie->est_type_rien()) {
         return;
@@ -1461,6 +1461,7 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
         return;
     }
 
+    /* Crée une assignation pour chaque sortie. */
     POUR (inst->donnees_exprs.plage()) {
         simplifie(it.expression);
 
