@@ -1446,18 +1446,18 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
  * et d'un chargement pour les retours simples. */
 void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 {
+    if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
+        auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
+        cree_retourne_union_via_rien(fonction_courante, bloc, inst->lexeme);
+        inst->substitution = bloc;
+        return;
+    }
+
     /* Nous n'utilisons pas le type de la fonction_courante car elle peut être nulle dans le cas où
      * nous avons un #test. */
     auto type_sortie = inst->type;
 
     if (type_sortie->est_type_rien()) {
-        return;
-    }
-
-    if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
-        auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
-        cree_retourne_union_via_rien(fonction_courante, bloc, inst->lexeme);
-        inst->substitution = bloc;
         return;
     }
 
