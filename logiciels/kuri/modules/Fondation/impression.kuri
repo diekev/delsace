@@ -532,7 +532,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 		frac = frac - chiffre comme r32
 		p -= 1
-	} tantque frac < 1.0 && frac != 0.0 && p >= 0
+	} tantque frac < 1.0 && frac != 0.0 && p > 0
 }
 
 imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn : bool) -> rien
