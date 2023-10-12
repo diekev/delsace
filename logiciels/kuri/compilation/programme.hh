@@ -6,6 +6,8 @@
 #include "structures/ensemble.hh"
 #include "structures/tableau.hh"
 
+#include <optional>
+
 #include "message.hh"  // pour PhaseCompilation
 
 struct AtomeGlobale;
@@ -82,7 +84,13 @@ struct DiagnostiqueÉtatCompilation {
     NoeudDeclaration *ri_déclaration_à_générer = nullptr;
 };
 
-void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique);
+void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique, std::ostream &os);
+
+bool operator==(DiagnostiqueÉtatCompilation const &diag1,
+                DiagnostiqueÉtatCompilation const &diag2);
+
+bool operator!=(DiagnostiqueÉtatCompilation const &diag1,
+                DiagnostiqueÉtatCompilation const &diag2);
 
 /** \} */
 
@@ -126,6 +134,10 @@ struct Programme {
     Coulisse *m_coulisse = nullptr;
 
     ÉtatCompilation m_etat_compilation{};
+
+    /* Pour le débogage, stockage du dernier diagnostique de compilation afin de ne pas retourner
+     * toujours le même et éviter ainsi de polluer les impressions de débogages. */
+    std::optional<DiagnostiqueÉtatCompilation> m_dernier_diagnostique{};
 
     enum {
         TYPES,
@@ -239,6 +251,13 @@ struct Programme {
     void ajourne_pour_nouvelles_options_espace();
 
     kuri::ensemble<NoeudDeclaration *> &dépendances_manquantes();
+
+    /* Imprime le diagnostique de compilation dans le flux de sortie spécifié.
+     * Ceci n'imprimera le diagnostique que lors du premier appel sauf si :
+     * - ignore_doublon est faux, ou
+     * - le diagnostique est différent du dernier.
+     */
+    void imprime_diagnostique(std::ostream &os, bool ignore_doublon = true);
 
   private:
     void verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const;

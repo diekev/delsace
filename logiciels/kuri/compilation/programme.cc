@@ -325,6 +325,20 @@ kuri::ensemble<NoeudDeclaration *> &Programme::dépendances_manquantes()
     return m_dépendances_manquantes;
 }
 
+void Programme::imprime_diagnostique(std::ostream &os, bool ignore_doublon)
+{
+    auto diag = diagnostique_compilation();
+
+    if (!m_dernier_diagnostique.has_value() ||
+        (diag != m_dernier_diagnostique.value() || !ignore_doublon)) {
+        os << "==========================================================\n";
+        os << "Diagnostique pour programme de " << m_espace->nom << '\n';
+        ::imprime_diagnostique(diag, os);
+    }
+
+    m_dernier_diagnostique = diag;
+}
+
 void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const
 {
     diagnostique.tous_les_fichiers_sont_chargés = true;
@@ -433,40 +447,68 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
 
     auto unité_corps = corps->unite;
     if (!unité_corps) {
-        std::cerr << "-- validation non performée car aucune unité pour le corps de "
-                  << nom_humainement_lisible(déclaration) << "\n";
+        os << "-- validation non performée car aucune unité pour le corps de "
+           << nom_humainement_lisible(déclaration) << "\n";
         return;
     }
 
-    std::cerr << "-- validation non performée pour le corps de "
-              << nom_humainement_lisible(déclaration) << "\n";
+    os << "-- validation non performée pour le corps de " << nom_humainement_lisible(déclaration)
+       << "\n";
 }
 
-void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique)
+void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std::ostream &os)
 {
     if (!diagnostique.toutes_les_déclarations_à_typer_le_sont) {
         if (diagnostique.type_à_valider) {
-            std::cerr << "-- validation non performée pour le type : "
-                      << chaine_type(diagnostique.type_à_valider) << '\n';
+            os << "-- validation non performée pour le type : "
+               << chaine_type(diagnostique.type_à_valider) << '\n';
         }
         if (diagnostique.déclaration_à_valider) {
-            imprime_détails_déclaration_à_valider(std::cerr, diagnostique.déclaration_à_valider);
+            imprime_détails_déclaration_à_valider(os, diagnostique.déclaration_à_valider);
         }
         return;
     }
 
     if (diagnostique.fonction_initialisation_type_à_créer) {
-        std::cerr << "-- fonction d'initialisation non-créée pour le type : "
-                  << chaine_type(diagnostique.ri_type_à_générer) << '\n';
+        os << "-- fonction d'initialisation non-créée pour le type : "
+           << chaine_type(diagnostique.ri_type_à_générer) << '\n';
     }
     if (diagnostique.ri_type_à_générer) {
-        std::cerr << "-- RI non générée pour la fonction d'initialisation du type : "
-                  << chaine_type(diagnostique.ri_type_à_générer) << '\n';
+        os << "-- RI non générée pour la fonction d'initialisation du type : "
+           << chaine_type(diagnostique.ri_type_à_générer) << '\n';
     }
     if (diagnostique.ri_déclaration_à_générer) {
-        std::cerr << "-- RI non générée pour déclaration "
-                  << diagnostique.ri_déclaration_à_générer->lexeme->chaine << '\n';
+        os << "-- RI non générée pour déclaration "
+           << diagnostique.ri_déclaration_à_générer->lexeme->chaine << '\n';
     }
+}
+
+bool operator==(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatCompilation const &diag2)
+{
+#define COMPARE_MEMBRE(x)                                                                         \
+    if ((diag1.x) != (diag2.x)) {                                                                 \
+        return false;                                                                             \
+    }
+
+    COMPARE_MEMBRE(tous_les_fichiers_sont_chargés)
+    COMPARE_MEMBRE(tous_les_fichiers_sont_lexés)
+    COMPARE_MEMBRE(tous_les_fichiers_sont_parsés)
+    COMPARE_MEMBRE(toutes_les_déclarations_à_typer_le_sont)
+    COMPARE_MEMBRE(toutes_les_ri_sont_generees)
+    COMPARE_MEMBRE(type_à_valider)
+    COMPARE_MEMBRE(déclaration_à_valider)
+    COMPARE_MEMBRE(ri_type_à_générer)
+    COMPARE_MEMBRE(fonction_initialisation_type_à_créer)
+    COMPARE_MEMBRE(ri_déclaration_à_générer)
+
+#undef COMPARE_MEMBRE
+    return true;
+}
+
+bool operator!=(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatCompilation const &diag2)
+
+{
+    return !(diag1 == diag2);
 }
 
 /** \} */
