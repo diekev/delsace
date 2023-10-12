@@ -439,6 +439,8 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
 
     auto corps = déclaration->comme_entete_fonction();
     if (corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
+         * drapeau... */
         os << "-- erreur : le corps et l'entête de " << nom_humainement_lisible(déclaration)
            << " sont marqués comme validés, mais le diagnostique considère le corps comme non "
               "validé\n";
