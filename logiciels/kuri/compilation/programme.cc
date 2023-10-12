@@ -508,7 +508,6 @@ bool operator==(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatComp
 }
 
 bool operator!=(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatCompilation const &diag2)
-
 {
     return !(diag1 == diag2);
 }
