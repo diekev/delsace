@@ -21,12 +21,16 @@ struct NoeudExpression;
 struct Statistiques;
 struct Type;
 
+/* ------------------------------------------------------------------------- */
+/** \name ÉtatCompilation.
+ * \{ */
+
 /* Machine à état pour la PhaseCompilation. */
-class EtatCompilation {
+class ÉtatCompilation {
     PhaseCompilation m_phase_courante{};
 
   public:
-    void avance_etat()
+    void avance_état()
     {
         if (m_phase_courante == PhaseCompilation::COMPILATION_TERMINEE) {
             return;
@@ -37,7 +41,7 @@ class EtatCompilation {
         m_phase_courante = static_cast<PhaseCompilation>(index_phase_suivante);
     }
 
-    void essaie_d_aller_a(PhaseCompilation cible)
+    void essaie_d_aller_à(PhaseCompilation cible)
     {
         if (static_cast<int>(cible) != static_cast<int>(m_phase_courante) + 1) {
             return;
@@ -57,22 +61,34 @@ class EtatCompilation {
     }
 };
 
-struct DiagnostiqueEtatCompilation {
-    bool tous_les_fichiers_sont_charges = false;
-    bool tous_les_fichiers_sont_lexes = false;
-    bool tous_les_fichiers_sont_parses = false;
-    bool toutes_les_declarations_a_typer_le_sont = false;
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Diagnostique état compilation.
+ * \{ */
+
+struct DiagnostiqueÉtatCompilation {
+    bool tous_les_fichiers_sont_chargés = false;
+    bool tous_les_fichiers_sont_lexés = false;
+    bool tous_les_fichiers_sont_parsés = false;
+    bool toutes_les_déclarations_à_typer_le_sont = false;
     bool toutes_les_ri_sont_generees = false;
 
-    Type *type_a_valider = nullptr;
-    NoeudDeclaration *declaration_a_valider = nullptr;
+    Type *type_à_valider = nullptr;
+    NoeudDeclaration *déclaration_à_valider = nullptr;
 
-    Type *ri_type_a_generer = nullptr;
-    Type *fonction_initialisation_type_a_creer = nullptr;
-    NoeudDeclaration *ri_declaration_a_generer = nullptr;
+    Type *ri_type_à_générer = nullptr;
+    Type *fonction_initialisation_type_à_créer = nullptr;
+    NoeudDeclaration *ri_déclaration_à_générer = nullptr;
 };
 
-void imprime_diagnostique(DiagnostiqueEtatCompilation const &diagnostique);
+void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Programme
+ * \{ */
 
 enum RaisonAjoutType {
     DÉPENDANCE_DIRECTE,
@@ -109,7 +125,7 @@ struct Programme {
     // la coulisse à utiliser pour générer le code du programme
     Coulisse *m_coulisse = nullptr;
 
-    EtatCompilation m_etat_compilation{};
+    ÉtatCompilation m_etat_compilation{};
 
     enum {
         TYPES,
@@ -183,11 +199,11 @@ struct Programme {
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs types validés. */
-    bool typages_termines(DiagnostiqueEtatCompilation &diagnostique) const;
+    bool typages_termines(DiagnostiqueÉtatCompilation &diagnostique) const;
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par
      * le programme ont eu leurs RI générées. */
-    bool ri_generees(DiagnostiqueEtatCompilation &diagnostique) const;
+    bool ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const;
 
     bool ri_generees() const;
 
@@ -208,9 +224,9 @@ struct Programme {
         return m_espace;
     }
 
-    DiagnostiqueEtatCompilation diagnostique_compilation() const;
+    DiagnostiqueÉtatCompilation diagnostique_compilation() const;
 
-    EtatCompilation ajourne_etat_compilation();
+    ÉtatCompilation ajourne_etat_compilation();
 
     void change_de_phase(PhaseCompilation phase);
 
@@ -225,7 +241,7 @@ struct Programme {
     kuri::ensemble<NoeudDeclaration *> &dépendances_manquantes();
 
   private:
-    void verifie_etat_compilation_fichier(DiagnostiqueEtatCompilation &diagnostique) const;
+    void verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &diagnostique) const;
 
     void ajoute_fichier(Fichier *fichier);
 };
@@ -238,6 +254,12 @@ enum {
 };
 
 void imprime_contenu_programme(Programme const &programme, uint32_t quoi, std::ostream &os);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Représentation intermédiaire Programme.
+ * \{ */
 
 /* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
  * tous les types utilisées. */
@@ -255,3 +277,5 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
                                std::ostream &os);
 
 ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &programme);
+
+/** \} */
