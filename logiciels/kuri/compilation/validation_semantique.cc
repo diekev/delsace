@@ -387,11 +387,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return valide_entete_fonction(decl);
             }
 
-            aplatis_arbre(decl);
-            POUR (decl->arbre_aplatis) {
-                TENTE(valide_semantique_noeud(it));
-            }
-
             auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
 
             for (auto i = 0; i < decl->params.taille(); ++i) {
