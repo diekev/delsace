@@ -802,6 +802,9 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 /* Nous avons un type variadique. */
                 expr->substitution = assem->cree_reference_type(expr->lexeme, expr->type);
             }
+            else {
+                simplifie(expr->expression);
+            }
             return;
         }
         case GenreNoeud::INSTRUCTION_EMPL:
@@ -828,6 +831,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             if (noeud->ident == ID::chemin_de_ce_fichier) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->chemin());
@@ -836,6 +841,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             else if (noeud->ident == ID::chemin_de_ce_module) {
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 auto fichier = compilatrice.fichier(noeud->lexeme->fichier);
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fichier->module->chemin());
@@ -845,6 +852,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 assert(fonction_courante);
                 auto &compilatrice = espace->compilatrice();
                 auto littérale_chaine = assem->cree_litterale_chaine(noeud->lexeme);
+                littérale_chaine->drapeaux |=
+                    DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 littérale_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
                 noeud->substitution = littérale_chaine;
@@ -1453,14 +1462,6 @@ void Simplificatrice::cree_retourne_union_via_rien(NoeudDeclarationEnteteFonctio
  * et d'un chargement pour les retours simples. */
 void Simplificatrice::simplifie_retour(NoeudRetour *inst)
 {
-    // crée une assignation pour chaque sortie
-    auto type_fonction = fonction_courante->type->comme_type_fonction();
-    auto type_sortie = type_fonction->type_sortie;
-
-    if (type_sortie->est_type_rien()) {
-        return;
-    }
-
     if (inst->aide_generation_code == RETOURNE_UNE_UNION_VIA_RIEN) {
         auto bloc = assem->cree_bloc_seul(inst->lexeme, inst->bloc_parent);
         cree_retourne_union_via_rien(fonction_courante, bloc, inst->lexeme);
@@ -1468,6 +1469,15 @@ void Simplificatrice::simplifie_retour(NoeudRetour *inst)
         return;
     }
 
+    /* Nous n'utilisons pas le type de la fonction_courante car elle peut être nulle dans le cas où
+     * nous avons un #test. */
+    auto type_sortie = inst->type;
+
+    if (type_sortie->est_type_rien()) {
+        return;
+    }
+
+    /* Crée une assignation pour chaque sortie. */
     POUR (inst->donnees_exprs.plage()) {
         simplifie(it.expression);
 
@@ -1612,6 +1622,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
      * nom dans le module). */
     auto const fichier = compilatrice.fichier(lexeme_site->fichier);
     auto valeur_chemin_fichier = assem->cree_litterale_chaine(lexeme);
+    valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_chemin_fichier->valeur = compilatrice.gerante_chaine->ajoute_chaine(fichier->chemin());
 
     /* PositionCodeSource.fonction */
@@ -1621,6 +1632,7 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     }
 
     auto valeur_nom_fonction = assem->cree_litterale_chaine(lexeme);
+    valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_nom_fonction->valeur = compilatrice.gerante_chaine->ajoute_chaine(nom_fonction);
 
     /* PositionCodeSource.ligne */
