@@ -319,6 +319,65 @@ détruit_liste_trace_appels :: fonc (tableau_traces: []TraceAppel)
     free(tableau_traces.pointeur)
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Formattage des nombres pour les impressions.
+ *
+ * Ces structures permettent de définir comment les nombres entiers et réels
+ * doivent être formattés lors des impressions (via Fondation.imprime).
+ *
+ * Par défaut, les nombres entiers ou réels sont imprimés sans séparateurs et
+ * en base 10.
+ *
+ * Pour remplacer le formattage par défaut, nous pouvons utiliser un contexte
+ * temporaire :
+ *
+ *     format : FormatEntier
+ *     format.base = 2
+ *     format.séparation = 4
+ *     ctx := contexte()
+ *     ctx.format_entier = format
+ *     pousse_contexte ctx {
+ *         imprime("%\n", 123456)
+ *     }
+ * \{ */
+
+FormatEntier :: struct {
+    valeur : eini
+    ajoute_zéros_début := faux
+    nombre_zéros := 0
+    base := 10
+	séparation := 0
+}
+
+donne_format_entier_contexte :: fonc (valeur: eini) -> FormatEntier
+{
+    résultat := contexte().format_entier
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+donne_format_entier_contexte_pour_base :: fonc (valeur: eini, base: z32) -> FormatEntier
+{
+    résultat := contexte().format_entier
+    résultat.valeur = valeur
+    résultat.base = base
+    retourne résultat
+}
+
+FormatRéel :: struct {
+	valeur: eini
+	précision := 6
+}
+
+donne_format_réel_contexte :: fonc (valeur: eini) -> FormatRéel
+{
+    résultat := contexte().format_réel
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+/** } */
+
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
@@ -333,6 +392,10 @@ ContexteProgramme :: struct {
 
     rappel_panique := __rappel_panique_défaut
     données_rappel_panique : *rien
+
+    /* Formats pour les nombres entiers et réels. */
+    format_entier: FormatEntier
+    format_réel: FormatRéel
 }
 
 __logueur_défaut :: fonc (message: chaine  @inutilisée,

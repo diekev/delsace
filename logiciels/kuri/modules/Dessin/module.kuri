@@ -143,7 +143,7 @@ dessine_ligne_bresenham :: fonc(
 /** \nom Triangle
  * \{ */
 
-dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle, couleur: CouleurRVBAN8)
+dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z32), couleur: CouleurRVBAN8)
 {
     dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p0, triangle.p1), couleur)
     dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p1, triangle.p2), couleur)

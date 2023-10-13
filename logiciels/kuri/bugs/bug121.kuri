@@ -6,7 +6,7 @@
 importe Fondation
 importe Math
 
-/* Degrés est polymorphique, mais la fonction n'est pas noté comme tel. */
+/* Degrés est polymorphique, mais la fonction n'est pas notée comme tel. */
 imprime_degrés :: fonc (d: Degrés)
 {
     imprime("%\n", d)
