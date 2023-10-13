@@ -41,22 +41,32 @@ enum class DrapeauxNoeud : uint32_t {
     EST_GLOBALE = (1 << 6),                     // decl var
     EST_CONSTANTE = (1 << 7),                   // decl var
     DECLARATION_TYPE_POLYMORPHIQUE = (1 << 8),  // decl var
-    DROITE_ASSIGNATION = (1 << 9),              // générique
-    DECLARATION_FUT_VALIDEE = (1 << 10),        // déclaration
-    RI_FUT_GENEREE = (1 << 11),                 // déclaration
-    CODE_BINAIRE_FUT_GENERE = (1 << 12),        // déclaration
-    TRANSTYPAGE_IMPLICITE = (1 << 13),          // expr comme
-    EST_PARAMETRE = (1 << 14),                  // decl var
-    EST_VALEUR_POLYMORPHIQUE = (1 << 15),       // decl var
-    POUR_CUISSON = (1 << 16),                   // appel
-    ACCES_EST_ENUM_DRAPEAU = (1 << 17),         // accès membre
-    DROITE_CONDITION = (1 << 18),
-    EST_UTILISEE = (1 << 19),  // decl var
-    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 20),
-    GAUCHE_EXPRESSION_APPEL = (1 << 21),
-    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 22),
-    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 23),
-    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 24),
+    DECLARATION_FUT_VALIDEE = (1 << 9),         // déclaration
+    RI_FUT_GENEREE = (1 << 10),                 // déclaration
+    CODE_BINAIRE_FUT_GENERE = (1 << 11),        // déclaration
+    TRANSTYPAGE_IMPLICITE = (1 << 12),          // expr comme
+    EST_PARAMETRE = (1 << 13),                  // decl var
+    EST_VALEUR_POLYMORPHIQUE = (1 << 14),       // decl var
+    POUR_CUISSON = (1 << 15),                   // appel
+    ACCES_EST_ENUM_DRAPEAU = (1 << 16),         // accès membre
+    EST_UTILISEE = (1 << 17),                   // decl var
+    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 18),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 19),
+    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 20),
+    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 21),
+    /* Certaines assertions dans le code se base sur les lexèmes des littérales, mais la
+     * canonicalisation peut réutiliser les lexèmes des sites sources faisant échouer les précitées
+     * assertions. */
+    LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 22),
+
+    /* Drapeaux pour définir où se trouve le noeud dans l'arbre syntaxique. */
+
+    /* Le noeud est à droite de '=' ou ':='. */
+    DROITE_ASSIGNATION = (1u << 23),
+    /* Le noeud est utilisé comme condition pour une boucle ou si/saufsi. */
+    DROITE_CONDITION = (1u << 24),
+    /* Le noeud est utilisé comme expression d'appel (p.e. noeud(...)). */
+    GAUCHE_EXPRESSION_APPEL = (1 << 25),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

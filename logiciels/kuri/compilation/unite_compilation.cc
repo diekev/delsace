@@ -309,8 +309,10 @@ void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité)
 void imprime_état_unité(std::ostream &os, const UniteCompilation *unité)
 {
     os << "-- " << unité->donne_état() << '\n';
+#ifdef ENREGISTRE_HISTORIQUE
     os << "-- historique :\n";
     imprime_historique_unité(os, unité);
+#endif
     os << "-- attentes :\n";
     imprime_attentes_unité(os, unité);
 }
