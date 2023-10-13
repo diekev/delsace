@@ -19,6 +19,7 @@
 #include "espace_de_travail.hh"
 #include "ipa.hh"
 #include "typage.hh"
+#include "unite_compilation.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Programme.
@@ -458,6 +459,34 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
        << "\n";
 }
 
+static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDeclaration *déclaration)
+{
+    os << "-- RI non générée pour ";
+
+    if (déclaration->est_entete_fonction()) {
+        os << "la fonction";
+    }
+    else {
+        os << "la déclaration de";
+    }
+
+    os << " " << nom_humainement_lisible(déclaration) << '\n';
+
+    if (déclaration->est_entete_fonction()) {
+        auto entête = déclaration->comme_entete_fonction();
+        os << "-- état de l'unité de l'entête :\n";
+        imprime_état_unité(os, entête->unite);
+        if (entête->corps->unite) {
+            os << "-- état de l'unité du corps :\n";
+            imprime_état_unité(os, entête->corps->unite);
+        }
+    }
+    else if (déclaration->unite) {
+        os << "-- état de l'unité :\n";
+        imprime_état_unité(os, déclaration->unite);
+    }
+}
+
 void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std::ostream &os)
 {
     if (!diagnostique.toutes_les_déclarations_à_typer_le_sont) {
@@ -480,8 +509,7 @@ void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std:
            << chaine_type(diagnostique.ri_type_à_générer) << '\n';
     }
     if (diagnostique.ri_déclaration_à_générer) {
-        os << "-- RI non générée pour déclaration "
-           << diagnostique.ri_déclaration_à_générer->lexeme->chaine << '\n';
+        imprime_détails_ri_à_générée(os, diagnostique.ri_déclaration_à_générer);
     }
 }
 
