@@ -19,5 +19,11 @@ principale :: fonc () -> z32
 {
     tableau_fixe :: [0, 1, 2, 3, 4]
     passe_tableau_fixe(...tableau_fixe)
+
+    S :: struct {
+        T :: [0, 1, 2, 3, 4]
+    }
+    passe_tableau_fixe(...S.T)
+
     retourne 0
 }

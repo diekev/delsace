@@ -50,6 +50,36 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
 
 static void aplatis_arbre(NoeudExpression *racine,
                           kuri::tableau<NoeudExpression *, int> &arbre_aplatis,
+                          DrapeauxNoeud drapeau);
+
+/* Fonction pour aplatir l'arbre d'une entête de fonction. Pour les déclarations de types
+ * fonctions (fonc()(rien)) l'arbre aplatis est l'arbre du noeud parent (structure, fonction,
+ * etc.), et non celui de l'entête. */
+static void aplatis_entête_fonction(NoeudDeclarationEnteteFonction *entête,
+                                    kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
+{
+    /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
+    POUR (*entête->bloc_constantes->membres.verrou_lecture()) {
+        if (!it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            continue;
+        }
+        aplatis_arbre(it, arbre_aplatis, {});
+    }
+
+    POUR (entête->params) {
+        if (it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            continue;
+        }
+        aplatis_arbre(it, arbre_aplatis, {});
+    }
+
+    POUR (entête->params_sorties) {
+        aplatis_arbre(it, arbre_aplatis, {});
+    }
+}
+
+static void aplatis_arbre(NoeudExpression *racine,
+                          kuri::tableau<NoeudExpression *, int> &arbre_aplatis,
                           DrapeauxNoeud drapeau)
 {
     if (racine == nullptr) {
@@ -104,6 +134,17 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:
+        {
+            auto entête = racine->comme_entete_fonction();
+            if (entête->est_declaration_type) {
+                /* Inclus l'arbre du type dans le nôtre. */
+                aplatis_entête_fonction(entête, arbre_aplatis);
+            }
+
+            /* L'aplatissement d'une fonction dans une fonction doit déjà avoir été fait. */
+            arbre_aplatis.ajoute(racine);
+            break;
+        }
         case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         case GenreNoeud::DECLARATION_CORPS_FONCTION:
         {
@@ -508,24 +549,7 @@ void aplatis_arbre(NoeudExpression *declaration)
     if (declaration->est_entete_fonction()) {
         auto entete = declaration->comme_entete_fonction();
         if (entete->arbre_aplatis.taille() == 0) {
-            /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
-            POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-                if (!it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-                    continue;
-                }
-                aplatis_arbre(it, entete->arbre_aplatis, {});
-            }
-
-            POUR (entete->params) {
-                if (it->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-                    continue;
-                }
-                aplatis_arbre(it, entete->arbre_aplatis, {});
-            }
-
-            POUR (entete->params_sorties) {
-                aplatis_arbre(it, entete->arbre_aplatis, {});
-            }
+            aplatis_entête_fonction(entete, entete->arbre_aplatis);
         }
         return;
     }

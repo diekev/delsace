@@ -123,8 +123,11 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto expression = directive->expression;
     auto type_expression = expression->type;
 
-    /* Le type peut être nul pour les #tests. */
-    if (!type_expression && directive->ident == ID::test) {
+    /* Les #tests ne doivent retourner rien, mais l'expression étant un bloc prend le type de la
+     * dernière expression du bloc qui peut être d'autre type que « rien ».
+     * À FAIRE : garantis que le #test ne retourne rien différement (valide proprement, vérifie
+     * s'il est utile d'assigner un type aux blocs, etc.). */
+    if (directive->ident == ID::test) {
         type_expression = TypeBase::RIEN;
     }
 
@@ -384,11 +387,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return valide_entete_fonction(decl);
             }
 
-            aplatis_arbre(decl);
-            POUR (decl->arbre_aplatis) {
-                TENTE(valide_semantique_noeud(it));
-            }
-
             auto types_entrees = kuri::tablet<Type *, 6>(decl->params.taille());
 
             for (auto i = 0; i < decl->params.taille(); ++i) {
@@ -459,13 +457,25 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto noeud_directive = noeud->comme_execute();
+            auto expression = noeud_directive->expression;
+            auto type_expression = expression->type;
+
+            if (noeud_directive->ident == ID::assert_) {
+                if (type_expression != TypeBase::BOOL) {
+                    espace->rapporte_erreur(expression, "Expression non booléenne pour #assert")
+                        .ajoute_message("L'expression d'une directive #assert doit être de type "
+                                        "booléen, hors le type de l'expression est : ",
+                                        chaine_type(type_expression));
+                    return CodeRetourValidation::Erreur;
+                }
+            }
 
             auto metaprogramme = cree_metaprogramme_pour_directive(noeud_directive);
 
             m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
                                                                                  metaprogramme);
 
-            noeud->type = noeud_directive->expression->type;
+            noeud->type = expression->type;
 
             if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
@@ -2153,8 +2163,30 @@ static bool peut_construire_union_via_rien(TypeUnion *type_union)
 
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
-    auto type_fonc = fonction_courante()->type->comme_type_fonction();
-    auto est_corps_texte = fonction_courante()->corps->est_corps_texte;
+    auto fonction = fonction_courante();
+    auto type_sortie = Type::nul();
+    auto est_coroutine = false;
+    auto est_corps_texte = false;
+
+    if (fonction) {
+        auto type_fonc = fonction_courante()->type->comme_type_fonction();
+        type_sortie = type_fonc->type_sortie;
+        est_corps_texte = fonction_courante()->corps->est_corps_texte;
+        est_coroutine = fonction_courante()->est_coroutine;
+    }
+    else {
+        /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
+         * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
+        if (!(racine_validation()->est_execute() && racine_validation()->ident == ID::test)) {
+            espace->rapporte_erreur(inst,
+                                    "Utilisation de « retourne » en dehors d'une fonction, d'un "
+                                    "opérateur, ou d'un #test");
+            return CodeRetourValidation::Erreur;
+        }
+
+        /* Un #test ne doit rien retourner. */
+        type_sortie = TypeBase::RIEN;
+    }
 
     auto const bloc_parent = inst->bloc_parent;
     if (bloc_est_dans_differe(bloc_parent)) {
@@ -2165,19 +2197,16 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
     if (inst->expression == nullptr) {
         inst->type = TypeBase::RIEN;
 
-        auto type_sortie = type_fonc->type_sortie;
-
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
          * du type ayant le membre « rien » actif. */
         if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
-            if (peut_construire_union_via_rien(type_fonc->type_sortie->comme_type_union())) {
+            if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 inst->aide_generation_code = RETOURNE_UNE_UNION_VIA_RIEN;
                 return CodeRetourValidation::OK;
             }
         }
 
-        if ((!fonction_courante()->est_coroutine && type_sortie != inst->type) ||
-            est_corps_texte) {
+        if ((!est_coroutine && type_sortie != inst->type) || est_corps_texte) {
             rapporte_erreur("Expression de retour manquante", inst);
             return CodeRetourValidation::Erreur;
         }
@@ -2216,7 +2245,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::OK;
     }
 
-    if (type_fonc->type_sortie->est_type_rien()) {
+    if (type_sortie->est_type_rien()) {
         espace->rapporte_erreur(inst->expression,
                                 "Retour d'une valeur d'une fonction qui ne retourne rien");
         return CodeRetourValidation::Erreur;
@@ -2356,7 +2385,7 @@ ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour 
         return CodeRetourValidation::Erreur;
     }
 
-    inst->type = type_fonc->type_sortie;
+    inst->type = type_sortie;
 
     inst->donnees_exprs.reserve(static_cast<int>(donnees_retour.taille()));
     POUR (donnees_retour) {
@@ -2505,9 +2534,22 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         !decl->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) &&
         !(expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE))) {
         if (decl->lexeme->ligne > expr->lexeme->ligne) {
-            rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
+            espace->rapporte_erreur(expr, "Utilisation d'un symbole avant sa déclaration.")
+                .ajoute_message("Le symbole fut déclaré ici :\n\n")
+                .ajoute_site(decl);
             return CodeRetourValidation::Erreur;
         }
+    }
+
+    if (est_declaration_polymorphique(decl) &&
+        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        espace
+            ->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
+            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return CodeRetourValidation::Erreur;
     }
 
     if (decl->est_declaration_type()) {
@@ -2539,14 +2581,6 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
                 return CodeRetourValidation::Erreur;
             }
             return Attente::sur_declaration(decl);
-        }
-
-        if (est_declaration_polymorphique(decl) &&
-            !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
-            espace->rapporte_erreur(
-                expr,
-                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
-            return CodeRetourValidation::Erreur;
         }
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels

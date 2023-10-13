@@ -1,6 +1,10 @@
 /* Crash quand nous capturons la valeur discriminée dans une discrimination
  * d'une expression de type fonction.
  * Catégorie : [crash, discr, type fonction, capture discr]
+ * NOTE : le crash est causé car les expressions de captures de variables ne
+ * sont pas typées alors que la discrimination se fait sur une valaire scalaire
+ * qui valide manuellement ces expressions en supposant que nous aurons que des
+ * expressions simples à valider (sans arbres aplatis).
  */
 
 UnionAnonyme :: z32 | r32

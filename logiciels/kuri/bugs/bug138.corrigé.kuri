@@ -3,9 +3,12 @@
  * Catégorie : [validation sémantique, portée]
  */
 
+importe Fondation
+
 principale :: fonc () -> z32
 {
     tableau: []z32
     Kuri.tableau_ajoute(*tableau, 1)
+    assert(tableau.taille == 1)
     retourne 0
 }

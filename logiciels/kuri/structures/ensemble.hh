@@ -196,4 +196,16 @@ class ensemble {
     }
 };
 
+template <typename T>
+ensemble<T> crée_ensemble(const tableau<T> &tableau)
+{
+    ensemble<T> résultat;
+
+    POUR (tableau) {
+        résultat.insere(it);
+    }
+
+    return résultat;
+}
+
 }  // namespace kuri

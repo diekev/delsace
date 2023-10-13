@@ -363,14 +363,6 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
 
 //###################################################################################
 
-FormatEntier :: struct {
-    valeur : eini
-    ajoute_zéros_début := faux
-    nombre_zéros := 0
-    base := 10
-	séparation := 0
-}
-
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
 	base := format.base comme n64
@@ -466,11 +458,6 @@ n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 	retourne 0
 }
 
-FormatRéel :: struct {
-	valeur: eini
-	précision := 6
-}
-
 r32_depuis_eini :: fonc (e: eini) -> r32
 {
 	info := e.info
@@ -545,7 +532,7 @@ imprime_nombre_réel :: fonc(enchaineuse: *Enchaineuse, format: FormatRéel) -> 
 
 		frac = frac - chiffre comme r32
 		p -= 1
-	} tantque frac < 1.0 && frac != 0.0 && p >= 0
+	} tantque frac < 1.0 && frac != 0.0 && p > 0
 }
 
 imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn : bool) -> rien
@@ -558,13 +545,13 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
 
     discr valeur.info.id {
 		OCTET {
-			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur, base = 16))
+			imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(valeur, 16))
 		}
 		ENTIER {
-			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+			imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
 		}
 		RÉEL {
-			imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur))
+			imprime_nombre_réel(enchaineuse, donne_format_réel_contexte(valeur))
 		}
 		BOOLÉEN {
 			x := valeur.comme_bool()
@@ -591,17 +578,6 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
 		}
 		STRUCTURE {
 			info_arg := valeur.info comme *InfoTypeStructure
-
-			si info_arg == info_de(FormatEntier) {
-				imprime_nombre_entier(enchaineuse, mémoire(valeur.pointeur comme *FormatEntier))
-				retourne
-			}
-
-			si info_arg == info_de(FormatRéel) {
-				imprime_nombre_réel(enchaineuse, mémoire(valeur.pointeur comme *FormatRéel))
-				retourne
-			}
-
             ajoute_au_tampon(enchaineuse, info_arg.nom)
             ajoute_au_tampon(enchaineuse, " {")
 
@@ -650,17 +626,16 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
 		FONCTION {
 		    // Ne pas oublier qu'il y a un niveau d'indirection.
 			x := mémoire(valeur.pointeur comme **z8)
-			fmt := FormatEntier(valeur = x comme n64, base = 16)
-			imprime_nombre_entier(enchaineuse, fmt)
+			imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16))
 		}
 		EINI {
 			x := mémoire(valeur.pointeur comme *eini)
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ")
-			fmt := FormatEntier(valeur = x.pointeur comme n64, base = 16)
+			fmt := donne_format_entier_contexte_pour_base(x.pointeur comme n64, 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, ", info = ")
-			fmt = FormatEntier(valeur = x.info comme n64, base = 16)
+			fmt = donne_format_entier_contexte_pour_base(x.info comme n64, 16)
 			imprime_nombre_entier(enchaineuse, fmt)
             ajoute_au_tampon(enchaineuse, " }")
 		}
@@ -732,7 +707,7 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
 		}
 		TYPE_DE_DONNÉES {
 			// XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
-			imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+			imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
 		}
 		UNION {
 			info_arg := valeur.info comme *InfoTypeUnion

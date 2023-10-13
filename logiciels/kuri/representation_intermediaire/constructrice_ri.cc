@@ -1146,18 +1146,22 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto chaine = compilatrice().gerante_chaine->chaine_pour_adresse(lit_chaine->valeur);
             auto constante = cree_chaine(chaine);
 
-            assert_rappel((noeud->lexeme->chaine.taille() != 0 && chaine.taille() != 0) ||
-                              (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0),
-                          [&]() {
-                              erreur::imprime_site(*espace(), noeud);
-                              std::cerr << "La chaine n'est pas de la bonne taille !\n";
-                              std::cerr << "Le lexème a une chaine taille de "
-                                        << noeud->lexeme->chaine.taille()
-                                        << " alors que la chaine littérale a une taille de "
-                                        << chaine.taille() << '\n';
-                              std::cerr << "L'index de la chaine est de " << lit_chaine->valeur
-                                        << '\n';
-                          });
+            assert_rappel(
+                (noeud->lexeme->chaine.taille() != 0 && chaine.taille() != 0) ||
+                    (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0) ||
+                    noeud->possede_drapeau(DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION),
+                [&]() {
+                    erreur::imprime_site(*espace(), noeud);
+                    std::cerr << "La chaine n'est pas de la bonne taille !\n";
+                    std::cerr << "Le lexème a une chaine taille de "
+                              << noeud->lexeme->chaine.taille()
+                              << " alors que la chaine littérale a une taille de "
+                              << chaine.taille() << '\n';
+                    std::cerr << "L'index de la chaine est de " << lit_chaine->valeur << '\n';
+                    std::cerr << "La valeur de la chaine du lexème est \"" << noeud->lexeme->chaine
+                              << "\"\n";
+                    std::cerr << "La valeur de la chaine littérale est \"" << chaine << "\"\n";
+                });
 
             if (fonction_courante == nullptr) {
                 empile_valeur(constante);

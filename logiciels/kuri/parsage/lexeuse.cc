@@ -352,6 +352,11 @@ void Lexeuse::performe_lexage()
 
                                     this->avance_sans_nouvelle_ligne(nombre_octet);
                                     this->ajoute_caractère(nombre_octet);
+
+                                    if (c == '\n') {
+                                        m_compte_ligne += 1;
+                                        m_position_ligne = 0;
+                                    }
                                 }
 
                                 /* Saute le dernier guillemet si nécessaire. */
