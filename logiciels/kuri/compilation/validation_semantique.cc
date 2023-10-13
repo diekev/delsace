@@ -2534,15 +2534,21 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         !decl->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) &&
         !(expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE))) {
         if (decl->lexeme->ligne > expr->lexeme->ligne) {
-            rapporte_erreur("Utilisation d'une variable avant sa déclaration", expr);
+            espace->rapporte_erreur(expr, "Utilisation d'un symbole avant sa déclaration.")
+                .ajoute_message("Le symbole fut déclaré ici :\n\n")
+                .ajoute_site(decl);
             return CodeRetourValidation::Erreur;
         }
     }
 
     if (est_declaration_polymorphique(decl) &&
         !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
-        espace->rapporte_erreur(
-            expr, "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
+        espace
+            ->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
+            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
+            .ajoute_site(decl);
         return CodeRetourValidation::Erreur;
     }
 
