@@ -491,6 +491,25 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
     {
         if (module->bloc == nullptr) {
             module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+
+            if (module->nom() != ID::Kuri) {
+                /* Crée un membre pour l'import implicite du module Kuri afin de pouvoir accéder
+                 * aux fonctions de ce module via une expression de référence de membre :
+                 * « Kuri.fonction(...) ». */
+                static Lexeme lexème_ident_kuri = {};
+                lexème_ident_kuri.genre = GenreLexeme::CHAINE_CARACTERE;
+                lexème_ident_kuri.ident = ID::Kuri;
+                auto noeud_module = m_tacheronne.assembleuse
+                                        ->cree_noeud<GenreNoeud::DECLARATION_MODULE>(
+                                            &lexème_ident_kuri)
+                                        ->comme_declaration_module();
+                noeud_module->module = m_compilatrice.module_kuri;
+                noeud_module->ident = ID::Kuri;
+                noeud_module->bloc_parent = module->bloc;
+                noeud_module->bloc_parent->ajoute_membre(noeud_module);
+                noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            }
+
             module->bloc->ident = module->nom();
         }
         else {

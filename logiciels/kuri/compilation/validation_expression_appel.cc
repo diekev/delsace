@@ -218,6 +218,24 @@ enum {
     CANDIDATE_EST_EXPRESSION_QUELCONQUE,
 };
 
+static auto supprime_doubons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> void
+{
+    kuri::ensemblon<NoeudDeclaration *, 10> doublons;
+    kuri::tablet<NoeudDeclaration *, 10> résultat;
+
+    POUR (tablet) {
+        if (doublons.possede(it)) {
+            continue;
+        }
+        doublons.insere(it);
+        résultat.ajoute(it);
+    }
+
+    if (résultat.taille() != tablet.taille()) {
+        tablet = résultat;
+    }
+}
+
 static ResultatValidation trouve_candidates_pour_fonction_appelee(
     ContexteValidationCode &contexte,
     EspaceDeTravail &espace,
@@ -237,15 +255,26 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
             if (fonction_courante->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 auto site_monomorphisation = fonction_courante->site_monomorphisation;
+                assert_rappel(site_monomorphisation->lexeme,
+                              [&]() { erreur::imprime_site(espace, appelee); });
                 auto fichier_site = espace.compilatrice().fichier(
                     site_monomorphisation->lexeme->fichier);
 
                 if (fichier_site != fichier) {
+                    auto anciennes_declarations = declarations;
+                    auto anciennes_modules_visites = modules_visites;
                     trouve_declarations_dans_bloc_ou_module(declarations,
                                                             modules_visites,
                                                             site_monomorphisation->bloc_parent,
                                                             appelee->ident,
                                                             fichier_site);
+
+                    /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
+                     * blocs parents de toutes les expressions nous faisant potentiellement
+                     * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
+                     * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
+                     * devrons proprement gérer tout ça pour éviter de perdre du temps. */
+                    supprime_doubons(declarations);
                 }
             }
         }
@@ -1231,8 +1260,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                         état->résultats.ajoute(
                             ErreurAppariement::type_non_fonction(expr, type_de_donnees));
                     }
-
-                    if (type_connu->est_type_structure()) {
+                    else if (type_connu->est_type_structure()) {
                         auto type_struct = type_connu->comme_type_structure();
 
                         état->résultats.ajoute(
