@@ -2539,6 +2539,13 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 
+    if (est_declaration_polymorphique(decl) &&
+        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        espace->rapporte_erreur(
+            expr, "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
+        return CodeRetourValidation::Erreur;
+    }
+
     if (decl->est_declaration_type()) {
         if (decl->est_type_opaque() &&
             !decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2568,14 +2575,6 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
                 return CodeRetourValidation::Erreur;
             }
             return Attente::sur_declaration(decl);
-        }
-
-        if (est_declaration_polymorphique(decl) &&
-            !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
-            espace->rapporte_erreur(
-                expr,
-                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel");
-            return CodeRetourValidation::Erreur;
         }
 
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
