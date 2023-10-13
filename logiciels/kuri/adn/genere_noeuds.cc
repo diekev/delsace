@@ -495,9 +495,11 @@ struct GeneratriceCodeCPP {
             }
             else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
                      nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
-                os << "\t\t\tcopie->bloc_constantes = assem->cree_bloc_seul(nullptr, "
+                os << "\t\t\tcopie->bloc_constantes = "
+                      "assem->cree_bloc_seul(orig->bloc_constantes->lexeme, "
                       "bloc_parent);\n";
-                os << "\t\t\tcopie->bloc_parametres = assem->cree_bloc_seul(nullptr, "
+                os << "\t\t\tcopie->bloc_parametres = "
+                      "assem->cree_bloc_seul(orig->bloc_parametres->lexeme, "
                       "copie->bloc_constantes);\n";
                 os << "\t\t\tbloc_parent = copie->bloc_parametres;\n";
             }

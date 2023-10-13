@@ -255,6 +255,8 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
             if (fonction_courante->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 auto site_monomorphisation = fonction_courante->site_monomorphisation;
+                assert_rappel(site_monomorphisation->lexeme,
+                              [&]() { erreur::imprime_site(espace, appelee); });
                 auto fichier_site = espace.compilatrice().fichier(
                     site_monomorphisation->lexeme->fichier);
 
