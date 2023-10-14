@@ -101,8 +101,9 @@ struct Lexeuse {
         m_taille_mot_courant += n;
     }
 
-    void ajoute_mot(GenreLexeme identifiant);
-    void ajoute_mot(GenreLexeme identifiant, unsigned valeur);
+    Lexeme donne_lexème_suivant();
+    void ajoute_lexème(GenreLexeme identifiant);
+    void ajoute_lexème(Lexeme lexème);
 
     ENLIGNE_TOUJOURS void enregistre_pos_mot()
     {
@@ -110,25 +111,33 @@ struct Lexeuse {
         m_debut_mot = m_debut;
     }
 
-    void lexe_commentaire();
+    void consomme_espaces_blanches();
 
-    void lexe_commentaire_bloc();
+    void rapporte_erreur(kuri::chaine const &quoi);
+    void rapporte_erreur_caractère_unicode();
 
-    template <bool INCLUS_COMMENTAIRE>
-    void lexe_commentaire_impl();
+    Lexeme crée_lexème_opérateur(int nombre_de_caractère, GenreLexeme genre_lexème);
+    Lexeme crée_lexème_littérale_entier(uint64_t valeur);
+    Lexeme crée_lexème_littérale_réelle(double valeur);
 
-    template <bool INCLUS_COMMENTAIRE>
-    void lexe_commentaire_bloc_impl();
-
-    void lexe_nombre();
-    void lexe_nombre_decimal();
-    void lexe_nombre_hexadecimal();
-    void lexe_nombre_binaire();
-    void lexe_nombre_octal();
-    void lexe_nombre_reel_hexadecimal();
-
+    Lexeme lèxe_chaine_littérale();
+    Lexeme lèxe_chaine_littérale_guillemet();
+    Lexeme lèxe_caractère_littérale();
     unsigned lexe_caractère_litteral(kuri::chaine *chaine);
+    Lexeme lèxe_commentaire();
+    Lexeme lèxe_commentaire_bloc();
+    Lexeme lèxe_littérale_nombre();
+    Lexeme lèxe_identifiant();
 
-    void ajoute_lexeme_entier(uint64_t valeur);
-    void ajoute_lexeme_reel(double valeur);
+    template <bool INCLUS_COMMENTAIRE>
+    Lexeme lexe_commentaire_impl();
+
+    template <bool INCLUS_COMMENTAIRE>
+    Lexeme lexe_commentaire_bloc_impl();
+
+    Lexeme lexe_nombre_decimal();
+    Lexeme lexe_nombre_hexadecimal();
+    Lexeme lexe_nombre_binaire();
+    Lexeme lexe_nombre_octal();
+    Lexeme lexe_nombre_reel_hexadecimal();
 };
