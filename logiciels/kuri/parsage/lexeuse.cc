@@ -34,6 +34,10 @@ enum {
     CARACTERE_PEUT_SUIVRE_CHIFFRE = (1 << 1),
     CARACTERE_CHIFFRE_OCTAL = (1 << 2),
     CARACTERE_CHIFFRE_DECIMAL = (1 << 3),
+    PEUT_COMMENCER_NOMBRE = (1 << 4),
+    PEUT_COMMENCER_IDENTIFIANT = (1 << 5),
+    PEUT_SUIVRE_IDENTIFIANT = (1 << 6),
+    EST_ESPACE_BLANCHE = (1 << 7),
 };
 
 static constexpr auto table_drapeaux_caractères = [] {
@@ -47,7 +51,15 @@ static constexpr auto table_drapeaux_caractères = [] {
         }
 
         if ('0' <= i && i <= '9') {
-            t[i] |= (CARACTERE_CHIFFRE_DECIMAL);
+            t[i] |= (CARACTERE_CHIFFRE_DECIMAL | PEUT_COMMENCER_NOMBRE | PEUT_SUIVRE_IDENTIFIANT);
+        }
+
+        if ('a' <= i && i <= 'z') {
+            t[i] |= (PEUT_COMMENCER_IDENTIFIANT | PEUT_SUIVRE_IDENTIFIANT);
+        }
+
+        if ('A' <= i && i <= 'Z') {
+            t[i] |= (PEUT_COMMENCER_IDENTIFIANT | PEUT_SUIVRE_IDENTIFIANT);
         }
 
         switch (i) {
@@ -73,12 +85,27 @@ static constexpr auto table_drapeaux_caractères = [] {
             case '7':
             case '8':
             case '9':
-            case '_':
             case '.':
             case 'e':
             case '-':
             {
                 t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE);
+                break;
+            }
+            case ' ':
+            case '\t':
+            case '\r':
+            case '\n':
+            case '\v':
+            case '\f':
+            {
+                t[i] |= EST_ESPACE_BLANCHE;
+                break;
+            }
+            case '_':
+            {
+                t[i] |= (CARACTERE_PEUT_SUIVRE_ZERO | CARACTERE_PEUT_SUIVRE_CHIFFRE |
+                         PEUT_SUIVRE_IDENTIFIANT | PEUT_COMMENCER_IDENTIFIANT);
                 break;
             }
         }
@@ -109,6 +136,79 @@ inline static bool est_caractère_decimal(char c)
 {
     return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
             CARACTERE_CHIFFRE_DECIMAL) != 0;
+}
+
+inline static bool est_espace_blanche(char c)
+{
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & EST_ESPACE_BLANCHE) != 0;
+}
+
+inline static bool peut_commencer_nombre(char c)
+{
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & PEUT_COMMENCER_NOMBRE) != 0;
+}
+
+inline static bool peut_commencer_identifiant(char c)
+{
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] &
+            PEUT_COMMENCER_IDENTIFIANT) != 0;
+}
+
+inline static bool peut_suivre_identifiant(char c)
+{
+    return (table_drapeaux_caractères[static_cast<unsigned char>(c)] & PEUT_SUIVRE_IDENTIFIANT) !=
+           0;
+}
+
+static bool est_rune_espace_blanche(uint32_t rune)
+{
+    switch (rune) {
+        case ESPACE_INSECABLE:
+        case ESPACE_D_OGAM:
+        case SEPARATEUR_VOYELLES_MONGOL:
+        case DEMI_CADRATIN:
+        case CADRATIN:
+        case ESPACE_DEMI_CADRATIN:
+        case ESPACE_CADRATIN:
+        case TIERS_DE_CADRATIN:
+        case QUART_DE_CADRATIN:
+        case SIXIEME_DE_CADRATIN:
+        case ESPACE_TABULAIRE:
+        case ESPACE_PONCTUATION:
+        case ESPACE_FINE:
+        case ESPACE_ULTRAFINE:
+        case ESPACE_SANS_CHASSE:
+        case ESPACE_INSECABLE_ETROITE:
+        case ESPACE_MOYENNE_MATHEMATIQUE:
+        case ESPACE_IDEOGRAPHIQUE:
+        case ESPACE_INSECABLE_SANS_CHASSE:
+        {
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+static bool est_rune_guillemet(uint32_t rune)
+{
+    switch (rune) {
+        case GUILLEMET_OUVRANT:
+        case GUILLEMET_FERMANT:
+        {
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+
+    return false;
 }
 
 /* ************************************************************************** */
@@ -195,501 +295,61 @@ Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux)
 {
 }
 
+Lexeme Lexeuse::crée_lexème_opérateur(int nombre_de_caractère, GenreLexeme genre_lexème)
+{
+    enregistre_pos_mot();
+    ajoute_caractère(nombre_de_caractère);
+    avance_sans_nouvelle_ligne(nombre_de_caractère);
+    Lexeme résultat = {mot_courant(),
+                       {0ul},
+                       genre_lexème,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+    return résultat;
+}
+
+Lexeme Lexeuse::crée_lexème_littérale_entier(uint64_t valeur)
+{
+    Lexeme résultat = {mot_courant(),
+                       {valeur},
+                       GenreLexeme::NOMBRE_ENTIER,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+    return résultat;
+}
+
+Lexeme Lexeuse::crée_lexème_littérale_réelle(double valeur)
+{
+    Lexeme résultat = {mot_courant(),
+                       {0ul},
+                       GenreLexeme::NOMBRE_REEL,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+    résultat.valeur_reelle = valeur;
+    return résultat;
+}
+
 void Lexeuse::performe_lexage()
 {
-#define AJOUTE_CARACTERE(id)                                                                      \
-    this->enregistre_pos_mot();                                                                   \
-    this->ajoute_caractère();                                                                     \
-    this->ajoute_mot(id);                                                                         \
-    this->avance_fixe<1>();
-
-#define AJOUTE_MOT_SI_NECESSAIRE                                                                  \
-    if (m_taille_mot_courant != 0) {                                                              \
-        this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));                                \
-    }
-
-#define CAS_CARACTERE(c, id)                                                                      \
-    case c:                                                                                       \
-    {                                                                                             \
-        AJOUTE_MOT_SI_NECESSAIRE                                                                  \
-        AJOUTE_CARACTERE(id);                                                                     \
-        break;                                                                                    \
-    }
-
-#define CAS_CARACTERE_EGAL(c, id_sans_egal, id_avec_egal)                                         \
-    case c:                                                                                       \
-    {                                                                                             \
-        AJOUTE_MOT_SI_NECESSAIRE                                                                  \
-        if (this->caractère_voisin(1) == '=') {                                                   \
-            this->enregistre_pos_mot();                                                           \
-            this->ajoute_caractère();                                                             \
-            this->ajoute_caractère();                                                             \
-            this->ajoute_mot(id_avec_egal);                                                       \
-            this->avance_fixe<2>();                                                               \
-        }                                                                                         \
-        else {                                                                                    \
-            AJOUTE_CARACTERE(id_sans_egal);                                                       \
-        }                                                                                         \
-        break;                                                                                    \
-    }
-
-#define APPARIE_SUIVANT(c, id)                                                                    \
-    if (this->caractère_voisin(1) == c) {                                                         \
-        this->enregistre_pos_mot();                                                               \
-        this->ajoute_caractère();                                                                 \
-        this->ajoute_caractère();                                                                 \
-        this->ajoute_mot(id);                                                                     \
-        this->avance_fixe<2>();                                                                   \
-        break;                                                                                    \
-    }
-
-#define APPARIE_2_SUIVANTS(c1, c2, id)                                                            \
-    if (this->caractère_voisin(1) == c1 && this->caractère_voisin(2) == c2) {                     \
-        this->enregistre_pos_mot();                                                               \
-        this->ajoute_caractère();                                                                 \
-        this->ajoute_caractère();                                                                 \
-        this->ajoute_caractère();                                                                 \
-        this->ajoute_mot(id);                                                                     \
-        this->avance_fixe<3>();                                                                   \
-        break;                                                                                    \
-    }
-
-    m_taille_mot_courant = 0;
-
     while (!this->fini()) {
-        switch (this->caractère_courant()) {
-            default:
-            {
-                if (m_taille_mot_courant == 0) {
-                    this->enregistre_pos_mot();
-                }
+        consomme_espaces_blanches();
 
-                auto nombre_octet =
-                    longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(m_debut[0])];
-
-                switch (nombre_octet) {
-                    case 1:
-                    {
-                        this->ajoute_caractère();
-                        this->avance_fixe<1>();
-                        break;
-                    }
-                    case 2:
-                    case 3:
-                    case 4:
-                    {
-                        auto c = lng::converti_utf32(m_debut, nombre_octet);
-
-                        switch (c) {
-                            case ESPACE_INSECABLE:
-                            case ESPACE_D_OGAM:
-                            case SEPARATEUR_VOYELLES_MONGOL:
-                            case DEMI_CADRATIN:
-                            case CADRATIN:
-                            case ESPACE_DEMI_CADRATIN:
-                            case ESPACE_CADRATIN:
-                            case TIERS_DE_CADRATIN:
-                            case QUART_DE_CADRATIN:
-                            case SIXIEME_DE_CADRATIN:
-                            case ESPACE_TABULAIRE:
-                            case ESPACE_PONCTUATION:
-                            case ESPACE_FINE:
-                            case ESPACE_ULTRAFINE:
-                            case ESPACE_SANS_CHASSE:
-                            case ESPACE_INSECABLE_ETROITE:
-                            case ESPACE_MOYENNE_MATHEMATIQUE:
-                            case ESPACE_IDEOGRAPHIQUE:
-                            case ESPACE_INSECABLE_SANS_CHASSE:
-                            {
-                                if (m_taille_mot_courant != 0) {
-                                    this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
-                                }
-
-                                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                                    this->enregistre_pos_mot();
-                                    this->ajoute_caractère(nombre_octet);
-                                    this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
-                                }
-
-                                this->avance_sans_nouvelle_ligne(nombre_octet);
-
-                                break;
-                            }
-                            case GUILLEMET_OUVRANT:
-                            {
-                                if (m_taille_mot_courant != 0) {
-                                    this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
-                                }
-
-                                /* Saute le premier guillemet si nécessaire. */
-                                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                                    this->enregistre_pos_mot();
-                                    this->ajoute_caractère(nombre_octet);
-                                    this->avance_sans_nouvelle_ligne(nombre_octet);
-                                }
-                                else {
-                                    this->avance_sans_nouvelle_ligne(nombre_octet);
-                                    this->enregistre_pos_mot();
-                                }
-
-                                auto profondeur = 0;
-
-                                while (!this->fini()) {
-                                    nombre_octet = lng::nombre_octets(m_debut);
-                                    c = lng::converti_utf32(m_debut, nombre_octet);
-
-                                    if (c == GUILLEMET_OUVRANT) {
-                                        ++profondeur;
-                                    }
-
-                                    if (c == GUILLEMET_FERMANT) {
-                                        if (profondeur == 0) {
-                                            break;
-                                        }
-
-                                        --profondeur;
-                                    }
-
-                                    this->avance_sans_nouvelle_ligne(nombre_octet);
-                                    this->ajoute_caractère(nombre_octet);
-
-                                    if (c == '\n') {
-                                        m_compte_ligne += 1;
-                                        m_position_ligne = 0;
-                                    }
-                                }
-
-                                /* Saute le dernier guillemet si nécessaire. */
-                                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                                    this->ajoute_caractère(nombre_octet);
-                                }
-
-                                this->avance_sans_nouvelle_ligne(nombre_octet);
-
-                                this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
-                                break;
-                            }
-                            default:
-                            {
-                                m_taille_mot_courant += nombre_octet;
-                                this->avance_sans_nouvelle_ligne(nombre_octet);
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    default:
-                    {
-                        /* Le caractère (octet) courant est invalide dans le codec unicode. */
-                        rapporte_erreur("Le codec Unicode ne peut comprendre le caractère !",
-                                        m_position_ligne,
-                                        m_position_ligne,
-                                        m_position_ligne + 1);
-                    }
-                }
-
-                break;
-            }
-            case '0':
-            {
-                if (m_taille_mot_courant == 0) {
-                    if (!peut_suivre_zero(m_debut[1])) {
-                        auto v = static_cast<unsigned>(this->caractère_courant() - '0');
-
-                        this->enregistre_pos_mot();
-                        this->ajoute_caractère();
-                        this->avance_fixe<1>();
-                        this->ajoute_lexeme_entier(v);
-                        break;
-                    }
-
-                    this->lexe_nombre();
-                }
-                else {
-                    this->ajoute_caractère();
-                    this->avance_fixe<1>();
-                }
-
-                break;
-            }
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            {
-                if (m_taille_mot_courant == 0) {
-                    if (!peut_suivre_chiffre(m_debut[1])) {
-                        auto v = static_cast<unsigned>(this->caractère_courant() - '0');
-
-                        this->enregistre_pos_mot();
-                        this->ajoute_caractère();
-                        this->avance_fixe<1>();
-                        this->ajoute_lexeme_entier(v);
-                        break;
-                    }
-
-                    this->lexe_nombre();
-                }
-                else {
-                    this->ajoute_caractère();
-                    this->avance_fixe<1>();
-                }
-
-                break;
-            }
-            case '\t':
-            case '\r':
-            case '\v':
-            case '\f':
-            case '\n':
-            case ' ':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->enregistre_pos_mot();
-                    this->ajoute_caractère();
-                    this->ajoute_mot(GenreLexeme::CARACTERE_BLANC);
-                }
-
-                if (this->caractère_courant() == '\n') {
-                    if (doit_ajouter_point_virgule(m_dernier_id)) {
-                        this->enregistre_pos_mot();
-                        this->ajoute_caractère();
-                        this->ajoute_mot(GenreLexeme::POINT_VIRGULE);
-                    }
-
-                    ++m_debut;
-                    ++m_compte_ligne;
-                    m_position_ligne = 0;
-
-                    // idée de micro-optimisation provenant de D, saute 4 espaces à la fois
-                    // https://github.com/dlang/dmd/pull/11095
-                    // 0x20 == ' '
-                    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) == 0) {
-                        while (m_debut <= m_fin - 4 &&
-                               *reinterpret_cast<uint32_t const *>(m_debut) == 0x20202020) {
-                            m_debut += 4;
-                            m_position_ligne += 4;
-                        }
-                    }
-
-                    break;
-                }
-
-                this->avance_fixe<1>();
-                break;
-            }
-            case '"':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                /* Saute le premier guillemet si nécessaire. */
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->enregistre_pos_mot();
-                    this->ajoute_caractère();
-                    this->avance_fixe<1>();
-                }
-                else {
-                    this->avance_fixe<1>();
-                    this->enregistre_pos_mot();
-                }
-
-                while (!this->fini()) {
-                    if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
-                        break;
-                    }
-
-                    this->avance();
-                    this->ajoute_caractère();
-                }
-
-                /* Saute le dernier guillemet si nécessaire. */
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->ajoute_caractère();
-                }
-
-                this->avance_fixe<1>();
-
-                this->ajoute_mot(GenreLexeme::CHAINE_LITTERALE);
-                break;
-            }
-            case '\'':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                /* Saute la première apostrophe si nécessaire. */
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->enregistre_pos_mot();
-                    this->ajoute_caractère();
-                    this->avance_fixe<1>();
-                }
-                else {
-                    this->avance_fixe<1>();
-                    this->enregistre_pos_mot();
-                }
-
-                auto valeur = this->lexe_caractère_litteral(nullptr);
-
-                if (this->caractère_courant() != '\'') {
-                    rapporte_erreur("attendu une apostrophe",
-                                    m_position_ligne,
-                                    m_position_ligne,
-                                    m_position_ligne + 1);
-                }
-
-                /* Saute la dernière apostrophe si nécessaire. */
-                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
-                    this->ajoute_caractère();
-                }
-
-                this->avance_fixe<1>();
-                this->ajoute_mot(GenreLexeme::CARACTERE, valeur);
-                break;
-            }
-                CAS_CARACTERE('~', GenreLexeme::TILDE)
-                CAS_CARACTERE('[', GenreLexeme::CROCHET_OUVRANT)
-                CAS_CARACTERE(']', GenreLexeme::CROCHET_FERMANT)
-                CAS_CARACTERE('{', GenreLexeme::ACCOLADE_OUVRANTE)
-                CAS_CARACTERE('}', GenreLexeme::ACCOLADE_FERMANTE)
-                CAS_CARACTERE('@', GenreLexeme::AROBASE)
-                CAS_CARACTERE(',', GenreLexeme::VIRGULE)
-                CAS_CARACTERE(';', GenreLexeme::POINT_VIRGULE)
-                CAS_CARACTERE('#', GenreLexeme::DIRECTIVE)
-                CAS_CARACTERE('$', GenreLexeme::DOLLAR)
-                CAS_CARACTERE('(', GenreLexeme::PARENTHESE_OUVRANTE)
-                CAS_CARACTERE(')', GenreLexeme::PARENTHESE_FERMANTE)
-                CAS_CARACTERE_EGAL('+', GenreLexeme::PLUS, GenreLexeme::PLUS_EGAL)
-                CAS_CARACTERE_EGAL('!', GenreLexeme::EXCLAMATION, GenreLexeme::DIFFERENCE)
-                CAS_CARACTERE_EGAL('=', GenreLexeme::EGAL, GenreLexeme::EGALITE)
-                CAS_CARACTERE_EGAL('%', GenreLexeme::POURCENT, GenreLexeme::MODULO_EGAL)
-                CAS_CARACTERE_EGAL('^', GenreLexeme::CHAPEAU, GenreLexeme::OUX_EGAL)
-            case '*':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                if (this->caractère_voisin(1) == '/') {
-                    rapporte_erreur("fin de commentaire bloc en dehors d'un commentaire",
-                                    m_position_ligne,
-                                    m_position_ligne,
-                                    m_position_ligne + 1);
-                }
-
-                APPARIE_SUIVANT('=', GenreLexeme::MULTIPLIE_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::FOIS)
-                break;
-            }
-            case '/':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                if (this->caractère_voisin(1) == '*') {
-                    lexe_commentaire_bloc();
-                    break;
-                }
-
-                if (this->caractère_voisin(1) == '/') {
-                    lexe_commentaire();
-                    break;
-                }
-
-                APPARIE_SUIVANT('=', GenreLexeme::DIVISE_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::DIVISE)
-                break;
-            }
-            case '-':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                // '-' ou -= ou ---
-                APPARIE_2_SUIVANTS('-', '-', GenreLexeme::NON_INITIALISATION)
-                APPARIE_SUIVANT('=', GenreLexeme::MOINS_EGAL)
-                APPARIE_SUIVANT('>', GenreLexeme::RETOUR_TYPE)
-                AJOUTE_CARACTERE(GenreLexeme::MOINS)
-                break;
-            }
-            case '.':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                // . ou ...
-                APPARIE_2_SUIVANTS('.', '.', GenreLexeme::TROIS_POINTS)
-                AJOUTE_CARACTERE(GenreLexeme::POINT)
-                break;
-            }
-            case '<':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                // <, <=, << ou <<=
-                APPARIE_2_SUIVANTS('<', '=', GenreLexeme::DEC_GAUCHE_EGAL)
-                APPARIE_SUIVANT('<', GenreLexeme::DECALAGE_GAUCHE)
-                APPARIE_SUIVANT('=', GenreLexeme::INFERIEUR_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::INFERIEUR)
-                break;
-            }
-            case '>':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                // >, >=, >> ou >>=
-                APPARIE_2_SUIVANTS('>', '=', GenreLexeme::DEC_DROITE_EGAL)
-                APPARIE_SUIVANT('>', GenreLexeme::DECALAGE_DROITE)
-                APPARIE_SUIVANT('=', GenreLexeme::SUPERIEUR_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::SUPERIEUR)
-                break;
-            }
-            case ':':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                // :, :=, ::
-                APPARIE_SUIVANT(':', GenreLexeme::DECLARATION_CONSTANTE)
-                APPARIE_SUIVANT('=', GenreLexeme::DECLARATION_VARIABLE)
-                AJOUTE_CARACTERE(GenreLexeme::DOUBLE_POINTS)
-                break;
-            }
-            case '&':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                APPARIE_SUIVANT('&', GenreLexeme::ESP_ESP)
-                APPARIE_SUIVANT('=', GenreLexeme::ET_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::ESPERLUETTE)
-                break;
-            }
-            case '|':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-
-                APPARIE_SUIVANT('|', GenreLexeme::BARRE_BARRE)
-                APPARIE_SUIVANT('=', GenreLexeme::OU_EGAL)
-                AJOUTE_CARACTERE(GenreLexeme::BARRE)
-                break;
-            }
-            case '`':
-            {
-                AJOUTE_MOT_SI_NECESSAIRE
-                AJOUTE_CARACTERE(GenreLexeme::ACCENT_GRAVE)
-                break;
-            }
+        if (fini()) {
+            /* Fichier vide ou se terminant par des espaces blanches. */
+            break;
         }
-    }
 
-    if (m_taille_mot_courant != 0) {
-        this->ajoute_mot(lexeme_pour_chaine(this->mot_courant()));
-    }
+        auto lexème = donne_lexème_suivant();
 
-#undef CAS_CARACTERE
-#undef CAS_CARACTERE_EGAL
-#undef APPARIE_SUIVANT
-#undef APPARIE_2_SUIVANTS
+        if ((m_drapeaux & INCLUS_COMMENTAIRES) == 0 && lexème.genre == GenreLexeme::COMMENTAIRE) {
+            continue;
+        }
+
+        ajoute_lexème(lexème);
+    }
 
     // crée les identifiants à la fin pour améliorer la cohérence de cache
     {
@@ -745,6 +405,435 @@ void Lexeuse::performe_lexage()
     m_donnees->fut_lexe = true;
 }
 
+void Lexeuse::consomme_espaces_blanches()
+{
+    while (!this->fini()) {
+        auto c = this->caractère_courant();
+        auto nombre_octet = longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(c)];
+
+        switch (nombre_octet) {
+            case 1:
+            {
+                if (!est_espace_blanche(c)) {
+                    return;
+                }
+                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+                    this->enregistre_pos_mot();
+                    this->ajoute_caractère();
+                    this->ajoute_lexème(GenreLexeme::CARACTERE_BLANC);
+                }
+
+                if (c == '\n') {
+                    if (doit_ajouter_point_virgule(m_dernier_id)) {
+                        this->enregistre_pos_mot();
+                        this->ajoute_caractère();
+                        ajoute_lexème(GenreLexeme::POINT_VIRGULE);
+                    }
+                }
+
+                this->avance_fixe<1>();
+
+                if (c == '\n') {
+                    m_position_ligne = 0;
+                    m_compte_ligne += 1;
+
+                    // idée de micro-optimisation provenant de D, saute 4 espaces à la fois
+                    // https://github.com/dlang/dmd/pull/11095
+                    // 0x20 == ' '
+                    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) == 0) {
+                        while (m_debut <= m_fin - 4 &&
+                               *reinterpret_cast<uint32_t const *>(m_debut) == 0x20202020) {
+                            m_debut += 4;
+                            m_position_ligne += 4;
+                        }
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                auto rune = lng::converti_utf32(m_debut, nombre_octet);
+
+                if (rune == 0) {
+                    rapporte_erreur_caractère_unicode();
+                    return;
+                }
+
+                if (!est_rune_espace_blanche(uint32_t(rune))) {
+                    return;
+                }
+
+                if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+                    this->enregistre_pos_mot();
+                    this->ajoute_caractère(nombre_octet);
+                    this->ajoute_lexème(GenreLexeme::CARACTERE_BLANC);
+                }
+
+                this->avance_sans_nouvelle_ligne(nombre_octet);
+                break;
+            }
+        }
+    }
+}
+
+Lexeme Lexeuse::donne_lexème_suivant()
+{
+#define APPARIE_CARACTERE_SIMPLE(caractere, genre_lexeme)                                         \
+    if (c == caractere) {                                                                         \
+        return crée_lexème_opérateur(1, genre_lexeme);                                            \
+    }
+
+#define APPARIE_CARACTERE_DOUBLE_EGAL(caractere, genre_lexeme, genre_lexeme_avec_egal)            \
+    if (c == caractere) {                                                                         \
+        if (caractère_voisin(1) == '=') {                                                         \
+            return crée_lexème_opérateur(2, genre_lexeme_avec_egal);                              \
+        }                                                                                         \
+        return crée_lexème_opérateur(1, genre_lexeme);                                            \
+    }
+
+#define APPARIE_CARACTERE_SUIVANT(caractere, genre_lexeme)                                        \
+    if (caractère_voisin(1) == caractere) {                                                       \
+        return crée_lexème_opérateur(2, genre_lexeme);                                            \
+    }
+
+#define APPARIE_2_CARACTERES_SUIVANTS(caractere1, caractere2, genre_lexeme)                       \
+    if (caractère_voisin(1) == caractere1 && caractère_voisin(2) == caractere2) {                 \
+        return crée_lexème_opérateur(3, genre_lexeme);                                            \
+    }
+
+    auto c = this->caractère_courant();
+    auto nombre_octet = longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(c)];
+
+    switch (nombre_octet) {
+        case 1:
+        {
+            if (c == '\"') {
+                return lèxe_chaine_littérale();
+            }
+
+            if (c == '\'') {
+                return lèxe_caractère_littérale();
+            }
+
+            if (c == '*') {
+                if (this->caractère_voisin(1) == '/') {
+                    rapporte_erreur("fin de commentaire bloc en dehors d'un commentaire");
+                }
+
+                if (this->caractère_voisin(1) == '=') {
+                    return crée_lexème_opérateur(2, GenreLexeme::MULTIPLIE_EGAL);
+                }
+
+                return crée_lexème_opérateur(1, GenreLexeme::FOIS);
+            }
+
+            if (c == '/') {
+                if (this->caractère_voisin(1) == '*') {
+                    return lèxe_commentaire_bloc();
+                }
+
+                if (this->caractère_voisin(1) == '/') {
+                    return lèxe_commentaire();
+                }
+
+                if (this->caractère_voisin(1) == '=') {
+                    return crée_lexème_opérateur(2, GenreLexeme::DIVISE_EGAL);
+                }
+
+                return crée_lexème_opérateur(1, GenreLexeme::DIVISE);
+            }
+
+            if (c == '-') {
+                // '-' ou -= ou ---
+                APPARIE_2_CARACTERES_SUIVANTS('-', '-', GenreLexeme::NON_INITIALISATION)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::MOINS_EGAL)
+                APPARIE_CARACTERE_SUIVANT('>', GenreLexeme::RETOUR_TYPE)
+                return crée_lexème_opérateur(1, GenreLexeme::MOINS);
+            }
+
+            if (c == '.') {
+                // . ou ...
+                APPARIE_2_CARACTERES_SUIVANTS('.', '.', GenreLexeme::TROIS_POINTS)
+                return crée_lexème_opérateur(1, GenreLexeme::POINT);
+            }
+
+            if (c == '<') {
+                // <, <=, << ou <<=
+                APPARIE_2_CARACTERES_SUIVANTS('<', '=', GenreLexeme::DEC_GAUCHE_EGAL)
+                APPARIE_CARACTERE_SUIVANT('<', GenreLexeme::DECALAGE_GAUCHE)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::INFERIEUR_EGAL)
+                return crée_lexème_opérateur(1, GenreLexeme::INFERIEUR);
+            }
+
+            if (c == '>') {
+                // >, >=, >> ou >>=
+                APPARIE_2_CARACTERES_SUIVANTS('>', '=', GenreLexeme::DEC_DROITE_EGAL)
+                APPARIE_CARACTERE_SUIVANT('>', GenreLexeme::DECALAGE_DROITE)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::SUPERIEUR_EGAL)
+                return crée_lexème_opérateur(1, GenreLexeme::SUPERIEUR);
+            }
+
+            if (c == ':') {
+                // :, :=, ::
+                APPARIE_CARACTERE_SUIVANT(':', GenreLexeme::DECLARATION_CONSTANTE)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::DECLARATION_VARIABLE)
+                return crée_lexème_opérateur(1, GenreLexeme::DOUBLE_POINTS);
+            }
+
+            if (c == '&') {
+                APPARIE_CARACTERE_SUIVANT('&', GenreLexeme::ESP_ESP)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::ET_EGAL)
+                return crée_lexème_opérateur(1, GenreLexeme::ESPERLUETTE);
+            }
+
+            if (c == '|') {
+                APPARIE_CARACTERE_SUIVANT('|', GenreLexeme::BARRE_BARRE)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexeme::OU_EGAL)
+                return crée_lexème_opérateur(1, GenreLexeme::BARRE);
+            }
+
+            APPARIE_CARACTERE_SIMPLE('`', GenreLexeme::ACCENT_GRAVE)
+            APPARIE_CARACTERE_SIMPLE('~', GenreLexeme::TILDE)
+            APPARIE_CARACTERE_SIMPLE('[', GenreLexeme::CROCHET_OUVRANT)
+            APPARIE_CARACTERE_SIMPLE(']', GenreLexeme::CROCHET_FERMANT)
+            APPARIE_CARACTERE_SIMPLE('{', GenreLexeme::ACCOLADE_OUVRANTE)
+            APPARIE_CARACTERE_SIMPLE('}', GenreLexeme::ACCOLADE_FERMANTE)
+            APPARIE_CARACTERE_SIMPLE('@', GenreLexeme::AROBASE)
+            APPARIE_CARACTERE_SIMPLE(',', GenreLexeme::VIRGULE)
+            APPARIE_CARACTERE_SIMPLE(';', GenreLexeme::POINT_VIRGULE)
+            APPARIE_CARACTERE_SIMPLE('#', GenreLexeme::DIRECTIVE)
+            APPARIE_CARACTERE_SIMPLE('$', GenreLexeme::DOLLAR)
+            APPARIE_CARACTERE_SIMPLE('(', GenreLexeme::PARENTHESE_OUVRANTE)
+            APPARIE_CARACTERE_SIMPLE(')', GenreLexeme::PARENTHESE_FERMANTE)
+
+            APPARIE_CARACTERE_DOUBLE_EGAL('+', GenreLexeme::PLUS, GenreLexeme::PLUS_EGAL)
+            APPARIE_CARACTERE_DOUBLE_EGAL('!', GenreLexeme::EXCLAMATION, GenreLexeme::DIFFERENCE)
+            APPARIE_CARACTERE_DOUBLE_EGAL('=', GenreLexeme::EGAL, GenreLexeme::EGALITE)
+            APPARIE_CARACTERE_DOUBLE_EGAL('%', GenreLexeme::POURCENT, GenreLexeme::MODULO_EGAL)
+            APPARIE_CARACTERE_DOUBLE_EGAL('^', GenreLexeme::CHAPEAU, GenreLexeme::OUX_EGAL)
+
+            if (peut_commencer_identifiant(c)) {
+                return lèxe_identifiant();
+            }
+
+            if (peut_commencer_nombre(c)) {
+                return lèxe_littérale_nombre();
+            }
+
+            rapporte_erreur("Caractère inconnu");
+            break;
+        }
+        default:
+        {
+            auto rune = lng::converti_utf32(m_debut, nombre_octet);
+
+            if (rune == 0) {
+                rapporte_erreur_caractère_unicode();
+                break;
+            }
+
+            if (est_rune_guillemet(uint32_t(rune))) {
+                if (rune == GUILLEMET_FERMANT) {
+                    rapporte_erreur("Guillemet fermant sans guillement ouvrant");
+                }
+
+                return lèxe_chaine_littérale_guillemet();
+            }
+
+            return lèxe_identifiant();
+        }
+    }
+
+#undef APPARIE_CARACTERE_SIMPLE
+#undef APPARIE_CARACTERE_DOUBLE_EGAL
+#undef APPARIE_CARACTERE_SUIVANT
+#undef APPARIE_2_CARACTERES_SUIVANTS
+
+    return {};
+}
+
+Lexeme Lexeuse::lèxe_chaine_littérale()
+{
+    assert(caractère_courant() == '"');
+
+    /* Saute le premier guillemet si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->enregistre_pos_mot();
+        this->ajoute_caractère();
+        this->avance_fixe<1>();
+    }
+    else {
+        this->avance_fixe<1>();
+        this->enregistre_pos_mot();
+    }
+
+    while (!this->fini()) {
+        if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
+            break;
+        }
+
+        this->avance();
+        this->ajoute_caractère();
+    }
+
+    /* Saute le dernier guillemet si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->ajoute_caractère();
+    }
+
+    this->avance_fixe<1>();
+
+    Lexeme résultat = {mot_courant(),
+                       {0ul},
+                       GenreLexeme::CHAINE_LITTERALE,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+
+    return résultat;
+}
+
+Lexeme Lexeuse::lèxe_chaine_littérale_guillemet()
+{
+    auto nombre_octet = lng::nombre_octets(m_debut);
+    /* Saute le premier guillemet si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->enregistre_pos_mot();
+        this->ajoute_caractère(nombre_octet);
+        this->avance_sans_nouvelle_ligne(nombre_octet);
+    }
+    else {
+        this->avance_sans_nouvelle_ligne(nombre_octet);
+        this->enregistre_pos_mot();
+    }
+
+    auto profondeur = 0;
+
+    while (!this->fini()) {
+        nombre_octet = lng::nombre_octets(m_debut);
+        auto c = lng::converti_utf32(m_debut, nombre_octet);
+
+        if (c == GUILLEMET_OUVRANT) {
+            ++profondeur;
+        }
+
+        if (c == GUILLEMET_FERMANT) {
+            if (profondeur == 0) {
+                break;
+            }
+
+            --profondeur;
+        }
+
+        this->avance_sans_nouvelle_ligne(nombre_octet);
+        this->ajoute_caractère(nombre_octet);
+
+        if (c == '\n') {
+            m_compte_ligne += 1;
+            m_position_ligne = 0;
+        }
+    }
+
+    /* Saute le dernier guillemet si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->ajoute_caractère(nombre_octet);
+    }
+
+    this->avance_sans_nouvelle_ligne(nombre_octet);
+
+    Lexeme résultat = {mot_courant(),
+                       {0ul},
+                       GenreLexeme::CHAINE_LITTERALE,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+
+    return résultat;
+}
+
+Lexeme Lexeuse::lèxe_caractère_littérale()
+{
+    assert(caractère_courant() == '\'');
+
+    /* Saute la première apostrophe si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->enregistre_pos_mot();
+        this->ajoute_caractère();
+        this->avance_fixe<1>();
+    }
+    else {
+        this->avance_fixe<1>();
+        this->enregistre_pos_mot();
+    }
+
+    auto valeur = this->lexe_caractère_litteral(nullptr);
+
+    if (this->caractère_courant() != '\'') {
+        rapporte_erreur("attendu une apostrophe");
+    }
+
+    /* Saute la dernière apostrophe si nécessaire. */
+    if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
+        this->ajoute_caractère();
+    }
+
+    this->avance_fixe<1>();
+    Lexeme résultat = {mot_courant(),
+                       {valeur},
+                       GenreLexeme::CARACTERE,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+
+    return résultat;
+}
+
+Lexeme Lexeuse::lèxe_identifiant()
+{
+    this->enregistre_pos_mot();
+
+    while (!fini()) {
+        auto c = this->caractère_courant();
+        auto nombre_octet = longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(c)];
+
+        if (nombre_octet == 1) {
+            if (!peut_suivre_identifiant(c)) {
+                break;
+            }
+
+            ajoute_caractère(1);
+            avance_sans_nouvelle_ligne(1);
+            continue;
+        }
+
+        auto rune = lng::converti_utf32(m_debut, nombre_octet);
+
+        if (rune == 0) {
+            rapporte_erreur_caractère_unicode();
+            break;
+        }
+
+        if (est_rune_espace_blanche(uint32_t(rune)) || est_rune_guillemet(uint32_t(rune))) {
+            break;
+        }
+
+        ajoute_caractère(nombre_octet);
+        avance_sans_nouvelle_ligne(nombre_octet);
+    }
+
+    auto chaine_du_lexème = mot_courant();
+    auto genre_du_lexème = lexeme_pour_chaine(chaine_du_lexème);
+
+    Lexeme résultat = {chaine_du_lexème,
+                       {0ul},
+                       genre_du_lexème,
+                       static_cast<int>(m_donnees->id()),
+                       m_compte_ligne,
+                       m_pos_mot};
+
+    return résultat;
+}
+
 void Lexeuse::avance(int n)
 {
     for (int i = 0; i < n; ++i) {
@@ -765,6 +854,16 @@ dls::vue_chaine_compacte Lexeuse::mot_courant() const
     return dls::vue_chaine_compacte(m_debut_mot, m_taille_mot_courant);
 }
 
+void Lexeuse::rapporte_erreur(kuri::chaine const &quoi)
+{
+    rapporte_erreur(quoi, m_position_ligne, m_position_ligne, m_position_ligne + 1);
+}
+
+void Lexeuse::rapporte_erreur_caractère_unicode()
+{
+    rapporte_erreur("Le codec unicode ne peut décoder le caractère");
+}
+
 void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max)
 {
     m_possede_erreur = true;
@@ -779,44 +878,30 @@ void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int
     m_rappel_erreur(site, quoi);
 }
 
-void Lexeuse::ajoute_mot(GenreLexeme identifiant)
+void Lexeuse::ajoute_lexème(GenreLexeme genre)
 {
-    Lexeme lexeme = {mot_courant(),
-                     {0ul},
-                     identifiant,
-                     static_cast<int>(m_donnees->id()),
-                     m_compte_ligne,
-                     m_pos_mot};
-
-    m_donnees->lexemes.ajoute(lexeme);
-    m_taille_mot_courant = 0;
-    m_dernier_id = identifiant;
+    Lexeme résultat = {
+        mot_courant(), {0ul}, genre, static_cast<int>(m_donnees->id()), m_compte_ligne, m_pos_mot};
+    ajoute_lexème(résultat);
 }
 
-void Lexeuse::ajoute_mot(GenreLexeme identifiant, unsigned valeur)
+void Lexeuse::ajoute_lexème(Lexeme lexème)
 {
-    m_donnees->lexemes.ajoute({mot_courant(),
-                               {valeur},
-                               identifiant,
-                               static_cast<int>(m_donnees->id()),
-                               m_compte_ligne,
-                               m_pos_mot});
+    m_donnees->lexemes.ajoute(lexème);
     m_taille_mot_courant = 0;
-    m_dernier_id = identifiant;
+    m_dernier_id = lexème.genre;
 }
 
-void Lexeuse::lexe_commentaire()
+Lexeme Lexeuse::lèxe_commentaire()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-        lexe_commentaire_impl<true>();
+        return lexe_commentaire_impl<true>();
     }
-    else {
-        lexe_commentaire_impl<false>();
-    }
+    return lexe_commentaire_impl<false>();
 }
 
 template <bool INCLUS_COMMENTAIRE>
-void Lexeuse::lexe_commentaire_impl()
+Lexeme Lexeuse::lexe_commentaire_impl()
 {
     if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
@@ -829,23 +914,29 @@ void Lexeuse::lexe_commentaire_impl()
         }
     }
 
+    Lexeme résultat;
+    résultat.genre = GenreLexeme::COMMENTAIRE;
     if (INCLUS_COMMENTAIRE) {
-        this->ajoute_mot(GenreLexeme::COMMENTAIRE);
+        résultat = {mot_courant(),
+                    {0ul},
+                    GenreLexeme::COMMENTAIRE,
+                    static_cast<int>(m_donnees->id()),
+                    m_compte_ligne,
+                    m_pos_mot};
     }
+    return résultat;
 }
 
-void Lexeuse::lexe_commentaire_bloc()
+Lexeme Lexeuse::lèxe_commentaire_bloc()
 {
     if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-        lexe_commentaire_bloc_impl<true>();
+        return lexe_commentaire_bloc_impl<true>();
     }
-    else {
-        lexe_commentaire_bloc_impl<false>();
-    }
+    return lexe_commentaire_bloc_impl<false>();
 }
 
 template <bool INCLUS_COMMENTAIRE>
-void Lexeuse::lexe_commentaire_bloc_impl()
+Lexeme Lexeuse::lexe_commentaire_bloc_impl()
 {
     if (INCLUS_COMMENTAIRE) {
         this->enregistre_pos_mot();
@@ -890,12 +981,20 @@ void Lexeuse::lexe_commentaire_bloc_impl()
         }
     }
 
+    Lexeme résultat;
+    résultat.genre = GenreLexeme::COMMENTAIRE;
     if (INCLUS_COMMENTAIRE) {
-        this->ajoute_mot(GenreLexeme::COMMENTAIRE);
+        résultat = {mot_courant(),
+                    {0ul},
+                    GenreLexeme::COMMENTAIRE,
+                    static_cast<int>(m_donnees->id()),
+                    m_compte_ligne,
+                    m_pos_mot};
     }
+    return résultat;
 }
 
-void Lexeuse::lexe_nombre()
+Lexeme Lexeuse::lèxe_littérale_nombre()
 {
     this->enregistre_pos_mot();
 
@@ -903,30 +1002,26 @@ void Lexeuse::lexe_nombre()
         auto c = this->caractère_voisin();
 
         if (c == 'b' || c == 'B') {
-            lexe_nombre_binaire();
-            return;
+            return lexe_nombre_binaire();
         }
 
         if (c == 'o' || c == 'O') {
-            lexe_nombre_octal();
-            return;
+            return lexe_nombre_octal();
         }
 
         if (c == 'x' || c == 'X') {
-            lexe_nombre_hexadecimal();
-            return;
+            return lexe_nombre_hexadecimal();
         }
 
         if (c == 'r' || c == 'R') {
-            lexe_nombre_reel_hexadecimal();
-            return;
+            return lexe_nombre_reel_hexadecimal();
         }
     }
 
-    this->lexe_nombre_decimal();
+    return lexe_nombre_decimal();
 }
 
-void Lexeuse::lexe_nombre_decimal()
+Lexeme Lexeuse::lexe_nombre_decimal()
 {
     uint64_t resultat_entier = 0;
     unsigned nombre_de_chiffres = 0;
@@ -986,8 +1081,7 @@ void Lexeuse::lexe_nombre_decimal()
                 "constante entière trop grande", debut_nombre, debut_nombre, taille_texte);
         }
 
-        this->ajoute_lexeme_entier(resultat_entier);
-        return;
+        return crée_lexème_littérale_entier(resultat_entier);
     }
 
     auto part_entiere = static_cast<double>(resultat_entier);
@@ -1089,10 +1183,10 @@ void Lexeuse::lexe_nombre_decimal()
         part_entiere *= std::pow(10.0, part_fracionnelle[1]);
     }
 
-    this->ajoute_lexeme_reel(part_entiere);
+    return crée_lexème_littérale_réelle(part_entiere);
 }
 
-void Lexeuse::lexe_nombre_hexadecimal()
+Lexeme Lexeuse::lexe_nombre_hexadecimal()
 {
     this->avance_fixe<2>();
     this->ajoute_caractère(2);
@@ -1137,10 +1231,10 @@ void Lexeuse::lexe_nombre_hexadecimal()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->ajoute_lexeme_entier(resultat_entier);
+    return crée_lexème_littérale_entier(resultat_entier);
 }
 
-void Lexeuse::lexe_nombre_reel_hexadecimal()
+Lexeme Lexeuse::lexe_nombre_reel_hexadecimal()
 {
     this->avance_fixe<2>();
     this->ajoute_caractère(2);
@@ -1189,14 +1283,13 @@ void Lexeuse::lexe_nombre_reel_hexadecimal()
 
     if (nombre_de_chiffres == 8) {
         uint32_t v = static_cast<unsigned>(resultat_entier);
-        this->ajoute_lexeme_reel(*reinterpret_cast<float *>(&v));
+        return crée_lexème_littérale_réelle(*reinterpret_cast<float *>(&v));
     }
-    else {
-        this->ajoute_lexeme_reel(*reinterpret_cast<double *>(&resultat_entier));
-    }
+
+    return crée_lexème_littérale_réelle(*reinterpret_cast<double *>(&resultat_entier));
 }
 
-void Lexeuse::lexe_nombre_binaire()
+Lexeme Lexeuse::lexe_nombre_binaire()
 {
     this->avance_fixe<2>();
     this->ajoute_caractère(2);
@@ -1238,10 +1331,10 @@ void Lexeuse::lexe_nombre_binaire()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->ajoute_lexeme_entier(resultat_entier);
+    return crée_lexème_littérale_entier(resultat_entier);
 }
 
-void Lexeuse::lexe_nombre_octal()
+Lexeme Lexeuse::lexe_nombre_octal()
 {
     this->avance_fixe<2>();
     this->ajoute_caractère(2);
@@ -1280,7 +1373,7 @@ void Lexeuse::lexe_nombre_octal()
             "constante entière trop grande", debut_texte, debut_texte - 2, fin_texte - 1);
     }
 
-    this->ajoute_lexeme_entier(resultat_entier);
+    return crée_lexème_littérale_entier(resultat_entier);
 }
 
 static int hex_depuis_char(char c)
@@ -1501,36 +1594,4 @@ unsigned Lexeuse::lexe_caractère_litteral(kuri::chaine *chaine)
     }
 
     return v;
-}
-
-void Lexeuse::ajoute_lexeme_entier(uint64_t valeur)
-{
-    auto lexeme = Lexeme{};
-    lexeme.genre = GenreLexeme::NOMBRE_ENTIER;
-    lexeme.valeur_entiere = valeur;
-    lexeme.fichier = static_cast<int>(m_donnees->id());
-    lexeme.colonne = m_pos_mot;
-    lexeme.ligne = m_compte_ligne;
-    lexeme.chaine = mot_courant();
-
-    m_donnees->lexemes.ajoute(lexeme);
-
-    m_taille_mot_courant = 0;
-    m_dernier_id = GenreLexeme::NOMBRE_ENTIER;
-}
-
-void Lexeuse::ajoute_lexeme_reel(double valeur)
-{
-    auto lexeme = Lexeme{};
-    lexeme.genre = GenreLexeme::NOMBRE_REEL;
-    lexeme.valeur_reelle = valeur;
-    lexeme.fichier = static_cast<int>(m_donnees->id());
-    lexeme.colonne = m_pos_mot;
-    lexeme.ligne = m_compte_ligne;
-    lexeme.chaine = mot_courant();
-
-    m_donnees->lexemes.ajoute(lexeme);
-
-    m_taille_mot_courant = 0;
-    m_dernier_id = GenreLexeme::NOMBRE_REEL;
 }

@@ -1746,15 +1746,15 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
     dls::chrono::compte_seconde chrono_exec;
 
     for (auto i = 0; i < nombre_metaprogrammes; ++i) {
-        auto it = m_metaprogrammes[i];
+        auto métaprogramme = m_metaprogrammes[i];
 
 #ifdef DEBOGUE_INTERPRETEUSE
         std::cerr << "== exécution " << it->fonction->nom_broye(it->unite->espace) << " ==\n";
 #endif
 
-        assert(it->donnees_execution->profondeur_appel >= 1);
+        assert(métaprogramme->donnees_execution->profondeur_appel >= 1);
 
-        installe_metaprogramme(it);
+        installe_metaprogramme(métaprogramme);
 
         int compte_executees = 0;
         auto res = execute_instructions(compte_executees);
@@ -1763,15 +1763,15 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             // RÀF
         }
         else if (res == ResultatInterpretation::ERREUR) {
-            it->resultat = MetaProgramme::RésultatExécution::ERREUR;
-            m_metaprogrammes_termines.ajoute(it);
+            métaprogramme->resultat = MetaProgramme::RésultatExécution::ERREUR;
+            m_metaprogrammes_termines.ajoute(métaprogramme);
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
         }
         else if (res == ResultatInterpretation::TERMINE) {
-            it->resultat = MetaProgramme::RésultatExécution::SUCCÈS;
-            m_metaprogrammes_termines.ajoute(it);
+            métaprogramme->resultat = MetaProgramme::RésultatExécution::SUCCÈS;
+            m_metaprogrammes_termines.ajoute(métaprogramme);
             std::swap(m_metaprogrammes[i], m_metaprogrammes[nombre_metaprogrammes - 1]);
             nombre_metaprogrammes -= 1;
             i -= 1;
@@ -1785,28 +1785,28 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 #endif
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
-            auto données = it->donnees_execution;
+            auto données = métaprogramme->donnees_execution;
 #    ifdef UTILISE_NOTRE_TABLE
             données->table_allocations.pour_chaque_élément(
                 [&](kuri::tableau<FrameAppel> const &frame) {
                     std::cerr << "------------------------------------ Fuite de mémoire !\n";
-                    for (int i = frame.taille() - 1; i >= 0; i--) {
-                        erreur::imprime_site(*it->unite->espace, frame[i].site);
+                    for (int f = int(frame.taille()) - 1; f >= 0; f--) {
+                        erreur::imprime_site(*it->unite->espace, frame[f].site);
                     }
                 });
 #    else
-            auto espace = it->unite->espace;
+            auto espace = métaprogramme->unite->espace;
             POUR (données->table_allocations) {
                 std::cerr << "------------------------------------ Fuite de mémoire !\n";
-                for (int i = it.second.taille() - 1; i >= 0; i--) {
-                    erreur::imprime_site(*espace, it.second[i].site);
+                for (int f = int(it.second.taille()) - 1; f >= 0; f--) {
+                    erreur::imprime_site(*espace, it.second[f].site);
                 }
             }
 #    endif
 #endif
         }
 
-        desinstalle_metaprogramme(it, compte_executees);
+        desinstalle_metaprogramme(métaprogramme, compte_executees);
 
         if (stop || compilatrice.possede_erreur()) {
             break;

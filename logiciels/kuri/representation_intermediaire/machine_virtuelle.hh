@@ -9,6 +9,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/intervalle.hh"
+#include "structures/table_hachage.hh"
 
 struct AtomeFonction;
 struct Compilatrice;
