@@ -232,3 +232,11 @@ struct MachineVirtuelle {
 
     kuri::tableau<FrameAppel> donne_tableau_frame_appel() const;
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Fuites de mémoire.
+ * \{ */
+
+void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
+
+/** \} */

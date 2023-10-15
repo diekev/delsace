@@ -1784,24 +1784,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 #endif
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
-            auto données = métaprogramme->donnees_execution;
-#    ifdef UTILISE_NOTRE_TABLE
-            données->table_allocations.pour_chaque_élément(
-                [&](kuri::tableau<FrameAppel> const &frame) {
-                    std::cerr << "------------------------------------ Fuite de mémoire !\n";
-                    for (int f = int(frame.taille()) - 1; f >= 0; f--) {
-                        erreur::imprime_site(*it->unite->espace, frame[f].site);
-                    }
-                });
-#    else
-            auto espace = métaprogramme->unite->espace;
-            POUR (données->table_allocations) {
-                std::cerr << "------------------------------------ Fuite de mémoire !\n";
-                for (int f = int(it.second.taille()) - 1; f >= 0; f--) {
-                    erreur::imprime_site(*espace, it.second[f].site);
-                }
-            }
-#    endif
+            imprime_fuites_de_mémoire(métaprogramme);
 #endif
         }
 
@@ -2005,3 +1988,39 @@ void Profileuse::cree_rapport(const InformationProfilage &informations,
         }
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Fuite de mémoires.
+ * \{ */
+
+static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
+                                                         kuri::tableau<FrameAppel> const &frames)
+{
+    auto espace = métaprogramme->unite->espace;
+    Enchaineuse enchaineuse;
+
+    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme.\n\n";
+
+    for (int f = int(frames.taille()) - 1; f >= 0; f--) {
+        erreur::imprime_site(enchaineuse, *espace, frames[f].site);
+    }
+
+    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
+}
+
+void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
+{
+    auto données = métaprogramme->donnees_execution;
+
+#ifdef UTILISE_NOTRE_TABLE
+    données->table_allocations.pour_chaque_élément([&](kuri::tableau<FrameAppel> const &frame) {
+        rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, frame);
+    });
+#else
+    POUR (données->table_allocations) {
+        rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, it.second);
+    }
+#endif
+}
+
+/** \} */
