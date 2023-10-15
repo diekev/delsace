@@ -690,7 +690,13 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         empile(site, arguments);
         return;
     }
+}
 
+void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
+                                              int taille_argument,
+                                              InstructionAppel *inst_appel,
+                                              NoeudExpression *site)
+{
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
         auto taille = depile<size_t>(site);
         auto résultat = notre_malloc(taille);
@@ -761,13 +767,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         notre_free(ptr);
         return;
     }
-}
-
-void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
-                                              int taille_argument,
-                                              InstructionAppel *inst_appel,
-                                              NoeudExpression *site)
-{
 
     auto type_fonction = ptr_fonction->decl->type->comme_type_fonction();
     auto &donnees_externe = ptr_fonction->données_exécution->donnees_externe;
