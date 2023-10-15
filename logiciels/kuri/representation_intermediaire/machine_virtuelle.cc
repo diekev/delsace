@@ -29,6 +29,81 @@
 #undef DEBOGUE_LOCALES
 #undef DETECTE_FUITES_DE_MEMOIRE
 
+/* ------------------------------------------------------------------------- */
+/** \name Fuites de mémoire.
+ * \{ */
+
+static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
+                                                         size_t taille_bloc,
+                                                         kuri::tableau<FrameAppel> const &frames)
+{
+    auto espace = métaprogramme->unite->espace;
+    Enchaineuse enchaineuse;
+
+    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme : " << taille_bloc
+                << " octets non libérés.\n\n";
+
+    for (int f = int(frames.taille()) - 1; f >= 0; f--) {
+        erreur::imprime_site(enchaineuse, *espace, frames[f].site);
+    }
+
+    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
+}
+
+void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
+                                           size_t taille,
+                                           const kuri::tableau<FrameAppel> &frame)
+{
+    auto info_bloc = InformationsBloc{taille, frame};
+
+#ifdef UTILISE_NOTRE_TABLE
+    table_allocations.insere(ptr, info_bloc);
+#else
+    table_allocations.insert({ptr, info_bloc});
+#endif
+}
+
+void DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
+{
+    /* Permet de passer des pointeurs nuls (puisque free et delete le permettent). */
+    if (!ptr) {
+        return;
+    }
+
+#ifdef UTILISE_NOTRE_TABLE
+    if (table_allocations.possede(ptr)) {
+        table_allocations.efface(ptr);
+        return;
+    }
+#else
+    if (table_allocations.find(ptr) != table_allocations.end()) {
+        table_allocations.erase(ptr);
+        return;
+    }
+#endif
+
+    // À FAIRE : erreur
+}
+
+void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
+{
+    auto données = métaprogramme->donnees_execution;
+
+#ifdef UTILISE_NOTRE_TABLE
+    données->détectrice_fuite_de_mémoire.table_allocations.pour_chaque_élément(
+        [&](DétectriceFuiteDeMémoire::InformationsBloc const &info) {
+            rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, info.taille, info.frame);
+        });
+#else
+    POUR (données->détectrice_fuite_de_mémoire.table_allocations) {
+        rapporte_avertissement_pour_fuite_de_mémoire(
+            métaprogramme, it.second.taille, it.second.frame);
+    }
+#endif
+}
+
+/** \} */
+
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->données_exécution->donnees_externe.ptr_fonction ==                              \
         reinterpret_cast<Symbole::type_fonction>(fonction)
@@ -704,11 +779,8 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
-#    ifdef UTILISE_NOTRE_TABLE
-        données->table_allocations.insere(résultat, donne_tableau_frame_appel());
-#    else
-        données->table_allocations.insert({résultat, donne_tableau_frame_appel()});
-#    endif
+        données->détectrice_fuite_de_mémoire.ajoute_bloc(
+            résultat, taille, donne_tableau_frame_appel());
 #endif
         return;
     }
@@ -719,24 +791,15 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
-        if (ptr) {
-#    ifdef UTILISE_NOTRE_TABLE
-            données->table_allocations.efface(ptr);
-#    else
-            données->table_allocations.erase(ptr);
-#    endif
-        }
+        données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
 #endif
 
         auto résultat = notre_realloc(ptr, taille);
         empile(site, résultat);
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
-#    ifdef UTILISE_NOTRE_TABLE
-        données->table_allocations.insere(résultat, donne_tableau_frame_appel());
-#    else
-        données->table_allocations.insert({résultat, donne_tableau_frame_appel()});
-#    endif
+        données->détectrice_fuite_de_mémoire.ajoute_bloc(
+            résultat, taille, donne_tableau_frame_appel());
 #endif
         return;
     }
@@ -745,25 +808,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ptr = depile<void *>(site);
 
 #ifdef DETECTE_FUITES_DE_MEMOIRE
-        if (ptr) {
-            auto données = m_metaprogramme->donnees_execution;
-#    ifdef UTILISE_NOTRE_TABLE
-            if (!données->table_allocations.possede(ptr)) {
-                // erreur
-            }
-            else {
-                données->table_allocations.efface(ptr);
-            }
-#    else
-            if (données->table_allocations.find(ptr) == données->table_allocations.end()) {
-                // erreur
-            }
-            else {
-                données->table_allocations.erase(ptr);
-            }
-#    endif
-        }
+        auto données = m_metaprogramme->donnees_execution;
+        données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
 #endif
+
         notre_free(ptr);
         return;
     }
@@ -1988,39 +2036,3 @@ void Profileuse::cree_rapport(const InformationProfilage &informations,
         }
     }
 }
-
-/* ------------------------------------------------------------------------- */
-/** \name Fuite de mémoires.
- * \{ */
-
-static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
-                                                         kuri::tableau<FrameAppel> const &frames)
-{
-    auto espace = métaprogramme->unite->espace;
-    Enchaineuse enchaineuse;
-
-    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme.\n\n";
-
-    for (int f = int(frames.taille()) - 1; f >= 0; f--) {
-        erreur::imprime_site(enchaineuse, *espace, frames[f].site);
-    }
-
-    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
-}
-
-void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
-{
-    auto données = métaprogramme->donnees_execution;
-
-#ifdef UTILISE_NOTRE_TABLE
-    données->table_allocations.pour_chaque_élément([&](kuri::tableau<FrameAppel> const &frame) {
-        rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, frame);
-    });
-#else
-    POUR (données->table_allocations) {
-        rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, it.second);
-    }
-#endif
-}
-
-/** \} */
