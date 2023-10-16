@@ -14,18 +14,73 @@ NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode c
     return bloc->declaration_pour_ident(ident);
 }
 
+static bool la_fonction_courante_a_changé(NoeudDeclarationEnteteFonction const *fonction_courante,
+                                          NoeudDeclarationEnteteFonction const *nouvelle_fonction)
+{
+    if (fonction_courante == nouvelle_fonction) {
+        return false;
+    }
+
+    /* Détecte les cas où nous commençons dans le bloc d'une déclaration de
+     * type fonction. */
+    if (nouvelle_fonction && nouvelle_fonction->est_declaration_type) {
+        return false;
+    }
+
+    /* Les blocs des opérateurs pour sont copié mais ils référencent l'entête
+     * originale (pour les déclarations des paramètres). Nous ne devons pas
+     * considérer ceci comme un changement de fonction.
+     * NOTE : fonction_courante est l'entête originale, nouvelle_fonction est
+     * la copie car c'est elle qui est pointée par bloc->appartiens_à_fonction. */
+    if (fonction_courante && fonction_courante->est_operateur_pour()) {
+        if (nouvelle_fonction &&
+            nouvelle_fonction->comme_operateur_pour()->original == fonction_courante) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *noeud)
+{
+    /* Détecte les paramètres polymorphiques (p.e. $Type: type_de_données), qui ne doivent
+     * pas être ignorés. */
+    if (noeud->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+                               DrapeauxNoeud::EST_CONSTANTE)) {
+        return false;
+    }
+
+    if (noeud->possede_drapeau(DrapeauxNoeud::EST_LOCALE) ||
+        noeud->possede_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+        return true;
+    }
+
+    return false;
+}
+
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    IdentifiantCode const *ident,
-                                   NoeudBloc const *bloc_final)
+                                   NoeudBloc const *bloc_final,
+                                   NoeudDeclarationEnteteFonction *fonction_courante)
 {
     auto bloc_courant = bloc;
+    auto ignore_paramètres_et_locales = false;
 
     while (bloc_courant != bloc_final) {
         auto it = trouve_dans_bloc_seul(bloc_courant, ident);
         if (it) {
-            return it;
+            if (!(ignore_paramètres_et_locales && est_locale_ou_paramètre_non_polymorphique(it))) {
+                return it;
+            }
         }
         bloc_courant = bloc_courant->bloc_parent;
+
+        if (bloc_courant && la_fonction_courante_a_changé(fonction_courante,
+                                                          bloc_courant->appartiens_à_fonction)) {
+            /* Nous avons changé de fonction, ignore les paramètres et les locales. */
+            ignore_paramètres_et_locales = true;
+        }
     }
 
     return nullptr;
@@ -51,9 +106,10 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
-                                             Fichier const *fichier)
+                                             Fichier const *fichier,
+                                             NoeudDeclarationEnteteFonction *fonction_courante)
 {
-    auto decl = trouve_dans_bloc(bloc, ident);
+    auto decl = trouve_dans_bloc(bloc, ident, nullptr, fonction_courante);
 
     if (decl != nullptr) {
         return decl;
@@ -61,7 +117,7 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc const *bloc,
 
     /* cherche dans les modules importés */
     pour_chaque_element(fichier->modules_importes, [&](auto &module) {
-        decl = trouve_dans_bloc(module->bloc, ident);
+        decl = trouve_dans_bloc(module->bloc, ident, nullptr, fonction_courante);
 
         if (decl != nullptr) {
             return kuri::DecisionIteration::Arrete;
