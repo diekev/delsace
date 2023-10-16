@@ -444,6 +444,12 @@ struct NoeudDéclarationOpérateurPour : NoeudDéclarationEnteteFonction {
     @genre DÉCLARATION_OPÉRATEUR_POUR
     @comme opérateur_pour
     @code  NoeudCodeOpérateurPour
+
+    /* Les corps des opérateurs pour sont copiés mais leur entête point vers
+     * l'original alors que les blocs pointent vers la copie. Stocke
+     * l'original afin de pouvoir détecter ce cas lors de la recherche de
+     * symbole qui pourrait échouer sur un changement de fonction. */
+    NoeudDéclarationOpérateurPour *original
 }
 
 struct NoeudExpressionAppel : NoeudExpression {
@@ -632,6 +638,8 @@ struct NoeudBloc : NoeudExpression {
     NoeudExpression *appartiens_a_boucle
     // À FAIRE: utilisation de variant
     NoeudExpression *appartiens_a_differe
+    /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
+    NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     NoeudInstructionDiffère * [] instructions_différées

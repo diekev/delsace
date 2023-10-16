@@ -2241,3 +2241,31 @@ bool possede_annotation(const NoeudDeclarationVariable *decl, kuri::chaine_stati
 
     return false;
 }
+
+#if 0
+static bool les_invariants_de_la_fonction_sont_respectés(
+    NoeudDeclarationEnteteFonction const *fonction)
+{
+    if (!fonction) {
+        return true;
+    }
+
+    if (fonction->bloc_constantes->appartiens_à_fonction != fonction) {
+        return false;
+    }
+    if (fonction->bloc_parametres->appartiens_à_fonction != fonction) {
+        return false;
+    }
+    if (fonction->bloc_parametres->bloc_parent != fonction->bloc_constantes) {
+        return false;
+    }
+    if (fonction->corps->bloc->appartiens_à_fonction != fonction) {
+        return false;
+    }
+    if (fonction->corps->bloc->bloc_parent != fonction->bloc_parametres) {
+        return false;
+    }
+
+    return true;
+}
+#endif
