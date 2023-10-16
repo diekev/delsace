@@ -114,8 +114,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     decl_corps->bloc_parent = directive->bloc_parent;
 
     assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme);
-    decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme);
+    decl_entete->bloc_constantes = assembleuse->empile_bloc(directive->lexeme, decl_entete);
+    decl_entete->bloc_parametres = assembleuse->empile_bloc(directive->lexeme, decl_entete);
 
     decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                        DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
@@ -165,7 +165,7 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = assembleuse->empile_bloc(directive->lexeme);
+    decl_corps->bloc = assembleuse->empile_bloc(directive->lexeme, decl_entete);
 
     static Lexeme lexeme_retourne = {"retourne", {}, GenreLexeme::RETOURNE, 0, 0, 0};
     auto expr_ret = assembleuse->cree_retourne(&lexeme_retourne);
@@ -2513,7 +2513,10 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
 	auto decl = declarations[0];
 #else
-    auto decl = trouve_dans_bloc_ou_module(bloc_recherche, expr->ident, fichier);
+    /* Nous n'utilisons pas bloc->appartiens_à_fonction pour déterminer la fonction courante car
+     * ceci échouerait si la fonction pointée par le bloc est la déclaration d'un type fonction. */
+    auto decl = trouve_dans_bloc_ou_module(
+        bloc_recherche, expr->ident, fichier, fonction_courante());
 
     if (decl == nullptr) {
         if (fonction_courante() &&
@@ -2522,7 +2525,7 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
             fichier = m_compilatrice.fichier(site_monomorphisation->lexeme->fichier);
             decl = trouve_dans_bloc_ou_module(
-                site_monomorphisation->bloc_parent, expr->ident, fichier);
+                site_monomorphisation->bloc_parent, expr->ident, fichier, fonction_courante());
         }
         if (decl == nullptr) {
             return Attente::sur_symbole(expr);
@@ -2665,8 +2668,8 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_corps_texte(NoeudBloc 
     assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
     m_tacheronne.assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction);
+    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2855,6 +2858,37 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                  });
 }
 
+static void échange_corps_entêtes(NoeudDeclarationEnteteFonction *ancienne_fonction,
+                                  NoeudDeclarationEnteteFonction *nouvelle_fonction)
+{
+    auto nouveau_corps = nouvelle_fonction->corps;
+    auto ancien_corps = ancienne_fonction->corps;
+
+    /* Échange les corps. */
+    nouvelle_fonction->corps = ancien_corps;
+    ancien_corps->entete = nouvelle_fonction;
+    ancien_corps->bloc_parent = nouvelle_fonction->bloc_parent;
+    ancien_corps->bloc->bloc_parent = nouvelle_fonction->bloc_parametres;
+
+    ancienne_fonction->corps = nouveau_corps;
+    nouveau_corps->entete = ancienne_fonction;
+    nouveau_corps->bloc_parent = ancienne_fonction->bloc_parent;
+    nouveau_corps->bloc->bloc_parent = ancienne_fonction->bloc_parametres;
+
+    /* Remplace les références à ancienne_fonction dans nouvelle_fonction->corps par
+     * nouvelle_fonction. */
+    visite_noeud(nouvelle_fonction->corps,
+                 PreferenceVisiteNoeud::ORIGINAL,
+                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+                     if (noeud->est_bloc()) {
+                         auto bloc = noeud->comme_bloc();
+                         assert(bloc->appartiens_à_fonction == ancienne_fonction);
+                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
+                     }
+                     return DecisionVisiteNoeud::CONTINUE;
+                 });
+}
+
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
@@ -2877,17 +2911,7 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
         metaprogramme->corps_texte_pour_fonction = entete;
 
         auto fonction = metaprogramme->fonction;
-        auto nouveau_corps = fonction->corps;
-
-        /* échange les corps */
-        entete->corps = nouveau_corps;
-        nouveau_corps->entete = entete;
-
-        fonction->corps = decl;
-        decl->entete = fonction;
-
-        fonction->bloc_parent = entete->bloc_parent;
-        nouveau_corps->bloc_parent = decl->bloc_parent;
+        échange_corps_entêtes(entete, fonction);
 
         if (entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
@@ -5160,6 +5184,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     auto entête_copie_macro = copie_macro->comme_operateur_pour();
     auto corps_copie_macro = entête_copie_macro->corps;
 
+    entête_copie_macro->original = opérateur_pour;
     corps_copie_macro->entete = opérateur_pour;
     corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
 
