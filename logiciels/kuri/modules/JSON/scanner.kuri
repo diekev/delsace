@@ -848,6 +848,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 génère_initialisation_json :: fonc ()
 {
     créatrice_table_fonctions : CréatriceTableFonction
+    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
     créatrice_table_fonctions.annotation_désirée = "ParsageJSON"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_json"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
