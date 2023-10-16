@@ -1632,7 +1632,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         }
 
         if (entete->est_operateur) {
-            return enchaine("opérateur", entete->lexeme->chaine);
+            return enchaine("opérateur ", entete->lexeme->chaine);
         }
 
         if (entete->ident) {
