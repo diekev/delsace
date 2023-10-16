@@ -13,6 +13,7 @@ test_compilation :: fonc ()
     ajoute_fichier_à_la_compilation(espace, "nasa.kuri")
 
     vérificatrice : VérificatriceNasa
+    diffère détruit_données_vérificatrice(*vérificatrice)
     initialise_vérificatrice(*vérificatrice, espace)
 
     boucle {

@@ -29,6 +29,39 @@ static constexpr auto TAILLE_FRAMES_APPEL = 64;
 #undef UTILISE_NOTRE_TABLE
 #undef STATS_OP_CODES
 
+/* ------------------------------------------------------------------------- */
+/** \name Fuites de mémoire.
+ * \{ */
+
+/* Enregistre les allocations et désallocations. Utilisée pour détecter les fuites de mémoire dans
+ * le métaprogrammes. */
+struct DétectriceFuiteDeMémoire {
+    /* Taille et frame d'appel d'un bloc de mémoire alloué. */
+    struct InformationsBloc {
+        size_t taille = 0ul;
+        kuri::tableau<FrameAppel> frame{};
+    };
+
+  private:
+#ifdef UTILISE_NOTRE_TABLE
+    kuri::table_hachage<void *, InformationsBloc> table_allocations{""};
+#else
+    std::unordered_map<void *, InformationsBloc> table_allocations{};
+#endif
+    friend void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
+
+  public:
+    void ajoute_bloc(void *ptr, size_t taille, kuri::tableau<FrameAppel> const &frame);
+
+    /* Supprime les informations du bloc. Retourne vrai si le bloc existe (ou si le pointeur est
+     * nul). */
+    bool supprime_bloc(void *ptr);
+};
+
+void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
+
+/** \} */
+
 struct DonneesExecution {
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
@@ -37,11 +70,7 @@ struct DonneesExecution {
     int profondeur_appel = 0;
     int64_t instructions_executees = 0;
 
-#ifdef UTILISE_NOTRE_TABLE
-    kuri::table_hachage<void *, kuri::tableau<FrameAppel>> table_allocations{""};
-#else
-    std::unordered_map<void *, kuri::tableau<FrameAppel>> table_allocations{};
-#endif
+    DétectriceFuiteDeMémoire détectrice_fuite_de_mémoire{};
 
 #ifdef STATS_OP_CODES
     int compte_instructions[NOMBRE_OP_CODE] = {};

@@ -32,6 +32,7 @@ génère_script :: fonc ()
     }
 
     ensemble: []chaine
+    diffère déloge_tableau_et_ses_éléments(ensemble)
 
     chemins_modules := CheminFichier("../../modules/")
     pour_chaque_chemin(chemins_modules, *ensemble, ajoute_module)

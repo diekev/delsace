@@ -428,7 +428,9 @@ void fonction_principale_manquante(EspaceDeTravail const &espace)
         .ajoute_message("Veuillez vérifier qu'elle soit bien présente dans un module");
 }
 
-void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+void imprime_site(Enchaineuse &enchaineuse,
+                  const EspaceDeTravail &espace,
+                  const NoeudExpression *site)
 {
     if (site == nullptr) {
         return;
@@ -438,26 +440,33 @@ void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {
-        std::cerr << fichier->chemin();
+        enchaineuse << fichier->chemin();
     }
     else {
-        std::cerr << ".chaine_ajoutées";
+        enchaineuse << ".chaine_ajoutées";
     }
-    std::cerr << ':' << lexeme->ligne + 1 << '\n';
+    enchaineuse << ':' << lexeme->ligne + 1 << '\n';
 
-    Enchaineuse enchaineuse;
-
-    auto etendue = calcule_etendue_noeud(site);
-    auto pos = position_lexeme(*lexeme);
+    auto const etendue = calcule_etendue_noeud(site);
+    auto const pos = position_lexeme(*lexeme);
     auto const pos_mot = pos.pos;
-    auto ligne = fichier->tampon()[pos.index_ligne];
+    auto const ligne = fichier->tampon()[pos.index_ligne];
     enchaineuse << ligne;
     lng::erreur::imprime_caractere_vide(enchaineuse, etendue.pos_min, ligne);
     lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.pos_min, pos_mot);
     enchaineuse << '^';
     lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.pos_max);
     enchaineuse << '\n';
+}
 
+void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+{
+    if (site == nullptr) {
+        return;
+    }
+
+    Enchaineuse enchaineuse;
+    imprime_site(enchaineuse, espace, site);
     std::cerr << enchaineuse.chaine();
 }
 
