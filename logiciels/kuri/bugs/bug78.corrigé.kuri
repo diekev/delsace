@@ -11,7 +11,7 @@ TypeChaineRecherchée :: énum {
     NOM_ATTRIBUT
 }
 
-reproduis_bug :: fonc () #débogue
+reproduis_bug :: fonc () #cliche ri
 {
     /* Un bit par index d'entrée où nous devons chercher les canaux.
      * Si le bit N est actif, nous cherchons les canaux dans le noeud
