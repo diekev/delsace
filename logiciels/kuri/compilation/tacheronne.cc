@@ -676,6 +676,7 @@ void Tacheronne::execute_metaprogrammes()
          * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
         it->fut_execute = true;
+        imprime_fuites_de_mémoire(it);
 
         mv.deloge_donnees_execution(it->donnees_execution);
 

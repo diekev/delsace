@@ -1831,10 +1831,6 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
                           << it->donnees_execution->compte_instructions[j] << '\n';
             }
 #endif
-
-#ifdef DETECTE_FUITES_DE_MEMOIRE
-            imprime_fuites_de_mémoire(métaprogramme);
-#endif
         }
 
         desinstalle_metaprogramme(métaprogramme, compte_executees);
