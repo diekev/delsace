@@ -27,7 +27,6 @@
 #undef CHRONOMETRE_INTERPRETATION
 #undef DEBOGUE_VALEURS_ENTREE_SORTIE
 #undef DEBOGUE_LOCALES
-#undef DETECTE_FUITES_DE_MEMOIRE
 
 /* ------------------------------------------------------------------------- */
 /** \name Fuites de mémoire.
@@ -778,11 +777,9 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto résultat = notre_malloc(taille);
         empile(site, résultat);
 
-#ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.ajoute_bloc(
             résultat, taille, donne_tableau_frame_appel());
-#endif
         return;
     }
 
@@ -790,28 +787,22 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto taille = depile<size_t>(site);
         auto ptr = depile<void *>(site);
 
-#ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
-#endif
 
         auto résultat = notre_realloc(ptr, taille);
         empile(site, résultat);
 
-#ifdef DETECTE_FUITES_DE_MEMOIRE
         données->détectrice_fuite_de_mémoire.ajoute_bloc(
             résultat, taille, donne_tableau_frame_appel());
-#endif
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(notre_free)) {
         auto ptr = depile<void *>(site);
 
-#ifdef DETECTE_FUITES_DE_MEMOIRE
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
-#endif
 
         notre_free(ptr);
         return;
