@@ -63,26 +63,27 @@ void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
 #endif
 }
 
-void DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
+bool DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
 {
     /* Permet de passer des pointeurs nuls (puisque free et delete le permettent). */
     if (!ptr) {
-        return;
+        return true;
     }
 
 #ifdef UTILISE_NOTRE_TABLE
     if (table_allocations.possede(ptr)) {
         table_allocations.efface(ptr);
-        return;
+        return true;
     }
 #else
     if (table_allocations.find(ptr) != table_allocations.end()) {
         table_allocations.erase(ptr);
-        return;
+        return true;
     }
 #endif
 
     // À FAIRE : erreur
+    return false;
 }
 
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)

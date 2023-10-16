@@ -53,7 +53,9 @@ struct DétectriceFuiteDeMémoire {
   public:
     void ajoute_bloc(void *ptr, size_t taille, kuri::tableau<FrameAppel> const &frame);
 
-    void supprime_bloc(void *ptr);
+    /* Supprime les informations du bloc. Retourne vrai si le bloc existe (ou si le pointeur est
+     * nul). */
+    bool supprime_bloc(void *ptr);
 };
 
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
