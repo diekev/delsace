@@ -69,6 +69,11 @@ static const char *copie_extra_entete_fonction = R"(
 			})";
 
 static const char *copie_extra_bloc = R"(
+            copie->appartiens_a_differe = copie_noeud(orig->appartiens_a_differe, copie->bloc_parent);
+            copie->appartiens_a_boucle = copie_noeud(orig->appartiens_a_boucle, copie->bloc_parent);
+            if (orig->appartiens_à_fonction) {
+                copie->appartiens_à_fonction = copie_noeud(orig->appartiens_à_fonction, copie->bloc_parent)->comme_entete_fonction();
+            }
             copie->reserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_declaration_type() || it->est_entete_fonction()) {
@@ -473,6 +478,7 @@ struct GeneratriceCodeCPP {
 
             os << "\t\t\tnracine = assem->cree_noeud<GenreNoeud::" << nom_genre
                << ">(racine->lexeme);\n";
+            os << "\t\t\tinsere_copie(racine, nracine);\n";
             os << "\t\t\tnracine->ident = racine->ident;\n";
             os << "\t\t\tnracine->type = racine->type;\n";
             os << "\t\t\tnracine->bloc_parent = bloc_parent;\n";
@@ -498,9 +504,13 @@ struct GeneratriceCodeCPP {
                 os << "\t\t\tcopie->bloc_constantes = "
                       "assem->cree_bloc_seul(orig->bloc_constantes->lexeme, "
                       "bloc_parent);\n";
+                os << "\t\t\tinsere_copie(orig->bloc_constantes, copie->bloc_constantes);\n";
                 os << "\t\t\tcopie->bloc_parametres = "
                       "assem->cree_bloc_seul(orig->bloc_parametres->lexeme, "
                       "copie->bloc_constantes);\n";
+                os << "\t\t\tcopie->bloc_parametres->appartiens_à_fonction = copie;\n";
+                os << "\t\t\tcopie->bloc_constantes->appartiens_à_fonction = copie;\n";
+                os << "\t\t\tinsere_copie(orig->bloc_parametres, copie->bloc_parametres);\n";
                 os << "\t\t\tbloc_parent = copie->bloc_parametres;\n";
             }
             else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
@@ -599,13 +609,6 @@ struct GeneratriceCodeCPP {
             if (nom_genre.nom_cpp() == "DECLARATION_VARIABLE") {
                 os << copie_extra_declaration_variable << "\n";
             }
-            else if (dls::outils::est_element(nom_genre.nom_cpp(),
-                                              "INSTRUCTION_POUR",
-                                              "INSTRUCTION_BOUCLE",
-                                              "INSTRUCTION_REPETE",
-                                              "INSTRUCTION_TANTQUE")) {
-                os << "\t\t\tcopie->bloc->appartiens_a_boucle = copie;\n";
-            }
             else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
                      nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
                 os << copie_extra_entete_fonction << "\n";
@@ -619,7 +622,6 @@ struct GeneratriceCodeCPP {
         }
 
         os << "\t}\n";
-        os << "\tinsere_copie(racine, nracine);\n";
         os << "\treturn nracine;\n";
         os << "}\n";
     }
@@ -1256,9 +1258,10 @@ struct GeneratriceCodeCPP {
         os << "#include \"assembleuse.hh\"\n";
 
         const char *empile_bloc = R"(
-NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
+NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
 {
 	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
+    bloc->appartiens_à_fonction = appartiens_à_fonction;
 	bloc->bloc_parent = bloc_courant();
 	m_blocs.empile(bloc);
 	return bloc;
@@ -1299,7 +1302,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme)
 		: m_allocatrice(allocatrice)
 	{}
 
-	NoeudBloc *empile_bloc(Lexeme const *lexeme);
+    NoeudBloc *empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction);
 
 	NoeudBloc *bloc_courant() const
 	{
