@@ -56,6 +56,11 @@ VérificatriceNasa :: struct {
     violations_directives: []Violation
 }
 
+détruit_données_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa)
+{
+    déloge(vérificatrice.violations_directives)
+}
+
 ajoute_violation :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode, genre: VérificatriceNasa.GenreViolation)
 {
     élément := tableau_ajoute_élément(*vérificatrice.violations_directives)
