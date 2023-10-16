@@ -808,6 +808,11 @@ CréatriceTableFonction :: struct {
     modules_importés : []chaine
 }
 
+détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
+{
+    déloge(créatrice.modules_importés)
+}
+
 DonnéesFonctionPourTableFonction :: struct {
     fonction: *NoeudCodeEntêteFonction
     info_type: *InfoType
