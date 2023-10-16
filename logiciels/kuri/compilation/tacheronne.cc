@@ -641,7 +641,12 @@ void Tacheronne::execute_metaprogrammes()
                 // Les directives pour des expressions dans des fonctions n'ont pas d'unités
                 if (!it->directive->unite) {
                     auto resultat = noeud_syntaxique_depuis_resultat(
-                        espace, it->directive, it->directive->lexeme, type, pointeur);
+                        espace,
+                        it->directive,
+                        it->directive->lexeme,
+                        type,
+                        pointeur,
+                        it->donnees_execution->détectrice_fuite_de_mémoire);
                     resultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
                     it->directive->substitution = resultat;
                 }
@@ -673,6 +678,9 @@ void Tacheronne::execute_metaprogrammes()
 
                 /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler
                  * free. */
+                it->donnees_execution->détectrice_fuite_de_mémoire.supprime_bloc(
+                    const_cast<char *>(resultat.pointeur()));
+
                 free(const_cast<char *>(resultat.pointeur()));
             }
         }
@@ -681,6 +689,7 @@ void Tacheronne::execute_metaprogrammes()
          * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
         it->fut_execute = true;
+        imprime_fuites_de_mémoire(it);
 
         mv.deloge_donnees_execution(it->donnees_execution);
 
@@ -688,11 +697,13 @@ void Tacheronne::execute_metaprogrammes()
     }
 }
 
-NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *espace,
-                                                              NoeudDirectiveExecute *directive,
-                                                              Lexeme const *lexeme,
-                                                              Type *type,
-                                                              octet_t *pointeur)
+NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
+    EspaceDeTravail *espace,
+    NoeudDirectiveExecute *directive,
+    Lexeme const *lexeme,
+    Type *type,
+    octet_t *pointeur,
+    DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire)
 {
     switch (type->genre) {
         case GenreType::EINI:
@@ -719,8 +730,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
 
             POUR (tuple->membres) {
                 auto pointeur_membre = pointeur + it.decalage;
-                virgule->expressions.ajoute(noeud_syntaxique_depuis_resultat(
-                    espace, directive, lexeme, it.type, pointeur_membre));
+                virgule->expressions.ajoute(
+                    noeud_syntaxique_depuis_resultat(espace,
+                                                     directive,
+                                                     lexeme,
+                                                     it.type,
+                                                     pointeur_membre,
+                                                     détectrice_fuites_de_mémoire));
             }
 
             return virgule;
@@ -801,8 +817,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                 }
 
                 auto pointeur_membre = pointeur + it.decalage;
-                auto noeud_membre = noeud_syntaxique_depuis_resultat(
-                    espace, directive, lexeme, it.type, pointeur_membre);
+                auto noeud_membre = noeud_syntaxique_depuis_resultat(espace,
+                                                                     directive,
+                                                                     lexeme,
+                                                                     it.type,
+                                                                     pointeur_membre,
+                                                                     détectrice_fuites_de_mémoire);
                 construction_structure->parametres_resolus.ajoute(noeud_membre);
             }
 
@@ -814,8 +834,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             auto construction_union = assembleuse->cree_construction_structure(lexeme, type_union);
 
             if (type_union->est_nonsure) {
-                auto expr = noeud_syntaxique_depuis_resultat(
-                    espace, directive, lexeme, type_union->type_le_plus_grand, pointeur);
+                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                                                             directive,
+                                                             lexeme,
+                                                             type_union->type_le_plus_grand,
+                                                             pointeur,
+                                                             détectrice_fuites_de_mémoire);
                 construction_union->parametres_resolus.ajoute(expr);
             }
             else {
@@ -830,8 +854,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                     construction_union->parametres_resolus.ajoute(nullptr);
                 }
 
-                auto expr = noeud_syntaxique_depuis_resultat(
-                    espace, directive, lexeme, type_donnees, pointeur_donnees);
+                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                                                             directive,
+                                                             lexeme,
+                                                             type_donnees,
+                                                             pointeur_donnees,
+                                                             détectrice_fuites_de_mémoire);
                 construction_union->parametres_resolus.ajoute(expr);
             }
 
@@ -845,9 +873,18 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             kuri::chaine_statique chaine = {*reinterpret_cast<char **>(valeur_pointeur),
                                             valeur_chaine};
 
+            /* Supprime le bloc s'il fut alloué. */
+            auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
+                const_cast<char *>(chaine.pointeur()));
+
             auto lit_chaine = assembleuse->cree_litterale_chaine(lexeme);
             lit_chaine->valeur = compilatrice.gerante_chaine->ajoute_chaine(chaine);
             lit_chaine->type = type;
+
+            if (la_mémoire_fut_allouée) {
+                free(const_cast<char *>(chaine.pointeur()));
+            }
+
             return lit_chaine;
         }
         case GenreType::TYPE_DE_DONNEES:
@@ -871,8 +908,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
         case GenreType::OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            auto expr = noeud_syntaxique_depuis_resultat(
-                espace, directive, lexeme, type_opaque->type_opacifie, pointeur);
+            auto expr = noeud_syntaxique_depuis_resultat(espace,
+                                                         directive,
+                                                         lexeme,
+                                                         type_opaque->type_opacifie,
+                                                         pointeur,
+                                                         détectrice_fuites_de_mémoire);
 
             /* comme dans la simplification de l'arbre, ceci doit être un transtypage vers le type
              * opaque */
@@ -893,8 +934,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             for (auto i = 0; i < type_tableau->taille; ++i) {
                 auto pointeur_valeur = pointeur + type_tableau->type_pointe->taille_octet *
                                                       static_cast<unsigned>(i);
-                auto expr = noeud_syntaxique_depuis_resultat(
-                    espace, directive, lexeme, type_tableau->type_pointe, pointeur_valeur);
+                auto expr = noeud_syntaxique_depuis_resultat(espace,
+                                                             directive,
+                                                             lexeme,
+                                                             type_tableau->type_pointe,
+                                                             pointeur_valeur,
+                                                             détectrice_fuites_de_mémoire);
                 virgule->expressions.ajoute(expr);
             }
 
@@ -914,11 +959,19 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
                 espace->rapporte_erreur(directive, "Retour d'un tableau dynamique de taille 0 !");
             }
 
+            /* Supprime le bloc s'il fut alloué. */
+            auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
+                pointeur_donnees);
+
             /* crée un tableau fixe */
             auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
                 type_tableau->type_pointe, static_cast<int>(taille_donnees));
-            auto construction = noeud_syntaxique_depuis_resultat(
-                espace, directive, lexeme, type_tableau_fixe, pointeur_donnees);
+            auto construction = noeud_syntaxique_depuis_resultat(espace,
+                                                                 directive,
+                                                                 lexeme,
+                                                                 type_tableau_fixe,
+                                                                 pointeur_donnees,
+                                                                 détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->cree_comme(lexeme);
@@ -926,6 +979,10 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(EspaceDeTravail *e
             comme->expression = construction;
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU, type_tableau};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+
+            if (la_mémoire_fut_allouée) {
+                free(pointeur_donnees);
+            }
 
             return comme;
         }
