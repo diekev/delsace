@@ -490,7 +490,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
     module->mutex.lock();
     {
         if (module->bloc == nullptr) {
-            module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+            module->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
 
             if (module->nom() != ID::Kuri) {
                 /* Crée un membre pour l'import implicite du module Kuri afin de pouvoir accéder
@@ -534,9 +534,11 @@ void Syntaxeuse::quand_commence()
         auto recipiente = metaprogramme->corps_texte_pour_fonction;
         m_tacheronne.assembleuse->bloc_courant(recipiente->bloc_parametres);
 
+        fonctions_courantes.empile(recipiente);
         recipiente->corps->bloc = analyse_bloc(false);
         recipiente->corps->est_corps_texte = false;
         recipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
+        fonctions_courantes.depile();
     }
     else if (metaprogramme->corps_texte_pour_structure) {
         auto recipiente = metaprogramme->corps_texte_pour_structure;
@@ -1414,6 +1416,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 decl->expression_type = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
 
+                if (!bloc_constantes_polymorphiques.est_vide()) {
+                    decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+                }
                 m_noeud_expression_virgule = nullptr;
                 return decl;
             }
@@ -1424,6 +1429,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     gauche->comme_reference_declaration());
                 decl->expression_type = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
+                if (!bloc_constantes_polymorphiques.est_vide()) {
+                    decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+                }
                 return decl;
             }
 
@@ -1462,8 +1470,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                             it, "Expression inattendue à gauche de « := »");
                     }
 
-                    m_tacheronne.assembleuse->cree_declaration_variable(
+                    auto decl = m_tacheronne.assembleuse->cree_declaration_variable(
                         it->comme_reference_declaration());
+                    if (!bloc_constantes_polymorphiques.est_vide()) {
+                        decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+                    }
                 }
             }
             else if (!gauche->est_reference_declaration()) {
@@ -1786,7 +1797,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc(bool accolade_requise)
         consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{'");
     }
 
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme);
+    NoeudDeclarationEnteteFonction *fonction_courante = fonctions_courantes.est_vide() ?
+                                                            nullptr :
+                                                            fonctions_courantes.haut();
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction_courante);
 
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
@@ -2216,7 +2230,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
     auto lexeme_bloc = lexeme_courant();
     consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, nullptr);
 
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
 
@@ -2286,8 +2300,8 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
     consomme(GenreLexeme::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
-    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
+    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     DIFFERE {
@@ -2546,7 +2560,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
 
             /* ajoute un bloc même pour les fonctions externes, afin de stocker les paramètres */
-            noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+            noeud->corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), noeud);
             m_tacheronne.assembleuse->depile_bloc();
 
             /* Si la déclaration est à la fin du fichier, il peut ne pas y avoir de point-virgule,
@@ -2557,10 +2571,11 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             ignore_point_virgule_implicite();
 
             auto noeud_corps = noeud->corps;
+            fonctions_courantes.empile(noeud);
 
             if (apparie(GenreLexeme::POUSSE_CONTEXTE)) {
                 empile_etat("dans l'analyse du bloc", lexeme_courant());
-                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+                noeud_corps->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), noeud);
                 auto pousse_contexte = analyse_instruction_pousse_contexte();
                 noeud_corps->bloc->ajoute_expression(pousse_contexte);
                 m_tacheronne.assembleuse->depile_bloc();
@@ -2572,6 +2587,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             }
 
             analyse_annotations(noeud->annotations);
+            fonctions_courantes.depile();
         }
     }
 
@@ -2636,8 +2652,8 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     consomme(GenreLexeme::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
-    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc);
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
+    noeud->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme_bloc, noeud);
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2718,10 +2734,12 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
 
     ignore_point_virgule_implicite();
 
+    fonctions_courantes.empile(noeud);
     auto noeud_corps = noeud->corps;
     noeud_corps->bloc = analyse_bloc();
 
     analyse_annotations(noeud->annotations);
+    fonctions_courantes.depile();
 
     /* dépile le bloc des paramètres */
     m_tacheronne.assembleuse->depile_bloc();
@@ -2947,7 +2965,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(NoeudStru
         return;
     }
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     DIFFERE {
@@ -3010,7 +3028,7 @@ static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
 
 NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl_struct)
 {
-    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant());
+    auto bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(), nullptr);
     consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
     auto expressions = kuri::tablet<NoeudExpression *, 16>();
