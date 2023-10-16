@@ -43,6 +43,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* Bloc courant recevant les constantes polymorphiques. */
     kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
 
+    kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
+
   public:
     Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
 
