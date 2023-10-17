@@ -1742,7 +1742,7 @@ bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
 MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
     AtomeFonction *ptr_fonction, NoeudExpression *site)
 {
-    if (!m_metaprogramme->cibles_appels.possede(ptr_fonction)) {
+    if (!m_metaprogramme->cibles_appels.possède(ptr_fonction)) {
         auto espace = m_metaprogramme->unite->espace;
         espace
             ->rapporte_erreur(site,
@@ -1908,7 +1908,7 @@ InformationProfilage &Profileuse::informations_pour(MetaProgramme *metaprogramme
     auto informations = InformationProfilage();
     informations.metaprogramme = metaprogramme;
     informations_pour_metaprogrammes.ajoute(informations);
-    return informations_pour_metaprogrammes.derniere();
+    return informations_pour_metaprogrammes.dernière();
 }
 
 void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
@@ -1959,7 +1959,7 @@ static void cree_rapport_format_echantillons_total_plus_fonction(
             auto valeur = table.valeur_ou(frame.fonction, 0);
             table.insere(frame.fonction, valeur + 1);
 
-            fonctions.insere(frame.fonction);
+            fonctions.insère(frame.fonction);
         }
     }
 

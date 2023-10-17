@@ -23,11 +23,11 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
     /* Insertion. */
 
     for (auto i = 0; i < nombre_d_elements; i++) {
-        CU_VERIFIE_CONDITION(controleuse, !e.possede(elements[i]));
+        CU_VERIFIE_CONDITION(controleuse, !e.possède(elements[i]));
 
-        e.insere(elements[i]);
+        e.insère(elements[i]);
         CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(i) + 1);
-        CU_VERIFIE_CONDITION(controleuse, e.possede(elements[i]));
+        CU_VERIFIE_CONDITION(controleuse, e.possède(elements[i]));
     }
     CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements));
 
@@ -40,27 +40,27 @@ static void iteration_test_ensemble(dls::test_unitaire::Controleuse &controleuse
     for (auto i = 0; i < elements.taille(); ++i) {
         elements[i] = element_unique;
     }
-    CU_VERIFIE_CONDITION(controleuse, !e.possede(element_unique));
+    CU_VERIFIE_CONDITION(controleuse, !e.possède(element_unique));
 
     for (auto i = 0; i < nombre_d_elements; i++) {
-        e.insere(elements[i]);
+        e.insère(elements[i]);
         CU_VERIFIE_EGALITE(controleuse, e.taille(), 1l);
-        CU_VERIFIE_CONDITION(controleuse, e.possede(elements[i]));
+        CU_VERIFIE_CONDITION(controleuse, e.possède(elements[i]));
     }
 
     /* Suppression. */
     e.supprime(element_unique);
-    CU_VERIFIE_CONDITION(controleuse, !e.possede(element_unique));
+    CU_VERIFIE_CONDITION(controleuse, !e.possède(element_unique));
     CU_VERIFIE_CONDITION(controleuse, e.est_vide());
 
     for (auto i = 0; i < nombre_d_elements; i++) {
-        e.insere(i);
+        e.insère(i);
     }
     CU_VERIFIE_EGALITE(controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements));
 
     for (auto i = 0; i < nombre_d_elements; i++) {
         e.supprime(i);
-        CU_VERIFIE_CONDITION(controleuse, !e.possede(i));
+        CU_VERIFIE_CONDITION(controleuse, !e.possède(i));
         CU_VERIFIE_EGALITE(
             controleuse, e.taille(), static_cast<int64_t>(nombre_d_elements - i - 1));
     }

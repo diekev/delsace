@@ -449,7 +449,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
         auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
         auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
         m_tableaux_lexemes.ajoute(tableau);
-        return m_tableaux_lexemes.derniere();
+        return m_tableaux_lexemes.dernière();
     }
 
     auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
@@ -462,7 +462,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
 
     auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
     m_tableaux_lexemes.ajoute(tableau);
-    return m_tableaux_lexemes.derniere();
+    return m_tableaux_lexemes.dernière();
 }
 
 kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsees(
@@ -480,7 +480,7 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
         resultat.ajoute(code_entete->comme_entete_fonction());
     }
     m_tableaux_code_fonctions.ajoute(resultat);
-    return m_tableaux_code_fonctions.derniere();
+    return m_tableaux_code_fonctions.dernière();
 }
 
 Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,

@@ -21,7 +21,7 @@ class ensemble {
     static constexpr auto TAILLE_MIN = 32;
 
   public:
-    void insere(T const &cle)
+    void insère(T const &cle)
     {
         auto empreinte = std::hash<T>()(cle);
         auto index = trouve_index_innoccupe(cle, empreinte);
@@ -29,7 +29,7 @@ class ensemble {
         cles[index] = cle;
     }
 
-    void insere(T &&cle)
+    void insère(T &&cle)
     {
         auto empreinte = std::hash<T>()(cle);
         auto index = trouve_index_innoccupe(cle, empreinte);
@@ -47,7 +47,7 @@ class ensemble {
         }
     }
 
-    bool possede(T const &cle) const
+    bool possède(T const &cle) const
     {
         auto empreinte = std::hash<T>()(cle);
         return trouve_index(cle, empreinte) != -1;
@@ -142,7 +142,7 @@ class ensemble {
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
             if (vieilles_occupes[i]) {
-                insere(std::move(vieilles_cles[i]));
+                insère(std::move(vieilles_cles[i]));
             }
         }
     }
@@ -202,7 +202,7 @@ ensemble<T> crée_ensemble(const tableau<T> &tableau)
     ensemble<T> résultat;
 
     POUR (tableau) {
-        résultat.insere(it);
+        résultat.insère(it);
     }
 
     return résultat;

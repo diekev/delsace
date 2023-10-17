@@ -973,11 +973,11 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
      * traversons les intructions en arrière pour que seules les dépendances du retour
      * soient considérées) */
     POUR (blocs) {
-        marque_instructions_utilisees(it->instructions);
+        marque_instructions_utilisées(it->instructions);
     }
 
     POUR (blocs) {
-        marque_instructions_utilisees(it->instructions);
+        marque_instructions_utilisées(it->instructions);
     }
 
     // détermine quels stockages sont utilisés
@@ -1231,7 +1231,7 @@ static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
             continue;
         }
 
-        auto inst = bloc->instructions.derniere();
+        auto inst = bloc->instructions.dernière();
 
         if (bloc->instructions.taille() == 1 && inst->est_branche()) {
             auto enfant = bloc->enfants[0];

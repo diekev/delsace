@@ -31,12 +31,12 @@ struct Graphe {
 
     void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc);
 
-    bool est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const;
+    bool est_uniquement_utilisé_dans_bloc(Instruction *inst, int index_bloc) const;
 
     template <typename Fonction>
     void visite_utilisateurs(Instruction *inst, Fonction rappel) const;
 
-    void reinitialise();
+    void réinitialise();
 };
 
 /* Structure pour contenir les différentes structures utilisées pour analyser la RI afin de
@@ -56,4 +56,4 @@ struct ContexteAnalyseRI {
     void reinitialise();
 };
 
-void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions);
+void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructions);

@@ -352,7 +352,7 @@ void membre_inconnu(EspaceDeTravail const &espace,
     auto membres = kuri::ensemble<kuri::chaine_statique>();
 
     POUR (type->membres) {
-        membres.insere(it.nom->nom);
+        membres.insère(it.nom->nom);
     }
 
     const char *message;

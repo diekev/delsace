@@ -847,4 +847,4 @@ struct VisiteuseAtome {
 void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
 
 /* Visite uniquement les opérandes de l'instruction, s'il y en a. */
-void visite_operandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel);
+void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel);

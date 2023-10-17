@@ -987,7 +987,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     for (auto i = 3u; i < nombre_tokens; ++i) {
         auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
         morceaux.ajoute(converti_chaine(spelling));
-        std::cerr << morceaux.derniere();
+        std::cerr << morceaux.dernière();
     }
     std::cerr << '\n';
 
@@ -1116,7 +1116,7 @@ struct Convertisseuse {
         switch (cursor.kind) {
             default:
             {
-                cursors_non_pris_en_charges.insere(clang_getCursorKind(cursor));
+                cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
 
                 flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
                             << clang_getCursorKindSpelling(clang_getCursorKind(cursor))
@@ -1203,9 +1203,9 @@ struct Convertisseuse {
                     // À FAIRE : paramétrise ceci
                     if (nom == "AdaptriceMaillage" || nom == "Interruptrice" ||
                         nom == "ContexteEvaluation") {
-                        if (!modules_importes.possede("Géométrie3D")) {
+                        if (!modules_importes.possède("Géométrie3D")) {
                             flux_sortie << "importe Géométrie3D\n\n";
-                            modules_importes.insere("Géométrie3D");
+                            modules_importes.insère("Géométrie3D");
                         }
                     }
                     else if (nom != "ContexteKuri") {
@@ -2025,11 +2025,11 @@ struct Convertisseuse {
         CXCursor enfant_bloc;
 
         if (!est_declaration) {
-            est_declaration = enfants.derniere().kind != CXCursorKind::CXCursor_CompoundStmt;
+            est_declaration = enfants.dernière().kind != CXCursorKind::CXCursor_CompoundStmt;
 
             if (!est_declaration) {
                 /* Nous n'avons pas une déclaration */
-                enfant_bloc = enfants.derniere();
+                enfant_bloc = enfants.dernière();
                 enfants.supprime_dernier();
             }
         }

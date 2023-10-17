@@ -130,10 +130,10 @@ struct GeneratriceCodeCPP {
                     const auto type_nominal = type_pointe->comme_nominal();
                     const auto nom_type = type_nominal->nom_cpp.nom_cpp();
 
-                    noms_struct.insere(nom_type);
+                    noms_struct.insère(nom_type);
                 });
 
-                noms_struct.insere(it->nom().nom_cpp());
+                noms_struct.insère(it->nom().nom_cpp());
             }
         }
 
@@ -593,7 +593,7 @@ struct GeneratriceCodeCPP {
         POUR (proteines_struct) {
             const auto nom_code = it->accede_nom_code();
             if (!nom_code.est_nul()) {
-                noms_struct.insere(nom_code.nom_cpp());
+                noms_struct.insère(nom_code.nom_cpp());
             }
         }
 
@@ -1399,7 +1399,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                     const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
                                                               membre.nom.nom_cpp());
                     os << "auto " << nom_tableau << " = 0;\n";
-                    noms_tableaux.insere(nom_tableau);
+                    noms_tableaux.insère(nom_tableau);
                 }
             });
         }
