@@ -1713,7 +1713,10 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 void GestionnaireCode::tente_de_garantir_fonction_point_d_entree(EspaceDeTravail *espace)
 {
     auto copie_et_valide_point_d_entree = [&](NoeudDeclarationEnteteFonction *point_d_entree) {
-        auto copie = copie_noeud(m_assembleuse, point_d_entree, point_d_entree->bloc_parent);
+        auto copie = copie_noeud(m_assembleuse,
+                                 point_d_entree,
+                                 point_d_entree->bloc_parent,
+                                 OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
         copie->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
         copie->comme_entete_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
         copie->comme_entete_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
