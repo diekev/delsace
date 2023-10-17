@@ -22,12 +22,12 @@ struct Copieuse {
     EMPECHE_COPIE(Copieuse);
 
     /* L'implémentation de cette fonction est générée par l'ADN. */
-    NoeudExpression *copie_noeud(const NoeudExpression *racine, NoeudBloc *bloc_parent);
+    NoeudExpression *copie_noeud(const NoeudExpression *racine);
+
+    void insere_copie(const NoeudExpression *racine, NoeudExpression *copie);
 
   private:
     NoeudExpression *trouve_copie(const NoeudExpression *racine);
-
-    void insere_copie(const NoeudExpression *racine, NoeudExpression *copie);
 };
 
 NoeudExpression *copie_noeud(AssembleuseArbre *assem,
