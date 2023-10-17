@@ -557,13 +557,13 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     os << chaine_type(type_fonction->type_sortie);
     os << '\n';
 
-    numerote_instructions(*atome_fonc);
+    numérote_instructions(*atome_fonc);
 
     imprime_instructions(
         atome_fonc->instructions, os, inclus_nombre_utilisations, surligne_inutilisees, rappel);
 }
 
-int numerote_instructions(AtomeFonction const &fonction)
+int numérote_instructions(AtomeFonction const &fonction)
 {
     int resultat = 0;
 

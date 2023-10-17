@@ -1037,7 +1037,7 @@ kuri::chaine_statique GeneratriceCodeC::genere_code_pour_atome(Atome *atome,
                             if (resultat.nombre_tampons() > 1) {
                                 auto chaine_resultat = resultat.chaine();
                                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
-                                return chaines_trop_larges_pour_stockage_chn.derniere();
+                                return chaines_trop_larges_pour_stockage_chn.dernière();
                             }
 
                             return stockage_chn.ajoute_chaine_statique(resultat.chaine_statique());
@@ -1918,13 +1918,13 @@ static void rassemble_bibliotheques_utilisee(kuri::tableau<Bibliotheque *> &bibl
                                              kuri::ensemble<Bibliotheque *> &utilisees,
                                              Bibliotheque *bibliotheque)
 {
-    if (utilisees.possede(bibliotheque)) {
+    if (utilisees.possède(bibliotheque)) {
         return;
     }
 
     bibliotheques.ajoute(bibliotheque);
 
-    utilisees.insere(bibliotheque);
+    utilisees.insère(bibliotheque);
 
     POUR (bibliotheque->dependances.plage()) {
         rassemble_bibliotheques_utilisee(bibliotheques, utilisees, it);
@@ -2265,5 +2265,5 @@ CoulisseC::FichierC &CoulisseC::ajoute_fichier_c()
 
     FichierC resultat = {nom_fichier, nom_fichier_objet};
     m_fichiers.ajoute(resultat);
-    return m_fichiers.derniere();
+    return m_fichiers.dernière();
 }
