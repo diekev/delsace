@@ -5304,7 +5304,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
             return CodeRetourValidation::Erreur;
         }
 
-        auto dernière_expression = it->expressions->derniere();
+        auto dernière_expression = it->expressions->dernière();
         if (dernière_expression->est_retourne() || dernière_expression->est_retiens()) {
             continue;
         }
