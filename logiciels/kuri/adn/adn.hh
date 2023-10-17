@@ -259,6 +259,8 @@ bool Type::est_nominal(TypesChaines... chaines) const
     return ((type_nominal->nom_cpp.nom_cpp() == chaines) || ...);
 }
 
+bool est_type_noeud(Type const *type);
+
 struct Typeuse {
   private:
     tableau_page<TypePointeur> types_pointeurs{};
