@@ -532,7 +532,7 @@ void ProteineEnum::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
     }
     else {
         const auto &premier_membre = m_membres[0];
-        const auto &dernier_membre = m_membres.derniere();
+        const auto &dernier_membre = m_membres.dernière();
 
         os << "\n";
         os << "{\n";
@@ -1141,7 +1141,7 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &prot
         if (!it->est_fonction()) {
             continue;
         }
-        identifiants.insere(it->nom().nom_kuri());
+        identifiants.insère(it->nom().nom_kuri());
     }
 
     os << "namespace ID {\n";
