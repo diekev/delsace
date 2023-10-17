@@ -54,12 +54,12 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
         return;
     }
     m_fonctions.ajoute(fonction);
-    m_fonctions_utilisees.insere(fonction);
+    m_fonctions_utilisees.insère(fonction);
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
-        m_dépendances_manquantes.insere(fonction);
+        m_dépendances_manquantes.insère(fonction);
     }
     if (pour_métaprogramme()) {
         if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
@@ -89,12 +89,12 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
         return;
     }
     m_globales.ajoute(globale);
-    m_globales_utilisees.insere(globale);
+    m_globales_utilisees.insère(globale);
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
     if (globale->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
-        m_dépendances_manquantes.insere(globale);
+        m_dépendances_manquantes.insère(globale);
     }
 }
 
@@ -104,7 +104,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
         return;
     }
     m_types.ajoute(type);
-    m_types_utilises.insere(type);
+    m_types_utilises.insère(type);
     elements_sont_sales[TYPES][POUR_TYPAGE] = true;
     elements_sont_sales[TYPES][POUR_RI] = true;
 
@@ -130,7 +130,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 
     auto decl = decl_pour_type(type);
     if (decl && decl->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
-        m_dépendances_manquantes.insere(decl);
+        m_dépendances_manquantes.insère(decl);
     }
 }
 
@@ -296,7 +296,7 @@ kuri::ensemble<Module *> Programme::modules_utilises() const
 {
     kuri::ensemble<Module *> modules;
     POUR (m_fichiers) {
-        modules.insere(it->module);
+        modules.insère(it->module);
     }
     return modules;
 }
@@ -369,12 +369,12 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &d
 
 void Programme::ajoute_fichier(Fichier *fichier)
 {
-    if (m_fichiers_utilises.possede(fichier)) {
+    if (m_fichiers_utilises.possède(fichier)) {
         return;
     }
 
     m_fichiers.ajoute(fichier);
-    m_fichiers_utilises.insere(fichier);
+    m_fichiers_utilises.insère(fichier);
     m_fichiers_sont_sales = true;
 }
 
@@ -555,11 +555,11 @@ struct VisiteuseType {
             return;
         }
 
-        if (visites.possede(type)) {
+        if (visites.possède(type)) {
             return;
         }
 
-        visites.insere(type);
+        visites.insère(type);
         rappel(type);
 
         if (type->fonction_init) {
@@ -726,12 +726,12 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
 {
     visiteuse.visite_atome(atome, [&](Atome *atome_local) {
         if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
-            if (globales_utilisees.possede(static_cast<AtomeGlobale *>(atome_local))) {
+            if (globales_utilisees.possède(static_cast<AtomeGlobale *>(atome_local))) {
                 return;
             }
 
             repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome_local));
-            globales_utilisees.insere(static_cast<AtomeGlobale *>(atome_local));
+            globales_utilisees.insère(static_cast<AtomeGlobale *>(atome_local));
         }
     });
 }
@@ -782,11 +782,11 @@ static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
     VisiteuseType visiteuse{};
     auto ajoute_type_si_necessaire = [&](Type const *type_racine) {
         visiteuse.visite_type(const_cast<Type *>(type_racine), [&](Type *type) {
-            if (type_utilises.possede(type)) {
+            if (type_utilises.possède(type)) {
                 return;
             }
 
-            type_utilises.insere(type);
+            type_utilises.insère(type);
             repr_inter.types.ajoute(type);
         });
     };
