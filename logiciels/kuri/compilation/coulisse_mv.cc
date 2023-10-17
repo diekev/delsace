@@ -56,7 +56,7 @@ bool CoulisseMV::crée_fichier_objet(Compilatrice &compilatrice,
     }
 
     POUR (repr_inter.fonctions) {
-        métaprogramme->cibles_appels.insere(it);
+        métaprogramme->cibles_appels.insère(it);
     }
 
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);

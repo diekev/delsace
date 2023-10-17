@@ -98,11 +98,11 @@ struct ensemblon {
             }
 
             for (auto i = 0; i < taille(); ++i) {
-                m_ensemble.insere(m_ensemblon[i]);
+                m_ensemble.insère(m_ensemblon[i]);
             }
         }
 
-        m_ensemble.insere(valeur);
+        m_ensemble.insère(valeur);
         m_taille += 1;
     }
 
@@ -118,7 +118,7 @@ struct ensemblon {
             return false;
         }
 
-        return m_ensemble.possede(valeur);
+        return m_ensemble.possède(valeur);
     }
 
     int64_t taille() const
