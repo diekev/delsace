@@ -1335,7 +1335,8 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
         return {monomorphisation, false};
     }
 
-    auto copie = copie_noeud(assembleuse, a_copier, a_copier->bloc_parent);
+    auto copie = copie_noeud(
+        assembleuse, a_copier, a_copier->bloc_parent, OptionsCopieNoeud::AUCUNE);
     auto bloc_constantes = bloc_constantes_pour(copie);
 
     /* Ajourne les constantes dans le bloc. */
