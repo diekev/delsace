@@ -22,58 +22,20 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-static const char *copie_extra_declaration_variable = R"(
-			/* n'oublions pas de mettre en place les déclarations */
-			if (copie->valeur->est_reference_declaration()) {
-			   copie->valeur->comme_reference_declaration()->declaration_referee = copie;
-			}
-			else if (copie->valeur->est_virgule()) {
-			   auto virgule = orig->valeur->comme_virgule();
-			   auto nvirgule = copie->valeur->comme_virgule();
-
-			   auto index = 0;
-			   POUR (nvirgule->expressions) {
-				   auto it_orig = virgule->expressions[index]->comme_reference_declaration();
-                   if (it_orig->declaration_referee) {
-                       it->comme_reference_declaration()->declaration_referee = copie_noeud(it_orig->declaration_referee, bloc_parent)->comme_declaration_variable();
-                   }
-                   index += 1;
-			   }
-			})";
-
+/* À FAIRE : nous ne pouvons copier les membres des blocs (de constantes ou autres) car la copie
+ * des membres des blocs peut créer des doublons lorsque le noeud sera validé car la validation
+ * sémantique ajoute les membres pour les déclarations de variables. */
 static const char *copie_extra_entete_fonction = R"(
-			if (!copie->est_declaration_type) {
-				if (orig->params_sorties.taille() > 1) {
-                    copie->param_sortie = copie_noeud(orig->param_sortie, bloc_parent)->comme_declaration_variable();
-				}
-				else {
-					copie->param_sortie = copie->params_sorties[0]->comme_declaration_variable();
-				}
-			}
             /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
              * sont placés par la Syntaxeuse directement dans les membres. */
             POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                auto copie_membre = copie_noeud(it, copie->bloc_constantes);
+                auto copie_membre = copie_noeud(it);
                 copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
             }
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
-			/* copie le corps du noeud directement */
-			{
-				auto expr_corps = orig->corps;
-				auto nexpr_corps = copie->corps;
-				nexpr_corps->bloc_parent = bloc_parent;
-                nexpr_corps->drapeaux = (expr_corps->drapeaux & ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-				nexpr_corps->est_corps_texte = expr_corps->est_corps_texte;
-				nexpr_corps->arbre_aplatis.reserve(expr_corps->arbre_aplatis.taille());
-                nexpr_corps->bloc = static_cast<NoeudBloc *>(copie_noeud(expr_corps->bloc, bloc_parent));
-			})";
+            )";
 
 static const char *copie_extra_bloc = R"(
-            copie->appartiens_a_differe = copie_noeud(orig->appartiens_a_differe, copie->bloc_parent);
-            copie->appartiens_a_boucle = copie_noeud(orig->appartiens_a_boucle, copie->bloc_parent);
-            if (orig->appartiens_à_fonction) {
-                copie->appartiens_à_fonction = copie_noeud(orig->appartiens_à_fonction, copie->bloc_parent)->comme_entete_fonction();
-            }
             copie->reserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_declaration_type() || it->est_entete_fonction()) {
@@ -84,14 +46,10 @@ static const char *copie_extra_bloc = R"(
 static const char *copie_extra_structure = R"(
             nracine->type = nullptr;
             if (orig->bloc_constantes) {
-                copie->bloc_constantes = copie_noeud(orig->bloc_constantes, bloc_parent)->comme_bloc();
-                bloc_parent = copie->bloc_constantes;
-                copie->est_polymorphe = orig->est_polymorphe;
-
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                    auto copie_membre = copie_noeud(it, bloc_parent);
+                    auto copie_membre = copie_noeud(it);
                     copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
                 }
             }
@@ -446,8 +404,7 @@ struct GeneratriceCodeCPP {
 
     void genere_copie_noeud(FluxSortieCPP &os)
     {
-        os << "NoeudExpression *Copieuse::copie_noeud(const NoeudExpression "
-              "*racine, NoeudBloc *bloc_parent)\n";
+        os << "NoeudExpression *Copieuse::copie_noeud(const NoeudExpression *racine)\n";
         os << "{\n";
         os << "\tif(!racine) {\n";
         os << "\t\treturn nullptr;\n";
@@ -467,21 +424,22 @@ struct GeneratriceCodeCPP {
             const auto nom_comme = it->accede_nom_comme();
             os << "\t\tcase GenreNoeud::" << nom_genre << ":\n";
             os << "\t\t{\n";
+            os << "\t\t\tconst auto orig = racine->comme_" << nom_comme << "();\n";
 
+            /* Les corps sont créés directement avec les entêtes. */
             if (nom_genre.nom_cpp() == "DECLARATION_CORPS_FONCTION") {
-                os << "\t\t\tassert_rappel(false, [&]() { std::cerr << \"Tentative de copie d'un "
-                      "corps de fonction seul\\n\"; });\n";
-                os << "\t\t\tbreak;\n";
-                os << "\t\t}\n";
-                continue;
+                os << "\t\t\tauto copie_entete = "
+                      "trouve_copie(orig->entete)->comme_entete_fonction();\n";
+                os << "\t\t\tnracine = copie_entete->corps;\n";
+            }
+            else {
+                os << "\t\t\tnracine = assem->cree_noeud<GenreNoeud::" << nom_genre
+                   << ">(racine->lexeme);\n";
             }
 
-            os << "\t\t\tnracine = assem->cree_noeud<GenreNoeud::" << nom_genre
-               << ">(racine->lexeme);\n";
             os << "\t\t\tinsere_copie(racine, nracine);\n";
             os << "\t\t\tnracine->ident = racine->ident;\n";
             os << "\t\t\tnracine->type = racine->type;\n";
-            os << "\t\t\tnracine->bloc_parent = bloc_parent;\n";
             os << "\t\t\tnracine->drapeaux = (racine->drapeaux & "
                   "~DrapeauxNoeud::DECLARATION_FUT_VALIDEE);\n";
 
@@ -491,42 +449,10 @@ struct GeneratriceCodeCPP {
                 continue;
             }
 
-            os << "\t\t\tconst auto orig = racine->comme_" << nom_comme << "();\n";
             os << "\t\t\tconst auto copie = nracine->comme_" << nom_comme << "();\n";
 
-            // Pour les structure et les fonctions, il nous faut proprement gérer les blocs parents
-
-            if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
-                os << copie_extra_structure;
-            }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
-                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
-                os << "\t\t\tcopie->bloc_constantes = "
-                      "assem->cree_bloc_seul(orig->bloc_constantes->lexeme, "
-                      "bloc_parent);\n";
-                os << "\t\t\tinsere_copie(orig->bloc_constantes, copie->bloc_constantes);\n";
-                os << "\t\t\tcopie->bloc_parametres = "
-                      "assem->cree_bloc_seul(orig->bloc_parametres->lexeme, "
-                      "copie->bloc_constantes);\n";
-                os << "\t\t\tcopie->bloc_parametres->appartiens_à_fonction = copie;\n";
-                os << "\t\t\tcopie->bloc_constantes->appartiens_à_fonction = copie;\n";
-                os << "\t\t\tinsere_copie(orig->bloc_parametres, copie->bloc_parametres);\n";
-                os << "\t\t\tbloc_parent = copie->bloc_parametres;\n";
-            }
-            else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
-                os << "\t\t\tbloc_parent = const_cast<NoeudBloc *>(copie);\n";
-            }
-
-            it->pour_chaque_enfant_recursif([&](const Membre &enfant) {
+            auto copie_noeud = [&](const Membre &enfant) {
                 const auto nom_enfant = enfant.nom;
-
-                // Les corps des fonctions sont copiées en même temps, et non à travers un appel
-                // séparé
-                if ((nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
-                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") &&
-                    nom_enfant.nom_cpp() == "corps") {
-                    return;
-                }
 
                 os << "\t\t\t";
 
@@ -551,7 +477,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(it, bloc_parent)";
+                    os << "copie_noeud(it)";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -568,7 +494,7 @@ struct GeneratriceCodeCPP {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }
 
-                    os << "copie_noeud(orig->" << nom_enfant << ", bloc_parent)";
+                    os << "copie_noeud(orig->" << nom_enfant << ")";
 
                     if (enfant.type->accede_nom().nom_cpp() != "NoeudExpression") {
                         os << ")";
@@ -576,9 +502,16 @@ struct GeneratriceCodeCPP {
 
                     os << ";\n";
                 }
-            });
+            };
+
+            it->pour_chaque_enfant_recursif(copie_noeud);
 
             it->pour_chaque_copie_extra_recursif([&](const Membre &enfant) {
+                if (est_type_noeud(enfant.type)) {
+                    copie_noeud(enfant);
+                    return;
+                }
+
                 const auto nom_enfant = enfant.nom;
                 os << "\t\t\t";
 
@@ -606,12 +539,12 @@ struct GeneratriceCodeCPP {
                 }
             });
 
-            if (nom_genre.nom_cpp() == "DECLARATION_VARIABLE") {
-                os << copie_extra_declaration_variable << "\n";
-            }
-            else if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
-                     nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
+            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
+                nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
                 os << copie_extra_entete_fonction << "\n";
+            }
+            else if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
+                os << copie_extra_structure;
             }
             else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
                 os << copie_extra_bloc << "\n";
