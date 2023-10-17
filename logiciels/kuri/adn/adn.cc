@@ -1083,6 +1083,40 @@ void SyntaxeuseADN::gere_erreur_rapportee(const kuri::chaine &message_erreur)
     std::cerr << message_erreur << "\n";
 }
 
+bool est_type_noeud(const Type *type)
+{
+    if (type->est_pointeur()) {
+        return est_type_noeud(type->comme_pointeur()->type_pointe);
+    }
+
+    if (type->est_nominal()) {
+        auto proteine_ = type->comme_nominal()->est_proteine;
+        if (!proteine_) {
+            return false;
+        }
+
+        /* `comme_struct()` retourne nul si la protéine n'est pas une structure, donc
+         * le test de la boucle nous sers également de test pour savoir si nous avons
+         * une structure. */
+        auto proteine = proteine_->comme_struct();
+        while (proteine) {
+            if (proteine->nom().nom_cpp() == "NoeudExpression") {
+                return true;
+            }
+
+            proteine = proteine->mere();
+        }
+
+        return false;
+    }
+
+    if (type->est_tableau()) {
+        return est_type_noeud(type->comme_tableau()->type_pointe);
+    }
+
+    return false;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name Fonctions auxillaires.
  * \{ */
