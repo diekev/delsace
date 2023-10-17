@@ -33,7 +33,7 @@ static ResultatValidation valide_presence_membre(
             continue;
         }
 
-        valeurs_manquantes.insere(it.nom->nom);
+        valeurs_manquantes.insère(it.nom->nom);
     }
 
     if (valeurs_manquantes.taille() != 0) {

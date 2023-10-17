@@ -43,11 +43,11 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         return;
     }
 
-    if (visites.possede(racine)) {
+    if (visites.possède(racine)) {
         return;
     }
 
-    visites.insere(racine);
+    visites.insère(racine);
 
     rappel(racine);
 
@@ -239,7 +239,7 @@ void visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
     visiteuse.visite_atome(racine, rappel);
 }
 
-void visite_operandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel)
+void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel)
 {
     switch (inst->genre) {
         case Instruction::Genre::APPEL:
