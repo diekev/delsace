@@ -16,7 +16,7 @@ void imprime_information_atome(Atome const *atome, std::ostream &os);
 
 void imprime_atome(Atome const *atome, std::ostream &os);
 
-int numerote_instructions(AtomeFonction const &fonction);
+int numérote_instructions(AtomeFonction const &fonction);
 
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       std::ostream &os,
