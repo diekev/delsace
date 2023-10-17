@@ -35,6 +35,15 @@ static const char *copie_extra_entete_fonction = R"(
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
             )";
 
+static const char *copie_extra_entête_opérateur_pour = R"(
+            if ((m_options & OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES) != OptionsCopieNoeud(0)) {
+                for (int64_t i = 0; i < copie->params.taille(); i++) {
+                    copie->bloc_parametres->membres->ajoute(copie->parametre_entree(i));
+                }
+                copie->bloc_parametres->membres->ajoute(copie->param_sortie->comme_declaration_variable());
+            }
+            )";
+
 static const char *copie_extra_bloc = R"(
             copie->reserve_membres(orig->nombre_de_membres());
             POUR (*copie->expressions.verrou_lecture()) {
@@ -440,8 +449,11 @@ struct GeneratriceCodeCPP {
             os << "\t\t\tinsere_copie(racine, nracine);\n";
             os << "\t\t\tnracine->ident = racine->ident;\n";
             os << "\t\t\tnracine->type = racine->type;\n";
-            os << "\t\t\tnracine->drapeaux = (racine->drapeaux & "
-                  "~DrapeauxNoeud::DECLARATION_FUT_VALIDEE);\n";
+            os << "\t\t\tnracine->drapeaux = racine->drapeaux;\n";
+            os << "\t\t\tif ((m_options & OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION) == "
+                  "OptionsCopieNoeud(0)) {\n";
+            os << "\t\t\t\tnracine->drapeaux &= ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE;\n";
+            os << "\t\t\t}\n";
 
             if (!it->possede_enfants() && !it->possede_membre_a_copier()) {
                 os << "\t\t\tbreak;\n";
@@ -539,9 +551,12 @@ struct GeneratriceCodeCPP {
                 }
             });
 
-            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION" ||
-                nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
+            if (nom_genre.nom_cpp() == "DECLARATION_ENTETE_FONCTION") {
                 os << copie_extra_entete_fonction << "\n";
+            }
+            else if (nom_genre.nom_cpp() == "DECLARATION_OPERATEUR_POUR") {
+                os << copie_extra_entete_fonction << "\n";
+                os << copie_extra_entête_opérateur_pour << "\n";
             }
             else if (nom_genre.nom_cpp() == "DECLARATION_STRUCTURE") {
                 os << copie_extra_structure;
