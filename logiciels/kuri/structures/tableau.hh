@@ -278,12 +278,12 @@ struct tableau {
         return this->pointeur[0];
     }
 
-    T &derniere()
+    T &dernière()
     {
         return this->pointeur[this->taille_ - 1];
     }
 
-    T const &derniere() const
+    T const &dernière() const
     {
         return this->pointeur[this->taille_ - 1];
     }

@@ -181,17 +181,17 @@ struct Programme {
 
     bool possede(NoeudDeclarationEnteteFonction *fonction) const
     {
-        return m_fonctions_utilisees.possede(fonction);
+        return m_fonctions_utilisees.possède(fonction);
     }
 
     bool possede(NoeudDeclarationVariable *globale) const
     {
-        return m_globales_utilisees.possede(globale);
+        return m_globales_utilisees.possède(globale);
     }
 
     bool possede(Type *type) const
     {
-        return m_types_utilises.possede(type);
+        return m_types_utilises.possède(type);
     }
 
     kuri::tableau<NoeudDeclarationEnteteFonction *> const &fonctions() const
