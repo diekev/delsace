@@ -11,13 +11,24 @@ struct AssembleuseArbre;
 struct NoeudExpression;
 struct NoeudBloc;
 
+enum class OptionsCopieNoeud : uint32_t {
+    AUCUNE = 0u,
+    PRÉSERVE_DRAPEAUX_VALIDATION = (1u << 0),
+    /* Par défaut, les paramètres ne sont pas copiés dans les membres du blocs de paramètres (car
+     * ceci est fait lors de la validation sémanantique), mais nous les voulons pour les copies des
+     * macros. */
+    COPIE_PARAMÈTRES_DANS_MEMBRES = (1u << 1),
+};
+DEFINIS_OPERATEURS_DRAPEAU(OptionsCopieNoeud)
+
 struct Copieuse {
   private:
     AssembleuseArbre *assem;
     kuri::table_hachage<NoeudExpression const *, NoeudExpression *> noeuds_copies{"noeud_copiés"};
+    OptionsCopieNoeud m_options{};
 
   public:
-    Copieuse(AssembleuseArbre *assembleuse);
+    Copieuse(AssembleuseArbre *assembleuse, OptionsCopieNoeud options);
 
     EMPECHE_COPIE(Copieuse);
 
@@ -32,4 +43,5 @@ struct Copieuse {
 
 NoeudExpression *copie_noeud(AssembleuseArbre *assem,
                              const NoeudExpression *racine,
-                             NoeudBloc *bloc_parent);
+                             NoeudBloc *bloc_parent,
+                             OptionsCopieNoeud options);
