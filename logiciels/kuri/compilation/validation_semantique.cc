@@ -5173,20 +5173,15 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
     assert(table_opérateurs);
     auto opérateur_pour = table_opérateurs->opérateur_pour;
 
-    /* Copie le corps du macro.
-     * À FAIRE : ne copie que le corps. */
-    auto copie_macro = copie_noeud(
-        m_tacheronne.assembleuse, opérateur_pour, opérateur_pour->bloc_parent);
+    /* Copie le macro. */
+    auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
+                                   opérateur_pour,
+                                   opérateur_pour->bloc_parent,
+                                   OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
+                                       OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES);
 
-    /* Fais pointer le corps du macro vers l'entête originale, ceci est nécessaire car
-     * nous copions aussi l'entête, mais nous ne voulons et ne devons pas la revalider.
-     */
     auto entête_copie_macro = copie_macro->comme_operateur_pour();
     auto corps_copie_macro = entête_copie_macro->corps;
-
-    entête_copie_macro->original = opérateur_pour;
-    corps_copie_macro->entete = opérateur_pour;
-    corps_copie_macro->bloc->bloc_parent = corps_copie_macro->entete->bloc_parametres;
 
     /* Installe les pointeurs de contexte. */
     corps_copie_macro->est_macro_boucle_pour = inst;
