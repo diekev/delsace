@@ -25,24 +25,24 @@
  * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
  * tous ont un retour défini.
  */
-static bool detecte_retour_manquant(EspaceDeTravail &espace,
+static bool détecte_retour_manquant(EspaceDeTravail &espace,
                                     FonctionEtBlocs const &fonction_et_blocs)
 {
     auto const atome = fonction_et_blocs.fonction;
 
-    kuri::ensemble<Bloc *> blocs_visites;
-    kuri::file<Bloc *> a_visiter;
+    kuri::ensemble<Bloc *> blocs_visités;
+    kuri::file<Bloc *> à_visiter;
 
-    a_visiter.enfile(fonction_et_blocs.blocs[0]);
+    à_visiter.enfile(fonction_et_blocs.blocs[0]);
 
-    while (!a_visiter.est_vide()) {
-        auto bloc_courant = a_visiter.defile();
+    while (!à_visiter.est_vide()) {
+        auto bloc_courant = à_visiter.defile();
 
-        if (blocs_visites.possede(bloc_courant)) {
+        if (blocs_visités.possède(bloc_courant)) {
             continue;
         }
 
-        blocs_visites.insere(bloc_courant);
+        blocs_visités.insère(bloc_courant);
 
         if (bloc_courant->instructions.est_vide()) {
             // À FAIRE : précise en quoi une instruction de retour manque.
@@ -55,14 +55,14 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
             return false;
         }
 
-        auto di = bloc_courant->instructions.derniere();
+        auto di = bloc_courant->instructions.dernière();
 
         if (di->est_retour()) {
             continue;
         }
 
         POUR (bloc_courant->enfants) {
-            a_visiter.enfile(it);
+            à_visiter.enfile(it);
         }
     }
 
@@ -71,7 +71,7 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
     POUR (fonction_et_blocs.blocs) {
-        if (!blocs_visites.possede(it)) {
+        if (!blocs_visités.possède(it)) {
             imprime_fonction(atome, std::cerr);
             imprime_blocs(fonction_et_blocs.blocs, std::cerr);
             espace
@@ -91,7 +91,7 @@ static bool detecte_retour_manquant(EspaceDeTravail &espace,
 // Il reste des choses à faire pour activer ceci
 #define ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
 
-static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
+static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 {
     racine->nombre_utilisations += 1;
 
@@ -112,10 +112,10 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
                     auto appel = inst->comme_appel();
 
                     /* appele peut être un pointeur de fonction */
-                    incremente_nombre_utilisations_recursif(appel->appele);
+                    incrémente_nombre_utilisations_récursif(appel->appele);
 
                     POUR (appel->args) {
-                        incremente_nombre_utilisations_recursif(it);
+                        incrémente_nombre_utilisations_récursif(it);
                     }
 
                     break;
@@ -123,53 +123,53 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
                 case Instruction::Genre::CHARGE_MEMOIRE:
                 {
                     auto charge = inst->comme_charge();
-                    incremente_nombre_utilisations_recursif(charge->chargee);
+                    incrémente_nombre_utilisations_récursif(charge->chargee);
                     break;
                 }
                 case Instruction::Genre::STOCKE_MEMOIRE:
                 {
                     auto stocke = inst->comme_stocke_mem();
-                    incremente_nombre_utilisations_recursif(stocke->valeur);
-                    incremente_nombre_utilisations_recursif(stocke->ou);
+                    incrémente_nombre_utilisations_récursif(stocke->valeur);
+                    incrémente_nombre_utilisations_récursif(stocke->ou);
                     break;
                 }
                 case Instruction::Genre::OPERATION_UNAIRE:
                 {
                     auto op = inst->comme_op_unaire();
-                    incremente_nombre_utilisations_recursif(op->valeur);
+                    incrémente_nombre_utilisations_récursif(op->valeur);
                     break;
                 }
                 case Instruction::Genre::OPERATION_BINAIRE:
                 {
                     auto op = inst->comme_op_binaire();
-                    incremente_nombre_utilisations_recursif(op->valeur_droite);
-                    incremente_nombre_utilisations_recursif(op->valeur_gauche);
+                    incrémente_nombre_utilisations_récursif(op->valeur_droite);
+                    incrémente_nombre_utilisations_récursif(op->valeur_gauche);
                     break;
                 }
                 case Instruction::Genre::ACCEDE_INDEX:
                 {
                     auto acces = inst->comme_acces_index();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
+                    incrémente_nombre_utilisations_récursif(acces->index);
+                    incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }
                 case Instruction::Genre::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    incremente_nombre_utilisations_recursif(acces->index);
-                    incremente_nombre_utilisations_recursif(acces->accede);
+                    incrémente_nombre_utilisations_récursif(acces->index);
+                    incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }
                 case Instruction::Genre::TRANSTYPE:
                 {
                     auto transtype = inst->comme_transtype();
-                    incremente_nombre_utilisations_recursif(transtype->valeur);
+                    incrémente_nombre_utilisations_récursif(transtype->valeur);
                     break;
                 }
                 case Instruction::Genre::BRANCHE_CONDITION:
                 {
                     auto branche = inst->comme_branche_cond();
-                    incremente_nombre_utilisations_recursif(branche->condition);
+                    incrémente_nombre_utilisations_récursif(branche->condition);
                     break;
                 }
                 case Instruction::Genre::RETOUR:
@@ -177,7 +177,7 @@ static auto incremente_nombre_utilisations_recursif(Atome *racine) -> void
                     auto retour = inst->comme_retour();
 
                     if (retour->valeur) {
-                        incremente_nombre_utilisations_recursif(retour->valeur);
+                        incrémente_nombre_utilisations_récursif(retour->valeur);
                     }
 
                     break;
@@ -202,7 +202,7 @@ enum {
     EST_STOCKE = (1 << 3),
 };
 
-static Atome *dereference_instruction(Instruction *inst)
+static Atome *déréférence_instruction(Instruction *inst)
 {
     if (inst->est_acces_index()) {
         auto acces = inst->comme_acces_index();
@@ -253,7 +253,7 @@ static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
         }
 
         auto inst = ou->comme_instruction();
-        ou = dereference_instruction(inst);
+        ou = déréférence_instruction(inst);
 
         if (ou == ancien_ou) {
             std::cerr << "Boucle infinie !!!!!!\n";
@@ -273,7 +273,7 @@ static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
 }
 
 /* Retourne vrai si un paramètre ou une globale fut utilisée lors de la production de l'atome. */
-static bool parametre_ou_globale_fut_utilisee(Atome *atome)
+static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
 {
     auto resultat = false;
     visite_atome(atome, [&resultat](Atome const *visite) {
@@ -290,7 +290,7 @@ static bool parametre_ou_globale_fut_utilisee(Atome *atome)
     return resultat;
 }
 
-void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructions)
+void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructions)
 {
     for (auto i = instructions.taille() - 1; i >= 0; --i) {
         auto it = instructions[i];
@@ -305,7 +305,7 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
             case Instruction::Genre::LABEL:
             case Instruction::Genre::RETOUR:
             {
-                incremente_nombre_utilisations_recursif(it);
+                incrémente_nombre_utilisations_récursif(it);
                 break;
             }
             case Instruction::Genre::APPEL:
@@ -313,7 +313,7 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
                 auto appel = it->comme_appel();
 
                 if (appel->type->est_type_rien()) {
-                    incremente_nombre_utilisations_recursif(it);
+                    incrémente_nombre_utilisations_récursif(it);
                 }
 
                 break;
@@ -325,13 +325,13 @@ void marque_instructions_utilisees(kuri::tableau<Instruction *, int> &instructio
 
                 if ((cible->etat & EST_PARAMETRE_FONCTION) || cible->nombre_utilisations != 0 ||
                     cible->est_globale()) {
-                    incremente_nombre_utilisations_recursif(stocke);
+                    incrémente_nombre_utilisations_récursif(stocke);
                 }
                 else {
                     /* Vérifie si l'instruction de stockage prend la valeur d'une globale ou d'un
                      * paramètre. */
-                    if (parametre_ou_globale_fut_utilisee(stocke->valeur)) {
-                        incremente_nombre_utilisations_recursif(stocke);
+                    if (paramètre_ou_globale_fut_utilisé(stocke->valeur)) {
+                        incrémente_nombre_utilisations_récursif(stocke);
                     }
                 }
                 break;
@@ -677,8 +677,8 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
     }
 
     /* Deux passes pour prendre en compte les variables d'itérations des boucles. */
-    marque_instructions_utilisees(atome->instructions);
-    marque_instructions_utilisees(atome->instructions);
+    marque_instructions_utilisées(atome->instructions);
+    marque_instructions_utilisées(atome->instructions);
 
     kuri::tableau<InstructionAllocation *> allocs_inutilisees;
 
@@ -767,7 +767,7 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
 /* ******************************************************************************************** */
 
-static bool atome_est_pour_creation_contexte(Compilatrice &compilatrice, AtomeFonction *atome)
+static bool atome_est_pour_création_contexte(Compilatrice &compilatrice, AtomeFonction *atome)
 {
     auto interface = compilatrice.interface_kuri;
 
@@ -780,8 +780,8 @@ static bool atome_est_pour_creation_contexte(Compilatrice &compilatrice, AtomeFo
     return interface->decl_creation_contexte == atome->decl;
 }
 
-static bool detecte_blocs_invalide(EspaceDeTravail &espace,
-                                   FonctionEtBlocs const &fonction_et_blocs)
+static bool détecte_blocs_invalides(EspaceDeTravail &espace,
+                                    FonctionEtBlocs const &fonction_et_blocs)
 {
     auto atome = fonction_et_blocs.fonction;
 
@@ -792,7 +792,7 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace,
             return false;
         }
 
-        auto di = it->instructions.derniere();
+        auto di = it->instructions.dernière();
 
         if (di->est_branche_ou_retourne()) {
             continue;
@@ -800,7 +800,7 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace,
 
         /* La fonction #création_contexte n'a pas de retour, puisque ses instructions sont copiées
          * dans d'autres fonctions. */
-        if (atome_est_pour_creation_contexte(espace.compilatrice(), atome)) {
+        if (atome_est_pour_création_contexte(espace.compilatrice(), atome)) {
             continue;
         }
 
@@ -815,23 +815,23 @@ static bool detecte_blocs_invalide(EspaceDeTravail &espace,
 
 static void marque_blocs_atteignables(Bloc *racine)
 {
-    kuri::ensemble<Bloc *> blocs_visites;
-    kuri::file<Bloc *> a_visiter;
+    kuri::ensemble<Bloc *> blocs_visités;
+    kuri::file<Bloc *> à_visiter;
 
-    a_visiter.enfile(racine);
+    à_visiter.enfile(racine);
 
-    while (!a_visiter.est_vide()) {
-        auto bloc_courant = a_visiter.defile();
+    while (!à_visiter.est_vide()) {
+        auto bloc_courant = à_visiter.defile();
 
-        if (blocs_visites.possede(bloc_courant)) {
+        if (blocs_visités.possède(bloc_courant)) {
             continue;
         }
 
         bloc_courant->est_atteignable = true;
-        blocs_visites.insere(bloc_courant);
+        blocs_visités.insère(bloc_courant);
 
         POUR (bloc_courant->enfants) {
-            a_visiter.enfile(it);
+            à_visiter.enfile(it);
         }
     }
 }
@@ -843,13 +843,13 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
             continue;
         }
 
-        auto di = it->instructions.derniere();
+        auto di = it->instructions.dernière();
 
         if (di->est_branche()) {
             auto branche = di->comme_branche();
 
             for (auto parent : it->parents) {
-                auto di_parent = parent->instructions.derniere();
+                auto di_parent = parent->instructions.dernière();
 
                 if (di_parent->est_branche()) {
                     di_parent->comme_branche()->label = branche->label;
@@ -888,16 +888,16 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
     }
 
     auto fonction = fonction_et_blocs.fonction;
-    int decalage_instruction = 0;
+    int décalage_instruction = 0;
     POUR (nouveaux_blocs) {
-        fonction->instructions[decalage_instruction++] = it->label;
+        fonction->instructions[décalage_instruction++] = it->label;
 
         for (auto inst : it->instructions) {
-            fonction->instructions[decalage_instruction++] = inst;
+            fonction->instructions[décalage_instruction++] = inst;
         }
     }
 
-    fonction->instructions.redimensionne(decalage_instruction);
+    fonction->instructions.redimensionne(décalage_instruction);
     fonction_et_blocs.blocs = nouveaux_blocs;
 }
 
@@ -912,9 +912,9 @@ enum class SourceAdresseAtome : unsigned char {
     /* Nous avons une constante représentant une adresse. */
     CONSTANTE,
     /* Nous avons un paramètre d'entrée de la fonction. */
-    PARAMETRE_ENTREE,
+    PARAMÈTRE_ENTRÉE,
     /* Nous avons un paramètre de sortie de la fonction. */
-    PARAMETRE_SORTIE,
+    PARAMÈTRE_SORTIE,
     /* Nous avons l'adresse d'une locale. */
     LOCALE,
     /* Nous avons une adresse retourner par un appel de fonction. */
@@ -939,12 +939,12 @@ static std::ostream &operator<<(std::ostream &os, SourceAdresseAtome type)
             os << "CONSTANTE";
             break;
         }
-        case SourceAdresseAtome::PARAMETRE_ENTREE:
+        case SourceAdresseAtome::PARAMÈTRE_ENTRÉE:
         {
             os << "PARAMETRE_ENTREE";
             break;
         }
-        case SourceAdresseAtome::PARAMETRE_SORTIE:
+        case SourceAdresseAtome::PARAMÈTRE_SORTIE:
         {
             os << "PARAMETRE_SORTIE";
             break;
@@ -998,7 +998,7 @@ static bool est_stockage_valide(InstructionStockeMem const &stockage,
     return false;
 }
 
-static SourceAdresseAtome determine_source_adresse_atome(
+static SourceAdresseAtome détermine_source_adresse_atome(
     AtomeFonction const &fonction,
     Atome const &atome,
     kuri::tableau<SourceAdresseAtome> const &sources)
@@ -1015,12 +1015,12 @@ static SourceAdresseAtome determine_source_adresse_atome(
 
     POUR (fonction.params_entrees) {
         if (&atome == it) {
-            return SourceAdresseAtome::PARAMETRE_ENTREE;
+            return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
         }
     }
 
     if (&atome == fonction.param_sortie) {
-        return SourceAdresseAtome::PARAMETRE_SORTIE;
+        return SourceAdresseAtome::PARAMÈTRE_SORTIE;
     }
 
     if (atome.est_instruction()) {
@@ -1070,7 +1070,7 @@ static void rapporte_erreur_stockage_invalide(
     static_cast<void>(sources_pour_charge);
 #endif
 
-    if (destination == SourceAdresseAtome::PARAMETRE_SORTIE) {
+    if (destination == SourceAdresseAtome::PARAMÈTRE_SORTIE) {
         espace.rapporte_erreur(stockage.site, "Retour d'une adresse locale.");
     }
     else if (destination == SourceAdresseAtome::GLOBALE) {
@@ -1086,7 +1086,7 @@ static void rapporte_erreur_stockage_invalide(
  * À FAIRE : tests
  * - adresses dans des tableaux ou structures mixtes étant retournés
  */
-static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
+static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
                                                   AtomeFonction const &fonction)
 {
     /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
@@ -1095,7 +1095,7 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         return true;
     }
 
-    auto const taille_sources = numerote_instructions(fonction);
+    auto const taille_sources = numérote_instructions(fonction);
 
     /* Pour chaque instruction, stocke la source de l'adresse. */
     kuri::tableau<SourceAdresseAtome> sources(taille_sources);
@@ -1108,13 +1108,13 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
 
     for (auto i = 0; i < fonction.params_entrees.taille(); i++) {
-        sources[i] = SourceAdresseAtome::PARAMETRE_ENTREE;
-        sources_pour_charge[i] = SourceAdresseAtome::PARAMETRE_ENTREE;
+        sources[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
+        sources_pour_charge[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
     }
 
     int index = fonction.params_entrees.taille();
-    sources[index] = SourceAdresseAtome::PARAMETRE_SORTIE;
-    sources_pour_charge[index] = SourceAdresseAtome::PARAMETRE_SORTIE;
+    sources[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
+    sources_pour_charge[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
 
     POUR (fonction.instructions) {
         if (it->est_alloc()) {
@@ -1136,7 +1136,7 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
                 sources[it->numero] = sources_pour_charge[inst->numero];
             }
             else {
-                sources[it->numero] = determine_source_adresse_atome(
+                sources[it->numero] = détermine_source_adresse_atome(
                     fonction, *it->comme_charge()->chargee, sources);
             }
 
@@ -1144,14 +1144,14 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_transtype()) {
-            sources[it->numero] = determine_source_adresse_atome(
+            sources[it->numero] = détermine_source_adresse_atome(
                 fonction, *it->comme_transtype()->valeur, sources);
             continue;
         }
 
         if (it->est_acces_membre()) {
             auto accede = it->comme_acces_membre()->accede;
-            sources[it->numero] = determine_source_adresse_atome(fonction, *accede, sources);
+            sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
             if (accede->est_instruction()) {
                 sources_pour_charge[it->numero] =
                     sources_pour_charge[accede->comme_instruction()->numero];
@@ -1161,7 +1161,7 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 
         if (it->est_acces_index()) {
             auto accede = it->comme_acces_index()->accede;
-            sources[it->numero] = determine_source_adresse_atome(fonction, *accede, sources);
+            sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
             if (accede->est_instruction()) {
                 sources_pour_charge[it->numero] =
                     sources_pour_charge[accede->comme_instruction()->numero];
@@ -1174,9 +1174,9 @@ static bool detecte_utilisations_adresses_locales(EspaceDeTravail &espace,
             auto const ou = stockage->ou;
             auto const valeur = stockage->valeur;
 
-            auto const source_adresse_destination = determine_source_adresse_atome(
+            auto const source_adresse_destination = détermine_source_adresse_atome(
                 fonction, *ou, sources);
-            auto const source_adresse_source = determine_source_adresse_atome(
+            auto const source_adresse_source = détermine_source_adresse_atome(
                 fonction, *valeur, sources);
 
             if (!est_stockage_valide(
@@ -1225,12 +1225,12 @@ void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
 void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
 {
     POUR (instructions) {
-        visite_operandes_instruction(
+        visite_opérandes_instruction(
             it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
     }
 }
 
-bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc) const
+bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction *inst, int index_bloc) const
 {
     auto idx = connexions_pour_inst.valeur_ou(inst, {});
     POUR (idx) {
@@ -1243,7 +1243,7 @@ bool Graphe::est_uniquement_utilise_dans_bloc(Instruction *inst, int index_bloc)
     return true;
 }
 
-void Graphe::reinitialise()
+void Graphe::réinitialise()
 {
     connexions_pour_inst.reinitialise();
     connexions.efface();
@@ -1354,14 +1354,14 @@ static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
         }
 
         /* Si l'allocation n'est pas uniquement dans ce bloc, ce n'est pas une temporaire. */
-        if (!g.est_uniquement_utilise_dans_bloc(inst0, index_bloc)) {
+        if (!g.est_uniquement_utilisé_dans_bloc(inst0, index_bloc)) {
             continue;
         }
 
         /* Si le chargement n'est pas uniquement dans ce bloc, ce n'est pas une temporaire.
          * Ceci survient notamment dans la génération de code pour les vérifications des bornes des
          * tableaux ou chaines. */
-        if (!g.est_uniquement_utilise_dans_bloc(inst2, index_bloc)) {
+        if (!g.est_uniquement_utilisé_dans_bloc(inst2, index_bloc)) {
             continue;
         }
 
@@ -1445,9 +1445,9 @@ static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
                                                     Instruction *alloc,
-                                                    int debut_recherche)
+                                                    int début_recherche)
 {
-    for (int i = debut_recherche; i < bloc->instructions.taille() - 1; i++) {
+    for (int i = début_recherche; i < bloc->instructions.taille() - 1; i++) {
         auto decalage = est_appel_initialisation(bloc->instructions[i], alloc);
         if (decalage != 0) {
             return i - (decalage - 1);
@@ -1484,14 +1484,14 @@ static void rapproche_allocations_des_stockages(Bloc *bloc)
 #undef IMPRIME_STATS
 
 #ifdef IMPRIME_STATS
-static int instructions_supprimees = 0;
+static int instructions_supprimées = 0;
 static int instructions_totales = 0;
 #endif
 
 static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
 {
     POUR (fonction.instructions) {
-        visite_operandes_instruction(it, [&](Atome *atome_courant) {
+        visite_opérandes_instruction(it, [&](Atome *atome_courant) {
             if (!atome_courant->est_instruction()) {
                 return;
             }
@@ -1551,8 +1551,8 @@ static void supprime_allocations_temporaires(Graphe &graphe,
     instructions_totales += ancien_compte;
 
     if (supprimees != 0) {
-        instructions_supprimees += supprimees;
-        std::cerr << "Supprimé " << instructions_supprimees << " / " << instructions_totales
+        instructions_supprimées += supprimees;
+        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
                   << " instructions\n";
     }
 #endif
@@ -1577,15 +1577,15 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
         return;
     }
 
-    if (!detecte_blocs_invalide(espace, fonction_et_blocs)) {
+    if (!détecte_blocs_invalides(espace, fonction_et_blocs)) {
         return;
     }
 
-    if (!detecte_retour_manquant(espace, fonction_et_blocs)) {
+    if (!détecte_retour_manquant(espace, fonction_et_blocs)) {
         return;
     }
 
-    if (!detecte_utilisations_adresses_locales(espace, *atome)) {
+    if (!détecte_utilisations_adresses_locales(espace, *atome)) {
         return;
     }
 
@@ -1596,7 +1596,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
     valide_fonction(espace, *atome);
 
 #ifdef ANALYSE_RI_PEUT_VERIFIER_VARIABLES_INUTILISEES
-    if (!detecte_declarations_inutilisees(espace, atome)) {
+    if (!détecte_déclarations_inutilisées(espace, atome)) {
         return;
     }
 #endif
@@ -1604,6 +1604,6 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 
 void ContexteAnalyseRI::reinitialise()
 {
-    graphe.reinitialise();
+    graphe.réinitialise();
     fonction_et_blocs.reinitialise();
 }

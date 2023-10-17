@@ -1362,7 +1362,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     if (expr->est_bloc()) {
         auto bloc = expr->comme_bloc();
 
-        auto di = bloc->expressions->derniere();
+        auto di = bloc->expressions->dernière();
         if (di->est_retourne() || di->est_retiens()) {
             return;
         }

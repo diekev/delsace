@@ -54,7 +54,7 @@ void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
     enfant->enleve_parent(this);
     par->ajoute_parent(this);
 
-    auto inst = instructions.derniere();
+    auto inst = instructions.dernière();
 
     if (inst->est_branche()) {
         auto branche = inst->comme_branche();
@@ -107,7 +107,7 @@ void Bloc::enleve_enfant(Bloc *enfant)
         return;
     }
 
-    auto inst = instructions.derniere();
+    auto inst = instructions.dernière();
 
     if (log_actif) {
         std::cerr << "-- dernière inststruction : ";
@@ -356,7 +356,7 @@ static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
     }
 
     if (!blocs_libres.est_vide()) {
-        bloc = blocs_libres.derniere();
+        bloc = blocs_libres.dernière();
         blocs_libres.supprime_dernier();
     }
     else {
