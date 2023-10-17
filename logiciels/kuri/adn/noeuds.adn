@@ -32,7 +32,7 @@ struct NoeudExpression {
     IdentifiantCode * ident [code]
     Type * type [code]
 
-    NoeudBloc * bloc_parent
+    NoeudBloc * bloc_parent [copie]
 
     UniteCompilation * unite
     NoeudCode * noeud_code
@@ -306,7 +306,7 @@ struct NoeudExpressionReference : NoeudExpression {
     @comme référence_déclaration
     @code  NoeudCodeRéférenceDéclaration
 
-    NoeudDéclaration *déclaration_référée
+    NoeudDéclaration *déclaration_référée [copie]
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {
@@ -393,8 +393,8 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
      * -- bloc_parametres (qui contient la déclaration des paramètres d'entrées et de sorties)
      * --- bloc_corps (qui se trouve dans NoeudDéclarationCorpsFonction)
      */
-    NoeudBloc *bloc_constantes
-    NoeudBloc *bloc_parametres
+    NoeudBloc *bloc_constantes [copie]
+    NoeudBloc *bloc_parametres [copie]
 
     chaine_statique nom_broye_
 
@@ -422,7 +422,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
      * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
-    NoeudDéclarationVariable *param_sortie
+    NoeudDéclarationVariable *param_sortie [copie]
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
@@ -486,14 +486,14 @@ struct NoeudStruct : NoeudDéclarationType {
     bool est_union [copie]
     bool est_nonsure [copie]
     bool est_externe [copie]
-    bool est_polymorphe
+    bool est_polymorphe [copie]
     bool est_monomorphisation
     bool est_corps_texte [copie]
     bool est_compacte [copie]
 
     uint32_t alignement_desire
 
-    NoeudBloc *bloc_constantes
+    NoeudBloc *bloc_constantes [copie]
     NoeudExpression * [] arbre_aplatis_params
 
     /* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
@@ -635,11 +635,11 @@ struct NoeudBloc : NoeudExpression {
     @code  NoeudCodeBloc
 
     // NoeudExpression car NoeudPour ne dérive pas de NoeudBoucle
-    NoeudExpression *appartiens_a_boucle
+    NoeudExpression *appartiens_a_boucle [copie]
     // À FAIRE: utilisation de variant
-    NoeudExpression *appartiens_a_differe
+    NoeudExpression *appartiens_a_differe [copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
-    NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents]
+    NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     NoeudInstructionDiffère * [] instructions_différées
