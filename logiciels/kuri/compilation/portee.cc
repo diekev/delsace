@@ -27,18 +27,6 @@ static bool la_fonction_courante_a_changé(NoeudDeclarationEnteteFonction const 
         return false;
     }
 
-    /* Les blocs des opérateurs pour sont copié mais ils référencent l'entête
-     * originale (pour les déclarations des paramètres). Nous ne devons pas
-     * considérer ceci comme un changement de fonction.
-     * NOTE : fonction_courante est l'entête originale, nouvelle_fonction est
-     * la copie car c'est elle qui est pointée par bloc->appartiens_à_fonction. */
-    if (fonction_courante && fonction_courante->est_operateur_pour()) {
-        if (nouvelle_fonction &&
-            nouvelle_fonction->comme_operateur_pour()->original == fonction_courante) {
-            return false;
-        }
-    }
-
     return true;
 }
 
