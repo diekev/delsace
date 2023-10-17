@@ -3500,7 +3500,7 @@ void ConstructriceRI::genere_ri_pour_initialisation_globales(
     fonction_courante = fonction_init;
 
     /* Sauvegarde le retour. */
-    auto di = fonction_init->instructions.derniere();
+    auto di = fonction_init->instructions.dernière();
     fonction_init->instructions.supprime_dernier();
 
     auto constructeurs_globaux = m_compilatrice.constructeurs_globaux.verrou_lecture();

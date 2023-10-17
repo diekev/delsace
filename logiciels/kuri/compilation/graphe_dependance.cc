@@ -307,11 +307,11 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
 
         assert(atome_fonction);
 
-        if (utilises.possede(atome_fonction)) {
+        if (utilises.possède(atome_fonction)) {
             return;
         }
         fonctions.ajoute(atome_fonction);
-        utilises.insere(atome_fonction);
+        utilises.insère(atome_fonction);
     });
 }
 

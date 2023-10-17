@@ -163,7 +163,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
     }
 
     kuri::ensemble<UniteCompilation const *> unite_visite;
-    unite_visite.insere(this);
+    unite_visite.insère(this);
 
     while (attendue) {
         if (attendue->est_prete()) {
@@ -171,7 +171,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
             break;
         }
 
-        if (unite_visite.possede(attendue)) {
+        if (unite_visite.possède(attendue)) {
             fc << "    erreur : dépendance cyclique !\n";
             break;
         }
@@ -181,7 +181,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
         commentaire = commentaire_pour_attente(*attente);
         fc << commentaire << '\n';
 
-        unite_visite.insere(attendue);
+        unite_visite.insère(attendue);
 
         attendue = unité_pour_attente(*attente);
     }
