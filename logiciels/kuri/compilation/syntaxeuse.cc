@@ -1669,35 +1669,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                kuri::tablet<NoeudExpression *, 6> expressions;
-                Lexeme *lexeme_virgule = nullptr;
-
-                while (!fini()) {
-                    auto expr = analyse_expression({}, GenreLexeme::RETIENS, GenreLexeme::VIRGULE);
-                    expressions.ajoute(expr);
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-
-                    if (lexeme_virgule == nullptr) {
-                        lexeme_virgule = lexeme_courant();
-                    }
-
-                    consomme();
-                }
-
-                if (expressions.taille() == 1) {
-                    noeud->expression = expressions[0];
-                }
-                else {
-                    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
-                    copie_tablet_tableau(expressions, virgule->expressions);
-                    noeud->expression = virgule;
-                }
+                noeud->expression = analyse_expression_avec_virgule(GenreLexeme::RETIENS);
             }
-
-            m_noeud_expression_virgule = nullptr;
 
             return noeud;
         }
@@ -1707,36 +1680,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                kuri::tablet<NoeudExpression *, 6> expressions;
-                Lexeme *lexeme_virgule = nullptr;
-
-                while (!fini()) {
-                    auto expr = analyse_expression(
-                        {}, GenreLexeme::RETOURNE, GenreLexeme::VIRGULE);
-                    expressions.ajoute(expr);
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-
-                    if (lexeme_virgule == nullptr) {
-                        lexeme_virgule = lexeme_courant();
-                    }
-
-                    consomme();
-                }
-
-                if (expressions.taille() == 1) {
-                    noeud->expression = expressions[0];
-                }
-                else {
-                    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
-                    copie_tablet_tableau(expressions, virgule->expressions);
-                    noeud->expression = virgule;
-                }
+                noeud->expression = analyse_expression_avec_virgule(GenreLexeme::RETOURNE);
             }
-
-            m_noeud_expression_virgule = nullptr;
 
             return noeud;
         }
@@ -2176,6 +2121,36 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
     noeud->bloc->appartiens_a_boucle = noeud;
 
     return noeud;
+}
+
+NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexeme lexème_racine)
+{
+    kuri::tablet<NoeudExpression *, 6> expressions;
+    Lexeme *lexeme_virgule = nullptr;
+
+    while (!fini()) {
+        auto expr = analyse_expression({}, lexème_racine, GenreLexeme::VIRGULE);
+        expressions.ajoute(expr);
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        if (lexeme_virgule == nullptr) {
+            lexeme_virgule = lexeme_courant();
+        }
+
+        consomme();
+    }
+
+    if (expressions.taille() == 1) {
+        return expressions[0];
+    }
+
+    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
+    copie_tablet_tableau(expressions, virgule->expressions);
+    m_noeud_expression_virgule = nullptr;
+    return virgule;
 }
 
 void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
