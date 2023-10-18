@@ -10,7 +10,7 @@
 struct Bibliotheque;
 
 struct CoulisseC final : public Coulisse {
-    kuri::tableau<Bibliotheque *> m_bibliotheques{};
+    kuri::tableau<Bibliotheque *> m_bibliothèques{};
 
     struct FichierC {
         kuri::chaine chemin_fichier{};
