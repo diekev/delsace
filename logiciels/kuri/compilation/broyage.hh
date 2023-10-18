@@ -30,7 +30,7 @@ class Broyeuse {
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans le type. */
-    kuri::chaine_statique nom_broye_type(Type *type);
+    kuri::chaine_statique nom_broyé_type(Type *type);
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans la fonction. */
