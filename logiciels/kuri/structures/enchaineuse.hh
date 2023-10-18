@@ -50,7 +50,7 @@ struct Enchaineuse {
 
     void permute(Enchaineuse &autre);
 
-    void reinitialise();
+    void réinitialise();
 
     /**
      * Retourne une chaine_statique provenant du premier tampon de l'enchaineuse.
