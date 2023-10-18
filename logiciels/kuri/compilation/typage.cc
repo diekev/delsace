@@ -1905,6 +1905,46 @@ bool est_type_polymorphique(Type const *type)
     return false;
 }
 
+bool est_type_tableau_fixe(Type *type)
+{
+    return type->est_type_tableau_fixe() ||
+           (type->est_type_opaque() &&
+            type->comme_type_opaque()->type_opacifie->est_type_tableau_fixe());
+}
+
+bool est_pointeur_vers_tableau_fixe(Type const *type)
+{
+    if (!type->est_type_pointeur()) {
+        return false;
+    }
+
+    auto const type_pointeur = type->comme_type_pointeur();
+
+    if (!type_pointeur->type_pointe) {
+        return false;
+    }
+
+    return est_type_tableau_fixe(type_pointeur->type_pointe);
+}
+
+/* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
+ * un type dérivé. */
+bool est_structure_info_type_défaut(GenreType genre)
+{
+    switch (genre) {
+        case GenreType::EINI:
+        case GenreType::RIEN:
+        case GenreType::CHAINE:
+        case GenreType::TYPE_DE_DONNEES:
+        case GenreType::REEL:
+        case GenreType::OCTET:
+        case GenreType::BOOL:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,
                                             kuri::tablet<Attente, 16> &attentes)

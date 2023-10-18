@@ -695,28 +695,6 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
-static bool est_type_tableau_fixe(Type *type)
-{
-    return type->est_type_tableau_fixe() ||
-           (type->est_type_opaque() &&
-            type->comme_type_opaque()->type_opacifie->est_type_tableau_fixe());
-}
-
-static bool est_pointeur_vers_tableau_fixe(Type const *type)
-{
-    if (!type->est_type_pointeur()) {
-        return false;
-    }
-
-    auto const type_pointeur = type->comme_type_pointeur();
-
-    if (!type_pointeur->type_pointe) {
-        return false;
-    }
-
-    return est_type_tableau_fixe(type_pointeur->type_pointe);
-}
-
 static void déclare_visibilité_globale(Enchaineuse &os,
                                        AtomeGlobale const *valeur_globale,
                                        bool pour_entête)
@@ -1927,24 +1905,6 @@ static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &b
 
     POUR (bibliothèque->dependances.plage()) {
         rassemble_bibliothèques_utilisées(bibliothèques, utilisées, it);
-    }
-}
-
-/* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
- * un type dérivé. */
-static bool est_structure_info_type_défaut(GenreType genre)
-{
-    switch (genre) {
-        case GenreType::EINI:
-        case GenreType::RIEN:
-        case GenreType::CHAINE:
-        case GenreType::TYPE_DE_DONNEES:
-        case GenreType::REEL:
-        case GenreType::OCTET:
-        case GenreType::BOOL:
-            return true;
-        default:
-            return false;
     }
 }
 
