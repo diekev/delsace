@@ -56,7 +56,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique con
 
 kuri::chaine_statique Broyeuse::broye_nom_simple(kuri::chaine_statique const &nom)
 {
-    stockage_temp.reinitialise();
+    stockage_temp.réinitialise();
     ::broye_nom_simple(stockage_temp, nom);
     return chaine_finale_pour_stockage_temp();
 }
@@ -298,13 +298,13 @@ static void nom_broye_type(Enchaineuse &enchaineuse, Type *type)
     }
 }
 
-kuri::chaine_statique Broyeuse::nom_broye_type(Type *type)
+kuri::chaine_statique Broyeuse::nom_broyé_type(Type *type)
 {
     if (type->nom_broye != "") {
         return type->nom_broye;
     }
 
-    stockage_temp.reinitialise();
+    stockage_temp.réinitialise();
     ::nom_broye_type(stockage_temp, type);
 
     type->nom_broye = chaine_finale_pour_stockage_temp();
@@ -430,7 +430,7 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
 kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
                                                    IdentifiantCode *nom_module)
 {
-    stockage_temp.reinitialise();
+    stockage_temp.réinitialise();
 
     auto type_fonc = decl->type->comme_type_fonction();
 
@@ -461,20 +461,20 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
                     type = type->comme_type_type_de_donnees()->type_connu;
                 }
 
-                nom_broye_type(type);
+                nom_broyé_type(type);
             }
         });
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
         broye_nom_simple(param->valeur->ident);
-        nom_broye_type(param->type);
+        nom_broyé_type(param->type);
     }
 
-    nom_broye_type(type_fonc->type_sortie);
+    nom_broyé_type(type_fonc->type_sortie);
 
     /* Crée le nom broyé. */
-    stockage_temp.reinitialise();
+    stockage_temp.réinitialise();
 
     /* Module et nom. */
     stockage_temp << "_K";

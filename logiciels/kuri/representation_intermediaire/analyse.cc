@@ -17,24 +17,29 @@
 #include "impression.hh"
 #include "instructions.hh"
 
-/* ********************************************************************************************* */
+/* ------------------------------------------------------------------------- */
+/** \name VisiteuseBlocs
+ * \{ */
 
-/* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
- * avoir une porte de sortie.
- *
- * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
- * tous ont un retour défini.
- */
-static bool détecte_retour_manquant(EspaceDeTravail &espace,
-                                    FonctionEtBlocs const &fonction_et_blocs)
+VisiteuseBlocs::VisiteuseBlocs(const FonctionEtBlocs &fonction_et_blocs)
+    : m_fonction_et_blocs(fonction_et_blocs)
 {
-    auto const atome = fonction_et_blocs.fonction;
+}
 
-    kuri::ensemble<Bloc *> blocs_visités;
-    kuri::file<Bloc *> à_visiter;
+void VisiteuseBlocs::prépare_pour_nouvelle_traversée()
+{
+    blocs_visités.efface();
+    à_visiter.efface();
+    à_visiter.enfile(m_fonction_et_blocs.blocs[0]);
+}
 
-    à_visiter.enfile(fonction_et_blocs.blocs[0]);
+bool VisiteuseBlocs::a_visité(Bloc *bloc) const
+{
+    return blocs_visités.possède(bloc);
+}
 
+Bloc *VisiteuseBlocs::bloc_suivant()
+{
     while (!à_visiter.est_vide()) {
         auto bloc_courant = à_visiter.defile();
 
@@ -44,26 +49,45 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
 
         blocs_visités.insère(bloc_courant);
 
-        if (bloc_courant->instructions.est_vide()) {
-            // À FAIRE : précise en quoi une instruction de retour manque.
-            espace
-                .rapporte_erreur(
-                    atome->decl,
-                    "Alors que je traverse tous les chemins possibles à travers une "
-                    "fonction, j'ai trouvé un chemin qui ne retourne pas de la fonction.")
-                .ajoute_message("Erreur : instruction de retour manquante !");
-            return false;
-        }
-
-        auto di = bloc_courant->instructions.dernière();
-
-        if (di->est_retour()) {
-            continue;
-        }
-
         POUR (bloc_courant->enfants) {
             à_visiter.enfile(it);
         }
+
+        return bloc_courant;
+    }
+
+    return nullptr;
+}
+
+/** \} */
+
+/* ********************************************************************************************* */
+
+/* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
+ * avoir une porte de sortie.
+ *
+ * L'algorithme essaye de suivre tous les chemins possibles dans la fonction afin de vérifier que
+ * tous ont un retour défini.
+ */
+static bool détecte_retour_manquant(EspaceDeTravail &espace,
+                                    FonctionEtBlocs const &fonction_et_blocs,
+                                    VisiteuseBlocs &visiteuse)
+{
+    visiteuse.prépare_pour_nouvelle_traversée();
+
+    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
+        if (!bloc_courant->instructions.est_vide()) {
+            continue;
+        }
+
+        // À FAIRE : précise en quoi une instruction de retour manque.
+        auto const atome = fonction_et_blocs.fonction;
+        espace
+            .rapporte_erreur(atome->decl,
+                             "Alors que je traverse tous les chemins possibles à travers une "
+                             "fonction, j'ai trouvé un chemin qui ne retourne pas de la fonction.")
+            .ajoute_message("Erreur : instruction de retour manquante !");
+        return false;
     }
 
 #if 0
@@ -71,7 +95,7 @@ static bool détecte_retour_manquant(EspaceDeTravail &espace,
     // sont les seules instructions de la fonction, donc nous pouvons avoir des blocs vides en fin
     // de fonctions. Mais ce peut également être du code mort après un retour.
     POUR (fonction_et_blocs.blocs) {
-        if (!blocs_visités.possède(it)) {
+        if (!visiteuse.a_visité(it)) {
             imprime_fonction(atome, std::cerr);
             imprime_blocs(fonction_et_blocs.blocs, std::cerr);
             espace
@@ -507,30 +531,15 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
 /* ******************************************************************************************** */
 
-static void marque_blocs_atteignables(Bloc *racine)
+static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
 {
-    kuri::ensemble<Bloc *> blocs_visités;
-    kuri::file<Bloc *> à_visiter;
-
-    à_visiter.enfile(racine);
-
-    while (!à_visiter.est_vide()) {
-        auto bloc_courant = à_visiter.defile();
-
-        if (blocs_visités.possède(bloc_courant)) {
-            continue;
-        }
-
+    visiteuse.prépare_pour_nouvelle_traversée();
+    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
         bloc_courant->est_atteignable = true;
-        blocs_visités.insère(bloc_courant);
-
-        POUR (bloc_courant->enfants) {
-            à_visiter.enfile(it);
-        }
     }
 }
 
-static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
+static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
     POUR (fonction_et_blocs.blocs) {
         if (it->instructions.taille() != 1 || it->parents.taille() == 0) {
@@ -571,7 +580,7 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs)
     kuri::tableau<Bloc *, int> nouveaux_blocs;
     nouveaux_blocs.reserve(fonction_et_blocs.blocs.taille());
 
-    marque_blocs_atteignables(fonction_et_blocs.blocs[0]);
+    marque_blocs_atteignables(visiteuse);
 
     POUR (fonction_et_blocs.blocs) {
         if (!it->est_atteignable) {
@@ -1275,7 +1284,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
         return;
     }
 
-    if (!détecte_retour_manquant(espace, fonction_et_blocs)) {
+    if (!détecte_retour_manquant(espace, fonction_et_blocs, visiteuse)) {
         return;
     }
 
@@ -1283,7 +1292,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
         return;
     }
 
-    supprime_blocs_vides(fonction_et_blocs);
+    supprime_blocs_vides(fonction_et_blocs, visiteuse);
 
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
 

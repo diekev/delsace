@@ -191,7 +191,7 @@ void Enchaineuse::permute(Enchaineuse &autre)
     std::swap(m_tampon_base.suivant, autre.m_tampon_base.suivant);
 }
 
-void Enchaineuse::reinitialise()
+void Enchaineuse::réinitialise()
 {
     auto t = &m_tampon_base;
     while (t) {
