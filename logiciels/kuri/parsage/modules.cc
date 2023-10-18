@@ -180,13 +180,13 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     }
 
     auto const index_ligne = site.index_ligne;
-    auto const numero_ligne = site.index_ligne + 1;
+    auto const numero_ligne = site.index_ligne + fichier->decalage_fichier + 1;
     auto const index_colonne = site.index_colonne;
     auto const texte_ligne = fichier->tampon()[index_ligne];
     auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTEE ? ".chaine_ajoutées" :
                                                                      fichier->chemin();
 
-    enchaineuse << chemin << ':' << numero_ligne + fichier->decalage_fichier;
+    enchaineuse << chemin << ':' << numero_ligne;
 
     if (index_colonne != -1) {
         enchaineuse << ':' << index_colonne;
