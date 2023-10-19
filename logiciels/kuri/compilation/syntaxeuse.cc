@@ -1797,6 +1797,11 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
         }
 
         if (ignore_point_virgule_implicite()) {
+            if (!apparie(GenreLexeme::PARENTHESE_FERMANTE) && !apparie(GenreLexeme::VIRGULE)) {
+                rapporte_erreur(
+                    "Attendu une parenthèse fermante ou une virgule après la nouvelle ligne");
+            }
+
             continue;
         }
 
