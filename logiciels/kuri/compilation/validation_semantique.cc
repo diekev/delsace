@@ -313,15 +313,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto pre_executable = noeud->comme_pre_executable();
             auto fichier = m_compilatrice.fichier(pre_executable->lexeme->fichier);
             auto module = fichier->module;
-            if (module->directive_pre_executable) {
+            if (module->directive_pré_exécutable) {
                 espace
                     ->rapporte_erreur(
                         noeud, "Le module possède déjà une directive d'exécution pré-exécutable")
                     .ajoute_message("La première directive fut déclarée ici :")
-                    .ajoute_site(module->directive_pre_executable);
+                    .ajoute_site(module->directive_pré_exécutable);
                 return CodeRetourValidation::Erreur;
             }
-            module->directive_pre_executable = pre_executable;
+            module->directive_pré_exécutable = pre_executable;
             /* NOTE : le métaprogramme ne sera exécuté qu'à la fin de la génération de code. */
             cree_metaprogramme_pour_directive(pre_executable);
             pre_executable->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -361,7 +361,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
             }
             else {
-                fichier->modules_importes.insere(module);
+                fichier->modules_importés.insere(module);
                 auto noeud_module = m_tacheronne.assembleuse
                                         ->cree_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                         ->comme_declaration_module();

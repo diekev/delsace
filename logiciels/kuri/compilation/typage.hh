@@ -780,8 +780,8 @@ bool requiers_création_fonction_initialisation(Type const *type);
 /** \name Accès aux membres des types composés.
  * \{ */
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_type(
-    TypeCompose const *type_composé, Type const *type);
+std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose const *type_composé,
+                                                                   Type const *type);
 
 std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_membre);
@@ -845,6 +845,14 @@ inline bool est_type_entier(Type const *type)
 }
 
 bool est_type_booleen_implicite(Type *type);
+
+bool est_type_tableau_fixe(Type *type);
+
+bool est_pointeur_vers_tableau_fixe(Type const *type);
+
+/* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
+ * un type dérivé. */
+bool est_structure_info_type_défaut(GenreType genre);
 
 void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alignement_desire);
 

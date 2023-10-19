@@ -128,11 +128,11 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     auto module = this->trouve_ou_cree_module(
         table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier), chemin_absolu);
 
-    if (module->importe) {
+    if (module->importé) {
         return module;
     }
 
-    module->importe = true;
+    module->importé = true;
 
     messagere->ajoute_message_module_ouvert(espace, module);
 
@@ -172,7 +172,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
         if (resultat.est<FichierNeuf>()) {
             auto donnees_fichier = resultat.resultat<FichierNeuf>().fichier;
-            if (!donnees_fichier->fut_charge) {
+            if (!donnees_fichier->fut_chargé) {
                 const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
                 donnees_fichier->charge_tampon(lng::tampon_source(source));
             }
@@ -247,7 +247,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
     memoire += messagere->memoire_utilisee();
 
-    memoire += sys_module->memoire_utilisee();
+    memoire += sys_module->mémoire_utilisée();
 
     auto metaprogrammes_ = metaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
@@ -295,8 +295,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     données_constantes_exécutions.rassemble_statistiques(stats);
 
-    stats_ri.fusionne_entree({"fonctions", fonctions.taille(), memoire_fonctions});
-    stats_ri.fusionne_entree({"globales", globales.taille(), globales.memoire_utilisee()});
+    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), memoire_fonctions});
+    stats_ri.fusionne_entrée({"globales", globales.taille(), globales.memoire_utilisee()});
 }
 
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
@@ -394,8 +394,8 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     assert(resultat.est<FichierNeuf>());
 
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
-    fichier->source = SourceFichier::CHAINE_AJOUTEE;
-    fichier->decalage_fichier = decalage;
+    fichier->source = SourceFichier::CHAINE_AJOUTÉE;
+    fichier->décalage_fichier = decalage;
     fichier->site = site;
     fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
     gestionnaire_code->requiers_lexage(espace, fichier);
@@ -450,7 +450,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
 
     if (resultat.est<FichierExistant>()) {
         auto donnees_fichier = resultat.resultat<FichierExistant>().fichier;
-        auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
+        auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
         m_tableaux_lexemes.ajoute(tableau);
         return m_tableaux_lexemes.dernière();
     }
@@ -463,7 +463,7 @@ kuri::tableau_statique<kuri::Lexeme> Compilatrice::lexe_fichier(EspaceDeTravail 
         contexte_lexage(espace), donnees_fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    auto tableau = converti_tableau_lexemes(donnees_fichier->lexemes);
+    auto tableau = converti_tableau_lexemes(donnees_fichier->lexèmes);
     m_tableaux_lexemes.ajoute(tableau);
     return m_tableaux_lexemes.dernière();
 }
@@ -489,14 +489,14 @@ kuri::tableau_statique<NoeudCodeEnteteFonction *> Compilatrice::fonctions_parsee
 Module *Compilatrice::trouve_ou_cree_module(IdentifiantCode *nom_module,
                                             kuri::chaine_statique chemin)
 {
-    auto module = sys_module->trouve_ou_cree_module(nom_module, chemin);
+    auto module = sys_module->trouve_ou_crée_module(nom_module, chemin);
 
     /* Initialise les chemins des bibliothèques internes au module. */
-    if (module->chemin_bibliotheque_32bits.taille() == 0) {
-        module->chemin_bibliotheque_32bits = module->chemin() /
+    if (module->chemin_bibliothèque_32bits.taille() == 0) {
+        module->chemin_bibliothèque_32bits = module->chemin() /
                                              suffixe_chemin_module_pour_bibliotheque(
                                                  ArchitectureCible::X86);
-        module->chemin_bibliotheque_64bits = module->chemin() /
+        module->chemin_bibliothèque_64bits = module->chemin() /
                                              suffixe_chemin_module_pour_bibliotheque(
                                                  ArchitectureCible::X64);
     }
@@ -520,7 +520,7 @@ ResultatFichier Compilatrice::trouve_ou_cree_fichier(Module *module,
         auto fichier_neuf = resultat_fichier.resultat<FichierNeuf>().fichier;
         if (importe_kuri_ && module->nom() != ID::Kuri) {
             assert(module_kuri);
-            fichier_neuf->modules_importes.insere(module_kuri);
+            fichier_neuf->modules_importés.insere(module_kuri);
         }
     }
 
@@ -547,12 +547,12 @@ Fichier *Compilatrice::cree_fichier_pour_metaprogramme(MetaProgramme *metaprogra
     auto resultat_fichier = this->trouve_ou_cree_fichier(module, nom_fichier, nom_fichier, false);
     assert(resultat_fichier.est<FichierNeuf>());
     auto resultat = resultat_fichier.resultat<FichierNeuf>().fichier;
-    resultat->metaprogramme_corps_texte = metaprogramme_;
-    resultat->source = SourceFichier::CHAINE_AJOUTEE;
+    resultat->métaprogramme_corps_texte = metaprogramme_;
+    resultat->source = SourceFichier::CHAINE_AJOUTÉE;
     metaprogramme_->fichier = resultat;
     /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
      * également accéder aux symboles de ces modules. */
-    resultat->modules_importes = fichier_racine->modules_importes;
+    resultat->modules_importés = fichier_racine->modules_importés;
     return resultat;
 }
 

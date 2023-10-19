@@ -282,10 +282,10 @@ void Tacheronne::gere_tache()
             {
                 auto fichier = tache.unite->fichier;
 
-                if (!fichier->fut_charge) {
+                if (!fichier->fut_chargé) {
                     fichier->mutex.lock();
 
-                    if (!fichier->fut_charge) {
+                    if (!fichier->fut_chargé) {
                         auto debut_chargement = dls::chrono::compte_seconde();
                         auto texte = charge_contenu_fichier(
                             dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
@@ -299,7 +299,7 @@ void Tacheronne::gere_tache()
                     fichier->mutex.unlock();
                 }
 
-                if (fichier->fut_charge) {
+                if (fichier->fut_chargé) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 else {
@@ -315,7 +315,7 @@ void Tacheronne::gere_tache()
                 auto unite = tache.unite;
                 auto fichier = unite->fichier;
 
-                if (!fichier->fut_lexe) {
+                if (!fichier->fut_lexé) {
                     fichier->mutex.lock();
 
                     if (!fichier->en_lexage) {
@@ -331,7 +331,7 @@ void Tacheronne::gere_tache()
                     fichier->mutex.unlock();
                 }
 
-                if (fichier->fut_lexe) {
+                if (fichier->fut_lexé) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 else {
@@ -348,7 +348,7 @@ void Tacheronne::gere_tache()
                 auto debut_parsage = dls::chrono::compte_seconde();
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
-                unite->fichier->fut_parse = true;
+                unite->fichier->fut_parsé = true;
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 temps_parsage += debut_parsage.temps();
                 break;
@@ -672,7 +672,7 @@ void Tacheronne::execute_metaprogrammes()
 
                 fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
 
-                fichier->decalage_fichier = compilatrice.chaines_ajoutees_a_la_compilation->ajoute(
+                fichier->décalage_fichier = compilatrice.chaines_ajoutees_a_la_compilation->ajoute(
                     resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
