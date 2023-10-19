@@ -7,7 +7,7 @@
 
 namespace kuri {
 
-enum class DecisionIteration { Arrete, Continue };
+enum class DécisionItération { Arrête, Continue };
 
 template <typename T>
 class ensemble {
@@ -107,7 +107,7 @@ class ensemble {
                 continue;
             }
 
-            if (rappel(cles[i]) == DecisionIteration::Arrete) {
+            if (rappel(cles[i]) == DécisionItération::Arrête) {
                 break;
             }
         }

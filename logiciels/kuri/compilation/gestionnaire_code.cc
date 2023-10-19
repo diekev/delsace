@@ -235,11 +235,11 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
                                     "Utilisation d'une fonction d'interface de la compilatrice "
                                     "dans un programme final. Cette fonction ne peut qu'être "
                                     "utilisée dans un métaprogramme.");
-            return kuri::DecisionIteration::Arrete;
+            return kuri::DécisionItération::Arrête;
         }
 
         programme.ajoute_fonction(const_cast<NoeudDeclarationEnteteFonction *>(fonction));
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     if (possede_erreur) {
@@ -249,13 +249,13 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
     /* Ajoute les globales. */
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         programme.ajoute_globale(const_cast<NoeudDeclarationVariable *>(globale));
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les types. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     auto dependances_manquantes = programme.dépendances_manquantes();
@@ -595,7 +595,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
@@ -603,7 +603,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
         if (!globale->unite) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de tous les types utilisés. */
@@ -646,7 +646,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
             }
         }
 
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 }
 
@@ -782,7 +782,7 @@ void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fic
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
 {
-    assert(fichier->fut_charge);
+    assert(fichier->fut_chargé);
     TACHE_AJOUTEE(LEXAGE);
     auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
@@ -790,7 +790,7 @@ void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier
 
 void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichier)
 {
-    assert(fichier->fut_lexe);
+    assert(fichier->fut_lexé);
     TACHE_AJOUTEE(PARSAGE);
     auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
@@ -1090,7 +1090,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
 void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
-    assert(unite->fichier->fut_charge);
+    assert(unite->fichier->fut_chargé);
 
     auto espace = unite->espace;
     TACHE_TERMINEE(CHARGEMENT, true);
@@ -1106,7 +1106,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
-    assert(unite->fichier->fut_lexe);
+    assert(unite->fichier->fut_lexé);
 
     auto espace = unite->espace;
     TACHE_TERMINEE(LEXAGE, true);
@@ -1121,7 +1121,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
 void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
-    assert(unite->fichier->fut_parse);
+    assert(unite->fichier->fut_parsé);
     auto espace = unite->espace;
     TACHE_TERMINEE(PARSAGE, true);
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
@@ -1260,7 +1260,7 @@ static bool declaration_est_invalide(NoeudExpression *decl)
     return true;
 }
 
-static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_module)
+static bool verifie_que_toutes_les_entetes_sont_validees(SystèmeModule &sys_module)
 {
     POUR_TABLEAU_PAGE (sys_module.modules) {
         /* Il est possible d'avoir un module vide. */
@@ -1274,11 +1274,11 @@ static bool verifie_que_toutes_les_entetes_sont_validees(SystemeModule &sys_modu
 
         if (it.fichiers_sont_sales) {
             for (auto fichier : it.fichiers) {
-                if (!fichier->fut_charge) {
+                if (!fichier->fut_chargé) {
                     return false;
                 }
 
-                if (!fichier->fut_parse) {
+                if (!fichier->fut_parsé) {
                     return false;
                 }
             }
@@ -1609,7 +1609,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
     pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
         ordonnanceuse.supprime_toutes_les_taches_pour_espace(
             espace, UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     if (m_compilatrice->possede_erreur()) {
@@ -1766,19 +1766,19 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     auto executions_requises = false;
     auto executions_en_cours = false;
     modules.pour_chaque_element([&](Module *module) {
-        auto execute = module->directive_pre_executable;
+        auto execute = module->directive_pré_exécutable;
         if (!execute) {
             return;
         }
 
-        if (!module->execution_directive_requise) {
+        if (!module->exécution_directive_requise) {
             /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
              * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
              * dans l'espace demandant son exécution afin que le compte de taches d'exécution dans
              * l'espace soit cohérent. */
             execute->metaprogramme->programme->change_d_espace(espace);
             requiers_compilation_metaprogramme(espace, execute->metaprogramme);
-            module->execution_directive_requise = true;
+            module->exécution_directive_requise = true;
             executions_requises = true;
         }
 

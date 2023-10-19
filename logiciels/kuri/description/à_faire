@@ -32,13 +32,6 @@ réusine opérateurs (partage entre types)
 Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
     - nous ne devrions utiliser que la fonction du module courant
 
-Les numérotations de lignes pour les erreurs des chaines ajoutées ne prennent pas en compte le décalage
-    exemple 9971 au lieu de 9991:
-    Erreur : .chaine_ajoutées:9991:34 : 
-    9971 |     _ := noeud_branche_arbre(ctx, val0)
-         |                                   ^~~~
-
-
 // -----------------------------------
 // Architecture/Qualité de code
 
