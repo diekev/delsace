@@ -524,11 +524,11 @@ void Syntaxeuse::quand_commence()
     /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
-    if (!m_fichier->metaprogramme_corps_texte) {
+    if (!m_fichier->métaprogramme_corps_texte) {
         return;
     }
 
-    auto metaprogramme = m_fichier->metaprogramme_corps_texte;
+    auto metaprogramme = m_fichier->métaprogramme_corps_texte;
 
     if (metaprogramme->corps_texte_pour_fonction) {
         auto recipiente = metaprogramme->corps_texte_pour_fonction;
@@ -1669,35 +1669,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                kuri::tablet<NoeudExpression *, 6> expressions;
-                Lexeme *lexeme_virgule = nullptr;
-
-                while (!fini()) {
-                    auto expr = analyse_expression({}, GenreLexeme::RETIENS, GenreLexeme::VIRGULE);
-                    expressions.ajoute(expr);
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-
-                    if (lexeme_virgule == nullptr) {
-                        lexeme_virgule = lexeme_courant();
-                    }
-
-                    consomme();
-                }
-
-                if (expressions.taille() == 1) {
-                    noeud->expression = expressions[0];
-                }
-                else {
-                    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
-                    copie_tablet_tableau(expressions, virgule->expressions);
-                    noeud->expression = virgule;
-                }
+                noeud->expression = analyse_expression_avec_virgule(GenreLexeme::RETIENS);
             }
-
-            m_noeud_expression_virgule = nullptr;
 
             return noeud;
         }
@@ -1707,36 +1680,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             if (apparie_expression()) {
-                kuri::tablet<NoeudExpression *, 6> expressions;
-                Lexeme *lexeme_virgule = nullptr;
-
-                while (!fini()) {
-                    auto expr = analyse_expression(
-                        {}, GenreLexeme::RETOURNE, GenreLexeme::VIRGULE);
-                    expressions.ajoute(expr);
-
-                    if (!apparie(GenreLexeme::VIRGULE)) {
-                        break;
-                    }
-
-                    if (lexeme_virgule == nullptr) {
-                        lexeme_virgule = lexeme_courant();
-                    }
-
-                    consomme();
-                }
-
-                if (expressions.taille() == 1) {
-                    noeud->expression = expressions[0];
-                }
-                else {
-                    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
-                    copie_tablet_tableau(expressions, virgule->expressions);
-                    noeud->expression = virgule;
-                }
+                noeud->expression = analyse_expression_avec_virgule(GenreLexeme::RETOURNE);
             }
-
-            m_noeud_expression_virgule = nullptr;
 
             return noeud;
         }
@@ -1852,6 +1797,11 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
         }
 
         if (ignore_point_virgule_implicite()) {
+            if (!apparie(GenreLexeme::PARENTHESE_FERMANTE) && !apparie(GenreLexeme::VIRGULE)) {
+                rapporte_erreur(
+                    "Attendu une parenthèse fermante ou une virgule après la nouvelle ligne");
+            }
+
             continue;
         }
 
@@ -2176,6 +2126,36 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
     noeud->bloc->appartiens_a_boucle = noeud;
 
     return noeud;
+}
+
+NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(GenreLexeme lexème_racine)
+{
+    kuri::tablet<NoeudExpression *, 6> expressions;
+    Lexeme *lexeme_virgule = nullptr;
+
+    while (!fini()) {
+        auto expr = analyse_expression({}, lexème_racine, GenreLexeme::VIRGULE);
+        expressions.ajoute(expr);
+
+        if (!apparie(GenreLexeme::VIRGULE)) {
+            break;
+        }
+
+        if (lexeme_virgule == nullptr) {
+            lexeme_virgule = lexeme_courant();
+        }
+
+        consomme();
+    }
+
+    if (expressions.taille() == 1) {
+        return expressions[0];
+    }
+
+    auto virgule = m_tacheronne.assembleuse->cree_virgule(lexeme_virgule);
+    copie_tablet_tableau(expressions, virgule->expressions);
+    m_noeud_expression_virgule = nullptr;
+    return virgule;
 }
 
 void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations)
