@@ -446,8 +446,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto resultat = compilatrice.trouve_ou_cree_fichier(module, "", "", true);
         auto fichier = resultat.resultat<FichierNeuf>().fichier;
         fichier->charge_tampon(lng::tampon_source("texte_test"));
-        fichier->lexemes = lexemes;
-        fichier->fut_lexe = true;
+        fichier->lexèmes = lexemes;
+        fichier->fut_lexé = true;
 
         auto unite = UniteCompilation(espace);
         auto analyseuse = Syntaxeuse(tacheronne, &unite);

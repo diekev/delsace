@@ -3488,7 +3488,7 @@ AtomeConstante *ConstructriceRI::cree_chaine(kuri::chaine_statique chaine)
         constante_chaine = cree_constante_structure(type_chaine, std::move(membres));
     }
 
-    table_chaines->insere(chaine, constante_chaine);
+    table_chaines->insère(chaine, constante_chaine);
 
     return constante_chaine;
 }
@@ -3754,7 +3754,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     auto &stats_ri = stats.stats_ri;
 
 #define AJOUTE_ENTREE(Tableau)                                                                    \
-    stats_ri.fusionne_entree({#Tableau, Tableau.taille(), Tableau.memoire_utilisee()});
+    stats_ri.fusionne_entrée({#Tableau, Tableau.taille(), Tableau.memoire_utilisee()});
 
     AJOUTE_ENTREE(atomes_constante)
     AJOUTE_ENTREE(insts_allocation)
@@ -3781,5 +3781,5 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     pour_chaque_element(insts_appel,
                         [&](InstructionAppel const &it) { memoire += it.args.taille_memoire(); });
 
-    stats_ri.fusionne_entree({"insts_appel", insts_appel.taille(), memoire});
+    stats_ri.fusionne_entrée({"insts_appel", insts_appel.taille(), memoire});
 }

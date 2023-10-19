@@ -523,9 +523,9 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     }
 
     auto &stats_ops = stats.stats_operateurs;
-    stats_ops.fusionne_entree({"OperateurUnaire", nombre_unaires, memoire_unaires});
-    stats_ops.fusionne_entree({"OperateurBinaire", nombre_binaires, memoire_binaires});
-    stats_ops.fusionne_entree({"TableOpérateurs", nombre_tables, memoire_tables});
+    stats_ops.fusionne_entrée({"OperateurUnaire", nombre_unaires, memoire_unaires});
+    stats_ops.fusionne_entrée({"OperateurBinaire", nombre_binaires, memoire_binaires});
+    stats_ops.fusionne_entrée({"TableOpérateurs", nombre_tables, memoire_tables});
 }
 
 void RegistreDesOpérateurs::ajoute_opérateurs_comparaison(Type *pour_type, IndiceTypeOp indice)

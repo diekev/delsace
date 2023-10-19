@@ -134,7 +134,7 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
     }
 
     auto &stats_graphe = stats.stats_graphe_dependance;
-    stats_graphe.fusionne_entree({"NoeudDependance", noeuds.taille(), memoire});
+    stats_graphe.fusionne_entrée({"NoeudDependance", noeuds.taille(), memoire});
 }
 
 void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees)
@@ -142,21 +142,21 @@ void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependa
     kuri::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
         auto noeud_type = cree_noeud_type(type);
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     kuri::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
         auto noeud_type = cree_noeud_fonction(
             const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     kuri::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee) {
         auto noeud_type = cree_noeud_globale(
             const_cast<NoeudDeclarationVariable *>(globale_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 }
 
@@ -363,21 +363,21 @@ void imprime_dependances(const DonneesDependance &dependances,
     flux << "fonctions :\n";
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         erreur::imprime_site(*espace, fonction);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     flux << "globales :\n";
     /* Requiers le typage de toutes les déclarations utilisées. */
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
         erreur::imprime_site(*espace, globale);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     flux << "types :\n";
     /* Requiers le typage de tous les types utilisés. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         flux << chaine_type(type) << '\n';
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 }
 
@@ -394,19 +394,19 @@ void DonneesDependance::fusionne(const DonneesDependance &autre)
         else {
             types_utilises.insere(type);
         }
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     pour_chaque_element(autre.fonctions_utilisees, [&](auto &fonction) {
         fonctions_utilisees.insere(fonction);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     /* Ajoute les nouveaux types aux dépendances courantes. */
     pour_chaque_element(autre.globales_utilisees, [&](auto &globale) {
         globales_utilisees.insere(globale);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 }
 
