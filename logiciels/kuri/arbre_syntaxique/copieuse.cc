@@ -20,7 +20,7 @@ NoeudExpression *Copieuse::trouve_copie(const NoeudExpression *racine)
 
 void Copieuse::insere_copie(const NoeudExpression *racine, NoeudExpression *copie)
 {
-    noeuds_copies.insere(racine, copie);
+    noeuds_copies.insère(racine, copie);
 }
 
 NoeudExpression *copie_noeud(AssembleuseArbre *assem,

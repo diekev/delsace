@@ -524,11 +524,11 @@ void Syntaxeuse::quand_commence()
     /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
-    if (!m_fichier->metaprogramme_corps_texte) {
+    if (!m_fichier->métaprogramme_corps_texte) {
         return;
     }
 
-    auto metaprogramme = m_fichier->metaprogramme_corps_texte;
+    auto metaprogramme = m_fichier->métaprogramme_corps_texte;
 
     if (metaprogramme->corps_texte_pour_fonction) {
         auto recipiente = metaprogramme->corps_texte_pour_fonction;

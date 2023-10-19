@@ -816,7 +816,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
     }
 
     auto resultat = types_type_de_donnees_->ajoute_element(type_connu);
-    table_types_de_donnees.insere(type_connu, resultat);
+    table_types_de_donnees.insère(type_connu, resultat);
     return resultat;
 }
 
@@ -1000,72 +1000,72 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
 
     auto &stats_types = stats.stats_types;
 
-    stats_types.fusionne_entree({DONNEES_ENTREE(Type, types_simples)});
-    stats_types.fusionne_entree({DONNEES_ENTREE(TypePointeur, types_pointeurs)});
-    stats_types.fusionne_entree({DONNEES_ENTREE(TypeReference, types_references)});
-    stats_types.fusionne_entree({DONNEES_ENTREE(TypeTypeDeDonnees, types_type_de_donnees)});
-    stats_types.fusionne_entree({DONNEES_ENTREE(TypePolymorphique, types_polymorphiques)});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(Type, types_simples)});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(TypePointeur, types_pointeurs)});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(TypeReference, types_references)});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(TypeTypeDeDonnees, types_type_de_donnees)});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(TypePolymorphique, types_polymorphiques)});
 
     auto memoire_membres_structures = 0l;
     POUR_TABLEAU_PAGE ((*types_structures.verrou_lecture())) {
         memoire_membres_structures += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeStructure, types_structures) + memoire_membres_structures});
 
     auto memoire_membres_enums = 0l;
     POUR_TABLEAU_PAGE ((*types_enums.verrou_lecture())) {
         memoire_membres_enums += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree({DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums});
+    stats_types.fusionne_entrée({DONNEES_ENTREE(TypeEnum, types_enums) + memoire_membres_enums});
 
     auto memoire_membres_unions = 0l;
     POUR_TABLEAU_PAGE ((*types_unions.verrou_lecture())) {
         memoire_membres_unions += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeUnion, types_unions) + memoire_membres_unions});
 
     auto memoire_membres_tuples = 0l;
     POUR_TABLEAU_PAGE ((*types_tuples.verrou_lecture())) {
         memoire_membres_tuples += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeTuple, types_tuples) + memoire_membres_tuples});
 
     auto memoire_membres_tfixes = 0l;
     POUR_TABLEAU_PAGE ((*types_tableaux_fixes.verrou_lecture())) {
         memoire_membres_tfixes += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeTableauFixe, types_tableaux_fixes) + memoire_membres_tfixes});
 
     auto memoire_membres_tdyns = 0l;
     POUR_TABLEAU_PAGE ((*types_tableaux_dynamiques.verrou_lecture())) {
         memoire_membres_tdyns += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeTableauDynamique, types_tableaux_dynamiques) + memoire_membres_tdyns});
 
     auto memoire_membres_tvars = 0l;
     POUR_TABLEAU_PAGE ((*types_variadiques.verrou_lecture())) {
         memoire_membres_tvars += it.membres.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeVariadique, types_variadiques) + memoire_membres_tvars});
 
     auto memoire_params_fonctions = 0l;
     POUR_TABLEAU_PAGE ((*types_fonctions.verrou_lecture())) {
         memoire_params_fonctions += it.types_entrees.taille_memoire();
     }
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions});
 
-    stats_types.fusionne_entree(
+    stats_types.fusionne_entrée(
         {"eini",
          1,
          taille_de(TypeCompose) + taille_de(TypeCompose *) + type_eini->membres.taille_memoire()});
-    stats_types.fusionne_entree({"chaine",
+    stats_types.fusionne_entrée({"chaine",
                                  1,
                                  taille_de(TypeCompose) + taille_de(TypeCompose *) +
                                      type_chaine->membres.taille_memoire()});
@@ -1954,7 +1954,7 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
 
     pour_chaque_element(types, [&pile](auto &type) {
         pile.empile(type);
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     while (!pile.est_vide()) {
@@ -2087,11 +2087,11 @@ void Trie::StockageEnfants::ajoute(Noeud *noeud)
     if (enfants.taille() >= TAILLE_MAX_ENFANTS_TABLET) {
         if (table.taille() == 0) {
             POUR (enfants) {
-                table.insere(it->type, it);
+                table.insère(it->type, it);
             }
         }
 
-        table.insere(noeud->type, noeud);
+        table.insère(noeud->type, noeud);
         return;
     }
 

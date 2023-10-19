@@ -351,15 +351,15 @@ void Programme::verifie_etat_compilation_fichier(DiagnostiqueÉtatCompilation &d
     }
 
     POUR (m_fichiers) {
-        if (!it->fut_charge) {
+        if (!it->fut_chargé) {
             diagnostique.tous_les_fichiers_sont_chargés = false;
         }
 
-        if (!it->fut_lexe) {
+        if (!it->fut_lexé) {
             diagnostique.tous_les_fichiers_sont_lexés = false;
         }
 
-        if (!it->fut_parse) {
+        if (!it->fut_parsé) {
             diagnostique.tous_les_fichiers_sont_parsés = false;
         }
     }

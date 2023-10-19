@@ -682,7 +682,7 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
     if (site) {
         const auto fichier = compilatrice.fichier(site->lexeme->fichier);
         const auto module = fichier->module;
-        dossiers.ajoute(module->chemin_bibliotheque_32bits);
+        dossiers.ajoute(module->chemin_bibliothèque_32bits);
     }
 
     POUR (chemins_syteme_i386) {
@@ -699,7 +699,7 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
     if (site) {
         const auto fichier = compilatrice.fichier(site->lexeme->fichier);
         const auto module = fichier->module;
-        dossiers.ajoute(module->chemin_bibliotheque_64bits);
+        dossiers.ajoute(module->chemin_bibliothèque_64bits);
     }
 
     POUR (chemins_syteme_x86_64) {

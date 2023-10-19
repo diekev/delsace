@@ -79,7 +79,7 @@ struct ConvertisseuseTypeC {
         type_c = types_c.ajoute_element();
         type_c->type_kuri = type;
         type_c->nom = broyeuse.nom_broyé_type(type);
-        table_types_c.insere(type, type_c);
+        table_types_c.insère(type, type_c);
         return *type_c;
     }
 
@@ -1187,12 +1187,12 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             if (inst->ident != nullptr) {
                 auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
                 os << ' ' << nom << ";\n";
-                table_valeurs.insere(inst, enchaine("&", nom));
+                table_valeurs.insère(inst, enchaine("&", nom));
             }
             else {
                 auto nom = enchaine("val", inst->numero);
                 os << ' ' << nom << ";\n";
-                table_valeurs.insere(inst, enchaine("&", nom));
+                table_valeurs.insère(inst, enchaine("&", nom));
             }
 
             break;
@@ -1216,7 +1216,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 auto nom_ret = enchaine("__ret", inst->numero);
                 os << broyeuse.nom_broyé_type(const_cast<Type *>(inst_appel->type)) << ' '
                    << nom_ret << " = ";
-                table_valeurs.insere(inst, nom_ret);
+                table_valeurs.insère(inst, nom_ret);
             }
 
             os << génère_code_pour_atome(inst_appel->appele, os, false);
@@ -1277,14 +1277,14 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
                         charge->type->comme_type_pointeur()->type_pointe)) {
-                    table_valeurs.insere(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
+                    table_valeurs.insère(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
                 }
                 else {
-                    table_valeurs.insere(inst_charge, valeur.sous_chaine(1));
+                    table_valeurs.insère(inst_charge, valeur.sous_chaine(1));
                 }
             }
             else {
-                table_valeurs.insere(inst_charge, enchaine("(*", valeur, ")"));
+                table_valeurs.insère(inst_charge, enchaine("(*", valeur, ")"));
             }
 
             break;
@@ -1365,7 +1365,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur;
             os << ";\n";
 
-            table_valeurs.insere(inst, enchaine("val", inst->numero));
+            table_valeurs.insère(inst, enchaine("val", inst->numero));
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1488,7 +1488,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur_droite;
             os << ";\n";
 
-            table_valeurs.insere(inst, enchaine("val", inst->numero));
+            table_valeurs.insère(inst, enchaine("val", inst->numero));
 
             break;
         }
@@ -1520,7 +1520,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 
             auto valeur = enchaine(valeur_accédée, "[", valeur_index, "]");
-            table_valeurs.insere(inst, valeur);
+            table_valeurs.insère(inst, valeur);
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
@@ -1589,7 +1589,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 #endif
 
-            table_valeurs.insere(inst_accès, valeur_accédée);
+            table_valeurs.insère(inst_accès, valeur_accédée);
             break;
         }
         case Instruction::Genre::TRANSTYPE:
@@ -1601,7 +1601,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                               ")(",
                               valeur,
                               "))");
-            table_valeurs.insere(inst, valeur);
+            table_valeurs.insère(inst, valeur);
             break;
         }
     }
@@ -1619,12 +1619,12 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     if (valeur_globale->ident) {
         auto nom_globale = broyeuse.broye_nom_simple(valeur_globale->ident);
         os << nom_globale;
-        table_globales.insere(valeur_globale, enchaine("&", nom_globale));
+        table_globales.insère(valeur_globale, enchaine("&", nom_globale));
     }
     else {
         auto nom_globale = enchaine("globale", valeur_globale);
         os << nom_globale;
-        table_globales.insere(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+        table_globales.insère(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
     }
 }
 
@@ -1705,7 +1705,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
     for (auto param : atome_fonc->params_entrees) {
-        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+        table_valeurs.insère(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
     }
 
     os << "\n{\n";
@@ -1725,7 +1725,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         os << broyeuse.broye_nom_simple(param->ident);
         os << ";\n";
 
-        table_valeurs.insere(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+        table_valeurs.insère(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
     }
 
     /* Générons le code pour les accès de membres des retours mutliples. */

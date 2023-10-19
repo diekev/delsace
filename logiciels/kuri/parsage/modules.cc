@@ -19,13 +19,13 @@
 bool Fichier::importe_module(IdentifiantCode *nom_module) const
 {
     bool importe = false;
-    pour_chaque_element(modules_importes, [nom_module, &importe](Module *module_) {
+    pour_chaque_element(modules_importés, [nom_module, &importe](Module *module_) {
         if (module_->nom() == nom_module) {
             importe = true;
-            return kuri::DecisionIteration::Arrete;
+            return kuri::DécisionItération::Arrête;
         }
 
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
     return importe;
 }
@@ -36,12 +36,12 @@ void Module::ajoute_fichier(Fichier *fichier)
     fichiers_sont_sales = true;
 }
 
-Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
+Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
-    auto chemin_normalise = kuri::chaine(chemin);
+    auto chemin_normalisé = kuri::chaine(chemin);
 
-    if (chemin_normalise.taille() > 0 && chemin_normalise[chemin_normalise.taille() - 1] != '/') {
-        chemin_normalise = enchaine(chemin_normalise, '/');
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != '/') {
+        chemin_normalisé = enchaine(chemin_normalisé, '/');
     }
 
     POUR_TABLEAU_PAGE (modules) {
@@ -49,22 +49,22 @@ Module *SystemeModule::trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_
             continue;
         }
 
-        if (it.chemin() == chemin_normalise) {
+        if (it.chemin() == chemin_normalisé) {
             return &it;
         }
     }
 
-    return cree_module(nom, chemin_normalise);
+    return crée_module(nom, chemin_normalisé);
 }
 
-Module *SystemeModule::cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
+Module *SystèmeModule::crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
     auto dm = modules.ajoute_element(chemin);
     dm->nom_ = nom;
     return dm;
 }
 
-Module *SystemeModule::module(const IdentifiantCode *nom) const
+Module *SystèmeModule::module(const IdentifiantCode *nom) const
 {
     POUR_TABLEAU_PAGE (modules) {
         if (it.nom() == nom) {
@@ -75,7 +75,7 @@ Module *SystemeModule::module(const IdentifiantCode *nom) const
     return nullptr;
 }
 
-ResultatFichier SystemeModule::trouve_ou_cree_fichier(Module *module,
+ResultatFichier SystèmeModule::trouve_ou_cree_fichier(Module *module,
                                                       kuri::chaine_statique nom,
                                                       kuri::chaine_statique chemin)
 {
@@ -85,10 +85,10 @@ ResultatFichier SystemeModule::trouve_ou_cree_fichier(Module *module,
         return FichierExistant(*fichier);
     }
 
-    return cree_fichier(module, nom, chemin);
+    return crée_fichier(module, nom, chemin);
 }
 
-FichierNeuf SystemeModule::cree_fichier(Module *module,
+FichierNeuf SystèmeModule::crée_fichier(Module *module,
                                         kuri::chaine_statique nom,
                                         kuri::chaine_statique chemin)
 {
@@ -100,58 +100,58 @@ FichierNeuf SystemeModule::cree_fichier(Module *module,
 
     module->ajoute_fichier(df);
 
-    table_fichiers.insere(df->chemin(), df);
+    table_fichiers.insère(df->chemin(), df);
 
     return FichierNeuf(*df);
 }
 
-void SystemeModule::rassemble_stats(Statistiques &stats) const
+void SystèmeModule::rassemble_stats(Statistiques &stats) const
 {
     stats.nombre_modules = modules.taille();
 
     auto &stats_fichiers = stats.stats_fichiers;
     POUR_TABLEAU_PAGE (fichiers) {
-        auto entree = EntreeFichier();
-        entree.chemin = it.chemin();
-        entree.nom = it.nom();
-        entree.nombre_lignes = it.tampon().nombre_lignes();
-        entree.memoire_tampons = it.tampon().taille_donnees();
-        entree.memoire_lexemes = it.lexemes.taille() * taille_de(Lexeme);
-        entree.nombre_lexemes = it.lexemes.taille();
-        entree.temps_chargement = it.temps_chargement;
-        entree.temps_tampon = it.temps_tampon;
-        entree.temps_lexage = it.temps_decoupage;
-        entree.temps_parsage = it.temps_analyse;
+        auto entrée = EntreeFichier();
+        entrée.chemin = it.chemin();
+        entrée.nom = it.nom();
+        entrée.nombre_lignes = it.tampon().nombre_lignes();
+        entrée.mémoire_tampons = it.tampon().taille_donnees();
+        entrée.mémoire_lexèmes = it.lexèmes.taille() * taille_de(Lexeme);
+        entrée.nombre_lexèmes = it.lexèmes.taille();
+        entrée.temps_chargement = it.temps_chargement;
+        entrée.temps_tampon = it.temps_tampon;
+        entrée.temps_lexage = it.temps_découpage;
+        entrée.temps_parsage = it.temps_analyse;
 
-        stats_fichiers.fusionne_entree(entree);
+        stats_fichiers.fusionne_entrée(entrée);
     }
 }
 
-int64_t SystemeModule::memoire_utilisee() const
+int64_t SystèmeModule::mémoire_utilisée() const
 {
-    auto memoire = int64_t(0);
-    memoire += modules.memoire_utilisee();
-    memoire += fichiers.memoire_utilisee();
+    auto résultat = int64_t(0);
+    résultat += modules.memoire_utilisee();
+    résultat += fichiers.memoire_utilisee();
 
     POUR_TABLEAU_PAGE (fichiers) {
-        memoire += it.nom().taille();
-        memoire += it.chemin().taille();
-        memoire += it.tampon().chaine().taille();
+        résultat += it.nom().taille();
+        résultat += it.chemin().taille();
+        résultat += it.tampon().chaine().taille();
         // les autres membres sont gérés dans rassemble_statistiques()
-        if (!it.modules_importes.est_stocke_dans_classe()) {
-            memoire += it.modules_importes.taille() * taille_de(dls::vue_chaine_compacte);
+        if (!it.modules_importés.est_stocké_dans_classe()) {
+            résultat += it.modules_importés.taille() * taille_de(dls::vue_chaine_compacte);
         }
     }
 
     POUR_TABLEAU_PAGE (modules) {
-        memoire += it.chemin().taille();
-        memoire += it.fichiers.taille() * taille_de(Fichier *);
+        résultat += it.chemin().taille();
+        résultat += it.fichiers.taille() * taille_de(Fichier *);
     }
 
-    return memoire;
+    return résultat;
 }
 
-Fichier *SystemeModule::fichier(kuri::chaine_statique chemin) const
+Fichier *SystèmeModule::fichier(kuri::chaine_statique chemin) const
 {
     POUR_TABLEAU_PAGE (fichiers) {
         if (it.chemin() == chemin) {
@@ -180,13 +180,13 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     }
 
     auto const index_ligne = site.index_ligne;
-    auto const numero_ligne = site.index_ligne + fichier->decalage_fichier + 1;
+    auto const numéro_ligne = site.index_ligne + fichier->décalage_fichier + 1;
     auto const index_colonne = site.index_colonne;
     auto const texte_ligne = fichier->tampon()[index_ligne];
-    auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTEE ? ".chaine_ajoutées" :
+    auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTÉE ? ".chaine_ajoutées" :
                                                                      fichier->chemin();
 
-    enchaineuse << chemin << ':' << numero_ligne;
+    enchaineuse << chemin << ':' << numéro_ligne;
 
     if (index_colonne != -1) {
         enchaineuse << ':' << index_colonne;
@@ -194,11 +194,11 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
     enchaineuse << " : " << message << "\n";
 
-    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numero_ligne); ++i) {
+    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numéro_ligne); ++i) {
         enchaineuse << ' ';
     }
 
-    enchaineuse << numero_ligne << " | " << texte_ligne;
+    enchaineuse << numéro_ligne << " | " << texte_ligne;
 
     /* Le manque de nouvelle ligne peut arriver en fin de fichier. */
     if (texte_ligne.taille() != 0 && texte_ligne[texte_ligne.taille() - 1] != '\n') {

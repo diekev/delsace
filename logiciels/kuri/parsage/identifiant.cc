@@ -68,7 +68,7 @@ IdentifiantCode *TableIdentifiant::ajoute_identifiant(const dls::vue_chaine_comp
     auto ident = identifiants.ajoute_element();
     ident->nom = {&nom[0], nom.taille()};
 
-    table.insere(nom, ident);
+    table.insère(nom, ident);
 
     return ident;
 }
