@@ -355,7 +355,7 @@ void Lexeuse::performe_lexage()
     {
         auto table_identifiants = m_table_identifiants.verrou_ecriture();
 
-        POUR (m_donnees->lexemes) {
+        POUR (m_donnees->lexèmes) {
             if (it.genre == GenreLexeme::EXTERNE) {
                 it.ident = ID::externe;
             }
@@ -378,7 +378,7 @@ void Lexeuse::performe_lexage()
         /* en dehors de la boucle car nous l'utilisons comme tampon */
         kuri::chaine chaine;
 
-        POUR (m_donnees->lexemes) {
+        POUR (m_donnees->lexèmes) {
             if (it.genre != GenreLexeme::CHAINE_LITTERALE) {
                 continue;
             }
@@ -402,7 +402,7 @@ void Lexeuse::performe_lexage()
         }
     }
 
-    m_donnees->fut_lexe = true;
+    m_donnees->fut_lexé = true;
 }
 
 void Lexeuse::consomme_espaces_blanches()
@@ -887,7 +887,7 @@ void Lexeuse::ajoute_lexème(GenreLexeme genre)
 
 void Lexeuse::ajoute_lexème(Lexeme lexème)
 {
-    m_donnees->lexemes.ajoute(lexème);
+    m_donnees->lexèmes.ajoute(lexème);
     m_taille_mot_courant = 0;
     m_dernier_id = lexème.genre;
 }

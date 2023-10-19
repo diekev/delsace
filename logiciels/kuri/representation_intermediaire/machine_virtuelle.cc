@@ -1957,7 +1957,7 @@ static void cree_rapport_format_echantillons_total_plus_fonction(
         for (int i = 0; i < it.profondeur_frame_appel; i++) {
             auto &frame = it.frames[i];
             auto valeur = table.valeur_ou(frame.fonction, 0);
-            table.insere(frame.fonction, valeur + 1);
+            table.insère(frame.fonction, valeur + 1);
 
             fonctions.insère(frame.fonction);
         }

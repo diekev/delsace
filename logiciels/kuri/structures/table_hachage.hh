@@ -120,12 +120,12 @@ struct table_hachage {
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
             if (vieilles_occupes[i]) {
-                insere(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
+                insère(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
             }
         }
     }
 
-    void insere(Cle const &cle, Valeur const &valeur)
+    void insère(Cle const &cle, Valeur const &valeur)
     {
         auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index_innoccupe(cle, empreinte);
@@ -135,7 +135,7 @@ struct table_hachage {
         valeurs[index] = valeur;
     }
 
-    void insere(Cle &&cle, Valeur &&valeur)
+    void insère(Cle &&cle, Valeur &&valeur)
     {
         auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index_innoccupe(cle, empreinte);
