@@ -417,7 +417,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         case GenreType::POLYMORPHIQUE:
         {
             type_llvm = nullptr;
-            table_types.insere(type, type_llvm);
+            table_types.insère(type, type_llvm);
             break;
         }
         case GenreType::TUPLE:
@@ -581,7 +581,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             /* Pour les structures récursives, il faut créer un type
              * opaque, dont le corps sera renseigné à la fin */
             auto type_opaque = llvm::StructType::create(m_contexte_llvm, vers_std_string(nom));
-            table_types.insere(type, type_opaque);
+            table_types.insère(type, type_opaque);
 
             std::vector<llvm::Type *> types_membres;
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
@@ -654,7 +654,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
         }
     }
 
-    table_types.insere(type, type_llvm);
+    table_types.insère(type, type_llvm);
     return type_llvm;
 }
 
@@ -960,7 +960,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto type_llvm = converti_type_llvm(type_pointeur->type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
             alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
-            table_valeurs.insere(inst, alloca);
+            table_valeurs.insère(inst, alloca);
             break;
         }
         case Instruction::Genre::APPEL:
@@ -1007,7 +1007,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 erreur::imprime_site(m_espace, inst_appel->site);
                 imprime_atome(inst_appel->appele, std::cerr);
             });
-            table_valeurs.insere(
+            table_valeurs.insère(
                 inst,
                 m_builder.CreateCall(llvm::FunctionCallee(static_cast<llvm::FunctionType *>(
                                                               valeur_fonction->getType()),
@@ -1052,7 +1052,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto load = m_builder.CreateLoad(valeur, "");
             load->setAlignment(llvm::Align(charge->type->alignement));
-            table_valeurs.insere(inst_charge, load);
+            table_valeurs.insère(inst_charge, load);
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
@@ -1092,7 +1092,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         {
             auto inst_label = inst->comme_label();
             auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", m_fonction_courante);
-            table_blocs.insere(inst_label, bloc);
+            table_blocs.insère(inst_label, bloc);
             // m_builder.SetInsertPoint(bloc);
             break;
         }
@@ -1147,7 +1147,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 }
             }
 
-            table_valeurs.insere(inst, valeur);
+            table_valeurs.insère(inst, valeur);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1183,18 +1183,18 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     std::cerr << '\n';
                 });
 
-                table_valeurs.insere(inst,
+                table_valeurs.insère(inst,
                                      m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
             }
             else if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal_Reel &&
                      inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Reel) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
-                table_valeurs.insere(inst,
+                table_valeurs.insère(inst,
                                      m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite));
             }
             else {
                 auto inst_llvm = inst_llvm_depuis_operateur(inst_bin->op);
-                table_valeurs.insere(
+                table_valeurs.insère(
                     inst, m_builder.CreateBinOp(inst_llvm, valeur_gauche, valeur_droite));
             }
 
@@ -1226,13 +1226,13 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
                 // À FAIRE : ceci est sans doute faux
                 auto xx = m_builder.CreateGEP(valeur_accede, index);
-                table_valeurs.insere(inst, m_builder.CreateLoad(xx));
+                table_valeurs.insère(inst, m_builder.CreateLoad(xx));
             }
             else {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
                 index[1] = valeur_index;
-                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+                table_valeurs.insère(inst, m_builder.CreateGEP(valeur_accede, index));
             }
 
             break;
@@ -1259,7 +1259,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 index[1] = m_builder.getInt32(index_reel);
 
                 auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
-                table_valeurs.insere(inst, valeur_membre);
+                table_valeurs.insère(inst, valeur_membre);
             }
             else {
                 valeur_accede = table_globales.valeur_ou(accede, nullptr);
@@ -1267,7 +1267,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 auto index = std::vector<llvm::Value *>(1);
                 index[0] = m_builder.getInt32(index_reel);
 
-                table_valeurs.insere(inst, m_builder.CreateGEP(valeur_accede, index));
+                table_valeurs.insère(inst, m_builder.CreateGEP(valeur_accede, index));
             }
 
             // À FAIRE : type union
@@ -1284,7 +1284,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto const cast_op = convertis_type_transtypage(
                 inst_transtype->op, type_de, type_vers);
             auto const resultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
-            table_valeurs.insere(inst, resultat);
+            table_valeurs.insère(inst, resultat);
             assert_rappel(!adresse_est_nulle(resultat), [&]() {
                 erreur::imprime_site(m_espace, inst_transtype->site);
                 imprime_atome(inst_transtype->valeur, std::cerr);
@@ -1322,7 +1322,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
                                                 nom_globale);
 
         globale->setAlignment(llvm::Align(type->alignement));
-        table_globales.insere(valeur_globale, globale);
+        table_globales.insère(valeur_globale, globale);
     }
 
     POUR (repr_inter.globales) {
@@ -1404,7 +1404,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto store = m_builder.CreateStore(valeur, alloc);
             store->setAlignment(llvm::Align(type->alignement));
 
-            table_valeurs.insere(param, alloc);
+            table_valeurs.insère(param, alloc);
         }
 
         //		if (!atome_fonc->sanstrace) {
@@ -1436,7 +1436,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
             auto type_llvm = converti_type_llvm(type_pointe);
             auto alloca = m_builder.CreateAlloca(type_llvm, 0u);
             alloca->setAlignment(llvm::Align(type_pointeur->type_pointe->alignement));
-            table_valeurs.insere(param, alloca);
+            table_valeurs.insère(param, alloca);
         }
 
         /* Génère le code pour les accès de membres des retours mutliples. */
@@ -1506,7 +1506,7 @@ llvm::Constant *GeneratriceCodeLLVM::valeur_pour_chaine(const kuri::chaine &chai
     auto struct_chaine = llvm::ConstantStruct::get(
         static_cast<llvm::StructType *>(type_chaine), pointeur_chaine_c, valeur_taille);
 
-    valeurs_chaines_globales.insere(chaine, struct_chaine);
+    valeurs_chaines_globales.insère(chaine, struct_chaine);
 
     return struct_chaine;
 }
