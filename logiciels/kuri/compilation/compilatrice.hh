@@ -98,7 +98,7 @@ struct Compilatrice {
 
     kuri::chaine racine_kuri{};
 
-    dls::outils::Synchrone<SystemeModule> sys_module{};
+    dls::outils::Synchrone<SystèmeModule> sys_module{};
 
     tableau_page_synchrone<MetaProgramme> metaprogrammes{};
 

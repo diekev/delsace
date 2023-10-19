@@ -42,22 +42,22 @@ struct ensemblon {
 
     ~ensemblon() = default;
 
-    bool est_stocke_dans_classe() const
+    bool est_stocké_dans_classe() const
     {
         return m_taille <= static_cast<int64_t>(TAILLE_INITIALE);
     }
 
     void permute(ensemblon &autre)
     {
-        if (this->est_stocke_dans_classe() && autre.est_stocke_dans_classe()) {
+        if (this->est_stocké_dans_classe() && autre.est_stocké_dans_classe()) {
             for (auto i = 0; i < TAILLE_INITIALE; ++i) {
                 std::swap(m_ensemblon[i], autre.m_ensemblon[i]);
             }
         }
-        else if (this->est_stocke_dans_classe()) {
+        else if (this->est_stocké_dans_classe()) {
             permute_donnees(*this, autre);
         }
-        else if (autre.est_stocke_dans_classe()) {
+        else if (autre.est_stocké_dans_classe()) {
             permute_donnees(autre, *this);
         }
         else {
@@ -72,7 +72,7 @@ struct ensemblon {
         m_taille = 0;
         m_ensemble.efface();
 
-        if (autre.est_stocke_dans_classe()) {
+        if (autre.est_stocké_dans_classe()) {
             for (auto i = 0; i < autre.taille(); ++i) {
                 m_ensemblon[i] = autre.m_ensemblon[i];
                 m_taille += 1;
@@ -90,7 +90,7 @@ struct ensemblon {
             return;
         }
 
-        if (est_stocke_dans_classe()) {
+        if (est_stocké_dans_classe()) {
             if (m_taille + 1 <= static_cast<int64_t>(TAILLE_INITIALE)) {
                 m_ensemblon[m_taille] = valeur;
                 m_taille += 1;
@@ -108,7 +108,7 @@ struct ensemblon {
 
     bool possede(T const &valeur) const
     {
-        if (est_stocke_dans_classe()) {
+        if (est_stocké_dans_classe()) {
             for (auto i = 0; i < taille(); ++i) {
                 if (m_ensemblon[i] == valeur) {
                     return true;
@@ -138,7 +138,7 @@ struct ensemblon {
 
     void efface()
     {
-        if (!est_stocke_dans_classe()) {
+        if (!est_stocké_dans_classe()) {
             m_ensemble.efface();
         }
 
@@ -159,11 +159,11 @@ struct ensemblon {
 template <typename T, uint64_t TAILLE_INITIALE, typename Rappel>
 void pour_chaque_element(ensemblon<T, TAILLE_INITIALE> const &ens, Rappel rappel)
 {
-    if (ens.est_stocke_dans_classe()) {
+    if (ens.est_stocké_dans_classe()) {
         for (auto i = 0; i < ens.taille(); ++i) {
             auto action = rappel(ens.donnees_ensemblon()[i]);
 
-            if (action == DecisionIteration::Arrete) {
+            if (action == DécisionItération::Arrête) {
                 break;
             }
         }

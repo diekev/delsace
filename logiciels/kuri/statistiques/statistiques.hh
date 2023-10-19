@@ -92,10 +92,10 @@ struct EntreeTailleTableau {
 struct EntreeFichier {
     kuri::chaine chemin = "";
     kuri::chaine nom = "";
-    int64_t memoire_lexemes = 0;
-    int64_t nombre_lexemes = 0;
+    int64_t mémoire_lexèmes = 0;
+    int64_t nombre_lexèmes = 0;
     int64_t nombre_lignes = 0;
-    int64_t memoire_tampons = 0;
+    int64_t mémoire_tampons = 0;
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;
     double temps_chargement = 0.0;
@@ -103,14 +103,14 @@ struct EntreeFichier {
 
     EntreeFichier &operator+=(EntreeFichier const &autre)
     {
-        memoire_lexemes += autre.memoire_lexemes;
+        mémoire_lexèmes += autre.mémoire_lexèmes;
         nombre_lignes += autre.nombre_lignes;
         temps_lexage += autre.temps_lexage;
         temps_parsage += autre.temps_parsage;
         temps_chargement += autre.temps_chargement;
         temps_tampon += autre.temps_tampon;
-        nombre_lexemes += autre.nombre_lexemes;
-        memoire_tampons += autre.memoire_tampons;
+        nombre_lexèmes += autre.nombre_lexèmes;
+        mémoire_tampons += autre.mémoire_tampons;
         return *this;
     }
 
@@ -164,7 +164,7 @@ struct EntreesStats {
         entrees.ajoute(entree);
     }
 
-    void fusionne_entree(T const &entree)
+    void fusionne_entrée(T const &entree)
     {
         totaux += entree;
 
@@ -178,7 +178,7 @@ struct EntreesStats {
         entrees.ajoute(entree);
     }
 
-    void fusionne_entree(int index, T const &entree)
+    void fusionne_entrée(int index, T const &entree)
     {
         totaux += entree;
         entrees[index] += entree;

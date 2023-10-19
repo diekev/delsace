@@ -134,8 +134,8 @@ class Guetteuse {
 
         // std::cerr << "Ajout du fichier " << chemin << '\n';
 
-        table_chemin_fichiers.insere(fd, kuri::chaine(chemin));
-        table_desc_fichiers.insere(kuri::chaine(chemin), fd);
+        table_chemin_fichiers.insère(fd, kuri::chaine(chemin));
+        table_desc_fichiers.insère(kuri::chaine(chemin), fd);
     }
 
     bool possede(const kuri::chemin_systeme &chemin)

@@ -921,7 +921,7 @@ void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
     else {
         kuri::tablet<int, 4> idx;
         idx.ajoute(static_cast<int>(connexions.taille() - 1));
-        connexions_pour_inst.insere(a, idx);
+        connexions_pour_inst.insère(a, idx);
     }
 }
 

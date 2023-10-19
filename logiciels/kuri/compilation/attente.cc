@@ -575,7 +575,7 @@ RAPPEL_POUR_COMMENTAIRE(chargement)
 RAPPEL_POUR_EST_RÉSOLUE(chargement)
 {
     auto fichier_attendu = attente.fichier_a_charger();
-    return fichier_attendu->fut_charge;
+    return fichier_attendu->fut_chargé;
 }
 
 InfoTypeAttente info_type_attente_sur_chargement = {nullptr,
@@ -598,7 +598,7 @@ RAPPEL_POUR_COMMENTAIRE(lexage)
 RAPPEL_POUR_EST_RÉSOLUE(lexage)
 {
     auto fichier_attendu = attente.fichier_a_lexer();
-    return fichier_attendu->fut_lexe;
+    return fichier_attendu->fut_lexé;
 }
 
 InfoTypeAttente info_type_attente_sur_lexage = {nullptr,
@@ -621,7 +621,7 @@ RAPPEL_POUR_COMMENTAIRE(parsage)
 RAPPEL_POUR_EST_RÉSOLUE(parsage)
 {
     auto fichier_attendu = attente.fichier_a_parser();
-    return fichier_attendu->fut_parse;
+    return fichier_attendu->fut_parsé;
 }
 
 InfoTypeAttente info_type_attente_sur_parsage = {nullptr,

@@ -102,6 +102,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_si_statique(Lexeme *lexeme);
     NoeudExpression *analyse_instruction_tantque();
 
+    /* Analyse une série d'expressions séparées par des virgules. */
+    NoeudExpression *analyse_expression_avec_virgule(GenreLexeme lexème_racine);
+
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
     void gere_erreur_rapportee(const kuri::chaine &message_erreur) override;

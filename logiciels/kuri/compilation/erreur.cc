@@ -338,7 +338,7 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres
             candidat = candidat_possible;
         }
 
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 
     return candidat;
@@ -418,7 +418,7 @@ void valeur_manquante_discr(EspaceDeTravail const &espace,
 
     valeurs_manquantes.pour_chaque_element([&](kuri::chaine_statique it) {
         e.ajoute_message("\t", it, "\n");
-        return kuri::DecisionIteration::Continue;
+        return kuri::DécisionItération::Continue;
     });
 }
 
@@ -557,9 +557,9 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
 
     auto fichier = site.fichier;
     /* Fichier peut être nul si nous n'avons pas de site. */
-    if (fichier && fichier->source == SourceFichier::CHAINE_AJOUTEE) {
-        if (fichier->metaprogramme_corps_texte) {
-            auto métaprogramme = fichier->metaprogramme_corps_texte;
+    if (fichier && fichier->source == SourceFichier::CHAINE_AJOUTÉE) {
+        if (fichier->métaprogramme_corps_texte) {
+            auto métaprogramme = fichier->métaprogramme_corps_texte;
             auto site_métaprogramme =
                 métaprogramme->corps_texte_pour_fonction ?
                     espace->site_source_pour(métaprogramme->corps_texte_pour_fonction) :

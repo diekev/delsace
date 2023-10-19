@@ -740,7 +740,7 @@ static void ajoute_membre(TableMembres &table_membres, NoeudDeclaration *decl)
     if (table_membres.possede(decl->ident)) {
         return;
     }
-    table_membres.insere(decl->ident, decl);
+    table_membres.insère(decl->ident, decl);
 }
 
 static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaration *> &membres,

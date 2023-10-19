@@ -33,7 +33,7 @@ enum class SourceFichier : unsigned char {
     /* Le fichier vient du disque dur (d'une instruction « importe » ou « charge ». */
     DISQUE,
     /* Le fichier vient d'une instruction "ajoute_chaine_*". */
-    CHAINE_AJOUTEE,
+    CHAINE_AJOUTÉE,
 };
 
 /* Énum drapeau pour définir quelles fonctionnalités du langage sont présentes dans un fichier afin
@@ -65,12 +65,12 @@ DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 struct Fichier {
     double temps_analyse = 0.0;
     double temps_chargement = 0.0;
-    double temps_decoupage = 0.0;
+    double temps_découpage = 0.0;
     double temps_tampon = 0.0;
 
     lng::tampon_source tampon_{""};
 
-    kuri::tableau<Lexeme, int> lexemes{};
+    kuri::tableau<Lexeme, int> lexèmes{};
 
     kuri::chaine nom_{""};
     kuri::chaine chemin_{""};
@@ -80,19 +80,19 @@ struct Fichier {
     std::mutex mutex{};
 
     SourceFichier source = SourceFichier::DISQUE;
-    bool fut_lexe = false;
-    bool fut_charge = false;
+    bool fut_lexé = false;
+    bool fut_chargé = false;
     bool en_chargement = false;
     bool en_lexage = false;
-    bool fut_parse = false;
+    bool fut_parsé = false;
 
-    kuri::ensemblon<Module *, 16> modules_importes{};
+    kuri::ensemblon<Module *, 16> modules_importés{};
 
     Module *module = nullptr;
-    MetaProgramme *metaprogramme_corps_texte = nullptr;
+    MetaProgramme *métaprogramme_corps_texte = nullptr;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
-    int64_t decalage_fichier = 0;
+    int64_t décalage_fichier = 0;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le site de l'expression ayant ajouté le code.
      * Ceci ne concerne pas les #corps_texte, le site étant donné via le métaprogramme. */
@@ -139,7 +139,7 @@ struct Fichier {
     void charge_tampon(lng::tampon_source &&t)
     {
         tampon_ = t;
-        fut_charge = true;
+        fut_chargé = true;
     }
 };
 
@@ -155,44 +155,44 @@ struct EnveloppeFichier {
 using FichierExistant = EnveloppeFichier<0>;
 using FichierNeuf = EnveloppeFichier<1>;
 
-enum class TagPourResultatFichier {
+enum class TagPourRésultatFichier {
     INVALIDE,
     NOUVEAU_FICHIER,
     FICHIER_EXISTANT,
 };
 
 template <>
-struct tag_pour_donnees<TagPourResultatFichier, FichierExistant> {
-    static constexpr auto tag = TagPourResultatFichier::FICHIER_EXISTANT;
+struct tag_pour_donnees<TagPourRésultatFichier, FichierExistant> {
+    static constexpr auto tag = TagPourRésultatFichier::FICHIER_EXISTANT;
 };
 
 template <>
-struct tag_pour_donnees<TagPourResultatFichier, FichierNeuf> {
-    static constexpr auto tag = TagPourResultatFichier::NOUVEAU_FICHIER;
+struct tag_pour_donnees<TagPourRésultatFichier, FichierNeuf> {
+    static constexpr auto tag = TagPourRésultatFichier::NOUVEAU_FICHIER;
 };
 
-using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourResultatFichier>;
+using ResultatFichier = Resultat<FichierExistant, FichierNeuf, TagPourRésultatFichier>;
 
 struct Module {
     /* le nom du module, qui est le nom du dossier où se trouve les fichiers */
     IdentifiantCode *nom_ = nullptr;
 
     kuri::chemin_systeme chemin_{""};
-    kuri::chemin_systeme chemin_bibliotheque_32bits{};
-    kuri::chemin_systeme chemin_bibliotheque_64bits{};
+    kuri::chemin_systeme chemin_bibliothèque_32bits{};
+    kuri::chemin_systeme chemin_bibliothèque_64bits{};
 
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
     kuri::tablet<Fichier *, 16> fichiers{};
-    bool importe = false;
+    bool importé = false;
 
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier qu'il reste des fichiers à
      * parser. */
     bool fichiers_sont_sales = true;
-    bool execution_directive_requise = false;
+    bool exécution_directive_requise = false;
 
-    NoeudDirectivePreExecutable *directive_pre_executable = nullptr;
+    NoeudDirectivePreExecutable *directive_pré_exécutable = nullptr;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {
@@ -213,16 +213,16 @@ struct Module {
     }
 };
 
-struct SystemeModule {
+struct SystèmeModule {
     tableau_page<Module> modules{};
     tableau_page<Fichier> fichiers{};
 
     kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
         "Fichiers système modules"};
 
-    Module *trouve_ou_cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
+    Module *trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    Module *cree_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
+    Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
     Module *module(const IdentifiantCode *nom) const;
 
@@ -230,13 +230,13 @@ struct SystemeModule {
                                            kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
 
-    FichierNeuf cree_fichier(Module *module,
+    FichierNeuf crée_fichier(Module *module,
                              kuri::chaine_statique nom,
                              kuri::chaine_statique chemin);
 
     void rassemble_stats(Statistiques &stats) const;
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     Fichier *fichier(int64_t index)
     {

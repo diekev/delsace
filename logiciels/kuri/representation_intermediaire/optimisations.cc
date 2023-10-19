@@ -75,7 +75,7 @@ struct CopieuseInstruction {
 
     void ajoute_substitution(Atome *a, Atome *b)
     {
-        copies.insere(a, b);
+        copies.insère(a, b);
     }
 
     kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)

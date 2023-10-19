@@ -127,8 +127,8 @@ Lexeuse lexeuse(str, str + len);
     Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
     lexeuse.performe_lexage();
 
-    return verifie_lexemes(donnees_fichier.lexemes.begin(),
-                           donnees_fichier.lexemes.end(),
+    return verifie_lexemes(donnees_fichier.lexèmes.begin(),
+                           donnees_fichier.lexèmes.end(),
                            std::begin(donnees_lexemes),
                            std::end(donnees_lexemes));
 }

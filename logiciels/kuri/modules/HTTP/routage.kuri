@@ -411,6 +411,7 @@ génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données
 génère_initialisation_routes :: fonc ()
 {
     créatrice_table_fonctions : CréatriceTableFonction
+    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
     créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"
     créatrice_table_fonctions.données_pour_fonction = fonction_routage_est_valide

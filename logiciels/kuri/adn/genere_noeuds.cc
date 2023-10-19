@@ -1372,7 +1372,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                 continue;
             }
 
-            os << "\tstats_arbre.fusionne_entree({" << '"' << it->nom() << '"' << ", "
+            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
                << "m_noeuds_" << it->accede_nom_comme() << ".taille(), "
                << "m_noeuds_" << it->accede_nom_comme() << ".memoire_utilisee()});\n";
         }
@@ -1442,14 +1442,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             });
             os << "});\n";
 
-            os << "\tstats_arbre.fusionne_entree({" << '"' << it->nom() << '"' << ", "
+            os << "\tstats_arbre.fusionne_entrée({" << '"' << it->nom() << '"' << ", "
                << "0, "
                << "memoire_" << nom_comme << "});\n";
         }
 
         os << "auto &stats_tableaux = stats.stats_tableaux;\n";
         noms_tableaux.pour_chaque_element([&](kuri::chaine_statique it) {
-            os << "stats_tableaux.fusionne_entree({\"" << it << "\", " << it << "});\n";
+            os << "stats_tableaux.fusionne_entrée({\"" << it << "\", " << it << "});\n";
         });
 
         os << "}\n";
@@ -1610,7 +1610,7 @@ int main(int argc, char **argv)
             continue;
         }
 
-        table_desc.insere(it->nom().nom_kuri(), it->comme_struct());
+        table_desc.insère(it->nom().nom_kuri(), it->comme_struct());
     }
 
     GeneratriceCodeCPP generatrice;
