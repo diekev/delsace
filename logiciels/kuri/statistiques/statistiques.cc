@@ -40,8 +40,8 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
         return (x * 100.0 / total);
     };
 
-    auto const mem_totale = stats.stats_fichiers.totaux.memoire_tampons +
-                            stats.stats_fichiers.totaux.memoire_lexemes +
+    auto const mem_totale = stats.stats_fichiers.totaux.mémoire_tampons +
+                            stats.stats_fichiers.totaux.mémoire_lexèmes +
                             stats.stats_arbre.totaux.memoire + stats.memoire_compilatrice +
                             stats.stats_graphe_dependance.totaux.memoire +
                             stats.stats_types.totaux.memoire +
@@ -75,7 +75,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     tableau.ajoute_ligne(
         {"- Nombre Identifiants", formatte_nombre(stats.nombre_identifiants), ""});
     tableau.ajoute_ligne(
-        {"- Nombre Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.nombre_lexemes), ""});
+        {"- Nombre Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.nombre_lexèmes), ""});
     tableau.ajoute_ligne(
         {"- Nombre Noeuds", formatte_nombre(stats.stats_arbre.totaux.compte), ""});
     tableau.ajoute_ligne({"- Nombre Noeuds Déps",
@@ -93,14 +93,14 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     tableau.ajoute_ligne(
         {"- Graphe", formatte_nombre(stats.stats_graphe_dependance.totaux.memoire), "o"});
     tableau.ajoute_ligne(
-        {"- Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.memoire_lexemes), "o"});
+        {"- Lexèmes", formatte_nombre(stats.stats_fichiers.totaux.mémoire_lexèmes), "o"});
     tableau.ajoute_ligne({"- MV", formatte_nombre(stats.memoire_mv), "o"});
     tableau.ajoute_ligne({"- Bibliothèques", formatte_nombre(stats.memoire_bibliotheques), "o"});
     tableau.ajoute_ligne(
         {"- Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.memoire), "o"});
     tableau.ajoute_ligne({"- RI", formatte_nombre(stats.memoire_ri), "o"});
     tableau.ajoute_ligne(
-        {"- Tampon", formatte_nombre(stats.stats_fichiers.totaux.memoire_tampons), "o"});
+        {"- Tampon", formatte_nombre(stats.stats_fichiers.totaux.mémoire_tampons), "o"});
     tableau.ajoute_ligne({"- Types", formatte_nombre(stats.stats_types.totaux.memoire), "o"});
     tableau.ajoute_ligne(
         {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
@@ -208,16 +208,16 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> const &stats)
     POUR (stats.entrees) {
         tableau.ajoute_ligne({dls::chaine(it.nom),
                               formatte_nombre(it.nombre_lignes),
-                              formatte_nombre(it.memoire_tampons),
-                              formatte_nombre(it.nombre_lexemes),
-                              formatte_nombre(it.memoire_lexemes)});
+                              formatte_nombre(it.mémoire_tampons),
+                              formatte_nombre(it.nombre_lexèmes),
+                              formatte_nombre(it.mémoire_lexèmes)});
     }
 
     tableau.ajoute_ligne({"",
                           formatte_nombre(stats.totaux.nombre_lignes),
-                          formatte_nombre(stats.totaux.memoire_tampons),
-                          formatte_nombre(stats.totaux.nombre_lexemes),
-                          formatte_nombre(stats.totaux.memoire_lexemes)});
+                          formatte_nombre(stats.totaux.mémoire_tampons),
+                          formatte_nombre(stats.totaux.nombre_lexèmes),
+                          formatte_nombre(stats.totaux.mémoire_lexèmes)});
 
     imprime_tableau(tableau);
 }
