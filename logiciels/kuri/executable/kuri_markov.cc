@@ -122,7 +122,7 @@ int main(int argc, const char **argv)
         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &donnees_fichier);
         lexeuse.performe_lexage();
 
-        test_markov_id_simple(donnees_fichier.lexemes);
+        test_markov_id_simple(donnees_fichier.lexèmes);
     }
 
     return 0;
