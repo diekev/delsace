@@ -215,7 +215,14 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
 
 static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
 {
-    return est_type_booleen_implicite(expression->type) ||
+    auto type = expression->type;
+    if (type->est_type_opaque()) {
+        if (est_type_booleen_implicite(type->comme_type_opaque()->type_opacifie)) {
+            return true;
+        }
+    }
+
+    return est_type_booleen_implicite(type) ||
            expression->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
