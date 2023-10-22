@@ -370,7 +370,8 @@ struct GeneratriceCodeCPP {
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE") {
+            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
+                it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
                 os << "\t\t\tif (ignore_blocs_non_traversables_des_si_statiques) {\n";
                 os << "\t\t\t\tconst auto racine_typee = racine->comme_si_statique();\n";
                 os << "\t\t\t\tvisite_noeud(racine_typee->condition, preference, "
@@ -426,7 +427,8 @@ struct GeneratriceCodeCPP {
                       "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                 os << "\t\t\t}\n";
             }
-            else if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE") {
+            else if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
+                     it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
                 os << "\t\t\t}\n";
             }
 
