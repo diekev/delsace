@@ -379,6 +379,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
     visite_noeud(
         racine,
         PreferenceVisiteNoeud::SUBSTITUTION,
+        true,
         [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
             /* N'ajoutons pas de dépendances sur les déclarations de types nichées. */
             if ((noeud->est_type_structure() || noeud->est_type_enum()) && noeud != racine) {

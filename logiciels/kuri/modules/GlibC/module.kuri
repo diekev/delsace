@@ -744,7 +744,7 @@ TCP_QUICKACK :: 12 /* Bock/reenable quick ACKs.  */
 TCP_CONGESTION :: 13 /* Congestion control algorithm.  */
 TCP_MD5SIG :: 14 /* TCP MD5 Signature (RFC2385) */
 TCP_COOKIE_TRANSACTIONS ::  15 /* TCP Cookie Transactions */
-TCP_THIN_LINEAR_TIMEOUTS 16 /* Use linear timeouts for thin streams*/
+TCP_THIN_LINEAR_TIMEOUTS :: 16 /* Use linear timeouts for thin streams*/
 TCP_THIN_DUPACK :: 17 /* Fast retrans. after 1 dupack */
 TCP_USER_TIMEOUT ::  18 /* How long for loss retry before timeout */
 TCP_REPAIR :: 19 /* TCP sock is under repair right now */
