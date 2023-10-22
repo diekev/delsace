@@ -1,0 +1,19 @@
+/* Crash lors de la monomorphisation d'un fonction prenant un tableau de
+ * structures polymorphiques dont la polymorphisation est sur une valeu
+ * (et non un type, "$T: type_de_données" fonctionne.)
+ * Catégorie : [crash, monomorphisation, type tableau, type structure, valeur polymorphique]
+ */
+
+StructurePoly :: struct ($N: z32) {
+}
+
+prend_tableau :: fonc (t: []StructurePoly($N) @inutilisée)
+{
+}
+
+principale :: fonc () -> z32
+{
+    t : []StructurePoly(5)
+    prend_tableau(t)
+    retourne 0
+}
