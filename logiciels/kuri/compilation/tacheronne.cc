@@ -417,27 +417,29 @@ void Tacheronne::gere_tache()
                 auto noeud = tache.unite->noeud;
 
                 auto types_utilises = kuri::ensemblon<Type *, 16>();
-                visite_noeud(
-                    noeud, PreferenceVisiteNoeud::ORIGINAL, [&](NoeudExpression const *racine) {
-                        auto type = racine->type;
-                        if (type) {
-                            types_utilises.insere(type);
-                        }
+                visite_noeud(noeud,
+                             PreferenceVisiteNoeud::ORIGINAL,
+                             true,
+                             [&](NoeudExpression const *racine) {
+                                 auto type = racine->type;
+                                 if (type) {
+                                     types_utilises.insere(type);
+                                 }
 
-                        if (racine->est_entete_fonction()) {
-                            auto entete = racine->comme_entete_fonction();
+                                 if (racine->est_entete_fonction()) {
+                                     auto entete = racine->comme_entete_fonction();
 
-                            POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
-                                if (it->type) {
-                                    types_utilises.insere(it->type);
-                                }
-                            }
+                                     POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+                                         if (it->type) {
+                                             types_utilises.insere(it->type);
+                                         }
+                                     }
 
-                            return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                        }
+                                     return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                                 }
 
-                        return DecisionVisiteNoeud::CONTINUE;
-                    });
+                                 return DecisionVisiteNoeud::CONTINUE;
+                             });
 
                 auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
                                                                              TYPE_FUT_VALIDE);

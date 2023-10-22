@@ -67,8 +67,10 @@ enum class DrapeauxNoeud : uint32_t {
     DROITE_CONDITION = (1u << 24),
     /* Le noeud est utilisé comme expression d'appel (p.e. noeud(...)). */
     GAUCHE_EXPRESSION_APPEL = (1 << 25),
+    /* Le noeud est une expression de bloc d'une instruction si. */
+    EXPRESSION_BLOC_SI = (1u << 26),
 
-    EST_LOCALE = (1u << 26),  // decl var
+    EST_LOCALE = (1u << 27),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

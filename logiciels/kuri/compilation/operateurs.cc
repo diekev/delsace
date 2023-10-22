@@ -623,8 +623,18 @@ std::optional<Attente> cherche_candidats_operateurs(EspaceDeTravail &espace,
     auto op_candidats = kuri::tablet<OperateurBinaire const *, 10>();
     rassemble_opérateurs_pour_type(*type1, type_op, op_candidats);
 
+    if (type1->est_type_opaque()) {
+        auto type_opacifié = type1->comme_type_opaque()->type_opacifie;
+        rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
+    }
+
     if (type1 != type2) {
         rassemble_opérateurs_pour_type(*type2, type_op, op_candidats);
+
+        if (type2->est_type_opaque()) {
+            auto type_opacifié = type2->comme_type_opaque()->type_opacifie;
+            rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
+        }
     }
 
     for (auto const op : op_candidats) {
