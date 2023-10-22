@@ -1,4 +1,4 @@
-/* Erreur de compilation si un expression « si » est utiliser pour initialiser
+/* Erreur de compilation si un expression « si » est utilisée pour initialiser
  * une variable avec un appel de fonction.
  * Voir note « les appels de fonctions ne fonctionnent pas... dans ConnexionTCP
  * Catégorie : [validation sémantique, expression si]
@@ -20,5 +20,9 @@ principale :: fonc () -> z32
         8
     }
 
-    retourne 0
+    si a == 127 {
+        retourne 0
+    }
+
+    retourne 1
 }

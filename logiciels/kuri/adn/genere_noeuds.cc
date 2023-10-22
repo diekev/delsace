@@ -179,6 +179,7 @@ struct GeneratriceCodeCPP {
         os << "    SUBSTITUTION,\n";
         os << "};\n\n";
         os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
+              "bool ignore_blocs_non_traversables_des_si_statiques, "
               "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel);\n\n";
     }
 
@@ -345,6 +346,7 @@ struct GeneratriceCodeCPP {
     void genere_visite_noeud(FluxSortieCPP &os)
     {
         os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
+              "bool ignore_blocs_non_traversables_des_si_statiques, "
               "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel)\n";
         os << "{\n";
         os << "\tif (!racine) {\n";
@@ -368,6 +370,23 @@ struct GeneratriceCodeCPP {
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
+            if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
+                it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
+                os << "\t\t\tif (ignore_blocs_non_traversables_des_si_statiques) {\n";
+                os << "\t\t\t\tconst auto racine_typee = racine->comme_si_statique();\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->condition, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\tif (racine_typee->condition_est_vraie) {\n";
+                os << "\t\t\t\t\tvisite_noeud(racine_typee->bloc_si_vrai, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\t}\n\t\t\t\telse {\n";
+                os << "\t\t\t\t\tvisite_noeud(racine_typee->bloc_si_faux, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\t}\n";
+                os << "\t\t\t}\n";
+                os << "\t\t\telse {\n";
+            }
+
             genere_code_pour_enfant(
                 os, it, false, [&os, &it](ProteineStruct &, Membre const &membre) {
                     if (membre.type->est_tableau()) {
@@ -385,21 +404,31 @@ struct GeneratriceCodeCPP {
                         else {
                             os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
                         }
-                        os << "\t\t\t\tvisite_noeud(it, preference, rappel);\n";
+                        os << "\t\t\t\tvisite_noeud(it, preference, "
+                              "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                         os << "\t\t\t}\n";
                     }
                     else {
                         os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom
-                           << ", preference, rappel);\n";
+                           << ", preference, ignore_blocs_non_traversables_des_si_statiques, "
+                              "rappel);\n";
                     }
                 });
 
             if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_BOUCLE") {
                 os << "\t\t\tif (preference == PreferenceVisiteNoeud::SUBSTITUTION) {\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pre, preference, rappel);\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, rappel);\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarret, preference, rappel);\n";
-                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sinon, preference, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_pre, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_inc, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sansarret, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t\tvisite_noeud(racine_typee->bloc_sinon, preference, "
+                      "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
+                os << "\t\t\t}\n";
+            }
+            else if (it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SI_STATIQUE" ||
+                     it->accede_nom_genre().nom_cpp() == "INSTRUCTION_SAUFSI_STATIQUE") {
                 os << "\t\t\t}\n";
             }
 
