@@ -2765,14 +2765,9 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     visite_noeud(corps.bloc,
                  PreferenceVisiteNoeud::ORIGINAL,
+                 true,
                  [&espace, entete](const NoeudExpression *noeud) {
                      if (noeud->est_type_structure()) {
-                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                     }
-
-                     /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser.
-                      */
-                     if (noeud->est_si_statique()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
@@ -2878,6 +2873,7 @@ static void échange_corps_entêtes(NoeudDeclarationEnteteFonction *ancienne_fon
      * nouvelle_fonction. */
     visite_noeud(nouvelle_fonction->corps,
                  PreferenceVisiteNoeud::ORIGINAL,
+                 false,
                  [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
                      if (noeud->est_bloc()) {
                          auto bloc = noeud->comme_bloc();
