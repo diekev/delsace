@@ -1,5 +1,5 @@
 /* Crash lors de la monomorphisation d'une fonction prenant un tableau de
- * structures polymorphiques dont la polymorphisation est sur une valeu
+ * structures polymorphiques dont la polymorphisation est sur une valeur
  * (et non un type, "$T: type_de_données" fonctionne.)
  * Catégorie : [crash, monomorphisation, type tableau, type structure, valeur polymorphique]
  */
