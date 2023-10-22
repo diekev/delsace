@@ -366,8 +366,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 if (decl_ref->type->est_type_tableau_fixe()) {
                     expr_ref->substitution = decl_const->expression;
+                    return;
                 }
 
+                assert(false);
                 return;
             }
 
