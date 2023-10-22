@@ -216,7 +216,14 @@ MetaProgramme *ContexteValidationCode::cree_metaprogramme_pour_directive(
 
 static inline bool est_expression_convertible_en_bool(NoeudExpression *expression)
 {
-    return est_type_booleen_implicite(expression->type) ||
+    auto type = expression->type;
+    if (type->est_type_opaque()) {
+        if (est_type_booleen_implicite(type->comme_type_opaque()->type_opacifie)) {
+            return true;
+        }
+    }
+
+    return est_type_booleen_implicite(type) ||
            expression->possede_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
@@ -2766,14 +2773,9 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     visite_noeud(corps.bloc,
                  PreferenceVisiteNoeud::ORIGINAL,
+                 true,
                  [&espace, entete](const NoeudExpression *noeud) {
                      if (noeud->est_type_structure()) {
-                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                     }
-
-                     /* À FAIRE(visite noeud) : évaluation des #si pour savoir quel bloc traverser.
-                      */
-                     if (noeud->est_si_statique()) {
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
@@ -2879,6 +2881,7 @@ static void échange_corps_entêtes(NoeudDeclarationEnteteFonction *ancienne_fon
      * nouvelle_fonction. */
     visite_noeud(nouvelle_fonction->corps,
                  PreferenceVisiteNoeud::ORIGINAL,
+                 false,
                  [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
                      if (noeud->est_bloc()) {
                          auto bloc = noeud->comme_bloc();
