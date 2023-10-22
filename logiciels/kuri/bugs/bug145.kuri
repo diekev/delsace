@@ -1,0 +1,18 @@
+/* Impossible d'avoir une structure prenant une valeur polymorphique comme
+ * paramètre d'une fonction.
+ * Catégorie : [validation sémantique, monomorphisation, type structure, valeur polymorphique]
+ */
+
+StructurePoly :: struct ($N: z32) {
+}
+
+prend_tableau :: fonc (t: StructurePoly($N) @inutilisée)
+{
+}
+
+principale :: fonc () -> z32
+{
+    t : StructurePoly(5)
+    prend_tableau(t)
+    retourne 0
+}
