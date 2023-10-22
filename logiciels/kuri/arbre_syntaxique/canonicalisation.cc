@@ -330,13 +330,18 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
-                if (decl_ref->type->est_type_reel()) {
+                auto type_decl_ref = decl_ref->type;
+                if (type_decl_ref->est_type_opaque()) {
+                    type_decl_ref = type_decl_ref->comme_type_opaque()->type_opacifie;
+                }
+
+                if (type_decl_ref->est_type_reel()) {
                     expr_ref->substitution = assem->cree_litterale_reel(
                         expr_ref->lexeme, decl_ref->type, decl_const->valeur_expression.reelle());
                     return;
                 }
 
-                if (decl_ref->type->est_type_bool()) {
+                if (type_decl_ref->est_type_bool()) {
                     expr_ref->substitution = assem->cree_litterale_bool(
                         expr_ref->lexeme,
                         decl_ref->type,
@@ -344,9 +349,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
-                if (est_type_entier(decl_ref->type) ||
-                    decl_ref->type->est_type_entier_constant() ||
-                    decl_ref->type->est_type_enum() || decl_ref->type->est_type_erreur()) {
+                if (est_type_entier(type_decl_ref) || type_decl_ref->est_type_entier_constant() ||
+                    type_decl_ref->est_type_enum() || type_decl_ref->est_type_erreur()) {
                     expr_ref->substitution = assem->cree_litterale_entier(
                         expr_ref->lexeme,
                         decl_ref->type,
@@ -354,6 +358,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     return;
                 }
 
+                /* À FAIRE : test que les opaques fonctionnent ici. */
                 if (decl_ref->type->est_type_chaine()) {
                     expr_ref->substitution = decl_const->expression;
                     return;
@@ -361,8 +366,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 if (decl_ref->type->est_type_tableau_fixe()) {
                     expr_ref->substitution = decl_const->expression;
+                    return;
                 }
 
+                assert(false);
                 return;
             }
 

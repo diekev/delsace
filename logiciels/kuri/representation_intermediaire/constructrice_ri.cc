@@ -2799,6 +2799,10 @@ void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condit
     auto type_condition = condition->type;
     auto valeur = static_cast<Atome *>(nullptr);
 
+    if (type_condition->est_type_opaque()) {
+        type_condition = type_condition->comme_type_opaque()->type_opacifie;
+    }
+
     switch (type_condition->genre) {
         case GenreType::ENTIER_NATUREL:
         case GenreType::ENTIER_RELATIF:

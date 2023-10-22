@@ -537,6 +537,11 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
     }
 
+    if (type_de->est_type_opaque()) {
+        auto type_opacifié = type_de->comme_type_opaque()->type_opacifie;
+        return cherche_transformation(type_opacifié, type_vers);
+    }
+
     if (POUR_TRANSTYPAGE) {
         if ((type_de->est_type_pointeur() || type_de->est_type_fonction()) &&
             est_type_entier(type_vers) && type_vers->taille_octet == 8) {

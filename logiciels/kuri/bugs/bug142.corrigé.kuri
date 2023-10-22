@@ -1,0 +1,18 @@
+/* Crash quand nous modifions un tableau dans le corps d'un si statique dans
+ * une fonction polymorphique.
+ * Catégorie : [crash, si statique, tableau fixe, fonction polymorphique]
+ */
+
+principale :: fonc () -> z32
+{
+    fonction_avec_si_statique(4)
+    retourne 0
+}
+
+fonction_avec_si_statique :: fonc ($N: z32)
+{
+    tableau: [N]z32
+    #si N == 5 {
+        tableau[0] = 1
+    }
+}

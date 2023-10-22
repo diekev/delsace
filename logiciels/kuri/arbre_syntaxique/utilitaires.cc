@@ -124,8 +124,18 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto bloc = static_cast<NoeudBloc *>(racine);
 
-            POUR (*bloc->expressions.verrou_lecture()) {
-                aplatis_arbre(it, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            auto const &expressions = bloc->expressions.verrou_lecture();
+
+            /* Supprime ce drapeau si nous l'avons hérité, il ne doit pas être utilisé pour des
+             * instructions si/saufsi qui ne sont pas des enfants de l'instruction si/saufsi
+             * parent. */
+            drapeau &= ~DrapeauxNoeud::EXPRESSION_BLOC_SI;
+
+            auto dernière_expression = expressions->taille() ? expressions->dernière() :
+                                                               NoeudExpression::nul();
+            POUR (*expressions) {
+                auto drapeaux = it == dernière_expression ? drapeau : DrapeauxNoeud::AUCUN;
+                aplatis_arbre(it, arbre_aplatis, drapeaux);
             }
 
             // Il nous faut le bloc pour savoir quoi différer
@@ -470,11 +480,20 @@ static void aplatis_arbre(NoeudExpression *racine,
             /* préserve le drapeau au cas où nous serions à droite d'une expression */
             expr->drapeaux |= drapeau;
 
+            /* Seul l'expression racine, directement après l'assignation, doit être marquée comme
+             * tel. */
+            if ((drapeau & DrapeauxNoeud::EXPRESSION_BLOC_SI) ==
+                DrapeauxNoeud::EXPRESSION_BLOC_SI) {
+                expr->drapeaux &= ~DrapeauxNoeud::DROITE_ASSIGNATION;
+            }
+
             aplatis_arbre(expr->condition,
                           arbre_aplatis,
                           DrapeauxNoeud::DROITE_ASSIGNATION | DrapeauxNoeud::DROITE_CONDITION);
-            aplatis_arbre(expr->bloc_si_vrai, arbre_aplatis, DrapeauxNoeud::AUCUN);
-            aplatis_arbre(expr->bloc_si_faux, arbre_aplatis, DrapeauxNoeud::AUCUN);
+            aplatis_arbre(
+                expr->bloc_si_vrai, arbre_aplatis, drapeau | DrapeauxNoeud::EXPRESSION_BLOC_SI);
+            aplatis_arbre(
+                expr->bloc_si_faux, arbre_aplatis, drapeau | DrapeauxNoeud::EXPRESSION_BLOC_SI);
 
             /* mets l'instruction à la fin afin de pouvoir déterminer le type de
              * l'expression selon les blocs si nous sommes à droite d'une expression */

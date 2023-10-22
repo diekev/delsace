@@ -1,0 +1,19 @@
+/* Impossible d'accéder aux membres constants d'une structure monomorphisée.
+ * Catégorie : [validation sémantique, polymorphisme, accès membre]
+ */
+
+SélecteurType :: struct ($N: z32) {
+    TypeTableau :: [N]z32
+}
+
+retourne_structure :: fonc ($N: z32) -> []SélecteurType(N).TypeTableau
+{
+    résultat: [][N]z32
+    retourne résultat
+}
+
+principale :: fonc () -> z32
+{
+    _ := retourne_structure(5)
+    retourne 0
+}
