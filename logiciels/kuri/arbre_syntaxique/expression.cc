@@ -191,6 +191,31 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
     }
 }
 
+static bool est_type_opaque_utilisable_pour_constante(Type const *type)
+{
+    if (est_type_entier(type)) {
+        return true;
+    }
+
+    if (type->est_type_reel()) {
+        return true;
+    }
+
+    if (type->est_type_bool()) {
+        return true;
+    }
+
+    if (type->est_type_entier_constant()) {
+        return true;
+    }
+
+    if (type->est_type_enum() || type->est_type_erreur()) {
+        return true;
+    }
+
+    return false;
+}
+
 static ResultatExpression erreur_evaluation(const NoeudExpression *b, const char *message)
 {
     auto res = ResultatExpression();
@@ -441,6 +466,41 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             auto fonction = appel->expression->comme_entete_fonction();
 
             return ValeurExpression(fonction);
+        }
+        case GenreNoeud::EXPRESSION_APPEL:
+        {
+            auto expression_appel = b->comme_appel();
+
+            if (expression_appel->aide_generation_code != CONSTRUIT_OPAQUE) {
+                return erreur_evaluation(b,
+                                         "Impossible d'utiliser une expression d'appel qui n'est "
+                                         "pas la construction d'un type opaque");
+            }
+
+            auto type_opacifié = b->type->comme_type_opaque()->type_opacifie;
+
+            if (!est_type_opaque_utilisable_pour_constante(type_opacifié)) {
+                return erreur_evaluation(b,
+                                         "Impossible de construire une expression constante "
+                                         "depuis un type opacifié n'étant pas un type entier, "
+                                         "booléen, réel, énumération, ou type erreur");
+            }
+
+            auto const nombre_de_paramètres = expression_appel->parametres_resolus.taille();
+            if (nombre_de_paramètres == 0) {
+                return erreur_evaluation(b,
+                                         "Impossible de construire une expression constante "
+                                         "depuis un type opacifié sans paramètre");
+            }
+
+            if (nombre_de_paramètres > 1) {
+                return erreur_evaluation(b,
+                                         "Impossible de construire une expression constante "
+                                         "depuis un type opacifié avec plusieurs paramètres");
+            }
+
+            /* L'assignation du type opaque à la valeur se fera par quiconque nous a appelé. */
+            return evalue_expression(compilatrice, bloc, expression_appel->parametres_resolus[0]);
         }
     }
 }
