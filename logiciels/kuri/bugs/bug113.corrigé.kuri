@@ -8,7 +8,7 @@ importe Chaine
 principale :: fonc () -> z32
 {
     c := ChaineC(nul)
-    saufsi c {
+    si c {
         retourne 1
     }
     retourne 0
