@@ -641,6 +641,16 @@ void Syntaxeuse::analyse_une_chose()
         else if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
             requiers_typage(noeud);
         }
+        else if (noeud->est_dependance_bibliotheque()) {
+            /* Rien à faire. */
+        }
+        else {
+            m_unite->espace->rapporte_erreur(
+                noeud,
+                "Expression invalide pour le contexte global. Le contexte global doit contenir "
+                "des déclarations ou des directives.");
+            m_possede_erreur = true;
+        }
 
         noeud->bloc_parent->ajoute_expression(noeud);
     }
