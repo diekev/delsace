@@ -2432,6 +2432,12 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
         return structure->est_polymorphe;
     }
 
+    if (decl->est_type_opaque()) {
+        auto const opaque = decl->comme_type_opaque();
+        return opaque->expression_type->possede_drapeau(
+            DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
+    }
+
     return false;
 }
 
