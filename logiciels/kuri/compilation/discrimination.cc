@@ -16,11 +16,11 @@
 
 // --------------------------------------------
 
-static ResultatValidation valide_presence_membre(
+static ResultatValidation valide_présence_membre(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
     TypeCompose *type,
-    kuri::ensemblon<IdentifiantCode const *, 16> const &membres_rencontres)
+    kuri::ensemblon<IdentifiantCode const *, 16> const &membres_rencontrés)
 {
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
@@ -29,7 +29,7 @@ static ResultatValidation valide_presence_membre(
             continue;
         }
 
-        if (membres_rencontres.possede(it.nom)) {
+        if (membres_rencontrés.possede(it.nom)) {
             continue;
         }
 
@@ -46,13 +46,13 @@ static ResultatValidation valide_presence_membre(
 
 // --------------------------------------------
 
-ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, Type *type)
+ResultatValidation ContexteValidationCode::valide_discr_énum(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
-    auto type_enum = static_cast<TypeEnum *>(type);
-    inst->op = type_enum->table_opérateurs->operateur_egt;
+    auto type_énum = static_cast<TypeEnum *>(type);
+    inst->op = type_énum->table_opérateurs->operateur_egt;
 
-    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
@@ -68,10 +68,10 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
                 return CodeRetourValidation::Erreur;
             }
 
-            auto info_membre = donne_membre_pour_nom(type_enum, f->ident);
+            auto info_membre = donne_membre_pour_nom(type_énum, f->ident);
 
             if (!info_membre) {
-                rapporte_erreur_membre_inconnu(inst, f, type_enum);
+                rapporte_erreur_membre_inconnu(inst, f, type_énum);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -91,17 +91,17 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
                 return CodeRetourValidation::Erreur;
             }
 
-            if (membres_rencontres.possede(membre.nom)) {
+            if (membres_rencontrés.possede(membre.nom)) {
                 rapporte_erreur("Redéfinition de l'expression", f);
                 return CodeRetourValidation::Erreur;
             }
 
-            membres_rencontres.insere(membre.nom);
+            membres_rencontrés.insere(membre.nom);
         }
     }
 
     if (inst->bloc_sinon == nullptr) {
-        return valide_presence_membre(espace, expression, type_enum, membres_rencontres);
+        return valide_présence_membre(espace, expression, type_énum, membres_rencontrés);
     }
 
     return CodeRetourValidation::OK;
@@ -109,7 +109,7 @@ ResultatValidation ContexteValidationCode::valide_discr_enum(NoeudDiscr *inst, T
 
 struct ExpressionTestDiscrimination {
     IdentifiantCode *ident = nullptr;
-    NoeudExpression *ref = nullptr;
+    NoeudExpression *référence = nullptr;
     NoeudExpressionAppel *est_expression_appel = nullptr;
 };
 
@@ -117,17 +117,17 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
     NoeudExpression *expression)
 {
     if (expression->est_reference_declaration()) {
-        auto resultat = ExpressionTestDiscrimination{};
-        resultat.ident = expression->ident;
-        resultat.ref = expression->comme_reference_declaration();
-        return resultat;
+        auto résultat = ExpressionTestDiscrimination{};
+        résultat.ident = expression->ident;
+        résultat.référence = expression->comme_reference_declaration();
+        return résultat;
     }
 
     if (expression->est_reference_type()) {
-        auto resultat = ExpressionTestDiscrimination{};
-        resultat.ident = expression->ident;
-        resultat.ref = expression->comme_reference_type();
-        return resultat;
+        auto résultat = ExpressionTestDiscrimination{};
+        résultat.ident = expression->ident;
+        résultat.référence = expression->comme_reference_type();
+        return résultat;
     }
 
     if (expression->est_appel()) {
@@ -139,17 +139,17 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
             return {};
         }
 
-        auto resultat = ExpressionTestDiscrimination{};
-        resultat.ident = expression_ref->ident;
-        resultat.ref = expression_ref;
-        resultat.est_expression_appel = appel;
-        return resultat;
+        auto résultat = ExpressionTestDiscrimination{};
+        résultat.ident = expression_ref->ident;
+        résultat.référence = expression_ref;
+        résultat.est_expression_appel = appel;
+        return résultat;
     }
 
     return {};
 }
 
-static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
+static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
                                                AssembleuseArbre *assembleuse,
                                                NoeudExpression *expression,
                                                TypeUnion *type_union,
@@ -174,9 +174,10 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
         return false;
     }
 
-    auto decl_prec = trouve_dans_bloc(bloc_parent, param->ident, bloc_final_recherche_variable);
+    auto déclaration_existante = trouve_dans_bloc(
+        bloc_parent, param->ident, bloc_final_recherche_variable);
 
-    if (decl_prec != nullptr) {
+    if (déclaration_existante != nullptr) {
         espace->rapporte_erreur(param,
                                 "Ne peut pas utiliser implicitement le membre car une "
                                 "variable de ce nom existe déjà");
@@ -193,22 +194,22 @@ static bool cree_variable_pour_expression_test(EspaceDeTravail *espace,
 
     /* L'initialisation est une extraction de la valeur de l'union.
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
-    auto init_decl = assembleuse->cree_comme(param->lexeme);
-    init_decl->expression = expression;
-    init_decl->type = type_membre;
-    init_decl->transformation = {
+    auto initialation_déclaration = assembleuse->cree_comme(param->lexeme);
+    initialation_déclaration->expression = expression;
+    initialation_déclaration->type = type_membre;
+    initialation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
 
-    auto decl_expr = assembleuse->cree_declaration_variable(param->comme_reference_declaration(),
-                                                            init_decl);
-    decl_expr->bloc_parent = bloc_insertion;
-    decl_expr->type = type_membre;
-    decl_expr->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    auto déclaration_pour_expression = assembleuse->cree_declaration_variable(
+        param->comme_reference_declaration(), initialation_déclaration);
+    déclaration_pour_expression->bloc_parent = bloc_insertion;
+    déclaration_pour_expression->type = type_membre;
+    déclaration_pour_expression->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    bloc_insertion->expressions->pousse_front(decl_expr);
-    bloc_insertion->ajoute_membre(decl_expr);
+    bloc_insertion->expressions->pousse_front(déclaration_pour_expression);
+    bloc_insertion->ajoute_membre(déclaration_pour_expression);
 
-    paire_discr->variable_capturee = decl_expr;
+    paire_discr->variable_capturee = déclaration_pour_expression;
 
     return true;
 }
@@ -217,15 +218,15 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 {
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_type_union();
-    auto decl = type_union->decl;
+    auto déclaration_union = type_union->decl;
     inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
 
-    if (decl->est_nonsure) {
+    if (déclaration_union->est_nonsure) {
         rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
         return CodeRetourValidation::Erreur;
     }
 
-    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -271,7 +272,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontres.possede(membre.nom)) {
+        if (membres_rencontrés.possede(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
@@ -279,7 +280,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
         /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
         feuille->ident = membre.nom;
 
-        membres_rencontres.insere(membre.nom);
+        membres_rencontrés.insere(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
@@ -289,7 +290,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
                                         "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
-            cree_variable_pour_expression_test(espace,
+            crée_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                expression,
                                                type_union,
@@ -318,7 +319,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
     inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
-    auto membres_rencontres = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
         auto expr_paire = inst->paires_discr[i]->expression;
@@ -339,13 +340,13 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
             return CodeRetourValidation::Erreur;
         }
 
-        auto ref_type = expression_valide->ref;
+        auto référence_type = expression_valide->référence;
 
-        valide_semantique_noeud(ref_type);
+        valide_semantique_noeud(référence_type);
 
         Type *type_expr;
-        if (resoud_type_final(ref_type, type_expr) == CodeRetourValidation::Erreur) {
-            rapporte_erreur("Ne peut résoudre le type", ref_type);
+        if (resoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
+            rapporte_erreur("Ne peut résoudre le type", référence_type);
             return CodeRetourValidation::Erreur;
         }
 
@@ -373,7 +374,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontres.possede(membre.nom)) {
+        if (membres_rencontrés.possede(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
@@ -382,17 +383,17 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
          * ceci n'est que pour la simplification du code. */
         feuille->ident = membre.nom;
 
-        membres_rencontres.insere(membre.nom);
+        membres_rencontrés.insere(membre.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
-            if (ref_type->type->est_type_rien()) {
+            if (référence_type->type->est_type_rien()) {
                 espace->rapporte_erreur(expression_valide->est_expression_appel,
                                         "Impossible de capturer une variable depuis un membre "
                                         "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
-            cree_variable_pour_expression_test(espace,
+            crée_variable_pour_expression_test(espace,
                                                m_tacheronne.assembleuse,
                                                inst->expression_discriminee,
                                                type_union,
@@ -431,14 +432,14 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
-    auto resultat = trouve_opérateur_pour_expression(
+    auto résultat = trouve_opérateur_pour_expression(
         *espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexeme::EGALITE);
 
-    if (std::holds_alternative<Attente>(resultat)) {
-        return std::get<Attente>(resultat);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
     }
 
-    if (std::holds_alternative<bool>(resultat)) {
+    if (std::holds_alternative<bool>(résultat)) {
         espace
             ->rapporte_erreur(inst,
                               "Je ne peux pas valider l'expression de discrimination car "
@@ -456,7 +457,7 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         return CodeRetourValidation::Erreur;
     }
 
-    auto candidat = std::get<OperateurCandidat>(resultat);
+    auto candidat = std::get<OperateurCandidat>(résultat);
     inst->op = candidat.op;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
@@ -465,15 +466,15 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         auto feuilles = expr_paire->comme_virgule();
 
         for (auto j = 0; j < feuilles->expressions.taille(); ++j) {
-            auto resultat_validation = valide_semantique_noeud(feuilles->expressions[j]);
-            if (!est_ok(resultat_validation)) {
-                return resultat_validation;
+            auto résultat_validation = valide_semantique_noeud(feuilles->expressions[j]);
+            if (!est_ok(résultat_validation)) {
+                return résultat_validation;
             }
 
-            auto const resultat_transtype = transtype_si_necessaire(feuilles->expressions[j],
+            auto const résultat_transtype = transtype_si_necessaire(feuilles->expressions[j],
                                                                     type);
-            if (!est_ok(resultat_transtype)) {
-                return resultat_transtype;
+            if (!est_ok(résultat_transtype)) {
+                return résultat_transtype;
             }
         }
     }
@@ -511,7 +512,7 @@ ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *ins
     }
 
     if (type->est_type_enum() || type->est_type_erreur()) {
-        return valide_discr_enum(inst, type);
+        return valide_discr_énum(inst, type);
     }
 
     return valide_discr_scalaire(inst, type);

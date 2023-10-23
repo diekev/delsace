@@ -162,7 +162,7 @@ struct ContexteValidationCode {
         NoeudExpressionLitteraleBool *expr_bool);
 
     ResultatValidation valide_discrimination(NoeudDiscr *inst);
-    ResultatValidation valide_discr_enum(NoeudDiscr *inst, Type *type);
+    ResultatValidation valide_discr_énum(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_union(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_union_anonyme(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_scalaire(NoeudDiscr *inst, Type *type);
