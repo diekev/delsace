@@ -2441,6 +2441,30 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
     return false;
 }
 
+/* Retourne vrai si la déclaration se situe après la référence à celle-ci. Ceci n'est destiné que
+ * pour les déclarations de variables locales à une fonction. */
+static bool déclaration_est_postérieure_à_la_référence(NoeudDeclaration const *déclaration,
+                                                       NoeudExpressionReference const *référence)
+{
+    if (déclaration->lexeme->fichier != référence->lexeme->fichier) {
+        return false;
+    }
+
+    if (!déclaration->est_declaration_variable()) {
+        return false;
+    }
+
+    if (déclaration->possede_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+        return false;
+    }
+
+    if (référence->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
+        return false;
+    }
+
+    return déclaration->lexeme->ligne > référence->lexeme->ligne;
+}
+
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
@@ -2545,16 +2569,11 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 #endif
 
-    if (decl->lexeme->fichier == expr->lexeme->fichier &&
-        decl->genre == GenreNoeud::DECLARATION_VARIABLE &&
-        !decl->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) &&
-        !(expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE))) {
-        if (decl->lexeme->ligne > expr->lexeme->ligne) {
-            espace->rapporte_erreur(expr, "Utilisation d'un symbole avant sa déclaration.")
-                .ajoute_message("Le symbole fut déclaré ici :\n\n")
-                .ajoute_site(decl);
-            return CodeRetourValidation::Erreur;
-        }
+    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
+            .ajoute_message("Le symbole fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return CodeRetourValidation::Erreur;
     }
 
     if (est_declaration_polymorphique(decl) &&
