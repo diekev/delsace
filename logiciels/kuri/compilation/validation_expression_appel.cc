@@ -761,6 +761,7 @@ static ResultatAppariement apparie_appel_fonction(
 
         auto type_de_l_expression = slot->type;
         auto type_du_parametre = arg->type;
+        auto poids_polymorphique = 0.95;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
@@ -769,7 +770,9 @@ static ResultatAppariement apparie_appel_fonction(
                     expr, std::get<ErreurMonomorphisation>(résultat_type));
             }
 
-            type_du_parametre = std::get<Type *>(résultat_type);
+            auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+            type_du_parametre = type_apparié_pesé.type;
+            poids_polymorphique *= type_apparié_pesé.poids_appariement;
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
@@ -793,7 +796,7 @@ static ResultatAppariement apparie_appel_fonction(
         // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
         // la selection de la meilleure candidate
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            poids_pour_enfant *= 0.95;
+            poids_pour_enfant *= poids_polymorphique;
         }
 
         poids_args *= poids_pour_enfant;
@@ -810,6 +813,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto dernier_parametre = decl->parametre_entree(decl->params.taille() - 1);
         auto dernier_type_parametre = dernier_parametre->type;
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
+        auto poids_variadique = 0.95;
 
         if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(
@@ -819,7 +823,9 @@ static ResultatAppariement apparie_appel_fonction(
                     expr, std::get<ErreurMonomorphisation>(résultat_type));
             }
 
-            type_donnees_argument_variadique = std::get<Type *>(résultat_type);
+            auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+            type_donnees_argument_variadique = type_apparié_pesé.type;
+            poids_variadique *= type_apparié_pesé.poids_appariement;
 
             /* La résolution de type retourne un type variadique, mais nous voulons le type pointé.
              */
@@ -844,7 +850,7 @@ static ResultatAppariement apparie_appel_fonction(
          *
          * Donc diminue le poids pour les fonctions variadiques.
          */
-        poids_args *= 0.95;
+        poids_args *= poids_variadique;
 
         cree_tableau_args_variadiques(
             contexte, slots, nombre_args, type_donnees_argument_variadique);
