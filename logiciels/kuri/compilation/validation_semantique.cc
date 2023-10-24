@@ -598,7 +598,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
                  * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
                 if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
-                    transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+                    crée_transtypage_implicite_au_besoin(expr->operande,
+                                                         TypeTransformation::DEREFERENCE);
                 }
             }
 
@@ -625,7 +626,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 else {
                     if (type->est_type_entier_constant()) {
                         type = TypeBase::Z32;
-                        transtype_si_necessaire(
+                        crée_transtypage_implicite_au_besoin(
                             expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
                     }
 
@@ -654,7 +655,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type2 = enfant2->type;
 
             if (type1->est_type_reference()) {
-                transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+                crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                     TypeTransformation::DEREFERENCE);
                 type1 = type_dereference_pour(type1);
             }
 
@@ -715,8 +717,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->op = candidat.op;
                     expr->permute_operandes = candidat.permute_operandes;
 
-                    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-                    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+                    crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                         candidat.transformation_type1);
+                    crée_transtypage_implicite_au_besoin(expr->operande_droite,
+                                                         candidat.transformation_type2);
                     break;
                 }
             }
@@ -725,12 +729,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_index = enfant2->type;
 
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     expr->operande_droite,
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
             else {
-                TENTE(transtype_si_necessaire(expr->operande_droite, type_cible));
+                TENTE(crée_transtypage_implicite_si_possible(expr->operande_droite, type_cible));
             }
 
             break;
@@ -855,7 +859,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             if (enfant->type->est_type_reference() && !noeud->type->est_type_reference()) {
-                transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
+                crée_transtypage_implicite_au_besoin(expr->expression,
+                                                     TypeTransformation::DEREFERENCE);
             }
 
             auto resultat = cherche_transformation_pour_transtypage(expr->expression->type,
@@ -926,13 +931,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (type_debut->est_type_entier_constant() && est_type_entier(type_fin)) {
                     type_debut = type_fin;
                     enfant1->type = type_debut;
-                    transtype_si_necessaire(
+                    crée_transtypage_implicite_au_besoin(
                         inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
                 }
                 else if (type_fin->est_type_entier_constant() && est_type_entier(type_debut)) {
                     type_fin = type_debut;
                     enfant2->type = type_fin;
-                    transtype_si_necessaire(
+                    crée_transtypage_implicite_au_besoin(
                         inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin});
                 }
                 else {
@@ -942,9 +947,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             else if (type_debut->est_type_entier_constant()) {
                 type_debut = TypeBase::Z32;
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
             }
 
@@ -1026,13 +1031,14 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type_feuille->est_type_entier_constant()) {
                 type_feuille = TypeBase::Z32;
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     feuilles->expressions[0],
                     {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille});
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
-                TENTE(transtype_si_necessaire(feuilles->expressions[i], type_feuille));
+                TENTE(crée_transtypage_implicite_si_possible(feuilles->expressions[i],
+                                                             type_feuille));
             }
 
             noeud->type = m_compilatrice.typeuse.type_tableau_fixe(type_feuille,
@@ -1287,8 +1293,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     auto type_tableau_fixe = type_expr->comme_type_tableau_fixe();
                     type_expr = m_compilatrice.typeuse.type_tableau_dynamique(
                         type_tableau_fixe->type_pointe);
-                    transtype_si_necessaire(expr->expression,
-                                            {TypeTransformation::CONVERTI_TABLEAU, type_expr});
+                    crée_transtypage_implicite_au_besoin(
+                        expr->expression, {TypeTransformation::CONVERTI_TABLEAU, type_expr});
                 }
 
                 expr->type = type_expr;
@@ -3587,7 +3593,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                      * la transformation puisque nous n'utilisons pas la déclaration
                      * pour générer la RI */
                     auto expression = donnees.expression;
-                    transtype_si_necessaire(expression, donnees.transformations[i]);
+                    crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
                     // À FAIRE(emploi) : préserve l'emploi dans les données types
                     TENTE(ajoute_donnees_membre(var, expression));
@@ -3694,7 +3700,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                  * la transformation puisque nous n'utilisons pas la déclaration
                  * pour générer la RI */
                 auto expression = donnees.expression;
-                transtype_si_necessaire(expression, donnees.transformations[i]);
+                crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
                 // À FAIRE(emploi) : préserve l'emploi dans les données types
                 TENTE(ajoute_donnees_membre(var, expression));
@@ -4194,7 +4200,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 return CodeRetourValidation::Erreur;
             }
 
-            transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(var, TypeTransformation::DEREFERENCE);
             transformation = TypeTransformation::DEREFERENCE;
         }
         else if (var_est_reference) {
@@ -4214,7 +4220,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 return CodeRetourValidation::Erreur;
             }
 
-            transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(var, TypeTransformation::DEREFERENCE);
         }
         else if (expr_est_reference) {
             // déréférence expr
@@ -4442,8 +4448,8 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
     erreur::lance_erreur_fonction_nulctx(*espace, appl_fonc, decl_fonc, decl_appel);
 }
 
-ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
-                                                                   Type *type_cible)
+ResultatValidation ContexteValidationCode::crée_transtypage_implicite_si_possible(
+    NoeudExpression *&expression, Type *type_cible)
 {
     auto resultat = cherche_transformation(expression->type, type_cible);
 
@@ -4457,12 +4463,12 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpressi
         return CodeRetourValidation::Erreur;
     }
 
-    transtype_si_necessaire(expression, transformation);
+    crée_transtypage_implicite_au_besoin(expression, transformation);
     return CodeRetourValidation::OK;
 }
 
-void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
-                                                     TransformationType const &transformation)
+void ContexteValidationCode::crée_transtypage_implicite_au_besoin(
+    NoeudExpression *&expression, TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
         return;
@@ -4672,8 +4678,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
     expr->op = candidat.op;
-    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+    crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
+    crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
     return CodeRetourValidation::OK;
 }
 
@@ -4863,7 +4869,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         if (type1->est_type_reference()) {
             type_gauche_est_reference = true;
             type1 = type1->comme_type_reference()->type_pointe;
-            transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                 TypeTransformation::DEREFERENCE);
         }
     }
 
@@ -4886,8 +4893,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
                                 "assignation composée.");
     }
 
-    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+    crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
+    crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
 
     if (assignation_composee) {
         expr->drapeaux |= DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE;

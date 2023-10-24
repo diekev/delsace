@@ -487,7 +487,7 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
 
             auto expression = expression_valide->référence;
 
-            auto const résultat_transtype = transtype_si_necessaire(expression, type);
+            auto const résultat_transtype = crée_transtypage_implicite_si_possible(expression, type);
             if (!est_ok(résultat_transtype)) {
                 return résultat_transtype;
             }
@@ -510,7 +510,8 @@ ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *ins
     auto type = expression->type;
 
     if (type->est_type_reference()) {
-        transtype_si_necessaire(inst->expression_discriminee, TypeTransformation::DEREFERENCE);
+        crée_transtypage_implicite_au_besoin(inst->expression_discriminee,
+                                             TypeTransformation::DEREFERENCE);
         type = type->comme_type_reference()->type_pointe;
     }
 

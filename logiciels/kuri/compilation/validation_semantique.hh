@@ -194,9 +194,9 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
 
-    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
-    void transtype_si_necessaire(NoeudExpression *&expression,
-                                 TransformationType const &transformation);
+    ResultatValidation crée_transtypage_implicite_si_possible(NoeudExpression *&expression, Type *type_cible);
+    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
+                                              TransformationType const &transformation);
 
     NoeudExpression *racine_validation() const;
 

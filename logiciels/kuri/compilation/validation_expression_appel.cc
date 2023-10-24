@@ -510,8 +510,8 @@ static void applique_transformations(ContexteValidationCode &contexte,
     auto i = 0;
     /* les drapeaux pour les arguments simples */
     for (; i < nombre_args_simples; ++i) {
-        contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                         candidate->transformations[i]);
+        contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                      candidate->transformations[i]);
     }
 
     /* les drapeaux pour les arguments variadics */
@@ -520,8 +520,8 @@ static void applique_transformations(ContexteValidationCode &contexte,
         auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
 
         for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-            contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
-                                             candidate->transformations[i]);
+            contexte.crée_transtypage_implicite_au_besoin(noeud_tableau->expressions[j],
+                                                          candidate->transformations[i]);
         }
     }
 }
@@ -1804,8 +1804,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 if (expr->parametres_resolus[i] != nullptr) {
-                    contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                                     candidate->transformations[i]);
+                    contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                                  candidate->transformations[i]);
                 }
             }
             expr->noeud_fonction_appelee = candidate->noeud_decl;
@@ -1873,8 +1873,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-                contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                                 candidate->transformations[i]);
+                contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                              candidate->transformations[i]);
             }
 
             expr->type = type_opaque;
