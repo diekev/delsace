@@ -2446,7 +2446,10 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
 static bool déclaration_est_postérieure_à_la_référence(NoeudDeclaration const *déclaration,
                                                        NoeudExpressionReference const *référence)
 {
-    if (déclaration->lexeme->fichier != référence->lexeme->fichier) {
+    assert(déclaration->bloc_parent);
+
+    if (déclaration->bloc_parent != référence->bloc_parent) {
+        /* La déclaration et la référence sont dans deux blocs sémantiques différents. */
         return false;
     }
 
