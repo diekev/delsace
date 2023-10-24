@@ -1129,7 +1129,7 @@ static ResultatAppariement apparie_construction_opaque(
     }
 
     if (arguments.taille() > 1) {
-        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
+        return ErreurAppariement::mecomptage_arguments(expr, 1, arguments.taille());
     }
 
     auto arg = arguments[0].expr;
