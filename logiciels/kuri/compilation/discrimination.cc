@@ -114,7 +114,7 @@ struct ExpressionTestDiscrimination {
 };
 
 static std::optional<ExpressionTestDiscrimination> expression_valide_discrimination(
-    NoeudExpression *expression)
+    NoeudExpression *expression, bool opérande_appel_doit_être_référence)
 {
     if (expression->est_reference_declaration()) {
         auto résultat = ExpressionTestDiscrimination{};
@@ -134,8 +134,8 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
         auto appel = expression->comme_appel();
 
         auto expression_ref = appel->expression;
-        if (!expression_ref->est_reference_declaration() &&
-            !expression_ref->est_reference_type()) {
+        if (opérande_appel_doit_être_référence && (!expression_ref->est_reference_declaration() &&
+                                                   !expression_ref->est_reference_type())) {
             return {};
         }
 
@@ -143,6 +143,14 @@ static std::optional<ExpressionTestDiscrimination> expression_valide_discriminat
         résultat.ident = expression_ref->ident;
         résultat.référence = expression_ref;
         résultat.est_expression_appel = appel;
+        return résultat;
+    }
+
+    if (!opérande_appel_doit_être_référence) {
+        /* Pour les unions anonymes. */
+        auto résultat = ExpressionTestDiscrimination{};
+        résultat.ident = expression->ident;
+        résultat.référence = expression;
         return résultat;
     }
 
@@ -242,9 +250,10 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 
         auto feuille = feuilles->expressions[0];
 
-        auto expression_valide = expression_valide_discrimination(feuille);
+        auto expression_valide = expression_valide_discrimination(feuille, true);
         if (!expression_valide.has_value()) {
-            espace->rapporte_erreur(feuille, "Attendu une référence à un membre de l'union")
+            espace
+                ->rapporte_erreur(feuille, "Expression invalide pour discriminer l'union anonyme")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
             return CodeRetourValidation::Erreur;
         }
@@ -333,7 +342,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
 
         auto feuille = feuilles->expressions[0];
 
-        auto expression_valide = expression_valide_discrimination(feuille);
+        auto expression_valide = expression_valide_discrimination(feuille, false);
         if (!expression_valide.has_value()) {
             espace->rapporte_erreur(feuille, "Attendu une référence à un membre de l'union")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
@@ -341,8 +350,6 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
         }
 
         auto référence_type = expression_valide->référence;
-
-        valide_semantique_noeud(référence_type);
 
         Type *type_expr;
         if (resoud_type_final(référence_type, type_expr) == CodeRetourValidation::Erreur) {
