@@ -487,7 +487,8 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
 
             auto expression = expression_valide->référence;
 
-            auto const résultat_transtype = crée_transtypage_implicite_si_possible(expression, type);
+            auto const résultat_transtype = crée_transtypage_implicite_si_possible(
+                expression, type, RaisonTranstypageImplicite::POUR_TEST_DISCRIMINATION);
             if (!est_ok(résultat_transtype)) {
                 return résultat_transtype;
             }

@@ -194,7 +194,20 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
 
-    ResultatValidation crée_transtypage_implicite_si_possible(NoeudExpression *&expression, Type *type_cible);
+    enum class RaisonTranstypageImplicite {
+        /* Nous essayons de trouver un transtypage implicite pour une expression de test d'une
+         * discrimination. */
+        POUR_TEST_DISCRIMINATION,
+        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'index d'une
+         * expression d'indexage. */
+        POUR_EXPRESSION_INDEXAGE,
+        /* Nous essayons de trouver un transtypage implicite pour une valeur de la construction
+         * d'un tableau. */
+        POUR_CONSTRUCTION_TABLEAU,
+    };
+
+    ResultatValidation crée_transtypage_implicite_si_possible(
+        NoeudExpression *&expression, Type *type_cible, RaisonTranstypageImplicite const raison);
     void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
                                               TransformationType const &transformation);
 

@@ -734,7 +734,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
             else {
-                TENTE(crée_transtypage_implicite_si_possible(expr->operande_droite, type_cible));
+                TENTE(crée_transtypage_implicite_si_possible(
+                    expr->operande_droite,
+                    type_cible,
+                    RaisonTranstypageImplicite::POUR_EXPRESSION_INDEXAGE));
             }
 
             break;
@@ -1037,8 +1040,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
-                TENTE(crée_transtypage_implicite_si_possible(feuilles->expressions[i],
-                                                             type_feuille));
+                TENTE(crée_transtypage_implicite_si_possible(
+                    feuilles->expressions[i],
+                    type_feuille,
+                    RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU));
             }
 
             noeud->type = m_compilatrice.typeuse.type_tableau_fixe(type_feuille,
@@ -4449,7 +4454,7 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
 }
 
 ResultatValidation ContexteValidationCode::crée_transtypage_implicite_si_possible(
-    NoeudExpression *&expression, Type *type_cible)
+    NoeudExpression *&expression, Type *type_cible, const RaisonTranstypageImplicite raison)
 {
     auto resultat = cherche_transformation(expression->type, type_cible);
 
@@ -4459,7 +4464,42 @@ ResultatValidation ContexteValidationCode::crée_transtypage_implicite_si_possib
 
     auto transformation = std::get<TransformationType>(resultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        rapporte_erreur_assignation_type_differents(type_cible, expression->type, expression);
+        kuri::chaine_statique message_principal;
+        kuri::chaine_statique message_type_désiré;
+        kuri::chaine_statique message_type_obtenu;
+
+        switch (raison) {
+            case RaisonTranstypageImplicite::POUR_TEST_DISCRIMINATION:
+            {
+                message_principal =
+                    "Type incompatible pour l'expression de test de discrimination.";
+                message_type_désiré = "Le type de l'expression discriminée est : ";
+                message_type_obtenu = "Le type de l'expression test est        : ";
+                break;
+            }
+            case RaisonTranstypageImplicite::POUR_EXPRESSION_INDEXAGE:
+            {
+                message_principal =
+                    "Type incompatible pour la valeur d'index de l'expression d'indexage.";
+                message_type_désiré = "Le type désiré est          : ";
+                message_type_obtenu = "Le type de l'expression est : ";
+                break;
+            }
+            case RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU:
+            {
+                message_principal =
+                    "Type incompatible pour la valeur utilisée dans la construction de tableau.";
+                message_type_désiré = "Le type de valeur des éléments du tableau est : ";
+                message_type_obtenu = "Le type de l'expression est                   : ";
+                break;
+            }
+        }
+
+        espace
+            ->rapporte_erreur(
+                expression, message_principal, erreur::Genre::ASSIGNATION_MAUVAIS_TYPE)
+            .ajoute_message(message_type_désiré, chaine_type(type_cible), "\n")
+            .ajoute_message(message_type_obtenu, chaine_type(expression->type), "\n");
         return CodeRetourValidation::Erreur;
     }
 
