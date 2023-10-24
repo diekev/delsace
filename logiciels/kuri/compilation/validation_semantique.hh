@@ -162,7 +162,7 @@ struct ContexteValidationCode {
         NoeudExpressionLitteraleBool *expr_bool);
 
     ResultatValidation valide_discrimination(NoeudDiscr *inst);
-    ResultatValidation valide_discr_enum(NoeudDiscr *inst, Type *type);
+    ResultatValidation valide_discr_énum(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_union(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_union_anonyme(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_scalaire(NoeudDiscr *inst, Type *type);
@@ -194,9 +194,22 @@ struct ContexteValidationCode {
                                          NoeudExpression const *decl_fonc,
                                          NoeudExpression const *decl_appel);
 
-    ResultatValidation transtype_si_necessaire(NoeudExpression *&expression, Type *type_cible);
-    void transtype_si_necessaire(NoeudExpression *&expression,
-                                 TransformationType const &transformation);
+    enum class RaisonTranstypageImplicite {
+        /* Nous essayons de trouver un transtypage implicite pour une expression de test d'une
+         * discrimination. */
+        POUR_TEST_DISCRIMINATION,
+        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'index d'une
+         * expression d'indexage. */
+        POUR_EXPRESSION_INDEXAGE,
+        /* Nous essayons de trouver un transtypage implicite pour une valeur de la construction
+         * d'un tableau. */
+        POUR_CONSTRUCTION_TABLEAU,
+    };
+
+    ResultatValidation crée_transtypage_implicite_si_possible(
+        NoeudExpression *&expression, Type *type_cible, RaisonTranstypageImplicite const raison);
+    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
+                                              TransformationType const &transformation);
 
     NoeudExpression *racine_validation() const;
 
