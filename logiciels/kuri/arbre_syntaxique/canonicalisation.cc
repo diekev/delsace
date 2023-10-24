@@ -661,6 +661,11 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
+            if (appel->aide_generation_code == CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE) {
+                simplifie_construction_opaque_depuis_structure(appel);
+                return;
+            }
+
             if (appel->aide_generation_code == MONOMORPHE_TYPE_OPAQUE) {
                 appel->substitution = assem->cree_reference_type(appel->lexeme, appel->type);
             }
@@ -1687,18 +1692,14 @@ void Simplificatrice::simplifie_construction_structure_position_code_source(
     construction->substitution = bloc;
 }
 
-void Simplificatrice::simplifie_construction_structure_impl(
-    NoeudExpressionConstructionStructure *construction)
+NoeudExpressionReference *Simplificatrice::génère_simplification_construction_structure(
+    NoeudExpressionAppel *construction, TypeStructure *type_struct, NoeudBloc *bloc)
 {
-    auto const site = construction;
     auto const lexeme = construction->lexeme;
-    auto type_struct = construction->type->comme_type_structure();
-
     auto decl_position = assem->cree_declaration_variable(
         lexeme, type_struct, nullptr, &non_initialisation);
     auto ref_position = decl_position->valeur->comme_reference_declaration();
 
-    auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
     bloc->ajoute_membre(decl_position);
     bloc->ajoute_expression(decl_position);
 
@@ -1738,10 +1739,55 @@ void Simplificatrice::simplifie_construction_structure_impl(
         }
     }
 
+    return ref_position;
+}
+
+void Simplificatrice::simplifie_construction_structure_impl(
+    NoeudExpressionConstructionStructure *construction)
+{
+    auto const site = construction;
+    auto const lexeme = construction->lexeme;
+    auto const type_struct = construction->type->comme_type_structure();
+
+    auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
+
+    auto ref_struct = génère_simplification_construction_structure(
+        construction, type_struct, bloc);
+
     /* La dernière expression (une simple référence) sera utilisée lors de la génération de RI pour
      * définir la valeur à assigner. */
-    bloc->ajoute_expression(ref_position);
+    bloc->ajoute_expression(ref_struct);
     construction->substitution = bloc;
+}
+
+void Simplificatrice::simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel)
+{
+    auto const site = appel;
+    auto const lexeme = appel->lexeme;
+    auto type_opaque = appel->type->comme_type_opaque();
+    auto type_struct =
+        const_cast<Type *>(donne_type_opacifié_racine(type_opaque))->comme_type_structure();
+
+    auto bloc = assem->cree_bloc_seul(lexeme, site->bloc_parent);
+
+    auto ref_struct = génère_simplification_construction_structure(appel, type_struct, bloc);
+
+    /* ref_opaque := ref_struct comme TypeOpaque */
+    auto comme = assem->cree_comme(appel->lexeme);
+    comme->type = type_opaque;
+    comme->expression = ref_struct;
+    comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
+    comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+
+    auto decl_opaque = assem->cree_declaration_variable(lexeme, type_opaque, nullptr, comme);
+    auto ref_opaque = decl_opaque->valeur->comme_reference_declaration();
+    bloc->ajoute_membre(decl_opaque);
+    bloc->ajoute_expression(decl_opaque);
+
+    /* La dernière expression sera utilisée lors de la génération de RI pour
+     * définir la valeur à assigner. */
+    bloc->ajoute_expression(ref_opaque);
+    appel->substitution = bloc;
 }
 
 /**
