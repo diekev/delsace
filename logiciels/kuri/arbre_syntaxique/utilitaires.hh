@@ -135,6 +135,7 @@ enum {
 
     CONSTRUIT_OPAQUE,
     MONOMORPHE_TYPE_OPAQUE,
+    CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE,
 
     /* pour ne pas avoir à générer des conditions de vérification pour par
      * exemple les accès à des membres d'unions */
