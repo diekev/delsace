@@ -1937,6 +1937,15 @@ bool est_structure_info_type_défaut(GenreType genre)
     }
 }
 
+Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
+{
+    Type const *résultat = type_opaque->type_opacifie;
+    while (résultat->est_type_opaque()) {
+        résultat = résultat->comme_type_opaque()->type_opacifie;
+    }
+    return résultat;
+}
+
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,
                                             kuri::tablet<Attente, 16> &attentes)

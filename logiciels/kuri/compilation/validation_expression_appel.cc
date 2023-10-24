@@ -1117,37 +1117,87 @@ static ResultatAppariement apparie_appel_structure(
 
 /* ************************************************************************** */
 
+static ResultatAppariement apparie_construction_opaque_polymorphique(
+    NoeudExpressionAppel const *expr,
+    TypeOpaque *type_opaque,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
+    if (arguments.taille() == 0) {
+        /* Nous devons avoir au moins 1 argument pour monomorpher. */
+        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
+    }
+
+    if (arguments.taille() > 1) {
+        /* Nous devons avoir au plus 1 argument pour monomorpher. */
+        return ErreurAppariement::mecomptage_arguments(expr, 1, arguments.taille());
+    }
+
+    auto arg = arguments[0].expr;
+    if (arg->type->est_type_type_de_donnees()) {
+        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+        return CandidateAppariement::monomorphisation_opaque(
+            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+    }
+
+    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+    return CandidateAppariement::initialisation_opaque(
+        1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+}
+
+static ResultatAppariement apparie_construction_opaque_depuis_structure(
+    EspaceDeTravail &espace,
+    NoeudExpressionAppel const *expr,
+    TypeOpaque *type_opaque,
+    TypeStructure const *type_structure,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
+    auto résultat_appariement_structure = apparie_appel_structure(
+        espace, expr, type_structure->decl, arguments);
+
+    if (std::holds_alternative<ErreurAppariement>(résultat_appariement_structure)) {
+        return résultat_appariement_structure;
+    }
+
+    /* Change les données de la candidate pour être celles de l'opaque. */
+    auto candidate = std::get<CandidateAppariement>(résultat_appariement_structure);
+    candidate.note = CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE;
+    candidate.type = type_opaque;
+    return candidate;
+}
+
 static ResultatAppariement apparie_construction_opaque(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     TypeOpaque *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
+    if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        return apparie_construction_opaque_polymorphique(expr, type_opaque, arguments);
+    }
+
     if (arguments.taille() == 0) {
-        // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
-        // par défaut des types simples afin de pouvoir les utiliser dans la simplification du code
+        /* Nous devons avoir au moins un argument.
+         * À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
+         * par défaut des types simples afin de pouvoir les utiliser dans la simplification du
+         * code. */
         return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
     }
 
+    auto type_opacifié = donne_type_opacifié_racine(type_opaque);
+
     if (arguments.taille() > 1) {
-        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
+        if (!type_opacifié->est_type_structure()) {
+            /* Un seul argument pour les opaques de structures. */
+            return ErreurAppariement::mecomptage_arguments(expr, 1, arguments.taille());
+        }
+
+        auto type_structure = type_opacifié->comme_type_structure();
+        return apparie_construction_opaque_depuis_structure(
+            espace, expr, type_opaque, type_structure, arguments);
     }
 
     auto arg = arguments[0].expr;
-
-    if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        if (arg->type->est_type_type_de_donnees()) {
-            auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
-            return CandidateAppariement::monomorphisation_opaque(
-                1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
-        }
-
-        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
-        return CandidateAppariement::initialisation_opaque(
-            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
-    }
-
-    auto resultat = verifie_compatibilite(type_opaque->type_opacifie, arg->type);
+    auto resultat = verifie_compatibilite(type_opacifié, arg->type);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));
@@ -1156,6 +1206,14 @@ static ResultatAppariement apparie_construction_opaque(
     auto poids_xform = std::get<PoidsTransformation>(resultat);
 
     if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE) {
+        /* Essaye de construire une structure depuis l'argument unique si l'opacifié est un type
+         * structure. */
+        if (type_opacifié->est_type_structure()) {
+            auto type_structure = type_opacifié->comme_type_structure();
+            return apparie_construction_opaque_depuis_structure(
+                espace, expr, type_opaque, type_structure, arguments);
+        }
+
         return ErreurAppariement::metypage_argument(arg, type_opaque->type_opacifie, arg->type);
     }
 
@@ -1863,25 +1921,50 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        auto type_opaque = candidate->type->comme_type_opaque();
+        if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            espace.rapporte_erreur(
+                expr,
+                "La valeur de l'expression de construction d'opaque n'est pas "
+                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
+                "ou l'utiliser comme type ?");
+            return CodeRetourValidation::Erreur;
+        }
 
+        auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
-            expr->type = type_opaque;
-            expr->aide_generation_code = CONSTRUIT_OPAQUE;
-            expr->noeud_fonction_appelee = type_opaque->decl;
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
                                                               candidate->transformations[i]);
             }
-
-            expr->type = type_opaque;
-            expr->aide_generation_code = CONSTRUIT_OPAQUE;
-            expr->noeud_fonction_appelee = type_opaque->decl;
         }
+
+        expr->type = type_opaque;
+        expr->aide_generation_code = CONSTRUIT_OPAQUE;
+        expr->noeud_fonction_appelee = type_opaque->decl;
+    }
+    else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
+        if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            espace.rapporte_erreur(
+                expr,
+                "La valeur de l'expression de construction d'opaque n'est pas "
+                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
+                "ou l'utiliser comme type ?");
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto type_opaque = candidate->type->comme_type_opaque();
+        for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
+            contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                          candidate->transformations[i]);
+        }
+
+        expr->type = type_opaque;
+        expr->aide_generation_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
+        expr->noeud_fonction_appelee = type_opaque->decl;
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_type_opaque();

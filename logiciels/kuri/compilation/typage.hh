@@ -858,6 +858,10 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
 
 NoeudDeclaration *decl_pour_type(const Type *type);
 
+/* Retourne le type à la racine d'une chaine potentielle de types opaques ou le type opacifié s'il
+ * n'est pas lui-même un type opaque. */
+Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque);
+
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,
                                             kuri::tablet<Attente, 16> &attentes);
