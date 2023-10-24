@@ -5163,6 +5163,9 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
      * boucle.
      */
     auto assembleuse = m_tacheronne.assembleuse;
+    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(inst->bloc_parent);
+
     inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
     bloc->ajoute_membre(inst->decl_it);
@@ -5184,6 +5187,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         inst->decl_index_it = crée_déclaration_pour_variable(
             assembleuse, ref, typage_itérande.type_index, false);
     }
+    assembleuse->depile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
