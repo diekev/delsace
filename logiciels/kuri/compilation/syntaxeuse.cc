@@ -1178,12 +1178,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         case GenreLexeme::STRUCT:
         case GenreLexeme::UNION:
         {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Lexème inattendu, supposément déjà géré, comme expression primaire : "
-                    << chaine_du_lexeme(lexeme->genre) << '\n';
-                std::cerr << cree_message_erreur("");
-            });
+            auto message_erreur = enchaine(
+                "« ",
+                chaine_du_lexeme(lexeme->genre),
+                " » ne peut pas être utilisé comme expression primaire.\n");
+            rapporte_erreur(message_erreur);
             return nullptr;
         }
         case GenreLexeme::SI:
