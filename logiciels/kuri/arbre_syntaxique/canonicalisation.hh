@@ -18,11 +18,13 @@ struct NoeudExpressionAppel;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionConstructionStructure;
 struct NoeudExpressionMembre;
+struct NoeudExpressionReference;
 struct NoeudPour;
 struct NoeudRetiens;
 struct NoeudRetour;
 struct NoeudSi;
 struct Typeuse;
+struct TypeStructure;
 
 /* ------------------------------------------------------------------------- */
 /** \name Canonicalisation des arbres syntaxiques.
@@ -81,6 +83,9 @@ struct Simplificatrice {
     void simplifie_construction_structure_position_code_source(
         NoeudExpressionConstructionStructure *construction);
     void simplifie_construction_structure_impl(NoeudExpressionConstructionStructure *construction);
+    NoeudExpressionReference *génère_simplification_construction_structure(
+        NoeudExpressionAppel *construction, TypeStructure *type_struct, NoeudBloc *bloc);
+    void simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
     void simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
 
     NoeudExpression *simplifie_assignation_enum_drapeau(NoeudExpression *var,
