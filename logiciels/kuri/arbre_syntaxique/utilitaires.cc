@@ -457,6 +457,27 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             aplatis_arbre(
                 expr->expression_discriminee, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
+
+            POUR (expr->paires_discr) {
+                for (auto expression : it->expression->comme_virgule()->expressions) {
+                    if (!expression->est_appel()) {
+                        aplatis_arbre(expression,
+                                      arbre_aplatis,
+                                      DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION);
+                        continue;
+                    }
+
+                    /* Les expressions d'appel sont des expressions d'extraction des valeurs, nous
+                     * ne voulons pas valider sémantiquement les « paramètres » car ils ne
+                     * références pas des variables mais en crée (les valider résulterait alors en
+                     * une erreur de compilation). */
+                    auto appel = expression->comme_appel();
+                    aplatis_arbre(appel->expression,
+                                  arbre_aplatis,
+                                  DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION);
+                }
+            }
+
             arbre_aplatis.ajoute(expr);
 
             POUR (expr->paires_discr) {

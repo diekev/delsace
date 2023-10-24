@@ -1847,6 +1847,10 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     noeud_discr->expression_discriminee = analyse_expression(
         {}, GenreLexeme::DISCR, GenreLexeme::INCONNU);
 
+    noeud_discr->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(),
+                                                              fonctions_courantes.haut());
+    noeud_discr->bloc->appartiens_à_discr = noeud_discr;
+
     consomme(GenreLexeme::ACCOLADE_OUVRANTE,
              "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
@@ -1892,6 +1896,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     consomme(GenreLexeme::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
+    m_tacheronne.assembleuse->depile_bloc();
     return noeud_discr;
 }
 

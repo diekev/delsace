@@ -2477,7 +2477,47 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     assert_rappel(bloc_recherche != nullptr, [&]() { erreur::imprime_site(*espace, expr); });
 
-    if (expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
+    /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
+     * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
+     * jusqu'à leur validation, mais étant déclarées sans types, ceci résulterait en une erreur de
+     * compilation. Ce drapeau sers à quitter la fonction dès que possible pour éviter d'attendre
+     * sur quoi que soit.
+     */
+    auto recherche_est_pour_expression_discrimination_énum = false;
+    auto bloc_recherche_original = NoeudBloc::nul();
+
+    if (expr->possede_drapeau(DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION)) {
+        auto const noeud_discr = expr->bloc_parent->appartiens_à_discr;
+        assert(noeud_discr);
+
+        auto const expression_discriminée = noeud_discr->expression_discriminee;
+        auto const type_discriminée = expression_discriminée->type;
+        assert(type_discriminée);
+
+        if (type_discriminée->est_type_enum()) {
+            auto type_énum = type_discriminée->comme_type_enum();
+            if (!type_énum->decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_énum->decl);
+            }
+
+            bloc_recherche_original = bloc_recherche;
+            bloc_recherche = type_énum->decl->bloc;
+            recherche_est_pour_expression_discrimination_énum = true;
+        }
+        else if (type_discriminée->est_type_union()) {
+            auto type_union = type_discriminée->comme_type_union();
+            if (type_union->decl &&
+                !type_union->decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_union->decl);
+            }
+
+            if (type_union->decl) {
+                bloc_recherche_original = bloc_recherche;
+                bloc_recherche = type_union->decl->bloc;
+            }
+        }
+    }
+    else if (expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
         auto fonction = fonction_courante();
         if (!fonction) {
             espace->rapporte_erreur(
@@ -2558,7 +2598,11 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         bloc_recherche, expr->ident, fichier, fonction_courante());
 
     if (decl == nullptr) {
-        if (fonction_courante() &&
+        if (bloc_recherche_original) {
+            decl = trouve_dans_bloc_ou_module(
+                bloc_recherche_original, expr->ident, fichier, fonction_courante());
+        }
+        if (decl == nullptr && fonction_courante() &&
             fonction_courante()->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             auto site_monomorphisation = fonction_courante()->site_monomorphisation;
 
@@ -2571,6 +2615,10 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         }
     }
 #endif
+
+    if (recherche_est_pour_expression_discrimination_énum) {
+        return CodeRetourValidation::OK;
+    }
 
     if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
         espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
