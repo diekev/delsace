@@ -1178,12 +1178,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         case GenreLexeme::STRUCT:
         case GenreLexeme::UNION:
         {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Lexème inattendu, supposément déjà géré, comme expression primaire : "
-                    << chaine_du_lexeme(lexeme->genre) << '\n';
-                std::cerr << cree_message_erreur("");
-            });
+            auto message_erreur = enchaine(
+                "« ",
+                chaine_du_lexeme(lexeme->genre),
+                " » ne peut pas être utilisé comme expression primaire.\n");
+            rapporte_erreur(message_erreur);
             return nullptr;
         }
         case GenreLexeme::SI:
@@ -1847,6 +1846,10 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     noeud_discr->expression_discriminee = analyse_expression(
         {}, GenreLexeme::DISCR, GenreLexeme::INCONNU);
 
+    noeud_discr->bloc = m_tacheronne.assembleuse->empile_bloc(lexeme_courant(),
+                                                              fonctions_courantes.haut());
+    noeud_discr->bloc->appartiens_à_discr = noeud_discr;
+
     consomme(GenreLexeme::ACCOLADE_OUVRANTE,
              "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
@@ -1892,6 +1895,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     consomme(GenreLexeme::ACCOLADE_FERMANTE,
              "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
+    m_tacheronne.assembleuse->depile_bloc();
     return noeud_discr;
 }
 
