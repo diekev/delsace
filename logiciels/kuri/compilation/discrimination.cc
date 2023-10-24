@@ -473,13 +473,21 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         auto feuilles = expr_paire->comme_virgule();
 
         for (auto j = 0; j < feuilles->expressions.taille(); ++j) {
-            auto résultat_validation = valide_semantique_noeud(feuilles->expressions[j]);
-            if (!est_ok(résultat_validation)) {
-                return résultat_validation;
+            auto feuille = feuilles->expressions[j];
+
+            auto expression_valide = expression_valide_discrimination(feuille, false);
+            if (!expression_valide.has_value()) {
+                espace
+                    ->rapporte_erreur(
+                        feuille,
+                        "Expression invalide pour la discrimination de la valeur scalaire")
+                    .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
+                return CodeRetourValidation::Erreur;
             }
 
-            auto const résultat_transtype = transtype_si_necessaire(feuilles->expressions[j],
-                                                                    type);
+            auto expression = expression_valide->référence;
+
+            auto const résultat_transtype = transtype_si_necessaire(expression, type);
             if (!est_ok(résultat_transtype)) {
                 return résultat_transtype;
             }
