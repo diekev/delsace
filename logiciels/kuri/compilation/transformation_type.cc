@@ -601,9 +601,9 @@ ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_
     return cherche_transformation<true>(type_de, type_vers);
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type const *type_enf)
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers, Type const *type_de)
 {
-    auto resultat = cherche_transformation<false>(type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(type_de, type_vers);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -613,8 +613,8 @@ ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type con
 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
-        if (type_arg->est_type_pointeur() &&
-            type_arg->comme_type_pointeur()->type_pointe == nullptr && type_arg != type_enf) {
+        if (type_vers->est_type_pointeur() &&
+            type_vers->comme_type_pointeur()->type_pointe == nullptr && type_vers != type_de) {
             return PoidsTransformation{transformation, 0.0};
         }
 
@@ -630,11 +630,11 @@ ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg, Type con
     return PoidsTransformation{transformation, 0.5};
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg,
-                                                  Type const *type_enf,
-                                                  NoeudExpression const *enfant)
+ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers,
+                                                  Type const *type_de,
+                                                  NoeudExpression const *noeud)
 {
-    auto resultat = cherche_transformation<false>(type_enf, type_arg);
+    auto resultat = cherche_transformation<false>(type_de, type_vers);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return std::get<Attente>(resultat);
@@ -652,7 +652,7 @@ ResultatPoidsTransformation verifie_compatibilite(Type const *type_arg,
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE) {
         return PoidsTransformation{transformation,
-                                   est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0};
+                                   est_valeur_gauche(noeud->genre_valeur) ? 1.0 : 0.0};
     }
 
     /* nous savons que nous devons transformer la valeur (par ex. eini), donc
