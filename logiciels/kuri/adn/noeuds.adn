@@ -632,6 +632,7 @@ struct NoeudBloc : NoeudExpression {
     NoeudExpression *appartiens_a_boucle [copie]
     // À FAIRE: utilisation de variant
     NoeudExpression *appartiens_a_differe [copie]
+    NoeudDiscr *appartiens_à_discr [préserve_accents copie]
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
     NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
     NoeudDéclaration * [synchrone] membres [code]
@@ -661,6 +662,7 @@ struct NoeudDiscr : NoeudExpression {
 
     NoeudExpression *expression_discriminée [code enfant]
     NoeudPaireDiscr * [] paires_discr [code enfant]
+    NoeudBloc *bloc [copie code enfant]
     NoeudBloc *bloc_sinon [code enfant]
     OperateurBinaire const *op
 }

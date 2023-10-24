@@ -21,6 +21,18 @@
 #include "portee.hh"
 #include "validation_semantique.hh"
 
+/* ------------------------------------------------------------------------- */
+/** \name Poids pour les arguments polymorphiques et variadiques.
+ * Nous réduisons le poids de ces types d'arguments pour favoriser les fonctions ayant été déjà
+ * monomorphées, ou celle de même nom n'ayant pas d'arguments variadiques (p.e. pour favoriser
+ * fonc(z32)(rien) par rapport à fonc(...z32)(rien)).
+ * \{ */
+
+static constexpr double POIDS_POUR_ARGUMENT_POLYMORPHIQUE = 0.95;
+static constexpr double POIDS_POUR_ARGUMENT_VARIADIQUE = 0.95;
+
+/** \} */
+
 enum class ChoseÀApparier : int8_t {
     FONCTION_EXTERNE,
     FONCTION_INTERNE,
@@ -499,8 +511,8 @@ static void applique_transformations(ContexteValidationCode &contexte,
     auto i = 0;
     /* les drapeaux pour les arguments simples */
     for (; i < nombre_args_simples; ++i) {
-        contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                         candidate->transformations[i]);
+        contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                      candidate->transformations[i]);
     }
 
     /* les drapeaux pour les arguments variadics */
@@ -509,8 +521,8 @@ static void applique_transformations(ContexteValidationCode &contexte,
         auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
 
         for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-            contexte.transtype_si_necessaire(noeud_tableau->expressions[j],
-                                             candidate->transformations[i]);
+            contexte.crée_transtypage_implicite_au_besoin(noeud_tableau->expressions[j],
+                                                          candidate->transformations[i]);
         }
     }
 }
@@ -762,6 +774,7 @@ static ResultatAppariement apparie_appel_fonction(
 
         auto type_de_l_expression = slot->type;
         auto type_du_parametre = arg->type;
+        auto poids_polymorphique = POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
@@ -770,7 +783,9 @@ static ResultatAppariement apparie_appel_fonction(
                     expr, std::get<ErreurMonomorphisation>(résultat_type));
             }
 
-            type_du_parametre = std::get<Type *>(résultat_type);
+            auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+            type_du_parametre = type_apparié_pesé.type;
+            poids_polymorphique *= type_apparié_pesé.poids_appariement;
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
@@ -794,7 +809,7 @@ static ResultatAppariement apparie_appel_fonction(
         // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
         // la selection de la meilleure candidate
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            poids_pour_enfant *= 0.95;
+            poids_pour_enfant *= poids_polymorphique;
         }
 
         poids_args *= poids_pour_enfant;
@@ -811,6 +826,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto dernier_parametre = decl->parametre_entree(decl->params.taille() - 1);
         auto dernier_type_parametre = dernier_parametre->type;
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
+        auto poids_variadique = POIDS_POUR_ARGUMENT_VARIADIQUE;
 
         if (type_donnees_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(
@@ -820,7 +836,9 @@ static ResultatAppariement apparie_appel_fonction(
                     expr, std::get<ErreurMonomorphisation>(résultat_type));
             }
 
-            type_donnees_argument_variadique = std::get<Type *>(résultat_type);
+            auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+            type_donnees_argument_variadique = type_apparié_pesé.type;
+            poids_variadique *= type_apparié_pesé.poids_appariement;
 
             /* La résolution de type retourne un type variadique, mais nous voulons le type pointé.
              */
@@ -845,7 +863,7 @@ static ResultatAppariement apparie_appel_fonction(
          *
          * Donc diminue le poids pour les fonctions variadiques.
          */
-        poids_args *= 0.95;
+        poids_args *= poids_variadique;
 
         cree_tableau_args_variadiques(
             contexte, slots, nombre_args, type_donnees_argument_variadique);
@@ -1787,8 +1805,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 if (expr->parametres_resolus[i] != nullptr) {
-                    contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                                     candidate->transformations[i]);
+                    contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                                  candidate->transformations[i]);
                 }
             }
             expr->noeud_fonction_appelee = candidate->noeud_decl;
@@ -1856,8 +1874,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
-                contexte.transtype_si_necessaire(expr->parametres_resolus[i],
-                                                 candidate->transformations[i]);
+                contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
+                                                              candidate->transformations[i]);
             }
 
             expr->type = type_opaque;
