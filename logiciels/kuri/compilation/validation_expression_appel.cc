@@ -1893,8 +1893,16 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        auto type_opaque = candidate->type->comme_type_opaque();
+        if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            espace.rapporte_erreur(
+                expr,
+                "La valeur de l'expression de construction d'opaque n'est pas "
+                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
+                "ou l'utiliser comme type ?");
+            return CodeRetourValidation::Erreur;
+        }
 
+        auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
