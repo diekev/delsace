@@ -598,7 +598,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 /* Les références sont des pointeurs implicites, la prise d'adresse ne doit pas
                  * déréférencer. À FAIRE : ajout d'un transtypage référence -> pointeur */
                 if (expr->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
-                    transtype_si_necessaire(expr->operande, TypeTransformation::DEREFERENCE);
+                    crée_transtypage_implicite_au_besoin(expr->operande,
+                                                         TypeTransformation::DEREFERENCE);
                 }
             }
 
@@ -625,7 +626,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 else {
                     if (type->est_type_entier_constant()) {
                         type = TypeBase::Z32;
-                        transtype_si_necessaire(
+                        crée_transtypage_implicite_au_besoin(
                             expr->operande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
                     }
 
@@ -654,7 +655,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type2 = enfant2->type;
 
             if (type1->est_type_reference()) {
-                transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+                crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                     TypeTransformation::DEREFERENCE);
                 type1 = type_dereference_pour(type1);
             }
 
@@ -710,8 +712,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     expr->op = candidat.op;
                     expr->permute_operandes = candidat.permute_operandes;
 
-                    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-                    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+                    crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                         candidat.transformation_type1);
+                    crée_transtypage_implicite_au_besoin(expr->operande_droite,
+                                                         candidat.transformation_type2);
                     break;
                 }
             }
@@ -720,12 +724,15 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_index = enfant2->type;
 
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     expr->operande_droite,
                     {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
             }
             else {
-                TENTE(transtype_si_necessaire(expr->operande_droite, type_cible));
+                TENTE(crée_transtypage_implicite_si_possible(
+                    expr->operande_droite,
+                    type_cible,
+                    RaisonTranstypageImplicite::POUR_EXPRESSION_INDEXAGE));
             }
 
             break;
@@ -850,7 +857,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             if (enfant->type->est_type_reference() && !noeud->type->est_type_reference()) {
-                transtype_si_necessaire(expr->expression, TypeTransformation::DEREFERENCE);
+                crée_transtypage_implicite_au_besoin(expr->expression,
+                                                     TypeTransformation::DEREFERENCE);
             }
 
             auto resultat = cherche_transformation_pour_transtypage(expr->expression->type,
@@ -921,13 +929,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 if (type_debut->est_type_entier_constant() && est_type_entier(type_fin)) {
                     type_debut = type_fin;
                     enfant1->type = type_debut;
-                    transtype_si_necessaire(
+                    crée_transtypage_implicite_au_besoin(
                         inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
                 }
                 else if (type_fin->est_type_entier_constant() && est_type_entier(type_debut)) {
                     type_fin = type_debut;
                     enfant2->type = type_fin;
-                    transtype_si_necessaire(
+                    crée_transtypage_implicite_au_besoin(
                         inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin});
                 }
                 else {
@@ -937,9 +945,9 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
             else if (type_debut->est_type_entier_constant()) {
                 type_debut = TypeBase::Z32;
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     inst->debut, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_debut});
             }
 
@@ -1021,13 +1029,16 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
 
             if (type_feuille->est_type_entier_constant()) {
                 type_feuille = TypeBase::Z32;
-                transtype_si_necessaire(
+                crée_transtypage_implicite_au_besoin(
                     feuilles->expressions[0],
                     {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille});
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
-                TENTE(transtype_si_necessaire(feuilles->expressions[i], type_feuille));
+                TENTE(crée_transtypage_implicite_si_possible(
+                    feuilles->expressions[i],
+                    type_feuille,
+                    RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU));
             }
 
             noeud->type = m_compilatrice.typeuse.type_tableau_fixe(type_feuille,
@@ -1282,8 +1293,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     auto type_tableau_fixe = type_expr->comme_type_tableau_fixe();
                     type_expr = m_compilatrice.typeuse.type_tableau_dynamique(
                         type_tableau_fixe->type_pointe);
-                    transtype_si_necessaire(expr->expression,
-                                            {TypeTransformation::CONVERTI_TABLEAU, type_expr});
+                    crée_transtypage_implicite_au_besoin(
+                        expr->expression, {TypeTransformation::CONVERTI_TABLEAU, type_expr});
                 }
 
                 expr->type = type_expr;
@@ -2427,7 +2438,40 @@ static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
         return structure->est_polymorphe;
     }
 
+    if (decl->est_type_opaque()) {
+        auto const opaque = decl->comme_type_opaque();
+        return opaque->expression_type->possede_drapeau(
+            DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
+    }
+
     return false;
+}
+
+/* Retourne vrai si la déclaration se situe après la référence à celle-ci. Ceci n'est destiné que
+ * pour les déclarations de variables locales à une fonction. */
+static bool déclaration_est_postérieure_à_la_référence(NoeudDeclaration const *déclaration,
+                                                       NoeudExpressionReference const *référence)
+{
+    assert(déclaration->bloc_parent);
+
+    if (déclaration->bloc_parent != référence->bloc_parent) {
+        /* La déclaration et la référence sont dans deux blocs sémantiques différents. */
+        return false;
+    }
+
+    if (!déclaration->est_declaration_variable()) {
+        return false;
+    }
+
+    if (déclaration->possede_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+        return false;
+    }
+
+    if (référence->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
+        return false;
+    }
+
+    return déclaration->lexeme->ligne > référence->lexeme->ligne;
 }
 
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
@@ -2439,7 +2483,47 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     assert_rappel(bloc_recherche != nullptr, [&]() { erreur::imprime_site(*espace, expr); });
 
-    if (expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
+    /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
+     * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
+     * jusqu'à leur validation, mais étant déclarées sans types, ceci résulterait en une erreur de
+     * compilation. Ce drapeau sers à quitter la fonction dès que possible pour éviter d'attendre
+     * sur quoi que soit.
+     */
+    auto recherche_est_pour_expression_discrimination_énum = false;
+    auto bloc_recherche_original = NoeudBloc::nul();
+
+    if (expr->possede_drapeau(DrapeauxNoeud::EXPRESSION_TEST_DISCRIMINATION)) {
+        auto const noeud_discr = expr->bloc_parent->appartiens_à_discr;
+        assert(noeud_discr);
+
+        auto const expression_discriminée = noeud_discr->expression_discriminee;
+        auto const type_discriminée = expression_discriminée->type;
+        assert(type_discriminée);
+
+        if (type_discriminée->est_type_enum()) {
+            auto type_énum = type_discriminée->comme_type_enum();
+            if (!type_énum->decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_énum->decl);
+            }
+
+            bloc_recherche_original = bloc_recherche;
+            bloc_recherche = type_énum->decl->bloc;
+            recherche_est_pour_expression_discrimination_énum = true;
+        }
+        else if (type_discriminée->est_type_union()) {
+            auto type_union = type_discriminée->comme_type_union();
+            if (type_union->decl &&
+                !type_union->decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(type_union->decl);
+            }
+
+            if (type_union->decl) {
+                bloc_recherche_original = bloc_recherche;
+                bloc_recherche = type_union->decl->bloc;
+            }
+        }
+    }
+    else if (expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE)) {
         auto fonction = fonction_courante();
         if (!fonction) {
             espace->rapporte_erreur(
@@ -2520,7 +2604,11 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         bloc_recherche, expr->ident, fichier, fonction_courante());
 
     if (decl == nullptr) {
-        if (fonction_courante() &&
+        if (bloc_recherche_original) {
+            decl = trouve_dans_bloc_ou_module(
+                bloc_recherche_original, expr->ident, fichier, fonction_courante());
+        }
+        if (decl == nullptr && fonction_courante() &&
             fonction_courante()->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             auto site_monomorphisation = fonction_courante()->site_monomorphisation;
 
@@ -2534,16 +2622,15 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
     }
 #endif
 
-    if (decl->lexeme->fichier == expr->lexeme->fichier &&
-        decl->genre == GenreNoeud::DECLARATION_VARIABLE &&
-        !decl->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) &&
-        !(expr->possede_drapeau(DrapeauxNoeud::IDENTIFIANT_EST_ACCENTUÉ_GRAVE))) {
-        if (decl->lexeme->ligne > expr->lexeme->ligne) {
-            espace->rapporte_erreur(expr, "Utilisation d'un symbole avant sa déclaration.")
-                .ajoute_message("Le symbole fut déclaré ici :\n\n")
-                .ajoute_site(decl);
-            return CodeRetourValidation::Erreur;
-        }
+    if (recherche_est_pour_expression_discrimination_énum) {
+        return CodeRetourValidation::OK;
+    }
+
+    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
+            .ajoute_message("Le symbole fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return CodeRetourValidation::Erreur;
     }
 
     if (est_declaration_polymorphique(decl) &&
@@ -3506,7 +3593,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                      * la transformation puisque nous n'utilisons pas la déclaration
                      * pour générer la RI */
                     auto expression = donnees.expression;
-                    transtype_si_necessaire(expression, donnees.transformations[i]);
+                    crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
                     // À FAIRE(emploi) : préserve l'emploi dans les données types
                     TENTE(ajoute_donnees_membre(var, expression));
@@ -3613,7 +3700,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                  * la transformation puisque nous n'utilisons pas la déclaration
                  * pour générer la RI */
                 auto expression = donnees.expression;
-                transtype_si_necessaire(expression, donnees.transformations[i]);
+                crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
                 // À FAIRE(emploi) : préserve l'emploi dans les données types
                 TENTE(ajoute_donnees_membre(var, expression));
@@ -4113,7 +4200,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 return CodeRetourValidation::Erreur;
             }
 
-            transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(var, TypeTransformation::DEREFERENCE);
             transformation = TypeTransformation::DEREFERENCE;
         }
         else if (var_est_reference) {
@@ -4133,7 +4220,7 @@ ResultatValidation ContexteValidationCode::valide_assignation(NoeudAssignation *
                 return CodeRetourValidation::Erreur;
             }
 
-            transtype_si_necessaire(var, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(var, TypeTransformation::DEREFERENCE);
         }
         else if (expr_est_reference) {
             // déréférence expr
@@ -4361,8 +4448,8 @@ void ContexteValidationCode::rapporte_erreur_fonction_nulctx(const NoeudExpressi
     erreur::lance_erreur_fonction_nulctx(*espace, appl_fonc, decl_fonc, decl_appel);
 }
 
-ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
-                                                                   Type *type_cible)
+ResultatValidation ContexteValidationCode::crée_transtypage_implicite_si_possible(
+    NoeudExpression *&expression, Type *type_cible, const RaisonTranstypageImplicite raison)
 {
     auto resultat = cherche_transformation(expression->type, type_cible);
 
@@ -4372,16 +4459,51 @@ ResultatValidation ContexteValidationCode::transtype_si_necessaire(NoeudExpressi
 
     auto transformation = std::get<TransformationType>(resultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        rapporte_erreur_assignation_type_differents(type_cible, expression->type, expression);
+        kuri::chaine_statique message_principal;
+        kuri::chaine_statique message_type_désiré;
+        kuri::chaine_statique message_type_obtenu;
+
+        switch (raison) {
+            case RaisonTranstypageImplicite::POUR_TEST_DISCRIMINATION:
+            {
+                message_principal =
+                    "Type incompatible pour l'expression de test de discrimination.";
+                message_type_désiré = "Le type de l'expression discriminée est : ";
+                message_type_obtenu = "Le type de l'expression test est        : ";
+                break;
+            }
+            case RaisonTranstypageImplicite::POUR_EXPRESSION_INDEXAGE:
+            {
+                message_principal =
+                    "Type incompatible pour la valeur d'index de l'expression d'indexage.";
+                message_type_désiré = "Le type désiré est          : ";
+                message_type_obtenu = "Le type de l'expression est : ";
+                break;
+            }
+            case RaisonTranstypageImplicite::POUR_CONSTRUCTION_TABLEAU:
+            {
+                message_principal =
+                    "Type incompatible pour la valeur utilisée dans la construction de tableau.";
+                message_type_désiré = "Le type de valeur des éléments du tableau est : ";
+                message_type_obtenu = "Le type de l'expression est                   : ";
+                break;
+            }
+        }
+
+        espace
+            ->rapporte_erreur(
+                expression, message_principal, erreur::Genre::ASSIGNATION_MAUVAIS_TYPE)
+            .ajoute_message(message_type_désiré, chaine_type(type_cible), "\n")
+            .ajoute_message(message_type_obtenu, chaine_type(expression->type), "\n");
         return CodeRetourValidation::Erreur;
     }
 
-    transtype_si_necessaire(expression, transformation);
+    crée_transtypage_implicite_au_besoin(expression, transformation);
     return CodeRetourValidation::OK;
 }
 
-void ContexteValidationCode::transtype_si_necessaire(NoeudExpression *&expression,
-                                                     TransformationType const &transformation)
+void ContexteValidationCode::crée_transtypage_implicite_au_besoin(
+    NoeudExpression *&expression, TransformationType const &transformation)
 {
     if (transformation.type == TypeTransformation::INUTILE) {
         return;
@@ -4591,8 +4713,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
     expr->op = candidat.op;
-    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+    crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
+    crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
     return CodeRetourValidation::OK;
 }
 
@@ -4782,7 +4904,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         if (type1->est_type_reference()) {
             type_gauche_est_reference = true;
             type1 = type1->comme_type_reference()->type_pointe;
-            transtype_si_necessaire(expr->operande_gauche, TypeTransformation::DEREFERENCE);
+            crée_transtypage_implicite_au_besoin(expr->operande_gauche,
+                                                 TypeTransformation::DEREFERENCE);
         }
     }
 
@@ -4805,8 +4928,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
                                 "assignation composée.");
     }
 
-    transtype_si_necessaire(expr->operande_gauche, candidat.transformation_type1);
-    transtype_si_necessaire(expr->operande_droite, candidat.transformation_type2);
+    crée_transtypage_implicite_au_besoin(expr->operande_gauche, candidat.transformation_type1);
+    crée_transtypage_implicite_au_besoin(expr->operande_droite, candidat.transformation_type2);
 
     if (assignation_composee) {
         expr->drapeaux |= DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE;
@@ -5133,6 +5256,9 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
      * boucle.
      */
     auto assembleuse = m_tacheronne.assembleuse;
+    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(inst->bloc_parent);
+
     inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
     bloc->ajoute_membre(inst->decl_it);
@@ -5154,6 +5280,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_pour(NoeudPour *in
         inst->decl_index_it = crée_déclaration_pour_variable(
             assembleuse, ref, typage_itérande.type_index, false);
     }
+    assembleuse->depile_bloc();
 
     if (aide_génération_code != BOUCLE_POUR_OPÉRATEUR) {
         return CodeRetourValidation::OK;
