@@ -2143,10 +2143,22 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::UNION:
         {
             auto const type_union = type->comme_type_union();
-            auto const info_membre = donne_membre_pour_type(type_union,
-                                                            type_union->type_le_plus_grand);
-            assert(info_membre.has_value());
-            auto const membre = info_membre->membre;
+
+            MembreTypeComposé membre;
+            if (type_union->type_le_plus_grand) {
+                auto const info_membre = donne_membre_pour_type(type_union,
+                                                                type_union->type_le_plus_grand);
+                assert(info_membre.has_value());
+                membre = info_membre->membre;
+            }
+            else if (type_union->membres.taille()) {
+                /* Si l'union ne contient que des membres de type « rien », utilise le premier
+                 * membre. */
+                membre = type_union->membres[0];
+            }
+            else {
+                break;
+            }
 
             // À FAIRE(union) : test proprement cette logique
             if (type_union->est_nonsure) {
@@ -2189,6 +2201,23 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                 param_comme_structure->expression = ref_param;
                 param_comme_structure->transformation = TransformationType{
                     TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
+
+                if (membre.type->est_type_rien()) {
+                    /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
+                     * comme types des membres). */
+                    auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
+                    ref_membre->accedee = param_comme_structure;
+                    ref_membre->index_membre = 0;
+                    ref_membre->type = TypeBase::Z32;
+                    ref_membre->aide_generation_code = IGNORE_VERIFICATION;
+                    cree_initialisation_defaut_pour_type(TypeBase::Z32,
+                                                         espace->compilatrice(),
+                                                         assembleuse,
+                                                         ref_membre,
+                                                         nullptr,
+                                                         typeuse);
+                    break;
+                }
 
                 auto ref_membre = assembleuse->cree_reference_membre(&lexeme_sentinel);
                 ref_membre->accedee = param_comme_structure;
