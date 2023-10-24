@@ -653,6 +653,7 @@ void Monomorpheuse::ajoute_candidats_depuis_expansion_variadique(
 
 Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_polymorphique)
 {
+    profondeur_appariement_type += 1;
     if (expression_polymorphique->est_expression_unaire()) {
         auto expr_unaire = expression_polymorphique->comme_expression_unaire();
 
@@ -714,16 +715,36 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
     return nullptr;
 }
 
+/* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
+ * arriver à un type racine) + 1.
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
+ * a une de 3. */
+static int donne_profondeur_type(Type const *type)
+{
+    auto profondeur_type = 1;
+    auto type_courant = type;
+    while (Type *sous_type = type_dereference_pour(type_courant)) {
+        profondeur_type += 1;
+        type_courant = sous_type;
+    }
+    return profondeur_type;
+}
+
 RésultatRésolutionType Monomorpheuse::résoud_type_final(
     const NoeudExpression *expression_polymorphique)
 {
+    profondeur_appariement_type = 0;
     auto type = résoud_type_final_impl(expression_polymorphique);
 
     if (a_une_erreur()) {
         return erreur().value();
     }
 
-    return type;
+    auto const profondeur_type = donne_profondeur_type(type);
+    auto const poids_appariement_type = double(profondeur_appariement_type) /
+                                        double(profondeur_type);
+
+    return TypeAppariéPesé{type, poids_appariement_type};
 }
 
 void Monomorpheuse::logue() const

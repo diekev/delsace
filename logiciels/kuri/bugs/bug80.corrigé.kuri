@@ -15,6 +15,7 @@ principale :: fonc () -> z32
         *z32 {
 
         }
+        sinon {}
     }
 
     retourne 0

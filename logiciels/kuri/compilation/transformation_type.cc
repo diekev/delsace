@@ -539,7 +539,25 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
     if (type_de->est_type_opaque()) {
         auto type_opacifié = type_de->comme_type_opaque()->type_opacifie;
-        return cherche_transformation(type_opacifié, type_vers);
+        auto résultat = cherche_transformation(type_opacifié, type_vers);
+        if (!std::holds_alternative<TransformationType>(résultat)) {
+            return résultat;
+        }
+
+        auto transformation = std::get<TransformationType>(résultat);
+        /* Préserve la transformation d'opaque de pointeur vers *octet. */
+        if (transformation.type == TypeTransformation::CONVERTI_VERS_TYPE_CIBLE) {
+            if (type_opacifié->est_type_pointeur() && type_vers == TypeBase::PTR_OCTET) {
+                return résultat;
+            }
+        }
+
+        /* Tout autre conversion est impossible. */
+        if (transformation.type != TypeTransformation::INUTILE) {
+            return TypeTransformation::IMPOSSIBLE;
+        }
+
+        return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
     }
 
     if (POUR_TRANSTYPAGE) {

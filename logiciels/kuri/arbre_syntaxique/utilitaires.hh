@@ -69,8 +69,10 @@ enum class DrapeauxNoeud : uint32_t {
     GAUCHE_EXPRESSION_APPEL = (1 << 25),
     /* Le noeud est une expression de bloc d'une instruction si. */
     EXPRESSION_BLOC_SI = (1u << 26),
+    /* Le noeud est une expression de test d'une discrimination (NoeudPaireDiscr.expression). */
+    EXPRESSION_TEST_DISCRIMINATION = (1u << 27),
 
-    EST_LOCALE = (1u << 27),  // decl var
+    EST_LOCALE = (1u << 28),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

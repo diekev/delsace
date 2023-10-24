@@ -142,7 +142,14 @@ using RésultatContrainte = std::variant<ÉtatRésolutionContrainte, Attente>;
 
 using RésultatMonomorphisation = std::variant<ErreurMonomorphisation, Attente, bool>;
 
-using RésultatRésolutionType = std::variant<ErreurMonomorphisation, Type *>;
+/* Représente un type et son poids d'appariement dérivant de la précision d'appariement du type
+ * selon l'expression polymorphique dont le type est une monomorphisation. */
+struct TypeAppariéPesé {
+    Type *type = nullptr;
+    double poids_appariement = 0.0;
+};
+
+using RésultatRésolutionType = std::variant<ErreurMonomorphisation, TypeAppariéPesé>;
 
 /** \} */
 
@@ -166,6 +173,10 @@ class Monomorpheuse {
     const NoeudExpression *polymorphe = nullptr;
 
     std::optional<ErreurMonomorphisation> erreur_courante{};
+
+    /* Profondeur, dans l'expression polymorphique, à laquelle le type final fut résolu. Voir
+     * #résoud_type_final. Utilisé pour détermine le poids d'appariement du type. */
+    int profondeur_appariement_type = 0;
 
   public:
     Monomorpheuse(EspaceDeTravail &ref_espace, const NoeudDeclarationEnteteFonction *entete);
@@ -247,6 +258,11 @@ class Monomorpheuse {
      * Par exemple pour « a: MaStructure($T, $V) » si le résultat indique que T est z32, et V est
      * 5, retourne le type MaStructure(z32, 5) si nous avions déjà monomorphé MaStructure avec de
      * telles valeurs.
+     *
+     * Retourne soit une erreur si un type ne peut être résolu pour l'expression polymorphique
+     * selon, ou un TypeAppariéPesé contenant le type et son poids de monomorphisation. Le poids
+     * dépends de la précision de l'appariement. Par exemple, l'expression $T aura un poids
+     * inférieur à []$T pour l'appariement d'un tableau.
      */
     RésultatRésolutionType résoud_type_final(const NoeudExpression *expression_polymorphique);
 

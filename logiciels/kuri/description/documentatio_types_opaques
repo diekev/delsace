@@ -1,0 +1,14 @@
+Types opaques
+
+Un type opaque est définit avec une expression #opaque type_à_opacifié.
+
+Un type opaque hérite des opérateurs du type opacifié.
+
+Un type opaque se comporte comme le type opacifié.
+
+Si une fonction prend un type opaque, une variable du type opacifié ne peut y être passée. Par contre, une variable de type opaque peut être passée à une fonction espérant le type opacifié.
+
+Les types opacifiant un type entier, réel, booléen, énumération, ou type erreur, peut être utilisés pour construire des valeurs constantes.
+
+    Mon_Type_Opaque :: #opaque z32
+    Ma_Constante :: Mon_Type_Opaque(123)
