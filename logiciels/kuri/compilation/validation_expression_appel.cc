@@ -1898,20 +1898,17 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
-            expr->type = type_opaque;
-            expr->aide_generation_code = CONSTRUIT_OPAQUE;
-            expr->noeud_fonction_appelee = type_opaque->decl;
         }
         else {
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 contexte.crée_transtypage_implicite_au_besoin(expr->parametres_resolus[i],
                                                               candidate->transformations[i]);
             }
-
-            expr->type = type_opaque;
-            expr->aide_generation_code = CONSTRUIT_OPAQUE;
-            expr->noeud_fonction_appelee = type_opaque->decl;
         }
+
+        expr->type = type_opaque;
+        expr->aide_generation_code = CONSTRUIT_OPAQUE;
+        expr->noeud_fonction_appelee = type_opaque->decl;
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {
         auto type_opaque = candidate->type->comme_type_opaque();
