@@ -15,7 +15,7 @@ vole_données_ :: fonc (v: &$T) -> T
     retourne résultat
 }
 
-vole_données_ :: fonc (v: &[]$T) -> T
+vole_données_ :: fonc (v: &[]$T) -> []T
 {
     résultat : []T = v
     v.pointeur = nul
