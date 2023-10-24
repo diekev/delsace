@@ -1116,15 +1116,48 @@ static ResultatAppariement apparie_appel_structure(
 
 /* ************************************************************************** */
 
+static ResultatAppariement apparie_construction_opaque_polymorphique(
+    NoeudExpressionAppel const *expr,
+    TypeOpaque *type_opaque,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
+    if (arguments.taille() == 0) {
+        /* Nous devons avoir au moins 1 argument pour monomorpher. */
+        return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
+    }
+
+    if (arguments.taille() > 1) {
+        /* Nous devons avoir au plus 1 argument pour monomorpher. */
+        return ErreurAppariement::mecomptage_arguments(expr, 1, arguments.taille());
+    }
+
+    auto arg = arguments[0].expr;
+    if (arg->type->est_type_type_de_donnees()) {
+        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+        return CandidateAppariement::monomorphisation_opaque(
+            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+    }
+
+    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+    return CandidateAppariement::initialisation_opaque(
+        1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
+}
+
 static ResultatAppariement apparie_construction_opaque(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     TypeOpaque *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
+    if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        return apparie_construction_opaque_polymorphique(expr, type_opaque, arguments);
+    }
+
     if (arguments.taille() == 0) {
-        // À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
-        // par défaut des types simples afin de pouvoir les utiliser dans la simplification du code
+        /* Nous devons avoir au moins un argument.
+         * À FAIRE : la construction par défaut des types opaques requiers d'avoir une construction
+         * par défaut des types simples afin de pouvoir les utiliser dans la simplification du
+         * code. */
         return ErreurAppariement::mecomptage_arguments(expr, 1, 0);
     }
 
@@ -1133,19 +1166,6 @@ static ResultatAppariement apparie_construction_opaque(
     }
 
     auto arg = arguments[0].expr;
-
-    if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-        if (arg->type->est_type_type_de_donnees()) {
-            auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
-            return CandidateAppariement::monomorphisation_opaque(
-                1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
-        }
-
-        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
-        return CandidateAppariement::initialisation_opaque(
-            1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
-    }
-
     auto resultat = verifie_compatibilite(type_opaque->type_opacifie, arg->type);
 
     if (std::holds_alternative<Attente>(resultat)) {
