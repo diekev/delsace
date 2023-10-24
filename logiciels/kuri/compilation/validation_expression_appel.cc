@@ -1116,6 +1116,16 @@ static ResultatAppariement apparie_appel_structure(
 
 /* ************************************************************************** */
 
+/* Retourne le type à la racine d'une chaine potentielle de types opaques. */
+static Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
+{
+    Type const *résultat = type_opaque->type_opacifie;
+    while (résultat->est_type_opaque()) {
+        résultat = résultat->comme_type_opaque()->type_opacifie;
+    }
+    return résultat;
+}
+
 static ResultatAppariement apparie_construction_opaque_polymorphique(
     NoeudExpressionAppel const *expr,
     TypeOpaque *type_opaque,
@@ -1166,7 +1176,8 @@ static ResultatAppariement apparie_construction_opaque(
     }
 
     auto arg = arguments[0].expr;
-    auto resultat = verifie_compatibilite(type_opaque->type_opacifie, arg->type);
+    auto type_opacifié = donne_type_opacifié_racine(type_opaque);
+    auto resultat = verifie_compatibilite(type_opacifié, arg->type);
 
     if (std::holds_alternative<Attente>(resultat)) {
         return ErreurAppariement::dependance_non_satisfaite(expr, std::get<Attente>(resultat));
