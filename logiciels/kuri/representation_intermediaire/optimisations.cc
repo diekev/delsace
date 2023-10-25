@@ -718,12 +718,12 @@ static bool operandes_sont_constantes(InstructionOpBinaire *op)
     auto va = val_a->valeur.valeur_entiere;
     auto vb = val_b->valeur.valeur_entiere;
 
-    if (op->op == OperateurBinaire::Genre::Addition) {
+    if (op->op == OpérateurBinaire::Genre::Addition) {
         val_a->valeur.valeur_entiere = va + vb;
         return true;
     }
 
-    if (op->op == OperateurBinaire::Genre::Multiplication) {
+    if (op->op == OpérateurBinaire::Genre::Multiplication) {
         val_a->valeur.valeur_entiere = va * vb;
         return true;
     }
@@ -1099,7 +1099,7 @@ static bool apparie(Appariement *appariement, Atome *atome)
 
 			auto op_binaire = inst->comme_op_binaire();
 
-			if (op_binaire->op != OperateurBinaire::Genre::Multiplication) {
+			if (op_binaire->op != OpérateurBinaire::Genre::Multiplication) {
 				return false;
 			}
 
@@ -1129,7 +1129,7 @@ static Atome *cree_remplacement(Appariement *remplacement, ConstructriceRI &cons
 			auto valeur_gauche = cree_remplacement(remplacement->operande1, constructrice);
 			auto valeur_droite = cree_remplacement(remplacement->operande2, constructrice);
 
-			auto op = constructrice.cree_op_binaire(type, OperateurBinaire::Genre::Addition, valeur_gauche, valeur_droite);
+			auto op = constructrice.cree_op_binaire(type, OpérateurBinaire::Genre::Addition, valeur_gauche, valeur_droite);
 			break;
 		}
 		case Appariement::EST_VARIABLE:
