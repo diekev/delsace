@@ -272,14 +272,14 @@ struct OpBinaireConstant : public AtomeConstante {
         genre = Genre::OP_BINAIRE_CONSTANTE;
     }
 
-    OperateurBinaire::Genre op{};
+    OpérateurBinaire::Genre op{};
     AtomeConstante *operande_gauche = nullptr;
     AtomeConstante *operande_droite = nullptr;
 
     EMPECHE_COPIE(OpBinaireConstant);
 
     OpBinaireConstant(Type const *type_,
-                      OperateurBinaire::Genre op_,
+                      OpérateurBinaire::Genre op_,
                       AtomeConstante *operande_gauche_,
                       AtomeConstante *operande_droite_)
         : OpBinaireConstant()
@@ -297,12 +297,12 @@ struct OpUnaireConstant : public AtomeConstante {
         genre = Genre::OP_UNAIRE_CONSTANTE;
     }
 
-    OperateurUnaire::Genre op{};
+    OpérateurUnaire::Genre op{};
     AtomeConstante *operande = nullptr;
 
     EMPECHE_COPIE(OpUnaireConstant);
 
-    OpUnaireConstant(Type const *type_, OperateurUnaire::Genre op_, AtomeConstante *operande_)
+    OpUnaireConstant(Type const *type_, OpérateurUnaire::Genre op_, AtomeConstante *operande_)
         : OpUnaireConstant()
     {
         this->type = type_;
@@ -571,7 +571,7 @@ struct InstructionOpBinaire : public Instruction {
         genre = Instruction::Genre::OPERATION_BINAIRE;
     }
 
-    OperateurBinaire::Genre op{};
+    OpérateurBinaire::Genre op{};
     Atome *valeur_gauche = nullptr;
     Atome *valeur_droite = nullptr;
 
@@ -579,7 +579,7 @@ struct InstructionOpBinaire : public Instruction {
 
     InstructionOpBinaire(NoeudExpression *site_,
                          Type const *type_,
-                         OperateurBinaire::Genre op_,
+                         OpérateurBinaire::Genre op_,
                          Atome *valeur_gauche_,
                          Atome *valeur_droite_)
         : InstructionOpBinaire(site_)
@@ -598,14 +598,14 @@ struct InstructionOpUnaire : public Instruction {
         genre = Instruction::Genre::OPERATION_UNAIRE;
     }
 
-    OperateurUnaire::Genre op{};
+    OpérateurUnaire::Genre op{};
     Atome *valeur = nullptr;
 
     EMPECHE_COPIE(InstructionOpUnaire);
 
     InstructionOpUnaire(NoeudExpression *site_,
                         Type const *type_,
-                        OperateurUnaire::Genre op_,
+                        OpérateurUnaire::Genre op_,
                         Atome *valeur_)
         : InstructionOpUnaire(site_)
     {
