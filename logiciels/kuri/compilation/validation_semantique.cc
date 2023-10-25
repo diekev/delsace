@@ -631,13 +631,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     }
 
                     auto operateurs = m_compilatrice.operateurs.verrou_lecture();
-                    auto op = cherche_operateur_unaire(*operateurs, type, expr->lexeme->genre);
+                    auto op = cherche_opérateur_unaire(*operateurs, type, expr->lexeme->genre);
 
                     if (op == nullptr) {
                         return Attente::sur_operateur(noeud);
                     }
 
-                    expr->type = op->type_resultat;
+                    expr->type = op->type_résultat;
                     expr->op = op;
                 }
             }
@@ -707,10 +707,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                         return std::get<Attente>(resultat);
                     }
 
-                    auto candidat = std::get<OperateurCandidat>(resultat);
-                    expr->type = candidat.op->type_resultat;
+                    auto candidat = std::get<OpérateurCandidat>(resultat);
+                    expr->type = candidat.op->type_résultat;
                     expr->op = candidat.op;
-                    expr->permute_operandes = candidat.permute_operandes;
+                    expr->permute_operandes = candidat.permute_opérandes;
 
                     crée_transtypage_implicite_au_besoin(expr->operande_gauche,
                                                          candidat.transformation_type1);
@@ -1999,7 +1999,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
         for (auto i = 0; i < iter_op.taille(); ++i) {
             auto op = &iter_op[i];
 
-            if (op->type_operande == type1) {
+            if (op->type_opérande == type1) {
                 if (op->est_basique) {
                     rapporte_erreur("redéfinition de l'opérateur basique", decl);
                     return CodeRetourValidation::Erreur;
@@ -2007,7 +2007,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
 
                 espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
                     .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                    .ajoute_site(op->decl);
+                    .ajoute_site(op->déclaration);
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -2020,7 +2020,7 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
     auto type2 = type_fonc->types_entrees[1];
 
     if (type1->table_opérateurs) {
-        for (auto &op : type1->table_opérateurs->operateurs(decl->lexeme->genre).plage()) {
+        for (auto &op : type1->table_opérateurs->opérateurs(decl->lexeme->genre).plage()) {
             if (op->type2 == type2) {
                 if (op->est_basique) {
                     rapporte_erreur("redéfinition de l'opérateur basique", decl);
@@ -3118,7 +3118,7 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
     type_enum->alignement = type_enum->type_sous_jacent->alignement;
 
-    m_compilatrice.operateurs->ajoute_operateur_basique_enum(type_enum);
+    m_compilatrice.operateurs->ajoute_opérateur_basique_enum(type_enum);
 
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 32>();
 
@@ -4708,7 +4708,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_chaine(
         return std::get<Attente>(resultat);
     }
 
-    auto candidat = std::get<OperateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(resultat);
 
     expr->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
     expr->type = TypeBase::BOOL;
@@ -4862,8 +4862,8 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
         case GenreLexeme::EGALITE:
         {
             // XXX - aucune raison de prendre un verrou ici
-            auto op = m_compilatrice.operateurs->op_comp_egal_types;
-            expr->type = op->type_resultat;
+            auto op = m_compilatrice.operateurs->op_comp_égal_types;
+            expr->type = op->type_résultat;
             expr->op = op;
             return CodeRetourValidation::OK;
         }
@@ -4871,7 +4871,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_type(
         {
             // XXX - aucune raison de prendre un verrou ici
             auto op = m_compilatrice.operateurs->op_comp_diff_types;
-            expr->type = op->type_resultat;
+            expr->type = op->type_résultat;
             expr->op = op;
             return CodeRetourValidation::OK;
         }
@@ -4915,11 +4915,11 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
         return std::get<Attente>(resultat);
     }
 
-    auto candidat = std::get<OperateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(resultat);
 
-    expr->type = candidat.op->type_resultat;
+    expr->type = candidat.op->type_résultat;
     expr->op = candidat.op;
-    expr->permute_operandes = candidat.permute_operandes;
+    expr->permute_operandes = candidat.permute_opérandes;
 
     if (type_gauche_est_reference &&
         candidat.transformation_type1.type != TypeTransformation::INUTILE) {
@@ -4992,7 +4992,7 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
         return std::get<Attente>(resultat);
     }
 
-    auto candidat = std::get<OperateurCandidat>(resultat);
+    auto candidat = std::get<OpérateurCandidat>(resultat);
     expr->op = candidat.op;
     expr->type = type_bool;
     return CodeRetourValidation::OK;

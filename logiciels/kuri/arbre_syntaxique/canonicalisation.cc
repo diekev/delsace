@@ -137,7 +137,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(expr_bin->operande_gauche);
             simplifie(expr_bin->operande_droite);
 
-            if (expr_bin->op && expr_bin->op->est_arithmetique_pointeur) {
+            if (expr_bin->op && expr_bin->op->est_arithmétique_pointeur) {
                 auto comme_type = [&](NoeudExpression *expr_ptr, Type *type) {
                     auto comme = assem->cree_comme(expr_ptr->lexeme);
                     comme->type = type;
@@ -155,14 +155,14 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     auto type_pointe = type2->comme_type_pointeur()->type_pointe;
                     auto soustraction = assem->cree_expression_binaire(
                         expr_bin->lexeme,
-                        type_z64->table_opérateurs->operateur_sst,
+                        type_z64->table_opérateurs->opérateur_sst,
                         comme_type(expr_bin->operande_gauche, type_z64),
                         comme_type(expr_bin->operande_droite, type_z64));
                     auto taille_de = assem->cree_litterale_entier(
                         expr_bin->lexeme, type_z64, std::max(type_pointe->taille_octet, 1u));
                     auto div = assem->cree_expression_binaire(
                         expr_bin->lexeme,
-                        type_z64->table_opérateurs->operateur_div,
+                        type_z64->table_opérateurs->opérateur_div,
                         soustraction,
                         taille_de);
                     expr_bin->substitution = div;
@@ -198,19 +198,19 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                         expr_entier->lexeme, type_entier, std::max(type_pointe->taille_octet, 1u));
                     auto mul = assem->cree_expression_binaire(
                         expr_entier->lexeme,
-                        type_entier->table_opérateurs->operateur_mul,
+                        type_entier->table_opérateurs->opérateur_mul,
                         expr_entier,
                         taille_de);
 
-                    OperateurBinaire *op_arithm = nullptr;
+                    OpérateurBinaire *op_arithm = nullptr;
 
                     if (expr_bin->lexeme->genre == GenreLexeme::MOINS ||
                         expr_bin->lexeme->genre == GenreLexeme::MOINS_EGAL) {
-                        op_arithm = type_entier->table_opérateurs->operateur_sst;
+                        op_arithm = type_entier->table_opérateurs->opérateur_sst;
                     }
                     else if (expr_bin->lexeme->genre == GenreLexeme::PLUS ||
                              expr_bin->lexeme->genre == GenreLexeme::PLUS_EGAL) {
-                        op_arithm = type_entier->table_opérateurs->operateur_ajt;
+                        op_arithm = type_entier->table_opérateurs->opérateur_ajt;
                     }
 
                     auto arithm = assem->cree_expression_binaire(
@@ -265,7 +265,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             /* op peut être nul pour les opérateurs ! et * */
             if (expr_un->op && !expr_un->op->est_basique) {
                 auto appel = assem->cree_appel(
-                    expr_un->lexeme, expr_un->op->decl, expr_un->op->type_resultat);
+                    expr_un->lexeme, expr_un->op->déclaration, expr_un->op->type_résultat);
                 appel->parametres_resolus.ajoute(expr_un->operande);
                 expr_un->substitution = appel;
                 return;
@@ -998,7 +998,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                     expression_iteree->lexeme, expression_iteree->type, 1);
                 expr_fin = assem->cree_expression_binaire(
                     expression_iteree->lexeme,
-                    expression_iteree->type->table_opérateurs->operateur_sst,
+                    expression_iteree->type->table_opérateurs->opérateur_sst,
                     expression_iteree,
                     valeur_un);
             }
@@ -1014,7 +1014,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
              */
             NoeudExpression *nombre_iterations = assem->cree_expression_binaire(
                 expression_iteree->lexeme,
-                expression_iteree->type->table_opérateurs->operateur_sst,
+                expression_iteree->type->table_opérateurs->opérateur_sst,
                 expr_fin,
                 expr_debut);
 
@@ -1022,7 +1022,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 expression_iteree->lexeme, expression_iteree->type, 1);
             nombre_iterations = assem->cree_expression_binaire(
                 expression_iteree->lexeme,
-                expression_iteree->type->table_opérateurs->operateur_ajt,
+                expression_iteree->type->table_opérateurs->opérateur_ajt,
                 nombre_iterations,
                 valeur_un);
 
@@ -1034,7 +1034,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto init_it = assem->cree_assignation_variable(ref_it->lexeme, ref_it, expr_debut);
             bloc_pre->ajoute_expression(init_it);
 
-            auto op_comp = index_it->type->table_opérateurs->operateur_seg;
+            auto op_comp = index_it->type->table_opérateurs->opérateur_seg;
             condition->condition = assem->cree_expression_binaire(
                 inst->lexeme, op_comp, ref_index, nombre_iterations);
             boucle->bloc->ajoute_expression(condition);
@@ -1097,7 +1097,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             auto type_z64 = TypeBase::Z64;
             condition->condition = assem->cree_expression_binaire(
-                inst->lexeme, type_z64->table_opérateurs->operateur_seg, ref_index, expr_taille);
+                inst->lexeme, type_z64->table_opérateurs->opérateur_seg, ref_index, expr_taille);
 
             auto expr_pointeur = NoeudExpression::nul();
 
@@ -1123,12 +1123,12 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (inverse_boucle) {
                 expr_index = assem->cree_expression_binaire(
                     inst->lexeme,
-                    ref_index->type->table_opérateurs->operateur_sst,
+                    ref_index->type->table_opérateurs->opérateur_sst,
                     expr_taille,
                     ref_index);
                 expr_index = assem->cree_expression_binaire(
                     inst->lexeme,
-                    ref_index->type->table_opérateurs->operateur_sst,
+                    ref_index->type->table_opérateurs->opérateur_sst,
                     expr_index,
                     assem->cree_litterale_entier(ref_index->lexeme, ref_index->type, 1));
             }
@@ -1919,11 +1919,11 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 
         auto valeur_lit_enum = assem->cree_litterale_entier(
             lexeme, type_enum, static_cast<unsigned>(valeur_enum));
-        auto op = type_enum->table_opérateurs->operateur_etb;
+        auto op = type_enum->table_opérateurs->opérateur_etb;
         auto et = assem->cree_expression_binaire(lexeme, op, accede, valeur_lit_enum);
 
         auto zero = assem->cree_litterale_entier(lexeme, type_enum, 0);
-        op = type_enum->table_opérateurs->operateur_dif;
+        op = type_enum->table_opérateurs->opérateur_dif;
         auto dif = assem->cree_expression_binaire(lexeme, op, et, zero);
 
         ref_membre->substitution = dif;
@@ -2005,7 +2005,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     auto cree_conjonction_drapeau =
         [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
             auto valeur_lit_enum = assem->cree_litterale_entier(lexeme, type_enum, valeur_enum);
-            auto op = type_enum->table_opérateurs->operateur_oub;
+            auto op = type_enum->table_opérateurs->opérateur_oub;
             return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
         };
 
@@ -2014,7 +2014,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
         [&](NoeudExpression *ref_variable, TypeEnum *type_enum, unsigned valeur_enum) {
             auto valeur_lit_enum = assem->cree_litterale_entier(
                 lexeme, type_enum, ~uint64_t(valeur_enum));
-            auto op = type_enum->table_opérateurs->operateur_etb;
+            auto op = type_enum->table_opérateurs->opérateur_etb;
             return assem->cree_expression_binaire(var->lexeme, op, ref_variable, valeur_lit_enum);
         };
 
@@ -2071,7 +2071,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* -b */
     auto zero = assem->cree_litterale_entier(lexeme, type_enum->type_sous_jacent, 0);
     auto moins_b_type_sous_jacent = assem->cree_expression_binaire(
-        lexeme, type_sous_jacent->table_opérateurs->operateur_sst, zero, comme);
+        lexeme, type_sous_jacent->table_opérateurs->opérateur_sst, zero, comme);
 
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
@@ -2085,7 +2085,7 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
     /* b - 1 */
     auto un = assem->cree_litterale_entier(lexeme, type_sous_jacent, 1);
     auto b_moins_un_type_sous_jacent = assem->cree_expression_binaire(
-        lexeme, type_sous_jacent->table_opérateurs->operateur_sst, comme, un);
+        lexeme, type_sous_jacent->table_opérateurs->opérateur_sst, comme, un);
 
     /* Convertis vers le type énum pour que la RI soit contente vis-à-vis de la sûreté de
      * type.
@@ -2099,14 +2099,14 @@ NoeudExpression *Simplificatrice::simplifie_assignation_enum_drapeau(NoeudExpres
 
     /* -b & v1 */
     auto moins_b_et_v1 = assem->cree_expression_binaire(
-        lexeme, type_enum->table_opérateurs->operateur_etb, moins_b, v1);
+        lexeme, type_enum->table_opérateurs->opérateur_etb, moins_b, v1);
     /* (b - 1) & v2 */
     auto b_moins_un_et_v2 = assem->cree_expression_binaire(
-        lexeme, type_enum->table_opérateurs->operateur_etb, b_moins_un, v2);
+        lexeme, type_enum->table_opérateurs->opérateur_etb, b_moins_un, v2);
 
     /* (-(b comme T) & v1) | (((b comme T) - 1) & v2) */
     return assem->cree_expression_binaire(
-        lexeme, type_enum->table_opérateurs->operateur_oub, moins_b_et_v1, b_moins_un_et_v2);
+        lexeme, type_enum->table_opérateurs->opérateur_oub, moins_b_et_v1, b_moins_un_et_v2);
 }
 
 NoeudExpression *Simplificatrice::simplifie_operateur_binaire(NoeudExpressionBinaire *expr_bin,
@@ -2125,7 +2125,7 @@ NoeudExpression *Simplificatrice::simplifie_operateur_binaire(NoeudExpressionBin
     }
 
     auto appel = assem->cree_appel(
-        expr_bin->lexeme, expr_bin->op->decl, expr_bin->op->type_resultat);
+        expr_bin->lexeme, expr_bin->op->decl, expr_bin->op->type_résultat);
 
     if (expr_bin->permute_operandes) {
         appel->parametres_resolus.ajoute(expr_bin->operande_droite);

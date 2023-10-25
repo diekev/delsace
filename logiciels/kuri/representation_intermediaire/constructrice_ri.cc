@@ -540,7 +540,7 @@ void ConstructriceRI::cree_appel_fonction_init_type(NoeudExpression *site_,
 
 InstructionOpUnaire *ConstructriceRI::cree_op_unaire(NoeudExpression *site_,
                                                      Type const *type,
-                                                     OperateurUnaire::Genre op,
+                                                     OpérateurUnaire::Genre op,
                                                      Atome *valeur)
 {
     auto inst = insts_opunaire.ajoute_element(site_, type, op, valeur);
@@ -550,7 +550,7 @@ InstructionOpUnaire *ConstructriceRI::cree_op_unaire(NoeudExpression *site_,
 
 InstructionOpBinaire *ConstructriceRI::cree_op_binaire(NoeudExpression *site_,
                                                        Type const *type,
-                                                       OperateurBinaire::Genre op,
+                                                       OpérateurBinaire::Genre op,
                                                        Atome *valeur_gauche,
                                                        Atome *valeur_droite)
 {
@@ -560,7 +560,7 @@ InstructionOpBinaire *ConstructriceRI::cree_op_binaire(NoeudExpression *site_,
 }
 
 InstructionOpBinaire *ConstructriceRI::cree_op_comparaison(NoeudExpression *site_,
-                                                           OperateurBinaire::Genre op,
+                                                           OpérateurBinaire::Genre op,
                                                            Atome *valeur_gauche,
                                                            Atome *valeur_droite)
 {
@@ -670,21 +670,21 @@ TranstypeConstant *ConstructriceRI::cree_transtype_constant(Type const *type,
 }
 
 OpUnaireConstant *ConstructriceRI::cree_op_unaire_constant(Type const *type,
-                                                           OperateurUnaire::Genre op,
+                                                           OpérateurUnaire::Genre op,
                                                            AtomeConstante *valeur)
 {
     return op_unaires_constants.ajoute_element(type, op, valeur);
 }
 
 OpBinaireConstant *ConstructriceRI::cree_op_binaire_constant(Type const *type,
-                                                             OperateurBinaire::Genre op,
+                                                             OpérateurBinaire::Genre op,
                                                              AtomeConstante *valeur_gauche,
                                                              AtomeConstante *valeur_droite)
 {
     return op_binaires_constants.ajoute_element(type, op, valeur_gauche, valeur_droite);
 }
 
-OpBinaireConstant *ConstructriceRI::cree_op_comparaison_constant(OperateurBinaire::Genre op,
+OpBinaireConstant *ConstructriceRI::cree_op_comparaison_constant(OpérateurBinaire::Genre op,
                                                                  AtomeConstante *valeur_gauche,
                                                                  AtomeConstante *valeur_droite)
 {
@@ -1253,7 +1253,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     auto label4 = reserve_label(noeud);
 
                     auto condition = cree_op_comparaison(
-                        noeud, OperateurBinaire::Genre::Comp_Inf, valeur_, cree_z64(0));
+                        noeud, OpérateurBinaire::Genre::Comp_Inf, valeur_, cree_z64(0));
                     cree_branche_condition(noeud, condition, label1, label2);
 
                     insere_label(label1);
@@ -1266,7 +1266,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     insere_label(label2);
 
                     condition = cree_op_comparaison(
-                        noeud, OperateurBinaire::Genre::Comp_Sup_Egal, valeur_, acces_taille);
+                        noeud, OpérateurBinaire::Genre::Comp_Sup_Egal, valeur_, acces_taille);
                     cree_branche_condition(noeud, condition, label3, label4);
 
                     insere_label(label3);
@@ -1347,7 +1347,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur1 = depile_valeur();
                         auto valeur2 = cree_constante_entiere(type_condition, 0);
                         valeur = cree_op_comparaison(
-                            noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                         break;
                     }
                     case GenreType::BOOL:
@@ -1356,7 +1356,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur1 = depile_valeur();
                         auto valeur2 = cree_constante_booleenne(false);
                         valeur = cree_op_comparaison(
-                            noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                         break;
                     }
                     case GenreType::FONCTION:
@@ -1366,7 +1366,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur1 = depile_valeur();
                         auto valeur2 = cree_constante_nulle(type_condition);
                         valeur = cree_op_comparaison(
-                            noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                         break;
                     }
                     case GenreType::EINI:
@@ -1377,7 +1377,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur1 = cree_charge_mem(noeud, pointeur_pointeur);
                         auto valeur2 = cree_constante_nulle(valeur1->type);
                         valeur = cree_op_comparaison(
-                            noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                         break;
                     }
                     case GenreType::CHAINE:
@@ -1389,7 +1389,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                         auto valeur1 = cree_charge_mem(noeud, pointeur_taille);
                         auto valeur2 = cree_z64(0);
                         valeur = cree_op_comparaison(
-                            noeud, OperateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                            noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
                         break;
                     }
                     default:
@@ -1951,7 +1951,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
                 auto condition = cree_op_comparaison(
                     noeud,
-                    OperateurBinaire::Genre::Comp_Inegal,
+                    OpérateurBinaire::Genre::Comp_Inegal,
                     membre_actif,
                     cree_z32(static_cast<unsigned>(transformation.index_membre + 1)));
 
@@ -2256,7 +2256,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
 
                     valeur_taille = cree_op_binaire(noeud,
                                                     TypeBase::Z64,
-                                                    OperateurBinaire::Genre::Multiplication,
+                                                    OpérateurBinaire::Genre::Multiplication,
                                                     valeur_taille,
                                                     cree_z64(taille_type));
 
@@ -2348,13 +2348,13 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         case TypeTransformation::CONVERTI_VERS_BASE:
         {
             valeur = crée_transtype_entre_base_et_dérivé(
-                noeud, valeur, transformation, OperateurBinaire::Genre::Addition);
+                noeud, valeur, transformation, OpérateurBinaire::Genre::Addition);
             break;
         }
         case TypeTransformation::CONVERTI_VERS_DÉRIVÉ:
         {
             valeur = crée_transtype_entre_base_et_dérivé(
-                noeud, valeur, transformation, OperateurBinaire::Genre::Soustraction);
+                noeud, valeur, transformation, OpérateurBinaire::Genre::Soustraction);
             break;
         }
     }
@@ -2370,7 +2370,7 @@ Atome *ConstructriceRI::crée_transtype_entre_base_et_dérivé(
     NoeudExpression *noeud,
     Atome *valeur,
     TransformationType const &transformation,
-    OperateurBinaire::Genre op)
+    OpérateurBinaire::Genre op)
 {
     valeur = cree_charge_mem(noeud, valeur);
 
@@ -2420,7 +2420,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
 
         auto condition = cree_op_comparaison(
             noeud,
-            OperateurBinaire::Genre::Comp_Inegal,
+            OpérateurBinaire::Genre::Comp_Inegal,
             gen_tente.acces_erreur_pour_test,
             cree_constante_entiere(noeud->expression_appelee->type, 0));
 
@@ -2481,7 +2481,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
 
         auto condition_membre_actif = cree_op_comparaison(
             noeud,
-            OperateurBinaire::Genre::Comp_Egal,
+            OpérateurBinaire::Genre::Comp_Egal,
             acces_membre_actif,
             cree_z32(static_cast<unsigned>(index_membre_erreur + 1)));
 
@@ -2596,7 +2596,7 @@ void ConstructriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *n
 
         auto condition = cree_op_comparaison(
             noeud,
-            OperateurBinaire::Genre::Comp_Inegal,
+            OpérateurBinaire::Genre::Comp_Inegal,
             membre_actif,
             cree_z32(static_cast<unsigned>(noeud->index_membre + 1)));
 
@@ -2799,7 +2799,7 @@ void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condit
             auto valeur1 = depile_valeur();
             auto valeur2 = cree_constante_entiere(type_condition, 0);
             valeur = cree_op_comparaison(
-                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
         case GenreType::BOOL:
@@ -2815,7 +2815,7 @@ void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condit
             auto valeur1 = depile_valeur();
             auto valeur2 = cree_constante_nulle(type_condition);
             valeur = cree_op_comparaison(
-                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
         case GenreType::EINI:
@@ -2826,7 +2826,7 @@ void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condit
             auto valeur1 = cree_charge_mem(condition, pointeur_pointeur);
             auto valeur2 = cree_constante_nulle(valeur1->type);
             valeur = cree_op_comparaison(
-                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
         case GenreType::CHAINE:
@@ -2838,7 +2838,7 @@ void ConstructriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condit
             auto valeur1 = cree_charge_mem(condition, pointeur_taille);
             auto valeur2 = cree_z64(0);
             valeur = cree_op_comparaison(
-                condition, OperateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
             break;
         }
         default:
