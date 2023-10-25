@@ -1257,14 +1257,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
-            auto valeur = kuri::chaine_statique();
-
-            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur = table_valeurs.valeur_ou(charge, "");
-            }
-            else {
-                valeur = table_globales.valeur_ou(charge, "");
-            }
+            auto valeur = génère_code_pour_atome(charge, os, false);
 
             assert(valeur != "");
 
@@ -1295,14 +1288,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto inst_stocke = inst->comme_stocke_mem();
             auto valeur = génère_code_pour_atome(inst_stocke->valeur, os, false);
             auto destination = inst_stocke->ou;
-            auto valeur_destination = kuri::chaine_statique();
-
-            if (destination->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur_destination = table_valeurs.valeur_ou(destination, "");
-            }
-            else {
-                valeur_destination = table_globales.valeur_ou(destination, "");
-            }
+            auto valeur_destination = génère_code_pour_atome(destination, os, false);
 
             if (valeur_destination.pointeur()[0] == '&') {
                 valeur_destination = valeur_destination.sous_chaine(1);
@@ -1529,14 +1515,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto inst_accès = inst->comme_acces_membre();
 
             auto accédée = inst_accès->accede;
-            auto valeur_accédée = kuri::chaine_statique();
-
-            if (accédée->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur_accédée = broyeuse.broye_nom_simple(table_valeurs.valeur_ou(accédée, ""));
-            }
-            else {
-                valeur_accédée = broyeuse.broye_nom_simple(table_globales.valeur_ou(accédée, ""));
-            }
+            auto valeur_accédée = broyeuse.broye_nom_simple(
+                génère_code_pour_atome(accédée, os, false));
 
             assert(valeur_accédée != "");
 
