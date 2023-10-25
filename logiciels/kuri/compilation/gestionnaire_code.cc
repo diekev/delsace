@@ -32,7 +32,7 @@ compilation
 #ifdef STATS_DÉTAILLÉES_GESTION
 #    define DÉBUTE_STAT(stat) auto chrono_##stat = dls::chrono::compte_milliseconde()
 #    define TERMINE_STAT(stat)                                                                    \
-        stats.stats.fusionne_entree(GESTION__##stat, {"", chrono_##stat.temps()})
+        stats.stats.fusionne_entrée(GESTION__##stat, {"", chrono_##stat.temps()})
 #else
 #    define DÉBUTE_STAT(stat)
 #    define TERMINE_STAT(stat)
