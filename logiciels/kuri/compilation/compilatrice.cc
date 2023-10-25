@@ -70,7 +70,7 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
     auto ops = operateurs.verrou_ecriture();
-    enregistre_operateurs_basiques(typeuse, *ops);
+    enregistre_opérateurs_basiques(typeuse, *ops);
 
     espace_de_travail_defaut = demarre_un_espace_de_travail({}, "Espace 1");
 
