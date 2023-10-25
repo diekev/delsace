@@ -24,8 +24,8 @@ struct GrapheDependance;
 struct IdentifiantCode;
 struct InfoType;
 struct RegistreDesOpérateurs;
-struct OperateurBinaire;
-struct OperateurUnaire;
+struct OpérateurBinaire;
+struct OpérateurUnaire;
 struct NoeudDeclarationVariable;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeOpaque;
@@ -194,7 +194,7 @@ struct Type {
 
     NoeudDeclarationEnteteFonction *fonction_init = nullptr;
 
-    TableOperateurs *table_opérateurs = nullptr;
+    TableOpérateurs *table_opérateurs = nullptr;
 
     /* À FAIRE: déplace ceci dans une table? */
     TypePointeur *type_pointeur = nullptr;
