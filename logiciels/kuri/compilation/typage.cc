@@ -594,7 +594,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
          * validation sémantique plus tard. */
         if ((resultat->drapeaux & TYPE_POSSEDE_OPERATEURS_DE_BASE) == 0) {
             if (ajoute_operateurs) {
-                operateurs_->ajoute_operateurs_basiques_pointeur(resultat);
+                operateurs_->ajoute_opérateurs_basiques_pointeur(resultat);
             }
             resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
         }
@@ -609,7 +609,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     }
 
     if (ajoute_operateurs) {
-        operateurs_->ajoute_operateurs_basiques_pointeur(resultat);
+        operateurs_->ajoute_opérateurs_basiques_pointeur(resultat);
         resultat->drapeaux |= TYPE_POSSEDE_OPERATEURS_DE_BASE;
     }
 
@@ -776,7 +776,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     noeud->type = type;
 
     if (ajoute_operateurs) {
-        operateurs_->ajoute_operateurs_basiques_fonction(type);
+        operateurs_->ajoute_opérateurs_basiques_fonction(type);
     }
 
     POUR (type->types_entrees) {
