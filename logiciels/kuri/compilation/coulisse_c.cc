@@ -809,7 +809,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
                         return valeur_globale->ident->nom;
                     }
 
-                    return table_valeurs.valeur_ou(valeur_globale, "");
+                    return table_globales.valeur_ou(valeur_globale, "");
                 }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
