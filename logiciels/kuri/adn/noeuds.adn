@@ -315,7 +315,7 @@ struct NoeudExpressionUnaire : NoeudExpression {
     @code  NoeudCodeExpressionUnaire
 
     NoeudExpression *opérande [code enfant]
-    OperateurUnaire const *op
+    OpérateurUnaire const *op
 }
 
 struct NoeudExpressionBinaire : NoeudExpression {
@@ -325,7 +325,7 @@ struct NoeudExpressionBinaire : NoeudExpression {
 
     NoeudExpression *opérande_gauche [code enfant]
     NoeudExpression *opérande_droite [code enfant]
-    OperateurBinaire const *op
+    OpérateurBinaire const *op
     bool permute_operandes
 }
 
@@ -664,7 +664,7 @@ struct NoeudDiscr : NoeudExpression {
     NoeudPaireDiscr * [] paires_discr [code enfant]
     NoeudBloc *bloc [copie code enfant]
     NoeudBloc *bloc_sinon [code enfant]
-    OperateurBinaire const *op
+    OpérateurBinaire const *op
 }
 
 struct NoeudDiscrÉnum : NoeudDiscr {

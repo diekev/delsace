@@ -219,28 +219,28 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
             auto inst_un = inst->comme_op_unaire();
 
             switch (inst_un->op) {
-                case OperateurUnaire::Genre::Positif:
+                case OpérateurUnaire::Genre::Positif:
                 {
                     genere_code_pour_atome(inst_un->valeur, os, false);
                     break;
                 }
-                case OperateurUnaire::Genre::Invalide:
+                case OpérateurUnaire::Genre::Invalide:
                 {
                     break;
                 }
-                case OperateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Complement:
                 {
                     break;
                 }
-                case OperateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Non_Binaire:
                 {
                     break;
                 }
-                case OperateurUnaire::Genre::Non_Logique:
+                case OpérateurUnaire::Genre::Non_Logique:
                 {
                     break;
                 }
-                case OperateurUnaire::Genre::Prise_Adresse:
+                case OpérateurUnaire::Genre::Prise_Adresse:
                 {
                     break;
                 }
@@ -254,96 +254,96 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
 
             /* @Incomplet: charge dans les registres */
             switch (inst_bin->op) {
-                case OperateurBinaire::Genre::Addition:
-                case OperateurBinaire::Genre::Addition_Reel:
+                case OpérateurBinaire::Genre::Addition:
+                case OpérateurBinaire::Genre::Addition_Reel:
                 {
                     os << "  add \n";
                     break;
                 }
-                case OperateurBinaire::Genre::Soustraction:
-                case OperateurBinaire::Genre::Soustraction_Reel:
+                case OpérateurBinaire::Genre::Soustraction:
+                case OpérateurBinaire::Genre::Soustraction_Reel:
                 {
                     os << "  sub \n";
                     break;
                 }
-                case OperateurBinaire::Genre::Multiplication:
-                case OperateurBinaire::Genre::Multiplication_Reel:
+                case OpérateurBinaire::Genre::Multiplication:
+                case OpérateurBinaire::Genre::Multiplication_Reel:
                 {
                     os << "  mul \n";
                     break;
                 }
-                case OperateurBinaire::Genre::Division_Naturel:
-                case OperateurBinaire::Genre::Division_Relatif:
-                case OperateurBinaire::Genre::Division_Reel:
+                case OpérateurBinaire::Genre::Division_Naturel:
+                case OpérateurBinaire::Genre::Division_Relatif:
+                case OpérateurBinaire::Genre::Division_Reel:
                 {
                     os << "  div \n";
                     break;
                 }
-                case OperateurBinaire::Genre::Reste_Naturel:
-                case OperateurBinaire::Genre::Reste_Relatif:
+                case OpérateurBinaire::Genre::Reste_Naturel:
+                case OpérateurBinaire::Genre::Reste_Relatif:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Egal:
-                case OperateurBinaire::Genre::Comp_Egal_Reel:
+                case OpérateurBinaire::Genre::Comp_Egal:
+                case OpérateurBinaire::Genre::Comp_Egal_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Inegal:
-                case OperateurBinaire::Genre::Comp_Inegal_Reel:
+                case OpérateurBinaire::Genre::Comp_Inegal:
+                case OpérateurBinaire::Genre::Comp_Inegal_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Inf:
-                case OperateurBinaire::Genre::Comp_Inf_Nat:
-                case OperateurBinaire::Genre::Comp_Inf_Reel:
+                case OpérateurBinaire::Genre::Comp_Inf:
+                case OpérateurBinaire::Genre::Comp_Inf_Nat:
+                case OpérateurBinaire::Genre::Comp_Inf_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Inf_Egal:
-                case OperateurBinaire::Genre::Comp_Inf_Egal_Nat:
-                case OperateurBinaire::Genre::Comp_Inf_Egal_Reel:
+                case OpérateurBinaire::Genre::Comp_Inf_Egal:
+                case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+                case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Sup:
-                case OperateurBinaire::Genre::Comp_Sup_Nat:
-                case OperateurBinaire::Genre::Comp_Sup_Reel:
+                case OpérateurBinaire::Genre::Comp_Sup:
+                case OpérateurBinaire::Genre::Comp_Sup_Nat:
+                case OpérateurBinaire::Genre::Comp_Sup_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Comp_Sup_Egal:
-                case OperateurBinaire::Genre::Comp_Sup_Egal_Nat:
-                case OperateurBinaire::Genre::Comp_Sup_Egal_Reel:
+                case OpérateurBinaire::Genre::Comp_Sup_Egal:
+                case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+                case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Et_Binaire:
+                case OpérateurBinaire::Genre::Et_Binaire:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Ou_Binaire:
+                case OpérateurBinaire::Genre::Ou_Binaire:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Ou_Exclusif:
+                case OpérateurBinaire::Genre::Ou_Exclusif:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Dec_Gauche:
+                case OpérateurBinaire::Genre::Dec_Gauche:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Dec_Droite_Arithm:
-                case OperateurBinaire::Genre::Dec_Droite_Logique:
+                case OpérateurBinaire::Genre::Dec_Droite_Arithm:
+                case OpérateurBinaire::Genre::Dec_Droite_Logique:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Indexage:
+                case OpérateurBinaire::Genre::Indexage:
                 {
                     break;
                 }
-                case OperateurBinaire::Genre::Invalide:
+                case OpérateurBinaire::Genre::Invalide:
                 {
                     break;
                 }

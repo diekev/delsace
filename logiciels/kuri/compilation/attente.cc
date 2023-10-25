@@ -219,7 +219,7 @@ static void imprime_operateurs_pour(Erreur &e,
         return;
     }
 
-    auto &operateurs = type.table_opérateurs->operateurs(operateur_attendu.lexeme->genre);
+    auto &operateurs = type.table_opérateurs->opérateurs(operateur_attendu.lexeme->genre);
 
     e.ajoute_message("\nNOTE : les opérateurs du type ", chaine_type(&type), " sont :\n");
     POUR (operateurs.plage()) {
@@ -242,8 +242,8 @@ RAPPEL_POUR_ERREUR(opérateur)
         auto type1 = expression_operation->operande_gauche->type;
         auto type2 = expression_operation->operande_droite->type;
 
-        auto candidats = kuri::tablet<OperateurCandidat, 10>();
-        auto resultat = cherche_candidats_operateurs(
+        auto candidats = kuri::tablet<OpérateurCandidat, 10>();
+        auto resultat = cherche_candidats_opérateurs(
             *espace, type1, type2, GenreLexeme::CROCHET_OUVRANT, candidats);
 
         Erreur e = espace->rapporte_erreur(operateur_attendu,

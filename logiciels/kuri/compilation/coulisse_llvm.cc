@@ -187,9 +187,9 @@ auto vers_std_string(dls::vue_chaine_compacte const &chn)
     return std::string(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
 
-static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
+static auto inst_llvm_depuis_operateur(OpérateurBinaire::Genre genre)
 {
-    using Genre = OperateurBinaire::Genre;
+    using Genre = OpérateurBinaire::Genre;
 
     switch (genre) {
         case Genre::Addition:
@@ -250,9 +250,9 @@ static auto inst_llvm_depuis_operateur(OperateurBinaire::Genre genre)
     return static_cast<llvm::Instruction::BinaryOps>(0);
 }
 
-static auto cmp_llvm_depuis_operateur(OperateurBinaire::Genre genre)
+static auto cmp_llvm_depuis_operateur(OpérateurBinaire::Genre genre)
 {
-    using Genre = OperateurBinaire::Genre;
+    using Genre = OpérateurBinaire::Genre;
 
     switch (genre) {
         case Genre::Comp_Egal:
@@ -1103,16 +1103,16 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto type = inst_un->valeur->type;
 
             switch (inst_un->op) {
-                case OperateurUnaire::Genre::Positif:
+                case OpérateurUnaire::Genre::Positif:
                 {
                     valeur = m_builder.CreateLoad(valeur, "");
                     break;
                 }
-                case OperateurUnaire::Genre::Invalide:
+                case OpérateurUnaire::Genre::Invalide:
                 {
                     break;
                 }
-                case OperateurUnaire::Genre::Complement:
+                case OpérateurUnaire::Genre::Complement:
                 {
                     auto type_llvm = converti_type_llvm(inst_un->valeur->type);
                     if (est_type_entier(type)) {
@@ -1126,7 +1126,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                     }
                     break;
                 }
-                case OperateurUnaire::Genre::Non_Binaire:
+                case OpérateurUnaire::Genre::Non_Binaire:
                 {
                     auto type_llvm = converti_type_llvm(inst_un->valeur->type);
                     valeur = m_builder.CreateXor(
@@ -1134,14 +1134,14 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                         llvm::ConstantInt::get(type_llvm, 0, type->est_type_entier_relatif()));
                     break;
                 }
-                case OperateurUnaire::Genre::Non_Logique:
+                case OpérateurUnaire::Genre::Non_Logique:
                 {
                     auto valeur2 = m_builder.getInt1(0);
                     valeur = m_builder.CreateICmpEQ(valeur, valeur2);
                     valeur = m_builder.CreateXor(valeur, m_builder.getInt1(1));
                     break;
                 }
-                case OperateurUnaire::Genre::Prise_Adresse:
+                case OpérateurUnaire::Genre::Prise_Adresse:
                 {
                     break;
                 }
@@ -1156,8 +1156,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_gauche = genere_code_pour_atome(inst_bin->valeur_gauche, false);
             auto valeur_droite = genere_code_pour_atome(inst_bin->valeur_droite, false);
 
-            if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal &&
-                inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Nat) {
+            if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal &&
+                inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
 
                 assert_rappel(inst_bin->valeur_droite->type == inst_bin->valeur_gauche->type,
@@ -1186,8 +1186,8 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 table_valeurs.insère(inst,
                                      m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite));
             }
-            else if (inst_bin->op >= OperateurBinaire::Genre::Comp_Egal_Reel &&
-                     inst_bin->op <= OperateurBinaire::Genre::Comp_Sup_Egal_Reel) {
+            else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal_Reel &&
+                     inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
                 auto cmp = cmp_llvm_depuis_operateur(inst_bin->op);
                 table_valeurs.insère(inst,
                                      m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite));

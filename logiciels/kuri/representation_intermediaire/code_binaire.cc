@@ -298,10 +298,10 @@ void Chunk::emets_label(NoeudExpression const *site, int index)
 }
 
 void Chunk::emets_operation_unaire(NoeudExpression const *site,
-                                   OperateurUnaire::Genre op,
+                                   OpérateurUnaire::Genre op,
                                    Type const *type)
 {
-    if (op == OperateurUnaire::Genre::Complement) {
+    if (op == OpérateurUnaire::Genre::Complement) {
         if (type->est_type_reel()) {
             emets(OP_COMPLEMENT_REEL);
             emets(site);
@@ -311,7 +311,7 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
             emets(site);
         }
     }
-    else if (op == OperateurUnaire::Genre::Non_Binaire) {
+    else if (op == OpérateurUnaire::Genre::Non_Binaire) {
         emets(OP_NON_BINAIRE);
         emets(site);
     }
@@ -324,10 +324,10 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
     }
 }
 
-static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
+static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
 {
 #define ENUMERE_GENRE_OPBINAIRE_EX(genre, id, op_code)                                            \
-    case OperateurBinaire::Genre::genre:                                                          \
+    case OpérateurBinaire::Genre::genre:                                                          \
         return op_code;
     switch (genre) {
         ENUMERE_OPERATEURS_BINAIRE
@@ -337,7 +337,7 @@ static octet_t converti_op_binaire(OperateurBinaire::Genre genre)
 }
 
 void Chunk::emets_operation_binaire(NoeudExpression const *site,
-                                    OperateurBinaire::Genre op,
+                                    OpérateurBinaire::Genre op,
                                     Type const *type_gauche,
                                     Type const *type_droite)
 {

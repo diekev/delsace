@@ -73,10 +73,12 @@ struct IdentifiantADN {
 
     IdentifiantADN(dls::vue_chaine_compacte n) : nom(n), nom_sans_accent(supprime_accents(nom))
     {
+        préserve_accents_si_nom_le_requiers();
     }
 
     IdentifiantADN(kuri::chaine_statique n) : nom(n), nom_sans_accent(supprime_accents(nom))
     {
+        préserve_accents_si_nom_le_requiers();
     }
 
     kuri::chaine_statique nom_cpp() const
@@ -97,6 +99,14 @@ struct IdentifiantADN {
     void préserve_accents()
     {
         nom_sans_accent = nom;
+    }
+
+  private:
+    void préserve_accents_si_nom_le_requiers()
+    {
+        if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire") {
+            préserve_accents();
+        }
     }
 };
 

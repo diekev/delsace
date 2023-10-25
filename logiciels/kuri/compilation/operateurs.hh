@@ -41,23 +41,23 @@ enum class IndiceTypeOp {
     ENUMERE_GENRE_OPUNAIRE_EX(Non_Binaire, nonb)                                                  \
     ENUMERE_GENRE_OPUNAIRE_EX(Prise_Adresse, addr)
 
-struct OperateurUnaire {
+struct OpérateurUnaire {
     enum class Genre : char {
 #define ENUMERE_GENRE_OPUNAIRE_EX(genre, nom) genre,
         ENUMERE_OPERATEURS_UNAIRE
 #undef ENUMERE_GENRE_OPUNAIRE_EX
     };
 
-    Type *type_operande = nullptr;
-    Type *type_resultat = nullptr;
+    Type *type_opérande = nullptr;
+    Type *type_résultat = nullptr;
 
-    NoeudDeclarationEnteteFonction *decl = nullptr;
+    NoeudDeclarationEnteteFonction *déclaration = nullptr;
 
     Genre genre{};
     bool est_basique = true;
 };
 
-const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
+const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre);
 
 /* Nom genre, chaine RI, code opération MV. */
 #define ENUMERE_OPERATEURS_BINAIRE                                                                \
@@ -97,7 +97,7 @@ const char *chaine_pour_genre_op(OperateurUnaire::Genre genre);
     ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique, decdl, OP_DEC_DROITE_LOGIQUE)                  \
     ENUMERE_GENRE_OPBINAIRE_EX(Indexage, idx, octet_t(-1))
 
-struct OperateurBinaire {
+struct OpérateurBinaire {
     enum class Genre : char {
 #define ENUMERE_GENRE_OPBINAIRE_EX(genre, id, op_code) genre,
         ENUMERE_OPERATEURS_BINAIRE
@@ -106,7 +106,7 @@ struct OperateurBinaire {
 
     Type *type1{};
     Type *type2{};
-    Type *type_resultat{};
+    Type *type_résultat{};
 
     NoeudDeclarationEnteteFonction *decl = nullptr;
 
@@ -120,46 +120,46 @@ struct OperateurBinaire {
     bool est_basique = true;
 
     /* vrai pour les opérateurs d'arithmétiques de pointeurs */
-    bool est_arithmetique_pointeur = false;
+    bool est_arithmétique_pointeur = false;
 };
 
-const char *chaine_pour_genre_op(OperateurBinaire::Genre genre);
+const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre);
 
 /* Structure stockant les opérateurs binaires pour un Type.
  * Le Type n'est pas stocké ici, mais chaque Type possède une telle table.
  * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
  * de l'opérande à gauche. */
-struct TableOperateurs {
-    using type_conteneur = kuri::tableau_compresse<OperateurBinaire *, char>;
+struct TableOpérateurs {
+    using type_conteneur = kuri::tableau_compresse<OpérateurBinaire *, char>;
 
   private:
-    kuri::tableau<type_conteneur, int> operateurs_{};
+    kuri::tableau<type_conteneur, int> opérateurs_{};
 
   public:
     /* À FAIRE : ces opérateurs ne sont que pour la simplification du code, nous devrions les
      * généraliser */
-    OperateurBinaire *operateur_ajt = nullptr;
-    OperateurBinaire *operateur_sst = nullptr;
-    OperateurBinaire *operateur_sup = nullptr;
-    OperateurBinaire *operateur_seg = nullptr;
-    OperateurBinaire *operateur_inf = nullptr;
-    OperateurBinaire *operateur_ieg = nullptr;
-    OperateurBinaire *operateur_egt = nullptr;
-    OperateurBinaire *operateur_oub = nullptr;
-    OperateurBinaire *operateur_etb = nullptr;
-    OperateurBinaire *operateur_dif = nullptr;
-    OperateurBinaire *operateur_mul = nullptr;
-    OperateurBinaire *operateur_div = nullptr;
-    OperateurUnaire *operateur_non = nullptr;
+    OpérateurBinaire *opérateur_ajt = nullptr;
+    OpérateurBinaire *opérateur_sst = nullptr;
+    OpérateurBinaire *opérateur_sup = nullptr;
+    OpérateurBinaire *opérateur_seg = nullptr;
+    OpérateurBinaire *opérateur_inf = nullptr;
+    OpérateurBinaire *opérateur_ieg = nullptr;
+    OpérateurBinaire *opérateur_egt = nullptr;
+    OpérateurBinaire *opérateur_oub = nullptr;
+    OpérateurBinaire *opérateur_etb = nullptr;
+    OpérateurBinaire *opérateur_dif = nullptr;
+    OpérateurBinaire *opérateur_mul = nullptr;
+    OpérateurBinaire *opérateur_div = nullptr;
+    OpérateurUnaire *opérateur_non = nullptr;
 
     /* Opérateur 'pour'. */
     NoeudDeclarationOperateurPour *opérateur_pour = nullptr;
 
-    void ajoute(GenreLexeme lexeme, OperateurBinaire *operateur);
+    void ajoute(GenreLexeme lexeme, OpérateurBinaire *operateur);
 
-    type_conteneur const &operateurs(GenreLexeme lexeme);
+    type_conteneur const &opérateurs(GenreLexeme lexeme);
 
-    int64_t memoire_utilisée() const;
+    int64_t mémoire_utilisée() const;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -174,17 +174,17 @@ struct TableOperateurs {
 
 struct RegistreDesOpérateurs {
   private:
-    tableau_page<TableOperateurs> m_tables_opérateurs{};
+    tableau_page<TableOpérateurs> m_tables_opérateurs{};
 
   public:
-    using type_conteneur_binaire = tableau_page<OperateurBinaire>;
-    using type_conteneur_unaire = tableau_page<OperateurUnaire>;
+    using type_conteneur_binaire = tableau_page<OpérateurBinaire>;
+    using type_conteneur_unaire = tableau_page<OpérateurUnaire>;
 
-    kuri::tableau<type_conteneur_binaire> operateurs_binaires{};
-    kuri::tableau<type_conteneur_unaire> operateurs_unaires{};
+    kuri::tableau<type_conteneur_binaire> opérateurs_binaires{};
+    kuri::tableau<type_conteneur_unaire> opérateurs_unaires{};
 
-    OperateurBinaire *op_comp_egal_types = nullptr;
-    OperateurBinaire *op_comp_diff_types = nullptr;
+    OpérateurBinaire *op_comp_égal_types = nullptr;
+    OpérateurBinaire *op_comp_diff_types = nullptr;
 
     RegistreDesOpérateurs();
     ~RegistreDesOpérateurs();
@@ -192,18 +192,18 @@ struct RegistreDesOpérateurs {
     EMPECHE_COPIE(RegistreDesOpérateurs);
 
     /** Retourne la table d'opérateur du type, ou s'il n'en a pas, crées-en une et retourne-la. */
-    TableOperateurs *donne_ou_crée_table_opérateurs(Type *type);
+    TableOpérateurs *donne_ou_crée_table_opérateurs(Type *type);
 
     type_conteneur_unaire const &trouve_unaire(GenreLexeme id) const;
 
-    OperateurBinaire *ajoute_basique(GenreLexeme id,
+    OpérateurBinaire *ajoute_basique(GenreLexeme id,
                                      Type *type,
                                      Type *type_resultat,
                                      IndiceTypeOp indice_type);
-    OperateurBinaire *ajoute_basique(
+    OpérateurBinaire *ajoute_basique(
         GenreLexeme id, Type *type1, Type *type2, Type *type_resultat, IndiceTypeOp indice_type);
 
-    OperateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
+    OpérateurUnaire *ajoute_basique_unaire(GenreLexeme id, Type *type, Type *type_resultat);
 
     void ajoute_perso(GenreLexeme id,
                       Type *type1,
@@ -216,11 +216,11 @@ struct RegistreDesOpérateurs {
                              Type *type_resultat,
                              NoeudDeclarationEnteteFonction *decl);
 
-    void ajoute_operateur_basique_enum(TypeEnum *type);
+    void ajoute_opérateur_basique_enum(TypeEnum *type);
 
-    void ajoute_operateurs_basiques_pointeur(TypePointeur *type);
+    void ajoute_opérateurs_basiques_pointeur(TypePointeur *type);
 
-    void ajoute_operateurs_basiques_fonction(TypeFonction *type);
+    void ajoute_opérateurs_basiques_fonction(TypeFonction *type);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
@@ -232,30 +232,30 @@ struct RegistreDesOpérateurs {
 
 /** \} */
 
-OperateurUnaire const *cherche_operateur_unaire(RegistreDesOpérateurs const &operateurs,
+OpérateurUnaire const *cherche_opérateur_unaire(RegistreDesOpérateurs const &operateurs,
                                                 Type *type1,
                                                 GenreLexeme type_op);
 
-void enregistre_operateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre);
+void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre);
 
-struct OperateurCandidat {
-    OperateurBinaire const *op = nullptr;
+struct OpérateurCandidat {
+    OpérateurBinaire const *op = nullptr;
     TransformationType transformation_type1{};
     TransformationType transformation_type2{};
     double poids = 0.0;
-    bool permute_operandes = false;
+    bool permute_opérandes = false;
 
-    POINTEUR_NUL(OperateurCandidat)
+    POINTEUR_NUL(OpérateurCandidat)
 };
 
-std::optional<Attente> cherche_candidats_operateurs(
+std::optional<Attente> cherche_candidats_opérateurs(
     EspaceDeTravail &espace,
     Type *type1,
     Type *type2,
     GenreLexeme type_op,
-    kuri::tablet<OperateurCandidat, 10> &candidats);
+    kuri::tablet<OpérateurCandidat, 10> &candidats);
 
-using RésultatRechercheOpérateur = std::variant<Attente, OperateurCandidat, bool>;
+using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, bool>;
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
                                                             NoeudExpressionBinaire *site,

@@ -1373,7 +1373,7 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
 // Implémentation des fonctions supplémentaires de l'AssembleuseArbre
 
 NoeudExpressionBinaire *AssembleuseArbre::cree_expression_binaire(const Lexeme *lexeme,
-                                                                  const OperateurBinaire *op,
+                                                                  const OpérateurBinaire *op,
                                                                   NoeudExpression *expr1,
                                                                   NoeudExpression *expr2)
 {
@@ -1382,7 +1382,7 @@ NoeudExpressionBinaire *AssembleuseArbre::cree_expression_binaire(const Lexeme *
     op_bin->operande_gauche = expr1;
     op_bin->operande_droite = expr2;
     op_bin->op = op;
-    op_bin->type = op->type_resultat;
+    op_bin->type = op->type_résultat;
     return op_bin;
 }
 
@@ -1581,7 +1581,7 @@ NoeudAssignation *AssembleuseArbre::cree_incrementation(const Lexeme *lexeme,
     auto type = valeur->type;
 
     auto inc = cree_expression_binaire(lexeme);
-    inc->op = type->table_opérateurs->operateur_ajt;
+    inc->op = type->table_opérateurs->opérateur_ajt;
     assert(inc->op);
     inc->operande_gauche = valeur;
     inc->type = type;
@@ -1603,7 +1603,7 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme,
     auto type = valeur->type;
 
     auto inc = cree_expression_binaire(lexeme);
-    inc->op = type->table_opérateurs->operateur_sst;
+    inc->op = type->table_opérateurs->opérateur_sst;
     assert(inc->op);
     inc->operande_gauche = valeur;
     inc->type = type;

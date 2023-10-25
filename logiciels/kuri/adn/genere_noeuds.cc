@@ -1358,12 +1358,12 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
 	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
 	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
 	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
- NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
+    NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
 	NoeudExpressionLitteraleReel *cree_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
 	NoeudExpression *cree_reference_type(const Lexeme *lexeme, Type *type);
 	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
 	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
-	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme, OperateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
+	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
 	NoeudExpressionMembre *cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
 	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
 	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeCompose *type);

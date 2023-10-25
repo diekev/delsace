@@ -294,10 +294,10 @@ struct Chunk {
     void emets_label(NoeudExpression const *site, int index);
 
     void emets_operation_unaire(NoeudExpression const *site,
-                                OperateurUnaire::Genre op,
+                                OpérateurUnaire::Genre op,
                                 Type const *type);
     void emets_operation_binaire(NoeudExpression const *site,
-                                 OperateurBinaire::Genre op,
+                                 OpérateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
 };

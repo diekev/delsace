@@ -50,7 +50,7 @@ ResultatValidation ContexteValidationCode::valide_discr_énum(NoeudDiscr *inst, 
 {
     auto expression = inst->expression_discriminee;
     auto type_énum = static_cast<TypeEnum *>(type);
-    inst->op = type_énum->table_opérateurs->operateur_egt;
+    inst->op = type_énum->table_opérateurs->opérateur_egt;
 
     auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_ENUM;
@@ -227,7 +227,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_type_union();
     auto déclaration_union = type_union->decl;
-    inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
+    inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
 
     if (déclaration_union->est_nonsure) {
         rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
@@ -325,7 +325,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
 ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
     auto type_union = type->comme_type_union();
-    inst->op = TypeBase::Z32->table_opérateurs->operateur_egt;
+    inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
     auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
@@ -464,7 +464,7 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
         return CodeRetourValidation::Erreur;
     }
 
-    auto candidat = std::get<OperateurCandidat>(résultat);
+    auto candidat = std::get<OpérateurCandidat>(résultat);
     inst->op = candidat.op;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {

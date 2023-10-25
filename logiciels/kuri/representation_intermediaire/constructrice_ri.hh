@@ -148,15 +148,15 @@ struct ConstructriceRI {
 
     InstructionOpUnaire *cree_op_unaire(NoeudExpression *site_,
                                         Type const *type,
-                                        OperateurUnaire::Genre op,
+                                        OpérateurUnaire::Genre op,
                                         Atome *valeur);
     InstructionOpBinaire *cree_op_binaire(NoeudExpression *site_,
                                           Type const *type,
-                                          OperateurBinaire::Genre op,
+                                          OpérateurBinaire::Genre op,
                                           Atome *valeur_gauche,
                                           Atome *valeur_droite);
     InstructionOpBinaire *cree_op_comparaison(NoeudExpression *site_,
-                                              OperateurBinaire::Genre op,
+                                              OpérateurBinaire::Genre op,
                                               Atome *valeur_gauche,
                                               Atome *valeur_droite);
 
@@ -174,13 +174,13 @@ struct ConstructriceRI {
 
     TranstypeConstant *cree_transtype_constant(Type const *type, AtomeConstante *valeur);
     OpUnaireConstant *cree_op_unaire_constant(Type const *type,
-                                              OperateurUnaire::Genre op,
+                                              OpérateurUnaire::Genre op,
                                               AtomeConstante *valeur);
     OpBinaireConstant *cree_op_binaire_constant(Type const *type,
-                                                OperateurBinaire::Genre op,
+                                                OpérateurBinaire::Genre op,
                                                 AtomeConstante *valeur_gauche,
                                                 AtomeConstante *valeur_droite);
-    OpBinaireConstant *cree_op_comparaison_constant(OperateurBinaire::Genre op,
+    OpBinaireConstant *cree_op_comparaison_constant(OpérateurBinaire::Genre op,
                                                     AtomeConstante *valeur_gauche,
                                                     AtomeConstante *valeur_droite);
     AccedeIndexConstant *cree_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
@@ -256,7 +256,7 @@ struct ConstructriceRI {
     Atome *crée_transtype_entre_base_et_dérivé(NoeudExpression *noeud,
                                                Atome *valeur,
                                                const TransformationType &transformation,
-                                               OperateurBinaire::Genre op);
+                                               OpérateurBinaire::Genre op);
 
     /* pour pouvoir accéder aux tableaux d'instructions */
     friend struct CopieuseInstruction;
