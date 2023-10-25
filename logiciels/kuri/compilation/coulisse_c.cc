@@ -1184,17 +1184,16 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             // les portées ne sont plus respectées : deux variables avec le même nom dans deux
             // portées différentes auront le même nom ici dans la même portée donc nous
             // ajoutons le numéro de l'instruction de la variable pour les différencier
+            auto nom = kuri::chaine_statique();
             if (inst->ident != nullptr) {
-                auto nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
-                os << ' ' << nom << ";\n";
-                table_valeurs.insère(inst, enchaine("&", nom));
+                nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
             }
             else {
-                auto nom = enchaine("val", inst->numero);
-                os << ' ' << nom << ";\n";
-                table_valeurs.insère(inst, enchaine("&", nom));
+                nom = enchaine("val", inst->numero);
             }
 
+            os << ' ' << nom << ";\n";
+            table_valeurs.insère(inst, enchaine("&", nom));
             break;
         }
         case Instruction::Genre::APPEL:
@@ -1269,6 +1268,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             assert(valeur != "");
 
+            auto valeur_chargée = kuri::chaine_statique();
             if (valeur.pointeur()[0] == '&') {
                 /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
                  * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
@@ -1277,16 +1277,17 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
                         charge->type->comme_type_pointeur()->type_pointe)) {
-                    table_valeurs.insère(inst_charge, enchaine("&(*", valeur.sous_chaine(1), ")"));
+                    valeur_chargée = enchaine("&(*", valeur.sous_chaine(1), ")");
                 }
                 else {
-                    table_valeurs.insère(inst_charge, valeur.sous_chaine(1));
+                    valeur_chargée = valeur.sous_chaine(1);
                 }
             }
             else {
-                table_valeurs.insère(inst_charge, enchaine("(*", valeur, ")"));
+                valeur_chargée = enchaine("(*", valeur, ")");
             }
 
+            table_valeurs.insère(inst_charge, valeur_chargée);
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
