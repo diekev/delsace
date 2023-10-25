@@ -701,7 +701,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
 
 static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
 {
-    auto est_énum_ou_référénce_énum = [](Type *t) -> TypeEnum * {
+    auto est_énum_ou_référence_énum = [](Type *t) -> TypeEnum * {
         if (t->est_type_enum()) {
             return t->comme_type_enum();
         }
@@ -714,12 +714,12 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
     };
 
     auto type1 = noeud->operande_gauche->type;
-    auto type1_est_énum = est_énum_ou_référénce_énum(type1);
+    auto type1_est_énum = est_énum_ou_référence_énum(type1);
     if (type1_est_énum && (type1_est_énum->drapeaux & TYPE_FUT_VALIDE) == 0) {
         return Attente::sur_type(type1_est_énum);
     }
     auto type2 = noeud->operande_droite->type;
-    auto type2_est_énum = est_énum_ou_référénce_énum(type2);
+    auto type2_est_énum = est_énum_ou_référence_énum(type2);
     if (type2_est_énum && (type2_est_énum->drapeaux & TYPE_FUT_VALIDE) == 0) {
         return Attente::sur_type(type2_est_énum);
     }
