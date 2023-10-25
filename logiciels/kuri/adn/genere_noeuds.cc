@@ -910,7 +910,7 @@ struct GeneratriceCodeCPP {
                << ".ajoute_element();\n";
             // Renseigne directement le noeud code afin d'éviter les boucles infinies résultant en
             // des surempilages d'appels quand nous convertissons notamment les entêtes et les
-            // corps de fonctions qui se référéncent mutuellement.
+            // corps de fonctions qui se référencent mutuellement.
             os << "\t\t\tracine->noeud_code = n;\n";
 
             genere_code_pour_enfant(
