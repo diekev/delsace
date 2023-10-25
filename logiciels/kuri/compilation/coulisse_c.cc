@@ -716,7 +716,7 @@ static void déclare_visibilité_globale(Enchaineuse &os,
 }
 
 struct GénératriceCodeC {
-    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_valeurs{"Valeurs locales C"};
+    kuri::tableau<kuri::chaine_statique> table_valeurs{};
     kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
@@ -1056,7 +1056,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
-            return table_valeurs.valeur_ou(inst, "");
+            return table_valeurs[inst->numero];
         }
         case Atome::Genre::GLOBALE:
         {
@@ -1193,7 +1193,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 
             os << ' ' << nom << ";\n";
-            table_valeurs.insère(inst, enchaine("&", nom));
+            table_valeurs[inst->numero] = enchaine("&", nom);
             break;
         }
         case Instruction::Genre::APPEL:
@@ -1215,7 +1215,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 auto nom_ret = enchaine("__ret", inst->numero);
                 os << broyeuse.nom_broyé_type(const_cast<Type *>(inst_appel->type)) << ' '
                    << nom_ret << " = ";
-                table_valeurs.insère(inst, nom_ret);
+                table_valeurs[inst->numero] = nom_ret;
             }
 
             os << génère_code_pour_atome(inst_appel->appele, os, false);
@@ -1280,7 +1280,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_chargée = enchaine("(*", valeur, ")");
             }
 
-            table_valeurs.insère(inst_charge, valeur_chargée);
+            table_valeurs[inst->numero] = valeur_chargée;
             break;
         }
         case Instruction::Genre::STOCKE_MEMOIRE:
@@ -1352,7 +1352,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur;
             os << ";\n";
 
-            table_valeurs.insère(inst, enchaine("val", inst->numero));
+            table_valeurs[inst->numero] = enchaine("val", inst->numero);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1475,7 +1475,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur_droite;
             os << ";\n";
 
-            table_valeurs.insère(inst, enchaine("val", inst->numero));
+            table_valeurs[inst->numero] = enchaine("val", inst->numero);
 
             break;
         }
@@ -1507,7 +1507,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 
             auto valeur = enchaine(valeur_accédée, "[", valeur_index, "]");
-            table_valeurs.insère(inst, valeur);
+            table_valeurs[inst->numero] = valeur;
             break;
         }
         case Instruction::Genre::ACCEDE_MEMBRE:
@@ -1570,7 +1570,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 #endif
 
-            table_valeurs.insère(inst_accès, valeur_accédée);
+            table_valeurs[inst->numero] = valeur_accédée;
             break;
         }
         case Instruction::Genre::TRANSTYPE:
@@ -1582,7 +1582,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                               ")(",
                               valeur,
                               "))");
-            table_valeurs.insère(inst, valeur);
+            table_valeurs[inst->numero] = valeur;
             break;
         }
     }
@@ -1683,10 +1683,16 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 {
     déclare_fonction(os, atome_fonc);
 
+    table_valeurs.redimensionne(atome_fonc->params_entrees.taille() + 1 +
+                                atome_fonc->instructions.taille() +
+                                atome_fonc->decl->params_sorties.taille());
+
     // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
+    auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
-        table_valeurs.insère(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+        param->comme_instruction()->numero = numéro_inst;
+        table_valeurs[numéro_inst++] = enchaine("&", broyeuse.broye_nom_simple(param->ident));
     }
 
     os << "\n{\n";
@@ -1694,8 +1700,6 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     initialise_trace_appel(atome_fonc, os);
 
     m_fonction_courante = atome_fonc;
-
-    auto numero_inst = atome_fonc->params_entrees.taille();
 
     /* Créons une variable locale pour la valeur de sortie. */
     auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1706,19 +1710,21 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         os << broyeuse.broye_nom_simple(param->ident);
         os << ";\n";
 
-        table_valeurs.insère(param, enchaine("&", broyeuse.broye_nom_simple(param->ident)));
+        param->comme_instruction()->numero = numéro_inst;
+        table_valeurs[numéro_inst++] = enchaine("&", broyeuse.broye_nom_simple(param->ident));
     }
 
     /* Générons le code pour les accès de membres des retours mutliples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
-            génère_code_pour_instruction(
-                param->comme_declaration_variable()->atome->comme_instruction(), os);
+            auto inst = param->comme_declaration_variable()->atome->comme_instruction();
+            inst->numero = numéro_inst++;
+            génère_code_pour_instruction(inst, os);
         }
     }
 
     for (auto inst : atome_fonc->instructions) {
-        inst->numero = numero_inst++;
+        inst->numero = numéro_inst++;
         génère_code_pour_instruction(inst, os);
     }
 
