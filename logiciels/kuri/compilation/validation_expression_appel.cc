@@ -230,7 +230,7 @@ enum {
     CANDIDATE_EST_EXPRESSION_QUELCONQUE,
 };
 
-static auto supprime_doubons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> void
+static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> void
 {
     kuri::ensemblon<NoeudDeclaration *, 10> doublons;
     kuri::tablet<NoeudDeclaration *, 10> résultat;
@@ -286,7 +286,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                      * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
                      * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
                      * devrons proprement gérer tout ça pour éviter de perdre du temps. */
-                    supprime_doubons(declarations);
+                    supprime_doublons(declarations);
                 }
             }
         }
@@ -1693,10 +1693,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree(
+            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
-        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree(
+        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
             {"valide_appel_fonction", temps});
     });
 #endif
