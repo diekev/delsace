@@ -1679,7 +1679,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entree(
+            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entrée(
                 ENTETE_FONCTION__TENTATIVES_RATEES, {"", temps});
         }
     });
@@ -1723,7 +1723,7 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entree(
+            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
     });

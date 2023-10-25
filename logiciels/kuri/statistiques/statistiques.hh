@@ -13,7 +13,7 @@
 #ifdef STATISTIQUES_DETAILLEES
 #    define CHRONO_TYPAGE(entree_stats, index)                                                    \
         dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)([&](double temps) {      \
-            entree_stats.fusionne_entree(index, {"", temps});                                     \
+            entree_stats.fusionne_entrée(index, {"", temps});                                     \
         })
 #else
 #    define CHRONO_TYPAGE(entree_stats, nom)
