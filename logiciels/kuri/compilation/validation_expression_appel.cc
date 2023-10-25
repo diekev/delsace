@@ -1693,10 +1693,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     auto possede_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possede_erreur) {
-            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree(
+            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
-        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entree(
+        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
             {"valide_appel_fonction", temps});
     });
 #endif
