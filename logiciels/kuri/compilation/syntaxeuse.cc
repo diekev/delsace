@@ -1486,6 +1486,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     if (!bloc_constantes_polymorphiques.est_vide()) {
                         decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                     }
+                    decl->drapeaux |= DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE;
                 }
             }
             else if (!gauche->est_reference_declaration()) {
