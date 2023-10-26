@@ -73,6 +73,9 @@ enum class DrapeauxNoeud : uint32_t {
     EXPRESSION_TEST_DISCRIMINATION = (1u << 27),
 
     EST_LOCALE = (1u << 28),  // decl var
+    /* La déclaration est celle d'une variable déclarée dans une expression virgule
+     * (p.e. a, b := ...). */
+    EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 29),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
