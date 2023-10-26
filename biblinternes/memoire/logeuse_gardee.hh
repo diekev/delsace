@@ -26,6 +26,8 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include <limits>
+
 namespace memoire {
 
 template <typename T>
@@ -204,7 +206,7 @@ struct logeuse_guardee {
 	uint64_t max_size() const
     {
         return std::numeric_limits<uint64_t>::max();
-	}
+    }
 
 	template <class U>
 	struct rebind {
