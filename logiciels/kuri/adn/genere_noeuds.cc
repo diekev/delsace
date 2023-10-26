@@ -64,6 +64,22 @@ static const char *copie_extra_structure = R"(
             }
 )";
 
+/* Les déclarations référées doivent être copiées avec soin : il ne faut copier les déclarations
+ * qui font partie de la fonction ou de la structure copiée. Autrement, nous risquerions de copier
+ * tout le module. */
+static const char *copie_déclaration_référée = R"(
+            auto référence_existante = trouve_copie(orig->declaration_referee);
+            if (référence_existante) {
+                copie->declaration_referee = référence_existante->comme_declaration();
+            }
+            else if (orig->declaration_referee && orig->declaration_referee->possede_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
+                copie->declaration_referee = copie_noeud(orig->declaration_referee)->comme_declaration();
+            }
+            else {
+                copie->declaration_referee = orig->declaration_referee;
+            }
+)";
+
 static const IdentifiantADN &type_nominal_membre_pour_noeud_code(Type *type)
 {
     if (type->est_tableau()) {
@@ -494,6 +510,13 @@ struct GeneratriceCodeCPP {
 
             auto copie_noeud = [&](const Membre &enfant) {
                 const auto nom_enfant = enfant.nom;
+
+                if (it->accede_nom_genre().nom_cpp() == "EXPRESSION_REFERENCE_DECLARATION") {
+                    if (enfant.nom.nom_cpp() == "declaration_referee") {
+                        os << copie_déclaration_référée;
+                        return;
+                    }
+                }
 
                 os << "\t\t\t";
 
