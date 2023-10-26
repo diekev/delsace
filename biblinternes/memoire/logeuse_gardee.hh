@@ -204,7 +204,7 @@ struct logeuse_guardee {
 	uint64_t max_size() const
     {
         return std::numeric_limits<uint64_t>::max();
-	}
+    }
 
 	template <class U>
 	struct rebind {
