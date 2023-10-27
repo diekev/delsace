@@ -144,7 +144,7 @@ struct ContexteValidationCode {
                                             kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
     ResultatValidation valide_expression_retour(NoeudRetour *inst_retour);
     ResultatValidation valide_cuisine(NoeudDirectiveCuisine *directive);
-    ResultatValidation valide_reference_declaration(NoeudExpressionReference *expr,
+    ResultatValidation valide_référence_déclaration(NoeudExpressionReference *expr,
                                                     NoeudBloc *bloc_recherche);
     ResultatValidation valide_type_opaque(NoeudDeclarationTypeOpaque *decl);
 
