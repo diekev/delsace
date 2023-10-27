@@ -1835,10 +1835,10 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         }
         case GenreType::BOOL:
         {
-            static Lexeme littéral_bool = {};
-            littéral_bool.genre = GenreLexeme::FAUX;
             auto valeur_défaut = expr_valeur_défaut;
             if (!valeur_défaut) {
+                static Lexeme littéral_bool = {};
+                littéral_bool.genre = GenreLexeme::FAUX;
                 valeur_défaut = assembleuse->cree_litterale_bool(&littéral_bool);
                 valeur_défaut->type = type;
             }
@@ -1853,20 +1853,18 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            static Lexeme littéral = {};
             auto valeur_défaut = expr_valeur_défaut;
             if (!valeur_défaut) {
-                valeur_défaut = assembleuse->cree_litterale_entier(&littéral, type, 0);
+                valeur_défaut = assembleuse->cree_litterale_entier(&lexème_sentinel, type, 0);
             }
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
         case GenreType::REEL:
         {
-            static Lexeme littéral = {};
             auto valeur_défaut = expr_valeur_défaut;
             if (!valeur_défaut) {
-                valeur_défaut = assembleuse->cree_litterale_reel(&littéral, type, 0);
+                valeur_défaut = assembleuse->cree_litterale_reel(&lexème_sentinel, type, 0);
             }
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
@@ -1878,10 +1876,9 @@ static void cree_initialisation_defaut_pour_type(Type *type,
         case GenreType::POINTEUR:
         case GenreType::FONCTION:
         {
-            static Lexeme littéral = {};
             auto valeur_défaut = expr_valeur_défaut;
             if (!valeur_défaut) {
-                valeur_défaut = assembleuse->cree_litterale_nul(&littéral);
+                valeur_défaut = assembleuse->cree_litterale_nul(&lexème_sentinel);
             }
             valeur_défaut->type = ref_param->type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
@@ -1924,11 +1921,10 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 
             // il nous faut créer une boucle sur le tableau.
             // pour * tableau { initialise_type(it); }
-            static Lexeme lexème = {};
-            auto pour = assembleuse->cree_pour(&lexème);
+            auto pour = assembleuse->cree_pour(&lexème_sentinel);
             pour->prend_pointeur = true;
             pour->expression = ref_résultat;
-            pour->bloc = assembleuse->cree_bloc(&lexème);
+            pour->bloc = assembleuse->cree_bloc(&lexème_sentinel);
             pour->aide_generation_code = GENERE_BOUCLE_TABLEAU;
             pour->variable = variable;
             pour->decl_it = decl_it;
@@ -2063,9 +2059,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
     assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
 
-    static Lexeme lexème_déclaration = {};
     auto decl_param = entête->params[0]->comme_declaration_variable();
-    auto ref_param = assembleuse->cree_reference_declaration(&lexème_déclaration, decl_param);
+    auto ref_param = assembleuse->cree_reference_declaration(&lexème_sentinel, decl_param);
 
     switch (type->genre) {
         case GenreType::RIEN:
@@ -2119,7 +2114,6 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         case GenreType::TABLEAU_DYNAMIQUE:
         case GenreType::VARIADIQUE:
         {
-            static Lexeme lexème = {};
             auto type_composé = static_cast<TypeCompose *>(type);
 
             if (type_composé->est_type_structure()) {
@@ -2143,7 +2137,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 }
 
                 auto ref_membre = assembleuse->cree_reference_membre(
-                    &lexème, ref_param, it.type, index_it);
+                    &lexème_sentinel, ref_param, it.type, index_it);
                 cree_initialisation_defaut_pour_type(it.type,
                                                      espace->compilatrice(),
                                                      assembleuse,
