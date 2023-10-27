@@ -2311,6 +2311,27 @@ bool possede_annotation(const NoeudDeclarationVariable *decl, kuri::chaine_stati
     return false;
 }
 
+bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
+{
+    if (decl->est_entete_fonction()) {
+        auto const entete = decl->comme_entete_fonction();
+        return entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
+    }
+
+    if (decl->est_type_structure()) {
+        auto const structure = decl->comme_type_structure();
+        return structure->est_polymorphe;
+    }
+
+    if (decl->est_type_opaque()) {
+        auto const opaque = decl->comme_type_opaque();
+        return opaque->expression_type->possede_drapeau(
+            DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
+    }
+
+    return false;
+}
+
 #if 0
 static bool les_invariants_de_la_fonction_sont_respectés(
     NoeudDeclarationEnteteFonction const *fonction)
