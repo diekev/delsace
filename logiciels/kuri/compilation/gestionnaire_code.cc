@@ -1209,12 +1209,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 {
     if (noeud->est_declaration()) {
-        if (noeud->est_entete_fonction() && noeud->comme_entete_fonction()->possede_drapeau(
-                                                DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-            return false;
-        }
-
-        if (noeud->est_type_structure() && noeud->comme_type_structure()->est_polymorphe) {
+        if (est_déclaration_polymorphique(noeud->comme_declaration())) {
             return false;
         }
 
