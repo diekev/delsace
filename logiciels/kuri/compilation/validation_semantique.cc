@@ -2504,6 +2504,20 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
         return false;
     }
 
+    if (decl->est_entete_fonction()) {
+        auto entête = decl->comme_entete_fonction();
+        if (entête->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) &&
+            !entête->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            espace
+                ->rapporte_erreur(
+                    expr,
+                    "Utilisation d'une fonction intrinsèque en dehors d'une expression d'appel.")
+                .ajoute_message(
+                    "NOTE : Les fonctions intrinsèques ne peuvent être prises par adresse.");
+            return false;
+        }
+    }
+
     return true;
 }
 
