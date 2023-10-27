@@ -14,6 +14,12 @@ struct NoeudBloc;
 struct NoeudDeclaration;
 struct NoeudDeclarationEnteteFonction;
 
+struct ContexteRechecheSymbole {
+    NoeudBloc const *bloc_racine = nullptr;
+    Fichier const *fichier = nullptr;
+    NoeudDeclarationEnteteFonction const *fonction_courante = nullptr;
+};
+
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident);
 
 NoeudDeclaration *trouve_dans_bloc(
@@ -31,6 +37,9 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
     IdentifiantCode const *ident,
     Fichier const *fichier,
     NoeudDeclarationEnteteFonction const *fonction_courante);
+
+NoeudDeclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
+                                             IdentifiantCode const *ident);
 
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc const *bloc,

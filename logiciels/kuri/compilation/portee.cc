@@ -118,6 +118,13 @@ NoeudDeclaration *trouve_dans_bloc_ou_module(
     return decl;
 }
 
+NoeudDeclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const contexte,
+                                             IdentifiantCode const *ident)
+{
+    return trouve_dans_bloc_ou_module(
+        contexte.bloc_racine, ident, contexte.fichier, contexte.fonction_courante);
+}
+
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc const *bloc,
                                    IdentifiantCode const *ident)
