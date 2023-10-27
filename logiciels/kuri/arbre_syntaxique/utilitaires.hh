@@ -234,8 +234,6 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
 
-NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr);
-
 bool possede_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
 
 bool est_déclaration_polymorphique(NoeudDeclaration const *decl);

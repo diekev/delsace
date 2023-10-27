@@ -2260,46 +2260,6 @@ void cree_noeud_initialisation_type(EspaceDeTravail *espace,
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 }
 
-/* Retourne la référence de déclaration de l'expression racine pour l'expression à droite d'une
- * référence de membre. Par exemple, pour « x.y.z », retourne « x » si nous sommes sur « y.z ». */
-NoeudExpressionReference *reference_declaration_acces_accedee(NoeudExpression *expr)
-{
-    if (expr->est_reference_declaration()) {
-        return expr->comme_reference_declaration();
-    }
-
-    if (expr->est_reference_membre()) {
-        auto ref_membre = expr->comme_reference_membre();
-        return reference_declaration_acces_membre(ref_membre->accedee);
-    }
-
-    if (expr->est_parenthese()) {
-        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
-    }
-
-    return nullptr;
-}
-
-/* Retourne la référence de déclaration du membre pour l'expression à droite d'une référence de
- * membre. Par exemple, pour « x.y.z », retourne « y » si nous sommes sur « y.z ». */
-NoeudExpressionReference *reference_declaration_acces_membre(NoeudExpression *expr)
-{
-    if (expr->est_reference_declaration()) {
-        return expr->comme_reference_declaration();
-    }
-
-    if (expr->est_reference_membre()) {
-        auto ref_membre = expr->comme_reference_membre();
-        return reference_declaration_acces_membre(ref_membre->membre);
-    }
-
-    if (expr->est_parenthese()) {
-        return reference_declaration_acces_membre(expr->comme_parenthese()->expression);
-    }
-
-    return nullptr;
-}
-
 bool possede_annotation(const NoeudDeclarationVariable *decl, kuri::chaine_statique annotation)
 {
     POUR (decl->annotations) {
