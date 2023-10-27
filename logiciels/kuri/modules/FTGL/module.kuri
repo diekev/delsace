@@ -2,4 +2,4 @@ charge "interface_ftgl"
 
 libfreetype :: #bibliothèque "freetype"
 
-#dépendance_bibliothèque libftgl libfreetype
+#dépendance_bibliothèque libmodule_c_ftgl libfreetype
