@@ -2396,17 +2396,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
             lexeme_rien->genre = GenreLexeme::RIEN;
             lexeme_rien->chaine = "";
 
-            auto type_declare = m_tacheronne.assembleuse->cree_reference_type(lexeme_rien);
-
-            auto ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-
-            auto ref = m_tacheronne.assembleuse->cree_reference_declaration(lexeme_rien);
-            ref->ident = ident;
-
-            auto decl = m_tacheronne.assembleuse->cree_declaration_variable(ref);
-            decl->expression_type = type_declare;
-
-            decl->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+            auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexeme_rien);
 
             noeud->params_sorties.ajoute(decl);
             noeud->param_sortie = noeud->params_sorties[0]->comme_declaration_variable();

@@ -225,6 +225,9 @@ NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
                                           NoeudExpression *expression,
                                           TypePointeur *type_résultat);
 
+NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+                                                      Lexeme const *lexème);
+
 void imprime_détails_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entête,
                               std::ostream &os);

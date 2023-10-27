@@ -1633,6 +1633,18 @@ NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
     return résultat;
 }
 
+NoeudDeclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+                                                      Lexeme const *lexème)
+{
+    auto type_declaré = assembleuse->cree_reference_type(lexème);
+
+    auto déclaration_paramètre = assembleuse->cree_declaration_variable(
+        lexème, TypeBase::RIEN, ID::__ret0, nullptr);
+    déclaration_paramètre->expression_type = type_declaré;
+    déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+    return déclaration_paramètre;
+}
+
 /** \} */
 
 static const char *ordre_fonction(NoeudDeclarationEnteteFonction const *entete)
@@ -1751,13 +1763,7 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
     /* Paramètre de sortie. */
     {
         static const Lexeme lexème_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-        auto type_declaré = assembleuse->cree_reference_type(&lexème_rien);
-
-        auto ident = compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-
-        auto déclaration_paramètre = assembleuse->cree_declaration_variable(
-            &lexème_sentinel, TypeBase::RIEN, ident, nullptr);
-        déclaration_paramètre->expression_type = type_declaré;
+        auto déclaration_paramètre = crée_retour_défaut_fonction(assembleuse, &lexème_rien);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         entête->params_sorties.ajoute(déclaration_paramètre);
