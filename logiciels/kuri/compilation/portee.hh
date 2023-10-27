@@ -16,19 +16,21 @@ struct NoeudDeclarationEnteteFonction;
 
 NoeudDeclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident);
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
-                                   IdentifiantCode const *ident,
-                                   NoeudBloc const *bloc_final = nullptr,
-                                   NoeudDeclarationEnteteFonction *fonction_courante = nullptr);
+NoeudDeclaration *trouve_dans_bloc(
+    NoeudBloc const *bloc,
+    IdentifiantCode const *ident,
+    NoeudBloc const *bloc_final = nullptr,
+    NoeudDeclarationEnteteFonction const *fonction_courante = nullptr);
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    NoeudDeclaration const *decl,
                                    NoeudBloc const *bloc_final = nullptr);
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc const *bloc,
-                                             IdentifiantCode const *ident,
-                                             Fichier const *fichier,
-                                             NoeudDeclarationEnteteFonction *fonction_courante);
+NoeudDeclaration *trouve_dans_bloc_ou_module(
+    NoeudBloc const *bloc,
+    IdentifiantCode const *ident,
+    Fichier const *fichier,
+    NoeudDeclarationEnteteFonction const *fonction_courante);
 
 void trouve_declarations_dans_bloc(kuri::tablet<NoeudDeclaration *, 10> &declarations,
                                    NoeudBloc const *bloc,

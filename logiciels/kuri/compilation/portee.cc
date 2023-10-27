@@ -50,7 +50,7 @@ static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *no
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    IdentifiantCode const *ident,
                                    NoeudBloc const *bloc_final,
-                                   NoeudDeclarationEnteteFonction *fonction_courante)
+                                   NoeudDeclarationEnteteFonction const *fonction_courante)
 {
     auto bloc_courant = bloc;
     auto ignore_paramètres_et_locales = false;
@@ -92,10 +92,11 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     return nullptr;
 }
 
-NoeudDeclaration *trouve_dans_bloc_ou_module(NoeudBloc const *bloc,
-                                             IdentifiantCode const *ident,
-                                             Fichier const *fichier,
-                                             NoeudDeclarationEnteteFonction *fonction_courante)
+NoeudDeclaration *trouve_dans_bloc_ou_module(
+    NoeudBloc const *bloc,
+    IdentifiantCode const *ident,
+    Fichier const *fichier,
+    NoeudDeclarationEnteteFonction const *fonction_courante)
 {
     auto decl = trouve_dans_bloc(bloc, ident, nullptr, fonction_courante);
 
