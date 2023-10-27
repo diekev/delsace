@@ -488,7 +488,7 @@ void Tacheronne::gere_tache()
                 auto type = unite->type;
                 assert(type);
 
-                cree_noeud_initialisation_type(espace, type, this->assembleuse);
+                crée_noeud_initialisation_type(espace, type, this->assembleuse);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
                 break;
             }
