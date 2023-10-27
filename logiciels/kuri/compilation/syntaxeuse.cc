@@ -632,6 +632,9 @@ void Syntaxeuse::analyse_une_chose()
             else if (noeud->est_type_structure()) {
                 requiers_typage(noeud);
             }
+            else if (noeud->est_declaration_bibliotheque()) {
+                requiers_typage(noeud);
+            }
         }
         else if (noeud->est_execute()) {
             if (noeud->ident != ID::test || m_compilatrice.arguments.active_tests) {
