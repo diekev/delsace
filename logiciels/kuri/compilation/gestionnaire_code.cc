@@ -1135,7 +1135,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     }
 
     if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
-        !noeud->est_type_enum()) {
+        !noeud->est_type_enum() && !noeud->est_declaration_bibliotheque()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1153,7 +1153,8 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
             return false;
         }
 
-        return !(noeud->est_charge() || noeud->est_importe());
+        return !(noeud->est_charge() || noeud->est_importe() ||
+                 noeud->est_declaration_bibliotheque());
     }
 
     if (noeud->est_execute()) {
