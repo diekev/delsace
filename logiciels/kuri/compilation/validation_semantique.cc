@@ -495,7 +495,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
-            return valide_reference_declaration(noeud->comme_reference_declaration(),
+            return valide_référence_déclaration(noeud->comme_reference_declaration(),
                                                 noeud->bloc_parent);
         }
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
@@ -1522,7 +1522,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 return Attente::sur_symbole(ref);
             }
 
-            TENTE(valide_reference_declaration(ref, module_ref->bloc));
+            TENTE(valide_référence_déclaration(ref, module_ref->bloc));
 
             expression_membre->type = membre->type;
             expression_membre->genre_valeur = membre->genre_valeur;
@@ -2426,26 +2426,9 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     return CodeRetourValidation::OK;
 }
 
-static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
-{
-    if (decl->est_entete_fonction()) {
-        auto const entete = decl->comme_entete_fonction();
-        return entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
-    }
-
-    if (decl->est_type_structure()) {
-        auto const structure = decl->comme_type_structure();
-        return structure->est_polymorphe;
-    }
-
-    if (decl->est_type_opaque()) {
-        auto const opaque = decl->comme_type_opaque();
-        return opaque->expression_type->possede_drapeau(
-            DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
-    }
-
-    return false;
-}
+/* ------------------------------------------------------------------------- */
+/** \name Valide référence déclaration.
+ * \{ */
 
 /* Retourne vrai si la déclaration se situe après la référence à celle-ci. Ceci n'est destiné que
  * pour les déclarations de variables locales à une fonction. */
@@ -2474,7 +2457,49 @@ static bool déclaration_est_postérieure_à_la_référence(NoeudDeclaration con
     return déclaration->lexeme->ligne > référence->lexeme->ligne;
 }
 
-ResultatValidation ContexteValidationCode::valide_reference_declaration(
+/* Retourne vrai s'il est possible de référencer la déclaration selon son contexte d'utilisation
+ * (basé sur sa position par rapport à la déclaration ou ses drapeaux de position dans l'arbre).
+ */
+static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
+                                             NoeudExpressionReference const *expr,
+                                             NoeudDeclaration const *decl)
+{
+    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
+            .ajoute_message("Le symbole fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return false;
+    }
+
+    if (est_déclaration_polymorphique(decl) &&
+        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        espace
+            ->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
+            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return false;
+    }
+
+    if (decl->est_entete_fonction()) {
+        auto entête = decl->comme_entete_fonction();
+        if (entête->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) &&
+            !entête->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            espace
+                ->rapporte_erreur(
+                    expr,
+                    "Utilisation d'une fonction intrinsèque en dehors d'une expression d'appel.")
+                .ajoute_message(
+                    "NOTE : Les fonctions intrinsèques ne peuvent être prises par adresse.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+ResultatValidation ContexteValidationCode::valide_référence_déclaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
@@ -2626,21 +2651,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         return CodeRetourValidation::OK;
     }
 
-    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
-        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
-            .ajoute_message("Le symbole fut déclaré ici :\n\n")
-            .ajoute_site(decl);
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (est_declaration_polymorphique(decl) &&
-        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
-        espace
-            ->rapporte_erreur(
-                expr,
-                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
-            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
-            .ajoute_site(decl);
+    if (!est_référence_déclaration_valide(espace, expr, decl)) {
+        /* Une erreur dû être rapportée. */
         return CodeRetourValidation::Erreur;
     }
 
@@ -2721,6 +2733,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     return CodeRetourValidation::OK;
 }
+
+/** \} */
 
 ResultatValidation ContexteValidationCode::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
 {
@@ -2841,7 +2855,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possede_annotation(decl_param, "inutilisée")) {
+        if (possède_annotation(decl_param, "inutilisée")) {
             continue;
         }
 
@@ -2882,7 +2896,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::CONTINUE;
                          }
 
-                         if (possede_annotation(decl_var, "inutilisée")) {
+                         if (possède_annotation(decl_var, "inutilisée")) {
                              return DecisionVisiteNoeud::CONTINUE;
                          }
                      }

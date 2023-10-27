@@ -1107,11 +1107,8 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 auto indexage = cree_indexage(inst->lexeme, expression_iteree, zero);
 
                 static const Lexeme lexeme_adresse = {",", {}, GenreLexeme::FOIS_UNAIRE, 0, 0, 0};
-                auto prise_adresse = assem->cree_expression_unaire(&lexeme_adresse);
-                prise_adresse->operande = indexage;
-                prise_adresse->type = typeuse.type_pointeur_pour(indexage->type);
-
-                expr_pointeur = prise_adresse;
+                expr_pointeur = crée_prise_adresse(
+                    assem, &lexeme_adresse, indexage, typeuse.type_pointeur_pour(indexage->type));
             }
             else {
                 expr_pointeur = assem->cree_reference_membre(
@@ -1548,14 +1545,13 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     Lexeme const *lexeme, NoeudExpression *expression_à_initialiser)
 {
     auto type_expression = expression_à_initialiser->type;
-    auto fonction_init = cree_entete_pour_initialisation_type(
+    auto fonction_init = crée_entête_pour_initialisation_type(
         type_expression, espace->compilatrice(), assem, typeuse);
 
     static Lexeme lexeme_op = {};
     lexeme_op.genre = GenreLexeme::FOIS_UNAIRE;
-    auto prise_adresse = assem->cree_expression_unaire(&lexeme_op);
-    prise_adresse->operande = expression_à_initialiser;
-    prise_adresse->type = typeuse.type_pointeur_pour(type_expression);
+    auto prise_adresse = crée_prise_adresse(
+        assem, &lexeme_op, expression_à_initialiser, typeuse.type_pointeur_pour(type_expression));
     auto appel = assem->cree_appel(lexeme, fonction_init, TypeBase::RIEN);
     appel->parametres_resolus.ajoute(prise_adresse);
 
