@@ -1532,7 +1532,7 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
     Lexeme const *lexeme, NoeudExpression *expression_à_initialiser)
 {
     auto type_expression = expression_à_initialiser->type;
-    auto fonction_init = cree_entete_pour_initialisation_type(
+    auto fonction_init = crée_entête_pour_initialisation_type(
         type_expression, espace->compilatrice(), assem, typeuse);
 
     static Lexeme lexeme_op = {};

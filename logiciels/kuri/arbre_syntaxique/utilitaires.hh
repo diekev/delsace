@@ -217,23 +217,23 @@ struct DonneesAssignations {
 
 void aplatis_arbre(NoeudExpression *declaration);
 
-void imprime_details_fonction(EspaceDeTravail *espace,
-                              NoeudDeclarationEnteteFonction const *entete,
+void imprime_détails_fonction(EspaceDeTravail *espace,
+                              NoeudDeclarationEnteteFonction const *entête,
                               std::ostream &os);
 
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
 
-NoeudDeclarationEnteteFonction *cree_entete_pour_initialisation_type(Type *type,
+NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      Compilatrice &compilatrice,
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse);
 
-void cree_noeud_initialisation_type(EspaceDeTravail *espace,
+void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
 
-bool possede_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
+bool possède_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
 
 bool est_déclaration_polymorphique(NoeudDeclaration const *decl);

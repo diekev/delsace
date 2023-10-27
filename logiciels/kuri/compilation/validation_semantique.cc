@@ -2860,7 +2860,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possede_annotation(decl_param, "inutilisée")) {
+        if (possède_annotation(decl_param, "inutilisée")) {
             continue;
         }
 
@@ -2901,7 +2901,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
                              return DecisionVisiteNoeud::CONTINUE;
                          }
 
-                         if (possede_annotation(decl_var, "inutilisée")) {
+                         if (possède_annotation(decl_var, "inutilisée")) {
                              return DecisionVisiteNoeud::CONTINUE;
                          }
                      }
