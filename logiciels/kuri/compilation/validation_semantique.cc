@@ -95,6 +95,10 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_arbre_aplatis(ajoute_init, ajoute_init->arbre_aplatis);
     }
 
+    if (racine_validation()->est_declaration_bibliotheque()) {
+        return valide_semantique_noeud(racine_validation());
+    }
+
     unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -384,6 +388,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         {
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            noeud->bloc_parent->ajoute_membre(noeud->comme_declaration_bibliotheque());
             break;
         }
         case GenreNoeud::DECLARATION_ENTETE_FONCTION:

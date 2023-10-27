@@ -10,7 +10,7 @@ charge "interface_aléa"
 charge "halton"
 
 // À FAIRE : ce serait bien de le définir lors de la génération du code
-#dépendance_bibliothèque libaléa libcmath
+#dépendance_bibliothèque libmodule_c_alea libcmath
 
 crée_gna :: fonc (ctx_kuri : *ContexteKuri, graine: n32) -> *GNA
 {
