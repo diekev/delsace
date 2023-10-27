@@ -495,7 +495,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
-            return valide_reference_declaration(noeud->comme_reference_declaration(),
+            return valide_référence_déclaration(noeud->comme_reference_declaration(),
                                                 noeud->bloc_parent);
         }
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
@@ -1527,7 +1527,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                 return Attente::sur_symbole(ref);
             }
 
-            TENTE(valide_reference_declaration(ref, module_ref->bloc));
+            TENTE(valide_référence_déclaration(ref, module_ref->bloc));
 
             expression_membre->type = membre->type;
             expression_membre->genre_valeur = membre->genre_valeur;
@@ -2431,7 +2431,11 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     return CodeRetourValidation::OK;
 }
 
-static bool est_declaration_polymorphique(NoeudDeclaration const *decl)
+/* ------------------------------------------------------------------------- */
+/** \name Valide référence déclaration.
+ * \{ */
+
+static bool est_déclaration_polymorphique(NoeudDeclaration const *decl)
 {
     if (decl->est_entete_fonction()) {
         auto const entete = decl->comme_entete_fonction();
@@ -2493,7 +2497,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
         return false;
     }
 
-    if (est_declaration_polymorphique(decl) &&
+    if (est_déclaration_polymorphique(decl) &&
         !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
         espace
             ->rapporte_erreur(
@@ -2521,7 +2525,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     return true;
 }
 
-ResultatValidation ContexteValidationCode::valide_reference_declaration(
+ResultatValidation ContexteValidationCode::valide_référence_déclaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
@@ -2755,6 +2759,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
 
     return CodeRetourValidation::OK;
 }
+
+/** \} */
 
 ResultatValidation ContexteValidationCode::valide_type_opaque(NoeudDeclarationTypeOpaque *decl)
 {
