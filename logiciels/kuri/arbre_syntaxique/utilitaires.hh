@@ -14,11 +14,14 @@
 struct AssembleuseArbre;
 struct Compilatrice;
 struct EspaceDeTravail;
+struct Lexeme;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionReference;
+struct NoeudExpressionUnaire;
 struct Type;
+struct TypePointeur;
 struct Typeuse;
 
 namespace kuri {
@@ -216,6 +219,11 @@ struct DonneesAssignations {
 };
 
 void aplatis_arbre(NoeudExpression *declaration);
+
+NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
+                                          Lexeme const *lexème,
+                                          NoeudExpression *expression,
+                                          TypePointeur *type_résultat);
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entête,

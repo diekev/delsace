@@ -1620,6 +1620,19 @@ NoeudAssignation *AssembleuseArbre::cree_decrementation(const Lexeme *lexeme,
     return cree_assignation_variable(valeur->lexeme, valeur, inc);
 }
 
+NoeudExpressionUnaire *crée_prise_adresse(AssembleuseArbre *assem,
+                                          Lexeme const *lexème,
+                                          NoeudExpression *expression,
+                                          TypePointeur *type_résultat)
+{
+    assert(type_résultat->type_pointe == expression->type);
+
+    auto résultat = assem->cree_expression_unaire(lexème);
+    résultat->operande = expression;
+    résultat->type = type_résultat;
+    return résultat;
+}
+
 /** \} */
 
 static const char *ordre_fonction(NoeudDeclarationEnteteFonction const *entete)
@@ -1811,9 +1824,8 @@ static void cree_initialisation_defaut_pour_type(Type *type,
 
             static Lexeme lexème_op = {};
             lexème_op.genre = GenreLexeme::FOIS_UNAIRE;
-            auto prise_adresse = assembleuse->cree_expression_unaire(&lexème_op);
-            prise_adresse->operande = ref_param;
-            prise_adresse->type = typeuse.type_pointeur_pour(type);
+            auto prise_adresse = crée_prise_adresse(
+                assembleuse, &lexème_op, ref_param, typeuse.type_pointeur_pour(type));
             auto fonction = crée_entête_pour_initialisation_type(
                 type, compilatrice, assembleuse, typeuse);
             auto appel = assembleuse->cree_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
@@ -1945,9 +1957,8 @@ static void cree_initialisation_defaut_pour_type(Type *type,
             // Transtype vers le type opacifié, et crée l'initialisation pour le type opacifié.
             static Lexeme lexème_op = {};
             lexème_op.genre = GenreLexeme::FOIS_UNAIRE;
-            auto prise_adresse = assembleuse->cree_expression_unaire(&lexème_op);
-            prise_adresse->operande = ref_param;
-            prise_adresse->type = typeuse.type_pointeur_pour(type);
+            auto prise_adresse = crée_prise_adresse(
+                assembleuse, &lexème_op, ref_param, typeuse.type_pointeur_pour(type));
 
             auto comme = assembleuse->cree_comme(&lexème_sentinel);
             comme->expression = prise_adresse;
