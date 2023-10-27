@@ -2479,6 +2479,34 @@ static bool déclaration_est_postérieure_à_la_référence(NoeudDeclaration con
     return déclaration->lexeme->ligne > référence->lexeme->ligne;
 }
 
+/* Retourne vrai s'il est possible de référencer la déclaration selon son contexte d'utilisation
+ * (basé sur sa position par rapport à la déclaration ou ses drapeaux de position dans l'arbre).
+ */
+static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
+                                             NoeudExpressionReference const *expr,
+                                             NoeudDeclaration const *decl)
+{
+    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
+            .ajoute_message("Le symbole fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return false;
+    }
+
+    if (est_declaration_polymorphique(decl) &&
+        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        espace
+            ->rapporte_erreur(
+                expr,
+                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
+            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
+            .ajoute_site(decl);
+        return false;
+    }
+
+    return true;
+}
+
 ResultatValidation ContexteValidationCode::valide_reference_declaration(
     NoeudExpressionReference *expr, NoeudBloc *bloc_recherche)
 {
@@ -2631,21 +2659,8 @@ ResultatValidation ContexteValidationCode::valide_reference_declaration(
         return CodeRetourValidation::OK;
     }
 
-    if (déclaration_est_postérieure_à_la_référence(decl, expr)) {
-        espace->rapporte_erreur(expr, "Utilisation d'une variable avant sa déclaration.")
-            .ajoute_message("Le symbole fut déclaré ici :\n\n")
-            .ajoute_site(decl);
-        return CodeRetourValidation::Erreur;
-    }
-
-    if (est_declaration_polymorphique(decl) &&
-        !expr->possede_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
-        espace
-            ->rapporte_erreur(
-                expr,
-                "Référence d'une déclaration polymorphique en dehors d'une expression d'appel.")
-            .ajoute_message("Le polymorphe fut déclaré ici :\n\n")
-            .ajoute_site(decl);
+    if (!est_référence_déclaration_valide(espace, expr, decl)) {
+        /* Une erreur dû être rapportée. */
         return CodeRetourValidation::Erreur;
     }
 
