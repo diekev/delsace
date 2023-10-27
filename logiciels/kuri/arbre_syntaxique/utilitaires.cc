@@ -1703,71 +1703,68 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse)
 {
-    if (!type->fonction_init) {
-        auto type_param = typeuse.type_pointeur_pour(type);
-        if (type->est_type_union() && !type->comme_type_union()->est_nonsure) {
-            type_param = typeuse.type_pointeur_pour(type, false, false);
-        }
+    if (type->fonction_init) {
+        return type->fonction_init;
+    }
 
-        auto types_entrées = kuri::tablet<Type *, 6>();
-        types_entrées.ajoute(type_param);
+    auto type_param = typeuse.type_pointeur_pour(type);
+    if (type->est_type_union() && !type->comme_type_union()->est_nonsure) {
+        type_param = typeuse.type_pointeur_pour(type, false, false);
+    }
 
-        auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN, false);
+    auto types_entrées = kuri::tablet<Type *, 6>();
+    types_entrées.ajoute(type_param);
 
-        static Lexeme lexème_entête = {};
-        auto entête = assembleuse->cree_entete_fonction(&lexème_entête);
-        entête->drapeaux_fonction |= DrapeauxNoeudFonction::EST_INITIALISATION_TYPE;
+    auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN, false);
 
-        entête->bloc_constantes = assembleuse->cree_bloc_seul(&lexème_sentinel, nullptr);
-        entête->bloc_parametres = assembleuse->cree_bloc_seul(&lexème_sentinel,
-                                                              entête->bloc_constantes);
+    static Lexeme lexème_entête = {};
+    auto entête = assembleuse->cree_entete_fonction(&lexème_entête);
+    entête->drapeaux_fonction |= DrapeauxNoeudFonction::EST_INITIALISATION_TYPE;
 
-        /* Paramètre d'entrée. */
-        {
-            static Lexeme lexème_déclaration = {};
-            auto déclaration_paramètre = assembleuse->cree_declaration_variable(
-                &lexème_déclaration, type_param, ID::pointeur, nullptr);
+    entête->bloc_constantes = assembleuse->cree_bloc_seul(&lexème_sentinel, nullptr);
+    entête->bloc_parametres = assembleuse->cree_bloc_seul(&lexème_sentinel,
+                                                          entête->bloc_constantes);
 
-            déclaration_paramètre->type = type_param;
-            déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    /* Paramètre d'entrée. */
+    {
+        static Lexeme lexème_déclaration = {};
+        auto déclaration_paramètre = assembleuse->cree_declaration_variable(
+            &lexème_déclaration, type_param, ID::pointeur, nullptr);
+        déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-            entête->params.ajoute(déclaration_paramètre);
-        }
+        entête->params.ajoute(déclaration_paramètre);
+    }
 
-        /* Paramètre de sortie. */
-        {
-            static const Lexeme lexème_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
-            auto type_declaré = assembleuse->cree_reference_type(&lexème_rien);
+    /* Paramètre de sortie. */
+    {
+        static const Lexeme lexème_rien = {"rien", {}, GenreLexeme::RIEN, 0, 0, 0};
+        auto type_declaré = assembleuse->cree_reference_type(&lexème_rien);
 
-            auto ident = compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
+        auto ident = compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
 
-            auto référence = assembleuse->cree_reference_declaration(&lexème_rien);
-            référence->ident = ident;
-            référence->type = TypeBase::RIEN;
+        auto déclaration_paramètre = assembleuse->cree_declaration_variable(
+            &lexème_sentinel, TypeBase::RIEN, ident, nullptr);
+        déclaration_paramètre->expression_type = type_declaré;
+        déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-            auto déclaration_paramètre = assembleuse->cree_declaration_variable(référence);
-            déclaration_paramètre->expression_type = type_declaré;
-            déclaration_paramètre->type = référence->type;
+        entête->params_sorties.ajoute(déclaration_paramètre);
+        entête->param_sortie = déclaration_paramètre;
+    }
 
-            entête->params_sorties.ajoute(déclaration_paramètre);
-            entête->param_sortie = entête->params_sorties[0]->comme_declaration_variable();
-        }
+    entête->type = type_fonction;
+    entête->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    entête->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
+                                  DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                  DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-        entête->type = type_fonction;
-        entête->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        entête->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
-                                      DrapeauxNoeudFonction::FORCE_SANSTRACE |
-                                      DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
+    type->fonction_init = entête;
 
-        type->fonction_init = entête;
-
-        if (type->est_type_union()) {
-            /* Assigne également la fonction au type structure car c'est lui qui est utilisé lors
-             * de la génération de RI. */
-            auto type_structure = type->comme_type_union()->type_structure;
-            if (type_structure) {
-                type_structure->fonction_init = entête;
-            }
+    if (type->est_type_union()) {
+        /* Assigne également la fonction au type structure car c'est lui qui est utilisé lors
+         * de la génération de RI. */
+        auto type_structure = type->comme_type_union()->type_structure;
+        if (type_structure) {
+            type_structure->fonction_init = entête;
         }
     }
 
