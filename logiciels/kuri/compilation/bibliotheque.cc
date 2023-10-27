@@ -310,8 +310,7 @@ bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilat
     auto espace = compilatrice.espace_defaut_compilation();
 
     /* La bibliothèque C. */
-    auto libc = gestionnaire->cree_bibliotheque(
-        *espace, nullptr, table_idents->identifiant_pour_chaine("libc"), "c");
+    auto libc = gestionnaire->cree_bibliotheque(*espace, nullptr, ID::libc, "c");
 
     auto malloc_ = libc->cree_symbole("malloc");
     malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
