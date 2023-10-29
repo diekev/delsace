@@ -99,6 +99,10 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_semantique_noeud(racine_validation());
     }
 
+    if (racine_validation()->est_dependance_bibliotheque()) {
+        return valide_semantique_noeud(racine_validation());
+    }
+
     unite->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -272,9 +276,13 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::INSTRUCTION_DIFFERE:
-        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
         {
             break;
+        }
+        case GenreNoeud::DIRECTIVE_DEPENDANCE_BIBLIOTHEQUE:
+        {
+            auto noeud_dépendance_bibliothèque = noeud->comme_dependance_bibliotheque();
+            return valide_dépendance_bibliothèque(noeud_dépendance_bibliothèque);
         }
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
@@ -5517,6 +5525,87 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
 
     inst->type = type_inféré;
 
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Validation dépendance bibliothèque.
+ * \{ */
+
+ResultatValidation ContexteValidationCode::valide_dépendance_bibliothèque(
+    NoeudDirectiveDependanceBibliotheque *noeud)
+{
+    auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliotheques;
+
+    auto ident_bibliothèque_dépendante = noeud->bibliothèque_dépendante->ident;
+    auto ident_bibliothèque_dépendue = noeud->bibliothèque_dépendue->ident;
+
+    if (ident_bibliothèque_dépendante == ident_bibliothèque_dépendue) {
+        espace->rapporte_erreur(noeud->bibliothèque_dépendue,
+                                "Une bibliothèque ne peut pas dépendre sur elle-même : les deux "
+                                "identifiants sont similaires.");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto contexte_recherche_symbole = ContexteRechecheSymbole{};
+    contexte_recherche_symbole.bloc_racine = noeud->bloc_parent;
+    contexte_recherche_symbole.fichier = m_compilatrice.fichier(noeud->lexeme->fichier);
+    contexte_recherche_symbole.fonction_courante = fonction_courante();
+
+    /* Note : libc est spécial car nous la requérons tout le temps et est donc connue de la
+     * compilatrice. */
+
+    if (ident_bibliothèque_dépendante != ID::libc) {
+        auto noeud_bib_dépendante = trouve_dans_bloc_ou_module(contexte_recherche_symbole,
+                                                               ident_bibliothèque_dépendante);
+
+        if (!noeud_bib_dépendante) {
+            return Attente::sur_symbole(noeud->bibliothèque_dépendante);
+        }
+
+        if (!noeud_bib_dépendante->est_declaration_bibliotheque()) {
+            espace
+                ->rapporte_erreur(
+                    noeud->bibliothèque_dépendante,
+                    "#dépendance_bibliothèque doit prendre une référence à une bibliothèque, or "
+                    "le symbole ne semble pas référencer une bibliothèque.")
+                .ajoute_message(
+                    "\nNote la déclaration référencée a été résolue comme étant celle de :\n")
+                .ajoute_site(noeud_bib_dépendante);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (ident_bibliothèque_dépendue != ID::libc) {
+        auto noeud_bib_dépendue = trouve_dans_bloc_ou_module(contexte_recherche_symbole,
+                                                             ident_bibliothèque_dépendue);
+
+        if (!noeud_bib_dépendue) {
+            return Attente::sur_symbole(noeud->bibliothèque_dépendue);
+        }
+
+        if (!noeud_bib_dépendue->est_declaration_bibliotheque()) {
+            espace
+                ->rapporte_erreur(
+                    noeud->bibliothèque_dépendue,
+                    "#dépendance_bibliothèque doit prendre une référence à une bibliothèque, or "
+                    "le symbole ne semble pas référencer une bibliothèque.")
+                .ajoute_message(
+                    "\nNote la déclaration référencée a été résolue comme étant celle de :\n")
+                .ajoute_site(noeud_bib_dépendue);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
+        *espace, ident_bibliothèque_dépendante);
+    auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
+        *espace, ident_bibliothèque_dépendue);
+    bib_dependante->dependances.ajoute(bib_dependue);
+    /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */
+    noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
