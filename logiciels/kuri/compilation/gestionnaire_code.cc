@@ -1811,6 +1811,10 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
 {
     auto programme = espace->programme;
     programme->ajourne_pour_nouvelles_options_espace();
+    /* À FAIRE : gère proprement tous les cas. */
+    if (espace->options.resultat == ResultatCompilation::RIEN) {
+        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+    }
 }
 
 void GestionnaireCode::imprime_stats() const
