@@ -1527,6 +1527,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
                 break;
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
+            case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
             {
                 it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
                 ordonnanceuse.cree_tache_pour_unite(it);
