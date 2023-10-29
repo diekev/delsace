@@ -54,6 +54,11 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
     O(EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE)                                                      \
     O(COMPILATION_TERMINÉE)
 
+#define ENUMERE_ETAT_ATTENTE(O)                                                                   \
+    O(ATTENTES_RÉSOLUES)                                                                          \
+    O(ATTENTES_BLOQUÉES)                                                                          \
+    O(ATTENTES_NON_RÉSOLUES)
+
 #undef ENREGISTRE_HISTORIQUE
 
 struct ÉtatFileUnitésChargementFile;
@@ -63,6 +68,12 @@ struct UniteCompilation {
 #define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre) Genre,
         ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
 #undef ENUMERE_ETAT_UNITE_COMPILATION_EX
+    };
+
+    enum class ÉtatAttentes : uint8_t {
+#define ENUMERE_ETAT_ATTENTE_EX(Genre) Genre,
+        ENUMERE_ETAT_ATTENTE(ENUMERE_ETAT_ATTENTE_EX)
+#undef ENUMERE_ETAT_ATTENTE_EX
     };
 
     int index_courant = 0;
@@ -237,7 +248,7 @@ struct UniteCompilation {
 
     void rapporte_erreur() const;
 
-    void marque_prete_si_attente_resolue();
+    ÉtatAttentes détermine_état_attentes();
 
     kuri::chaine chaine_attentes_recursives() const;
 
