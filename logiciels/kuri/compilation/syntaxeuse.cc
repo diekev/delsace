@@ -645,7 +645,7 @@ void Syntaxeuse::analyse_une_chose()
             requiers_typage(noeud);
         }
         else if (noeud->est_dependance_bibliotheque()) {
-            /* Rien à faire. */
+            requiers_typage(noeud);
         }
         else {
             m_unite->espace->rapporte_erreur(
@@ -1069,22 +1069,21 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             }
             else if (directive == ID::dependance_bibliotheque) {
                 auto noeud = m_tacheronne.assembleuse->cree_dependance_bibliotheque(lexeme);
-                noeud->ident_bibliotheque_dependante = lexeme_courant()->ident;
+
+                auto lexème_bibliothèque_dépendante = lexeme_courant();
                 consomme(
                     GenreLexeme::CHAINE_CARACTERE,
                     "Attendue une chaine de caractère pour définir la bibliothèque dépendante");
-                noeud->ident_bibliotheque_dependue = lexeme_courant()->ident;
+                noeud->bibliothèque_dépendante =
+                    m_tacheronne.assembleuse->cree_reference_declaration(
+                        lexème_bibliothèque_dépendante);
+
+                auto lexème_bibliothèque_dépendue = lexeme_courant();
                 consomme(GenreLexeme::CHAINE_CARACTERE,
                          "Attendue une chaine de caractère pour définir la bibliothèque dépendue");
-
-                auto espace = m_unite->espace;
-                auto &gestionnaire_bibliotheques = m_compilatrice.gestionnaire_bibliotheques;
-                auto bib_dependante = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
-                    *espace, noeud->ident_bibliotheque_dependante);
-                auto bib_dependue = gestionnaire_bibliotheques->trouve_ou_cree_bibliotheque(
-                    *espace, noeud->ident_bibliotheque_dependue);
-                bib_dependante->dependances.ajoute(bib_dependue);
-
+                noeud->bibliothèque_dépendue =
+                    m_tacheronne.assembleuse->cree_reference_declaration(
+                        lexème_bibliothèque_dépendue);
                 return noeud;
             }
             else if (directive == ID::ajoute_init) {
