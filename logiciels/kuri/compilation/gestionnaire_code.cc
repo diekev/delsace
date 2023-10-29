@@ -1527,34 +1527,6 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
             continue;
         }
 
-        it->marque_prete_si_attente_resolue();
-
-        if (!it->est_prete()) {
-            it->cycle += 1;
-            if (imprime_débogage) {
-                //                std::cerr << "-------------------\n";
-                //                std::cerr << it->raison_d_etre() << '\n';
-                //                std::cerr << it->chaine_attentes_recursives() << '\n';
-                //                if (it->raison_d_etre() == RaisonDEtre::TYPAGE) {
-                //                    if (it->noeud && it->noeud->ident == ID::principale) {
-                //                        std::cerr << "Typage de la fonction principale attend sur
-                //                        "
-                //                                  << it->chaine_attentes_recursives() << '\n';
-                //                    }
-                //                }
-            }
-
-            if (it->est_bloquee()) {
-                it->rapporte_erreur();
-                unites_en_attente.efface_tout();
-                m_compilatrice->ordonnanceuse->supprime_toutes_les_taches();
-                return;
-            }
-
-            unités_à_remettre_en_attente.ajoute(it);
-            continue;
-        }
-
         if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
             it->espace->rapporte_erreur_sans_site(
                 "Erreur interne : obtenu une unité sans raison d'être");
@@ -1574,7 +1546,42 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
             }
         }
 
-        unités_prêtes.ajoute(it);
+        auto const état_attente = it->détermine_état_attentes();
+
+        if (imprime_débogage &&
+            état_attente != UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES) {
+            //                std::cerr << "-------------------\n";
+            //                std::cerr << it->raison_d_etre() << '\n';
+            //                std::cerr << it->chaine_attentes_recursives() << '\n';
+            //                if (it->raison_d_etre() == RaisonDEtre::TYPAGE) {
+            //                    if (it->noeud && it->noeud->ident == ID::principale) {
+            //                        std::cerr << "Typage de la fonction principale attend sur
+            //                        "
+            //                                  << it->chaine_attentes_recursives() << '\n';
+            //                    }
+            //                }
+        }
+
+        switch (état_attente) {
+            case UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES:
+            {
+                it->rapporte_erreur();
+                unites_en_attente.efface_tout();
+                m_compilatrice->ordonnanceuse->supprime_toutes_les_taches();
+                return;
+            }
+            case UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES:
+            {
+                it->cycle += 1;
+                unités_à_remettre_en_attente.ajoute(it);
+                break;
+            }
+            case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
+            {
+                unités_prêtes.ajoute(it);
+                break;
+            }
+        }
     }
 
     /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée

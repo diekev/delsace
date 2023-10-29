@@ -233,10 +233,10 @@ static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
     return true;
 }
 
-void UniteCompilation::marque_prete_si_attente_resolue()
+UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 {
     if (est_prete()) {
-        return;
+        return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
     auto toutes_les_attentes_sont_résolues = true;
@@ -262,7 +262,14 @@ void UniteCompilation::marque_prete_si_attente_resolue()
 
     if (toutes_les_attentes_sont_résolues) {
         marque_prete();
+        return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
+
+    if (est_bloquee()) {
+        return UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
+    }
+
+    return UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES;
 }
 
 const char *chaine_état_unité_compilation(UniteCompilation::État état)
