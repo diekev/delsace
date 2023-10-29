@@ -82,7 +82,7 @@ Attente const *UniteCompilation::première_attente_bloquée() const
     POUR (m_attentes) {
         auto const condition_potentielle = condition_blocage(it);
         if (!condition_potentielle.has_value()) {
-            /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
+            /* Aucune condition potentielle pour notre attente, donc nous ne sommes pas bloqués. */
             continue;
         }
 
