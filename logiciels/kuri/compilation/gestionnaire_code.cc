@@ -1577,6 +1577,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
                 break;
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
+            case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
             {
                 unités_prêtes.ajoute(it);
                 break;

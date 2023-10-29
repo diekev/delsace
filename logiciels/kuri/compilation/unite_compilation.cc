@@ -40,6 +40,36 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre)
     return os << chaine_raison_d_etre(raison_d_etre);
 }
 
+void UniteCompilation::ajoute_attente(Attente attente)
+{
+    if (!est_attente_sur_symbole_précédent(attente)) {
+        /* Ne remettons le cycle à zéro que si nous attendons sur autre chose que le même symbole
+         * précédemment attendu ; sinon nous resterions bloqués dans une compilation infinie. */
+        cycle = 0;
+    }
+
+    m_attentes.ajoute(attente);
+    m_prete = false;
+    état = État::EN_ATTENTE;
+    assert(attente.est_valide());
+#ifdef ENREGISTRE_HISTORIQUE
+    m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
+}
+
+void UniteCompilation::marque_prête(bool préserve_cycle)
+{
+    m_prete = true;
+    état = État::EN_COURS_DE_COMPILATION;
+    m_attentes.efface();
+    if (!préserve_cycle) {
+        cycle = 0;
+    }
+#ifdef ENREGISTRE_HISTORIQUE
+    m_historique.ajoute({état, m_raison_d_etre, __func__});
+#endif
+}
+
 bool UniteCompilation::est_bloquee() const
 {
     auto attente_bloquée = première_attente_bloquée();
@@ -83,7 +113,7 @@ Attente const *UniteCompilation::première_attente_bloquée() const
     POUR (m_attentes) {
         auto const condition_potentielle = condition_blocage(it);
         if (!condition_potentielle.has_value()) {
-            /* Aucune condition potentille pour notre attente, donc nous ne sommes pas bloqués. */
+            /* Aucune condition potentielle pour notre attente, donc nous ne sommes pas bloqués. */
             continue;
         }
 
@@ -240,8 +270,15 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
     }
 
     auto toutes_les_attentes_sont_résolues = true;
+    auto attente_sur_symbole = false;
     POUR (m_attentes) {
         if (!it.est_valide()) {
+            continue;
+        }
+
+        if (it.est<AttenteSurSymbole>()) {
+            toutes_les_attentes_sont_résolues = false;
+            attente_sur_symbole = true;
             continue;
         }
 
@@ -261,7 +298,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
     }
 
     if (toutes_les_attentes_sont_résolues) {
-        marque_prete();
+        marque_prête(false);
         return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
@@ -269,7 +306,42 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
         return UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
     }
 
+    if (attente_sur_symbole) {
+        marque_prête_pour_attente_sur_symbole();
+        return UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU;
+    }
+
     return UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES;
+}
+
+void UniteCompilation::marque_prête_pour_attente_sur_symbole()
+{
+    auto attente_courante = m_attentes[0];
+    auto préserve_cycle = false;
+
+    if (m_attente_sur_symbole_précédente.has_value()) {
+        auto attente_précédente = m_attente_sur_symbole_précédente.value();
+        if (attente_courante.symbole() == attente_précédente.symbole()) {
+            cycle += 1;
+            préserve_cycle = true;
+        }
+    }
+
+    marque_prête(préserve_cycle);
+    m_attente_sur_symbole_précédente = attente_courante;
+}
+
+bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) const
+{
+    if (!attente.est<AttenteSurSymbole>()) {
+        return false;
+    }
+
+    if (!m_attente_sur_symbole_précédente.has_value()) {
+        return false;
+    }
+
+    return m_attente_sur_symbole_précédente->symbole() == attente.symbole();
 }
 
 const char *chaine_état_unité_compilation(UniteCompilation::État état)
