@@ -1491,22 +1491,6 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             continue;
         }
 
-        it->marque_prete_si_attente_resolue();
-
-        if (!it->est_prete()) {
-            it->cycle += 1;
-
-            if (it->est_bloquee()) {
-                it->rapporte_erreur();
-                unites_en_attente.efface();
-                ordonnanceuse.supprime_toutes_les_taches();
-                return;
-            }
-
-            nouvelles_unites.ajoute(it);
-            continue;
-        }
-
         if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
             it->espace->rapporte_erreur_sans_site(
                 "Erreur interne : obtenu une unité sans raison d'être");
@@ -1526,8 +1510,29 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             }
         }
 
-        it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
-        ordonnanceuse.cree_tache_pour_unite(it);
+        auto const état_attente = it->détermine_état_attentes();
+
+        switch (état_attente) {
+            case UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES:
+            {
+                it->rapporte_erreur();
+                unites_en_attente.efface();
+                ordonnanceuse.supprime_toutes_les_taches();
+                return;
+            }
+            case UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES:
+            {
+                it->cycle += 1;
+                nouvelles_unites.ajoute(it);
+                break;
+            }
+            case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
+            {
+                it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
+                ordonnanceuse.cree_tache_pour_unite(it);
+                break;
+            }
+        }
     }
 
     /* Supprime toutes les tâches des espaces erronés. Il est possible qu'une erreur soit lancée
