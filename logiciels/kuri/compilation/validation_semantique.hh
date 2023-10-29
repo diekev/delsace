@@ -24,6 +24,7 @@ struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeOpaque;
 struct NoeudDeclarationVariable;
 struct NoeudDirectiveCuisine;
+struct NoeudDirectiveDependanceBibliotheque;
 struct NoeudDirectiveExecute;
 struct NoeudDeclarationOperateurPour;
 struct NoeudDiscr;
@@ -226,4 +227,6 @@ struct ContexteValidationCode {
     ResultatValidation valide_instruction_pour(NoeudPour *inst);
 
     ResultatValidation valide_instruction_si(NoeudSi *inst);
+
+    ResultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDependanceBibliotheque *noeud);
 };
