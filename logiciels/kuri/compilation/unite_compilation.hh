@@ -4,6 +4,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <optional>
 
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
@@ -57,7 +58,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDEtre raison_d_etre);
 #define ENUMERE_ETAT_ATTENTE(O)                                                                   \
     O(ATTENTES_RÉSOLUES)                                                                          \
     O(ATTENTES_BLOQUÉES)                                                                          \
-    O(ATTENTES_NON_RÉSOLUES)
+    O(ATTENTES_NON_RÉSOLUES)                                                                      \
+    O(UN_SYMBOLE_EST_ATTENDU)
 
 #undef ENREGISTRE_HISTORIQUE
 
@@ -109,6 +111,13 @@ struct UniteCompilation {
 
     kuri::tableau<Historique> m_historique{};
 
+    /* Les attentes sur symbole sont spéciales : puisque les symboles sont ajoutés aux blocs au fur
+     * et à mesure de la validation des déclarations correspondantes, nous devons toujours retenter
+     * de compiler l'unité jusqu'à ce qu'à atteindre le nombre maximum de cycles. Pour ce faire,
+     * nous nous rappelons de l'attente sur symbole précédente et augmentons le cycle uniquement si
+     * nous avons toujours la même attente avant de retenter la compilation. */
+    std::optional<Attente> m_attente_sur_symbole_précédente{};
+
   public:
     EspaceDeTravail *espace = nullptr;
     Fichier *fichier = nullptr;
@@ -124,29 +133,12 @@ struct UniteCompilation {
 
     EMPECHE_COPIE(UniteCompilation);
 
-    void ajoute_attente(Attente attente)
-    {
-        m_attentes.ajoute(attente);
-        m_prete = false;
-        cycle = 0;
-        état = État::EN_ATTENTE;
-        assert(attente.est_valide());
-#ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
-#endif
-    }
+    void ajoute_attente(Attente attente);
 
-    void marque_prete()
-    {
-        m_prete = true;
-        état = État::EN_COURS_DE_COMPILATION;
-        m_attentes.efface();
-        cycle = 0;
-#ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
-#endif
-    }
+  private:
+    void marque_prête(bool préserve_cycle);
 
+  public:
     bool est_prete() const
     {
         return m_prete;
@@ -253,6 +245,9 @@ struct UniteCompilation {
     kuri::chaine chaine_attentes_recursives() const;
 
   private:
+    bool est_attente_sur_symbole_précédent(Attente attente) const;
+    void marque_prête_pour_attente_sur_symbole();
+
     /* Retourne la première Attente qui semble ne pas pouvoir être résolue, ou nul si elles sont
      * toutes résolvables. */
     Attente const *première_attente_bloquée() const;
