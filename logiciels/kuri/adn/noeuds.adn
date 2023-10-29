@@ -762,8 +762,8 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
     @comme dépendance_bibliothèque
     @code  NoeudCodeDépendanceBibliothèque
 
-    IdentifiantCode *ident_bibliothèque_dépendante
-    IdentifiantCode *ident_bibliothèque_dépendue
+    NoeudExpressionReference *bibliothèque_dépendante [code enfant préserve_accents]
+    NoeudExpressionReference *bibliothèque_dépendue [code enfant préserve_accents]
 }
 
 struct NoeudDirectiveAjouteInit : NoeudExpression {
