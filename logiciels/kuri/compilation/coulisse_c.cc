@@ -89,308 +89,7 @@ struct ConvertisseuseTypeC {
         return type_c.typedef_ != "";
     }
 
-    void génère_typedef(Type *type, Enchaineuse &enchaineuse)
-    {
-        if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            return;
-        }
-
-        auto &type_c = type_c_pour(type);
-
-        if (type_c.typedef_ != "") {
-            return;
-        }
-
-        enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
-
-        switch (type->genre) {
-            case GenreType::POLYMORPHIQUE:
-            {
-                /* Aucun typedef. */
-                return;
-            }
-            case GenreType::ENTIER_CONSTANT:
-            {
-                type_c.typedef_ = "int32_t";
-                break;
-            }
-            case GenreType::ERREUR:
-            case GenreType::ENUM:
-            {
-                auto type_enum = static_cast<TypeEnum *>(type);
-                génère_typedef(type_enum->type_sous_jacent, enchaineuse);
-                auto nom_broye_type_donnees = broyeuse.nom_broyé_type(type_enum->type_sous_jacent);
-                type_c.typedef_ = nom_broye_type_donnees;
-                break;
-            }
-            case GenreType::OPAQUE:
-            {
-                auto type_opaque = type->comme_type_opaque();
-                génère_typedef(type_opaque->type_opacifie, enchaineuse);
-                auto nom_broye_type_opacifie = broyeuse.nom_broyé_type(type_opaque->type_opacifie);
-                type_c.typedef_ = nom_broye_type_opacifie;
-                break;
-            }
-            case GenreType::BOOL:
-            {
-                type_c.typedef_ = "uint8_t";
-                break;
-            }
-            case GenreType::OCTET:
-            {
-                type_c.typedef_ = "uint8_t";
-                break;
-            }
-            case GenreType::ENTIER_NATUREL:
-            {
-                if (type->taille_octet == 1) {
-                    type_c.typedef_ = "uint8_t";
-                }
-                else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "uint16_t";
-                }
-                else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "uint32_t";
-                }
-                else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "uint64_t";
-                }
-
-                break;
-            }
-            case GenreType::ENTIER_RELATIF:
-            {
-                if (type->taille_octet == 1) {
-                    type_c.typedef_ = "int8_t";
-                }
-                else if (type->taille_octet == 2) {
-                    type_c.typedef_ = "int16_t";
-                }
-                else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "int32_t";
-                }
-                else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "int64_t";
-                }
-
-                break;
-            }
-            case GenreType::TYPE_DE_DONNEES:
-            {
-                type_c.typedef_ = "int64_t";
-                break;
-            }
-            case GenreType::REEL:
-            {
-                if (type->taille_octet == 2) {
-                    type_c.typedef_ = "uint16_t";
-                }
-                else if (type->taille_octet == 4) {
-                    type_c.typedef_ = "float";
-                }
-                else if (type->taille_octet == 8) {
-                    type_c.typedef_ = "double";
-                }
-
-                break;
-            }
-            case GenreType::REFERENCE:
-            {
-                auto type_pointe = type->comme_type_reference()->type_pointe;
-                génère_typedef(type_pointe, enchaineuse);
-                auto &type_c_pointe = type_c_pour(type_pointe);
-                type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
-                break;
-            }
-            case GenreType::POINTEUR:
-            {
-                auto type_pointe = type->comme_type_pointeur()->type_pointe;
-
-                if (type_pointe) {
-                    génère_typedef(type_pointe, enchaineuse);
-                    auto &type_c_pointe = type_c_pour(type_pointe);
-                    type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
-                }
-                else {
-                    type_c.typedef_ = "Ksnul*";
-                }
-
-                break;
-            }
-            case GenreType::STRUCTURE:
-            {
-                auto type_struct = type->comme_type_structure();
-
-                if (type_struct->decl && type_struct->decl->est_polymorphe) {
-                    /* Aucun typedef. */
-                    type_c.typedef_ = ".";
-                    return;
-                }
-
-                auto nom_struct = broyeuse.broye_nom_simple(donne_nom_portable(type_struct));
-
-                // struct anomyme
-                if (type_struct->est_anonyme) {
-                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
-                }
-                else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
-                    type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
-                }
-                else {
-                    type_c.typedef_ = enchaine("struct ", nom_struct);
-                }
-
-                break;
-            }
-            case GenreType::UNION:
-            {
-                auto type_union = type->comme_type_union();
-                POUR (type_union->membres) {
-                    génère_typedef(it.type, enchaineuse);
-                }
-
-                auto nom_union = broyeuse.broye_nom_simple(donne_nom_portable(type_union));
-
-                if (type_union->est_anonyme) {
-                    type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
-                }
-                else {
-                    auto decl = type_union->decl;
-                    if (decl->est_nonsure || decl->est_externe) {
-                        auto type_le_plus_grand = type_union->type_le_plus_grand;
-                        type_c.typedef_ = broyeuse.nom_broyé_type(type_le_plus_grand);
-                    }
-                    else if (type_union->decl && type_union->decl->est_monomorphisation) {
-                        type_c.typedef_ = enchaine(
-                            "struct ", nom_union, type_union->type_structure);
-                    }
-                    else {
-                        type_c.typedef_ = enchaine("struct ", nom_union);
-                    }
-                }
-
-                break;
-            }
-            case GenreType::TABLEAU_FIXE:
-            {
-                type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
-                break;
-            }
-            case GenreType::VARIADIQUE:
-            {
-                auto variadique = type->comme_type_variadique();
-                /* Garantie la génération du typedef pour les types tableaux des variadiques. */
-                if (!variadique->type_tableau_dynamique) {
-                    type_c.typedef_ = "...";
-                    return;
-                }
-
-                auto &type_c_tableau = type_c_pour(variadique->type_tableau_dynamique);
-                if (type_c_tableau.typedef_ == "") {
-                    génère_typedef(variadique->type_tableau_dynamique, enchaineuse);
-                }
-
-                /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
-                 * pour ne plus revenir ici. */
-                type_c.typedef_ = ".";
-                return;
-            }
-            case GenreType::TABLEAU_DYNAMIQUE:
-            {
-                auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
-
-                if (type_pointe == nullptr) {
-                    /* Aucun typedef. */
-                    type_c.typedef_ = ".";
-                    return;
-                }
-
-                génère_typedef(type_pointe, enchaineuse);
-                type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
-                break;
-            }
-            case GenreType::FONCTION:
-            {
-                auto type_fonc = type->comme_type_fonction();
-
-                POUR (type_fonc->types_entrees) {
-                    génère_typedef(it, enchaineuse);
-                }
-
-                génère_typedef(type_fonc->type_sortie, enchaineuse);
-
-                auto nouveau_nom_broye = Enchaineuse();
-                nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
-
-                auto const &nom_broye_sortie = broyeuse.nom_broyé_type(type_fonc->type_sortie);
-
-                /* Crée le préfixe. */
-                enchaineuse_tmp.réinitialise();
-                enchaineuse_tmp << nom_broye_sortie << " (*";
-                auto prefixe = stockage_chn.ajoute_chaine_statique(
-                    enchaineuse_tmp.chaine_statique());
-
-                /* Réinitialise pour le suffixe. */
-                enchaineuse_tmp.réinitialise();
-
-                auto virgule = "(";
-
-                POUR (type_fonc->types_entrees) {
-                    auto const &nom_broye_dt = broyeuse.nom_broyé_type(it);
-
-                    enchaineuse_tmp << virgule;
-                    enchaineuse_tmp << nom_broye_dt;
-                    nouveau_nom_broye << nom_broye_dt;
-                    virgule = ",";
-                }
-
-                if (type_fonc->types_entrees.taille() == 0) {
-                    enchaineuse_tmp << virgule;
-                    virgule = ",";
-                }
-
-                nouveau_nom_broye << 1;
-                nouveau_nom_broye << nom_broye_sortie;
-
-                enchaineuse_tmp << ")";
-                auto suffixe = stockage_chn.ajoute_chaine_statique(
-                    enchaineuse_tmp.chaine_statique());
-
-                type->nom_broye = stockage_chn.ajoute_chaine_statique(
-                    nouveau_nom_broye.chaine_statique());
-                type_c.nom = type->nom_broye;
-
-                type_c.typedef_ = enchaine(
-                    prefixe, nouveau_nom_broye.chaine_statique(), ")", suffixe);
-                enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
-                /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
-                 * directement. */
-                return;
-            }
-            case GenreType::EINI:
-            {
-                type_c.typedef_ = "eini";
-                break;
-            }
-            case GenreType::RIEN:
-            {
-                type_c.typedef_ = "void";
-                break;
-            }
-            case GenreType::CHAINE:
-            {
-                type_c.typedef_ = "chaine";
-                break;
-            }
-            case GenreType::TUPLE:
-            {
-                type_c.typedef_ = enchaine("struct ", type_c.nom);
-                break;
-            }
-        }
-
-        enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
-    }
+    void génère_typedef(Type *type, Enchaineuse &enchaineuse);
 
     /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
      * types ont un typedef afin de simplifier la génération de code pour les déclaration de
@@ -402,166 +101,465 @@ struct ConvertisseuseTypeC {
      * structures utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la
      * structure parent.
      */
-    void génère_code_pour_type(Type *type, Enchaineuse &enchaineuse)
-    {
-        if (!type) {
-            /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls
-             * peuvent être nuls. */
+    void génère_code_pour_type(Type *type, Enchaineuse &enchaineuse);
+
+    void génère_déclaration_structure(Enchaineuse &enchaineuse,
+                                      TypeStructure *type_structure,
+                                      int quoi);
+};
+
+void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
+{
+    if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        return;
+    }
+
+    auto &type_c = type_c_pour(type);
+
+    if (type_c.typedef_ != "") {
+        return;
+    }
+
+    enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
+
+    switch (type->genre) {
+        case GenreType::POLYMORPHIQUE:
+        {
+            /* Aucun typedef. */
             return;
         }
-
-        auto &type_c = type_c_pour(type);
-
-        if (type_c.code_machine_fut_généré) {
-            return;
+        case GenreType::ENTIER_CONSTANT:
+        {
+            type_c.typedef_ = "int32_t";
+            break;
         }
+        case GenreType::ERREUR:
+        case GenreType::ENUM:
+        {
+            auto type_enum = static_cast<TypeEnum *>(type);
+            génère_typedef(type_enum->type_sous_jacent, enchaineuse);
+            auto nom_broye_type_donnees = broyeuse.nom_broyé_type(type_enum->type_sous_jacent);
+            type_c.typedef_ = nom_broye_type_donnees;
+            break;
+        }
+        case GenreType::OPAQUE:
+        {
+            auto type_opaque = type->comme_type_opaque();
+            génère_typedef(type_opaque->type_opacifie, enchaineuse);
+            auto nom_broye_type_opacifie = broyeuse.nom_broyé_type(type_opaque->type_opacifie);
+            type_c.typedef_ = nom_broye_type_opacifie;
+            break;
+        }
+        case GenreType::BOOL:
+        {
+            type_c.typedef_ = "uint8_t";
+            break;
+        }
+        case GenreType::OCTET:
+        {
+            type_c.typedef_ = "uint8_t";
+            break;
+        }
+        case GenreType::ENTIER_NATUREL:
+        {
+            if (type->taille_octet == 1) {
+                type_c.typedef_ = "uint8_t";
+            }
+            else if (type->taille_octet == 2) {
+                type_c.typedef_ = "uint16_t";
+            }
+            else if (type->taille_octet == 4) {
+                type_c.typedef_ = "uint32_t";
+            }
+            else if (type->taille_octet == 8) {
+                type_c.typedef_ = "uint64_t";
+            }
 
-        if (type->est_type_structure()) {
+            break;
+        }
+        case GenreType::ENTIER_RELATIF:
+        {
+            if (type->taille_octet == 1) {
+                type_c.typedef_ = "int8_t";
+            }
+            else if (type->taille_octet == 2) {
+                type_c.typedef_ = "int16_t";
+            }
+            else if (type->taille_octet == 4) {
+                type_c.typedef_ = "int32_t";
+            }
+            else if (type->taille_octet == 8) {
+                type_c.typedef_ = "int64_t";
+            }
+
+            break;
+        }
+        case GenreType::TYPE_DE_DONNEES:
+        {
+            type_c.typedef_ = "int64_t";
+            break;
+        }
+        case GenreType::REEL:
+        {
+            if (type->taille_octet == 2) {
+                type_c.typedef_ = "uint16_t";
+            }
+            else if (type->taille_octet == 4) {
+                type_c.typedef_ = "float";
+            }
+            else if (type->taille_octet == 8) {
+                type_c.typedef_ = "double";
+            }
+
+            break;
+        }
+        case GenreType::REFERENCE:
+        {
+            auto type_pointe = type->comme_type_reference()->type_pointe;
+            génère_typedef(type_pointe, enchaineuse);
+            auto &type_c_pointe = type_c_pour(type_pointe);
+            type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+            break;
+        }
+        case GenreType::POINTEUR:
+        {
+            auto type_pointe = type->comme_type_pointeur()->type_pointe;
+
+            if (type_pointe) {
+                génère_typedef(type_pointe, enchaineuse);
+                auto &type_c_pointe = type_c_pour(type_pointe);
+                type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
+            }
+            else {
+                type_c.typedef_ = "Ksnul*";
+            }
+
+            break;
+        }
+        case GenreType::STRUCTURE:
+        {
             auto type_struct = type->comme_type_structure();
 
             if (type_struct->decl && type_struct->decl->est_polymorphe) {
+                /* Aucun typedef. */
+                type_c.typedef_ = ".";
                 return;
             }
 
-            type_c.code_machine_fut_généré = true;
-            POUR (type_struct->membres) {
-                if (it.type->est_type_pointeur()) {
-                    continue;
-                }
-                /* Une fonction peut retourner via un tuple la structure dont nous essayons de
-                 * générer le type. Évitons de générer le code du tuple avant la génération du code
-                 * de cette structure. */
-                if (it.type->est_type_fonction()) {
-                    continue;
-                }
-                génère_code_pour_type(it.type, enchaineuse);
+            auto nom_struct = broyeuse.broye_nom_simple(donne_nom_portable(type_struct));
+
+            // struct anomyme
+            if (type_struct->est_anonyme) {
+                type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+            }
+            else if (type_struct->decl && type_struct->decl->est_monomorphisation) {
+                type_c.typedef_ = enchaine("struct ", nom_struct, type_struct);
+            }
+            else {
+                type_c.typedef_ = enchaine("struct ", nom_struct);
             }
 
-            auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
-            génère_déclaration_structure(enchaineuse, type_struct, quoi);
+            break;
+        }
+        case GenreType::UNION:
+        {
+            auto type_union = type->comme_type_union();
+            POUR (type_union->membres) {
+                génère_typedef(it.type, enchaineuse);
+            }
 
-            POUR (type_struct->membres) {
-                if (it.type->est_type_pointeur()) {
-                    génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe,
-                                          enchaineuse);
-                    continue;
+            auto nom_union = broyeuse.broye_nom_simple(donne_nom_portable(type_union));
+
+            if (type_union->est_anonyme) {
+                type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
+            }
+            else {
+                auto decl = type_union->decl;
+                if (decl->est_nonsure || decl->est_externe) {
+                    auto type_le_plus_grand = type_union->type_le_plus_grand;
+                    type_c.typedef_ = broyeuse.nom_broyé_type(type_le_plus_grand);
                 }
+                else if (type_union->decl && type_union->decl->est_monomorphisation) {
+                    type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
+                }
+                else {
+                    type_c.typedef_ = enchaine("struct ", nom_union);
+                }
+            }
+
+            break;
+        }
+        case GenreType::TABLEAU_FIXE:
+        {
+            type_c.typedef_ = enchaine("struct TableauFixe_", type_c.nom);
+            break;
+        }
+        case GenreType::VARIADIQUE:
+        {
+            auto variadique = type->comme_type_variadique();
+            /* Garantie la génération du typedef pour les types tableaux des variadiques. */
+            if (!variadique->type_tableau_dynamique) {
+                type_c.typedef_ = "...";
+                return;
+            }
+
+            auto &type_c_tableau = type_c_pour(variadique->type_tableau_dynamique);
+            if (type_c_tableau.typedef_ == "") {
+                génère_typedef(variadique->type_tableau_dynamique, enchaineuse);
+            }
+
+            /* Nous utilisons le type du tableau, donc initialisons avec un typedef symbolique
+             * pour ne plus revenir ici. */
+            type_c.typedef_ = ".";
+            return;
+        }
+        case GenreType::TABLEAU_DYNAMIQUE:
+        {
+            auto type_pointe = type->comme_type_tableau_dynamique()->type_pointe;
+
+            if (type_pointe == nullptr) {
+                /* Aucun typedef. */
+                type_c.typedef_ = ".";
+                return;
+            }
+
+            génère_typedef(type_pointe, enchaineuse);
+            type_c.typedef_ = enchaine("struct Tableau_", type_c.nom);
+            break;
+        }
+        case GenreType::FONCTION:
+        {
+            auto type_fonc = type->comme_type_fonction();
+
+            POUR (type_fonc->types_entrees) {
+                génère_typedef(it, enchaineuse);
+            }
+
+            génère_typedef(type_fonc->type_sortie, enchaineuse);
+
+            auto nouveau_nom_broye = Enchaineuse();
+            nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
+
+            auto const &nom_broye_sortie = broyeuse.nom_broyé_type(type_fonc->type_sortie);
+
+            /* Crée le préfixe. */
+            enchaineuse_tmp.réinitialise();
+            enchaineuse_tmp << nom_broye_sortie << " (*";
+            auto prefixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+
+            /* Réinitialise pour le suffixe. */
+            enchaineuse_tmp.réinitialise();
+
+            auto virgule = "(";
+
+            POUR (type_fonc->types_entrees) {
+                auto const &nom_broye_dt = broyeuse.nom_broyé_type(it);
+
+                enchaineuse_tmp << virgule;
+                enchaineuse_tmp << nom_broye_dt;
+                nouveau_nom_broye << nom_broye_dt;
+                virgule = ",";
+            }
+
+            if (type_fonc->types_entrees.taille() == 0) {
+                enchaineuse_tmp << virgule;
+                virgule = ",";
+            }
+
+            nouveau_nom_broye << 1;
+            nouveau_nom_broye << nom_broye_sortie;
+
+            enchaineuse_tmp << ")";
+            auto suffixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+
+            type->nom_broye = stockage_chn.ajoute_chaine_statique(
+                nouveau_nom_broye.chaine_statique());
+            type_c.nom = type->nom_broye;
+
+            type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine_statique(), ")", suffixe);
+            enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
+            /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
+             * directement. */
+            return;
+        }
+        case GenreType::EINI:
+        {
+            type_c.typedef_ = "eini";
+            break;
+        }
+        case GenreType::RIEN:
+        {
+            type_c.typedef_ = "void";
+            break;
+        }
+        case GenreType::CHAINE:
+        {
+            type_c.typedef_ = "chaine";
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            type_c.typedef_ = enchaine("struct ", type_c.nom);
+            break;
+        }
+    }
+
+    enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
+}
+
+void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &enchaineuse)
+{
+    if (!type) {
+        /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls
+         * peuvent être nuls. */
+        return;
+    }
+
+    auto &type_c = type_c_pour(type);
+
+    if (type_c.code_machine_fut_généré) {
+        return;
+    }
+
+    if (type->est_type_structure()) {
+        auto type_struct = type->comme_type_structure();
+
+        if (type_struct->decl && type_struct->decl->est_polymorphe) {
+            return;
+        }
+
+        type_c.code_machine_fut_généré = true;
+        POUR (type_struct->membres) {
+            if (it.type->est_type_pointeur()) {
+                continue;
+            }
+            /* Une fonction peut retourner via un tuple la structure dont nous essayons de
+             * générer le type. Évitons de générer le code du tuple avant la génération du code
+             * de cette structure. */
+            if (it.type->est_type_fonction()) {
+                continue;
+            }
+            génère_code_pour_type(it.type, enchaineuse);
+        }
+
+        auto quoi = type_struct->est_anonyme ? STRUCTURE_ANONYME : STRUCTURE;
+        génère_déclaration_structure(enchaineuse, type_struct, quoi);
+
+        POUR (type_struct->membres) {
+            if (it.type->est_type_pointeur()) {
+                génère_code_pour_type(it.type->comme_type_pointeur()->type_pointe, enchaineuse);
+                continue;
             }
         }
-        else if (type->est_type_tuple()) {
-            auto type_tuple = type->comme_type_tuple();
+    }
+    else if (type->est_type_tuple()) {
+        auto type_tuple = type->comme_type_tuple();
 
-            if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-                return;
-            }
+        if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+            return;
+        }
 
-            type_c.code_machine_fut_généré = true;
-            POUR (type_tuple->membres) {
-                génère_code_pour_type(it.type, enchaineuse);
-            }
+        type_c.code_machine_fut_généré = true;
+        POUR (type_tuple->membres) {
+            génère_code_pour_type(it.type, enchaineuse);
+        }
 
-            auto nom_broyé = broyeuse.nom_broyé_type(type_tuple);
+        auto nom_broyé = broyeuse.nom_broyé_type(type_tuple);
 
-            enchaineuse << "typedef struct " << nom_broyé << " {\n";
+        enchaineuse << "typedef struct " << nom_broyé << " {\n";
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+        enchaineuse << "  union {\n";
+        enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
+        enchaineuse << "  struct {\n";
+#endif
+        POUR_INDEX (type_tuple->membres) {
+            enchaineuse << broyeuse.nom_broyé_type(it.type) << " _" << index_it << ";\n";
+        }
+
+#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
+        enchaineuse << "};\n";  // struct
+        enchaineuse << "};\n";  // union
+#endif
+
+        enchaineuse << "} " << nom_broyé << ";\n";
+    }
+    else if (type->est_type_union()) {
+        auto type_union = type->comme_type_union();
+        type_c.code_machine_fut_généré = true;
+        POUR (type_union->membres) {
+            génère_code_pour_type(it.type, enchaineuse);
+        }
+        génère_code_pour_type(type_union->type_structure, enchaineuse);
+    }
+    else if (type->est_type_enum()) {
+        auto type_enum = type->comme_type_enum();
+        génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
+    }
+    else if (type->est_type_tableau_fixe()) {
+        auto tableau_fixe = type->comme_type_tableau_fixe();
+        génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
+        auto const &nom_broyé = broyeuse.nom_broyé_type(type);
+        enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{ "
+                    << broyeuse.nom_broyé_type(tableau_fixe->type_pointe);
+        enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];";
+        enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
+    }
+    else if (type->est_type_tableau_dynamique()) {
+        auto tableau_dynamique = type->comme_type_tableau_dynamique();
+        auto type_élément = tableau_dynamique->type_pointe;
+
+        if (type_élément == nullptr) {
+            return;
+        }
+
+        génère_code_pour_type(type_élément, enchaineuse);
+
+        if (!type_c.code_machine_fut_généré) {
+            auto const &nom_broye = broyeuse.nom_broyé_type(type);
+            enchaineuse << "typedef struct Tableau_" << nom_broye;
+            enchaineuse << "{\n\t";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "  union {\n";
             enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
             enchaineuse << "  struct {\n";
 #endif
-            POUR_INDEX (type_tuple->membres) {
-                enchaineuse << broyeuse.nom_broyé_type(it.type) << " _" << index_it << ";\n";
-            }
+            enchaineuse << broyeuse.nom_broyé_type(type_élément) << " *pointeur;";
+            enchaineuse << "\n\tlong taille;\n"
+                        << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "};\n";  // struct
             enchaineuse << "};\n";  // union
 #endif
-
-            enchaineuse << "} " << nom_broyé << ";\n";
+            enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
         }
-        else if (type->est_type_union()) {
-            auto type_union = type->comme_type_union();
-            type_c.code_machine_fut_généré = true;
-            POUR (type_union->membres) {
-                génère_code_pour_type(it.type, enchaineuse);
-            }
-            génère_code_pour_type(type_union->type_structure, enchaineuse);
+    }
+    else if (type->est_type_opaque()) {
+        auto opaque = type->comme_type_opaque();
+        génère_code_pour_type(opaque->type_opacifie, enchaineuse);
+    }
+    else if (type->est_type_fonction()) {
+        auto type_fonction = type->comme_type_fonction();
+        POUR (type_fonction->types_entrees) {
+            génère_code_pour_type(it, enchaineuse);
         }
-        else if (type->est_type_enum()) {
-            auto type_enum = type->comme_type_enum();
-            génère_code_pour_type(type_enum->type_sous_jacent, enchaineuse);
-        }
-        else if (type->est_type_tableau_fixe()) {
-            auto tableau_fixe = type->comme_type_tableau_fixe();
-            génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-            auto const &nom_broyé = broyeuse.nom_broyé_type(type);
-            enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{ "
-                        << broyeuse.nom_broyé_type(tableau_fixe->type_pointe);
-            enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];";
-            enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
-        }
-        else if (type->est_type_tableau_dynamique()) {
-            auto tableau_dynamique = type->comme_type_tableau_dynamique();
-            auto type_élément = tableau_dynamique->type_pointe;
-
-            if (type_élément == nullptr) {
-                return;
-            }
-
-            génère_code_pour_type(type_élément, enchaineuse);
-
-            if (!type_c.code_machine_fut_généré) {
-                auto const &nom_broye = broyeuse.nom_broyé_type(type);
-                enchaineuse << "typedef struct Tableau_" << nom_broye;
-                enchaineuse << "{\n\t";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "  union {\n";
-                enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
-                enchaineuse << "  struct {\n";
-#endif
-                enchaineuse << broyeuse.nom_broyé_type(type_élément) << " *pointeur;";
-                enchaineuse << "\n\tlong taille;\n"
-                            << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
-
-#ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-                enchaineuse << "};\n";  // struct
-                enchaineuse << "};\n";  // union
-#endif
-                enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
-            }
-        }
-        else if (type->est_type_opaque()) {
-            auto opaque = type->comme_type_opaque();
-            génère_code_pour_type(opaque->type_opacifie, enchaineuse);
-        }
-        else if (type->est_type_fonction()) {
-            auto type_fonction = type->comme_type_fonction();
-            POUR (type_fonction->types_entrees) {
-                génère_code_pour_type(it, enchaineuse);
-            }
-            génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
-        }
-        else if (type->est_type_pointeur()) {
-            génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
-        }
-        else if (type->est_type_reference()) {
-            génère_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
-        }
-        else if (type->est_type_variadique()) {
-            génère_code_pour_type(type->comme_type_variadique()->type_pointe, enchaineuse);
-            génère_code_pour_type(type->comme_type_variadique()->type_tableau_dynamique,
-                                  enchaineuse);
-        }
-
-        type_c.code_machine_fut_généré = true;
+        génère_code_pour_type(type_fonction->type_sortie, enchaineuse);
+    }
+    else if (type->est_type_pointeur()) {
+        génère_code_pour_type(type->comme_type_pointeur()->type_pointe, enchaineuse);
+    }
+    else if (type->est_type_reference()) {
+        génère_code_pour_type(type->comme_type_reference()->type_pointe, enchaineuse);
+    }
+    else if (type->est_type_variadique()) {
+        génère_code_pour_type(type->comme_type_variadique()->type_pointe, enchaineuse);
+        génère_code_pour_type(type->comme_type_variadique()->type_tableau_dynamique, enchaineuse);
     }
 
-    void génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                      TypeStructure *type_structure,
-                                      int quoi);
-};
+    type_c.code_machine_fut_généré = true;
+}
 
 void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineuse,
                                                        TypeStructure *type_structure,
@@ -749,6 +747,13 @@ struct GénératriceCodeC {
 
     kuri::chaine_statique génère_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 
+    kuri::chaine_statique génère_code_pour_atome_constante(AtomeConstante const *atome_const,
+                                                           Enchaineuse &os,
+                                                           bool pour_globale);
+
+    kuri::chaine_statique génère_code_pour_atome_valeur_constante(
+        AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale);
+
     void débute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
 
     void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
@@ -800,259 +805,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
         case Atome::Genre::CONSTANTE:
         {
             auto atome_const = static_cast<AtomeConstante const *>(atome);
-
-            switch (atome_const->genre) {
-                case AtomeConstante::Genre::GLOBALE:
-                {
-                    auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
-
-                    if (valeur_globale->ident) {
-                        return valeur_globale->ident->nom;
-                    }
-
-                    return table_globales.valeur_ou(valeur_globale, "");
-                }
-                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                {
-                    auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
-                    auto valeur = génère_code_pour_atome(
-                        transtype_const->valeur, os, pour_globale);
-                    return enchaine(
-                        "(",
-                        broyeuse.nom_broyé_type(const_cast<Type *>(transtype_const->type)),
-                        ")(",
-                        valeur,
-                        ")");
-                }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    break;
-                }
-                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                {
-                    auto inst_accès = static_cast<AccedeIndexConstant const *>(atome_const);
-                    auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
-                    auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
-
-                    if (est_type_tableau_fixe(
-                            inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
-                        valeur_accédée = enchaine(valeur_accédée, ".d");
-                    }
-
-                    return enchaine(valeur_accédée, "[", valeur_index, "]");
-                }
-                case AtomeConstante::Genre::VALEUR:
-                {
-                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
-
-                    switch (valeur_const->valeur.genre) {
-                        case AtomeValeurConstante::Valeur::Genre::NULLE:
-                        {
-                            return "0";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TYPE:
-                        {
-                            auto type = valeur_const->valeur.type;
-                            if (type->est_type_type_de_donnees()) {
-                                auto type_de_données = type->comme_type_type_de_donnees();
-                                if (type_de_données->type_connu) {
-                                    return enchaine(
-                                        type_de_données->type_connu->index_dans_table_types);
-                                }
-                            }
-                            return enchaine(type->index_dans_table_types);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                        {
-                            return enchaine(valeur_const->valeur.type->taille_octet);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::REELLE:
-                        {
-                            auto type = valeur_const->type;
-
-                            if (type->taille_octet == 4) {
-                                return enchaine("(float)", valeur_const->valeur.valeur_reelle);
-                            }
-
-                            return enchaine("(double)", valeur_const->valeur.valeur_reelle);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                        {
-                            auto type = valeur_const->type;
-                            auto valeur_entière = valeur_const->valeur.valeur_entiere;
-
-                            if (type->est_type_entier_naturel()) {
-                                if (type->taille_octet == 1) {
-                                    return enchaine(static_cast<uint32_t>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<uint32_t>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 4) {
-                                    return enchaine(static_cast<uint32_t>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 8) {
-                                    return enchaine(valeur_entière, "UL");
-                                }
-                            }
-                            else {
-                                if (type->taille_octet == 1) {
-                                    return enchaine(static_cast<int>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 2) {
-                                    return enchaine(static_cast<int>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 4 || type->taille_octet == 0) {
-                                    return enchaine(static_cast<int>(valeur_entière));
-                                }
-                                else if (type->taille_octet == 8) {
-                                    return enchaine(valeur_entière, "L");
-                                }
-                            }
-
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                        {
-                            /* Convertis vers une valeur entière pour éviter les problèmes
-                             * d'instantiation de templates (Enchaineuse ne gère pas les valeurs
-                             * booléennes, et si elle devait, elle imprimerait "vrai" ou "faux",
-                             * qui ne sont pas des identifiants valides en C). */
-                            return enchaine(valeur_const->valeur.valeur_booleenne ? 1 : 0);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                        {
-                            return enchaine(valeur_const->valeur.valeur_entiere);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                        {
-                            auto type = static_cast<TypeCompose const *>(atome->type);
-                            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
-                            auto résultat = Enchaineuse();
-
-                            auto virgule = "{ ";
-                            // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
-                            // n'est pas initialisé
-                            auto virgule_placee = false;
-
-                            auto index_membre = 0;
-                            for (auto i = 0; i < type->membres.taille(); ++i) {
-                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
-                                    continue;
-                                }
-
-                                // les tableaux fixes ont une initialisation nulle
-                                if (tableau_valeur[index_membre] == nullptr) {
-                                    index_membre += 1;
-                                    continue;
-                                }
-
-                                résultat << virgule;
-                                virgule_placee = true;
-
-                                résultat << ".";
-                                if (type->membres[i].nom == ID::chaine_vide) {
-                                    résultat << "membre_invisible";
-                                }
-                                else {
-                                    résultat << broyeuse.broye_nom_simple(type->membres[i].nom);
-                                }
-                                résultat << " = ";
-                                résultat << génère_code_pour_atome(
-                                    tableau_valeur[index_membre], os, pour_globale);
-
-                                virgule = ", ";
-                                index_membre += 1;
-                            }
-
-                            if (!virgule_placee) {
-                                résultat << "{ 0";
-                            }
-
-                            résultat << " }";
-
-                            if (pour_globale) {
-                                return stockage_chn.ajoute_chaine_statique(
-                                    résultat.chaine_statique());
-                            }
-
-                            auto nom = enchaine("val", atome, index_chaine++);
-                            os << "  " << broyeuse.nom_broyé_type(const_cast<Type *>(atome->type))
-                               << " " << nom << " = " << résultat.chaine() << ";\n";
-                            return nom;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                        {
-                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
-                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
-                            auto résultat = Enchaineuse();
-
-                            auto virgule = "{ .d = { ";
-
-                            for (auto i = 0; i < taille_tableau; ++i) {
-                                résultat << virgule;
-                                résultat << génère_code_pour_atome(
-                                    pointeur_tableau[i], os, pour_globale);
-                                /* Retourne à la ligne car GCC à du mal avec des chaines trop
-                                 * grandes. */
-                                virgule = ",\n";
-                            }
-
-                            if (taille_tableau == 0) {
-                                résultat << "{}";
-                            }
-                            else {
-                                résultat << " } }";
-                            }
-
-                            if (résultat.nombre_tampons() > 1) {
-                                auto chaine_resultat = résultat.chaine();
-                                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
-                                return chaines_trop_larges_pour_stockage_chn.dernière();
-                            }
-
-                            return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                        {
-                            auto pointeur_données = valeur_const->valeur.valeur_tdc.pointeur;
-                            auto taille_données = valeur_const->valeur.valeur_tdc.taille;
-
-                            enchaineuse_tmp.réinitialise();
-
-                            auto virgule = "{ ";
-
-                            for (auto i = 0; i < taille_données; ++i) {
-                                auto octet = pointeur_données[i];
-                                enchaineuse_tmp << virgule;
-                                enchaineuse_tmp << "0x";
-                                enchaineuse_tmp << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                                enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
-                                virgule = ", ";
-                            }
-
-                            if (taille_données == 0) {
-                                enchaineuse_tmp << "{";
-                            }
-
-                            enchaineuse_tmp << " }";
-
-                            return stockage_chn.ajoute_chaine_statique(
-                                enchaineuse_tmp.chaine_statique());
-                        }
-                    }
-                }
-            }
-
-            return "";
+            return génère_code_pour_atome_constante(atome_const, os, pour_globale);
         }
         case Atome::Genre::INSTRUCTION:
         {
@@ -1062,6 +815,263 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
         case Atome::Genre::GLOBALE:
         {
             return table_globales.valeur_ou(atome, "");
+        }
+    }
+
+    return "";
+}
+
+kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
+    AtomeConstante const *atome_const, Enchaineuse &os, bool pour_globale)
+{
+    switch (atome_const->genre) {
+        case AtomeConstante::Genre::GLOBALE:
+        {
+            auto valeur_globale = static_cast<AtomeGlobale const *>(atome_const);
+
+            if (valeur_globale->ident) {
+                return valeur_globale->ident->nom;
+            }
+
+            return table_globales.valeur_ou(valeur_globale, "");
+        }
+        case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+        {
+            auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
+            auto valeur = génère_code_pour_atome(transtype_const->valeur, os, pour_globale);
+            return enchaine("(",
+                            broyeuse.nom_broyé_type(const_cast<Type *>(transtype_const->type)),
+                            ")(",
+                            valeur,
+                            ")");
+        }
+        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
+        {
+            break;
+        }
+        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
+        {
+            break;
+        }
+        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+        {
+            auto inst_accès = static_cast<AccedeIndexConstant const *>(atome_const);
+            auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
+            auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
+
+            if (est_type_tableau_fixe(
+                    inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
+                valeur_accédée = enchaine(valeur_accédée, ".d");
+            }
+
+            return enchaine(valeur_accédée, "[", valeur_index, "]");
+        }
+        case AtomeConstante::Genre::VALEUR:
+        {
+            auto valeur_const = static_cast<AtomeValeurConstante const *>(atome_const);
+            return génère_code_pour_atome_valeur_constante(valeur_const, os, pour_globale);
+        }
+    }
+
+    return "";
+}
+
+kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_constante(
+    AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale)
+{
+    switch (valeur_const->valeur.genre) {
+        case AtomeValeurConstante::Valeur::Genre::NULLE:
+        {
+            return "0";
+        }
+        case AtomeValeurConstante::Valeur::Genre::TYPE:
+        {
+            auto type = valeur_const->valeur.type;
+            if (type->est_type_type_de_donnees()) {
+                auto type_de_données = type->comme_type_type_de_donnees();
+                if (type_de_données->type_connu) {
+                    return enchaine(type_de_données->type_connu->index_dans_table_types);
+                }
+            }
+            return enchaine(type->index_dans_table_types);
+        }
+        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+        {
+            return enchaine(valeur_const->valeur.type->taille_octet);
+        }
+        case AtomeValeurConstante::Valeur::Genre::REELLE:
+        {
+            auto type = valeur_const->type;
+
+            if (type->taille_octet == 4) {
+                return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+            }
+
+            return enchaine("(double)", valeur_const->valeur.valeur_reelle);
+        }
+        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+        {
+            auto type = valeur_const->type;
+            auto valeur_entière = valeur_const->valeur.valeur_entiere;
+
+            if (type->est_type_entier_naturel()) {
+                if (type->taille_octet == 1) {
+                    return enchaine(static_cast<uint32_t>(valeur_entière));
+                }
+                else if (type->taille_octet == 2) {
+                    return enchaine(static_cast<uint32_t>(valeur_entière));
+                }
+                else if (type->taille_octet == 4) {
+                    return enchaine(static_cast<uint32_t>(valeur_entière));
+                }
+                else if (type->taille_octet == 8) {
+                    return enchaine(valeur_entière, "UL");
+                }
+            }
+            else {
+                if (type->taille_octet == 1) {
+                    return enchaine(static_cast<int>(valeur_entière));
+                }
+                else if (type->taille_octet == 2) {
+                    return enchaine(static_cast<int>(valeur_entière));
+                }
+                else if (type->taille_octet == 4 || type->taille_octet == 0) {
+                    return enchaine(static_cast<int>(valeur_entière));
+                }
+                else if (type->taille_octet == 8) {
+                    return enchaine(valeur_entière, "L");
+                }
+            }
+
+            return "";
+        }
+        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+        {
+            /* Convertis vers une valeur entière pour éviter les problèmes
+             * d'instantiation de templates (Enchaineuse ne gère pas les valeurs
+             * booléennes, et si elle devait, elle imprimerait "vrai" ou "faux",
+             * qui ne sont pas des identifiants valides en C). */
+            return enchaine(valeur_const->valeur.valeur_booleenne ? 1 : 0);
+        }
+        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+        {
+            return enchaine(valeur_const->valeur.valeur_entiere);
+        }
+        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+        {
+            return "";
+        }
+        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
+        {
+            auto type = static_cast<TypeCompose const *>(valeur_const->type);
+            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
+            auto résultat = Enchaineuse();
+
+            auto virgule = "{ ";
+            // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
+            // n'est pas initialisé
+            auto virgule_placee = false;
+
+            auto index_membre = 0;
+            for (auto i = 0; i < type->membres.taille(); ++i) {
+                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
+                    continue;
+                }
+
+                // les tableaux fixes ont une initialisation nulle
+                if (tableau_valeur[index_membre] == nullptr) {
+                    index_membre += 1;
+                    continue;
+                }
+
+                résultat << virgule;
+                virgule_placee = true;
+
+                résultat << ".";
+                if (type->membres[i].nom == ID::chaine_vide) {
+                    résultat << "membre_invisible";
+                }
+                else {
+                    résultat << broyeuse.broye_nom_simple(type->membres[i].nom);
+                }
+                résultat << " = ";
+                résultat << génère_code_pour_atome(tableau_valeur[index_membre], os, pour_globale);
+
+                virgule = ", ";
+                index_membre += 1;
+            }
+
+            if (!virgule_placee) {
+                résultat << "{ 0";
+            }
+
+            résultat << " }";
+
+            if (pour_globale) {
+                return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+            }
+
+            auto nom = enchaine("val", valeur_const, index_chaine++);
+            os << "  " << broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type)) << " " << nom
+               << " = " << résultat.chaine() << ";\n";
+            return nom;
+        }
+        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+        {
+            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
+            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+            auto résultat = Enchaineuse();
+
+            auto virgule = "{ .d = { ";
+
+            for (auto i = 0; i < taille_tableau; ++i) {
+                résultat << virgule;
+                résultat << génère_code_pour_atome(pointeur_tableau[i], os, pour_globale);
+                /* Retourne à la ligne car GCC à du mal avec des chaines trop
+                 * grandes. */
+                virgule = ",\n";
+            }
+
+            if (taille_tableau == 0) {
+                résultat << "{}";
+            }
+            else {
+                résultat << " } }";
+            }
+
+            if (résultat.nombre_tampons() > 1) {
+                auto chaine_resultat = résultat.chaine();
+                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                return chaines_trop_larges_pour_stockage_chn.dernière();
+            }
+
+            return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+        }
+        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+        {
+            auto pointeur_données = valeur_const->valeur.valeur_tdc.pointeur;
+            auto taille_données = valeur_const->valeur.valeur_tdc.taille;
+
+            enchaineuse_tmp.réinitialise();
+
+            auto virgule = "{ ";
+
+            for (auto i = 0; i < taille_données; ++i) {
+                auto octet = pointeur_données[i];
+                enchaineuse_tmp << virgule;
+                enchaineuse_tmp << "0x";
+                enchaineuse_tmp << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
+                virgule = ", ";
+            }
+
+            if (taille_données == 0) {
+                enchaineuse_tmp << "{";
+            }
+
+            enchaineuse_tmp << " }";
+
+            return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
         }
     }
 
