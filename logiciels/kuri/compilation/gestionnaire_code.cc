@@ -80,7 +80,7 @@ void ÉtatChargementFichiers::supprime_unité_pour_charge_ou_importe(UniteCompil
 void ÉtatChargementFichiers::enfile(UniteCompilation *unité)
 {
     défile(unité);
-    unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->raison_d_etre())];
+    unité->enfilée_dans = &nombre_d_unités_pour_raison[int(unité->donne_raison_d_être())];
     unité->enfilée_dans->compte += 1;
     assert(unité->enfilée_dans->compte >= 1);
 }
@@ -722,7 +722,7 @@ UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
                                                bool met_en_attente)
 {
     auto unite = unites.ajoute_element(espace);
-    unite->mute_raison_d_etre(raison);
+    unite->mute_raison_d_être(raison);
     if (met_en_attente) {
         ajoute_unité_à_liste_attente(unite);
     }
@@ -1029,7 +1029,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante, Atten
 {
     std::unique_lock verrou(m_mutex_unités_terminées);
     assert(attente.est_valide());
-    assert(unite_attendante->est_prete());
+    assert(unite_attendante->est_prête());
     auto espace = unite_attendante->espace;
     m_attentes_à_résoudre.ajoute_aux_données_globales({espace, attente});
     unite_attendante->ajoute_attente(attente);
@@ -1041,7 +1041,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
 {
     std::unique_lock verrou(m_mutex_unités_terminées);
     assert(attentes.taille() != 0);
-    assert(unite_attendante->est_prete());
+    assert(unite_attendante->est_prête());
 
     auto espace = unite_attendante->espace;
 
@@ -1069,7 +1069,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
     m_compilatrice->messagere->ajoute_message_fichier_ferme(espace, unite->fichier->chemin());
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
-    unite->mute_raison_d_etre(RaisonDEtre::LEXAGE_FICHIER);
+    unite->mute_raison_d_être(RaisonDEtre::LEXAGE_FICHIER);
     m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
     ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(LEXAGE);
@@ -1084,7 +1084,7 @@ void GestionnaireCode::lexage_fichier_termine(UniteCompilation *unite)
     TACHE_TERMINEE(LEXAGE, true);
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
-    unite->mute_raison_d_etre(RaisonDEtre::PARSAGE_FICHIER);
+    unite->mute_raison_d_être(RaisonDEtre::PARSAGE_FICHIER);
     m_état_chargement_fichiers.déplace_unité_pour_chargement_fichier(unite);
     ajoute_unité_à_liste_attente(unite);
     TACHE_AJOUTEE(PARSAGE);
@@ -1308,7 +1308,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
-        unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
+        unite->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
         ajoute_unité_à_liste_attente(unite);
     }
 
@@ -1490,7 +1490,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     determine_dependances(fonction, unite->espace, *graphe);
     determine_dependances(fonction->corps, unite->espace, *graphe);
 
-    unite->mute_raison_d_etre(RaisonDEtre::GENERATION_RI);
+    unite->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
     auto espace = unite->espace;
     TACHE_AJOUTEE(GENERATION_RI);
     unite->noeud = fonction;
@@ -1527,7 +1527,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
             continue;
         }
 
-        if (it->raison_d_etre() == RaisonDEtre::AUCUNE) {
+        if (it->donne_raison_d_être() == RaisonDEtre::AUCUNE) {
             it->espace->rapporte_erreur_sans_site(
                 "Erreur interne : obtenu une unité sans raison d'être");
             continue;
@@ -1539,7 +1539,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 
         /* Il est possible qu'un métaprogramme ajout du code, donc soyons sûr que l'espace est bel
          * et bien dans la phase pour la génération de code. */
-        if (it->raison_d_etre() == RaisonDEtre::GENERATION_CODE_MACHINE &&
+        if (it->donne_raison_d_être() == RaisonDEtre::GENERATION_CODE_MACHINE &&
             it->programme == it->espace->programme) {
             if (it->espace->phase_courante() != PhaseCompilation::AVANT_GENERATION_OBJET) {
                 continue;
@@ -1867,6 +1867,10 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
     std::unique_lock verrou(m_mutex);
     auto programme = espace->programme;
     programme->ajourne_pour_nouvelles_options_espace();
+    /* À FAIRE : gère proprement tous les cas. */
+    if (espace->options.resultat == ResultatCompilation::RIEN) {
+        espace->change_de_phase(m_compilatrice->messagere, PhaseCompilation::COMPILATION_TERMINEE);
+    }
 }
 
 void GestionnaireCode::imprime_stats() const
