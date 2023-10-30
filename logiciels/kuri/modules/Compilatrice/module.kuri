@@ -88,7 +88,7 @@ désactive_compilation_espace_défaut :: fonc ()
 {
     options := compilatrice_obtiens_options()
     options.résultat = RésultatCompilation.RIEN
-	// À FAIRE : ajourne les options manuellement
+    compilatrice_ajourne_options(options)
 }
 
 // ----------------------------------------------------------------------------

@@ -96,7 +96,7 @@ void OrdonnanceuseTache::cree_tache_pour_unite(UniteCompilation *unite)
     assert(unite);
     assert(unite->espace);
 
-    const auto index_file = file_pour_raison_d_etre(unite->raison_d_etre());
+    const auto index_file = file_pour_raison_d_etre(unite->donne_raison_d_être());
 
     auto tache = Tache{};
     tache.unite = unite;

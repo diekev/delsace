@@ -79,11 +79,17 @@ struct UniteCompilation {
     };
 
     int index_courant = 0;
-    int index_precedent = 0;
+
+  private:
+    État état = État::EN_COURS_DE_COMPILATION;
+    RaisonDEtre m_raison_d_être = RaisonDEtre::AUCUNE;
+
+  public:
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
-    bool tag = false;
+    /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
+    mutable int id_phase_cycle = 0;
 
     /* Données pour l'historique de compilation de cette unité. */
     struct Historique {
@@ -101,31 +107,29 @@ struct UniteCompilation {
     ÉtatFileUnitésChargementFile *enfilée_dans = nullptr;
 
   private:
-    État état = État::EN_COURS_DE_COMPILATION;
-    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
-    bool m_prete = true;
-    kuri::tableau<Attente> m_attentes{};
+    kuri::tableau<Attente, int> m_attentes{};
 
-    /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
-    mutable int id_phase_cycle = 0;
-
-    kuri::tableau<Historique> m_historique{};
+#ifdef ENREGISTRE_HISTORIQUE
+    kuri::tableau<Historique, int> m_historique{};
+#endif
 
     /* Les attentes sur symbole sont spéciales : puisque les symboles sont ajoutés aux blocs au fur
      * et à mesure de la validation des déclarations correspondantes, nous devons toujours retenter
      * de compiler l'unité jusqu'à ce qu'à atteindre le nombre maximum de cycles. Pour ce faire,
      * nous nous rappelons de l'attente sur symbole précédente et augmentons le cycle uniquement si
      * nous avons toujours la même attente avant de retenter la compilation. */
-    std::optional<Attente> m_attente_sur_symbole_précédente{};
+    NoeudExpression *m_attente_sur_symbole_précédente = nullptr;
 
   public:
     EspaceDeTravail *espace = nullptr;
-    Fichier *fichier = nullptr;
-    NoeudExpression *noeud = nullptr;
-    MetaProgramme *metaprogramme = nullptr;
-    Programme *programme = nullptr;
-    Message *message = nullptr;
-    Type *type = nullptr;
+    union {
+        Fichier *fichier = nullptr;
+        NoeudExpression *noeud;
+        MetaProgramme *metaprogramme;
+        Programme *programme;
+        Message *message;
+        Type *type;
+    };
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
@@ -139,16 +143,16 @@ struct UniteCompilation {
     void marque_prête(bool préserve_cycle);
 
   public:
-    bool est_prete() const
+    bool est_prête() const
     {
-        return m_prete;
+        return m_attentes.est_vide();
     }
 
     void définis_état(État nouvelle_état)
     {
         état = nouvelle_état;
 #ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
+        m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
     }
 
@@ -164,22 +168,26 @@ struct UniteCompilation {
                état == État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR;
     }
 
-    void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
+    void mute_raison_d_être(RaisonDEtre nouvelle_raison)
     {
-        m_raison_d_etre = nouvelle_raison;
+        m_raison_d_être = nouvelle_raison;
 #ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
+        m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
     }
 
-    RaisonDEtre raison_d_etre() const
+    RaisonDEtre donne_raison_d_être() const
     {
-        return m_raison_d_etre;
+        return m_raison_d_être;
     }
 
     kuri::tableau_statique<Historique> donne_historique() const
     {
+#ifdef ENREGISTRE_HISTORIQUE
         return m_historique;
+#else
+        return kuri::tableau_statique<Historique>(nullptr, 0);
+#endif
     }
 
     kuri::tableau_statique<Attente> donne_attentes() const
@@ -216,7 +224,7 @@ struct UniteCompilation {
         return nullptr;
     }
 
-    inline bool attend_sur_declaration(NoeudDeclaration *decl)
+    inline bool attend_sur_déclaration(NoeudDeclaration *decl)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurDeclaration>() && it.declaration() == decl) {
@@ -229,20 +237,20 @@ struct UniteCompilation {
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \
-        return m_raison_d_etre == RaisonDEtre::Genre;                                             \
+        return m_raison_d_être == RaisonDEtre::Genre;                                             \
     }
 
     ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)
 
 #undef DEFINIS_DISCRIMINATION
 
-    bool est_bloquee() const;
+    bool est_bloquée() const;
 
     void rapporte_erreur() const;
 
     ÉtatAttentes détermine_état_attentes();
 
-    kuri::chaine chaine_attentes_recursives() const;
+    kuri::chaine chaine_attentes_récursives() const;
 
   private:
     bool est_attente_sur_symbole_précédent(Attente attente) const;
