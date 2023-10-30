@@ -79,7 +79,12 @@ struct UniteCompilation {
     };
 
     int index_courant = 0;
-    int index_precedent = 0;
+
+  private:
+    État état = État::EN_COURS_DE_COMPILATION;
+    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
+
+  public:
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
@@ -102,8 +107,6 @@ struct UniteCompilation {
     ÉtatFileUnitésChargementFile *enfilée_dans = nullptr;
 
   private:
-    État état = État::EN_COURS_DE_COMPILATION;
-    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
     kuri::tableau<Attente, int> m_attentes{};
 
     kuri::tableau<Historique, int> m_historique{};
