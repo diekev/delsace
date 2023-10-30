@@ -666,7 +666,7 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
    __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
 	)";
 
-    /* déclaration des types de bases */
+    /* Déclaration des types de bases*/
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "typedef struct chaine { union { unsigned char d[16]; struct { char *pointeur; "
@@ -683,13 +683,13 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "typedef uint8_t octet;\n";
     enchaineuse << "typedef void Ksnul;\n";
     enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
-    /* pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
-     *  de LibC dont les arguments variadiques ne sont pas typés */
+    /* Pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
+     * de LibC dont les arguments variadiques ne sont pas typés. */
     enchaineuse << "#define Kv ...\n\n";
 
-    // À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
-    // "__principal" par un appel à "principal". On pourrait également définir ceci selon le nom de
-    // la fonction principale défini par les programmes.
+    /* À FAIRE : meilleure manière de faire ceci ? Il nous faudra alors remplacer l'appel à
+     * "__principale" par un appel à "principale". On pourrait également définir ceci selon le nom
+     * de la fonction principale définie par les programmes. */
     enchaineuse << "#define __principale principale\n\n";
 
     enchaineuse << "#define __point_d_entree_systeme main\n\n";
@@ -723,9 +723,10 @@ struct GénératriceCodeC {
 
     Broyeuse &broyeuse;
 
-    // les atomes pour les chaines peuvent être générés plusieurs fois (notamment
-    // pour celles des noms des fonctions pour les traces d'appel), utilisons un
-    // index pour les rendre uniques
+    /* Les atomes pour les chaines peuvent être générés plusieurs fois (notamment
+     * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
+     * des variables avec un index pour les rendre uniques. L'index est incrémenté à chaque
+     * génération de code pour une chaine. */
     int index_chaine = 0;
 
     Enchaineuse enchaineuse_tmp{};
@@ -1181,9 +1182,10 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  " << broyeuse.nom_broyé_type(type_pointeur->type_pointe);
 
-            // les portées ne sont plus respectées : deux variables avec le même nom dans deux
-            // portées différentes auront le même nom ici dans la même portée donc nous
-            // ajoutons le numéro de l'instruction de la variable pour les différencier
+            /* Puisqu'il n'y a pas de blocs dans le code généré, plusieurs variablees avec le même
+             * nom mais des types différents peuvent exister dans le bloc de la fonction. Nous
+             * devons rendre les noms uniques pour éviter des collisions. Nous faisons ceci en
+             * ajoutant le numéro de l'instruction au nom de la variable. */
             auto nom = kuri::chaine_statique();
             if (inst->ident != nullptr) {
                 nom = enchaine(broyeuse.broye_nom_simple(inst->ident), "_", inst->numero);
@@ -1264,7 +1266,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_chargée = kuri::chaine_statique();
             if (valeur.pointeur()[0] == '&') {
                 /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
-                 * code généré, accéder via '.', nous devons déréférencer la variable ici, mais
+                 * code généré, accédées via '.', nous devons déréférencer la variable ici, mais
                  * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
                  * membre de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
@@ -1633,8 +1635,8 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
         auto type_param = type_pointeur->type_pointe;
         os << broyeuse.nom_broyé_type(type_param) << ' ';
 
-        // dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
-        // (void fonction(...)), n'imprime pas de nom
+        /* Dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
+         * (void fonction(...)), n'imprime pas de nom. */
         if (type_param->est_type_variadique() &&
             type_param->comme_type_variadique()->type_pointe == nullptr) {
             continue;
@@ -1686,8 +1688,6 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     table_valeurs.redimensionne(atome_fonc->params_entrees.taille() + 1 +
                                 atome_fonc->instructions.taille() +
                                 atome_fonc->decl->params_sorties.taille());
-
-    // std::cerr << "Génère code pour : " << atome_fonc->nom << '\n';
 
     auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
@@ -1776,7 +1776,7 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     os.réinitialise();
     os << "#include \"compilation_kuri.h\"\n";
 
-    // définis ensuite les globales
+    /* Définis les globales. */
     POUR (globales) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
@@ -1811,7 +1811,7 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     constexpr auto nombre_instructions_max_par_fichier = 50000;
     int nombre_instructions = 0;
 
-    // définis enfin les fonction
+    /* Définis les fonctions. */
     POUR (fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
         if (it->instructions.taille() == 0 || it->enligne) {
