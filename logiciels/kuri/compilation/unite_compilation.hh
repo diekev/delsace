@@ -109,7 +109,9 @@ struct UniteCompilation {
   private:
     kuri::tableau<Attente, int> m_attentes{};
 
+#ifdef ENREGISTRE_HISTORIQUE
     kuri::tableau<Historique, int> m_historique{};
+#endif
 
     /* Les attentes sur symbole sont spéciales : puisque les symboles sont ajoutés aux blocs au fur
      * et à mesure de la validation des déclarations correspondantes, nous devons toujours retenter
@@ -181,7 +183,11 @@ struct UniteCompilation {
 
     kuri::tableau_statique<Historique> donne_historique() const
     {
+#ifdef ENREGISTRE_HISTORIQUE
         return m_historique;
+#else
+        return kuri::tableau_statique<Historique>(nullptr, 0);
+#endif
     }
 
     kuri::tableau_statique<Attente> donne_attentes() const
