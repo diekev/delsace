@@ -83,7 +83,8 @@ struct UniteCompilation {
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
-    bool tag = false;
+    /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
+    mutable int id_phase_cycle = 0;
 
     /* Données pour l'historique de compilation de cette unité. */
     struct Historique {
@@ -103,12 +104,9 @@ struct UniteCompilation {
   private:
     État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
-    kuri::tableau<Attente> m_attentes{};
+    kuri::tableau<Attente, int> m_attentes{};
 
-    /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
-    mutable int id_phase_cycle = 0;
-
-    kuri::tableau<Historique> m_historique{};
+    kuri::tableau<Historique, int> m_historique{};
 
     /* Les attentes sur symbole sont spéciales : puisque les symboles sont ajoutés aux blocs au fur
      * et à mesure de la validation des déclarations correspondantes, nous devons toujours retenter
