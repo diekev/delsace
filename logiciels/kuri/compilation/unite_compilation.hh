@@ -117,12 +117,14 @@ struct UniteCompilation {
 
   public:
     EspaceDeTravail *espace = nullptr;
-    Fichier *fichier = nullptr;
-    NoeudExpression *noeud = nullptr;
-    MetaProgramme *metaprogramme = nullptr;
-    Programme *programme = nullptr;
-    Message *message = nullptr;
-    Type *type = nullptr;
+    union {
+        Fichier *fichier = nullptr;
+        NoeudExpression *noeud;
+        MetaProgramme *metaprogramme;
+        Programme *programme;
+        Message *message;
+        Type *type;
+    };
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
