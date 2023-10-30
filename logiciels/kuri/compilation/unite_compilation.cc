@@ -51,7 +51,7 @@ void UniteCompilation::ajoute_attente(Attente attente)
     état = État::EN_ATTENTE;
     assert(attente.est_valide());
 #ifdef ENREGISTRE_HISTORIQUE
-    m_historique.ajoute({état, m_raison_d_etre, __func__});
+    m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
 }
 
@@ -63,11 +63,11 @@ void UniteCompilation::marque_prête(bool préserve_cycle)
         cycle = 0;
     }
 #ifdef ENREGISTRE_HISTORIQUE
-    m_historique.ajoute({état, m_raison_d_etre, __func__});
+    m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
 }
 
-bool UniteCompilation::est_bloquee() const
+bool UniteCompilation::est_bloquée() const
 {
     auto attente_bloquée = première_attente_bloquée();
     if (!attente_bloquée) {
@@ -177,7 +177,7 @@ void UniteCompilation::rapporte_erreur() const
     émets_erreur_pour_attente(this, *attente);
 }
 
-kuri::chaine UniteCompilation::chaine_attentes_recursives() const
+kuri::chaine UniteCompilation::chaine_attentes_récursives() const
 {
     Enchaineuse fc;
 
@@ -194,7 +194,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
     unite_visite.insère(this);
 
     while (attendue) {
-        if (attendue->est_prete()) {
+        if (attendue->est_prête()) {
             fc << "    " << commentaire << " est prête !\n";
             break;
         }
@@ -227,7 +227,7 @@ static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
 
 UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 {
-    if (est_prete()) {
+    if (est_prête()) {
         return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
@@ -251,7 +251,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 
         /* À FAIRE : généralise. */
         if (it.est<AttenteSurNoeudCode>()) {
-            assert(m_raison_d_etre == RaisonDEtre::ENVOIE_MESSAGE);
+            assert(m_raison_d_être == RaisonDEtre::ENVOIE_MESSAGE);
             static_cast<MessageTypageCodeTermine *>(message)->code =
                 it.noeud_code().noeud->noeud_code;
         }
@@ -264,7 +264,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
         return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
-    if (est_bloquee()) {
+    if (est_bloquée()) {
         return UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
     }
 

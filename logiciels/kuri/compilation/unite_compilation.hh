@@ -82,7 +82,7 @@ struct UniteCompilation {
 
   private:
     État état = État::EN_COURS_DE_COMPILATION;
-    RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
+    RaisonDEtre m_raison_d_être = RaisonDEtre::AUCUNE;
 
   public:
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
@@ -143,7 +143,7 @@ struct UniteCompilation {
     void marque_prête(bool préserve_cycle);
 
   public:
-    bool est_prete() const
+    bool est_prête() const
     {
         return m_attentes.est_vide();
     }
@@ -152,7 +152,7 @@ struct UniteCompilation {
     {
         état = nouvelle_état;
 #ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
+        m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
     }
 
@@ -168,17 +168,17 @@ struct UniteCompilation {
                état == État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR;
     }
 
-    void mute_raison_d_etre(RaisonDEtre nouvelle_raison)
+    void mute_raison_d_être(RaisonDEtre nouvelle_raison)
     {
-        m_raison_d_etre = nouvelle_raison;
+        m_raison_d_être = nouvelle_raison;
 #ifdef ENREGISTRE_HISTORIQUE
-        m_historique.ajoute({état, m_raison_d_etre, __func__});
+        m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
     }
 
-    RaisonDEtre raison_d_etre() const
+    RaisonDEtre donne_raison_d_être() const
     {
-        return m_raison_d_etre;
+        return m_raison_d_être;
     }
 
     kuri::tableau_statique<Historique> donne_historique() const
@@ -224,7 +224,7 @@ struct UniteCompilation {
         return nullptr;
     }
 
-    inline bool attend_sur_declaration(NoeudDeclaration *decl)
+    inline bool attend_sur_déclaration(NoeudDeclaration *decl)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurDeclaration>() && it.declaration() == decl) {
@@ -237,20 +237,20 @@ struct UniteCompilation {
 #define DEFINIS_DISCRIMINATION(Genre, nom, chaine)                                                \
     inline bool est_pour_##nom() const                                                            \
     {                                                                                             \
-        return m_raison_d_etre == RaisonDEtre::Genre;                                             \
+        return m_raison_d_être == RaisonDEtre::Genre;                                             \
     }
 
     ENUMERE_RAISON_D_ETRE(DEFINIS_DISCRIMINATION)
 
 #undef DEFINIS_DISCRIMINATION
 
-    bool est_bloquee() const;
+    bool est_bloquée() const;
 
     void rapporte_erreur() const;
 
     ÉtatAttentes détermine_état_attentes();
 
-    kuri::chaine chaine_attentes_recursives() const;
+    kuri::chaine chaine_attentes_récursives() const;
 
   private:
     bool est_attente_sur_symbole_précédent(Attente attente) const;
