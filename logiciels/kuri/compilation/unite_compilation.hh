@@ -103,7 +103,6 @@ struct UniteCompilation {
   private:
     État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_etre = RaisonDEtre::AUCUNE;
-    bool m_prete = true;
     kuri::tableau<Attente> m_attentes{};
 
     /* L'id de la phase de compilation pour lequel nous comptons les cycles d'attentes. */
@@ -141,7 +140,7 @@ struct UniteCompilation {
   public:
     bool est_prete() const
     {
-        return m_prete;
+        return m_attentes.est_vide();
     }
 
     void définis_état(État nouvelle_état)

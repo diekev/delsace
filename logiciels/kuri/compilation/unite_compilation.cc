@@ -48,7 +48,6 @@ void UniteCompilation::ajoute_attente(Attente attente)
     }
 
     m_attentes.ajoute(attente);
-    m_prete = false;
     état = État::EN_ATTENTE;
     assert(attente.est_valide());
 #ifdef ENREGISTRE_HISTORIQUE
@@ -58,7 +57,6 @@ void UniteCompilation::ajoute_attente(Attente attente)
 
 void UniteCompilation::marque_prête(bool préserve_cycle)
 {
-    m_prete = true;
     état = État::EN_COURS_DE_COMPILATION;
     m_attentes.efface();
     if (!préserve_cycle) {
