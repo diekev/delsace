@@ -48,28 +48,26 @@ void UniteCompilation::ajoute_attente(Attente attente)
     }
 
     m_attentes.ajoute(attente);
-    m_prete = false;
     état = État::EN_ATTENTE;
     assert(attente.est_valide());
 #ifdef ENREGISTRE_HISTORIQUE
-    m_historique.ajoute({état, m_raison_d_etre, __func__});
+    m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
 }
 
 void UniteCompilation::marque_prête(bool préserve_cycle)
 {
-    m_prete = true;
     état = État::EN_COURS_DE_COMPILATION;
     m_attentes.efface();
     if (!préserve_cycle) {
         cycle = 0;
     }
 #ifdef ENREGISTRE_HISTORIQUE
-    m_historique.ajoute({état, m_raison_d_etre, __func__});
+    m_historique.ajoute({état, m_raison_d_être, __func__});
 #endif
 }
 
-bool UniteCompilation::est_bloquee() const
+bool UniteCompilation::est_bloquée() const
 {
     auto attente_bloquée = première_attente_bloquée();
     if (!attente_bloquée) {
@@ -179,7 +177,7 @@ void UniteCompilation::rapporte_erreur() const
     émets_erreur_pour_attente(this, *attente);
 }
 
-kuri::chaine UniteCompilation::chaine_attentes_recursives() const
+kuri::chaine UniteCompilation::chaine_attentes_récursives() const
 {
     Enchaineuse fc;
 
@@ -196,7 +194,7 @@ kuri::chaine UniteCompilation::chaine_attentes_recursives() const
     unite_visite.insère(this);
 
     while (attendue) {
-        if (attendue->est_prete()) {
+        if (attendue->est_prête()) {
             fc << "    " << commentaire << " est prête !\n";
             break;
         }
@@ -229,7 +227,7 @@ static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
 
 UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 {
-    if (est_prete()) {
+    if (est_prête()) {
         return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
@@ -253,7 +251,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 
         /* À FAIRE : généralise. */
         if (it.est<AttenteSurNoeudCode>()) {
-            assert(m_raison_d_etre == RaisonDEtre::ENVOIE_MESSAGE);
+            assert(m_raison_d_être == RaisonDEtre::ENVOIE_MESSAGE);
             static_cast<MessageTypageCodeTermine *>(message)->code =
                 it.noeud_code().noeud->noeud_code;
         }
@@ -266,7 +264,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
         return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
-    if (est_bloquee()) {
+    if (est_bloquée()) {
         return UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
     }
 
@@ -283,16 +281,13 @@ void UniteCompilation::marque_prête_pour_attente_sur_symbole()
     auto attente_courante = m_attentes[0];
     auto préserve_cycle = false;
 
-    if (m_attente_sur_symbole_précédente.has_value()) {
-        auto attente_précédente = m_attente_sur_symbole_précédente.value();
-        if (attente_courante.symbole() == attente_précédente.symbole()) {
-            cycle += 1;
-            préserve_cycle = true;
-        }
+    if (attente_courante.symbole() == m_attente_sur_symbole_précédente) {
+        cycle += 1;
+        préserve_cycle = true;
     }
 
     marque_prête(préserve_cycle);
-    m_attente_sur_symbole_précédente = attente_courante;
+    m_attente_sur_symbole_précédente = attente_courante.symbole();
 }
 
 bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) const
@@ -301,11 +296,7 @@ bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) cons
         return false;
     }
 
-    if (!m_attente_sur_symbole_précédente.has_value()) {
-        return false;
-    }
-
-    return m_attente_sur_symbole_précédente->symbole() == attente.symbole();
+    return m_attente_sur_symbole_précédente == attente.symbole();
 }
 
 const char *chaine_état_unité_compilation(UniteCompilation::État état)
