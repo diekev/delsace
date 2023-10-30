@@ -52,7 +52,7 @@ static void émets_erreur_pour_attente_défaut(UniteCompilation const *unite, At
                           "Je ne peux pas continuer la compilation car une unité est "
                           "bloquée dans un cycle")
         .ajoute_message("\nNote : l'unité est dans l'état : ")
-        .ajoute_message(unite->chaine_attentes_recursives())
+        .ajoute_message(unite->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
 
@@ -112,7 +112,7 @@ RAPPEL_POUR_ERREUR(type)
         .ajoute_message(chaine_type(attente.type()))
         .ajoute_message("\n")
         .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-        .ajoute_message(unite->chaine_attentes_recursives())
+        .ajoute_message(unite->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
 
@@ -167,7 +167,7 @@ RAPPEL_POUR_ERREUR(déclaration)
     // À FAIRE : ne devrait pas arriver
     if (unite_decl) {
         erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
-            .ajoute_message(unite->chaine_attentes_recursives())
+            .ajoute_message(unite->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
 }
