@@ -118,7 +118,7 @@ struct UniteCompilation {
      * de compiler l'unité jusqu'à ce qu'à atteindre le nombre maximum de cycles. Pour ce faire,
      * nous nous rappelons de l'attente sur symbole précédente et augmentons le cycle uniquement si
      * nous avons toujours la même attente avant de retenter la compilation. */
-    std::optional<Attente> m_attente_sur_symbole_précédente{};
+    NoeudExpression *m_attente_sur_symbole_précédente = nullptr;
 
   public:
     EspaceDeTravail *espace = nullptr;

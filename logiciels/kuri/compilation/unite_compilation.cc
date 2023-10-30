@@ -281,16 +281,13 @@ void UniteCompilation::marque_prête_pour_attente_sur_symbole()
     auto attente_courante = m_attentes[0];
     auto préserve_cycle = false;
 
-    if (m_attente_sur_symbole_précédente.has_value()) {
-        auto attente_précédente = m_attente_sur_symbole_précédente.value();
-        if (attente_courante.symbole() == attente_précédente.symbole()) {
-            cycle += 1;
-            préserve_cycle = true;
-        }
+    if (attente_courante.symbole() == m_attente_sur_symbole_précédente) {
+        cycle += 1;
+        préserve_cycle = true;
     }
 
     marque_prête(préserve_cycle);
-    m_attente_sur_symbole_précédente = attente_courante;
+    m_attente_sur_symbole_précédente = attente_courante.symbole();
 }
 
 bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) const
@@ -299,11 +296,7 @@ bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) cons
         return false;
     }
 
-    if (!m_attente_sur_symbole_précédente.has_value()) {
-        return false;
-    }
-
-    return m_attente_sur_symbole_précédente->symbole() == attente.symbole();
+    return m_attente_sur_symbole_précédente == attente.symbole();
 }
 
 const char *chaine_état_unité_compilation(UniteCompilation::État état)
