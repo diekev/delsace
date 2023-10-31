@@ -17,50 +17,6 @@
 #include "impression.hh"
 #include "instructions.hh"
 
-/* ------------------------------------------------------------------------- */
-/** \name VisiteuseBlocs
- * \{ */
-
-VisiteuseBlocs::VisiteuseBlocs(const FonctionEtBlocs &fonction_et_blocs)
-    : m_fonction_et_blocs(fonction_et_blocs)
-{
-}
-
-void VisiteuseBlocs::prépare_pour_nouvelle_traversée()
-{
-    blocs_visités.efface();
-    à_visiter.efface();
-    à_visiter.enfile(m_fonction_et_blocs.blocs[0]);
-}
-
-bool VisiteuseBlocs::a_visité(Bloc *bloc) const
-{
-    return blocs_visités.possède(bloc);
-}
-
-Bloc *VisiteuseBlocs::bloc_suivant()
-{
-    while (!à_visiter.est_vide()) {
-        auto bloc_courant = à_visiter.defile();
-
-        if (blocs_visités.possède(bloc_courant)) {
-            continue;
-        }
-
-        blocs_visités.insère(bloc_courant);
-
-        POUR (bloc_courant->enfants) {
-            à_visiter.enfile(it);
-        }
-
-        return bloc_courant;
-    }
-
-    return nullptr;
-}
-
-/** \} */
-
 /* ********************************************************************************************* */
 
 /* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent
@@ -531,77 +487,91 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
 /* ******************************************************************************************** */
 
-static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
-{
-    visiteuse.prépare_pour_nouvelle_traversée();
-    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
-        bloc_courant->est_atteignable = true;
-    }
-}
-
 static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
+    auto bloc_modifié = false;
+
     POUR (fonction_et_blocs.blocs) {
         if (it->instructions.taille() != 1 || it->parents.taille() == 0) {
             continue;
         }
 
         auto di = it->instructions.dernière();
+        if (!di->est_branche()) {
+            continue;
+        }
 
-        if (di->est_branche()) {
-            auto branche = di->comme_branche();
+        auto branche = di->comme_branche();
 
-            for (auto parent : it->parents) {
-                auto di_parent = parent->instructions.dernière();
+        for (auto parent : it->parents) {
+            auto di_parent = parent->instructions.dernière();
 
-                if (di_parent->est_branche()) {
-                    di_parent->comme_branche()->label = branche->label;
+            if (di_parent->est_branche()) {
+                di_parent->comme_branche()->label = branche->label;
 
+                it->enfants[0]->remplace_parent(it, parent);
+                parent->enlève_enfant(it);
+
+                bloc_modifié = true;
+            }
+            else if (di_parent->est_branche_cond()) {
+                auto branche_cond = di_parent->comme_branche_cond();
+                if (branche_cond->label_si_vrai == it->label) {
+                    branche_cond->label_si_vrai = branche->label;
                     it->enfants[0]->remplace_parent(it, parent);
-                    parent->enleve_enfant(it);
+                    parent->enlève_enfant(it);
+
+                    bloc_modifié = true;
                 }
-                else if (di_parent->est_branche_cond()) {
-                    auto branche_cond = di_parent->comme_branche_cond();
-                    if (branche_cond->label_si_vrai == it->label) {
-                        branche_cond->label_si_vrai = branche->label;
-                        it->enfants[0]->remplace_parent(it, parent);
-                        parent->enleve_enfant(it);
-                    }
-                    if (branche_cond->label_si_faux == it->label) {
-                        branche_cond->label_si_faux = branche->label;
-                        it->enfants[0]->remplace_parent(it, parent);
-                        parent->enleve_enfant(it);
-                    }
+                if (branche_cond->label_si_faux == it->label) {
+                    branche_cond->label_si_faux = branche->label;
+                    it->enfants[0]->remplace_parent(it, parent);
+                    parent->enlève_enfant(it);
+
+                    bloc_modifié = true;
                 }
             }
         }
     }
 
-    kuri::tableau<Bloc *, int> nouveaux_blocs;
-    nouveaux_blocs.reserve(fonction_et_blocs.blocs.taille());
+    if (!bloc_modifié) {
+        return;
+    }
 
-    marque_blocs_atteignables(visiteuse);
+    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+}
+
+/* ******************************************************************************************** */
+
+/**
+ * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
+ * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
+ * branche est supprimée.
+ */
+void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
+{
+    auto bloc_modifié = false;
 
     POUR (fonction_et_blocs.blocs) {
-        if (!it->est_atteignable) {
+        auto di = it->instructions.dernière();
+        if (!di->est_branche()) {
             continue;
         }
 
-        nouveaux_blocs.ajoute(it);
-    }
-
-    auto fonction = fonction_et_blocs.fonction;
-    int décalage_instruction = 0;
-    POUR (nouveaux_blocs) {
-        fonction->instructions[décalage_instruction++] = it->label;
-
-        for (auto inst : it->instructions) {
-            fonction->instructions[décalage_instruction++] = inst;
+        auto bloc_enfant = it->enfants[0];
+        if (bloc_enfant->parents.taille() != 1) {
+            continue;
         }
+
+        it->fusionne_enfant(bloc_enfant);
+        bloc_modifié = true;
     }
 
-    fonction->instructions.redimensionne(décalage_instruction);
-    fonction_et_blocs.blocs = nouveaux_blocs;
+    if (!bloc_modifié) {
+        return;
+    }
+
+    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
 }
 
 /* ******************************************************************************************** */
@@ -1037,7 +1007,7 @@ enum {
     EST_A_SUPPRIMER = 123,
 };
 
-static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
+static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
 {
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
@@ -1143,7 +1113,9 @@ static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
 
     auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
 
+    auto const bloc_modifié = nouvelle_taille != bloc->instructions.taille();
     bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    return bloc_modifié;
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
@@ -1164,8 +1136,9 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
     return {};
 }
 
-static void rapproche_allocations_des_stockages(Bloc *bloc)
+static bool rapproche_allocations_des_stockages(Bloc *bloc)
 {
+    auto bloc_modifié = false;
     for (int i = 0; i < bloc->instructions.taille() - 2; i++) {
         auto inst_i = bloc->instructions[i];
 
@@ -1181,15 +1154,12 @@ static void rapproche_allocations_des_stockages(Bloc *bloc)
         std::rotate(&bloc->instructions[i],
                     &bloc->instructions[i + 1],
                     &bloc->instructions[index_stockage.value()]);
+
+        bloc_modifié = true;
     }
+
+    return bloc_modifié;
 }
-
-#undef IMPRIME_STATS
-
-#ifdef IMPRIME_STATS
-static int instructions_supprimées = 0;
-static int instructions_totales = 0;
-#endif
 
 static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
 {
@@ -1221,44 +1191,25 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(Graphe &graphe,
-                                             const FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
 {
-    auto const fonction = fonction_et_blocs.fonction;
-
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         graphe.construit(it->instructions, index_bloc++);
     }
 
     index_bloc = 0;
+    auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
-        rapproche_allocations_des_stockages(it);
-        supprime_allocations_temporaires(graphe, it, index_bloc++);
+        bloc_modifié |= rapproche_allocations_des_stockages(it);
+        bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
 
-#ifdef IMPRIME_STATS
-    auto const ancien_compte = fonction->instructions.taille();
-#endif
-    fonction->instructions.efface();
-
-    POUR (fonction_et_blocs.blocs) {
-        fonction->instructions.ajoute(it->label);
-        for (auto i = 0; i < it->instructions.taille(); i++) {
-            fonction->instructions.ajoute(it->instructions[i]);
-        }
+    if (!bloc_modifié) {
+        return;
     }
 
-#ifdef IMPRIME_STATS
-    auto const supprimees = (ancien_compte - fonction->instructions.taille());
-    instructions_totales += ancien_compte;
-
-    if (supprimees != 0) {
-        instructions_supprimées += supprimees;
-        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
-                  << " instructions\n";
-    }
-#endif
+    fonction_et_blocs.marque_blocs_modifiés();
 }
 
 /* ********************************************************************************************
@@ -1294,7 +1245,11 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 
     supprime_blocs_vides(fonction_et_blocs, visiteuse);
 
+    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
+
+    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 
     valide_fonction(espace, *atome);
 
@@ -1308,5 +1263,5 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 void ContexteAnalyseRI::reinitialise()
 {
     graphe.réinitialise();
-    fonction_et_blocs.reinitialise();
+    fonction_et_blocs.réinitialise();
 }
