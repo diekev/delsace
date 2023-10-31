@@ -209,12 +209,17 @@ void Bloc::fusionne_enfant(Bloc *enfant)
         this->utilise_variable(it);
     }
 
+    /* Supprime la référence à l'enfant dans la hiérarchie. */
     this->enlève_enfant(enfant);
+    enfant->enlève_parent(this);
 
+    /* Remplace l'enfant pour nou-même comme parent dans ses enfants. */
     POUR (enfant->enfants) {
         this->ajoute_enfant(it);
+        it->remplace_parent(enfant, this);
     }
 
+    /* À FAIRE : c'est quoi ça ? */
     POUR (this->enfants) {
         it->enlève_parent(enfant);
     }

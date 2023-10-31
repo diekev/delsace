@@ -563,21 +563,7 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
             continue;
         }
 
-        /* Fusionne le bloc enfant dans le parent. */
-        it->instructions.supprime_dernier();
-
-        for (auto inst : bloc_enfant->instructions) {
-            it->instructions.ajoute(inst);
-        }
-
-        it->enlève_enfant(bloc_enfant);
-        bloc_enfant->enlève_parent(it);
-
-        for (auto enfant : bloc_enfant->enfants) {
-            it->ajoute_enfant(enfant);
-            enfant->remplace_parent(bloc_enfant, it);
-        }
-
+        it->fusionne_enfant(bloc_enfant);
         bloc_modifié = true;
     }
 
