@@ -461,3 +461,47 @@ void FonctionEtBlocs::reinitialise()
 
     blocs.efface();
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name VisiteuseBlocs
+ * \{ */
+
+VisiteuseBlocs::VisiteuseBlocs(const FonctionEtBlocs &fonction_et_blocs)
+    : m_fonction_et_blocs(fonction_et_blocs)
+{
+}
+
+void VisiteuseBlocs::prépare_pour_nouvelle_traversée()
+{
+    blocs_visités.efface();
+    à_visiter.efface();
+    à_visiter.enfile(m_fonction_et_blocs.blocs[0]);
+}
+
+bool VisiteuseBlocs::a_visité(Bloc *bloc) const
+{
+    return blocs_visités.possède(bloc);
+}
+
+Bloc *VisiteuseBlocs::bloc_suivant()
+{
+    while (!à_visiter.est_vide()) {
+        auto bloc_courant = à_visiter.defile();
+
+        if (blocs_visités.possède(bloc_courant)) {
+            continue;
+        }
+
+        blocs_visités.insère(bloc_courant);
+
+        POUR (bloc_courant->enfants) {
+            à_visiter.enfile(it);
+        }
+
+        return bloc_courant;
+    }
+
+    return nullptr;
+}
+
+/** \} */
