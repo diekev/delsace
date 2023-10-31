@@ -492,7 +492,7 @@ void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
         return;
     }
 
-    auto nombre_de_nouveaux_blocs = std::distance(blocs.begin(), résultat);
+    auto nombre_de_nouveaux_blocs = int(std::distance(blocs.begin(), résultat));
 
     for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
         blocs[i]->réinitialise();
