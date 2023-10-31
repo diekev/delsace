@@ -489,40 +489,53 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
 static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
+    auto bloc_modifié = false;
+
     POUR (fonction_et_blocs.blocs) {
         if (it->instructions.taille() != 1 || it->parents.taille() == 0) {
             continue;
         }
 
         auto di = it->instructions.dernière();
+        if (!di->est_branche()) {
+            continue;
+        }
 
-        if (di->est_branche()) {
-            auto branche = di->comme_branche();
+        auto branche = di->comme_branche();
 
-            for (auto parent : it->parents) {
-                auto di_parent = parent->instructions.dernière();
+        for (auto parent : it->parents) {
+            auto di_parent = parent->instructions.dernière();
 
-                if (di_parent->est_branche()) {
-                    di_parent->comme_branche()->label = branche->label;
+            if (di_parent->est_branche()) {
+                di_parent->comme_branche()->label = branche->label;
 
+                it->enfants[0]->remplace_parent(it, parent);
+                parent->enleve_enfant(it);
+
+                bloc_modifié = true;
+            }
+            else if (di_parent->est_branche_cond()) {
+                auto branche_cond = di_parent->comme_branche_cond();
+                if (branche_cond->label_si_vrai == it->label) {
+                    branche_cond->label_si_vrai = branche->label;
                     it->enfants[0]->remplace_parent(it, parent);
                     parent->enleve_enfant(it);
+
+                    bloc_modifié = true;
                 }
-                else if (di_parent->est_branche_cond()) {
-                    auto branche_cond = di_parent->comme_branche_cond();
-                    if (branche_cond->label_si_vrai == it->label) {
-                        branche_cond->label_si_vrai = branche->label;
-                        it->enfants[0]->remplace_parent(it, parent);
-                        parent->enleve_enfant(it);
-                    }
-                    if (branche_cond->label_si_faux == it->label) {
-                        branche_cond->label_si_faux = branche->label;
-                        it->enfants[0]->remplace_parent(it, parent);
-                        parent->enleve_enfant(it);
-                    }
+                if (branche_cond->label_si_faux == it->label) {
+                    branche_cond->label_si_faux = branche->label;
+                    it->enfants[0]->remplace_parent(it, parent);
+                    parent->enleve_enfant(it);
+
+                    bloc_modifié = true;
                 }
             }
         }
+    }
+
+    if (!bloc_modifié) {
+        return;
     }
 
     fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
