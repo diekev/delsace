@@ -463,6 +463,11 @@ void FonctionEtBlocs::réinitialise()
     blocs.efface();
 }
 
+void FonctionEtBlocs::marque_blocs_modifiés()
+{
+    les_blocs_ont_été_modifiés = true;
+}
+
 static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
 {
     visiteuse.prépare_pour_nouvelle_traversée();
@@ -504,6 +509,13 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
         return;
     }
 
+#undef IMPRIME_STATS
+#ifdef IMPRIME_STATS
+    static int instructions_supprimées = 0;
+    static int instructions_totales = 0;
+    auto const ancien_compte = fonction->instructions.taille();
+#endif
+
     int décalage_instruction = 0;
 
     POUR (blocs) {
@@ -516,6 +528,17 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
 
     fonction->instructions.redimensionne(décalage_instruction);
     les_blocs_ont_été_modifiés = false;
+
+#ifdef IMPRIME_STATS
+    auto const supprimées = (ancien_compte - fonction->instructions.taille());
+    instructions_totales += ancien_compte;
+
+    if (supprimées != 0) {
+        instructions_supprimées += supprimées;
+        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
+                  << " instructions\n";
+    }
+#endif
 }
 
 /* ------------------------------------------------------------------------- */

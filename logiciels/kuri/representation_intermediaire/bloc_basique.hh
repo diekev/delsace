@@ -79,6 +79,8 @@ struct FonctionEtBlocs {
 
     void réinitialise();
 
+    void marque_blocs_modifiés();
+
     void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
 
     /**

@@ -539,7 +539,6 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
     }
 
     fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
-    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 }
 
 /* ******************************************************************************************** */
@@ -587,7 +586,6 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
     }
 
     fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
-    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 }
 
 /* ******************************************************************************************** */
@@ -1023,7 +1021,7 @@ enum {
     EST_A_SUPPRIMER = 123,
 };
 
-static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
+static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
 {
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
@@ -1129,7 +1127,9 @@ static void supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
 
     auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
 
+    auto const bloc_modifié = nouvelle_taille != bloc->instructions.taille();
     bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    return bloc_modifié;
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
@@ -1170,13 +1170,6 @@ static void rapproche_allocations_des_stockages(Bloc *bloc)
     }
 }
 
-#undef IMPRIME_STATS
-
-#ifdef IMPRIME_STATS
-static int instructions_supprimées = 0;
-static int instructions_totales = 0;
-#endif
-
 static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
 {
     POUR (fonction.instructions) {
@@ -1207,8 +1200,7 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(Graphe &graphe,
-                                             const FonctionEtBlocs &fonction_et_blocs)
+static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
 {
     auto const fonction = fonction_et_blocs.fonction;
 
@@ -1218,33 +1210,17 @@ static void supprime_allocations_temporaires(Graphe &graphe,
     }
 
     index_bloc = 0;
+    auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         rapproche_allocations_des_stockages(it);
-        supprime_allocations_temporaires(graphe, it, index_bloc++);
+        bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
 
-#ifdef IMPRIME_STATS
-    auto const ancien_compte = fonction->instructions.taille();
-#endif
-    fonction->instructions.efface();
-
-    POUR (fonction_et_blocs.blocs) {
-        fonction->instructions.ajoute(it->label);
-        for (auto i = 0; i < it->instructions.taille(); i++) {
-            fonction->instructions.ajoute(it->instructions[i]);
-        }
+    if (!bloc_modifié) {
+        return;
     }
 
-#ifdef IMPRIME_STATS
-    auto const supprimees = (ancien_compte - fonction->instructions.taille());
-    instructions_totales += ancien_compte;
-
-    if (supprimees != 0) {
-        instructions_supprimées += supprimees;
-        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
-                  << " instructions\n";
-    }
-#endif
+    fonction_et_blocs.marque_blocs_modifiés();
 }
 
 /* ********************************************************************************************
@@ -1283,6 +1259,8 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
+
+    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 
     valide_fonction(espace, *atome);
 
