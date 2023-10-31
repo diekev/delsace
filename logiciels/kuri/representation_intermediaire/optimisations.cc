@@ -1170,56 +1170,6 @@ void lance_optimisations(AtomeFonction *fonction)
 }
 #endif
 
-static bool enleve_blocs_vides(kuri::tableau<Bloc *, int> &blocs)
-{
-    if (blocs.taille() == 1) {
-        return false;
-    }
-
-    kuri::tableau<Bloc *, int> nouveau_blocs;
-    nouveau_blocs.reserve(blocs.taille());
-
-    /* le premier bloc est celui du corps de la fonction, ne le travaille pas */
-    nouveau_blocs.ajoute(blocs[0]);
-
-    for (auto i = 1; i < blocs.taille(); ++i) {
-        auto bloc = blocs[i];
-
-        /* cas pour les blocs avec un fonction qui a une expression de retour alors que toutes les
-         * branches retournes */
-        if (bloc->parents.est_vide() && bloc->enfants.est_vide()) {
-            continue;
-        }
-
-        if (bloc->instructions.est_vide()) {
-            POUR (bloc->parents) {
-                it->enleve_enfant(bloc);
-            }
-
-            POUR (bloc->enfants) {
-                it->enleve_parent(bloc);
-            }
-
-            POUR (bloc->parents) {
-                for (auto enf : bloc->enfants) {
-                    it->ajoute_enfant(enf);
-                }
-            }
-
-            continue;
-        }
-
-        nouveau_blocs.ajoute(bloc);
-    }
-
-    if (nouveau_blocs.taille() != blocs.taille()) {
-        blocs = nouveau_blocs;
-        return true;
-    }
-
-    return false;
-}
-
 static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
 {
     auto branche_eliminee = false;
@@ -1237,7 +1187,7 @@ static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
             auto enfant = bloc->enfants[0];
 
             POUR (bloc->enfants) {
-                it->enleve_parent(bloc);
+                it->enlève_parent(bloc);
             }
 
             // remplace les enfants dans les parents
@@ -1333,7 +1283,7 @@ static Bloc *trouve_bloc_utilisant_variable(kuri::tableau<Bloc *, int> const &bl
 static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blocs)
 {
     POUR (blocs) {
-        construit_liste_variables_utilisees(it);
+        construit_liste_variables_utilisées(it);
     }
 
     POUR (blocs) {
@@ -1419,7 +1369,6 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 
         // if ((drapeaux & REQUIERS_CORRECTION_BLOCS) == REQUIERS_CORRECTION_BLOCS) {
         travail_effectue |= elimine_branches_inutiles(blocs);
-        travail_effectue |= enleve_blocs_vides(blocs);
         // drapeaux &= REQUIERS_CORRECTION_BLOCS;
         //}
 

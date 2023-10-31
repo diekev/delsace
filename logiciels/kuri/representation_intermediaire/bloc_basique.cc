@@ -49,9 +49,9 @@ void Bloc::ajoute_enfant(Bloc *enfant)
 
 void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
 {
-    enleve_du_tableau(enfants, enfant);
+    enlève_du_tableau(enfants, enfant);
     ajoute_enfant(par);
-    enfant->enleve_parent(this);
+    enfant->enlève_parent(this);
     par->ajoute_parent(this);
 
     auto inst = instructions.dernière();
@@ -81,19 +81,19 @@ void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
 
 void Bloc::remplace_parent(Bloc *parent, Bloc *par)
 {
-    enleve_du_tableau(parents, parent);
+    enlève_du_tableau(parents, parent);
     ajoute_parent(par);
     par->ajoute_enfant(this);
 }
 
-void Bloc::enleve_parent(Bloc *parent)
+void Bloc::enlève_parent(Bloc *parent)
 {
-    enleve_du_tableau(parents, parent);
+    enlève_du_tableau(parents, parent);
 }
 
-void Bloc::enleve_enfant(Bloc *enfant)
+void Bloc::enlève_enfant(Bloc *enfant)
 {
-    enleve_du_tableau(enfants, enfant);
+    enlève_du_tableau(enfants, enfant);
 
     /* quand nous enlevons un enfant, il faut modifier la cible des branches potentielles */
 
@@ -209,14 +209,19 @@ void Bloc::fusionne_enfant(Bloc *enfant)
         this->utilise_variable(it);
     }
 
-    this->enleve_enfant(enfant);
+    /* Supprime la référence à l'enfant dans la hiérarchie. */
+    this->enlève_enfant(enfant);
+    enfant->enlève_parent(this);
 
+    /* Remplace l'enfant pour nou-même comme parent dans ses enfants. */
     POUR (enfant->enfants) {
         this->ajoute_enfant(it);
+        it->remplace_parent(enfant, this);
     }
 
+    /* À FAIRE : c'est quoi ça ? */
     POUR (this->enfants) {
-        it->enleve_parent(enfant);
+        it->enlève_parent(enfant);
     }
 
     //		std::cerr << "-- enfants après fusion : ";
@@ -233,7 +238,7 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     enfant->instructions.efface();
 }
 
-void Bloc::reinitialise()
+void Bloc::réinitialise()
 {
     label = nullptr;
     est_atteignable = false;
@@ -244,7 +249,7 @@ void Bloc::reinitialise()
     variables_utilisees.efface();
 }
 
-void Bloc::enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
+void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
         if (tableau[i] == bloc) {
@@ -311,7 +316,7 @@ void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)
     }
 }
 
-void construit_liste_variables_utilisees(Bloc *bloc)
+void construit_liste_variables_utilisées(Bloc *bloc)
 {
     POUR (bloc->instructions) {
         if (it->est_alloc()) {
@@ -346,7 +351,7 @@ static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, Instructi
     return nullptr;
 }
 
-static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
+static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
                                   kuri::tableau<Bloc *, int> &blocs_libres,
                                   InstructionLabel *label)
 {
@@ -368,7 +373,7 @@ static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
     return bloc;
 }
 
-static void detruit_blocs(kuri::tableau<Bloc *, int> &blocs)
+static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
         memoire::deloge("Bloc", it);
@@ -378,7 +383,7 @@ static void detruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 
 FonctionEtBlocs::~FonctionEtBlocs()
 {
-    detruit_blocs(blocs);
+    détruit_blocs(blocs);
 }
 
 bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc)
@@ -391,7 +396,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            cree_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
         }
     }
 
@@ -450,14 +455,137 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
     return true;
 }
 
-void FonctionEtBlocs::reinitialise()
+void FonctionEtBlocs::réinitialise()
 {
     fonction = nullptr;
+    les_blocs_ont_été_modifiés = false;
 
     POUR (blocs) {
-        it->reinitialise();
+        it->réinitialise();
         blocs_libres.ajoute(it);
     }
 
     blocs.efface();
 }
+
+void FonctionEtBlocs::marque_blocs_modifiés()
+{
+    les_blocs_ont_été_modifiés = true;
+}
+
+static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
+{
+    visiteuse.prépare_pour_nouvelle_traversée();
+    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
+        bloc_courant->est_atteignable = true;
+    }
+}
+
+void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
+{
+    /* Réinitalise les drapaux. */
+    POUR (blocs) {
+        it->est_atteignable = false;
+    }
+
+    marque_blocs_atteignables(visiteuse);
+
+    auto résultat = std::stable_partition(
+        blocs.begin(), blocs.end(), [](Bloc const *bloc) { return bloc->est_atteignable; });
+
+    if (résultat == blocs.end()) {
+        return;
+    }
+
+    auto nombre_de_nouveaux_blocs = int(std::distance(blocs.begin(), résultat));
+
+    for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
+        blocs[i]->réinitialise();
+        blocs_libres.ajoute(blocs[i]);
+    }
+
+    blocs.redimensionne(nombre_de_nouveaux_blocs);
+    les_blocs_ont_été_modifiés = true;
+}
+
+void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
+{
+    if (!les_blocs_ont_été_modifiés) {
+        return;
+    }
+
+#undef IMPRIME_STATS
+#ifdef IMPRIME_STATS
+    static int instructions_supprimées = 0;
+    static int instructions_totales = 0;
+    auto const ancien_compte = fonction->instructions.taille();
+#endif
+
+    int décalage_instruction = 0;
+
+    POUR (blocs) {
+        fonction->instructions[décalage_instruction++] = it->label;
+
+        for (auto inst : it->instructions) {
+            fonction->instructions[décalage_instruction++] = inst;
+        }
+    }
+
+    fonction->instructions.redimensionne(décalage_instruction);
+    les_blocs_ont_été_modifiés = false;
+
+#ifdef IMPRIME_STATS
+    auto const supprimées = (ancien_compte - fonction->instructions.taille());
+    instructions_totales += ancien_compte;
+
+    if (supprimées != 0) {
+        instructions_supprimées += supprimées;
+        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
+                  << " instructions\n";
+    }
+#endif
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name VisiteuseBlocs
+ * \{ */
+
+VisiteuseBlocs::VisiteuseBlocs(const FonctionEtBlocs &fonction_et_blocs)
+    : m_fonction_et_blocs(fonction_et_blocs)
+{
+}
+
+void VisiteuseBlocs::prépare_pour_nouvelle_traversée()
+{
+    blocs_visités.efface();
+    à_visiter.efface();
+    à_visiter.enfile(m_fonction_et_blocs.blocs[0]);
+}
+
+bool VisiteuseBlocs::a_visité(Bloc *bloc) const
+{
+    return blocs_visités.possède(bloc);
+}
+
+Bloc *VisiteuseBlocs::bloc_suivant()
+{
+    while (!à_visiter.est_vide()) {
+        auto bloc_courant = à_visiter.defile();
+
+        if (blocs_visités.possède(bloc_courant)) {
+            continue;
+        }
+
+        blocs_visités.insère(bloc_courant);
+
+        POUR (bloc_courant->enfants) {
+            à_visiter.enfile(it);
+        }
+
+        return bloc_courant;
+    }
+
+    return nullptr;
+}
+
+/** \} */

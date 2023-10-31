@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "structures/ensemble.hh"
-#include "structures/file.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
@@ -40,31 +38,6 @@ struct Graphe {
 
     void réinitialise();
 };
-
-/* ------------------------------------------------------------------------- */
-/** \name VisiteuseBlocs
- * Structure pour visiter les blocs de manière hiérarchique.
- * \{ */
-
-struct VisiteuseBlocs {
-  private:
-    FonctionEtBlocs const &m_fonction_et_blocs;
-
-    /* Mémoire pour la visite. */
-    kuri::ensemble<Bloc *> blocs_visités{};
-    kuri::file<Bloc *> à_visiter{};
-
-  public:
-    VisiteuseBlocs(FonctionEtBlocs const &fonction_et_blocs);
-
-    void prépare_pour_nouvelle_traversée();
-
-    bool a_visité(Bloc *bloc) const;
-
-    Bloc *bloc_suivant();
-};
-
-/** \} */
 
 /* Structure pour contenir les différentes structures utilisées pour analyser la RI afin de
  * récupérer la mémoire entre différents appels.
