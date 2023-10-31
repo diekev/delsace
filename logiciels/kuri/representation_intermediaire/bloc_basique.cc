@@ -453,6 +453,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 void FonctionEtBlocs::reinitialise()
 {
     fonction = nullptr;
+    les_blocs_ont_été_modifiés = false;
 
     POUR (blocs) {
         it->reinitialise();
@@ -460,6 +461,61 @@ void FonctionEtBlocs::reinitialise()
     }
 
     blocs.efface();
+}
+
+static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
+{
+    visiteuse.prépare_pour_nouvelle_traversée();
+    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
+        bloc_courant->est_atteignable = true;
+    }
+}
+
+void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
+{
+    /* Réinitalise les drapaux. */
+    POUR (blocs) {
+        it->est_atteignable = false;
+    }
+
+    marque_blocs_atteignables(visiteuse);
+
+    auto résultat = std::stable_partition(
+        blocs.begin(), blocs.end(), [](Bloc const *bloc) { return bloc->est_atteignable; });
+
+    if (résultat == blocs.end()) {
+        return;
+    }
+
+    auto nombre_de_nouveaux_blocs = std::distance(blocs.begin(), résultat);
+
+    for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
+        blocs[i]->reinitialise();
+        blocs_libres.ajoute(blocs[i]);
+    }
+
+    blocs.redimensionne(nombre_de_nouveaux_blocs);
+    les_blocs_ont_été_modifiés = true;
+}
+
+void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
+{
+    if (!les_blocs_ont_été_modifiés) {
+        return;
+    }
+
+    int décalage_instruction = 0;
+
+    POUR (blocs) {
+        fonction->instructions[décalage_instruction++] = it->label;
+
+        for (auto inst : it->instructions) {
+            fonction->instructions[décalage_instruction++] = inst;
+        }
+    }
+
+    fonction->instructions.redimensionne(décalage_instruction);
+    les_blocs_ont_été_modifiés = false;
 }
 
 /* ------------------------------------------------------------------------- */

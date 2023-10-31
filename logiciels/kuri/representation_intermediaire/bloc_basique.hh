@@ -62,16 +62,26 @@ void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
 
 void construit_liste_variables_utilisees(Bloc *bloc);
 
+struct VisiteuseBlocs;
+
 struct FonctionEtBlocs {
     AtomeFonction *fonction = nullptr;
     kuri::tableau<Bloc *, int> blocs{};
     kuri::tableau<Bloc *, int> blocs_libres{};
 
+  private:
+    bool les_blocs_ont_été_modifiés = false;
+
+  public:
     ~FonctionEtBlocs();
 
     bool convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc);
 
     void reinitialise();
+
+    void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
+
+    void ajourne_instructions_fonction_si_nécessaire();
 };
 
 /* ------------------------------------------------------------------------- */

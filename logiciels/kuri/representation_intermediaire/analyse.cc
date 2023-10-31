@@ -487,14 +487,6 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
 /* ******************************************************************************************** */
 
-static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
-{
-    visiteuse.prépare_pour_nouvelle_traversée();
-    while (Bloc *bloc_courant = visiteuse.bloc_suivant()) {
-        bloc_courant->est_atteignable = true;
-    }
-}
-
 static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
     POUR (fonction_et_blocs.blocs) {
@@ -533,31 +525,8 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
         }
     }
 
-    kuri::tableau<Bloc *, int> nouveaux_blocs;
-    nouveaux_blocs.reserve(fonction_et_blocs.blocs.taille());
-
-    marque_blocs_atteignables(visiteuse);
-
-    POUR (fonction_et_blocs.blocs) {
-        if (!it->est_atteignable) {
-            continue;
-        }
-
-        nouveaux_blocs.ajoute(it);
-    }
-
-    auto fonction = fonction_et_blocs.fonction;
-    int décalage_instruction = 0;
-    POUR (nouveaux_blocs) {
-        fonction->instructions[décalage_instruction++] = it->label;
-
-        for (auto inst : it->instructions) {
-            fonction->instructions[décalage_instruction++] = inst;
-        }
-    }
-
-    fonction->instructions.redimensionne(décalage_instruction);
-    fonction_et_blocs.blocs = nouveaux_blocs;
+    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 }
 
 /* ******************************************************************************************** */
