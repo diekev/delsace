@@ -1202,8 +1202,6 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
 
 static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
 {
-    auto const fonction = fonction_et_blocs.fonction;
-
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         graphe.construit(it->instructions, index_bloc++);
