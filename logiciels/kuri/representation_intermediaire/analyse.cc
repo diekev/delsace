@@ -544,6 +544,54 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
 
 /* ******************************************************************************************** */
 
+/**
+ * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
+ * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
+ * branche est supprimée.
+ */
+void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
+{
+    auto bloc_modifié = false;
+
+    POUR (fonction_et_blocs.blocs) {
+        auto di = it->instructions.dernière();
+        if (!di->est_branche()) {
+            continue;
+        }
+
+        auto bloc_enfant = it->enfants[0];
+        if (bloc_enfant->parents.taille() != 1) {
+            continue;
+        }
+
+        /* Fusionne le bloc enfant dans le parent. */
+        it->instructions.supprime_dernier();
+
+        for (auto inst : bloc_enfant->instructions) {
+            it->instructions.ajoute(inst);
+        }
+
+        it->enleve_enfant(bloc_enfant);
+        bloc_enfant->enleve_parent(it);
+
+        for (auto enfant : bloc_enfant->enfants) {
+            it->ajoute_enfant(enfant);
+            enfant->remplace_parent(bloc_enfant, it);
+        }
+
+        bloc_modifié = true;
+    }
+
+    if (!bloc_modifié) {
+        return;
+    }
+
+    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+    fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
+}
+
+/* ******************************************************************************************** */
+
 /* Les sources possibles de l'adresse d'un atome (à savoir, d'un pointeur). */
 enum class SourceAdresseAtome : unsigned char {
     /* La source est inconnue, également utilisée comme valeur nulle. */
@@ -1231,6 +1279,8 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
     }
 
     supprime_blocs_vides(fonction_et_blocs, visiteuse);
+
+    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
 
