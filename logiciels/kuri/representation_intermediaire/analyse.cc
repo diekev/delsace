@@ -510,7 +510,7 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
                 di_parent->comme_branche()->label = branche->label;
 
                 it->enfants[0]->remplace_parent(it, parent);
-                parent->enleve_enfant(it);
+                parent->enlève_enfant(it);
 
                 bloc_modifié = true;
             }
@@ -519,14 +519,14 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
                 if (branche_cond->label_si_vrai == it->label) {
                     branche_cond->label_si_vrai = branche->label;
                     it->enfants[0]->remplace_parent(it, parent);
-                    parent->enleve_enfant(it);
+                    parent->enlève_enfant(it);
 
                     bloc_modifié = true;
                 }
                 if (branche_cond->label_si_faux == it->label) {
                     branche_cond->label_si_faux = branche->label;
                     it->enfants[0]->remplace_parent(it, parent);
-                    parent->enleve_enfant(it);
+                    parent->enlève_enfant(it);
 
                     bloc_modifié = true;
                 }
@@ -571,8 +571,8 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
             it->instructions.ajoute(inst);
         }
 
-        it->enleve_enfant(bloc_enfant);
-        bloc_enfant->enleve_parent(it);
+        it->enlève_enfant(bloc_enfant);
+        bloc_enfant->enlève_parent(it);
 
         for (auto enfant : bloc_enfant->enfants) {
             it->ajoute_enfant(enfant);
@@ -1296,5 +1296,5 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
 void ContexteAnalyseRI::reinitialise()
 {
     graphe.réinitialise();
-    fonction_et_blocs.reinitialise();
+    fonction_et_blocs.réinitialise();
 }

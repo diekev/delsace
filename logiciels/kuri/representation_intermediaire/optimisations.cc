@@ -1193,11 +1193,11 @@ static bool enleve_blocs_vides(kuri::tableau<Bloc *, int> &blocs)
 
         if (bloc->instructions.est_vide()) {
             POUR (bloc->parents) {
-                it->enleve_enfant(bloc);
+                it->enlève_enfant(bloc);
             }
 
             POUR (bloc->enfants) {
-                it->enleve_parent(bloc);
+                it->enlève_parent(bloc);
             }
 
             POUR (bloc->parents) {
@@ -1237,7 +1237,7 @@ static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
             auto enfant = bloc->enfants[0];
 
             POUR (bloc->enfants) {
-                it->enleve_parent(bloc);
+                it->enlève_parent(bloc);
             }
 
             // remplace les enfants dans les parents
@@ -1333,7 +1333,7 @@ static Bloc *trouve_bloc_utilisant_variable(kuri::tableau<Bloc *, int> const &bl
 static void detecte_utilisations_variables(kuri::tableau<Bloc *, int> const &blocs)
 {
     POUR (blocs) {
-        construit_liste_variables_utilisees(it);
+        construit_liste_variables_utilisées(it);
     }
 
     POUR (blocs) {

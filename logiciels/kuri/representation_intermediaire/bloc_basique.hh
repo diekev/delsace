@@ -35,9 +35,9 @@ struct Bloc {
 
     void remplace_parent(Bloc *parent, Bloc *par);
 
-    void enleve_parent(Bloc *parent);
+    void enlève_parent(Bloc *parent);
 
-    void enleve_enfant(Bloc *enfant);
+    void enlève_enfant(Bloc *enfant);
 
     bool peut_fusionner_enfant();
 
@@ -45,10 +45,10 @@ struct Bloc {
 
     void fusionne_enfant(Bloc *enfant);
 
-    void reinitialise();
+    void réinitialise();
 
   private:
-    void enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc);
+    void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc);
 
     void ajoute_parent(Bloc *parent);
 };
@@ -60,7 +60,7 @@ void imprime_bloc(Bloc *bloc,
 
 void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os);
 
-void construit_liste_variables_utilisees(Bloc *bloc);
+void construit_liste_variables_utilisées(Bloc *bloc);
 
 struct VisiteuseBlocs;
 
@@ -77,7 +77,7 @@ struct FonctionEtBlocs {
 
     bool convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc);
 
-    void reinitialise();
+    void réinitialise();
 
     void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
 

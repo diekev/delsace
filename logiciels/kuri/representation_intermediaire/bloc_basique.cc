@@ -49,9 +49,9 @@ void Bloc::ajoute_enfant(Bloc *enfant)
 
 void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
 {
-    enleve_du_tableau(enfants, enfant);
+    enlève_du_tableau(enfants, enfant);
     ajoute_enfant(par);
-    enfant->enleve_parent(this);
+    enfant->enlève_parent(this);
     par->ajoute_parent(this);
 
     auto inst = instructions.dernière();
@@ -81,19 +81,19 @@ void Bloc::remplace_enfant(Bloc *enfant, Bloc *par)
 
 void Bloc::remplace_parent(Bloc *parent, Bloc *par)
 {
-    enleve_du_tableau(parents, parent);
+    enlève_du_tableau(parents, parent);
     ajoute_parent(par);
     par->ajoute_enfant(this);
 }
 
-void Bloc::enleve_parent(Bloc *parent)
+void Bloc::enlève_parent(Bloc *parent)
 {
-    enleve_du_tableau(parents, parent);
+    enlève_du_tableau(parents, parent);
 }
 
-void Bloc::enleve_enfant(Bloc *enfant)
+void Bloc::enlève_enfant(Bloc *enfant)
 {
-    enleve_du_tableau(enfants, enfant);
+    enlève_du_tableau(enfants, enfant);
 
     /* quand nous enlevons un enfant, il faut modifier la cible des branches potentielles */
 
@@ -209,14 +209,14 @@ void Bloc::fusionne_enfant(Bloc *enfant)
         this->utilise_variable(it);
     }
 
-    this->enleve_enfant(enfant);
+    this->enlève_enfant(enfant);
 
     POUR (enfant->enfants) {
         this->ajoute_enfant(it);
     }
 
     POUR (this->enfants) {
-        it->enleve_parent(enfant);
+        it->enlève_parent(enfant);
     }
 
     //		std::cerr << "-- enfants après fusion : ";
@@ -233,7 +233,7 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     enfant->instructions.efface();
 }
 
-void Bloc::reinitialise()
+void Bloc::réinitialise()
 {
     label = nullptr;
     est_atteignable = false;
@@ -244,7 +244,7 @@ void Bloc::reinitialise()
     variables_utilisees.efface();
 }
 
-void Bloc::enleve_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
+void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
         if (tableau[i] == bloc) {
@@ -311,7 +311,7 @@ void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, std::ostream &os)
     }
 }
 
-void construit_liste_variables_utilisees(Bloc *bloc)
+void construit_liste_variables_utilisées(Bloc *bloc)
 {
     POUR (bloc->instructions) {
         if (it->est_alloc()) {
@@ -346,7 +346,7 @@ static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, Instructi
     return nullptr;
 }
 
-static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
+static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
                                   kuri::tableau<Bloc *, int> &blocs_libres,
                                   InstructionLabel *label)
 {
@@ -368,7 +368,7 @@ static Bloc *cree_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
     return bloc;
 }
 
-static void detruit_blocs(kuri::tableau<Bloc *, int> &blocs)
+static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
         memoire::deloge("Bloc", it);
@@ -378,7 +378,7 @@ static void detruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 
 FonctionEtBlocs::~FonctionEtBlocs()
 {
-    detruit_blocs(blocs);
+    détruit_blocs(blocs);
 }
 
 bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc)
@@ -391,7 +391,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
         it->numero = numero_instruction++;
 
         if (it->est_label()) {
-            cree_bloc_pour_label(blocs, blocs_libres, it->comme_label());
+            crée_bloc_pour_label(blocs, blocs_libres, it->comme_label());
         }
     }
 
@@ -450,13 +450,13 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
     return true;
 }
 
-void FonctionEtBlocs::reinitialise()
+void FonctionEtBlocs::réinitialise()
 {
     fonction = nullptr;
     les_blocs_ont_été_modifiés = false;
 
     POUR (blocs) {
-        it->reinitialise();
+        it->réinitialise();
         blocs_libres.ajoute(it);
     }
 
@@ -490,7 +490,7 @@ void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
     auto nombre_de_nouveaux_blocs = std::distance(blocs.begin(), résultat);
 
     for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
-        blocs[i]->reinitialise();
+        blocs[i]->réinitialise();
         blocs_libres.ajoute(blocs[i]);
     }
 
