@@ -81,6 +81,11 @@ struct FonctionEtBlocs {
 
     void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
 
+    /**
+     * Reconstruit les instructions de la fonction en se basant sur les instructions des blocs
+     * existants. Ne fait rien si les blocs n'ont pas été modifiés (p.e. aucun bloc n'a été
+     * supprimé ou fusionné dans un autre).
+     */
     void ajourne_instructions_fonction_si_nécessaire();
 };
 
