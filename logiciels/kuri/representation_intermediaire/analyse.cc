@@ -1150,8 +1150,9 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
     return {};
 }
 
-static void rapproche_allocations_des_stockages(Bloc *bloc)
+static bool rapproche_allocations_des_stockages(Bloc *bloc)
 {
+    auto bloc_modifié = false;
     for (int i = 0; i < bloc->instructions.taille() - 2; i++) {
         auto inst_i = bloc->instructions[i];
 
@@ -1167,7 +1168,11 @@ static void rapproche_allocations_des_stockages(Bloc *bloc)
         std::rotate(&bloc->instructions[i],
                     &bloc->instructions[i + 1],
                     &bloc->instructions[index_stockage.value()]);
+
+        bloc_modifié = true;
     }
+
+    return bloc_modifié;
 }
 
 static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &fonction)
@@ -1210,7 +1215,7 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
     index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
-        rapproche_allocations_des_stockages(it);
+        bloc_modifié |= rapproche_allocations_des_stockages(it);
         bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
 
