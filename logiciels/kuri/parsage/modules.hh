@@ -226,7 +226,7 @@ struct SystèmeModule {
 
     Module *module(const IdentifiantCode *nom) const;
 
-    ResultatFichier trouve_ou_cree_fichier(Module *module,
+    ResultatFichier trouve_ou_crée_fichier(Module *module,
                                            kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
 

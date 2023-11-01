@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
     {
         auto compilatrice = Compilatrice{};
-        auto module = compilatrice.cree_module("", "");
+        auto module = compilatrice.crée_module("", "");
         module->tampon = lng::tampon_source("texte_test");
         module->morceaux = morceaux;
         auto assembleuse = AssembleuseArbre(compilatrice);

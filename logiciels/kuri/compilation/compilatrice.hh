@@ -86,7 +86,7 @@ struct Compilatrice {
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
     bool importe_kuri = true;
-    bool m_possede_erreur = false;
+    bool m_possède_erreur = false;
     erreur::Genre m_code_erreur{};
 
     ArgumentsCompilatrice arguments{};
@@ -197,7 +197,7 @@ struct Compilatrice {
      * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
      * Si un tel module n'existe pas, un nouveau module est créé.
      */
-    Module *trouve_ou_cree_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
+    Module *trouve_ou_crée_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
 
     /**
      * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
@@ -209,12 +209,12 @@ struct Compilatrice {
      * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
      * fichier ainsi créé ou un pointeur vers un fichier existant.
      */
-    ResultatFichier trouve_ou_cree_fichier(Module *module,
+    ResultatFichier trouve_ou_crée_fichier(Module *module,
                                            kuri::chaine_statique nom_fichier,
                                            kuri::chaine_statique chemin,
                                            bool importe_kuri);
 
-    Fichier *cree_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
+    Fichier *crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
 
     /**
      * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
@@ -229,19 +229,19 @@ struct Compilatrice {
      */
     Fichier *fichier(kuri::chaine_statique chemin) const;
 
-    AtomeFonction *cree_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
+    AtomeFonction *crée_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
     AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
 
-    AtomeGlobale *cree_globale(const Type *type,
+    AtomeGlobale *crée_globale(const Type *type,
                                AtomeConstante *valeur,
                                bool initialisateur,
                                bool est_constante);
     AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
     AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
 
-    MetaProgramme *cree_metaprogramme(EspaceDeTravail *espace);
+    MetaProgramme *crée_metaprogramme(EspaceDeTravail *espace);
 
     /* ********************************************************************** */
 
@@ -267,12 +267,12 @@ struct Compilatrice {
                          kuri::chaine_statique message,
                          erreur::Genre genre);
 
-    bool possede_erreur() const
+    bool possède_erreur() const
     {
-        return m_possede_erreur;
+        return m_possède_erreur;
     }
 
-    bool possede_erreur(EspaceDeTravail const *espace) const;
+    bool possède_erreur(EspaceDeTravail const *espace) const;
 
     erreur::Genre code_erreur() const
     {

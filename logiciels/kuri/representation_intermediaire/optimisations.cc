@@ -85,7 +85,7 @@ struct CopieuseInstruction {
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.possede(it)) {
+            if (!it->est_label() && copies.possède(it)) {
                 continue;
             }
 
@@ -331,12 +331,12 @@ void performe_enlignage(ConstructriceRI &constructrice,
             auto retour = it->comme_retour();
 
             if (retour->valeur) {
-                auto stockage = constructrice.cree_stocke_mem(
+                auto stockage = constructrice.crée_stocke_mem(
                     nullptr, adresse_retour, retour->valeur, true);
                 nouvelles_instructions.ajoute(stockage);
             }
 
-            auto branche = constructrice.cree_branche(nullptr, label_post, true);
+            auto branche = constructrice.crée_branche(nullptr, label_post, true);
             nouvelles_instructions.ajoute(branche);
             continue;
         }
@@ -518,11 +518,11 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
     }
 
     if (fonction->decl) {
-        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
+        if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
             return true;
         }
 
-        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+        if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
             log(std::cerr, "-- ignore la candidate car nous forçons un horslignage...");
             return false;
         }
@@ -573,7 +573,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
         if (!appel->type->est_type_rien()) {
-            adresse_retour = constructrice.cree_allocation(nullptr, appel->type, nullptr, true);
+            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, true);
             nouvelle_instructions.ajoute(adresse_retour);
         }
 
@@ -598,7 +598,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             // stockage de la valeur l'ancienne adresse aura un compte d'utilisation de zéro et
             // l'instruction de stockage sera supprimée avec l'ancienne adresse dans la passe de
             // suppression de code mort
-            auto charge = constructrice.cree_charge_mem(appel->site, adresse_retour, true);
+            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
             nouvelle_instructions.ajoute(charge);
             substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
         }

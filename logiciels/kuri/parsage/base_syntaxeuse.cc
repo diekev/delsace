@@ -31,7 +31,7 @@ void BaseSyntaxeuse::analyse()
 
     m_chrono_analyse.commence();
 
-    while (!fini() && !possede_erreur()) {
+    while (!fini() && !possède_erreur()) {
         analyse_une_chose();
     }
 
@@ -49,7 +49,7 @@ void BaseSyntaxeuse::depile_etat()
     m_donnees_etat_syntaxage.pop_back();
 }
 
-kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
+kuri::chaine BaseSyntaxeuse::crée_message_erreur(kuri::chaine_statique message)
 {
     auto enchaineuse = Enchaineuse();
     enchaineuse << '\n';
@@ -68,12 +68,12 @@ kuri::chaine BaseSyntaxeuse::cree_message_erreur(kuri::chaine_statique message)
 
 void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
 {
-    if (m_possede_erreur) {
+    if (m_possède_erreur) {
         /* Avance pour ne pas être bloqué. */
         consomme();
         return;
     }
 
-    m_possede_erreur = true;
-    gere_erreur_rapportee(cree_message_erreur(message));
+    m_possède_erreur = true;
+    gere_erreur_rapportee(crée_message_erreur(message));
 }

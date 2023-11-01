@@ -343,7 +343,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
     /* Ignore les fonctions d'initalisation des types car les paramètres peuvent ne pas être
      * utilisés, par exemple pour la fonction d'initialisation du type « rien ». */
     if (atome->decl &&
-        atome->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+        atome->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         return true;
     }
 
@@ -394,7 +394,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
         }
 
         auto decl_var = decl_alloc->comme_declaration_variable();
-        if (!possede_annotation(decl_var, "inutilisée")) {
+        if (!possède_annotation(decl_var, "inutilisée")) {
             allocs_inutilisees.ajoute(alloc);
         }
     }
@@ -793,7 +793,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 {
     /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
      * vraie fonction. */
-    if (fonction.decl && fonction.decl->ident == ID::cree_contexte) {
+    if (fonction.decl && fonction.decl->ident == ID::crée_contexte) {
         return true;
     }
 
@@ -913,7 +913,7 @@ void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
 {
     connexions.ajoute({a, b, index_bloc});
 
-    if (connexions_pour_inst.possede(a)) {
+    if (connexions_pour_inst.possède(a)) {
         auto &idx = connexions_pour_inst.trouve_ref(a);
         idx.ajoute(static_cast<int>(connexions.taille() - 1));
     }
@@ -1288,7 +1288,7 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
     }
 #endif
 
-    if (atome->decl->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+    if (atome->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
         imprime_fonction(atome, std::cerr);
     }
 }
