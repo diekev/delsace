@@ -1701,7 +1701,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     });
 #endif
     if (!expr->état_résolution_appel) {
-        expr->état_résolution_appel = memoire::loge<EtatResolutionAppel>("EtatResolutionAppel");
+        expr->état_résolution_appel = compilatrice.crée_ou_donne_état_résolution_appel();
     }
 
     EtatResolutionAppel &état = *expr->état_résolution_appel;
@@ -1983,6 +1983,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 #ifdef STATISTIQUES_DETAILLEES
     possede_erreur = false;
 #endif
+
+    compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
 
     assert(expr->type);
     return CodeRetourValidation::OK;

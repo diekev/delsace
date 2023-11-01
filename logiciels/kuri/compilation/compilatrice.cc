@@ -86,6 +86,10 @@ Compilatrice::~Compilatrice()
         memoire::deloge("EspaceDeTravail", it);
     }
 
+    POUR (m_états_libres) {
+        memoire::deloge("EtatResolutionAppel", it);
+    }
+
     memoire::deloge("Broyeuse", broyeuse);
 }
 
@@ -669,6 +673,26 @@ MetaProgramme *Compilatrice::cree_metaprogramme(EspaceDeTravail *espace)
     auto resultat = metaprogrammes->ajoute_element();
     resultat->programme = Programme::cree_pour_metaprogramme(espace, resultat);
     return resultat;
+}
+
+/* ************************************************************************** */
+
+EtatResolutionAppel *Compilatrice::crée_ou_donne_état_résolution_appel()
+{
+    if (!m_états_libres.est_vide()) {
+        auto résultat = m_états_libres.dernière();
+        résultat->réinitialise();
+        m_états_libres.supprime_dernier();
+        return résultat;
+    }
+
+    return memoire::loge<EtatResolutionAppel>("EtatResolutionAppel");
+}
+
+void Compilatrice::libère_état_résolution_appel(EtatResolutionAppel *&état)
+{
+    m_états_libres.ajoute(état);
+    état = nullptr;
 }
 
 /* ************************************************************************** */

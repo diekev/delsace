@@ -153,6 +153,8 @@ struct Compilatrice {
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
     kuri::tableau<kuri::tableau<kuri::Lexeme>> m_tableaux_lexemes{};
 
+    kuri::tableau<EtatResolutionAppel *> m_états_libres{};
+
     /* ********************************************************************** */
 
     Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_);
@@ -298,6 +300,10 @@ struct Compilatrice {
 
     kuri::tableau_statique<NoeudCodeEnteteFonction *> fonctions_parsees(EspaceDeTravail *espace);
     MetaProgramme *metaprogramme_pour_fonction(const NoeudDeclarationEnteteFonction *entete);
+
+    /* Création/suppression d'états pour les résolutions des expressions d'appels. */
+    EtatResolutionAppel *crée_ou_donne_état_résolution_appel();
+    void libère_état_résolution_appel(EtatResolutionAppel *&état);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
