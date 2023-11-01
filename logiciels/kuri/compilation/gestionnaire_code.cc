@@ -182,11 +182,11 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
         return false;
     }
 
-    if (noeud->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
         return false;
     }
 
-    return noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE);
+    return noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE);
 }
 
 static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
@@ -195,14 +195,14 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
                                             Programme &programme,
                                             NoeudExpression *noeud)
 {
-    auto possede_erreur = false;
+    auto possède_erreur = false;
     auto &dependances = données_dependances.dependances;
 
     /* Ajoute les fonctions. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
+        if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE) &&
             !programme.pour_métaprogramme()) {
-            possede_erreur = true;
+            possède_erreur = true;
 
             /* À FAIRE : site pour la dépendance. */
             espace->rapporte_erreur(fonction,
@@ -216,7 +216,7 @@ static bool ajoute_dependances_au_programme(GrapheDependance &graphe,
         return kuri::DécisionItération::Continue;
     });
 
-    if (possede_erreur) {
+    if (possède_erreur) {
         return false;
     }
 
@@ -392,7 +392,7 @@ void RassembleuseDependances::rassemble_dependances(NoeudExpression *racine)
                     ajoute_globale(decl->comme_declaration_variable());
                 }
                 else if (decl->est_entete_fonction() &&
-                         !decl->comme_entete_fonction()->possede_drapeau(
+                         !decl->comme_entete_fonction()->possède_drapeau(
                              DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
                     auto decl_fonc = decl->comme_entete_fonction();
                     ajoute_fonction(decl_fonc);
@@ -566,7 +566,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
         if (!fonction->corps->unite &&
-            !fonction->possede_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
+            !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
             gestionnaire.requiers_typage(espace, fonction->corps);
         }
@@ -629,20 +629,20 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 static bool doit_ajouter_les_dependances_au_programme(NoeudExpression *noeud, Programme *programme)
 {
     if (noeud->est_entete_fonction()) {
-        return programme->possede(noeud->comme_entete_fonction());
+        return programme->possède(noeud->comme_entete_fonction());
     }
 
     if (noeud->est_corps_fonction()) {
         auto entete = noeud->comme_corps_fonction()->entete;
-        return programme->possede(entete);
+        return programme->possède(entete);
     }
 
     if (noeud->est_declaration_variable()) {
-        return programme->possede(noeud->comme_declaration_variable());
+        return programme->possède(noeud->comme_declaration_variable());
     }
 
     if (noeud->est_type_structure() || noeud->est_type_enum()) {
-        return programme->possede(noeud->type);
+        return programme->possède(noeud->type);
     }
 
     if (noeud->est_ajoute_fini() || noeud->est_ajoute_init()) {
@@ -676,7 +676,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
     /* Ajoute les racines aux programmes courants de l'espace. */
     if (noeud->est_entete_fonction() &&
-        noeud->comme_entete_fonction()->possede_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
+        noeud->comme_entete_fonction()->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
         DÉBUTE_STAT(AJOUTE_RACINES);
         auto entete = noeud->comme_entete_fonction();
         POUR (programmes_en_cours) {
@@ -716,7 +716,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
     noeud->drapeaux |= DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES;
 }
 
-UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unite(EspaceDeTravail *espace,
                                                RaisonDEtre raison,
                                                bool met_en_attente)
 {
@@ -728,21 +728,21 @@ UniteCompilation *GestionnaireCode::cree_unite(EspaceDeTravail *espace,
     return unite;
 }
 
-UniteCompilation *GestionnaireCode::cree_unite_pour_fichier(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unite_pour_fichier(EspaceDeTravail *espace,
                                                             Fichier *fichier,
                                                             RaisonDEtre raison)
 {
-    auto unite = cree_unite(espace, raison, true);
+    auto unite = crée_unite(espace, raison, true);
     unite->fichier = fichier;
     return unite;
 }
 
-UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unite_pour_noeud(EspaceDeTravail *espace,
                                                           NoeudExpression *noeud,
                                                           RaisonDEtre raison,
                                                           bool met_en_attente)
 {
-    auto unite = cree_unite(espace, raison, met_en_attente);
+    auto unite = crée_unite(espace, raison, met_en_attente);
     unite->noeud = noeud;
     noeud->unite = unite;
     return unite;
@@ -751,7 +751,7 @@ UniteCompilation *GestionnaireCode::cree_unite_pour_noeud(EspaceDeTravail *espac
 void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fichier)
 {
     TACHE_AJOUTEE(CHARGEMENT);
-    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
+    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::CHARGEMENT_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
@@ -759,7 +759,7 @@ void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier
 {
     assert(fichier->fut_chargé);
     TACHE_AJOUTEE(LEXAGE);
-    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
+    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::LEXAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
@@ -767,20 +767,20 @@ void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichie
 {
     assert(fichier->fut_lexé);
     TACHE_AJOUTEE(PARSAGE);
-    auto unité = cree_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
+    auto unité = crée_unite_pour_fichier(espace, fichier, RaisonDEtre::PARSAGE_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(TYPAGE);
-    cree_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
+    crée_unite_pour_noeud(espace, noeud, RaisonDEtre::TYPAGE, true);
 }
 
 void GestionnaireCode::requiers_generation_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(GENERATION_RI);
-    cree_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
+    crée_unite_pour_noeud(espace, noeud, RaisonDEtre::GENERATION_RI, true);
 }
 
 void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
@@ -788,21 +788,21 @@ void GestionnaireCode::requiers_generation_ri_principale_metaprogramme(
 {
     TACHE_AJOUTEE(GENERATION_RI);
 
-    auto unite = cree_unite_pour_noeud(espace,
+    auto unite = crée_unite_pour_noeud(espace,
                                        metaprogramme->fonction,
                                        RaisonDEtre::GENERATION_RI_PRINCIPALE_MP,
                                        peut_planifier_compilation);
 
     if (!peut_planifier_compilation) {
-        assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
-        metaprogrammes_en_attente_de_cree_contexte.ajoute(unite);
+        assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
+        metaprogrammes_en_attente_de_crée_contexte.ajoute(unite);
     }
 }
 
-UniteCompilation *GestionnaireCode::cree_unite_pour_message(EspaceDeTravail *espace,
+UniteCompilation *GestionnaireCode::crée_unite_pour_message(EspaceDeTravail *espace,
                                                             Message *message)
 {
-    auto unite = cree_unite(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
+    auto unite = crée_unite(espace, RaisonDEtre::ENVOIE_MESSAGE, true);
     unite->message = message;
     return unite;
 }
@@ -818,7 +818,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
         return;
     }
 
-    auto unite = cree_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
+    auto unite = crée_unite(espace, RaisonDEtre::CREATION_FONCTION_INIT_TYPE, true);
     unite->type = type;
 
     if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
@@ -831,7 +831,7 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
                                                         NoeudExpression *noeud)
 {
-    auto unite = cree_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
+    auto unite = crée_unite(espace, RaisonDEtre::CONVERSION_NOEUD_CODE, true);
     unite->noeud = noeud;
     return unite;
 }
@@ -860,7 +860,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    if (!decl_creation_contexte->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (!decl_creation_contexte->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
@@ -871,13 +871,13 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
         return false;
     }
 
-    if (!decl_creation_contexte->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
     determine_dependances(decl_creation_contexte->corps, espace, graphe);
 
-    if (!decl_creation_contexte->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+    if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
     }
 
@@ -888,7 +888,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
                                                           MetaProgramme *metaprogramme)
 {
     assert(metaprogramme->fonction);
-    assert(metaprogramme->fonction->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
+    assert(metaprogramme->fonction->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
 
     /* Indique directement à l'espace qu'une exécution sera requise afin de ne pas terminer la
      * compilation trop rapidement si le métaprogramme modifie ses options de compilation. */
@@ -904,10 +904,10 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     determine_dependances(metaprogramme->fonction, espace, *graphe);
     determine_dependances(metaprogramme->fonction->corps, espace, *graphe);
 
-    auto ri_cree_contexte_est_disponible = tente_de_garantir_presence_creation_contexte(
+    auto ri_crée_contexte_est_disponible = tente_de_garantir_presence_creation_contexte(
         espace, programme, *graphe);
     requiers_generation_ri_principale_metaprogramme(
-        espace, metaprogramme, ri_cree_contexte_est_disponible);
+        espace, metaprogramme, ri_crée_contexte_est_disponible);
 
     if (metaprogramme->corps_texte) {
         if (metaprogramme->corps_texte_pour_fonction) {
@@ -919,7 +919,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
              * recipiente du #corps_texte sur le parsage du fichier. Nous faisons ça ici pour nous
              * assurer que personne n'essayera de performer le typage du corps recipient avant que
              * les sources du fichiers ne soient générées, lexées, et parsées. */
-            auto fichier = m_compilatrice->cree_fichier_pour_metaprogramme(metaprogramme);
+            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(metaprogramme);
             recipiente->corps->unite->ajoute_attente(Attente::sur_parsage(fichier));
         }
         else if (metaprogramme->corps_texte_pour_structure) {
@@ -932,7 +932,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
 
 void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
 {
-    auto unite = cree_unite(espace, RaisonDEtre::EXECUTION, true);
+    auto unite = crée_unite(espace, RaisonDEtre::EXECUTION, true);
     unite->metaprogramme = metaprogramme;
     metaprogramme->unite = unite;
 }
@@ -940,7 +940,7 @@ void GestionnaireCode::requiers_execution(EspaceDeTravail *espace, MetaProgramme
 UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTravail *espace,
                                                                      Programme *programme)
 {
-    auto unite = cree_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
+    auto unite = crée_unite(espace, RaisonDEtre::GENERATION_CODE_MACHINE, true);
     unite->programme = programme;
     TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
     return unite;
@@ -948,7 +948,7 @@ UniteCompilation *GestionnaireCode::requiers_generation_code_machine(EspaceDeTra
 
 void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme)
 {
-    auto unite = cree_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
+    auto unite = crée_unite(espace, RaisonDEtre::LIAISON_PROGRAMME, true);
     unite->programme = programme;
     TACHE_AJOUTEE(LIAISON_PROGRAMME);
 }
@@ -1106,9 +1106,9 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
-               !entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
-               entete->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+        return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+               entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
                !entete->est_operateur_pour();
     }
 
@@ -1128,13 +1128,13 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->possede_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+        return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
                !entete->est_operateur_pour() &&
-               (!entete->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
-                entete->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
+               (!entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
+                entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
     }
 
-    if (noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
         !noeud->est_type_enum() && !noeud->est_declaration_bibliotheque()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
@@ -1178,7 +1178,7 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
 
 static bool declaration_est_invalide(NoeudExpression *decl)
 {
-    if (decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
@@ -1188,7 +1188,7 @@ static bool declaration_est_invalide(NoeudExpression *decl)
         return true;
     }
 
-    if (unite->espace->possede_erreur) {
+    if (unite->espace->possède_erreur) {
         /* Si l'espace responsable de l'unité de l'entête possède une erreur, nous devons
          * ignorer les entêtes invalides, car sinon la compilation serait infinie. */
         return false;
@@ -1248,7 +1248,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unite->noeud);
-    assert_rappel(unite->noeud->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
+    assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
@@ -1284,7 +1284,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
 
     if (message) {
         auto unite_noeud_code = requiers_noeud_code(espace, noeud);
-        auto unite_message = cree_unite_pour_message(espace, message);
+        auto unite_message = crée_unite_pour_message(espace, message);
         unite_message->ajoute_attente(Attente::sur_noeud_code(unite_noeud_code, noeud));
         unite->ajoute_attente(Attente::sur_message(unite_message, message));
     }
@@ -1316,7 +1316,7 @@ static inline bool est_corps_de(NoeudExpression const *noeud,
 void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
 {
     assert(unite->noeud);
-    assert_rappel(unite->noeud->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
+    assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n";
         erreur::imprime_site(*unite->espace, unite->noeud);
     });
@@ -1331,7 +1331,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
      */
     if (est_corps_de(unite->noeud,
                      espace->compilatrice().interface_kuri->decl_creation_contexte)) {
-        flush_metaprogrammes_en_attente_de_cree_contexte();
+        flush_metaprogrammes_en_attente_de_crée_contexte();
     }
 
     unite->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
@@ -1451,7 +1451,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     }
 
     POUR (programmes_en_cours) {
-        if (it->possede(unite->type)) {
+        if (it->possède(unite->type)) {
             it->ajoute_fonction(fonction);
         }
     }
@@ -1468,7 +1468,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     ajoute_unité_à_liste_attente(unite);
 }
 
-void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
+void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
 {
     kuri::tableau<UniteCompilation *> nouvelles_unites;
 
@@ -1486,7 +1486,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 #endif
 
     POUR (unites_en_attente) {
-        if (it->espace->possede_erreur) {
+        if (it->espace->possède_erreur) {
             it->définis_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
         }
@@ -1530,7 +1530,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
             case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
             {
                 it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
-                ordonnanceuse.cree_tache_pour_unite(it);
+                ordonnanceuse.crée_tache_pour_unite(it);
                 break;
             }
         }
@@ -1543,7 +1543,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
      * verrou mort. */
     kuri::ensemblon<EspaceDeTravail *, 10> espaces_errones;
     POUR (programmes_en_cours) {
-        if (it->espace()->possede_erreur) {
+        if (it->espace()->possède_erreur) {
             espaces_errones.insere(it->espace());
         }
     }
@@ -1554,7 +1554,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
         return kuri::DécisionItération::Continue;
     });
 
-    if (m_compilatrice->possede_erreur()) {
+    if (m_compilatrice->possède_erreur()) {
         ordonnanceuse.supprime_toutes_les_taches();
     }
 
@@ -1570,7 +1570,7 @@ void GestionnaireCode::cree_taches(OrdonnanceuseTache &ordonnanceuse)
 
 bool GestionnaireCode::plus_rien_n_est_a_faire()
 {
-    if (m_compilatrice->possede_erreur()) {
+    if (m_compilatrice->possède_erreur()) {
         return true;
     }
 
@@ -1584,7 +1584,7 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
         auto espace = it->espace();
 
         /* Vérifie si une erreur existe. */
-        if (espace->possede_erreur) {
+        if (espace->possède_erreur) {
             /* Nous devons continuer d'envoyer des messages si l'erreur
              * ne provoque pas la fin de la compilation de tous les espaces.
              * À FAIRE : même si un message est ajouté, purge_message provoque
@@ -1624,14 +1624,14 @@ bool GestionnaireCode::plus_rien_n_est_a_faire()
 
     if (espace_errone_existe) {
         programmes_en_cours.efface_si(
-            [](Programme *programme) -> bool { return programme->espace()->possede_erreur; });
+            [](Programme *programme) -> bool { return programme->espace()->possède_erreur; });
 
         if (programmes_en_cours.est_vide()) {
             return true;
         }
     }
 
-    if (!unites_en_attente.est_vide() || !metaprogrammes_en_attente_de_cree_contexte.est_vide()) {
+    if (!unites_en_attente.est_vide() || !metaprogrammes_en_attente_de_crée_contexte.est_vide()) {
         return false;
     }
 
@@ -1739,15 +1739,15 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     auto decl_init_globales = m_compilatrice->interface_kuri->decl_init_globales_kuri;
 
     auto ri_requise = false;
-    if (!decl_ajoute_fini->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+    if (!decl_ajoute_fini->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_fini);
         ri_requise = true;
     }
-    if (!decl_ajoute_init->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+    if (!decl_ajoute_init->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_ajoute_init);
         ri_requise = true;
     }
-    if (!decl_init_globales->corps->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+    if (!decl_init_globales->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         requiers_generation_ri(espace, decl_init_globales);
         ri_requise = true;
     }
@@ -1779,14 +1779,14 @@ void GestionnaireCode::finalise_programme_avant_generation_code_machine(EspaceDe
     }
 }
 
-void GestionnaireCode::flush_metaprogrammes_en_attente_de_cree_contexte()
+void GestionnaireCode::flush_metaprogrammes_en_attente_de_crée_contexte()
 {
-    assert(metaprogrammes_en_attente_de_cree_contexte_est_ouvert);
-    POUR (metaprogrammes_en_attente_de_cree_contexte) {
+    assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
+    POUR (metaprogrammes_en_attente_de_crée_contexte) {
         ajoute_unité_à_liste_attente(it);
     }
-    metaprogrammes_en_attente_de_cree_contexte.efface();
-    metaprogrammes_en_attente_de_cree_contexte_est_ouvert = false;
+    metaprogrammes_en_attente_de_crée_contexte.efface();
+    metaprogrammes_en_attente_de_crée_contexte_est_ouvert = false;
 }
 
 void GestionnaireCode::interception_message_terminee(EspaceDeTravail *espace)

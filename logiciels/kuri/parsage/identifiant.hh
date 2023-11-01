@@ -82,7 +82,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque, "bibliothèque")                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(execute, "exécute")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(creation_contexte, "création_contexte")                     \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(cree_contexte, "crée_contexte")                             \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(crée_contexte, "crée_contexte")                             \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(compilatrice, "compilatrice")                               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(intrinsèque, "intrinsèque")                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fonction_test_variadique_externe,                           \
@@ -134,6 +134,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(asa, "asa")                                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(asa_canon, "asa_canon")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ri, "ri")                                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ri_finale, "ri_finale")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(inst_mv, "inst_mv")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(_, "_")                                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(corps_boucle, "corps_boucle")                               \
