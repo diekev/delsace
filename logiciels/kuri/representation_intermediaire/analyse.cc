@@ -554,7 +554,14 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
 {
     auto bloc_modifié = false;
 
-    POUR (fonction_et_blocs.blocs) {
+    for (auto i = 0; i < fonction_et_blocs.blocs.taille(); ++i) {
+        auto it = fonction_et_blocs.blocs[i];
+
+        if (it->instructions.est_vide()) {
+            /* Le bloc fut fusionné ici. */
+            continue;
+        }
+
         auto di = it->instructions.dernière();
 
         if (di->est_branche_cond()) {
@@ -581,6 +588,11 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
         }
 
         it->fusionne_enfant(bloc_enfant);
+        bloc_enfant->instructions.efface();
+        /* Regère ce bloc au cas où le nouvelle enfant serait également une branche. */
+        if (it->instructions.dernière()->est_branche()) {
+            i -= 1;
+        }
         bloc_modifié = true;
     }
 
