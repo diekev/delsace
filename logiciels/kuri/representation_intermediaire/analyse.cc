@@ -783,7 +783,7 @@ static void rapporte_erreur_stockage_invalide(
     }
 }
 
-/* Essaie de détecter si nous retournons une adresse locale, qui serait invalide après le retour de
+/* Essaie de détecter si nous retournons une adresse locale, qui sera invalide après le retour de
  * la fonction.
  * À FAIRE : tests
  * - adresses dans des tableaux ou structures mixtes étant retournés
@@ -806,7 +806,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     }
 
     /* Afin de différencier l'adresse d'une variable de celle de son contenu, ceci stocke pour
-     * chaque instruction la source de l'adresse pointé par la variable. */
+     * chaque instruction la source de l'adresse pointée par la variable. */
     kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
 
     for (auto i = 0; i < fonction.params_entrees.taille(); i++) {
