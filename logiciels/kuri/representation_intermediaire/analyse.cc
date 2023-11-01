@@ -547,6 +547,8 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
  * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
  * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
  * branche est supprimée.
+ * Remplace les branches conditionnelles dont les cibles sont le même bloc par une branche
+ * inconditionnelle.
  */
 void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
@@ -554,6 +556,21 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
 
     POUR (fonction_et_blocs.blocs) {
         auto di = it->instructions.dernière();
+
+        if (di->est_branche_cond()) {
+            auto branche = di->comme_branche_cond();
+            if (branche->label_si_faux == branche->label_si_vrai) {
+                /* Remplace par une branche.
+                 * À FAIRE : crée une instruction. */
+                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
+                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->label = branche->label_si_faux;
+                bloc_modifié = true;
+            }
+
+            continue;
+        }
+
         if (!di->est_branche()) {
             continue;
         }
