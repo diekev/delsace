@@ -46,7 +46,7 @@ struct Messagere {
 
     int64_t memoire_utilisee() const;
 
-    inline bool possede_message() const
+    inline bool possède_message() const
     {
         return !file_message.est_vide();
     }

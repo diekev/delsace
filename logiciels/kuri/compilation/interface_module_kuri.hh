@@ -42,7 +42,7 @@ struct Typeuse;
                     decl_dls_vers_r32, ID::DLS_vers_r32) Op(decl_dls_vers_r64, ID::DLS_vers_r64)  \
                     Op(decl_dls_depuis_r32, ID::DLS_depuis_r32)                                   \
                         Op(decl_dls_depuis_r64, ID::DLS_depuis_r64)                               \
-                            Op(decl_creation_contexte, ID::cree_contexte)                         \
+                            Op(decl_creation_contexte, ID::crée_contexte)                         \
                                 Op(decl_init_execution_kuri, ID::init_execution_kuri)             \
                                     Op(decl_fini_execution_kuri, ID::fini_execution_kuri)         \
                                         Op(decl_init_globales_kuri, ID::init_globales_kuri)

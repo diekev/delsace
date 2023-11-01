@@ -327,7 +327,7 @@ TypeOpaque::TypeOpaque(NoeudDeclarationTypeOpaque *decl_, Type *opacifie) : Type
 
 /* ************************************************************************** */
 
-static Type *cree_type_pour_lexeme(GenreLexeme lexeme)
+static Type *crée_type_pour_lexeme(GenreLexeme lexeme)
 {
     switch (lexeme) {
         case GenreLexeme::BOOL:
@@ -401,22 +401,22 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     type_eini = crée_type_eini();
     type_chaine = crée_type_chaine();
 
-    TypeBase::N8 = cree_type_pour_lexeme(GenreLexeme::N8);
-    TypeBase::N16 = cree_type_pour_lexeme(GenreLexeme::N16);
-    TypeBase::N32 = cree_type_pour_lexeme(GenreLexeme::N32);
-    TypeBase::N64 = cree_type_pour_lexeme(GenreLexeme::N64);
-    TypeBase::Z8 = cree_type_pour_lexeme(GenreLexeme::Z8);
-    TypeBase::Z16 = cree_type_pour_lexeme(GenreLexeme::Z16);
-    TypeBase::Z32 = cree_type_pour_lexeme(GenreLexeme::Z32);
-    TypeBase::Z64 = cree_type_pour_lexeme(GenreLexeme::Z64);
-    TypeBase::R16 = cree_type_pour_lexeme(GenreLexeme::R16);
-    TypeBase::R32 = cree_type_pour_lexeme(GenreLexeme::R32);
-    TypeBase::R64 = cree_type_pour_lexeme(GenreLexeme::R64);
+    TypeBase::N8 = crée_type_pour_lexeme(GenreLexeme::N8);
+    TypeBase::N16 = crée_type_pour_lexeme(GenreLexeme::N16);
+    TypeBase::N32 = crée_type_pour_lexeme(GenreLexeme::N32);
+    TypeBase::N64 = crée_type_pour_lexeme(GenreLexeme::N64);
+    TypeBase::Z8 = crée_type_pour_lexeme(GenreLexeme::Z8);
+    TypeBase::Z16 = crée_type_pour_lexeme(GenreLexeme::Z16);
+    TypeBase::Z32 = crée_type_pour_lexeme(GenreLexeme::Z32);
+    TypeBase::Z64 = crée_type_pour_lexeme(GenreLexeme::Z64);
+    TypeBase::R16 = crée_type_pour_lexeme(GenreLexeme::R16);
+    TypeBase::R32 = crée_type_pour_lexeme(GenreLexeme::R32);
+    TypeBase::R64 = crée_type_pour_lexeme(GenreLexeme::R64);
     TypeBase::EINI = type_eini;
     TypeBase::CHAINE = type_chaine;
-    TypeBase::RIEN = cree_type_pour_lexeme(GenreLexeme::RIEN);
-    TypeBase::BOOL = cree_type_pour_lexeme(GenreLexeme::BOOL);
-    TypeBase::OCTET = cree_type_pour_lexeme(GenreLexeme::OCTET);
+    TypeBase::RIEN = crée_type_pour_lexeme(GenreLexeme::RIEN);
+    TypeBase::BOOL = crée_type_pour_lexeme(GenreLexeme::BOOL);
+    TypeBase::OCTET = crée_type_pour_lexeme(GenreLexeme::OCTET);
     TypeBase::ENTIER_CONSTANT = crée_type_entier_constant();
 
     type_type_de_donnees_ = types_type_de_donnees->ajoute_element(nullptr);
@@ -892,7 +892,7 @@ TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &mem
 
     if ((type->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
         calcule_taille_type_compose(type, false, 0);
-        cree_type_structure(*this, type, type->decalage_index);
+        crée_type_structure(*this, type, type->decalage_index);
     }
 
     return type;
@@ -906,7 +906,7 @@ TypeEnum *Typeuse::reserve_type_erreur(NoeudEnum *decl)
     return type;
 }
 
-TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
+TypePolymorphique *Typeuse::crée_polymorphique(IdentifiantCode *ident)
 {
     auto types_polymorphiques_ = types_polymorphiques.verrou_ecriture();
 
@@ -926,7 +926,7 @@ TypePolymorphique *Typeuse::cree_polymorphique(IdentifiantCode *ident)
     return types_polymorphiques_->ajoute_element(ident);
 }
 
-TypeOpaque *Typeuse::cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie)
+TypeOpaque *Typeuse::crée_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie)
 {
     auto type = types_opaques->ajoute_element(decl, type_opacifie);
     if (type_opacifie) {
@@ -955,7 +955,7 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *t
     return type;
 }
 
-TypeTuple *Typeuse::cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres)
+TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres)
 {
     auto types_tuples_ = types_tuples.verrou_ecriture();
 
@@ -1347,7 +1347,7 @@ void marque_polymorphique(TypeCompose *type)
 /** \name Fonctions pour les unions.
  * \{ */
 
-void cree_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif)
+void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif)
 {
     assert(!type->est_nonsure);
 
@@ -1974,7 +1974,7 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
             continue;
         }
 
-        if (visités.possede(type_courant)) {
+        if (visités.possède(type_courant)) {
             continue;
         }
 
