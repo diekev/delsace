@@ -218,11 +218,11 @@ struct ContexteValidationCode {
 
     Type *union_ou_structure_courante() const;
 
-    MetaProgramme *cree_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
+    MetaProgramme *crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
                                                   const Lexeme *lexeme);
 
-    MetaProgramme *cree_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
+    MetaProgramme *crée_metaprogramme_pour_directive(NoeudDirectiveExecute *directive);
 
     ResultatValidation valide_instruction_pour(NoeudPour *inst);
 

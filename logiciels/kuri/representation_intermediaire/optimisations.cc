@@ -85,7 +85,7 @@ struct CopieuseInstruction {
 
         POUR (atome_fonction->instructions) {
             // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.possede(it)) {
+            if (!it->est_label() && copies.possède(it)) {
                 continue;
             }
 
@@ -331,12 +331,12 @@ void performe_enlignage(ConstructriceRI &constructrice,
             auto retour = it->comme_retour();
 
             if (retour->valeur) {
-                auto stockage = constructrice.cree_stocke_mem(
+                auto stockage = constructrice.crée_stocke_mem(
                     nullptr, adresse_retour, retour->valeur, true);
                 nouvelles_instructions.ajoute(stockage);
             }
 
-            auto branche = constructrice.cree_branche(nullptr, label_post, true);
+            auto branche = constructrice.crée_branche(nullptr, label_post, true);
             nouvelles_instructions.ajoute(branche);
             continue;
         }
@@ -518,11 +518,11 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
     }
 
     if (fonction->decl) {
-        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
+        if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE)) {
             return true;
         }
 
-        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+        if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
             log(std::cerr, "-- ignore la candidate car nous forçons un horslignage...");
             return false;
         }
@@ -573,7 +573,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
         if (!appel->type->est_type_rien()) {
-            adresse_retour = constructrice.cree_allocation(nullptr, appel->type, nullptr, true);
+            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, true);
             nouvelle_instructions.ajoute(adresse_retour);
         }
 
@@ -598,7 +598,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             // stockage de la valeur l'ancienne adresse aura un compte d'utilisation de zéro et
             // l'instruction de stockage sera supprimée avec l'ancienne adresse dans la passe de
             // suppression de code mort
-            auto charge = constructrice.cree_charge_mem(appel->site, adresse_retour, true);
+            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
             nouvelle_instructions.ajoute(charge);
             substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
         }
@@ -998,236 +998,6 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
     return code_mort_supprime;
 }
 
-#if 0
-struct ApparieAtome {
-	Règle
-	Variable
-
-	ApparieAtome *operande1;
-	ApparieAtome *operande2;
-};
-
-
-(stocke a (ajt (charge a) 1)) -> (inc a)
-(stocke a (sst (charge a) 1)) -> (dec a)
-(mul a 2) -> (ajt a a)
-
-/* a ^ b ^ a -> b */
-(xor a (xor a b)) -> b
-
-/* (a ^ b) | a */
-(or (xor a b) a) -> (or a b)
-
-
-auto apparie_variable_a = ...;
-auto apperie_entier = cree_appariement(EST_ENTIER_CONSTANT, 1);
-auto apparie_charge = cree_appariement(EST_CHARGE, apparie_variable_a);
-auto apparie_ajoute = cree_appariement(EST_AJOUTE, apparie_charge, apparie_entier);
-auto apparie_stocke = cree_appariement(EST_STOCKE, apparie_variable_a);
-
-bool apparie(Appariement *appariement, Atome *atome)
-{
-	switch(appariement->genre) {
-		case EST_STOCKE:
-		{
-			if (!atome->est_stocke()) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande1, atome->comme_stocke()->ou)) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande2, atome->comme_stocke()->valeur)) {
-				return false;
-			}
-
-			break;
-		}
-		case EST_AJOUTE:
-		{
-			if (!atome->est_op_ajoute()) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande1, atome->comme_op_ajoute()->valeur_gauche)) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande2, atome->comme_op_ajoute()->valeur_droite)) {
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
-
-struct Appariement {
-	Appariement *inst;
-	Appariement *operande1;
-	Appariement *operande2;
-
-	enum GenreAppariement {
-		EST_INSTRUCTION_MUL,
-		EST_INSTRUCTION_AJT,
-
-		EST_VARIABLE,
-		EST_NOMBRE,
-	};
-
-	GenreAppariement genre;
-
-	Appariement *remplacement;
-};
-
-static bool apparie(Appariement *appariement, Atome *atome)
-{
-	switch (appariement->genre) {
-		case Appariement::EST_INSTRUCTION_MUL:
-		{
-			if (atome->est_instruction()) {
-				return false;
-			}
-
-			auto inst = atome->comme_instruction();
-
-			if (!inst->est_op_binaire()) {
-				return false;
-			}
-
-			auto op_binaire = inst->comme_op_binaire();
-
-			if (op_binaire->op != OpérateurBinaire::Genre::Multiplication) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande1, op_binaire->valeur_gauche)) {
-				return false;
-			}
-
-			if (!apparie(appariement->operande2, op_binaire->valeur_droite)) {
-				return false;
-			}
-
-			return true;
-		}
-		default:
-		{
-			return false;
-		}
-	}
-}
-
-// au lieu d'allouer, nous pourrions le faire en-place si possible
-static Atome *cree_remplacement(Appariement *remplacement, ConstructriceRI &constructrice)
-{
-	switch (remplacement->genre) {
-		case Appariement::EST_INSTRUCTION_AJT:
-		{
-			auto valeur_gauche = cree_remplacement(remplacement->operande1, constructrice);
-			auto valeur_droite = cree_remplacement(remplacement->operande2, constructrice);
-
-			auto op = constructrice.cree_op_binaire(type, OpérateurBinaire::Genre::Addition, valeur_gauche, valeur_droite);
-			break;
-		}
-		case Appariement::EST_VARIABLE:
-		{
-			// trouve la variable dans le contexte
-			break;
-		}
-		default:
-		{
-			return nullptr;
-		}
-	}
-
-	return nullptr;
-}
-
-void lance_optimisations(AtomeFonction *fonction)
-{
-	// (mul a 2) -> (ajt a a)
-
-	auto appariement_mul = Appariement();
-	appariement_mul.genre = Appariement::EST_INSTRUCTION_MUL;
-
-	auto appariement_nombre = Appariement();
-	appariement_nombre.genre = Appariement::EST_NOMBRE;
-
-	auto appariement_variable = Appariement();
-	appariement_variable.genre = Appariement::EST_VARIABLE;
-
-	appariement_mul.operande1 = &appariement_variable;
-	appariement_mul.operande2 = &appariement_nombre;
-
-	POUR (fonction->instructions) {
-		if (apparie(&appariement_mul, it)) {
-			//auto nouvelle_inst = remplace(appariement_mul.remplacement, it);
-		}
-	}
-}
-#endif
-
-static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
-{
-    auto branche_eliminee = false;
-
-    for (auto i = 0; i < blocs.taille(); ++i) {
-        auto bloc = blocs[i];
-
-        if (bloc->instructions.est_vide()) {
-            continue;
-        }
-
-        auto inst = bloc->instructions.dernière();
-
-        if (bloc->instructions.taille() == 1 && inst->est_branche()) {
-            auto enfant = bloc->enfants[0];
-
-            POUR (bloc->enfants) {
-                it->enlève_parent(bloc);
-            }
-
-            // remplace les enfants dans les parents
-            POUR (bloc->parents) {
-                it->remplace_enfant(bloc, enfant);
-            }
-
-            bloc->instructions.efface();
-            branche_eliminee = true;
-            continue;
-        }
-
-        if (inst->est_branche()) {
-            log(std::cerr, "Vérifie si l'on peut fusionner l'enfant du bloc : ", bloc->label->id);
-            if (bloc->peut_fusionner_enfant()) {
-                auto enfant = bloc->enfants[0];
-                bloc->fusionne_enfant(enfant);
-                branche_eliminee = true;
-
-                /* regère ce bloc */
-                --i;
-            }
-        }
-        else if (inst->est_branche_cond()) {
-            auto branche = inst->comme_branche_cond();
-
-            if (branche->label_si_faux == branche->label_si_vrai) {
-                auto enfant = bloc->enfants[0];
-                bloc->fusionne_enfant(enfant);
-                branche_eliminee = true;
-
-                /* regère ce bloc */
-                --i;
-            }
-        }
-    }
-
-    return branche_eliminee;
-}
-
 static int analyse_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     int drapeaux = 0;
@@ -1368,7 +1138,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
         }
 
         // if ((drapeaux & REQUIERS_CORRECTION_BLOCS) == REQUIERS_CORRECTION_BLOCS) {
-        travail_effectue |= elimine_branches_inutiles(blocs);
+        // travail_effectue |= elimine_branches_inutiles(blocs);
         // drapeaux &= REQUIERS_CORRECTION_BLOCS;
         //}
 
@@ -1414,113 +1184,3 @@ void optimise_code(EspaceDeTravail &espace,
 
     desactive_log();
 }
-
-/*
-    %0 alloue z32 cible
-    %1 alloue z32 variable
-    %2 charge z32 %1
-    %3 alloue z64 temporaire_pour_transtypage
-    %4 transtype (1) %2 vers z64
-    %5 stocke *z64 %3, z64 %4
-    %6 charge z64 %3
-    %7 transtype (4) %6 vers z32
-    %8 stocke *z32 %0, z32 %7
-
-    doit devenir
-
-    %0 alloue z32 cible
-    %1 alloue z32 variable
-    %2 charge z32 %1
-    %3 stocke *z32 %2
-
-(multi
-    (stocke %a (transtype %b))
-    (stocke %cible (transtype (charge %a))
-    remplace si type(%b) == type(%cible)
-        (stocke %cible %b)
-)
-
-((op constante constante) évalue)
-
-
-si (cond) goto label1; else goto label2;
-
-label1:
-    val = 1
-    goto label3
-
-label2
-    val = 0
-    goto label3
-
-label3
-    si (val) goto label4; else goto label5;
-
-remplace par
-
-    si (cond) goto label4; else goto label5;
-
-
-  si %116 alors %121 sinon %124
-Bloc 9  [8] [11]
-  stocke *bool %91, bool 1
-  branche %126
-Bloc 10  [0, 7, 8] [11]
-  stocke *bool %91, bool 0
-  branche %126
-Bloc 11  [9, 10] [1, 2]
-  charge bool %91
-  si %127 alors %138 sinon %143
-Bloc 1  [11] []
-  retourne z32 1
-Bloc 2  [11] []
-  retourne z32 0
-
-remplace par
-
-  si %116 alors %138 sinon %143
-
-// -------------- simplifie soustraction
-
-// x - 0 => x
-(remplace
-    (sst x 0)
-    (x)
-)
-
-// x - x => 0
-(remplace
-    (sst x x)
-    (0)
-)
-
-// x + x - x => x
-(remplace
-    (sst (ajt x x) x)
-    (x)
-)
-
-// x * 2 - x => x
-(remplace
-    (sst (mul x 2) x)
-    (x)
-)
-
-(remplace
-    (sst (mul 2 a) a)
-    (x)
-)
-
-// x * N - x => x * (N - 1)
-(remplace
-    (sst (mul x @N) x)
-    (mul x %(N - 1))
-)
-
-// -------------- simplifie autre
-
-// (x + -1) – y -> ~y + x
-// (x - 1) – y -> ~y + x
-// (( x | y) & c1 ) | (y & c2) -> x & c1 (si c1 est complément binaire de c2)
-
-*/

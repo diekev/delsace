@@ -115,8 +115,8 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     compilatrice.importe_module(espace, "Kuri", {});
 
     /* Ne nomme pas le module, car c'est le module racine. */
-    auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, "");
-    auto resultat = compilatrice.trouve_ou_cree_fichier(module, "", "", false);
+    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
+    auto resultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
     auto fichier = resultat.resultat<FichierNeuf>().fichier;
     fichier->charge_tampon(std::move(tampon));
 

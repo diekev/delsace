@@ -149,7 +149,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         if (m_nom.nom_cpp() == "NoeudExpression") {
             os << "\n";
-            os << "\tinline bool possede_drapeau(DrapeauxNoeud drapeaux_) const\n";
+            os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
             os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
             os << "\t}\n";
@@ -172,11 +172,11 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\tkuri::chaine_statique nom_broye(EspaceDeTravail *espace, Broyeuse "
                   "&broyeuse);\n";
             os << "\tType *type_initialisé() const;\n";
-            os << "\tinline bool possede_drapeau(DrapeauxNoeud drapeaux_) const\n";
+            os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
             os << "\t\treturn (drapeaux & drapeaux_) != DrapeauxNoeud::AUCUN;\n";
             os << "\t}\n";
-            os << "\tinline bool possede_drapeau(DrapeauxNoeudFonction drapeaux_) const\n";
+            os << "\tinline bool possède_drapeau(DrapeauxNoeudFonction drapeaux_) const\n";
             os << "\t{\n";
             os << "\t\treturn (drapeaux_fonction & drapeaux_) != DrapeauxNoeudFonction::AUCUN;\n";
             os << "\t}\n";
@@ -418,18 +418,18 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
 void ProteineStruct::ajoute_membre(const Membre membre)
 {
     if (membre.est_a_copier) {
-        m_possede_membre_a_copier = true;
+        m_possède_membre_a_copier = true;
     }
 
     if (membre.est_enfant) {
-        m_possede_enfant = true;
+        m_possède_enfant = true;
     }
 
-    m_possede_tableaux |= membre.type->est_tableau();
+    m_possède_tableaux |= membre.type->est_tableau();
 
     if (membre.est_code && m_paire) {
-        m_paire->m_possede_enfant = membre.est_enfant;
-        m_paire->m_possede_membre_a_copier = membre.est_a_copier;
+        m_paire->m_possède_enfant = membre.est_enfant;
+        m_paire->m_possède_membre_a_copier = membre.est_a_copier;
         m_paire->m_membres.ajoute(membre);
     }
 
@@ -662,7 +662,7 @@ void SyntaxeuseADN::parse_fonction()
         rapporte_erreur("Attendu une chaine de caractère après « fonction »");
     }
 
-    auto fonction = cree_proteine<ProteineFonction>(lexeme_courant()->chaine);
+    auto fonction = crée_proteine<ProteineFonction>(lexeme_courant()->chaine);
     consomme();
 
     // paramètres
@@ -751,7 +751,7 @@ void SyntaxeuseADN::parse_enum()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = cree_proteine<ProteineEnum>(lexeme_courant()->chaine);
+    auto proteine = crée_proteine<ProteineEnum>(lexeme_courant()->chaine);
 
     consomme();
 
@@ -791,7 +791,7 @@ void SyntaxeuseADN::parse_enum()
     }
 
     if (!proteine->type()) {
-        proteine->type() = m_typeuse.cree_type_nominal("int");
+        proteine->type() = m_typeuse.crée_type_nominal("int");
     }
 
     while (true) {
@@ -827,8 +827,8 @@ void SyntaxeuseADN::parse_struct()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto proteine = cree_proteine<ProteineStruct>(lexeme_courant()->chaine);
-    auto type_proteine = m_typeuse.cree_type_nominal(lexeme_courant()->chaine);
+    auto proteine = crée_proteine<ProteineStruct>(lexeme_courant()->chaine);
+    auto type_proteine = m_typeuse.crée_type_nominal(lexeme_courant()->chaine);
     type_proteine->est_proteine = proteine;
 
     consomme();
@@ -1015,7 +1015,7 @@ Type *SyntaxeuseADN::parse_type()
         rapporte_erreur("Attendu le nom d'un type");
     }
 
-    auto type_nominal = m_typeuse.cree_type_nominal(lexeme_courant()->chaine);
+    auto type_nominal = m_typeuse.crée_type_nominal(lexeme_courant()->chaine);
     Type *type = type_nominal;
 
     POUR (proteines) {
@@ -1062,10 +1062,10 @@ Type *SyntaxeuseADN::parse_type()
 
             consomme(GenreLexeme::CROCHET_FERMANT,
                      "Attendu un crochet fermant après le crochet ouvrant");
-            type = m_typeuse.cree_type_tableau(type, est_compresse, est_synchrone);
+            type = m_typeuse.crée_type_tableau(type, est_compresse, est_synchrone);
         }
         else if (lexeme_courant()->genre == GenreLexeme::FOIS) {
-            type = m_typeuse.cree_type_pointeur(type);
+            type = m_typeuse.crée_type_pointeur(type);
             consomme();
         }
         else {
