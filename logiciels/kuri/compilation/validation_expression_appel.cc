@@ -127,7 +127,7 @@ struct ApparieuseParams {
 
             auto est_parametre_variadique = index_param == m_noms.taille() - 1 && m_est_variadique;
 
-            if ((args_rencontres.possede(ident)) && !est_parametre_variadique) {
+            if ((args_rencontres.possède(ident)) && !est_parametre_variadique) {
                 erreur = ErreurAppariement::renommage_argument(expr_ident, ident);
                 return false;
             }
@@ -237,7 +237,7 @@ static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> v
     kuri::tablet<NoeudDeclaration *, 10> résultat;
 
     POUR (tablet) {
-        if (doublons.possede(it)) {
+        if (doublons.possède(it)) {
             continue;
         }
         doublons.insere(it);
@@ -266,7 +266,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         if (contexte.fonction_courante()) {
             auto fonction_courante = contexte.fonction_courante();
 
-            if (fonction_courante->possede_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+            if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 auto site_monomorphisation = fonction_courante->site_monomorphisation;
                 assert_rappel(site_monomorphisation->lexeme,
                               [&]() { erreur::imprime_site(espace, appelee); });
@@ -300,7 +300,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
             if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
                 if (it->lexeme->fichier == appelee->lexeme->fichier &&
                     it->lexeme->ligne >= appelee->lexeme->ligne &&
-                    !it->possede_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+                    !it->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
                     continue;
                 }
             }
@@ -459,7 +459,7 @@ static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
     return verifie_compatibilite(type_du_parametre, type_de_l_expression, slot);
 }
 
-static void cree_tableau_args_variadiques(ContexteValidationCode &contexte,
+static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
                                           Type *type_donnees_argument_variadique)
@@ -473,7 +473,7 @@ static void cree_tableau_args_variadiques(ContexteValidationCode &contexte,
     /* Pour les fonctions variadiques interne, nous créons un tableau
      * correspondant au types des arguments. */
     static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-    auto noeud_tableau = contexte.m_tacheronne.assembleuse->cree_args_variadiques(&lexeme_tableau);
+    auto noeud_tableau = contexte.m_tacheronne.assembleuse->crée_args_variadiques(&lexeme_tableau);
 
     noeud_tableau->type = type_donnees_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
@@ -618,7 +618,7 @@ static ResultatAppariement apparie_appel_pointeur(
         auto dernier_type_parametre =
             type_fonction->types_entrees[type_fonction->types_entrees.taille() - 1];
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
-        cree_tableau_args_variadiques(
+        crée_tableau_args_variadiques(
             contexte, slots, nombre_args, type_donnees_argument_variadique);
     }
 
@@ -648,7 +648,7 @@ static ResultatAppariement apparie_appel_init_de(
             args[0].expr, type_pointeur, args[0].expr->type);
     }
 
-    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(args[0].expr);
+    auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(args[0].expr);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = {TypeTransformation::INUTILE};
@@ -666,7 +666,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (!decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+    if (!decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         return ErreurAppariement::metypage_argument(expr, nullptr, nullptr);
     }
 
@@ -678,7 +678,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
     auto noms_rencontres = kuri::ensemblon<IdentifiantCode *, 10>();
     POUR (args) {
-        if (noms_rencontres.possede(it.ident)) {
+        if (noms_rencontres.possède(it.ident)) {
             return ErreurAppariement::renommage_argument(it.expr, it.ident);
         }
         noms_rencontres.insere(it.ident);
@@ -705,8 +705,8 @@ static ResultatAppariement apparie_appel_fonction(
     Monomorpheuse *monomorpheuse)
 {
     auto const nombre_args = decl->params.taille();
-    auto const est_variadique = decl->possede_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE);
-    auto const est_externe = decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
+    auto const est_variadique = decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE);
+    auto const est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
 
     if (!est_variadique && (args.taille() > nombre_args)) {
         return ErreurAppariement::mecomptage_arguments(expr, nombre_args, args.taille());
@@ -732,7 +732,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto param = parametres_entree[i];
         apparieuse_params.ajoute_param(param->ident,
                                        param->expression,
-                                       param->possede_drapeau(DrapeauxNoeud::EST_VARIADIQUE));
+                                       param->possède_drapeau(DrapeauxNoeud::EST_VARIADIQUE));
     }
 
     POUR (args) {
@@ -750,7 +750,7 @@ static ResultatAppariement apparie_appel_fonction(
     auto &slots = apparieuse_params.slots();
     auto transformations = kuri::tablet<TransformationType, 10>(slots.taille());
 
-    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         auto résultat_monomorphisation = détermine_monomorphisation(*monomorpheuse, decl, slots);
         if (std::holds_alternative<Attente>(résultat_monomorphisation)) {
             return ErreurAppariement::dependance_non_satisfaite(
@@ -865,7 +865,7 @@ static ResultatAppariement apparie_appel_fonction(
          */
         poids_args *= poids_variadique;
 
-        cree_tableau_args_variadiques(
+        crée_tableau_args_variadiques(
             contexte, slots, nombre_args, type_donnees_argument_variadique);
     }
 
@@ -880,7 +880,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
         auto param = parametres_entree[index_arg];
 
-        if (param->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+        if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
         }
 
@@ -896,7 +896,7 @@ static ResultatAppariement apparie_appel_fonction(
     }
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         copie_tablet_tableau(monomorpheuse->résultat_pour_monomorphisation(),
                              items_monomorphisation);
     }
@@ -916,11 +916,11 @@ static ResultatAppariement apparie_appel_fonction(
     NoeudDeclarationEnteteFonction *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (expr->possede_drapeau(DrapeauxNoeud::POUR_CUISSON)) {
+    if (expr->possède_drapeau(DrapeauxNoeud::POUR_CUISSON)) {
         return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
     }
 
-    if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         Monomorpheuse monomorpheuse(espace, decl);
         return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
     }
@@ -935,7 +935,7 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     if (expr->est_reference_declaration()) {
         auto ref_decl = expr->comme_reference_declaration();
 
-        if (ref_decl->declaration_referee->possede_drapeau(
+        if (ref_decl->declaration_referee->possède_drapeau(
                 DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             return true;
         }
@@ -995,7 +995,7 @@ static ResultatAppariement apparie_appel_structure(
             auto param = params_polymorphiques->membre_pour_index(index_param);
             index_param += 1;
 
-            if (!param->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                 assert_rappel(false, []() {
                     std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
                                  "structures pour le moment\n";
@@ -1033,7 +1033,7 @@ static ResultatAppariement apparie_appel_structure(
         }
 
         if (est_type_argument_polymorphique) {
-            auto type_poly = espace.compilatrice().typeuse.cree_polymorphique(nullptr);
+            auto type_poly = espace.compilatrice().typeuse.crée_polymorphique(nullptr);
 
             type_poly->est_structure_poly = true;
             type_poly->structure = decl_struct;
@@ -1134,12 +1134,12 @@ static ResultatAppariement apparie_construction_opaque_polymorphique(
 
     auto arg = arguments[0].expr;
     if (arg->type->est_type_type_de_donnees()) {
-        auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+        auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
         return CandidateAppariement::monomorphisation_opaque(
             1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
     }
 
-    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+    auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
     return CandidateAppariement::initialisation_opaque(
         1.0, type_opaque->decl, type_opaque, std::move(exprs), {});
 }
@@ -1217,7 +1217,7 @@ static ResultatAppariement apparie_construction_opaque(
         return ErreurAppariement::metypage_argument(arg, type_opaque->type_opacifie, arg->type);
     }
 
-    auto exprs = kuri::cree_tablet<NoeudExpression *, 10>(arg);
+    auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(arg);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
     transformations[0] = poids_xform.transformation;
@@ -1305,7 +1305,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             }
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
-                if (!decl_opaque->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                if (!decl_opaque->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_opaque);
                 }
                 état->résultats.ajoute(apparie_construction_opaque(
@@ -1314,7 +1314,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             else if (decl->est_entete_fonction()) {
                 auto decl_fonc = decl->comme_entete_fonction();
 
-                if (!decl_fonc->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                if (!decl_fonc->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl_fonc);
                 }
 
@@ -1324,7 +1324,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             else if (decl->est_declaration_variable()) {
                 auto type = decl->type;
 
-                if (!decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                     return Attente::sur_declaration(decl->comme_declaration_variable());
                 }
 
@@ -1530,7 +1530,7 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
                                       NoeudDeclarationEnteteFonction *fonction,
                                       kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (!fonction->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+    if (!fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return true;
     }
 
@@ -1691,9 +1691,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          NoeudExpressionAppel *expr)
 {
 #ifdef STATISTIQUES_DETAILLEES
-    auto possede_erreur = true;
+    auto possède_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
-        if (possede_erreur) {
+        if (possède_erreur) {
             contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
@@ -1702,7 +1702,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     });
 #endif
     if (!expr->état_résolution_appel) {
-        expr->état_résolution_appel = memoire::loge<EtatResolutionAppel>("EtatResolutionAppel");
+        expr->état_résolution_appel = compilatrice.crée_ou_donne_état_résolution_appel();
     }
 
     EtatResolutionAppel &état = *expr->état_résolution_appel;
@@ -1775,7 +1775,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 std::move(candidate->items_monomorphisation));
 
             if (doit_monomorpher ||
-                !noeud_decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(noeud_decl);
             }
 
@@ -1786,7 +1786,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_fonc = decl_fonction_appelee->type->comme_type_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
-        auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
         if (!type_sortie->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(
@@ -1826,7 +1826,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 std::move(candidate->items_monomorphisation));
 
             if (doit_monomorpher ||
-                !noeud_decl->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 return Attente::sur_declaration(noeud_decl);
             }
 
@@ -1869,7 +1869,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
             expr->noeud_fonction_appelee = candidate->noeud_decl;
 
-            if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+            if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
                 espace.rapporte_erreur(
                     expr,
                     "La valeur de l'expression de construction de structure n'est pas "
@@ -1892,7 +1892,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         applique_transformations(contexte, candidate, expr);
 
-        auto expr_gauche = !expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
+        auto expr_gauche = !expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION);
         if (!expr->type->est_type_rien() && expr_gauche) {
             espace
                 .rapporte_erreur(expr,
@@ -1921,7 +1921,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = TypeBase::RIEN;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
                 expr,
                 "La valeur de l'expression de construction d'opaque n'est pas "
@@ -1947,7 +1947,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->noeud_fonction_appelee = type_opaque->decl;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
-        if (!expr->possede_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
+        if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
             espace.rapporte_erreur(
                 expr,
                 "La valeur de l'expression de construction d'opaque n'est pas "
@@ -1982,8 +1982,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
 
 #ifdef STATISTIQUES_DETAILLEES
-    possede_erreur = false;
+    possède_erreur = false;
 #endif
+
+    compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
 
     assert(expr->type);
     return CodeRetourValidation::OK;

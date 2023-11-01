@@ -745,13 +745,13 @@ struct Typeuse {
 
     TypeEnum *reserve_type_erreur(NoeudEnum *decl);
 
-    TypePolymorphique *cree_polymorphique(IdentifiantCode *ident);
+    TypePolymorphique *crée_polymorphique(IdentifiantCode *ident);
 
-    TypeOpaque *cree_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie);
+    TypeOpaque *crée_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_opacifie);
 
     TypeOpaque *monomorphe_opaque(NoeudDeclarationTypeOpaque *decl, Type *type_monomorphique);
 
-    TypeTuple *cree_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres);
+    TypeTuple *crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
@@ -823,7 +823,7 @@ void marque_polymorphique(TypeCompose *type);
 /** \name Fonctions pour les unions.
  * \{ */
 
-void cree_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif);
+void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif);
 
 /** \} */
 

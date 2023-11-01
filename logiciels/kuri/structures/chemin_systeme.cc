@@ -171,7 +171,7 @@ chemin_systeme chemin_systeme::chemin_temporaire(chaine_statique chemin)
     return vers_chemin_systeme(std::filesystem::temp_directory_path() / std_path);
 }
 
-void chemin_systeme::cree_dossiers(chaine_statique chemin)
+void chemin_systeme::crée_dossiers(chaine_statique chemin)
 {
     auto const std_path = vers_std_path(chemin);
     std::filesystem::create_directories(std_path);

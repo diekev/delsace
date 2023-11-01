@@ -476,7 +476,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
     os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..."
        << std::endl;
 
-    auto module = compilatrice.trouve_ou_cree_module(ID::chaine_vide, dossier);
+    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, dossier);
     compilatrice.module_racine_compilation = module;
     compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
 
@@ -538,7 +538,7 @@ static bool compile_fichier(Compilatrice &compilatrice,
     /* restore le dossier d'origine */
     kuri::chemin_systeme::change_chemin_courant(dossier_origine);
 
-    if (compilatrice.possede_erreur()) {
+    if (compilatrice.possède_erreur()) {
         return false;
     }
 
