@@ -131,7 +131,7 @@ Symbole::type_fonction Symbole::adresse_pour_execution()
     return adresse_liaison;
 }
 
-Symbole *Bibliotheque::cree_symbole(kuri::chaine_statique nom_symbole)
+Symbole *Bibliotheque::crée_symbole(kuri::chaine_statique nom_symbole)
 {
     POUR_TABLEAU_PAGE (symboles) {
         if (it.nom == nom_symbole) {
@@ -310,35 +310,35 @@ bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilat
     auto espace = compilatrice.espace_defaut_compilation();
 
     /* La bibliothèque C. */
-    auto libc = gestionnaire->cree_bibliotheque(*espace, nullptr, ID::libc, "c");
+    auto libc = gestionnaire->crée_bibliotheque(*espace, nullptr, ID::libc, "c");
 
-    auto malloc_ = libc->cree_symbole("malloc");
+    auto malloc_ = libc->crée_symbole("malloc");
     malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
 
-    auto realloc_ = libc->cree_symbole("realloc");
+    auto realloc_ = libc->crée_symbole("realloc");
     realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
 
-    auto free_ = libc->cree_symbole("free");
+    auto free_ = libc->crée_symbole("free");
     free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
 
     /* La bibliothèque r16. */
-    auto bibr16 = gestionnaire->cree_bibliotheque(
+    auto bibr16 = gestionnaire->crée_bibliotheque(
         *espace, nullptr, table_idents->identifiant_pour_chaine("libr16"), "r16");
 
-    bibr16->cree_symbole("DLS_vers_r32")
+    bibr16->crée_symbole("DLS_vers_r32")
         ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
-    bibr16->cree_symbole("DLS_depuis_r32")
+    bibr16->crée_symbole("DLS_depuis_r32")
         ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
-    bibr16->cree_symbole("DLS_vers_r64")
+    bibr16->crée_symbole("DLS_vers_r64")
         ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
-    bibr16->cree_symbole("DLS_depuis_r64")
+    bibr16->crée_symbole("DLS_depuis_r64")
         ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
 
     /* La bibliothèque pthread. */
-    gestionnaire->cree_bibliotheque(
+    gestionnaire->crée_bibliotheque(
         *espace, nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
 
-    return !compilatrice.possede_erreur();
+    return !compilatrice.possède_erreur();
 }
 
 Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *ident)
@@ -352,19 +352,19 @@ Bibliotheque *GestionnaireBibliotheques::trouve_bibliotheque(IdentifiantCode *id
     return nullptr;
 }
 
-Bibliotheque *GestionnaireBibliotheques::trouve_ou_cree_bibliotheque(EspaceDeTravail &espace,
+Bibliotheque *GestionnaireBibliotheques::trouve_ou_crée_bibliotheque(EspaceDeTravail &espace,
                                                                      IdentifiantCode *ident)
 {
-    return cree_bibliotheque(espace, nullptr, ident, "");
+    return crée_bibliotheque(espace, nullptr, ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(EspaceDeTravail &espace,
+Bibliotheque *GestionnaireBibliotheques::crée_bibliotheque(EspaceDeTravail &espace,
                                                            NoeudExpression *site)
 {
-    return cree_bibliotheque(espace, site, site->ident, "");
+    return crée_bibliotheque(espace, site, site->ident, "");
 }
 
-Bibliotheque *GestionnaireBibliotheques::cree_bibliotheque(EspaceDeTravail &espace,
+Bibliotheque *GestionnaireBibliotheques::crée_bibliotheque(EspaceDeTravail &espace,
                                                            NoeudExpression *site,
                                                            IdentifiantCode *ident,
                                                            kuri::chaine_statique nom)

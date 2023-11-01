@@ -2213,7 +2213,7 @@ static std::optional<Configuration> valide_configuration(Configuration config)
     return config;
 }
 
-static std::optional<Configuration> cree_config_depuis_json(int argc, char **argv)
+static std::optional<Configuration> crée_config_depuis_json(int argc, char **argv)
 {
     if (argc < 2) {
         std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
@@ -2229,7 +2229,7 @@ static std::optional<Configuration> cree_config_depuis_json(int argc, char **arg
     return valide_configuration(config);
 }
 
-static std::optional<Configuration> cree_config_pour_metaprogramme(int argc, char **argv)
+static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, char **argv)
 {
     if (argc != 6) {
         std::cerr << "Utilisation " << argv[0]
@@ -2278,7 +2278,7 @@ static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration c
 
 int main(int argc, char **argv)
 {
-    auto config_optionnelle = cree_config_pour_metaprogramme(argc, argv);
+    auto config_optionnelle = crée_config_pour_metaprogramme(argc, argv);
 
     if (!config_optionnelle.has_value()) {
         return 1;

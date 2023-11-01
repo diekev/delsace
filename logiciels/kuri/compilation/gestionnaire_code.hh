@@ -116,8 +116,8 @@ class GestionnaireCode {
 
     /* Les unités qui attendent sur quelque chose. */
     kuri::tableau<UniteCompilation *> unites_en_attente{};
-    kuri::tableau<UniteCompilation *> metaprogrammes_en_attente_de_cree_contexte{};
-    bool metaprogrammes_en_attente_de_cree_contexte_est_ouvert = true;
+    kuri::tableau<UniteCompilation *> metaprogrammes_en_attente_de_crée_contexte{};
+    bool metaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
 
     Compilatrice *m_compilatrice = nullptr;
 
@@ -205,11 +205,11 @@ class GestionnaireCode {
 
     void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
 
-    UniteCompilation *cree_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
-    UniteCompilation *cree_unite_pour_fichier(EspaceDeTravail *espace,
+    UniteCompilation *crée_unite(EspaceDeTravail *espace, RaisonDEtre raison, bool met_en_attente);
+    UniteCompilation *crée_unite_pour_fichier(EspaceDeTravail *espace,
                                               Fichier *fichier,
                                               RaisonDEtre raison);
-    UniteCompilation *cree_unite_pour_noeud(EspaceDeTravail *espace,
+    UniteCompilation *crée_unite_pour_noeud(EspaceDeTravail *espace,
                                             NoeudExpression *noeud,
                                             RaisonDEtre raison,
                                             bool met_en_attente);
@@ -247,7 +247,7 @@ class GestionnaireCode {
     void optimisation_terminee(UniteCompilation *unite);
 
     /* Remplis les tâches. */
-    void cree_taches(OrdonnanceuseTache &ordonnanceuse);
+    void crée_taches(OrdonnanceuseTache &ordonnanceuse);
 
     const kuri::tableau<NoeudDeclarationEnteteFonction *> &fonctions_parsees() const
     {
@@ -265,7 +265,7 @@ class GestionnaireCode {
     void imprime_stats() const;
 
   private:
-    UniteCompilation *cree_unite_pour_message(EspaceDeTravail *espace, Message *message);
+    UniteCompilation *crée_unite_pour_message(EspaceDeTravail *espace, Message *message);
 
     UniteCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
 
@@ -292,7 +292,7 @@ class GestionnaireCode {
     void finalise_programme_avant_generation_code_machine(EspaceDeTravail *espace,
                                                           Programme *programme);
 
-    void flush_metaprogrammes_en_attente_de_cree_contexte();
+    void flush_metaprogrammes_en_attente_de_crée_contexte();
 
     void ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente);
 

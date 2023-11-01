@@ -16,7 +16,7 @@
 
 Coulisse::~Coulisse() = default;
 
-Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
+Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
 {
     switch (options.coulisse) {
         case TypeCoulisse::C:
@@ -41,7 +41,7 @@ Coulisse *Coulisse::cree_pour_options(OptionsDeCompilation options)
     return nullptr;
 }
 
-Coulisse *Coulisse::cree_pour_metaprogramme()
+Coulisse *Coulisse::crée_pour_metaprogramme()
 {
     return memoire::loge<CoulisseMV>("CoulisseMV");
 }

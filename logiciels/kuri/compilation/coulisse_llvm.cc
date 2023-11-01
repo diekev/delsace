@@ -1710,7 +1710,7 @@ static bool valide_llvm_ir(llvm::Module &module)
 }
 #endif
 
-static bool cree_executable(EspaceDeTravail const &espace,
+static bool crée_executable(EspaceDeTravail const &espace,
                             const kuri::chaine &dest,
                             const kuri::chemin_systeme &racine_kuri)
 {
@@ -1846,7 +1846,7 @@ bool CoulisseLLVM::crée_exécutable(Compilatrice &compilatrice,
                                    Programme * /*programme*/)
 {
     auto debut_executable = dls::chrono::compte_seconde();
-    if (!::cree_executable(
+    if (!::crée_executable(
             espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
         espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;

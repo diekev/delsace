@@ -401,7 +401,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
 
     const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
     /* assure l'existence des dossiers parents */
-    kuri::chemin_systeme::cree_dossiers(chemin_objet.chemin_parent());
+    kuri::chemin_systeme::crée_dossiers(chemin_objet.chemin_parent());
 
     const auto commande = commande_pour_bibliotheque_dynamique(
         chemin_fichier, chemin_objet, ArchitectureCible::X64);
