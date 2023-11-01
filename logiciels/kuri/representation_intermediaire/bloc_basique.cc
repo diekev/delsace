@@ -514,12 +514,30 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
         return;
     }
 
+    transfère_instructions_blocs_à_fonction(blocs, fonction);
+    les_blocs_ont_été_modifiés = false;
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions auxiliaires.
+ * \{ */
+
+void transfère_instructions_blocs_à_fonction(kuri::tableau_statique<Bloc *> blocs,
+                                             AtomeFonction *fonction)
+{
 #undef IMPRIME_STATS
 #ifdef IMPRIME_STATS
     static int instructions_supprimées = 0;
     static int instructions_totales = 0;
     auto const ancien_compte = fonction->instructions.taille();
 #endif
+
+    auto nombre_instructions = 0;
+    POUR (blocs) {
+        nombre_instructions += 1 + it->instructions.taille();
+    }
+
+    fonction->instructions.redimensionne(nombre_instructions);
 
     int décalage_instruction = 0;
 
@@ -532,7 +550,6 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
     }
 
     fonction->instructions.redimensionne(décalage_instruction);
-    les_blocs_ont_été_modifiés = false;
 
 #ifdef IMPRIME_STATS
     auto const supprimées = (ancien_compte - fonction->instructions.taille());
@@ -545,6 +562,8 @@ void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
     }
 #endif
 }
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name VisiteuseBlocs

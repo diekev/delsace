@@ -92,6 +92,15 @@ struct FonctionEtBlocs {
 };
 
 /* ------------------------------------------------------------------------- */
+/** \name Fonctions auxiliaires.
+ * \{ */
+
+void transfère_instructions_blocs_à_fonction(kuri::tableau_statique<Bloc *> blocs,
+                                             AtomeFonction *fonction);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name VisiteuseBlocs
  * Structure pour visiter les blocs de manière hiérarchique.
  * \{ */
