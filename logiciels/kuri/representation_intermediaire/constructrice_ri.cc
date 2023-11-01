@@ -964,9 +964,16 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 genere_ri_pour_expression_droite(it, nullptr);
                 auto valeur = depile_valeur();
 
-                /* crée une temporaire pour simplifier l'enlignage, car nous devrons
+                /* Crée une temporaire pour simplifier l'enlignage, car nous devrons
                  * remplacer les locales par les expressions passées, et il est plus
-                 * simple de remplacer une allocation par une autre */
+                 * simple de remplacer une allocation par une autre. Par contre si nous avons une
+                 * instruction de chargement (indiquant une allocation, ou référence d'une chose
+                 * ultimement allouée), ce n'est pas la peine de créer une temporaire. */
+                if (valeur->est_instruction() && valeur->comme_instruction()->est_charge()) {
+                    args.ajoute(valeur);
+                    continue;
+                }
+
                 auto alloc = cree_allocation(it, valeur->type, nullptr);
                 cree_stocke_mem(it, alloc, valeur);
                 args.ajoute(cree_charge_mem(it, alloc));
