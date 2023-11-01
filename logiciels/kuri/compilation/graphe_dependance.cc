@@ -68,7 +68,7 @@ void NoeudDependance::relations(Badge<GrapheDependance>,
     m_relations = relations;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_fonction(
+NoeudDependance *GrapheDependance::crée_noeud_fonction(
     NoeudDeclarationEnteteFonction *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dependance == nullptr) {
@@ -79,7 +79,7 @@ NoeudDependance *GrapheDependance::cree_noeud_fonction(
     return noeud_syntaxique->noeud_dependance;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
+NoeudDependance *GrapheDependance::crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique)
 {
     if (noeud_syntaxique->noeud_dependance == nullptr) {
         auto noeud = noeuds.ajoute_element(noeud_syntaxique);
@@ -89,7 +89,7 @@ NoeudDependance *GrapheDependance::cree_noeud_globale(NoeudDeclarationVariable *
     return noeud_syntaxique->noeud_dependance;
 }
 
-NoeudDependance *GrapheDependance::cree_noeud_type(Type *type)
+NoeudDependance *GrapheDependance::crée_noeud_type(Type *type)
 {
     if (type->noeud_dependance == nullptr) {
         auto noeud = noeuds.ajoute_element(type);
@@ -111,8 +111,8 @@ void GrapheDependance::connecte_type_type(NoeudDependance &type1,
 
 void GrapheDependance::connecte_type_type(Type *type1, Type *type2, TypeRelation type_rel)
 {
-    auto noeud1 = cree_noeud_type(type1);
-    auto noeud2 = cree_noeud_type(type2);
+    auto noeud1 = crée_noeud_type(type1);
+    auto noeud2 = crée_noeud_type(type2);
 
     connecte_type_type(*noeud1, *noeud2, type_rel);
 }
@@ -140,20 +140,20 @@ void GrapheDependance::rassemble_statistiques(Statistiques &stats) const
 void GrapheDependance::ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees)
 {
     kuri::pour_chaque_element(donnees.types_utilises, [&](auto &type) {
-        auto noeud_type = cree_noeud_type(type);
+        auto noeud_type = crée_noeud_type(type);
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
         return kuri::DécisionItération::Continue;
     });
 
     kuri::pour_chaque_element(donnees.fonctions_utilisees, [&](auto &fonction_utilisee) {
-        auto noeud_type = cree_noeud_fonction(
+        auto noeud_type = crée_noeud_fonction(
             const_cast<NoeudDeclarationEnteteFonction *>(fonction_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
         return kuri::DécisionItération::Continue;
     });
 
     kuri::pour_chaque_element(donnees.globales_utilisees, [&](auto &globale_utilisee) {
-        auto noeud_type = cree_noeud_globale(
+        auto noeud_type = crée_noeud_globale(
             const_cast<NoeudDeclarationVariable *>(globale_utilisee));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
         return kuri::DécisionItération::Continue;
@@ -321,20 +321,20 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
     /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et
      * les constantes. */
     if (noeud->est_declaration_variable()) {
-        assert_rappel(noeud->possede_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
+        assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
             erreur::imprime_site(*espace, noeud);
             std::cerr << *noeud;
         });
-        return cree_noeud_globale(noeud->comme_declaration_variable());
+        return crée_noeud_globale(noeud->comme_declaration_variable());
     }
 
     if (noeud->est_entete_fonction()) {
-        return cree_noeud_fonction(noeud->comme_entete_fonction());
+        return crée_noeud_fonction(noeud->comme_entete_fonction());
     }
 
     if (noeud->est_corps_fonction()) {
         auto corps = noeud->comme_corps_fonction();
-        return cree_noeud_fonction(corps->entete);
+        return crée_noeud_fonction(corps->entete);
     }
 
     if (noeud->est_execute()) {
@@ -342,11 +342,11 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
         assert(execute->metaprogramme);
         auto metaprogramme = execute->metaprogramme;
         assert(metaprogramme->fonction);
-        return cree_noeud_fonction(metaprogramme->fonction);
+        return crée_noeud_fonction(metaprogramme->fonction);
     }
 
     if (noeud->est_declaration_type()) {
-        return cree_noeud_type(noeud->type);
+        return crée_noeud_type(noeud->type);
     }
 
     assert(!"Noeud non géré pour les dépendances !\n");

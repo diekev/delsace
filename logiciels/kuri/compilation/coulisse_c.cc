@@ -796,7 +796,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
             auto atome_fonc = static_cast<AtomeFonction const *>(atome);
 
             if (atome_fonc->decl &&
-                atome_fonc->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+                atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
                 return atome_fonc->decl->nom_symbole;
             }
 
@@ -1624,7 +1624,7 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
     if (atome_fonc->decl &&
-        atome_fonc->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+        atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return;
     }
 
@@ -1914,7 +1914,7 @@ static void génère_table_des_types(Typeuse &typeuse,
         it->index_dans_table_types = index_type++;
 
         if (!it->atome_info_type) {
-            // constructrice_ri.cree_info_type(it);
+            // constructrice_ri.crée_info_type(it);
             continue;
         }
 
@@ -1962,7 +1962,7 @@ static void génère_table_des_types(Typeuse &typeuse,
     }
 
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-    atome_table_des_types->initialisateur = constructrice_ri.cree_tableau_global(
+    atome_table_des_types->initialisateur = constructrice_ri.crée_tableau_global(
         type_pointeur_info_type, std::move(table_des_types));
 
     auto initialisateur = static_cast<AtomeValeurConstante *>(
@@ -1981,7 +1981,7 @@ static void rassemble_bibliothèques_utilisées(ProgrammeRepreInter &repr_inter_
 {
     kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
     POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
             it->decl->symbole) {
             rassemble_bibliothèques_utilisées(
                 bibliothèques, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
@@ -2047,7 +2047,7 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possede_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
+        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
             ++nombre_fonctions_racines;
         }
 
