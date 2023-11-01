@@ -40,7 +40,7 @@ bool CoulisseMV::crée_fichier_objet(Compilatrice &compilatrice,
         }
 
         auto type = it->est_info_type_de;
-        type->info_type = convertisseuse_noeud_code.cree_info_type_pour(const_cast<Type *>(type));
+        type->info_type = convertisseuse_noeud_code.crée_info_type_pour(const_cast<Type *>(type));
         assert(type->info_type);
     }
 

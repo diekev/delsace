@@ -98,7 +98,7 @@ struct ErreurAppariement {
                                                   int64_t nombre_requis,
                                                   int64_t nombre_obtenu)
     {
-        auto erreur = cree_erreur(MECOMPTAGE_ARGS, site);
+        auto erreur = crée_erreur(MECOMPTAGE_ARGS, site);
         erreur.nombre_arguments.nombre_obtenu = nombre_obtenu;
         erreur.nombre_arguments.nombre_requis = nombre_requis;
         return erreur;
@@ -113,7 +113,7 @@ struct ErreurAppariement {
                                                Type *type_attendu,
                                                Type *type_obtenu)
     {
-        auto erreur = cree_erreur(METYPAGE_ARG, site);
+        auto erreur = crée_erreur(METYPAGE_ARG, site);
         erreur.type_arguments.type_attendu = type_attendu;
         erreur.type_arguments.type_obtenu = type_obtenu;
         return erreur;
@@ -122,14 +122,14 @@ struct ErreurAppariement {
     static ErreurAppariement monomorphisation(NoeudExpression *site,
                                               ErreurMonomorphisation erreur_monomorphisation)
     {
-        auto erreur = cree_erreur(MONOMORPHISATION, site);
+        auto erreur = crée_erreur(MONOMORPHISATION, site);
         erreur.erreur_monomorphisation = erreur_monomorphisation;
         return erreur;
     }
 
     static ErreurAppariement type_non_fonction(NoeudExpression const *site, Type *type)
     {
-        auto erreur = cree_erreur(TYPE_N_EST_PAS_FONCTION, site);
+        auto erreur = crée_erreur(TYPE_N_EST_PAS_FONCTION, site);
         erreur.type = type;
         return erreur;
     }
@@ -137,7 +137,7 @@ struct ErreurAppariement {
     static ErreurAppariement menommage_arguments(NoeudExpression const *site,
                                                  IdentifiantCode *ident)
     {
-        auto erreur = cree_erreur(MENOMMAGE_ARG, site);
+        auto erreur = crée_erreur(MENOMMAGE_ARG, site);
         erreur.nom_arg = ident->nom;
         return erreur;
     }
@@ -145,7 +145,7 @@ struct ErreurAppariement {
     static ErreurAppariement renommage_argument(NoeudExpression const *site,
                                                 IdentifiantCode *ident)
     {
-        auto erreur = cree_erreur(RENOMMAGE_ARG, site);
+        auto erreur = crée_erreur(RENOMMAGE_ARG, site);
         erreur.nom_arg = ident->nom;
         return erreur;
     }
@@ -153,7 +153,7 @@ struct ErreurAppariement {
     static ErreurAppariement dependance_non_satisfaite(NoeudExpression const *site,
                                                        Attente attente)
     {
-        auto erreur = cree_erreur(ERREUR_DEPENDANCE, site);
+        auto erreur = crée_erreur(ERREUR_DEPENDANCE, site);
         erreur.attente = attente;
         return erreur;
     }
@@ -161,7 +161,7 @@ struct ErreurAppariement {
 #define CREATION_ERREUR(nom_enum, nom_fonction)                                                   \
     static ErreurAppariement nom_fonction(NoeudExpression const *site)                            \
     {                                                                                             \
-        return cree_erreur(nom_enum, site);                                                       \
+        return crée_erreur(nom_enum, site);                                                       \
     }
 
     CREATION_ERREUR(EXPRESSION_MANQUANTE_POUR_UNION, expression_manquante_union);
@@ -179,7 +179,7 @@ struct ErreurAppariement {
 #undef CRETION_ERREUR
 
   private:
-    static ErreurAppariement cree_erreur(int raison, NoeudExpression const *site)
+    static ErreurAppariement crée_erreur(int raison, NoeudExpression const *site)
     {
         ErreurAppariement erreur;
         erreur.raison = raison;
@@ -217,7 +217,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_APPEL_FONCTION,
+        return crée_candidate(CANDIDATE_EST_APPEL_FONCTION,
                               poids,
                               noeud_decl,
                               type,
@@ -233,7 +233,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations,
         kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
     {
-        auto candidate = cree_candidate(CANDIDATE_EST_APPEL_FONCTION,
+        auto candidate = crée_candidate(CANDIDATE_EST_APPEL_FONCTION,
                                         poids,
                                         noeud_decl,
                                         type,
@@ -251,7 +251,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations,
         kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
     {
-        auto candidate = cree_candidate(CANDIDATE_EST_CUISSON_FONCTION,
+        auto candidate = crée_candidate(CANDIDATE_EST_CUISSON_FONCTION,
                                         poids,
                                         noeud_decl,
                                         type,
@@ -268,7 +268,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_APPEL_POINTEUR,
+        return crée_candidate(CANDIDATE_EST_APPEL_POINTEUR,
                               poids,
                               noeud_decl,
                               type,
@@ -283,7 +283,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+        return crée_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
                               poids,
                               noeud_decl,
                               type,
@@ -299,7 +299,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations,
         kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
     {
-        auto candidate = cree_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
+        auto candidate = crée_candidate(CANDIDATE_EST_INITIALISATION_STRUCTURE,
                                         poids,
                                         noeud_decl,
                                         type,
@@ -315,7 +315,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+        return crée_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
                               poids,
                               nullptr,
                               type,
@@ -330,7 +330,7 @@ struct CandidateAppariement {
         kuri::tableau<TransformationType, int> &&transformations,
         kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
     {
-        auto candidate = cree_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
+        auto candidate = crée_candidate(CANDIDATE_EST_TYPE_POLYMORPHIQUE,
                                         poids,
                                         nullptr,
                                         type,
@@ -346,7 +346,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_APPEL_INIT_DE,
+        return crée_candidate(CANDIDATE_EST_APPEL_INIT_DE,
                               poids,
                               nullptr,
                               type,
@@ -361,7 +361,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_INITIALISATION_OPAQUE,
+        return crée_candidate(CANDIDATE_EST_INITIALISATION_OPAQUE,
                               poids,
                               noeud_decl,
                               type,
@@ -376,7 +376,7 @@ struct CandidateAppariement {
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations)
     {
-        return cree_candidate(CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
+        return crée_candidate(CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
                               poids,
                               noeud_decl,
                               type,
@@ -385,7 +385,7 @@ struct CandidateAppariement {
     }
 
   private:
-    static CandidateAppariement cree_candidate(
+    static CandidateAppariement crée_candidate(
         int note,
         double poids,
         NoeudExpression *noeud_decl,

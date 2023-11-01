@@ -260,7 +260,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 return erreur_evaluation(b, "La référence n'est pas celle d'une variable !");
             }
 
-            if (!decl->possede_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+            if (!decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
                 return erreur_evaluation(
                     b, "La référence n'est pas celle d'une variable constante !");
             }
@@ -301,7 +301,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
-            if (b->possede_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+            if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
                 return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
             }
 
@@ -311,7 +311,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
-            if (b->possede_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+            if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
                 return ValeurExpression(static_cast<int64_t>(b->comme_litterale_entier()->valeur));
             }
 
@@ -321,7 +321,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
         {
             /* Si le noeud provient d'un résultat, le lexème ne peut être utilisé pour extraire la
              * valeur car ce n'est pas un lexème de code source. */
-            if (b->possede_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
+            if (b->possède_drapeau(DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)) {
                 return ValeurExpression(b->comme_litterale_reel()->valeur);
             }
 

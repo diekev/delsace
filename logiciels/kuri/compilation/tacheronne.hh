@@ -91,7 +91,7 @@ struct OrdonnanceuseTache {
     OrdonnanceuseTache(OrdonnanceuseTache const &) = delete;
     OrdonnanceuseTache &operator=(OrdonnanceuseTache const &) = delete;
 
-    void cree_tache_pour_unite(UniteCompilation *unite);
+    void crée_tache_pour_unite(UniteCompilation *unite);
 
     Tache tache_suivante(Tache &tache_terminee, DrapeauxTacheronne drapeaux);
 

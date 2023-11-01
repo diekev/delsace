@@ -152,13 +152,13 @@ struct GrapheDependance {
     tableau_page<NoeudDependance> noeuds{};
 
     // CRÉE (:FONCTION { nom = $nom })
-    NoeudDependance *cree_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
+    NoeudDependance *crée_noeud_fonction(NoeudDeclarationEnteteFonction *noeud_syntaxique);
 
     // CRÉE (:GLOBALE { nom = $nom })
-    NoeudDependance *cree_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
+    NoeudDependance *crée_noeud_globale(NoeudDeclarationVariable *noeud_syntaxique);
 
     // FUSIONNE (:TYPE { index = $index })
-    NoeudDependance *cree_noeud_type(Type *type);
+    NoeudDependance *crée_noeud_type(Type *type);
 
     // CHERCHE (type1 :TYPE { index = $index1 })
     // CHERCHE (type2 :TYPE { index = $index1 })

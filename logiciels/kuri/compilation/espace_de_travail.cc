@@ -27,7 +27,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
                                  kuri::chaine nom_)
     : nom(nom_), options(opts), m_compilatrice(compilatrice)
 {
-    programme = Programme::cree_pour_espace(this);
+    programme = Programme::crée_pour_espace(this);
 
     POUR (nombre_de_taches) {
         it = 0;
@@ -279,7 +279,7 @@ Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
                                         kuri::chaine_statique message,
                                         erreur::Genre genre) const
 {
-    possede_erreur = true;
+    possède_erreur = true;
 
     if (!site) {
         return rapporte_erreur_sans_site(message, genre);
@@ -293,7 +293,7 @@ Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine const &chemin_fichier,
                                         kuri::chaine const &message,
                                         erreur::Genre genre) const
 {
-    possede_erreur = true;
+    possède_erreur = true;
     auto fichier = compilatrice().fichier(chemin_fichier);
     return ::rapporte_erreur(this, SiteSource(fichier, ligne), message, genre);
 }
@@ -302,13 +302,13 @@ Erreur EspaceDeTravail::rapporte_erreur(SiteSource site,
                                         kuri::chaine const &message,
                                         erreur::Genre genre) const
 {
-    possede_erreur = true;
+    possède_erreur = true;
     return ::rapporte_erreur(this, site, message, genre);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur_sans_site(const kuri::chaine &message,
                                                   erreur::Genre genre) const
 {
-    possede_erreur = true;
+    possède_erreur = true;
     return ::rapporte_erreur(this, {}, message, genre);
 }

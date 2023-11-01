@@ -25,7 +25,7 @@ struct BaseSyntaxeuse {
     Fichier *m_fichier = nullptr;
     Lexeme *m_lexeme_courant = nullptr;
     int m_position = 0;
-    bool m_possede_erreur = false;
+    bool m_possède_erreur = false;
     char _pad[3];
 
     dls::chrono::metre_seconde m_chrono_analyse{};
@@ -41,9 +41,9 @@ struct BaseSyntaxeuse {
 
     void analyse();
 
-    bool possede_erreur() const
+    bool possède_erreur() const
     {
-        return m_possede_erreur;
+        return m_possède_erreur;
     }
 
   protected:
@@ -136,7 +136,7 @@ struct BaseSyntaxeuse {
 
     void depile_etat();
 
-    kuri::chaine cree_message_erreur(kuri::chaine_statique message);
+    kuri::chaine crée_message_erreur(kuri::chaine_statique message);
 
     void rapporte_erreur(kuri::chaine_statique message);
 };

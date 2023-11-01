@@ -46,7 +46,7 @@ struct Lexeuse {
     int m_drapeaux = 0;
     GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
     TypeRappelErreur m_rappel_erreur{};
-    bool m_possede_erreur = false;
+    bool m_possède_erreur = false;
 
   public:
     Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux = 0);
@@ -56,15 +56,15 @@ struct Lexeuse {
 
     void performe_lexage();
 
-    bool possede_erreur() const
+    bool possède_erreur() const
     {
-        return m_possede_erreur;
+        return m_possède_erreur;
     }
 
   private:
     ENLIGNE_TOUJOURS bool fini() const
     {
-        return m_possede_erreur || m_debut >= m_fin;
+        return m_possède_erreur || m_debut >= m_fin;
     }
 
     template <int N>

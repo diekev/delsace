@@ -110,7 +110,7 @@ struct Bibliotheque {
     kuri::tableau_compresse<Bibliotheque *, int> dependances{};
     tableau_page<Symbole> symboles{};
 
-    Symbole *cree_symbole(kuri::chaine_statique nom_symbole);
+    Symbole *crée_symbole(kuri::chaine_statique nom_symbole);
 
     bool charge(EspaceDeTravail *espace);
 
@@ -141,11 +141,11 @@ struct GestionnaireBibliotheques {
 
     Bibliotheque *trouve_bibliotheque(IdentifiantCode *ident);
 
-    Bibliotheque *trouve_ou_cree_bibliotheque(EspaceDeTravail &espace, IdentifiantCode *ident);
+    Bibliotheque *trouve_ou_crée_bibliotheque(EspaceDeTravail &espace, IdentifiantCode *ident);
 
-    Bibliotheque *cree_bibliotheque(EspaceDeTravail &espace, NoeudExpression *site);
+    Bibliotheque *crée_bibliotheque(EspaceDeTravail &espace, NoeudExpression *site);
 
-    Bibliotheque *cree_bibliotheque(EspaceDeTravail &espace,
+    Bibliotheque *crée_bibliotheque(EspaceDeTravail &espace,
                                     NoeudExpression *site,
                                     IdentifiantCode *ident,
                                     kuri::chaine_statique nom);

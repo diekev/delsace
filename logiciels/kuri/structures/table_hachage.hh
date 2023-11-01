@@ -200,7 +200,7 @@ struct table_hachage {
         return valeur;
     }
 
-    bool possede(Cle const &cle) const
+    bool possède(Cle const &cle) const
     {
         auto empreinte = std::hash<Cle>()(cle);
         auto index = trouve_index(cle, empreinte);

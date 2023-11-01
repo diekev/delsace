@@ -141,7 +141,7 @@ RAPPEL_POUR_COMMENTAIRE(declaration)
 RAPPEL_POUR_EST_RÉSOLUE(déclaration)
 {
     auto declaration_attendue = attente.declaration();
-    if (!declaration_attendue->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (!declaration_attendue->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return false;
     }
 
@@ -471,7 +471,7 @@ RAPPEL_POUR_EST_RÉSOLUE(symbole)
     auto p = espace->phase_courante();
     // À FAIRE : granularise ceci pour ne pas tenter de recompiler quelque chose
     // si le symbole ne fut pas encore défini (par exemple en utilisant un ensemble de symboles
-    // définis depuis le dernier ajournement, dans GestionnaireCode::cree_taches).
+    // définis depuis le dernier ajournement, dans GestionnaireCode::crée_taches).
     return p < PhaseCompilation::PARSAGE_TERMINE;
 }
 

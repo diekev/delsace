@@ -792,7 +792,7 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
 
         /* Les fonction d'initialisation de globales n'ont pas de déclarations. */
         if (it->decl) {
-            if (it->decl->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS)) {
+            if (it->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS)) {
                 desassemble(it->données_exécution->chunk, it->nom, std::cerr);
             }
         }
@@ -806,15 +806,15 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     auto données_exécution = fonction->données_exécution;
 
     /* Certains AtomeFonction créés par la compilatrice n'ont pas de déclaration. */
-    if (fonction->decl && fonction->decl->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-        if (fonction->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+    if (fonction->decl && fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
             return true;
         }
 
         auto &donnees_externe = données_exécution->donnees_externe;
         auto decl = fonction->decl;
 
-        if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
             donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
@@ -839,7 +839,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             donnees_externe.ptr_fonction = decl->symbole->adresse_pour_execution();
         }
 
-        if (decl->possede_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
+        if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
             /* Les fonctions variadiques doivent être préparées pour chaque appel. */
             return true;
         }
@@ -1039,10 +1039,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 auto atome_appelee = static_cast<AtomeFonction *>(appelee);
 
                 if (atome_appelee->decl &&
-                    atome_appelee->decl->possede_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
+                    atome_appelee->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
                     chunk.emets_appel_intrinsèque(appel->site, atome_appelee);
                 }
-                else if (atome_appelee->decl && atome_appelee->decl->possede_drapeau(
+                else if (atome_appelee->decl && atome_appelee->decl->possède_drapeau(
                                                     DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     chunk.emets_appel_compilatrice(appel->site, atome_appelee, verifie_adresses);
                 }

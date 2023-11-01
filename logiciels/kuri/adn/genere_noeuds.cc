@@ -72,7 +72,7 @@ static const char *copie_déclaration_référée = R"(
             if (référence_existante) {
                 copie->declaration_referee = référence_existante->comme_declaration();
             }
-            else if (orig->declaration_referee && orig->declaration_referee->possede_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
+            else if (orig->declaration_referee && orig->declaration_referee->possède_drapeau(DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE)) {
                 copie->declaration_referee = copie_noeud(orig->declaration_referee)->comme_declaration();
             }
             else {
@@ -264,7 +264,7 @@ struct GeneratriceCodeCPP {
             os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
 
             // À FAIRE : ceci ne prend pas en compte les ancêtres
-            if (it->possede_enfants()) {
+            if (it->possède_enfants()) {
                 os << ">\\n\";\n";
             }
             else {
@@ -290,7 +290,7 @@ struct GeneratriceCodeCPP {
                 }
             });
 
-            if (it->possede_enfants()) {
+            if (it->possède_enfants()) {
                 os << "\t\t\timprime_tab(os, profondeur);\n";
                 os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\\n\";\n";
             }
@@ -487,7 +487,7 @@ struct GeneratriceCodeCPP {
                 os << "\t\t\tnracine = copie_entete->corps;\n";
             }
             else {
-                os << "\t\t\tnracine = assem->cree_noeud<GenreNoeud::" << nom_genre
+                os << "\t\t\tnracine = assem->crée_noeud<GenreNoeud::" << nom_genre
                    << ">(racine->lexeme);\n";
             }
 
@@ -500,7 +500,7 @@ struct GeneratriceCodeCPP {
             os << "\t\t\t\tnracine->drapeaux &= ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE;\n";
             os << "\t\t\t}\n";
 
-            if (!it->possede_enfants() && !it->possede_membre_a_copier()) {
+            if (!it->possède_enfants() && !it->possède_membre_a_copier()) {
                 os << "\t\t\tbreak;\n";
                 os << "\t\t}\n";
                 continue;
@@ -885,7 +885,7 @@ struct GeneratriceCodeCPP {
               "&gerante_chaine, NoeudCode *racine);\n\n";
         os << "\tNoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression "
               "*racine);\n\n";
-        os << "\tInfoType *cree_info_type_pour(Type *type);\n\n";
+        os << "\tInfoType *crée_info_type_pour(Type *type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
         os << "\tint64_t memoire_utilisee() const;\n";
@@ -1032,7 +1032,7 @@ struct GeneratriceCodeCPP {
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = cree_info_type_pour(racine_typee->type);\n";
+            os << "\t\t\tn->type = crée_info_type_pour(racine_typee->type);\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
                   "(racine_typee->lexeme) { n->nom = racine_typee->lexeme->chaine; }\n";
 
@@ -1212,19 +1212,19 @@ struct GeneratriceCodeCPP {
                                  bool inclus_code,
                                  std::function<void(ProteineStruct &, const Membre &)> rappel)
     {
-        auto possede_enfants = false;
+        auto possède_enfants = false;
         auto noeud_courant = racine;
 
         while (noeud_courant) {
-            if (noeud_courant->possede_enfants()) {
-                possede_enfants = true;
+            if (noeud_courant->possède_enfants()) {
+                possède_enfants = true;
                 break;
             }
 
-            if (inclus_code && !possede_enfants) {
+            if (inclus_code && !possède_enfants) {
                 for (const auto &membre : noeud_courant->membres()) {
                     if (membre.est_code) {
-                        possede_enfants = true;
+                        possède_enfants = true;
                         break;
                     }
                 }
@@ -1233,7 +1233,7 @@ struct GeneratriceCodeCPP {
             noeud_courant = noeud_courant->mere();
         }
 
-        if (!possede_enfants) {
+        if (!possède_enfants) {
             return;
         }
 
@@ -1260,7 +1260,7 @@ struct GeneratriceCodeCPP {
         const char *empile_bloc = R"(
 NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
 {
-	auto bloc = static_cast<NoeudBloc *>(cree_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
+	auto bloc = static_cast<NoeudBloc *>(crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
     bloc->appartiens_à_fonction = appartiens_à_fonction;
 	bloc->bloc_parent = bloc_courant();
 	m_blocs.empile(bloc);
@@ -1276,10 +1276,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                 continue;
             }
 
-            os << it->nom() << " *AssembleuseArbre::cree_" << it->accede_nom_comme()
+            os << it->nom() << " *AssembleuseArbre::crée_" << it->accede_nom_comme()
                << "(const Lexeme *lexeme)\n";
             os << "{\n";
-            os << "\treturn cree_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
+            os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
                << it->accede_nom_comme() << "();\n";
             os << "}\n";
         }
@@ -1332,9 +1332,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
 	 * toujours le genre de noeud à créer, et spécialiser cette fonction nous
 	 * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */
 	template <GenreNoeud genre>
-	NoeudExpression *cree_noeud(Lexeme const *lexeme)
+	NoeudExpression *crée_noeud(Lexeme const *lexeme)
 	{
-		auto noeud = m_allocatrice.cree_noeud<genre>();
+		auto noeud = m_allocatrice.crée_noeud<genre>();
 		noeud->genre = genre;
 		noeud->lexeme = lexeme;
 		noeud->bloc_parent = bloc_courant();
@@ -1367,29 +1367,29 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                 continue;
             }
 
-            os << "\t" << it->nom() << " *cree_" << it->accede_nom_comme()
+            os << "\t" << it->nom() << " *crée_" << it->accede_nom_comme()
                << "(const Lexeme *lexeme);\n";
         }
 
         const char *decls_extras = R"(
-	NoeudSi *cree_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
-	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref);
-	NoeudAssignation *cree_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
-	NoeudAssignation *cree_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-	NoeudAssignation *cree_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-	NoeudBloc *cree_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
-	NoeudDeclarationVariable *cree_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
-	NoeudDeclarationVariable *cree_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-	NoeudExpressionLitteraleEntier *cree_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
-    NoeudExpressionLitteraleBool *cree_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
-	NoeudExpressionLitteraleReel *cree_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
-	NoeudExpression *cree_reference_type(const Lexeme *lexeme, Type *type);
-	NoeudExpressionAppel *cree_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
-	NoeudExpressionBinaire *cree_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
-	NoeudExpressionBinaire *cree_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-	NoeudExpressionMembre *cree_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
-	NoeudExpressionReference *cree_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
-	NoeudExpressionAppel *cree_construction_structure(const Lexeme *lexeme, TypeCompose *type);
+	NoeudSi *crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
+	NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref);
+	NoeudAssignation *crée_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
+	NoeudAssignation *crée_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
+	NoeudAssignation *crée_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
+	NoeudBloc *crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
+	NoeudDeclarationVariable *crée_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
+	NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
+	NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
+    NoeudExpressionLitteraleBool *crée_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
+	NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
+	NoeudExpression *crée_reference_type(const Lexeme *lexeme, Type *type);
+	NoeudExpressionAppel *crée_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
+	NoeudExpressionBinaire *crée_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
+	NoeudExpressionBinaire *crée_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
+	NoeudExpressionMembre *crée_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
+	NoeudExpressionReference *crée_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
+	NoeudExpressionAppel *crée_construction_structure(const Lexeme *lexeme, TypeCompose *type);
 )";
 
         os << decls_extras;
@@ -1432,7 +1432,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         // stats pour les tableaux
         auto noms_tableaux = kuri::ensemble<kuri::chaine>();
 
-        auto cree_nom_tableau = [](kuri::chaine_statique nom_comme,
+        auto crée_nom_tableau = [](kuri::chaine_statique nom_comme,
                                    kuri::chaine_statique nom_membre) -> kuri::chaine {
             return enchaine("taille_max_", nom_comme, "_", nom_membre);
         };
@@ -1442,13 +1442,13 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             if (nom_genre.est_nul()) {
                 continue;
             }
-            if (!it->possede_tableau()) {
+            if (!it->possède_tableau()) {
                 continue;
             }
 
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau() || membre.nom.nom_cpp() == "monomorphisations") {
-                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
                                                               membre.nom.nom_cpp());
                     os << "auto " << nom_tableau << " = 0;\n";
                     noms_tableaux.insère(nom_tableau);
@@ -1461,7 +1461,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             if (nom_genre.est_nul()) {
                 continue;
             }
-            if (!it->possede_tableau()) {
+            if (!it->possède_tableau()) {
                 continue;
             }
 
@@ -1473,7 +1473,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
             it->pour_chaque_membre_recursif([&](const Membre &membre) {
                 if (membre.type->est_tableau()) {
                     const auto nom_membre = membre.nom;
-                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
                                                               nom_membre.nom_cpp());
                     os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
                     os << membre.type->accesseur() << "taille());\n";
@@ -1481,7 +1481,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                     os << membre.type->accesseur() << "taille_memoire();\n";
                 }
                 else if (membre.nom.nom_cpp() == "monomorphisations") {
-                    const auto nom_tableau = cree_nom_tableau(it->accede_nom_comme().nom_cpp(),
+                    const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom_cpp(),
                                                               membre.nom.nom_cpp());
 
                     os << "if (noeud.monomorphisations) {\n";
@@ -1534,7 +1534,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "public:\n";
 
         os << "\ttemplate <GenreNoeud genre>\n";
-        os << "\tNoeudExpression *cree_noeud()\n";
+        os << "\tNoeudExpression *crée_noeud()\n";
         os << "\t{\n";
 
         os << "\t\tswitch (genre) {\n";
@@ -1577,19 +1577,19 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "\t\treturn nullptr;\n";
         os << "\t}\n";
 
-        const char *cree_monomorphisations = R"(
-    Monomorphisations *cree_monomorphisations_fonction()
+        const char *crée_monomorphisations = R"(
+    Monomorphisations *crée_monomorphisations_fonction()
 	{
 		return m_monomorphisations_fonctions.ajoute_element();
 	}
 
-    Monomorphisations *cree_monomorphisations_struct()
+    Monomorphisations *crée_monomorphisations_struct()
 	{
 		return m_monomorphisations_structs.ajoute_element();
 	}
 )";
 
-        os << cree_monomorphisations;
+        os << crée_monomorphisations;
 
         os << "\n";
         os << "\tint64_t nombre_noeuds() const;\n\n";
@@ -1643,14 +1643,14 @@ int main(int argc, char **argv)
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
-    if (lexeuse.possede_erreur()) {
+    if (lexeuse.possède_erreur()) {
         return 1;
     }
 
     auto syntaxeuse = SyntaxeuseADN(&fichier);
     syntaxeuse.analyse();
 
-    if (syntaxeuse.possede_erreur()) {
+    if (syntaxeuse.possède_erreur()) {
         return 1;
     }
 

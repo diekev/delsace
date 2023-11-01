@@ -282,33 +282,33 @@ struct Typeuse {
   public:
     Typeuse()
     {
-        auto type_chaine_statique = cree_type_nominal("kuri::chaine_statique", "chaine");
+        auto type_chaine_statique = crée_type_nominal("kuri::chaine_statique", "chaine");
         type_chaine_statique->identifiant = "chaine_statique";
-        auto type_chaine = cree_type_nominal("kuri::chaine", "chaine");
+        auto type_chaine = crée_type_nominal("kuri::chaine", "chaine");
         type_chaine->identifiant = "chaine";
-        cree_type_nominal("unsigned char", "n8");
-        cree_type_nominal("uint8_t", "n8");
-        cree_type_nominal("unsigned short", "n16");
-        cree_type_nominal("uint16_t", "n16");
-        cree_type_nominal("unsigned int", "n32");
-        cree_type_nominal("uint32_t", "n32");
-        cree_type_nominal("unsigned long", "n64");
-        cree_type_nominal("uint64_t", "n64");
-        cree_type_nominal("char", "z8");
-        cree_type_nominal("int8_t", "z8");
-        cree_type_nominal("short", "z16");
-        cree_type_nominal("int16_t", "z16");
-        cree_type_nominal("int", "z32");
-        cree_type_nominal("int32_t", "z32");
-        cree_type_nominal("long", "z64");
-        cree_type_nominal("int64_t", "z64");
-        cree_type_nominal("octet_t", "octet");
-        cree_type_nominal("r16", "r16");
-        cree_type_nominal("float", "r32");
-        cree_type_nominal("double", "r64");
-        cree_type_nominal("bool", "bool");
-        cree_type_nominal("Type", "InfoType");
-        m_type_rien = cree_type_nominal("void", "rien");
+        crée_type_nominal("unsigned char", "n8");
+        crée_type_nominal("uint8_t", "n8");
+        crée_type_nominal("unsigned short", "n16");
+        crée_type_nominal("uint16_t", "n16");
+        crée_type_nominal("unsigned int", "n32");
+        crée_type_nominal("uint32_t", "n32");
+        crée_type_nominal("unsigned long", "n64");
+        crée_type_nominal("uint64_t", "n64");
+        crée_type_nominal("char", "z8");
+        crée_type_nominal("int8_t", "z8");
+        crée_type_nominal("short", "z16");
+        crée_type_nominal("int16_t", "z16");
+        crée_type_nominal("int", "z32");
+        crée_type_nominal("int32_t", "z32");
+        crée_type_nominal("long", "z64");
+        crée_type_nominal("int64_t", "z64");
+        crée_type_nominal("octet_t", "octet");
+        crée_type_nominal("r16", "r16");
+        crée_type_nominal("float", "r32");
+        crée_type_nominal("double", "r64");
+        crée_type_nominal("bool", "bool");
+        crée_type_nominal("Type", "InfoType");
+        m_type_rien = crée_type_nominal("void", "rien");
     }
 
     EMPECHE_COPIE(Typeuse);
@@ -318,7 +318,7 @@ struct Typeuse {
         return m_type_rien;
     }
 
-    TypePointeur *cree_type_pointeur(Type *type_pointe)
+    TypePointeur *crée_type_pointeur(Type *type_pointe)
     {
         POUR_TABLEAU_PAGE (types_pointeurs) {
             if (it.type_pointe == type_pointe) {
@@ -331,7 +331,7 @@ struct Typeuse {
         return resultat;
     }
 
-    TypeTableau *cree_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
+    TypeTableau *crée_type_tableau(Type *type_pointe, bool compresse, bool synchrone)
     {
         POUR_TABLEAU_PAGE (types_tableaux) {
             if (it.type_pointe == type_pointe && compresse == it.est_compresse &&
@@ -347,12 +347,12 @@ struct Typeuse {
         return resultat;
     }
 
-    TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp)
+    TypeNominal *crée_type_nominal(kuri::chaine_statique nom_cpp)
     {
-        return cree_type_nominal(nom_cpp, nom_cpp);
+        return crée_type_nominal(nom_cpp, nom_cpp);
     }
 
-    TypeNominal *cree_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
+    TypeNominal *crée_type_nominal(kuri::chaine_statique nom_cpp, kuri::chaine_statique nom_kuri)
     {
         POUR_TABLEAU_PAGE (types_nominaux) {
             if (it.identifiant == nom_cpp) {
@@ -430,9 +430,9 @@ class ProteineStruct final : public Proteine {
 
     kuri::tableau<ProteineStruct *> m_proteines_derivees{};
 
-    bool m_possede_enfant = false;
-    bool m_possede_membre_a_copier = false;
-    bool m_possede_tableaux = false;
+    bool m_possède_enfant = false;
+    bool m_possède_membre_a_copier = false;
+    bool m_possède_tableaux = false;
 
     ProteineStruct *m_paire = nullptr;
 
@@ -455,9 +455,9 @@ class ProteineStruct final : public Proteine {
     void descend_de(ProteineStruct *proteine)
     {
         m_mere = proteine;
-        m_possede_tableaux |= m_mere->m_possede_tableaux;
-        m_possede_enfant |= m_mere->m_possede_enfant;
-        m_possede_membre_a_copier |= m_mere->m_possede_membre_a_copier;
+        m_possède_tableaux |= m_mere->m_possède_tableaux;
+        m_possède_enfant |= m_mere->m_possède_enfant;
+        m_possède_membre_a_copier |= m_mere->m_possède_membre_a_copier;
         m_mere->m_proteines_derivees.ajoute(this);
     }
 
@@ -537,14 +537,14 @@ class ProteineStruct final : public Proteine {
         return est_classe_de_base() && m_mere != nullptr;
     }
 
-    bool possede_enfants() const
+    bool possède_enfants() const
     {
-        return m_possede_enfant;
+        return m_possède_enfant;
     }
 
-    bool possede_membre_a_copier() const
+    bool possède_membre_a_copier() const
     {
-        return m_possede_membre_a_copier;
+        return m_possède_membre_a_copier;
     }
 
     const kuri::tableau<ProteineStruct *> &derivees() const
@@ -557,9 +557,9 @@ class ProteineStruct final : public Proteine {
         return m_membres;
     }
 
-    bool possede_tableau() const
+    bool possède_tableau() const
     {
-        return m_possede_tableaux;
+        return m_possède_tableaux;
     }
 
     void mute_enum_discriminante(ProteineEnum *enum_discriminante)
@@ -723,7 +723,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
     ~SyntaxeuseADN() override;
 
     template <typename T>
-    T *cree_proteine(IdentifiantADN nom)
+    T *crée_proteine(IdentifiantADN nom)
     {
         auto proteine = new T(nom);
         proteines.ajoute(proteine);

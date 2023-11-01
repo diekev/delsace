@@ -79,14 +79,14 @@ int main(int argc, const char **argv)
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
 
-    if (lexeuse.possede_erreur()) {
+    if (lexeuse.possède_erreur()) {
         return 1;
     }
 
     auto syntaxeuse = SyntaxeuseADN(&fichier);
     syntaxeuse.analyse();
 
-    if (syntaxeuse.possede_erreur()) {
+    if (syntaxeuse.possède_erreur()) {
         return 1;
     }
 

@@ -79,7 +79,7 @@ bool UniteCompilation::est_bloquée() const
 
     auto attendue = unité_pour_attente(*attente_bloquée);
     while (attendue) {
-        if (visitees.possede(attendue)) {
+        if (visitees.possède(attendue)) {
             /* La dépendance cyclique sera rapportée via le message d'erreur qui appelera
              * « chaine_attente_recursive() ». */
             return true;

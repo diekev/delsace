@@ -580,7 +580,7 @@ class tablet {
 };
 
 template <typename T, size_t N, typename... Ts>
-auto cree_tablet(T arg, Ts &&...args)
+auto crée_tablet(T arg, Ts &&...args)
 {
     tablet<T, N> resultat;
     resultat.reserve(1 + static_cast<int64_t>(sizeof...(Ts)));

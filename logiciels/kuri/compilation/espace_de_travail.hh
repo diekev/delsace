@@ -58,7 +58,7 @@ struct EspaceDeTravail {
 
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
-    mutable std::atomic<bool> possede_erreur{false};
+    mutable std::atomic<bool> possède_erreur{false};
 
     Compilatrice &m_compilatrice;
 

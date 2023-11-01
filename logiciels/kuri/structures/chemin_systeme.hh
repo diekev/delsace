@@ -126,7 +126,7 @@ struct chemin_systeme {
     /**
      * Crée tous les dossiers du chemin spécifié.
      */
-    static void cree_dossiers(chaine_statique chemin);
+    static void crée_dossiers(chaine_statique chemin);
 
     /**
      * Retourne un tableau contenant les chemins des fichiers .kuri du dossier pointé par chemin.

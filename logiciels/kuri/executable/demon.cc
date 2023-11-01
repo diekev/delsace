@@ -128,7 +128,7 @@ class Guetteuse {
   public:
     void ajoute(int fd, const kuri::chemin_systeme &chemin)
     {
-        if (possede(fd)) {
+        if (possède(fd)) {
             return;
         }
 
@@ -138,14 +138,14 @@ class Guetteuse {
         table_desc_fichiers.insère(kuri::chaine(chemin), fd);
     }
 
-    bool possede(const kuri::chemin_systeme &chemin)
+    bool possède(const kuri::chemin_systeme &chemin)
     {
-        return table_desc_fichiers.possede(kuri::chaine(chemin));
+        return table_desc_fichiers.possède(kuri::chaine(chemin));
     }
 
-    bool possede(int fd)
+    bool possède(int fd)
     {
-        return table_chemin_fichiers.possede(fd);
+        return table_chemin_fichiers.possède(fd);
     }
 };
 
@@ -195,7 +195,7 @@ static void rafraichis_liste_fichiers_utilises(int fd,
             continue;
         }
 
-        if (guetteuse.possede(chemin)) {
+        if (guetteuse.possède(chemin)) {
             continue;
         }
 
@@ -223,11 +223,11 @@ int main(int argc, char **argv)
     auto donnees_commande_kuri = DonneesCommandeKuri{fichier_racine_compilation,
                                                      nom_fichier_fichier_utilises};
 
-    auto cree_exetron = [&]() {
+    auto crée_exetron = [&]() {
         return new std::thread(lance_application, &donnees_commande_kuri);
     };
 
-    auto exetron = cree_exetron();
+    auto exetron = crée_exetron();
 
     // std::cerr << "Initialisation de inotify...\n";
     const auto fd = inotify_init();
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
             break;
         }
 
-        exetron = cree_exetron();
+        exetron = crée_exetron();
     }
 
     close(fd);

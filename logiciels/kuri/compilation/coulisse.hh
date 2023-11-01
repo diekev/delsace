@@ -19,9 +19,9 @@ struct Coulisse {
 
     virtual ~Coulisse();
 
-    static Coulisse *cree_pour_options(OptionsDeCompilation options);
+    static Coulisse *crée_pour_options(OptionsDeCompilation options);
 
-    static Coulisse *cree_pour_metaprogramme();
+    static Coulisse *crée_pour_metaprogramme();
 
     static void detruit(Coulisse *coulisse);
 

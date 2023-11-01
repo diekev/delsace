@@ -1,0 +1,151 @@
+/* ------------------------------------------------------------------------- */
+/** \name Additions
+ * \{ */
+
+/* Spécifique à la machine. */
+(remplace (ajt a 1) (inc a))
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Multiplications
+ * \{ */
+
+/* Spécifique à la machine. */
+(remplace (mul a 2) (ajt a a))
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Divisions
+ * \{ */
+
+/* Granlund & Montgomery (1994)
+ * Algorithme général : https://gmplib.org/~tege/divcnst-pldi94.pdf */
+(remplace
+    (div n 5)
+    (ddl (mul n 3435973837) 34)
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Soustractions
+ * \{ */
+
+/* x - 0 => x */
+(remplace (sst x 0) (x))
+
+/* x - x => 0 */
+(remplace (sst x x) (0))
+
+/* x + x - x => x */
+(remplace (sst (ajt x x) x) (x))
+
+/* x * 2 - x => x */
+(remplace (sst (mul x 2) x) (x))
+
+/* x * N - x => x * (N - 1)
+ * N: constante */
+(remplace (sst (mul x @N) x) (mul x %(N - 1)))
+
+/* (x + -1) - y => ~y + x */
+(remplace (sst (ajt x -1) y) (ajt x (not y)))
+(remplace (sst (sst x  1) y) (ajt x (not y)))
+
+/* Spécifique à la machine. */
+(remplace (sst a 1) (inc a))
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Jonctions binaires.
+ * \{ */
+
+/* (( x | y) & c1 ) | (y & c2) -> x & c1 (si c1 est complément binaire de c2) */
+(remplace
+    (ou
+        (et (ou x y) @C1)
+        (et y @C2)
+    )
+    (et x @C1)
+    si @C1 == ~@C2
+)
+
+/* a ^ b ^ a -> b */
+(remplace (xor a (xor b a)) (b))
+
+/* (a ^ b) | a */
+(remplace (or (xor a b) a) (or a b))
+
+/** \} */
+
+/*
+
+Idées
+
+    %0 alloue z32 cible
+    %1 alloue z32 variable
+    %2 charge z32 %1
+    %3 alloue z64 temporaire_pour_transtypage
+    %4 transtype (1) %2 vers z64
+    %5 stocke *z64 %3, z64 %4
+    %6 charge z64 %3
+    %7 transtype (4) %6 vers z32
+    %8 stocke *z32 %0, z32 %7
+
+    doit devenir
+
+    %0 alloue z32 cible
+    %1 alloue z32 variable
+    %2 charge z32 %1
+    %3 stocke *z32 %2
+
+(multi
+    (stocke %a (transtype %b))
+    (stocke %cible (transtype (charge %a))
+    remplace si type(%b) == type(%cible)
+        (stocke %cible %b)
+)
+
+((op constante constante) évalue)
+
+
+si (cond) goto label1; else goto label2;
+
+label1:
+    val = 1
+    goto label3
+
+label2
+    val = 0
+    goto label3
+
+label3
+    si (val) goto label4; else goto label5;
+
+remplace par
+
+    si (cond) goto label4; else goto label5;
+
+
+  si %116 alors %121 sinon %124
+Bloc 9  [8] [11]
+  stocke *bool %91, bool 1
+  branche %126
+Bloc 10  [0, 7, 8] [11]
+  stocke *bool %91, bool 0
+  branche %126
+Bloc 11  [9, 10] [1, 2]
+  charge bool %91
+  si %127 alors %138 sinon %143
+Bloc 1  [11] []
+  retourne z32 1
+Bloc 2  [11] []
+  retourne z32 0
+
+remplace par
+
+  si %116 alors %138 sinon %143
+
+*/

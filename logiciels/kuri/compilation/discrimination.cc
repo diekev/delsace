@@ -29,7 +29,7 @@ static ResultatValidation valide_présence_membre(
             continue;
         }
 
-        if (membres_rencontrés.possede(it.nom)) {
+        if (membres_rencontrés.possède(it.nom)) {
             continue;
         }
 
@@ -91,7 +91,7 @@ ResultatValidation ContexteValidationCode::valide_discr_énum(NoeudDiscr *inst, 
                 return CodeRetourValidation::Erreur;
             }
 
-            if (membres_rencontrés.possede(membre.nom)) {
+            if (membres_rencontrés.possède(membre.nom)) {
                 rapporte_erreur("Redéfinition de l'expression", f);
                 return CodeRetourValidation::Erreur;
             }
@@ -202,13 +202,13 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     /* L'initialisation est une extraction de la valeur de l'union.
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
-    auto initialation_déclaration = assembleuse->cree_comme(param->lexeme);
+    auto initialation_déclaration = assembleuse->crée_comme(param->lexeme);
     initialation_déclaration->expression = expression;
     initialation_déclaration->type = type_membre;
     initialation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
 
-    auto déclaration_pour_expression = assembleuse->cree_declaration_variable(
+    auto déclaration_pour_expression = assembleuse->crée_declaration_variable(
         param->comme_reference_declaration(), initialation_déclaration);
     déclaration_pour_expression->bloc_parent = bloc_insertion;
     déclaration_pour_expression->type = type_membre;
@@ -281,7 +281,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontrés.possede(membre.nom)) {
+        if (membres_rencontrés.possède(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
@@ -381,7 +381,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontrés.possede(membre.nom)) {
+        if (membres_rencontrés.possède(membre.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }

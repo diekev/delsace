@@ -86,7 +86,7 @@ struct ensemblon {
 
     void insere(T const &valeur)
     {
-        if (possede(valeur)) {
+        if (possède(valeur)) {
             return;
         }
 
@@ -106,7 +106,7 @@ struct ensemblon {
         m_taille += 1;
     }
 
-    bool possede(T const &valeur) const
+    bool possède(T const &valeur) const
     {
         if (est_stocké_dans_classe()) {
             for (auto i = 0; i < taille(); ++i) {

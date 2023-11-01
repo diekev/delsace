@@ -107,9 +107,9 @@ struct Profileuse {
 
     void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
 
-    void cree_rapports(FormatRapportProfilage format);
+    void crée_rapports(FormatRapportProfilage format);
 
-    void cree_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
+    void crée_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
 };
 
 struct MachineVirtuelle {

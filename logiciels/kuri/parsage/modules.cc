@@ -75,7 +75,7 @@ Module *SystèmeModule::module(const IdentifiantCode *nom) const
     return nullptr;
 }
 
-ResultatFichier SystèmeModule::trouve_ou_cree_fichier(Module *module,
+ResultatFichier SystèmeModule::trouve_ou_crée_fichier(Module *module,
                                                       kuri::chaine_statique nom,
                                                       kuri::chaine_statique chemin)
 {
