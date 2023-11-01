@@ -998,64 +998,6 @@ bool supprime_code_mort(kuri::tableau<Bloc *, int> &blocs)
     return code_mort_supprime;
 }
 
-static bool elimine_branches_inutiles(kuri::tableau<Bloc *, int> &blocs)
-{
-    auto branche_eliminee = false;
-
-    for (auto i = 0; i < blocs.taille(); ++i) {
-        auto bloc = blocs[i];
-
-        if (bloc->instructions.est_vide()) {
-            continue;
-        }
-
-        auto inst = bloc->instructions.dernière();
-
-        if (bloc->instructions.taille() == 1 && inst->est_branche()) {
-            auto enfant = bloc->enfants[0];
-
-            POUR (bloc->enfants) {
-                it->enlève_parent(bloc);
-            }
-
-            // remplace les enfants dans les parents
-            POUR (bloc->parents) {
-                it->remplace_enfant(bloc, enfant);
-            }
-
-            bloc->instructions.efface();
-            branche_eliminee = true;
-            continue;
-        }
-
-        if (inst->est_branche()) {
-            log(std::cerr, "Vérifie si l'on peut fusionner l'enfant du bloc : ", bloc->label->id);
-            if (bloc->peut_fusionner_enfant()) {
-                auto enfant = bloc->enfants[0];
-                bloc->fusionne_enfant(enfant);
-                branche_eliminee = true;
-
-                /* regère ce bloc */
-                --i;
-            }
-        }
-        else if (inst->est_branche_cond()) {
-            auto branche = inst->comme_branche_cond();
-
-            if (branche->label_si_faux == branche->label_si_vrai) {
-                auto enfant = bloc->enfants[0];
-                bloc->fusionne_enfant(enfant);
-                branche_eliminee = true;
-
-                /* regère ce bloc */
-                --i;
-            }
-        }
-    }
-
-    return branche_eliminee;
-}
-
 static int analyse_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     int drapeaux = 0;
@@ -1196,7 +1138,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
         }
 
         // if ((drapeaux & REQUIERS_CORRECTION_BLOCS) == REQUIERS_CORRECTION_BLOCS) {
-        travail_effectue |= elimine_branches_inutiles(blocs);
+        // travail_effectue |= elimine_branches_inutiles(blocs);
         // drapeaux &= REQUIERS_CORRECTION_BLOCS;
         //}
 
