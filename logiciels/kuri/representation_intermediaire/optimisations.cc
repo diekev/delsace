@@ -1390,26 +1390,6 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
     }
 }
 
-static void transfere_instructions_blocs(kuri::tableau<Bloc *, int> const &blocs,
-                                         AtomeFonction *atome_fonc)
-{
-    auto nombre_instructions = 0;
-    POUR (blocs) {
-        nombre_instructions += 1 + it->instructions.taille();
-    }
-
-    atome_fonc->instructions.efface();
-    atome_fonc->instructions.reserve(nombre_instructions);
-
-    POUR (blocs) {
-        atome_fonc->instructions.ajoute(it->label);
-
-        for (auto inst : it->instructions) {
-            atome_fonc->instructions.ajoute(inst);
-        }
-    }
-}
-
 void optimise_code(EspaceDeTravail &espace,
                    ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc)
@@ -1430,7 +1410,7 @@ void optimise_code(EspaceDeTravail &espace,
 
     performe_passes_optimisation(fonction_et_blocs.blocs);
 
-    transfere_instructions_blocs(fonction_et_blocs.blocs, atome_fonc);
+    transfère_instructions_blocs_à_fonction(fonction_et_blocs.blocs, atome_fonc);
 
     desactive_log();
 }
