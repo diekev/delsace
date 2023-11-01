@@ -679,7 +679,7 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
         }
 
         auto decl_var = decl_alloc->comme_declaration_variable();
-        if (!possede_annotation(decl_var, "inutilisée")) {
+        if (!possède_annotation(decl_var, "inutilisée")) {
             allocs_inutilisees.ajoute(alloc);
         }
     }
@@ -733,7 +733,7 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
     }
 
 #    if 1
-    //    if (!decl || !decl->possede_drapeau(DEBOGUE)) {
+    //    if (!decl || !decl->possède_drapeau(DEBOGUE)) {
     //        return true;
     //    }
 
@@ -853,13 +853,37 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
  * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
  * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
  * branche est supprimée.
+ * Remplace les branches conditionnelles dont les cibles sont le même bloc par une branche
+ * inconditionnelle.
  */
 void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlocs &visiteuse)
 {
     auto bloc_modifié = false;
 
-    POUR (fonction_et_blocs.blocs) {
+    for (auto i = 0; i < fonction_et_blocs.blocs.taille(); ++i) {
+        auto it = fonction_et_blocs.blocs[i];
+
+        if (it->instructions.est_vide()) {
+            /* Le bloc fut fusionné ici. */
+            continue;
+        }
+
         auto di = it->instructions.dernière();
+
+        if (di->est_branche_cond()) {
+            auto branche = di->comme_branche_cond();
+            if (branche->label_si_faux == branche->label_si_vrai) {
+                /* Remplace par une branche.
+                 * À FAIRE : crée une instruction. */
+                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
+                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->label = branche->label_si_faux;
+                bloc_modifié = true;
+            }
+
+            continue;
+        }
+
         if (!di->est_branche()) {
             continue;
         }
@@ -870,6 +894,11 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
         }
 
         it->fusionne_enfant(bloc_enfant);
+        bloc_enfant->instructions.efface();
+        /* Regère ce bloc au cas où le nouvelle enfant serait également une branche. */
+        if (it->instructions.dernière()->est_branche()) {
+            i -= 1;
+        }
         bloc_modifié = true;
     }
 
@@ -1060,7 +1089,7 @@ static void rapporte_erreur_stockage_invalide(
     }
 }
 
-/* Essaie de détecter si nous retournons une adresse locale, qui serait invalide après le retour de
+/* Essaie de détecter si nous retournons une adresse locale, qui sera invalide après le retour de
  * la fonction.
  * À FAIRE : tests
  * - adresses dans des tableaux ou structures mixtes étant retournés
@@ -1070,7 +1099,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 {
     /* La fonction de création de contexte prend des adresses locales, mais elle n'est pas une
      * vraie fonction. */
-    if (fonction.decl && fonction.decl->ident == ID::cree_contexte) {
+    if (fonction.decl && fonction.decl->ident == ID::crée_contexte) {
         return true;
     }
 
@@ -1083,7 +1112,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     }
 
     /* Afin de différencier l'adresse d'une variable de celle de son contenu, ceci stocke pour
-     * chaque instruction la source de l'adresse pointé par la variable. */
+     * chaque instruction la source de l'adresse pointée par la variable. */
     kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
 
     for (auto i = 0; i < fonction.params_entrees.taille(); i++) {
@@ -1190,7 +1219,7 @@ void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
 {
     connexions.ajoute({a, b, index_bloc});
 
-    if (connexions_pour_inst.possede(a)) {
+    if (connexions_pour_inst.possède(a)) {
         auto &idx = connexions_pour_inst.trouve_ref(a);
         idx.ajoute(static_cast<int>(connexions.taille() - 1));
     }
@@ -1564,6 +1593,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
         return;
     }
 #endif
+
+    if (atome->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+        imprime_fonction(atome, std::cerr);
+    }
 }
 
 void ContexteAnalyseRI::reinitialise()

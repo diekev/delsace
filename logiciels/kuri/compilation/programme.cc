@@ -32,25 +32,25 @@ Programme *Programme::cree(EspaceDeTravail *espace)
     return resultat;
 }
 
-Programme *Programme::cree_pour_espace(EspaceDeTravail *espace)
+Programme *Programme::crée_pour_espace(EspaceDeTravail *espace)
 {
     auto resultat = Programme::cree(espace);
-    resultat->m_coulisse = Coulisse::cree_pour_options(espace->options);
+    resultat->m_coulisse = Coulisse::crée_pour_options(espace->options);
     return resultat;
 }
 
-Programme *Programme::cree_pour_metaprogramme(EspaceDeTravail *espace,
+Programme *Programme::crée_pour_metaprogramme(EspaceDeTravail *espace,
                                               MetaProgramme *metaprogramme)
 {
     Programme *resultat = Programme::cree(espace);
     resultat->m_pour_metaprogramme = metaprogramme;
-    resultat->m_coulisse = Coulisse::cree_pour_metaprogramme();
+    resultat->m_coulisse = Coulisse::crée_pour_metaprogramme();
     return resultat;
 }
 
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 {
-    if (possede(fonction)) {
+    if (possède(fonction)) {
         return;
     }
     m_fonctions.ajoute(fonction);
@@ -58,11 +58,11 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
     ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexeme->fichier));
     elements_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     elements_sont_sales[FONCTIONS][POUR_RI] = true;
-    if (fonction->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(fonction);
     }
     if (pour_métaprogramme()) {
-        if (fonction->possede_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
+        if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
             if (fonction->ident == ID::compilatrice_commence_interception) {
                 pour_métaprogramme()->comportement |=
                     ComportementMétaprogramme::COMMENCE_INTERCEPTION;
@@ -85,7 +85,7 @@ void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 
 void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
 {
-    if (possede(globale)) {
+    if (possède(globale)) {
         return;
     }
     m_globales.ajoute(globale);
@@ -93,14 +93,14 @@ void Programme::ajoute_globale(NoeudDeclarationVariable *globale)
     ajoute_fichier(m_espace->compilatrice().fichier(globale->lexeme->fichier));
     elements_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     elements_sont_sales[GLOBALES][POUR_RI] = true;
-    if (globale->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (globale->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(globale);
     }
 }
 
 void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud)
 {
-    if (possede(type)) {
+    if (possède(type)) {
         return;
     }
     m_types.ajoute(type);
@@ -129,7 +129,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 #endif
 
     auto decl = decl_pour_type(type);
-    if (decl && decl->possede_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
+    if (decl && decl->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
         m_dépendances_manquantes.insère(decl);
     }
 }
@@ -138,13 +138,13 @@ bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) con
 {
     if (elements_sont_sales[FONCTIONS][POUR_TYPAGE]) {
         POUR (m_fonctions) {
-            if (!it->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+            if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
             }
 
-            if (!it->possede_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
-                !it->corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+            if (!it->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+                !it->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
             }
@@ -154,7 +154,7 @@ bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) con
 
     if (elements_sont_sales[GLOBALES][POUR_TYPAGE]) {
         POUR (m_globales) {
-            if (!it->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+            if (!it->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 diagnostique.déclaration_à_valider = it;
                 return false;
             }
@@ -186,7 +186,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
 
     if (elements_sont_sales[FONCTIONS][POUR_RI]) {
         POUR (m_fonctions) {
-            if (!it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
+            if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
                 !est_element(it->ident,
                              ID::init_execution_kuri,
                              ID::fini_execution_kuri,
@@ -204,7 +204,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
 
     if (elements_sont_sales[GLOBALES][POUR_RI]) {
         POUR (m_globales) {
-            if (!it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+            if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
             }
@@ -224,7 +224,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
             }
 
             if (it->fonction_init &&
-                !it->fonction_init->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
+                !it->fonction_init->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
                 diagnostique.ri_type_à_générer = it;
                 return false;
             }
@@ -305,7 +305,7 @@ void Programme::ajourne_pour_nouvelles_options_espace()
 {
     /* Recrée la coulisse. */
     Coulisse::detruit(m_coulisse);
-    m_coulisse = Coulisse::cree_pour_options(espace()->options);
+    m_coulisse = Coulisse::crée_pour_options(espace()->options);
 
     auto index = 0;
     POUR (m_fonctions) {
@@ -383,12 +383,12 @@ void Programme::ajoute_racine(NoeudDeclarationEnteteFonction *racine)
     if (pour_métaprogramme()) {
         /* Pour les métaprogrammes, nous n'ajoutons que les racines pour la création de
          * l'exécutable. */
-        if (racine->ident == ID::cree_contexte) {
+        if (racine->ident == ID::crée_contexte) {
             ajoute_fonction(racine);
         }
     }
     else {
-        if (racine->ident != ID::cree_contexte) {
+        if (racine->ident != ID::crée_contexte) {
             ajoute_fonction(racine);
         }
     }
@@ -432,14 +432,14 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
         return;
     }
 
-    if (!déclaration->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (!déclaration->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         os << "-- validation non performée pour l'entête " << nom_humainement_lisible(déclaration)
            << '\n';
         return;
     }
 
     auto corps = déclaration->comme_entete_fonction();
-    if (corps->possede_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+    if (corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
          * drapeau... */
         os << "-- erreur : le corps et l'entête de " << nom_humainement_lisible(déclaration)
@@ -815,7 +815,7 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
 
     /* Extrait les atomes pour les fonctions. */
     POUR (programme.fonctions()) {
-        assert_rappel(it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
+        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(*programme.espace(), it);
         });
@@ -828,7 +828,7 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
 
     /* Extrait les atomes pour les globales. */
     POUR (programme.globales()) {
-        assert_rappel(it->possede_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
+        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
             erreur::imprime_site(*programme.espace(), it);
         });
