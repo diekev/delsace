@@ -70,7 +70,7 @@ bool DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
     }
 
 #ifdef UTILISE_NOTRE_TABLE
-    if (table_allocations.possede(ptr)) {
+    if (table_allocations.possède(ptr)) {
         table_allocations.efface(ptr);
         return true;
     }
@@ -680,7 +680,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
         auto espace = depile<EspaceDeTravail *>(site);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        empile(site, compilatrice.possede_erreur(espace));
+        empile(site, compilatrice.possède_erreur(espace));
         return;
     }
 
@@ -821,7 +821,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     auto pointeurs_arguments = kuri::tablet<void *, 12>();
     auto decalage_argument = 0u;
 
-    if (ptr_fonction->decl->possede_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
+    if (ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
         auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrees.taille() -
                                                             1);
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
@@ -981,7 +981,7 @@ void MachineVirtuelle::desinstalle_metaprogramme(MetaProgramme *metaprogramme,
     de->profondeur_appel = profondeur_appel;
     de->pointeur_pile = pointeur_pile;
 
-    assert(intervalle_adresses_pile_execution.possede_inclusif(de->pointeur_pile));
+    assert(intervalle_adresses_pile_execution.possède_inclusif(de->pointeur_pile));
 
     profondeur_appel = 0;
     pile = nullptr;
@@ -1483,7 +1483,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
-                if (ptr_fonction->decl && ptr_fonction->decl->possede_drapeau(
+                if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     auto resultat = ResultatInterpretation::OK;
                     appel_fonction_compilatrice(ptr_fonction, site, resultat);
@@ -1735,8 +1735,8 @@ bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
 
 bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
 {
-    return intervalle_adresses_globales.possede_inclusif(adresse) ||
-           intervalle_adresses_pile_execution.possede_inclusif(adresse);
+    return intervalle_adresses_globales.possède_inclusif(adresse) ||
+           intervalle_adresses_pile_execution.possède_inclusif(adresse);
 }
 
 MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
@@ -1826,7 +1826,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
         desinstalle_metaprogramme(métaprogramme, compte_executees);
 
-        if (stop || compilatrice.possede_erreur()) {
+        if (stop || compilatrice.possède_erreur()) {
             break;
         }
     }
@@ -1867,7 +1867,7 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.instructions_executees += instructions_executees;
 
     if (compilatrice.arguments.profile_metaprogrammes) {
-        profileuse.cree_rapports(compilatrice.arguments.format_rapport_profilage);
+        profileuse.crée_rapports(compilatrice.arguments.format_rapport_profilage);
     }
 }
 
@@ -1930,10 +1930,10 @@ void Profileuse::ajoute_echantillon(MetaProgramme *metaprogramme, int poids)
     informations.echantillons.ajoute(echantillon);
 }
 
-void Profileuse::cree_rapports(FormatRapportProfilage format)
+void Profileuse::crée_rapports(FormatRapportProfilage format)
 {
     POUR (informations_pour_metaprogrammes) {
-        cree_rapport(it, format);
+        crée_rapport(it, format);
     }
 }
 
@@ -1947,7 +1947,7 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os
     }
 }
 
-static void cree_rapport_format_echantillons_total_plus_fonction(
+static void crée_rapport_format_echantillons_total_plus_fonction(
     const InformationProfilage &informations, std::ostream &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
@@ -1982,7 +1982,7 @@ static void cree_rapport_format_echantillons_total_plus_fonction(
     }
 }
 
-static void cree_rapport_format_brendan_gregg(const InformationProfilage &informations,
+static void crée_rapport_format_brendan_gregg(const InformationProfilage &informations,
                                               std::ostream &os)
 {
     POUR (informations.echantillons) {
@@ -2003,7 +2003,7 @@ static void cree_rapport_format_brendan_gregg(const InformationProfilage &inform
     }
 }
 
-void Profileuse::cree_rapport(const InformationProfilage &informations,
+void Profileuse::crée_rapport(const InformationProfilage &informations,
                               FormatRapportProfilage format)
 {
     auto nom_base_fichier = enchaine("métaprogramme", informations.metaprogramme, ".txt");
@@ -2014,12 +2014,12 @@ void Profileuse::cree_rapport(const InformationProfilage &informations,
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
         {
-            cree_rapport_format_echantillons_total_plus_fonction(informations, os);
+            crée_rapport_format_echantillons_total_plus_fonction(informations, os);
             break;
         }
         case FormatRapportProfilage::BRENDAN_GREGG:
         {
-            cree_rapport_format_brendan_gregg(informations, os);
+            crée_rapport_format_brendan_gregg(informations, os);
             break;
         }
     }
