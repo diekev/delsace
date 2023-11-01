@@ -9,7 +9,7 @@ struct Intervalle {
     T max{};
 
     template <typename T1>
-    bool possede_inclusif(T1 valeur)
+    bool possède_inclusif(T1 valeur)
     {
         return valeur >= min && valeur <= max;
     }

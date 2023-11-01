@@ -34,13 +34,13 @@ static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *no
 {
     /* Détecte les paramètres polymorphiques (p.e. $Type: type_de_données), qui ne doivent
      * pas être ignorés. */
-    if (noeud->possede_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                DrapeauxNoeud::EST_CONSTANTE)) {
         return false;
     }
 
-    if (noeud->possede_drapeau(DrapeauxNoeud::EST_LOCALE) ||
-        noeud->possede_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_LOCALE) ||
+        noeud->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
         return true;
     }
 
@@ -164,7 +164,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
-    if (!modules_visites.possede(fichier->module)) {
+    if (!modules_visites.possède(fichier->module)) {
         trouve_declarations_dans_bloc(declarations, bloc, ident);
     }
 
@@ -172,7 +172,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDeclaration *, 10
 
     /* cherche dans les modules importés */
     pour_chaque_element(fichier->modules_importés, [&](auto &module) {
-        if (modules_visites.possede(module)) {
+        if (modules_visites.possède(module)) {
             return kuri::DécisionItération::Continue;
         }
         modules_visites.insere(module);

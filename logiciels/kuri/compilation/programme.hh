@@ -161,9 +161,9 @@ struct Programme {
 
     static Programme *cree(EspaceDeTravail *espace);
 
-    static Programme *cree_pour_espace(EspaceDeTravail *espace);
+    static Programme *crée_pour_espace(EspaceDeTravail *espace);
 
-    static Programme *cree_pour_metaprogramme(EspaceDeTravail *espace,
+    static Programme *crée_pour_metaprogramme(EspaceDeTravail *espace,
                                               MetaProgramme *metaprogramme);
 
     void change_d_espace(EspaceDeTravail *espace_)
@@ -179,17 +179,17 @@ struct Programme {
 
     void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
 
-    bool possede(NoeudDeclarationEnteteFonction *fonction) const
+    bool possède(NoeudDeclarationEnteteFonction *fonction) const
     {
         return m_fonctions_utilisees.possède(fonction);
     }
 
-    bool possede(NoeudDeclarationVariable *globale) const
+    bool possède(NoeudDeclarationVariable *globale) const
     {
         return m_globales_utilisees.possède(globale);
     }
 
-    bool possede(Type *type) const
+    bool possède(Type *type) const
     {
         return m_types_utilises.possède(type);
     }
