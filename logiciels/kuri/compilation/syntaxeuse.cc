@@ -2500,6 +2500,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                     else if (ident_cliché == ID::ri) {
                         drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS;
                     }
+                    else if (ident_cliché == ID::ri_finale) {
+                        drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS;
+                    }
                     else if (ident_cliché == ID::inst_mv) {
                         drapeaux_fonction |= DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS;
                     }

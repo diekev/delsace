@@ -1258,6 +1258,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
         return;
     }
 #endif
+
+    if (atome->decl->possede_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+        imprime_fonction(atome, std::cerr);
+    }
 }
 
 void ContexteAnalyseRI::reinitialise()
