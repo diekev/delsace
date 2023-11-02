@@ -1,6 +1,7 @@
 // Fonctions de manipulation de chaines.
 
 importe Algorithmes
+importe Compilatrice
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)
@@ -649,34 +650,54 @@ trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64
     retourne -1
 }
 
+/** 
+ * Retourne l'index de la première occurence de `c` dans `chn` ou -1 si le
+ * caractère est introuvable.
+ * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
+ * donc l'index retourné est l'index de l'octet du caractère dans la chaine
+ * d'octets.
+ */
 trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
 {
-    début : z64 = 0
-
-    tantque début < chn.taille {
-        si chn[début] == c {
-            arrête
+    pour chn {
+        si it == c {
+            retourne index_it
         }
-
-        début += 1
     }
-
-    retourne début
+    retourne -1
 }
 
+/** 
+ * Retourne l'index de la dernière occurence de `c` dans `chn` ou -1 si le
+ * caractère est introuvable.
+ * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
+ * donc l'index retourné est l'index de l'octet du caractère dans la chaine
+ * d'octets.
+ */
 trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
 {
-    début := chn.taille - 1
-
-    tantque début > 0 {
-        si chn[début] == c {
-            arrête
+    pour > chn {
+        si it == c {
+            retourne chn.taille - index_it - 1
         }
-
-        début -= 1
     }
+    retourne -1
+}
 
-    retourne début
+/* Tests pour la recherche de caractères. */
+#test {
+    /* Avec accents. */
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kévin", 'n'), 5)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kévin", 'a'), -1)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'n'), 5)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'k'), 0)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'a'), -1)
+    /* Sans accents. */
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kevin", 'n'), 4)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kevin", 'a'), -1)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'n'), 4)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'k'), 0)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'a'), -1)
 }
 
 trouve_position_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
