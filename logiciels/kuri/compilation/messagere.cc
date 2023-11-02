@@ -8,9 +8,9 @@
 #include "espace_de_travail.hh"
 #include "unite_compilation.hh"
 
-void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
+void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return;
     }
 
@@ -22,9 +22,9 @@ void Messagere::ajoute_message_fichier_ouvert(EspaceDeTravail *espace, const kur
     envoie_message(message);
 }
 
-void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri::chaine &chemin)
+void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, const kuri::chaine &chemin)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return;
     }
 
@@ -36,9 +36,9 @@ void Messagere::ajoute_message_fichier_ferme(EspaceDeTravail *espace, const kuri
     envoie_message(message);
 }
 
-void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module)
+void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return;
     }
 
@@ -51,9 +51,9 @@ void Messagere::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *mo
     envoie_message(message);
 }
 
-void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *module)
+void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return;
     }
 
@@ -66,9 +66,9 @@ void Messagere::ajoute_message_module_ferme(EspaceDeTravail *espace, Module *mod
     envoie_message(message);
 }
 
-Message *Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
+Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return nullptr;
     }
 
@@ -81,15 +81,15 @@ Message *Messagere::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExp
     return message;
 }
 
-void Messagere::envoie_message(Message *message)
+void Messagère::envoie_message(Message *message)
 {
     file_message.enfile(message);
     pic_de_message = std::max(file_message.taille(), pic_de_message);
 }
 
-Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
+Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return nullptr;
     }
 
@@ -103,38 +103,38 @@ Message *Messagere::ajoute_message_phase_compilation(EspaceDeTravail *espace)
     return message;
 }
 
-int64_t Messagere::memoire_utilisee() const
+int64_t Messagère::mémoire_utilisée() const
 {
-    auto memoire = int64_t(0);
-    memoire += messages_fichiers.memoire_utilisee();
-    memoire += messages_modules.memoire_utilisee();
-    memoire += messages_typage_code.memoire_utilisee();
-    memoire += messages_phase_compilation.memoire_utilisee();
-    memoire += pic_de_message * taille_de(void *);
-    return memoire;
+    auto résultat = int64_t(0);
+    résultat += messages_fichiers.memoire_utilisee();
+    résultat += messages_modules.memoire_utilisee();
+    résultat += messages_typage_code.memoire_utilisee();
+    résultat += messages_phase_compilation.memoire_utilisee();
+    résultat += pic_de_message * taille_de(void *);
+    return résultat;
 }
 
-Message const *Messagere::defile()
+Message const *Messagère::defile()
 {
-    if (!interception_commencee) {
+    if (!interception_commencée) {
         return nullptr;
     }
 
     return file_message.defile();
 }
 
-void Messagere::commence_interception(EspaceDeTravail * /*espace*/)
+void Messagère::commence_interception(EspaceDeTravail * /*espace*/)
 {
-    interception_commencee = true;
+    interception_commencée = true;
 }
 
-void Messagere::termine_interception(EspaceDeTravail * /*espace*/)
+void Messagère::termine_interception(EspaceDeTravail * /*espace*/)
 {
-    interception_commencee = false;
+    interception_commencée = false;
     purge_messages();
 }
 
-void Messagere::purge_messages()
+void Messagère::purge_messages()
 {
     POUR (file_message) {
         const_cast<Message *>(it)->message_recu = true;

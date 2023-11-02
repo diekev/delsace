@@ -366,8 +366,6 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression *site_,
     auto type_pointeur = m_compilatrice.typeuse.type_pointeur_pour(const_cast<Type *>(type),
                                                                    false);
     auto inst = insts_allocation.ajoute_element(site_, type_pointeur, ident);
-    inst->decalage_pile = taille_allouee;
-    taille_allouee += (type == nullptr) ? 8 : static_cast<int>(type->taille_octet);
 
     /* Nous utilisons pour l'instant crée_allocation pour les paramètres des
      * fonctions, et la fonction_courante est nulle lors de cette opération.
@@ -921,7 +919,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
             auto noeud_bloc = noeud->comme_bloc();
-            auto ancienne_taille_allouee = taille_allouee;
 
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
                 if (it->est_entete_fonction()) {
@@ -936,8 +933,6 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 /* Génère le code pour toutes les instructions différées de ce bloc. */
                 genere_ri_insts_differees(noeud_bloc, noeud_bloc->bloc_parent);
             }
-
-            taille_allouee = ancienne_taille_allouee;
 
             break;
         }
@@ -1767,7 +1762,6 @@ void ConstructriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *de
 {
     fonction_courante = nullptr;
     nombre_labels = 0;
-    taille_allouee = 0;
     this->m_pile.efface();
 
     auto atome_fonc = m_compilatrice.trouve_ou_insere_fonction(*this, decl);
@@ -3562,7 +3556,6 @@ void ConstructriceRI::genere_ri_pour_fonction_metaprogramme(
     auto atome_fonc = m_compilatrice.trouve_ou_insere_fonction(*this, fonction);
 
     fonction_courante = atome_fonc;
-    taille_allouee = 0;
 
     auto decl_creation_contexte = m_compilatrice.interface_kuri->decl_creation_contexte;
 

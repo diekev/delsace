@@ -185,7 +185,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         }
     }
 
-    messagere->ajoute_message_module_ferme(espace, module);
+    messagere->ajoute_message_module_fermé(espace, module);
 
     return module;
 }
@@ -249,7 +249,7 @@ int64_t Compilatrice::memoire_utilisee() const
         memoire += it->memoire_utilisee();
     }
 
-    memoire += messagere->memoire_utilisee();
+    memoire += messagere->mémoire_utilisée();
 
     memoire += sys_module->mémoire_utilisée();
 
