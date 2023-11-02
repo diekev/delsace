@@ -249,6 +249,22 @@ void Bloc::réinitialise()
     variables_utilisees.efface();
 }
 
+void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
+{
+    enlève_parent(parent);
+    parent->enlève_enfant(this);
+
+    if (parents.taille() == 0) {
+        /* Nous n'étions accessible que depuis le parent, supprimons-nous de nos enfants. */
+        POUR (enfants) {
+            it->enlève_parent(this);
+        }
+
+        instructions.efface();
+        enfants.efface();
+    }
+}
+
 void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
