@@ -543,6 +543,16 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
 
 /* ******************************************************************************************** */
 
+static bool est_valeur_constante(Atome const *atome)
+{
+    if (!atome->est_constante()) {
+        return false;
+    }
+
+    auto constante = static_cast<AtomeConstante const *>(atome);
+    return constante->genre == AtomeConstante::Genre::VALEUR;
+}
+
 /**
  * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
  * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
@@ -573,6 +583,31 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
                 nouvelle_branche->genre = Instruction::Genre::BRANCHE;
                 nouvelle_branche->label = branche->label_si_faux;
                 bloc_modifié = true;
+                i -= 1;
+                continue;
+            }
+
+            auto condition = branche->condition;
+            if (est_valeur_constante(condition)) {
+                auto valeur_constante = static_cast<AtomeValeurConstante const *>(condition);
+                InstructionLabel *label_cible;
+                if (valeur_constante->valeur.valeur_booleenne) {
+                    label_cible = branche->label_si_vrai;
+                    it->enfants[1]->déconnecte_pour_branche_morte(it);
+                }
+                else {
+                    label_cible = branche->label_si_faux;
+                    it->enfants[0]->déconnecte_pour_branche_morte(it);
+                }
+
+                /* Remplace par une branche.
+                 * À FAIRE : crée une instruction. */
+                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
+                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->label = label_cible;
+                bloc_modifié = true;
+                i -= 1;
+                assert(it->enfants.taille() == 1);
             }
 
             continue;
@@ -1038,7 +1073,8 @@ enum {
 
 static bool remplace_instruction_par_atome(Atome *utilisateur,
                                            Instruction const *à_remplacer,
-                                           Atome *nouvelle_valeur)
+                                           Atome *nouvelle_valeur,
+                                           bool *branche_conditionnelle_fut_changée)
 {
     if (!utilisateur->est_instruction()) {
         return false;
@@ -1067,6 +1103,9 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
     else if (utilisatrice->est_branche_cond()) {
         auto branche_cond = utilisatrice->comme_branche_cond();
         ASSIGNE_SI_EGAUX(branche_cond->condition, à_remplacer, nouvelle_valeur)
+        if (branche_conditionnelle_fut_changée) {
+            *branche_conditionnelle_fut_changée = true;
+        }
     }
     else if (utilisatrice->est_transtype()) {
         auto transtype = utilisatrice->comme_transtype();
@@ -1145,7 +1184,7 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
 
         g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
             auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
-            if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur)) {
+            if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur, nullptr)) {
                 return;
             }
 
@@ -1266,16 +1305,6 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
 }
 
 /* ***************************************************************************************** */
-
-static bool est_valeur_constante(Atome const *atome)
-{
-    if (!atome->est_constante()) {
-        return false;
-    }
-
-    auto constante = static_cast<AtomeConstante const *>(atome);
-    return constante->genre == AtomeConstante::Genre::VALEUR;
-}
 
 static bool est_instruction_opérateur_binaire_constant(Instruction const *inst)
 {
@@ -1634,7 +1663,8 @@ static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *in
 
 static bool supprime_op_binaires_constants(Bloc *bloc,
                                            Graphe &graphe,
-                                           ConstructriceRI &constructrice)
+                                           ConstructriceRI &constructrice,
+                                           bool *branche_conditionnelle_fut_changée)
 {
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
@@ -1648,7 +1678,8 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
         }
 
         graphe.visite_utilisateurs(inst, [&](Atome *utilisateur) {
-            if (!remplace_instruction_par_atome(utilisateur, inst, résultat)) {
+            if (!remplace_instruction_par_atome(
+                    utilisateur, inst, résultat, branche_conditionnelle_fut_changée)) {
                 return;
             }
 
@@ -1675,11 +1706,13 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
 
 static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
                                            Graphe &graphe,
-                                           ConstructriceRI &constructrice)
+                                           ConstructriceRI &constructrice,
+                                           bool *branche_conditionnelle_fut_changée)
 {
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
-        bloc_modifié |= supprime_op_binaires_constants(it, graphe, constructrice);
+        bloc_modifié |= supprime_op_binaires_constants(
+            it, graphe, constructrice, branche_conditionnelle_fut_changée);
     }
 
     if (bloc_modifié) {
@@ -1728,7 +1761,13 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
 
     réinitialise_graphe(graphe, fonction_et_blocs);
 
-    supprime_op_binaires_constants(fonction_et_blocs, graphe, constructrice);
+    auto branche_conditionnelle_fut_changée = false;
+    supprime_op_binaires_constants(
+        fonction_et_blocs, graphe, constructrice, &branche_conditionnelle_fut_changée);
+
+    if (branche_conditionnelle_fut_changée) {
+        supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    }
 
     fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 
