@@ -391,13 +391,8 @@ struct Instruction : public Atome {
         TRANSTYPE,
     };
 
-    enum {
-        SUPPRIME_INSTRUCTION = 1,
-    };
-
     Genre genre = Genre::INVALIDE;
     int numero = 0;
-    int drapeaux = 0;
     NoeudExpression *site = nullptr;
 
     Instruction()
@@ -535,9 +530,6 @@ struct InstructionAllocation : public Instruction {
 
     // pour la génération de code binaire, mise en place lors de la génération de celle-ci
     int index_locale = 0;
-
-    // le décalage en octet où se trouve l'allocation sur la pile
-    int decalage_pile = 0;
 
     InstructionAllocation(NoeudExpression *site_, Type const *type_, IdentifiantCode *ident_)
         : InstructionAllocation(site_)

@@ -19,11 +19,6 @@
 //           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
 //           optimisation et alloue de l'espace pour toutes les variables au début de chaque
 //           fonction.
-#undef OPTIMISE_ALLOCS
-
-#ifdef OPTIMISE_ALLOCS
-#    include "structures/pile.hh"
-#endif
 
 struct Atome;
 struct AtomeConstante;
@@ -342,11 +337,6 @@ class ConvertisseuseRI {
     kuri::tableau<PatchLabel> patchs_labels{};
 
     bool verifie_adresses = false;
-
-#ifdef OPTIMISE_ALLOCS
-    kuri::pile<int> pile_taille{};
-    int dernier_decalage_pile = 0;
-#endif
 
   public:
     ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
