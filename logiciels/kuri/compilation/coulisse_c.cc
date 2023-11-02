@@ -727,6 +727,9 @@ struct GénératriceCodeC {
      * génération de code pour une chaine. */
     int index_chaine = 0;
 
+    /* Pour les nombres des globales anonymes. */
+    int nombre_de_globales = 0;
+
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
 
@@ -1615,9 +1618,15 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
         table_globales.insère(valeur_globale, enchaine("&", nom_globale));
     }
     else {
-        auto nom_globale = enchaine("globale", valeur_globale);
-        os << nom_globale;
-        table_globales.insère(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+        if (pour_entete) {
+            auto nom_globale = enchaine("globale", nombre_de_globales++);
+            os << nom_globale;
+            table_globales.insère(valeur_globale, enchaine("&", kuri::chaine(nom_globale)));
+        }
+        else {
+            auto nom_globale = table_globales.valeur_ou(valeur_globale, "GLOBALE_INCONNUE");
+            os << nom_globale.sous_chaine(1);
+        }
     }
 }
 
