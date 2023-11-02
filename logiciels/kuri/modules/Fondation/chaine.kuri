@@ -109,20 +109,6 @@ est_vide :: fonc(chn : chaine) -> bool
 	retourne chn.taille == 0
 }
 
-trouve_caractère :: fonc(chn : chaine, carac : z8, pos : z64) -> z64
-{
-	début := pos
-	fin   := chn.taille
-
-    pour i dans début ... fin - 1 {
-	    si chn[i] == carac {
-			retourne i
-		}
-	}
-
-	retourne -1 comme z64
-}
-
 découpe :: corout(texte : chaine, sep : z8) -> chaine
 {
 	taille_mot : z64 = 0
