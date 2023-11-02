@@ -849,6 +849,16 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
 
 /* ******************************************************************************************** */
 
+static bool est_valeur_constante(Atome const *atome)
+{
+    if (!atome->est_constante()) {
+        return false;
+    }
+
+    auto constante = static_cast<AtomeConstante const *>(atome);
+    return constante->genre == AtomeConstante::Genre::VALEUR;
+}
+
 /**
  * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
  * seul ancêtre du bloc cible. Les instructions du bloc cible sont ajoutées au bloc ancêtre, et la
@@ -879,6 +889,31 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
                 nouvelle_branche->genre = Instruction::Genre::BRANCHE;
                 nouvelle_branche->label = branche->label_si_faux;
                 bloc_modifié = true;
+                i -= 1;
+                continue;
+            }
+
+            auto condition = branche->condition;
+            if (est_valeur_constante(condition)) {
+                auto valeur_constante = static_cast<AtomeValeurConstante const *>(condition);
+                InstructionLabel *label_cible;
+                if (valeur_constante->valeur.valeur_booleenne) {
+                    label_cible = branche->label_si_vrai;
+                    it->enfants[1]->déconnecte_pour_branche_morte(it);
+                }
+                else {
+                    label_cible = branche->label_si_faux;
+                    it->enfants[0]->déconnecte_pour_branche_morte(it);
+                }
+
+                /* Remplace par une branche.
+                 * À FAIRE : crée une instruction. */
+                auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
+                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->label = label_cible;
+                bloc_modifié = true;
+                i -= 1;
+                assert(it->enfants.taille() == 1);
             }
 
             continue;
@@ -1342,8 +1377,77 @@ enum {
     EST_A_SUPPRIMER = 123,
 };
 
+static bool remplace_instruction_par_atome(Atome *utilisateur,
+                                           Instruction const *à_remplacer,
+                                           Atome *nouvelle_valeur,
+                                           bool *branche_conditionnelle_fut_changée)
+{
+    if (!utilisateur->est_instruction()) {
+        return false;
+    }
+
+    auto utilisatrice = utilisateur->comme_instruction();
+
+    if (utilisatrice->est_appel()) {
+        return false;
+    }
+
+    if (utilisatrice->est_stocke_mem()) {
+        auto stockage = utilisatrice->comme_stocke_mem();
+        ASSIGNE_SI_EGAUX(stockage->ou, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(stockage->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_op_binaire()) {
+        auto op_binaire = utilisatrice->comme_op_binaire();
+        ASSIGNE_SI_EGAUX(op_binaire->valeur_droite, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(op_binaire->valeur_gauche, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_op_unaire()) {
+        auto op_unaire = utilisatrice->comme_op_unaire();
+        ASSIGNE_SI_EGAUX(op_unaire->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_branche_cond()) {
+        auto branche_cond = utilisatrice->comme_branche_cond();
+        ASSIGNE_SI_EGAUX(branche_cond->condition, à_remplacer, nouvelle_valeur)
+        if (branche_conditionnelle_fut_changée) {
+            *branche_conditionnelle_fut_changée = true;
+        }
+    }
+    else if (utilisatrice->est_transtype()) {
+        auto transtype = utilisatrice->comme_transtype();
+        ASSIGNE_SI_EGAUX(transtype->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_acces_membre()) {
+        auto membre = utilisatrice->comme_acces_membre();
+        ASSIGNE_SI_EGAUX(membre->accede, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_acces_index()) {
+        auto index = utilisatrice->comme_acces_index();
+        ASSIGNE_SI_EGAUX(index->accede, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(index->index, à_remplacer, nouvelle_valeur)
+    }
+    else {
+        return false;
+    }
+
+    return true;
+}
+
+/* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
+static void supprime_instructions_à_supprimer(Bloc *bloc)
+{
+    auto nouvelle_fin = std::stable_partition(
+        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
+            return inst->etat != EST_A_SUPPRIMER;
+        });
+
+    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
+    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+}
+
 static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
 {
+    auto instructions_à_supprimer = false;
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
         auto inst1 = bloc->instructions[i + 1];
@@ -1385,72 +1489,24 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
         }
 
         g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
-            if (!utilisateur->est_instruction()) {
-                return;
-            }
-
-            auto utilisatrice = utilisateur->comme_instruction();
             auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
-
-            if (utilisatrice->est_appel()) {
-                auto appel = utilisatrice->comme_appel();
-
-                ASSIGNE_SI_EGAUX(appel->appele, inst2, nouvelle_valeur)
-                POUR (appel->args) {
-                    ASSIGNE_SI_EGAUX(it, inst2, nouvelle_valeur)
-                }
-            }
-            else if (utilisatrice->est_stocke_mem()) {
-                auto stockage = utilisatrice->comme_stocke_mem();
-                ASSIGNE_SI_EGAUX(stockage->ou, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(stockage->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_op_binaire()) {
-                auto op_binaire = utilisatrice->comme_op_binaire();
-                ASSIGNE_SI_EGAUX(op_binaire->valeur_droite, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(op_binaire->valeur_gauche, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_op_unaire()) {
-                auto op_unaire = utilisatrice->comme_op_unaire();
-                ASSIGNE_SI_EGAUX(op_unaire->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_branche_cond()) {
-                auto branche_cond = utilisatrice->comme_branche_cond();
-                ASSIGNE_SI_EGAUX(branche_cond->condition, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_transtype()) {
-                auto transtype = utilisatrice->comme_transtype();
-                ASSIGNE_SI_EGAUX(transtype->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_acces_membre()) {
-                auto membre = utilisatrice->comme_acces_membre();
-                ASSIGNE_SI_EGAUX(membre->accede, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_acces_index()) {
-                auto index = utilisatrice->comme_acces_index();
-                ASSIGNE_SI_EGAUX(index->accede, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(index->index, inst2, nouvelle_valeur)
-            }
-            else {
+            if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur, nullptr)) {
                 return;
             }
 
             inst0->etat = EST_A_SUPPRIMER;
             inst1->etat = EST_A_SUPPRIMER;
             inst2->etat = EST_A_SUPPRIMER;
+            instructions_à_supprimer = true;
         });
     }
 
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
-        });
+    if (!instructions_à_supprimer) {
+        return false;
+    }
 
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-
-    auto const bloc_modifié = nouvelle_taille != bloc->instructions.taille();
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
-    return bloc_modifié;
+    supprime_instructions_à_supprimer(bloc);
+    return true;
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
@@ -1526,14 +1582,21 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+static void réinitialise_graphe(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
 {
+    graphe.réinitialise();
+
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         graphe.construit(it->instructions, index_bloc++);
     }
+}
 
-    index_bloc = 0;
+static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+{
+    réinitialise_graphe(graphe, fonction_et_blocs);
+
+    auto index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= rapproche_allocations_des_stockages(it);
@@ -1547,6 +1610,422 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
     fonction_et_blocs.marque_blocs_modifiés();
 }
 
+/* ***************************************************************************************** */
+
+static bool est_instruction_opérateur_binaire_constant(Instruction const *inst)
+{
+    if (!inst->est_op_binaire()) {
+        return false;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    auto const opérande_gauche = op_binaire->valeur_gauche;
+    auto const opérande_droite = op_binaire->valeur_droite;
+
+    return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
+}
+
+#define GABARIT_OPERATION_ARITHMETIQUE(nom, lexeme_op)                                            \
+    struct nom {                                                                                  \
+        template <typename T>                                                                     \
+        static T applique_opération(T a, T b)                                                     \
+        {                                                                                         \
+            return a lexeme_op b;                                                                 \
+        }                                                                                         \
+    }
+
+GABARIT_OPERATION_ARITHMETIQUE(Addition, +);
+GABARIT_OPERATION_ARITHMETIQUE(Soustraction, -);
+GABARIT_OPERATION_ARITHMETIQUE(Division, /);
+GABARIT_OPERATION_ARITHMETIQUE(Multiplication, *);
+GABARIT_OPERATION_ARITHMETIQUE(Modulo, %);
+GABARIT_OPERATION_ARITHMETIQUE(DécalageGauche, <<);
+GABARIT_OPERATION_ARITHMETIQUE(DécalageDroite, >>);
+GABARIT_OPERATION_ARITHMETIQUE(ConjonctionBinaire, |);
+GABARIT_OPERATION_ARITHMETIQUE(ConjonctionBinaireExclusive, ^);
+GABARIT_OPERATION_ARITHMETIQUE(DisjonctionBinaire, &);
+
+#undef GABARIT_OPERATION_ARITHMETIQUE
+
+#define GABARIT_OPERATION_COMPARAISON(nom, lexeme_op)                                             \
+    struct nom {                                                                                  \
+        template <typename T>                                                                     \
+        static bool applique_opération(T a, T b)                                                  \
+        {                                                                                         \
+            return a lexeme_op b;                                                                 \
+        }                                                                                         \
+    }
+
+GABARIT_OPERATION_COMPARAISON(Égal, ==);
+GABARIT_OPERATION_COMPARAISON(Différent, !=);
+GABARIT_OPERATION_COMPARAISON(Supérieur, >);
+GABARIT_OPERATION_COMPARAISON(SupérieurÉgal, >=);
+GABARIT_OPERATION_COMPARAISON(Inférieur, <);
+GABARIT_OPERATION_COMPARAISON(InférieurÉgal, >=);
+
+#undef GABARIT_OPERATION_COMPARAISON
+
+struct Calculatrice {
+    template <typename Opération>
+    static uint64_t applique_opération_entier(AtomeValeurConstante const *opérande_gauche,
+                                              AtomeValeurConstante const *opérande_droite)
+    {
+        assert(opérande_gauche->type == opérande_droite->type);
+
+        auto const type = opérande_gauche->type;
+        if (type->est_type_entier_naturel()) {
+            if (type->taille_octet == 1) {
+                return applique_opération_entier_ex<Opération, uint8_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            if (type->taille_octet == 2) {
+                return applique_opération_entier_ex<Opération, uint16_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            if (type->taille_octet == 4) {
+                return applique_opération_entier_ex<Opération, uint32_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            return applique_opération_entier_ex<Opération, uint64_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        }
+        if (type->taille_octet == 1) {
+            auto résultat = applique_opération_entier_ex<Opération, int8_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return uint8_t(résultat);
+        }
+        if (type->taille_octet == 2) {
+            auto résultat = applique_opération_entier_ex<Opération, int16_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return uint16_t(résultat);
+        }
+        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+            auto résultat = applique_opération_entier_ex<Opération, int32_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return uint32_t(résultat);
+        }
+        auto résultat = applique_opération_entier_ex<Opération, int64_t>(
+            opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        return uint64_t(résultat);
+    }
+
+    template <typename Opération>
+    static double applique_opération_réel(AtomeValeurConstante const *opérande_gauche,
+                                          AtomeValeurConstante const *opérande_droite)
+    {
+        assert(opérande_gauche->type == opérande_droite->type);
+
+        auto const type = opérande_gauche->type;
+        if (type->taille_octet == 2) {
+            /* À FAIRE(r16). */
+            return 0.0;
+        }
+        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+            auto résultat = applique_opération_réel_ex<Opération, float>(
+                opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+            return double(résultat);
+        }
+        auto résultat = applique_opération_réel_ex<Opération, double>(
+            opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+        return résultat;
+    }
+
+    template <typename Opération>
+    static bool applique_comparaison_entier(AtomeValeurConstante const *opérande_gauche,
+                                            AtomeValeurConstante const *opérande_droite)
+    {
+        assert(opérande_gauche->type == opérande_droite->type);
+
+        auto const type = opérande_gauche->type;
+        if (type->est_type_entier_naturel()) {
+            if (type->taille_octet == 1) {
+                return applique_comparaison_entier_ex<Opération, uint8_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            if (type->taille_octet == 2) {
+                return applique_comparaison_entier_ex<Opération, uint16_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            if (type->taille_octet == 4) {
+                return applique_comparaison_entier_ex<Opération, uint32_t>(
+                    opérande_gauche->valeur.valeur_entiere,
+                    opérande_droite->valeur.valeur_entiere);
+            }
+            return applique_comparaison_entier_ex<Opération, uint64_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        }
+        if (type->taille_octet == 1) {
+            return applique_comparaison_entier_ex<Opération, int8_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        }
+        if (type->taille_octet == 2) {
+            return applique_comparaison_entier_ex<Opération, int16_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        }
+        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+            return applique_comparaison_entier_ex<Opération, int32_t>(
+                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        }
+        return applique_comparaison_entier_ex<Opération, int64_t>(
+            opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+    }
+
+    template <typename Opération>
+    static bool applique_comparaison_réel(AtomeValeurConstante const *opérande_gauche,
+                                          AtomeValeurConstante const *opérande_droite)
+    {
+        assert(opérande_gauche->type == opérande_droite->type);
+
+        auto const type = opérande_gauche->type;
+        if (type->taille_octet == 2) {
+            /* À FAIRE(r16). */
+            return 0.0;
+        }
+        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+            return applique_comparaison_réel_ex<Opération, float>(
+                opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+        }
+        return applique_comparaison_réel_ex<Opération, double>(
+            opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+    }
+
+  private:
+    template <typename Opération, typename T>
+    static T applique_opération_entier_ex(uint64_t gauche, uint64_t droite)
+    {
+        return Opération::applique_opération(static_cast<T>(gauche), static_cast<T>(droite));
+    }
+
+    template <typename Opération, typename T>
+    static T applique_opération_réel_ex(double gauche, double droite)
+    {
+        return Opération::applique_opération(static_cast<T>(gauche), static_cast<T>(droite));
+    }
+
+    template <typename Opération, typename T>
+    static bool applique_comparaison_entier_ex(uint64_t gauche, uint64_t droite)
+    {
+        return Opération::applique_opération(static_cast<T>(gauche), static_cast<T>(droite));
+    }
+
+    template <typename Opération, typename T>
+    static bool applique_comparaison_réel_ex(double gauche, double droite)
+    {
+        return Opération::applique_opération(static_cast<T>(gauche), static_cast<T>(droite));
+    }
+};
+
+static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
+                                                ConstructriceRI &constructrice)
+{
+    auto const opérande_gauche = static_cast<AtomeValeurConstante const *>(inst->valeur_gauche);
+    auto const opérande_droite = static_cast<AtomeValeurConstante const *>(inst->valeur_droite);
+
+#define APPLIQUE_OPERATION_ENTIER(nom)                                                            \
+    auto résultat = Calculatrice::applique_opération_entier<nom>(opérande_gauche,                 \
+                                                                 opérande_droite);                \
+    return constructrice.crée_constante_entiere(inst->type, résultat)
+
+#define APPLIQUE_OPERATION_REEL(nom)                                                              \
+    auto résultat = Calculatrice::applique_opération_réel<nom>(opérande_gauche, opérande_droite); \
+    return constructrice.crée_constante_reelle(inst->type, résultat)
+
+#define APPLIQUE_COMPARAISON_ENTIER(nom)                                                          \
+    auto résultat = Calculatrice::applique_comparaison_entier<nom>(opérande_gauche,               \
+                                                                   opérande_droite);              \
+    return constructrice.crée_constante_booleenne(résultat)
+
+#define APPLIQUE_COMPARAISON_REEL(nom)                                                            \
+    auto résultat = Calculatrice::applique_comparaison_réel<nom>(opérande_gauche,                 \
+                                                                 opérande_droite);                \
+    return constructrice.crée_constante_booleenne(résultat)
+
+    switch (inst->op) {
+        case OpérateurBinaire::Genre::Addition:
+        {
+            APPLIQUE_OPERATION_ENTIER(Addition);
+        }
+        case OpérateurBinaire::Genre::Addition_Reel:
+        {
+            APPLIQUE_OPERATION_REEL(Addition);
+        }
+        case OpérateurBinaire::Genre::Soustraction:
+        {
+            APPLIQUE_OPERATION_ENTIER(Soustraction);
+        }
+        case OpérateurBinaire::Genre::Soustraction_Reel:
+        {
+            APPLIQUE_OPERATION_REEL(Soustraction);
+        }
+        case OpérateurBinaire::Genre::Multiplication:
+        {
+            APPLIQUE_OPERATION_ENTIER(Multiplication);
+        }
+        case OpérateurBinaire::Genre::Multiplication_Reel:
+        {
+            APPLIQUE_OPERATION_REEL(Multiplication);
+        }
+        case OpérateurBinaire::Genre::Division_Naturel:
+        case OpérateurBinaire::Genre::Division_Relatif:
+        {
+            APPLIQUE_OPERATION_ENTIER(Division);
+        }
+        case OpérateurBinaire::Genre::Division_Reel:
+        {
+            APPLIQUE_OPERATION_REEL(Division);
+        }
+        case OpérateurBinaire::Genre::Reste_Naturel:
+        case OpérateurBinaire::Genre::Reste_Relatif:
+        {
+            APPLIQUE_OPERATION_ENTIER(Modulo);
+        }
+        case OpérateurBinaire::Genre::Comp_Egal:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(Égal);
+        }
+        case OpérateurBinaire::Genre::Comp_Egal_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(Égal);
+        }
+        case OpérateurBinaire::Genre::Comp_Inegal:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(Différent);
+        }
+        case OpérateurBinaire::Genre::Comp_Inegal_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(Différent);
+        }
+        case OpérateurBinaire::Genre::Comp_Inf:
+        case OpérateurBinaire::Genre::Comp_Inf_Nat:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(Inférieur);
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(Inférieur);
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal:
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(InférieurÉgal);
+        }
+        case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(InférieurÉgal);
+        }
+        case OpérateurBinaire::Genre::Comp_Sup:
+        case OpérateurBinaire::Genre::Comp_Sup_Nat:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(Supérieur);
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(Supérieur);
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal:
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+        {
+            APPLIQUE_COMPARAISON_ENTIER(SupérieurÉgal);
+        }
+        case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
+        {
+            APPLIQUE_COMPARAISON_REEL(SupérieurÉgal);
+        }
+        case OpérateurBinaire::Genre::Et_Binaire:
+        {
+            APPLIQUE_OPERATION_ENTIER(DisjonctionBinaire);
+        }
+        case OpérateurBinaire::Genre::Ou_Binaire:
+        {
+            APPLIQUE_OPERATION_ENTIER(ConjonctionBinaire);
+        }
+        case OpérateurBinaire::Genre::Ou_Exclusif:
+        {
+            APPLIQUE_OPERATION_ENTIER(ConjonctionBinaireExclusive);
+        }
+        case OpérateurBinaire::Genre::Dec_Gauche:
+        {
+            APPLIQUE_OPERATION_ENTIER(DécalageGauche);
+        }
+        case OpérateurBinaire::Genre::Dec_Droite_Arithm:
+        case OpérateurBinaire::Genre::Dec_Droite_Logique:
+        {
+            APPLIQUE_OPERATION_ENTIER(DécalageDroite);
+        }
+        case OpérateurBinaire::Genre::Indexage:
+        case OpérateurBinaire::Genre::Invalide:
+        {
+            break;
+        }
+    }
+
+    return nullptr;
+}
+
+static bool supprime_op_binaires_constants(Bloc *bloc,
+                                           Graphe &graphe,
+                                           ConstructriceRI &constructrice,
+                                           bool *branche_conditionnelle_fut_changée)
+{
+    auto instructions_à_supprimer = false;
+    POUR_NOMME (inst, bloc->instructions) {
+        if (!est_instruction_opérateur_binaire_constant(inst)) {
+            continue;
+        }
+
+        auto résultat = évalue_opérateur_binaire(inst->comme_op_binaire(), constructrice);
+        if (!résultat) {
+            continue;
+        }
+
+        graphe.visite_utilisateurs(inst, [&](Atome *utilisateur) {
+            if (!remplace_instruction_par_atome(
+                    utilisateur, inst, résultat, branche_conditionnelle_fut_changée)) {
+                return;
+            }
+
+            inst->etat = EST_A_SUPPRIMER;
+        });
+
+        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
+    }
+
+    if (!instructions_à_supprimer) {
+        return false;
+    }
+
+    auto nouvelle_fin = std::stable_partition(
+        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
+            return inst->etat != EST_A_SUPPRIMER;
+        });
+
+    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
+
+    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    return instructions_à_supprimer;
+}
+
+static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
+                                           Graphe &graphe,
+                                           ConstructriceRI &constructrice,
+                                           bool *branche_conditionnelle_fut_changée)
+{
+    auto bloc_modifié = false;
+    POUR (fonction_et_blocs.blocs) {
+        bloc_modifié |= supprime_op_binaires_constants(
+            it, graphe, constructrice, branche_conditionnelle_fut_changée);
+    }
+
+    if (bloc_modifié) {
+        fonction_et_blocs.marque_blocs_modifiés();
+    }
+}
+
 /* ********************************************************************************************
  */
 
@@ -1558,7 +2037,9 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
  * À FAIRE(analyse_ri) :
  * - membre actifs des unions
  */
-void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome)
+void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
+                                   ConstructriceRI &constructrice,
+                                   AtomeFonction *atome)
 {
     reinitialise();
 
@@ -1583,6 +2064,16 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace, AtomeFonction *atome
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
+
+    réinitialise_graphe(graphe, fonction_et_blocs);
+
+    auto branche_conditionnelle_fut_changée = false;
+    supprime_op_binaires_constants(
+        fonction_et_blocs, graphe, constructrice, &branche_conditionnelle_fut_changée);
+
+    if (branche_conditionnelle_fut_changée) {
+        supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    }
 
     fonction_et_blocs.ajourne_instructions_fonction_si_nécessaire();
 

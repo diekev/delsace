@@ -121,7 +121,6 @@ struct CopieuseInstruction {
             {
                 auto appel = inst->comme_appel();
                 auto nouvelle_appel = constructrice.insts_appel.ajoute_element(inst->site);
-                nouvelle_appel->drapeaux = appel->drapeaux;
                 nouvelle_appel->appele = copie_atome(appel->appele);
                 nouvelle_appel->adresse_retour = static_cast<InstructionAllocation *>(
                     copie_atome(appel->adresse_retour));
