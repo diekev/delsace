@@ -1036,6 +1036,58 @@ enum {
     EST_A_SUPPRIMER = 123,
 };
 
+static bool remplace_instruction_par_atome(Atome *utilisateur,
+                                           Instruction const *à_remplacer,
+                                           Atome *nouvelle_valeur)
+{
+    if (!utilisateur->est_instruction()) {
+        return false;
+    }
+
+    auto utilisatrice = utilisateur->comme_instruction();
+
+    if (utilisatrice->est_appel()) {
+        return false;
+    }
+
+    if (utilisatrice->est_stocke_mem()) {
+        auto stockage = utilisatrice->comme_stocke_mem();
+        ASSIGNE_SI_EGAUX(stockage->ou, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(stockage->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_op_binaire()) {
+        auto op_binaire = utilisatrice->comme_op_binaire();
+        ASSIGNE_SI_EGAUX(op_binaire->valeur_droite, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(op_binaire->valeur_gauche, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_op_unaire()) {
+        auto op_unaire = utilisatrice->comme_op_unaire();
+        ASSIGNE_SI_EGAUX(op_unaire->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_branche_cond()) {
+        auto branche_cond = utilisatrice->comme_branche_cond();
+        ASSIGNE_SI_EGAUX(branche_cond->condition, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_transtype()) {
+        auto transtype = utilisatrice->comme_transtype();
+        ASSIGNE_SI_EGAUX(transtype->valeur, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_acces_membre()) {
+        auto membre = utilisatrice->comme_acces_membre();
+        ASSIGNE_SI_EGAUX(membre->accede, à_remplacer, nouvelle_valeur)
+    }
+    else if (utilisatrice->est_acces_index()) {
+        auto index = utilisatrice->comme_acces_index();
+        ASSIGNE_SI_EGAUX(index->accede, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(index->index, à_remplacer, nouvelle_valeur)
+    }
+    else {
+        return false;
+    }
+
+    return true;
+}
+
 static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
 {
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
@@ -1079,49 +1131,8 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
         }
 
         g.visite_utilisateurs(inst2, [&](Atome *utilisateur) {
-            if (!utilisateur->est_instruction()) {
-                return;
-            }
-
-            auto utilisatrice = utilisateur->comme_instruction();
             auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
-
-            if (utilisatrice->est_appel()) {
-                return;
-            }
-
-            if (utilisatrice->est_stocke_mem()) {
-                auto stockage = utilisatrice->comme_stocke_mem();
-                ASSIGNE_SI_EGAUX(stockage->ou, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(stockage->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_op_binaire()) {
-                auto op_binaire = utilisatrice->comme_op_binaire();
-                ASSIGNE_SI_EGAUX(op_binaire->valeur_droite, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(op_binaire->valeur_gauche, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_op_unaire()) {
-                auto op_unaire = utilisatrice->comme_op_unaire();
-                ASSIGNE_SI_EGAUX(op_unaire->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_branche_cond()) {
-                auto branche_cond = utilisatrice->comme_branche_cond();
-                ASSIGNE_SI_EGAUX(branche_cond->condition, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_transtype()) {
-                auto transtype = utilisatrice->comme_transtype();
-                ASSIGNE_SI_EGAUX(transtype->valeur, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_acces_membre()) {
-                auto membre = utilisatrice->comme_acces_membre();
-                ASSIGNE_SI_EGAUX(membre->accede, inst2, nouvelle_valeur)
-            }
-            else if (utilisatrice->est_acces_index()) {
-                auto index = utilisatrice->comme_acces_index();
-                ASSIGNE_SI_EGAUX(index->accede, inst2, nouvelle_valeur)
-                ASSIGNE_SI_EGAUX(index->index, inst2, nouvelle_valeur)
-            }
-            else {
+            if (!remplace_instruction_par_atome(utilisateur, inst2, nouvelle_valeur)) {
                 return;
             }
 
