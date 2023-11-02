@@ -85,6 +85,15 @@ bool DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
     return false;
 }
 
+void DétectriceFuiteDeMémoire::réinitialise()
+{
+#ifdef UTILISE_NOTRE_TABLE
+    table_allocations.reinitialise();
+#else
+    table_allocations = {};
+#endif
+}
+
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
 {
     auto données = métaprogramme->donnees_execution;
@@ -100,6 +109,22 @@ void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
             métaprogramme, it.second.taille, it.second.frame);
     }
 #endif
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fuites de mémoire.
+ * \{ */
+
+void DonneesExecution::réinitialise()
+{
+    this->pointeur_pile = this->pile;
+    this->profondeur_appel = 0;
+    this->instructions_executees = 0;
+    this->détectrice_fuite_de_mémoire.réinitialise();
+    this->site = nullptr;
+    this->dernier_site = nullptr;
 }
 
 /** \} */
@@ -472,6 +497,10 @@ MachineVirtuelle::~MachineVirtuelle()
 
     POUR (m_metaprogrammes_termines) {
         deloge_donnees_execution(it->donnees_execution);
+    }
+
+    POUR (m_données_exécution_libres) {
+        memoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
     }
 }
 
@@ -1840,6 +1869,13 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
 
 DonneesExecution *MachineVirtuelle::loge_donnees_execution()
 {
+    if (!m_données_exécution_libres.est_vide()) {
+        auto résultat = m_données_exécution_libres.dernière();
+        m_données_exécution_libres.supprime_dernier();
+        résultat->réinitialise();
+        return résultat;
+    }
+
     auto donnees = donnees_execution.ajoute_element();
     donnees->pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
     donnees->pointeur_pile = donnees->pile;
@@ -1854,8 +1890,8 @@ void MachineVirtuelle::deloge_donnees_execution(DonneesExecution *&donnees)
 
     instructions_executees += donnees->instructions_executees;
 
-    // À FAIRE : récupère la mémoire
-    memoire::deloge_tableau("MachineVirtuelle::pile", donnees->pile, TAILLE_PILE);
+    m_données_exécution_libres.ajoute(donnees);
+
     donnees = nullptr;
 }
 
