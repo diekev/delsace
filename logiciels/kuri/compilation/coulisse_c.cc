@@ -44,6 +44,7 @@ struct GénératriceCodeC {
     kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
     kuri::table_hachage<AtomeFonction const *, kuri::chaine_statique> table_fonctions{
         "Noms fonctions C"};
+    kuri::table_hachage<Type const *, kuri::chaine_statique> table_types{"Noms types C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
 
@@ -60,6 +61,9 @@ struct GénératriceCodeC {
 
     /* Pour les noms des fonctions. */
     int nombre_de_fonctions = 0;
+
+    /* Pour les noms des fonctions. */
+    int nombre_de_types = 0;
 
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
@@ -150,6 +154,7 @@ struct ConvertisseuseTypeC {
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
     Broyeuse &broyeuse;
+    GénératriceCodeC &génératrice_code;
 
     kuri::table_hachage<Type *, TypeC *> table_types_c{""};
 
@@ -162,7 +167,8 @@ struct ConvertisseuseTypeC {
     }
 
   public:
-    ConvertisseuseTypeC(Broyeuse &broyeuse_) : broyeuse(broyeuse_)
+    ConvertisseuseTypeC(Broyeuse &broyeuse_, GénératriceCodeC &génératrice_code_)
+        : broyeuse(broyeuse_), génératrice_code(génératrice_code_)
     {
     }
 
@@ -204,7 +210,7 @@ TypeC &ConvertisseuseTypeC::type_c_pour(Type *type)
 
     type_c = types_c.ajoute_element();
     type_c->type_kuri = type;
-    type_c->nom = broyeuse.nom_broyé_type(type);
+    type_c->nom = génératrice_code.donne_nom_pour_type(type);
     table_types_c.insère(type, type_c);
     return *type_c;
 }
@@ -247,7 +253,8 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
         {
             auto type_enum = static_cast<TypeEnum *>(type);
             génère_typedef(type_enum->type_sous_jacent, enchaineuse);
-            auto nom_broye_type_donnees = broyeuse.nom_broyé_type(type_enum->type_sous_jacent);
+            auto nom_broye_type_donnees = génératrice_code.donne_nom_pour_type(
+                type_enum->type_sous_jacent);
             type_c.typedef_ = nom_broye_type_donnees;
             break;
         }
@@ -255,7 +262,8 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
         {
             auto type_opaque = type->comme_type_opaque();
             génère_typedef(type_opaque->type_opacifie, enchaineuse);
-            auto nom_broye_type_opacifie = broyeuse.nom_broyé_type(type_opaque->type_opacifie);
+            auto nom_broye_type_opacifie = génératrice_code.donne_nom_pour_type(
+                type_opaque->type_opacifie);
             type_c.typedef_ = nom_broye_type_opacifie;
             break;
         }
@@ -386,7 +394,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
                 auto decl = type_union->decl;
                 if (decl->est_nonsure || decl->est_externe) {
                     auto type_le_plus_grand = type_union->type_le_plus_grand;
-                    type_c.typedef_ = broyeuse.nom_broyé_type(type_le_plus_grand);
+                    type_c.typedef_ = génératrice_code.donne_nom_pour_type(type_le_plus_grand);
                 }
                 else if (type_union->decl && type_union->decl->est_monomorphisation) {
                     type_c.typedef_ = enchaine("struct ", nom_union, type_union->type_structure);
@@ -449,7 +457,8 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             auto nouveau_nom_broye = Enchaineuse();
             nouveau_nom_broye << "Kf" << type_fonc->types_entrees.taille();
 
-            auto const &nom_broye_sortie = broyeuse.nom_broyé_type(type_fonc->type_sortie);
+            auto const &nom_broye_sortie = génératrice_code.donne_nom_pour_type(
+                type_fonc->type_sortie);
 
             /* Crée le préfixe. */
             enchaineuse_tmp.réinitialise();
@@ -462,7 +471,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             auto virgule = "(";
 
             POUR (type_fonc->types_entrees) {
-                auto const &nom_broye_dt = broyeuse.nom_broyé_type(it);
+                auto const &nom_broye_dt = génératrice_code.donne_nom_pour_type(it);
 
                 enchaineuse_tmp << virgule;
                 enchaineuse_tmp << nom_broye_dt;
@@ -481,11 +490,15 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             enchaineuse_tmp << ")";
             auto suffixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
 
+#ifdef PRESERVE_NOMS_DANS_LE_CODE
             type->nom_broye = stockage_chn.ajoute_chaine_statique(
                 nouveau_nom_broye.chaine_statique());
+#else
+            type->nom_broye = génératrice_code.donne_nom_pour_type(type);
+#endif
             type_c.nom = type->nom_broye;
 
-            type_c.typedef_ = enchaine(prefixe, nouveau_nom_broye.chaine_statique(), ")", suffixe);
+            type_c.typedef_ = enchaine(prefixe, type->nom_broye, ")", suffixe);
             enchaineuse << "typedef " << type_c.typedef_ << ";\n\n";
             /* Les typedefs pour les fonctions ont une syntaxe différente, donc retournons
              * directement. */
@@ -578,7 +591,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
             génère_code_pour_type(it.type, enchaineuse);
         }
 
-        auto nom_broyé = broyeuse.nom_broyé_type(type_tuple);
+        auto nom_broyé = génératrice_code.donne_nom_pour_type(type_tuple);
 
         enchaineuse << "typedef struct " << nom_broyé << " {\n";
 
@@ -588,7 +601,8 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
         enchaineuse << "  struct {\n";
 #endif
         POUR_INDEX (type_tuple->membres) {
-            enchaineuse << broyeuse.nom_broyé_type(it.type) << " _" << index_it << ";\n";
+            enchaineuse << génératrice_code.donne_nom_pour_type(it.type) << " _" << index_it
+                        << ";\n";
         }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
@@ -613,9 +627,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
     else if (type->est_type_tableau_fixe()) {
         auto tableau_fixe = type->comme_type_tableau_fixe();
         génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
-        auto const &nom_broyé = broyeuse.nom_broyé_type(type);
+        auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
         enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{ "
-                    << broyeuse.nom_broyé_type(tableau_fixe->type_pointe);
+                    << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
         enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];";
         enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
     }
@@ -630,7 +644,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
         génère_code_pour_type(type_élément, enchaineuse);
 
         if (!type_c.code_machine_fut_généré) {
-            auto const &nom_broye = broyeuse.nom_broyé_type(type);
+            auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
             enchaineuse << "typedef struct Tableau_" << nom_broye;
             enchaineuse << "{\n\t";
 
@@ -639,7 +653,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
             enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
             enchaineuse << "  struct {\n";
 #endif
-            enchaineuse << broyeuse.nom_broyé_type(type_élément) << " *pointeur;";
+            enchaineuse << génératrice_code.donne_nom_pour_type(type_élément) << " *pointeur;";
             enchaineuse << "\n\tlong taille;\n"
                         << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
 
@@ -705,7 +719,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
             continue;
         }
 
-        enchaineuse << broyeuse.nom_broyé_type(it.type) << ' ';
+        enchaineuse << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
@@ -759,14 +773,14 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse <<
         R"(
 #define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
-    static KsKuriInfoFonctionTraceAppel mon_info = { .nom = { .pointeur = _nom_fonction, .taille = _taille_nom }, .fichier = { .pointeur = _fichier, .taille = _taille_fichier }, .adresse = _pointeur_fonction }; \
-	KsKuriTraceAppel ma_trace = { 0 }; \
+    static KuriInfoFonctionTraceAppel mon_info = { .nom = { .pointeur = _nom_fonction, .taille = _taille_nom }, .fichier = { .pointeur = _fichier, .taille = _taille_fichier }, .adresse = _pointeur_fonction }; \
+    KuriTraceAppel ma_trace = { 0 }; \
 	ma_trace.info_fonction = &mon_info; \
  ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
  ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
 #define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
-    static KsKuriInfoAppelTraceAppel info_appel##_index = { .ligne = _ligne, .colonne = _colonne, .texte = { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
+    static KuriInfoAppelTraceAppel info_appel##_index = { .ligne = _ligne, .colonne = _colonne, .texte = { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
 	ma_trace.info_appel = &info_appel##_index; \
  __contexte_fil_principal.trace_appel = &ma_trace;
 
@@ -1838,7 +1852,27 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction 
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
 {
+#ifdef PRESERVE_NOMS_DANS_LE_CODE
     return broyeuse.nom_broyé_type(const_cast<Type *>(type));
+#else
+    if (type->est_type_variadique()) {
+        auto type_tableau = type->comme_type_variadique()->type_tableau_dynamique;
+        if (!type_tableau) {
+            return "Kv";
+        }
+
+        type = type_tableau;
+    }
+
+    auto trouvé = false;
+    auto nom = table_types.trouve(type, trouvé);
+    if (!trouvé) {
+        nom = enchaine("Type", nombre_de_types++);
+        table_types.insère(type, nom);
+    }
+
+    return nom;
+#endif
 }
 
 /* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
@@ -1944,7 +1978,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
                                    CoulisseC &coulisse)
 {
     Enchaineuse enchaineuse;
-    ConvertisseuseTypeC convertisseuse_type_c(broyeuse);
+    ConvertisseuseTypeC convertisseuse_type_c(broyeuse, *this);
     génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
     POUR (repr_inter_programme.types) {
