@@ -71,25 +71,9 @@ struct ConvertisseuseTypeC {
     {
     }
 
-    TypeC &type_c_pour(Type *type)
-    {
-        auto type_c = table_types_c.valeur_ou(type, nullptr);
-        if (type_c) {
-            return *type_c;
-        }
+    TypeC &type_c_pour(Type *type);
 
-        type_c = types_c.ajoute_element();
-        type_c->type_kuri = type;
-        type_c->nom = broyeuse.nom_broyé_type(type);
-        table_types_c.insère(type, type_c);
-        return *type_c;
-    }
-
-    bool typedef_fut_généré(Type *type_kuri)
-    {
-        auto &type_c = type_c_pour(type_kuri);
-        return type_c.typedef_ != "";
-    }
+    bool typedef_fut_généré(Type *type_kuri);
 
     void génère_typedef(Type *type, Enchaineuse &enchaineuse);
 
@@ -109,6 +93,26 @@ struct ConvertisseuseTypeC {
                                       TypeStructure *type_structure,
                                       int quoi);
 };
+
+TypeC &ConvertisseuseTypeC::type_c_pour(Type *type)
+{
+    auto type_c = table_types_c.valeur_ou(type, nullptr);
+    if (type_c) {
+        return *type_c;
+    }
+
+    type_c = types_c.ajoute_element();
+    type_c->type_kuri = type;
+    type_c->nom = broyeuse.nom_broyé_type(type);
+    table_types_c.insère(type, type_c);
+    return *type_c;
+}
+
+bool ConvertisseuseTypeC::typedef_fut_généré(Type *type_kuri)
+{
+    auto &type_c = type_c_pour(type_kuri);
+    return type_c.typedef_ != "";
+}
 
 void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 {
