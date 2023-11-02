@@ -1087,14 +1087,10 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
             auto nouvelle_valeur = inst1->comme_stocke_mem()->valeur;
 
             if (utilisatrice->est_appel()) {
-                auto appel = utilisatrice->comme_appel();
-
-                ASSIGNE_SI_EGAUX(appel->appele, inst2, nouvelle_valeur)
-                POUR (appel->args) {
-                    ASSIGNE_SI_EGAUX(it, inst2, nouvelle_valeur)
-                }
+                return;
             }
-            else if (utilisatrice->est_stocke_mem()) {
+
+            if (utilisatrice->est_stocke_mem()) {
                 auto stockage = utilisatrice->comme_stocke_mem();
                 ASSIGNE_SI_EGAUX(stockage->ou, inst2, nouvelle_valeur)
                 ASSIGNE_SI_EGAUX(stockage->valeur, inst2, nouvelle_valeur)
