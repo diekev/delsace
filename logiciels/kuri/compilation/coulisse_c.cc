@@ -35,12 +35,10 @@
 
 #undef PRESERVE_NOMS_DANS_LE_CODE
 
-/* ************************************************************************** */
-
-enum {
-    STRUCTURE,
-    STRUCTURE_ANONYME,
-};
+/* ------------------------------------------------------------------------- */
+/** \name TypeC.
+ * Données pour générer la déclaration d'un type dans le code C.
+ * \{ */
 
 struct TypeC {
     Type *type_kuri = nullptr;
@@ -48,6 +46,12 @@ struct TypeC {
     kuri::chaine_statique typedef_ = "";
     bool code_machine_fut_généré = false;
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Déclaration de ConvertisseuseTypeC.
+ * \{ */
 
 struct ConvertisseuseTypeC {
   private:
@@ -71,25 +75,9 @@ struct ConvertisseuseTypeC {
     {
     }
 
-    TypeC &type_c_pour(Type *type)
-    {
-        auto type_c = table_types_c.valeur_ou(type, nullptr);
-        if (type_c) {
-            return *type_c;
-        }
+    TypeC &type_c_pour(Type *type);
 
-        type_c = types_c.ajoute_element();
-        type_c->type_kuri = type;
-        type_c->nom = broyeuse.nom_broyé_type(type);
-        table_types_c.insère(type, type_c);
-        return *type_c;
-    }
-
-    bool typedef_fut_généré(Type *type_kuri)
-    {
-        auto &type_c = type_c_pour(type_kuri);
-        return type_c.typedef_ != "";
-    }
+    bool typedef_fut_généré(Type *type_kuri);
 
     void génère_typedef(Type *type, Enchaineuse &enchaineuse);
 
@@ -109,6 +97,32 @@ struct ConvertisseuseTypeC {
                                       TypeStructure *type_structure,
                                       int quoi);
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Implémentation de ConvertisseuseTypeC.
+ * \{ */
+
+TypeC &ConvertisseuseTypeC::type_c_pour(Type *type)
+{
+    auto type_c = table_types_c.valeur_ou(type, nullptr);
+    if (type_c) {
+        return *type_c;
+    }
+
+    type_c = types_c.ajoute_element();
+    type_c->type_kuri = type;
+    type_c->nom = broyeuse.nom_broyé_type(type);
+    table_types_c.insère(type, type_c);
+    return *type_c;
+}
+
+bool ConvertisseuseTypeC::typedef_fut_généré(Type *type_kuri)
+{
+    auto &type_c = type_c_pour(type_kuri);
+    return type_c.typedef_ != "";
+}
 
 void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 {
@@ -411,6 +425,11 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
     enchaineuse << "typedef " << type_c.typedef_ << ' ' << type_c.nom << ";\n";
 }
 
+enum {
+    STRUCTURE,
+    STRUCTURE_ANONYME,
+};
+
 void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &enchaineuse)
 {
     if (!type) {
@@ -633,6 +652,8 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
     enchaineuse << ";\n\n";
 }
 
+/** \} */
+
 /* ************************************************************************** */
 
 /* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
@@ -716,6 +737,10 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         // os << "static ";
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Déclaration de GénératriceCodeC.
+ * \{ */
 
 struct GénératriceCodeC {
     kuri::tableau<kuri::chaine_statique> table_valeurs{};
@@ -801,6 +826,12 @@ struct GénératriceCodeC {
 
     kuri::chaine_statique donne_nom_pour_type(Type const *type);
 };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Implémentation de GénératriceCodeC.
+ * \{ */
 
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
     : m_espace(espace), broyeuse(broyeuse_)
@@ -1934,6 +1965,8 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
     génère_code(
         repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
 }
+
+/** \} */
 
 static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
                                     ProgrammeRepreInter const &repr_inter_programme,
