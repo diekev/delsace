@@ -1216,14 +1216,21 @@ static void valide_fonction(EspaceDeTravail &espace, AtomeFonction const &foncti
     }
 }
 
-static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+static void réinitialise_graphe(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
 {
+    graphe.réinitialise();
+
     auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
         graphe.construit(it->instructions, index_bloc++);
     }
+}
 
-    index_bloc = 0;
+static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fonction_et_blocs)
+{
+    réinitialise_graphe(graphe, fonction_et_blocs);
+
+    auto index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         bloc_modifié |= rapproche_allocations_des_stockages(it);
