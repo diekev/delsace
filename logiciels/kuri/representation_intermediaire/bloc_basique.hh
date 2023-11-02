@@ -47,6 +47,10 @@ struct Bloc {
 
     void réinitialise();
 
+    /* Enlève la relation parent/enfant de ce bloc avec le bloc parent passé en paramètre.
+     * Si le parent était le seul parent, déconnecte également ce bloc de ses enfants. */
+    void déconnecte_pour_branche_morte(Bloc *parent);
+
   private:
     void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc);
 

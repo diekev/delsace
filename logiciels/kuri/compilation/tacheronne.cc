@@ -305,7 +305,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::LEXAGE:
             {
-                assert(dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
+                assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
                 auto unite = tache.unite;
                 auto fichier = unite->fichier;
 
@@ -337,7 +337,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::PARSAGE:
             {
-                assert(dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
+                assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unite = tache.unite;
                 auto debut_parsage = dls::chrono::compte_seconde();
                 auto syntaxeuse = Syntaxeuse(*this, unite);
@@ -349,7 +349,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::TYPAGE:
             {
-                assert(dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
+                assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
                 auto unite = tache.unite;
                 auto debut_validation = dls::chrono::compte_seconde();
                 gere_unite_pour_typage(unite);
@@ -359,7 +359,7 @@ void Tacheronne::gere_tache()
             case GenreTache::GENERATION_RI:
             {
                 assert(
-                    dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
+                    dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
                 if (gere_unite_pour_ri(tache.unite)) {
                     compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
@@ -369,21 +369,21 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::OPTIMISATION:
             {
-                assert(dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
+                assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
                 auto debut_generation = dls::chrono::compte_seconde();
                 temps_optimisation += debut_generation.temps();
                 break;
             }
             case GenreTache::EXECUTION:
             {
-                assert(dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
+                assert(dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
                 gere_unite_pour_execution(tache.unite);
                 break;
             }
             case GenreTache::GENERATION_CODE_MACHINE:
             {
                 assert(
-                    dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
+                    dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
                 if (coulisse->crée_fichier_objet(compilatrice,
@@ -400,7 +400,7 @@ void Tacheronne::gere_tache()
             case GenreTache::LIAISON_PROGRAMME:
             {
                 assert(
-                    dls::outils::possède_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
+                    dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
                 if (coulisse->crée_exécutable(compilatrice, *tache.espace, programme)) {
@@ -411,7 +411,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::CONVERSION_NOEUD_CODE:
             {
-                assert(dls::outils::possède_drapeau(
+                assert(dls::outils::possede_drapeau(
                     drapeaux, DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE));
                 auto espace = tache.unite->espace;
                 auto noeud = tache.unite->noeud;
@@ -459,7 +459,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::ENVOIE_MESSAGE:
             {
-                assert(dls::outils::possède_drapeau(drapeaux,
+                assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
                 compilatrice.messagere->envoie_message(tache.unite->message);
                 compilatrice.gestionnaire_code->envoi_message_termine(tache.unite);
@@ -467,7 +467,7 @@ void Tacheronne::gere_tache()
             }
             case GenreTache::CREATION_FONCTION_INIT_TYPE:
             {
-                assert(dls::outils::possède_drapeau(
+                assert(dls::outils::possede_drapeau(
                     drapeaux, DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
 
                 auto unite = tache.unite;
@@ -568,7 +568,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
     if (noeud->est_corps_fonction()) {
         auto entete = noeud->comme_corps_fonction()->entete;
-        analyseuse_ri->analyse_ri(*unite->espace, static_cast<AtomeFonction *>(entete->atome));
+        analyseuse_ri->analyse_ri(
+            *unite->espace, constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
     }
 
     noeud->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;

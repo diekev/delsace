@@ -56,6 +56,8 @@ struct DétectriceFuiteDeMémoire {
     /* Supprime les informations du bloc. Retourne vrai si le bloc existe (ou si le pointeur est
      * nul). */
     bool supprime_bloc(void *ptr);
+
+    void réinitialise();
 };
 
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
@@ -80,6 +82,8 @@ struct DonneesExecution {
      * au cas où le pointeur est désynchronisé et une instruction est invalide. */
     NoeudExpression *site = nullptr;
     NoeudExpression *dernier_site = nullptr;
+
+    void réinitialise();
 };
 
 struct EchantillonProfilage {
@@ -127,6 +131,8 @@ struct MachineVirtuelle {
     Compilatrice &compilatrice;
 
     tableau_page<DonneesExecution> donnees_execution{};
+    /* Ramasse-miettes pour les données d'exécutions des métaprogrammes exécutés. */
+    kuri::tableau<DonneesExecution *> m_données_exécution_libres{};
 
     DonneesConstantesExecutions *donnees_constantes = nullptr;
 

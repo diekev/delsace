@@ -893,7 +893,6 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         }
     }
 
-#ifndef OPTIMISE_ALLOCS
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
             auto alloc = it->comme_alloc();
@@ -903,7 +902,6 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
     }
-#endif
 
     POUR (fonction->instructions) {
         // génère le code binaire depuis les instructions « racines » (assignation, retour,
@@ -973,23 +971,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             if (pour_operande) {
                 chunk.emets_reference_variable(alloc->site, alloc->index_locale);
             }
-#ifdef OPTIMISE_ALLOCS
-            else {
-                if (alloc->decalage_pile > dernier_decalage_pile) {
-                    dernier_decalage_pile = alloc->decalage_pile;
-                    pile_taille.empile(chunk.taille_allouee);
-                }
-                else if (alloc->decalage_pile < dernier_decalage_pile) {
-                    dernier_decalage_pile = alloc->decalage_pile;
-                    chunk.taille_allouee = pile_taille.depile();
-                }
-
-                auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-                auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
-                alloc->index_locale = static_cast<int>(chunk.locales.taille);
-                chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
-            }
-#endif
 
             break;
         }

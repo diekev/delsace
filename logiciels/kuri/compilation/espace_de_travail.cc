@@ -52,14 +52,14 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 }
 
 void EspaceDeTravail::tache_ajoutee(GenreTache genre_tache,
-                                    dls::outils::Synchrone<Messagere> &messagere)
+                                    dls::outils::Synchrone<Messagère> &messagere)
 {
     nombre_de_taches[size_t(genre_tache)] += 1;
     regresse_phase_pour_tache_ajoutee(genre_tache, messagere);
 }
 
 void EspaceDeTravail::tache_terminee(GenreTache genre_tache,
-                                     dls::outils::Synchrone<Messagere> &messagere,
+                                     dls::outils::Synchrone<Messagère> &messagere,
                                      bool peut_envoyer_changement_de_phase)
 {
     nombre_de_taches[size_t(genre_tache)] -= 1;
@@ -69,7 +69,7 @@ void EspaceDeTravail::tache_terminee(GenreTache genre_tache,
 
 void EspaceDeTravail::progresse_phase_pour_tache_terminee(
     GenreTache genre_tache,
-    dls::outils::Synchrone<Messagere> &messagere,
+    dls::outils::Synchrone<Messagère> &messagere,
     bool peut_envoyer_changement_de_phase)
 {
     PhaseCompilation nouvelle_phase = phase;
@@ -133,7 +133,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
 }
 
 void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
-    GenreTache genre_tache, dls::outils::Synchrone<Messagere> &messagere)
+    GenreTache genre_tache, dls::outils::Synchrone<Messagère> &messagere)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -225,7 +225,7 @@ void EspaceDeTravail::imprime_compte_taches(std::ostream &os) const
     os << "nombre_taches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
 }
 
-Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagere> &messagere,
+Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagere,
                                           PhaseCompilation nouvelle_phase)
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
