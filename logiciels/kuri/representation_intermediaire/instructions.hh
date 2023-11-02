@@ -393,7 +393,6 @@ struct Instruction : public Atome {
 
     Genre genre = Genre::INVALIDE;
     int numero = 0;
-    int drapeaux = 0;
     NoeudExpression *site = nullptr;
 
     Instruction()
