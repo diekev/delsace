@@ -1088,8 +1088,21 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
     return true;
 }
 
+/* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
+static void supprime_instructions_à_supprimer(Bloc *bloc)
+{
+    auto nouvelle_fin = std::stable_partition(
+        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
+            return inst->etat != EST_A_SUPPRIMER;
+        });
+
+    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
+    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+}
+
 static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
 {
+    auto instructions_à_supprimer = false;
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
         auto inst0 = bloc->instructions[i + 0];
         auto inst1 = bloc->instructions[i + 1];
@@ -1139,19 +1152,16 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
             inst0->etat = EST_A_SUPPRIMER;
             inst1->etat = EST_A_SUPPRIMER;
             inst2->etat = EST_A_SUPPRIMER;
+            instructions_à_supprimer = true;
         });
     }
 
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
-        });
+    if (!instructions_à_supprimer) {
+        return false;
+    }
 
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-
-    auto const bloc_modifié = nouvelle_taille != bloc->instructions.taille();
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
-    return bloc_modifié;
+    supprime_instructions_à_supprimer(bloc);
+    return true;
 }
 
 static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
