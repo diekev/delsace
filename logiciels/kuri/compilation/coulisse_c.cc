@@ -798,6 +798,8 @@ struct GénératriceCodeC {
                                                  bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_fonction(const AtomeFonction *fonction);
+
+    kuri::chaine_statique donne_nom_pour_type(Type const *type);
 };
 
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
@@ -858,11 +860,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
         {
             auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
             auto valeur = génère_code_pour_atome(transtype_const->valeur, os, pour_globale);
-            return enchaine("(",
-                            broyeuse.nom_broyé_type(const_cast<Type *>(transtype_const->type)),
-                            ")(",
-                            valeur,
-                            ")");
+            return enchaine("(", donne_nom_pour_type(transtype_const->type), ")(", valeur, ")");
         }
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
@@ -1031,8 +1029,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
             }
 
             auto nom = enchaine("val", valeur_const, index_chaine++);
-            os << "  " << broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type)) << " " << nom
-               << " = " << résultat.chaine() << ";\n";
+            os << "  " << donne_nom_pour_type(type) << " " << nom << " = " << résultat.chaine()
+               << ";\n";
             return nom;
         }
         case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
@@ -1209,7 +1207,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case Instruction::Genre::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
-            os << "  " << broyeuse.nom_broyé_type(type_pointeur->type_pointe);
+            os << "  " << donne_nom_pour_type(type_pointeur->type_pointe);
 
             auto nom = donne_nom_pour_instruction(inst);
             os << ' ' << nom << ";\n";
@@ -1233,8 +1231,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto type_fonction = inst_appel->appele->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
                 auto nom_ret = enchaine("__ret", inst->numero);
-                os << broyeuse.nom_broyé_type(const_cast<Type *>(inst_appel->type)) << ' '
-                   << nom_ret << " = ";
+                os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
 
@@ -1335,8 +1332,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto inst_un = inst->comme_op_unaire();
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
 
-            os << "  " << broyeuse.nom_broyé_type(const_cast<Type *>(inst_un->type)) << " val"
-               << inst->numero << " = ";
+            os << "  " << donne_nom_pour_type(inst_un->type) << " val" << inst->numero << " = ";
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1381,8 +1377,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_gauche = génère_code_pour_atome(inst_bin->valeur_gauche, os, false);
             auto valeur_droite = génère_code_pour_atome(inst_bin->valeur_droite, os, false);
 
-            os << "  " << broyeuse.nom_broyé_type(const_cast<Type *>(inst_bin->type)) << " val"
-               << inst->numero << " = ";
+            os << "  " << donne_nom_pour_type(inst_bin->type) << " val" << inst->numero << " = ";
 
             os << valeur_gauche;
 
@@ -1574,7 +1569,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto const &membre = type_composé->membres[index_membre];
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-            auto nom_type = broyeuse.nom_broyé_type(membre.type);
+            auto nom_type = donne_nom_pour_type(membre.type);
             valeur_accédée = enchaine(
                 "&(*(", nom_type, " *)", valeur_accédée, "d[", membre.decalage, "])");
 #else
@@ -1597,11 +1592,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_transtype = inst->comme_transtype();
             auto valeur = génère_code_pour_atome(inst_transtype->valeur, os, false);
-            valeur = enchaine("((",
-                              broyeuse.nom_broyé_type(const_cast<Type *>(inst_transtype->type)),
-                              ")(",
-                              valeur,
-                              "))");
+            valeur = enchaine("((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
             table_valeurs[inst->numero] = valeur;
             break;
         }
@@ -1615,7 +1606,7 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     déclare_visibilité_globale(os, valeur_globale, pour_entete);
 
     auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
-    os << broyeuse.nom_broyé_type(type) << ' ';
+    os << donne_nom_pour_type(type) << ' ';
 
     auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entete);
     os << nom_globale;
@@ -1634,7 +1625,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     }
 
     auto type_fonction = atome_fonc->type->comme_type_fonction();
-    os << broyeuse.nom_broyé_type(type_fonction->type_sortie) << " ";
+    os << donne_nom_pour_type(type_fonction->type_sortie) << " ";
     os << donne_nom_pour_fonction(atome_fonc);
 
     auto virgule = "(";
@@ -1644,7 +1635,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 
         auto type_pointeur = param->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointe;
-        os << broyeuse.nom_broyé_type(type_param) << ' ';
+        os << donne_nom_pour_type(type_param) << ' ';
 
         /* Dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
          * (void fonction(...)), n'imprime pas de nom. */
@@ -1717,7 +1708,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
-        os << broyeuse.nom_broyé_type(type_pointeur->type_pointe) << ' ';
+        os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << broyeuse.broye_nom_simple(param->ident);
         os << ";\n";
 
@@ -1812,6 +1803,11 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction 
 
     return nom;
 #endif
+}
+
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
+{
+    return broyeuse.nom_broyé_type(const_cast<Type *>(type));
 }
 
 /* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
