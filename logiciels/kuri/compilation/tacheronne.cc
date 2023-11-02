@@ -568,7 +568,8 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
     if (noeud->est_corps_fonction()) {
         auto entete = noeud->comme_corps_fonction()->entete;
-        analyseuse_ri->analyse_ri(*unite->espace, static_cast<AtomeFonction *>(entete->atome));
+        analyseuse_ri->analyse_ri(
+            *unite->espace, constructrice_ri, static_cast<AtomeFonction *>(entete->atome));
     }
 
     noeud->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
