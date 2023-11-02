@@ -1095,7 +1095,7 @@ void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 
     auto espace = unite->espace;
     TACHE_TERMINEE(CHARGEMENT, true);
-    m_compilatrice->messagere->ajoute_message_fichier_ferme(espace, unite->fichier->chemin());
+    m_compilatrice->messagere->ajoute_message_fichier_fermé(espace, unite->fichier->chemin());
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
     unite->mute_raison_d_être(RaisonDEtre::LEXAGE_FICHIER);
