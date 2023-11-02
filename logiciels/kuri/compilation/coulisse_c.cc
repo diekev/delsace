@@ -120,7 +120,9 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
         return;
     }
 
+#ifdef IMPRIME_COMMENTAIRE
     enchaineuse << "// " << chaine_type(type) << " (" << type->genre << ')' << '\n';
+#endif
 
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
