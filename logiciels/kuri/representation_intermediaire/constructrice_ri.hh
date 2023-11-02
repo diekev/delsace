@@ -41,6 +41,7 @@ struct ConstructriceRI {
 
     Compilatrice &m_compilatrice;
 
+    /* Utilisé pour assigner des identifiants aux labels. */
     int nombre_labels = 0;
 
     bool expression_gauche = true;
