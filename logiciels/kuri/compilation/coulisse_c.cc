@@ -36,6 +36,97 @@
 #undef PRESERVE_NOMS_DANS_LE_CODE
 
 /* ------------------------------------------------------------------------- */
+/** \name Déclaration de GénératriceCodeC.
+ * \{ */
+
+struct GénératriceCodeC {
+    kuri::tableau<kuri::chaine_statique> table_valeurs{};
+    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
+    kuri::table_hachage<AtomeFonction const *, kuri::chaine_statique> table_fonctions{
+        "Noms fonctions C"};
+    EspaceDeTravail &m_espace;
+    AtomeFonction const *m_fonction_courante = nullptr;
+
+    Broyeuse &broyeuse;
+
+    /* Les atomes pour les chaines peuvent être générés plusieurs fois (notamment
+     * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
+     * des variables avec un index pour les rendre uniques. L'index est incrémenté à chaque
+     * génération de code pour une chaine. */
+    int index_chaine = 0;
+
+    /* Pour les noms des globales anonymes. */
+    int nombre_de_globales = 0;
+
+    /* Pour les noms des fonctions. */
+    int nombre_de_fonctions = 0;
+
+    Enchaineuse enchaineuse_tmp{};
+    Enchaineuse stockage_chn{};
+
+    /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
+    kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
+
+    template <typename... Ts>
+    kuri::chaine_statique enchaine(Ts &&...ts)
+    {
+        enchaineuse_tmp.réinitialise();
+        ((enchaineuse_tmp << ts), ...);
+        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+    }
+
+    GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_);
+
+    EMPECHE_COPIE(GénératriceCodeC);
+
+    kuri::chaine_statique génère_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
+
+    kuri::chaine_statique génère_code_pour_atome_constante(AtomeConstante const *atome_const,
+                                                           Enchaineuse &os,
+                                                           bool pour_globale);
+
+    kuri::chaine_statique génère_code_pour_atome_valeur_constante(
+        AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale);
+
+    void débute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
+
+    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
+
+    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os);
+
+    void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
+
+    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
+
+    void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
+
+    void génère_code(kuri::tableau<AtomeGlobale *> const &globales,
+                     kuri::tableau<AtomeFonction *> const &fonctions,
+                     CoulisseC &coulisse,
+                     Enchaineuse &os);
+
+    void génère_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
+
+    void génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
+                            const kuri::tableau<AtomeFonction *> &fonctions,
+                            Enchaineuse &os);
+
+    void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
+    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
+
+    kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
+
+    kuri::chaine_statique donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
+                                                 bool pour_entête);
+
+    kuri::chaine_statique donne_nom_pour_fonction(const AtomeFonction *fonction);
+
+    kuri::chaine_statique donne_nom_pour_type(Type const *type);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name TypeC.
  * Données pour générer la déclaration d'un type dans le code C.
  * \{ */
@@ -737,97 +828,6 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         // os << "static ";
     }
 }
-
-/* ------------------------------------------------------------------------- */
-/** \name Déclaration de GénératriceCodeC.
- * \{ */
-
-struct GénératriceCodeC {
-    kuri::tableau<kuri::chaine_statique> table_valeurs{};
-    kuri::table_hachage<Atome const *, kuri::chaine_statique> table_globales{"Valeurs globales C"};
-    kuri::table_hachage<AtomeFonction const *, kuri::chaine_statique> table_fonctions{
-        "Noms fonctions C"};
-    EspaceDeTravail &m_espace;
-    AtomeFonction const *m_fonction_courante = nullptr;
-
-    Broyeuse &broyeuse;
-
-    /* Les atomes pour les chaines peuvent être générés plusieurs fois (notamment
-     * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
-     * des variables avec un index pour les rendre uniques. L'index est incrémenté à chaque
-     * génération de code pour une chaine. */
-    int index_chaine = 0;
-
-    /* Pour les noms des globales anonymes. */
-    int nombre_de_globales = 0;
-
-    /* Pour les noms des fonctions. */
-    int nombre_de_fonctions = 0;
-
-    Enchaineuse enchaineuse_tmp{};
-    Enchaineuse stockage_chn{};
-
-    /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
-    kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
-
-    template <typename... Ts>
-    kuri::chaine_statique enchaine(Ts &&...ts)
-    {
-        enchaineuse_tmp.réinitialise();
-        ((enchaineuse_tmp << ts), ...);
-        return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
-    }
-
-    GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_);
-
-    EMPECHE_COPIE(GénératriceCodeC);
-
-    kuri::chaine_statique génère_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
-
-    kuri::chaine_statique génère_code_pour_atome_constante(AtomeConstante const *atome_const,
-                                                           Enchaineuse &os,
-                                                           bool pour_globale);
-
-    kuri::chaine_statique génère_code_pour_atome_valeur_constante(
-        AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale);
-
-    void débute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
-
-    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
-
-    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os);
-
-    void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
-
-    void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
-
-    void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
-
-    void génère_code(kuri::tableau<AtomeGlobale *> const &globales,
-                     kuri::tableau<AtomeFonction *> const &fonctions,
-                     CoulisseC &coulisse,
-                     Enchaineuse &os);
-
-    void génère_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
-
-    void génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
-                            const kuri::tableau<AtomeFonction *> &fonctions,
-                            Enchaineuse &os);
-
-    void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
-    void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
-
-    kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
-
-    kuri::chaine_statique donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
-                                                 bool pour_entête);
-
-    kuri::chaine_statique donne_nom_pour_fonction(const AtomeFonction *fonction);
-
-    kuri::chaine_statique donne_nom_pour_type(Type const *type);
-};
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Implémentation de GénératriceCodeC.
