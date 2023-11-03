@@ -2016,14 +2016,14 @@ static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
 
 static void génère_table_des_types(Typeuse &typeuse,
                                    ProgrammeRepreInter &repr_inter_programme,
-                                   ConstructriceRI &constructrice_ri)
+                                   CompilatriceRI &compilatrice_ri)
 {
     auto index_type = 0u;
     POUR (repr_inter_programme.types) {
         it->index_dans_table_types = index_type++;
 
         if (!it->atome_info_type) {
-            // constructrice_ri.crée_info_type(it);
+            // compilatrice_ri.crée_info_type(it);
             continue;
         }
 
@@ -2067,11 +2067,11 @@ static void génère_table_des_types(Typeuse &typeuse,
             continue;
         }
 
-        table_des_types.ajoute(constructrice_ri.transtype_base_info_type(it->atome_info_type));
+        table_des_types.ajoute(compilatrice_ri.transtype_base_info_type(it->atome_info_type));
     }
 
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-    atome_table_des_types->initialisateur = constructrice_ri.crée_tableau_global(
+    atome_table_des_types->initialisateur = compilatrice_ri.crée_tableau_global(
         type_pointeur_info_type, std::move(table_des_types));
 
     auto initialisateur = static_cast<AtomeValeurConstante *>(
@@ -2086,11 +2086,11 @@ static void génère_table_des_types(Typeuse &typeuse,
 }
 
 static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
-                                            ConstructriceRI &constructrice_ri,
+                                            CompilatriceRI &compilatrice_ri,
                                             AtomeFonction *fonction,
                                             ProgrammeRepreInter &repr_inter_programme)
 {
-    constructrice_ri.genere_ri_pour_initialisation_globales(
+    compilatrice_ri.genere_ri_pour_initialisation_globales(
         &espace, fonction, repr_inter_programme.globales);
     /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
      * sont peut-être pas encore dans la liste. */
@@ -2098,7 +2098,7 @@ static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
 }
 
 static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
-                                                     ConstructriceRI &constructrice_ri,
+                                                     CompilatriceRI &compilatrice_ri,
                                                      EspaceDeTravail &espace,
                                                      CoulisseC &coulisse,
                                                      Programme *programme,
@@ -2114,12 +2114,12 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
 
-    génère_table_des_types(compilatrice.typeuse, repr_inter_programme, constructrice_ri);
+    génère_table_des_types(compilatrice.typeuse, repr_inter_programme, compilatrice_ri);
 
     // Génére le corps de la fonction d'initialisation des globales.
     auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
     auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
-    génère_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
+    génère_ri_fonction_init_globale(espace, compilatrice_ri, atome, repr_inter_programme);
 
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
@@ -2127,7 +2127,7 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
 }
 
 static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
-                                                   ConstructriceRI &constructrice_ri,
+                                                   CompilatriceRI &compilatrice_ri,
                                                    EspaceDeTravail &espace,
                                                    CoulisseC &coulisse,
                                                    Programme *programme,
@@ -2159,7 +2159,7 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 
     if (decl_init_globales) {
         génère_ri_fonction_init_globale(
-            espace, constructrice_ri, decl_init_globales, repr_inter_programme);
+            espace, compilatrice_ri, decl_init_globales, repr_inter_programme);
     }
 
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
@@ -2168,7 +2168,7 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
 }
 
 static bool génère_code_C(Compilatrice &compilatrice,
-                          ConstructriceRI &constructrice_ri,
+                          CompilatriceRI &compilatrice_ri,
                           EspaceDeTravail &espace,
                           CoulisseC &coulisse,
                           Programme *programme,
@@ -2177,29 +2177,29 @@ static bool génère_code_C(Compilatrice &compilatrice,
 {
     if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
         return génère_code_C_depuis_fonction_principale(
-            compilatrice, constructrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
+            compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
     }
 
     return génère_code_C_depuis_fonctions_racines(
-        compilatrice, constructrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
+        compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
 }
 
 bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme,
-                                 ConstructriceRI &constructrice_ri,
+                                 CompilatriceRI &compilatrice_ri,
                                  Broyeuse &broyeuse)
 {
     m_bibliothèques.efface();
 
     return génère_code_C(
-        compilatrice, constructrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
+        compilatrice, compilatrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
 }
 
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
                                         Programme *programme,
-                                        ConstructriceRI &constructrice_ri,
+                                        CompilatriceRI &compilatrice_ri,
                                         Broyeuse &broyeuse)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
