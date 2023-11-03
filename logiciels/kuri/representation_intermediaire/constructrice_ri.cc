@@ -1025,7 +1025,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             InstructionAllocation *adresse_retour = nullptr;
 
             if (!type_fonction->type_sortie->est_type_rien()) {
-                adresse_retour = crée_allocation(nullptr, type_fonction->type_sortie, nullptr);
+                adresse_retour = crée_allocation(expr_appel, type_fonction->type_sortie, nullptr);
             }
 
             auto valeur = crée_appel(expr_appel, atome_fonc, std::move(args));
