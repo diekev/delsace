@@ -3,6 +3,8 @@
 
 #include "coulisse.hh"
 
+#include "biblinternes/chrono/chronometrage.hh"
+
 #include "options.hh"
 
 #include "coulisse_asm.hh"
@@ -10,6 +12,7 @@
 #include "coulisse_llvm.hh"
 #include "coulisse_mv.hh"
 #include "environnement.hh"
+#include "espace_de_travail.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
@@ -70,6 +73,56 @@ void Coulisse::detruit(Coulisse *coulisse)
         memoire::deloge("CoulisseMV", c);
         coulisse = nullptr;
     }
+}
+
+bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
+                                  EspaceDeTravail &espace,
+                                  Programme *programme,
+                                  ConstructriceRI &constructrice_ri,
+                                  Broyeuse &broyeuse)
+{
+    if (!est_coulisse_métaprogramme()) {
+        std::cout << "Génération du code..." << std::endl;
+    }
+    auto début_génération_code = dls::chrono::compte_seconde();
+    if (!génère_code_impl(compilatrice, espace, programme, constructrice_ri, broyeuse)) {
+        return false;
+    }
+    temps_generation_code = début_génération_code.temps();
+
+    if (!est_coulisse_métaprogramme()) {
+        std::cout << "Création du fichier objet..." << std::endl;
+    }
+    auto debut_fichier_objet = dls::chrono::compte_seconde();
+    if (!crée_fichier_objet_impl(compilatrice, espace, programme, constructrice_ri, broyeuse)) {
+        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
+        return false;
+    }
+    temps_fichier_objet = debut_fichier_objet.temps();
+
+    return true;
+}
+
+bool Coulisse::crée_exécutable(Compilatrice &compilatrice,
+                               EspaceDeTravail &espace,
+                               Programme *programme)
+{
+    if (!est_coulisse_métaprogramme()) {
+        std::cout << "Liaison du programme..." << std::endl;
+    }
+    auto début_exécutable = dls::chrono::compte_seconde();
+    if (!crée_exécutable_impl(compilatrice, espace, programme)) {
+        espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
+        return false;
+    }
+    temps_executable = début_exécutable.temps();
+
+    return true;
+}
+
+bool Coulisse::est_coulisse_métaprogramme() const
+{
+    return dynamic_cast<CoulisseMV const *>(this) != nullptr;
 }
 
 static kuri::chaine_statique nom_fichier_sortie(OptionsDeCompilation const &ops)
