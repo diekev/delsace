@@ -36,8 +36,6 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "biblexternes/iprof/prof.h"
-
 #include "biblinternes/chrono/chronometrage.hh"
 
 #include "structures/chemin_systeme.hh"
