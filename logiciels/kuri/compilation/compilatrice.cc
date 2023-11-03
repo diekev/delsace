@@ -588,7 +588,7 @@ AtomeFonction *Compilatrice::crée_fonction(const Lexeme *lexeme, const kuri::ch
  * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
  * créer en préparation de la génération de la RI de son corps.
  */
-AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &constructrice,
+AtomeFonction *Compilatrice::trouve_ou_insere_fonction(CompilatriceRI &compilatrice_ri,
                                                        NoeudDeclarationEnteteFonction *decl)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
@@ -597,14 +597,14 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
         return static_cast<AtomeFonction *>(decl->atome);
     }
 
-    SAUVEGARDE_ETAT(constructrice.fonction_courante);
+    SAUVEGARDE_ETAT(compilatrice_ri.fonction_courante);
 
     auto params = kuri::tableau<Atome *, int>();
     params.reserve(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
-        auto atome = constructrice.crée_allocation(param, param->type, param->ident);
+        auto atome = compilatrice_ri.crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params.ajoute(atome);
     }
@@ -615,19 +615,19 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(ConstructriceRI &construc
      */
 
     auto param_sortie = decl->param_sortie;
-    auto atome_param_sortie = constructrice.crée_allocation(
+    auto atome_param_sortie = compilatrice_ri.crée_allocation(
         param_sortie, param_sortie->type, param_sortie->ident);
     param_sortie->atome = atome_param_sortie;
 
     if (decl->params_sorties.taille() > 1) {
         POUR_INDEX (decl->params_sorties) {
-            it->comme_declaration_variable()->atome = constructrice.crée_reference_membre(
+            it->comme_declaration_variable()->atome = compilatrice_ri.crée_reference_membre(
                 it, atome_param_sortie, index_it, true);
         }
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(constructrice.espace(), *broyeuse), std::move(params));
+        decl->lexeme, decl->nom_broye(compilatrice_ri.espace(), *broyeuse), std::move(params));
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);

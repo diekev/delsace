@@ -18,7 +18,7 @@ struct NoeudInstructionTente;
 struct TypeEnum;
 struct TypeTableauFixe;
 
-struct ConstructriceRI {
+struct CompilatriceRI {
   private:
     tableau_page<AtomeValeurConstante> atomes_constante{};
     tableau_page<InstructionAllocation> insts_allocation{};
@@ -58,11 +58,11 @@ struct ConstructriceRI {
 
     double temps_generation = 0.0;
 
-    explicit ConstructriceRI(Compilatrice &compilatrice);
+    explicit CompilatriceRI(Compilatrice &compilatrice);
 
-    EMPECHE_COPIE(ConstructriceRI);
+    EMPECHE_COPIE(CompilatriceRI);
 
-    ~ConstructriceRI();
+    ~CompilatriceRI();
 
     void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,

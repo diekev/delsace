@@ -1634,7 +1634,7 @@ CoulisseLLVM::~CoulisseLLVM()
 bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
-                                    ConstructriceRI & /*constructrice_ri*/,
+                                    CompilatriceRI & /*constructrice_ri*/,
                                     Broyeuse &)
 {
     if (!initialise_llvm()) {
@@ -1686,7 +1686,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
 bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                            EspaceDeTravail &espace,
                                            Programme *programme,
-                                           ConstructriceRI & /*constructrice_ri*/,
+                                           CompilatriceRI & /*constructrice_ri*/,
                                            Broyeuse &)
 {
     if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
