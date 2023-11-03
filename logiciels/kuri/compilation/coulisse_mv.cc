@@ -14,11 +14,11 @@
 #include "metaprogramme.hh"
 #include "programme.hh"
 
-bool CoulisseMV::crée_fichier_objet(Compilatrice &compilatrice,
-                                    EspaceDeTravail &espace,
-                                    Programme *programme,
-                                    ConstructriceRI &constructrice_ri,
-                                    Broyeuse &)
+bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
+                                  EspaceDeTravail &espace,
+                                  Programme *programme,
+                                  ConstructriceRI &constructrice_ri,
+                                  Broyeuse &)
 {
     auto repr_inter = représentation_intermédiaire_programme(*programme);
     auto métaprogramme = programme->pour_métaprogramme();
@@ -65,9 +65,18 @@ bool CoulisseMV::crée_fichier_objet(Compilatrice &compilatrice,
     return convertisseuse_ri.genere_code(repr_inter.fonctions);
 }
 
-bool CoulisseMV::crée_exécutable(Compilatrice &compilatrice,
-                                 EspaceDeTravail &espace,
-                                 Programme *programme)
+bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
+                                         EspaceDeTravail & /*espace*/,
+                                         Programme * /*programme*/,
+                                         ConstructriceRI & /*constructrice_ri*/,
+                                         Broyeuse &)
+{
+    return true;
+}
+
+bool CoulisseMV::crée_exécutable_impl(Compilatrice &compilatrice,
+                                      EspaceDeTravail &espace,
+                                      Programme *programme)
 {
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
