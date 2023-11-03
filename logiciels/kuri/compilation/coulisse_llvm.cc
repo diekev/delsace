@@ -928,15 +928,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
-            auto valeur = static_cast<llvm::Value *>(nullptr);
-
-            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur = table_valeurs.valeur_ou(charge, nullptr);
-            }
-            else {
-                valeur = table_globales.valeur_ou(charge, nullptr);
-            }
-
+            auto valeur = genere_code_pour_atome(charge, false);
             assert(valeur != nullptr);
 
             auto load = m_builder.CreateLoad(valeur, "");
@@ -949,14 +941,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto inst_stocke = inst->comme_stocke_mem();
             auto valeur = genere_code_pour_atome(inst_stocke->valeur, false);
             auto ou = inst_stocke->ou;
-            auto valeur_ou = static_cast<llvm::Value *>(nullptr);
-
-            if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur_ou = table_valeurs.valeur_ou(ou, nullptr);
-            }
-            else {
-                valeur_ou = table_globales.valeur_ou(ou, nullptr);
-            }
+            auto valeur_ou = genere_code_pour_atome(ou, false);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
                 erreur::imprime_site(m_espace, inst_stocke->site);
