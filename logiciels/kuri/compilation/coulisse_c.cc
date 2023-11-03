@@ -2015,22 +2015,6 @@ static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
     génératrice.génère_code(repr_inter_programme, coulisse);
 }
 
-static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,
-                                              kuri::ensemble<Bibliotheque *> &utilisées,
-                                              Bibliotheque *bibliothèque)
-{
-    if (utilisées.possède(bibliothèque)) {
-        return;
-    }
-
-    bibliothèques.ajoute(bibliothèque);
-    utilisées.insère(bibliothèque);
-
-    POUR (bibliothèque->dependances.plage()) {
-        rassemble_bibliothèques_utilisées(bibliothèques, utilisées, it);
-    }
-}
-
 static void génère_table_des_types(Typeuse &typeuse,
                                    ProgrammeRepreInter &repr_inter_programme,
                                    ConstructriceRI &constructrice_ri)
@@ -2102,19 +2086,6 @@ static void génère_table_des_types(Typeuse &typeuse,
     repr_inter_programme.types.ajoute(type_tableau_fixe);
 }
 
-static void rassemble_bibliothèques_utilisées(ProgrammeRepreInter &repr_inter_programme,
-                                              kuri::tableau<Bibliotheque *> &bibliothèques)
-{
-    kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
-    POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
-            it->decl->symbole) {
-            rassemble_bibliothèques_utilisées(
-                bibliothèques, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
-        }
-    }
-}
-
 static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
                                             ConstructriceRI &constructrice_ri,
                                             AtomeFonction *fonction,
@@ -2151,9 +2122,8 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
     auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
     génère_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
 
-    rassemble_bibliothèques_utilisées(repr_inter_programme, bibliothèques);
-
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return true;
 }
 
@@ -2193,9 +2163,8 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
             espace, constructrice_ri, decl_init_globales, repr_inter_programme);
     }
 
-    rassemble_bibliothèques_utilisées(repr_inter_programme, bibliothèques);
-
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return true;
 }
 
