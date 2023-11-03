@@ -889,36 +889,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case Instruction::Genre::APPEL:
         {
             auto inst_appel = inst->comme_appel();
-
-            //			auto const &lexeme = inst_appel->lexeme;
-            //			auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
-            //			auto pos = position_lexeme(*lexeme);
-
-            //			if (!m_fonction_courante->sanstrace) {
-            //				os << "  DEBUTE_RECORD_TRACE_APPEL(";
-            //				os << pos.numero_ligne << ",";
-            //				os << pos.pos << ",";
-            //				os << "\"";
-
-            //				auto ligne = fichier->tampon[pos.index_ligne];
-
-            //				POUR (ligne) {
-            //					if (it == '\n') {
-            //						continue;
-            //					}
-
-            //					if (it == '"') {
-            //						os << '\\';
-            //					}
-
-            //					os << it;
-            //				}
-
-            //				os << "\",";
-            //				os << ligne.taille();
-            //				os << ");\n";
-            //			}
-
             auto arguments = std::vector<llvm::Value *>();
 
             POUR (inst_appel->args) {
@@ -936,10 +906,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                                                               valeur_fonction->getType()),
                                                           valeur_fonction),
                                      arguments));
-
-            //			if (!m_fonction_courante->sanstrace) {
-            //				os << "  TERMINE_RECORD_TRACE_APPEL;\n";
-            //			}
 
             break;
         }
@@ -1329,26 +1295,6 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
             table_valeurs.insère(param, alloc);
         }
-
-        //		if (!atome_fonc->sanstrace) {
-        //			os << "INITIALISE_TRACE_APPEL(\"";
-
-        //			if (atome_fonc->lexeme != nullptr) {
-        //				auto fichier =
-        // m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier)); 				os
-        // << atome_fonc->lexeme->chaine << "\", "
-        //				   << atome_fonc->lexeme->chaine.taille() << ", \""
-        //				   << fichier->nom << ".kuri\", "
-        //				   << fichier->nom.taille() + 5 << ", ";
-        //			}
-        //			else {
-        //				os << atome_fonc->nom << "\", "
-        //				   << atome_fonc->nom.taille() << ", "
-        //				   << "\"???\", 3, ";
-        //			}
-
-        //			os << atome_fonc->nom << ");\n";
-        //		}
 
         /* crée une variable local pour la valeur de sortie */
         auto type_fonction = atome_fonc->type->comme_type_fonction();
