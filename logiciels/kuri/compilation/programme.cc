@@ -867,4 +867,34 @@ void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction
     rassemble_types_supplementaires(*this);
 }
 
+static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,
+                                              kuri::ensemble<Bibliotheque *> &utilisées,
+                                              Bibliotheque *bibliothèque)
+{
+    if (utilisées.possède(bibliothèque)) {
+        return;
+    }
+
+    bibliothèques.ajoute(bibliothèque);
+    utilisées.insère(bibliothèque);
+
+    POUR (bibliothèque->dependances.plage()) {
+        rassemble_bibliothèques_utilisées(bibliothèques, utilisées, it);
+    }
+}
+
+kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisées() const
+{
+    kuri::tableau<Bibliotheque *> résultat;
+    kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
+    POUR (fonctions) {
+        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+            it->decl->symbole) {
+            rassemble_bibliothèques_utilisées(
+                résultat, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
+        }
+    }
+    return résultat;
+}
+
 /** \} */
