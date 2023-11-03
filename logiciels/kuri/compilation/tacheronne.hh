@@ -117,7 +117,7 @@ struct OrdonnanceuseTache {
 struct Tacheronne {
     Compilatrice &compilatrice;
 
-    ConstructriceRI constructrice_ri{compilatrice};
+    CompilatriceRI constructrice_ri{compilatrice};
     ContexteAnalyseRI *analyseuse_ri = nullptr;
     MachineVirtuelle mv{compilatrice};
 

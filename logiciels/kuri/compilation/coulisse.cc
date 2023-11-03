@@ -78,14 +78,14 @@ void Coulisse::detruit(Coulisse *coulisse)
 bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
                                   Programme *programme,
-                                  ConstructriceRI &constructrice_ri,
+                                  CompilatriceRI &compilatrice_ri,
                                   Broyeuse &broyeuse)
 {
     if (!est_coulisse_métaprogramme()) {
         std::cout << "Génération du code..." << std::endl;
     }
     auto début_génération_code = dls::chrono::compte_seconde();
-    if (!génère_code_impl(compilatrice, espace, programme, constructrice_ri, broyeuse)) {
+    if (!génère_code_impl(compilatrice, espace, programme, compilatrice_ri, broyeuse)) {
         return false;
     }
     temps_generation_code = début_génération_code.temps();
@@ -94,7 +94,7 @@ bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
         std::cout << "Création du fichier objet..." << std::endl;
     }
     auto debut_fichier_objet = dls::chrono::compte_seconde();
-    if (!crée_fichier_objet_impl(compilatrice, espace, programme, constructrice_ri, broyeuse)) {
+    if (!crée_fichier_objet_impl(compilatrice, espace, programme, compilatrice_ri, broyeuse)) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
         return false;
     }
