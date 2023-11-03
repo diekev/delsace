@@ -482,17 +482,27 @@ void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &global
     }
 }
 
-bool CoulisseASM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
-                                     EspaceDeTravail &espace,
-                                     Programme *programme,
-                                     ConstructriceRI &constructrice_ri,
-                                     Broyeuse &)
+bool CoulisseASM::génère_code_impl(Compilatrice & /*compilatrice*/,
+                                   EspaceDeTravail & /*espace*/,
+                                   Programme * /*programme*/,
+                                   ConstructriceRI & /*constructrice_ri*/,
+                                   Broyeuse &)
+{
+    return true;
+}
+
+bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
+                                          EspaceDeTravail &espace,
+                                          Programme *programme,
+                                          ConstructriceRI &constructrice_ri,
+                                          Broyeuse &)
 {
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
     if (espace.fonction_principale == nullptr) {
         erreur::fonction_principale_manquante(espace);
+        return false;
     }
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
@@ -511,9 +521,9 @@ bool CoulisseASM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
     return true;
 }
 
-bool CoulisseASM::crée_exécutable(Compilatrice & /*compilatrice*/,
-                                  EspaceDeTravail & /*espace*/,
-                                  Programme * /* programme */)
+bool CoulisseASM::crée_exécutable_impl(Compilatrice & /*compilatrice*/,
+                                       EspaceDeTravail & /*espace*/,
+                                       Programme * /* programme */)
 {
     return false;
 }
