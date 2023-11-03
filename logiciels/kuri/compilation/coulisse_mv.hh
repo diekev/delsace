@@ -17,13 +17,13 @@ struct CoulisseMV final : public Coulisse {
     bool génère_code_impl(Compilatrice &compilatrice,
                           EspaceDeTravail &espace,
                           Programme *programme,
-                          ConstructriceRI &constructrice_ri,
+                          CompilatriceRI &compilatrice_ri,
                           Broyeuse &) override;
 
     bool crée_fichier_objet_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme,
-                                 ConstructriceRI &constructrice_ri,
+                                 CompilatriceRI &compilatrice_ri,
                                  Broyeuse &) override;
 
     bool crée_exécutable_impl(Compilatrice &compilatrice,
