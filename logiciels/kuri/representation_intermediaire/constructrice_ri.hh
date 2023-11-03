@@ -138,6 +138,7 @@ struct ConstructriceRI {
                                           bool crée_seulement = false);
     Atome *crée_charge_mem_si_chargeable(NoeudExpression *site_, Atome *source);
     Atome *crée_temporaire_si_non_chargeable(NoeudExpression *site_, Atome *source);
+    InstructionAllocation *crée_temporaire(NoeudExpression *site_, Atome *source);
     InstructionAppel *crée_appel(NoeudExpression *site_, Atome *appele);
     InstructionAppel *crée_appel(NoeudExpression *site_,
                                  Atome *appele,

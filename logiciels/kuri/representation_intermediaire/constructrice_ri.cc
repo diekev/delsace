@@ -508,7 +508,12 @@ Atome *ConstructriceRI::crée_temporaire_si_non_chargeable(NoeudExpression *site
         return source;
     }
 
-    auto résultat = crée_allocation(site_, site_->type, nullptr);
+    return crée_temporaire(site_, source);
+}
+
+InstructionAllocation *ConstructriceRI::crée_temporaire(NoeudExpression *site_, Atome *source)
+{
+    auto résultat = crée_allocation(site_, source->type, nullptr);
     crée_stocke_mem(site_, résultat, source);
     return résultat;
 }
@@ -988,8 +993,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     continue;
                 }
 
-                auto alloc = crée_allocation(it, valeur->type, nullptr);
-                crée_stocke_mem(it, alloc, valeur);
+                auto alloc = crée_temporaire(it, valeur);
                 args.ajoute(crée_charge_mem(it, alloc));
             }
 
@@ -1189,8 +1193,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 return;
             }
 
-            auto alloc = crée_allocation(noeud, m_compilatrice.typeuse.type_chaine, nullptr);
-            crée_stocke_mem(noeud, alloc, constante);
+            auto alloc = crée_temporaire(noeud, constante);
             empile_valeur(alloc);
             break;
         }
@@ -1229,8 +1232,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto resultat = crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
-            auto alloc = crée_allocation(noeud, expr_bin->type, nullptr);
-            crée_stocke_mem(noeud, alloc, resultat);
+            auto alloc = crée_temporaire(noeud, resultat);
             empile_valeur(alloc);
             break;
         }
@@ -1357,9 +1359,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                 }
 
                 if (!expression_gauche) {
-                    auto alloc = crée_allocation(noeud, expr_un->type, nullptr);
-                    crée_stocke_mem(noeud, alloc, valeur);
-                    valeur = alloc;
+                    valeur = crée_temporaire(noeud, valeur);
                 }
 
                 empile_valeur(valeur);
@@ -1647,9 +1647,8 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             if (taille_tableau == 0) {
                 auto type_tableau_dyn = m_compilatrice.typeuse.type_tableau_dynamique(noeud->type);
-                auto alloc = crée_allocation(noeud, type_tableau_dyn, nullptr);
                 auto init = genere_initialisation_defaut_pour_type(type_tableau_dyn);
-                crée_stocke_mem(noeud, alloc, init);
+                auto alloc = crée_temporaire(noeud, init);
                 empile_valeur(alloc);
                 return;
             }
@@ -1713,8 +1712,7 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             /* utilise une temporaire pour simplifier la compilation d'expressions du style :
              * info_de(z32).id */
-            auto alloc = crée_allocation(noeud, valeur->type, nullptr);
-            crée_stocke_mem(noeud, alloc, valeur);
+            auto alloc = crée_temporaire(noeud, valeur);
 
             empile_valeur(alloc);
             break;
@@ -1743,12 +1741,11 @@ void ConstructriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto valeur = depile_valeur();
 
             if (!expression_gauche) {
-                auto alloc = crée_allocation(noeud, inst_mem->type, nullptr);
                 // déréférence la locale
                 valeur = crée_charge_mem(noeud, valeur);
                 // déréférence le pointeur
                 valeur = crée_charge_mem(noeud, valeur);
-                crée_stocke_mem(noeud, alloc, valeur);
+                auto alloc = crée_temporaire(noeud, valeur);
                 empile_valeur(alloc);
                 return;
             }
@@ -2206,9 +2203,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
                 default:
                 {
                     if (valeur->genre_atome == Atome::Genre::CONSTANTE) {
-                        auto alloc = crée_allocation(noeud, noeud->type, nullptr);
-                        crée_stocke_mem(noeud, alloc, valeur);
-                        valeur = alloc;
+                        valeur = crée_temporaire(noeud, valeur);
                     }
 
                     valeur = crée_transtype(noeud, type_cible, valeur, TypeTranstypage::BITS);
@@ -2471,9 +2466,7 @@ void ConstructriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
         auto label_si_vrai = reserve_label(noeud);
         auto label_si_faux = reserve_label(noeud);
 
-        auto valeur_union = crée_allocation(noeud, noeud->expression_appelee->type, nullptr);
-        crée_stocke_mem(noeud, valeur_union, valeur_expression);
-
+        auto valeur_union = crée_temporaire(noeud, valeur_expression);
         auto acces_membre_actif = crée_reference_membre_et_charge(noeud, valeur_union, 1);
 
         auto condition_membre_actif = crée_op_comparaison(
