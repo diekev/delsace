@@ -8,7 +8,6 @@
 #include <set>
 #include <sys/wait.h>
 
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
@@ -2185,24 +2184,27 @@ static bool génère_code_C(Compilatrice &compilatrice,
         compilatrice, constructrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
 }
 
-bool CoulisseC::crée_fichier_objet(Compilatrice &compilatrice,
-                                   EspaceDeTravail &espace,
-                                   Programme *programme,
-                                   ConstructriceRI &constructrice_ri,
-                                   Broyeuse &broyeuse)
+bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme,
+                                 ConstructriceRI &constructrice_ri,
+                                 Broyeuse &broyeuse)
 {
     m_bibliothèques.efface();
 
-    std::cout << "Génération du code..." << std::endl;
-    auto début_génération_code = dls::chrono::compte_seconde();
-    if (!génère_code_C(
-            compilatrice, constructrice_ri, espace, *this, programme, m_bibliothèques, broyeuse)) {
-        return false;
-    }
-    temps_generation_code = début_génération_code.temps();
+    return génère_code_C(
+        compilatrice, constructrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
+}
 
-#ifndef CMAKE_BUILD_TYPE_PROFILE
-    auto debut_fichier_objet = dls::chrono::compte_seconde();
+bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                        EspaceDeTravail &espace,
+                                        Programme *programme,
+                                        ConstructriceRI &constructrice_ri,
+                                        Broyeuse &broyeuse)
+{
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
     auto une_erreur_est_survenue = false;
 
 #    ifndef NDEBUG
@@ -2260,21 +2262,13 @@ bool CoulisseC::crée_fichier_objet(Compilatrice &compilatrice,
     }
 #    endif
 
-    if (une_erreur_est_survenue) {
-        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
-        return false;
-    }
-
-    temps_fichier_objet = debut_fichier_objet.temps();
-
+    return !une_erreur_est_survenue;
 #endif
-
-    return true;
 }
 
-bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
-                                EspaceDeTravail &espace,
-                                Programme * /*programme*/)
+bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
+                                     EspaceDeTravail &espace,
+                                     Programme * /*programme*/)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
@@ -2282,8 +2276,6 @@ bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
         return false;
     }
-
-    auto début_exécutable = dls::chrono::compte_seconde();
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
@@ -2293,16 +2285,7 @@ bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-    auto err = system(commande.pointeur());
-
-    if (err != 0) {
-        espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
-        return false;
-    }
-
-    temps_executable = début_exécutable.temps();
-    return true;
+    return system(commande.pointeur()) == 0;
 #endif
 }
 

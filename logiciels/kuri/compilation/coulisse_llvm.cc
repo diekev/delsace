@@ -36,8 +36,6 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "biblinternes/chrono/chronometrage.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
@@ -1627,24 +1625,30 @@ static bool crée_executable(EspaceDeTravail const &espace,
     return true;
 }
 
-bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
-                                      EspaceDeTravail &espace,
-                                      Programme *programme,
-                                      ConstructriceRI & /*constructrice_ri*/,
-                                      Broyeuse &)
+CoulisseLLVM::~CoulisseLLVM()
 {
-    auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+    delete m_module;
+    delete m_machine_cible;
+}
 
+bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
+                                    EspaceDeTravail &espace,
+                                    Programme *programme,
+                                    ConstructriceRI & /*constructrice_ri*/,
+                                    Broyeuse &)
+{
     if (!initialise_llvm()) {
         return false;
     }
+
+    auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
     auto erreur = std::string{""};
     auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
     if (!cible) {
         std::cerr << erreur << '\n';
-        return 1;
+        return false;
     }
 
     auto repr_inter = représentation_intermédiaire_programme(*programme);
@@ -1653,19 +1657,15 @@ bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
     auto feature = "";
     auto options_cible = llvm::TargetOptions{};
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
-    auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-        cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM));
+    m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
     auto generatrice = GeneratriceCodeLLVM(espace);
 
-    auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
-    module_llvm.setDataLayout(machine_cible->createDataLayout());
-    module_llvm.setTargetTriple(triplet_cible);
+    m_module = new llvm::Module("Module", generatrice.m_contexte_llvm);
+    m_module->setDataLayout(m_machine_cible->createDataLayout());
+    m_module->setTargetTriple(triplet_cible);
 
-    generatrice.m_module = &module_llvm;
-
-    std::cout << "Génération du code..." << std::endl;
-    auto debut_generation_code = dls::chrono::compte_seconde();
+    generatrice.m_module = m_module;
 
     initialise_optimisation(espace.options.niveau_optimisation, generatrice);
 
@@ -1673,39 +1673,41 @@ bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
 
     delete generatrice.manager_fonctions;
 
-    temps_generation_code = debut_generation_code.temps();
-
 #ifndef NDEBUG
-    if (!valide_llvm_ir(module_llvm)) {
+    if (!valide_llvm_ir(*m_module)) {
         espace.rapporte_erreur_sans_site("Erreur interne, impossible de générer le code LLVM.");
         return false;
     }
 #endif
 
-    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        std::cout << "Écriture du code dans un fichier..." << std::endl;
-        auto debut_fichier_objet = dls::chrono::compte_seconde();
-        if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-            espace.rapporte_erreur_sans_site("Impossible de créer le fichier objet");
-            return 1;
-        }
-        temps_fichier_objet = debut_fichier_objet.temps();
+    return true;
+}
+
+bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
+                                           EspaceDeTravail &espace,
+                                           Programme *programme,
+                                           ConstructriceRI & /*constructrice_ri*/,
+                                           Broyeuse &)
+{
+    if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
+        return true;
+    }
+
+    if (!ecris_fichier_objet(m_machine_cible, *m_module)) {
+        return false;
     }
 
     return true;
 }
 
-bool CoulisseLLVM::crée_exécutable(Compilatrice &compilatrice,
-                                   EspaceDeTravail &espace,
-                                   Programme * /*programme*/)
+bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
+                                        EspaceDeTravail &espace,
+                                        Programme * /*programme*/)
 {
-    auto debut_executable = dls::chrono::compte_seconde();
     if (!::crée_executable(
             espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
-        espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;
     }
 
-    temps_executable = debut_executable.temps();
     return true;
 }
