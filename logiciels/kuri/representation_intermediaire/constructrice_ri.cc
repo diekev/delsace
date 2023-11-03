@@ -494,6 +494,25 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression *site_,
     return inst;
 }
 
+Atome *ConstructriceRI::crée_charge_mem_si_chargeable(NoeudExpression *site_, Atome *source)
+{
+    if (source->est_chargeable) {
+        return crée_charge_mem(site_, source);
+    }
+    return source;
+}
+
+Atome *ConstructriceRI::crée_temporaire_si_non_chargeable(NoeudExpression *site_, Atome *source)
+{
+    if (source->est_chargeable) {
+        return source;
+    }
+
+    auto résultat = crée_allocation(site_, site_->type, nullptr);
+    crée_stocke_mem(site_, résultat, source);
+    return résultat;
+}
+
 InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_, Atome *appele)
 {
     // incrémente le nombre d'utilisation au cas où nous appelerions une fonction
@@ -1798,9 +1817,7 @@ void ConstructriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud, A
     auto atome = depile_valeur();
     expression_gauche = ancienne_expression_gauche;
 
-    if (atome->est_chargeable) {
-        atome = crée_charge_mem(noeud, atome);
-    }
+    atome = crée_charge_mem_si_chargeable(noeud, atome);
 
     if (place) {
         crée_stocke_mem(noeud, place, atome);
@@ -1839,9 +1856,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         [this](NoeudExpression *noeud_, Atome *valeur_, NoeudDeclarationEnteteFonction *fonction) {
             auto atome_fonction = m_compilatrice.trouve_ou_insere_fonction(*this, fonction);
 
-            if (valeur_->est_chargeable) {
-                valeur_ = crée_charge_mem(noeud_, valeur_);
-            }
+            valeur_ = crée_charge_mem_si_chargeable(noeud_, valeur_);
 
             auto args = kuri::tableau<Atome *, int>();
             args.ajoute(valeur_);
@@ -1863,10 +1878,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::INUTILE:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
-
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
             break;
         }
         case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
@@ -1901,11 +1913,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         {
             auto type_union = transformation.type_cible->comme_type_union();
 
-            if (!valeur->est_chargeable) {
-                auto alloc_valeur = crée_allocation(noeud, noeud->type, nullptr);
-                crée_stocke_mem(noeud, alloc_valeur, valeur);
-                valeur = alloc_valeur;
-            }
+            valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             auto alloc = crée_allocation(noeud, type_union, nullptr);
 
@@ -1951,11 +1959,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         {
             auto type_union = noeud->type->comme_type_union();
 
-            if (!valeur->est_chargeable) {
-                auto alloc = crée_allocation(noeud, valeur->type, nullptr);
-                crée_stocke_mem(noeud, alloc, valeur);
-                valeur = alloc;
-            }
+            valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             if (!type_union->est_nonsure) {
                 auto membre_actif = crée_reference_membre_et_charge(noeud, valeur, 1);
@@ -1991,9 +1995,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             if (noeud->genre != GenreNoeud::EXPRESSION_LITTERALE_NUL) {
                 valeur = crée_transtype(noeud, TypeBase::PTR_RIEN, valeur, TypeTranstypage::BITS);
@@ -2003,9 +2005,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             auto type_valeur = valeur->type;
             auto type_cible = transformation.type_cible;
@@ -2062,19 +2062,14 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::POINTEUR_VERS_ENTIER:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
-
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
             valeur = crée_transtype(
                 noeud, transformation.type_cible, valeur, TypeTranstypage::POINTEUR_VERS_ENTIER);
             break;
         }
         case TypeTransformation::ENTIER_VERS_POINTEUR:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             /* Augmente la taille du type ici pour éviter de le faire dans les coulisses.
              * Nous ne pouvons le faire via l'arbre syntaxique car les arbres des expressions
@@ -2097,9 +2092,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::AUGMENTE_TAILLE_TYPE:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             if (noeud->type->est_type_reel()) {
                 valeur = crée_transtype(
@@ -2126,27 +2119,21 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
         }
         case TypeTransformation::ENTIER_VERS_REEL:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
             valeur = crée_transtype(
                 noeud, transformation.type_cible, valeur, TypeTranstypage::ENTIER_VERS_REEL);
             break;
         }
         case TypeTransformation::REEL_VERS_ENTIER:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
             valeur = crée_transtype(
                 noeud, transformation.type_cible, valeur, TypeTranstypage::REEL_VERS_ENTIER);
             break;
         }
         case TypeTransformation::REDUIT_TAILLE_TYPE:
         {
-            if (valeur->est_chargeable) {
-                valeur = crée_charge_mem(noeud, valeur);
-            }
+            valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             if (noeud->type->est_type_reel()) {
                 valeur = crée_transtype(
@@ -2179,11 +2166,7 @@ void ConstructriceRI::transforme_valeur(NoeudExpression *noeud,
             /* copie le pointeur de la valeur vers le type eini */
             auto ptr_eini = crée_reference_membre(noeud, alloc_eini, 0);
 
-            if (!valeur->est_chargeable) {
-                auto alloc_tmp = crée_allocation(noeud, valeur->type, nullptr);
-                crée_stocke_mem(noeud, alloc_tmp, valeur);
-                valeur = alloc_tmp;
-            }
+            valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             auto transtype = crée_transtype(
                 noeud, TypeBase::PTR_RIEN, valeur, TypeTranstypage::BITS);
