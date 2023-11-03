@@ -46,14 +46,12 @@
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
-
-// Inclus cela à la fin car DIFFERE interfère avec le lexème...
-#include "biblinternes/outils/garde_portee.h"
 
 inline bool adresse_est_nulle(void *adresse)
 {
@@ -92,69 +90,6 @@ static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
 }
 
 /* ************************************************************************** */
-
-struct Indentation {
-    int v = 0;
-
-    void incremente()
-    {
-        v += 1;
-    }
-
-    void decremente()
-    {
-        v -= 1;
-    }
-};
-
-static Indentation __indente_globale;
-
-void indente()
-{
-    __indente_globale.incremente();
-}
-
-void desindente()
-{
-    __indente_globale.decremente();
-}
-
-struct LogDebug {
-    std::ostream &os = std::cerr;
-
-    LogDebug()
-    {
-        for (auto i = 0; i < __indente_globale.v; ++i) {
-            os << ' ' << ' ';
-        }
-    }
-
-    ~LogDebug()
-    {
-        os << "\n";
-    }
-};
-
-LogDebug dbg()
-{
-    return {};
-}
-
-template <typename T>
-const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
-{
-    log_debug.os << valeur;
-    return log_debug;
-}
-
-static const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
-{
-    for (auto i = 0; i < indentation.v; ++i) {
-        log_debug.os << ' ';
-    }
-
-    return log_debug;
-}
 
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
 {
@@ -692,12 +627,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
 {
-    const int indentation_courante = __indente_globale.v;
-    indente();
-    DIFFERE {
-        __indente_globale.v = indentation_courante;
-    };
-
+    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
 
     switch (atome->genre_atome) {
@@ -941,12 +871,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
 void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 {
-    const int indentation_courante = __indente_globale.v;
-    indente();
-    DIFFERE {
-        __indente_globale.v = indentation_courante;
-    };
-
+    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__;
 
     switch (inst->genre) {
@@ -1297,7 +1222,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
     POUR (repr_inter.globales) {
-        __indente_globale.v = 0;
+        // LogDebug::réinitialise_indentation();
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
@@ -1326,7 +1251,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
     }
 
     POUR (repr_inter.globales) {
-        __indente_globale.v = 0;
+        // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
