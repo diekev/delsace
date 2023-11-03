@@ -11,7 +11,6 @@
 #    include <sys/wait.h>
 #endif
 
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
@@ -1821,6 +1820,9 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlob
     if (valeur_globale->ident == ID::__contexte_fil_principal) {
         return valeur_globale->ident->nom;
     }
+    if (valeur_globale->est_externe) {
+        return valeur_globale->ident->nom;
+    }
 #endif
 
     if (!pour_entête) {
@@ -2015,22 +2017,6 @@ static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
     génératrice.génère_code(repr_inter_programme, coulisse);
 }
 
-static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,
-                                              kuri::ensemble<Bibliotheque *> &utilisées,
-                                              Bibliotheque *bibliothèque)
-{
-    if (utilisées.possède(bibliothèque)) {
-        return;
-    }
-
-    bibliothèques.ajoute(bibliothèque);
-    utilisées.insère(bibliothèque);
-
-    POUR (bibliothèque->dependances.plage()) {
-        rassemble_bibliothèques_utilisées(bibliothèques, utilisées, it);
-    }
-}
-
 static void génère_table_des_types(Typeuse &typeuse,
                                    ProgrammeRepreInter &repr_inter_programme,
                                    ConstructriceRI &constructrice_ri)
@@ -2102,19 +2088,6 @@ static void génère_table_des_types(Typeuse &typeuse,
     repr_inter_programme.types.ajoute(type_tableau_fixe);
 }
 
-static void rassemble_bibliothèques_utilisées(ProgrammeRepreInter &repr_inter_programme,
-                                              kuri::tableau<Bibliotheque *> &bibliothèques)
-{
-    kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
-    POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
-            it->decl->symbole) {
-            rassemble_bibliothèques_utilisées(
-                bibliothèques, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
-        }
-    }
-}
-
 static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
                                             ConstructriceRI &constructrice_ri,
                                             AtomeFonction *fonction,
@@ -2151,9 +2124,8 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
     auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
     génère_ri_fonction_init_globale(espace, constructrice_ri, atome, repr_inter_programme);
 
-    rassemble_bibliothèques_utilisées(repr_inter_programme, bibliothèques);
-
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return true;
 }
 
@@ -2193,9 +2165,8 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
             espace, constructrice_ri, decl_init_globales, repr_inter_programme);
     }
 
-    rassemble_bibliothèques_utilisées(repr_inter_programme, bibliothèques);
-
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
     return true;
 }
 
@@ -2216,24 +2187,27 @@ static bool génère_code_C(Compilatrice &compilatrice,
         compilatrice, constructrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
 }
 
-bool CoulisseC::crée_fichier_objet(Compilatrice &compilatrice,
-                                   EspaceDeTravail &espace,
-                                   Programme *programme,
-                                   ConstructriceRI &constructrice_ri,
-                                   Broyeuse &broyeuse)
+bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme,
+                                 ConstructriceRI &constructrice_ri,
+                                 Broyeuse &broyeuse)
 {
     m_bibliothèques.efface();
 
-    std::cout << "Génération du code..." << std::endl;
-    auto début_génération_code = dls::chrono::compte_seconde();
-    if (!génère_code_C(
-            compilatrice, constructrice_ri, espace, *this, programme, m_bibliothèques, broyeuse)) {
-        return false;
-    }
-    temps_generation_code = début_génération_code.temps();
+    return génère_code_C(
+        compilatrice, constructrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
+}
 
-#ifndef CMAKE_BUILD_TYPE_PROFILE
-    auto debut_fichier_objet = dls::chrono::compte_seconde();
+bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                        EspaceDeTravail &espace,
+                                        Programme *programme,
+                                        ConstructriceRI &constructrice_ri,
+                                        Broyeuse &broyeuse)
+{
+#ifdef CMAKE_BUILD_TYPE_PROFILE
+    return true;
+#else
     auto une_erreur_est_survenue = false;
 
 #    if !defined(NDEBUG) || defined(_MSC_VER)
@@ -2291,21 +2265,13 @@ bool CoulisseC::crée_fichier_objet(Compilatrice &compilatrice,
     }
 #    endif
 
-    if (une_erreur_est_survenue) {
-        espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
-        return false;
-    }
-
-    temps_fichier_objet = debut_fichier_objet.temps();
-
+    return !une_erreur_est_survenue;
 #endif
-
-    return true;
 }
 
-bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
-                                EspaceDeTravail &espace,
-                                Programme * /*programme*/)
+bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
+                                     EspaceDeTravail &espace,
+                                     Programme * /*programme*/)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
@@ -2313,8 +2279,6 @@ bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
         return false;
     }
-
-    auto début_exécutable = dls::chrono::compte_seconde();
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
@@ -2324,16 +2288,7 @@ bool CoulisseC::crée_exécutable(Compilatrice &compilatrice,
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
 
     std::cout << "Exécution de la commande '" << commande << "'..." << std::endl;
-
-    auto err = system(commande.pointeur());
-
-    if (err != 0) {
-        espace.rapporte_erreur_sans_site("Ne peut pas créer l'exécutable !");
-        return false;
-    }
-
-    temps_executable = début_exécutable.temps();
-    return true;
+    return system(commande.pointeur()) == 0;
 #endif
 }
 

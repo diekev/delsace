@@ -18,3 +18,48 @@ LogConditionel &operator<<(LogConditionel &log, T valeur)
     }
     return log;
 }
+
+struct Indentation {
+    int v = 0;
+
+    void incrémente()
+    {
+        v += 1;
+    }
+
+    void décrémente()
+    {
+        v -= 1;
+    }
+};
+
+struct LogDebug {
+    std::ostream &os = std::cerr;
+
+    LogDebug();
+    ~LogDebug();
+
+    static void réinitialise_indentation();
+    static void indente();
+    static void désindente();
+
+    struct IncrémenteuseTemporaire {
+      private:
+        int indentation_courante = 0;
+
+      public:
+        IncrémenteuseTemporaire();
+        ~IncrémenteuseTemporaire();
+    };
+};
+
+LogDebug dbg();
+
+const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation);
+
+template <typename T>
+const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
+{
+    log_debug.os << valeur;
+    return log_debug;
+}

@@ -6,13 +6,20 @@
 #include "coulisse.hh"
 
 struct CoulisseASM final : public Coulisse {
-    bool crée_fichier_objet(Compilatrice &compilatrice,
-                            EspaceDeTravail &espace,
-                            Programme *programme,
-                            ConstructriceRI &constructrice_ri,
-                            Broyeuse &) override;
+  private:
+    bool génère_code_impl(Compilatrice &compilatrice,
+                          EspaceDeTravail &espace,
+                          Programme *programme,
+                          ConstructriceRI &constructrice_ri,
+                          Broyeuse &) override;
 
-    bool crée_exécutable(Compilatrice &compilatrice,
-                         EspaceDeTravail &espace,
-                         Programme *programme) override;
+    bool crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme,
+                                 ConstructriceRI &constructrice_ri,
+                                 Broyeuse &) override;
+
+    bool crée_exécutable_impl(Compilatrice &compilatrice,
+                              EspaceDeTravail &espace,
+                              Programme *programme) override;
 };

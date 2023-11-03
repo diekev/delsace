@@ -12,6 +12,7 @@
 
 struct AtomeGlobale;
 struct AtomeFonction;
+struct Bibliotheque;
 struct Coulisse;
 struct EspaceDeTravail;
 struct Fichier;
@@ -289,6 +290,7 @@ struct ProgrammeRepreInter {
 
     void ajoute_fonction(AtomeFonction *fonction);
     void ajourne_globales_pour_fonction(AtomeFonction *fonction);
+    kuri::tableau<Bibliotheque *> donne_bibliothèques_utilisées() const;
 };
 
 void imprime_contenu_programme(const ProgrammeRepreInter &programme,

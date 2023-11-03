@@ -8,14 +8,33 @@
 bool initialise_llvm();
 void issitialise_llvm();
 
-struct CoulisseLLVM final : public Coulisse {
-    bool crée_fichier_objet(Compilatrice &compilatrice,
-                            EspaceDeTravail &espace,
-                            Programme *programme,
-                            ConstructriceRI &constructrice_ri,
-                            Broyeuse &) override;
+namespace llvm {
+class Module;
+class TargetMachine;
+}  // namespace llvm
 
-    bool crée_exécutable(Compilatrice &compilatrice,
-                         EspaceDeTravail &espace,
-                         Programme *programme) override;
+struct CoulisseLLVM final : public Coulisse {
+  private:
+    llvm::Module *m_module = nullptr;
+    llvm::TargetMachine *m_machine_cible = nullptr;
+
+  public:
+    ~CoulisseLLVM();
+
+  private:
+    bool génère_code_impl(Compilatrice &compilatrice,
+                          EspaceDeTravail &espace,
+                          Programme *programme,
+                          ConstructriceRI &constructrice_ri,
+                          Broyeuse &) override;
+
+    bool crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme,
+                                 ConstructriceRI &constructrice_ri,
+                                 Broyeuse &) override;
+
+    bool crée_exécutable_impl(Compilatrice &compilatrice,
+                              EspaceDeTravail &espace,
+                              Programme *programme) override;
 };

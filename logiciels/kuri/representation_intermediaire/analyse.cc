@@ -549,8 +549,17 @@ static bool est_valeur_constante(Atome const *atome)
         return false;
     }
 
-    auto constante = static_cast<AtomeConstante const *>(atome);
-    return constante->genre == AtomeConstante::Genre::VALEUR;
+    auto const constante = static_cast<AtomeConstante const *>(atome);
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return dls::outils::est_element(valeur_constante->valeur.genre,
+                                    AtomeValeurConstante::Valeur::Genre::ENTIERE,
+                                    AtomeValeurConstante::Valeur::Genre::REELLE,
+                                    AtomeValeurConstante::Valeur::Genre::BOOLEENNE,
+                                    AtomeValeurConstante::Valeur::Genre::CARACTERE);
 }
 
 /**

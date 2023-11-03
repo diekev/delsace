@@ -19,15 +19,22 @@ struct CoulisseC final : public Coulisse {
 
     kuri::tableau<FichierC> m_fichiers{};
 
-    bool crée_fichier_objet(Compilatrice &compilatrice,
-                            EspaceDeTravail &espace,
-                            Programme *programme,
-                            ConstructriceRI &constructrice_ri,
-                            Broyeuse &) override;
-
-    bool crée_exécutable(Compilatrice &compilatrice,
-                         EspaceDeTravail &espace,
-                         Programme *programme) override;
-
     FichierC &ajoute_fichier_c();
+
+  private:
+    bool génère_code_impl(Compilatrice &compilatrice,
+                          EspaceDeTravail &espace,
+                          Programme *programme,
+                          ConstructriceRI &constructrice_ri,
+                          Broyeuse &) override;
+
+    bool crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                 EspaceDeTravail &espace,
+                                 Programme *programme,
+                                 ConstructriceRI &constructrice_ri,
+                                 Broyeuse &) override;
+
+    bool crée_exécutable_impl(Compilatrice &compilatrice,
+                              EspaceDeTravail &espace,
+                              Programme *programme) override;
 };

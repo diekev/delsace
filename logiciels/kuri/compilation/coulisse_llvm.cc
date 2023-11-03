@@ -36,24 +36,18 @@
 #    pragma GCC diagnostic pop
 #endif
 
-#include "biblexternes/iprof/prof.h"
-
-#include "biblinternes/chrono/chronometrage.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
+#include "log.hh"
 #include "programme.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/instructions.hh"
-
-// Inclus cela à la fin car DIFFERE interfère avec le lexème...
-#include "biblinternes/outils/garde_portee.h"
 
 inline bool adresse_est_nulle(void *adresse)
 {
@@ -92,69 +86,6 @@ static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
 }
 
 /* ************************************************************************** */
-
-struct Indentation {
-    int v = 0;
-
-    void incremente()
-    {
-        v += 1;
-    }
-
-    void decremente()
-    {
-        v -= 1;
-    }
-};
-
-static Indentation __indente_globale;
-
-void indente()
-{
-    __indente_globale.incremente();
-}
-
-void desindente()
-{
-    __indente_globale.decremente();
-}
-
-struct LogDebug {
-    std::ostream &os = std::cerr;
-
-    LogDebug()
-    {
-        for (auto i = 0; i < __indente_globale.v; ++i) {
-            os << ' ' << ' ';
-        }
-    }
-
-    ~LogDebug()
-    {
-        os << "\n";
-    }
-};
-
-LogDebug dbg()
-{
-    return {};
-}
-
-template <typename T>
-const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
-{
-    log_debug.os << valeur;
-    return log_debug;
-}
-
-static const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
-{
-    for (auto i = 0; i < indentation.v; ++i) {
-        log_debug.os << ' ';
-    }
-
-    return log_debug;
-}
 
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
 {
@@ -692,12 +623,7 @@ llvm::FunctionType *GeneratriceCodeLLVM::converti_type_fonction(TypeFonction con
 
 llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour_globale)
 {
-    const int indentation_courante = __indente_globale.v;
-    indente();
-    DIFFERE {
-        __indente_globale.v = indentation_courante;
-    };
-
+    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
 
     switch (atome->genre_atome) {
@@ -941,12 +867,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
 void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 {
-    const int indentation_courante = __indente_globale.v;
-    indente();
-    DIFFERE {
-        __indente_globale.v = indentation_courante;
-    };
-
+    // auto incrémentation_temp = LogDebug::IncrémenteuseTemporaire();
     // dbg() << __func__;
 
     switch (inst->genre) {
@@ -966,36 +887,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         case Instruction::Genre::APPEL:
         {
             auto inst_appel = inst->comme_appel();
-
-            //			auto const &lexeme = inst_appel->lexeme;
-            //			auto fichier = m_contexte.fichier(static_cast<size_t>(lexeme->fichier));
-            //			auto pos = position_lexeme(*lexeme);
-
-            //			if (!m_fonction_courante->sanstrace) {
-            //				os << "  DEBUTE_RECORD_TRACE_APPEL(";
-            //				os << pos.numero_ligne << ",";
-            //				os << pos.pos << ",";
-            //				os << "\"";
-
-            //				auto ligne = fichier->tampon[pos.index_ligne];
-
-            //				POUR (ligne) {
-            //					if (it == '\n') {
-            //						continue;
-            //					}
-
-            //					if (it == '"') {
-            //						os << '\\';
-            //					}
-
-            //					os << it;
-            //				}
-
-            //				os << "\",";
-            //				os << ligne.taille();
-            //				os << ");\n";
-            //			}
-
             auto arguments = std::vector<llvm::Value *>();
 
             POUR (inst_appel->args) {
@@ -1013,10 +904,6 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                                                               valeur_fonction->getType()),
                                                           valeur_fonction),
                                      arguments));
-
-            //			if (!m_fonction_courante->sanstrace) {
-            //				os << "  TERMINE_RECORD_TRACE_APPEL;\n";
-            //			}
 
             break;
         }
@@ -1039,15 +926,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
-            auto valeur = static_cast<llvm::Value *>(nullptr);
-
-            if (charge->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur = table_valeurs.valeur_ou(charge, nullptr);
-            }
-            else {
-                valeur = table_globales.valeur_ou(charge, nullptr);
-            }
-
+            auto valeur = genere_code_pour_atome(charge, false);
             assert(valeur != nullptr);
 
             auto load = m_builder.CreateLoad(valeur, "");
@@ -1060,14 +939,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto inst_stocke = inst->comme_stocke_mem();
             auto valeur = genere_code_pour_atome(inst_stocke->valeur, false);
             auto ou = inst_stocke->ou;
-            auto valeur_ou = static_cast<llvm::Value *>(nullptr);
-
-            if (ou->genre_atome == Atome::Genre::INSTRUCTION) {
-                valeur_ou = table_valeurs.valeur_ou(ou, nullptr);
-            }
-            else {
-                valeur_ou = table_globales.valeur_ou(ou, nullptr);
-            }
+            auto valeur_ou = genere_code_pour_atome(ou, false);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
                 erreur::imprime_site(m_espace, inst_stocke->site);
@@ -1297,7 +1169,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
     POUR (repr_inter.globales) {
-        __indente_globale.v = 0;
+        // LogDebug::réinitialise_indentation();
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
@@ -1326,7 +1198,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
     }
 
     POUR (repr_inter.globales) {
-        __indente_globale.v = 0;
+        // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
 
@@ -1406,26 +1278,6 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 
             table_valeurs.insère(param, alloc);
         }
-
-        //		if (!atome_fonc->sanstrace) {
-        //			os << "INITIALISE_TRACE_APPEL(\"";
-
-        //			if (atome_fonc->lexeme != nullptr) {
-        //				auto fichier =
-        // m_contexte.fichier(static_cast<size_t>(atome_fonc->lexeme->fichier)); 				os
-        // << atome_fonc->lexeme->chaine << "\", "
-        //				   << atome_fonc->lexeme->chaine.taille() << ", \""
-        //				   << fichier->nom << ".kuri\", "
-        //				   << fichier->nom.taille() + 5 << ", ";
-        //			}
-        //			else {
-        //				os << atome_fonc->nom << "\", "
-        //				   << atome_fonc->nom.taille() << ", "
-        //				   << "\"???\", 3, ";
-        //			}
-
-        //			os << atome_fonc->nom << ");\n";
-        //		}
 
         /* crée une variable local pour la valeur de sortie */
         auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1773,24 +1625,30 @@ static bool crée_executable(EspaceDeTravail const &espace,
     return true;
 }
 
-bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
-                                      EspaceDeTravail &espace,
-                                      Programme *programme,
-                                      ConstructriceRI & /*constructrice_ri*/,
-                                      Broyeuse &)
+CoulisseLLVM::~CoulisseLLVM()
 {
-    auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
+    delete m_module;
+    delete m_machine_cible;
+}
 
+bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
+                                    EspaceDeTravail &espace,
+                                    Programme *programme,
+                                    ConstructriceRI & /*constructrice_ri*/,
+                                    Broyeuse &)
+{
     if (!initialise_llvm()) {
         return false;
     }
+
+    auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
     auto erreur = std::string{""};
     auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
     if (!cible) {
         std::cerr << erreur << '\n';
-        return 1;
+        return false;
     }
 
     auto repr_inter = représentation_intermédiaire_programme(*programme);
@@ -1799,19 +1657,15 @@ bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
     auto feature = "";
     auto options_cible = llvm::TargetOptions{};
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
-    auto machine_cible = std::unique_ptr<llvm::TargetMachine>(
-        cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM));
+    m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
     auto generatrice = GeneratriceCodeLLVM(espace);
 
-    auto module_llvm = llvm::Module("Module", generatrice.m_contexte_llvm);
-    module_llvm.setDataLayout(machine_cible->createDataLayout());
-    module_llvm.setTargetTriple(triplet_cible);
+    m_module = new llvm::Module("Module", generatrice.m_contexte_llvm);
+    m_module->setDataLayout(m_machine_cible->createDataLayout());
+    m_module->setTargetTriple(triplet_cible);
 
-    generatrice.m_module = &module_llvm;
-
-    std::cout << "Génération du code..." << std::endl;
-    auto debut_generation_code = dls::chrono::compte_seconde();
+    generatrice.m_module = m_module;
 
     initialise_optimisation(espace.options.niveau_optimisation, generatrice);
 
@@ -1819,39 +1673,41 @@ bool CoulisseLLVM::crée_fichier_objet(Compilatrice & /*compilatrice*/,
 
     delete generatrice.manager_fonctions;
 
-    temps_generation_code = debut_generation_code.temps();
-
 #ifndef NDEBUG
-    if (!valide_llvm_ir(module_llvm)) {
+    if (!valide_llvm_ir(*m_module)) {
         espace.rapporte_erreur_sans_site("Erreur interne, impossible de générer le code LLVM.");
         return false;
     }
 #endif
 
-    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        std::cout << "Écriture du code dans un fichier..." << std::endl;
-        auto debut_fichier_objet = dls::chrono::compte_seconde();
-        if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-            espace.rapporte_erreur_sans_site("Impossible de créer le fichier objet");
-            return 1;
-        }
-        temps_fichier_objet = debut_fichier_objet.temps();
+    return true;
+}
+
+bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
+                                           EspaceDeTravail &espace,
+                                           Programme *programme,
+                                           ConstructriceRI & /*constructrice_ri*/,
+                                           Broyeuse &)
+{
+    if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
+        return true;
+    }
+
+    if (!ecris_fichier_objet(m_machine_cible, *m_module)) {
+        return false;
     }
 
     return true;
 }
 
-bool CoulisseLLVM::crée_exécutable(Compilatrice &compilatrice,
-                                   EspaceDeTravail &espace,
-                                   Programme * /*programme*/)
+bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
+                                        EspaceDeTravail &espace,
+                                        Programme * /*programme*/)
 {
-    auto debut_executable = dls::chrono::compte_seconde();
     if (!::crée_executable(
             espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
-        espace.rapporte_erreur_sans_site("Impossible de créer l'exécutable");
         return false;
     }
 
-    temps_executable = debut_executable.temps();
     return true;
 }
