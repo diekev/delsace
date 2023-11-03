@@ -17,7 +17,7 @@
 bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
                                   Programme *programme,
-                                  ConstructriceRI &constructrice_ri,
+                                  CompilatriceRI &compilatrice_ri,
                                   Broyeuse &)
 {
     auto repr_inter = représentation_intermédiaire_programme(*programme);
@@ -45,7 +45,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
     }
 
     if (!repr_inter.globales.est_vide()) {
-        auto fonc_init = constructrice_ri.genere_fonction_init_globales_et_appel(
+        auto fonc_init = compilatrice_ri.genere_fonction_init_globales_et_appel(
             &espace, repr_inter.globales, fonction);
 
         if (!fonc_init) {
@@ -68,7 +68,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                          EspaceDeTravail & /*espace*/,
                                          Programme * /*programme*/,
-                                         ConstructriceRI & /*constructrice_ri*/,
+                                         CompilatriceRI & /*compilatrice_ri*/,
                                          Broyeuse &)
 {
     return true;

@@ -7,7 +7,7 @@
 
 class Broyeuse;
 struct Compilatrice;
-struct ConstructriceRI;
+struct CompilatriceRI;
 struct EspaceDeTravail;
 struct OptionsDeCompilation;
 struct Programme;
@@ -30,13 +30,13 @@ struct Coulisse {
      * compilatrice est requise pour :
      * - les chemins de compilations (racine_kuri)
      *
-     * constructrice_ri est requise pour :
+     * compilatrice_ri est requise pour :
      * - générer la fonction principale du programme
      */
     bool crée_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
                             Programme *programme,
-                            ConstructriceRI &constructrice_ri,
+                            CompilatriceRI &compilatrice_ri,
                             Broyeuse &);
 
     /* Crée l'exécutable depuis le fichier objet.
@@ -52,13 +52,13 @@ struct Coulisse {
     virtual bool génère_code_impl(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
                                   Programme *programme,
-                                  ConstructriceRI &constructrice_ri,
+                                  CompilatriceRI &compilatrice_ri,
                                   Broyeuse &) = 0;
 
     virtual bool crée_fichier_objet_impl(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Programme *programme,
-                                         ConstructriceRI &constructrice_ri,
+                                         CompilatriceRI &compilatrice_ri,
                                          Broyeuse &) = 0;
 
     virtual bool crée_exécutable_impl(Compilatrice &compilatrice,

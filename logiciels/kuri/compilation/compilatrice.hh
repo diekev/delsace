@@ -230,7 +230,7 @@ struct Compilatrice {
     Fichier *fichier(kuri::chaine_statique chemin) const;
 
     AtomeFonction *crée_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
-    AtomeFonction *trouve_ou_insere_fonction(ConstructriceRI &constructrice,
+    AtomeFonction *trouve_ou_insere_fonction(CompilatriceRI &compilatrice_ri,
                                              NoeudDeclarationEnteteFonction *decl);
     AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
 
