@@ -33,20 +33,40 @@ struct Coulisse {
      * constructrice_ri est requise pour :
      * - générer la fonction principale du programme
      */
-    virtual bool crée_fichier_objet(Compilatrice &compilatrice,
-                                    EspaceDeTravail &espace,
-                                    Programme *programme,
-                                    ConstructriceRI &constructrice_ri,
-                                    Broyeuse &) = 0;
+    bool crée_fichier_objet(Compilatrice &compilatrice,
+                            EspaceDeTravail &espace,
+                            Programme *programme,
+                            ConstructriceRI &constructrice_ri,
+                            Broyeuse &);
 
     /* Crée l'exécutable depuis le fichier objet.
      *
      * compilatrice est requise pour :
      * - les chemins de compilations (racine_kuri, bibliothèques, definitions, chemins)
      */
-    virtual bool crée_exécutable(Compilatrice &compilatrice,
-                                 EspaceDeTravail &espace,
-                                 Programme *programme) = 0;
+    bool crée_exécutable(Compilatrice &compilatrice,
+                         EspaceDeTravail &espace,
+                         Programme *programme);
+
+  protected:
+    virtual bool génère_code_impl(Compilatrice &compilatrice,
+                                  EspaceDeTravail &espace,
+                                  Programme *programme,
+                                  ConstructriceRI &constructrice_ri,
+                                  Broyeuse &) = 0;
+
+    virtual bool crée_fichier_objet_impl(Compilatrice &compilatrice,
+                                         EspaceDeTravail &espace,
+                                         Programme *programme,
+                                         ConstructriceRI &constructrice_ri,
+                                         Broyeuse &) = 0;
+
+    virtual bool crée_exécutable_impl(Compilatrice &compilatrice,
+                                      EspaceDeTravail &espace,
+                                      Programme *programme) = 0;
+
+  private:
+    bool est_coulisse_métaprogramme() const;
 };
 
 /* Retourne le nom de sortie pour le fichier objet, soit le compilat intermédiaire, soit le final
