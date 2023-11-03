@@ -58,7 +58,7 @@ enum {
 /* À FAIRE(optimisations) : non-urgent
  * - Substitutrice, pour généraliser les substitions d'instructions
  * - copie des instructions (requiers de séparer les allocations des instructions de la
- * ConstructriceRI)
+ * CompilatriceRI)
  */
 
 #undef DEBOGUE_SUPPRESSION_CODE_MORT
@@ -66,10 +66,10 @@ enum {
 struct CopieuseInstruction {
   private:
     kuri::table_hachage<Atome *, Atome *> copies{"Instructions copiées"};
-    ConstructriceRI &constructrice;
+    CompilatriceRI &constructrice;
 
   public:
-    CopieuseInstruction(ConstructriceRI &constructrice_) : constructrice(constructrice_)
+    CopieuseInstruction(CompilatriceRI &constructrice_) : constructrice(constructrice_)
     {
     }
 
@@ -256,7 +256,7 @@ struct CopieuseInstruction {
     }
 };
 
-void performe_enlignage(ConstructriceRI &constructrice,
+void performe_enlignage(CompilatriceRI &constructrice,
                         kuri::tableau<Instruction *, int> &nouvelles_instructions,
                         AtomeFonction *fonction_appelee,
                         kuri::tableau<Atome *, int> const &arguments,
@@ -531,7 +531,7 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
     return false;
 }
 
-bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
+bool enligne_fonctions(CompilatriceRI &constructrice, AtomeFonction *atome_fonc)
 {
     auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
     nouvelle_instructions.reserve(atome_fonc->instructions.taille());
@@ -1160,7 +1160,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 }
 
 void optimise_code(EspaceDeTravail &espace,
-                   ConstructriceRI &constructrice,
+                   CompilatriceRI &constructrice,
                    AtomeFonction *atome_fonc)
 {
     // if (atome_fonc->nom ==

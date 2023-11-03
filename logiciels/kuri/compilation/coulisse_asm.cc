@@ -485,7 +485,7 @@ void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &global
 bool CoulisseASM::génère_code_impl(Compilatrice & /*compilatrice*/,
                                    EspaceDeTravail & /*espace*/,
                                    Programme * /*programme*/,
-                                   ConstructriceRI & /*constructrice_ri*/,
+                                   CompilatriceRI & /*compilatrice_ri*/,
                                    Broyeuse &)
 {
     return true;
@@ -494,7 +494,7 @@ bool CoulisseASM::génère_code_impl(Compilatrice & /*compilatrice*/,
 bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                           EspaceDeTravail &espace,
                                           Programme *programme,
-                                          ConstructriceRI &constructrice_ri,
+                                          CompilatriceRI &compilatrice_ri,
                                           Broyeuse &)
 {
     std::ostream &fichier_sortie = std::cerr;

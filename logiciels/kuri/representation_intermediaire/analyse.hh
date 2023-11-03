@@ -11,7 +11,7 @@
 
 struct Atome;
 struct AtomeFonction;
-struct ConstructriceRI;
+struct CompilatriceRI;
 struct EspaceDeTravail;
 struct Instruction;
 
@@ -51,7 +51,7 @@ struct ContexteAnalyseRI {
     VisiteuseBlocs visiteuse{fonction_et_blocs};
 
   public:
-    void analyse_ri(EspaceDeTravail &espace, ConstructriceRI &constructrice, AtomeFonction *atome);
+    void analyse_ri(EspaceDeTravail &espace, CompilatriceRI &constructrice, AtomeFonction *atome);
 
   private:
     /* Réinitialise les différentes structures. */
