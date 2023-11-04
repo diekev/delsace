@@ -344,11 +344,11 @@ struct TypeCompose : public Type {
      * struct dans le module Module). */
     kuri::chaine nom_portable_{};
 
-    /* Le nom de la hierarchie, sans le nom du module. Chaque nom est séparé par des points.
+    /* Le nom de la hiérarchie, sans le nom du module. Chaque nom est séparé par des points.
      * Ceci est le nom qui sera utilisé dans les infos types.
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
-    kuri::chaine nom_hierarchique_ = "";
+    kuri::chaine nom_hiérarchique_ = "";
 };
 
 inline bool est_type_compose(const Type *type)
@@ -507,7 +507,7 @@ struct TypeOpaque : public Type {
     IdentifiantCode *ident = nullptr;
     Type *type_opacifie = nullptr;
     kuri::chaine nom_portable_ = "";
-    kuri::chaine nom_hierarchique_ = "";
+    kuri::chaine nom_hiérarchique_ = "";
 };
 
 /* Pour les sorties multiples des fonctions. */
@@ -792,10 +792,10 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 /** \name Accès aux noms hiérarchiques des types.
  * \{ */
 
-kuri::chaine_statique donne_nom_hierarchique(TypeUnion *type);
-kuri::chaine_statique donne_nom_hierarchique(TypeEnum *type);
-kuri::chaine_statique donne_nom_hierarchique(TypeOpaque *type);
-kuri::chaine_statique donne_nom_hierarchique(TypeStructure *type);
+kuri::chaine_statique donne_nom_hiérarchique(TypeUnion *type);
+kuri::chaine_statique donne_nom_hiérarchique(TypeEnum *type);
+kuri::chaine_statique donne_nom_hiérarchique(TypeOpaque *type);
+kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type);
 
 /** \} */
 

@@ -627,7 +627,7 @@ AtomeFonction *Compilatrice::trouve_ou_insere_fonction(CompilatriceRI &compilatr
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->nom_broye(compilatrice_ri.espace(), *broyeuse), std::move(params));
+        decl->lexeme, decl->donne_nom_broyé(*broyeuse), std::move(params));
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
