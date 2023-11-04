@@ -1830,7 +1830,7 @@ struct Calculatrice {
 };
 
 static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
-                                                CompilatriceRI &constructrice)
+                                                ConstructriceRI &constructrice)
 {
     auto const opérande_gauche = static_cast<AtomeValeurConstante const *>(inst->valeur_gauche);
     auto const opérande_droite = static_cast<AtomeValeurConstante const *>(inst->valeur_droite);
@@ -1978,7 +1978,7 @@ static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *in
 
 static bool supprime_op_binaires_constants(Bloc *bloc,
                                            Graphe &graphe,
-                                           CompilatriceRI &constructrice,
+                                           ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
     auto instructions_à_supprimer = false;
@@ -2021,7 +2021,7 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
 
 static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
                                            Graphe &graphe,
-                                           CompilatriceRI &constructrice,
+                                           ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
     auto bloc_modifié = false;
@@ -2047,7 +2047,7 @@ static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
  * - membre actifs des unions
  */
 void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
-                                   CompilatriceRI &constructrice,
+                                   ConstructriceRI &constructrice,
                                    AtomeFonction *atome)
 {
     reinitialise();
