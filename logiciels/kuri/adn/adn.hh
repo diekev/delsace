@@ -527,7 +527,7 @@ class ProteineStruct final : public Proteine {
         return !m_proteines_derivees.est_vide();
     }
 
-    bool est_racine_hierarchie() const
+    bool est_racine_hiérarchie() const
     {
         return est_classe_de_base() && m_mere == nullptr;
     }
