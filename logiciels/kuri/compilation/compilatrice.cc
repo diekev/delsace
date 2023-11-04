@@ -66,7 +66,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     : ordonnanceuse(this), messagere(this),
       gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
       gestionnaire_bibliotheques(GestionnaireBibliotheques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(this->operateurs)
+      racine_kuri(chemin_racine_kuri), typeuse(this->operateurs),
+      registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
     initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
@@ -93,6 +94,7 @@ Compilatrice::~Compilatrice()
     }
 
     memoire::deloge("Broyeuse", broyeuse);
+    memoire::deloge("RegistreSymboliqueRI", registre_ri);
     memoire::deloge("GestionnaireCode", gestionnaire_code);
 }
 
@@ -283,24 +285,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
         it.programme->rassemble_statistiques(stats);
     }
 
-    auto &stats_ri = stats.stats_ri;
-
-    auto memoire_fonctions = fonctions.memoire_utilisee();
-    memoire_fonctions += fonctions.memoire_utilisee();
-    pour_chaque_element(fonctions, [&](AtomeFonction const &it) {
-        memoire_fonctions += it.params_entrees.taille_memoire();
-        memoire_fonctions += it.instructions.taille_memoire();
-
-        if (it.données_exécution) {
-            memoire_fonctions += it.données_exécution->mémoire_utilisée();
-            memoire_fonctions += taille_de(DonnéesExécutionFonction);
-        }
-    });
-
     données_constantes_exécutions.rassemble_statistiques(stats);
-
-    stats_ri.fusionne_entrée({"fonctions", fonctions.taille(), memoire_fonctions});
-    stats_ri.fusionne_entrée({"globales", globales.taille(), globales.memoire_utilisee()});
+    registre_ri->rassemble_statistiques(stats);
 }
 
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
@@ -573,102 +559,6 @@ Fichier *Compilatrice::fichier(int64_t index)
 Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
 {
     return sys_module->fichier(chemin);
-}
-
-AtomeFonction *Compilatrice::crée_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */;
-    auto atome_fonc = fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
-    return atome_fonc;
-}
-
-/* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
- * générer le code linéairement. Cette fonction nous sers soit à trouver le
- * pointeur vers l'atome d'une fonction si nous l'avons déjà généré, soit de le
- * créer en préparation de la génération de la RI de son corps.
- */
-AtomeFonction *Compilatrice::trouve_ou_insere_fonction(CompilatriceRI &compilatrice_ri,
-                                                       NoeudDeclarationEnteteFonction *decl)
-{
-    std::unique_lock lock(mutex_atomes_fonctions);
-
-    if (decl->atome) {
-        return static_cast<AtomeFonction *>(decl->atome);
-    }
-
-    SAUVEGARDE_ETAT(compilatrice_ri.fonction_courante);
-
-    auto params = kuri::tableau<Atome *, int>();
-    params.reserve(decl->params.taille());
-
-    for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
-        auto atome = compilatrice_ri.crée_allocation(param, param->type, param->ident);
-        param->atome = atome;
-        params.ajoute(atome);
-    }
-
-    /* Pour les sorties multiples, les valeurs de sorties sont des accès de
-     * membres du tuple, ainsi nous n'avons pas à compliquer la génération de
-     * code ou sa simplification.
-     */
-
-    auto param_sortie = decl->param_sortie;
-    auto atome_param_sortie = compilatrice_ri.crée_allocation(
-        param_sortie, param_sortie->type, param_sortie->ident);
-    param_sortie->atome = atome_param_sortie;
-
-    if (decl->params_sorties.taille() > 1) {
-        POUR_INDEX (decl->params_sorties) {
-            it->comme_declaration_variable()->atome = compilatrice_ri.crée_reference_membre(
-                it, atome_param_sortie, index_it, true);
-        }
-    }
-
-    auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->donne_nom_broyé(*broyeuse), std::move(params));
-    atome_fonc->type = decl->type;
-    atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
-    atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
-    atome_fonc->decl = decl;
-    atome_fonc->param_sortie = atome_param_sortie;
-    atome_fonc->enligne = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE);
-
-    decl->atome = atome_fonc;
-
-    return atome_fonc;
-}
-
-AtomeGlobale *Compilatrice::crée_globale(Type const *type,
-                                         AtomeConstante *initialisateur,
-                                         bool est_externe,
-                                         bool est_constante)
-{
-    return globales.ajoute_element(typeuse.type_pointeur_pour(const_cast<Type *>(type), false),
-                                   initialisateur,
-                                   est_externe,
-                                   est_constante);
-}
-
-AtomeGlobale *Compilatrice::trouve_globale(NoeudDeclaration *decl)
-{
-    std::unique_lock lock(mutex_atomes_globales);
-    auto decl_var = decl->comme_declaration_variable();
-    return static_cast<AtomeGlobale *>(decl_var->atome);
-}
-
-AtomeGlobale *Compilatrice::trouve_ou_insere_globale(NoeudDeclaration *decl)
-{
-    std::unique_lock lock(mutex_atomes_globales);
-
-    auto decl_var = decl->comme_declaration_variable();
-
-    if (decl_var->atome == nullptr) {
-        decl_var->atome = crée_globale(decl->type, nullptr, false, false);
-    }
-
-    return static_cast<AtomeGlobale *>(decl_var->atome);
 }
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
