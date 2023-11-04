@@ -3830,7 +3830,7 @@ void CompilatriceRI::genere_ri_pour_fonction_metaprogramme(
     définis_fonction_courante(nullptr);
 }
 
-enum class TypeConstructionGlobale {
+enum class MéthodeConstructionGlobale {
     /* L'expression est un tableau fixe que nous pouvons simplement construire. */
     TABLEAU_CONSTANT,
     /* L'expression est un tableau fixe que nous devons convertir vers un tableau
@@ -3844,20 +3844,20 @@ enum class TypeConstructionGlobale {
     SANS_INITIALISATION,
 };
 
-static TypeConstructionGlobale type_construction_globale(NoeudExpression const *expression,
-                                                         TransformationType const &transformation)
+static MéthodeConstructionGlobale détermine_méthode_construction_globale(
+    NoeudExpression const *expression, TransformationType const &transformation)
 {
     if (!expression) {
-        return TypeConstructionGlobale::PAR_VALEUR_DEFAUT;
+        return MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT;
     }
 
     if (expression->est_non_initialisation()) {
-        return TypeConstructionGlobale::SANS_INITIALISATION;
+        return MéthodeConstructionGlobale::SANS_INITIALISATION;
     }
 
     if (expression->est_construction_tableau()) {
         if (transformation.type != TypeTransformation::INUTILE) {
-            return TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
+            return MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
         }
 
         auto const type_pointe = type_dereference_pour(expression->type);
@@ -3866,13 +3866,13 @@ static TypeConstructionGlobale type_construction_globale(NoeudExpression const *
          * contexte global. Ceci nécessitera d'avoir une deuxième version de la génération de code
          * pour les structures avec des instructions constantes. */
         if (type_pointe->est_type_structure() || type_pointe->est_type_union()) {
-            return TypeConstructionGlobale::NORMALE;
+            return MéthodeConstructionGlobale::NORMALE;
         }
 
-        return TypeConstructionGlobale::TABLEAU_CONSTANT;
+        return MéthodeConstructionGlobale::TABLEAU_CONSTANT;
     }
 
-    return TypeConstructionGlobale::NORMALE;
+    return MéthodeConstructionGlobale::NORMALE;
 }
 
 void CompilatriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl)
@@ -3897,17 +3897,17 @@ void CompilatriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariabl
                     expression = expression->substitution;
                 }
 
-                auto const type_construction = type_construction_globale(expression,
-                                                                         it.transformations[i]);
+                auto const méthode_construction = détermine_méthode_construction_globale(
+                    expression, it.transformations[i]);
 
-                switch (type_construction) {
-                    case TypeConstructionGlobale::TABLEAU_CONSTANT:
+                switch (méthode_construction) {
+                    case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
                     {
                         genere_ri_pour_noeud(expression);
                         valeur = static_cast<AtomeConstante *>(depile_valeur());
                         break;
                     }
-                    case TypeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
+                    case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
                     {
                         auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
 
@@ -3925,18 +3925,18 @@ void CompilatriceRI::genere_ri_pour_declaration_variable(NoeudDeclarationVariabl
                             globale_tableau, type_tableau_fixe);
                         break;
                     }
-                    case TypeConstructionGlobale::NORMALE:
+                    case MéthodeConstructionGlobale::NORMALE:
                     {
                         m_compilatrice.constructeurs_globaux->ajoute(
                             {atome, expression, it.transformations[i]});
                         break;
                     }
-                    case TypeConstructionGlobale::PAR_VALEUR_DEFAUT:
+                    case MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT:
                     {
                         valeur = m_constructrice.genere_initialisation_defaut_pour_type(var->type);
                         break;
                     }
-                    case TypeConstructionGlobale::SANS_INITIALISATION:
+                    case MéthodeConstructionGlobale::SANS_INITIALISATION:
                     {
                         /* Rien à faire. */
                         break;
