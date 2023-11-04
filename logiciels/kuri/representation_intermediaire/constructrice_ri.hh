@@ -5,10 +5,10 @@
 
 #include "instructions.hh"
 
-#include "arbre_syntaxique/noeud_code.hh" /* Pour Annotation */
-
 #include "structures/tablet.hh"
 
+struct Annotation;
+struct Broyeuse;
 struct Compilatrice;
 struct ConstructriceRI;
 struct NoeudBloc;
