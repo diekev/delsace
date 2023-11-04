@@ -167,10 +167,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\treturn param->comme_declaration_variable();\n";
             os << "\t}\n";
 
-            os << "\t// @design : ce n'est pas très propre de passer l'espace ici, mais il nous "
-                  "faut le fichier pour le module\n";
-            os << "\tkuri::chaine_statique nom_broye(EspaceDeTravail *espace, Broyeuse "
-                  "&broyeuse);\n";
+            os << "\tkuri::chaine_statique donne_nom_broyé(Broyeuse &broyeuse);\n";
             os << "\tType *type_initialisé() const;\n";
             os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
@@ -199,7 +196,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
 
         // Prodéclare les fonctions de discrimination.
-        if (est_racine_hierarchie()) {
+        if (est_racine_hiérarchie()) {
             pour_chaque_derivee_recursif([&os](const ProteineStruct &derivee) {
                 if (derivee.m_nom_comme.nom_cpp() == "") {
                     return;
@@ -289,7 +286,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
     // Implémente les fonctions de discrimination.
     // Nous devons attendre que toutes les structures soient déclarées avant de
     // pouvoir faire ceci.
-    if (est_racine_hierarchie()) {
+    if (est_racine_hiérarchie()) {
         pour_chaque_derivee_recursif([&os, this](const ProteineStruct &derivee) {
             if (derivee.m_nom_comme.nom_cpp() == "") {
                 return;

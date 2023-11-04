@@ -10,6 +10,11 @@ struct IdentifiantCode;
 struct NoeudDeclarationEnteteFonction;
 struct Type;
 
+namespace kuri {
+template <typename T, uint64_t>
+struct tablet;
+}
+
 /**
  * Une Broyeuse s'occupe de transformer une chaine de caractère en une chaine unique.
  * Cette structure n'est pas sure pour le moultfilage: chaque fil doit avoir sa propre
@@ -32,10 +37,11 @@ class Broyeuse {
      * Le résultat sera mis en cache dans le type. */
     kuri::chaine_statique nom_broyé_type(Type *type);
 
-    /* Retourne le nom broyé de l'identifiant.
+    /* Retourne le nom broyé de la fonction.
      * Le résultat sera mis en cache dans la fonction. */
-    kuri::chaine_statique broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
-                                             IdentifiantCode *nom_module);
+    kuri::chaine_statique broye_nom_fonction(
+        NoeudDeclarationEnteteFonction *decl,
+        const kuri::tablet<IdentifiantCode *, 6> &noms_hiérarchie);
 
     /* Retourne le nom broyé de l'identifiant.
      * Le résultat sera mis en cache dans l'identifiant. */

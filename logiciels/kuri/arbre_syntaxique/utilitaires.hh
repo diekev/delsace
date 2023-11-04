@@ -14,7 +14,9 @@
 struct AssembleuseArbre;
 struct Compilatrice;
 struct EspaceDeTravail;
+struct IdentifiantCode;
 struct Lexeme;
+struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
@@ -27,6 +29,8 @@ struct Typeuse;
 namespace kuri {
 struct chaine;
 struct chaine_statique;
+template <typename T, uint64_t>
+struct tablet;
 }  // namespace kuri
 
 /* ------------------------------------------------------------------------- */
@@ -237,6 +241,13 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
+
+/**
+ * Retourne les noms des blocs constituant la hiérarchie de blocs de ce bloc. Les noms incluent
+ * celui du bloc passé en paramètre, et sont ordonnés du plus « jeune » ou plus « vieux » (c-à-d,
+ * le nom du module, le bloc le plus vieux, sera le dernier).
+ */
+kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *bloc);
 
 NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *type,
                                                                      Compilatrice &compilatrice,
