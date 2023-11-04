@@ -120,9 +120,6 @@ struct Compilatrice {
     std::mutex mutex_données_constantes_exécutions{};
     DonneesConstantesExecutions données_constantes_exécutions{};
 
-    tableau_page<AtomeFonction> fonctions{};
-    tableau_page<AtomeGlobale> globales{};
-
     struct DonneesConstructeurGlobale {
         AtomeGlobale *atome = nullptr;
         NoeudExpression *expression = nullptr;
@@ -135,11 +132,10 @@ struct Compilatrice {
     using TableChaine = kuri::table_hachage<kuri::chaine_statique, AtomeConstante *>;
     dls::outils::Synchrone<TableChaine> table_chaines{"Table des chaines"};
 
-    std::mutex mutex_atomes_fonctions{};
-    std::mutex mutex_atomes_globales{};
-
     Module *module_kuri = nullptr;
     Module *module_racine_compilation = nullptr;
+
+    RegistreSymboliqueRI *registre_ri = nullptr;
 
     /* À FAIRE : nous pourrions stocker les tâcheronnes, et utiliser la première tâcheronne
      * disponible. */
@@ -228,18 +224,6 @@ struct Compilatrice {
      * fichier n'a ce nom, retourne nullptr.
      */
     Fichier *fichier(kuri::chaine_statique chemin) const;
-
-    AtomeFonction *crée_fonction(Lexeme const *lexeme, kuri::chaine const &nom_fonction);
-    AtomeFonction *trouve_ou_insere_fonction(CompilatriceRI &compilatrice_ri,
-                                             NoeudDeclarationEnteteFonction *decl);
-    AtomeFonction *trouve_fonction(kuri::chaine const &nom_fonction);
-
-    AtomeGlobale *crée_globale(const Type *type,
-                               AtomeConstante *valeur,
-                               bool initialisateur,
-                               bool est_constante);
-    AtomeGlobale *trouve_globale(NoeudDeclaration *decl);
-    AtomeGlobale *trouve_ou_insere_globale(NoeudDeclaration *decl);
 
     MetaProgramme *crée_metaprogramme(EspaceDeTravail *espace);
 

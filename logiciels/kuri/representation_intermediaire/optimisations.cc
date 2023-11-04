@@ -66,10 +66,10 @@ enum {
 struct CopieuseInstruction {
   private:
     kuri::table_hachage<Atome *, Atome *> copies{"Instructions copiées"};
-    CompilatriceRI &constructrice;
+    ConstructriceRI &constructrice;
 
   public:
-    CopieuseInstruction(CompilatriceRI &constructrice_) : constructrice(constructrice_)
+    CopieuseInstruction(ConstructriceRI &constructrice_) : constructrice(constructrice_)
     {
     }
 
@@ -120,123 +120,130 @@ struct CopieuseInstruction {
             case Instruction::Genre::APPEL:
             {
                 auto appel = inst->comme_appel();
-                auto nouvelle_appel = constructrice.insts_appel.ajoute_element(inst->site);
-                nouvelle_appel->appele = copie_atome(appel->appele);
-                nouvelle_appel->adresse_retour = static_cast<InstructionAllocation *>(
+                auto appelé = copie_atome(appel->appele);
+                auto adresse_retour = static_cast<InstructionAllocation *>(
                     copie_atome(appel->adresse_retour));
 
-                nouvelle_appel->args.reserve(appel->args.taille());
-
+                kuri::tableau<Atome *, int> args;
+                args.reserve(appel->args.taille());
                 POUR (appel->args) {
-                    nouvelle_appel->args.ajoute(copie_atome(it));
+                    args.ajoute(copie_atome(it));
                 }
 
-                nouvelle_inst = nouvelle_appel;
+                auto nouvel_appel = constructrice.crée_appel(inst->site, appelé, std::move(args));
+                nouvel_appel->adresse_retour = adresse_retour;
+                nouvelle_inst = nouvel_appel;
                 break;
             }
             case Instruction::Genre::CHARGE_MEMOIRE:
             {
                 auto charge = inst->comme_charge();
-                auto n_charge = constructrice.insts_charge_memoire.ajoute_element(inst->site);
-                n_charge->chargee = copie_atome(charge->chargee);
+                auto source = copie_atome(charge->chargee);
+                auto n_charge = constructrice.crée_charge_mem(inst->site, source);
                 nouvelle_inst = n_charge;
                 break;
             }
             case Instruction::Genre::STOCKE_MEMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
-                auto n_stocke = constructrice.insts_stocke_memoire.ajoute_element(inst->site);
-                n_stocke->ou = copie_atome(stocke->ou);
-                n_stocke->valeur = copie_atome(stocke->valeur);
+                auto destination = copie_atome(stocke->ou);
+                auto source = copie_atome(stocke->valeur);
+                auto n_stocke = constructrice.crée_stocke_mem(inst->site, destination, source);
                 nouvelle_inst = n_stocke;
                 break;
             }
             case Instruction::Genre::OPERATION_UNAIRE:
             {
                 auto op = inst->comme_op_unaire();
-                auto n_op = constructrice.insts_opunaire.ajoute_element(inst->site);
-                n_op->op = op->op;
-                n_op->valeur = copie_atome(op->valeur);
+                auto type_opération = op->op;
+                auto n_valeur = copie_atome(op->valeur);
+                auto n_op = constructrice.crée_op_unaire(
+                    inst->site, inst->type, type_opération, n_valeur);
                 nouvelle_inst = n_op;
                 break;
             }
             case Instruction::Genre::OPERATION_BINAIRE:
             {
                 auto op = inst->comme_op_binaire();
-                auto n_op = constructrice.insts_opbinaire.ajoute_element(inst->site);
-                n_op->op = op->op;
-                n_op->valeur_gauche = copie_atome(op->valeur_gauche);
-                n_op->valeur_droite = copie_atome(op->valeur_droite);
+                auto type_opération = op->op;
+                auto valeur_gauche = copie_atome(op->valeur_gauche);
+                auto valeur_droite = copie_atome(op->valeur_droite);
+                auto n_op = constructrice.crée_op_binaire(
+                    inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
                 nouvelle_inst = n_op;
                 break;
             }
             case Instruction::Genre::ACCEDE_INDEX:
             {
                 auto acces = inst->comme_acces_index();
-                auto n_acces = constructrice.insts_accede_index.ajoute_element(inst->site);
-                n_acces->index = copie_atome(acces->index);
-                n_acces->accede = copie_atome(acces->accede);
+                auto accedé = copie_atome(acces->accede);
+                auto index = copie_atome(acces->index);
+                auto n_acces = constructrice.crée_acces_index(inst->site, accedé, index);
                 nouvelle_inst = n_acces;
                 break;
             }
             case Instruction::Genre::ACCEDE_MEMBRE:
             {
                 auto acces = inst->comme_acces_membre();
-                auto n_acces = constructrice.insts_accede_membre.ajoute_element(inst->site);
-                n_acces->index = copie_atome(acces->index);
-                n_acces->accede = copie_atome(acces->accede);
+                auto accedé = copie_atome(acces->accede);
+                auto index = copie_atome(acces->index);
+                auto n_acces = constructrice.crée_reference_membre(
+                    inst->site, inst->type, accedé, index);
                 nouvelle_inst = n_acces;
                 break;
             }
             case Instruction::Genre::TRANSTYPE:
             {
                 auto transtype = inst->comme_transtype();
-                auto n_transtype = constructrice.insts_transtype.ajoute_element(inst->site);
-                n_transtype->op = transtype->op;
-                n_transtype->valeur = copie_atome(transtype->valeur);
+                auto op = transtype->op;
+                auto n_valeur = copie_atome(transtype->valeur);
+                auto n_transtype = constructrice.crée_transtype(
+                    inst->site, inst->type, n_valeur, op);
                 nouvelle_inst = n_transtype;
                 break;
             }
             case Instruction::Genre::BRANCHE_CONDITION:
             {
                 auto branche = inst->comme_branche_cond();
-                auto n_branche = constructrice.insts_branche_condition.ajoute_element(inst->site);
-                n_branche->condition = copie_atome(branche->condition);
-                n_branche->label_si_faux =
-                    copie_atome(branche->label_si_faux)->comme_instruction()->comme_label();
-                n_branche->label_si_vrai =
+                auto n_condition = copie_atome(branche->condition);
+                auto label_si_vrai =
                     copie_atome(branche->label_si_vrai)->comme_instruction()->comme_label();
+                auto label_si_faux =
+                    copie_atome(branche->label_si_faux)->comme_instruction()->comme_label();
+                auto n_branche = constructrice.crée_branche_condition(
+                    inst->site, n_condition, label_si_vrai, label_si_faux);
                 nouvelle_inst = n_branche;
                 break;
             }
             case Instruction::Genre::BRANCHE:
             {
                 auto branche = inst->comme_branche();
-                auto n_branche = constructrice.insts_branche.ajoute_element(inst->site);
-                n_branche->label = copie_atome(branche->label)->comme_instruction()->comme_label();
+                auto label = copie_atome(branche->label)->comme_instruction()->comme_label();
+                auto n_branche = constructrice.crée_branche(inst->site, label);
                 nouvelle_inst = n_branche;
                 break;
             }
             case Instruction::Genre::RETOUR:
             {
                 auto retour = inst->comme_retour();
-                auto n_retour = constructrice.insts_retour.ajoute_element(inst->site);
-                n_retour->valeur = copie_atome(retour->valeur);
+                auto n_valeur = copie_atome(retour->valeur);
+                auto n_retour = constructrice.crée_retour(inst->site, n_valeur);
                 nouvelle_inst = n_retour;
                 break;
             }
             case Instruction::Genre::ALLOCATION:
             {
                 auto alloc = inst->comme_alloc();
-                auto n_alloc = constructrice.insts_allocation.ajoute_element(inst->site);
-                n_alloc->ident = alloc->ident;
+                auto ident = alloc->ident;
+                auto n_alloc = constructrice.crée_allocation(
+                    inst->site, alloc->type->comme_type_pointeur()->type_pointe, ident, true);
                 nouvelle_inst = n_alloc;
                 break;
             }
             case Instruction::Genre::LABEL:
             {
                 auto label = inst->comme_label();
-                auto n_label = constructrice.insts_label.ajoute_element(inst->site);
+                auto n_label = constructrice.crée_label(inst->site);
                 n_label->id = label->id;
                 nouvelle_inst = n_label;
                 break;
@@ -248,7 +255,6 @@ struct CopieuseInstruction {
         }
 
         if (nouvelle_inst) {
-            nouvelle_inst->type = inst->type;
             ajoute_substitution(inst, nouvelle_inst);
         }
 
@@ -256,7 +262,7 @@ struct CopieuseInstruction {
     }
 };
 
-void performe_enlignage(CompilatriceRI &constructrice,
+void performe_enlignage(ConstructriceRI &constructrice,
                         kuri::tableau<Instruction *, int> &nouvelles_instructions,
                         AtomeFonction *fonction_appelee,
                         kuri::tableau<Atome *, int> const &arguments,
@@ -531,7 +537,7 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
     return false;
 }
 
-bool enligne_fonctions(CompilatriceRI &constructrice, AtomeFonction *atome_fonc)
+bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
     auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
     nouvelle_instructions.reserve(atome_fonc->instructions.taille());
@@ -1160,7 +1166,7 @@ static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
 }
 
 void optimise_code(EspaceDeTravail &espace,
-                   CompilatriceRI &constructrice,
+                   ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc)
 {
     // if (atome_fonc->nom ==

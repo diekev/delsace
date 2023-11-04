@@ -3,10 +3,10 @@
 
 #pragma once
 
-struct CompilatriceRI;
+struct ConstructriceRI;
 struct EspaceDeTravail;
 struct AtomeFonction;
 
 void optimise_code(EspaceDeTravail &espace,
-                   CompilatriceRI &constructrice,
+                   ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc);
