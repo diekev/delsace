@@ -731,8 +731,22 @@ bool expression_est_constante(NoeudExpression *expression)
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
-kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail *espace,
-                                                                Broyeuse &broyeuse)
+static kuri::tablet<IdentifiantCode *, 6> noms_hiérarchie(NoeudBloc *bloc)
+{
+    kuri::tablet<IdentifiantCode *, 6> noms;
+
+    while (bloc) {
+        if (bloc->ident) {
+            noms.ajoute(bloc->ident);
+        }
+
+        bloc = bloc->bloc_parent;
+    }
+
+    return noms;
+}
+
+kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse &broyeuse)
 {
     if (nom_broye_ != "") {
         return nom_broye_;
@@ -740,8 +754,8 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::nom_broye(EspaceDeTravail 
 
     if (ident != ID::principale && !possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE |
                                                     DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
-        auto fichier = espace->compilatrice().fichier(lexeme->fichier);
-        nom_broye_ = broyeuse.broye_nom_fonction(this, fichier->module->nom());
+        auto noms = noms_hiérarchie(bloc_parent);
+        nom_broye_ = broyeuse.broye_nom_fonction(this, noms);
     }
     else {
         nom_broye_ = lexeme->chaine;

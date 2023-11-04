@@ -167,10 +167,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
             os << "\t\treturn param->comme_declaration_variable();\n";
             os << "\t}\n";
 
-            os << "\t// @design : ce n'est pas très propre de passer l'espace ici, mais il nous "
-                  "faut le fichier pour le module\n";
-            os << "\tkuri::chaine_statique nom_broye(EspaceDeTravail *espace, Broyeuse "
-                  "&broyeuse);\n";
+            os << "\tkuri::chaine_statique donne_nom_broyé(Broyeuse &broyeuse);\n";
             os << "\tType *type_initialisé() const;\n";
             os << "\tinline bool possède_drapeau(DrapeauxNoeud drapeaux_) const\n";
             os << "\t{\n";
