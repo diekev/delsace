@@ -34,6 +34,14 @@
 
 #undef PRESERVE_NOMS_DANS_LE_CODE
 
+/* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
+static const char *nom_base_chaine = "C";
+static const char *nom_base_fonction = "F";
+static const char *nom_base_globale = "G";
+static const char *nom_base_label = "L";
+static const char *nom_base_type = "T";
+static const char *nom_base_variable = "V";
+
 /* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
@@ -1072,7 +1080,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
                 return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
             }
 
-            auto nom = enchaine("val", valeur_const, index_chaine++);
+            auto nom = enchaine(nom_base_chaine, index_chaine++);
             os << "  " << donne_nom_pour_type(type) << " " << nom << " = " << résultat.chaine()
                << ";\n";
             return nom;
@@ -1274,7 +1282,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             auto type_fonction = inst_appel->appele->type->comme_type_fonction();
             if (!type_fonction->type_sortie->est_type_rien()) {
-                auto nom_ret = enchaine("__ret", inst->numero);
+                auto nom_ret = donne_nom_pour_instruction(inst);
                 os << donne_nom_pour_type(inst_appel->type) << ' ' << nom_ret << " = ";
                 table_valeurs[inst->numero] = nom_ret;
             }
@@ -1302,7 +1310,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case Instruction::Genre::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
-            os << "  goto label" << inst_branche->label->id << ";\n";
+            os << "  goto " << nom_base_label << inst_branche->label->id << ";\n";
             break;
         }
         case Instruction::Genre::BRANCHE_CONDITION:
@@ -1310,8 +1318,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto inst_branche = inst->comme_branche_cond();
             auto condition = génère_code_pour_atome(inst_branche->condition, os, false);
             os << "  if (" << condition;
-            os << ") goto label" << inst_branche->label_si_vrai->id << "; ";
-            os << "else goto label" << inst_branche->label_si_faux->id << ";\n";
+            os << ") goto " << nom_base_label << inst_branche->label_si_vrai->id << "; ";
+            os << " goto " << nom_base_label << inst_branche->label_si_faux->id << ";\n";
             break;
         }
         case Instruction::Genre::CHARGE_MEMOIRE:
@@ -1368,15 +1376,16 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             if (inst_label->id != 0) {
                 os << "\n";
             }
-            os << "label" << inst_label->id << ":;\n";
+            os << nom_base_label << inst_label->id << ":;\n";
             break;
         }
         case Instruction::Genre::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
+            auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_un->type) << " val" << inst->numero << " = ";
+            os << "  " << donne_nom_pour_type(inst_un->type) << " " << nom << " = ";
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1412,7 +1421,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur;
             os << ";\n";
 
-            table_valeurs[inst->numero] = enchaine("val", inst->numero);
+            table_valeurs[inst->numero] = nom;
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
@@ -1420,8 +1429,9 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto inst_bin = inst->comme_op_binaire();
             auto valeur_gauche = génère_code_pour_atome(inst_bin->valeur_gauche, os, false);
             auto valeur_droite = génère_code_pour_atome(inst_bin->valeur_droite, os, false);
+            auto nom = donne_nom_pour_instruction(inst);
 
-            os << "  " << donne_nom_pour_type(inst_bin->type) << " val" << inst->numero << " = ";
+            os << "  " << donne_nom_pour_type(inst_bin->type) << " " << nom << " = ";
 
             os << valeur_gauche;
 
@@ -1534,7 +1544,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << valeur_droite;
             os << ";\n";
 
-            table_valeurs[inst->numero] = enchaine("val", inst->numero);
+            table_valeurs[inst->numero] = nom;
 
             break;
         }
@@ -1674,6 +1684,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 
     auto virgule = "(";
 
+    int numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
         os << virgule;
 
@@ -1688,7 +1699,8 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
             continue;
         }
 
-        os << broyeuse.broye_nom_simple(param->ident);
+        param->comme_instruction()->numero = numéro_inst++;
+        os << donne_nom_pour_instruction(param->comme_instruction());
 
         virgule = ", ";
     }
@@ -1738,7 +1750,8 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
         param->comme_instruction()->numero = numéro_inst;
-        table_valeurs[numéro_inst++] = enchaine("&", broyeuse.broye_nom_simple(param->ident));
+        table_valeurs[numéro_inst++] = enchaine(
+            "&", donne_nom_pour_instruction(param->comme_instruction()));
     }
 
     os << "\n{\n";
@@ -1753,11 +1766,12 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         auto param = atome_fonc->param_sortie;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
-        os << broyeuse.broye_nom_simple(param->ident);
+        os << donne_nom_pour_instruction(param->comme_instruction());
         os << ";\n";
 
         param->comme_instruction()->numero = numéro_inst;
-        table_valeurs[numéro_inst++] = enchaine("&", broyeuse.broye_nom_simple(param->ident));
+        table_valeurs[numéro_inst++] = enchaine(
+            "&", donne_nom_pour_instruction(param->comme_instruction()));
     }
 
     /* Générons le code pour les accès de membres des retours mutliples. */
@@ -1802,7 +1816,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instr
     }
 #endif
 
-    return enchaine("val", instruction->numero);
+    return enchaine(nom_base_variable, instruction->numero);
 }
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
@@ -1828,7 +1842,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlob
         return nom_globale.sous_chaine(1);
     }
 
-    return enchaine("globale", nombre_de_globales++);
+    return enchaine(nom_base_globale, nombre_de_globales++);
 }
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction const *fonction)
@@ -1844,7 +1858,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction 
     auto trouvé = false;
     auto nom = table_fonctions.trouve(fonction, trouvé);
     if (!trouvé) {
-        nom = enchaine("fonction", nombre_de_fonctions++);
+        nom = enchaine(nom_base_fonction, nombre_de_fonctions++);
         table_fonctions.insère(fonction, nom);
     }
 
@@ -1869,7 +1883,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     auto trouvé = false;
     auto nom = table_types.trouve(type, trouvé);
     if (!trouvé) {
-        nom = enchaine("Type", nombre_de_types++);
+        nom = enchaine(nom_base_type, nombre_de_types++);
         table_types.insère(type, nom);
     }
 
