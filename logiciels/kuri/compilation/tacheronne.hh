@@ -6,6 +6,7 @@
 #include "biblinternes/outils/badge.hh"
 
 #include "arbre_syntaxique/allocatrice.hh"
+#include "arbre_syntaxique/noeud_code.hh"
 
 #include "structures/file.hh"
 

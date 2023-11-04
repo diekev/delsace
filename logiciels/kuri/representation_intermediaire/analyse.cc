@@ -1373,8 +1373,6 @@ struct Calculatrice {
     static uint64_t applique_opération_entier(AtomeValeurConstante const *opérande_gauche,
                                               AtomeValeurConstante const *opérande_droite)
     {
-        assert(opérande_gauche->type == opérande_droite->type);
-
         auto const type = opérande_gauche->type;
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {

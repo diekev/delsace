@@ -5,10 +5,10 @@
 
 #include "instructions.hh"
 
-#include "arbre_syntaxique/noeud_code.hh" /* Pour Annotation */
-
 #include "structures/tablet.hh"
 
+struct Annotation;
+struct Broyeuse;
 struct Compilatrice;
 struct ConstructriceRI;
 struct NoeudBloc;
@@ -332,7 +332,9 @@ struct CompilatriceRI {
     void genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place);
     void genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final);
     void genere_ri_pour_position_code_source(NoeudExpression *noeud);
-    void genere_ri_pour_declaration_variable(NoeudDeclarationVariable *decl);
+    void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
+    void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
+    void génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl);
 
     void transforme_valeur(NoeudExpression *noeud,
                            Atome *valeur,
