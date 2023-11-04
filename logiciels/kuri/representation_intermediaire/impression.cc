@@ -188,7 +188,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
             os << "@" << atome->ident->nom;
         }
         else {
-            os << "@" << atome;
+            os << "@globale" << atome;
         }
 
         if (!pour_operande) {
