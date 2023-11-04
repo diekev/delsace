@@ -731,7 +731,7 @@ bool expression_est_constante(NoeudExpression *expression)
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
 
-static kuri::tablet<IdentifiantCode *, 6> noms_hiérarchie(NoeudBloc *bloc)
+kuri::tablet<IdentifiantCode *, 6> donne_les_noms_de_la_hiérarchie(NoeudBloc *bloc)
 {
     kuri::tablet<IdentifiantCode *, 6> noms;
 
@@ -754,7 +754,7 @@ kuri::chaine_statique NoeudDeclarationEnteteFonction::donne_nom_broyé(Broyeuse 
 
     if (ident != ID::principale && !possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE |
                                                     DrapeauxNoeudFonction::FORCE_SANSBROYAGE)) {
-        auto noms = noms_hiérarchie(bloc_parent);
+        auto noms = donne_les_noms_de_la_hiérarchie(bloc_parent);
         nom_broye_ = broyeuse.broye_nom_fonction(this, noms);
     }
     else {

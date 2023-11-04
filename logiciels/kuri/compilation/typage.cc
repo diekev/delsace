@@ -1169,29 +1169,14 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 /** \name Accès aux noms hiérarchiques des types.
  * \{ */
 
-static kuri::tablet<kuri::chaine_statique, 6> noms_hiérarchie(NoeudBloc *bloc)
-{
-    kuri::tablet<kuri::chaine_statique, 6> noms;
-
-    while (bloc) {
-        if (bloc->ident) {
-            noms.ajoute(bloc->ident->nom);
-        }
-
-        bloc = bloc->bloc_parent;
-    }
-
-    return noms;
-}
-
 static kuri::chaine nom_hiérarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
 {
-    auto const noms = noms_hiérarchie(bloc);
+    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
 
     Enchaineuse enchaineuse;
     /* -2 pour éviter le nom du module. */
     for (auto i = noms.taille() - 2; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(noms[i]->nom);
         enchaineuse.ajoute(".");
     }
     enchaineuse.ajoute(ident);
@@ -1250,11 +1235,11 @@ kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type)
 
 static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
 {
-    auto const noms = noms_hiérarchie(bloc);
+    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
 
     Enchaineuse enchaineuse;
     for (auto i = noms.taille() - 1; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(noms[i]->nom);
     }
     enchaineuse.ajoute(nom);
 
