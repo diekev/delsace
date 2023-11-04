@@ -3047,7 +3047,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENUM, type);
-            valeurs[1] = crée_chaine(donne_nom_hierarchique(const_cast<TypeEnum *>(type_enum)));
+            valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
             valeurs[2] = tableau_valeurs;
             valeurs[3] = tableau_noms;
             valeurs[4] = crée_constante_booleenne(type_enum->est_drapeau);
@@ -3116,7 +3116,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
 
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::UNION, type);
-            valeurs[1] = crée_chaine(donne_nom_hierarchique(const_cast<TypeUnion *>(type_union)));
+            valeurs[1] = crée_chaine(donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[2] = tableau_membre;
             valeurs[3] = info_type_plus_grand;
             valeurs[4] = crée_z64(type_union->decalage_index);
@@ -3202,7 +3202,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             auto valeurs = kuri::tableau<AtomeConstante *>(5);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::STRUCTURE, type);
             valeurs[1] = crée_chaine(
-                donne_nom_hierarchique(const_cast<TypeStructure *>(type_struct)));
+                donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
             valeurs[2] = tableau_membre;
             valeurs[3] = tableau_structs_employees;
             if (type_struct->decl) {
@@ -3318,7 +3318,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::OPAQUE, type_opaque);
             valeurs[1] = crée_chaine(
-                donne_nom_hierarchique(const_cast<TypeOpaque *>(type_opaque)));
+                donne_nom_hiérarchique(const_cast<TypeOpaque *>(type_opaque)));
             valeurs[2] = crée_info_type_avec_transtype(type_opacifie, site);
 
             type->atome_info_type = crée_globale_info_type(
