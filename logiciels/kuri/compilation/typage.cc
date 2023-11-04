@@ -1169,29 +1169,14 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 /** \name Accès aux noms hiérarchiques des types.
  * \{ */
 
-static kuri::tablet<kuri::chaine_statique, 6> noms_hierarchie(NoeudBloc *bloc)
+static kuri::chaine nom_hiérarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
 {
-    kuri::tablet<kuri::chaine_statique, 6> noms;
-
-    while (bloc) {
-        if (bloc->ident) {
-            noms.ajoute(bloc->ident->nom);
-        }
-
-        bloc = bloc->bloc_parent;
-    }
-
-    return noms;
-}
-
-static kuri::chaine nom_hierarchique(NoeudBloc *bloc, kuri::chaine_statique ident)
-{
-    auto const noms = noms_hierarchie(bloc);
+    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
 
     Enchaineuse enchaineuse;
     /* -2 pour éviter le nom du module. */
     for (auto i = noms.taille() - 2; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(noms[i]->nom);
         enchaineuse.ajoute(".");
     }
     enchaineuse.ajoute(ident);
@@ -1199,47 +1184,47 @@ static kuri::chaine nom_hierarchique(NoeudBloc *bloc, kuri::chaine_statique iden
     return enchaineuse.chaine();
 }
 
-kuri::chaine_statique donne_nom_hierarchique(TypeUnion *type)
+kuri::chaine_statique donne_nom_hiérarchique(TypeUnion *type)
 {
-    if (type->nom_hierarchique_ != "") {
-        return type->nom_hierarchique_;
+    if (type->nom_hiérarchique_ != "") {
+        return type->nom_hiérarchique_;
     }
 
-    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+    type->nom_hiérarchique_ = nom_hiérarchique(type->decl ? type->decl->bloc_parent : nullptr,
                                                chaine_type(type, false));
-    return type->nom_hierarchique_;
+    return type->nom_hiérarchique_;
 }
 
-kuri::chaine_statique donne_nom_hierarchique(TypeEnum *type)
+kuri::chaine_statique donne_nom_hiérarchique(TypeEnum *type)
 {
-    if (type->nom_hierarchique_ != "") {
-        return type->nom_hierarchique_;
+    if (type->nom_hiérarchique_ != "") {
+        return type->nom_hiérarchique_;
     }
 
-    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+    type->nom_hiérarchique_ = nom_hiérarchique(type->decl ? type->decl->bloc_parent : nullptr,
                                                chaine_type(type, false));
-    return type->nom_hierarchique_;
+    return type->nom_hiérarchique_;
 }
 
-kuri::chaine_statique donne_nom_hierarchique(TypeOpaque *type)
+kuri::chaine_statique donne_nom_hiérarchique(TypeOpaque *type)
 {
-    if (type->nom_hierarchique_ != "") {
-        return type->nom_hierarchique_;
+    if (type->nom_hiérarchique_ != "") {
+        return type->nom_hiérarchique_;
     }
 
-    type->nom_hierarchique_ = nom_hierarchique(type->decl->bloc_parent, chaine_type(type, false));
-    return type->nom_hierarchique_;
+    type->nom_hiérarchique_ = nom_hiérarchique(type->decl->bloc_parent, chaine_type(type, false));
+    return type->nom_hiérarchique_;
 }
 
-kuri::chaine_statique donne_nom_hierarchique(TypeStructure *type)
+kuri::chaine_statique donne_nom_hiérarchique(TypeStructure *type)
 {
-    if (type->nom_hierarchique_ != "") {
-        return type->nom_hierarchique_;
+    if (type->nom_hiérarchique_ != "") {
+        return type->nom_hiérarchique_;
     }
 
-    type->nom_hierarchique_ = nom_hierarchique(type->decl ? type->decl->bloc_parent : nullptr,
+    type->nom_hiérarchique_ = nom_hiérarchique(type->decl ? type->decl->bloc_parent : nullptr,
                                                chaine_type(type, false));
-    return type->nom_hierarchique_;
+    return type->nom_hiérarchique_;
 }
 
 /** \} */
@@ -1250,11 +1235,11 @@ kuri::chaine_statique donne_nom_hierarchique(TypeStructure *type)
 
 static kuri::chaine nom_portable(NoeudBloc *bloc, kuri::chaine_statique nom)
 {
-    auto const noms = noms_hierarchie(bloc);
+    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
 
     Enchaineuse enchaineuse;
     for (auto i = noms.taille() - 1; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]);
+        enchaineuse.ajoute(noms[i]->nom);
     }
     enchaineuse.ajoute(nom);
 

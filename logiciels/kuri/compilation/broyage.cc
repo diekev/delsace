@@ -427,8 +427,9 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
  * fonc test(x : z32) : z32 (module Test)
  * -> _KF4Test4test_P2_E1_1x3z32_S1_3z32
  */
-kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonction *decl,
-                                                   IdentifiantCode *nom_module)
+kuri::chaine_statique Broyeuse::broye_nom_fonction(
+    NoeudDeclarationEnteteFonction *decl,
+    kuri::tablet<IdentifiantCode *, 6> const &noms_hiérarchie)
 {
     stockage_temp.réinitialise();
 
@@ -447,7 +448,10 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
     }
 
     /* Prépare les données afin de ne pas polluer l'enchaineuse. */
-    auto nom_ascii_module = broye_nom_simple(nom_module);
+    kuri::tablet<kuri::chaine_statique, 6> noms_broyés_hiérarchie;
+    POUR (noms_hiérarchie) {
+        noms_broyés_hiérarchie.ajoute(broye_nom_simple(it));
+    }
     auto nom_ascii_fonction = broye_nom_simple(decl->ident);
 
     decl->bloc_constantes->membres.avec_verrou_lecture(
@@ -479,8 +483,12 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDeclarationEnteteFonctio
     /* Module et nom. */
     stockage_temp << "_K";
     stockage_temp << (decl->est_coroutine ? "C" : "F");
-    stockage_temp << nom_ascii_module.taille();
-    stockage_temp << nom_ascii_module;
+
+    for (auto i = noms_broyés_hiérarchie.taille() - 1; i >= 0; --i) {
+        auto nom_broyé_hiérarchie = noms_broyés_hiérarchie[i];
+        stockage_temp << nom_broyé_hiérarchie.taille();
+        stockage_temp << nom_broyé_hiérarchie;
+    }
 
     /* nom de la fonction */
     if (decl->est_operateur) {
