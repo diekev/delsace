@@ -70,13 +70,13 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
         case Atome::Genre::GLOBALE:
         {
             os << "globale " << (atome->ident ? atome->ident->nom : "anonyme") << " de type "
-               << chaine_type(atome->type);
+               << chaine_type(atome->type, false);
             break;
         }
         case Atome::Genre::CONSTANTE:
         {
             auto atome_const = static_cast<AtomeConstante const *>(atome);
-            os << "constante de type " << chaine_type(atome->type);
+            os << "constante de type " << chaine_type(atome->type, false);
             switch (atome_const->genre) {
                 case AtomeConstante::Genre::GLOBALE:
                 {
@@ -192,7 +192,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         }
 
         if (!pour_operande) {
-            os << " = globale " << chaine_type(type_dereference_pour(atome->type));
+            os << " = globale " << chaine_type(type_dereference_pour(atome->type), false);
 
             auto globale = static_cast<AtomeGlobale const *>(atome);
             if (globale->initialisateur) {
@@ -215,7 +215,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                 auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
                 os << "  transtype ";
                 imprime_atome_ex(transtype_const->valeur, os, true);
-                os << " vers " << chaine_type(transtype_const->type) << '\n';
+                os << " vers " << chaine_type(transtype_const->type, false) << '\n';
                 break;
             }
             case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
@@ -277,7 +277,8 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                     }
                     case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
                     {
-                        os << "taille_de(" << chaine_type(valeur_constante->valeur.type) << ')';
+                        os << "taille_de(" << chaine_type(valeur_constante->valeur.type, false)
+                           << ')';
                         break;
                     }
                     case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
@@ -368,7 +369,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
-            os << "  alloue " << chaine_type(type_pointeur->type_pointe) << ' ';
+            os << "  alloue " << chaine_type(type_pointeur->type_pointe, false) << ' ';
 
             if (inst->ident != nullptr) {
                 os << inst->ident->nom;
@@ -382,7 +383,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::APPEL:
         {
             auto inst_appel = inst->comme_appel();
-            os << "  appel " << chaine_type(inst_appel->type) << ' ';
+            os << "  appel " << chaine_type(inst_appel->type, false) << ' ';
             imprime_atome_ex(inst_appel->appele, os, true);
 
             auto virgule = "(";
@@ -421,7 +422,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
 
-            os << "  charge " << chaine_type(inst->type);
+            os << "  charge " << chaine_type(inst->type, false);
 
             if (charge->genre_atome == Atome::Genre::GLOBALE) {
                 os << " @globale" << charge;
@@ -441,7 +442,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->ou;
 
-            os << "  stocke " << chaine_type(ou->type);
+            os << "  stocke " << chaine_type(ou->type, false);
 
             if (ou->genre_atome == Atome::Genre::GLOBALE) {
                 os << " @globale" << ou;
@@ -451,7 +452,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
                 os << " %" << inst_chargee->numero;
             }
 
-            os << ", " << chaine_type(inst_stocke->valeur->type) << ' ';
+            os << ", " << chaine_type(inst_stocke->valeur->type, false) << ' ';
             imprime_atome_ex(inst_stocke->valeur, os, true);
             break;
         }
@@ -464,16 +465,16 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
-            os << "  " << chaine_pour_genre_op(inst_un->op) << ' ' << chaine_type(inst_un->type)
-               << ' ';
+            os << "  " << chaine_pour_genre_op(inst_un->op) << ' '
+               << chaine_type(inst_un->type, false) << ' ';
             imprime_atome_ex(inst_un->valeur, os, true);
             break;
         }
         case Instruction::Genre::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
-            os << "  " << chaine_pour_genre_op(inst_bin->op) << ' ' << chaine_type(inst_bin->type)
-               << ' ';
+            os << "  " << chaine_pour_genre_op(inst_bin->op) << ' '
+               << chaine_type(inst_bin->type, false) << ' ';
             imprime_atome_ex(inst_bin->valeur_gauche, os, true);
             os << ", ";
             imprime_atome_ex(inst_bin->valeur_droite, os, true);
@@ -485,7 +486,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             os << "  retourne ";
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                os << chaine_type(atome->type);
+                os << chaine_type(atome->type, false);
                 os << ' ';
 
                 imprime_atome_ex(atome, os, true);
@@ -495,7 +496,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::ACCEDE_INDEX:
         {
             auto inst_acces = inst->comme_acces_index();
-            os << "  index " << chaine_type(inst_acces->type) << ' ';
+            os << "  index " << chaine_type(inst_acces->type, false) << ' ';
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, true);
@@ -504,7 +505,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         case Instruction::Genre::ACCEDE_MEMBRE:
         {
             auto inst_acces = inst->comme_acces_membre();
-            os << "  membre " << chaine_type(inst_acces->type) << ' ';
+            os << "  membre " << chaine_type(inst_acces->type, false) << ' ';
             imprime_atome_ex(inst_acces->accede, os, true);
             os << ", ";
             imprime_atome_ex(inst_acces->index, os, true);
@@ -515,7 +516,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_transtype = inst->comme_transtype();
             os << "  " << chaine_pour_type_transtypage(inst_transtype->op) << " ";
             imprime_atome_ex(inst_transtype->valeur, os, true);
-            os << " vers " << chaine_type(inst_transtype->type);
+            os << " vers " << chaine_type(inst_transtype->type, false);
             break;
         }
     }
@@ -542,7 +543,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
         os << param->ident->nom << ' ';
 
         auto type_pointeur = param->type->comme_type_pointeur();
-        os << chaine_type(type_pointeur->type_pointe);
+        os << chaine_type(type_pointeur->type_pointe, false);
 
         virgule = ", ";
     }
@@ -554,7 +555,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
 
     os << ") -> ";
-    os << chaine_type(type_fonction->type_sortie);
+    os << chaine_type(type_fonction->type_sortie, false);
     os << '\n';
 
     numérote_instructions(*atome_fonc);
