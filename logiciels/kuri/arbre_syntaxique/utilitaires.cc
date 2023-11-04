@@ -1073,7 +1073,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
 
             info_type->genre = GenreInfoType::STRUCTURE;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->nom = donne_nom_hierarchique(type_struct);
+            info_type->nom = donne_nom_hiérarchique(type_struct);
 
             info_type->membres.reserve(type_struct->membres.taille());
 
@@ -1124,7 +1124,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
             info_type->type_le_plus_grand = crée_info_type_pour(type_union->type_le_plus_grand);
             info_type->decalage_index = type_union->decalage_index;
             info_type->taille_en_octet = type_union->taille_octet;
-            info_type->nom = donne_nom_hierarchique(type_union);
+            info_type->nom = donne_nom_hiérarchique(type_union);
 
             info_type->membres.reserve(type_union->membres.taille());
 
@@ -1158,7 +1158,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_enums.ajoute_element();
             info_type->genre = GenreInfoType::ENUM;
-            info_type->nom = donne_nom_hierarchique(type_enum);
+            info_type->nom = donne_nom_hiérarchique(type_enum);
             info_type->est_drapeau = type_enum->est_drapeau;
             info_type->taille_en_octet = type_enum->taille_octet;
             info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
@@ -1218,7 +1218,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_element();
             info_type->genre = GenreInfoType::OPAQUE;
-            info_type->nom = donne_nom_hierarchique(type_opaque);
+            info_type->nom = donne_nom_hiérarchique(type_opaque);
             info_type->type_opacifie = crée_info_type_pour(type_opaque->type_opacifie);
 
             type->info_type = info_type;

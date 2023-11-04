@@ -199,7 +199,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
 
         // Prodéclare les fonctions de discrimination.
-        if (est_racine_hierarchie()) {
+        if (est_racine_hiérarchie()) {
             pour_chaque_derivee_recursif([&os](const ProteineStruct &derivee) {
                 if (derivee.m_nom_comme.nom_cpp() == "") {
                     return;
@@ -289,7 +289,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
     // Implémente les fonctions de discrimination.
     // Nous devons attendre que toutes les structures soient déclarées avant de
     // pouvoir faire ceci.
-    if (est_racine_hierarchie()) {
+    if (est_racine_hiérarchie()) {
         pour_chaque_derivee_recursif([&os, this](const ProteineStruct &derivee) {
             if (derivee.m_nom_comme.nom_cpp() == "") {
                 return;
