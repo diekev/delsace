@@ -441,7 +441,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
         }
         else {
             assert_rappel(false, [&]() {
-                std::cerr << "Genre de type non-géré : " << chaine_du_lexeme(donnees.dt[0])
+                std::cerr << "Genre de type non-géré : " << chaine_du_lexème(donnees.dt[0])
                           << '\n';
             });
         }
