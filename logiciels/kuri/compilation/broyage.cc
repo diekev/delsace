@@ -319,7 +319,7 @@ static const char *nom_pour_operateur(Lexeme const &lexeme)
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Lexème inattendu pour les opérateurs dans le broyage de nom : "
-                          << chaine_du_genre_de_lexeme(lexeme.genre) << "\n";
+                          << chaine_du_genre_de_lexème(lexeme.genre) << "\n";
             });
             break;
         }

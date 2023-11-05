@@ -465,7 +465,7 @@ static inline int precedence_pour_operateur(GenreLexeme genre_operateur)
 {
     int precedence = table_precedence_lexemes[static_cast<size_t>(genre_operateur)];
     assert_rappel(precedence != -1, [&]() {
-        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur)
+        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur)
                   << '\n';
     });
     return precedence;
@@ -475,7 +475,7 @@ static inline Associativite associativite_pour_operateur(GenreLexeme genre_opera
 {
     auto associativite = table_associativite_lexemes[static_cast<size_t>(genre_operateur)];
     assert_rappel(associativite != static_cast<Associativite>(-1), [&]() {
-        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexeme(genre_operateur)
+        std::cerr << "Aucune précédence pour l'opérateur : " << chaine_du_lexème(genre_operateur)
                   << '\n';
     });
     return associativite;
@@ -779,7 +779,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Lexème inattendu comme opérateur unaire : "
-                          << chaine_du_lexeme(lexeme->genre) << '\n';
+                          << chaine_du_lexème(lexeme->genre) << '\n';
                 std::cerr << crée_message_erreur("");
             });
             return nullptr;
@@ -1598,7 +1598,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Lexème inattendu comme expression secondaire : "
-                          << chaine_du_lexeme(lexeme->genre) << '\n';
+                          << chaine_du_lexème(lexeme->genre) << '\n';
                 std::cerr << crée_message_erreur("");
             });
             return nullptr;
@@ -1735,7 +1735,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Lexème inattendu comme instruction : "
-                          << chaine_du_lexeme(lexeme->genre) << '\n';
+                          << chaine_du_lexème(lexeme->genre) << '\n';
                 std::cerr << crée_message_erreur("");
             });
             return nullptr;

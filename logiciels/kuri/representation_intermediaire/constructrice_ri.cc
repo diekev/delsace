@@ -3280,7 +3280,12 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             /* { membres basiques, type_pointé, est_référence } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::POINTEUR, type);
-            valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
+            if (type_deref) {
+                valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
+            }
+            else {
+                valeurs[1] = nullptr;
+            }
             valeurs[2] = m_constructrice.crée_constante_booleenne(type->est_type_reference());
 
             type->atome_info_type = crée_globale_info_type(
@@ -3508,7 +3513,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TABLEAU, type);
-            valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
+            valeurs[1] = type_deref ? crée_info_type_avec_transtype(type_deref, site) : nullptr;
             valeurs[2] = m_constructrice.crée_constante_booleenne(false);
             valeurs[3] = m_constructrice.crée_z32(0);
 

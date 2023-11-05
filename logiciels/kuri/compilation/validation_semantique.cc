@@ -257,6 +257,12 @@ static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
         return true;
     }
 
+    if (type->est_type_type_de_donnees()) {
+        /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
+         * leurs valeurs dépends de l'index du type dans ladite table. */
+        return true;
+    }
+
     if (type->est_type_opaque()) {
         return est_type_implicitement_utilisable_pour_indexage(
             type->comme_type_opaque()->type_opacifie);
@@ -5424,7 +5430,6 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
 
 ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
 {
-
     auto type_condition = inst->condition->type;
 
     if (type_condition == nullptr && !est_opérateur_bool(inst->condition->lexeme->genre)) {
