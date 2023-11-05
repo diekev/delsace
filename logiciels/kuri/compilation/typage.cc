@@ -1581,10 +1581,14 @@ static void chaine_type(Enchaineuse &enchaineuse,
         }
         case GenreType::VARIADIQUE:
         {
+            auto type_variadique = static_cast<TypeVariadique const *>(type);
             enchaineuse << "...";
-            chaine_type(enchaineuse,
-                        static_cast<TypeVariadique const *>(type)->type_pointe,
-                        ajoute_nom_paramètres_polymorphiques);
+            /* N'imprime rien pour les types variadiques externes. */
+            if (type_variadique->type_pointe) {
+                chaine_type(enchaineuse,
+                            type_variadique->type_pointe,
+                            ajoute_nom_paramètres_polymorphiques);
+            }
             return;
         }
         case GenreType::FONCTION:
