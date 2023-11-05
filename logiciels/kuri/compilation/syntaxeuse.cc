@@ -1182,7 +1182,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
         {
             auto message_erreur = enchaine(
                 "« ",
-                chaine_du_lexeme(lexeme->genre),
+                chaine_du_lexème(lexeme->genre),
                 " » ne peut pas être utilisé comme expression primaire.\n");
             rapporte_erreur(message_erreur);
             return nullptr;
