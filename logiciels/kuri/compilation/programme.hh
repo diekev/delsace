@@ -290,6 +290,7 @@ struct ProgrammeRepreInter {
 
     void ajoute_fonction(AtomeFonction *fonction);
     void ajourne_globales_pour_fonction(AtomeFonction *fonction);
+    void ajourne_globales_pour_table_types();
     kuri::tableau<Bibliotheque *> donne_bibliothèques_utilisées() const;
 };
 
