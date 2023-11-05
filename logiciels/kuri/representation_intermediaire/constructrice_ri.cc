@@ -2989,7 +2989,7 @@ void CompilatriceRI::genere_ri_pour_condition(NoeudExpression *condition,
 {
     auto genre_lexeme = condition->lexeme->genre;
 
-    if (est_operateur_comparaison(genre_lexeme) ||
+    if (est_opérateur_comparaison(genre_lexeme) ||
         condition->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
         genere_ri_pour_expression_droite(condition, nullptr);
         auto valeur = depile_valeur();

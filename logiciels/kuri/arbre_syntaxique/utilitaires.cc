@@ -238,7 +238,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = static_cast<NoeudExpressionBinaire *>(racine);
             expr->drapeaux |= drapeau;
 
-            if (est_assignation_composee(expr->lexeme->genre)) {
+            if (est_assignation_composée(expr->lexeme->genre)) {
                 drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
             }
 
