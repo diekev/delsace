@@ -998,7 +998,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto inst = noeud->comme_repete();
             if (inst->condition->type == nullptr &&
-                !est_operateur_bool(inst->condition->lexeme->genre)) {
+                !est_opérateur_bool(inst->condition->lexeme->genre)) {
                 rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
                 return CodeRetourValidation::Erreur;
             }
@@ -1010,7 +1010,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto inst = noeud->comme_tantque();
 
             if (inst->condition->type == nullptr &&
-                !est_operateur_bool(inst->condition->lexeme->genre)) {
+                !est_opérateur_bool(inst->condition->lexeme->genre)) {
                 rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
                 return CodeRetourValidation::Erreur;
             }
@@ -1761,7 +1761,7 @@ ResultatValidation ContexteValidationCode::valide_entete_operateur(
         return CodeRetourValidation::Erreur;
     }
 
-    if (est_operateur_bool(decl->lexeme->genre) && type_resultat != TypeBase::BOOL) {
+    if (est_opérateur_bool(decl->lexeme->genre) && type_resultat != TypeBase::BOOL) {
         rapporte_erreur("Un opérateur de comparaison doit retourner 'bool'", decl);
         return CodeRetourValidation::Erreur;
     }
@@ -4619,7 +4619,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
     auto type_op = expr->lexeme->genre;
 
     /* détecte a comp b comp c */
-    if (est_operateur_comparaison(type_op) && est_operateur_comparaison(enfant1->lexeme->genre)) {
+    if (est_opérateur_comparaison(type_op) && est_opérateur_comparaison(enfant1->lexeme->genre)) {
         return valide_operateur_binaire_chaine(expr);
     }
 
@@ -4924,7 +4924,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire_generique(
     NoeudExpressionBinaire *expr)
 {
     auto type_op = expr->lexeme->genre;
-    auto assignation_composee = est_assignation_composee(type_op);
+    auto assignation_composee = est_assignation_composée(type_op);
     auto enfant1 = expr->operande_gauche;
     auto enfant2 = expr->operande_droite;
     auto type1 = enfant1->type;
@@ -5428,7 +5428,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
 
     auto type_condition = inst->condition->type;
 
-    if (type_condition == nullptr && !est_operateur_bool(inst->condition->lexeme->genre)) {
+    if (type_condition == nullptr && !est_opérateur_bool(inst->condition->lexeme->genre)) {
         rapporte_erreur("Attendu un opérateur booléen pour la condition", inst->condition);
         return CodeRetourValidation::Erreur;
     }
