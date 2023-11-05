@@ -389,7 +389,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
 
             ValeurExpression res = ValeurExpression();
 
-            if (est_operateur_bool(inst->lexeme->genre)) {
+            if (est_opérateur_bool(inst->lexeme->genre)) {
                 if (res1.valeur.est_reelle()) {
                     res = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
