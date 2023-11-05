@@ -746,6 +746,29 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter,
     }
 }
 
+static void rassemble_globales_pour_info_types(ProgrammeRepreInter &repr_inter,
+                                               VisiteuseAtome &visiteuse,
+                                               kuri::ensemble<AtomeGlobale *> &globales_utilisees)
+{
+    POUR (repr_inter.types) {
+        if (!it->atome_info_type) {
+            continue;
+        }
+
+        auto atome_info_type = static_cast<AtomeGlobale *>(it->atome_info_type);
+        if (globales_utilisees.possède(atome_info_type)) {
+            continue;
+        }
+
+        visiteuse.reinitialise();
+        repr_inter.globales.ajoute(atome_info_type);
+        globales_utilisees.insère(atome_info_type);
+
+        rassemble_globales_supplementaires(
+            repr_inter, atome_info_type, visiteuse, globales_utilisees);
+    }
+}
+
 static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
 {
     auto globales_utilisees = crée_ensemble(repr_inter.globales);
@@ -772,23 +795,7 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
         rassemble_globales_supplementaires(repr_inter, it, visiteuse, globales_utilisees);
     }
 
-    POUR (repr_inter.types) {
-        if (!it->atome_info_type) {
-            continue;
-        }
-
-        auto atome_info_type = static_cast<AtomeGlobale *>(it->atome_info_type);
-        if (globales_utilisees.possède(atome_info_type)) {
-            continue;
-        }
-
-        visiteuse.reinitialise();
-        repr_inter.globales.ajoute(atome_info_type);
-        globales_utilisees.insère(atome_info_type);
-
-        rassemble_globales_supplementaires(
-            repr_inter, atome_info_type, visiteuse, globales_utilisees);
-    }
+    rassemble_globales_pour_info_types(repr_inter, visiteuse, globales_utilisees);
 }
 
 static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
@@ -881,6 +888,15 @@ void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction
     auto globales_utilisees = crée_ensemble(this->globales);
     VisiteuseAtome visiteuse{};
     rassemble_globales_supplementaires(*this, fonction, visiteuse, globales_utilisees);
+    /* Les types ont peut-être changé. */
+    rassemble_types_supplementaires(*this);
+}
+
+void ProgrammeRepreInter::ajourne_globales_pour_table_types()
+{
+    auto globales_utilisees = crée_ensemble(this->globales);
+    VisiteuseAtome visiteuse{};
+    rassemble_globales_pour_info_types(*this, visiteuse, globales_utilisees);
     /* Les types ont peut-être changé. */
     rassemble_types_supplementaires(*this);
 }
