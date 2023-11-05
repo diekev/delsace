@@ -863,7 +863,12 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
 			    ajoute_au_tampon(enchaineuse, "*")
 		    }
 
-			imprime_type(enchaineuse, info_arg.type_pointé)
+			si info_arg.type_pointé {
+				imprime_type(enchaineuse, info_arg.type_pointé)
+			}
+			sinon {
+				ajoute_au_tampon(enchaineuse, "nul")
+			}
 		}
 		FONCTION {
 			info_fonction := info comme *InfoTypeFonction
@@ -916,8 +921,18 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
 		}
 		TABLEAU {
 		    info_arg := info comme *InfoTypeTableau
-			ajoute_au_tampon(enchaineuse, "[]")
-			imprime_type(enchaineuse, info_arg.type_pointé)
+
+			si info_arg.est_tableau_fixe {
+				imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.taille_fixe)
+			}
+			sinon {
+				ajoute_au_tampon(enchaineuse, "[]")
+			}
+
+			si info_arg.type_pointé {
+				/* Type variadique externe. */
+				imprime_type(enchaineuse, info_arg.type_pointé)
+			}
 		}
 		ÉNUM {
 		    info_arg := info comme *InfoTypeÉnum
