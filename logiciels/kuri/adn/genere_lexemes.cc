@@ -295,12 +295,12 @@ static void genere_impression_lexeme(const ListeLexemes &lexemes, std::ostream &
     os << "\treturn os << noms_genres_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
 
-    os << "kuri::chaine_statique chaine_du_genre_de_lexeme(GenreLexeme genre)\n";
+    os << "kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexeme genre)\n";
     os << "{\n";
     os << "\treturn noms_genres_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
 
-    os << "kuri::chaine_statique chaine_du_lexeme(GenreLexeme genre)\n";
+    os << "kuri::chaine_statique chaine_du_lexème(GenreLexeme genre)\n";
     os << "{\n";
     os << "\treturn chaines_lexemes[static_cast<int>(genre)];\n";
     os << "}\n\n";
@@ -345,25 +345,25 @@ namespace kuri {
 struct chaine_statique;
 }
 
-bool est_mot_cle(GenreLexeme genre);
-bool est_mot_cle(const Lexeme &lexeme);
-bool est_assignation_composee(GenreLexeme genre);
-bool est_assignation_composee(const Lexeme &lexeme);
-bool est_operateur_bool(GenreLexeme genre);
-bool est_operateur_bool(const Lexeme &lexeme);
-bool est_operateur_comparaison(GenreLexeme genre);
-bool est_operateur_comparaison(const Lexeme &lexeme);
-bool est_chaine_litterale(GenreLexeme genre);
-bool est_chaine_litterale(const Lexeme &lexeme);
-bool est_specifiant_type(GenreLexeme genre);
-bool est_specifiant_type(const Lexeme &lexeme);
+bool est_mot_clé(GenreLexeme genre);
+bool est_mot_clé(const Lexeme &lexeme);
+bool est_assignation_composée(GenreLexeme genre);
+bool est_assignation_composée(const Lexeme &lexeme);
+bool est_opérateur_bool(GenreLexeme genre);
+bool est_opérateur_bool(const Lexeme &lexeme);
+bool est_opérateur_comparaison(GenreLexeme genre);
+bool est_opérateur_comparaison(const Lexeme &lexeme);
+bool est_chaine_littérale(GenreLexeme genre);
+bool est_chaine_littérale(const Lexeme &lexeme);
+bool est_spécifiant_type(GenreLexeme genre);
+bool est_spécifiant_type(const Lexeme &lexeme);
 bool est_identifiant_type(GenreLexeme genre);
 bool est_identifiant_type(const Lexeme &lexeme);
-bool est_operateur_unaire(GenreLexeme genre);
-bool est_operateur_unaire(const Lexeme &lexeme);
+bool est_opérateur_unaire(GenreLexeme genre);
+bool est_opérateur_unaire(const Lexeme &lexeme);
 std::ostream &operator<<(std::ostream &os, GenreLexeme genre);
-kuri::chaine_statique chaine_du_genre_de_lexeme(GenreLexeme id);
-kuri::chaine_statique chaine_du_lexeme(GenreLexeme genre);
+kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexeme id);
+kuri::chaine_statique chaine_du_lexème(GenreLexeme genre);
 )";
 
     os << declarations;
@@ -375,16 +375,16 @@ static void genere_fichier_source(const ListeLexemes &lexemes, std::ostream &os)
     inclus_systeme(os, "iostream");
     inclus(os, "structures/chaine_statique.hh");
     genere_impression_lexeme(lexemes, os);
-    genere_fonction_cpp_pour_drapeau(lexemes, "est_mot_cle", EST_MOT_CLE, os);
+    genere_fonction_cpp_pour_drapeau(lexemes, "est_mot_clé", EST_MOT_CLE, os);
     genere_fonction_cpp_pour_drapeau(
-        lexemes, "est_assignation_composee", EST_ASSIGNATION_COMPOSEE, os);
-    genere_fonction_cpp_pour_drapeau(lexemes, "est_operateur_bool", EST_OPERATEUR_BOOL, os);
+        lexemes, "est_assignation_composée", EST_ASSIGNATION_COMPOSEE, os);
+    genere_fonction_cpp_pour_drapeau(lexemes, "est_opérateur_bool", EST_OPERATEUR_BOOL, os);
     genere_fonction_cpp_pour_drapeau(
-        lexemes, "est_operateur_comparaison", EST_OPERATEUR_COMPARAISON, os);
-    genere_fonction_cpp_pour_drapeau(lexemes, "est_chaine_litterale", EST_CHAINE_LITTERALE, os);
-    genere_fonction_cpp_pour_drapeau(lexemes, "est_specifiant_type", EST_SPECIFIANT_TYPE, os);
+        lexemes, "est_opérateur_comparaison", EST_OPERATEUR_COMPARAISON, os);
+    genere_fonction_cpp_pour_drapeau(lexemes, "est_chaine_littérale", EST_CHAINE_LITTERALE, os);
+    genere_fonction_cpp_pour_drapeau(lexemes, "est_spécifiant_type", EST_SPECIFIANT_TYPE, os);
     genere_fonction_cpp_pour_drapeau(lexemes, "est_identifiant_type", EST_IDENTIFIANT_TYPE, os);
-    genere_fonction_cpp_pour_drapeau(lexemes, "est_operateur_unaire", EST_OPERATEUR_UNAIRE, os);
+    genere_fonction_cpp_pour_drapeau(lexemes, "est_opérateur_unaire", EST_OPERATEUR_UNAIRE, os);
 }
 
 static void genere_fonction_kuri_pour_drapeau(const ListeLexemes &lexemes,

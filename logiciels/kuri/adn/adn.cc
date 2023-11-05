@@ -884,7 +884,7 @@ void SyntaxeuseADN::parse_struct()
         else if (apparie("comme")) {
             consomme();
 
-            if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_cle(lexeme_courant()->genre)) {
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexeme_courant()->genre)) {
                 rapporte_erreur("Attendu une chaine de caractère après @code");
             }
 
@@ -1008,7 +1008,7 @@ void SyntaxeuseADN::parse_struct()
 
 Type *SyntaxeuseADN::parse_type()
 {
-    if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_cle(lexeme_courant()->genre)) {
+    if (!apparie(GenreLexeme::CHAINE_CARACTERE) && !est_mot_clé(lexeme_courant()->genre)) {
         rapporte_erreur("Attendu le nom d'un type");
     }
 
@@ -1036,7 +1036,7 @@ Type *SyntaxeuseADN::parse_type()
         }
     }
 
-    while (est_specifiant_type(lexeme_courant()->genre)) {
+    while (est_spécifiant_type(lexeme_courant()->genre)) {
         if (lexeme_courant()->genre == GenreLexeme::CROCHET_OUVRANT) {
             consomme();
 
