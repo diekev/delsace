@@ -123,7 +123,7 @@ static void reecris_fichier(kuri::chemin_systeme &chemin, Configuration const &c
         auto os = std::ofstream(vers_std_path(chemin));
 
         for (auto const &lexeme : donnees_fichier.lexèmes) {
-            if (!est_mot_cle(lexeme.genre)) {
+            if (!est_mot_clé(lexeme.genre)) {
                 os << lexeme.chaine;
                 continue;
             }
