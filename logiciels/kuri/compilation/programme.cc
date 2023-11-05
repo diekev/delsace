@@ -771,6 +771,24 @@ static void rassemble_globales_supplementaires(ProgrammeRepreInter &repr_inter)
         visiteuse.reinitialise();
         rassemble_globales_supplementaires(repr_inter, it, visiteuse, globales_utilisees);
     }
+
+    POUR (repr_inter.types) {
+        if (!it->atome_info_type) {
+            continue;
+        }
+
+        auto atome_info_type = static_cast<AtomeGlobale *>(it->atome_info_type);
+        if (globales_utilisees.possède(atome_info_type)) {
+            continue;
+        }
+
+        visiteuse.reinitialise();
+        repr_inter.globales.ajoute(atome_info_type);
+        globales_utilisees.insère(atome_info_type);
+
+        rassemble_globales_supplementaires(
+            repr_inter, atome_info_type, visiteuse, globales_utilisees);
+    }
 }
 
 static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
