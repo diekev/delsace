@@ -54,9 +54,9 @@ void test_markov_id_simple(kuri::tableau<Lexeme, int> const &lexemes)
     auto nombre_phrases = 5;
 
     while (nombre_phrases > 0) {
-        std::cerr << chaine_du_lexeme(mot_courant);
+        std::cerr << chaine_du_lexème(mot_courant);
 
-        if (est_mot_cle(mot_courant)) {
+        if (est_mot_clé(mot_courant)) {
             std::cerr << ' ';
         }
 
