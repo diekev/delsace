@@ -5424,7 +5424,6 @@ static bool type_est_valide_pour_assignation_via_si(NoeudExpression const *expr,
 
 ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
 {
-
     auto type_condition = inst->condition->type;
 
     if (type_condition == nullptr && !est_opérateur_bool(inst->condition->lexeme->genre)) {
