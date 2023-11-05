@@ -167,7 +167,7 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexeme genre_l
         {
             assert_rappel(false, [=]() {
                 std::cerr << "Lexème inattendu lors de la résolution du genre d'opérateur : "
-                          << chaine_du_genre_de_lexeme(genre_lexeme) << '\n';
+                          << chaine_du_genre_de_lexème(genre_lexeme) << '\n';
             });
             return OpérateurBinaire::Genre::Invalide;
         }
