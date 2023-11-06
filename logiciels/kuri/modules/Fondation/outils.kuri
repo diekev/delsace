@@ -70,3 +70,15 @@ Résultat :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
     Ok: TypeOk
     Erreur: TypeErreur
 }
+
+possède_erreur :: fonc (résultat: Résultat($T, $E)) -> bool
+{
+	discr (résultat) {
+		Erreur {
+			retourne vrai
+		}
+		sinon {
+			retourne faux
+		}
+	}
+}
