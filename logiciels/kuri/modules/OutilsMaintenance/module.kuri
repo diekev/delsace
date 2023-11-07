@@ -222,6 +222,37 @@ supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
     données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
 }
 
+// -------------------------------------
+
+remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
+{
+    nouvelles_lignes : []chaine
+
+    lignes_furent_modifiés := faux
+    pour données_fichier.lignes {
+        si it.taille == 0 {
+            tableau_ajoute(*nouvelles_lignes, it)
+            continue
+        }
+
+        si it[0] != '\t' {
+            tableau_ajoute(*nouvelles_lignes, it)
+            continue
+        }
+
+        nouvelle_ligne := remplace(it, "\t", "    ")
+        tableau_ajoute(*nouvelles_lignes, nouvelle_ligne)
+        lignes_furent_modifiés = vrai
+    }
+
+    si lignes_furent_modifiés {
+        données_fichier.remplace_lignes(nouvelles_lignes)
+        retourne
+    }
+
+    déloge(nouvelles_lignes)
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Points d'entrée.
  * \{ */
