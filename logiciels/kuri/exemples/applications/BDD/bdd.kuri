@@ -1,4 +1,5 @@
 importe Fondation
+importe Numérique
 importe SysFichier
 
 // https://cstack.github.io/db_tutorial/

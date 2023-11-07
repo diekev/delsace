@@ -24,6 +24,7 @@
 
 importe Fondation
 importe Introspection
+importe Numérique
 
 // ------------------------------
 // fonctions auxilliares
