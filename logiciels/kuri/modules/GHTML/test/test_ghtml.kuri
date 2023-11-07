@@ -14,7 +14,7 @@ ancien_test :: fonc ()
 
     imprime("script :\n\n", chn, "\n\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Lexage du script
 
     lexeuse := construit_lexeuse(chn)
@@ -30,7 +30,7 @@ ancien_test :: fonc ()
 
     imprime("\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Syntaxage du script
 
     syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
@@ -44,7 +44,7 @@ ancien_test :: fonc ()
     imprime_arbre(racine, 0)
     imprime("\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Génération de la page
 
     données_page : DonnéesPage

@@ -47,7 +47,7 @@ est_base64 :: fonc (chn: chaine) -> bool
     retourne vrai
 }
 
-//#######################################
+/* ------------------------------------------------------------------------- */
 
 encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 {
@@ -111,7 +111,7 @@ encode_base64_pour_url :: fonc(chn: chaine) -> chaine
     retourne encode_base64_impl(chn, table_url)
 }
 
-//#######################################
+/* ------------------------------------------------------------------------- */
 
 // implémentation tirée de https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
 décode_base64 :: fonc(chn : chaine) -> chaine

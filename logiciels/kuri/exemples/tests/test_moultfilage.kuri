@@ -7,7 +7,7 @@ importe GlibC
 importe Ordinatrice
 importe PThread
 
-//#####################################################################################
+/* ------------------------------------------------------------------------- */
 
 pthread_t :: n64
 
@@ -15,7 +15,7 @@ sleep :: fonc (temps : z32) -> rien #externe libc
 
 strerror :: fonc (args : z32) -> ChaineC #externe libc
 
-//#####################################################################################
+/* ------------------------------------------------------------------------- */
 
 // Structure stockant les informations des threads clients et du magasin.
 store_t :: struct {

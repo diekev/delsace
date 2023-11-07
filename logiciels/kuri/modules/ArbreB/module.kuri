@@ -403,7 +403,7 @@ fusionne_suivant :: fonc(noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
     //détruit_noeud(sibling)
 }
 
-//#######################################
+/* ------------------------------------------------------------------------- */
 
 construit_arbre :: fonc(t: z32, $C: type_de_données) -> ArbreB(C)
 {

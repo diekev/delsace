@@ -47,7 +47,7 @@ copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -
     retourne noeud
 }
 
-//##############################################################################
+/* ------------------------------------------------------------------------- */
 
 AssembleuseArbre :: struct {
     noeuds : []*NoeudSyntaxique

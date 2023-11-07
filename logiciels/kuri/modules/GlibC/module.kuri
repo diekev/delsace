@@ -4,7 +4,7 @@ importe Chaine // pour ChaineC
 
 charge "errno"
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 
 // Valeur des descripteurs fichiers pour les flux standards.
 STDIN_FILENO  :: 0
@@ -13,7 +13,7 @@ STDERR_FILENO :: 2
 
 sprintf :: fonc (tmp : ChaineC, fmt : ChaineC, args : ...) -> z32 #externe libc
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 
 // ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 timeval :: struct #externe {
@@ -91,7 +91,7 @@ timespec_depuis_ms :: fonc (ms: z64) -> timespec
     retourne ts
 }
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 
 open :: fonc (chemin : ChaineC, drapeaux : z32, args : ...) -> z32 #externe libc
 close :: fonc (fd : z32) -> z32 #externe libc
@@ -242,7 +242,7 @@ fork :: fonc () -> z32 #externe libc
 
 waitpid :: fonc (id : z32, ptr : *z32, options : z32) -> z32 #externe libc
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 
 /* Ces valeurs viennent de <bits/socket.h> */
 PF_UNSPEC :: 0 /* Unspecified.  */

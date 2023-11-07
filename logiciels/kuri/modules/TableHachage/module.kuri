@@ -1,6 +1,6 @@
 importe Fondation
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 // Implémentation d'une table de hachage chaine -> chaine
 // Voir aussi, comme inspiration :
 // https://en.wikipedia.org/wiki/Open_addressing

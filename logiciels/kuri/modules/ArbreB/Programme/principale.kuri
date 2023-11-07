@@ -77,7 +77,7 @@ principale :: fonc () -> z32
     retourne 0
 }
 
-//######################################
+/* ------------------------------------------------------------------------- */
 
 // Cache « moins récemment utilisé »
 // https://www.geeksforgeeks.org/lru-cache-implementation/
@@ -221,7 +221,7 @@ référence_page :: fonc(file: *File, hash: *Hash, numéro_page: z32) -> rien
     }
 }
 
-//######################################
+/* ------------------------------------------------------------------------- */
 
 CacheMRU :: struct {
     arbre: *ArbreB(z32) = nul

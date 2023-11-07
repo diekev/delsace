@@ -32,7 +32,7 @@
 //    opening an existing file unless the#_follow() version is used
 // 9) errno is only modified on failure
 
-//#########################
+/* ------------------------------------------------------------------------- */
 
 stat :: struct #externe {
     st_dev : n64;         // ID of device containing file
@@ -72,7 +72,7 @@ ftruncate :: fonc (a : z32, f : z32) -> z32 #externe
 S_ISLNK :: fonc (a : n32) -> bool #externe
 S_ISFIFO :: fonc (a : n32) -> bool #externe
 
-//#########################
+/* ------------------------------------------------------------------------- */
 
 SAFE_OPEN_DEFAULT_MODE := 0600;
 SAFE_OPEN_RETRY_MAX := 50;

@@ -28,7 +28,7 @@ Lexème :: struct {
     colonne := 0
 }
 
-//######################################
+/* ------------------------------------------------------------------------- */
 
 id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 {
@@ -46,7 +46,7 @@ id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
     retourne TypeLexème.CHAINE_CARACTÈRE
 }
 
-//######################################
+/* ------------------------------------------------------------------------- */
 
 ÉtatLexage :: énum z32 {
     // L'état quand nous sommes dans un controle du gabarit

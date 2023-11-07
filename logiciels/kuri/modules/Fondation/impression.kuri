@@ -5,7 +5,7 @@ importe Math // pour abs, ça fait beaucoup...
 importe Numérique
 importe SysFichier
 
-//###################################################################################
+/* ------------------------------------------------------------------------- */
 
 TAILLE_TAMPON_ENCHAINEUSE :: 16384
 
@@ -276,7 +276,7 @@ enchaine :: fonc(chns : ...chaine) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-//###################################################################################
+/* ------------------------------------------------------------------------- */
 
 // Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
 // mieux cerner la valeur exacte du décimal.
@@ -361,7 +361,7 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
     } tantque !est_zéro(*frac)
 }
 
-//###################################################################################
+/* ------------------------------------------------------------------------- */
 
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
