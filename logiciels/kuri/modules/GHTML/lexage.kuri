@@ -69,26 +69,6 @@ Lexeuse :: struct {
     taille_mot_courant := 0
 }
 
-RUNE_ESPACE_INSECABLE             : n32 : 0x00A0
-RUNE_ESPACE_D_OGAM                : n32 : 0x1680
-RUNE_SEPARATEUR_VOYELLES_MONGOL   : n32 : 0x180E
-RUNE_DEMI_CADRATIN                : n32 : 0x2000
-RUNE_CADRATIN                     : n32 : 0x2001
-RUNE_ESPACE_DEMI_CADRATIN         : n32 : 0x2002
-RUNE_ESPACE_CADRATIN              : n32 : 0x2003
-RUNE_TIERS_DE_CADRATIN            : n32 : 0x2004
-RUNE_QUART_DE_CADRATIN            : n32 : 0x2005
-RUNE_SIXIEME_DE_CADRATIN          : n32 : 0x2006
-RUNE_ESPACE_TABULAIRE             : n32 : 0x2007
-RUNE_ESPACE_PONCTUATION           : n32 : 0x2008
-RUNE_ESPACE_FINE                  : n32 : 0x2009
-RUNE_ESPACE_ULTRAFINE             : n32 : 0x200A
-RUNE_ESPACE_SANS_CHASSE           : n32 : 0x200B
-RUNE_ESPACE_INSECABLE_ETROITE     : n32 : 0x202F
-RUNE_ESPACE_MOYENNE_MATHEMATIQUE  : n32 : 0x205F
-RUNE_ESPACE_IDEOGRAPHIQUE         : n32 : 0x3000
-RUNE_ESPACE_INSECABLE_SANS_CHASSE : n32 : 0xFEFF
-
 construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
     lexeuse : Lexeuse
@@ -108,34 +88,14 @@ construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 
 			rune := converti_utf8_utf32(début, n) comme n32
 
-			discr rune {
-				RUNE_ESPACE_INSECABLE,
-				RUNE_ESPACE_D_OGAM,
-				RUNE_SEPARATEUR_VOYELLES_MONGOL,
-				RUNE_DEMI_CADRATIN,
-				RUNE_CADRATIN,
-				RUNE_ESPACE_DEMI_CADRATIN,
-				RUNE_ESPACE_CADRATIN,
-				RUNE_TIERS_DE_CADRATIN,
-				RUNE_QUART_DE_CADRATIN,
-				RUNE_SIXIEME_DE_CADRATIN,
-				RUNE_ESPACE_TABULAIRE,
-				RUNE_ESPACE_PONCTUATION,
-				RUNE_ESPACE_FINE,
-				RUNE_ESPACE_ULTRAFINE,
-				RUNE_ESPACE_SANS_CHASSE,
-				RUNE_ESPACE_INSECABLE_ETROITE,
-				RUNE_ESPACE_MOYENNE_MATHEMATIQUE,
-				RUNE_ESPACE_IDEOGRAPHIQUE,
-				RUNE_ESPACE_INSECABLE_SANS_CHASSE {
-					pour n {
-						mémoire(début) = ' '
-						début += 1
-					}
+			si est_espace_blanche_unicode(rune) {
+				pour n {
+					mémoire(début) = ' '
+					début += 1
 				}
-				sinon {
-					début += n
-				}
+			}
+			sinon {
+				début += n
 			}
 		}
 	}
