@@ -145,34 +145,49 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
 
 tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
 {
-    première_ligne := -1
-    dernière_ligne := -1
-
     lignes_furent_modifiés := faux
-
     lignes := données_fichier.lignes
-    pour lignes {
-        si it.commence_par("importe ") {
-            si première_ligne == -1 {
-                première_ligne = index_it comme z32
-            }
+
+    index_ligne := 0
+    tantque index_ligne < lignes.taille {
+        lignes_modifiées := tri_bloc_imports_ou_chargements(lignes, index_ligne, "importe ")
+        si lignes_modifiées != 0 {
+            lignes_furent_modifiés = vrai
+            index_ligne += lignes_modifiées
+            continue
         }
-        sinon si dernière_ligne == -1 && première_ligne != -1 {
-            dernière_ligne = index_it comme z32 - 1
 
-            bloc := tranche(lignes, première_ligne, dernière_ligne)
-
-            si bloc.taille > 1 {
-                tri_rapide(bloc, compare_chaine)
-                lignes_furent_modifiés = vrai
-            }
-
-            dernière_ligne = -1
-            première_ligne = -1
+        lignes_modifiées = tri_bloc_imports_ou_chargements(lignes, index_ligne, "charge ")
+        si lignes_modifiées != 0 {
+            lignes_furent_modifiés = vrai
+            index_ligne += lignes_modifiées
+            continue
         }
+
+        index_ligne += 1
     }
 
     données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
+}
+
+tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, début_ligne: chaine) -> z32
+{
+    it := lignes[index_ligne]
+
+    taille_bloc := 0
+    index_début_bloc := index_ligne
+    tantque index_ligne < lignes.taille && lignes[index_ligne].commence_par(début_ligne) {
+        index_ligne += 1
+        taille_bloc += 1
+    }
+
+    si taille_bloc <= 1 {
+        retourne 0
+    }
+
+    bloc := tranche(lignes, index_début_bloc, index_début_bloc + taille_bloc - 1)
+    tri_rapide(bloc, compare_chaine)
+    retourne taille_bloc
 }
 
 // -------------------------------------
