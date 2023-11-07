@@ -586,7 +586,7 @@ trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64
     retourne -1
 }
 
-/** 
+/**
  * Retourne l'index de la première occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
@@ -603,7 +603,7 @@ trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
     retourne -1
 }
 
-/** 
+/**
  * Retourne l'index de la dernière occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,

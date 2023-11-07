@@ -117,7 +117,6 @@ interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -
 
 /** } */
 
-
 /* ------------------------------------------------------------------------- */
 /** \nom Couleur Teinte-Saturation-Valeur
  * \{ */
