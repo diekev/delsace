@@ -267,11 +267,6 @@ est_caractère_échappé_valide :: fonc (c: z8) -> bool
     retourne c == '"' || c == '\\' || c == '/' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't'
 }
 
-est_hexadécimal :: fonc (c: z8) -> bool
-{
-    retourne ('0' <= c <= '9') || ('a' <= c <= 'f') || ('A' <= c <= 'F')
-}
-
 lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     scanner.enregistre_pos_mot()
@@ -294,7 +289,7 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
                 pour 4 {
                     c = scanner.caractère_courant()
 
-                    si !est_hexadécimal(c) {
+                    si !est_nombre_hexadécimal(c) {
                         retourne LexèmeJSON.INVALIDE
                     }
 
