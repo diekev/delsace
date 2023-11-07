@@ -1970,12 +1970,12 @@ chaine_ajoute :: fonc (chn: *ChaineFixe, c: z8)
 
 chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
 {
-	nombre_octets := point_de_code_vers_utf8(point_de_code, *chn.données[chn.taille] comme *n8)
+    nombre_octets := point_de_code_vers_utf8(point_de_code, *chn.données[chn.taille] comme *n8)
 
-	si nombre_octets == 0 {
-		// À FAIRE : que faire ici ?
-		retourne
-	}
+    si nombre_octets == 0 {
+        // À FAIRE : que faire ici ?
+        retourne
+    }
 
     chn.taille += nombre_octets comme z8
 }

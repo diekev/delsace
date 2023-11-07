@@ -4,13 +4,13 @@
 // Retourne le nombre d'éléments se situant entre deux pointeurs.
 distance :: fonc (ptr1 : *$T, ptr2 : *T) -> z64 #enligne
 {
-	retourne ptr2 - ptr1
+    retourne ptr2 - ptr1
 }
 
 // Retourne le pointeur se situant à n éléments après celui donné.
 suivant :: fonc (ptr : *$T, n : z64) -> *T #enligne
 {
-	retourne ptr + n
+    retourne ptr + n
 }
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
@@ -18,25 +18,25 @@ suivant :: fonc (ptr : *$T, n : z64) -> *T #enligne
 // Ceci est utile pour stocker dans l'ordre croissant des données.
 limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 {
-	fl := f
-	ll := l
+    fl := f
+    ll := l
 
-	boucle {
-		si fl == ll {
-			arrête
-		}
+    boucle {
+        si fl == ll {
+            arrête
+        }
 
-		m := suivant(fl, distance(fl, ll) / 2)
+        m := suivant(fl, distance(fl, ll) / 2)
 
-		si (m[0] < v) {
-			fl = suivant(m, 1)
-		}
-		sinon {
-			ll = m
-		}
-	}
+        si (m[0] < v) {
+            fl = suivant(m, 1)
+        }
+        sinon {
+            ll = m
+        }
+    }
 
-	retourne fl
+    retourne fl
 }
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
@@ -44,25 +44,25 @@ limite_basse :: fonc (f : *$T, l : *T, v : T) -> *T
 // Ceci est utile pour stocker dans l'ordre croissant des données.
 limite_basse :: fonc (f : *$T, l : *T, v : T, rappel_comp: fonc(*T, *T)(bool)) -> *T
 {
-	fl := f
-	ll := l
+    fl := f
+    ll := l
 
-	boucle {
-		si fl == ll {
-			arrête
-		}
+    boucle {
+        si fl == ll {
+            arrête
+        }
 
-		m := suivant(fl, distance(fl, ll) / 2)
+        m := suivant(fl, distance(fl, ll) / 2)
 
-		si (rappel_comp(m, *v)) {
-			fl = suivant(m, 1)
-		}
-		sinon {
-			ll = m
-		}
-	}
+        si (rappel_comp(m, *v)) {
+            fl = suivant(m, 1)
+        }
+        sinon {
+            ll = m
+        }
+    }
 
-	retourne fl
+    retourne fl
 }
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
@@ -70,25 +70,25 @@ limite_basse :: fonc (f : *$T, l : *T, v : T, rappel_comp: fonc(*T, *T)(bool)) -
 // Ceci est utile pour stocker dans l'ordre décroissant des données.
 limite_haute :: fonc (f : *$T, l : *T, v : T) -> *T
 {
-	fl := f
-	ll := l
+    fl := f
+    ll := l
 
-	boucle {
-		si fl == ll {
-			arrête
-		}
+    boucle {
+        si fl == ll {
+            arrête
+        }
 
-		m := suivant(fl, distance(fl, ll) / 2)
+        m := suivant(fl, distance(fl, ll) / 2)
 
-		si (m[0] > v) {
-			fl = suivant(m, 1)
-		}
-		sinon {
-			ll = m
-		}
-	}
+        si (m[0] > v) {
+            fl = suivant(m, 1)
+        }
+        sinon {
+            ll = m
+        }
+    }
 
-	retourne fl
+    retourne fl
 }
 
 tous_de :: fonc (tableau: []$T, prédicat: fonc (T)(bool)) -> bool
@@ -177,9 +177,9 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 // À FAIRE(langage) : collision si appelée permute
 échange :: fonc (a: *$T, b: *T) #enligne
 {
-	tmp := mémoire(a)
-	mémoire(a) = mémoire(b)
-	mémoire(b) = tmp
+    tmp := mémoire(a)
+    mémoire(a) = mémoire(b)
+    mémoire(b) = tmp
 }
 
 permute :: fonc (a: &$T, b: &T) #enligne
@@ -197,11 +197,11 @@ permute :: fonc (a: &$T, b: &T) #enligne
 
 inverse :: fonc (premier: *$T, dernier: *T)
 {
-	tantque premier < dernier {
-		dernier -= 1
-		échange(premier, dernier)
-		premier += 1
-	}
+    tantque premier < dernier {
+        dernier -= 1
+        échange(premier, dernier)
+        premier += 1
+    }
 }
 
 /** } */
@@ -216,19 +216,19 @@ inverse :: fonc (premier: *$T, dernier: *T)
 
 pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
 {
-	taille_début := distance(premier, milieu)
-	taille_fin := distance(milieu, dernier)
+    taille_début := distance(premier, milieu)
+    taille_fin := distance(milieu, dernier)
 
-	/* À FAIRE : évite d'allouer de la mémoire */
-	tampon : []T
-	diffère déloge(tampon)
-	tableau_redimensionne(tampon, taille_début)
+    /* À FAIRE : évite d'allouer de la mémoire */
+    tampon : []T
+    diffère déloge(tampon)
+    tableau_redimensionne(tampon, taille_début)
 
-	copie_mem_nonsur(src = premier, dst = tampon.pointeur, taille = taille_début * taille_de(T) comme z64)
-	déplace_mémoire_nonsur(src = milieu, dst = premier, taille = taille_fin * taille_de(T) comme z64)
-	copie_mem_nonsur(src = tampon.pointeur, dst = dernier - taille_début, taille = taille_début * taille_de(T) comme z64)
+    copie_mem_nonsur(src = premier, dst = tampon.pointeur, taille = taille_début * taille_de(T) comme z64)
+    déplace_mémoire_nonsur(src = milieu, dst = premier, taille = taille_fin * taille_de(T) comme z64)
+    copie_mem_nonsur(src = tampon.pointeur, dst = dernier - taille_début, taille = taille_début * taille_de(T) comme z64)
 
-	retourne suivant(premier, taille_fin)
+    retourne suivant(premier, taille_fin)
 }
 
 /** } */
@@ -243,30 +243,30 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
 
 partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
 {
-	boucle {
-		tantque ((premier != dernier) && prédicat(mémoire(premier))) {
-			premier = suivant(premier, 1)
-		}
+    boucle {
+        tantque ((premier != dernier) && prédicat(mémoire(premier))) {
+            premier = suivant(premier, 1)
+        }
 
-		si premier == dernier {
-			arrête
-		}
+        si premier == dernier {
+            arrête
+        }
 
-		dernier = suivant(dernier, -1)
+        dernier = suivant(dernier, -1)
 
-		tantque ((premier != dernier) && !prédicat(mémoire(dernier))) {
-			dernier = suivant(dernier, -1)
-		}
+        tantque ((premier != dernier) && !prédicat(mémoire(dernier))) {
+            dernier = suivant(dernier, -1)
+        }
 
-		si (premier == dernier) {
-			arrête
-		}
+        si (premier == dernier) {
+            arrête
+        }
 
-		échange(premier, dernier)
-		premier = suivant(premier, 1)
-	}
+        échange(premier, dernier)
+        premier = suivant(premier, 1)
+    }
 
-	retourne premier
+    retourne premier
 }
 
 /** } */
@@ -282,20 +282,20 @@ partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
 
 partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
 {
-	taille := distance(premier, dernier)
-	saufsi taille {
-		retourne premier
-	}
+    taille := distance(premier, dernier)
+    saufsi taille {
+        retourne premier
+    }
 
-	si taille == 1 {
-		retourne suivant(premier, p(mémoire(premier)) comme z32)
-	}
+    si taille == 1 {
+        retourne suivant(premier, p(mémoire(premier)) comme z32)
+    }
 
-	milieu := suivant(premier, taille / 2)
+    milieu := suivant(premier, taille / 2)
 
-	retourne pivote(partitionne_stable(premier, milieu, p),
-					milieu,
-					partitionne_stable(milieu, dernier, p))
+    retourne pivote(partitionne_stable(premier, milieu, p),
+                    milieu,
+                    partitionne_stable(milieu, dernier, p))
 }
 
 /** } */
@@ -311,19 +311,19 @@ partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
  * d'éléments copiés sera (résultat - début_dst). */
 copie_si :: fonc (début_src: *$T, fin_src: *T, début_dst: *T, p: fonc(T)(bool)) -> *T
 {
-	tantque début != fin_src {
-		valeur := mémoire(début_src)
-		début_src += 1
+    tantque début != fin_src {
+        valeur := mémoire(début_src)
+        début_src += 1
 
-		saufsi p(valeur) {
-			continue
-		}
+        saufsi p(valeur) {
+            continue
+        }
 
-		mémoire(début_dst) = valeur
-		début_dst += 1
-	}
+        mémoire(début_dst) = valeur
+        début_dst += 1
+    }
 
-	retourne début_dst
+    retourne début_dst
 }
 
 /** } */

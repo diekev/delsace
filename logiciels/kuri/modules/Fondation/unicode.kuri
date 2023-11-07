@@ -3,7 +3,7 @@
 
 est_continuation :: fonc (c: n8) -> bool #enligne
 {
-	retourne 0x80 <= c <= 0xBF
+    retourne 0x80 <= c <= 0xBF
 }
 
 // Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
@@ -13,130 +13,130 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
         retourne 0
     }
 
-	s0 := caractère[0] comme n8
+    s0 := caractère[0] comme n8
 
-	si 0x00 <= s0 <= 0x7F {
-		retourne 1
-	}
+    si 0x00 <= s0 <= 0x7F {
+        retourne 1
+    }
 
-	s1 := caractère[1] comme n8
+    s1 := caractère[1] comme n8
 
-	si 0xC2 <= s0 <= 0xDF {
-		si !est_continuation(s1) {
-			retourne 0
-		}
+    si 0xC2 <= s0 <= 0xDF {
+        si !est_continuation(s1) {
+            retourne 0
+        }
 
-		retourne 2
-	}
+        retourne 2
+    }
 
-	s2 := caractère[2] comme n8
+    s2 := caractère[2] comme n8
 
-	si 0xE0 <= s0 <= 0xEF {
-		si s0 == 0xE0 && !(0xA0 <= s1 <= 0xBF) {
-			retourne 0
-		}
+    si 0xE0 <= s0 <= 0xEF {
+        si s0 == 0xE0 && !(0xA0 <= s1 <= 0xBF) {
+            retourne 0
+        }
 
-		si s0 == 0xED && !(0x80 <= s1 <= 0x9F) {
-			retourne 0
-		}
+        si s0 == 0xED && !(0x80 <= s1 <= 0x9F) {
+            retourne 0
+        }
 
-		si !est_continuation(s1) || !est_continuation(s2) {
-			retourne 0
-		}
+        si !est_continuation(s1) || !est_continuation(s2) {
+            retourne 0
+        }
 
-		retourne 3
-	}
+        retourne 3
+    }
 
-	s3 := caractère[3] comme n8
+    s3 := caractère[3] comme n8
 
-	si 0xF0 <= s0 <= 0xF4 {
-		si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
-			retourne 0
-		}
+    si 0xF0 <= s0 <= 0xF4 {
+        si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
+            retourne 0
+        }
 
-		si s0 == 0xF4 && !(0x80 <= s1 <= 0x8F) {
-			retourne 0
-		}
+        si s0 == 0xF4 && !(0x80 <= s1 <= 0x8F) {
+            retourne 0
+        }
 
-		si !est_continuation(s1) || !est_continuation(s2) || !est_continuation(s3) {
-			retourne 0
-		}
+        si !est_continuation(s1) || !est_continuation(s2) || !est_continuation(s3) {
+            retourne 0
+        }
 
-		retourne 4
-	}
+        retourne 4
+    }
 
-	retourne 0
+    retourne 0
 }
 
 // Similaire à celle au dessus, avec moins de comparaisons
 nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
 {
-	si caractère == nul {
-		retourne 0
-	}
+    si caractère == nul {
+        retourne 0
+    }
 
-	test_char := caractère[0]
-	result : z64 = 0
+    test_char := caractère[0]
+    result : z64 = 0
 
-	si (test_char & 128) == 0 {
-		retourne 1
-	}
+    si (test_char & 128) == 0 {
+        retourne 1
+    }
 
-	tantque (test_char & 128) != 0 {
-		test_char <<= 1
-		result += 1
-	}
+    tantque (test_char & 128) != 0 {
+        test_char <<= 1
+        result += 1
+    }
 
-	retourne result
+    retourne result
 }
 
 décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 {
-	décalage := 0
-	n := nombre_octets_utf8(*chn[i])
+    décalage := 0
+    n := nombre_octets_utf8(*chn[i])
 
-	tantque (n == 0 && i < chn.taille) {
-		++décalage
-		++i
-		n = nombre_octets_utf8(*chn[i])
-	}
+    tantque (n == 0 && i < chn.taille) {
+        ++décalage
+        ++i
+        n = nombre_octets_utf8(*chn[i])
+    }
 
-	décalage += n
+    décalage += n
 
-	retourne décalage
+    retourne décalage
 }
 
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
 converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 {
-	s0 := caractère[0] comme n32
+    s0 := caractère[0] comme n32
 
-	si (n == 1) {
-		retourne s0 comme z32 & 0b01111111
-	}
+    si (n == 1) {
+        retourne s0 comme z32 & 0b01111111
+    }
 
-	s1 := caractère[1] comme n32
+    s1 := caractère[1] comme n32
 
-	si (n == 2) {
+    si (n == 2) {
         v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
-		retourne v comme z32
-	}
+        retourne v comme z32
+    }
 
-	s2 := caractère[2] comme n32
+    s2 := caractère[2] comme n32
 
-	si (n == 3) {
-		v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
-		retourne v comme z32
-	}
+    si (n == 3) {
+        v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
+        retourne v comme z32
+    }
 
-	s3 := caractère[3] comme n32
+    s3 := caractère[3] comme n32
 
-	si (n == 4) {
-		v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
-		retourne v comme z32
-	}
+    si (n == 4) {
+        v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
+        retourne v comme z32
+    }
 
-	retourne 0
+    retourne 0
 }
 
 converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
@@ -150,104 +150,104 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
     c0 := caractère[0] comme z32
 
     si (c0 & 0x80) == 0x0 {
-		résultat = c0
-	}
+        résultat = c0
+    }
 
-	si (c0 & 0xC0) == 0xC0 {
+    si (c0 & 0xC0) == 0xC0 {
         c1 := caractère[1] comme z32
-		résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
-	}
+        résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
+    }
 
-	si (c0 & 0xE0) == 0xE0 {
+    si (c0 & 0xE0) == 0xE0 {
         c1 := caractère[1] comme z32
         c2 := caractère[2] comme z32
-		résultat = ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
-	}
+        résultat = ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
+    }
 
-	si (c0 & 0xF0) == 0xF0 {
+    si (c0 & 0xF0) == 0xF0 {
         c1 := caractère[1] comme z32
         c2 := caractère[2] comme z32
         c3 := caractère[3] comme z32
-		résultat = ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
-	}
+        résultat = ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
+    }
 
-	si (c0 & 0xF8) == 0xF8 {
+    si (c0 & 0xF8) == 0xF8 {
         c1 := caractère[1] comme z32
         c2 := caractère[2] comme z32
         c3 := caractère[3] comme z32
         c4 := caractère[4] comme z32
-		résultat = ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
-	}
+        résultat = ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
+    }
 
     retourne résultat
 }
 
 point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
 {
-	/* caractère ASCII */
-	si point_de_code <= 0x7F {
-		séquence[0] = (point_de_code) comme n8
-		retourne 1;
-	}
+    /* caractère ASCII */
+    si point_de_code <= 0x7F {
+        séquence[0] = (point_de_code) comme n8
+        retourne 1;
+    }
 
-	/* Plan universel. */
-	si point_de_code <= 0x7FF {
-		séquence[0] = ((point_de_code >> 6) + 192) comme n8
-		séquence[1] = ((point_de_code & 63) + 128) comme n8
-		retourne 2
-	}
+    /* Plan universel. */
+    si point_de_code <= 0x7FF {
+        séquence[0] = ((point_de_code >> 6) + 192) comme n8
+        séquence[1] = ((point_de_code & 63) + 128) comme n8
+        retourne 2
+    }
 
-	/* Substituts, nous pourrions avoir une assertion ici. */
-	si 0xd800 <= point_de_code <= 0xdfff {
-		retourne 0
-	}
+    /* Substituts, nous pourrions avoir une assertion ici. */
+    si 0xd800 <= point_de_code <= 0xdfff {
+        retourne 0
+    }
 
-	si point_de_code <= 0xFFFF {
-		séquence[0] = ((point_de_code >> 12) + 224) comme n8
-		séquence[1] = (((point_de_code >> 6) & 63) + 128) comme n8
-		séquence[2] = ((point_de_code & 63) + 128) comme n8
-		retourne 3;
-	}
+    si point_de_code <= 0xFFFF {
+        séquence[0] = ((point_de_code >> 12) + 224) comme n8
+        séquence[1] = (((point_de_code >> 6) & 63) + 128) comme n8
+        séquence[2] = ((point_de_code & 63) + 128) comme n8
+        retourne 3;
+    }
 
-	/* ceci n'est pas nécessaire si nous savons que le point de code est valide */
-	si point_de_code <= 0x10FFFF {
-		séquence[0] = ((point_de_code >> 18) + 240) comme n8
-		séquence[1] = (((point_de_code >> 12) & 63) + 128) comme n8
-		séquence[2] = (((point_de_code >> 6) & 63) + 128) comme n8
-		séquence[3] = ((point_de_code & 63) + 128) comme n8
-		retourne 4
-	}
+    /* ceci n'est pas nécessaire si nous savons que le point de code est valide */
+    si point_de_code <= 0x10FFFF {
+        séquence[0] = ((point_de_code >> 18) + 240) comme n8
+        séquence[1] = (((point_de_code >> 12) & 63) + 128) comme n8
+        séquence[2] = (((point_de_code >> 6) & 63) + 128) comme n8
+        séquence[3] = ((point_de_code & 63) + 128) comme n8
+        retourne 4
+    }
 
-	/* Le point de code est trop large. */
-	retourne 0
+    /* Le point de code est trop large. */
+    retourne 0
 }
 
 est_point_de_code_valide :: fonc (point_de_code: n32) -> bool
 {
-	/* caractère ASCII */
-	si point_de_code <= 0x7F {
-		retourne vrai;
-	}
+    /* caractère ASCII */
+    si point_de_code <= 0x7F {
+        retourne vrai;
+    }
 
-	/* Plan universel. */
-	si point_de_code <= 0x7FF {
-		retourne vrai
-	}
+    /* Plan universel. */
+    si point_de_code <= 0x7FF {
+        retourne vrai
+    }
 
-	/* Substituts, nous pourrions avoir une assertion ici. */
-	si 0xd800 <= point_de_code <= 0xdfff {
-		retourne faux
-	}
+    /* Substituts, nous pourrions avoir une assertion ici. */
+    si 0xd800 <= point_de_code <= 0xdfff {
+        retourne faux
+    }
 
-	si point_de_code <= 0xFFFF {
-		retourne vrai
-	}
+    si point_de_code <= 0xFFFF {
+        retourne vrai
+    }
 
-	si point_de_code <= 0x10FFFF {
-		retourne vrai
-	}
+    si point_de_code <= 0x10FFFF {
+        retourne vrai
+    }
 
-	retourne faux
+    retourne faux
 }
 
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
@@ -273,29 +273,29 @@ taille_unicode :: fonc(chn : chaine) -> z64
 
 RunesClés :: énum n32 {
     // espaces
-	ESPACE_INSÉCABLE             :: 0x00A0
-	ESPACE_D_OGAM                :: 0x1680
-	SÉPARATEUR_VOYELLES_MONGOL   :: 0x180E
-	DEMI_CADRATIN                :: 0x2000
-	CADRATIN                     :: 0x2001
-	ESPACE_DEMI_CADRATIN         :: 0x2002
-	ESPACE_CADRATIN              :: 0x2003
-	TIERS_DE_CADRATIN            :: 0x2004
-	QUART_DE_CADRATIN            :: 0x2005
-	SIXIÈME_DE_CADRATIN          :: 0x2006
-	ESPACE_TABULAIRE             :: 0x2007
-	ESPACE_PONCTUATION           :: 0x2008
-	ESPACE_FINE                  :: 0x2009
-	ESPACE_ULTRAFINE             :: 0x200A
-	ESPACE_SANS_CHASSE           :: 0x200B
-	ESPACE_INSÉCABLE_ÉTROITE     :: 0x202F
-	ESPACE_MOYENNE_MATHÉMATIQUE  :: 0x205F
-	ESPACE_IDÉOGRAPHIQUE         :: 0x3000
-	ESPACE_INSÉCABLE_SANS_CHASSE :: 0xFEFF
+    ESPACE_INSÉCABLE             :: 0x00A0
+    ESPACE_D_OGAM                :: 0x1680
+    SÉPARATEUR_VOYELLES_MONGOL   :: 0x180E
+    DEMI_CADRATIN                :: 0x2000
+    CADRATIN                     :: 0x2001
+    ESPACE_DEMI_CADRATIN         :: 0x2002
+    ESPACE_CADRATIN              :: 0x2003
+    TIERS_DE_CADRATIN            :: 0x2004
+    QUART_DE_CADRATIN            :: 0x2005
+    SIXIÈME_DE_CADRATIN          :: 0x2006
+    ESPACE_TABULAIRE             :: 0x2007
+    ESPACE_PONCTUATION           :: 0x2008
+    ESPACE_FINE                  :: 0x2009
+    ESPACE_ULTRAFINE             :: 0x200A
+    ESPACE_SANS_CHASSE           :: 0x200B
+    ESPACE_INSÉCABLE_ÉTROITE     :: 0x202F
+    ESPACE_MOYENNE_MATHÉMATIQUE  :: 0x205F
+    ESPACE_IDÉOGRAPHIQUE         :: 0x3000
+    ESPACE_INSÉCABLE_SANS_CHASSE :: 0xFEFF
 
     // guillemets
-	GUILLEMET_OUVRANT :: 0x00AB  // «
-	GUILLEMET_FERMANT :: 0x00BB  // »
+    GUILLEMET_OUVRANT :: 0x00AB  // «
+    GUILLEMET_FERMANT :: 0x00BB  // »
 }
 
 est_espace_blanche_unicode :: fonc (point_de_code: n32) -> bool

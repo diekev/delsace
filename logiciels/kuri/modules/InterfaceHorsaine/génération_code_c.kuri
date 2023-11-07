@@ -1342,7 +1342,7 @@ bool %_initialise(const char *chemin_bibliotheque)
     }
 
     /* Supprime toute erreur passée. */
-	dlerror();
+    dlerror();
 
     void *bibliotheque = dlopen(chemin_bibliotheque, RTLD_LAZY);
     if (!bibliotheque) {

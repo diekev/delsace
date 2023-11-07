@@ -70,7 +70,7 @@ restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
  */
 luminance :: fonc (c: CouleurRVBA) -> r32
 {
-	retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
+    retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
 }
 
 /** } */
@@ -273,15 +273,15 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
  */
 calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 {
-	luminosite_fond := luminance(fond)
+    luminosite_fond := luminance(fond)
 
-	si luminosite_fond == 0.0 {
-		retourne 0.0
-	}
+    si luminosite_fond == 0.0 {
+        retourne 0.0
+    }
 
-	luminosite_zone := luminance(zone)
+    luminosite_zone := luminance(zone)
 
-	retourne (luminosite_zone - luminosite_fond) / luminosite_fond
+    retourne (luminosite_zone - luminosite_fond) / luminosite_fond
 }
 
 /* ------------------------------------------------------------------------- */
@@ -371,7 +371,7 @@ linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
 
 linéaire_vers_srgb :: fonc (value: r32) -> z32
 {
-	v := max(0.0, min(1.0, value))
+    v := max(0.0, min(1.0, value))
 
     si v <= 0.0031308 {
         retourne (v * 12.92 * 255.0 + 0.5) comme z32

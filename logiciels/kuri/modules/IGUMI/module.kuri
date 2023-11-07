@@ -236,7 +236,7 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
 
     installe_format_xcnu(nuanceur)
 
-	glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_STREAM_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_STREAM_DRAW)
     vérifie_erreur("termine_immédiat.glBufferData")
 
     si mode == ModeImmédiat.TRIANGLES {
@@ -265,30 +265,30 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
     stride := taille_de(FormatVertexXCNU)
 
     si nuanceur.loc_position != -1 {
-	    glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
+        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
-	    glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
+        glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
     }
 
     si nuanceur.loc_couleur != -1 {
-	    glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
+        glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
-	    glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
+        glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
     }
 
     si nuanceur.loc_normal != -1 {
-	    glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
+        glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
-	    glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
+        glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
     }
 
     si nuanceur.loc_uv != -1 {
-	    glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
+        glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
-	    glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
+        glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
     }
 }
@@ -377,14 +377,14 @@ cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, couleur: CouleurRVBA, ajo
 quadrant_cercle_immédiat :: fonc (cx : r32, cy : r32, r : r32, quadrant : z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := 8
-	phi := quadrant comme r32 * (3.14159 / 2.0)
+    phi := quadrant comme r32 * (3.14159 / 2.0)
     cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
 
 cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     p0 := Vec3(cx, cy, 0.0)
-	phi_delta := 2.0 * 3.14159 / 32.0
+    phi_delta := 2.0 * 3.14159 / 32.0
 
     pour segs {
         ca0 := cx + cos(phi) comme r32 * r
@@ -415,8 +415,8 @@ cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, co
 
 quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
-	px := pos_x + rayon
-	py := pos_y + rayon
+    px := pos_x + rayon
+    py := pos_y + rayon
     tx := largeur - 2.0 * rayon
     ty := hauteur - 2.0 * rayon
 
@@ -443,8 +443,8 @@ quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: 
 
 contour_quad_arrondi_immédiat :: fonc  (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
-	px := pos_x + rayon
-	py := pos_y + rayon
+    px := pos_x + rayon
+    py := pos_y + rayon
     tx := largeur - 2.0 * rayon
     ty := hauteur - 2.0 * rayon
 
@@ -508,7 +508,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
-	glGenTextures(1, *fonte.atlas.id )
+    glGenTextures(1, *fonte.atlas.id )
     diffère glDeleteTextures(1, *fonte.atlas.id)
 
     // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
@@ -523,40 +523,40 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
     dernier_caractère : *texture_glyph_t = nul
     pour * c dans texte {
-		glyph := fonte.donne_glyphe(c)
+        glyph := fonte.donne_glyphe(c)
 
-		si glyph == nul {
-			continue
-		}
+        si glyph == nul {
+            continue
+        }
 
-		kerning := glyph.donne_crénage_avec(dernier_caractère)
-		x += kerning
+        kerning := glyph.donne_crénage_avec(dernier_caractère)
+        x += kerning
 
-		x0 := (x + glyph.offset_x comme r32)
-		y0 := (y + glyph.offset_y comme r32)
-		x1 := x0 + glyph.width comme r32
-		y1 := y0 - glyph.height comme r32
-		s0 := glyph.s0;
-		t0 := glyph.t0;
-		s1 := glyph.s1;
-		t1 := glyph.t1;
+        x0 := (x + glyph.offset_x comme r32)
+        y0 := (y + glyph.offset_y comme r32)
+        x1 := x0 + glyph.width comme r32
+        y1 := y0 - glyph.height comme r32
+        s0 := glyph.s0;
+        t0 := glyph.t0;
+        s1 := glyph.s1;
+        t1 := glyph.t1;
 
-		p0 := Vec3(x = x0, y = y0)
-		p1 := Vec3(x = x0, y = y1)
-		p2 := Vec3(x = x1, y = y1)
+        p0 := Vec3(x = x0, y = y0)
+        p1 := Vec3(x = x0, y = y1)
+        p2 := Vec3(x = x1, y = y1)
         p3 := Vec3(x = x1, y = y0)
 
-		uv0 := Vec2(x = s0, y = t0)
-		uv1 := Vec2(x = s0, y = t1)
-		uv2 := Vec2(x = s1, y = t1)
-		uv3 := Vec2(x = s1, y = t0)
+        uv0 := Vec2(x = s0, y = t0)
+        uv1 := Vec2(x = s0, y = t1)
+        uv2 := Vec2(x = s1, y = t1)
+        uv3 := Vec2(x = s1, y = t0)
 
         quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
 
-		x += glyph.advance_x
+        x += glyph.advance_x
 
         dernier_caractère = glyph
-	}
+    }
 
     termine_immédiat(ModeImmédiat.TRIANGLES)
 }

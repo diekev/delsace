@@ -384,24 +384,24 @@ convertis_nombre_scientifique_en_réel :: fonc (données: CompositionNombreScien
 extrait_nombre_entier :: fonc(chn : chaine) -> z64
 {
     résultat : z64 = 0
-	est_négatif := chn[0] == '-'
+    est_négatif := chn[0] == '-'
 
-	si est_négatif {
-		chn = avance(chn, 1)
-	}
-	sinon si chn[0] == '+' {
-		chn = avance(chn, 1)
-	}
+    si est_négatif {
+        chn = avance(chn, 1)
+    }
+    sinon si chn[0] == '+' {
+        chn = avance(chn, 1)
+    }
 
-	pour c dans chn {
+    pour c dans chn {
         résultat = résultat * 10 + c - '0' comme z64
     }
 
-	si est_négatif {
-		retourne -résultat
-	}
+    si est_négatif {
+        retourne -résultat
+    }
 
-	retourne résultat
+    retourne résultat
 }
 
 // Converti une chaine, par exemple "500.5", en un nombre réel
@@ -409,38 +409,38 @@ extrait_nombre_entier :: fonc(chn : chaine) -> z64
 extrait_nombre_réel :: fonc(chn : chaine) -> r64
 {
     résultat : r64 = 0.0
-	mult : r64 = 1.0
-	point_trouvé := faux
+    mult : r64 = 1.0
+    point_trouvé := faux
 
-	est_négatif := chn[0] == '-'
+    est_négatif := chn[0] == '-'
 
-	si est_négatif {
-		chn = avance(chn, 1)
-	}
-	sinon si chn[0] == '+' {
-		chn = avance(chn, 1)
-	}
-
-	pour c dans chn {
-		si c == '.' {
-			point_trouvé = vrai
-			continue
-		}
-
-		si point_trouvé {
-			mult *= 0.1
-        	résultat += (c - '0') comme r64 * mult
-		}
-		sinon {
-        	résultat = résultat * 10.0 + (c - '0') comme r64
-		}
+    si est_négatif {
+        chn = avance(chn, 1)
+    }
+    sinon si chn[0] == '+' {
+        chn = avance(chn, 1)
     }
 
-	si est_négatif {
-		retourne -résultat
-	}
+    pour c dans chn {
+        si c == '.' {
+            point_trouvé = vrai
+            continue
+        }
 
-	retourne résultat
+        si point_trouvé {
+            mult *= 0.1
+        	résultat += (c - '0') comme r64 * mult
+        }
+        sinon {
+        	résultat = résultat * 10.0 + (c - '0') comme r64
+        }
+    }
+
+    si est_négatif {
+        retourne -résultat
+    }
+
+    retourne résultat
 }
 
 /** } */

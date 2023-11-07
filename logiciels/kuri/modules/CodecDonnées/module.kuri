@@ -51,42 +51,42 @@ est_base64 :: fonc (chn: chaine) -> bool
 
 encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
 {
-	i := 0
-	char_array_3 : [3]n8
-	char_array_4 : [4]n8
+    i := 0
+    char_array_3 : [3]n8
+    char_array_4 : [4]n8
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
     pour c dans chn {
-		char_array_3[i] = c comme n8
+        char_array_3[i] = c comme n8
 
         i += 1
 
-		si i == 3 {
-			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
-			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
-			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
-			char_array_4[3] = char_array_3[2] & 0x3f comme n8
+        si i == 3 {
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
+            char_array_4[3] = char_array_3[2] & 0x3f comme n8
 
             pour j dans 0 ... 3 {
                 ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
             }
 
-			i = 0
-		}
-	}
+            i = 0
+        }
+    }
 
-	si i != 0 {
+    si i != 0 {
         pour j dans i ... 2 {
-			char_array_3[j] = '\0' comme n8
+            char_array_3[j] = '\0' comme n8
         }
 
-		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
-		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
-		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
-		char_array_4[3] = char_array_3[2] & 0x3f
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
+        char_array_4[3] = char_array_3[2] & 0x3f
 
         pour j dans 0 ... i {
             ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
@@ -96,19 +96,19 @@ encode_base64_impl :: fonc(chn : chaine, table : chaine) -> chaine
             ajoute_au_tampon(*enchaineuse, '=')
             i += 1
         }
-	}
+    }
 
-	retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 encode_base64 :: fonc(chn: chaine) -> chaine
 {
-	retourne encode_base64_impl(chn, table_défaut)
+    retourne encode_base64_impl(chn, table_défaut)
 }
 
 encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 {
-	retourne encode_base64_impl(chn, table_url)
+    retourne encode_base64_impl(chn, table_url)
 }
 
 //#######################################
@@ -117,7 +117,7 @@ encode_base64_pour_url :: fonc(chn: chaine) -> chaine
 décode_base64 :: fonc(chn : chaine) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
     temp := 0
@@ -158,7 +158,7 @@ décode_base64 :: fonc(chn : chaine) -> chaine
                     // @erreur
                 }
 
-	            retourne chaine_depuis_enchaineuse(*enchaineuse)
+                retourne chaine_depuis_enchaineuse(*enchaineuse)
             }
             sinon {
                 // @erreur
@@ -172,7 +172,7 @@ décode_base64 :: fonc(chn : chaine) -> chaine
         ajoute_au_tampon(*enchaineuse, ((temp      ) & 0xff) comme z8)
     }
 
-	retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 CodecBase64 :: struct {

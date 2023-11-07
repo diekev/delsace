@@ -66,23 +66,23 @@ ErreurURI :: erreur {
 
 URI :: struct {
     // la chaine originale
-	uri : chaine  // @privé
+    uri : chaine  // @privé
 
     // les différents composants de l'URI
     schéma : chaine  // @accessible
-	autorité : chaine  // @accessible
-	chemin_complet : chaine  // @accessible
+    autorité : chaine  // @accessible
+    chemin_complet : chaine  // @accessible
 
     // les différents composants du chemin
     chemin : chaine  // @accessible
-	requête : chaine  // @accessible
-	fragment : chaine  // @accessible
+    requête : chaine  // @accessible
+    fragment : chaine  // @accessible
 
     // les différents composants de l'autorité
-	nom_utilisateur : chaine  // @accessible
+    nom_utilisateur : chaine  // @accessible
     mot_de_passe : chaine  // @accessible
-	hôte : chaine  // @accessible
-	port : chaine  // @accessible
+    hôte : chaine  // @accessible
+    port : chaine  // @accessible
 
     // un composant est défini si son séparateur est présent, mais il peut tout de même
     // être vide
@@ -330,15 +330,15 @@ parse_uri_depuis_chaine :: fonc (chn: chaine) -> bool, URI
 
 parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
-	uri : URI
-	uri.uri = chn
-	uri.chemin_complet = chn
+    uri : URI
+    uri.uri = chn
+    uri.chemin_complet = chn
 
-	tente parse_chemin(*uri) piège err {
-		retourne err
-	}
+    tente parse_chemin(*uri) piège err {
+        retourne err
+    }
 
-	retourne uri
+    retourne uri
 }
 
 est_valide :: fonc (uri: URI) -> bool
@@ -661,94 +661,94 @@ origine :: fonc (uri: &URI) -> Origine
 importe Compilatrice
 
 #test {
-	uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable
+    uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "https")
-	compilatrice_vérifie_égalité(uri.autorité, "john.doe@www.example.com:123")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "john.doe")
-	compilatrice_vérifie_égalité(uri.hôte, "www.example.com")
-	compilatrice_vérifie_égalité(uri.port, "123")
-	compilatrice_vérifie_égalité(uri.chemin, "/forum/questions/")
-	compilatrice_vérifie_égalité(uri.requête, "tag=networking&order=newest")
-	compilatrice_vérifie_égalité(uri.fragment, "top")
+    compilatrice_vérifie_égalité(uri.schéma, "https")
+    compilatrice_vérifie_égalité(uri.autorité, "john.doe@www.example.com:123")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "john.doe")
+    compilatrice_vérifie_égalité(uri.hôte, "www.example.com")
+    compilatrice_vérifie_égalité(uri.port, "123")
+    compilatrice_vérifie_égalité(uri.chemin, "/forum/questions/")
+    compilatrice_vérifie_égalité(uri.requête, "tag=networking&order=newest")
+    compilatrice_vérifie_égalité(uri.fragment, "top")
 }
 
 #test {
-	uri := tente parse_uri_standard("ldap://[2001:db8::7]/c=GB?objectClass?one") piège nonatteignable
+    uri := tente parse_uri_standard("ldap://[2001:db8::7]/c=GB?objectClass?one") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "ldap")
-	compilatrice_vérifie_égalité(uri.autorité, "[2001:db8::7]")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "[2001:db8::7]")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "/c=GB")
-	compilatrice_vérifie_égalité(uri.requête, "objectClass?one")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "ldap")
+    compilatrice_vérifie_égalité(uri.autorité, "[2001:db8::7]")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "[2001:db8::7]")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "/c=GB")
+    compilatrice_vérifie_égalité(uri.requête, "objectClass?one")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
-	uri := tente parse_uri_standard("mailto:John.Doe@example.com") piège nonatteignable
+    uri := tente parse_uri_standard("mailto:John.Doe@example.com") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "mailto")
-	compilatrice_vérifie_égalité(uri.autorité, "")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "John.Doe@example.com")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "mailto")
+    compilatrice_vérifie_égalité(uri.autorité, "")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "John.Doe@example.com")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
-	uri := tente parse_uri_standard("news:comp.infosystems.www.servers.unix") piège nonatteignable
+    uri := tente parse_uri_standard("news:comp.infosystems.www.servers.unix") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "news")
-	compilatrice_vérifie_égalité(uri.autorité, "")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "comp.infosystems.www.servers.unix")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "news")
+    compilatrice_vérifie_égalité(uri.autorité, "")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "comp.infosystems.www.servers.unix")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
-	uri := tente parse_uri_standard("tel:+1-816-555-1212") piège nonatteignable
+    uri := tente parse_uri_standard("tel:+1-816-555-1212") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "tel")
-	compilatrice_vérifie_égalité(uri.autorité, "")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "+1-816-555-1212")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "tel")
+    compilatrice_vérifie_égalité(uri.autorité, "")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "+1-816-555-1212")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
-	uri := tente parse_uri_standard("telnet://192.0.2.16:80/") piège nonatteignable
+    uri := tente parse_uri_standard("telnet://192.0.2.16:80/") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "telnet")
-	compilatrice_vérifie_égalité(uri.autorité, "192.0.2.16:80")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "192.0.2.16")
-	compilatrice_vérifie_égalité(uri.port, "80")
-	compilatrice_vérifie_égalité(uri.chemin, "/")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "telnet")
+    compilatrice_vérifie_égalité(uri.autorité, "192.0.2.16:80")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "192.0.2.16")
+    compilatrice_vérifie_égalité(uri.port, "80")
+    compilatrice_vérifie_égalité(uri.chemin, "/")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
-	uri := tente parse_uri_standard("urn:oasis:names:specification:docbook:dtd:xml:4.1.2") piège nonatteignable
+    uri := tente parse_uri_standard("urn:oasis:names:specification:docbook:dtd:xml:4.1.2") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "urn")
-	compilatrice_vérifie_égalité(uri.autorité, "")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "oasis:names:specification:docbook:dtd:xml:4.1.2")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "urn")
+    compilatrice_vérifie_égalité(uri.autorité, "")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "oasis:names:specification:docbook:dtd:xml:4.1.2")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
@@ -760,14 +760,14 @@ importe Compilatrice
      */
     uri := tente parse_uri_standard("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "ftp")
-	compilatrice_vérifie_égalité(uri.autorité, "cnn.example.com&story=breaking_news@10.0.0.1")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "cnn.example.com&story=breaking_news")
-	compilatrice_vérifie_égalité(uri.hôte, "10.0.0.1")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "/top_story.htm")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "ftp")
+    compilatrice_vérifie_égalité(uri.autorité, "cnn.example.com&story=breaking_news@10.0.0.1")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "cnn.example.com&story=breaking_news")
+    compilatrice_vérifie_égalité(uri.hôte, "10.0.0.1")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "/top_story.htm")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
@@ -777,16 +777,16 @@ importe Compilatrice
      * voir aussi :
      * - https://www.giac.org/paper/gsec/650/semantic-attacks-url/101497
      */
-	uri := tente parse_uri_standard("http://www.microsoft.com&item%3Dq209354@www.hwnd.net/pub/mskb/Q209354.asp") piège nonatteignable
+    uri := tente parse_uri_standard("http://www.microsoft.com&item%3Dq209354@www.hwnd.net/pub/mskb/Q209354.asp") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "http")
-	compilatrice_vérifie_égalité(uri.autorité, "www.microsoft.com&item%3Dq209354@www.hwnd.net")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "www.microsoft.com&item%3Dq209354")
-	compilatrice_vérifie_égalité(uri.hôte, "www.hwnd.net")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "/pub/mskb/Q209354.asp")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "http")
+    compilatrice_vérifie_égalité(uri.autorité, "www.microsoft.com&item%3Dq209354@www.hwnd.net")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "www.microsoft.com&item%3Dq209354")
+    compilatrice_vérifie_égalité(uri.hôte, "www.hwnd.net")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "/pub/mskb/Q209354.asp")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 #test {
@@ -795,16 +795,16 @@ importe Compilatrice
      *
      * À FAIRE : tests dans IPv4
      */
-	uri := tente parse_uri_standard("http://2815984929") piège nonatteignable
+    uri := tente parse_uri_standard("http://2815984929") piège nonatteignable
 
-	compilatrice_vérifie_égalité(uri.schéma, "http")
-	compilatrice_vérifie_égalité(uri.autorité, "2815984929")
-	compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-	compilatrice_vérifie_égalité(uri.hôte, "2815984929")
-	compilatrice_vérifie_égalité(uri.port, "")
-	compilatrice_vérifie_égalité(uri.chemin, "")
-	compilatrice_vérifie_égalité(uri.requête, "")
-	compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "http")
+    compilatrice_vérifie_égalité(uri.autorité, "2815984929")
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
+    compilatrice_vérifie_égalité(uri.hôte, "2815984929")
+    compilatrice_vérifie_égalité(uri.port, "")
+    compilatrice_vérifie_égalité(uri.chemin, "")
+    compilatrice_vérifie_égalité(uri.requête, "")
+    compilatrice_vérifie_égalité(uri.fragment, "")
 }
 
 test_validité_uri :: fonc (chn: chaine)

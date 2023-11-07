@@ -236,13 +236,13 @@ racine_cubique :: fonc (n: r64) -> r64
 abs :: fonc(a : $T) -> T #enligne
 {
     si a < 0 { retourne -a } sinon { retourne a; }
-	//retourne si a < 0 { -a } sinon { a }
+    //retourne si a < 0 { -a } sinon { a }
 }
 
 min :: fonc(a : $T, b : T) -> T #enligne
 {
     si a < b { retourne a; } sinon { retourne b; }
-	//retourne si a < b { a } sinon { b }
+    //retourne si a < b { a } sinon { b }
 }
 
 min :: fonc (val: $T, vals: ...T) -> T
@@ -261,7 +261,7 @@ min :: fonc (val: $T, vals: ...T) -> T
 max :: fonc(a : $T, b : T) -> T #enligne
 {
     si a > b { retourne a; } sinon { retourne b; }
-	//retourne si a > b { a } sinon { b }
+    //retourne si a > b { a } sinon { b }
 }
 
 max :: fonc (val: $T, vals: ...T) -> T
@@ -290,25 +290,25 @@ restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
 // Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
 pgcd :: fonc(a : z32, b : z32) -> z32
 {
-	x := a
-	y := b
+    x := a
+    y := b
 
-	tantque y > 1 {
-		x = y
-		y = x % y
-	}
+    tantque y > 1 {
+        x = y
+        y = x % y
+    }
 
-	retourne x
+    retourne x
 }
 
 // Trouve le plus petit commun multiple
 ppmc :: fonc(a : z32, b : z32) -> z32
 {
-	si a == 0 || b == 0 {
-		retourne 0
-	}
+    si a == 0 || b == 0 {
+        retourne 0
+    }
 
-	retourne abs(a * b) / pgcd(a, b)
+    retourne abs(a * b) / pgcd(a, b)
 }
 
 surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
@@ -374,30 +374,30 @@ relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
 
 enveloppe :: fonc (v: r32) -> r32 #enligne
 {
-	v = mod(v, 1.0)
-	si v < 0.0 {
-		v += 1.0
-	}
-	retourne v
+    v = mod(v, 1.0)
+    si v < 0.0 {
+        v += 1.0
+    }
+    retourne v
 }
 
 part_entière :: fonc (v: r32) -> z32 #enligne
 {
-	retourne v comme z32
+    retourne v comme z32
 }
 
 part_réelle :: fonc (v: r32) -> r32 #enligne
 {
-	retourne v - part_entière(v) comme r32
+    retourne v - part_entière(v) comme r32
 }
 
 restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
 {
-	si valeur <= min {
-		retourne min
-	}
-	si valeur < max {
-		retourne valeur
-	}
-	retourne max
+    si valeur <= min {
+        retourne min
+    }
+    si valeur < max {
+        retourne valeur
+    }
+    retourne max
 }
