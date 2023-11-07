@@ -21,10 +21,10 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     }
 
     mon_addresse : sockaddr_in
-	mon_addresse.sin_family = AF_INET comme n16
+    mon_addresse.sin_family = AF_INET comme n16
     mon_addresse.sin_port = htons(port)
     // trouve notre propre addresse
-	mon_addresse.sin_addr.s_addr = 0
+    mon_addresse.sin_addr.s_addr = 0
     mon_addresse.sin_zero[0] = 0
     mon_addresse.sin_zero[1] = 0
     mon_addresse.sin_zero[2] = 0
@@ -34,17 +34,17 @@ construit_serveuse :: fonc(serveuse : &Serveuse, port : n16) -> chaine
     mon_addresse.sin_zero[6] = 0
     mon_addresse.sin_zero[7] = 0
 
-	err := bind(serveuse.prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64)
+    err := bind(serveuse.prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64)
 
-	si err == -1 {
-		retourne "erreur lors de la liaison"
-	}
+    si err == -1 {
+        retourne "erreur lors de la liaison"
+    }
 
-	err = listen(serveuse.prise, CONNEXIONS_MAX);
+    err = listen(serveuse.prise, CONNEXIONS_MAX);
 
-	si err == -1 {
-		retourne "erreur lors de l'écoute"
-	}
+    si err == -1 {
+        retourne "erreur lors de l'écoute"
+    }
 
     retourne ""
 }
@@ -79,7 +79,7 @@ démarre :: fonc(serveuse : &Serveuse) -> rien
     }
 
     mon_addresse : sockaddr_in // Adresse du connecté
-	sin_size := taille_de(sockaddr_in)
+    sin_size := taille_de(sockaddr_in)
 
     boucle {
         prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size)

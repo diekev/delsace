@@ -1,7 +1,6 @@
 importe ArbreB
 importe Fondation
 
-
 principale :: fonc () -> z32
 {
     diffère { imprime("mémoire utilisée : %o\n", mémoire_utilisée()) }
