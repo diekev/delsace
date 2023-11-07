@@ -333,3 +333,44 @@ parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 
     retourne v comme z32
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom CompositionNombreScientifique
+ * Parties composants un nombre sous forme de notation scientifique :
+ * <part_entière>.<part_décimale>e<exposant>
+ * par exemple, 2.1e-5
+ * \{ */
+
+CompositionNombreScientifique :: struct {
+    partie_entière : chaine
+    partie_décimale : chaine
+    exposant : chaine
+}
+
+convertis_nombre_scientifique_en_réel :: fonc (données: CompositionNombreScientifique) -> r64
+{
+    partie_entière := extrait_nombre_entier(données_nombre.partie_entière)
+
+    résultat = partie_entière comme r64
+
+    si données_nombre.partie_décimale.taille != 0 {
+        partie_décimale := extrait_nombre_entier(données_nombre.partie_décimale)
+
+        résultat += partie_décimale comme r64 * pow(0.1, données_nombre.partie_décimale.taille comme r64)
+    }
+
+    si données_nombre.exposant.taille != 0 {
+        exposant := extrait_nombre_entier(données_nombre.exposant)
+
+        si exposant < 0 {
+            résultat *= pow(0.1, -exposant comme r64)
+        }
+        sinon {
+            résultat *= pow(10.0, exposant comme r64)
+        }
+    }
+
+    retourne résultat
+}
+
+/** } */
