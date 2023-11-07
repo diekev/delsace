@@ -4,8 +4,8 @@ importe Ensemble
 importe Fondation
 importe SysFichier
 
-charge "ipa"
 charge "code"
+charge "ipa"
 charge "lexèmes"
 charge "message"
 charge "options"
