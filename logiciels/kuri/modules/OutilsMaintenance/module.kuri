@@ -84,7 +84,9 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
     }
 
     tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
-        imprime("Impossible d'écrire le fichier: %\n", err)
+        si err != 0 comme ErreurFichier {
+            imprime("Impossible d'écrire le fichier '%' : % \n", chemin, err)
+        }
         retourne
     }
 }
