@@ -270,3 +270,62 @@ taille_unicode :: fonc(chn : chaine) -> z64
 
     retourne taille
 }
+
+RunesClés :: énum n32 {
+    // espaces
+	ESPACE_INSÉCABLE             :: 0x00A0
+	ESPACE_D_OGAM                :: 0x1680
+	SÉPARATEUR_VOYELLES_MONGOL   :: 0x180E
+	DEMI_CADRATIN                :: 0x2000
+	CADRATIN                     :: 0x2001
+	ESPACE_DEMI_CADRATIN         :: 0x2002
+	ESPACE_CADRATIN              :: 0x2003
+	TIERS_DE_CADRATIN            :: 0x2004
+	QUART_DE_CADRATIN            :: 0x2005
+	SIXIÈME_DE_CADRATIN          :: 0x2006
+	ESPACE_TABULAIRE             :: 0x2007
+	ESPACE_PONCTUATION           :: 0x2008
+	ESPACE_FINE                  :: 0x2009
+	ESPACE_ULTRAFINE             :: 0x200A
+	ESPACE_SANS_CHASSE           :: 0x200B
+	ESPACE_INSÉCABLE_ÉTROITE     :: 0x202F
+	ESPACE_MOYENNE_MATHÉMATIQUE  :: 0x205F
+	ESPACE_IDÉOGRAPHIQUE         :: 0x3000
+	ESPACE_INSÉCABLE_SANS_CHASSE :: 0xFEFF
+
+    // guillemets
+	GUILLEMET_OUVRANT :: 0x00AB  // «
+	GUILLEMET_FERMANT :: 0x00BB  // »
+}
+
+est_espace_blanche_unicode :: fonc (point_de_code: n32) -> bool
+{
+    rune_clé := mémoire(*point_de_code comme *RunesClés)
+
+    discr rune_clé {
+        ESPACE_INSÉCABLE,
+        ESPACE_D_OGAM,
+        SÉPARATEUR_VOYELLES_MONGOL,
+        DEMI_CADRATIN,
+        CADRATIN,
+        ESPACE_DEMI_CADRATIN,
+        ESPACE_CADRATIN,
+        TIERS_DE_CADRATIN,
+        QUART_DE_CADRATIN,
+        SIXIÈME_DE_CADRATIN,
+        ESPACE_TABULAIRE,
+        ESPACE_PONCTUATION,
+        ESPACE_FINE,
+        ESPACE_ULTRAFINE,
+        ESPACE_SANS_CHASSE,
+        ESPACE_INSÉCABLE_ÉTROITE,
+        ESPACE_MOYENNE_MATHÉMATIQUE,
+        ESPACE_IDÉOGRAPHIQUE,
+        ESPACE_INSÉCABLE_SANS_CHASSE {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
