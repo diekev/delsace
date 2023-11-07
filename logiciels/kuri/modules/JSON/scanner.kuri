@@ -322,12 +322,6 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
     retourne LexèmeJSON.CHAINE_CARACTÈRE
 }
 
-DonnéesNombre :: struct {
-    unités : chaine
-    fraction : chaine
-    exposant : chaine
-}
-
 // nombres valides
 // 0
 // -0
@@ -352,7 +346,7 @@ DonnéesNombre :: struct {
 // 0e5
 lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    données_nombre : DonnéesNombre
+    données_nombre : CompositionNombreScientifique
     lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
 
     scanner.enregistre_pos_mot()
@@ -374,7 +368,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
         _ := scanner.lis_chiffre('0', '9')
     }
 
-    données_nombre.unités = scanner.mot_courant()
+    données_nombre.partie_entière = scanner.mot_courant()
 
     // lis fraction
     si scanner.caractère_courant() == '.' {
@@ -389,7 +383,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
-        données_nombre.fraction = scanner.mot_courant()
+        données_nombre.partie_décimale = scanner.mot_courant()
     }
 
     e := scanner.caractère_courant()
@@ -418,28 +412,7 @@ lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
     // ------------------------
 
-    nombre_final : r64
-
-    unités := extrait_nombre_entier(données_nombre.unités)
-
-    nombre_final = unités comme r64
-
-    si données_nombre.fraction.taille != 0 {
-        fraction := extrait_nombre_entier(données_nombre.fraction)
-
-        nombre_final += fraction comme r64 * pow(0.1, données_nombre.fraction.taille comme r64)
-    }
-
-    si données_nombre.exposant.taille != 0 {
-        exposant := extrait_nombre_entier(données_nombre.exposant)
-
-        si exposant < 0 {
-            nombre_final *= pow(0.1, -exposant comme r64)
-        }
-        sinon {
-            nombre_final *= pow(10.0, exposant comme r64)
-        }
-    }
+    nombre_final := convertis_nombre_scientifique_en_réel(données_nombre)
 
     si lexème_nombre == LexèmeJSON.NOMBRE_ENTIER {
         scanner.nombre_entier = nombre_final comme z64
