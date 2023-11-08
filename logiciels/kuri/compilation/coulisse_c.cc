@@ -1764,12 +1764,12 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
+        param->comme_instruction()->numero = numéro_inst;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param->comme_instruction());
         os << ";\n";
 
-        param->comme_instruction()->numero = numéro_inst;
         table_valeurs[numéro_inst++] = enchaine(
             "&", donne_nom_pour_instruction(param->comme_instruction()));
     }
