@@ -967,6 +967,13 @@ imprime_tabulation :: fonc (n: z32)
     }
 }
 
+imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, n: z32)
+{
+    pour n {
+        ajoute_au_tampon(enchaineuse, "  ")
+    }
+}
+
 // --------------------------
 
 assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
