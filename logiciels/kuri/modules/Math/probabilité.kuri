@@ -60,18 +60,28 @@ Probabilité :: struct {
     chiffres: []n8
 }
 
-crée_probabilité :: fonc (unité: n64, fraction: n64) -> Probabilité
+ajoute_chiffres_fraction :: fonc (p: *Probabilité, fraction: n64)
 {
-    p: Probabilité
-    p.unité = unité
-
     fraction = inverse_chiffres(fraction)
 
     tantque fraction != 0 {
         tableau_ajoute(*p.chiffres, (fraction % 10) comme n8)
         fraction /= 10
     }
+}
 
+ajoute_chiffres :: fonc (p: *Probabilité, chiffres: []n8)
+{
+    pour chiffres {
+        tableau_ajoute(*p.chiffres, it)
+    }
+}
+
+crée_probabilité :: fonc (unité: n64, fraction: n64) -> Probabilité
+{
+    p: Probabilité
+    p.unité = unité
+    ajoute_chiffres_fraction(*p, fraction)
     retourne p
 }
 
@@ -302,12 +312,8 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
     }
 
     résultat : Probabilité
-
     résultat.unité = p.unité
-
-    pour p.chiffres {
-        tableau_ajoute(*résultat.chiffres, it)
-    }
+    ajoute_chiffres(*résultat, p.chiffres)
 
     tableau_inverse(résultat.chiffres)
 
@@ -345,16 +351,8 @@ opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
 
     // -------------
 
-    unité_inversée := inverse_chiffres(p.unité)
-
-    tantque unité_inversée != 0 {
-        tableau_ajoute(*résultat.chiffres, (unité_inversée % 10) comme n8)
-        unité_inversée /= 10
-    }
-
-    pour p.chiffres {
-        tableau_ajoute(*résultat.chiffres, it)
-    }
+    ajoute_chiffres_fraction(*résultat, p.unité)
+    ajoute_chiffres(*résultat, p.chiffres)
 
     // -------------
 
