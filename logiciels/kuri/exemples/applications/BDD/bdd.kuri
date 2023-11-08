@@ -1,4 +1,6 @@
+importe Chaine
 importe Fondation
+importe Numérique
 importe SysFichier
 
 // https://cstack.github.io/db_tutorial/
@@ -150,39 +152,19 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
     retourne RésultatExécution.SUCCÈS
 }
 
+donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: []z8) -> chaine
+{
+    chn_c := ChaineC(tableau.pointeur)
+    résultat : chaine = ---
+    résultat.pointeur = tableau.pointeur
+    résultat.taille = taille_chaine_c(chn_c)
+    retourne résultat
+}
+
 imprime_ligne :: fonc (ligne: *Ligne) -> rien
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
-
-    chn_nom : chaine
-
-    {
-        pousse_contexte nouveau_contexte {
-            pour c dans ligne.nom {
-                si c == '\0' {
-                    arrête
-                }
-
-               chaine_ajoute(*chn_nom, c)
-            }
-        }
-    }
-
-    chn_courriel : chaine
-
-    {
-        pousse_contexte nouveau_contexte {
-            pour c dans ligne.courriel {
-                si c == '\0' {
-                    arrête
-                }
-
-               chaine_ajoute(*chn_courriel, c)
-            }
-        }
-    }
-
+    chn_nom := donne_chaine_depuis_chaine_c_tableau(ligne.nom)
+    chn_courriel := donne_chaine_depuis_chaine_c_tableau(ligne.courriel)
     imprime("(%, %, %)\n", ligne.id, chn_nom, chn_courriel)
 }
 

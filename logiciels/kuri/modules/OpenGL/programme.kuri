@@ -12,14 +12,14 @@ importe Math
 compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> Optionnel(n32)
 {
     /* Compile les sources. */
-	opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER)
+    opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER)
     saufsi opt_id_nuanceur_vertex.possède_valeur() {
         retourne
     }
     id_nuanceur_vertex := opt_id_nuanceur_vertex.Quelque
     diffère détruit_nuanceur(id_nuanceur_vertex)
 
-	opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER)
+    opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER)
     saufsi opt_id_nuanceur_fragment.possède_valeur() {
         retourne
     }
@@ -32,7 +32,7 @@ compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) ->
         retourne
     }
 
-	glAttachShader(id_programme, id_nuanceur_vertex)
+    glAttachShader(id_programme, id_nuanceur_vertex)
     diffère { glDetachShader(id_programme, id_nuanceur_vertex) }
 
     glAttachShader(id_programme, id_nuanceur_fragment)
@@ -67,15 +67,15 @@ vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
     glGetShaderiv(id_nuanceur, GL_INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
-		message_erreur := loge_chaine(longueur_info_log + 1)
-		glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
+        message_erreur := loge_chaine(longueur_info_log + 1)
+        glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
 
         imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur)
 
         déloge(message_erreur)
 
         retourne faux
-	}
+    }
 
     retourne vrai
 }
@@ -88,18 +88,18 @@ vérifie_liaison :: fonc (id_programme: n32) -> bool
     longueur_info_log : z32 = 0
 
     glGetProgramiv(id_programme, GL_LINK_STATUS, *résultat)
-	glGetProgramiv(id_programme, GL_INFO_LOG_LENGTH, *longueur_info_log)
+    glGetProgramiv(id_programme, GL_INFO_LOG_LENGTH, *longueur_info_log)
 
     si longueur_info_log > 0 {
-		message_erreur := loge_chaine(longueur_info_log + 1)
-		glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
+        message_erreur := loge_chaine(longueur_info_log + 1)
+        glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
 
         imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur)
 
         déloge(message_erreur)
 
         retourne faux
-	}
+    }
 
     retourne vrai
 }
@@ -114,8 +114,8 @@ compile_source_nuanceur :: fonc (source: chaine, type: n32) -> Optionnel(n32)
     }
 
     taille_src_vertex := source.taille comme z32
-	glShaderSource(résultat, 1, *source.pointeur , *taille_src_vertex)
-	glCompileShader(résultat)
+    glShaderSource(résultat, 1, *source.pointeur , *taille_src_vertex)
+    glCompileShader(résultat)
 
     saufsi vérifie_compilation(résultat) {
         détruit_nuanceur(résultat)
