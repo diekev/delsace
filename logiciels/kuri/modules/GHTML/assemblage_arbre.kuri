@@ -128,10 +128,7 @@ attend_type :: fonc (assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) ->
 
 imprime_arbre :: fonc (racine : *NoeudSyntaxique, tab : z32) -> rien
 {
-    pour i dans 0 ... tab - 1 {
-        imprime("  ")
-    }
-
+    imprime_tabulation(tab)
     imprime("% (%)\n", racine.type, racine.données.chn)
 
     pour noeud dans racine.enfants {

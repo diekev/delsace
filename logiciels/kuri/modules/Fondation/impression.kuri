@@ -956,6 +956,19 @@ chaine_pour_type :: fonc (info: *InfoType) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
+// --------------------------
+
+/* Fonction auxiliaire pour imprimer des espaces en début de ligne.
+ * Le paramètre définit la « profondeur » de tabulation. */
+imprime_tabulation :: fonc (n: z32)
+{
+    pour n {
+        imprime("  ")
+    }
+}
+
+// --------------------------
+
 assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 {
     si expr {

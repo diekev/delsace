@@ -274,13 +274,6 @@ détruit :: fonc(gestionnaire : *GestionnaireObjet) -> rien
     déloge(gestionnaire.objets)
 }
 
-imprime_tab :: fonc(n : z32) -> rien
-{
-    pour i dans 0 ... n - 1 {
-        imprime("  ")
-    }
-}
-
 imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
 {
     discr objet.id {
@@ -288,7 +281,7 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
             imprime("nul,\n")
         }
         DICTIONNAIRE {
-            imprime_tab(tab)
+            imprime_tabulation(tab)
             imprime("{\n")
 
             dico := objet comme *ObjetDictionnaire
@@ -296,12 +289,12 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
             pour nom, idx dans dico.noms {
                 obj := dico.valeurs[idx]
 
-                imprime_tab(tab + 1)
+                imprime_tabulation(tab + 1)
                 imprime("% : ", nom)
                 imprime_json(obj, tab + 1)
             }
 
-            imprime_tab(tab)
+            imprime_tabulation(tab)
             imprime("},\n")
         }
         LISTE {
@@ -313,7 +306,7 @@ imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
                 imprime_json(valeur, tab + 1)
             }
 
-            imprime_tab(tab)
+            imprime_tabulation(tab)
             imprime("],\n")
         }
         CHAINE {

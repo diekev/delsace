@@ -357,17 +357,9 @@ imprime :: fonc (racine: *Noeud, au_format: ImprimeAuFormat) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-// À FAIRE : nous devrions déjà avoir une fonction similaire
-imprime_tab :: fonc (enchaineuse: *Enchaineuse, n: z32)
-{
-    pour n {
-        ajoute_au_tampon(enchaineuse, "    ")
-    }
-}
-
 imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32 = 0)
 {
-    imprime_tab(enchaineuse, profondeur)
+    imprime_tabulation(enchaineuse, profondeur)
 
     discr racine.type {
         Chapitre {
@@ -376,7 +368,7 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32
 
             discr trouve_attribut(chapitre, "titre") {
                 Quelque(attribut) {
-                    imprime_tab(enchaineuse, profondeur + 1)
+                    imprime_tabulation(enchaineuse, profondeur + 1)
                     imprime_dans_enchaineuse(enchaineuse, "<h%>%</h%>\n", profondeur + 1, attribut.valeur, profondeur + 1)
                 }
                 sinon {}
@@ -390,7 +382,7 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur: z32
                 ajoute_au_tampon(enchaineuse, "\n")
             }
 
-            imprime_tab(enchaineuse, profondeur)
+            imprime_tabulation(enchaineuse, profondeur)
             ajoute_au_tampon(enchaineuse, "</div>\n")
         }
         Document {
@@ -523,7 +515,7 @@ imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profond
 
 imprime_hiérarchie :: fonc (racine: *Noeud, profondeur: z32 = 0)
 {
-    imprime_tab(profondeur)
+    imprime_tabulation(profondeur)
 
     discr racine.type {
         Chapitre {

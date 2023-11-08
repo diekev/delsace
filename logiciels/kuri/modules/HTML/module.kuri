@@ -22,9 +22,7 @@ charge "tags_html"
 
 imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
 {
-    pour 1 ... tab {
-        imprime("  ")
-    }
+    imprime_tabulation(tab)
 
     si noeud.genre == GenreNoeud.Texte {
         texte := noeud comme *NoeudTexte
