@@ -7,6 +7,7 @@
 //           -- validation dans l'algorithme de parsage via SIMD
 
 importe Fondation
+importe Math
 importe Ordinatrice
 
 // converti 8 caractères en un nombre entier à la fois, avec SIMD nous pourrions
@@ -347,20 +348,20 @@ CompositionNombreScientifique :: struct {
     exposant : chaine
 }
 
-convertis_nombre_scientifique_en_réel :: fonc (données: CompositionNombreScientifique) -> r64
+convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreScientifique) -> r64
 {
-    partie_entière := extrait_nombre_entier(données_nombre.partie_entière)
+    partie_entière := extrait_nombre_entier(composition.partie_entière)
 
-    résultat = partie_entière comme r64
+    résultat := partie_entière comme r64
 
-    si données_nombre.partie_décimale.taille != 0 {
-        partie_décimale := extrait_nombre_entier(données_nombre.partie_décimale)
+    si composition.partie_décimale.taille != 0 {
+        partie_décimale := extrait_nombre_entier(composition.partie_décimale)
 
-        résultat += partie_décimale comme r64 * pow(0.1, données_nombre.partie_décimale.taille comme r64)
+        résultat += partie_décimale comme r64 * pow(0.1, composition.partie_décimale.taille comme r64)
     }
 
-    si données_nombre.exposant.taille != 0 {
-        exposant := extrait_nombre_entier(données_nombre.exposant)
+    si composition.exposant.taille != 0 {
+        exposant := extrait_nombre_entier(composition.exposant)
 
         si exposant < 0 {
             résultat *= pow(0.1, -exposant comme r64)
