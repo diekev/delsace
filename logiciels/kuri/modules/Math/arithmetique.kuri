@@ -401,3 +401,26 @@ restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
     }
     retourne max
 }
+
+est_nombre_premier :: fonc (n : z32) -> bool
+{
+    si n <= 3 {
+        retourne n > 1
+    }
+
+    si (n % 2 == 0) || (n % 3 == 0) {
+        retourne faux
+    }
+
+    i := 5
+
+    tantque i * i <= n {
+        si (n % i == 0) || (n % (i + 2) == 0) {
+            retourne faux
+        }
+
+        i += 6
+    }
+
+    retourne vrai
+}
