@@ -316,28 +316,15 @@ comme_r64 :: fonc (valeur: eini) -> r64
 possède_membre :: fonc (valeur: eini, nom: chaine) -> bool
 {
     saufsi valeur.est_structure() {
-		retourne faux
-	}
+        retourne faux
+    }
 
-	retourne possède_membre(valeur.info comme *InfoTypeStructure, nom)
+    retourne possède_membre(valeur.info comme *InfoTypeStructure, nom)
 }
 
 possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-	retourne trouve_info_membre(info, nom) != nul
-}
-
-membres :: corout (valeur : eini) -> chaine
-{
-    saufsi valeur.est_structure() {
-		retourne
-	}
-
-	info := valeur.info comme *InfoTypeStructure
-
-    pour membre dans info.membres {
-		retiens membre.nom
-	}
+    retourne trouve_info_membre(info, nom) != nul
 }
 
 eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
@@ -878,23 +865,23 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     diffère détruit_tampons(*enchaineuse)
 
     /* Création des imports. */
-	diffère déloge(créatrice.modules_importés)
-	créatrice.ajoute_module("Fondation")
-	créatrice.ajoute_module("Introspection")
+    diffère déloge(créatrice.modules_importés)
+    créatrice.ajoute_module("Fondation")
+    créatrice.ajoute_module("Introspection")
 
     pour données_fonctions {
         module := compilatrice_module_pour_code(it.fonction)
         saufsi module {
             continue
         }
-		nom_module := compilatrice_nom_module(module)
-		si nom_module {
-			créatrice.ajoute_module(nom_module)
-		}
+        nom_module := compilatrice_nom_module(module)
+        si nom_module {
+            créatrice.ajoute_module(nom_module)
+        }
     }
 
     pour créatrice.modules_importés {
-		ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */

@@ -4,8 +4,8 @@ importe Ensemble
 importe Fondation
 importe SysFichier
 
-charge "ipa"
 charge "code"
+charge "ipa"
 charge "lexèmes"
 charge "message"
 charge "options"
@@ -51,37 +51,37 @@ compile_pour_profilage :: fonc ()
 
 compilatrice_rapporte_erreur :: fonc (message: chaine, pos := PositionCodeSource())
 {
-	compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
+    compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
 }
 
 compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := PositionCodeSource())
 {
-	compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
+    compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
 }
 
 compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := PositionCodeSource())
 {
-	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
 }
 
 compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
 compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
-	compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
 
 désactive_compilation_espace_défaut :: fonc ()
@@ -96,24 +96,24 @@ désactive_compilation_espace_défaut :: fonc ()
 
 compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := PositionCodeSource())
 {
-	si a == b {
-		retourne
-	}
+    si a == b {
+        retourne
+    }
 
-	enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère { détruit_tampons(*enchaineuse) }
+    enchaineuse : Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse) }
 
-	ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
-	imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
-	imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b)
+    ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
+    imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
+    imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b)
 
-	message := chaine_depuis_enchaineuse(*enchaineuse)
+    message := chaine_depuis_enchaineuse(*enchaineuse)
 
-	espace := compilatrice_espace_courant()
-	compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+    espace := compilatrice_espace_courant()
+    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
 
-	déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
+    déloge(message) // @fuite de mémoire : la compilation s'arrêtera dès que l'erreur sera lancée
 }
 
 // ---------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
 
 fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeEntêteFonction
 {
-	fonctions := compilatrice_fonctions_parsées()
+    fonctions := compilatrice_fonctions_parsées()
     résultat: []*NoeudCodeEntêteFonction
 
     pour fonctions {
@@ -143,7 +143,7 @@ fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> []*NoeudCodeE
         tableau_ajoute(*résultat, it)
     }
 
-	retourne résultat
+    retourne résultat
 }
 
 // ---------------------------------------------------------------------------------------

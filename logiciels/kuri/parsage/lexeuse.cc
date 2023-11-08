@@ -866,6 +866,10 @@ void Lexeuse::rapporte_erreur_caractère_unicode()
 
 void Lexeuse::rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max)
 {
+    if (m_possède_erreur) {
+        return;
+    }
+
     m_possède_erreur = true;
 
     SiteSource site;

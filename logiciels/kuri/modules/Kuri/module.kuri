@@ -346,7 +346,7 @@ FormatEntier :: struct {
     ajoute_zéros_début := faux
     nombre_zéros := 0
     base := 10
-	séparation := 0
+    séparation := 0
 }
 
 donne_format_entier_contexte :: fonc (valeur: eini) -> FormatEntier
@@ -365,8 +365,8 @@ donne_format_entier_contexte_pour_base :: fonc (valeur: eini, base: z32) -> Form
 }
 
 FormatRéel :: struct {
-	valeur: eini
-	précision := 6
+    valeur: eini
+    précision := 6
 }
 
 donne_format_réel_contexte :: fonc (valeur: eini) -> FormatRéel
@@ -518,7 +518,7 @@ __stockage_temporaire :: fonc(
                 retourne nul
             }
 
-		    alloc.ptr += n
+            alloc.ptr += n
             */
 
             alloc.occupé += delta comme z32
@@ -563,19 +563,19 @@ logement_temp :: fonc(taille: z64) -> *octet
 opérateur == :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
-		retourne faux
+        retourne faux
     }
 
-	taille := chn1.taille
-	début : z64 = 0
+    taille := chn1.taille
+    début : z64 = 0
 
     pour i dans début...(taille - 1) {
         si chn1[i] != chn2[i] {
-			retourne faux
+            retourne faux
         }
     }
 
-	retourne vrai
+    retourne vrai
 }
 
 opérateur != :: fonc(chn1: chaine, chn2: chaine) -> bool
@@ -819,8 +819,8 @@ __point_de_sortie_dynamique :: fonc () #sanstrace #sansbroyage
 // Contexte pour les fonctions/modules C.
 ContexteKuri :: struct {
     loge_memoire : fonc (*ContexteKuri,n64)(*rien)
-	reloge_memoire : fonc (*ContexteKuri,*rien,n64,n64)(*rien)
-	deloge_memoire : fonc (*ContexteKuri,*rien,n64)(rien)
+    reloge_memoire : fonc (*ContexteKuri,*rien,n64,n64)(*rien)
+    deloge_memoire : fonc (*ContexteKuri,*rien,n64)(rien)
 }
 
 loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien
