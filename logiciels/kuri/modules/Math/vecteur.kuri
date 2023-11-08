@@ -107,7 +107,7 @@ opérateur == :: fonc (v1: Vec2, s: r32) -> bool
 
 opérateur != :: fonc (v0: Vec2, v1: Vec2) -> bool
 {
-	retourne !(v0 == v1)
+    retourne !(v0 == v1)
 }
 
 opérateur < :: fonc (v1: Vec2, s: r32) -> bool
@@ -222,7 +222,7 @@ new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
 
 opérateur [] :: fonc (v: Vec3, index: z64) -> r32
 {
-	retourne (*v.x)[index]
+    retourne (*v.x)[index]
 }
 
 opérateur - :: fonc (v: Vec3) -> Vec3
@@ -308,7 +308,7 @@ opérateur == :: fonc (u: Vec3, s: r32) -> bool
 
 opérateur != :: fonc (v0: Vec3, v1: Vec3) -> bool
 {
-	retourne !(v0 == v1)
+    retourne !(v0 == v1)
 }
 
 opérateur < :: fonc (u: Vec3, s: r32) -> bool
@@ -534,7 +534,7 @@ opérateur == :: fonc (u: Vec4, s: r32) -> bool
 
 opérateur != :: fonc (v0: Vec4, v1: Vec4) -> bool
 {
-	retourne !(v0 == v1)
+    retourne !(v0 == v1)
 }
 
 opérateur < :: fonc (u: Vec4, s: r32) -> bool

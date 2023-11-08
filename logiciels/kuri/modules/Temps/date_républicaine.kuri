@@ -15,33 +15,33 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
     // imprime("adj_moment : %\n", adjMoment)
 
     d := Constantes(z64).MILLISECONDES_PAR_JOUR;
-	quantité_leap :: 20925216
+    quantité_leap :: 20925216
     début_équinoxe :: 34284216
 
     this : Date
 
-	now := (adjMoment % d) comme z32;
-	this.heure = now / (60 * 60 * 1000);
-	this.minute = (now - this.heure * (60 * 60 * 1000)) / (60 * 1000)
-	this.seconde = (now - this.heure * (60 * 60 * 1000) - this.minute * (60 * 1000)) / 1000
+    now := (adjMoment % d) comme z32;
+    this.heure = now / (60 * 60 * 1000);
+    this.minute = (now - this.heure * (60 * 60 * 1000)) / (60 * 1000)
+    this.seconde = (now - this.heure * (60 * 60 * 1000) - this.minute * (60 * 1000)) / 1000
 
-	days := adjMoment / d;
-	yesterdays := days-1;
-	unadjYears := days / 365;
-	leapYears := ((quantité_leap*unadjYears)+début_équinoxe)/d;
-	yesterdayLeapYears := ((quantité_leap*yesterdays / 365)+début_équinoxe)/d;
-	isLeapDay := yesterdayLeapYears != leapYears;
-	this.année = ((days-leapYears)/365) comme z32;
+    days := adjMoment / d;
+    yesterdays := days-1;
+    unadjYears := days / 365;
+    leapYears := ((quantité_leap*unadjYears)+début_équinoxe)/d;
+    yesterdayLeapYears := ((quantité_leap*yesterdays / 365)+début_équinoxe)/d;
+    isLeapDay := yesterdayLeapYears != leapYears;
+    this.année = ((days-leapYears)/365) comme z32;
 
     // this.yeardays
-	yeardays := (days-leapYears)%365;
-	si isLeapDay {
-		yeardays += 1
-	}
+    yeardays := (days-leapYears)%365;
+    si isLeapDay {
+        yeardays += 1
+    }
 
-	this.année += 1// year starts as year 1
-	this.jour = ((yeardays % 30) + 1) comme z32 // calendar starts on day 1
-	this.mois = (yeardays / 30) comme z32
+    this.année += 1// year starts as year 1
+    this.jour = ((yeardays % 30) + 1) comme z32 // calendar starts on day 1
+    this.mois = (yeardays / 30) comme z32
 
     // imprime("date républicaine : %\n", this)
 

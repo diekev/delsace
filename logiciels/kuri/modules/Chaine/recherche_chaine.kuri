@@ -5,6 +5,16 @@
  * - structure vide
  */
 
+// Idée de Rust :
+// - validation des chaines pour vérifier qu'elles soient bel et bien encodées en UTF-8 lors de leurs construction
+// -- les chaines connues lors de la compilation doivent être vérifiées par le compilateur
+// -- lors d'une assignation ?
+// -- lors d'une construction depuis une chaine C -> validation des caractères
+// - avoir des itérateurs sur chaine pour UTF-8, aller de point-code en point-code
+// -- pouvoir convertir en majuscule ou en minuscule
+// -- pouvoir normaliser la chaine (remplacer les caractères similaires)
+// - https://fasterthanli.me/blog/2020/working-with-strings-in-rust/
+
 /*
 
 BaseChaine :: struct ($T: type_de_données) {
