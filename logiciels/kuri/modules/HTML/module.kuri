@@ -19,7 +19,6 @@ charge "noeud"
 charge "outils"
 charge "parsage"
 charge "pile_éléments_ouverts"
-charge "point_de_code"
 charge "tags_html"
 
 imprime_noeud :: fonc (noeud: *Noeud, tab : z32) -> rien
