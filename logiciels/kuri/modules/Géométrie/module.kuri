@@ -5,8 +5,8 @@
  * \{ */
 
 Point2D :: struct ($T: type_de_données) {
-	x: T @mutable
-	y: T @mutable
+    x: T @mutable
+    y: T @mutable
 }
 
 opérateur == :: fonc (p0: Point2D(z32), p1: Point2D(z32)) -> bool
