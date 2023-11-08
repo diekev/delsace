@@ -132,44 +132,25 @@ tags_initialisés := faux
 
 initialise_tags :: fonc ()
 #corps_texte {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
-
-    ajoute_au_tampon(*enchaineuse, "    si tags_initialisés { retourne }\n")
-    ajoute_au_tampon(*enchaineuse, "    tags_initialisés = vrai\n")
-    ajoute_au_tampon(*enchaineuse, "    TAG_vide = crée_chaine_internée_converti_utf32(\"\")\n")
-
-    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
-
-    pour lexèmes {
-        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
-            continue
-        }
-
-        si it.texte == "tags_initialisés" {
-            arrête
-        }
-
-        saufsi it.texte.commence_par("TAG_") {
-            continue
-        }
-
-        nom_tag := it.texte.avance(4)
-        si nom_tag == "annotation_xml" {
-            nom_tag = "annotation-xml"
-        }
-        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_internée_converti_utf32(\"", nom_tag, "\")\n")
-    }
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne génère_fonction_pour_tags(faux)
 }
 
 imprime_tags :: fonc ()
 #corps_texte {
+    retourne génère_fonction_pour_tags(vrai)
+}
+
+génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
+{
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
+
+    saufsi pour_impression {
+        ajoute_au_tampon(*enchaineuse, "    si tags_initialisés { retourne }\n")
+        ajoute_au_tampon(*enchaineuse, "    tags_initialisés = vrai\n")
+        ajoute_au_tampon(*enchaineuse, "    TAG_vide = crée_chaine_internée_converti_utf32(\"\")\n")
+    }
 
     lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
 
@@ -186,7 +167,16 @@ imprime_tags :: fonc ()
             continue
         }
 
-        ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
+        si pour_impression {
+            ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
+        }
+        sinon {
+            nom_tag := it.texte.avance(4)
+            si nom_tag == "annotation_xml" {
+                nom_tag = "annotation-xml"
+            }
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_internée_converti_utf32(\"", nom_tag, "\")\n")
+        }
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
