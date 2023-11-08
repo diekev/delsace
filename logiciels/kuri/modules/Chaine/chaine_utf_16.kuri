@@ -194,21 +194,6 @@ divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> []ChaineUTF16
     retourne résultat
 }
 
-est_valeur_scalaire :: fonc (unité: n16) -> bool #enligne
-{
-    retourne unité < 0xD800 || unité > 0xDFFF
-}
-
-est_leading_surrogate :: fonc (unité: n16) -> bool #enligne
-{
-    retourne 0xD800 <= unité <= 0xDBFF
-}
-
-est_trailling_surrogate :: fonc (unité: n16) -> bool #enligne
-{
-    retourne 0xDC00 <= unité <= 0xDFFF
-}
-
 // À FAIRE(langage) : doit être résultat: *[2]n16
 utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *n16) -> z32 #enligne
 {
