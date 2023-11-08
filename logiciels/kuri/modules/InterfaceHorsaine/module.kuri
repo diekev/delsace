@@ -5,6 +5,7 @@ importe Compilatrice
 importe Ensemble
 importe Fondation
 importe SysFichier
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 
@@ -237,8 +238,8 @@ assainie_nom_fonction_interface :: fonc (fonction: *MéthodeIPA)
     remplace_sans_copie(*fonction.nom_pour_fonction_c, '.', '_')
     remplace_sans_copie(*fonction.nom_rappel_pour_table, '.', '_')
 
-    supprime_caractère_unicode(*fonction.nom_pour_fonction_c)
-    supprime_caractère_unicode(*fonction.nom_rappel_pour_table)
+    remplace_caractères_accentués(*fonction.nom_pour_fonction_c)
+    remplace_caractères_accentués(*fonction.nom_rappel_pour_table)
 }
 
 convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA, espace_de_nom: chaine) -> MéthodeIPA

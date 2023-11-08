@@ -62,14 +62,14 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 
 écris :: fonc(autrice: *AutriceFichierWave, chunk : &ChunkFormatWave)
 {
-	autrice.écris_chaine_sans_taille(chunk.id_chunk)
-	autrice.écris(chunk.taille_chunk)
-	autrice.écris(chunk.tag_format)
-	autrice.écris(chunk.nombre_cannaux)
-	autrice.écris(chunk.échantillons_secondes)
-	autrice.écris(chunk.bits_moyens_par_secondes)
-	autrice.écris(chunk.alignement_bloc)
-	autrice.écris(chunk.bits_par_échantillon)
+    autrice.écris_chaine_sans_taille(chunk.id_chunk)
+    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.tag_format)
+    autrice.écris(chunk.nombre_cannaux)
+    autrice.écris(chunk.échantillons_secondes)
+    autrice.écris(chunk.bits_moyens_par_secondes)
+    autrice.écris(chunk.alignement_bloc)
+    autrice.écris(chunk.bits_par_échantillon)
 }
 
 /** } */
@@ -86,9 +86,9 @@ ChunkDonnéesWave :: struct {
 
 écris :: fonc(autrice: *AutriceFichierWave, chunk : &ChunkDonnéesWave)
 {
-	autrice.écris_chaine_sans_taille(chunk.id_chunk)
-	autrice.écris(chunk.taille_chunk)
-	autrice.écris(chunk.données)
+    autrice.écris_chaine_sans_taille(chunk.id_chunk)
+    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.données)
 }
 
 /** } */
@@ -136,7 +136,7 @@ ajoute_son_sinusoïdal :: fonc(
     /* À FAIRE(langage) : aucune itération si le type est naturel. */
     pour (nombre_échantillons_par_chaine) comme z32 {
         i := it comme z64
-		valeur := (amplitude comme r32 * sinus(t * (i comme r32))) comme z16
+        valeur := (amplitude comme r32 * sinus(t * (i comme r32))) comme z16
 
         pour c dans (génératrice.format.nombre_cannaux comme z32) {
             données[décalage + i * 2 + (c comme z64)] = valeur

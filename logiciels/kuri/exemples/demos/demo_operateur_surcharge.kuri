@@ -6,13 +6,13 @@ principale :: fonc () -> z32
     u : Vec3
     v : Vec3
 
-	u.x = 1.0
-	u.y = 2.0
-	u.z = 3.0
+    u.x = 1.0
+    u.y = 2.0
+    u.z = 3.0
 
-	pour 0 ... 2 {
-		imprime("u[%] = %\n", it, u[it])
-	}
+    pour 0 ... 2 {
+        imprime("u[%] = %\n", it, u[it])
+    }
 
     si u == v {
         imprime("u == v\n")

@@ -5,7 +5,7 @@ importe Fondation
  * de chiffres qu'il peut posséder.
  *
  * L'implémentation est rudimentaire et inefficiente, mais reste utile pour commencer à avoir ce
- * genre de structures dans la language.
+ * genre de structures dans le language.
  */
 
 NombreInfini :: struct {
@@ -31,9 +31,7 @@ factorielle :: fonc (n: NombreInfini) -> NombreInfini
 crée_nombre_infini :: fonc (chn: n64) -> NombreInfini
 {
     résultat : NombreInfini
-
-    tableau_ajoute(*résultat.chiffres, chn comme n8)
-
+    ajoute_chiffres_depuis_nombre(*résultat.chiffres, chn)
     retourne résultat
 }
 
@@ -131,13 +129,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
     résultat : NombreInfini
 
     si n0.nombre_de_chiffres() == 0 {
-        tantque n1 != 0 {
-            tmp := n1 % 10
-            n1 /= 10
-            tableau_ajoute(*résultat.chiffres, tmp comme n8)
-        }
-
-        tableau_inverse(résultat.chiffres)
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, n1)
         retourne résultat
     }
 
@@ -163,10 +155,8 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
         index += 1
     } tantque retenue != 0 && index < résultat.nombre_de_chiffres()
 
-    tantque retenue != 0 {
-        tmp := retenue % 10
-        retenue /= 10
-        tableau_ajoute(*résultat.chiffres, tmp comme n8)
+    si retenue != 0 {
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)
     }
 
     tableau_inverse(résultat.chiffres)
@@ -319,10 +309,8 @@ opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
         index += 1
     } tantque index < résultat.nombre_de_chiffres()
 
-    tantque retenue != 0 {
-        tmp := retenue % 10
-        retenue /= 10
-        tableau_ajoute(*résultat.chiffres, tmp comme n8)
+    si retenue != 0 {
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)
     }
 
     tableau_inverse(résultat.chiffres)
@@ -453,3 +441,24 @@ divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
 
     retourne q
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions auxiliaires pour les tableaux de chiffres.
+ * \{ */
+
+ajoute_chiffres_depuis_nombre :: fonc (chiffres: *[]n8, n: n64)
+{
+    si n < 10 {
+        tableau_ajoute(chiffres, n comme n8)
+        retourne
+    }
+
+    n = inverse_chiffres(n)
+
+    tantque n != 0 {
+        tableau_ajoute(chiffres, (n % 10) comme n8)
+        n /= 10
+    }
+}
+
+/** } */
