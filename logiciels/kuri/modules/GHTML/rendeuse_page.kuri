@@ -205,7 +205,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     données_génération.valeur = données
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
