@@ -168,8 +168,6 @@ cherche_mem :: fonc(source : []octet, valeur : z8, taille : z64) -> []octet
     }
 
     ret : []octet
-    ret.pointeur = nul
-    ret.taille = 0
 
     pour i dans 0...t - 1 {
         si source[i] == valeur comme octet {
