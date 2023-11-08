@@ -4,7 +4,7 @@ importe Unicode
 
 principale :: fonc () -> z32
 {
-    rune := Rune('a' comme n32)
+    rune := Rune(A_MINUSCULE)
 
     f := donne_permutation_casse(unicode_casefold, rune)
 

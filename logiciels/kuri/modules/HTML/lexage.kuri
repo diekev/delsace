@@ -1922,10 +1922,7 @@ apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
 
         c := lexeuse.document.points_de_code[index]
 
-        POINT_DE_CODE_A_MINUSCULE := 'a' comme n32
-        POINT_DE_CODE_Z_MINUSCULE := 'z' comme n32
-
-        si POINT_DE_CODE_A_MINUSCULE <= c <= POINT_DE_CODE_Z_MINUSCULE {
+        si A_MINUSCULE <= c <= Z_MINUSCULE {
             c -= 0x20
         }
 
