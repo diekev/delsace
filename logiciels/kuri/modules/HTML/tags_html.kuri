@@ -163,6 +163,10 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             arrête
         }
 
+        si it.texte == "TAG_vide" {
+            continue
+        }
+
         saufsi it.texte.commence_par("TAG_") {
             continue
         }
