@@ -379,7 +379,7 @@ en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
         rune := Rune(it)
 
         f := donne_permutation_casse(unicode_tolower, rune)
-        si f == nul || it < (f.min comme n32) {
+        si f == nul || it < f.min {
             continue
         }
         rune = applique_permutation(f, rune)
