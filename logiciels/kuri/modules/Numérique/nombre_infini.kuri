@@ -5,7 +5,7 @@ importe Fondation
  * de chiffres qu'il peut posséder.
  *
  * L'implémentation est rudimentaire et inefficiente, mais reste utile pour commencer à avoir ce
- * genre de structures dans la language.
+ * genre de structures dans le language.
  */
 
 NombreInfini :: struct {
