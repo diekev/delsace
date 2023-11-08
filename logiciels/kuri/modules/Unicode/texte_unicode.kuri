@@ -373,12 +373,15 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 
 importe Chaine
 
-en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
+en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
 {
     pour & chn.points_de_code {
         rune := Rune(it)
 
         f := donne_permutation_casse(unicode_tolower, rune)
+        si f == nul || it < (f.min comme n32) {
+            continue
+        }
         rune = applique_permutation(f, rune)
 
         it = rune comme n32

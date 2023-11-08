@@ -22,7 +22,7 @@ principale :: fonc () -> z32
     texte := crée_chaine_utf32("Kévin Dietrich")
     imprime("texte : %\n", texte)
 
-    en_majuscule_sur_place(texte)
+    en_minuscule_sur_place(texte)
 
     imprime("texte : %\n", texte)
 
