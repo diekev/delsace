@@ -44,7 +44,7 @@ importe Temps
     }
 
     contenu := contenu_fichier_texte(chm)
-	diffère { déloge(contenu); }
+    diffère { déloge(contenu); }
 
     éditeur.chemin_fichier = chemin
     éditeur_ajourne_message_status(éditeur, "Le fichier est ouvert !")

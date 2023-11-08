@@ -1,7 +1,7 @@
 importe Fondation
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-//##############################################################################
+/* ------------------------------------------------------------------------- */
 
 ret_simple :: fonc() -> z32
 {
@@ -40,26 +40,7 @@ test_ptr_fonction_ret_simple :: fonc() -> rien
     imprime("a = %\n", a)
 }
 
-/*
-coro_simple :: corout() -> z32
-{
-    pour i dans 0...10 {
-        retiens i
-    }
-}
-*/
-
-test_coro_simple :: fonc() -> rien
-{
-    imprime("---------------------------\n")
-    imprime("coro simple\n")
-
-    pour a dans coro_simple() {
-        imprime("a = %\n", a)
-    }
-}
-
-//##############################################################################
+/* ------------------------------------------------------------------------- */
 
 ret_multiple :: fonc() -> z32, bool
 {
@@ -114,50 +95,15 @@ test_ptr_fonction_ret_moult :: fonc() -> rien
     imprime("a = %, b = %\n", a, b)
 }
 
-//##############################################################################
-
-/*
-coro_multiple :: corout() -> z32, bool
-{
-    pour i dans 0 ... 10 {
-        retiens i * 3, (i % 3) == 0
-    }
-}
-
-// À FAIRE : possibilité de retourner une coroutine
-//corout coro_indirection() : z32, bool
-//{
-//    retourne coro_multiple();
-//}
-
-test_coro_ret_moult :: fonc() -> rien
-{
-    imprime("---------------------------\n")
-    imprime("coro ret multiple\n")
-
-    pour a, b, i dans coro_multiple() {
-        imprime("a = %, b = %, i = %\n", a, b; i)
-    }
-
-    // ignore un paramètre
-
-    // c = indirection();
-
-    // imprime("c = ", c, '\n');
-}
-*/
-
-//##############################################################################
+/* ------------------------------------------------------------------------- */
 
 principale :: fonc () -> z32
 {
     test_fonction_ret_simple()
     test_ptr_fonction_ret_simple()
-    // test_coro_simple()
 
     test_fonction_ret_moult()
     test_ptr_fonction_ret_moult()
-    // test_coro_ret_moult()
 
     retourne 0
 }
