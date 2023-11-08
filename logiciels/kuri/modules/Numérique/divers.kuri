@@ -189,7 +189,7 @@ somme_des_chiffres :: fonc (n: n64) -> n64
 // p.e pour 123 retourne 321
 inverse_chiffres :: fonc (n: $T) -> T
 {
-    résultat : n64 = 0
+    résultat : T = 0
 
     tantque n != 0 {
         chiffre := n % 10
