@@ -111,29 +111,6 @@ est_vide :: fonc(chn : chaine) -> bool
     retourne chn.taille == 0
 }
 
-découpe :: corout(texte : chaine, sep : z8) -> chaine
-{
-    taille_mot : z64 = 0
-    début_mot : z64 = 0
-    mot : chaine
-
-    pour c, i dans texte {
-        si c == sep {
-            retiens construit_chaine(*texte[début_mot], taille_mot)
-
-            début_mot = i + 1 comme z64
-            taille_mot = 0
-            continue
-        }
-
-        taille_mot += 1
-    }
-
-    si taille_mot != 0 {
-        retiens construit_chaine(*texte[début_mot], taille_mot)
-    }
-}
-
 // À FAIRE : permet de d'avoir une version avec un conteneur spécialisé (p.e. une pile)
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {

@@ -327,19 +327,6 @@ possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
     retourne trouve_info_membre(info, nom) != nul
 }
 
-membres :: corout (valeur : eini) -> chaine
-{
-    saufsi valeur.est_structure() {
-        retourne
-    }
-
-    info := valeur.info comme *InfoTypeStructure
-
-    pour membre dans info.membres {
-        retiens membre.nom
-    }
-}
-
 eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
 {
     e : eini

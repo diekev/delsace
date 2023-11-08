@@ -102,15 +102,3 @@ cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachag
 {
     retourne trouve(table, clé)
 }
-
-chaque_noeud :: corout(table : *TableHachage) -> *NoeudTableHachage
-{
-    pour alvéole dans table.alvéoles {
-        n := alvéole
-
-        tantque n != nul {
-            retiens n
-            n = n.suivant
-        }
-    }
-}
