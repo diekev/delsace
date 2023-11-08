@@ -3,29 +3,6 @@ importe SysFichier
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
-/** \nom Unicode.
- * \{ */
-
-Rune :: #opaque n32
-
-opérateur == :: fonc (rune1: Rune, rune2: Rune) -> bool
-{
-    retourne (rune1 comme n32) == (rune2 comme n32)
-}
-
-opérateur == :: fonc (rune: Rune, c: z8) -> bool
-{
-    retourne (rune comme n32) == (c comme n32)
-}
-
-opérateur != :: fonc (rune: Rune, c: z8) -> bool
-{
-    retourne !(rune == c)
-}
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Flux Source
  * \{ */
 
