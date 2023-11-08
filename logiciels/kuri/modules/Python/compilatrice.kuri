@@ -387,7 +387,8 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
             type_élément := convertis_vers_type_python(système, type_pointé)
 
-            nom := enchaine("Tableau_", remplace(type_élément.nom, '.', '_'))
+            nom := enchaine("Tableau_", type_élément.nom)
+            remplace_sans_copie(*nom, '.', '_')
             type_python = système.crée_type_python_pour(info, nom)
             type_python.drapeaux.TYPE_EST_TABLEAU = vrai
             type_python.type_élément = type_élément
