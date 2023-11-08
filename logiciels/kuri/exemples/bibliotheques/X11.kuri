@@ -35,10 +35,10 @@ GC :: *_XGC
  * Extensions need a way to hang private data on some structures.
  */
 _XExtData :: struct #externe {
-	number: z32		/* number returned by XRegisterExtension */
-	next: *_XExtData	/* next item on list of data for structure */
-	free_private: fonc (*_XExtData)(z32)	/* called to free private storage */
-	private_data: XPointer	/* data private to this extension. */
+    number: z32        /* number returned by XRegisterExtension */
+    next: *_XExtData    /* next item on list of data for structure */
+    free_private: fonc (*_XExtData)(z32)    /* called to free private storage */
+    private_data: XPointer    /* data private to this extension. */
 }
 
 XExtData :: _XExtData
@@ -63,19 +63,19 @@ Screen :: struct #externe {
     height: z32
     mwidth: z32 /* width and height of  in millimeters */
     mheight: z32
-	ndepths: z32		/* number of depths possible */
-	depths: *Depth /* list of allowable depths on the screen */
-	root_depth: z32		/* bits per pixel */
-	root_visual: Visual	/* root visual */
-	default_gc: GC		/* GC for the root root visual */
-	cmap: Colormap		/* default color map */
-	white_pixel: n64
-	black_pixel: n64	/* White and Black pixel values */
-	max_maps: z32 /* max and min color maps */
+    ndepths: z32        /* number of depths possible */
+    depths: *Depth /* list of allowable depths on the screen */
+    root_depth: z32        /* bits per pixel */
+    root_visual: Visual    /* root visual */
+    default_gc: GC        /* GC for the root root visual */
+    cmap: Colormap        /* default color map */
+    white_pixel: n64
+    black_pixel: n64    /* White and Black pixel values */
+    max_maps: z32 /* max and min color maps */
     min_maps: z32
-	backing_store: z32	/* Never, WhenMapped, Always */
-	save_unders: z32
-	root_input_mask: z64	/* initial root input mask */
+    backing_store: z32    /* Never, WhenMapped, Always */
+    save_unders: z32
+    root_input_mask: z64    /* initial root input mask */
 }
 
 /** } */
@@ -86,14 +86,14 @@ Screen :: struct #externe {
  * \{ */
 
 Visual :: struct #externe {
-	ext_data: XExtData	/* hook for extension to hang data */
-	visualid: VisualID	/* visual id of this visual */
-	class: z32		/* class of screen (monochrome, etc.) */
-	red_mask: n64	/* mask values */
+    ext_data: XExtData    /* hook for extension to hang data */
+    visualid: VisualID    /* visual id of this visual */
+    class: z32        /* class of screen (monochrome, etc.) */
+    red_mask: n64    /* mask values */
     green_mask: n64
     blue_mask: n64
-	bits_per_rgb: z32	/* log base 2 of distinct color values */
-	map_entries: z32	/* color map entries */
+    bits_per_rgb: z32    /* log base 2 of distinct color values */
+    map_entries: z32    /* color map entries */
 }
 
 /** } */
@@ -104,9 +104,9 @@ Visual :: struct #externe {
  * \{ */
 
 Depth :: struct #externe {
-	depth: z32		/* this depth (Z) of the depth */
-	nvisuals: z32		/* number of Visual types at this depth */
-	visuals: *Visual	/* list of visuals possible at this depth */
+    depth: z32        /* this depth (Z) of the depth */
+    nvisuals: z32        /* number of Visual types at this depth */
+    visuals: *Visual    /* list of visuals possible at this depth */
 }
 
 /** } */
@@ -201,9 +201,9 @@ DefaultScreen :: fonc (display: *Display) -> z32 #enligne
 
 principale :: fonc () -> z32
 {
-	diffère {
-	    imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
-	}
+    diffère {
+        imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+    }
 
     _ExposureMask := 1 << 15
     _KeyPressMask := 1 << 0

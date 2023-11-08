@@ -460,10 +460,6 @@ CompilatriceModulePython :: struct {
     modules_kuri_à_importer: EnsembleDeModules
 }
 
-// 520622 byte(s) leaked in 1097 allocation
-// 507949 byte(s) leaked in  965 allocation
-// 489903 byte(s) leaked in  803 allocation
-// 461935 byte(s) leaked in  757 allocation
 détruit :: fonc (compilatrice: &CompilatriceModulePython)
 {
     détruit(*compilatrice.modules_kuri_à_importer)

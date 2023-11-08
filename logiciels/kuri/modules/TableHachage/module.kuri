@@ -1,6 +1,6 @@
 importe Fondation
 
-//###############################################################################
+/* ------------------------------------------------------------------------- */
 // Implémentation d'une table de hachage chaine -> chaine
 // Voir aussi, comme inspiration :
 // https://en.wikipedia.org/wiki/Open_addressing
@@ -101,18 +101,6 @@ trouve :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 cherche_noeud :: fonc(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 {
     retourne trouve(table, clé)
-}
-
-chaque_noeud :: corout(table : *TableHachage) -> *NoeudTableHachage
-{
-    pour alvéole dans table.alvéoles {
-        n := alvéole
-
-        tantque n != nul {
-            retiens n
-            n = n.suivant
-        }
-    }
 }
 
 // --------------------------------------------------------------

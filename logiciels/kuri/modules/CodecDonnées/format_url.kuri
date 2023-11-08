@@ -231,14 +231,14 @@ encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
 
             saufsi fonction_de_formattage {
                 panique("pas de fonction de formattage pour le type dans encode_valeur")
-	        }
+            }
 
             /* À FAIRE : FluxEncodage pour les fonctions de formattage. */
             enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
             diffère détruit_tampons(*enchaineuse)
 
-	        fonction_de_formattage.fonction(*enchaineuse, valeur)
+            fonction_de_formattage.fonction(*enchaineuse, valeur)
 
             chn := chaine_depuis_enchaineuse(*enchaineuse)
             flux_encodage.écris(chn)
