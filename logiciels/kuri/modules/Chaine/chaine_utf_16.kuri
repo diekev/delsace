@@ -1,4 +1,5 @@
 importe Fondation
+importe Unicode
 
 rune8 :: z8
 rune16 :: n16

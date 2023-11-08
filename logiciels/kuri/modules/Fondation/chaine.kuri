@@ -2,6 +2,7 @@
 
 importe Algorithmes
 importe Compilatrice
+importe Unicode
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)

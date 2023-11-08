@@ -18,6 +18,7 @@
 
 importe Fondation
 importe SysFichier
+importe Unicode
 
 LigneTabuleuse :: struct {
     colonnes: []chaine

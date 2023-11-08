@@ -1,5 +1,6 @@
 importe Fondation
 importe SysFichier
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Unicode.

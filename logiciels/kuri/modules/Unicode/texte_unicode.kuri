@@ -1,0 +1,386 @@
+/*
+
+// https://github.com/google/re2/blob/master/util/utf.h
+enum
+{
+  UTFmax	= 4,		/* maximum bytes per rune */
+  Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
+  Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
+  Runeerror	= 0xFFFD,	/* decoding error in UTF */
+  Runemax	= 0x10FFFF,	/* maximum rune value */
+};
+
+https://github.com/google/re2/blob/master/util/rune.cc
+
+typedef signed int Rune;	/* Code-point values in Unicode 4.0 are 21 bits wide.*/
+
+enum
+{
+    Bit1    = 7,
+    Bitx    = 6,
+    Bit2    = 5,
+    Bit3    = 4,
+    Bit4    = 3,
+    Bit5    = 2,
+
+    T1    = ((1<<(Bit1+1))-1) ^ 0xFF,    /* 0000 0000 */
+    Tx    = ((1<<(Bitx+1))-1) ^ 0xFF,    /* 1000 0000 */
+    T2    = ((1<<(Bit2+1))-1) ^ 0xFF,    /* 1100 0000 */
+    T3    = ((1<<(Bit3+1))-1) ^ 0xFF,    /* 1110 0000 */
+    T4    = ((1<<(Bit4+1))-1) ^ 0xFF,    /* 1111 0000 */
+    T5    = ((1<<(Bit5+1))-1) ^ 0xFF,    /* 1111 1000 */
+
+    Rune1    = (1<<(Bit1+0*Bitx))-1,        /* 0000 0000 0111 1111 */
+    Rune2    = (1<<(Bit2+1*Bitx))-1,        /* 0000 0111 1111 1111 */
+    Rune3    = (1<<(Bit3+2*Bitx))-1,        /* 1111 1111 1111 1111 */
+    Rune4    = (1<<(Bit4+3*Bitx))-1,
+                                        /* 0001 1111 1111 1111 1111 1111 */
+
+    Maskx    = (1<<Bitx)-1,            /* 0011 1111 */
+    Testx    = Maskx ^ 0xFF,            /* 1100 0000 */
+
+    Bad    = Runeerror,
+};
+
+int
+chartorune(Rune *rune, const char *str)
+{
+    int c, c1, c2, c3;
+    long l;
+
+    /*
+     * one character sequence
+     *    00000-0007F => T1
+     */
+    c = *(unsigned char*)str;
+    if(c < Tx) {
+        *rune = c;
+        return 1;
+    }
+
+    /*
+     * two character sequence
+     *    0080-07FF => T2 Tx
+     */
+    c1 = *(unsigned char*)(str+1) ^ Tx;
+    if(c1 & Testx)
+        goto bad;
+    if(c < T3) {
+        if(c < T2)
+            goto bad;
+        l = ((c << Bitx) | c1) & Rune2;
+        if(l <= Rune1)
+            goto bad;
+        *rune = l;
+        return 2;
+    }
+
+    /*
+     * three character sequence
+     *    0800-FFFF => T3 Tx Tx
+     */
+    c2 = *(unsigned char*)(str+2) ^ Tx;
+    if(c2 & Testx)
+        goto bad;
+    if(c < T4) {
+        l = ((((c << Bitx) | c1) << Bitx) | c2) & Rune3;
+        if(l <= Rune2)
+            goto bad;
+        *rune = l;
+        return 3;
+    }
+
+    /*
+     * four character sequence (21-bit value)
+     *    10000-1FFFFF => T4 Tx Tx Tx
+     */
+    c3 = *(unsigned char*)(str+3) ^ Tx;
+    if (c3 & Testx)
+        goto bad;
+    if (c < T5) {
+        l = ((((((c << Bitx) | c1) << Bitx) | c2) << Bitx) | c3) & Rune4;
+        if (l <= Rune3)
+            goto bad;
+        *rune = l;
+        return 4;
+    }
+
+    /*
+     * Support for 5-byte or longer UTF-8 would go here, but
+     * since we don't have that, we'll just fall through to bad.
+     */
+
+    /*
+     * bad decoding
+     */
+bad:
+    *rune = Bad;
+    return 1;
+}
+
+int
+runetochar(char *str, const Rune *rune)
+{
+    /* Runes are signed, so convert to unsigned for range check. */
+    unsigned long c;
+
+    /*
+     * one character sequence
+     *    00000-0007F => 00-7F
+     */
+    c = *rune;
+    if(c <= Rune1) {
+        str[0] = static_cast<char>(c);
+        return 1;
+    }
+
+    /*
+     * two character sequence
+     *    0080-07FF => T2 Tx
+     */
+    if(c <= Rune2) {
+        str[0] = T2 | static_cast<char>(c >> 1*Bitx);
+        str[1] = Tx | (c & Maskx);
+        return 2;
+    }
+
+    /*
+     * If the Rune is out of range, convert it to the error rune.
+     * Do this test here because the error rune encodes to three bytes.
+     * Doing it earlier would duplicate work, since an out of range
+     * Rune wouldn't have fit in one or two bytes.
+     */
+    if (c > Runemax)
+        c = Runeerror;
+
+    /*
+     * three character sequence
+     *    0800-FFFF => T3 Tx Tx
+     */
+    if (c <= Rune3) {
+        str[0] = T3 | static_cast<char>(c >> 2*Bitx);
+        str[1] = Tx | ((c >> 1*Bitx) & Maskx);
+        str[2] = Tx | (c & Maskx);
+        return 3;
+    }
+
+    /*
+     * four character sequence (21-bit value)
+     *     10000-1FFFFF => T4 Tx Tx Tx
+     */
+    str[0] = T4 | static_cast<char>(c >> 3*Bitx);
+    str[1] = Tx | ((c >> 2*Bitx) & Maskx);
+    str[2] = Tx | ((c >> 1*Bitx) & Maskx);
+    str[3] = Tx | (c & Maskx);
+    return 4;
+}
+
+int
+runelen(Rune rune)
+{
+    char str[10];
+
+    return runetochar(str, &rune);
+}
+
+int
+fullrune(const char *str, int n)
+{
+    if (n > 0) {
+        int c = *(unsigned char*)str;
+        if (c < Tx)
+            return 1;
+        if (n > 1) {
+            if (c < T3)
+                return 1;
+            if (n > 2) {
+                if (c < T4 || n > 3)
+                    return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int
+utflen(const char *s)
+{
+    int c;
+    long n;
+    Rune rune;
+
+    n = 0;
+    for(;;) {
+        c = *(unsigned char*)s;
+        if(c < Runeself) {
+            if(c == 0)
+                return n;
+            s++;
+        } else
+            s += chartorune(&rune, s);
+        n++;
+    }
+    return 0;
+}
+
+char*
+utfrune(const char *s, Rune c)
+{
+    long c1;
+    Rune r;
+    int n;
+
+    if(c < Runesync)        /* not part of utf sequence */
+        return strchr((char*)s, c);
+
+    for(;;) {
+        c1 = *(unsigned char*)s;
+        if(c1 < Runeself) {    /* one byte rune */
+            if(c1 == 0)
+                return 0;
+            if(c1 == c)
+                return (char*)s;
+            s++;
+            continue;
+        }
+        n = chartorune(&r, s);
+        if(r == c)
+            return (char*)s;
+        s += n;
+    }
+    return 0;
+}
+
+// https://github.com/google/re2/blob/master/re2/unicode_groups.cc
+
+// https://github.com/google/libphonenumber/tree/master/cpp/src/phonenumbers/utf
+
+// https://github.com/google/libphonenumber/blob/master/cpp/src/phonenumbers/unicodestring.cc
+
+// https://github.com/chai2010/ptyy/blob/8e4f7362eaa8aa29e0e521025548c7cb52ae4e98/digit.go
+
+// https://github.com/golang/go/tree/master/src/unicode
+
+*/
+
+rune_depuis_pointeur :: fonc (ptr: *z8) -> Rune
+{
+    x := converti_utf8_utf32(ptr)
+    retourne Rune(x comme n32)
+}
+
+est_chaine_utf8_valide :: fonc (chn: chaine) -> bool
+{
+    ptr := chn.pointeur
+    pour i dans 0 ... chn.taille - 1 {
+        n := nombre_octets_utf8(ptr)
+
+        si n == 0 {
+            retourne faux
+        }
+
+        ptr += n
+    }
+
+    retourne vrai
+}
+
+TexteUnicode :: struct {
+    chn: chaine
+    index_sauvegardé : z64 = -1
+    it_sauvegardé : Rune
+}
+
+crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
+{
+    // validation de la chaine
+
+    retourne TexteUnicode(chn)
+}
+
+// À FAIRE : référence
+opérateur [] :: fonc (texte: TexteUnicode, index: z64) -> Rune
+{
+    ptr := texte.chn.pointeur
+
+    si texte.index_sauvegardé == -1 || texte.index_sauvegardé > index {
+        texte.index_sauvegardé = 0
+        texte.it_sauvegardé = rune_depuis_pointeur(ptr)
+    }
+
+    si index == texte.index_sauvegardé {
+        retourne texte.it_sauvegardé
+    }
+
+    tantque texte.index_sauvegardé < index {
+        n := nombre_octets_utf8(ptr)
+        ptr += n
+        texte.index_sauvegardé += 1
+    }
+
+    texte.it_sauvegardé = rune_depuis_pointeur(ptr)
+    retourne texte.it_sauvegardé
+}
+
+ItératriceUTF8 :: struct {
+    chn : chaine
+    position : z64 = 0
+}
+
+crée_itératrice_utf8 :: fonc (chn: chaine)
+{
+    itératrice : ItératriceUTF8
+
+    si !est_chaine_utf8_valide(chn) {
+        retourne
+    }
+
+    itératrice.chn = chn
+    retourne itératrice
+}
+
+rune_suivante :: fonc (itératrice: &ItératriceUTF8) -> Rune
+{
+    ptr := itératrice.chn.pointeur + itératrice.position
+    itératrice.position += nombre_octets_utf8(ptr)
+    retourne rune_depuis_pointeur(ptr)
+}
+
+valide :: fonc (itératrice: &ItératriceUTF8) -> bool
+{
+    retourne itératrice.position < itératrice.chn.taille
+}
+
+// À FAIRE : itérateurs
+/*
+
+    expansion_pour :: fonc (texte: &TexteUnicode) -> Rune #macro
+    {
+        ptr := texte.chn.pointeur
+
+        pour i dans 0 ... texte.chn.taille - 1 {
+
+            `it = rune_depus_pointeur(ptr)
+            `index_it += 1
+
+            #insert_corps
+
+            ptr += nombre_octets_utf8(ptr)
+        }
+    }
+
+*/
+
+importe Chaine
+
+en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
+{
+    pour & chn.points_de_code {
+        rune := Rune(it)
+
+        f := donne_permutation_casse(unicode_tolower, rune)
+        rune = applique_permutation(f, rune)
+
+        it = rune comme n32
+    }
+}
