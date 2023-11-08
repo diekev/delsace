@@ -148,7 +148,7 @@ exécute :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente) -> z32
     fenêtre_principale := app.fenêtre comme *FenêtreGLFW
 
     tantque glfwWindowShouldClose(fenêtre_principale.fenêtre) == 0 {
-	    glfwWaitEvents()
+        glfwWaitEvents()
         gère_évènement(app, cliente)
         dessine_application(app, cliente)
     }

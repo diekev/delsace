@@ -38,7 +38,7 @@ nombre_de_bits_zéro_en_fin :: fonc(i: n64) -> n32
     y = i <<  4; si y != 0 { n = n -  4; i = y; }
     y = i <<  2; si y != 0 { n = n -  2; i = y; }
 
-	retourne (n - (i << 1) >> 63) comme n32
+    retourne (n - (i << 1) >> 63) comme n32
 }
 
 compte_nombre_de_bits_actifs :: fonc (x: n32) -> n32

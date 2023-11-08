@@ -38,6 +38,16 @@ est_surrogate :: fonc (point_de_code: n32) -> bool
     retourne 0xD800 <= point_de_code <= 0xDFFF
 }
 
+est_leading_surrogate :: fonc (unité: n16) -> bool #enligne
+{
+    retourne 0xD800 <= unité <= 0xDBFF
+}
+
+est_trailling_surrogate :: fonc (unité: n16) -> bool #enligne
+{
+    retourne 0xDC00 <= unité <= 0xDFFF
+}
+
 est_valeur_scalaire :: fonc (point_de_code: n32) -> bool
 {
     retourne !est_surrogate(point_de_code)
@@ -125,4 +135,10 @@ est_ascii_alpha :: fonc (point_de_code: n32) -> bool
 est_ascii_alphanumérique :: fonc (point_de_code: n32) -> bool
 {
     retourne est_ascii_alpha(point_de_code) || est_ascii_chiffre(point_de_code)
+}
+
+/* Utilisé par/pour HTML. */
+est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
 }

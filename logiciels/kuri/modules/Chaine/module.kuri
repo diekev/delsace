@@ -2,8 +2,8 @@ importe Fondation
 
 charge "chaine_c"
 charge "chaine_internée"
-charge "chaine_utf_16"
 charge "chaine_utf32"
+charge "chaine_utf_16"
 charge "empreintes"
 
 supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
@@ -33,4 +33,31 @@ supprime_espaces_blancs_à_la_fin :: fonc (ligne: chaine) -> chaine
         ligne = recule(ligne, 1)
     }
     retourne ligne
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (c1: z8, c2: z8) -> bool #enligne
+{
+    si c1 == c2 {
+        retourne vrai
+    }
+
+    retourne en_minuscule(c1) == en_minuscule(c2)
+}
+
+compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> bool
+{
+    si chn1.taille != chn2.taille {
+        retourne faux
+    }
+
+    pour chn1.taille {
+        c1 := chn1[index_it]
+        c2 := chn2[index_it]
+
+        saufsi compare_ascii_insensible_à_la_casse(c1, c2) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }

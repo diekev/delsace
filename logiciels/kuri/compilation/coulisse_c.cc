@@ -1764,17 +1764,17 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
+        param->comme_instruction()->numero = numéro_inst;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param->comme_instruction());
         os << ";\n";
 
-        param->comme_instruction()->numero = numéro_inst;
         table_valeurs[numéro_inst++] = enchaine(
             "&", donne_nom_pour_instruction(param->comme_instruction()));
     }
 
-    /* Générons le code pour les accès de membres des retours mutliples. */
+    /* Générons le code pour les accès de membres des retours multiples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             auto inst = param->comme_declaration_variable()->atome->comme_instruction();
