@@ -1,4 +1,5 @@
 importe Fondation
+importe Numérique
 importe Unicode
 
 rune8 :: z8
@@ -518,13 +519,7 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
         enchaineuse.ajoute('0')
     }
     sinon {
-        inverse := 0
-
-        tantque nombre != 0 {
-            inverse *= 10
-            inverse += nombre % 10
-            nombre /= 10
-        }
+        inverse := inverse_chiffres(nombre)
 
         tantque inverse != 0 {
             chiffre := '0' + (inverse % 10) comme z8
