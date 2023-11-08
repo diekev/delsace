@@ -12,7 +12,7 @@ TypeObjet :: énum z32 {
 /* ------------------------------------------------------------------------- */
 
 Objet :: struct {
-    id : TypeObjet
+    id := TypeObjet.NUL
 }
 
 /* ------------------------------------------------------------------------- */
@@ -20,6 +20,7 @@ Objet :: struct {
 ObjetEntier :: struct {
     empl objet : Objet
     valeur : z64
+    id = TypeObjet.ENTIER
 }
 
 /* ------------------------------------------------------------------------- */
@@ -27,6 +28,7 @@ ObjetEntier :: struct {
 ObjetRéel :: struct {
     empl objet : Objet
     valeur : r64
+    id = TypeObjet.RÉEL
 }
 
 /* ------------------------------------------------------------------------- */
@@ -34,6 +36,7 @@ ObjetRéel :: struct {
 ObjetChaine :: struct {
     empl objet : Objet
     valeur : chaine
+    id = TypeObjet.CHAINE
 }
 
 /* ------------------------------------------------------------------------- */
@@ -41,6 +44,7 @@ ObjetChaine :: struct {
 ObjetListe :: struct {
     empl objet : Objet
     valeur : []*Objet
+    id = TypeObjet.LISTE
 }
 
 /* ------------------------------------------------------------------------- */
@@ -49,6 +53,7 @@ ObjetDictionnaire :: struct {
     empl objet : Objet
     noms : []chaine
     valeurs : []*Objet
+    id = TypeObjet.DICTIONNAIRE
 }
 
 insère :: fonc(dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
@@ -162,73 +167,41 @@ GestionnaireObjet :: struct {
     objets : []*Objet
 }
 
+crée_objet_impl :: fonc (gestionnaire: *GestionnaireObjet, $T: type_de_données) -> *T
+{
+    résultat := loge(T)
+    tableau_ajoute(*gestionnaire.objets, résultat)
+    retourne résultat
+}
+
 crée_dictionnaire :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
-    objet := loge(ObjetDictionnaire)
-    objet.id = TypeObjet.DICTIONNAIRE
-    objet.noms.taille = 0
-    objet.noms.pointeur = nul
-    objet.valeurs.taille = 0
-    objet.valeurs.pointeur = nul
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, ObjetDictionnaire)
 }
 
 crée_liste :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 {
-    objet := loge(ObjetListe)
-    objet.id = TypeObjet.LISTE
-    objet.valeur.taille = 0
-    objet.valeur.pointeur = nul
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, ObjetListe)
 }
 
 crée_entier :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 {
-    objet := loge(ObjetEntier)
-    objet.id = TypeObjet.ENTIER
-    objet.valeur = 0
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, ObjetEntier)
 }
 
 crée_réel :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 {
-    objet := loge(ObjetRéel)
-    objet.id = TypeObjet.RÉEL
-    objet.valeur = 0.0
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, ObjetRéel)
 }
 
 crée_chaine :: fonc(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 {
-    objet := loge(ObjetChaine)
-    objet.id = TypeObjet.CHAINE
-    objet.valeur = ""
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, ObjetChaine)
 }
 
 crée_nul :: fonc(gestionnaire : *GestionnaireObjet) -> *Objet
 {
-    objet := loge(Objet)
-    objet.id = TypeObjet.NUL
-
-    tableau_ajoute(*gestionnaire.objets, objet)
-
-    retourne objet
+    retourne crée_objet_impl(gestionnaire, Objet)
 }
 
 détruit_objet :: fonc(objet : *Objet) -> rien
@@ -267,11 +240,7 @@ détruit_objet :: fonc(objet : *Objet) -> rien
 
 détruit :: fonc(gestionnaire : *GestionnaireObjet) -> rien
 {
-    pour obj dans gestionnaire.objets {
-        détruit_objet(obj)
-    }
-
-    déloge(gestionnaire.objets)
+    déloge_tableau_et_ses_éléments(gestionnaire.objets)
 }
 
 imprime_json :: fonc(objet : *Objet, tab : z32) -> rien
