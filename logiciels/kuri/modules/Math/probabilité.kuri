@@ -62,12 +62,7 @@ Probabilité :: struct {
 
 ajoute_chiffres_fraction :: fonc (p: *Probabilité, fraction: n64)
 {
-    fraction = inverse_chiffres(fraction)
-
-    tantque fraction != 0 {
-        tableau_ajoute(*p.chiffres, (fraction % 10) comme n8)
-        fraction /= 10
-    }
+    ajoute_chiffres_depuis_nombre(*p.chiffres, fraction)
 }
 
 ajoute_chiffres :: fonc (p: *Probabilité, chiffres: []n8)
