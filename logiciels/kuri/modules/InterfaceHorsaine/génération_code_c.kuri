@@ -5,6 +5,7 @@ importe Bits
 importe Compilatrice
 importe Fondation
 importe SysFichier
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Génération code C.
@@ -66,12 +67,12 @@ supprime_points_et_parenthèses :: fonc (chn: *chaine)
 
 assainie_noms :: fonc (type: *InfoTypeC)
 {
-    supprime_caractère_unicode(*type.nom_type_c)
-    supprime_caractère_unicode(*type.nom_type_c_élément_tableau)
-    supprime_caractère_unicode(*type.transtype_cpp_vers_c)
+    remplace_caractères_accentués(*type.nom_type_c)
+    remplace_caractères_accentués(*type.nom_type_c_élément_tableau)
+    remplace_caractères_accentués(*type.transtype_cpp_vers_c)
 
     si type.type_kuri_requiers_conversion_tableau {
-        supprime_caractère_unicode(*type.nom_type_kuri_c)
+        remplace_caractères_accentués(*type.nom_type_kuri_c)
     }
 }
 
