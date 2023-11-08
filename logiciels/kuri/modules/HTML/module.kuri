@@ -120,13 +120,8 @@ détruit_noeud_selon_genre :: fonc (noeud: *Noeud)
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    pour noeud.enfants {
-        détruit_noeud(it)
-    }
-
     détruit_attributs(noeud.attributs)
-
-    déloge(noeud.enfants)
+    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
     détruit_noeud_selon_genre(noeud)
 }
 
