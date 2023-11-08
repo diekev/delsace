@@ -69,21 +69,21 @@ matrice_de_visé :: fonc (pos: Vec3, cible: Vec3, haut: Vec3) -> Mat4r
 
     résultat := construit_mat4r_neutre()
 
-	résultat.m[0][0] =  dir_droite.x;
-	résultat.m[1][0] =  dir_droite.y;
-	résultat.m[2][0] =  dir_droite.z;
+    résultat.m[0][0] =  dir_droite.x;
+    résultat.m[1][0] =  dir_droite.y;
+    résultat.m[2][0] =  dir_droite.z;
 
-	résultat.m[0][1] =  dir_haut.x;
-	résultat.m[1][1] =  dir_haut.y;
-	résultat.m[2][1] =  dir_haut.z;
+    résultat.m[0][1] =  dir_haut.x;
+    résultat.m[1][1] =  dir_haut.y;
+    résultat.m[2][1] =  dir_haut.z;
 
-	résultat.m[0][2] = -dir_avant.x;
-	résultat.m[1][2] = -dir_avant.y;
-	résultat.m[2][2] = -dir_avant.z;
+    résultat.m[0][2] = -dir_avant.x;
+    résultat.m[1][2] = -dir_avant.y;
+    résultat.m[2][2] = -dir_avant.z;
 
-	résultat.m[3][0] = -produit_scalaire(dir_droite, pos);
-	résultat.m[3][1] = -produit_scalaire(dir_haut, pos);
-	résultat.m[3][2] =  produit_scalaire(dir_avant, pos);
+    résultat.m[3][0] = -produit_scalaire(dir_droite, pos);
+    résultat.m[3][1] = -produit_scalaire(dir_haut, pos);
+    résultat.m[3][2] =  produit_scalaire(dir_avant, pos);
 
     retourne résultat
 }
@@ -248,93 +248,93 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
     index_pivots := [ 0, 0, 0, 0 ]
 
     pour i dans 0 ... 3 {
-		il := 0
-		ic := 0
-		big := 0.0
+        il := 0
+        ic := 0
+        big := 0.0
 
-		/* Choisie le pivot */
+        /* Choisie le pivot */
         pour j dans 0 ... 3 {
-			si index_pivots[j] == 1 {
-				continue
-			}
+            si index_pivots[j] == 1 {
+                continue
+            }
 
             pour k dans 0 ... 3 {
                 si index_pivots[k] == 0 {
                     abs_jk := abs(matrice_inverse.m[j][k])
 
-					si abs_jk >= big {
-						big = abs_jk
-						il = j
-						ic = k
-					}
-				}
+                    si abs_jk >= big {
+                        big = abs_jk
+                        il = j
+                        ic = k
+                    }
+                }
                 sinon si (index_pivots[k] > 1) {
-					/* À FAIRE : erreur :
-					 * "Matrice singulière donnée à la fonction inverse". */
+                    /* À FAIRE : erreur :
+                     * "Matrice singulière donnée à la fonction inverse". */
                     retourne faux
                 }
             }
-		}
+        }
 
-		index_pivots[ic] += 1
+        index_pivots[ic] += 1
 
-		/* Permute les lignes _irow_ et _icol_ pour le pivot. */
-		si il != ic {
+        /* Permute les lignes _irow_ et _icol_ pour le pivot. */
+        si il != ic {
             pour k dans 0 ... 3 {
                 échange(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k])
             }
-		}
+        }
 
-		index_lignes[i] = il
-		index_colonnes[i] = ic
+        index_lignes[i] = il
+        index_colonnes[i] = ic
 
-		si matrice_inverse.m[ic][ic] == 0.0 {
-			/* À FAIRE : erreur :
-			 * "Matrice singulière donnée à la fonction inverse". */
-			retourne faux
-		}
+        si matrice_inverse.m[ic][ic] == 0.0 {
+            /* À FAIRE : erreur :
+             * "Matrice singulière donnée à la fonction inverse". */
+            retourne faux
+        }
 
-		/* Mise à l'échelle la ligne pour faire en sorte que sa valeur sur la
-		 * diagonale soit égal à 1 (un). */
-		pivot_inverse := 1.0 / matrice_inverse.m[ic][ic];
-		matrice_inverse.m[ic][ic] = 1.0;
+        /* Mise à l'échelle la ligne pour faire en sorte que sa valeur sur la
+         * diagonale soit égal à 1 (un). */
+        pivot_inverse := 1.0 / matrice_inverse.m[ic][ic];
+        matrice_inverse.m[ic][ic] = 1.0;
 
-		pour j dans 0 ... 3 {
-			matrice_inverse.m[ic][j] *= pivot_inverse
-		}
+        pour j dans 0 ... 3 {
+            matrice_inverse.m[ic][j] *= pivot_inverse
+        }
 
-		/* Soustrait cette ligne des autres pour mettre à zéro leurs colonnes. */
-		pour j dans 0 ... 3 {
-			si j == ic {
-				continue;
-			}
+        /* Soustrait cette ligne des autres pour mettre à zéro leurs colonnes. */
+        pour j dans 0 ... 3 {
+            si j == ic {
+                continue;
+            }
 
-			sauvegarde := matrice_inverse.m[j][ic]
-			matrice_inverse.m[j][ic] = 0.0
+            sauvegarde := matrice_inverse.m[j][ic]
+            matrice_inverse.m[j][ic] = 0.0
 
-		    pour k dans 0 ... 3 {
-				matrice_inverse.m[j][k] -= matrice_inverse.m[ic][k] * sauvegarde;
-			}
-		}
-	}
+            pour k dans 0 ... 3 {
+                matrice_inverse.m[j][k] -= matrice_inverse.m[ic][k] * sauvegarde;
+            }
+        }
+    }
 
-	/* Échange les colonnes pour réfléchir la permutation. */
+    /* Échange les colonnes pour réfléchir la permutation. */
     j := 3
     tantque j >= 0 {
-		si (index_lignes[j] == index_colonnes[j]) {
+        si (index_lignes[j] == index_colonnes[j]) {
             j -= 1
-			continue;
-		}
+            continue;
+        }
 
-		pour k dans 0 ... 3 {
-			échange(*matrice_inverse.m[k][index_lignes[j]],
-					*matrice_inverse.m[k][index_colonnes[j]]);
-		}
+        pour k dans 0 ... 3 {
+            échange(*matrice_inverse.m[k][index_lignes[j]],
+                    *matrice_inverse.m[k][index_colonnes[j]]);
+        }
 
         j -= 1
     }
 
-	retourne vrai
+    retourne vrai
 }
 
 inverse :: fonc (mat: Mat4r) -> Mat4r
@@ -351,46 +351,46 @@ inverse :: fonc (mat: Mat4r) -> Mat4r
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32) -> Mat4r
 {
     résultat : Mat4r = construit_mat4r_neutre()
-	résultat.m[0][0] = 2.0 / (droite - gauche)
-	résultat.m[1][1] = 2.0 / (haut - bas)
-	résultat.m[2][2] = - 1.0
-	résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
-	résultat.m[3][1] = - (haut + bas) / (haut - bas)
-	retourne résultat
+    résultat.m[0][0] = 2.0 / (droite - gauche)
+    résultat.m[1][1] = 2.0 / (haut - bas)
+    résultat.m[2][2] = - 1.0
+    résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
+    résultat.m[3][1] = - (haut + bas) / (haut - bas)
+    retourne résultat
 }
 
 crée_matrice_projection_orthographique :: fonc (largeur: r32, hauteur: r32) -> Mat4r
 {
-	retourne crée_matrice_projection_orthographique(-largeur, largeur, -hauteur, hauteur)
+    retourne crée_matrice_projection_orthographique(-largeur, largeur, -hauteur, hauteur)
 }
 
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
 {
     résultat : Mat4r = construit_mat4r_neutre()
-	résultat.m[0][0] = 2.0 / (droite - gauche)
-	résultat.m[1][1] = 2.0 / (haut - bas)
-	résultat.m[2][2] = - 2.0 / (plan_éloigné - plan_proche)
-	résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
-	résultat.m[3][1] = - (haut + bas) / (haut - bas)
-	résultat.m[3][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-	retourne résultat
+    résultat.m[0][0] = 2.0 / (droite - gauche)
+    résultat.m[1][1] = 2.0 / (haut - bas)
+    résultat.m[2][2] = - 2.0 / (plan_éloigné - plan_proche)
+    résultat.m[3][0] = - (droite + gauche) / (droite - gauche)
+    résultat.m[3][1] = - (haut + bas) / (haut - bas)
+    résultat.m[3][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
+    retourne résultat
 }
 
 crée_matrice_projection_perspective :: fonc (fovy: r32, aspect: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
 {
-	assert(aspect != 0.0)
-	assert(plan_éloigné != plan_proche)
+    assert(aspect != 0.0)
+    assert(plan_éloigné != plan_proche)
 
-	rad := fovy
-	tanHalfFovy := tan(rad / 2.0)
+    rad := fovy
+    tanHalfFovy := tan(rad / 2.0)
 
-	résultat : Mat4r
-	résultat.m[0][0] = 1.0 / (aspect * tanHalfFovy)
-	résultat.m[1][1] = 1.0 / (tanHalfFovy)
-	résultat.m[2][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-	résultat.m[2][3] = - 1.0
-	résultat.m[3][2] = - (2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
-	retourne résultat
+    résultat : Mat4r
+    résultat.m[0][0] = 1.0 / (aspect * tanHalfFovy)
+    résultat.m[1][1] = 1.0 / (tanHalfFovy)
+    résultat.m[2][2] = - (plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
+    résultat.m[2][3] = - 1.0
+    résultat.m[3][2] = - (2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
+    retourne résultat
 }
 
 // ------------------------------------------------------------

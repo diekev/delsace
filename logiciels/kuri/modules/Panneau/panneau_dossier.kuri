@@ -1,8 +1,8 @@
 importe Couleur
 importe Fondation
 importe Géométrie
-importe PeintureInterface
 importe Périphériques
+importe PeintureInterface
 importe Typographie
 
 Dossier :: struct {

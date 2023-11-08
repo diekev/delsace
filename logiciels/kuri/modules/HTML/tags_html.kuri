@@ -1,4 +1,6 @@
 importe Chaine
+importe Compilatrice
+importe Fondation
 
 /* Les tags communs comme ChaineInternées */
 
@@ -124,258 +126,68 @@ TAG_ul : *ChaineInternée
 TAG_wbr : *ChaineInternée
 TAG_xmp : *ChaineInternée
 
+/* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
+ * métaprogrammes plus bas. */
 tags_initialisés := faux
 
 initialise_tags :: fonc ()
-{
-    si tags_initialisés {
-        retourne
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "    si tags_initialisés { retourne }\n")
+    ajoute_au_tampon(*enchaineuse, "    tags_initialisés = vrai\n")
+    ajoute_au_tampon(*enchaineuse, "    TAG_vide = crée_chaine_internée_converti_utf32(\"\")\n")
+
+    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+
+    pour lexèmes {
+        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
+            continue
+        }
+
+        si it.texte == "tags_initialisés" {
+            arrête
+        }
+
+        saufsi it.texte.commence_par("TAG_") {
+            continue
+        }
+
+        nom_tag := it.texte.avance(4)
+        si nom_tag == "annotation_xml" {
+            nom_tag = "annotation-xml"
+        }
+        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_internée_converti_utf32(\"", nom_tag, "\")\n")
     }
 
-    tags_initialisés = vrai
-
-    TAG_vide = crée_chaine_internée_converti_utf32("")
-
-    TAG_a = crée_chaine_internée_converti_utf32("a")
-	TAG_address = crée_chaine_internée_converti_utf32("address")
-    TAG_annotation_xml = crée_chaine_internée_converti_utf32("annotation-xml")
-	TAG_applet = crée_chaine_internée_converti_utf32("applet")
-	TAG_area = crée_chaine_internée_converti_utf32("area")
-	TAG_article = crée_chaine_internée_converti_utf32("article")
-	TAG_aside = crée_chaine_internée_converti_utf32("aside")
-	TAG_b = crée_chaine_internée_converti_utf32("b")
-	TAG_base = crée_chaine_internée_converti_utf32("base")
-	TAG_basefont = crée_chaine_internée_converti_utf32("basefont")
-	TAG_basefront = crée_chaine_internée_converti_utf32("basefront")
-	TAG_bgsound = crée_chaine_internée_converti_utf32("bgsound")
-	TAG_big = crée_chaine_internée_converti_utf32("big")
-    TAG_blink = crée_chaine_internée_converti_utf32("blink")
-	TAG_blockquote = crée_chaine_internée_converti_utf32("blockquote")
-	TAG_body = crée_chaine_internée_converti_utf32("body")
-	TAG_br = crée_chaine_internée_converti_utf32("br")
-	TAG_button = crée_chaine_internée_converti_utf32("button")
-	TAG_caption = crée_chaine_internée_converti_utf32("caption")
-	TAG_center = crée_chaine_internée_converti_utf32("center")
-	TAG_code = crée_chaine_internée_converti_utf32("code")
-	TAG_col = crée_chaine_internée_converti_utf32("col")
-	TAG_colgroup = crée_chaine_internée_converti_utf32("colgroup")
-	TAG_dd = crée_chaine_internée_converti_utf32("dd")
-	TAG_desc = crée_chaine_internée_converti_utf32("desc")
-	TAG_details = crée_chaine_internée_converti_utf32("details")
-	TAG_dialog = crée_chaine_internée_converti_utf32("dialog")
-	TAG_dir = crée_chaine_internée_converti_utf32("dir")
-	TAG_div = crée_chaine_internée_converti_utf32("div")
-	TAG_dl = crée_chaine_internée_converti_utf32("dl")
-	TAG_dt = crée_chaine_internée_converti_utf32("dt")
-	TAG_em = crée_chaine_internée_converti_utf32("em")
-	TAG_embed = crée_chaine_internée_converti_utf32("embed")
-	TAG_fieldset = crée_chaine_internée_converti_utf32("fieldset")
-	TAG_figcaption = crée_chaine_internée_converti_utf32("figcaption")
-	TAG_figure = crée_chaine_internée_converti_utf32("figure")
-	TAG_font = crée_chaine_internée_converti_utf32("font")
-	TAG_footer = crée_chaine_internée_converti_utf32("footer")
-	TAG_foreignObject = crée_chaine_internée_converti_utf32("foreignObject")
-	TAG_form = crée_chaine_internée_converti_utf32("form")
-	TAG_frame = crée_chaine_internée_converti_utf32("frame")
-	TAG_frameset = crée_chaine_internée_converti_utf32("frameset")
-	TAG_h1 = crée_chaine_internée_converti_utf32("h1")
-	TAG_h2 = crée_chaine_internée_converti_utf32("h2")
-	TAG_h3 = crée_chaine_internée_converti_utf32("h3")
-	TAG_h4 = crée_chaine_internée_converti_utf32("h4")
-	TAG_h5 = crée_chaine_internée_converti_utf32("h5")
-	TAG_h6 = crée_chaine_internée_converti_utf32("h6")
-	TAG_head = crée_chaine_internée_converti_utf32("head")
-	TAG_header = crée_chaine_internée_converti_utf32("header")
-	TAG_hgroup = crée_chaine_internée_converti_utf32("hgroup")
-	TAG_hr = crée_chaine_internée_converti_utf32("hr")
-	TAG_html = crée_chaine_internée_converti_utf32("html")
-	TAG_i = crée_chaine_internée_converti_utf32("i")
-	TAG_iframe = crée_chaine_internée_converti_utf32("iframe")
-	TAG_image = crée_chaine_internée_converti_utf32("image")
-	TAG_img = crée_chaine_internée_converti_utf32("img")
-	TAG_input = crée_chaine_internée_converti_utf32("input")
-	TAG_keygen = crée_chaine_internée_converti_utf32("keygen")
-    TAG_legend = crée_chaine_internée_converti_utf32("legend")
-	TAG_li = crée_chaine_internée_converti_utf32("li")
-	TAG_link = crée_chaine_internée_converti_utf32("link")
-	TAG_listing = crée_chaine_internée_converti_utf32("listing")
-	TAG_main = crée_chaine_internée_converti_utf32("main")
-	TAG_marquee = crée_chaine_internée_converti_utf32("marquee")
-	TAG_math = crée_chaine_internée_converti_utf32("math")
-	TAG_menu = crée_chaine_internée_converti_utf32("menu")
-	TAG_meta = crée_chaine_internée_converti_utf32("meta")
-    TAG_mi = crée_chaine_internée_converti_utf32("mi")
-    TAG_mo = crée_chaine_internée_converti_utf32("mo")
-    TAG_mn = crée_chaine_internée_converti_utf32("mn")
-    TAG_ms = crée_chaine_internée_converti_utf32("ms")
-    TAG_mtext = crée_chaine_internée_converti_utf32("mtext")
-	TAG_nav = crée_chaine_internée_converti_utf32("nav")
-	TAG_nobr = crée_chaine_internée_converti_utf32("nobr")
-	TAG_noembed = crée_chaine_internée_converti_utf32("noembed")
-	TAG_noframes = crée_chaine_internée_converti_utf32("noframes")
-	TAG_noscript = crée_chaine_internée_converti_utf32("noscript")
-	TAG_object = crée_chaine_internée_converti_utf32("object")
-	TAG_ol = crée_chaine_internée_converti_utf32("ol")
-	TAG_optgroup = crée_chaine_internée_converti_utf32("optgroup")
-	TAG_option = crée_chaine_internée_converti_utf32("option")
-	TAG_p = crée_chaine_internée_converti_utf32("p")
-	TAG_param = crée_chaine_internée_converti_utf32("param")
-	TAG_plaintext = crée_chaine_internée_converti_utf32("plaintext")
-	TAG_pre = crée_chaine_internée_converti_utf32("pre")
-	TAG_rb = crée_chaine_internée_converti_utf32("rb")
-	TAG_rp = crée_chaine_internée_converti_utf32("rp")
-	TAG_rt = crée_chaine_internée_converti_utf32("rt")
-	TAG_rtc = crée_chaine_internée_converti_utf32("rtc")
-	TAG_ruby = crée_chaine_internée_converti_utf32("ruby")
-	TAG_s = crée_chaine_internée_converti_utf32("s")
-	TAG_script = crée_chaine_internée_converti_utf32("script")
-	TAG_section = crée_chaine_internée_converti_utf32("section")
-	TAG_select = crée_chaine_internée_converti_utf32("select")
-	TAG_small = crée_chaine_internée_converti_utf32("small")
-	TAG_source = crée_chaine_internée_converti_utf32("source")
-	TAG_strike = crée_chaine_internée_converti_utf32("strike")
-	TAG_strong = crée_chaine_internée_converti_utf32("strong")
-	TAG_style = crée_chaine_internée_converti_utf32("style")
-	TAG_summary = crée_chaine_internée_converti_utf32("summary")
-	TAG_svg = crée_chaine_internée_converti_utf32("svg")
-	TAG_table = crée_chaine_internée_converti_utf32("table")
-	TAG_tbody = crée_chaine_internée_converti_utf32("tbody")
-	TAG_td = crée_chaine_internée_converti_utf32("td")
-	TAG_template = crée_chaine_internée_converti_utf32("template")
-	TAG_textarea = crée_chaine_internée_converti_utf32("textarea")
-	TAG_tfoot = crée_chaine_internée_converti_utf32("tfoot")
-	TAG_th = crée_chaine_internée_converti_utf32("th")
-	TAG_thead = crée_chaine_internée_converti_utf32("thead")
-	TAG_title = crée_chaine_internée_converti_utf32("title")
-	TAG_tr = crée_chaine_internée_converti_utf32("tr")
-	TAG_track = crée_chaine_internée_converti_utf32("track")
-	TAG_tt = crée_chaine_internée_converti_utf32("tt")
-	TAG_u = crée_chaine_internée_converti_utf32("u")
-	TAG_ul = crée_chaine_internée_converti_utf32("ul")
-	TAG_wbr = crée_chaine_internée_converti_utf32("wbr")
-    TAG_xmp = crée_chaine_internée_converti_utf32("xmp")
-
-    // imprime_tags()
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-importe Fondation
-
 imprime_tags :: fonc ()
-{
-    imprime("TAG_a : %\n", TAG_a.chn)
-    imprime("TAG_address : %\n", TAG_address.chn)
-    imprime("TAG_annotation_xml : %\n", TAG_annotation_xml)
-    imprime("TAG_applet : %\n", TAG_applet.chn)
-    imprime("TAG_area : %\n", TAG_area.chn)
-    imprime("TAG_article : %\n", TAG_article.chn)
-    imprime("TAG_aside : %\n", TAG_aside.chn)
-    imprime("TAG_b : %\n", TAG_b.chn)
-    imprime("TAG_base : %\n", TAG_base.chn)
-    imprime("TAG_basefont : %\n", TAG_basefont.chn)
-    imprime("TAG_basefront : %\n", TAG_basefront.chn)
-    imprime("TAG_bgsound : %\n", TAG_bgsound.chn)
-    imprime("TAG_big : %\n", TAG_big.chn)
-    imprime("TAG_blockquote : %\n", TAG_blockquote.chn)
-    imprime("TAG_body : %\n", TAG_body.chn)
-    imprime("TAG_br : %\n", TAG_br.chn)
-    imprime("TAG_button : %\n", TAG_button.chn)
-    imprime("TAG_caption : %\n", TAG_caption.chn)
-    imprime("TAG_center : %\n", TAG_center.chn)
-    imprime("TAG_code : %\n", TAG_code.chn)
-    imprime("TAG_col : %\n", TAG_col.chn)
-    imprime("TAG_colgroup : %\n", TAG_colgroup.chn)
-    imprime("TAG_dd : %\n", TAG_dd.chn)
-    imprime("TAG_desc : %\n", TAG_desc.chn)
-    imprime("TAG_details : %\n", TAG_details.chn)
-    imprime("TAG_dialog : %\n", TAG_dialog.chn)
-    imprime("TAG_dir : %\n", TAG_dir.chn)
-    imprime("TAG_div : %\n", TAG_div.chn)
-    imprime("TAG_dl : %\n", TAG_dl.chn)
-    imprime("TAG_dt : %\n", TAG_dt.chn)
-    imprime("TAG_em : %\n", TAG_em.chn)
-    imprime("TAG_embed : %\n", TAG_embed.chn)
-    imprime("TAG_fieldset : %\n", TAG_fieldset.chn)
-    imprime("TAG_figcaption : %\n", TAG_figcaption.chn)
-    imprime("TAG_figure : %\n", TAG_figure.chn)
-    imprime("TAG_font : %\n", TAG_font.chn)
-    imprime("TAG_footer : %\n", TAG_footer.chn)
-    imprime("TAG_foreignObject : %\n", TAG_foreignObject.chn)
-    imprime("TAG_form : %\n", TAG_form.chn)
-    imprime("TAG_frame : %\n", TAG_frame.chn)
-    imprime("TAG_frameset : %\n", TAG_frameset.chn)
-    imprime("TAG_h1 : %\n", TAG_h1.chn)
-    imprime("TAG_h2 : %\n", TAG_h2.chn)
-    imprime("TAG_h3 : %\n", TAG_h3.chn)
-    imprime("TAG_h4 : %\n", TAG_h4.chn)
-    imprime("TAG_h5 : %\n", TAG_h5.chn)
-    imprime("TAG_h6 : %\n", TAG_h6.chn)
-    imprime("TAG_head : %\n", TAG_head.chn)
-    imprime("TAG_header : %\n", TAG_header.chn)
-    imprime("TAG_hgroup : %\n", TAG_hgroup.chn)
-    imprime("TAG_hr : %\n", TAG_hr.chn)
-    imprime("TAG_html : %\n", TAG_html.chn)
-    imprime("TAG_i : %\n", TAG_i.chn)
-    imprime("TAG_iframe : %\n", TAG_iframe.chn)
-    imprime("TAG_image : %\n", TAG_image.chn)
-    imprime("TAG_img : %\n", TAG_img.chn)
-    imprime("TAG_input : %\n", TAG_input.chn)
-    imprime("TAG_keygen : %\n", TAG_keygen.chn)
-    imprime("TAG_li : %\n", TAG_li.chn)
-    imprime("TAG_link : %\n", TAG_link.chn)
-    imprime("TAG_listing : %\n", TAG_listing.chn)
-    imprime("TAG_main : %\n", TAG_main.chn)
-    imprime("TAG_marquee : %\n", TAG_marquee.chn)
-    imprime("TAG_math : %\n", TAG_math.chn)
-    imprime("TAG_menu : %\n", TAG_menu.chn)
-    imprime("TAG_meta : %\n", TAG_meta.chn)
-    imprime("TAG_mi : %\n", TAG_mi.chn)
-    imprime("TAG_mo : %\n", TAG_mo.chn)
-    imprime("TAG_mn : %\n", TAG_mn.chn)
-    imprime("TAG_ms : %\n", TAG_ms.chn)
-    imprime("TAG_mtext : %\n", TAG_mtext.chn)
-    imprime("TAG_nav : %\n", TAG_nav.chn)
-    imprime("TAG_nobr : %\n", TAG_nobr.chn)
-    imprime("TAG_noembed : %\n", TAG_noembed.chn)
-    imprime("TAG_noframes : %\n", TAG_noframes.chn)
-    imprime("TAG_noscript : %\n", TAG_noscript.chn)
-    imprime("TAG_object : %\n", TAG_object.chn)
-    imprime("TAG_ol : %\n", TAG_ol.chn)
-    imprime("TAG_optgroup : %\n", TAG_optgroup.chn)
-    imprime("TAG_option : %\n", TAG_option.chn)
-    imprime("TAG_p : %\n", TAG_p.chn)
-    imprime("TAG_param : %\n", TAG_param.chn)
-    imprime("TAG_plaintext : %\n", TAG_plaintext.chn)
-    imprime("TAG_pre : %\n", TAG_pre.chn)
-    imprime("TAG_rb : %\n", TAG_rb.chn)
-    imprime("TAG_rp : %\n", TAG_rp.chn)
-    imprime("TAG_rt : %\n", TAG_rt.chn)
-    imprime("TAG_rtc : %\n", TAG_rtc.chn)
-    imprime("TAG_ruby : %\n", TAG_ruby.chn)
-    imprime("TAG_s : %\n", TAG_s.chn)
-    imprime("TAG_script : %\n", TAG_script.chn)
-    imprime("TAG_section : %\n", TAG_section.chn)
-    imprime("TAG_select : %\n", TAG_select.chn)
-    imprime("TAG_small : %\n", TAG_small.chn)
-    imprime("TAG_source : %\n", TAG_source.chn)
-    imprime("TAG_strike : %\n", TAG_strike.chn)
-    imprime("TAG_strong : %\n", TAG_strong.chn)
-    imprime("TAG_style : %\n", TAG_style.chn)
-    imprime("TAG_summary : %\n", TAG_summary.chn)
-    imprime("TAG_svg : %\n", TAG_svg.chn)
-    imprime("TAG_table : %\n", TAG_table.chn)
-    imprime("TAG_tbody : %\n", TAG_tbody.chn)
-    imprime("TAG_td : %\n", TAG_td.chn)
-    imprime("TAG_template : %\n", TAG_template.chn)
-    imprime("TAG_textarea : %\n", TAG_textarea.chn)
-    imprime("TAG_tfoot : %\n", TAG_tfoot.chn)
-    imprime("TAG_th : %\n", TAG_th.chn)
-    imprime("TAG_thead : %\n", TAG_thead.chn)
-    imprime("TAG_title : %\n", TAG_title.chn)
-    imprime("TAG_tr : %\n", TAG_tr.chn)
-    imprime("TAG_track : %\n", TAG_track.chn)
-    imprime("TAG_tt : %\n", TAG_tt.chn)
-    imprime("TAG_u : %\n", TAG_u.chn)
-    imprime("TAG_ul : %\n", TAG_ul.chn)
-    imprime("TAG_wbr : %\n", TAG_wbr.chn)
-    imprime("TAG_xmp : %\n", TAG_xmp.chn)
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+
+    pour lexèmes {
+        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
+            continue
+        }
+
+        si it.texte == "tags_initialisés" {
+            arrête
+        }
+
+        saufsi it.texte.commence_par("TAG_") {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ".chn)\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

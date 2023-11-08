@@ -3,24 +3,24 @@ importe Math
 
 mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
 {
-	f := normalise(centre - oeil)
-	s := normalise(produit_en_croix(f, haut))
-	u := produit_en_croix(s, f)
+    f := normalise(centre - oeil)
+    s := normalise(produit_en_croix(f, haut))
+    u := produit_en_croix(s, f)
 
     résultat : Mat4r = construit_mat4r_neutre()
-	résultat.m[0][0] = s.x
-	résultat.m[1][0] = s.y
-	résultat.m[2][0] = s.z
-	résultat.m[0][1] = u.x
-	résultat.m[1][1] = u.y
-	résultat.m[2][1] = u.z
-	résultat.m[0][2] =-f.x
-	résultat.m[1][2] =-f.y
-	résultat.m[2][2] =-f.z
-	résultat.m[3][0] =-produit_scalaire(s, oeil)
-	résultat.m[3][1] =-produit_scalaire(u, oeil)
-	résultat.m[3][2] = produit_scalaire(f, oeil)
-	retourne résultat
+    résultat.m[0][0] = s.x
+    résultat.m[1][0] = s.y
+    résultat.m[2][0] = s.z
+    résultat.m[0][1] = u.x
+    résultat.m[1][1] = u.y
+    résultat.m[2][1] = u.z
+    résultat.m[0][2] =-f.x
+    résultat.m[1][2] =-f.y
+    résultat.m[2][2] =-f.z
+    résultat.m[3][0] =-produit_scalaire(s, oeil)
+    résultat.m[3][1] =-produit_scalaire(u, oeil)
+    résultat.m[3][2] = produit_scalaire(f, oeil)
+    retourne résultat
 }
 
 projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3) -> Vec3
@@ -41,21 +41,21 @@ projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3) -> Vec3
     obj.y /= obj.w
     obj.z /= obj.w
 
-	retourne Vec3(obj.x, obj.y, obj.z)
+    retourne Vec3(obj.x, obj.y, obj.z)
 }
 
 projette_sur_écran :: fonc (obj: Vec3, model: Mat4r, proj: Mat4r, viewport: Vec4) -> Vec3
 {
     tmp := Vec4(obj.x, obj.y, obj.z, 1.0)
-	tmp = transforme(model, tmp)
-	tmp = transforme(proj, tmp)
+    tmp = transforme(model, tmp)
+    tmp = transforme(proj, tmp)
 
-	tmp /= tmp.w
-	tmp = tmp * 0.5 + Vec4(0.5, 0.5, 0.5, 0.5)
-	tmp.x = tmp.x * viewport.z + viewport.x
-	tmp.y = tmp.y * viewport.w + viewport.y
+    tmp /= tmp.w
+    tmp = tmp * 0.5 + Vec4(0.5, 0.5, 0.5, 0.5)
+    tmp.x = tmp.x * viewport.z + viewport.x
+    tmp.y = tmp.y * viewport.w + viewport.y
 
-	retourne Vec3(tmp.x, tmp.y, tmp.z)
+    retourne Vec3(tmp.x, tmp.y, tmp.z)
 }
 
 direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: Vec2) -> Vec3
@@ -135,53 +135,53 @@ Caméra3D :: struct {
     /* Propriétés modifiables. */
 
     largeur := 0 @accessible
-	hauteur := 0 @accessible
+    hauteur := 0 @accessible
 
-	tête := 0.0
+    tête := 0.0
 
-	/* Inclinaison sur l'axe des x local de la caméra définissant si elle
-	 * regarde vers le haut ou vers le bas. */
-	inclinaison := 0.0
+    /* Inclinaison sur l'axe des x local de la caméra définissant si elle
+     * regarde vers le haut ou vers le bas. */
+    inclinaison := 0.0
 
-	plan_proche := 0.0
-	plan_éloigné := 0.0 @accessible
-	distance := 0.0
+    plan_proche := 0.0
+    plan_éloigné := 0.0 @accessible
+    distance := 0.0
 
-	/* À FAIRE : hauteur_senseur + préréglages de tailles de senseurs connues
-	 *  champs_de_vue horizontal = 2atan(0.5 * largeur_senseur / longueur_focale) */
-	largeur_senseur := 0.0
+    /* À FAIRE : hauteur_senseur + préréglages de tailles de senseurs connues
+     *  champs_de_vue horizontal = 2atan(0.5 * largeur_senseur / longueur_focale) */
+    largeur_senseur := 0.0
 
-	longueur_focale := 0.0
+    longueur_focale := 0.0
 
-	/* Vitesse de déplacement avant-arrière (Z local). */
-	vitesse_zoom := 0.0
+    /* Vitesse de déplacement avant-arrière (Z local). */
+    vitesse_zoom := 0.0
 
-	/* Vitesse de déplacement haut-bas (Y local). */
-	vitesse_chute := 0.0
+    /* Vitesse de déplacement haut-bas (Y local). */
+    vitesse_chute := 0.0
 
-	/* Vitesse de déplacement gauche-droite (X local). */
-	vitesse_latérale := 0.0
+    /* Vitesse de déplacement gauche-droite (X local). */
+    vitesse_latérale := 0.0
 
     /* La cible de la caméra. */
-	cible : Vec3
+    cible : Vec3
 
     /* Propriétés calculées. */
 
-	aspect : r32
-	échelle: r32
+    aspect : r32
+    échelle: r32
     monde_vers_caméra : Mat4r
     caméra_vers_monde : Mat4r
     caméra_vers_rateau: Mat4r
     monde_vers_rateau : Mat4r
-	projection : Mat4r
-	position : Vec3
-	direction : Vec3 @accessible
-	vecteur_droite : Vec3
-	vecteur_haut : Vec3
+    projection : Mat4r
+    position : Vec3
+    direction : Vec3 @accessible
+    vecteur_droite : Vec3
+    vecteur_haut : Vec3
 
-	drapeaux: DrapeauAjournementCaméra
+    drapeaux: DrapeauAjournementCaméra
 
-	type_projection := TypeProjection.ORTHOGRAPHIQUE
+    type_projection := TypeProjection.ORTHOGRAPHIQUE
 }
 
 /* Initialise une caméra dans un espace où l'axe vertical est +Y.
@@ -204,11 +204,11 @@ initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_
     définis_largeur_senseur(caméra, 22.0)
     définis_longueur_focale(caméra, 35.0)
 
-	caméra.position = Vec3(0.0, 0.0, -1.0)
-	caméra.direction = Vec3(0.0, 0.0, 1.0)
-	caméra.cible = Vec3(0.0, 0.0, 0.0)
-	caméra.vecteur_droite = Vec3(1.0, 0.0, 0.0)
-	caméra.vecteur_haut = Vec3(0.0, 1.0, 0.0)
+    caméra.position = Vec3(0.0, 0.0, -1.0)
+    caméra.direction = Vec3(0.0, 0.0, 1.0)
+    caméra.cible = Vec3(0.0, 0.0, 0.0)
+    caméra.vecteur_droite = Vec3(1.0, 0.0, 0.0)
+    caméra.vecteur_haut = Vec3(0.0, 1.0, 0.0)
 
     caméra.vitesse_zoom = 0.2
     caméra.vitesse_chute = 0.5
@@ -221,9 +221,9 @@ initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_
 
 ajuste_vitesse :: fonc (empl caméra: *Caméra3D, zoom : r32 = 0.1, latérale : r32 = 0.0002, chute : r32 = 0.02)
 {
-	vitesse_zoom = max(0.0001, distance * zoom)
-	vitesse_latérale = max(0.0001, distance * latérale)
-	vitesse_chute = max(0.2, min(1.0, distance * chute))
+    vitesse_zoom = max(0.0001, distance * zoom)
+    vitesse_latérale = max(0.0001, distance * latérale)
+    vitesse_chute = max(0.2, min(1.0, distance * chute))
 }
 
 /* Mutations. */
@@ -231,34 +231,34 @@ ajuste_vitesse :: fonc (empl caméra: *Caméra3D, zoom : r32 = 0.1, latérale : 
 définis_distance :: fonc (empl caméra: *Caméra3D, nouvelle_distance: r32)
 {
     caméra.drapeaux.DISTANCE_MODIFIÉE = nouvelle_distance != distance
-	distance = nouvelle_distance
+    distance = nouvelle_distance
 } @Python "méthode"
 
 définis_inclinaison :: fonc (empl caméra: *Caméra3D, nouvelle_inclinaison: r32)
 {
     caméra.drapeaux.INCLINAISON_MODIFIÉE = nouvelle_inclinaison != inclinaison
-	inclinaison = nouvelle_inclinaison
+    inclinaison = nouvelle_inclinaison
 } @Python "méthode"
 
 définis_tête :: fonc (empl caméra: *Caméra3D, nouvelle_tête: r32)
 {
     caméra.drapeaux.TETE_MODIFIÉE = nouvelle_tête != tête
-	tête = nouvelle_tête
+    tête = nouvelle_tête
 } @Python "méthode"
 
 définis_cible :: fonc (empl caméra: *Caméra3D, nouvelle_cible: Vec3)
 {
     caméra.drapeaux.CIBLE_MODIFIÉE = nouvelle_cible != cible
-	cible = nouvelle_cible
+    cible = nouvelle_cible
 } @Python "méthode"
 
 définis_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: z32, nouvelle_hauteur: z32)
 {
     caméra.drapeaux.DIMENSIONS_MODIFIÉES = nouvelle_largeur != caméra.largeur
-	caméra.largeur = nouvelle_largeur
+    caméra.largeur = nouvelle_largeur
 
     caméra.drapeaux.DIMENSIONS_MODIFIÉES = nouvelle_hauteur != caméra.hauteur
-	caméra.hauteur = nouvelle_hauteur
+    caméra.hauteur = nouvelle_hauteur
 
     si caméra.hauteur != 0 {
         aspect = (caméra.largeur comme r32) / (caméra.hauteur comme r32)
@@ -271,33 +271,33 @@ définis_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur:
 définis_type_projection :: fonc (empl caméra: *Caméra3D, nouveau_type: TypeProjection)
 {
     caméra.drapeaux.TYPE_PROJECTION_MODIFIÉ = nouveau_type != type_projection
-	type_projection = nouveau_type
+    type_projection = nouveau_type
 } @Python "méthode"
 
 définis_largeur_senseur :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: r32)
 {
     caméra.drapeaux.SENSEUR_MODIFIÉ = nouvelle_largeur != largeur_senseur
-	largeur_senseur = nouvelle_largeur
+    largeur_senseur = nouvelle_largeur
 } @Python "méthode"
 
 définis_longueur_focale :: fonc (empl caméra: *Caméra3D, nouvelle_focale: r32)
 {
     caméra.drapeaux.FOCALE_MODIFIÉE = nouvelle_focale != longueur_focale
-	longueur_focale = nouvelle_focale
+    longueur_focale = nouvelle_focale
 } @Python "méthode"
 
 définis_profondeur :: fonc (empl caméra: *Caméra3D, nouveau_proche: r32, nouvel_éloigné: r32)
 {
     caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouveau_proche != plan_proche
-	plan_proche = nouveau_proche
+    plan_proche = nouveau_proche
 
     caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouvel_éloigné != plan_éloigné
-	plan_éloigné = nouvel_éloigné
+    plan_éloigné = nouvel_éloigné
 } @Python "méthode"
 
 force_ajournement :: fonc (empl caméra: *Caméra3D)
 {
-	drapeaux |= DrapeauAjournementCaméra.valeurs_légales
+    drapeaux |= DrapeauAjournementCaméra.valeurs_légales
 } @Python "méthode"
 
 ajourne :: fonc (empl caméra: *Caméra3D)
@@ -307,20 +307,20 @@ ajourne :: fonc (empl caméra: *Caméra3D)
     }
 
     tête_ := vers_radians(tête)
-	inclinaison_ := vers_radians(inclinaison)
+    inclinaison_ := vers_radians(inclinaison)
 
-	position.x = cible[0] + distance * cos(tête_) * cos(inclinaison_)
-	position.y = cible[1] + distance * sin(tête_)
-	position.z = cible[2] + distance * cos(tête_) * sin(inclinaison_)
+    position.x = cible[0] + distance * cos(tête_) * cos(inclinaison_)
+    position.y = cible[1] + distance * sin(tête_)
+    position.z = cible[2] + distance * cos(tête_) * sin(inclinaison_)
 
-	direction = normalise(cible - position)
-	vecteur_haut.y = si (cos(tête_)) > 0 { 1.0 } sinon { -1.0 }
-	vecteur_droite = produit_en_croix(direction, vecteur_haut)
+    direction = normalise(cible - position)
+    vecteur_haut.y = si (cos(tête_)) > 0 { 1.0 } sinon { -1.0 }
+    vecteur_droite = produit_en_croix(direction, vecteur_haut)
 
-	ajourne_projection(caméra)
+    ajourne_projection(caméra)
     ajourne_matrices_caméra_monde(caméra)
 
-	caméra.drapeaux = DrapeauAjournementCaméra.zéro
+    caméra.drapeaux = DrapeauAjournementCaméra.zéro
 } @Python "méthode"
 
 ajourne_projection :: fonc (empl caméra: *Caméra3D)
@@ -342,14 +342,14 @@ ajourne_projection :: fonc (empl caméra: *Caméra3D)
 ajourne_projection_orthographique :: fonc (empl caméra: *Caméra3D)
 {
     largeur_ortho := distance * 0.5
-	hauteur_ortho := largeur_ortho / aspect
-	projection = crée_matrice_projection_orthographique(-largeur_ortho, largeur_ortho, -hauteur_ortho, hauteur_ortho, plan_proche, plan_éloigné)
+    hauteur_ortho := largeur_ortho / aspect
+    projection = crée_matrice_projection_orthographique(-largeur_ortho, largeur_ortho, -hauteur_ortho, hauteur_ortho, plan_proche, plan_éloigné)
 }
 
 ajourne_projection_perspective :: fonc (empl caméra: *Caméra3D)
 {
-	champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
-	projection = crée_matrice_projection_perspective(champs_de_vue, aspect, plan_proche, plan_éloigné)
+    champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
+    projection = crée_matrice_projection_perspective(champs_de_vue, aspect, plan_proche, plan_éloigné)
 }
 
 ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
@@ -358,10 +358,10 @@ ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
         retourne
     }
 
-	monde_vers_caméra = mire(position, cible, vecteur_haut)
-	caméra_vers_monde = inverse(monde_vers_caméra)
+    monde_vers_caméra = mire(position, cible, vecteur_haut)
+    caméra_vers_monde = inverse(monde_vers_caméra)
 
-	champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
+    champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
     caméra.échelle = tan(champs_de_vue * 0.5) comme r32
 
     caméra_vers_rateau = construit_mat4r_neutre()
@@ -375,38 +375,38 @@ ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
 
 MV :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-	retourne monde_vers_caméra
+    retourne monde_vers_caméra
 } @Python "méthode"
 
 caméra_vers_monde :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-	retourne caméra_vers_monde
+    retourne caméra_vers_monde
 } @Python "méthode"
 
 P :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-	retourne projection
+    retourne projection
 } @Python "méthode"
 
 pos :: fonc (empl caméra: *Caméra3D) -> Vec3
 {
-	retourne position
+    retourne position
 } @Python "méthode"
 
 donne_position_écran :: fonc (caméra: *Caméra3D, pos: Vec3) -> Vec2
 {
     point := projette_sur_écran(pos, MV(caméra), P(caméra), Vec4(0.0, 0.0, caméra.largeur comme r32, caméra.hauteur comme r32))
-	retourne Vec2(point.x, caméra.hauteur comme r32 - point.y)
+    retourne Vec2(point.x, caméra.hauteur comme r32 - point.y)
 } @Python "méthode"
 
 /*
 dls::math::point3f Caméra3D::pos_monde(dls::math::point3f const &pos) const
 {
-	retourne dls::math::deprojette(
-				Vec3(pos.x * static_cast<float>(largeur()), pos.y * static_cast<float>(hauteur()), pos.z),
-				MV(),
-				P(),
-				dls::math::vec4f(0.0f, 0.0f, static_cast<float>(largeur()), static_cast<float>(hauteur())))
+    retourne dls::math::deprojette(
+                Vec3(pos.x * static_cast<float>(largeur()), pos.y * static_cast<float>(hauteur()), pos.z),
+                MV(),
+                P(),
+                dls::math::vec4f(0.0f, 0.0f, static_cast<float>(largeur()), static_cast<float>(hauteur())))
 }
 */
 
@@ -415,7 +415,7 @@ dls::math::point3f Caméra3D::pos_monde(dls::math::point3f const &pos) const
 zoom :: fonc (caméra: *Caméra3D, delta: r32)
 {
     distance := 0.0
-	si delta >= 0 {
+    si delta >= 0 {
         distance = caméra.distance + caméra.vitesse_zoom
     }
     sinon {

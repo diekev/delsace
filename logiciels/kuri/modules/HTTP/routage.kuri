@@ -242,42 +242,42 @@ apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chain
 divise_url :: fonc (ligne: chaine) -> []chaine
 {
     taille_mot : z64 = 0
-	début_mot : z64 = 0
+    début_mot : z64 = 0
     mots : []chaine
 
     premier_slash := vrai
 
     pour c, i dans ligne {
-	    si c == '/' {
+        si c == '/' {
             si premier_slash {
                 premier_slash = faux
 
                 mot := ligne.sous_chaine(0, 1)
                 tableau_ajoute(*mots, mot)
 
-		    	début_mot = i + 1
-			    taille_mot = 0
+                début_mot = i + 1
+                taille_mot = 0
                 continue
             }
 
-			mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
+            mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
             tableau_ajoute(*mots, mot)
 
-			début_mot = i + 1
-			taille_mot = 0
-			continue
-		}
+            début_mot = i + 1
+            taille_mot = 0
+            continue
+        }
 
-		taille_mot += 1
-	}
+        taille_mot += 1
+    }
 
     si taille_mot != 0 {
-		mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
+        mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
 
         si mot {
             tableau_ajoute(*mots, mot)
         }
-	}
+    }
 
     retourne mots
 }
@@ -416,7 +416,7 @@ génère_initialisation_routes :: fonc ()
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"
     créatrice_table_fonctions.données_pour_fonction = fonction_routage_est_valide
     créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_routage
-	créatrice_table_fonctions.initialise_types_de_bases = vrai
+    créatrice_table_fonctions.initialise_types_de_bases = vrai
     créatrice_table_fonctions.ajoute_module("Introspection")
     créatrice_table_fonctions.ajoute_module("HTTP")
 

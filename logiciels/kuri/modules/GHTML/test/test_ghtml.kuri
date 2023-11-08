@@ -14,7 +14,7 @@ ancien_test :: fonc ()
 
     imprime("script :\n\n", chn, "\n\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Lexage du script
 
     lexeuse := construit_lexeuse(chn)
@@ -30,7 +30,7 @@ ancien_test :: fonc ()
 
     imprime("\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Syntaxage du script
 
     syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
@@ -38,13 +38,13 @@ ancien_test :: fonc ()
 
     syntaxeuse.performe_syntaxage()
 
-	racine := syntaxeuse.assembleuse.pile.haut()
+    racine := syntaxeuse.assembleuse.pile.haut()
 
-	imprime("arbre :\n\n")
-	imprime_arbre(racine, 0)
-	imprime("\n")
+    imprime("arbre :\n\n")
+    imprime_arbre(racine, 0)
+    imprime("\n")
 
-    //######################################################
+    /* ------------------------------------------------------------------------- */
     // Génération de la page
 
     données_page : DonnéesPage
@@ -57,7 +57,7 @@ ancien_test :: fonc ()
     données_génération.valeur = données_page
 
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
     diffère { détruit_tampons(*enchaineuse) }
 
     erreur_ := génère_page(*données_génération, racine, *enchaineuse)
@@ -73,8 +73,8 @@ ancien_test :: fonc ()
     }
 
 /*
-	gestionnaire : GestionnaireObjet
-	diffère { détruit(@gestionnaire) }
+    gestionnaire : GestionnaireObjet
+    diffère { détruit(@gestionnaire) }
 
     dico := crée_dictionnaire(@gestionnaire)
 
@@ -91,9 +91,9 @@ ancien_test :: fonc ()
     tableau_ajoute(@liste.valeur, obj2)
     tableau_ajoute(@liste.valeur, obj3)
 
-	dico.insère("evenements", liste)
+    dico.insère("evenements", liste)
 
-	chaine1 := crée_chaine(@gestionnaire)
+    chaine1 := crée_chaine(@gestionnaire)
     chaine1.valeur = "http://aaa"
 
     dico.insère("lien", chaine1)
@@ -104,7 +104,7 @@ ancien_test :: fonc ()
     dico.insère("variable", chaine1)
 
     enchaineuse : Enchaineuse
-	intialise_enchaineuse(@enchaineuse)
+    intialise_enchaineuse(@enchaineuse)
     diffère { détruit_tampons(@enchaineuse) }
 
     erreur := génère_page(racine, @gestionnaire, dico, @enchaineuse)

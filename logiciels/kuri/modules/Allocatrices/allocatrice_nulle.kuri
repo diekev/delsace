@@ -38,69 +38,69 @@ D'autres allocatrices à explorer :
 
 template <class AllocatorType, size_t MIN, size_t MAX>
 class FreeList {
-	AllocatorType m_parent;
+    AllocatorType m_parent;
 
-	struct Node {
-		Node *next;
-	};
+    struct Node {
+        Node *next;
+    };
 
-	Node *m_root;
+    Node *m_root;
 
 public:
-	FreeList()
-	    : m_root(nullptr)
-	{}
+    FreeList()
+        : m_root(nullptr)
+    {}
 
-	~FreeList()
-	{
-		auto ptr = m_root;
+    ~FreeList()
+    {
+        auto ptr = m_root;
 
-		while (ptr != nullptr) {
-			Blk b = { ptr, 0 };
-			ptr = ptr->next;
-			m_parent.deallocate(b);
-		}
-	}
+        while (ptr != nullptr) {
+            Blk b = { ptr, 0 };
+            ptr = ptr->next;
+            m_parent.deallocate(b);
+        }
+    }
 
-	Blk allocate(size_t n)
-	{
-		if ((n >= MIN && n <= MAX) && m_root) {
-			Blk r = { m_root, MAX };
-			m_root = m_root->next;
-			return r;
-		}
+    Blk allocate(size_t n)
+    {
+        if ((n >= MIN && n <= MAX) && m_root) {
+            Blk r = { m_root, MAX };
+            m_root = m_root->next;
+            return r;
+        }
 
-		return m_parent.allocate(MAX);
-	}
+        return m_parent.allocate(MAX);
+    }
 
-	void deallocate(Blk b)
-	{
-		if ((b.size >= MIN && b.size <= MAX)) {
-			auto ptr = static_cast<Node *>(b.ptr);
-			ptr->next = m_root;
-			m_root = ptr;
-			return;
-		}
+    void deallocate(Blk b)
+    {
+        if ((b.size >= MIN && b.size <= MAX)) {
+            auto ptr = static_cast<Node *>(b.ptr);
+            ptr->next = m_root;
+            m_root = ptr;
+            return;
+        }
 
-		m_parent.deallocate(b);
-	}
+        m_parent.deallocate(b);
+    }
 
-	void reallocate(Blk &b, size_t new_size)
-	{
-		if ((new_size >= MIN && new_size <= MAX) && m_root) {
-			b.ptr = m_root;
-			b.size = new_size;
-			m_root = m_root->next;
-			return;
-		}
+    void reallocate(Blk &b, size_t new_size)
+    {
+        if ((new_size >= MIN && new_size <= MAX) && m_root) {
+            b.ptr = m_root;
+            b.size = new_size;
+            m_root = m_root->next;
+            return;
+        }
 
-		m_parent.reallocate(b, new_size);
-	}
+        m_parent.reallocate(b, new_size);
+    }
 
-	bool owns(Blk b)
-	{
-		return (b.size >= MIN && b.size <= MAX) || m_parent.owns(b);
-	}
+    bool owns(Blk b)
+    {
+        return (b.size >= MIN && b.size <= MAX) || m_parent.owns(b);
+    }
 };
 
 */

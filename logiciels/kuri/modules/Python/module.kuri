@@ -137,105 +137,86 @@ FonctionsTypePython :: struct {
     pour_valeur_unicode_enum: chaine
 }
 
+init_fonctions_type_base :: fonc (fonctions: &FonctionsTypePython, pour_discrimination: chaine, pour_extraction: chaine, pour_construction: chaine)
+{
+    fonctions.pour_discrimination = copie_chaine(pour_discrimination)
+    fonctions.pour_extraction_valeur = copie_chaine(pour_extraction)
+    fonctions.pour_construction = copie_chaine(pour_construction)
+}
+
 /* Entiers relatifs. */
 
 init_fonctions_type_z8 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsZ8")
-    fonctions.pour_construction = copie_chaine("PyLong_FromLong")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ8", "PyLong_FromLong")
 }
 
 init_fonctions_type_z16 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsZ16")
-    fonctions.pour_construction = copie_chaine("PyLong_FromLong")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ16", "PyLong_FromLong")
 }
 
 init_fonctions_type_z32 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsZ32")
-    fonctions.pour_construction = copie_chaine("PyLong_FromLong")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ32", "PyLong_FromLong")
 }
 
 init_fonctions_type_z64 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsLong")
-    fonctions.pour_construction = copie_chaine("PyLong_FromLong")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsLong", "PyLong_FromLong")
 }
 
 /* Entiers naturels. */
 
 init_fonctions_type_n8 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsN8")
-    fonctions.pour_construction = copie_chaine("PyLong_FromN8")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN8", "PyLong_FromN8")
 }
 
 init_fonctions_type_n16 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsN16")
-    fonctions.pour_construction = copie_chaine("PyLong_FromN16")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN16", "PyLong_FromN16")
 }
 
 init_fonctions_type_n32 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsN32")
-    fonctions.pour_construction = copie_chaine("PyLong_FromN32")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN32", "PyLong_FromN32")
 }
 
 init_fonctions_type_n64 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyLong_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyLong_AsN64")
-    fonctions.pour_construction = copie_chaine("PyLong_FromN64")
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN64", "PyLong_FromN64")
 }
 
 /* Booléen. */
 
 init_fonctions_type_bool :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyBool_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyBool_AsBool")
-    fonctions.pour_construction = copie_chaine("PyBool_FromBool")
+    init_fonctions_type_base(fonctions, "PyBool_Check", "PyBool_AsBool", "PyBool_FromBool")
 }
 
 /* Réel. */
 
 init_fonctions_type_r16 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyFloat_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyFloat_AsR16")
-    fonctions.pour_construction = copie_chaine("PyFloat_FromDouble")
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR16", "PyFloat_FromDouble")
 }
 
 init_fonctions_type_r32 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyFloat_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyFloat_AsR32")
-    fonctions.pour_construction = copie_chaine("PyFloat_FromDouble")
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR32", "PyFloat_FromDouble")
 }
 
 init_fonctions_type_r64 :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyFloat_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyFloat_AsDouble")
-    fonctions.pour_construction = copie_chaine("PyFloat_FromDouble")
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsDouble", "PyFloat_FromDouble")
 }
 
 /* Chaine. */
 
 init_fonctions_type_chaine :: fonc (fonctions: &FonctionsTypePython)
 {
-    fonctions.pour_discrimination = copie_chaine("PyUnicode_Check")
-    fonctions.pour_extraction_valeur = copie_chaine("PyUnicode_AsChaine")
-    fonctions.pour_construction = copie_chaine("PyUnicode_FromChaine")
+    init_fonctions_type_base(fonctions, "PyUnicode_Check", "PyUnicode_AsChaine", "PyUnicode_FromChaine")
 }
 
 /* Structures, unions, énums, etc. */

@@ -4,6 +4,7 @@ importe Chaine
 importe Fondation
 importe SysFichier
 importe Triage
+importe Unicode
 
 /* À FAIRE : options
  * - taille tabulation
@@ -196,7 +197,7 @@ compare_attribut :: fonc (a1: Attribut, a2: Attribut) -> z32
 
 tri_classes_css :: fonc (chn_classe: ChaineUTF16) -> ChaineUTF16
 {
-    classes := divise_chaine(chn_classe, ' ' comme n32)
+    classes := divise_chaine(chn_classe, ESPACE)
     diffère déloge(classes)
 
     tri_rapide(classes, compare_chaine_utf16)

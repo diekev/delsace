@@ -73,7 +73,7 @@ ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) ->
     x := he.h_addr_list[0]
     their_addr.sin_addr = mémoire(x comme *z8 comme *in_addr)
 
-	si connect(prise, *their_addr comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
+    si connect(prise, *their_addr comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
         err := lis_errno()
 
         /* Si la prise est non-bloquante, il est possible que la connexion n'est pas eu le temps
@@ -168,26 +168,26 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port
 
     notre_adresse : sockaddr_in = ---
     // doit toujours être AF_INET
-	notre_adresse.sin_family = AF_INET comme n16
+    notre_adresse.sin_family = AF_INET comme n16
     notre_adresse.sin_port = htons(port)
     // trouve notre propre adresse
     // À FAIRE : parse l'adresse ip données
-	notre_adresse.sin_addr.s_addr = 0
+    notre_adresse.sin_addr.s_addr = 0
     // potentiellement inutile de mettre à zéro, mais on ne sait jamais
     pour & notre_adresse.sin_zero {
         it = 0
     }
 
-	err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64)
-	si err == -1 {
+    err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64)
+    si err == -1 {
         _ := close(prise)
-		retourne ErreurPrise.LiaisonAuPortImpossible
-	}
+        retourne ErreurPrise.LiaisonAuPortImpossible
+    }
 
-	si listen(prise, connexions_max) == -1 {
+    si listen(prise, connexions_max) == -1 {
         _ := close(prise)
-		retourne ErreurPrise.ÉcouteSurPortImpossible
-	}
+        retourne ErreurPrise.ÉcouteSurPortImpossible
+    }
 
     retourne Fichier(TypePoignéeFichier(prise))
 }
@@ -195,7 +195,7 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port
 accepte :: fonc (prise: z32) -> z32
 {
     adresse : sockaddr_in
-	sin_size := taille_de(sockaddr_in)
+    sin_size := taille_de(sockaddr_in)
 
     fd_prise := accept(prise, *adresse comme *sockaddr, *sin_size)
 

@@ -155,7 +155,7 @@ cliente_possède_sur_création_fenêtre :: fonc ($TypeCliente: type_de_données)
     membre_cliente := membres_rappels.sur_création_fenêtre
 
     si types_rappels.sur_création_fenêtre != membre_cliente.id {
-        rapporte_erreur_typage_rappel(info_de(TypeCliente), membre_cliente, types_rappels.sur_création_fenêtre)            
+        rapporte_erreur_typage_rappel(info_de(TypeCliente), membre_cliente, types_rappels.sur_création_fenêtre)
         retourne faux
     }
 
@@ -187,7 +187,7 @@ raporte_erreur_si_membre_invalide :: fonc (info_cliente: *InfoTypeStructure, mem
         retourne
     }
 
-    rapporte_erreur_typage_rappel(info_cliente, membre, type_attendu)   
+    rapporte_erreur_typage_rappel(info_cliente, membre, type_attendu)
 }
 
 /** } */

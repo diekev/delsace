@@ -4,134 +4,134 @@ importe Compilatrice // Pour AnnotationCode
 
 id_info :: énum z32 {
     ENTIER          :: 0
-	RÉEL            :: 1
-	BOOLÉEN         :: 2
-	CHAINE          :: 3
-	POINTEUR        :: 4
-	STRUCTURE       :: 5
-	FONCTION        :: 6
-	TABLEAU         :: 7
-	EINI            :: 8
-	RIEN            :: 9
-	ÉNUM            :: 10
-	OCTET           :: 11
-	TYPE_DE_DONNÉES :: 12
-	UNION           :: 13
-	OPAQUE          :: 14
+    RÉEL            :: 1
+    BOOLÉEN         :: 2
+    CHAINE          :: 3
+    POINTEUR        :: 4
+    STRUCTURE       :: 5
+    FONCTION        :: 6
+    TABLEAU         :: 7
+    EINI            :: 8
+    RIEN            :: 9
+    ÉNUM            :: 10
+    OCTET           :: 11
+    TYPE_DE_DONNÉES :: 12
+    UNION           :: 13
+    OPAQUE          :: 14
 }
 
 InfoType :: struct #interface {
-	id : id_info
-	taille_en_octet : n32
-	index_dans_table_des_types : n32
+    id : id_info
+    taille_en_octet : n32
+    index_dans_table_des_types : n32
 }
 
 InfoTypeEntier :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	est_signé : bool
+    est_signé : bool
 }
 
 InfoTypePointeur :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	type_pointé : *InfoType
-	est_référence : bool
+    type_pointé : *InfoType
+    est_référence : bool
 }
 
 InfoTypeTableau :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	type_pointé : *InfoType
-	est_tableau_fixe : bool
-	taille_fixe : z32
+    type_pointé : *InfoType
+    est_tableau_fixe : bool
+    taille_fixe : z32
 }
 
 possède_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> bool
 {
-	retourne trouve_annotation(annotations, nom) != nul
+    retourne trouve_annotation(annotations, nom) != nul
 }
 
 trouve_annotation :: fonc (annotations: []*AnnotationCode, nom: chaine) -> *AnnotationCode
 {
-	pour annotations {
-		si it.nom == nom {
-			retourne it
-		}
-	}
+    pour annotations {
+        si it.nom == nom {
+            retourne it
+        }
+    }
 
-	retourne nul
+    retourne nul
 }
 
 InfoTypeMembreStructure :: struct #interface {
-	Drapeaux :: énum_drapeau {
-		EST_CONSTANT
-		EST_IMPLICITE
-	}
+    Drapeaux :: énum_drapeau {
+        EST_CONSTANT
+        EST_IMPLICITE
+    }
 
-	nom : chaine
-	id : *InfoType
-	décalage : z64 // décalage en octets dans la structure
-	drapeaux : Drapeaux
+    nom : chaine
+    id : *InfoType
+    décalage : z64 // décalage en octets dans la structure
+    drapeaux : Drapeaux
   annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
 {
-	retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom)
 }
 
 trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *AnnotationCode
 {
-	retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeStructure :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	nom : chaine
-	membres : []*InfoTypeMembreStructure
-	structs_employées : []*InfoTypeStructure
+    nom : chaine
+    membres : []*InfoTypeMembreStructure
+    structs_employées : []*InfoTypeStructure
   	annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-	retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom)
 }
 
 trouve_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> *AnnotationCode
 {
-	retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeUnion :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	nom : chaine
-	membres : []*InfoTypeMembreStructure
-	type_le_plus_grand : *InfoType
-	décalage_index : z64
-	est_sûre : bool
+    nom : chaine
+    membres : []*InfoTypeMembreStructure
+    type_le_plus_grand : *InfoType
+    décalage_index : z64
+    est_sûre : bool
   	annotations: []*AnnotationCode
 }
 
 possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
 {
-	retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom)
 }
 
 trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *AnnotationCode
 {
-	retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom)
 }
 
 InfoTypeFonction :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	types_entrée : []*InfoType
-	types_sortie : []*InfoType
-	est_coroutine : bool
+    types_entrée : []*InfoType
+    types_sortie : []*InfoType
+    est_coroutine : bool
 }
 
 /* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
@@ -142,20 +142,20 @@ apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée : []*
 }
 
 InfoTypeÉnum :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	nom : chaine
-	valeurs : []z32
-	noms : []chaine
-	est_drapeau : bool
-	type_sous_jacent: *InfoTypeEntier
+    nom : chaine
+    valeurs : []z32
+    noms : []chaine
+    est_drapeau : bool
+    type_sous_jacent: *InfoTypeEntier
 }
 
 InfoTypeOpaque :: struct #interface {
-	empl base : InfoType
+    empl base : InfoType
 
-	nom : chaine
-	type_opacifié : *InfoType
+    nom : chaine
+    type_opacifié : *InfoType
 }
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
@@ -221,11 +221,11 @@ est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
 
 est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
 {
-	type_pointé := est_pointeur_de(info)
+    type_pointé := est_pointeur_de(info)
 
-	si !type_pointé {
-		retourne nul
-	}
+    si !type_pointé {
+        retourne nul
+    }
 
     si type_pointé.id != id_info.STRUCTURE {
         retourne nul
@@ -236,11 +236,11 @@ est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
 
 est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
 {
-	type_pointé := est_pointeur_de(info)
+    type_pointé := est_pointeur_de(info)
 
-	si !type_pointé {
-		retourne nul
-	}
+    si !type_pointé {
+        retourne nul
+    }
 
     si type_pointé.id != id_info.STRUCTURE && type_pointé.id != id_info.UNION {
         retourne nul

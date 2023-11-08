@@ -2,39 +2,40 @@
 
 importe Algorithmes
 importe Compilatrice
+importe Unicode
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
 chaine_ajoute :: fonc (chn: *chaine, c: z8)
 {
     tmp := mémoire(chn)
 
-	taille := chn.taille
-	reloge_chaine(tmp, taille + 1)
-	tmp[taille] = c
+    taille := chn.taille
+    reloge_chaine(tmp, taille + 1)
+    tmp[taille] = c
 
-	mémoire(chn) = tmp
+    mémoire(chn) = tmp
 }
 
 chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
 {
     tmp := mémoire(chn)
 
-	séquence : [4]n8
-	nombre_octets := point_de_code_vers_utf8(point_de_code, *séquence[0])
+    séquence : [4]n8
+    nombre_octets := point_de_code_vers_utf8(point_de_code, *séquence[0])
 
-	si nombre_octets == 0 {
-		// À FAIRE : que faire ici ?
-		retourne
-	}
+    si nombre_octets == 0 {
+        // À FAIRE : que faire ici ?
+        retourne
+    }
 
-	taille := chn.taille
-	reloge_chaine(tmp, taille + nombre_octets)
+    taille := chn.taille
+    reloge_chaine(tmp, taille + nombre_octets)
 
-	pour 0 ... nombre_octets - 1 {
-		tmp[taille + it] = séquence[it] comme z8
-	}
+    pour 0 ... nombre_octets - 1 {
+        tmp[taille + it] = séquence[it] comme z8
+    }
 
-	mémoire(chn) = tmp
+    mémoire(chn) = tmp
 }
 
 chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
@@ -45,14 +46,14 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
 
     tmp := mémoire(chn)
 
-	taille := chn.taille
-	reloge_chaine(tmp, taille + donnée.taille)
+    taille := chn.taille
+    reloge_chaine(tmp, taille + donnée.taille)
 
     pour donnée {
         tmp[taille + index_it] = it
     }
 
-	mémoire(chn) = tmp
+    mémoire(chn) = tmp
 }
 
 inverse :: fonc (chn: *chaine) -> rien
@@ -62,17 +63,17 @@ inverse :: fonc (chn: *chaine) -> rien
 
 copie_chaine :: fonc (chn: chaine) -> chaine
 {
-	nchn := loge_chaine(chn.taille)
-	copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
-	retourne nchn
+    nchn := loge_chaine(chn.taille)
+    copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
+    retourne nchn
 }
 
 construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
-	ret : chaine
-	ret.pointeur = ptr
-	ret.taille = taille
-	retourne ret
+    ret : chaine
+    ret.pointeur = ptr
+    ret.taille = taille
+    retourne ret
 }
 
 chaine_depuis_tableau_octets :: fonc (données: []octet) -> chaine
@@ -83,82 +84,59 @@ chaine_depuis_tableau_octets :: fonc (données: []octet) -> chaine
 // execute une fonction pour chaque ligne du texte d'entrée
 pour_chaque_ligne :: fonc(texte : chaine, donnees : $T, rappel : fonc(chaine, T)(rien)) -> rien
 {
-	taille : z64 = 0
-	début_chaine : z64 = 0
+    taille : z64 = 0
+    début_chaine : z64 = 0
 
     pour c, i dans texte {
-		taille += 1
+        taille += 1
 
         si c == '\n' {
-			ligne := construit_chaine(*texte[début_chaine], taille)
-			rappel(ligne, donnees)
+            ligne := construit_chaine(*texte[début_chaine], taille)
+            rappel(ligne, donnees)
 
-			début_chaine = i + 1 comme z64
-			taille = 0
-		}
-	}
+            début_chaine = i + 1 comme z64
+            taille = 0
+        }
+    }
 
     // La dernière ligne n'a pas de retour...
-	si taille != 0 {
-		ligne := construit_chaine(*texte[début_chaine], taille)
-		rappel(ligne, donnees)
-	}
+    si taille != 0 {
+        ligne := construit_chaine(*texte[début_chaine], taille)
+        rappel(ligne, donnees)
+    }
 }
 
 est_vide :: fonc(chn : chaine) -> bool
 {
-	retourne chn.taille == 0
-}
-
-découpe :: corout(texte : chaine, sep : z8) -> chaine
-{
-	taille_mot : z64 = 0
-	début_mot : z64 = 0
-	mot : chaine
-
-    pour c, i dans texte {
-	    si c == sep {
-			retiens construit_chaine(*texte[début_mot], taille_mot)
-
-			début_mot = i + 1 comme z64
-			taille_mot = 0
-			continue
-		}
-
-		taille_mot += 1
-	}
-
-    si taille_mot != 0 {
-		retiens construit_chaine(*texte[début_mot], taille_mot)
-	}
+    retourne chn.taille == 0
 }
 
 // À FAIRE : permet de d'avoir une version avec un conteneur spécialisé (p.e. une pile)
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {
     taille_mot : z64 = 0
-	début_mot : z64 = 0
+    début_mot : z64 = 0
     mots : []chaine
 
     pour c, i dans ligne {
-	    si c == séparation {
+        si c == séparation {
             si i != 0 {
                 mot := construit_chaine(*ligne[début_mot], taille_mot)
                 tableau_ajoute(*mots, mot)
             }
 
-			début_mot = i + 1 comme z64
-			taille_mot = 0
-			continue
-		}
+            début_mot = i + 1 comme z64
+            taille_mot = 0
+            continue
+        }
 
-		taille_mot += 1
-	}
+        taille_mot += 1
+    }
 
     si taille_mot != 0 {
-		mot := construit_chaine(*ligne[début_mot], taille_mot)
+        mot := construit_chaine(*ligne[début_mot], taille_mot)
         tableau_ajoute(*mots, mot)
-	}
+    }
 
     retourne mots
 }
@@ -266,70 +244,6 @@ recule :: fonc (ligne: chaine, compte: z64) -> chaine
     retourne construit_chaine(ligne.pointeur, ligne.taille - compte)
 }
 
-// Converti une chaine, par exemple "5005", en un nombre entier
-// La fonction présume que la chaine est entièrement composée de caractères numériques
-extrait_nombre_entier :: fonc(chn : chaine) -> z64
-{
-    résultat : z64 = 0
-	est_négatif := chn[0] == '-'
-
-	si est_négatif {
-		chn = avance(chn, 1)
-	}
-	sinon si chn[0] == '+' {
-		chn = avance(chn, 1)
-	}
-
-	pour c dans chn {
-        résultat = résultat * 10 + c - '0' comme z64
-    }
-
-	si est_négatif {
-		retourne -résultat
-	}
-
-	retourne résultat
-}
-
-// Converti une chaine, par exemple "500.5", en un nombre réel
-// La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
-extrait_nombre_réel :: fonc(chn : chaine) -> r64
-{
-    résultat : r64 = 0.0
-	mult : r64 = 1.0
-	point_trouvé := faux
-
-	est_négatif := chn[0] == '-'
-
-	si est_négatif {
-		chn = avance(chn, 1)
-	}
-	sinon si chn[0] == '+' {
-		chn = avance(chn, 1)
-	}
-
-	pour c dans chn {
-		si c == '.' {
-			point_trouvé = vrai
-			continue
-		}
-
-		si point_trouvé {
-			mult *= 0.1
-        	résultat += (c - '0') comme r64 * mult
-		}
-		sinon {
-        	résultat = résultat * 10.0 + (c - '0') comme r64
-		}
-    }
-
-	si est_négatif {
-		retourne -résultat
-	}
-
-	retourne résultat
-}
-
 est_espace_blanc :: fonc(c : z8) -> bool
 {
     retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r' || c == '\f'
@@ -357,38 +271,38 @@ est_nombre_hexadécimal :: fonc(c : z8) -> bool
 
 en_majuscule :: fonc(c: z8) -> z8
 {
-	si 'a' <= c <= 'z' {
-		retourne c - 'a' + 'A'
-	}
+    si 'a' <= c <= 'z' {
+        retourne c - 'a' + 'A'
+    }
 
-	retourne c
+    retourne c
 }
 
 en_minuscule :: fonc(c: z8) -> z8
 {
-	si 'A' <= c <= 'Z' {
-		retourne c - 'A' + 'a'
-	}
+    si 'A' <= c <= 'Z' {
+        retourne c - 'A' + 'a'
+    }
 
-	retourne c
+    retourne c
 }
 
 en_majuscule :: fonc(chn : chaine) -> chaine
 {
-	pour & c dans chn {
-		c = en_majuscule(c)
-	}
+    pour & c dans chn {
+        c = en_majuscule(c)
+    }
 
-	retourne chn
+    retourne chn
 }
 
 en_minuscule :: fonc(chn : chaine) -> chaine
 {
-	pour & c dans chn {
-		c = en_majuscule(c)
-	}
+    pour & c dans chn {
+        c = en_majuscule(c)
+    }
 
-	retourne chn
+    retourne chn
 }
 
 commence_par :: fonc (chn: chaine, c: z8) -> bool
@@ -466,18 +380,18 @@ remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
 
 remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
 {
-	résultat := copie_chaine(ligne)
+    résultat := copie_chaine(ligne)
     pour & résultat {
         si it == c {
             it = par
         }
     }
-	retourne résultat
+    retourne résultat
 }
 
 remplace_sans_copie :: fonc (ligne: *chaine, c: z8, par: z8)
 {
-	résultat := mémoire(ligne)
+    résultat := mémoire(ligne)
     pour & résultat {
         si it == c {
             it = par
@@ -502,114 +416,114 @@ compte_occurences_de :: fonc (ligne: chaine, motif: chaine) -> z64
 
 compte_occurences_de :: fonc (ligne: chaine, c: z8) -> z64
 {
-	résultat := 0
+    résultat := 0
     pour résultat {
         si it == c {
             résultat += 1
         }
     }
-	retourne résultat
+    retourne résultat
 }
 
 compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
 {
-	si chn1.taille != chn2.taille {
-		retourne 0
-	}
+    si chn1.taille != chn2.taille {
+        retourne 0
+    }
 
-	occurences : z64 = 0
+    occurences : z64 = 0
 
-	pour c, idx dans chn1 {
-		si c != chn2[idx] {
-			arrête
-		}
+    pour c, idx dans chn1 {
+        si c != chn2[idx] {
+            arrête
+        }
 
-		occurences += 1
-	}
+        occurences += 1
+    }
 
-	retourne occurences
+    retourne occurences
 }
 
 premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 {
-	taille_min : z64 = taille
+    taille_min : z64 = taille
 
-	si taille_min > ligne.taille {
-		taille_min = ligne.taille
-	}
+    si taille_min > ligne.taille {
+        taille_min = ligne.taille
+    }
 
-	retourne construit_chaine(ligne.pointeur, taille_min)
+    retourne construit_chaine(ligne.pointeur, taille_min)
 }
 
 dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 {
-	taille_min : z64 = taille
+    taille_min : z64 = taille
 
-	si taille_min > ligne.taille {
-		taille_min = ligne.taille
-	}
+    si taille_min > ligne.taille {
+        taille_min = ligne.taille
+    }
 
-	retourne construit_chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
+    retourne construit_chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
 }
 
 sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enligne
 {
-	retourne construit_chaine(*chn[pos_début], pos_fin - pos_début)
+    retourne construit_chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
 distance_levenshtein :: fonc (chn1: chaine,	chn2: chaine) -> z64
 {
-	m := chn1.taille
-	n := chn2.taille
+    m := chn1.taille
+    n := chn2.taille
 
-	si m == 0 {
-		retourne n
-	}
+    si m == 0 {
+        retourne n
+    }
 
-	si n == 0 {
-		retourne m
-	}
+    si n == 0 {
+        retourne m
+    }
 
-	coûts := loge_tableau(z64, n + 1)
+    coûts := loge_tableau(z64, n + 1)
     coûts.taille = n + 1
 
-	pour c, idx dans coûts {
-		c = idx
-	}
+    pour c, idx dans coûts {
+        c = idx
+    }
 
-	pour i dans 0 ... chn1.taille - 1 {
-		coûts[0] = i + 1
-		coin := i
+    pour i dans 0 ... chn1.taille - 1 {
+        coûts[0] = i + 1
+        coin := i
 
-		pour j dans 0 ... chn2.taille - 1 {
-			enhaut := coûts[j + 1]
+        pour j dans 0 ... chn2.taille - 1 {
+            enhaut := coûts[j + 1]
 
-			si chn1[i] == chn2[j] {
-				coûts[j + 1] = coin
-			}
-			sinon {
-				t : z64
+            si chn1[i] == chn2[j] {
+                coûts[j + 1] = coin
+            }
+            sinon {
+                t : z64
 
-				si enhaut < coin {
-					t = enhaut
-				}
-				sinon {
-					t = coin
-				}
+                si enhaut < coin {
+                    t = enhaut
+                }
+                sinon {
+                    t = coin
+                }
 
-				si coûts[j] < t {
-					coûts[j + 1] = coûts[j] + 1
-				}
-				sinon {
-					coûts[j + 1] = t + 1
-				}
-			}
+                si coûts[j] < t {
+                    coûts[j + 1] = coûts[j] + 1
+                }
+                sinon {
+                    coûts[j + 1] = t + 1
+                }
+            }
 
-			coin = enhaut
-		}
-	}
+            coin = enhaut
+        }
+    }
 
-	retourne coûts[n]
+    retourne coûts[n]
 }
 
 append :: fonc (vers: *chaine, chn: chaine) -> rien
@@ -650,7 +564,7 @@ trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64
     retourne -1
 }
 
-/** 
+/**
  * Retourne l'index de la première occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
@@ -667,7 +581,7 @@ trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
     retourne -1
 }
 
-/** 
+/**
  * Retourne l'index de la dernière occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,

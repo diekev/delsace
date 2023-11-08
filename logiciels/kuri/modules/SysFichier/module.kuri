@@ -108,11 +108,11 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 {
     contenu : []octet
 
-	fichier := tente ouvre_fichier(chemin) piège err {
+    fichier := tente ouvre_fichier(chemin) piège err {
         retourne contenu
     }
 
-	diffère { _ := ferme(*fichier) }
+    diffère { _ := ferme(*fichier) }
 
     discr lis_tout(*fichier) {
         c(c_) {
@@ -153,7 +153,7 @@ chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
 
 chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
 {
-	retourne système_chemin_courant(chemin)
+    retourne système_chemin_courant(chemin)
 }
 
 chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
@@ -168,7 +168,7 @@ chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, Er
 
 renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> Optionnel(ErreurFichier)
 {
-	retourne système_renomme(orig, dest)
+    retourne système_renomme(orig, dest)
 }
 
 supprime :: fonc(chm : &CheminFichier) -> Optionnel(ErreurFichier)

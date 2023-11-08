@@ -38,8 +38,8 @@ mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
 génère_réponse_pour_toujours :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère { détruit_tampons(*enchaineuse); }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse); }
 
     ajoute_au_tampon(*enchaineuse, "Pourquoi êtes-vous toujours ")
 
@@ -59,8 +59,8 @@ génère_réponse_pour_toujours :: fonc (mots: []chaine, idx: z64) -> chaine
 génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse : Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	diffère { détruit_tampons(*enchaineuse); }
+    initialise_enchaineuse(*enchaineuse)
+    diffère { détruit_tampons(*enchaineuse); }
 
     ajoute_au_tampon(*enchaineuse, "Pourquoi avez-vous peur ")
 

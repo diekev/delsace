@@ -379,7 +379,7 @@ génère_initialisation_parsage_url :: fonc ()
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url"
     créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide
     créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_parsage_url
-	créatrice_table_fonctions.initialise_types_de_bases = vrai
+    créatrice_table_fonctions.initialise_types_de_bases = vrai
     créatrice_table_fonctions.ajoute_module("HTTP")
 
     crée_table_fonctions(créatrice_table_fonctions)

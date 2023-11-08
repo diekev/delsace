@@ -1,54 +1,54 @@
 importe Fondation
 
 LienLocal :: struct {
-	suivant: *LienLocal
+    suivant: *LienLocal
     précédent: *LienLocal
 }
 
 ListeChainée :: struct {
     premier: *rien
-	dernier: *rien
+    dernier: *rien
 }
 
 ajoute_lien :: fonc (liste: *ListeChainée, vlien: *rien)
 {
-	lien := vlien comme *LienLocal
+    lien := vlien comme *LienLocal
 
-	lien.suivant = nul
-	lien.précédent = liste.dernier comme *LienLocal
+    lien.suivant = nul
+    lien.précédent = liste.dernier comme *LienLocal
 
-	si liste.dernier {
+    si liste.dernier {
         (liste.dernier comme *LienLocal).suivant = lien
-	}
-	si liste.premier == nul {
-		liste.premier = lien
-	}
-	liste.dernier = lien
+    }
+    si liste.premier == nul {
+        liste.premier = lien
+    }
+    liste.dernier = lien
 }
 
 enlève_lien :: fonc (liste: *ListeChainée, vlien: *rien)
 {
-	lien := vlien comme *LienLocal
+    lien := vlien comme *LienLocal
 
-	si lien.suivant {
-		lien.suivant.précédent = lien.précédent
-	}
-	si lien.précédent {
-		lien.précédent.suivant = lien.suivant
-	}
+    si lien.suivant {
+        lien.suivant.précédent = lien.précédent
+    }
+    si lien.précédent {
+        lien.précédent.suivant = lien.suivant
+    }
 
-	si liste.dernier == lien {
-		liste.dernier = lien.précédent
-	}
-	si liste.premier == lien {
-		liste.premier = lien.suivant
-	}
+    si liste.dernier == lien {
+        liste.dernier = lien.précédent
+    }
+    si liste.premier == lien {
+        liste.premier = lien.suivant
+    }
 }
 
 // À FAIRE: généralise (taille + (2^n - 1) & ~(2^n - 1)
 taille_alignée :: fonc (taille: z64) -> z64 #enligne
 {
-	retourne (taille + 3) & (~3)
+    retourne (taille + 3) & (~3)
 }
 
 EntêteMémoire :: struct {
@@ -65,13 +65,13 @@ EntêteMémoire :: struct {
 
 pointeur_depuis_entête :: fonc (entête: *EntêteMémoire) -> *rien #enligne
 {
-	retourne entête + 1
+    retourne entête + 1
 }
 
 entête_depuis_pointeur :: fonc (pointeur: *rien) -> *EntêteMémoire #enligne
 {
-	/* le pointeur pointe sur le bloc, recule d'une EntêteMémoire pour retrouvre l'entête */
-	retourne (pointeur comme *EntêteMémoire) - 1
+    /* le pointeur pointe sur le bloc, recule d'une EntêteMémoire pour retrouvre l'entête */
+    retourne (pointeur comme *EntêteMémoire) - 1
 }
 
 AllocatriceGardée :: struct {
@@ -106,8 +106,8 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-	tantque premier != nul {
-		entête := entête_depuis_lien(premier)
+    tantque premier != nul {
+        entête := entête_depuis_lien(premier)
         chn_type := chaine_pour_type(entête.info)
         diffère déloge(chn_type)
         si entête.est_désynchronisée {
@@ -117,8 +117,8 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
             imprime_dans_enchaineuse(*enchaineuse, "Fuite de mémoire : bloc de % octets non-libéré pour le type %\n", entête.taille, chn_type)
         }
         imprime_trace(entête.traces, *enchaineuse)
-		premier = entête.suivante
-	}
+        premier = entête.suivante
+    }
 
     rapport := chaine_depuis_enchaineuse(*enchaineuse)
     imprime_log("[AllocatriceGardée]", "%", rapport)
@@ -150,11 +150,11 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
         retourne loge_mémoire(allocatrice, nouvelle_taille, info, pos)
     }
 
-	/* calcule la taille alignée correspondante à l'allocation */
-	// taille_allouée := taille_alignée(ancienne_taille)
+    /* calcule la taille alignée correspondante à l'allocation */
+    // taille_allouée := taille_alignée(ancienne_taille)
     // À FAIRE: vérifie taille
 
-	entête := entête_depuis_pointeur(ancien_pointeur)
+    entête := entête_depuis_pointeur(ancien_pointeur)
     enlève_lien(*allocatrice.liste_de_mémoire, *entête.suivante)
 
     nouvelle_taille_à_allouer := taille_à_allouer_avec_entête(nouvelle_taille)
@@ -173,13 +173,13 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
 déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rien, ancienne_taille: z64, info: *InfoType @inutilisée) -> *rien
 {
     saufsi ancien_pointeur {
-		retourne nul
-	}
+        retourne nul
+    }
 
-	/* calcule la taille alignée correspondante à l'allocation */
-	taille_allouée := taille_alignée(ancienne_taille)
+    /* calcule la taille alignée correspondante à l'allocation */
+    taille_allouée := taille_alignée(ancienne_taille)
 
-	entête := entête_depuis_pointeur(ancien_pointeur)
+    entête := entête_depuis_pointeur(ancien_pointeur)
 
     // À FAIRE: mutex
     si entête.taille == taille_allouée {

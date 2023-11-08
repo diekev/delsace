@@ -2,6 +2,7 @@
 // https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 
 importe Fondation
+importe Numérique
 importe SysFichier
 
 DonnéesSymbole :: struct {

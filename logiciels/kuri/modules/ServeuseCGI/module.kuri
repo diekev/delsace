@@ -5,137 +5,81 @@ importe POSIX
 importe SysFichier
 importe Temps
 
-/*
-DOCUMENT_ROOT	The root directory of your server
-HTTP_COOKIE	The visitor's cookie, if one is set
-HTTP_HOST	The hostname of the page being attempted
-HTTP_REFERER	The URL of the page that called your program
-HTTP_USER_AGENT	The browser type of the visitor
-HTTPS	"on" if the program is being called through a secure server
-PATH	The system path your server is running under
-QUERY_STRING	The query string (see GET, below)
-REMOTE_ADDR	The IP address of the visitor
-REMOTE_HOST	The hostname of the visitor (if your server has reverse-name-lookups on; otherwise this is the IP address again)
-REMOTE_PORT	The port the visitor is connected to on the web server
-REMOTE_USER	The visitor's username (for .htaccess-protected pages)
-REQUEST_METHOD	GET or POST
-REQUEST_URI	The interpreted pathname of the requested document or CGI (relative to the document root)
-SCRIPT_FILENAME	The full pathname of the current CGI
-SCRIPT_NAME	The interpreted pathname of the current CGI (relative to the document root)
-SERVER_ADMIN	The email address for your server's webmaster
-SERVER_NAME	Your server's fully qualified domain name (e.g. www.cgi101.com)
-SERVER_PORT	The port number your server is listening on
-SERVER_SOFTWARE	The server software you're using (e.g. Apache 1.3)
-PATH_INFO
-PATH_TRANSLATED
-SERVER_PROTOCOL
-AUTH_TYPE
-CONTENT_TYPE
-CONTENT_LENGTH
-GATEWAY_INTERFACE
-HTTP_ACCEPT
-HTTP_ACCEPT_LANGUAGE
-*/
+/* Les noms des paramètres CGI.
+ * Les noms des paramètres doivent correspondrent à ceux utilisés pour les variables d'environnement. */
+ParamètresCGI :: énum {
+    /* The root directory of your server. */
+    DOCUMENT_ROOT
+    /* The visitor's cookie, if one is set. */
+    HTTP_COOKIE
+    /* The hostname of the page being attempted. */
+    HTTP_HOST
+    /* The URL of the page that called your program. */
+    HTTP_REFERER
+    /* The browser type of the visitor. */
+    HTTP_USER_AGENT
+    /* "on" if the program is being called through a secure server. */
+    HTTPS
+    /* The system path your server is running under. */
+    PATH
+    /* The query string (see GET, below). */
+    QUERY_STRING
+    /* The IP address of the visitor. */
+    REMOTE_ADDR
+    /* The hostname of the visitor (if your server has reverse-name-lookups on; otherwise this is the IP address again). */
+    REMOTE_HOST
+    /* The port the visitor is connected to on the web server. */
+    REMOTE_PORT
+    /* The visitor's username (for .htaccess-protected pages). */
+    REMOTE_USER
+    /* GET or POST */
+    REQUEST_METHOD
+    /* The interpreted pathname of the requested document or CGI (relative to the document root). */
+    REQUEST_URI
+    /* The full pathname of the current CGI. */
+    SCRIPT_FILENAME
+    /* The interpreted pathname of the current CGI (relative to the document root). */
+    SCRIPT_NAME
+    /* The email address for your server's webmaster. */
+    SERVER_ADMIN
+    /* Your server's fully qualified domain name (e.g. www.cgi101.com). */
+    SERVER_NAME
+    /* The port number your server is listening on. */
+    SERVER_PORT
+    /* The server software you're using (e.g. Apache 1.3). */
+    SERVER_SOFTWARE
+    PATH_INFO
+    PATH_TRANSLATED
+    SERVER_PROTOCOL
+    AUTH_TYPE
+    CONTENT_TYPE
+    CONTENT_LENGTH
+    GATEWAY_INTERFACE
+    HTTP_ACCEPT
+    HTTP_ACCEPT_LANGUAGE
+}
 
 DonnéesCGI :: struct {
-    racine_serveur: chaine
-    cookie: chaine
-    hôte: chaine
-    référant: chaine
-    agent_utilisateur: chaine
-    https: chaine
-    chemin: chaine
-    chaine_requête: chaine
-    adresse_client: chaine
-    hôte_client: chaine
-    port_client: chaine
-    utilisateur_client: chaine
-    méthode: chaine
-    uri: chaine
-    nom_fichier_script: chaine
-    nom_script: chaine
-    administrateur_serveur: chaine
-    nom_serveur: chaine
-    port_serveur: chaine
-    logiciel_serveur: chaine
-    info_chemin : chaine
-    chemin_traduit : chaine
-    protocol_serveur : chaine
-    type_authentification : chaine
-    type_contenu : chaine
-    taille_contenu : chaine
-    interface_gateway : chaine
-    http_accept : chaine
-    http_accept_language : chaine
+    valeur: [ParamètresCGI.nombre_éléments]chaine
 }
 
 données_cgi :: fonc () -> DonnéesCGI
 {
-    données : DonnéesCGI = ---
-    données.racine_serveur = chaine_environnement("DOCUMENT_ROOT")
-    données.cookie = chaine_environnement("HTTP_COOKIE")
-    données.hôte = chaine_environnement("HTTP_HOST")
-    données.référant = chaine_environnement("HTTP_REFERER")
-    données.agent_utilisateur = chaine_environnement("HTTP_USER_AGENT")
-    données.https = chaine_environnement("HTTPS")
-    données.chemin = chaine_environnement("PATH")
-    données.chaine_requête = chaine_environnement("QUERY_STRING")
-    données.adresse_client = chaine_environnement("REMOTE_ADDR")
-    données.hôte_client = chaine_environnement("REMOTE_HOST")
-    données.port_client = chaine_environnement("REMOTE_PORT")
-    données.utilisateur_client = chaine_environnement("REMOTE_USER")
-    données.méthode = chaine_environnement("REQUEST_METHOD")
-    données.uri = chaine_environnement("REQUEST_URI")
-    données.nom_fichier_script = chaine_environnement("SCRIPT_FILENAME")
-    données.nom_script = chaine_environnement("SCRIPT_NAME")
-    données.administrateur_serveur = chaine_environnement("SERVER_ADMIN")
-    données.nom_serveur = chaine_environnement("SERVER_NAME")
-    données.port_serveur = chaine_environnement("SERVER_PORT")
-    données.logiciel_serveur = chaine_environnement("SERVER_SOFTWARE")
-    données.info_chemin = chaine_environnement("PATH_INFO")
-    données.chemin_traduit = chaine_environnement("PATH_TRANSLATED")
-    données.protocol_serveur = chaine_environnement("SERVER_PROTOCOL")
-    données.type_authentification = chaine_environnement("AUTH_TYPE")
-    données.type_contenu = chaine_environnement("CONTENT_TYPE")
-    données.taille_contenu = chaine_environnement("CONTENT_LENGTH")
-    données.interface_gateway = chaine_environnement("GATEWAY_INTERFACE")
-    données.http_accept = chaine_environnement("HTTP_ACCEPT")
-    données.http_accept_language = chaine_environnement("HTTP_ACCEPT_LANGUAGE")
+    résultat: DonnéesCGI
+
+    infos := info_de(ParamètresCGI)
+    pour infos.noms {
+        résultat.valeur[index_it] = chaine_environnement(it)
+    }
 
     retourne données
 }
 
 détruit_données_cgi :: fonc (données_cgi: &DonnéesCGI)
 {
-    déloge(données_cgi.racine_serveur)
-    déloge(données_cgi.cookie)
-    déloge(données_cgi.hôte)
-    déloge(données_cgi.référant)
-    déloge(données_cgi.agent_utilisateur)
-    déloge(données_cgi.https)
-    déloge(données_cgi.chemin)
-    déloge(données_cgi.chaine_requête)
-    déloge(données_cgi.adresse_client)
-    déloge(données_cgi.hôte_client)
-    déloge(données_cgi.port_client)
-    déloge(données_cgi.utilisateur_client)
-    déloge(données_cgi.méthode)
-    déloge(données_cgi.uri)
-    déloge(données_cgi.nom_fichier_script)
-    déloge(données_cgi.nom_script)
-    déloge(données_cgi.administrateur_serveur)
-    déloge(données_cgi.nom_serveur)
-    déloge(données_cgi.port_serveur)
-    déloge(données_cgi.logiciel_serveur)
-    déloge(données_cgi.info_chemin)
-    déloge(données_cgi.chemin_traduit)
-    déloge(données_cgi.protocol_serveur)
-    déloge(données_cgi.type_authentification)
-    déloge(données_cgi.type_contenu)
-    déloge(données_cgi.taille_contenu)
-    déloge(données_cgi.interface_gateway)
-    déloge(données_cgi.http_accept)
-    déloge(données_cgi.http_accept_language)
+    pour données_cgi.valeur {
+        déloge(it)
+    }
 }
 
 ServeuseCGI :: struct ($T: type_de_données) {
@@ -188,7 +132,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     diffère détruit_données_cgi(données)
 
     // prépare les données de la requête
-    uri_normalisé := résoud_échappement_url(données.uri)
+    uri_normalisé := résoud_échappement_url(données.valeur[ParamètresCGI.REQUEST_URI])
     diffère { déloge(uri_normalisé) }
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
@@ -196,15 +140,15 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
         retourne
     }
 
-    cookies := parse_cookie_client(données.cookie)
+    cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE])
     diffère { déloge(cookies) }
 
     requête : Requête
     requête.uri = uri
     requête.cookies = cookies
-    requête.méthode = données.méthode
+    requête.méthode = données.valeur[ParamètresCGI.REQUEST_METHOD]
 
-    requête.adresse_ip = tente parse_ipv4(données.adresse_client) piège err {
+    requête.adresse_ip = tente parse_ipv4(données.valeur[ParamètresCGI.REMOTE_ADDR]) piège err {
         écris_bad_request("IP invalide")
         retourne
     }
@@ -215,17 +159,16 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
         }
     }
 
-    si données.méthode == "POST" && données.taille_contenu != "" && données.taille_contenu != "0" {
-    //taille_contenu := parse_nombre_entier(données.taille_contenu)
-    // type_contenu := données.type_contenu // application/x-www-form-urlencoded
-
+    taille_contenu := données.valeur[ParamètresCGI.CONTENT_LENGTH]
+    si requête.méthode == "POST" && taille_contenu != "" && taille_contenu != "0" {
         texte := tente entrée_standarde().lis_tout() piège err {
             imprime("Status: 400 Bad Request\n\n")
             retourne
         }
 
+        // taille_contenu := parse_nombre_entier(taille_contenu)
         requête.contenu = texte
-        requête.type_contenu = données.type_contenu
+        requête.type_contenu = données.valeur[ParamètresCGI.CONTENT_TYPE]
     }
 
     si serveuse.intergiciel {

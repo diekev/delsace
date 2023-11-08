@@ -224,7 +224,6 @@ execute_fichier(exemples/tests test_pousse_contexte)
 compile_fichier(exemples/tests test_ppm)
 compile_fichier(exemples/tests test_structure_poly)
 compile_fichier(exemples/tests test_sys_fichier)
-compile_fichier(exemples/tests test_unicode)
 compile_fichier(exemples/tests test_valeur_polymorphique_fonction)
 compile_fichier(exemples/tests tous_les_modules)
 compile_fichier(modules/GHTML/test test_ghtml)
@@ -237,18 +236,6 @@ compile_fichier(modules/LABT/Programmes principale)
 compile_fichier(modules/OutilsMaintenance/Programmes formattage)
 compile_fichier(modules/OutilsMaintenance/Programmes suppression_lignes_vides)
 compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
-
-set(FICHIERS_TESTS_COROUTINE
-    exemples/demos/demo_coro_nombre_premier.kuri
-    exemples/demos/demo_coroutine.kuri
-    exemples/tests/test_table_hachage.kuri
-)
-
-foreach(FICHIER_TEST ${FICHIERS_TESTS_COROUTINE})
-    get_filename_component(NOM_FICHIER ${FICHIER_TEST} NAME)
-    add_test(NAME compilation_${NOM_FICHIER} COMMAND kuri ${CMAKE_CURRENT_SOURCE_DIR}/${FICHIER_TEST})
-    set_tests_properties(compilation_${NOM_FICHIER} PROPERTIES WILL_FAIL TRUE)
-endforeach(FICHIER_TEST)
 
 include(bugs/test_bugs.txt)
 

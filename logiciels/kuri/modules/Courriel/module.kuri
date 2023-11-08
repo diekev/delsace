@@ -613,14 +613,14 @@ test_parsage_réponse :: fonc ()
 /*
 
 ÉtatServeuse :: énum {
-	PingDébut
-	AttendHelo
-	RequiersLogin
-	RequiesNomUtilisateur
-	RequiersMotDePasse
-	RequiersCorrespondants
-	MessageAttendu
-	MessageReçu
+    PingDébut
+    AttendHelo
+    RequiersLogin
+    RequiesNomUtilisateur
+    RequiersMotDePasse
+    RequiersCorrespondants
+    MessageAttendu
+    MessageReçu
 }
 
 _ := cliente.écris("221 Closing connection\r\n")

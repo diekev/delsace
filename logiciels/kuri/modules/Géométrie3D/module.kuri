@@ -1,6 +1,7 @@
 /* Module de création de géométrie 3D. */
 
 importe Fondation
+importe Numérique
 importe SysFichier
 
 charge "interface_geometrie3d"

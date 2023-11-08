@@ -1,4 +1,5 @@
 importe Fondation
+importe Numérique
 importe Sérialisation
 
 Exécutrice :: struct {

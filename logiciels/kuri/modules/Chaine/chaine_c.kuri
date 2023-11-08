@@ -74,12 +74,12 @@ copie_chaine_c :: fonc (chaine_c: ChaineC) -> chaine
 {
     ptr := chaine_c comme *z8
 
-	si !ptr || ptr[0] == '\0' {
-		retourne ""
-	}
+    si !ptr || ptr[0] == '\0' {
+        retourne ""
+    }
 
-	taille := taille_chaine_c(chaine_c)
-	chn := loge_chaine(taille)
-	copie_mem_nonsur(src = chaine_c comme *z8, dst = chn.pointeur, taille = taille)
+    taille := taille_chaine_c(chaine_c)
+    chn := loge_chaine(taille)
+    copie_mem_nonsur(src = chaine_c comme *z8, dst = chn.pointeur, taille = taille)
     retourne chn
 }

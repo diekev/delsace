@@ -17,9 +17,9 @@ vérifie_erreur :: fonc (raison: chaine = "") -> rien
 {
     erreur_ := glGetError()
 
-	si erreur_ == 0 {
+    si erreur_ == 0 {
         retourne
-	}
+    }
 
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -28,7 +28,7 @@ vérifie_erreur :: fonc (raison: chaine = "") -> rien
         imprime_dans_enchaineuse(*enchaineuse, "[%] erreur OpenGL !\n", raison)
     }
     sinon {
-	    imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL !\n")
+        imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL !\n")
     }
 
     discr erreur_ {

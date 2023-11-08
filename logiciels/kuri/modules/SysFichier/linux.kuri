@@ -346,14 +346,14 @@ système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Résultat(Typ
     ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
 
-	st : struct_stat
-	ok := stat(ptr_chemin, *st)
+    st : struct_stat
+    ok := stat(ptr_chemin, *st)
 
-	si ok == -1 {
-		retourne convertis_errno_en_erreur_fichier()
-	}
+    si ok == -1 {
+        retourne convertis_errno_en_erreur_fichier()
+    }
 
-	discr (st.st_mode & __S_IFMT) {
+    discr (st.st_mode & __S_IFMT) {
         __S_IFDIR {
             retourne TypeFichier.Dossier
         }
@@ -481,7 +481,7 @@ système_référence_fichier :: fonc (ancien_fd: TypePoignéeFichier, nouveau_fd
 
 système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n64, ErreurFichier)
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
+    ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
 
     s : struct_statvfs
@@ -511,7 +511,7 @@ système_chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
 
 système_chemin_courant :: fonc(chemin : CheminFichier) -> Optionnel(ErreurFichier)
 {
-	ptr_chemin := crée_chaine_c(chemin.chn)
+    ptr_chemin := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(ptr_chemin)
     résultat := chdir(ptr_chemin)
     retourne donne_erreur_si_résultat_invalide(résultat)
@@ -601,7 +601,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
      * Nous n'utilisons pas système_chemin_pour_dossier_données_utilisateur
      * afin de pouvoir tester la variable d'environnement et le replis
      * séparément. */
-	xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME")
+    xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME")
     si xdg_data_home.possède_valeur() {
         chemin_données := xdg_data_home.Quelque
         diffère détruit_chemin(chemin_données)
@@ -622,7 +622,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
 
     diffère détruit_chemin(chemin_maison)
 
-	chemin_potentiel := chemin_maison / ".local/share/Trash";
+    chemin_potentiel := chemin_maison / ".local/share/Trash";
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel
     }
@@ -630,7 +630,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
     détruit_chemin(chemin_potentiel)
 
     /* Tente un dernier coup avec $HOME/.trash. */
-	chemin_potentiel = chemin_maison / ".trash";
+    chemin_potentiel = chemin_maison / ".trash";
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel
     }
@@ -811,18 +811,18 @@ système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFi
 
 système_renomme :: fonc(orig : CheminFichier, dest : CheminFichier) -> Optionnel(ErreurFichier)
 {
-	ptr_chemin_orig := crée_chaine_c(orig.chn)
+    ptr_chemin_orig := crée_chaine_c(orig.chn)
     diffère détruit_chaine_c(ptr_chemin_orig)
-	ptr_chemin_dest := crée_chaine_c(dest.chn)
+    ptr_chemin_dest := crée_chaine_c(dest.chn)
     diffère détruit_chaine_c(ptr_chemin_dest)
 
-	résultat := rename(ptr_chemin_orig, ptr_chemin_dest)
+    résultat := rename(ptr_chemin_orig, ptr_chemin_dest)
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
 système_supprime :: fonc(chm : CheminFichier) -> Optionnel(ErreurFichier)
 {
-	ptr_chemin := crée_chaine_c(chm.chn)
+    ptr_chemin := crée_chaine_c(chm.chn)
     diffère détruit_chaine_c(ptr_chemin)
     résultat := remove(ptr_chemin)
     retourne donne_erreur_si_résultat_invalide(résultat)

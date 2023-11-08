@@ -11,12 +11,12 @@ execute_noeud :: fonc(obj1 : &Objet @inutilisée, objs : []&Objet @inutilisée) 
 
 imprime_type :: fonc(info : *InfoType) -> rien
 {
-	enchaineuse: Enchaineuse
-	initialise_enchaineuse(*enchaineuse)
-	imprime_type(*enchaineuse, info)
-	chn := chaine_depuis_enchaineuse(*enchaineuse)
-	diffère déloge(chn)
-	imprime("%\n", chn)
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_type(*enchaineuse, info)
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn)
+    imprime("%\n", chn)
 }
 
 enregistre_noeud :: fonc(fonc_exec : eini) -> rien

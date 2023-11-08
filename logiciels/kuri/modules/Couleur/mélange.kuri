@@ -21,12 +21,12 @@ importe Math
 
 enhaut :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	retourne A * b + B * (1.0 - a)
+    retourne A * b + B * (1.0 - a)
 }
 
 moyenne :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne (A + B) * 0.5
+    retourne (A + B) * 0.5
 }
 
 densite_couleur_pos :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
@@ -35,7 +35,7 @@ densite_couleur_pos :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutil
         retourne 0.0
     }
 
-	retourne max(1.0 - ((1.0 - A) / B), 0.0)
+    retourne max(1.0 - ((1.0 - A) / B), 0.0)
 }
 
 densite_couleur_neg :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
@@ -43,175 +43,175 @@ densite_couleur_neg :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutil
     si B >= 1.0 {
         retourne 1.0
     }
-	retourne min(A / (1.0 - B), 1.0)
+    retourne min(A / (1.0 - B), 1.0)
 }
 
 dessus_conjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	si (a > b || b == 0.0) {
-		retourne A
-	}
+    si (a > b || b == 0.0) {
+        retourne A
+    }
 
-	retourne A + B * (1.0 - a) / b
+    retourne A + B * (1.0 - a) / b
 }
 
 copie :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32 @inutilisée) -> r32
 {
-	retourne A
+    retourne A
 }
 
 différence :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne abs(A - B)
+    retourne abs(A - B)
 }
 
 dessus_disjoint :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	si (a + b < 1.0) {
-		retourne A + B
-	}
+    si (a + b < 1.0) {
+        retourne A + B
+    }
 
-	retourne A + B * (1.0 - a) / b
+    retourne A + B * (1.0 - a) / b
 }
 
 divise :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	si (A < 0.0 || B <= 0.0) {
-		retourne 0.0
-	}
+    si (A < 0.0 || B <= 0.0) {
+        retourne 0.0
+    }
 
-	retourne A / B
+    retourne A / B
 }
 
 exclus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne A + B - 2.0 * A * B
+    retourne A + B - 2.0 * A * B
 }
 
 depuis :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne B - A
+    retourne B - A
 }
 
 géométrique :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne (2.0 * A * B) / (A + B)
+    retourne (2.0 * A * B) / (A + B)
 }
 
 hypothénuse :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne racine_carrée(A * A + B * B)
+    retourne racine_carrée(A * A + B * B)
 }
 
 dedans :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32) -> r32
 {
-	retourne A * b
+    retourne A * b
 }
 
 masque :: fonc (A: r32 @inutilisée, a: r32, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne B * a
+    retourne B * a
 }
 
 matte :: fonc (A: r32, a: r32, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne A * a + B * (1.0 - a)
+    retourne A * a + B * (1.0 - a)
 }
 
 max :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne max(A, B)
+    retourne max(A, B)
 }
 
 min :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne min(A, B)
+    retourne min(A, B)
 }
 
 moins :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne A - B
+    retourne A - B
 }
 
 multiplie :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	si (A < 0.0 && B < 0.0) {
-		retourne A
-	}
+    si (A < 0.0 && B < 0.0) {
+        retourne A
+    }
 
-	retourne A * B
+    retourne A * B
 }
 
 dehors :: fonc (A: r32, a: r32 @inutilisée, B: r32 @inutilisée, b: r32) -> r32
 {
-	retourne A * (1.0 - b)
+    retourne A * (1.0 - b)
 }
 
 dessus :: fonc (A: r32, a: r32, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne A + B * (1.0 - a)
+    retourne A + B * (1.0 - a)
 }
 
 plus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne A + B
+    retourne A + B
 }
 
 écran :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	si (0.0 <= A <= 1.0) && (0.0 <= B <= 1.0) {
-		retourne A + B - A * B
-	}
+    si (0.0 <= A <= 1.0) && (0.0 <= B <= 1.0) {
+        retourne A + B - A * B
+    }
 
-	si (A > B) {
-		retourne A
-	}
+    si (A > B) {
+        retourne A
+    }
 
-	retourne B
+    retourne B
 }
 
 lumiere_douce :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
-	AB := A * B
+    AB := A * B
 
-	si (AB < 1.0) {
-		retourne B * (2.0 * A + (B * (1.0 - AB)))
-	}
+    si (AB < 1.0) {
+        retourne B * (2.0 * A + (B * (1.0 - AB)))
+    }
 
-	retourne 2.0 * AB
+    retourne 2.0 * AB
 }
 
 pochoir :: fonc (A: r32 @inutilisée, a: r32, B: r32, b: r32 @inutilisée) -> r32
 {
-	retourne B * (1.0 - a)
+    retourne B * (1.0 - a)
 }
 
 dessous :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32) -> r32
 {
-	retourne A * (1.0 - b) + B
+    retourne A * (1.0 - b) + B
 }
 
 ou_exclusif :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	retourne A * (1.0 - b) + B * (1.0 - a)
+    retourne A * (1.0 - b) + B * (1.0 - a)
 }
 
 lumiere_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	si (A < 0.5) {
-		retourne multiplie(A, a, B, b)
-	}
+    si (A < 0.5) {
+        retourne multiplie(A, a, B, b)
+    }
 
-	retourne écran(A, a, B, b)
+    retourne écran(A, a, B, b)
 }
 
 superpose :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
-	si (B < 0.5) {
-		retourne multiplie(A, a, B, b)
-	}
+    si (B < 0.5) {
+        retourne multiplie(A, a, B, b)
+    }
 
-	retourne écran(A, a, B, b)
+    retourne écran(A, a, B, b)
 }
 
 OpérationMélange :: énum {

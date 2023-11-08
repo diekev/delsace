@@ -31,13 +31,13 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Syntaxage du script, création de l'objet
 
-	syntaxeuse : SyntaxeuseJSON
-	syntaxeuse.lexèmes = lexeuse.lexèmes
+    syntaxeuse : SyntaxeuseJSON
+    syntaxeuse.lexèmes = lexeuse.lexèmes
     diffère { détruit(syntaxeuse); }
 
-	syntaxeuse.lance_analyse()
+    syntaxeuse.lance_analyse()
 
-	imprime("JSON :\n\n")
+    imprime("JSON :\n\n")
 
     si syntaxeuse.assembleuse.pile.est_vide() {
         imprime("La pile est vide...\n")
@@ -47,7 +47,7 @@ test_json_tori :: fonc () -> rien
         imprime_json(racine, 0)
     }
 
-	imprime("\n")
+    imprime("\n")
 }
 
 // -----------------------------------

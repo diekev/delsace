@@ -277,14 +277,14 @@ covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> T, z64
 {
     taille := min(données1.taille, données2.taille)
 
-	résultat : T
+    résultat : T
 
-	pour i dans 0 ... taille - 1 {
-		résultat += (données1[i] - esp1) * (données2[i] - esp2)
-	}
+    pour i dans 0 ... taille - 1 {
+        résultat += (données1[i] - esp1) * (données2[i] - esp2)
+    }
 
-	résultat /= taille comme T
-	retourne résultat, taille
+    résultat /= taille comme T
+    retourne résultat, taille
 }
 
 calcule_table_occurences :: fonc (données: []octet) -> [256]z32

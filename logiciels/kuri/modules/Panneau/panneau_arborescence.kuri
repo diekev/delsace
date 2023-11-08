@@ -2,8 +2,8 @@ importe Couleur
 importe Fondation
 importe Géométrie
 importe Math
-importe PeintureInterface
 importe Périphériques
+importe PeintureInterface
 importe Typographie
 
 /* ------------------------------------------------------------------------- */

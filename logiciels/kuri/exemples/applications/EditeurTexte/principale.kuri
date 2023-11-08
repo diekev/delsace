@@ -4,6 +4,7 @@ importe Numérique
 importe SysFichier
 importe Temps
 importe Terminal
+importe Unicode
 
 charge "éditeur"
 

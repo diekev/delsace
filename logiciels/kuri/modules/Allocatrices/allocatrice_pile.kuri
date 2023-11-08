@@ -83,7 +83,7 @@ allocatrice_pile :: fonc(
                 retourne nul
             }
 
-		    alloc.ptr += n
+            alloc.ptr += n
 
             retourne ancien_pointeur
         }

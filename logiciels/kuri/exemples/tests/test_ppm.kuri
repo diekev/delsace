@@ -149,14 +149,14 @@ génére_image_noire :: fonc() -> Image
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes());
 }
 
-//####################
+/* ------------------------------------------------------------------------- */
 
 détruit_image :: fonc(image : *Image) -> rien
 {
     déloge(image.tampon);
 }
 
-//####################
+/* ------------------------------------------------------------------------- */
 
 principale :: fonc () -> z32
 {

@@ -1,4 +1,3 @@
-
 // Type pour représenter un résultat optionnel
 Optionnel :: union ($T: type_de_données) {
     Quelque: T
@@ -7,51 +6,51 @@ Optionnel :: union ($T: type_de_données) {
 
 valeur_ou :: fonc (résultat: Optionnel($T), valeur: T) -> T #enligne
 {
-	discr résultat {
-		Quelque(v) {
-			retourne v
-		}
-		sinon {
-			retourne valeur
-		}
-	}
+    discr résultat {
+        Quelque(v) {
+            retourne v
+        }
+        sinon {
+            retourne valeur
+        }
+    }
 }
 
 valeur_ou_défaut :: fonc (résultat: Optionnel($T)) -> T #enligne
 {
     discr résultat {
-		Quelque(v) {
-			retourne v
-		}
+        Quelque(v) {
+            retourne v
+        }
         sinon {
-			valeur_défaut: T
-			retourne valeur_défaut
+            valeur_défaut: T
+            retourne valeur_défaut
         }
     }
 }
 
 possède_valeur :: fonc (résultat: Optionnel($T)) -> bool #enligne
 {
-	discr résultat {
-		Quelque {
-			retourne vrai
-		}
-		sinon {
-			retourne faux
-		}
-	}
+    discr résultat {
+        Quelque {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 a_valeur :: fonc (optionnel: Optionnel($T), valeur: T) -> bool
 {
-	discr optionnel {
-		Quelque(v) {
-			retourne v == valeur
-		}
-		sinon {
-			retourne faux
-		}
-	}
+    discr optionnel {
+        Quelque(v) {
+            retourne v == valeur
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
@@ -69,4 +68,16 @@ fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
 Résultat :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
     Ok: TypeOk
     Erreur: TypeErreur
+}
+
+possède_erreur :: fonc (résultat: Résultat($T, $E)) -> bool
+{
+    discr (résultat) {
+        Erreur {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }

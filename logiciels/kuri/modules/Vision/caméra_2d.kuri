@@ -2,26 +2,26 @@ importe Math
 
 Caméra2D :: struct {
     /* Dimension de la fenêtre en pixels. */
-	hauteur := 0 @mutable
-	largeur := 0 @mutable
+    hauteur := 0 @mutable
+    largeur := 0 @mutable
 
     /* Position mondiale. */
-	pos_x := 0.0 @mutable
-	pos_y := 0.0 @mutable
+    pos_x := 0.0 @mutable
+    pos_y := 0.0 @mutable
 
     /* Zoom. */
-	zoom := 1.0 @mutable
+    zoom := 1.0 @mutable
 
-	matrice : Mat4r @accessible
+    matrice : Mat4r @accessible
 }
 
 ajourne_matrice :: fonc (caméra: *Caméra2D)
 {
     caméra.matrice = construit_mat4r_neutre()
-	caméra.matrice.m[0][0] = caméra.zoom
-	caméra.matrice.m[1][1] = caméra.ratio_d_aspect() * caméra.zoom
-	caméra.matrice.m[3][0] = caméra.pos_x
-	caméra.matrice.m[3][1] = caméra.pos_y
+    caméra.matrice.m[0][0] = caméra.zoom
+    caméra.matrice.m[1][1] = caméra.ratio_d_aspect() * caméra.zoom
+    caméra.matrice.m[3][0] = caméra.pos_x
+    caméra.matrice.m[3][1] = caméra.pos_y
 } @Python "méthode"
 
 ratio_d_aspect :: fonc (caméra: *Caméra2D) -> r32
