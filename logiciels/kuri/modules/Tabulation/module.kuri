@@ -75,11 +75,7 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
         déloge(ligne.colonnes)
     }
 
-    pour chn dans tabuleuse.chaines_allouées {
-        déloge(chn)
-    }
-
-    déloge(tabuleuse.chaines_allouées)
+    déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées)
     déloge(tabuleuse.lignes)
     déloge(tabuleuse.alignements)
 }
