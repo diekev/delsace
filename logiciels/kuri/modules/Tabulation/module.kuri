@@ -17,6 +17,7 @@
  */
 
 importe Fondation
+importe Introspection
 importe SysFichier
 importe Unicode
 
@@ -104,7 +105,8 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
     initialise_enchaineuse(*enchaineuse)
 
     si info.id == id_info.CHAINE {
-        chn = arg
+        // À FAIRE(langage) : bug dans l'extraction des valeurs ?
+        chn = arg.comme_chaine()
     }
     sinon {
         imprime_valeur(*enchaineuse, arg, faux)
