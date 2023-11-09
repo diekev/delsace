@@ -418,6 +418,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         EINI {
             compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers Python pour le moment")
         }
+        VARIADIQUE {
+            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers Python pour le moment")
+        }
     }
 
     si type_python {

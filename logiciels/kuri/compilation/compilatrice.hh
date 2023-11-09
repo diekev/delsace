@@ -186,7 +186,7 @@ struct Compilatrice {
      * Le paramètre est_racine ne doit être vrai que pour le module racine.
      */
     Module *importe_module(EspaceDeTravail *espace,
-                           kuri::chaine const &nom,
+                           kuri::chaine_statique nom,
                            NoeudExpression const *site);
 
     /**

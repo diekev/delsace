@@ -746,6 +746,7 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
             valeur.info = info_arg.type_opacifié
             imprime_valeur(enchaineuse, valeur, échappe_chn)
         }
+        VARIADIQUE {}
     }
 }
 
@@ -927,10 +928,7 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
                 ajoute_au_tampon(enchaineuse, "[]")
             }
 
-            si info_arg.type_pointé {
-                /* Type variadique externe. */
-                imprime_type(enchaineuse, info_arg.type_pointé)
-            }
+            imprime_type(enchaineuse, info_arg.type_pointé)
         }
         ÉNUM {
             info_arg := info comme *InfoTypeÉnum
@@ -939,6 +937,15 @@ imprime_type :: fonc(enchaineuse: *Enchaineuse, info : *InfoType) -> rien
         OPAQUE {
             info_arg := info comme *InfoTypeOpaque
             ajoute_au_tampon(enchaineuse, info_arg.nom)
+        }
+        VARIADIQUE {
+            info_arg := info comme *InfoTypeVariadique
+            ajoute_au_tampon(enchaineuse, "...")
+
+            si info_arg.type_élément {
+                /* Les types variadiques externes n'ont pas de type élément. */
+                imprime_type(enchaineuse, info_arg.type_élément)
+            }
         }
     }
 }

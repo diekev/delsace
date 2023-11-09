@@ -16,5 +16,6 @@ int64_t AllocatriceInfosType::memoire_utilisee() const
     memoire += infos_types_tableaux.memoire_utilisee();
     memoire += infos_types_unions.memoire_utilisee();
     memoire += infos_types_opaques.memoire_utilisee();
+    memoire += infos_types_variadiques.memoire_utilisee();
     return memoire;
 }

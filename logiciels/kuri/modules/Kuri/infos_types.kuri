@@ -18,6 +18,7 @@ id_info :: énum z32 {
     TYPE_DE_DONNÉES :: 12
     UNION           :: 13
     OPAQUE          :: 14
+    VARIADIQUE      :: 15
 }
 
 InfoType :: struct #interface {
@@ -156,6 +157,12 @@ InfoTypeOpaque :: struct #interface {
 
     nom : chaine
     type_opacifié : *InfoType
+}
+
+InfoTypeVariadique :: struct #interface {
+    empl base : InfoType
+
+    type_élément : *InfoType
 }
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
