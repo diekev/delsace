@@ -34,43 +34,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-stat :: struct #externe {
-    st_dev : n64;         // ID of device containing file
-    st_ino : n64;         // inode number
-    st_nlink : n64;     // number of hard links
-    st_mode : n32;       // protection
-    st_uid : n32;         // user ID of owner
-    st_gid : n32;         // group ID of owner
-    __pad0 : n32;         // padding pour la version 64-bit
-    st_rdev : n64;        // device ID (if special file)
-    st_size : z64;        // total size, in bytes
-    st_blksize : z64; // blocksize for file system I/O
-    st_blocks : z64;
-    st_atime : z64;      // time of last access
-    st_mtime : z64;      // time of last modification
-    st_ctime : z64;      // time of last status change
-}
-
-_O_TRUNC := 0o1000;
-_O_CREAT := 0o100;
-_O_EXCL := 0o200;
-
-_EINVAL := 22;
-_EEXIST := 17;
-_EAGAIN := 11;
-_ENOENT := 2;
-
-_S_IFMT := 0o170000;
-
-open :: fonc (a : *z8, b : ...z32) -> z32 #externe
-close :: fonc (a : z32) -> z32 #externe
-fstat :: fonc (fd : z32, s : *stat) -> z32 #externe
-lstat :: fonc (a : *z8, s : *stat) -> z32 #externe
-isatty :: fonc (a : z32) -> bool #externe
-unlink :: fonc (a : *z8) -> z32 #externe
-ftruncate :: fonc (a : z32, f : z32) -> z32 #externe
-S_ISLNK :: fonc (a : n32) -> bool #externe
-S_ISFIFO :: fonc (a : n32) -> bool #externe
+importe GlibC
 
 /* ------------------------------------------------------------------------- */
 
@@ -109,8 +73,8 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 {
     saved_errno = errno;        // used to restore errno on success
     want_trunc = (flags & _O_TRUNC) != 0;
-    lstat_buf : stat;
-    fstat_buf : stat;
+    lstat_buf : struct_stat;
+    fstat_buf : struct_stat;
     num_tries = 0;
 
     // check for invalid argument values
@@ -485,7 +449,7 @@ safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
 
     // check if we need to still truncate the file
     si (want_trunc) {
-        fstat_buf : stat;
+        fstat_buf : struct_stat;
 
         r = fstat(f, *fstat_buf);
         si (r == -1) {
@@ -532,7 +496,7 @@ safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> 
 {
     f = -1;
     saved_errno = errno;
-    lstat_buf : stat;
+    lstat_buf : struct_stat;
     num_tries = 0;
 
     // check for invalid argument values
@@ -698,8 +662,8 @@ principale :: fonc () -> z32
     userMask = 0o600;
     myUmask = 0;
 
-    curStat : stat;
-    prevStat : stat;
+    curStat : struct_stat;
+    prevStat : struct_stat;
 
     curMask : n32;
     correctMask : n32;
