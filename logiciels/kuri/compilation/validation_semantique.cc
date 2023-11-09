@@ -1105,7 +1105,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     type_info_type = m_compilatrice.typeuse.type_info_type_union;
                     break;
                 }
-                case GenreType::VARIADIQUE:
                 case GenreType::TABLEAU_DYNAMIQUE:
                 case GenreType::TABLEAU_FIXE:
                 {
@@ -1126,6 +1125,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 case GenreType::OPAQUE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_opaque;
+                    break;
+                }
+                case GenreType::VARIADIQUE:
+                {
+                    type_info_type = m_compilatrice.typeuse.type_info_type_variadique;
                     break;
                 }
             }

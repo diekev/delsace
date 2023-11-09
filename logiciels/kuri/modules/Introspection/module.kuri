@@ -1038,7 +1038,8 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
         TYPE_DE_DONNÉES,
         TABLEAU,
         ÉNUM,
-        EINI {
+        EINI,
+        VARIADIQUE {
             retourne faux
         }
     }
