@@ -51,6 +51,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypePointeur, "InfoTypePointeur")                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeFonction, "InfoTypeFonction")                       \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeOpaque, "InfoTypeOpaque")                           \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoTypeVariadique, "InfoTypeVariadique")                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(PositionCodeSource, "PositionCodeSource")                   \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(InfoFonctionTraceAppel, "InfoFonctionTraceAppel")           \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(TraceAppel, "TraceAppel")                                   \
