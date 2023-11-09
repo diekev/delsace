@@ -241,21 +241,3 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 
     ajoute_au_tampon(enchaineuse, "|\n")
 }
-
-/*
-principale :: fonc () -> z32
-{
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
-
-    tabuleuse := crée_tabuleuse("Sources", "Entêtes", "Total");
-
-    ajoute_ligne(@tabuleuse, 1932, 567, 2499)
-    alignement(@tabuleuse, 1, Alignement.DROITE)
-
-    imprime_table(@tabuleuse)
-
-    détruit_tabuleuse(@tabuleuse)
-
-    retourne 0
-}
-*/
