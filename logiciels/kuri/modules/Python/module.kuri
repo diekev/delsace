@@ -332,6 +332,11 @@ TypePython :: struct {
 
 détruit :: fonc (type: *TypePython)
 {
+    détruit(type.new)
+    détruit(type.init)
+    détruit(type.repr)
+    détruit(type.str)
+    détruit(type.hash)
     déloge(type.fonctions.pour_discrimination)
     déloge(type.fonctions.pour_construction)
     déloge(type.fonctions.pour_extraction_valeur)
@@ -339,6 +344,7 @@ détruit :: fonc (type: *TypePython)
     déloge(type.méthodes)
     déloge(type.nom_globale_type)
     déloge(type.nom_sauf)
+    déloge(type.nom_type_kuri)
     déloge(type)
 }
 

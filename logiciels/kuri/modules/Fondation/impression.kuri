@@ -174,8 +174,6 @@ ajoute_tampon :: fonc (enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
     tampon := enchaineuse.tampon_courant
 
     nouveau_tampon := loge(TamponEnchaineuse)
-    nouveau_tampon.occupé = 0
-    nouveau_tampon.suivant = nul
 
     tampon.suivant = nouveau_tampon
     enchaineuse.tampon_courant = nouveau_tampon

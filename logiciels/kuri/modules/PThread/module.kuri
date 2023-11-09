@@ -6,6 +6,7 @@ cpu_set_t :: struct #externe;
 __clockid_t :: #opaque z32
 pthread_once_t :: #opaque z32
 pthread_spinlock_t :: #opaque z32
+pthread_t :: #opaque n64
 
 libpthread :: #bibliothèque "pthread"
 
@@ -220,14 +221,14 @@ anonyme13 :: énum n32 {
     PTHREAD_CANCEL_ASYNCHRONOUS
 }
 
-pthread_create :: fonc (__newthread : *n64, __attr : *pthread_attr_t, __start_routine : fonc(*rien)(*rien), __arg : *rien) -> z32 #externe libpthread
+pthread_create :: fonc (__newthread : *pthread_t, __attr : *pthread_attr_t, __start_routine : fonc(*rien)(*rien), __arg : *rien) -> z32 #externe libpthread
 pthread_exit :: fonc (__retval : *rien) -> rien #externe libpthread
-pthread_join :: fonc (__th : n64, __thread_return : **rien) -> z32 #externe libpthread
-pthread_tryjoin_np :: fonc (__th : n64, __thread_return : **rien) -> z32 #externe libpthread
-pthread_timedjoin_np :: fonc (__th : n64, __thread_return : **rien, __abstime : *timespec) -> z32 #externe libpthread
-pthread_detach :: fonc (__th : n64) -> z32 #externe libpthread
-pthread_self :: fonc () -> n64 #externe libpthread
-pthread_equal :: fonc (__thread1 : n64, __thread2 : n64) -> z32 #externe libpthread
+pthread_join :: fonc (__th : pthread_t, __thread_return : **rien) -> z32 #externe libpthread
+pthread_tryjoin_np :: fonc (__th : pthread_t, __thread_return : **rien) -> z32 #externe libpthread
+pthread_timedjoin_np :: fonc (__th : pthread_t, __thread_return : **rien, __abstime : *timespec) -> z32 #externe libpthread
+pthread_detach :: fonc (__th : pthread_t) -> z32 #externe libpthread
+pthread_self :: fonc () -> pthread_t #externe libpthread
+pthread_equal :: fonc (__thread1 : pthread_t, __thread2 : pthread_t) -> z32 #externe libpthread
 pthread_attr_init :: fonc (__attr : *pthread_attr_t) -> z32 #externe libpthread
 pthread_attr_destroy :: fonc (__attr : *pthread_attr_t) -> z32 #externe libpthread
 pthread_attr_getdetachstate :: fonc (__attr : *pthread_attr_t, __detachstate : *z32) -> z32 #externe libpthread
@@ -252,21 +253,21 @@ pthread_attr_setaffinity_np :: fonc (__attr : *pthread_attr_t, __cpusetsize : n6
 pthread_attr_getaffinity_np :: fonc (__attr : *pthread_attr_t, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32 #externe libpthread
 pthread_getattr_default_np :: fonc (__attr : *pthread_attr_t) -> z32 #externe libpthread
 pthread_setattr_default_np :: fonc (__attr : *pthread_attr_t) -> z32 #externe libpthread
-pthread_getattr_np :: fonc (__th : n64, __attr : *pthread_attr_t) -> z32 #externe libpthread
-pthread_setschedparam :: fonc (__target_thread : n64, __policy : z32, __param : *sched_param) -> z32 #externe libpthread
-pthread_getschedparam :: fonc (__target_thread : n64, __policy : *z32, __param : *sched_param) -> z32 #externe libpthread
-pthread_setschedprio :: fonc (__target_thread : n64, __prio : z32) -> z32 #externe libpthread
-pthread_getname_np :: fonc (__target_thread : n64, __buf : *z8, __buflen : n64) -> z32 #externe libpthread
-pthread_setname_np :: fonc (__target_thread : n64, __name : *z8) -> z32 #externe libpthread
+pthread_getattr_np :: fonc (__th : pthread_t, __attr : *pthread_attr_t) -> z32 #externe libpthread
+pthread_setschedparam :: fonc (__target_thread : pthread_t, __policy : z32, __param : *sched_param) -> z32 #externe libpthread
+pthread_getschedparam :: fonc (__target_thread : pthread_t, __policy : *z32, __param : *sched_param) -> z32 #externe libpthread
+pthread_setschedprio :: fonc (__target_thread : pthread_t, __prio : z32) -> z32 #externe libpthread
+pthread_getname_np :: fonc (__target_thread : pthread_t, __buf : *z8, __buflen : n64) -> z32 #externe libpthread
+pthread_setname_np :: fonc (__target_thread : pthread_t, __name : *z8) -> z32 #externe libpthread
 pthread_getconcurrency :: fonc () -> z32 #externe libpthread
 pthread_setconcurrency :: fonc (__level : z32) -> z32 #externe libpthread
 pthread_yield :: fonc () -> z32 #externe libpthread
-pthread_setaffinity_np :: fonc (__th : n64, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32 #externe libpthread
-pthread_getaffinity_np :: fonc (__th : n64, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32 #externe libpthread
+pthread_setaffinity_np :: fonc (__th : pthread_t, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32 #externe libpthread
+pthread_getaffinity_np :: fonc (__th : pthread_t, __cpusetsize : n64, __cpuset : *cpu_set_t) -> z32 #externe libpthread
 pthread_once :: fonc (__once_control : *pthread_once_t, __init_routine : fonc()(rien)) -> z32 #externe libpthread
 pthread_setcancelstate :: fonc (__state : z32, __oldstate : *z32) -> z32 #externe libpthread
 pthread_setcanceltype :: fonc (__type : z32, __oldtype : *z32) -> z32 #externe libpthread
-pthread_cancel :: fonc (__th : n64) -> z32 #externe libpthread
+pthread_cancel :: fonc (__th : pthread_t) -> z32 #externe libpthread
 
 /*
 pthread_testcancel :: fonc () -> rien #externe libpthread
@@ -389,5 +390,5 @@ pthread_key_create :: fonc (__key : *n32, __destr_function : fonc(*rien)(rien)) 
 pthread_key_delete :: fonc (__key : n32) -> z32 #externe libpthread
 pthread_getspecific :: fonc (__key : n32) -> *rien #externe libpthread
 pthread_setspecific :: fonc (__key : n32, __pointer : *rien) -> z32 #externe libpthread
-pthread_getcpuclockid :: fonc (__thread_id : n64, __clock_id : *__clockid_t) -> z32 #externe libpthread
+pthread_getcpuclockid :: fonc (__thread_id : pthread_t, __clock_id : *__clockid_t) -> z32 #externe libpthread
 pthread_atfork :: fonc (__prepare : fonc()(rien), __parent : fonc()(rien), __child : fonc()(rien)) -> z32 #externe libpthread

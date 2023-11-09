@@ -5,15 +5,8 @@ importe Chaine
 importe Fondation
 importe GlibC
 importe Ordinatrice
+importe POSIX
 importe PThread
-
-/* ------------------------------------------------------------------------- */
-
-pthread_t :: n64
-
-sleep :: fonc (temps : z32) -> rien #externe libc
-
-strerror :: fonc (args : z32) -> ChaineC #externe libc
 
 /* ------------------------------------------------------------------------- */
 
@@ -21,8 +14,8 @@ strerror :: fonc (args : z32) -> ChaineC #externe libc
 store_t :: struct {
    stock := 20
 
-   thread_store : n64
-   thread_clients : [5]n64
+   thread_store : pthread_t
+   thread_clients : [5]pthread_t
 
    mutex : pthread_mutex_t
    cond_clients : pthread_cond_t

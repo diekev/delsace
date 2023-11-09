@@ -234,6 +234,14 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     retourne type_python
 }
 
+crée_type_python_pour_basique :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc(&FonctionsTypePython)(rien)) -> *TypePython
+{
+    résultat := système.crée_type_python_pour(info, nom)
+    résultat.est_basique = vrai
+    fonction_init(résultat.fonctions)
+    retourne résultat
+}
+
 trouve_type :: fonc (système: &SystèmeType, info: *InfoType) -> *TypePython
 {
     pour système.types {
@@ -258,80 +266,52 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
             si info_entier.est_signé {
                 si info.taille_en_octet == 1 {
-                    type_python = système.crée_type_python_pour(info, "z8")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_z8(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "z8", init_fonctions_type_z8)
                 }
                 sinon si info.taille_en_octet == 2 {
-                    type_python = système.crée_type_python_pour(info, "z16")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_z16(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "z16", init_fonctions_type_z16)
                 }
                 sinon si info.taille_en_octet == 4 {
-                    type_python = système.crée_type_python_pour(info, "z32")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_z32(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "z32", init_fonctions_type_z32)
                 }
                 sinon si info.taille_en_octet == 8 {
-                    type_python = système.crée_type_python_pour(info, "z64")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_z64(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "z64", init_fonctions_type_z64)
                 }
             }
             sinon {
                 si info.taille_en_octet == 1 {
-                    type_python = système.crée_type_python_pour(info, "n8")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_n8(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "n8", init_fonctions_type_n8)
                 }
                 sinon si info.taille_en_octet == 2 {
-                    type_python = système.crée_type_python_pour(info, "n16")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_n16(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "n16", init_fonctions_type_n16)
                 }
                 sinon si info.taille_en_octet == 4 {
-                    type_python = système.crée_type_python_pour(info, "n32")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_n32(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "n32", init_fonctions_type_n32)
                 }
                 sinon si info.taille_en_octet == 8 {
-                    type_python = système.crée_type_python_pour(info, "n64")
-                    type_python.est_basique = vrai
-                    init_fonctions_type_n64(type_python.fonctions)
+                    type_python = système.crée_type_python_pour_basique(info, "n64", init_fonctions_type_n64)
                 }
             }
         }
         RÉEL {
             si info.taille_en_octet == 2 {
-                type_python = système.crée_type_python_pour(info, "r16")
-                type_python.est_basique = vrai
-                init_fonctions_type_r16(type_python.fonctions)
+                type_python = système.crée_type_python_pour_basique(info, "r16", init_fonctions_type_r16)
             }
             sinon si info.taille_en_octet == 4 {
-                type_python = système.crée_type_python_pour(info, "r32")
-                type_python.est_basique = vrai
-                init_fonctions_type_r32(type_python.fonctions)
+                type_python = système.crée_type_python_pour_basique(info, "r32", init_fonctions_type_r32)
             }
             sinon {
-                type_python = système.crée_type_python_pour(info, "r64")
-                type_python.est_basique = vrai
-                init_fonctions_type_r64(type_python.fonctions)
+                type_python = système.crée_type_python_pour_basique(info, "r64", init_fonctions_type_r64)
             }
         }
         BOOLÉEN {
-            type_python = système.crée_type_python_pour(info, "bool")
-            type_python.est_basique = vrai
-            init_fonctions_type_bool(type_python.fonctions)
+            type_python = système.crée_type_python_pour_basique(info, "bool", init_fonctions_type_bool)
         }
         OCTET {
-            type_python = système.crée_type_python_pour(info, "n8")
-            type_python.est_basique = vrai
-            init_fonctions_type_n8(type_python.fonctions)
+            type_python = système.crée_type_python_pour_basique(info, "n8", init_fonctions_type_n8)
         }
         CHAINE {
-            type_python = système.crée_type_python_pour(info, "*z8")
-            type_python.est_basique = vrai
-            init_fonctions_type_chaine(type_python.fonctions)
+            type_python = système.crée_type_python_pour_basique(info, "*z8", init_fonctions_type_chaine)
         }
         STRUCTURE {
             info_struct := info comme *InfoTypeStructure
@@ -407,7 +387,8 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
             type_élément := convertis_vers_type_python(système, type_pointé)
 
-            nom := enchaine("Tableau_", remplace(type_élément.nom, '.', '_'))
+            nom := enchaine("Tableau_", type_élément.nom)
+            remplace_sans_copie(*nom, '.', '_')
             type_python = système.crée_type_python_pour(info, nom)
             type_python.drapeaux.TYPE_EST_TABLEAU = vrai
             type_python.type_élément = type_élément
