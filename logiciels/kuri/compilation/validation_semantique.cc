@@ -368,13 +368,32 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             const auto inst = noeud->comme_importe();
             const auto lexeme = inst->expression->lexeme;
             const auto fichier = m_compilatrice.fichier(inst->lexeme->fichier);
-            const auto temps = dls::chrono::compte_seconde();
-            const auto module = m_compilatrice.importe_module(
-                espace, kuri::chaine(lexeme->chaine), inst->expression);
-            temps_chargement += temps.temps();
+
+            /* À FAIRE : meilleure mise en cache. */
+            auto const module_du_fichier = fichier->module;
+            auto module = static_cast<Module *>(nullptr);
+            POUR (module_du_fichier->fichiers) {
+                if (it == fichier) {
+                    continue;
+                }
+                pour_chaque_element(it->modules_importés, [&](Module *module_) {
+                    if (module_->nom() == inst->expression->ident) {
+                        module = module_;
+                        return kuri::DécisionItération::Arrête;
+                    }
+
+                    return kuri::DécisionItération::Continue;
+                });
+            }
 
             if (!module) {
-                return CodeRetourValidation::Erreur;
+                const auto temps = dls::chrono::compte_seconde();
+                module = m_compilatrice.importe_module(
+                    espace, kuri::chaine(lexeme->chaine), inst->expression);
+                temps_chargement += temps.temps();
+                if (!module) {
+                    return CodeRetourValidation::Erreur;
+                }
             }
 
             // @concurrence critique
