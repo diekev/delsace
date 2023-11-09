@@ -29,6 +29,7 @@ struct Typeuse;
     O(type_info_appel_trace_appel, ID::InfoAppelTraceAppel)                                       \
     O(type_stockage_temporaire, ID::StockageTemporaire)                                           \
     O(type_info_type_opaque, ID::InfoTypeOpaque)                                                  \
+    O(type_info_type_variadique, ID::InfoTypeVariadique)                                          \
     O(type_contexte, ID::ContexteProgramme)                                                       \
     O(type_annotation, ID::AnnotationCode)
 

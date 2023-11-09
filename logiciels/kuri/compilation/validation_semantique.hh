@@ -32,6 +32,7 @@ struct NoeudEnum;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionLitteraleBool;
 struct NoeudExpressionMembre;
+struct NoeudInstructionImporte;
 struct NoeudPour;
 struct NoeudRetour;
 struct NoeudSi;
@@ -229,4 +230,6 @@ struct ContexteValidationCode {
     ResultatValidation valide_instruction_si(NoeudSi *inst);
 
     ResultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDependanceBibliotheque *noeud);
+
+    ResultatValidation valide_instruction_importe(NoeudInstructionImporte *inst);
 };
