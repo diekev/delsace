@@ -995,16 +995,14 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
         {
             auto type_variadique = type->comme_type_variadique();
 
-            auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_element();
-            info_type->genre = GenreInfoType::TABLEAU;
+            auto info_type = allocatrice_infos_types.infos_types_variadiques.ajoute_element();
+            info_type->genre = GenreInfoType::VARIADIQUE;
             info_type->taille_en_octet = type->taille_octet;
-            info_type->est_tableau_fixe = false;
-            info_type->taille_fixe = 0;
 
             // type nul pour les types variadiques des fonctions externes (p.e. printf(const char
             // *, ...))
             if (type_variadique->type_pointe) {
-                info_type->type_pointe = crée_info_type_pour(type_variadique->type_pointe);
+                info_type->type_élément = crée_info_type_pour(type_variadique->type_pointe);
             }
 
             type->info_type = info_type;
@@ -1377,6 +1375,12 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
         {
             // À FAIRE
             return nullptr;
+        }
+        case GenreInfoType::VARIADIQUE:
+        {
+            const auto info_type_variadique = static_cast<const InfoTypeVariadique *>(type);
+            auto type_élément = convertis_info_type(typeuse, info_type_variadique->type_élément);
+            return typeuse.type_variadique(type_élément);
         }
     }
 
