@@ -41,17 +41,8 @@ Tabuleuse :: struct {
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
-    tabuleuse: Tabuleuse
-
-    ajoute_ligne(*tabuleuse, ...titres)
-
-    tableau_redimensionne(tabuleuse.alignements, titres.taille)
-
-    pour & a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE
-    }
-
-    retourne tabuleuse
+    ligne := crée_ligne(...titres)
+    retourne crée_tabuleuse(ligne)
 }
 
 crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
@@ -129,13 +120,18 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
 {
-    ligne : LigneTabuleuse
+    tableau_ajoute(*tabuleuse.lignes, crée_ligne(...args))
+}
+
+crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
+{
+    résultat : LigneTabuleuse
 
     pour arg dans args {
-        tableau_ajoute(*ligne.colonnes, arg)
+        tableau_ajoute(*résultat.colonnes, arg)
     }
 
-    tableau_ajoute(*tabuleuse.lignes, ligne)
+    retourne résultat
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
