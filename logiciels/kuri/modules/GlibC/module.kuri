@@ -175,8 +175,8 @@ stat :: fonc (chemin : ChaineC, buf : *rien) -> z32
     retourne __xstat(STAT_VER, chemin, buf)
 }
 
-fstat :: fonc (fd : z32, s : *stat) -> z32 #externe libc
-lstat :: fonc (a : ChaineC, s : *stat) -> z32 #externe libc
+fstat :: fonc (fd : z32, s : *struct_stat) -> z32 #externe libc
+lstat :: fonc (a : ChaineC, s : *struct_stat) -> z32 #externe libc
 
 DIR :: struct #externe
 
