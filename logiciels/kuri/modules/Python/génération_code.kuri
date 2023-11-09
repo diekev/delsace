@@ -140,7 +140,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
 
     /* Génère la fonction pour PyMappingMethods.mp_subscript. */
     nom_fonction_mp_subscript := enchaine("mp_subscript_pour_", type.nom_sauf)
-    diffère déloge(nom_fonction_mp_length)
+    diffère déloge(nom_fonction_mp_subscript)
 
     enchaineuse.ajoute_au_tampon(nom_fonction_mp_subscript, " :: fonc (self: *PyObject, key: *PyObject) -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n    nom_membre := PyUnicode_AsChaine(key)\n")

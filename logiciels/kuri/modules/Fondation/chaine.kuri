@@ -381,11 +381,7 @@ remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
 remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
 {
     résultat := copie_chaine(ligne)
-    pour & résultat {
-        si it == c {
-            it = par
-        }
-    }
+    remplace_sans_copie(*résultat, c, par)
     retourne résultat
 }
 
