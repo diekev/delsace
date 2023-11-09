@@ -179,20 +179,20 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     }
 
     /* impression */
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
     imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes)
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
 
     pour i dans 1 ... tabuleuse.lignes.taille - 1 {
         imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes)
     }
 
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
 
     _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
+imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
 {
     pour taille dans tailles_max_colonnes {
         ajoute_au_tampon(enchaineuse, "+-")
