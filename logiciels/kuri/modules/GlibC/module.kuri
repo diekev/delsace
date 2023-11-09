@@ -98,6 +98,7 @@ close :: fonc (fd : z32) -> z32 #externe libc
 read :: fonc (fd : z32, tampon : *z8, taille : n64) -> z64 #externe libc
 write :: fonc (fd : z32, tampon : *z8, taille : z64) -> z32 #externe libc
 unlink :: fonc (chemin: ChaineC) -> z32 #externe libc
+ftruncate :: fonc (a : z32, f : z32) -> z32 #externe libc
 
 fsync :: fonc (fd: z32) -> z32 #externe libc
 fdatasync :: fonc (fd: z32) -> z32 #externe libc
@@ -109,6 +110,8 @@ abort :: fonc () -> rien #externe libc
 
 rename :: fonc (orig : ChaineC, dest : ChaineC) -> z32 #externe libc
 remove :: fonc (chemin : ChaineC) -> z32 #externe libc
+
+isatty :: fonc (a : z32) -> bool #externe libc
 
 // bits pour déterminer le type de fichier
 __S_IFMT	:: 0o170000 comme n32
@@ -171,6 +174,9 @@ stat :: fonc (chemin : ChaineC, buf : *rien) -> z32
 {
     retourne __xstat(STAT_VER, chemin, buf)
 }
+
+fstat :: fonc (fd : z32, s : *stat) -> z32 #externe libc
+lstat :: fonc (a : ChaineC, s : *stat) -> z32 #externe libc
 
 DIR :: struct #externe
 
