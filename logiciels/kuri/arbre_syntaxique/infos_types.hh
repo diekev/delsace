@@ -32,6 +32,7 @@ enum class GenreInfoType : int {
     TYPE_DE_DONNEES,
     UNION,
     OPAQUE,
+    VARIADIQUE,
 };
 
 struct InfoType {
@@ -100,6 +101,10 @@ struct InfoTypeOpaque : public InfoType {
     InfoType *type_opacifie = nullptr;
 };
 
+struct InfoTypeVariadique : public InfoType {
+    InfoType *type_élément = nullptr;
+};
+
 struct AllocatriceInfosType {
     tableau_page<InfoType> infos_types{};
     tableau_page<InfoTypeEntier> infos_types_entiers{};
@@ -111,6 +116,7 @@ struct AllocatriceInfosType {
     tableau_page<InfoTypeTableau> infos_types_tableaux{};
     tableau_page<InfoTypeUnion> infos_types_unions{};
     tableau_page<InfoTypeOpaque> infos_types_opaques{};
+    tableau_page<InfoTypeVariadique> infos_types_variadiques{};
 
     int64_t memoire_utilisee() const;
 };
