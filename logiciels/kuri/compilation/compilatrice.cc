@@ -99,7 +99,7 @@ Compilatrice::~Compilatrice()
 }
 
 Module *Compilatrice::importe_module(EspaceDeTravail *espace,
-                                     const kuri::chaine &nom,
+                                     kuri::chaine_statique nom,
                                      NoeudExpression const *site)
 {
     auto chemin = kuri::chemin_systeme(nom);

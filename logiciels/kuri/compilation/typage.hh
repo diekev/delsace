@@ -661,6 +661,7 @@ struct Typeuse {
     Type *type_info_type_enum = nullptr;
     Type *type_info_type_fonction = nullptr;
     Type *type_info_type_opaque = nullptr;
+    Type *type_info_type_variadique = nullptr;
     Type *type_position_code_source = nullptr;
     Type *type_info_fonction_trace_appel = nullptr;
     Type *type_trace_appel = nullptr;

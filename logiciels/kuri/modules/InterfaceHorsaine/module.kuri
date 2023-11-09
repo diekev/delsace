@@ -424,6 +424,9 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         EINI {
             compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment")
         }
+        VARIADIQUE {
+            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
+        }
     }
 
     retourne résultat
