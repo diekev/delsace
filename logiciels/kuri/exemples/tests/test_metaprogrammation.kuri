@@ -34,20 +34,3 @@ génère_fonction_principale :: fonc ()
 }
 
 #exécute lance_compilation()
-
-test_transtype :: fonc ()
-{
-}
-
-test_eini :: fonc ()
-{
-}
-
-test_références :: fonc ()
-{
-}
-
-// principale :: fonc () -> z32
-// {
-//     retourne 0
-// }

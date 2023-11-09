@@ -9,6 +9,7 @@ charge "confname"
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 getuid :: fonc () -> z32 #externe libc
 system :: fonc (command: ChaineC) -> z32 #externe libc
+sleep :: fonc (temps : z32) -> rien #externe libc
 usleep :: fonc (µsec: n32) -> z32 #externe libc
 nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
 symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
