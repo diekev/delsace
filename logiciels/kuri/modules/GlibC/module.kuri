@@ -113,6 +113,8 @@ remove :: fonc (chemin : ChaineC) -> z32 #externe libc
 
 isatty :: fonc (a : z32) -> bool #externe libc
 
+strerror :: fonc (args : z32) -> ChaineC #externe libc
+
 // bits pour déterminer le type de fichier
 __S_IFMT	:: 0o170000 comme n32
 
