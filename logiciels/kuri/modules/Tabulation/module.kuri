@@ -52,10 +52,7 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
     ajoute_ligne(*tabuleuse, ligne_titre)
 
     tableau_redimensionne(tabuleuse.alignements, ligne_titre.colonnes.taille)
-
-    pour & a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE
-    }
+    tableau_remplis_avec(tabuleuse.alignements, Alignement.GAUCHE)
 
     retourne tabuleuse
 }
@@ -162,9 +159,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
     diffère { déloge(tailles_max_colonnes); }
 
-    pour & t dans tailles_max_colonnes {
-        t = 0
-    }
+    tableau_remplis_avec(tailles_max_colonnes, 0)
 
     pour ligne dans tabuleuse.lignes {
         pour colonne, i dans ligne.colonnes {
