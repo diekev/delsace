@@ -304,6 +304,9 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         EINI {
             compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment")
         }
+        VARIADIQUE {
+            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
+        }
     }
 
     si nouveau_type.nom_type_kuri_c == "" {
@@ -1552,7 +1555,8 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         RIEN,
         OPAQUE,
         TYPE_DE_DONNÉES,
-        EINI {
+        EINI,
+        VARIADIQUE {
             /* Rien à faire. */
         }
         STRUCTURE {
@@ -1601,7 +1605,8 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
         RIEN,
         OPAQUE,
         TYPE_DE_DONNÉES,
-        EINI {
+        EINI,
+        VARIADIQUE {
             /* Rien à faire. */
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := ", nom_variable, "\n")
         }
