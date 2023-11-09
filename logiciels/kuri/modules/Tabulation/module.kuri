@@ -6,17 +6,18 @@
 
     +---------------+----------------+
     | Ma donnée 1   | Ma donnée 2    |
-    +---------------|----------------+
+    +---------------+----------------+
     | Valeur 1a     | Valeur 2a      |
     | Valeur 1b     | Valeur 2b      |
     | Valeur 1c     | Valeur 2c      |
     | Valeur 1d     | Valeur 2d      |
     | Valeur 1e     | Valeur 2e      |
-    +---------------|----------------+
+    +---------------+----------------+
 
  */
 
 importe Fondation
+importe Introspection
 importe SysFichier
 importe Unicode
 
@@ -40,17 +41,8 @@ Tabuleuse :: struct {
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
-    tabuleuse: Tabuleuse
-
-    ajoute_ligne(*tabuleuse, ...titres)
-
-    tableau_redimensionne(tabuleuse.alignements, titres.taille)
-
-    pour & a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE
-    }
-
-    retourne tabuleuse
+    ligne := crée_ligne(...titres)
+    retourne crée_tabuleuse(ligne)
 }
 
 crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
@@ -60,10 +52,7 @@ crée_tabuleuse :: fonc  (ligne_titre: LigneTabuleuse) -> Tabuleuse
     ajoute_ligne(*tabuleuse, ligne_titre)
 
     tableau_redimensionne(tabuleuse.alignements, ligne_titre.colonnes.taille)
-
-    pour & a dans tabuleuse.alignements {
-        a = Alignement.GAUCHE
-    }
+    tableau_remplis_avec(tabuleuse.alignements, Alignement.GAUCHE)
 
     retourne tabuleuse
 }
@@ -74,15 +63,27 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
         déloge(ligne.colonnes)
     }
 
-    pour chn dans tabuleuse.chaines_allouées {
-        déloge(chn)
-    }
-
-    déloge(tabuleuse.chaines_allouées)
+    déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées)
     déloge(tabuleuse.lignes)
     déloge(tabuleuse.alignements)
 }
 
+/**
+ * Ajoute une ligne contenant un nombre de colonnes égal au nombre d'éléments
+ * de la liste d'arguments.
+ * Les éléments de type autre que « chaine » sont convertis en chaines en
+ * utilisant Fondation.imprime_valeur. De fait, pour controller l'aspect des
+ * nombres entiers et réels, le format du contexte peut être modifié avant
+ * d'appeler cette fonction, par exemple :
+ *
+ * ctx := contexte()
+ * ctx.format_entier.séparation = 3
+ * pousse_contexte ctx {
+ *     ajoute_ligne(*tabuleuse, ...)
+ * }
+ *
+ * Pour imprimer les nombres sous format "123 456" au lieu "123456".
+ */
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 {
     ligne : LigneTabuleuse
@@ -97,36 +98,37 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 
 obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
-    chn : chaine
-    info := arg.info
+    si arg.info.id == id_info.CHAINE {
+        // À FAIRE(langage) : bug dans l'extraction des valeurs ?
+        retourne arg.comme_chaine()
+    }
 
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
-    si info.id == id_info.CHAINE {
-        chn = arg
-    }
-    sinon {
-        imprime_valeur(*enchaineuse, arg, faux)
+    imprime_valeur(*enchaineuse, arg, faux)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
 
-        chn = chaine_depuis_enchaineuse(*enchaineuse)
-        enchaineuse.tampon_courant.occupé = 0
+    tableau_ajoute(*tabuleuse.chaines_allouées, résultat)
 
-        tableau_ajoute(*tabuleuse.chaines_allouées, chn)
-    }
-
-    retourne chn
+    retourne résultat
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
 {
-    ligne : LigneTabuleuse
+    tableau_ajoute(*tabuleuse.lignes, crée_ligne(...args))
+}
+
+crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
+{
+    résultat : LigneTabuleuse
 
     pour arg dans args {
-        tableau_ajoute(*ligne.colonnes, arg)
+        tableau_ajoute(*résultat.colonnes, arg)
     }
 
-    tableau_ajoute(*tabuleuse.lignes, ligne)
+    retourne résultat
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
@@ -157,9 +159,7 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
     diffère { déloge(tailles_max_colonnes); }
 
-    pour & t dans tailles_max_colonnes {
-        t = 0
-    }
+    tableau_remplis_avec(tailles_max_colonnes, 0)
 
     pour ligne dans tabuleuse.lignes {
         pour colonne, i dans ligne.colonnes {
@@ -179,20 +179,20 @@ imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
     }
 
     /* impression */
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
     imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes)
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
 
     pour i dans 1 ... tabuleuse.lignes.taille - 1 {
         imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes)
     }
 
-    imprime_ligne_demarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
 
     _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-imprime_ligne_demarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
+imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []z64) -> rien
 {
     pour taille dans tailles_max_colonnes {
         ajoute_au_tampon(enchaineuse, "+-")
@@ -241,21 +241,3 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 
     ajoute_au_tampon(enchaineuse, "|\n")
 }
-
-/*
-principale :: fonc () -> z32
-{
-    diffère { imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée()) }
-
-    tabuleuse := crée_tabuleuse("Sources", "Entêtes", "Total");
-
-    ajoute_ligne(@tabuleuse, 1932, 567, 2499)
-    alignement(@tabuleuse, 1, Alignement.DROITE)
-
-    imprime_table(@tabuleuse)
-
-    détruit_tabuleuse(@tabuleuse)
-
-    retourne 0
-}
-*/
