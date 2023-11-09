@@ -149,6 +149,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         ÉNUM {}
         CHAINE {}
         EINI {}
+        VARIADIQUE {}
     }
 }
 
