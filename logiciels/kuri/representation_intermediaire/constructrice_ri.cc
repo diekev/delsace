@@ -3162,6 +3162,7 @@ struct IDInfoType {
     static constexpr unsigned TYPE_DE_DONNEES = 12;
     static constexpr unsigned UNION = 13;
     static constexpr unsigned OPAQUE = 14;
+    static constexpr unsigned VARIADIQUE = 15;
 };
 
 AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
@@ -3492,7 +3493,6 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             break;
         }
         case GenreType::TABLEAU_DYNAMIQUE:
-        case GenreType::VARIADIQUE:
         {
             auto type_deref = type_dereference_pour(type);
 
@@ -3599,6 +3599,21 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_opaque, std::move(valeurs));
+            break;
+        }
+        case GenreType::VARIADIQUE:
+        {
+            auto type_variadique = type->comme_type_variadique();
+            auto type_élément = type_variadique->type_pointe;
+
+            /* { base, type_élément } */
+            auto valeurs = kuri::tableau<AtomeConstante *>(2);
+            valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::VARIADIQUE, type);
+            valeurs[1] = type_élément ? crée_info_type_avec_transtype(type_élément, site) :
+                                        nullptr;
+
+            type->atome_info_type = crée_globale_info_type(
+                m_compilatrice.typeuse.type_info_type_variadique, std::move(valeurs));
             break;
         }
     }

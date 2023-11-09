@@ -365,39 +365,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
-            const auto inst = noeud->comme_importe();
-            const auto lexeme = inst->expression->lexeme;
-            const auto fichier = m_compilatrice.fichier(inst->lexeme->fichier);
-            const auto temps = dls::chrono::compte_seconde();
-            const auto module = m_compilatrice.importe_module(
-                espace, kuri::chaine(lexeme->chaine), inst->expression);
-            temps_chargement += temps.temps();
-
-            if (!module) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            // @concurrence critique
-            if (fichier->importe_module(module->nom())) {
-                espace->rapporte_avertissement(inst, "Importation superflux du module");
-            }
-            else if (fichier->module == module) {
-                espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
-            }
-            else {
-                fichier->modules_importés.insere(module);
-                auto noeud_module = m_tacheronne.assembleuse
-                                        ->crée_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
-                                        ->comme_declaration_module();
-                noeud_module->module = module;
-                noeud_module->ident = module->nom();
-                noeud_module->bloc_parent = inst->bloc_parent;
-                noeud_module->bloc_parent->ajoute_membre(noeud_module);
-                noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            }
-
-            noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            break;
+            return valide_instruction_importe(noeud->comme_importe());
         }
         case GenreNoeud::DECLARATION_BIBLIOTHEQUE:
         {
@@ -1132,7 +1100,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     type_info_type = m_compilatrice.typeuse.type_info_type_union;
                     break;
                 }
-                case GenreType::VARIADIQUE:
                 case GenreType::TABLEAU_DYNAMIQUE:
                 case GenreType::TABLEAU_FIXE:
                 {
@@ -1153,6 +1120,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 case GenreType::OPAQUE:
                 {
                     type_info_type = m_compilatrice.typeuse.type_info_type_opaque;
+                    break;
+                }
+                case GenreType::VARIADIQUE:
+                {
+                    type_info_type = m_compilatrice.typeuse.type_info_type_variadique;
                     break;
                 }
             }
@@ -5606,6 +5578,83 @@ ResultatValidation ContexteValidationCode::valide_dépendance_bibliothèque(
     bib_dependante->dependances.ajoute(bib_dependue);
     /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */
     noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Instruction importe.
+ * \{ */
+
+static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
+                                                  Fichier *fichier,
+                                                  Module *module_du_fichier)
+{
+    auto const expression = inst->expression;
+    if (expression->lexeme->genre != GenreLexeme::CHAINE_CARACTERE) {
+        /* L'expression est un chemin relatif. */
+        return nullptr;
+    }
+
+    /* À FAIRE : meilleure mise en cache. */
+    auto module = static_cast<Module *>(nullptr);
+    POUR (module_du_fichier->fichiers) {
+        if (it == fichier) {
+            continue;
+        }
+        pour_chaque_element(it->modules_importés, [&](Module *module_) {
+            if (module_->nom() == expression->ident) {
+                module = module_;
+                return kuri::DécisionItération::Arrête;
+            }
+
+            return kuri::DécisionItération::Continue;
+        });
+    }
+
+    return module;
+}
+
+ResultatValidation ContexteValidationCode::valide_instruction_importe(
+    NoeudInstructionImporte *inst)
+{
+    const auto fichier = m_compilatrice.fichier(inst->lexeme->fichier);
+    auto const module_du_fichier = fichier->module;
+
+    auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
+    if (!module) {
+        const auto lexeme = inst->expression->lexeme;
+        const auto temps = dls::chrono::compte_seconde();
+        module = m_compilatrice.importe_module(espace, lexeme->chaine, inst->expression);
+        temps_chargement += temps.temps();
+        if (!module) {
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    if (module_du_fichier == module) {
+        espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    // @concurrence critique
+    if (fichier->importe_module(module->nom())) {
+        espace->rapporte_avertissement(inst, "Importation superflux du module");
+    }
+    else {
+        fichier->modules_importés.insere(module);
+        auto noeud_module = m_tacheronne.assembleuse
+                                ->crée_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
+                                ->comme_declaration_module();
+        noeud_module->module = module;
+        noeud_module->ident = module->nom();
+        noeud_module->bloc_parent = inst->bloc_parent;
+        noeud_module->bloc_parent->ajoute_membre(noeud_module);
+        noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
+
+    inst->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
