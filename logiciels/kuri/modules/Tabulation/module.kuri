@@ -110,26 +110,21 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 
 obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
-    chn : chaine
-    info := arg.info
+    si arg.info.id == id_info.CHAINE {
+        // À FAIRE(langage) : bug dans l'extraction des valeurs ?
+        retourne arg.comme_chaine()
+    }
 
     enchaineuse : Enchaineuse
     initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
-    si info.id == id_info.CHAINE {
-        // À FAIRE(langage) : bug dans l'extraction des valeurs ?
-        chn = arg.comme_chaine()
-    }
-    sinon {
-        imprime_valeur(*enchaineuse, arg, faux)
+    imprime_valeur(*enchaineuse, arg, faux)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
 
-        chn = chaine_depuis_enchaineuse(*enchaineuse)
-        enchaineuse.tampon_courant.occupé = 0
+    tableau_ajoute(*tabuleuse.chaines_allouées, résultat)
 
-        tableau_ajoute(*tabuleuse.chaines_allouées, chn)
-    }
-
-    retourne chn
+    retourne résultat
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
