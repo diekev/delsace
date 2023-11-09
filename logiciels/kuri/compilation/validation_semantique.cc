@@ -5627,8 +5627,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_importe(
     if (!module) {
         const auto lexeme = inst->expression->lexeme;
         const auto temps = dls::chrono::compte_seconde();
-        module = m_compilatrice.importe_module(
-            espace, kuri::chaine(lexeme->chaine), inst->expression);
+        module = m_compilatrice.importe_module(espace, lexeme->chaine, inst->expression);
         temps_chargement += temps.temps();
         if (!module) {
             return CodeRetourValidation::Erreur;
