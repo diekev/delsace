@@ -6,13 +6,13 @@
 
     +---------------+----------------+
     | Ma donnée 1   | Ma donnée 2    |
-    +---------------|----------------+
+    +---------------+----------------+
     | Valeur 1a     | Valeur 2a      |
     | Valeur 1b     | Valeur 2b      |
     | Valeur 1c     | Valeur 2c      |
     | Valeur 1d     | Valeur 2d      |
     | Valeur 1e     | Valeur 2e      |
-    +---------------|----------------+
+    +---------------+----------------+
 
  */
 
@@ -84,6 +84,22 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
     déloge(tabuleuse.alignements)
 }
 
+/**
+ * Ajoute une ligne contenant un nombre de colonnes égal au nombre d'éléments
+ * de la liste d'arguments.
+ * Les éléments de type autre que « chaine » sont convertis en chaines en
+ * utilisant Fondation.imprime_valeur. De fait, pour controller l'aspect des
+ * nombres entiers et réels, le format du contexte peut être modifié avant
+ * d'appeler cette fonction, par exemple :
+ *
+ * ctx := contexte()
+ * ctx.format_entier.séparation = 3
+ * pousse_contexte ctx {
+ *     ajoute_ligne(*tabuleuse, ...)
+ * }
+ *
+ * Pour imprimer les nombres sous format "123 456" au lieu "123456".
+ */
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 {
     ligne : LigneTabuleuse
