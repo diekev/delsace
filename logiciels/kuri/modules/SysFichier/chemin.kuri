@@ -121,12 +121,19 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 
     pile_secondaire.renverse()
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    séparateur := séparateur_chemin()
+    chaine_séparateur : chaine = ---
+    chaine_séparateur.pointeur = *séparateur
+    chaine_séparateur.taille = 1
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin on tous été supprimés, soit que le chemin fut celui de la racine
     si pile_secondaire.est_vide() {
-        chaine_ajoute(*résultat, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, chaine_séparateur)
     }
 
     premier_slash := vrai
@@ -134,13 +141,13 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
     tantque !pile_secondaire.est_vide() {
         morceau_courant := pile_secondaire.dépile()
         si !premier_slash || chemin_est_absolu {
-            chaine_ajoute(*résultat, séparateur_chemin())
+            ajoute_au_tampon(*enchaineuse, chaine_séparateur)
         }
-        chaine_ajoute(*résultat, morceau_courant)
+        ajoute_au_tampon(*enchaineuse, morceau_courant)
         premier_slash = faux
     }
 
-    retourne CheminFichier(résultat)
+    retourne CheminFichier(chaine_depuis_enchaineuse(*enchaineuse))
 }
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
