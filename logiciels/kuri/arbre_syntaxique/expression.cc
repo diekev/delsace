@@ -390,27 +390,37 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             ValeurExpression res = ValeurExpression();
 
             if (est_opérateur_bool(inst->lexeme->genre)) {
-                if (res1.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle() && res2.valeur.est_reelle()) {
                     res = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
-                else if (res1.valeur.est_booleenne()) {
+                else if (res1.valeur.est_booleenne() && res2.valeur.est_booleenne()) {
                     res = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.booleenne(), res2.valeur.booleenne());
                 }
-                else {
+                else if (res1.valeur.est_entiere() && res2.valeur.est_entiere()) {
                     res = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
                 }
+                else {
+                    return erreur_evaluation(b,
+                                             "L'expression n'est pas évaluable car l'opération "
+                                             "n'est pas applicable sur les types données.");
+                }
             }
             else {
-                if (res1.valeur.est_reelle()) {
+                if (res1.valeur.est_reelle() && res2.valeur.est_reelle()) {
                     res = applique_operateur_binaire(
                         inst->lexeme->genre, res1.valeur.reelle(), res2.valeur.reelle());
                 }
-                else {
+                else if (res1.valeur.est_entiere() && res2.valeur.est_entiere()) {
                     res = applique_operateur_binaire(
                         inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
+                }
+                else {
+                    return erreur_evaluation(b,
+                                             "L'expression n'est pas évaluable car l'opération "
+                                             "n'est pas applicable sur les types données.");
                 }
             }
 
