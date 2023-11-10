@@ -279,9 +279,12 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     diffère { si message { déloge(message) } }
 
     si format {
-        message = imprime_chaine(format, ...args)
-        chaine_ajoute(*message, '\r')
-        chaine_ajoute(*message, '\n')
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+        imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        message = chaine_depuis_enchaineuse(*enchaineuse)
     }
 
     taille_écrite := tente fichier.écris(message) piège err {

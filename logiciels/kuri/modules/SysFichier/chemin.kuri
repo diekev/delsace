@@ -227,19 +227,22 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
         _ := pile_racine.dépile()
     }
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     tantque !pile_résultat.est_vide() {
-        chaine_ajoute(*résultat, pile_résultat.dépile())
+        ajoute_au_tampon(*enchaineuse, pile_résultat.dépile())
 
         /* N'ajoute pas de séparateur à la fin des noms de fichiers. */
         si cible_est_fichier && pile_résultat.est_vide() {
             arrête
         }
 
-        chaine_ajoute(*résultat, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
     }
 
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
     retourne CheminFichier(résultat)
 }
 

@@ -85,18 +85,22 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
     pile.renverse()
 
-    chemin_dossier : chaine
-    diffère déloge(chemin_dossier)
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     saute_premier_slash := chemin.est_relatif()
 
     tantque !pile.est_vide() {
         saufsi saute_premier_slash {
-            chaine_ajoute(*chemin_dossier, séparateur_chemin())
+            ajoute_au_tampon(*enchaineuse, séparateur_chemin())
         }
-        chaine_ajoute(*chemin_dossier, pile.dépile())
+        ajoute_au_tampon(*enchaineuse, pile.dépile())
 
         saute_premier_slash = faux
+
+        chemin_dossier := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(chemin_dossier)
 
         si est_un_dossier(CheminFichier(chemin_dossier)) {
             continue
@@ -372,7 +376,9 @@ lis_tout :: fonc (fichier: *Fichier, résultat: &[]octet) -> ErreurFichier
 
 lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
     c : z8
 
     boucle {
@@ -385,14 +391,14 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
             arrête
         }
 
-        chaine_ajoute(*résultat, c)
+        ajoute_au_tampon(*enchaineuse, c)
 
         si c == '\n' {
             arrête
         }
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 // fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on
