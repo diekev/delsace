@@ -25,7 +25,7 @@ allocatrice_liste_libre :: fonc(
                 données.pic_de_mémoire = données.mémoire_utilisée
             }
 
-            nouvelle_taille_effective := prochain_multiple_de_2(nouvelle_taille)
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
 
             bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective)
             si bloc {
@@ -35,8 +35,8 @@ allocatrice_liste_libre :: fonc(
             retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
         }
         RÉALLOUE {
-            ancienne_taille_effective := prochain_multiple_de_2(ancienne_taille)
-            nouvelle_taille_effective := prochain_multiple_de_2(nouvelle_taille)
+            ancienne_taille_effective := multiple_de_2_suivant(ancienne_taille)
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
 
             si ancienne_taille_effective == nouvelle_taille_effective {
                 /* Nous n'allouons que par blocs de taille équivalente à une
@@ -63,7 +63,7 @@ allocatrice_liste_libre :: fonc(
             retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille_effective, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
         }
         DÉSALLOUE {
-            taille_effective := prochain_multiple_de_2(ancienne_taille)
+            taille_effective := multiple_de_2_suivant(ancienne_taille)
             données.mémoire_utilisée -= taille_effective
             données.nombre_désallocations += 1
             ajoute_bloc(allocatrice, ancien_pointeur, taille_effective)
@@ -151,7 +151,7 @@ ajoute_bloc :: fonc (allocatrice: *AllocatriceListeLibre, adresse: *rien, taille
         retourne
     }
 
-    index_racine := index_bit_prochain_multiple_de_2(taille)
+    index_racine := index_bit_multiple_de_2_suivant(taille)
 
     nouveau_bloc := adresse comme *AllocatriceListeLibre.Noeud
     nouveau_bloc.suivant = allocatrice.racines[index_racine]
@@ -164,7 +164,7 @@ trouve_un_bloc :: fonc (allocatrice: *AllocatriceListeLibre, taille: z64) -> *ri
         retourne nul
     }
 
-    index_racine := index_bit_prochain_multiple_de_2(taille)
+    index_racine := index_bit_multiple_de_2_suivant(taille)
     bloc_courant := allocatrice.racines[index_racine]
     saufsi bloc_courant {
         retourne nul
