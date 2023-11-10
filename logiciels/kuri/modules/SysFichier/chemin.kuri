@@ -96,8 +96,17 @@ divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 
 chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
+    /* À FAIRE : structure dédiée. */
+    tampon: [16]chaine
+    utilise_tampon := pile.taille() < 16
+
     pile_secondaire : Pile(chaine)
-    diffère détruit(pile_secondaire)
+    si utilise_tampon {
+        pile_secondaire.données.pointeur = *tampon[0]
+        pile_secondaire.données.capacité = 16
+    }
+
+    diffère saufsi utilise_tampon { détruit(pile_secondaire) }
 
     pile.renverse()
 
@@ -306,6 +315,11 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
     // divise selon le séparateur du système
     pile : Pile(chaine)
     diffère détruit(pile)
+    retourne crée_chemin_absolu(pile, base, feuille)
+}
+
+crée_chemin_absolu :: fonc (pile: &Pile(chaine), base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+{
     divise_et_empile_chemin(pile, base)
     divise_et_empile_chemin(pile, feuille)
     retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()))

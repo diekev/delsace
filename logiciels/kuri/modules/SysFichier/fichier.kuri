@@ -330,10 +330,22 @@ ChaineOuErreurFichier :: union {
 
 lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    TAILLE_MAX :: 1024
+    résultat : []octet
 
+    erreur_potentielle := lis_tout(fichier, résultat)
+    si erreur_potentielle != (0 comme ErreurFichier) {
+        retourne erreur_potentielle
+    }
+
+    retourne chaine_depuis_tableau_octets(résultat)
+}
+
+lis_tout :: fonc (fichier: *Fichier, résultat: &[]octet) -> ErreurFichier
+{
+    TAILLE_MAX :: 1024
     tampon : [TAILLE_MAX]z8
-    résultat : chaine
+
+    résultat.taille = 0
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
@@ -343,7 +355,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
         si octets_lus > 0 {
             ancienne_taille := résultat.taille
-            reloge_chaine(résultat, résultat.taille + octets_lus)
+            tableau_redimensionne(résultat, résultat.taille + octets_lus)
             copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=octets_lus)
 
             si octets_lus < TAILLE_MAX {
@@ -355,7 +367,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
         }
     }
 
-    retourne résultat
+    retourne 0 comme ErreurFichier
 }
 
 lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
