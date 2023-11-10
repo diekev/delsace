@@ -111,18 +111,27 @@ est_vide :: fonc(chn : chaine) -> bool
     retourne chn.taille == 0
 }
 
-// À FAIRE : permet de d'avoir une version avec un conteneur spécialisé (p.e. une pile)
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {
+    mots : []chaine
+    divise(ligne, séparation, *mots)
+    retourne mots
+}
+
+divise :: fonc (ligne: chaine, séparation: z8, résultat: *[]chaine, réinitialise_résultat := vrai)
+{
+    si réinitialise_résultat {
+        résultat.taille = 0
+    }
+
     taille_mot : z64 = 0
     début_mot : z64 = 0
-    mots : []chaine
 
     pour c, i dans ligne {
         si c == séparation {
             si i != 0 {
                 mot := construit_chaine(*ligne[début_mot], taille_mot)
-                tableau_ajoute(*mots, mot)
+                tableau_ajoute(résultat, mot)
             }
 
             début_mot = i + 1 comme z64
@@ -135,10 +144,8 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 
     si taille_mot != 0 {
         mot := construit_chaine(*ligne[début_mot], taille_mot)
-        tableau_ajoute(*mots, mot)
+        tableau_ajoute(résultat, mot)
     }
-
-    retourne mots
 }
 
 divise :: fonc (chn: chaine, séparation: chaine) -> []chaine
