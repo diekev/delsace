@@ -37,7 +37,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 
 construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
-    ret : chaine
+    ret : chaine = ---
     ret.pointeur = ptr
     ret.taille = taille
     retourne ret
