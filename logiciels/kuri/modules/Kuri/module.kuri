@@ -55,6 +55,8 @@ BaseAllocatrice :: struct #interface {
     allocatrice_secours : *BaseAllocatrice = nul
 }
 
+TypeFonctionAllocation :: fonc (ModeAllocatrice, z64, z64, *rien, *BaseAllocatrice, *InfoType, PositionCodeSource)(*rien)
+
 allocatrice_défaut :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
