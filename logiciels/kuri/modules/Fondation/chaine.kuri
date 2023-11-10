@@ -16,9 +16,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
     taille := chn.taille
     reloge_chaine(tmp, taille + donnée.taille)
 
-    pour donnée {
-        tmp[taille + index_it] = it
-    }
+    copie_mem_nonsur(src = donnée.pointeur, dst = tmp.pointeur + taille, taille = donnée.taille)
 
     mémoire(chn) = tmp
 }
