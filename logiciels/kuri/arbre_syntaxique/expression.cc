@@ -240,6 +240,11 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             return erreur_evaluation(
                 b, "L'expression n'est pas constante et ne peut être calculée !");
         }
+        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::EXPRESSION_TYPE_DE:
+        {
+            return ValeurExpression(b->type->comme_type_type_de_donnees()->type_connu);
+        }
         case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
         {
             auto fichier = compilatrice.fichier(b->lexeme->fichier);
@@ -277,6 +282,16 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                     if (info_membre.has_value()) {
                         return ValeurExpression(info_membre->membre.valeur);
                     }
+                }
+
+                if (decl_var->type->est_type_type_de_donnees()) {
+                    auto type_de_données = decl_var->type->comme_type_type_de_donnees();
+                    if (type_de_données->type_connu == nullptr) {
+                        return erreur_evaluation(
+                            b, "La déclaration n'a pas de type de données connu !");
+                    }
+
+                    return ValeurExpression(type_de_données->type_connu);
                 }
 
                 return erreur_evaluation(b,
@@ -401,6 +416,10 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 else if (res1.valeur.est_entiere() && res2.valeur.est_entiere()) {
                     res = applique_operateur_binaire_comp(
                         inst->lexeme->genre, res1.valeur.entiere(), res2.valeur.entiere());
+                }
+                else if (res1.valeur.est_type() && res2.valeur.est_type()) {
+                    res = applique_operateur_binaire_comp(
+                        inst->lexeme->genre, res1.valeur.type(), res2.valeur.type());
                 }
                 else {
                     return erreur_evaluation(b,
