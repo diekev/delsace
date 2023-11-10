@@ -94,3 +94,28 @@ index_bit_taille_octet :: fonc (taille: n32) -> z32
 
     retourne résultat
 }
+
+prochain_multiple_de_2 :: fonc (v: $T) -> T #enligne
+{
+    v -= 1
+    v |= v >> 1
+    v |= v >> 2
+    v |= v >> 4
+
+    #si T == z16 || T == n16 {
+        v |= v >> 8
+    }
+    sinon si T == z32 || T == n32 {
+        v |= v >> 8
+        v |= v >> 16
+    }
+    sinon si T == z64 || T == n64 {
+        v |= v >> 8
+        v |= v >> 16
+        v |= v >> 32
+    }
+
+    v += 1
+
+    retourne v
+}
