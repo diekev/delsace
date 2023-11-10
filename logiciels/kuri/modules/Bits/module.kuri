@@ -95,6 +95,15 @@ index_bit_taille_octet :: fonc (taille: n32) -> z32
     retourne résultat
 }
 
+/* Retourne l'index du bit, en partant de la droite, du plus petit multiple de
+ * 2 supérieur au nombre passé. Ceci est équivalent au logarithme base 2 dudit
+ * multiple. */
+index_bit_prochain_multiple_de_2 :: fonc (n: z64) -> z64 #enligne #sanstrace
+{
+    multiple := prochain_multiple_de_2(n)
+    retourne 64 - 1 - intrinsèque_compte_zéros_en_tête(multiple comme n64)
+}
+
 prochain_multiple_de_2 :: fonc (v: $T) -> T #enligne
 {
     v -= 1
