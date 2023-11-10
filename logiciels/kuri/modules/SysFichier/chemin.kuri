@@ -84,12 +84,7 @@ nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
 
 divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 {
-    morceaux := divise(chemin.chn, séparateur_chemin())
-    diffère déloge(morceaux)
-
-    pour morceaux {
-        pile.empile(it)
-    }
+    divise(chemin.chn, séparateur_chemin(), *pile.données, faux)
 }
 
 divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
