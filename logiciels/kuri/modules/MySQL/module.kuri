@@ -102,8 +102,8 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
         retourne ErreurConnexionMySQL.MémoireInsuffisante
     }
 
-    marque := obtiens_marque_stockage_temporaire()
-    diffère { set_marque_stockage_temporaire(marque) }
+    marque := donne_marque_stockage_temporaire()
+    diffère { définis_marque_stockage_temporaire(marque) }
 
     chaine_ip := chaine_depuis_ip(pilote.config.hôte)
     diffère déloge(chaine_ip)
