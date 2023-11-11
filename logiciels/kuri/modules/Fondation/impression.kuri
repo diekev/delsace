@@ -675,14 +675,13 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
         ÉNUM {
             info_arg := valeur.info comme *InfoTypeÉnum
 
-            valeur_ := mémoire(valeur.pointeur comme *z32)
-
             si info_arg.est_drapeau {
+                valeur_énum := z64_depuis_pointeur(valeur.pointeur, info_arg.type_sous_jacent.taille_en_octet) comme z32
                 valeur_trouvée := faux
                 noms := info_arg.noms
 
                 pour v, i dans info_arg.valeurs {
-                    si (v & valeur_) != 0 {
+                    si (v & valeur_énum) != 0 {
                         si valeur_trouvée {
                             ajoute_au_tampon(enchaineuse, " | ")
                         }
@@ -697,7 +696,8 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
                 }
             }
             sinon {
-                chaine_valeur, trouvée := donne_nom_énum_pour_valeur(info_arg, valeur_)
+                valeur_énum := z64_depuis_pointeur(valeur.pointeur, info_arg.type_sous_jacent.taille_en_octet) comme z32
+                chaine_valeur, trouvée := donne_nom_énum_pour_valeur(info_arg, valeur_énum)
                 si trouvée {
                     ajoute_au_tampon(enchaineuse, chaine_valeur)
                 }
