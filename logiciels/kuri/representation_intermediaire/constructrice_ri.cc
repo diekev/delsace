@@ -383,9 +383,18 @@ AtomeConstante *ConstructriceRI::crée_tableau_global(AtomeConstante *tableau_fi
 AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
     AtomeGlobale *globale_tableau_fixe, TypeTableauFixe const *type_tableau_fixe)
 {
-    auto ptr_premier_element = crée_acces_index_constant(globale_tableau_fixe, crée_z64(0));
+    AtomeConstante *ptr_premier_element = crée_acces_index_constant(globale_tableau_fixe,
+                                                                    crée_z64(0));
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tableau_dyn = m_typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
+
+    if (est_globale_pour_tableau_données_constantes(globale_tableau_fixe)) {
+        if (type_tableau_fixe->type_pointe != TypeBase::Z8) {
+            /* Nous devons transtypé vers le type pointeur idoine. */
+            auto type_cible = m_typeuse.type_pointeur_pour(type_tableau_fixe->type_pointe);
+            ptr_premier_element = crée_transtype_constant(type_cible, ptr_premier_element);
+        }
+    }
 
     auto membres = kuri::tableau<AtomeConstante *>(3);
     membres[0] = ptr_premier_element;
@@ -3298,19 +3307,31 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
 
-            /* création des tableaux de valeurs et de noms */
+            /* Les valeurs sont convertis en un tableau de données constantes. */
+            int nombre_de_membres_non_implicite = 0;
+            POUR (type_enum->membres) {
+                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+                    continue;
+                }
 
-            kuri::tableau<AtomeConstante *> valeurs_enum;
-            valeurs_enum.reserve(type_enum->membres.taille());
+                nombre_de_membres_non_implicite += 1;
+            }
+
+            kuri::tableau<char> tampon_valeurs_énum(nombre_de_membres_non_implicite * 4);
+            auto pointeur_tampon = reinterpret_cast<int *>(&tampon_valeurs_énum[0]);
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 
-                auto valeur = m_constructrice.crée_z32(static_cast<unsigned>(it.valeur));
-                valeurs_enum.ajoute(valeur);
+                *pointeur_tampon++ = it.valeur;
             }
+
+            auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
+                TypeBase::Z32, static_cast<int>(nombre_de_membres_non_implicite));
+            auto tableau = m_constructrice.crée_constante_tableau_donnees_constantes(
+                type_tableau, std::move(tampon_valeurs_énum));
 
             kuri::tableau<AtomeConstante *> noms_enum;
             noms_enum.reserve(type_enum->membres.taille());
@@ -3324,8 +3345,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
                 noms_enum.ajoute(chaine_nom);
             }
 
-            auto tableau_valeurs = m_constructrice.crée_tableau_global(TypeBase::Z32,
-                                                                       std::move(valeurs_enum));
+            auto tableau_valeurs = m_constructrice.crée_tableau_global(tableau);
             auto tableau_noms = m_constructrice.crée_tableau_global(TypeBase::CHAINE,
                                                                     std::move(noms_enum));
 
