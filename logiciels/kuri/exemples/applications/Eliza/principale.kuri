@@ -119,13 +119,13 @@ principale :: fonc () -> z32
     imprime("\n")
     imprime("\n")
 
-    marque := obtiens_marque_stockage_temporaire()
+    marque := donne_marque_stockage_temporaire()
 
     message_éliza := "Quelque chose vous trouble ?"
 
     boucle {
-        set_marque_stockage_temporaire(marque);
-        marque = obtiens_marque_stockage_temporaire()
+        définis_marque_stockage_temporaire(marque);
+        marque = donne_marque_stockage_temporaire()
 
         imprime_prompt_élise(message_éliza)
         imprime_prompt_vous()
