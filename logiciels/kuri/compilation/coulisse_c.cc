@@ -42,30 +42,6 @@ static const char *nom_base_label = "L";
 static const char *nom_base_type = "T";
 static const char *nom_base_variable = "V";
 
-static bool est_tableau_données_constantes(AtomeConstante const *constante)
-{
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return valeur_constante->valeur.genre ==
-           AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-}
-
-static bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale)
-{
-    if (globale->est_externe) {
-        return false;
-    }
-
-    if (!globale->initialisateur) {
-        return false;
-    }
-
-    return est_tableau_données_constantes(globale->initialisateur);
-}
-
 /* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
