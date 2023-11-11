@@ -121,17 +121,19 @@ chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: 
 
     taille := gna.uniforme(taille_min comme r32, taille_max comme r32) comme z32
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour taille {
         index_r32 := gna.uniforme(min_r32, max_r32)
         index_z32 := index_r32 comme z32
         caractère := alphabet.caractère_pour_index(index_z32)
 
-        chaine_ajoute(*résultat, caractère)
+        ajoute_au_tampon(*enchaineuse, caractère)
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire) -> chaine

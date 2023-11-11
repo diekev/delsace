@@ -1,5 +1,6 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
+importe Algorithmes
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
@@ -328,17 +329,18 @@ imprime_nombre_décimal_haute_précision :: fonc(enchaineuse : *Enchaineuse, f :
         valeur_mantisse comme n32,
         9 + valeur_exposant)
 
-    chn_part_entière : chaine
+    chn_part_entière : []z8
+    diffère déloge(chn_part_entière)
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
     répète {
         reste := reste_de_la_division(*part_entière, 10)
-        chaine_ajoute(*chn_part_entière, '0' + reste comme z8)
+        tableau_ajoute(*chn_part_entière, '0' + reste comme z8)
     } tantque !est_zéro(*part_entière)
 
-    inverse(*chn_part_entière)
-    ajoute_au_tampon(enchaineuse, chn_part_entière)
-    déloge(chn_part_entière)
+    tableau_inverse(chn_part_entière)
+    chn_part_entière_ := construit_chaine(chn_part_entière.pointeur, chn_part_entière.taille)
+    ajoute_au_tampon(enchaineuse, chn_part_entière_)
 
     // Ajout le point décimal.
     ajoute_au_tampon(enchaineuse, '.')
