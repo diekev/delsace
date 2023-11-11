@@ -19,7 +19,7 @@ DonnéesFichier :: struct {
 
     données_utilisateurs: eini
 
-    contenu: chaine
+    contenu: []octet
     lignes_furent_modifiées := faux
 }
 
@@ -93,17 +93,14 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: &DonnéesFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
-    contenu := contenu_fichier_texte(chemin.chn)
-    diffère déloge(contenu)
+    contenu_fichier_binaire(chemin, données.contenu)
 
-    données: DonnéesFichier
     données.racine_exécution = racine
-    données.lignes = divise(contenu, '\n')
+    divise(chaine_depuis_tableau_octets(données.contenu), '\n', *données.lignes)
     données.chemin = chemin
     données.données_utilisateurs = données_utilisateurs
-    données.contenu = contenu
 
     pour rappels {
         it(données)
@@ -112,12 +109,22 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     si données.lignes_furent_modifiées {
         écris_lignes_dans_fichier(chemin, données.lignes)
     }
+}
 
-    détruit_données_fichier(données)
+// -------------------------------------
+
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
+{
+    données: DonnéesFichier
+    diffère détruit_données_fichier(données)
+    exécute_rappel_pour_fichier(racine, chemin, données, rappels, données_utilisateurs)
 }
 
 exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
+    données: DonnéesFichier
+    diffère détruit_données_fichier(données)
+
     exploratrice := crée_exploratrice_fichier(racine)
 
     tantque !exploration_finie(exploratrice) {
@@ -131,7 +138,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
                 }
 
                 si fait_partie_de(chemin.extension(), ...extensions) {
-                    exécute_rappel_pour_fichier(racine, chemin, rappels, données_utilisateurs)
+                    exécute_rappel_pour_fichier(racine, chemin, données, rappels, données_utilisateurs)
                 }
             }
             sinon {

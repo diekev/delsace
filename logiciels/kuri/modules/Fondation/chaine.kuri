@@ -5,39 +5,6 @@ importe Compilatrice
 importe Unicode
 
 // À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
-chaine_ajoute :: fonc (chn: *chaine, c: z8)
-{
-    tmp := mémoire(chn)
-
-    taille := chn.taille
-    reloge_chaine(tmp, taille + 1)
-    tmp[taille] = c
-
-    mémoire(chn) = tmp
-}
-
-chaine_ajoute :: fonc (chn: *chaine, point_de_code: n32)
-{
-    tmp := mémoire(chn)
-
-    séquence : [4]n8
-    nombre_octets := point_de_code_vers_utf8(point_de_code, *séquence[0])
-
-    si nombre_octets == 0 {
-        // À FAIRE : que faire ici ?
-        retourne
-    }
-
-    taille := chn.taille
-    reloge_chaine(tmp, taille + nombre_octets)
-
-    pour 0 ... nombre_octets - 1 {
-        tmp[taille + it] = séquence[it] comme z8
-    }
-
-    mémoire(chn) = tmp
-}
-
 chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
 {
     si !donnée {
@@ -49,9 +16,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
     taille := chn.taille
     reloge_chaine(tmp, taille + donnée.taille)
 
-    pour donnée {
-        tmp[taille + index_it] = it
-    }
+    copie_mem_nonsur(src = donnée.pointeur, dst = tmp.pointeur + taille, taille = donnée.taille)
 
     mémoire(chn) = tmp
 }
@@ -70,7 +35,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 
 construit_chaine :: fonc(ptr : *z8, taille : z64) -> chaine
 {
-    ret : chaine
+    ret : chaine = ---
     ret.pointeur = ptr
     ret.taille = taille
     retourne ret
@@ -111,18 +76,27 @@ est_vide :: fonc(chn : chaine) -> bool
     retourne chn.taille == 0
 }
 
-// À FAIRE : permet de d'avoir une version avec un conteneur spécialisé (p.e. une pile)
 divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 {
+    mots : []chaine
+    divise(ligne, séparation, *mots)
+    retourne mots
+}
+
+divise :: fonc (ligne: chaine, séparation: z8, résultat: *[]chaine, réinitialise_résultat := vrai)
+{
+    si réinitialise_résultat {
+        résultat.taille = 0
+    }
+
     taille_mot : z64 = 0
     début_mot : z64 = 0
-    mots : []chaine
 
     pour c, i dans ligne {
         si c == séparation {
             si i != 0 {
                 mot := construit_chaine(*ligne[début_mot], taille_mot)
-                tableau_ajoute(*mots, mot)
+                tableau_ajoute(résultat, mot)
             }
 
             début_mot = i + 1 comme z64
@@ -135,10 +109,8 @@ divise :: fonc (ligne: chaine, séparation: z8) -> []chaine
 
     si taille_mot != 0 {
         mot := construit_chaine(*ligne[début_mot], taille_mot)
-        tableau_ajoute(*mots, mot)
+        tableau_ajoute(résultat, mot)
     }
-
-    retourne mots
 }
 
 divise :: fonc (chn: chaine, séparation: chaine) -> []chaine

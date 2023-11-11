@@ -45,8 +45,8 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
     nouveau_contexte := contexte()
     nouveau_contexte.allocatrice = __stockage_temporaire
 
-    marque := obtiens_marque_stockage_temporaire()
-    diffère { set_marque_stockage_temporaire(marque); }
+    marque := donne_marque_stockage_temporaire()
+    diffère { définis_marque_stockage_temporaire(marque); }
 
     // supprime le caractère de nouvelle ligne
     ligne = recule(ligne, 1)
