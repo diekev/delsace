@@ -42,6 +42,30 @@ static const char *nom_base_label = "L";
 static const char *nom_base_type = "T";
 static const char *nom_base_variable = "V";
 
+static bool est_tableau_données_constantes(AtomeConstante const *constante)
+{
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return valeur_constante->valeur.genre ==
+           AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+}
+
+static bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale)
+{
+    if (globale->est_externe) {
+        return false;
+    }
+
+    if (!globale->initialisateur) {
+        return false;
+    }
+
+    return est_tableau_données_constantes(globale->initialisateur);
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
@@ -77,6 +101,9 @@ struct GénératriceCodeC {
 
     /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
     kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
+
+    kuri::tableau<AtomeValeurConstante const *> tableaux_constants{};
+    int64_t taille_données_tableaux_constants = 0;
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -124,6 +151,8 @@ struct GénératriceCodeC {
 
     void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
     void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
+
+    void génère_code_pour_tableaux_données_constantes(Enchaineuse &os, bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
 
@@ -926,6 +955,15 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
         {
             auto inst_accès = static_cast<AccedeIndexConstant const *>(atome_const);
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
+
+            if (inst_accès->accede->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(
+                    static_cast<AtomeGlobale *>(inst_accès->accede))) {
+                /* Les tableaux de données constantes doivent toujours être accéder par un index de
+                 * 0, donc ce doit être légitime de simplement retourné le code de l'atome. */
+                return valeur_accédée;
+            }
+
             auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
 
             if (est_type_tableau_fixe(
@@ -1716,11 +1754,31 @@ void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale 
                                           const kuri::tableau<AtomeFonction *> &fonctions,
                                           Enchaineuse &os)
 {
+    /* Commençons par rassembler les tableaux de données constantes. */
+    POUR (globales) {
+        if (!est_globale_pour_tableau_données_constantes(it)) {
+            continue;
+        }
+
+        auto tableau_constant = static_cast<AtomeValeurConstante const *>(it->initialisateur);
+        tableaux_constants.ajoute(tableau_constant);
+
+        auto nom_globale = enchaine("&DC[", taille_données_tableaux_constants, "]");
+        table_globales.insère(it, nom_globale);
+
+        taille_données_tableaux_constants += tableau_constant->valeur.valeur_tdc.taille;
+    }
+
     /* Déclarons les globales. */
     POUR (globales) {
+        if (est_globale_pour_tableau_données_constantes(it)) {
+            continue;
+        }
         déclare_globale(os, it, true);
         os << ";\n";
     }
+
+    génère_code_pour_tableaux_données_constantes(os, true);
 
     /* Déclarons ensuite les fonctions. */
     POUR (fonctions) {
@@ -1923,10 +1981,15 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     os.réinitialise();
     os << "#include \"compilation_kuri.h\"\n";
 
+    génère_code_pour_tableaux_données_constantes(os, false);
+
     /* Définis les globales. */
     POUR (globales) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
+            continue;
+        }
+        if (est_globale_pour_tableau_données_constantes(it)) {
             continue;
         }
         auto valeur_globale = it;
@@ -2014,6 +2077,41 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
 
     génère_code(
         repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
+}
+
+void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
+                                                                    bool pour_entête)
+{
+    if (tableaux_constants.taille() == 0) {
+        return;
+    }
+
+    os << "const int8_t DC[" << taille_données_tableaux_constants << "]";
+
+    if (pour_entête) {
+        os << ";\n";
+        return;
+    }
+
+    auto virgule = " = {\n";
+    auto compteur = 0;
+    POUR (tableaux_constants) {
+        auto pointeur_données = it->valeur.valeur_tdc.pointeur;
+        auto taille_données = it->valeur.valeur_tdc.taille;
+        for (auto i = 0; i < taille_données; ++i) {
+            auto octet = pointeur_données[i];
+            compteur++;
+            os << virgule;
+            if ((compteur % 20) == 0) {
+                os << "\n";
+            }
+            os << "0x";
+            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+            os << dls::num::char_depuis_hex(octet & 0x0f);
+            virgule = ", ";
+        }
+    }
+    os << "};\n";
 }
 
 /** \} */
