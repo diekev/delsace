@@ -281,7 +281,7 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
         /* Permute les lignes _irow_ et _icol_ pour le pivot. */
         si il != ic {
             pour k dans 0 ... 3 {
-                échange(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k])
+                permute(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k])
             }
         }
 
@@ -327,7 +327,7 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
         }
 
         pour k dans 0 ... 3 {
-            échange(*matrice_inverse.m[k][index_lignes[j]],
+            permute(*matrice_inverse.m[k][index_lignes[j]],
                     *matrice_inverse.m[k][index_colonnes[j]]);
         }
 

@@ -290,15 +290,13 @@ restreint :: fonc(x : *$T, min : T, max : T) -> rien #enligne
 // Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
 pgcd :: fonc(a : z32, b : z32) -> z32
 {
-    x := a
-    y := b
-
-    tantque y > 1 {
-        x = y
-        y = x % y
+    tantque b != 0 {
+        t := b
+        b = a % b
+        a = t
     }
 
-    retourne x
+    retourne a
 }
 
 // Trouve le plus petit commun multiple
