@@ -2216,11 +2216,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
         auto type = m_compilatrice.typeuse.reserve_type_enum(noeud_decl);
         type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
+        noeud_decl->est_énum_drapeau = type->est_drapeau;
         noeud_decl->type = type;
     }
     else {
         auto type = m_compilatrice.typeuse.reserve_type_erreur(noeud_decl);
         type->est_erreur = true;
+        noeud_decl->est_erreur = true;
         noeud_decl->type = type;
     }
 

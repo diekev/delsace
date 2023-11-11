@@ -3307,6 +3307,20 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
     CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, ENUMERATION__VALIDATION);
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
+    if (!type_enum) {
+        if (decl->est_erreur) {
+            auto type = m_compilatrice.typeuse.reserve_type_erreur(decl);
+            type->est_erreur = true;
+            decl->type = type;
+        }
+        else {
+            auto type = m_compilatrice.typeuse.reserve_type_enum(decl);
+            type->est_drapeau = decl->est_énum_drapeau;
+            decl->type = type;
+        }
+        type_enum = static_cast<TypeEnum *>(decl->type);
+    }
+
     if (type_enum->est_erreur) {
         type_enum->type_sous_jacent = TypeBase::Z32;
     }
