@@ -115,18 +115,18 @@ glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe libGL
 
 glViewport :: fonc (px : z32, py : z32, tx : z32, ty : z32) -> rien #externe libGL
 
-//# foncs de VAO
+// foncs de VAO
 glGenVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glDeleteVertexArrays :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glBindVertexArray :: fonc (id : GLenum) -> rien #externe libGL
 
-//# foncs de VBO
+// foncs de VBO
 glGenBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glBindBuffer :: fonc (target : GLenum, id : n32) -> rien #externe libGL
 glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) -> rien #externe libGL
 
-//# foncs Arrays
+ foncs Arrays
 glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL
@@ -218,7 +218,7 @@ glTexImage2D :: fonc (
     type: GLenum,
     données: *rien) -> rien #externe libGL
 
-//# foncs de nuanceurs/programmes
+// foncs de nuanceurs/programmes
 glShaderSource :: fonc (shader : n32, count : z64, string : **z8, length : *z32) -> rien #externe libGL
 glCreateShader :: fonc (shaderType : n32) -> n32 #externe libGL
 glCompileShader :: fonc (shader : n32) -> rien #externe libGL
