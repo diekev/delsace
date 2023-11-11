@@ -676,10 +676,10 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
             info_arg := valeur.info comme *InfoTypeÉnum
 
             valeur_ := mémoire(valeur.pointeur comme *z32)
-            noms := info_arg.noms
 
             si info_arg.est_drapeau {
                 valeur_trouvée := faux
+                noms := info_arg.noms
 
                 pour v, i dans info_arg.valeurs {
                     si (v & valeur_) != 0 {
@@ -697,11 +697,12 @@ imprime_valeur :: fonc(enchaineuse : *Enchaineuse, valeur : eini, échappe_chn :
                 }
             }
             sinon {
-                pour v, i dans info_arg.valeurs {
-                    si v == valeur_ {
-                        ajoute_au_tampon(enchaineuse, noms[i])
-                        arrête
-                    }
+                chaine_valeur, trouvée := donne_nom_énum_pour_valeur(info_arg, valeur_)
+                si trouvée {
+                    ajoute_au_tampon(enchaineuse, chaine_valeur)
+                }
+                sinon {
+                    ajoute_au_tampon(enchaineuse, "ERREUR VALEUR ÉNUM INCONNUE")
                 }
             }
         }

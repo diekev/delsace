@@ -152,6 +152,36 @@ InfoTypeÉnum :: struct #interface {
     type_sous_jacent: *InfoTypeEntier
 }
 
+donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> z32, bool
+{
+    pour info.noms {
+        si it == nom {
+            retourne info.valeurs[index_it], vrai
+        }
+    }
+
+    retourne 0, faux
+}
+
+donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: z32) -> chaine
+{
+    pour info.valeurs {
+        si it == valeur {
+            retourne info.noms[index_it]
+        }
+    }
+
+    retourne ""
+}
+
+donne_eini_valeur_énum_index :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
+{
+    résultat : eini = ---
+    résultat.pointeur = *info.valeurs[index]
+    résultat.info = info.type_sous_jacent
+    retourne résultat
+}
+
 InfoTypeOpaque :: struct #interface {
     empl base : InfoType
 
