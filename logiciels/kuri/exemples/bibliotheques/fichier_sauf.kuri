@@ -720,7 +720,7 @@ principale :: fonc () -> z32
 
     f = safe_create_fail_if_exists(fn, _O_WRONLY, allMask);
     si (f != -1)  {
-    //#fputs("safe_create_fail_if_exists success and it should not", _stderr);
+    //fputs("safe_create_fail_if_exists success and it should not", _stderr);
     exit(10);
     }
 
@@ -745,7 +745,7 @@ principale :: fonc () -> z32
         perror("write");
         exit(22);
     }  sinon  {
-        //#fputs("partial write", _stderr);
+        //fputs("partial write", _stderr);
         exit(23);
     }
     }
@@ -758,7 +758,7 @@ principale :: fonc () -> z32
     }
 
     si (curStat.st_dev == prevStat.st_dev && curStat.st_ino == prevStat.st_ino)  {
-    //#fputs("inode not different\n", _stderr);
+    //fputs("inode not different\n", _stderr);
     exit(25);
     }
 
@@ -801,12 +801,12 @@ principale :: fonc () -> z32
     }
 
     si (curStat.st_dev != prevStat.st_dev || curStat.st_ino != prevStat.st_ino)  {
-    //#fputs("inode different\n", _stderr);
+    //fputs("inode different\n", _stderr);
     exit(32);
     }
 
     si (curStat.st_size != prevStat.st_size)  {
-    //#fputs("file contents are changed", _stderr);
+    //fputs("file contents are changed", _stderr);
     exit(33);
     }
 

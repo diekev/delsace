@@ -94,3 +94,37 @@ index_bit_taille_octet :: fonc (taille: n32) -> z32
 
     retourne résultat
 }
+
+/* Retourne l'index du bit, en partant de la droite, du plus petit multiple de
+ * 2 supérieur au nombre passé. Ceci est équivalent au logarithme base 2 dudit
+ * multiple. */
+index_bit_multiple_de_2_suivant :: fonc (n: z64) -> z64 #enligne #sanstrace
+{
+    multiple := multiple_de_2_suivant(n)
+    retourne 64 - 1 - intrinsèque_compte_zéros_en_tête(multiple comme n64)
+}
+
+multiple_de_2_suivant :: fonc (v: $T) -> T #enligne
+{
+    v -= 1
+    v |= v >> 1
+    v |= v >> 2
+    v |= v >> 4
+
+    #si T == z16 || T == n16 {
+        v |= v >> 8
+    }
+    sinon si T == z32 || T == n32 {
+        v |= v >> 8
+        v |= v >> 16
+    }
+    sinon si T == z64 || T == n64 {
+        v |= v >> 8
+        v |= v >> 16
+        v |= v >> 32
+    }
+
+    v += 1
+
+    retourne v
+}

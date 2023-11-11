@@ -50,10 +50,10 @@ test_logement_chaine :: fonc ()
     imprime("chn.pointeur : %\n", chn.pointeur)
     imprime("chn.taille   : %\n", chn.taille)
 
-    chaine_ajoute(*chn, 'k')
-    chaine_ajoute(*chn, 'u')
-    chaine_ajoute(*chn, 'r')
-    chaine_ajoute(*chn, 'i')
+    chn[0] = 'k'
+    chn[1] = 'u'
+    chn[2] = 'r'
+    chn[3] = 'i'
 
     pour chn {
         imprime("-- %\n", it)
