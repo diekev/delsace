@@ -125,6 +125,19 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
     retourne contenu
 }
 
+contenu_fichier_binaire :: fonc(chemin: CheminFichier, résultat: &[]octet)
+{
+    fichier := tente ouvre_fichier(chemin) piège err {
+        retourne
+    }
+
+    diffère { _ := ferme(*fichier) }
+
+    tente lis_tout(*fichier, résultat) piège err {
+        retourne
+    }
+}
+
 contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)

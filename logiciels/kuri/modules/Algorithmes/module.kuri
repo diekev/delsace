@@ -165,8 +165,7 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 /** \nom Permutation de valeur.
  * \{ */
 
-// À FAIRE(langage) : collision si appelée permute
-échange :: fonc (a: *$T, b: *T) #enligne
+permute :: fonc (a: *$T, b: *T) #enligne
 {
     tmp := mémoire(a)
     mémoire(a) = mémoire(b)
@@ -190,7 +189,7 @@ inverse :: fonc (premier: *$T, dernier: *T)
 {
     tantque premier < dernier {
         dernier -= 1
-        échange(premier, dernier)
+        permute(premier, dernier)
         premier += 1
     }
 }
@@ -253,7 +252,7 @@ partitionne :: fonc (premier: *$T, dernier: *T, prédicat: fonc(T)(bool)) -> *T
             arrête
         }
 
-        échange(premier, dernier)
+        permute(premier, dernier)
         premier = suivant(premier, 1)
     }
 

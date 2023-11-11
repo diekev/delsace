@@ -85,18 +85,22 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
     pile.renverse()
 
-    chemin_dossier : chaine
-    diffère déloge(chemin_dossier)
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     saute_premier_slash := chemin.est_relatif()
 
     tantque !pile.est_vide() {
         saufsi saute_premier_slash {
-            chaine_ajoute(*chemin_dossier, séparateur_chemin())
+            ajoute_au_tampon(*enchaineuse, séparateur_chemin())
         }
-        chaine_ajoute(*chemin_dossier, pile.dépile())
+        ajoute_au_tampon(*enchaineuse, pile.dépile())
 
         saute_premier_slash = faux
+
+        chemin_dossier := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(chemin_dossier)
 
         si est_un_dossier(CheminFichier(chemin_dossier)) {
             continue
@@ -330,10 +334,22 @@ ChaineOuErreurFichier :: union {
 
 lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    TAILLE_MAX :: 1024
+    résultat : []octet
 
+    erreur_potentielle := lis_tout(fichier, résultat)
+    si erreur_potentielle != (0 comme ErreurFichier) {
+        retourne erreur_potentielle
+    }
+
+    retourne chaine_depuis_tableau_octets(résultat)
+}
+
+lis_tout :: fonc (fichier: *Fichier, résultat: &[]octet) -> ErreurFichier
+{
+    TAILLE_MAX :: 1024
     tampon : [TAILLE_MAX]z8
-    résultat : chaine
+
+    résultat.taille = 0
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
@@ -343,7 +359,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
         si octets_lus > 0 {
             ancienne_taille := résultat.taille
-            reloge_chaine(résultat, résultat.taille + octets_lus)
+            tableau_redimensionne(résultat, résultat.taille + octets_lus)
             copie_mem_nonsur(src=*tampon[0], dst=*résultat[ancienne_taille], taille=octets_lus)
 
             si octets_lus < TAILLE_MAX {
@@ -355,17 +371,18 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
         }
     }
 
-    retourne résultat
+    retourne 0 comme ErreurFichier
 }
 
 lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
     c : z8
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
-            déloge(résultat)
             retourne err
         }
 
@@ -373,14 +390,14 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
             arrête
         }
 
-        chaine_ajoute(*résultat, c)
+        ajoute_au_tampon(*enchaineuse, c)
 
         si c == '\n' {
             arrête
         }
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 // fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on

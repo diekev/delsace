@@ -19,8 +19,8 @@ adresse_depuis_s_adrr :: fonc (addr: in6_addr) -> AdresseIPv6 #enligne
 
 trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
 {
-    marqueur := obtiens_marque_stockage_temporaire()
-    diffère set_marque_stockage_temporaire(marqueur)
+    marqueur := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marqueur)
 
     ptr_tampon := crée_chaine_c_temp(hôte)
 
@@ -61,8 +61,8 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([]AdresseIP)
 
 trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([]AdresseIP)
 {
-    marqueur := obtiens_marque_stockage_temporaire()
-    diffère set_marque_stockage_temporaire(marqueur)
+    marqueur := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marqueur)
 
     addr: *addrinfo
     diffère { freeaddrinfo(addr) }

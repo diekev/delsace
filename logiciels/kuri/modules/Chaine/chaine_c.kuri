@@ -6,20 +6,19 @@ ChaineC :: #opaque *z8
 
 crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 {
-    résultat : ChaineC
-
     saufsi chn {
-        retourne résultat
+        retourne ChaineC(nul)
     }
 
-    copie := copie_chaine(chn)
-
-    si copie.pointeur[copie.taille - 1] != '\0' {
-        chaine_ajoute(*copie, '\0')
+    si chn.pointeur[chn.taille - 1] == '\0' {
+        copie := copie_chaine(chn)
+        retourne ChaineC(copie.pointeur)
     }
 
-    résultat = ChaineC(copie.pointeur)
-    retourne résultat
+    résultat := loge_chaine(chn.taille + 1)
+    copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur, taille = chn.taille)
+    résultat.pointeur[résultat.taille - 1] = '\0'
+    retourne ChaineC(résultat.pointeur)
 }
 
 // Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer

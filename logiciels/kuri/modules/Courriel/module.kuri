@@ -279,9 +279,12 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     diffère { si message { déloge(message) } }
 
     si format {
-        message = imprime_chaine(format, ...args)
-        chaine_ajoute(*message, '\r')
-        chaine_ajoute(*message, '\n')
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+        imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+        ajoute_au_tampon(*enchaineuse, "\r\n")
+        message = chaine_depuis_enchaineuse(*enchaineuse)
     }
 
     taille_écrite := tente fichier.écris(message) piège err {
@@ -454,11 +457,7 @@ encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
     diffère déloge(encodé_base_64)
 
     pour encodé_base_64 {
-        chn : chaine = ---
-        chn.pointeur = *it
-        chn.taille = 1
-
-        ajoute_au_tampon(enchaineuse, chn)
+        ajoute_au_tampon(enchaineuse, it)
 
         si (index_it + 1) % 76 == 0 {
             ajoute_au_tampon(enchaineuse, "\r\n")

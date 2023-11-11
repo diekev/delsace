@@ -236,7 +236,7 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
 
     installe_format_xcnu(nuanceur)
 
-    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_STREAM_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
     vérifie_erreur("termine_immédiat.glBufferData")
 
     si mode == ModeImmédiat.TRIANGLES {

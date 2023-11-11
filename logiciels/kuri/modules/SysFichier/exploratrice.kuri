@@ -28,11 +28,15 @@ ExploratriceFichier :: struct {
     pile_dossiers: Pile(DonnéesDossierCourant)
 
     filtre_chemin: fonc(CheminFichier)(bool)
+
+    /* Pour la construction des chemins, afin de réutiliser la mémoire. */
+    pile: Pile(chaine)
 }
 
 détruit :: fonc (exploratrice: &ExploratriceFichier)
 {
     détruit(exploratrice.pile_dossiers)
+    détruit(exploratrice.pile)
 }
 
 crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichier
@@ -66,7 +70,8 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminF
                     continue
                 }
 
-                retourne crée_chemin_absolu(dossier_courant.chemin_complet, chemin_entrée)
+                exploratrice.pile.données.taille = 0
+                retourne crée_chemin_absolu(exploratrice.pile, dossier_courant.chemin_complet, chemin_entrée)
             }
             sinon {
                 dépile_dossier(exploratrice)

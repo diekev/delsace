@@ -260,18 +260,20 @@ test_chache :: fonc ()
 
 prépare_chaine :: fonc (entrée: chaine) -> chaine
 {
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour entrée {
         si 'A' <= it <= 'Z' {
-            chaine_ajoute(*résultat, it - 'A')
+            ajoute_au_tampon(*enchaineuse, it - 'A')
         }
         sinon si 'a' <= it <= 'z' {
-            chaine_ajoute(*résultat, it - 'a')
+            ajoute_au_tampon(*enchaineuse, it - 'a')
         }
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 index_pour_lettre :: fonc (lettre: z8) -> z8
@@ -285,13 +287,15 @@ index_pour_lettre :: fonc (lettre: z8) -> z8
 
 prépare_résultat :: fonc (entrée: chaine) -> chaine
 {
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour entrée {
-        chaine_ajoute(*résultat, it + 'A')
+        ajoute_au_tampon(*enchaineuse, it + 'A')
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 césar :: fonc (message: chaine, clé: z8) -> chaine
@@ -299,21 +303,28 @@ césar :: fonc (message: chaine, clé: z8) -> chaine
     message = prépare_chaine(message)
     clé = index_pour_lettre(clé)
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour message {
         codé := (it + clé) % 26
-        chaine_ajoute(*résultat, codé)
+        ajoute_au_tampon(*enchaineuse, codé)
     }
 
-    retourne prépare_résultat(résultat)
+    tmp := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(tmp)
+
+    retourne prépare_résultat(tmp)
 }
 
 vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
 {
     message = prépare_chaine(message)
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour lettre, index_lettre dans message {
         index_lettre_message := lettre
@@ -324,27 +335,36 @@ vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
 
         index_lettre_message %= 26
 
-        chaine_ajoute(*résultat, index_lettre_message)
+        ajoute_au_tampon(*enchaineuse, index_lettre_message)
     }
 
-    retourne prépare_résultat(résultat)
+    tmp := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(tmp)
+
+    retourne prépare_résultat(tmp)
 }
 
 scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
 {
     message = prépare_chaine(message)
-    résultat : chaine
+    
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     pour 0 ... taille_clé - 1 {
         index := it
 
         tantque index < message.taille {
-            chaine_ajoute(*résultat, message[index])
+            ajoute_au_tampon(*enchaineuse, message[index])
             index += taille_clé
         }
     }
 
-    retourne prépare_résultat(résultat)
+    tmp := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(tmp)
+
+    retourne prépare_résultat(tmp)
 }
 
 bits_d_entropie :: fonc (nombre_de_caractères: z64, taille: z64) -> z32

@@ -1,42 +1,179 @@
-/*
-NoeudListeLibre :: struct {
-    suivant: *NoeudListeLibre = nul
-}
+importe Bits
+importe Fondation
 
-AllocatriceListeLibre :: struct {
-    racine: *NoeudListeLibre = nul
-}
-
-détruit_liste_libre :: fonc(alloc: *AllocatriceListeLibre) -> rien
-{
-    ptr := alloc.racine
-
-    tantque ptr != nul {
-        suivant := ptr.suivant
-        free(ptr)
-        ptr = suivant
-    }
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction d'allocation.
+ * \{ */
 
 allocatrice_liste_libre :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
     ancienne_taille : z64,
     ancien_pointeur : *rien,
-    données : *rien,
-    info : *InfoType) -> *rien
+    données : *BaseAllocatrice,
+    info : *InfoType,
+    pos : PositionCodeSource) -> *rien
 {
-    alloc := données comme *AllocatriceListeLibre
+    allocatrice := données comme *AllocatriceListeLibre
 
     discr mode {
         ALLOUE {
+            données.mémoire_utilisée += nouvelle_taille
+            données.nombre_allocations += 1
+
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
+            }
+
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
+
+            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective)
+            si bloc {
+                retourne bloc
+            }
+
+            retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
         }
         RÉALLOUE {
+            ancienne_taille_effective := multiple_de_2_suivant(ancienne_taille)
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
+
+            si ancienne_taille_effective == nouvelle_taille_effective {
+                /* Nous n'allouons que par blocs de taille équivalente à une
+                 * puissance de 2, donc si la nouvelle taille effective est
+                 * la même que l'ancienne, retourne le bloc. */
+                retourne ancien_pointeur
+            }
+
+            données.mémoire_utilisée += nouvelle_taille_effective - ancienne_taille_effective
+            données.nombre_allocations += 1
+            données.nombre_réallocations += 1
+
+            si données.pic_de_mémoire < données.mémoire_utilisée {
+                données.pic_de_mémoire = données.mémoire_utilisée
+            }
+
+            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective)
+            si bloc {
+                copie_mem_nonsur(src = ancien_pointeur, dst = bloc, taille = ancienne_taille)
+                ajoute_bloc(allocatrice, ancien_pointeur, ancienne_taille_effective)
+                retourne bloc
+            }
+
+            retourne allocatrice.allocatrice(mode, nouvelle_taille_effective, ancienne_taille_effective, ancien_pointeur, allocatrice.données_allocatrice, info, pos)
         }
         DÉSALLOUE {
+            taille_effective := multiple_de_2_suivant(ancienne_taille)
+            données.mémoire_utilisée -= taille_effective
+            données.nombre_désallocations += 1
+            ajoute_bloc(allocatrice, ancien_pointeur, taille_effective)
+            retourne nul
         }
     }
 
     retourne nul
 }
-*/
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AllocatriceListeLibre
+ *
+ * L'AllocatricrListeLibre alloue des blocs de mémoire et les récupère
+ * lorsqu'ils sont délogés ; les blocs récupérés étant réutilisés pour les
+ * allocations conséquentes.
+ *
+ * La taille des blocs est toujours arrondis au plus petit multiple de 2
+ * supérieur à la taille désiré, ce qui peut augmenter la consommation de
+ * mémoire des programmes.
+ *
+ * L'allocatrice utilise une allocatrice de base pour allouer les blocs.
+ * L'allocatrice de base peut être renseigné manuellement, sinon l'allocatrice
+ * se trouvant dans le contexte sera utilisée via l'appel à installe_allocatrice.
+ *
+ * Exemple d'utilisation :
+ *
+ *  allocatrice: AllocatriceListeLibre
+ *  diffère détruit_allocatrice(*allocatrice)
+ *
+ *  ctx := contexte()
+ *  installe_allocatrice(*ctx, *allocatrice)
+ *
+ *  pousse_contexte ctx {
+ *      ...
+ *  }
+ *
+ * \{ */
+
+AllocatriceListeLibre :: struct {
+    empl base: BaseAllocatrice
+
+    Noeud :: struct {
+        suivant: *Noeud
+    }
+
+    /* L'allocatrice à qui nous demanderons de la mémoire. */
+    allocatrice : TypeFonctionAllocation
+    données_allocatrice : *BaseAllocatrice = nul
+
+    /* Une racine par bloc de taille de magnitude d'une puissance de 2. */
+    racines: [64]*Noeud
+}
+
+installe_allocatrice :: fonc (ctx: *ContexteProgramme, allocatrice: *AllocatriceListeLibre)
+{
+    saufsi allocatrice.allocatrice {
+        allocatrice.allocatrice = ctx.allocatrice
+        allocatrice.données_allocatrice = ctx.données_allocatrice
+    }
+
+    ctx.allocatrice = allocatrice_liste_libre
+    ctx.données_allocatrice = allocatrice
+}
+
+détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
+{
+    pour allocatrice.racines {
+        taille_bloc := (1 comme z64) << index_it
+        bloc := it
+        tantque bloc != nul {
+            bloc_suivant := bloc.suivant
+            _ := allocatrice.allocatrice(ModeAllocatrice.DÉSALLOUE, 0, taille_bloc, bloc, allocatrice.données_allocatrice, nul, PositionCodeSource())
+            bloc = bloc_suivant
+        }
+    }
+}
+
+ajoute_bloc :: fonc (allocatrice: *AllocatriceListeLibre, adresse: *rien, taille: z64)
+{
+    si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
+        _ := allocatrice.allocatrice(ModeAllocatrice.DÉSALLOUE, 0, taille, adresse, allocatrice.données_allocatrice, nul, PositionCodeSource())
+        retourne
+    }
+
+    index_racine := index_bit_multiple_de_2_suivant(taille)
+
+    nouveau_bloc := adresse comme *AllocatriceListeLibre.Noeud
+    nouveau_bloc.suivant = allocatrice.racines[index_racine]
+    allocatrice.racines[index_racine] = nouveau_bloc
+}
+
+trouve_un_bloc :: fonc (allocatrice: *AllocatriceListeLibre, taille: z64) -> *rien
+{
+    si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
+        retourne nul
+    }
+
+    index_racine := index_bit_multiple_de_2_suivant(taille)
+    bloc_courant := allocatrice.racines[index_racine]
+    saufsi bloc_courant {
+        retourne nul
+    }
+
+    /* Retourne le premier bloc. */
+    allocatrice.racines[index_racine] = bloc_courant.suivant
+
+    retourne bloc_courant
+}
+
+/** } */

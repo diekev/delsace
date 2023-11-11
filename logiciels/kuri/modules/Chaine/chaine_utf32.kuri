@@ -39,11 +39,7 @@ réinitialise :: fonc (chn: &ChaineUTF32) #enligne
 
 converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 {
-    résultat : chaine
-    pour chn.points_de_code {
-        chaine_ajoute(*résultat, it)
-    }
-    retourne résultat
+    retourne imprime_chaine("%", chn)
 }
 
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32

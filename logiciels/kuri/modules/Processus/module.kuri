@@ -117,11 +117,13 @@ prépare_pour_écriture :: fonc (canal: &BaseCanal)
 
 lis :: fonc (canal: &BaseCanal) -> chaine
 {
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     boucle {
         tmp := tente lis_tout(*canal.lecteur) piège err {
-            retourne résultat
+            retourne chaine_depuis_enchaineuse(*enchaineuse)
         }
 
         /* Le flux est vide, ou le fichier d'écriture fut fermé. */
@@ -129,11 +131,11 @@ lis :: fonc (canal: &BaseCanal) -> chaine
             arrête
         }
 
-        chaine_ajoute(*résultat, tmp)
+        ajoute_au_tampon(*enchaineuse, tmp)
         déloge(tmp)
     }
 
-    retourne résultat
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
