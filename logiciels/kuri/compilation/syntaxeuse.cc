@@ -2238,18 +2238,21 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
             continue;
         }
 
-        if (apparie_expression()) {
-            auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+        if (!apparie_expression()) {
+            rapporte_erreur("Attendu une expression dans le bloc de l'énumération");
+            continue;
+        }
 
-            if (noeud->est_reference_declaration()) {
-                auto decl_variable = m_tacheronne.assembleuse->crée_declaration_variable(
-                    noeud->comme_reference_declaration());
-                decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
-                expressions.ajoute(decl_variable);
-            }
-            else {
-                expressions.ajoute(noeud);
-            }
+        auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+
+        if (noeud->est_reference_declaration()) {
+            auto decl_variable = m_tacheronne.assembleuse->crée_declaration_variable(
+                noeud->comme_reference_declaration());
+            decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
+            expressions.ajoute(decl_variable);
+        }
+        else {
+            expressions.ajoute(noeud);
         }
     }
 
