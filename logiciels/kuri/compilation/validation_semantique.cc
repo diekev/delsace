@@ -3337,9 +3337,11 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
         }
 
         if (!est_type_entier(type_enum->type_sous_jacent)) {
-            espace->rapporte_erreur(
-                decl->expression_type,
-                "Le type de données d'une énumération doit être de type entier");
+            espace
+                ->rapporte_erreur(decl->expression_type,
+                                  "Le type de données d'une énumération doit être de type entier.")
+                .ajoute_message(
+                    "NOTE : le type est ", chaine_type(type_enum->type_sous_jacent), ".\n");
             return CodeRetourValidation::Erreur;
         }
     }
