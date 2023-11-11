@@ -84,12 +84,7 @@ nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
 
 divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 {
-    morceaux := divise(chemin.chn, séparateur_chemin())
-    diffère déloge(morceaux)
-
-    pour morceaux {
-        pile.empile(it)
-    }
+    divise(chemin.chn, séparateur_chemin(), *pile.données, faux)
 }
 
 divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
@@ -101,8 +96,17 @@ divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 
 chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
+    /* À FAIRE : structure dédiée. */
+    tampon: [16]chaine
+    utilise_tampon := pile.taille() < 16
+
     pile_secondaire : Pile(chaine)
-    diffère détruit(pile_secondaire)
+    si utilise_tampon {
+        pile_secondaire.données.pointeur = *tampon[0]
+        pile_secondaire.données.capacité = 16
+    }
+
+    diffère saufsi utilise_tampon { détruit(pile_secondaire) }
 
     pile.renverse()
 
@@ -126,12 +130,14 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 
     pile_secondaire.renverse()
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin on tous été supprimés, soit que le chemin fut celui de la racine
     si pile_secondaire.est_vide() {
-        chaine_ajoute(*résultat, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
     }
 
     premier_slash := vrai
@@ -139,13 +145,13 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
     tantque !pile_secondaire.est_vide() {
         morceau_courant := pile_secondaire.dépile()
         si !premier_slash || chemin_est_absolu {
-            chaine_ajoute(*résultat, séparateur_chemin())
+            ajoute_au_tampon(*enchaineuse, séparateur_chemin())
         }
-        chaine_ajoute(*résultat, morceau_courant)
+        ajoute_au_tampon(*enchaineuse, morceau_courant)
         premier_slash = faux
     }
 
-    retourne CheminFichier(résultat)
+    retourne CheminFichier(chaine_depuis_enchaineuse(*enchaineuse))
 }
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
@@ -216,19 +222,22 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
         _ := pile_racine.dépile()
     }
 
-    résultat : chaine
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
     tantque !pile_résultat.est_vide() {
-        chaine_ajoute(*résultat, pile_résultat.dépile())
+        ajoute_au_tampon(*enchaineuse, pile_résultat.dépile())
 
         /* N'ajoute pas de séparateur à la fin des noms de fichiers. */
         si cible_est_fichier && pile_résultat.est_vide() {
             arrête
         }
 
-        chaine_ajoute(*résultat, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
     }
 
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
     retourne CheminFichier(résultat)
 }
 
@@ -304,6 +313,11 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
     // divise selon le séparateur du système
     pile : Pile(chaine)
     diffère détruit(pile)
+    retourne crée_chemin_absolu(pile, base, feuille)
+}
+
+crée_chemin_absolu :: fonc (pile: &Pile(chaine), base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+{
     divise_et_empile_chemin(pile, base)
     divise_et_empile_chemin(pile, feuille)
     retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()))

@@ -2482,7 +2482,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     if (decl->est_entete_fonction()) {
         auto entête = decl->comme_entete_fonction();
         if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) &&
-            !entête->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            !expr->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
             espace
                 ->rapporte_erreur(
                     expr,

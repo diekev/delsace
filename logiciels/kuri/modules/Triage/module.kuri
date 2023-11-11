@@ -12,7 +12,7 @@ tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> 
             }
         }
 
-        échange(*éléments[i], *éléments[index_min])
+        permute(*éléments[i], *éléments[index_min])
     }
 }
 
