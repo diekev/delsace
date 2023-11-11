@@ -30,8 +30,8 @@ Lexème :: struct {
     nom: *ChaineInternée = TAG_vide
 
     // doctype
-    identifiant_public_doctype: chaine
-    identifiant_système_doctype: chaine
+    identifiant_public_doctype: ChaineUTF32
+    identifiant_système_doctype: ChaineUTF32
     drapeau_force_quirks := faux
 
     // tag début ou fin
@@ -75,8 +75,8 @@ détruit_lexème :: fonc (lexème: *Lexème)
 
     discr lexème.genre {
         Doctype {
-            déloge(lexème.identifiant_public_doctype)
-            déloge(lexème.identifiant_système_doctype)
+            détruit_chaine(lexème.identifiant_public_doctype)
+            détruit_chaine(lexème.identifiant_système_doctype)
         }
         DébutTag {
             détruit_attributs(lexème.attributs)
@@ -575,12 +575,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == GUILLEMET {
                     // @erreur missing-whitespace-after-doctype-public-keyword
-                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
                     // @erreur missing-whitespace-after-doctype-public-keyword
-                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -607,11 +607,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == GUILLEMET {
-                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge(lexeuse.lexème_courant.identifiant_public_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_public_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPEPublicIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -688,11 +688,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == GUILLEMET {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -717,11 +717,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     retourne lexeuse.émet_lexème()
                 }
                 sinon si c == GUILLEMET {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == FIN_DE_FICHIER {
@@ -743,12 +743,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
                 sinon si c == GUILLEMET {
                     // @erreur missing-whitespace-after-doctype-system-keyword
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
                     // @erreur missing-whitespace-after-doctype-system-keyword
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {
@@ -775,11 +775,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     // ignore
                 }
                 sinon si c == GUILLEMET {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierDoubleQuoted
                 }
                 sinon si c == APOSTROPHE {
-                    déloge(lexeuse.lexème_courant.identifiant_système_doctype)
+                    détruit_chaine(lexeuse.lexème_courant.identifiant_système_doctype)
                     lexeuse.état = ÉtatLexage.DOCTYPESystemIdentifierSingleQuoted
                 }
                 sinon si c == CHEVRON_FERMANT {

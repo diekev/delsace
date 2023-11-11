@@ -88,6 +88,11 @@ tableau_redimensionne :: fonc (tabl: &[]$T, taille: z64) -> rien
         retourne
     }
 
+    si taille < tabl.capacité {
+        tabl.taille = taille
+        retourne
+    }
+
     reloge_tableau(tabl, taille)
     tabl.taille = taille
 }

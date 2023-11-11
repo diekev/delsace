@@ -55,6 +55,8 @@ BaseAllocatrice :: struct #interface {
     allocatrice_secours : *BaseAllocatrice = nul
 }
 
+TypeFonctionAllocation :: fonc (ModeAllocatrice, z64, z64, *rien, *BaseAllocatrice, *InfoType, PositionCodeSource)(*rien)
+
 allocatrice_défaut :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
@@ -439,12 +441,12 @@ nombre_désallocations :: fonc() -> z64 #enligne
 // ----------------------------
 // Implémentation des fonctions du stockage temporaire
 
-obtiens_marque_stockage_temporaire :: fonc () -> z32
+donne_marque_stockage_temporaire :: fonc () -> z32
 {
     retourne __contexte_fil_principal.stockage_temporaire.occupé
 }
 
-set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
+définis_marque_stockage_temporaire :: fonc (marque: z32) -> rien
 {
     //assert(marque >= 0)
     //assert(marque < contexte().stockage_temporaire.taille)
@@ -453,7 +455,7 @@ set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
 
 réinitialise_stockage_temporaire :: fonc () -> rien
 {
-    set_marque_stockage_temporaire(0)
+    définis_marque_stockage_temporaire(0)
     __contexte_fil_principal.stockage_temporaire.occupation_maximale = 0
 }
 
