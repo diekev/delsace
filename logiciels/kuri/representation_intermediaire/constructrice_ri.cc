@@ -2026,38 +2026,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto expr = noeud->comme_construction_tableau();
-
-            auto feuilles = expr->expression->comme_virgule();
-
-            if (m_fonction_courante == nullptr) {
-                auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
-                kuri::tableau<AtomeConstante *> valeurs;
-                valeurs.reserve(feuilles->expressions.taille());
-
-                POUR (feuilles->expressions) {
-                    genere_ri_pour_noeud(it);
-                    auto valeur = depile_valeur();
-                    valeurs.ajoute(static_cast<AtomeConstante *>(valeur));
-                }
-
-                auto tableau_constant = m_constructrice.crée_constante_tableau_fixe(
-                    type_tableau_fixe, std::move(valeurs));
-                empile_valeur(tableau_constant);
-                return;
-            }
-
-            auto pointeur_tableau = m_constructrice.crée_allocation(noeud, expr->type, nullptr);
-
-            auto index = 0ul;
-            POUR (feuilles->expressions) {
-                genere_ri_pour_expression_droite(it, nullptr);
-                auto valeur = depile_valeur();
-                auto index_tableau = m_constructrice.crée_acces_index(
-                    noeud, pointeur_tableau, m_constructrice.crée_z64(index++));
-                m_constructrice.crée_stocke_mem(noeud, index_tableau, valeur);
-            }
-
-            empile_valeur(pointeur_tableau);
+            génère_ri_pour_construction_tableau(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_INFO_DE:
@@ -4069,6 +4038,41 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *
             }
         }
     }
+}
+
+void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr)
+{
+    auto feuilles = expr->expression->comme_virgule();
+
+    if (m_fonction_courante == nullptr) {
+        auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
+        kuri::tableau<AtomeConstante *> valeurs;
+        valeurs.reserve(feuilles->expressions.taille());
+
+        POUR (feuilles->expressions) {
+            genere_ri_pour_noeud(it);
+            auto valeur = depile_valeur();
+            valeurs.ajoute(static_cast<AtomeConstante *>(valeur));
+        }
+
+        auto tableau_constant = m_constructrice.crée_constante_tableau_fixe(type_tableau_fixe,
+                                                                            std::move(valeurs));
+        empile_valeur(tableau_constant);
+        return;
+    }
+
+    auto pointeur_tableau = m_constructrice.crée_allocation(expr, expr->type, nullptr);
+
+    auto index = 0ul;
+    POUR (feuilles->expressions) {
+        genere_ri_pour_expression_droite(it, nullptr);
+        auto valeur = depile_valeur();
+        auto index_tableau = m_constructrice.crée_acces_index(
+            expr, pointeur_tableau, m_constructrice.crée_z64(index++));
+        m_constructrice.crée_stocke_mem(expr, index_tableau, valeur);
+    }
+
+    empile_valeur(pointeur_tableau);
 }
 
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
