@@ -383,7 +383,6 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
-            déloge(résultat)
             retourne err
         }
 
