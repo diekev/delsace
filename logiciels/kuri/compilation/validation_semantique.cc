@@ -2069,10 +2069,10 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
     for (; unite->index_courant < arbre_aplatis.taille(); ++unite->index_courant) {
         auto noeud_enfant = arbre_aplatis[unite->index_courant];
 
-        if (noeud_enfant->est_type_structure()) {
-            /* Les structures nichées ont leurs propres unités de compilation */
+        if (noeud_enfant->est_declaration_type() && noeud_enfant != racine_validation()) {
+            /* Les types ont leurs propres unités de compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_enfant->comme_type_structure());
+                return Attente::sur_declaration(noeud_enfant->comme_declaration_type());
             }
 
             continue;
