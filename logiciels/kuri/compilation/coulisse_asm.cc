@@ -500,14 +500,13 @@ bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
 
-    if (espace.fonction_principale == nullptr) {
-        erreur::fonction_principale_manquante(espace);
-        return false;
-    }
-
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(
         espace, compilatrice_ri, *programme);
+
+    if (!repr_inter_programme.has_value()) {
+        return false;
+    }
 
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
@@ -515,7 +514,7 @@ bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
 
     auto generatrice = GeneratriceCodeASM(espace);
     generatrice.genere_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+        repr_inter_programme->globales, repr_inter_programme->fonctions, enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 

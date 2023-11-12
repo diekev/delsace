@@ -312,8 +312,7 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
                                uint32_t quoi,
                                std::ostream &os);
 
-ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &espace,
-                                                           CompilatriceRI &compilatrice_ri,
-                                                           Programme const &programme);
+std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
+    EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme);
 
 /** \} */

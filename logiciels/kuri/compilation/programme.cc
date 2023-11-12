@@ -983,9 +983,8 @@ static void génère_table_des_types(Typeuse &typeuse,
     repr_inter_programme.types.ajoute(type_tableau_fixe);
 }
 
-ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &espace,
-                                                           CompilatriceRI &compilatrice_ri,
-                                                           Programme const &programme)
+std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
+    EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme)
 {
     auto résultat = ProgrammeRepreInter{};
 
@@ -995,7 +994,9 @@ ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &es
     /* Nous pouvons directement copier les types. */
     résultat.types = programme.types();
 
+    auto nombre_fonctions_racines = 0;
     auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+    auto decl_principale = static_cast<AtomeFonction *>(nullptr);
 
     /* Extrait les atomes pour les fonctions. */
     POUR (programme.fonctions()) {
@@ -1011,8 +1012,15 @@ ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &es
         auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
         résultat.fonctions.ajoute(atome_fonction);
 
+        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
+            ++nombre_fonctions_racines;
+        }
+
         if (it->ident == ID::init_globales_kuri) {
             decl_init_globales = atome_fonction;
+        }
+        else if (it->ident == ID::principale) {
+            decl_principale = atome_fonction;
         }
     }
 
@@ -1047,6 +1055,33 @@ ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &es
     }
 
     génère_table_des_types(espace.compilatrice().typeuse, résultat, compilatrice_ri);
+
+    switch (espace.options.resultat) {
+        case ResultatCompilation::RIEN:
+        {
+            break;
+        }
+        case ResultatCompilation::EXECUTABLE:
+        {
+            if (decl_principale == nullptr) {
+                assert(espace.fonction_principale == nullptr);
+                erreur::fonction_principale_manquante(espace);
+                return {};
+            }
+            break;
+        }
+        case ResultatCompilation::FICHIER_OBJET:
+        case ResultatCompilation::BIBLIOTHEQUE_STATIQUE:
+        case ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE:
+        {
+            if (nombre_fonctions_racines == 0) {
+                espace.rapporte_erreur_sans_site(
+                    "Aucune fonction racine trouvée pour générer le code !\n");
+                return {};
+            }
+            break;
+        }
+    }
 
     return résultat;
 }

@@ -2094,18 +2094,16 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
                                                      kuri::tableau<Bibliotheque *> &bibliothèques,
                                                      Broyeuse &broyeuse)
 {
-    auto fonction_principale = espace.fonction_principale;
-    if (fonction_principale == nullptr) {
-        erreur::fonction_principale_manquante(espace);
-        return false;
-    }
-
     /* Convertis le programme sous forme de représentation intermédiaire. */
     auto repr_inter_programme = représentation_intermédiaire_programme(
         espace, compilatrice_ri, *programme);
 
-    génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
+    if (!repr_inter_programme.has_value()) {
+        return false;
+    }
+
+    génère_code_C_depuis_RI(espace, *repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
     return true;
 }
 
@@ -2121,22 +2119,12 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
     auto repr_inter_programme = représentation_intermédiaire_programme(
         espace, compilatrice_ri, *programme);
 
-    /* Garantie l'utilisation des fonctions racines. */
-    auto nombre_fonctions_racines = 0;
-    POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
-            ++nombre_fonctions_racines;
-        }
-    }
-
-    if (nombre_fonctions_racines == 0) {
-        espace.rapporte_erreur_sans_site(
-            "Aucune fonction racine trouvée pour générer le code !\n");
+    if (!repr_inter_programme.has_value()) {
         return false;
     }
 
-    génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
+    génère_code_C_depuis_RI(espace, *repr_inter_programme, coulisse, broyeuse);
+    bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
     return true;
 }
 

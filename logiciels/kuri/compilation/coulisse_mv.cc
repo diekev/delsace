@@ -20,7 +20,12 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
                                   CompilatriceRI &compilatrice_ri,
                                   Broyeuse &)
 {
-    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
+    auto opt_repr_inter = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
+    if (!opt_repr_inter.has_value()) {
+        return false;
+    }
+    auto &repr_inter = opt_repr_inter.value();
     auto métaprogramme = programme->pour_métaprogramme();
     assert(métaprogramme);
 

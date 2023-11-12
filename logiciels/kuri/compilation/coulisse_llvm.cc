@@ -1652,6 +1652,9 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
     }
 
     auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
+    if (!repr_inter.has_value()) {
+        return false;
+    }
 
     auto CPU = "generic";
     auto feature = "";
@@ -1669,7 +1672,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
 
     initialise_optimisation(espace.options.niveau_optimisation, generatrice);
 
-    generatrice.genere_code(repr_inter);
+    generatrice.genere_code(*repr_inter);
 
     delete generatrice.manager_fonctions;
 
