@@ -464,6 +464,18 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
+            if (noeud_directive->ident != ID::test) {
+                if (auto expr_variable = trouve_expression_non_constante(expression)) {
+                    espace
+                        ->rapporte_erreur(noeud_directive,
+                                          "L'expression de la directive n'est pas constante et ne "
+                                          "peut donc être évaluée.")
+                        .ajoute_message("L'expression non-constante est :\n")
+                        .ajoute_site(expr_variable);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
             auto metaprogramme = crée_metaprogramme_pour_directive(noeud_directive);
 
             m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
@@ -1526,16 +1538,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
     }
 
-    auto type = structure->type;
-
-    /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-    while (type->est_type_pointeur() || type->est_type_reference()) {
-        type = type_dereference_pour(type);
-    }
-
-    if (type->est_type_opaque()) {
-        type = type->comme_type_opaque()->type_opacifie;
-    }
+    auto type = donne_type_accédé_effectif(structure->type);
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
     if (type->est_type_type_de_donnees()) {
@@ -2411,11 +2414,23 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     if (!expr->est_appel()) {
         espace->rapporte_erreur(
             expr, "L'expression d'une directive de cuisson doit être une expression d'appel !");
+        return CodeRetourValidation::Erreur;
     }
 
     if (!expr->type->est_type_fonction()) {
         espace->rapporte_erreur(
             expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (auto expr_variable = trouve_expression_non_constante(expr)) {
+        espace
+            ->rapporte_erreur(directive,
+                              "L'expression de la directive n'est pas constante et ne "
+                              "peut donc être évaluée.")
+            .ajoute_message("L'expression non-constante est :\n")
+            .ajoute_site(expr_variable);
+        return CodeRetourValidation::Erreur;
     }
 
     directive->type = expr->type;
