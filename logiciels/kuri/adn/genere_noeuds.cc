@@ -495,14 +495,7 @@ struct GeneratriceCodeCPP {
                    << ">(racine->lexeme);\n";
             }
 
-            os << "\t\t\tinsere_copie(racine, nracine);\n";
-            os << "\t\t\tnracine->ident = racine->ident;\n";
-            os << "\t\t\tnracine->type = racine->type;\n";
-            os << "\t\t\tnracine->drapeaux = racine->drapeaux;\n";
-            os << "\t\t\tif ((m_options & OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION) == "
-                  "OptionsCopieNoeud(0)) {\n";
-            os << "\t\t\t\tnracine->drapeaux &= ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE;\n";
-            os << "\t\t\t}\n";
+            os << "\t\t\tcopie_membres_de_bases_et_insère(racine, nracine);\n";
 
             if (!it->possède_enfants() && !it->possède_membre_a_copier()) {
                 os << "\t\t\tbreak;\n";
