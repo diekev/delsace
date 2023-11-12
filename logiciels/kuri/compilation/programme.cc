@@ -730,7 +730,7 @@ static void rassemble_globales_supplémentaires(ProgrammeRepreInter &repr_inter,
                 return;
             }
 
-            repr_inter.globales.ajoute(static_cast<AtomeGlobale *>(atome_local));
+            repr_inter.ajoute_globale(static_cast<AtomeGlobale *>(atome_local));
             globales_utilisées.insère(static_cast<AtomeGlobale *>(atome_local));
         }
     });
@@ -761,7 +761,7 @@ static void rassemble_globales_pour_info_types(ProgrammeRepreInter &repr_inter,
         }
 
         visiteuse.reinitialise();
-        repr_inter.globales.ajoute(atome_info_type);
+        repr_inter.ajoute_globale(atome_info_type);
         globales_utilisées.insère(atome_info_type);
 
         rassemble_globales_supplémentaires(
@@ -771,7 +771,7 @@ static void rassemble_globales_pour_info_types(ProgrammeRepreInter &repr_inter,
 
 static void rassemble_globales_supplémentaires(ProgrammeRepreInter &repr_inter)
 {
-    auto globales_utilisées = crée_ensemble(repr_inter.globales);
+    auto globales_utilisées = repr_inter.donne_globales_utilisées();
     VisiteuseAtome visiteuse{};
 
     /* Prend en compte les globales pouvant être ajoutées via l'initialisation des tableaux fixes
@@ -867,7 +867,7 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
             std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
         });
-        résultat.globales.ajoute(static_cast<AtomeGlobale *>(it->atome));
+        résultat.ajoute_globale(static_cast<AtomeGlobale *>(it->atome));
     }
 
     /* Traverse les instructions des fonctions, et rassemble les globales pour les chaines, les
@@ -881,6 +881,18 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
 
 /* Cette fonction n'existe que parce que la principale peut ajouter des globales pour les
  * constructeurs globaux... */
+void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
+{
+    if (est_globale_pour_tableau_données_constantes(globale)) {
+        auto tableau_constant = static_cast<AtomeValeurConstante const *>(globale->initialisateur);
+        tableaux_constants.ajoute({globale, tableau_constant, taille_données_tableaux_constants});
+        taille_données_tableaux_constants += tableau_constant->valeur.valeur_tdc.taille;
+        return;
+    }
+
+    globales.ajoute(globale);
+}
+
 void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
 {
     fonctions.ajoute(fonction);
@@ -889,7 +901,7 @@ void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
 
 void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction)
 {
-    auto globales_utilisées = crée_ensemble(this->globales);
+    auto globales_utilisées = donne_globales_utilisées();
     VisiteuseAtome visiteuse{};
     rassemble_globales_supplémentaires(*this, fonction, visiteuse, globales_utilisées);
     /* Les types ont peut-être changé. */
@@ -898,7 +910,7 @@ void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction
 
 void ProgrammeRepreInter::ajourne_globales_pour_table_types()
 {
-    auto globales_utilisées = crée_ensemble(this->globales);
+    auto globales_utilisées = donne_globales_utilisées();
     VisiteuseAtome visiteuse{};
     rassemble_globales_pour_info_types(*this, visiteuse, globales_utilisées);
     /* Les types ont peut-être changé. */
@@ -933,6 +945,15 @@ kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisé
         }
     }
     return résultat;
+}
+
+kuri::ensemble<AtomeGlobale *> ProgrammeRepreInter::donne_globales_utilisées() const
+{
+    auto globales_utilisées = crée_ensemble(this->globales);
+    POUR (tableaux_constants) {
+        globales_utilisées.insère(it.globale);
+    }
+    return globales_utilisées;
 }
 
 /** \} */

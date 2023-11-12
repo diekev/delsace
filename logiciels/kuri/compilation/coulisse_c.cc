@@ -78,9 +78,6 @@ struct GénératriceCodeC {
     /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
     kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
 
-    kuri::tableau<AtomeValeurConstante const *> tableaux_constants{};
-    int64_t taille_données_tableaux_constants = 0;
-
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -116,6 +113,7 @@ struct GénératriceCodeC {
 
     void génère_code(kuri::tableau<AtomeGlobale *> const &globales,
                      kuri::tableau<AtomeFonction *> const &fonctions,
+                     ProgrammeRepreInter const &repr_inter,
                      CoulisseC &coulisse,
                      Enchaineuse &os);
 
@@ -123,12 +121,15 @@ struct GénératriceCodeC {
 
     void génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
                             const kuri::tableau<AtomeFonction *> &fonctions,
+                            ProgrammeRepreInter const &repr_inter,
                             Enchaineuse &os);
 
     void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
     void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
 
-    void génère_code_pour_tableaux_données_constantes(Enchaineuse &os, bool pour_entête);
+    void génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
+                                                      const ProgrammeRepreInter &repr_inter,
+                                                      bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
 
@@ -1736,33 +1737,22 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 
 void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
                                           const kuri::tableau<AtomeFonction *> &fonctions,
+                                          ProgrammeRepreInter const &repr_inter,
                                           Enchaineuse &os)
 {
     /* Commençons par rassembler les tableaux de données constantes. */
-    POUR (globales) {
-        if (!est_globale_pour_tableau_données_constantes(it)) {
-            continue;
-        }
-
-        auto tableau_constant = static_cast<AtomeValeurConstante const *>(it->initialisateur);
-        tableaux_constants.ajoute(tableau_constant);
-
-        auto nom_globale = enchaine("&DC[", taille_données_tableaux_constants, "]");
-        table_globales.insère(it, nom_globale);
-
-        taille_données_tableaux_constants += tableau_constant->valeur.valeur_tdc.taille;
+    POUR (repr_inter.tableaux_constants) {
+        auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
+        table_globales.insère(it.globale, nom_globale);
     }
 
     /* Déclarons les globales. */
     POUR (globales) {
-        if (est_globale_pour_tableau_données_constantes(it)) {
-            continue;
-        }
         déclare_globale(os, it, true);
         os << ";\n";
     }
 
-    génère_code_pour_tableaux_données_constantes(os, true);
+    génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
 
     /* Déclarons ensuite les fonctions. */
     POUR (fonctions) {
@@ -1959,21 +1949,19 @@ static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
 
 void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &globales,
                                    const kuri::tableau<AtomeFonction *> &fonctions,
+                                   ProgrammeRepreInter const &repr_inter,
                                    CoulisseC &coulisse,
                                    Enchaineuse &os)
 {
     os.réinitialise();
     os << "#include \"compilation_kuri.h\"\n";
 
-    génère_code_pour_tableaux_données_constantes(os, false);
+    génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
     /* Définis les globales. */
     POUR (globales) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
-            continue;
-        }
-        if (est_globale_pour_tableau_données_constantes(it)) {
             continue;
         }
         auto valeur_globale = it;
@@ -2052,25 +2040,31 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
         convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
     }
 
-    génère_code_entête(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+    génère_code_entête(repr_inter_programme.globales,
+                       repr_inter_programme.fonctions,
+                       repr_inter_programme,
+                       enchaineuse);
 
     auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
     std::ofstream of(vers_std_path(chemin_fichier_entete));
     enchaineuse.imprime_dans_flux(of);
     of.close();
 
-    génère_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
+    génère_code(repr_inter_programme.globales,
+                repr_inter_programme.fonctions,
+                repr_inter_programme,
+                coulisse,
+                enchaineuse);
 }
 
-void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
-                                                                    bool pour_entête)
+void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
+    Enchaineuse &os, ProgrammeRepreInter const &repr_inter, bool pour_entête)
 {
-    if (tableaux_constants.taille() == 0) {
+    if (repr_inter.tableaux_constants.taille() == 0) {
         return;
     }
 
-    os << "const int8_t DC[" << taille_données_tableaux_constants << "]";
+    os << "const int8_t DC[" << repr_inter.taille_données_tableaux_constants << "]";
 
     if (pour_entête) {
         os << ";\n";
@@ -2079,9 +2073,10 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchain
 
     auto virgule = " = {\n";
     auto compteur = 0;
-    POUR (tableaux_constants) {
-        auto pointeur_données = it->valeur.valeur_tdc.pointeur;
-        auto taille_données = it->valeur.valeur_tdc.taille;
+    POUR (repr_inter.tableaux_constants) {
+        auto tableau = it.tableau;
+        auto pointeur_données = tableau->valeur.valeur_tdc.pointeur;
+        auto taille_données = tableau->valeur.valeur_tdc.taille;
         for (auto i = 0; i < taille_données; ++i) {
             auto octet = pointeur_données[i];
             compteur++;
