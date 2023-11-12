@@ -1538,16 +1538,7 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
     }
 
-    auto type = structure->type;
-
-    /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-    while (type->est_type_pointeur() || type->est_type_reference()) {
-        type = type_dereference_pour(type);
-    }
-
-    if (type->est_type_opaque()) {
-        type = type->comme_type_opaque()->type_opacifie;
-    }
+    auto type = donne_type_accédé_effectif(structure->type);
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
     if (type->est_type_type_de_donnees()) {

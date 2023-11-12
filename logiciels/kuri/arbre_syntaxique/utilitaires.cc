@@ -726,14 +726,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
 
-            auto type_accédé = accédé->type;
-            while (type_accédé->est_type_pointeur() || type_accédé->est_type_reference()) {
-                type_accédé = type_dereference_pour(type_accédé);
-            }
-
-            if (type_accédé->est_type_opaque()) {
-                type_accédé = type_accédé->comme_type_opaque()->type_opacifie;
-            }
+            auto type_accédé = donne_type_accédé_effectif(accédé->type);
 
             if (type_accédé->est_type_tableau_fixe()) {
                 /* Seul l'accès à la taille est correcte, sinon nous ne serions pas ici. */
@@ -1832,6 +1825,20 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
     }
 
     return "anonyme";
+}
+
+Type *donne_type_accédé_effectif(Type *type_accédé)
+{
+    /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
+    while (type_accédé->est_type_pointeur() || type_accédé->est_type_reference()) {
+        type_accédé = type_dereference_pour(type_accédé);
+    }
+
+    if (type_accédé->est_type_opaque()) {
+        type_accédé = type_accédé->comme_type_opaque()->type_opacifie;
+    }
+
+    return type_accédé;
 }
 
 /* ------------------------------------------------------------------------- */

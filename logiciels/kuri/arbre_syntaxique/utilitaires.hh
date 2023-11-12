@@ -249,6 +249,12 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
 
 /**
+ * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de membre.
+ * Ceci supprime les pointeurs et références, ainsi que les opacifications.
+ */
+Type *donne_type_accédé_effectif(Type *type_accédé);
+
+/**
  * Retourne les noms des blocs constituant la hiérarchie de blocs de ce bloc. Les noms incluent
  * celui du bloc passé en paramètre, et sont ordonnés du plus « jeune » ou plus « vieux » (c-à-d,
  * le nom du module, le bloc le plus vieux, sera le dernier).
