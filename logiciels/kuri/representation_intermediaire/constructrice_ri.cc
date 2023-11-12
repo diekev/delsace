@@ -130,7 +130,7 @@ AtomeFonction *RegistreSymboliqueRI::crée_fonction(const Lexeme *lexeme,
                                                    const kuri::chaine &nom_fichier)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */;
+    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */
     return fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
 }
 
@@ -2860,7 +2860,6 @@ Atome *CompilatriceRI::depile_valeur()
 
 void CompilatriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
 {
-    // À FAIRE(ri) : ceci ignore les espaces de noms.
     auto accede = noeud->accedee;
     auto type_accede = accede->type;
 
