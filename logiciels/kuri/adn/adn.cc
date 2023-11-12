@@ -215,18 +215,17 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         os << "};\n\n";
     }
 
-    os << "std::ostream &operator<<(std::ostream &os, " << m_nom.nom_cpp() << " const &valeur)";
-
-    if (pour_entete) {
-        os << ";\n\n";
-    }
-    else {
-        os << "\n";
+    if (!pour_entete) {
+        os << "static void imprime_membres(std::ostream &os, " << m_nom.nom_cpp()
+           << " const &valeur)\n";
         os << "{\n";
 
-        os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
+        if (m_mere) {
+            os << "\timprime_membres(os, static_cast<" << m_mere->nom().nom_cpp()
+               << " const &>(valeur));\n";
+        }
 
-        pour_chaque_membre_recursif([&os](Membre const &it) {
+        POUR (m_membres) {
             if (it.type->est_tableau()) {
                 os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur."
                    << it.nom.nom_cpp();
@@ -238,15 +237,26 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
                     os << ".";
                 }
                 os << "taille() << \" éléments \\n\";" << '\n';
-                return;
+                continue;
             }
 
             os << "\tos << \"\\t" << it.nom.nom_cpp() << " : \" << valeur." << it.nom.nom_cpp()
                << " << '\\n';" << '\n';
-        });
+        }
+        os << "}\n\n";
+    }
 
+    os << "std::ostream &operator<<(std::ostream &os, " << m_nom.nom_cpp() << " const &valeur)";
+
+    if (pour_entete) {
+        os << ";\n\n";
+    }
+    else {
+        os << "\n";
+        os << "{\n";
+        os << "\tos << \"" << m_nom.nom_cpp() << " : {\\n\";" << '\n';
+        os << "\timprime_membres(os, valeur);\n";
         os << "\tos << \"}\\n\";\n";
-
         os << "\treturn os;\n";
         os << "}\n\n";
     }
