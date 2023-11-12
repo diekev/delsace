@@ -64,6 +64,9 @@ ResultatValidation ContexteValidationCode::valide()
 
     if (racine_validation()->est_type_structure()) {
         auto structure = racine_validation()->comme_type_structure();
+        if (structure->est_union) {
+            return valide_union(structure);
+        }
         return valide_structure(structure);
     }
 
@@ -1212,7 +1215,11 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::DECLARATION_STRUCTURE:
         {
-            return valide_structure(noeud->comme_type_structure());
+            auto noeud_struct = noeud->comme_type_structure();
+            if (noeud_struct->est_union) {
+                return valide_union(noeud_struct);
+            }
+            return valide_structure(noeud_struct);
         }
         case GenreNoeud::DECLARATION_ENUM:
         {
@@ -3393,6 +3400,205 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
     return valide_enum_impl<VALIDE_ENUM_NORMAL>(decl, type_enum);
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Validation des déclarations de structures et d'unions.
+ * \{ */
+
+/* Structure auxiliaire pour créer la liste des membres d'une structure ou d'une union.
+ * Elle tient également compte du nombre de memrbes non-constants de la structure.
+ * Cette structure ne performe aucune validation, ne se contentant que d'ajouter les
+ * membres à la liste.
+ */
+struct ConstructriceMembresTypeComposé {
+  private:
+    TypeCompose &m_type_composé;
+    int m_membres_non_constant = 0;
+
+  public:
+    ConstructriceMembresTypeComposé(TypeCompose &type_composé, NoeudBloc const *bloc)
+        : m_type_composé(type_composé)
+    {
+        // @réinitialise en cas d'erreurs passées
+        type_composé.membres.efface();
+        type_composé.membres.reserve(bloc->nombre_de_membres());
+    }
+
+    void ajoute_type_de_données(NoeudDeclarationType *déclaration, Typeuse &typeuse)
+    {
+        // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
+        auto type_de_donnees = typeuse.type_type_de_donnees(déclaration->type);
+        m_type_composé.membres.ajoute({nullptr,
+                                       type_de_donnees,
+                                       déclaration->ident,
+                                       0,
+                                       0,
+                                       nullptr,
+                                       MembreTypeComposé::EST_CONSTANT});
+    }
+
+    void ajoute_constante(NoeudDeclarationVariable *déclaration)
+    {
+        m_type_composé.membres.ajoute({déclaration,
+                                       déclaration->type,
+                                       déclaration->ident,
+                                       0,
+                                       0,
+                                       déclaration->expression,
+                                       MembreTypeComposé::EST_CONSTANT});
+    }
+
+    void ajoute_membre_employé(NoeudDeclaration *déclaration)
+    {
+        m_membres_non_constant += 1;
+        m_type_composé.membres.ajoute({déclaration->comme_declaration_variable(),
+                                       déclaration->type,
+                                       déclaration->ident,
+                                       0,
+                                       0,
+                                       nullptr,
+                                       MembreTypeComposé::EST_UN_EMPLOI});
+    }
+
+    void ajoute_membre_provenant_d_un_emploi(NoeudDeclarationVariable *déclaration)
+    {
+        m_membres_non_constant += 1;
+        m_type_composé.membres.ajoute({déclaration,
+                                       déclaration->type,
+                                       déclaration->ident,
+                                       0,
+                                       0,
+                                       déclaration->expression,
+                                       MembreTypeComposé::PROVIENT_D_UN_EMPOI});
+    }
+
+    void ajoute_membre_simple(NoeudExpression *membre, NoeudExpression *initialisateur)
+    {
+        m_membres_non_constant += 1;
+        auto decl_var_enfant = NoeudDeclarationVariable::nul();
+        if (membre->est_declaration_variable()) {
+            decl_var_enfant = membre->comme_declaration_variable();
+        }
+        else if (membre->est_reference_declaration()) {
+            auto ref = membre->comme_reference_declaration();
+            if (ref->declaration_referee->est_declaration_variable()) {
+                decl_var_enfant = ref->declaration_referee->comme_declaration_variable();
+            }
+        }
+
+        m_type_composé.membres.ajoute(
+            {decl_var_enfant, membre->type, membre->ident, 0, 0, initialisateur, 0});
+    }
+
+    int donne_compte_membres_non_constant() const
+    {
+        return m_membres_non_constant;
+    }
+};
+
+static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
+                                                   NoeudExpression *expression_membre)
+{
+    if (type_composé == expression_membre->type) {
+        return true;
+    }
+
+    auto type_membre = expression_membre->type;
+    if (type_membre->est_type_tableau_fixe() &&
+        type_membre->comme_type_tableau_fixe()->type_pointe == type_composé) {
+        return true;
+    }
+
+    // À FAIRE : type opaque, tableaux fixe multi-dimensionnel
+
+    return false;
+}
+
+static bool est_type_valide_pour_membre(Type const *membre_type)
+{
+    if (membre_type->est_type_rien()) {
+        return false;
+    }
+
+    if (membre_type->est_type_variadique()) {
+        return false;
+    }
+
+    return true;
+}
+
+static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
+                                                 TypeCompose const *type_composé,
+                                                 NoeudExpression *membre)
+{
+    auto nom_classe = kuri::chaine_statique();
+
+    if (type_composé->est_type_structure()) {
+        nom_classe = "la structure";
+    }
+    else {
+        assert(type_composé->est_type_union());
+        nom_classe = "l'union";
+    }
+
+    auto message = enchaine("Impossible d'utiliser le type « ",
+                            chaine_type(membre->type),
+                            " » comme membre de ",
+                            nom_classe);
+
+    espace->rapporte_erreur(membre, message);
+}
+
+static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
+                                                     TypeCompose const *type_composé,
+                                                     NoeudExpression *expression_membre)
+{
+    auto message = kuri::chaine_statique();
+    if (type_composé->est_type_structure()) {
+        message = "Utilisation du type de la structure comme type d'un membre par valeur.";
+    }
+    else {
+        assert(type_composé->est_type_union());
+        message = "Utilisation du type de l'union comme type d'un membre par valeur.";
+    }
+
+    auto e = espace->rapporte_erreur(expression_membre, message);
+
+    if (expression_membre->est_declaration_variable()) {
+        auto déclaration_variable = expression_membre->comme_declaration_variable();
+        if (déclaration_variable->declaration_vient_d_un_emploi) {
+            e.ajoute_message("Le membre fut inclus via l'emploi suivant :\n")
+                .ajoute_site(déclaration_variable->declaration_vient_d_un_emploi);
+        }
+    }
+}
+
+static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail *espace,
+                                                                TypeCompose const *type_composé)
+{
+    POUR (type_composé->membres) {
+        if (it.type->est_type_rien()) {
+            continue;
+        }
+
+        if ((it.type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            return Attente::sur_type(it.type);
+        }
+
+        if (it.type->alignement == 0) {
+            espace->rapporte_erreur(it.decl, "impossible de définir l'alignement du type")
+                .ajoute_message("Le type est « ", chaine_type(it.type), " »\n");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (it.type->taille_octet == 0) {
+            espace->rapporte_erreur(it.decl, "impossible de définir la taille du type");
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    return CodeRetourValidation::OK;
+}
+
 /* À FAIRE: les héritages dans les structures externes :
  *
  * BaseExterne :: struct #externe
@@ -3412,12 +3618,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
      * nous ferait modifier l'original). */
     if (decl->type == nullptr) {
-        if (decl->est_union) {
-            decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
-        }
-        else {
-            decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
-        }
+        decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
     }
 
     auto &graphe = m_compilatrice.graphe_dependance;
@@ -3496,176 +3697,13 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     }
 
     auto type_compose = decl->type->comme_type_compose();
-    // @réinitialise en cas d'erreurs passées
-    type_compose->membres.efface();
-    type_compose->membres.reserve(decl->bloc->nombre_de_membres());
 
-    auto verifie_inclusion_valeur = [&decl, this](NoeudExpression *enf) {
-        if (enf->type == decl->type) {
-            rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur",
-                            enf,
-                            erreur::Genre::TYPE_ARGUMENT);
-            return CodeRetourValidation::Erreur;
-        }
-
-        auto type_base = enf->type;
-
-        if (type_base->est_type_tableau_fixe()) {
-            auto type_deref = type_dereference_pour(type_base);
-
-            if (type_deref == decl->type) {
-                rapporte_erreur("Ne peut inclure la structure dans elle-même par valeur",
-                                enf,
-                                erreur::Genre::TYPE_ARGUMENT);
-                return CodeRetourValidation::Erreur;
-            }
-        }
-
-        return CodeRetourValidation::OK;
-    };
-
-    auto ajoute_donnees_membre = [&, this](NoeudExpression *enfant,
-                                           NoeudExpression *expr_valeur,
-                                           int drapeaux = 0) -> ResultatValidation {
-        auto type_membre = enfant->type;
-
-        // À FAIRE: ceci devrait plutôt être déplacé dans la validation des déclarations, mais nous
-        // finissons sur une erreur de compilation à cause d'une attente
-        if ((type_membre->drapeaux & TYPE_FUT_VALIDE) == 0) {
-            return Attente::sur_type(type_membre);
-        }
-
-        if (type_membre != TypeBase::RIEN) {
-            if (type_membre->alignement == 0) {
-                unite->espace
-                    ->rapporte_erreur(enfant, "impossible de définir l'alignement du type")
-                    .ajoute_message("Le type est « ", chaine_type(type_membre), " »\n");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (type_membre->taille_octet == 0) {
-                rapporte_erreur("impossible de définir la taille du type", enfant);
-                return CodeRetourValidation::Erreur;
-            }
-        }
-
-        auto decl_var_enfant = NoeudDeclarationVariable::nul();
-        if (enfant->est_declaration_variable()) {
-            decl_var_enfant = enfant->comme_declaration_variable();
-        }
-        else if (enfant->est_reference_declaration()) {
-            auto ref = enfant->comme_reference_declaration();
-            if (ref->declaration_referee->est_declaration_variable()) {
-                decl_var_enfant = ref->declaration_referee->comme_declaration_variable();
-            }
-        }
-
-        type_compose->membres.ajoute(
-            {decl_var_enfant, enfant->type, enfant->ident, 0, 0, expr_valeur, drapeaux});
-        return CodeRetourValidation::OK;
-    };
-
-    if (decl->est_union) {
-        auto type_union = decl->type->comme_type_union();
-        type_union->est_nonsure = decl->est_nonsure;
-
-        POUR (*decl->bloc->membres.verrou_ecriture()) {
-            if (it->est_declaration_type()) {
-                // utilisation d'un type de données afin de pouvoir automatiquement déterminer un
-                // type
-                auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-                type_compose->membres.ajoute({nullptr,
-                                              type_de_donnees,
-                                              it->ident,
-                                              0,
-                                              0,
-                                              nullptr,
-                                              MembreTypeComposé::EST_CONSTANT});
-                continue;
-            }
-
-            auto decl_var = it->comme_declaration_variable();
-
-            if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-                type_compose->membres.ajoute({decl_var,
-                                              it->type,
-                                              it->ident,
-                                              0,
-                                              0,
-                                              decl_var->expression,
-                                              MembreTypeComposé::EST_CONSTANT});
-                continue;
-            }
-
-            for (auto &donnees : decl_var->donnees_decl.plage()) {
-                for (auto i = 0; i < donnees.variables.taille(); ++i) {
-                    auto var = donnees.variables[i];
-
-                    if (var->type->est_type_rien() && decl->est_nonsure) {
-                        rapporte_erreur("Ne peut avoir un type « rien » dans une union nonsûre",
-                                        decl_var,
-                                        erreur::Genre::TYPE_DIFFERENTS);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (var->type->est_type_variadique()) {
-                        rapporte_erreur("Ne peut avoir un type variadique dans une union",
-                                        decl_var,
-                                        erreur::Genre::TYPE_DIFFERENTS);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (var->type->est_type_structure() || var->type->est_type_union()) {
-                        if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                            return Attente::sur_type(var->type);
-                        }
-                    }
-
-                    if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-                        rapporte_erreur(
-                            "Expression invalide dans la déclaration du membre de l'union", var);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (verifie_inclusion_valeur(var) == CodeRetourValidation::Erreur) {
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    /* l'arbre syntaxique des expressions par défaut doivent contenir
-                     * la transformation puisque nous n'utilisons pas la déclaration
-                     * pour générer la RI */
-                    auto expression = donnees.expression;
-                    crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
-
-                    // À FAIRE(emploi) : préserve l'emploi dans les données types
-                    TENTE(ajoute_donnees_membre(var, expression));
-                }
-            }
-        }
-
-        calcule_taille_type_compose(type_union, false, 0);
-
-        if (!decl->est_nonsure) {
-            crée_type_structure(m_compilatrice.typeuse, type_union, type_union->decalage_index);
-        }
-
-        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux |= TYPE_FUT_VALIDE;
-
-        return CodeRetourValidation::OK;
-    }
+    ConstructriceMembresTypeComposé constructrice(*type_compose, decl->bloc);
 
     POUR (*decl->bloc->membres.verrou_lecture()) {
         if (it->est_declaration_type()) {
-            // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
-            auto type_de_donnees = m_compilatrice.typeuse.type_type_de_donnees(it->type);
-            type_compose->membres.ajoute({nullptr,
-                                          type_de_donnees,
-                                          it->ident,
-                                          0,
-                                          0,
-                                          nullptr,
-                                          MembreTypeComposé::EST_CONSTANT});
+            constructrice.ajoute_type_de_données(it->comme_declaration_type(),
+                                                 m_compilatrice.typeuse);
             continue;
         }
 
@@ -3676,7 +3714,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            TENTE(ajoute_donnees_membre(it, nullptr, MembreTypeComposé::EST_UN_EMPLOI));
+            constructrice.ajoute_membre_employé(it);
             continue;
         }
 
@@ -3688,19 +3726,18 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         auto decl_var = it->comme_declaration_variable();
 
         if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-            type_compose->membres.ajoute({decl_var,
-                                          it->type,
-                                          it->ident,
-                                          0,
-                                          0,
-                                          decl_var->expression,
-                                          MembreTypeComposé::EST_CONSTANT});
+            constructrice.ajoute_constante(decl_var);
             continue;
         }
 
+        // À FAIRE(emploi) : préserve l'emploi dans les données types
         if (decl_var->declaration_vient_d_un_emploi) {
-            TENTE(ajoute_donnees_membre(
-                decl_var, decl_var->expression, MembreTypeComposé::PROVIENT_D_UN_EMPOI));
+            if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
+                rapporte_erreur_inclusion_récursive_type(espace, type_compose, decl_var);
+                return CodeRetourValidation::Erreur;
+            }
+
+            constructrice.ajoute_membre_provenant_d_un_emploi(decl_var);
             continue;
         }
 
@@ -3708,24 +3745,9 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             for (auto i = 0; i < donnees.variables.taille(); ++i) {
                 auto var = donnees.variables[i];
 
-                if (var->type->est_type_rien()) {
-                    rapporte_erreur("Ne peut avoir un type « rien » dans une structure",
-                                    decl_var,
-                                    erreur::Genre::TYPE_DIFFERENTS);
+                if (!est_type_valide_pour_membre(var->type)) {
+                    rapporte_erreur_type_membre_invalide(espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
-                }
-
-                if (var->type->est_type_variadique()) {
-                    rapporte_erreur("Ne peut avoir un type variadique dans une structure",
-                                    decl_var,
-                                    erreur::Genre::TYPE_DIFFERENTS);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                if (var->type->est_type_structure() || var->type->est_type_union()) {
-                    if ((var->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                        return Attente::sur_type(var->type);
-                    }
                 }
 
                 if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
@@ -3734,7 +3756,8 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (verifie_inclusion_valeur(var) == CodeRetourValidation::Erreur) {
+                if (le_membre_référence_le_type_par_valeur(type_compose, var)) {
+                    rapporte_erreur_inclusion_récursive_type(espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -3744,8 +3767,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
                 auto expression = donnees.expression;
                 crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
-                // À FAIRE(emploi) : préserve l'emploi dans les données types
-                TENTE(ajoute_donnees_membre(var, expression));
+                constructrice.ajoute_membre_simple(var, expression);
             }
         }
     }
@@ -3769,17 +3791,10 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
     }
 
-    auto nombre_membres_non_constants = 0;
+    /* Valide les types avant le calcul de la taille des types. */
+    TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
 
-    POUR (type_compose->membres) {
-        if (it.drapeaux & (MembreTypeComposé::EST_CONSTANT | MembreTypeComposé::EST_IMPLICITE)) {
-            continue;
-        }
-
-        ++nombre_membres_non_constants;
-    }
-
-    if (nombre_membres_non_constants == 0) {
+    if (constructrice.donne_compte_membres_non_constant() == 0) {
         if (!decl->est_externe) {
             /* Ajoute un membre, d'un octet de taille. */
             type_compose->membres.ajoute(
@@ -3828,6 +3843,169 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
+
+ResultatValidation ContexteValidationCode::valide_union(NoeudStruct *decl)
+{
+    /* Les structures copiées n'ont pas de types (la copie ne fait que copier le pointeur, ce qui
+     * nous ferait modifier l'original). */
+    if (decl->type == nullptr) {
+        decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
+    }
+
+    auto &graphe = m_compilatrice.graphe_dependance;
+    auto noeud_dependance = graphe->crée_noeud_type(decl->type);
+    decl->noeud_dependance = noeud_dependance;
+
+    if (decl->est_externe && decl->bloc == nullptr) {
+        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
+        decl->type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                 INITIALISATION_TYPE_FUT_CREEE);
+        return CodeRetourValidation::OK;
+    }
+
+    if (decl->est_polymorphe) {
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis_params));
+
+        if (!decl->monomorphisations) {
+            decl->monomorphisations =
+                m_tacheronne.allocatrice_noeud.crée_monomorphisations_struct();
+        }
+
+        // nous validerons les membres lors de la monomorphisation
+        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl->type->drapeaux |= TYPE_FUT_VALIDE;
+        return CodeRetourValidation::OK;
+    }
+
+    if (decl->est_corps_texte) {
+        /* Nous devons avoir deux passes : une pour créer la fonction du métaprogramme, une autre
+         * pour requérir la compilation dudit métaprogramme. */
+        if (!decl->metaprogramme_corps_texte) {
+            auto metaprogramme = crée_metaprogramme_corps_texte(
+                decl->bloc, decl->bloc_parent, decl->lexeme);
+            auto fonction = metaprogramme->fonction;
+            fonction->corps->arbre_aplatis = decl->arbre_aplatis;
+            assert(fonction->corps->bloc);
+
+            decl->metaprogramme_corps_texte = metaprogramme;
+            metaprogramme->corps_texte_pour_structure = decl;
+
+            if (decl->est_monomorphisation) {
+                decl->bloc_constantes->membres.avec_verrou_ecriture(
+                    [fonction](kuri::tableau<NoeudDeclaration *, int> &membres) {
+                        POUR (membres) {
+                            fonction->bloc_constantes->ajoute_membre(it);
+                        }
+                    });
+            }
+
+            m_compilatrice.gestionnaire_code->requiers_typage(espace, fonction->corps);
+            return Attente::sur_declaration(fonction->corps);
+        }
+
+        auto metaprogramme = decl->metaprogramme_corps_texte;
+        auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
+        m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
+                                                                             metaprogramme);
+        return Attente::sur_parsage(fichier);
+    }
+
+    TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
+
+    CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, STRUCTURE__VALIDATION);
+
+    if (!decl->est_monomorphisation) {
+        auto decl_precedente = trouve_dans_bloc(
+            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
+
+        // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
+        // structres (p.e. stat)
+        if (decl_precedente != nullptr && decl_precedente->genre == decl->genre) {
+            rapporte_erreur_redefinition_symbole(decl, decl_precedente);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    auto type_compose = decl->type->comme_type_compose();
+    auto constructrice = ConstructriceMembresTypeComposé(*type_compose, decl->bloc);
+
+    auto type_union = decl->type->comme_type_union();
+    type_union->est_nonsure = decl->est_nonsure;
+
+    POUR (*decl->bloc->membres.verrou_ecriture()) {
+        if (it->est_declaration_type()) {
+            constructrice.ajoute_type_de_données(it->comme_declaration_type(),
+                                                 m_compilatrice.typeuse);
+            continue;
+        }
+
+        if (!it->est_declaration_variable()) {
+            espace->rapporte_erreur(it, "Expression inattendue dans le bloc de l'union");
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto decl_var = it->comme_declaration_variable();
+
+        if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+            constructrice.ajoute_constante(decl_var);
+            continue;
+        }
+
+        for (auto &donnees : decl_var->donnees_decl.plage()) {
+            for (auto i = 0; i < donnees.variables.taille(); ++i) {
+                auto var = donnees.variables[i];
+
+                if (var->type->est_type_rien() && decl->est_nonsure) {
+                    rapporte_erreur("Ne peut avoir un type « rien » dans une union nonsûre",
+                                    decl_var,
+                                    erreur::Genre::TYPE_DIFFERENTS);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (var->type->est_type_variadique()) {
+                    rapporte_erreur_type_membre_invalide(espace, type_compose, var);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (var->genre != GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+                    rapporte_erreur("Expression invalide dans la déclaration du membre de l'union",
+                                    var);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                if (le_membre_référence_le_type_par_valeur(type_union, var)) {
+                    rapporte_erreur_inclusion_récursive_type(espace, type_compose, var);
+                    return CodeRetourValidation::Erreur;
+                }
+
+                /* l'arbre syntaxique des expressions par défaut doivent contenir
+                 * la transformation puisque nous n'utilisons pas la déclaration
+                 * pour générer la RI */
+                auto expression = donnees.expression;
+                crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
+
+                constructrice.ajoute_membre_simple(var, expression);
+            }
+        }
+    }
+
+    /* Valide les types avant le calcul de la taille des types. */
+    TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
+
+    calcule_taille_type_compose(type_union, false, 0);
+
+    if (!decl->est_nonsure) {
+        crée_type_structure(m_compilatrice.typeuse, type_union, type_union->decalage_index);
+    }
+
+    decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl->type->drapeaux |= TYPE_FUT_VALIDE;
+
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
 
 static bool peut_etre_type_constante(Type *type)
 {
