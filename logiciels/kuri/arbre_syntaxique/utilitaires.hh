@@ -238,6 +238,12 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entête,
                               std::ostream &os);
 
+/**
+ * Traverse l'expression donnée et retourne la première sous-expression non-constante de celle-ci.
+ * Retourne nul si toutes les sous-expressions sont constantes.
+ */
+NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression);
+
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);

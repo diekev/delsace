@@ -464,6 +464,18 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
+            if (noeud_directive->ident != ID::test) {
+                if (auto expr_variable = trouve_expression_non_constante(expression)) {
+                    espace
+                        ->rapporte_erreur(noeud_directive,
+                                          "L'expression de la directive n'est pas constante et ne "
+                                          "peut donc être évaluée.")
+                        .ajoute_message("L'expression non-constante est :\n")
+                        .ajoute_site(expr_variable);
+                    return CodeRetourValidation::Erreur;
+                }
+            }
+
             auto metaprogramme = crée_metaprogramme_pour_directive(noeud_directive);
 
             m_compilatrice.gestionnaire_code->requiers_compilation_metaprogramme(espace,
@@ -2417,6 +2429,16 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     if (!expr->type->est_type_fonction()) {
         espace->rapporte_erreur(
             expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (auto expr_variable = trouve_expression_non_constante(expr)) {
+        espace
+            ->rapporte_erreur(directive,
+                              "L'expression de la directive n'est pas constante et ne "
+                              "peut donc être évaluée.")
+            .ajoute_message("L'expression non-constante est :\n")
+            .ajoute_site(expr_variable);
         return CodeRetourValidation::Erreur;
     }
 
