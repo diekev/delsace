@@ -2076,75 +2076,6 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 /** \} */
 
-static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
-                                    ProgrammeRepreInter const &repr_inter_programme,
-                                    CoulisseC &coulisse,
-                                    Broyeuse &broyeuse)
-{
-
-    auto génératrice = GénératriceCodeC(espace, broyeuse);
-    génératrice.génère_code(repr_inter_programme, coulisse);
-}
-
-static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
-                                                     CompilatriceRI &compilatrice_ri,
-                                                     EspaceDeTravail &espace,
-                                                     CoulisseC &coulisse,
-                                                     Programme *programme,
-                                                     kuri::tableau<Bibliotheque *> &bibliothèques,
-                                                     Broyeuse &broyeuse)
-{
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
-
-    if (!repr_inter_programme.has_value()) {
-        return false;
-    }
-
-    génère_code_C_depuis_RI(espace, *repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
-    return true;
-}
-
-static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
-                                                   CompilatriceRI &compilatrice_ri,
-                                                   EspaceDeTravail &espace,
-                                                   CoulisseC &coulisse,
-                                                   Programme *programme,
-                                                   kuri::tableau<Bibliotheque *> &bibliothèques,
-                                                   Broyeuse &broyeuse)
-{
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(
-        espace, compilatrice_ri, *programme);
-
-    if (!repr_inter_programme.has_value()) {
-        return false;
-    }
-
-    génère_code_C_depuis_RI(espace, *repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
-    return true;
-}
-
-static bool génère_code_C(Compilatrice &compilatrice,
-                          CompilatriceRI &compilatrice_ri,
-                          EspaceDeTravail &espace,
-                          CoulisseC &coulisse,
-                          Programme *programme,
-                          kuri::tableau<Bibliotheque *> &bibliothèques,
-                          Broyeuse &broyeuse)
-{
-    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        return génère_code_C_depuis_fonction_principale(
-            compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
-    }
-
-    return génère_code_C_depuis_fonctions_racines(
-        compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
-}
-
 bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme,
@@ -2153,8 +2084,18 @@ bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
 {
     m_bibliothèques.efface();
 
-    return génère_code_C(
-        compilatrice, compilatrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
+
+    if (!repr_inter_programme.has_value()) {
+        return false;
+    }
+
+    auto génératrice = GénératriceCodeC(espace, broyeuse);
+    génératrice.génère_code(*repr_inter_programme, *this);
+    m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
+    return true;
 }
 
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
