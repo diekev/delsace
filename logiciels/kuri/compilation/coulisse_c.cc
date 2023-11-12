@@ -78,9 +78,6 @@ struct GénératriceCodeC {
     /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
     kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
 
-    kuri::tableau<AtomeValeurConstante const *> tableaux_constants{};
-    int64_t taille_données_tableaux_constants = 0;
-
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -114,21 +111,18 @@ struct GénératriceCodeC {
 
     void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
 
-    void génère_code(kuri::tableau<AtomeGlobale *> const &globales,
-                     kuri::tableau<AtomeFonction *> const &fonctions,
-                     CoulisseC &coulisse,
-                     Enchaineuse &os);
+    void génère_code(ProgrammeRepreInter const &repr_inter, CoulisseC &coulisse, Enchaineuse &os);
 
     void génère_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
 
-    void génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
-                            const kuri::tableau<AtomeFonction *> &fonctions,
-                            Enchaineuse &os);
+    void génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os);
 
     void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
     void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
 
-    void génère_code_pour_tableaux_données_constantes(Enchaineuse &os, bool pour_entête);
+    void génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
+                                                      const ProgrammeRepreInter &repr_inter,
+                                                      bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
 
@@ -1734,44 +1728,30 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     os << ")";
 }
 
-void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
-                                          const kuri::tableau<AtomeFonction *> &fonctions,
-                                          Enchaineuse &os)
+void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os)
 {
     /* Commençons par rassembler les tableaux de données constantes. */
-    POUR (globales) {
-        if (!est_globale_pour_tableau_données_constantes(it)) {
-            continue;
-        }
-
-        auto tableau_constant = static_cast<AtomeValeurConstante const *>(it->initialisateur);
-        tableaux_constants.ajoute(tableau_constant);
-
-        auto nom_globale = enchaine("&DC[", taille_données_tableaux_constants, "]");
-        table_globales.insère(it, nom_globale);
-
-        taille_données_tableaux_constants += tableau_constant->valeur.valeur_tdc.taille;
+    POUR (repr_inter.tableaux_constants) {
+        auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
+        table_globales.insère(it.globale, nom_globale);
     }
 
     /* Déclarons les globales. */
-    POUR (globales) {
-        if (est_globale_pour_tableau_données_constantes(it)) {
-            continue;
-        }
+    POUR (repr_inter.globales) {
         déclare_globale(os, it, true);
         os << ";\n";
     }
 
-    génère_code_pour_tableaux_données_constantes(os, true);
+    génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
 
     /* Déclarons ensuite les fonctions. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         déclare_fonction(os, it);
         os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
         if (it->instructions.taille() == 0 || !it->enligne) {
             continue;
@@ -1957,23 +1937,19 @@ static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
     return résultat;
 }
 
-void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &globales,
-                                   const kuri::tableau<AtomeFonction *> &fonctions,
+void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
                                    CoulisseC &coulisse,
                                    Enchaineuse &os)
 {
     os.réinitialise();
     os << "#include \"compilation_kuri.h\"\n";
 
-    génère_code_pour_tableaux_données_constantes(os, false);
+    génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
     /* Définis les globales. */
-    POUR (globales) {
+    POUR (repr_inter.globales) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
-            continue;
-        }
-        if (est_globale_pour_tableau_données_constantes(it)) {
             continue;
         }
         auto valeur_globale = it;
@@ -2006,7 +1982,7 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     int nombre_instructions = 0;
 
     /* Définis les fonctions. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
         if (it->instructions.taille() == 0 || it->enligne) {
             continue;
@@ -2052,25 +2028,24 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
         convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
     }
 
-    génère_code_entête(repr_inter_programme.globales, repr_inter_programme.fonctions, enchaineuse);
+    génère_code_entête(repr_inter_programme, enchaineuse);
 
     auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
     std::ofstream of(vers_std_path(chemin_fichier_entete));
     enchaineuse.imprime_dans_flux(of);
     of.close();
 
-    génère_code(
-        repr_inter_programme.globales, repr_inter_programme.fonctions, coulisse, enchaineuse);
+    génère_code(repr_inter_programme, coulisse, enchaineuse);
 }
 
-void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchaineuse &os,
-                                                                    bool pour_entête)
+void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
+    Enchaineuse &os, ProgrammeRepreInter const &repr_inter, bool pour_entête)
 {
-    if (tableaux_constants.taille() == 0) {
+    if (repr_inter.tableaux_constants.taille() == 0) {
         return;
     }
 
-    os << "const int8_t DC[" << taille_données_tableaux_constants << "]";
+    os << "const int8_t DC[" << repr_inter.taille_données_tableaux_constants << "]";
 
     if (pour_entête) {
         os << ";\n";
@@ -2079,9 +2054,10 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchain
 
     auto virgule = " = {\n";
     auto compteur = 0;
-    POUR (tableaux_constants) {
-        auto pointeur_données = it->valeur.valeur_tdc.pointeur;
-        auto taille_données = it->valeur.valeur_tdc.taille;
+    POUR (repr_inter.tableaux_constants) {
+        auto tableau = it.tableau;
+        auto pointeur_données = tableau->valeur.valeur_tdc.pointeur;
+        auto taille_données = tableau->valeur.valeur_tdc.taille;
         for (auto i = 0; i < taille_données; ++i) {
             auto octet = pointeur_données[i];
             compteur++;
@@ -2100,254 +2076,6 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(Enchain
 
 /** \} */
 
-static void génère_code_C_depuis_RI(EspaceDeTravail &espace,
-                                    ProgrammeRepreInter const &repr_inter_programme,
-                                    CoulisseC &coulisse,
-                                    Broyeuse &broyeuse)
-{
-
-    auto génératrice = GénératriceCodeC(espace, broyeuse);
-    génératrice.génère_code(repr_inter_programme, coulisse);
-}
-
-static bool est_type_pointeur_tuple(Type const *type)
-{
-    if (!type->est_type_pointeur()) {
-        return false;
-    }
-
-    auto type_pointeur = type->comme_type_pointeur();
-    if (!type_pointeur->type_pointe) {
-        return false;
-    }
-
-    return type_pointeur->type_pointe->est_type_tuple();
-}
-
-/* Détecte les types tuples et les types associés à leurs initialisation pour pouvoir les exclure
- * de la table des types. */
-static bool est_type_tuple_ou_fonction_init_tuple(Type const *type)
-{
-    if (type->est_type_tuple()) {
-        return true;
-    }
-
-    if (type->est_type_fonction()) {
-        auto const type_fonction = type->comme_type_fonction();
-        if (type_fonction->types_entrees.taille() != 1) {
-            return false;
-        }
-
-        auto type_entrée = type_fonction->types_entrees[0];
-        if (!est_type_pointeur_tuple(type_entrée)) {
-            return false;
-        }
-
-        return type_fonction->type_sortie->est_type_rien();
-    }
-
-    if (est_type_pointeur_tuple(type)) {
-        return true;
-    }
-
-    return false;
-}
-
-static void génère_table_des_types(Typeuse &typeuse,
-                                   ProgrammeRepreInter &repr_inter_programme,
-                                   CompilatriceRI &compilatrice_ri)
-{
-    AtomeGlobale *atome_table_des_types = nullptr;
-    POUR (repr_inter_programme.globales) {
-        if (it->ident == ID::__table_des_types) {
-            atome_table_des_types = it;
-            break;
-        }
-    }
-
-    auto info_type_créé = false;
-    auto index_type = 0u;
-    POUR (repr_inter_programme.types) {
-        if (est_type_tuple_ou_fonction_init_tuple(it)) {
-            /* Ignore les tuples, nous ne devrions pas avoir de variables de ce type (aucune
-             * varible de type type_de_données(tuple) n'est possible). */
-            continue;
-        }
-
-        it->index_dans_table_types = index_type++;
-
-        if (!it->atome_info_type) {
-            if (atome_table_des_types) {
-                /* Si la table des types est requise, créons un InfoType. */
-                compilatrice_ri.crée_info_type(it, nullptr);
-                info_type_créé = true;
-            }
-            else {
-                /* La table n'est pas requise, ignorons-le. */
-                continue;
-            }
-        }
-
-        auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
-        auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
-
-        if (est_structure_info_type_défaut(it->genre)) {
-            /* Accède directement au membre. */
-            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
-                initialisateur->valeur.valeur_structure.pointeur[2]);
-            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
-        }
-        else {
-            /* Accède info.base */
-            auto atome_base = static_cast<AtomeValeurConstante *>(
-                initialisateur->valeur.valeur_structure.pointeur[0]);
-            /* Accède base.index_dans_table_types */
-            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
-                atome_base->valeur.valeur_structure.pointeur[2]);
-            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
-        }
-    }
-
-    if (!atome_table_des_types) {
-        return;
-    }
-
-    if (info_type_créé) {
-        repr_inter_programme.ajourne_globales_pour_table_types();
-    }
-
-    kuri::tableau<AtomeConstante *> table_des_types;
-    table_des_types.reserve(index_type);
-
-    POUR (repr_inter_programme.types) {
-        if (est_type_tuple_ou_fonction_init_tuple(it)) {
-            continue;
-        }
-
-        if (!it->atome_info_type) {
-            /* repr_inter_programme.ajourne_globales_pour_table_types() peut avoir ajouter des
-             * types qui n'auront pas d'infos-type. Nous pouvons les ignorer car ce sont sans doute
-             * des types auxiliaires (p.e. les types pour les tableaux de données constantes). */
-            continue;
-        }
-
-        table_des_types.ajoute(compilatrice_ri.transtype_base_info_type(it->atome_info_type));
-    }
-
-    auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-    atome_table_des_types->initialisateur = compilatrice_ri.crée_tableau_global(
-        type_pointeur_info_type, std::move(table_des_types));
-
-    auto initialisateur = static_cast<AtomeValeurConstante *>(
-        atome_table_des_types->initialisateur);
-    auto atome_accès = static_cast<AccedeIndexConstant *>(
-        initialisateur->valeur.valeur_structure.pointeur[0]);
-    repr_inter_programme.globales.ajoute(static_cast<AtomeGlobale *>(atome_accès->accede));
-
-    auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
-                                                       static_cast<int>(index_type));
-    repr_inter_programme.types.ajoute(type_tableau_fixe);
-}
-
-static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
-                                            CompilatriceRI &compilatrice_ri,
-                                            AtomeFonction *fonction,
-                                            ProgrammeRepreInter &repr_inter_programme)
-{
-    compilatrice_ri.genere_ri_pour_initialisation_globales(
-        &espace, fonction, repr_inter_programme.globales);
-    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
-     * sont peut-être pas encore dans la liste. */
-    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
-}
-
-static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
-                                                     CompilatriceRI &compilatrice_ri,
-                                                     EspaceDeTravail &espace,
-                                                     CoulisseC &coulisse,
-                                                     Programme *programme,
-                                                     kuri::tableau<Bibliotheque *> &bibliothèques,
-                                                     Broyeuse &broyeuse)
-{
-    auto fonction_principale = espace.fonction_principale;
-    if (fonction_principale == nullptr) {
-        erreur::fonction_principale_manquante(espace);
-        return false;
-    }
-
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
-
-    génère_table_des_types(compilatrice.typeuse, repr_inter_programme, compilatrice_ri);
-
-    // Génére le corps de la fonction d'initialisation des globales.
-    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
-    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
-    génère_ri_fonction_init_globale(espace, compilatrice_ri, atome, repr_inter_programme);
-
-    génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
-    return true;
-}
-
-static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
-                                                   CompilatriceRI &compilatrice_ri,
-                                                   EspaceDeTravail &espace,
-                                                   CoulisseC &coulisse,
-                                                   Programme *programme,
-                                                   kuri::tableau<Bibliotheque *> &bibliothèques,
-                                                   Broyeuse &broyeuse)
-{
-    /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
-
-    /* Garantie l'utilisation des fonctions racines. */
-    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
-
-    auto nombre_fonctions_racines = 0;
-    POUR (repr_inter_programme.fonctions) {
-        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
-            ++nombre_fonctions_racines;
-        }
-
-        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
-            decl_init_globales = it;
-        }
-    }
-
-    if (nombre_fonctions_racines == 0) {
-        espace.rapporte_erreur_sans_site(
-            "Aucune fonction racine trouvée pour générer le code !\n");
-        return false;
-    }
-
-    if (decl_init_globales) {
-        génère_ri_fonction_init_globale(
-            espace, compilatrice_ri, decl_init_globales, repr_inter_programme);
-    }
-
-    génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
-    bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
-    return true;
-}
-
-static bool génère_code_C(Compilatrice &compilatrice,
-                          CompilatriceRI &compilatrice_ri,
-                          EspaceDeTravail &espace,
-                          CoulisseC &coulisse,
-                          Programme *programme,
-                          kuri::tableau<Bibliotheque *> &bibliothèques,
-                          Broyeuse &broyeuse)
-{
-    if (espace.options.resultat == ResultatCompilation::EXECUTABLE) {
-        return génère_code_C_depuis_fonction_principale(
-            compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
-    }
-
-    return génère_code_C_depuis_fonctions_racines(
-        compilatrice, compilatrice_ri, espace, coulisse, programme, bibliothèques, broyeuse);
-}
-
 bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
                                  Programme *programme,
@@ -2356,8 +2084,18 @@ bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
 {
     m_bibliothèques.efface();
 
-    return génère_code_C(
-        compilatrice, compilatrice_ri, espace, *this, programme, m_bibliothèques, broyeuse);
+    /* Convertis le programme sous forme de représentation intermédiaire. */
+    auto repr_inter_programme = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
+
+    if (!repr_inter_programme.has_value()) {
+        return false;
+    }
+
+    auto génératrice = GénératriceCodeC(espace, broyeuse);
+    génératrice.génère_code(*repr_inter_programme, *this);
+    m_bibliothèques = repr_inter_programme->donne_bibliothèques_utilisées();
+    return true;
 }
 
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
