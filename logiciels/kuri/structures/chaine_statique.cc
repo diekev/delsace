@@ -8,45 +8,6 @@
 
 namespace kuri {
 
-#if 0
-static int compare_chaine(chaine_statique const &chn1, chaine_statique const &chn2)
-{
-	auto p1 = chn1.pointeur();
-	auto p2 = chn2.pointeur();
-
-	auto t1 = chn1.taille();
-	auto t2 = chn2.taille();
-
-#    if 0
-	for (auto i = 0; i < t1; ++i) {
-		if (i == t2) {
-			return 0;
-		}
-
-		if (static_cast<unsigned char>(*p2) > static_cast<unsigned char>(*p1)) {
-			return -1;
-		}
-
-		if (static_cast<unsigned char>(*p1) > static_cast<unsigned char>(*p2)) {
-			return 1;
-		}
-
-		++p1;
-		++p2;
-	}
-
-	if (t1 < t2) {
-		return -1;
-	}
-
-	return 0;
-#    else
-	auto taille = std::max(t1, t2);
-	return strncmp(p1, p2, static_cast<size_t>(taille));
-#    endif
-}
-#endif
-
 bool operator<(const chaine_statique &c1, const chaine_statique &c2)
 {
     return std::string_view{c1.pointeur(), static_cast<size_t>(c1.taille())} <
