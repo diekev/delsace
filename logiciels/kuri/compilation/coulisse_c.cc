@@ -1584,8 +1584,16 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
             auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
 
-            if (est_type_tableau_fixe(
-                    inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
+            if (inst_accès->accede->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(
+                    static_cast<AtomeGlobale *>(inst_accès->accede))) {
+                /* Nous devons transtyper l'adresse, qui se trouve dans les données constantes,
+                 * vers le type cible. */
+                valeur_accédée = enchaine(
+                    "&((", donne_nom_pour_type(inst_accès->type), ")", valeur_accédée, ")");
+            }
+            else if (est_type_tableau_fixe(
+                         inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
                 valeur_accédée = enchaine(valeur_accédée, ".d");
             }
 

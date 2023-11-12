@@ -4040,12 +4040,117 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *
     }
 }
 
+static bool peut_être_compilé_en_données_constantes(NoeudExpressionConstructionTableau const *expr)
+{
+    auto const type_tableau = expr->type->comme_type_tableau_fixe();
+    if (!est_type_entier(type_tableau->type_pointe) &&
+        !type_tableau->type_pointe->est_type_reel()) {
+        return false;
+    }
+
+    POUR (expr->expression->comme_virgule()->expressions) {
+        if (!it->est_litterale_entier() && !it->est_litterale_reel()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <typename T>
+static void remplis_données_constantes_entières(T *données_constantes,
+                                                NoeudExpressionVirgule const *expressions)
+{
+    POUR (expressions->expressions) {
+        auto valeur_constante = it->comme_litterale_entier()->valeur;
+        *données_constantes++ = static_cast<T>(valeur_constante);
+    }
+}
+
+static void remplis_données_constantes_entières(char *données_constantes,
+                                                Type const *type,
+                                                NoeudExpressionVirgule const *expressions)
+{
+    if (type->taille_octet == 1) {
+        remplis_données_constantes_entières(données_constantes, expressions);
+    }
+    else if (type->taille_octet == 2) {
+        remplis_données_constantes_entières(reinterpret_cast<int16_t *>(données_constantes),
+                                            expressions);
+    }
+    else if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        remplis_données_constantes_entières(reinterpret_cast<int32_t *>(données_constantes),
+                                            expressions);
+    }
+    else if (type->taille_octet == 8) {
+        remplis_données_constantes_entières(reinterpret_cast<int64_t *>(données_constantes),
+                                            expressions);
+    }
+}
+
+template <typename T>
+static void remplis_données_constantes_réelles(T *données_constantes,
+                                               NoeudExpressionVirgule const *expressions)
+{
+    POUR (expressions->expressions) {
+        if (it->est_litterale_entier()) {
+            auto valeur_constante = it->comme_litterale_entier()->valeur;
+            *données_constantes++ = static_cast<T>(valeur_constante);
+        }
+        else {
+            auto valeur_constante = it->comme_litterale_reel()->valeur;
+            *données_constantes++ = static_cast<T>(valeur_constante);
+        }
+    }
+}
+
+static void remplis_données_constantes_réelles(char *données_constantes,
+                                               Type const *type,
+                                               NoeudExpressionVirgule const *expressions)
+{
+    if (type->taille_octet == 2) {
+        /* À FAIRE(r16) */
+        remplis_données_constantes_réelles(reinterpret_cast<int16_t *>(données_constantes),
+                                           expressions);
+    }
+    else if (type->taille_octet == 4) {
+        remplis_données_constantes_réelles(reinterpret_cast<float *>(données_constantes),
+                                           expressions);
+    }
+    else if (type->taille_octet == 8) {
+        remplis_données_constantes_réelles(reinterpret_cast<double *>(données_constantes),
+                                           expressions);
+    }
+}
+
 void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr)
 {
     auto feuilles = expr->expression->comme_virgule();
 
     if (m_fonction_courante == nullptr) {
         auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
+
+        if (peut_être_compilé_en_données_constantes(expr)) {
+            auto type_élément = type_tableau_fixe->type_pointe;
+            kuri::tableau<char> données_constantes(feuilles->expressions.taille() *
+                                                   type_élément->taille_octet);
+
+            if (est_type_entier(type_élément)) {
+                remplis_données_constantes_entières(
+                    &données_constantes[0], type_élément, feuilles);
+            }
+            else {
+                assert(type_élément->est_type_reel());
+                remplis_données_constantes_réelles(&données_constantes[0], type_élément, feuilles);
+            }
+
+            auto tableau = m_constructrice.crée_constante_tableau_donnees_constantes(
+                type_tableau_fixe, std::move(données_constantes));
+
+            empile_valeur(tableau);
+            return;
+        }
+
         kuri::tableau<AtomeConstante *> valeurs;
         valeurs.reserve(feuilles->expressions.taille());
 
