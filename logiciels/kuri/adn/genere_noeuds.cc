@@ -64,6 +64,10 @@ static const char *copie_extra_structure = R"(
             }
 )";
 
+static const char *copie_extra_énum = R"(
+            nracine->type = nullptr;
+)";
+
 /* Les déclarations référées doivent être copiées avec soin : il ne faut copier les déclarations
  * qui font partie de la fonction ou de la structure copiée. Autrement, nous risquerions de copier
  * tout le module. */
@@ -615,6 +619,9 @@ struct GeneratriceCodeCPP {
             }
             else if (nom_genre.nom_cpp() == "INSTRUCTION_COMPOSEE") {
                 os << copie_extra_bloc << "\n";
+            }
+            else if (nom_genre.nom_cpp() == "DECLARATION_ENUM") {
+                os << copie_extra_énum << "\n";
             }
 
             os << "\t\t\tbreak;\n";

@@ -126,7 +126,7 @@ glDeleteBuffers :: fonc (n : z32, ptr : *n32) -> rien #externe libGL
 glBindBuffer :: fonc (target : GLenum, id : n32) -> rien #externe libGL
 glBufferData :: fonc (target : GLenum, size : n64, data : *rien, usage : n32) -> rien #externe libGL
 
- foncs Arrays
+// foncs Arrays
 glEnableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glDisableVertexAttribArray :: fonc (id : n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index : n32, size : z32, type_ : n32, normalized : n32, stride : n32, pointer : *rien) -> rien #externe libGL

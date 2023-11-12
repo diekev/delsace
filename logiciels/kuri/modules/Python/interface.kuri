@@ -959,13 +959,10 @@ PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
 PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
 {
     chn := PyUnicode_AsChaine(object)
-
-    pour info.noms {
-        si it == chn {
-            retourne info.valeurs[index_it]
-        }
+    valeur, trouvée := donne_valeur_énum_pour_nom(info, chn)
+    si trouvée {
+        retourne valeur
     }
-
     retourne 0
 }
 
@@ -1191,7 +1188,7 @@ Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
 Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chaine) -> *PyObject
 {
     infos := info_de(T)
-    valeur_énum_comme_chaine := infos.noms[valeur_énum]
+    valeur_énum_comme_chaine := donne_nom_énum_pour_valeur(infos, valeur_énum comme z32)
 
     si op == Py_EQ {
         si valeur_chaine == valeur_énum_comme_chaine {
@@ -1215,12 +1212,10 @@ Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chain
 Py_AssigneChaineÉnum :: fonc (valeur_énum: &$T, valeur_chaine: chaine) -> z32
 {
     infos := info_de(T)
-
-    pour infos.noms {
-        si it == valeur_chaine {
-            valeur_énum = infos.valeurs[index_it] comme T
-            retourne 0
-        }
+    valeur, trouvée := donne_valeur_énum_pour_nom(infos, valeur_chaine)
+    si trouvée {
+        valeur_énum = valeur comme T
+        retourne 0
     }
 
     PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))

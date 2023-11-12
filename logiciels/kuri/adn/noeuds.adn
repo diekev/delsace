@@ -509,6 +509,9 @@ struct NoeudEnum : NoeudDéclarationType {
     NoeudBloc *bloc [code enfant]
 
     Annotation [] annotations [code copie]
+
+    bool est_erreur [copie]
+    bool est_énum_drapeau [copie préserve_accents]
 }
 
 struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
