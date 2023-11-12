@@ -2356,7 +2356,7 @@ int main(int argc, char **argv)
     convertisseuse.ajoute_typedef("int32_t", "int");
     convertisseuse.ajoute_typedef("int64_t", "long");
     /* Hack afin de convertir les types half vers notre langage, ceci empêche d'y ajouter les
-     * typedefs devantêtre utilisés afin de faire compiler le code C puisque ni half ni r16
+     * typedefs devant être utilisés afin de faire compiler le code C puisque ni half ni r16
      * n'existent en C. */
     convertisseuse.ajoute_typedef("r16", "r16");
     convertisseuse.ajoute_typedef("half", "r16");
