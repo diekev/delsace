@@ -112,10 +112,10 @@ principale :: fonc () -> z32
     imprime("%\n", SYS_EXP)
 
     #si SYS_EXP == SystèmeExploitation.LINUX {
-        imprime("nous ne sommes pas sur linux !\n")
+        imprime("nous sommes sur linux !\n")
     }
     sinon {
-        imprime("nous sommes sur linux !\n")
+        imprime("nous ne sommes pas sur linux !\n")
     }
 
     démo_courtcircuit_énum_drapeau()
