@@ -3934,7 +3934,7 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
                     auto globale_tableau = m_constructrice.crée_globale(
                         expression->type, nullptr, false, false);
 
-                    /* La construction du tableau deva se faire via la fonction
+                    /* La construction du tableau devra se faire via la fonction
                      * d'initialisation des globales. */
                     m_compilatrice.constructeurs_globaux->ajoute(
                         {globale_tableau, expression, {}});
