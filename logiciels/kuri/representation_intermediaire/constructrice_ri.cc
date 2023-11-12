@@ -3175,15 +3175,6 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
         return type->atome_info_type;
     }
 
-#if 0
-    // assert((type->drapeaux & TYPE_FUT_VALIDE) != 0);
-    if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
-        espace()
-            ->rapporte_erreur(site, "Type non validé lors de la création d'un info type !\n")
-            .ajoute_message("Note : le type est : ", chaine_type(type));
-    }
-#endif
-
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
         case GenreType::TUPLE:
