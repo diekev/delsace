@@ -111,18 +111,11 @@ struct GénératriceCodeC {
 
     void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
 
-    void génère_code(kuri::tableau<AtomeGlobale *> const &globales,
-                     kuri::tableau<AtomeFonction *> const &fonctions,
-                     ProgrammeRepreInter const &repr_inter,
-                     CoulisseC &coulisse,
-                     Enchaineuse &os);
+    void génère_code(ProgrammeRepreInter const &repr_inter, CoulisseC &coulisse, Enchaineuse &os);
 
     void génère_code(const ProgrammeRepreInter &repr_inter_programme, CoulisseC &coulisse);
 
-    void génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
-                            const kuri::tableau<AtomeFonction *> &fonctions,
-                            ProgrammeRepreInter const &repr_inter,
-                            Enchaineuse &os);
+    void génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os);
 
     void génère_code_fonction(const AtomeFonction *atome_fonc, Enchaineuse &os);
     void vide_enchaineuse_dans_fichier(CoulisseC &coulisse, Enchaineuse &os);
@@ -1735,10 +1728,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     os << ")";
 }
 
-void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale *> &globales,
-                                          const kuri::tableau<AtomeFonction *> &fonctions,
-                                          ProgrammeRepreInter const &repr_inter,
-                                          Enchaineuse &os)
+void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os)
 {
     /* Commençons par rassembler les tableaux de données constantes. */
     POUR (repr_inter.tableaux_constants) {
@@ -1747,7 +1737,7 @@ void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale 
     }
 
     /* Déclarons les globales. */
-    POUR (globales) {
+    POUR (repr_inter.globales) {
         déclare_globale(os, it, true);
         os << ";\n";
     }
@@ -1755,13 +1745,13 @@ void GénératriceCodeC::génère_code_entête(const kuri::tableau<AtomeGlobale 
     génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
 
     /* Déclarons ensuite les fonctions. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         déclare_fonction(os, it);
         os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
         if (it->instructions.taille() == 0 || !it->enligne) {
             continue;
@@ -1947,9 +1937,7 @@ static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
     return résultat;
 }
 
-void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &globales,
-                                   const kuri::tableau<AtomeFonction *> &fonctions,
-                                   ProgrammeRepreInter const &repr_inter,
+void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
                                    CoulisseC &coulisse,
                                    Enchaineuse &os)
 {
@@ -1959,7 +1947,7 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
     /* Définis les globales. */
-    POUR (globales) {
+    POUR (repr_inter.globales) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
             continue;
@@ -1994,7 +1982,7 @@ void GénératriceCodeC::génère_code(const kuri::tableau<AtomeGlobale *> &glob
     int nombre_instructions = 0;
 
     /* Définis les fonctions. */
-    POUR (fonctions) {
+    POUR (repr_inter.fonctions) {
         /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
         if (it->instructions.taille() == 0 || it->enligne) {
             continue;
@@ -2040,21 +2028,14 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
         convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
     }
 
-    génère_code_entête(repr_inter_programme.globales,
-                       repr_inter_programme.fonctions,
-                       repr_inter_programme,
-                       enchaineuse);
+    génère_code_entête(repr_inter_programme, enchaineuse);
 
     auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h");
     std::ofstream of(vers_std_path(chemin_fichier_entete));
     enchaineuse.imprime_dans_flux(of);
     of.close();
 
-    génère_code(repr_inter_programme.globales,
-                repr_inter_programme.fonctions,
-                repr_inter_programme,
-                coulisse,
-                enchaineuse);
+    génère_code(repr_inter_programme, coulisse, enchaineuse);
 }
 
 void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
