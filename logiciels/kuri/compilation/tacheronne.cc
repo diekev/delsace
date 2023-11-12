@@ -494,6 +494,7 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
     auto resultat = contexte.valide();
     if (est_erreur(resultat)) {
+        assert(unite->espace->possède_erreur);
         return;
     }
     if (est_attente(resultat)) {
