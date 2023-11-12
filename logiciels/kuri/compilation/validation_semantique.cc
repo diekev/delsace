@@ -2064,10 +2064,10 @@ ResultatValidation ContexteValidationCode::valide_arbre_aplatis(
     for (; unite->index_courant < arbre_aplatis.taille(); ++unite->index_courant) {
         auto noeud_enfant = arbre_aplatis[unite->index_courant];
 
-        if (noeud_enfant->est_type_structure()) {
-            /* Les structures nichées ont leurs propres unités de compilation */
+        if (noeud_enfant->est_declaration_type() && noeud_enfant != racine_validation()) {
+            /* Les types ont leurs propres unités de compilation. */
             if (!noeud_enfant->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_declaration(noeud_enfant->comme_type_structure());
+                return Attente::sur_declaration(noeud_enfant->comme_declaration_type());
             }
 
             continue;
@@ -3302,6 +3302,20 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
     CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, ENUMERATION__VALIDATION);
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
+    if (!type_enum) {
+        if (decl->est_erreur) {
+            auto type = m_compilatrice.typeuse.reserve_type_erreur(decl);
+            type->est_erreur = true;
+            decl->type = type;
+        }
+        else {
+            auto type = m_compilatrice.typeuse.reserve_type_enum(decl);
+            type->est_drapeau = decl->est_énum_drapeau;
+            decl->type = type;
+        }
+        type_enum = static_cast<TypeEnum *>(decl->type);
+    }
+
     if (type_enum->est_erreur) {
         type_enum->type_sous_jacent = TypeBase::Z32;
     }
@@ -3332,9 +3346,11 @@ ResultatValidation ContexteValidationCode::valide_enum(NoeudEnum *decl)
         }
 
         if (!est_type_entier(type_enum->type_sous_jacent)) {
-            espace->rapporte_erreur(
-                decl->expression_type,
-                "Le type de données d'une énumération doit être de type entier");
+            espace
+                ->rapporte_erreur(decl->expression_type,
+                                  "Le type de données d'une énumération doit être de type entier.")
+                .ajoute_message(
+                    "NOTE : le type est ", chaine_type(type_enum->type_sous_jacent), ".\n");
             return CodeRetourValidation::Erreur;
         }
     }

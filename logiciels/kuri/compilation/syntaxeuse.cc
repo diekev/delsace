@@ -2216,11 +2216,13 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
 
         auto type = m_compilatrice.typeuse.reserve_type_enum(noeud_decl);
         type->est_drapeau = lexeme->genre == GenreLexeme::ENUM_DRAPEAU;
+        noeud_decl->est_énum_drapeau = type->est_drapeau;
         noeud_decl->type = type;
     }
     else {
         auto type = m_compilatrice.typeuse.reserve_type_erreur(noeud_decl);
         type->est_erreur = true;
+        noeud_decl->est_erreur = true;
         noeud_decl->type = type;
     }
 
@@ -2236,18 +2238,21 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
             continue;
         }
 
-        if (apparie_expression()) {
-            auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+        if (!apparie_expression()) {
+            rapporte_erreur("Attendu une expression dans le bloc de l'énumération");
+            continue;
+        }
 
-            if (noeud->est_reference_declaration()) {
-                auto decl_variable = m_tacheronne.assembleuse->crée_declaration_variable(
-                    noeud->comme_reference_declaration());
-                decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
-                expressions.ajoute(decl_variable);
-            }
-            else {
-                expressions.ajoute(noeud);
-            }
+        auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
+
+        if (noeud->est_reference_declaration()) {
+            auto decl_variable = m_tacheronne.assembleuse->crée_declaration_variable(
+                noeud->comme_reference_declaration());
+            decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
+            expressions.ajoute(decl_variable);
+        }
+        else {
+            expressions.ajoute(noeud);
         }
     }
 

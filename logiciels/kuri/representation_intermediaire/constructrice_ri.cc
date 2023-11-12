@@ -383,9 +383,18 @@ AtomeConstante *ConstructriceRI::crée_tableau_global(AtomeConstante *tableau_fi
 AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
     AtomeGlobale *globale_tableau_fixe, TypeTableauFixe const *type_tableau_fixe)
 {
-    auto ptr_premier_element = crée_acces_index_constant(globale_tableau_fixe, crée_z64(0));
+    AtomeConstante *ptr_premier_element = crée_acces_index_constant(globale_tableau_fixe,
+                                                                    crée_z64(0));
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tableau_dyn = m_typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
+
+    if (est_globale_pour_tableau_données_constantes(globale_tableau_fixe)) {
+        if (type_tableau_fixe->type_pointe != TypeBase::Z8) {
+            /* Nous devons transtypé vers le type pointeur idoine. */
+            auto type_cible = m_typeuse.type_pointeur_pour(type_tableau_fixe->type_pointe);
+            ptr_premier_element = crée_transtype_constant(type_cible, ptr_premier_element);
+        }
+    }
 
     auto membres = kuri::tableau<AtomeConstante *>(3);
     membres[0] = ptr_premier_element;
@@ -2003,38 +2012,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto expr = noeud->comme_construction_tableau();
-
-            auto feuilles = expr->expression->comme_virgule();
-
-            if (m_fonction_courante == nullptr) {
-                auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
-                kuri::tableau<AtomeConstante *> valeurs;
-                valeurs.reserve(feuilles->expressions.taille());
-
-                POUR (feuilles->expressions) {
-                    genere_ri_pour_noeud(it);
-                    auto valeur = depile_valeur();
-                    valeurs.ajoute(static_cast<AtomeConstante *>(valeur));
-                }
-
-                auto tableau_constant = m_constructrice.crée_constante_tableau_fixe(
-                    type_tableau_fixe, std::move(valeurs));
-                empile_valeur(tableau_constant);
-                return;
-            }
-
-            auto pointeur_tableau = m_constructrice.crée_allocation(noeud, expr->type, nullptr);
-
-            auto index = 0ul;
-            POUR (feuilles->expressions) {
-                genere_ri_pour_expression_droite(it, nullptr);
-                auto valeur = depile_valeur();
-                auto index_tableau = m_constructrice.crée_acces_index(
-                    noeud, pointeur_tableau, m_constructrice.crée_z64(index++));
-                m_constructrice.crée_stocke_mem(noeud, index_tableau, valeur);
-            }
-
-            empile_valeur(pointeur_tableau);
+            génère_ri_pour_construction_tableau(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_INFO_DE:
@@ -3284,19 +3262,31 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
 
-            /* création des tableaux de valeurs et de noms */
+            /* Les valeurs sont convertis en un tableau de données constantes. */
+            int nombre_de_membres_non_implicite = 0;
+            POUR (type_enum->membres) {
+                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+                    continue;
+                }
 
-            kuri::tableau<AtomeConstante *> valeurs_enum;
-            valeurs_enum.reserve(type_enum->membres.taille());
+                nombre_de_membres_non_implicite += 1;
+            }
+
+            kuri::tableau<char> tampon_valeurs_énum(nombre_de_membres_non_implicite * 4);
+            auto pointeur_tampon = reinterpret_cast<int *>(&tampon_valeurs_énum[0]);
 
             POUR (type_enum->membres) {
                 if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
                     continue;
                 }
 
-                auto valeur = m_constructrice.crée_z32(static_cast<unsigned>(it.valeur));
-                valeurs_enum.ajoute(valeur);
+                *pointeur_tampon++ = it.valeur;
             }
+
+            auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
+                TypeBase::Z32, static_cast<int>(nombre_de_membres_non_implicite));
+            auto tableau = m_constructrice.crée_constante_tableau_donnees_constantes(
+                type_tableau, std::move(tampon_valeurs_énum));
 
             kuri::tableau<AtomeConstante *> noms_enum;
             noms_enum.reserve(type_enum->membres.taille());
@@ -3310,8 +3300,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
                 noms_enum.ajoute(chaine_nom);
             }
 
-            auto tableau_valeurs = m_constructrice.crée_tableau_global(TypeBase::Z32,
-                                                                       std::move(valeurs_enum));
+            auto tableau_valeurs = m_constructrice.crée_tableau_global(tableau);
             auto tableau_noms = m_constructrice.crée_tableau_global(TypeBase::CHAINE,
                                                                     std::move(noms_enum));
 
@@ -4035,6 +4024,146 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *
             }
         }
     }
+}
+
+static bool peut_être_compilé_en_données_constantes(NoeudExpressionConstructionTableau const *expr)
+{
+    auto const type_tableau = expr->type->comme_type_tableau_fixe();
+    if (!est_type_entier(type_tableau->type_pointe) &&
+        !type_tableau->type_pointe->est_type_reel()) {
+        return false;
+    }
+
+    POUR (expr->expression->comme_virgule()->expressions) {
+        if (!it->est_litterale_entier() && !it->est_litterale_reel()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <typename T>
+static void remplis_données_constantes_entières(T *données_constantes,
+                                                NoeudExpressionVirgule const *expressions)
+{
+    POUR (expressions->expressions) {
+        auto valeur_constante = it->comme_litterale_entier()->valeur;
+        *données_constantes++ = static_cast<T>(valeur_constante);
+    }
+}
+
+static void remplis_données_constantes_entières(char *données_constantes,
+                                                Type const *type,
+                                                NoeudExpressionVirgule const *expressions)
+{
+    if (type->taille_octet == 1) {
+        remplis_données_constantes_entières(données_constantes, expressions);
+    }
+    else if (type->taille_octet == 2) {
+        remplis_données_constantes_entières(reinterpret_cast<int16_t *>(données_constantes),
+                                            expressions);
+    }
+    else if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        remplis_données_constantes_entières(reinterpret_cast<int32_t *>(données_constantes),
+                                            expressions);
+    }
+    else if (type->taille_octet == 8) {
+        remplis_données_constantes_entières(reinterpret_cast<int64_t *>(données_constantes),
+                                            expressions);
+    }
+}
+
+template <typename T>
+static void remplis_données_constantes_réelles(T *données_constantes,
+                                               NoeudExpressionVirgule const *expressions)
+{
+    POUR (expressions->expressions) {
+        if (it->est_litterale_entier()) {
+            auto valeur_constante = it->comme_litterale_entier()->valeur;
+            *données_constantes++ = static_cast<T>(valeur_constante);
+        }
+        else {
+            auto valeur_constante = it->comme_litterale_reel()->valeur;
+            *données_constantes++ = static_cast<T>(valeur_constante);
+        }
+    }
+}
+
+static void remplis_données_constantes_réelles(char *données_constantes,
+                                               Type const *type,
+                                               NoeudExpressionVirgule const *expressions)
+{
+    if (type->taille_octet == 2) {
+        /* À FAIRE(r16) */
+        remplis_données_constantes_réelles(reinterpret_cast<int16_t *>(données_constantes),
+                                           expressions);
+    }
+    else if (type->taille_octet == 4) {
+        remplis_données_constantes_réelles(reinterpret_cast<float *>(données_constantes),
+                                           expressions);
+    }
+    else if (type->taille_octet == 8) {
+        remplis_données_constantes_réelles(reinterpret_cast<double *>(données_constantes),
+                                           expressions);
+    }
+}
+
+void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr)
+{
+    auto feuilles = expr->expression->comme_virgule();
+
+    if (m_fonction_courante == nullptr) {
+        auto type_tableau_fixe = expr->type->comme_type_tableau_fixe();
+
+        if (peut_être_compilé_en_données_constantes(expr)) {
+            auto type_élément = type_tableau_fixe->type_pointe;
+            kuri::tableau<char> données_constantes(feuilles->expressions.taille() *
+                                                   type_élément->taille_octet);
+
+            if (est_type_entier(type_élément)) {
+                remplis_données_constantes_entières(
+                    &données_constantes[0], type_élément, feuilles);
+            }
+            else {
+                assert(type_élément->est_type_reel());
+                remplis_données_constantes_réelles(&données_constantes[0], type_élément, feuilles);
+            }
+
+            auto tableau = m_constructrice.crée_constante_tableau_donnees_constantes(
+                type_tableau_fixe, std::move(données_constantes));
+
+            empile_valeur(tableau);
+            return;
+        }
+
+        kuri::tableau<AtomeConstante *> valeurs;
+        valeurs.reserve(feuilles->expressions.taille());
+
+        POUR (feuilles->expressions) {
+            genere_ri_pour_noeud(it);
+            auto valeur = depile_valeur();
+            valeurs.ajoute(static_cast<AtomeConstante *>(valeur));
+        }
+
+        auto tableau_constant = m_constructrice.crée_constante_tableau_fixe(type_tableau_fixe,
+                                                                            std::move(valeurs));
+        empile_valeur(tableau_constant);
+        return;
+    }
+
+    auto pointeur_tableau = m_constructrice.crée_allocation(expr, expr->type, nullptr);
+
+    auto index = 0ul;
+    POUR (feuilles->expressions) {
+        genere_ri_pour_expression_droite(it, nullptr);
+        auto valeur = depile_valeur();
+        auto index_tableau = m_constructrice.crée_acces_index(
+            expr, pointeur_tableau, m_constructrice.crée_z64(index++));
+        m_constructrice.crée_stocke_mem(expr, index_tableau, valeur);
+    }
+
+    empile_valeur(pointeur_tableau);
 }
 
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
