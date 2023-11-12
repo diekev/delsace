@@ -1904,7 +1904,6 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 {
     auto const lexeme = ref_membre->lexeme;
     auto accede = ref_membre->accedee;
-    auto type_accede = accede->type;
 
     if (ref_membre->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
         simplifie(accede);
@@ -1934,13 +1933,7 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
         }
     }
 
-    while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
-        type_accede = type_dereference_pour(type_accede);
-    }
-
-    if (type_accede->est_type_opaque()) {
-        type_accede = type_accede->comme_type_opaque()->type_opacifie;
-    }
+    auto type_accede = donne_type_accédé_effectif(accede->type);
 
     if (type_accede->est_type_tableau_fixe()) {
         auto taille = type_accede->comme_type_tableau_fixe()->taille;
