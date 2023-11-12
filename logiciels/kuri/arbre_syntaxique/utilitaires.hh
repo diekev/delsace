@@ -238,9 +238,21 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
                               NoeudDeclarationEnteteFonction const *entête,
                               std::ostream &os);
 
+/**
+ * Traverse l'expression donnée et retourne la première sous-expression non-constante de celle-ci.
+ * Retourne nul si toutes les sous-expressions sont constantes.
+ */
+NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression);
+
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
+
+/**
+ * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de membre.
+ * Ceci supprime les pointeurs et références, ainsi que les opacifications.
+ */
+Type *donne_type_accédé_effectif(Type *type_accédé);
 
 /**
  * Retourne les noms des blocs constituant la hiérarchie de blocs de ce bloc. Les noms incluent

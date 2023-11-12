@@ -18,6 +18,18 @@ NoeudExpression *Copieuse::trouve_copie(const NoeudExpression *racine)
     return nullptr;
 }
 
+void Copieuse::copie_membres_de_bases_et_insère(const NoeudExpression *racine,
+                                                NoeudExpression *nracine)
+{
+    insere_copie(racine, nracine);
+    nracine->ident = racine->ident;
+    nracine->type = racine->type;
+    nracine->drapeaux = racine->drapeaux;
+    if ((m_options & OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION) == OptionsCopieNoeud(0)) {
+        nracine->drapeaux &= ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
+}
+
 void Copieuse::insere_copie(const NoeudExpression *racine, NoeudExpression *copie)
 {
     noeuds_copies.insère(racine, copie);

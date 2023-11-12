@@ -1530,21 +1530,21 @@ static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *in
 #define APPLIQUE_OPERATION_ENTIER(nom)                                                            \
     auto résultat = Calculatrice::applique_opération_entier<nom>(opérande_gauche,                 \
                                                                  opérande_droite);                \
-    return constructrice.crée_constante_entiere(inst->type, résultat)
+    return constructrice.crée_constante_nombre_entier(inst->type, résultat)
 
 #define APPLIQUE_OPERATION_REEL(nom)                                                              \
     auto résultat = Calculatrice::applique_opération_réel<nom>(opérande_gauche, opérande_droite); \
-    return constructrice.crée_constante_reelle(inst->type, résultat)
+    return constructrice.crée_constante_nombre_réel(inst->type, résultat)
 
 #define APPLIQUE_COMPARAISON_ENTIER(nom)                                                          \
     auto résultat = Calculatrice::applique_comparaison_entier<nom>(opérande_gauche,               \
                                                                    opérande_droite);              \
-    return constructrice.crée_constante_booleenne(résultat)
+    return constructrice.crée_constante_booléenne(résultat)
 
 #define APPLIQUE_COMPARAISON_REEL(nom)                                                            \
     auto résultat = Calculatrice::applique_comparaison_réel<nom>(opérande_gauche,                 \
                                                                  opérande_droite);                \
-    return constructrice.crée_constante_booleenne(résultat)
+    return constructrice.crée_constante_booléenne(résultat)
 
     switch (inst->op) {
         case OpérateurBinaire::Genre::Addition:

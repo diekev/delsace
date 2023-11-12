@@ -112,13 +112,60 @@ principale :: fonc () -> z32
     imprime("%\n", SYS_EXP)
 
     #si SYS_EXP == SystèmeExploitation.LINUX {
-        imprime("nous ne sommes pas sur linux !\n")
+        imprime("nous sommes sur linux !\n")
     }
     sinon {
-        imprime("nous sommes sur linux !\n")
+        imprime("nous ne sommes pas sur linux !\n")
     }
 
     démo_courtcircuit_énum_drapeau()
+    test_impression_énum()
 
     retourne 0
+}
+
+test_impression_énum :: fonc ()
+{
+    imprime_énum(z8)
+    imprime_énum(z16)
+    imprime_énum(z32)
+    imprime_énum(z64)
+
+    imprime_énum(n8)
+    imprime_énum(n16)
+    imprime_énum(n32)
+    imprime_énum(n64)
+
+    imprime_énum_drapeau(n8)
+    imprime_énum_drapeau(n16)
+    imprime_énum_drapeau(n32)
+    imprime_énum_drapeau(n64)
+}
+
+imprime_énum :: fonc ($T: type_de_données)
+{
+    Énum :: énum T {
+        VALEUR1
+        VALEUR2
+        VALEUR3
+    }
+
+    é := Énum.VALEUR3
+    chaine_valeur := imprime_chaine("%", é)
+    diffère déloge(chaine_valeur)
+    assert(chaine_valeur == "VALEUR3")
+}
+
+imprime_énum_drapeau :: fonc ($T: type_de_données)
+{
+    Énum :: énum_drapeau T {
+        VALEUR1
+        VALEUR2
+        VALEUR3
+    }
+
+    é := Énum.valeurs_légales
+    chaine_valeur := imprime_chaine("%", é)
+    diffère déloge(chaine_valeur)
+    assert(chaine_valeur == "VALEUR1 | VALEUR2 | VALEUR3")
 }
