@@ -704,6 +704,10 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
 
+            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+                return nullptr;
+            }
+
             return référence_déclaration;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
