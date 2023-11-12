@@ -140,6 +140,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_enum(NoeudEnum *);
 
     ResultatValidation valide_structure(NoeudStruct *);
+    ResultatValidation valide_union(NoeudStruct *);
     ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
     ResultatValidation valide_assignation(NoeudAssignation *inst);
     ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
