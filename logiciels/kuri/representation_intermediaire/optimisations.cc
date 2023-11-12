@@ -178,7 +178,7 @@ struct CopieuseInstruction {
                 auto acces = inst->comme_acces_index();
                 auto accedé = copie_atome(acces->accede);
                 auto index = copie_atome(acces->index);
-                auto n_acces = constructrice.crée_acces_index(inst->site, accedé, index);
+                auto n_acces = constructrice.crée_accès_index(inst->site, accedé, index);
                 nouvelle_inst = n_acces;
                 break;
             }
@@ -187,7 +187,7 @@ struct CopieuseInstruction {
                 auto acces = inst->comme_acces_membre();
                 auto accedé = copie_atome(acces->accede);
                 auto index = copie_atome(acces->index);
-                auto n_acces = constructrice.crée_reference_membre(
+                auto n_acces = constructrice.crée_référence_membre(
                     inst->site, inst->type, accedé, index);
                 nouvelle_inst = n_acces;
                 break;
@@ -582,7 +582,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             nouvelle_instructions.ajoute(adresse_retour);
         }
 
-        auto label_post = constructrice.reserve_label(nullptr);
+        auto label_post = constructrice.réserve_label(nullptr);
         label_post->id = nombre_labels++;
 
         performe_enlignage(constructrice,

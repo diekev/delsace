@@ -658,75 +658,171 @@ void aplatis_arbre(NoeudExpression *declaration)
     }
 }
 
-#if 0
-bool expression_est_constante(NoeudExpression *expression)
+/* ------------------------------------------------------------------------- */
+/** \name Détection des expressions constantes.
+ * Ceci est utilisé pour détecter si l'exécution d'un métaprogramme est possible.
+ * \{ */
+
+NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression)
 {
-	switch (expression->genre) {
-		default:
-		{
-			return false;
-		}
-		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
-		case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
-		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
-		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
-		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
-		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
-		case GenreNoeud::EXPRESSION_TYPE_DE:
-		case GenreNoeud::EXPRESSION_TAILLE_DE:
-		case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
-		{
-			return true;
-		}
-		case GenreNoeud::EXPRESSION_PARENTHESE:
-		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
-		case GenreNoeud::OPERATEUR_UNAIRE:
-		{
-			auto op = static_cast<NoeudExpressionUnaire *>(expression);
-			return expression_est_constante(op->expr);
-		}
-		case GenreNoeud::OPERATEUR_BINAIRE:
-		{
-			auto op = static_cast<NoeudExpressionBinaire *>(expression);
+    switch (expression->genre) {
+        default:
+        {
+            return expression;
+        }
+        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_TYPE_DE:
+        case GenreNoeud::EXPRESSION_TAILLE_DE:
+        case GenreNoeud::EXPRESSION_INFO_DE:
+        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        {
+            return nullptr;
+        }
+        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        {
+            auto référence_déclaration = expression->comme_reference_declaration();
+            if (!référence_déclaration->declaration_referee) {
+                return référence_déclaration;
+            }
 
-			if (!expression_est_constante(op->operande_gauche)) {
-				return false;
-			}
+            auto déclaration_référée = référence_déclaration->declaration_referee;
+            if (déclaration_référée->est_declaration_type()) {
+                return nullptr;
+            }
 
-			if (!expression_est_constante(op->operande_droite)) {
-				return false;
-			}
+            if (déclaration_référée->est_declaration_module()) {
+                return nullptr;
+            }
 
-			return true;
-		}
-		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-		case GenreNoeud::EXPRESSION_APPEL:
-		{
-			auto appel = static_cast<NoeudExpressionAppel *>(expression);
+            if (déclaration_référée->est_entete_fonction()) {
+                return nullptr;
+            }
 
-			POUR (appel->exprs) {
-				if (!expression_est_constante(it)) {
-					return false;
-				}
-			}
+            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+                return nullptr;
+            }
 
-			return true;
-		}
-		case GenreNoeud::EXPRESSION_VIRGULE:
-		{
-			auto op = static_cast<NoeudExpressionVirgule *>(expression);
+            return référence_déclaration;
+        }
+        case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
+        {
+            auto référence_membre = expression->comme_reference_membre();
+            auto accédé = référence_membre->accedee;
+            if (auto expr_variable = trouve_expression_non_constante(accédé)) {
+                return expr_variable;
+            }
 
-			POUR (op->expressions) {
-				if (!expression_est_constante(it)) {
-					return false;
-				}
-			}
+            if (accédé->est_reference_declaration()) {
+                if (accédé->comme_reference_declaration()
+                        ->declaration_referee->est_declaration_module()) {
+                    return trouve_expression_non_constante(référence_membre->membre);
+                }
+            }
 
-			return true;
-		}
-	}
+            /* À FAIRE : vérifie proprement que nous avons un type InfoType. */
+            if (accédé->est_info_de()) {
+                return nullptr;
+            }
+
+            auto type_accédé = donne_type_accédé_effectif(accédé->type);
+
+            if (type_accédé->est_type_tableau_fixe()) {
+                /* Seul l'accès à la taille est correcte, sinon nous ne serions pas ici. */
+                return nullptr;
+            }
+            if (type_accédé->est_type_enum() || type_accédé->est_type_erreur()) {
+                return nullptr;
+            }
+            if (type_accédé->est_type_type_de_donnees() &&
+                référence_membre->genre_valeur == GenreValeur::DROITE) {
+                /* Nous accédons à une valeur constante. */
+                return nullptr;
+            }
+            auto type_compose = static_cast<TypeCompose *>(type_accédé);
+            auto &membre = type_compose->membres[référence_membre->index_membre];
+
+            if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
+                return nullptr;
+            }
+
+            return référence_membre->membre;
+        }
+        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        case GenreNoeud::OPERATEUR_UNAIRE:
+        {
+            auto op = static_cast<NoeudExpressionUnaire const *>(expression);
+            return trouve_expression_non_constante(op->operande);
+        }
+        case GenreNoeud::OPERATEUR_BINAIRE:
+        case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
+        case GenreNoeud::EXPRESSION_INDEXAGE:
+        {
+            auto op = static_cast<NoeudExpressionBinaire const *>(expression);
+
+            if (auto expr_variable = trouve_expression_non_constante(op->operande_gauche)) {
+                return expr_variable;
+            }
+
+            if (auto expr_variable = trouve_expression_non_constante(op->operande_droite)) {
+                return expr_variable;
+            }
+
+            return nullptr;
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
+        case GenreNoeud::EXPRESSION_APPEL:
+        {
+            auto appel = static_cast<NoeudExpressionAppel const *>(expression);
+
+            POUR (appel->parametres_resolus) {
+                if (auto expr_variable = trouve_expression_non_constante(it)) {
+                    return expr_variable;
+                }
+            }
+
+            return nullptr;
+        }
+        case GenreNoeud::EXPRESSION_VIRGULE:
+        {
+            auto op = static_cast<NoeudExpressionVirgule const *>(expression);
+
+            POUR (op->expressions) {
+                if (auto expr_variable = trouve_expression_non_constante(it)) {
+                    return expr_variable;
+                }
+            }
+
+            return nullptr;
+        }
+        case GenreNoeud::EXPRESSION_COMME:
+        {
+            auto expression_comme = expression->comme_comme();
+            return trouve_expression_non_constante(expression_comme->expression);
+        }
+        case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
+        {
+            auto tableau_args = expression->comme_args_variadiques();
+            POUR (tableau_args->expressions) {
+                if (auto expr_variable = trouve_expression_non_constante(it)) {
+                    return expr_variable;
+                }
+            }
+
+            return nullptr;
+        }
+    }
+
+    return expression;
 }
-#endif
+
+/** \} */
 
 // -----------------------------------------------------------------------------
 // Implémentation des méthodes supplémentaires de l'arbre syntaxique
@@ -1733,6 +1829,20 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
     }
 
     return "anonyme";
+}
+
+Type *donne_type_accédé_effectif(Type *type_accédé)
+{
+    /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
+    while (type_accédé->est_type_pointeur() || type_accédé->est_type_reference()) {
+        type_accédé = type_dereference_pour(type_accédé);
+    }
+
+    if (type_accédé->est_type_opaque()) {
+        type_accédé = type_accédé->comme_type_opaque()->type_opacifie;
+    }
+
+    return type_accédé;
 }
 
 /* ------------------------------------------------------------------------- */
