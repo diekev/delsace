@@ -3298,7 +3298,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
             }
 
             auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-                TypeBase::Z32, static_cast<int>(nombre_de_membres_non_implicite));
+                TypeBase::Z32, nombre_de_membres_non_implicite);
             auto tableau = m_constructrice.crée_constante_tableau_donnees_constantes(
                 type_tableau, std::move(tampon_valeurs_énum));
 
@@ -4133,7 +4133,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstr
         if (peut_être_compilé_en_données_constantes(expr)) {
             auto type_élément = type_tableau_fixe->type_pointe;
             kuri::tableau<char> données_constantes(feuilles->expressions.taille() *
-                                                   type_élément->taille_octet);
+                                                   int(type_élément->taille_octet));
 
             if (est_type_entier(type_élément)) {
                 remplis_données_constantes_entières(
