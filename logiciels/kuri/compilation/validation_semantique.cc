@@ -2411,11 +2411,13 @@ ResultatValidation ContexteValidationCode::valide_cuisine(NoeudDirectiveCuisine 
     if (!expr->est_appel()) {
         espace->rapporte_erreur(
             expr, "L'expression d'une directive de cuisson doit être une expression d'appel !");
+        return CodeRetourValidation::Erreur;
     }
 
     if (!expr->type->est_type_fonction()) {
         espace->rapporte_erreur(
             expr, "La cuisson d'autre chose qu'une fonction n'est pas encore supportée !");
+        return CodeRetourValidation::Erreur;
     }
 
     directive->type = expr->type;
