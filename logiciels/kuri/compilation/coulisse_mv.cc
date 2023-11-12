@@ -20,7 +20,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
                                   CompilatriceRI &compilatrice_ri,
                                   Broyeuse &)
 {
-    auto repr_inter = représentation_intermédiaire_programme(*programme);
+    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
     auto métaprogramme = programme->pour_métaprogramme();
     assert(métaprogramme);
 

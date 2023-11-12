@@ -832,7 +832,21 @@ static void rassemble_types_supplémentaires(ProgrammeRepreInter &repr_inter)
     }
 }
 
-ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &programme)
+static void génère_ri_fonction_init_globales(EspaceDeTravail &espace,
+                                             CompilatriceRI &compilatrice_ri,
+                                             AtomeFonction *fonction,
+                                             ProgrammeRepreInter &repr_inter_programme)
+{
+    compilatrice_ri.genere_ri_pour_initialisation_globales(
+        &espace, fonction, repr_inter_programme.globales);
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
+     * sont peut-être pas encore dans la liste. */
+    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
+}
+
+ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &espace,
+                                                           CompilatriceRI &compilatrice_ri,
+                                                           Programme const &programme)
 {
     auto résultat = ProgrammeRepreInter{};
 
@@ -841,6 +855,8 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
 
     /* Nous pouvons directement copier les types. */
     résultat.types = programme.types();
+
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
 
     /* Extrait les atomes pour les fonctions. */
     POUR (programme.fonctions()) {
@@ -852,7 +868,13 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
             std::cerr << "Aucun atome pour:\n";
             erreur::imprime_site(*programme.espace(), it);
         });
-        résultat.fonctions.ajoute(static_cast<AtomeFonction *>(it->atome));
+
+        auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
+        résultat.fonctions.ajoute(atome_fonction);
+
+        if (it->ident == ID::init_globales_kuri) {
+            decl_init_globales = atome_fonction;
+        }
     }
 
     /* Extrait les atomes pour les globales. */
@@ -875,6 +897,15 @@ ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &pr
     rassemble_globales_supplémentaires(résultat);
 
     rassemble_types_supplémentaires(résultat);
+
+    if (programme.pour_métaprogramme()) {
+        /* Les métaprogrammes gèrent différemment les cas suivants, donc retournons directement. */
+        return résultat;
+    }
+
+    if (decl_init_globales) {
+        génère_ri_fonction_init_globales(espace, compilatrice_ri, decl_init_globales, résultat);
+    }
 
     return résultat;
 }

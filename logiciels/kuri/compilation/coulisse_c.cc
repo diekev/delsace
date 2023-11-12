@@ -2225,18 +2225,6 @@ static void génère_table_des_types(Typeuse &typeuse,
     repr_inter_programme.types.ajoute(type_tableau_fixe);
 }
 
-static void génère_ri_fonction_init_globale(EspaceDeTravail &espace,
-                                            CompilatriceRI &compilatrice_ri,
-                                            AtomeFonction *fonction,
-                                            ProgrammeRepreInter &repr_inter_programme)
-{
-    compilatrice_ri.genere_ri_pour_initialisation_globales(
-        &espace, fonction, repr_inter_programme.globales);
-    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
-     * sont peut-être pas encore dans la liste. */
-    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
-}
-
 static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatrice,
                                                      CompilatriceRI &compilatrice_ri,
                                                      EspaceDeTravail &espace,
@@ -2252,14 +2240,10 @@ static bool génère_code_C_depuis_fonction_principale(Compilatrice &compilatric
     }
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
 
     génère_table_des_types(compilatrice.typeuse, repr_inter_programme, compilatrice_ri);
-
-    // Génére le corps de la fonction d'initialisation des globales.
-    auto decl_init_globales = compilatrice.interface_kuri->decl_init_globales_kuri;
-    auto atome = static_cast<AtomeFonction *>(decl_init_globales->atome);
-    génère_ri_fonction_init_globale(espace, compilatrice_ri, atome, repr_inter_programme);
 
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);
     bibliothèques = repr_inter_programme.donne_bibliothèques_utilisées();
@@ -2275,19 +2259,14 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
                                                    Broyeuse &broyeuse)
 {
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
 
     /* Garantie l'utilisation des fonctions racines. */
-    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
-
     auto nombre_fonctions_racines = 0;
     POUR (repr_inter_programme.fonctions) {
         if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
             ++nombre_fonctions_racines;
-        }
-
-        if (it->decl && it->decl->ident == ID::init_globales_kuri) {
-            decl_init_globales = it;
         }
     }
 
@@ -2295,11 +2274,6 @@ static bool génère_code_C_depuis_fonctions_racines(Compilatrice &compilatrice,
         espace.rapporte_erreur_sans_site(
             "Aucune fonction racine trouvée pour générer le code !\n");
         return false;
-    }
-
-    if (decl_init_globales) {
-        génère_ri_fonction_init_globale(
-            espace, compilatrice_ri, decl_init_globales, repr_inter_programme);
     }
 
     génère_code_C_depuis_RI(espace, repr_inter_programme, coulisse, broyeuse);

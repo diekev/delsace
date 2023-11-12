@@ -14,6 +14,7 @@ struct AtomeGlobale;
 struct AtomeFonction;
 struct AtomeValeurConstante;
 struct Bibliotheque;
+struct CompilatriceRI;
 struct Coulisse;
 struct EspaceDeTravail;
 struct Fichier;
@@ -311,6 +312,8 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
                                uint32_t quoi,
                                std::ostream &os);
 
-ProgrammeRepreInter représentation_intermédiaire_programme(Programme const &programme);
+ProgrammeRepreInter représentation_intermédiaire_programme(EspaceDeTravail &espace,
+                                                           CompilatriceRI &compilatrice_ri,
+                                                           Programme const &programme);
 
 /** \} */

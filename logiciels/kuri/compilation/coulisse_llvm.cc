@@ -1634,7 +1634,7 @@ CoulisseLLVM::~CoulisseLLVM()
 bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
                                     EspaceDeTravail &espace,
                                     Programme *programme,
-                                    CompilatriceRI & /*constructrice_ri*/,
+                                    CompilatriceRI &compilatrice_ri,
                                     Broyeuse &)
 {
     if (!initialise_llvm()) {
@@ -1651,7 +1651,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
         return false;
     }
 
-    auto repr_inter = représentation_intermédiaire_programme(*programme);
+    auto repr_inter = représentation_intermédiaire_programme(espace, compilatrice_ri, *programme);
 
     auto CPU = "generic";
     auto feature = "";

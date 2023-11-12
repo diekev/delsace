@@ -506,7 +506,8 @@ bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
     }
 
     /* Convertis le programme sous forme de représentation intermédiaire. */
-    auto repr_inter_programme = représentation_intermédiaire_programme(*programme);
+    auto repr_inter_programme = représentation_intermédiaire_programme(
+        espace, compilatrice_ri, *programme);
 
     // genere_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
