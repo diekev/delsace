@@ -14,6 +14,7 @@ struct ConstructriceRI;
 struct NoeudBloc;
 struct NoeudDeclarationVariable;
 struct NoeudExpression;
+struct NoeudExpressionConstructionTableau;
 struct NoeudExpressionMembre;
 struct NoeudInstructionTente;
 struct TypeEnum;
@@ -335,6 +336,7 @@ struct CompilatriceRI {
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl);
+    void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr);
 
     void transforme_valeur(NoeudExpression *noeud,
                            Atome *valeur,

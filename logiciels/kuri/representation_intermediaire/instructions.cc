@@ -325,3 +325,27 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
         }
     }
 }
+
+bool est_tableau_données_constantes(AtomeConstante const *constante)
+{
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return valeur_constante->valeur.genre ==
+           AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+}
+
+bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale)
+{
+    if (globale->est_externe) {
+        return false;
+    }
+
+    if (!globale->initialisateur) {
+        return false;
+    }
+
+    return est_tableau_données_constantes(globale->initialisateur);
+}
