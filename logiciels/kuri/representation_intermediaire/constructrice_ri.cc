@@ -558,10 +558,6 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression *site_,
 
 InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_, Atome *appelé)
 {
-    // incrémente le nombre d'utilisation au cas où nous appelerions une fonction
-    // lorsque que nous enlignons une fonction, son nombre d'utilisations sera décrémentée,
-    // et si à 0, nous pourrons ignorer la génération de code final pour celle-ci
-    appelé->nombre_utilisations += 1;
     auto inst = insts_appel.ajoute_element(site_, appelé);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -571,8 +567,6 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_,
                                               Atome *appelé,
                                               kuri::tableau<Atome *, int> &&args)
 {
-    // voir commentaire plus haut
-    appelé->nombre_utilisations += 1;
     auto inst = insts_appel.ajoute_element(site_, appelé, std::move(args));
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -1395,8 +1389,6 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             if (decl_ref->est_entete_fonction()) {
                 auto atome_fonc = m_constructrice.trouve_ou_insère_fonction(
                     decl_ref->comme_entete_fonction());
-                // voir commentaire dans crée_appel
-                atome_fonc->nombre_utilisations += 1;
                 empile_valeur(atome_fonc);
                 return;
             }
