@@ -135,22 +135,22 @@ struct ConstructriceRI {
                                            IdentifiantCode *ident,
                                            bool crée_seulement = false);
 
-    AtomeConstante *crée_constante_booleenne(bool valeur);
-    AtomeConstante *crée_constante_caractere(Type const *type, uint64_t valeur);
-    AtomeConstante *crée_constante_entiere(Type const *type, uint64_t valeur);
+    AtomeConstante *crée_constante_booléenne(bool valeur);
+    AtomeConstante *crée_constante_caractère(Type const *type, uint64_t valeur);
+    AtomeConstante *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
     AtomeConstante *crée_constante_type(Type const *pointeur_type);
     AtomeConstante *crée_constante_taille_de(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);
     AtomeConstante *crée_constante_nulle(Type const *type);
-    AtomeConstante *crée_constante_reelle(Type const *type, double valeur);
+    AtomeConstante *crée_constante_nombre_réel(Type const *type, double valeur);
     AtomeConstante *crée_constante_structure(Type const *type,
                                              kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *crée_constante_tableau_fixe(Type const *type,
                                                 kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_constante_tableau_donnees_constantes(
-        Type const *type, kuri::tableau<char> &&donnees_constantes);
-    AtomeConstante *crée_constante_tableau_donnees_constantes(Type const *type,
+    AtomeConstante *crée_constante_tableau_données_constantes(
+        Type const *type, kuri::tableau<char> &&données_constantes);
+    AtomeConstante *crée_constante_tableau_données_constantes(Type const *type,
                                                               char *pointeur,
                                                               int64_t taille);
     AtomeConstante *crée_tableau_global(Type const *type,
@@ -167,9 +167,9 @@ struct ConstructriceRI {
                                                         InstructionLabel *label_si_vrai,
                                                         InstructionLabel *label_si_faux);
     InstructionLabel *crée_label(NoeudExpression *site_);
-    InstructionLabel *reserve_label(NoeudExpression *site_);
-    void insere_label(InstructionLabel *label);
-    void insere_label_si_utilise(InstructionLabel *label);
+    InstructionLabel *réserve_label(NoeudExpression *site_);
+    void insère_label(InstructionLabel *label);
+    void insère_label_si_utilisé(InstructionLabel *label);
     InstructionRetour *crée_retour(NoeudExpression *site_, Atome *valeur);
     InstructionStockeMem *crée_stocke_mem(NoeudExpression *site_,
                                           Atome *ou,
@@ -178,9 +178,9 @@ struct ConstructriceRI {
     InstructionChargeMem *crée_charge_mem(NoeudExpression *site_,
                                           Atome *ou,
                                           bool crée_seulement = false);
-    InstructionAppel *crée_appel(NoeudExpression *site_, Atome *appele);
+    InstructionAppel *crée_appel(NoeudExpression *site_, Atome *appelé);
     InstructionAppel *crée_appel(NoeudExpression *site_,
-                                 Atome *appele,
+                                 Atome *appelé,
                                  kuri::tableau<Atome *, int> &&args);
 
     InstructionOpUnaire *crée_op_unaire(NoeudExpression *site_,
@@ -197,17 +197,17 @@ struct ConstructriceRI {
                                               Atome *valeur_gauche,
                                               Atome *valeur_droite);
 
-    InstructionAccedeIndex *crée_acces_index(NoeudExpression *site_, Atome *accede, Atome *index);
-    InstructionAccedeMembre *crée_reference_membre(NoeudExpression *site_,
+    InstructionAccedeIndex *crée_accès_index(NoeudExpression *site_, Atome *accédé, Atome *index);
+    InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
                                                    Type const *type,
-                                                   Atome *accede,
+                                                   Atome *accédé,
                                                    Atome *index,
                                                    bool crée_seulement = false);
-    InstructionAccedeMembre *crée_reference_membre(NoeudExpression *site_,
-                                                   Atome *accede,
+    InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
+                                                   Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    Instruction *crée_reference_membre_et_charge(NoeudExpression *site_, Atome *accede, int index);
+    Instruction *crée_reference_membre_et_charge(NoeudExpression *site_, Atome *accédé, int index);
 
     InstructionTranstype *crée_transtype(NoeudExpression *site_,
                                          Type const *type,
@@ -225,9 +225,9 @@ struct ConstructriceRI {
     OpBinaireConstant *crée_op_comparaison_constant(OpérateurBinaire::Genre op,
                                                     AtomeConstante *valeur_gauche,
                                                     AtomeConstante *valeur_droite);
-    AccedeIndexConstant *crée_acces_index_constant(AtomeConstante *accede, AtomeConstante *index);
+    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, AtomeConstante *index);
 
-    AtomeConstante *genere_initialisation_defaut_pour_type(Type const *type);
+    AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
   private:
     void imprime_site(NoeudExpression *site) const;
