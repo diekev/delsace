@@ -824,6 +824,10 @@ static void rassemble_types_supplementaires(ProgrammeRepreInter &repr_inter)
     }
 
     POUR (repr_inter.globales) {
+        /* Ces types ne sont pas utiles pour le code machine. */
+        if (est_globale_pour_tableau_données_constantes(it)) {
+            continue;
+        }
         ajoute_type_si_necessaire(it->type);
     }
 }
