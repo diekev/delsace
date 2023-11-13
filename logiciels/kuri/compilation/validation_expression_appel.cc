@@ -955,7 +955,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> const &arguments,
-    NoeudDeclarationType *déclaration_type_composé,
+    NoeudDeclarationType const *déclaration_type_composé,
     NoeudBloc *params_polymorphiques)
 {
     if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
@@ -1053,7 +1053,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
 
 static ResultatAppariement apparie_construction_type_composé(
     NoeudExpressionAppel const *expr,
-    NoeudDeclarationType *déclaration_type_composé,
+    NoeudDeclarationType const *déclaration_type_composé,
     TypeCompose const *type_compose,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
@@ -1115,7 +1115,7 @@ static ResultatAppariement apparie_construction_type_composé(
 static ResultatAppariement apparie_appel_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    NoeudStruct *decl_struct,
+    NoeudStruct const *decl_struct,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     assert(!decl_struct->est_union);
@@ -1132,7 +1132,7 @@ static ResultatAppariement apparie_appel_structure(
 static ResultatAppariement apparie_construction_union(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    NoeudStruct *decl_struct,
+    NoeudStruct const *decl_struct,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     if (decl_struct->est_polymorphe) {
@@ -1156,7 +1156,7 @@ static ResultatAppariement apparie_construction_union(
 
 static ResultatAppariement apparie_construction_opaque_polymorphique(
     NoeudExpressionAppel const *expr,
-    TypeOpaque *type_opaque,
+    TypeOpaque const *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     if (arguments.taille() == 0) {
@@ -1184,7 +1184,7 @@ static ResultatAppariement apparie_construction_opaque_polymorphique(
 static ResultatAppariement apparie_construction_opaque_depuis_structure(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    TypeOpaque *type_opaque,
+    TypeOpaque const *type_opaque,
     TypeStructure const *type_structure,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
@@ -1205,7 +1205,7 @@ static ResultatAppariement apparie_construction_opaque_depuis_structure(
 static ResultatAppariement apparie_construction_opaque(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    TypeOpaque *type_opaque,
+    TypeOpaque const *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
@@ -1446,7 +1446,7 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression *noeud)
 
 static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
     AssembleuseArbre *assembleuse,
-    NoeudExpression *a_copier,
+    NoeudExpression const *a_copier,
     Monomorphisations *monomorphisations,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
@@ -1482,7 +1482,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     ContexteValidationCode &contexte,
     Compilatrice &compilatrice,
     EspaceDeTravail &espace,
-    NoeudDeclarationEnteteFonction *decl,
+    NoeudDeclarationEnteteFonction const *decl,
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
@@ -1524,7 +1524,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 static NoeudStruct *monomorphise_au_besoin(
     ContexteValidationCode &contexte,
     EspaceDeTravail &espace,
-    NoeudStruct *decl_struct,
+    NoeudStruct const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
     auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
@@ -1540,7 +1540,7 @@ static NoeudStruct *monomorphise_au_besoin(
 
     structure->est_polymorphe = false;
     structure->est_monomorphisation = true;
-    structure->polymorphe_de_base = decl_struct;
+    structure->polymorphe_de_base = const_cast<NoeudStruct *>(decl_struct);
 
     if (decl_struct->est_union) {
         structure->type = espace.compilatrice().typeuse.reserve_type_union(structure);
@@ -1570,7 +1570,7 @@ static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expres
 /* Cette fonction est utilisée pour valider les appels aux intrinsèques afin de faire en sorte que
  * les intrinsèques requérant des paramètres constants reçurent des valeurs constantes. */
 static bool appel_fonction_est_valide(EspaceDeTravail &espace,
-                                      NoeudDeclarationEnteteFonction *fonction,
+                                      NoeudDeclarationEnteteFonction const *fonction,
                                       kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (!fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
@@ -1849,8 +1849,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         applique_transformations(contexte, candidate, expr);
 
-        expr->noeud_fonction_appelee = decl_fonction_appelee;
-        decl_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        expr->noeud_fonction_appelee = const_cast<NoeudDeclarationEnteteFonction *>(
+            decl_fonction_appelee);
+        expr->noeud_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
@@ -1877,8 +1878,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->type = decl_fonction_appelee->type;
-        expr->expression = decl_fonction_appelee;
-        decl_fonction_appelee->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        expr->expression = const_cast<NoeudDeclarationEnteteFonction *>(decl_fonction_appelee);
+        expr->expression->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_STRUCTURE) {
         if (candidate->noeud_decl &&
@@ -1902,7 +1903,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
         else {
             expr->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-            expr->type = candidate->type;
+            expr->type = const_cast<Type *>(candidate->type);
 
             for (auto i = 0; i < expr->parametres_resolus.taille(); ++i) {
                 if (expr->parametres_resolus[i] != nullptr) {
@@ -1910,7 +1911,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                                                   candidate->transformations[i]);
                 }
             }
-            expr->noeud_fonction_appelee = candidate->noeud_decl;
+            expr->noeud_fonction_appelee = const_cast<NoeudExpression *>(candidate->noeud_decl);
 
             if (!expr->possède_drapeau(DrapeauxNoeud::DROITE_ASSIGNATION)) {
                 espace.rapporte_erreur(
@@ -1923,10 +1924,11 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
-        expr->type = candidate->type;
-        expr->noeud_fonction_appelee = (expr->type->comme_type_type_de_donnees()
-                                            ->type_connu->comme_type_polymorphique()
-                                            ->structure);
+        expr->type = const_cast<Type *>(candidate->type);
+        expr->noeud_fonction_appelee = const_cast<NoeudStruct *>(
+            expr->type->comme_type_type_de_donnees()
+                ->type_connu->comme_type_polymorphique()
+                ->structure);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_POINTEUR) {
         if (expr->type == nullptr) {
@@ -1985,7 +1987,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
         }
 
-        expr->type = type_opaque;
+        expr->type = const_cast<TypeOpaque *>(type_opaque);
         expr->aide_generation_code = CONSTRUIT_OPAQUE;
         expr->noeud_fonction_appelee = type_opaque->decl;
     }
@@ -2005,7 +2007,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                                           candidate->transformations[i]);
         }
 
-        expr->type = type_opaque;
+        expr->type = const_cast<TypeOpaque *>(type_opaque);
         expr->aide_generation_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
         expr->noeud_fonction_appelee = type_opaque->decl;
     }
@@ -2020,7 +2022,8 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->noeud_fonction_appelee = type_opaque->decl;
-        expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(type_opaque);
+        expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(
+            const_cast<Type *>(candidate->type));
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }
 
