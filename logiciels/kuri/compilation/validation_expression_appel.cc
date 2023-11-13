@@ -952,114 +952,112 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     return false;
 }
 
-static ResultatAppariement apparie_appel_structure(
+static ResultatAppariement apparie_construction_type_composé_polymorphique(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
-    NoeudStruct *decl_struct,
-    kuri::tableau<IdentifiantEtExpression> const &arguments)
+    kuri::tableau<IdentifiantEtExpression> const &arguments,
+    NoeudDeclarationType *déclaration_type_composé,
+    NoeudBloc *params_polymorphiques)
 {
-    auto type_compose = decl_struct->type->comme_type_compose();
+    if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
+        return ErreurAppariement::mecomptage_arguments(
+            expr, params_polymorphiques->nombre_de_membres(), expr->parametres.taille());
+    }
 
-    if (decl_struct->est_polymorphe) {
-        auto params_polymorphiques = decl_struct->bloc_constantes;
-        if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
-            return ErreurAppariement::mecomptage_arguments(
-                expr, params_polymorphiques->nombre_de_membres(), expr->parametres.taille());
-        }
+    auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
-        auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
+    POUR (*params_polymorphiques->membres.verrou_lecture()) {
+        apparieuse_params.ajoute_param(it->ident, nullptr, false);
+    }
 
-        POUR (*params_polymorphiques->membres.verrou_lecture()) {
-            apparieuse_params.ajoute_param(it->ident, nullptr, false);
-        }
-
-        POUR (arguments) {
-            if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
-                // À FAIRE : si ceci est au début de la fonction, nous avons des messages d'erreurs
-                // assez étranges...
-                apparieuse_params.erreur.noeud_decl = decl_struct;
-                return apparieuse_params.erreur;
-            }
-        }
-
-        if (!apparieuse_params.tous_les_slots_sont_remplis()) {
+    POUR (arguments) {
+        if (!apparieuse_params.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
+            // À FAIRE : si ceci est au début de la fonction, nous avons des messages d'erreurs
+            // assez étranges...
+            apparieuse_params.erreur.noeud_decl = déclaration_type_composé;
             return apparieuse_params.erreur;
         }
-
-        kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
-
-        auto index_param = 0;
-        // détecte les arguments polymorphiques dans les fonctions polymorphiques
-        auto est_type_argument_polymorphique = false;
-        POUR (apparieuse_params.slots()) {
-            auto param = params_polymorphiques->membre_pour_index(index_param);
-            index_param += 1;
-
-            if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-                assert_rappel(false, []() {
-                    std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
-                                 "structures pour le moment\n";
-                });
-                continue;
-            }
-
-            if (est_expression_type_ou_valeur_polymorphique(it)) {
-                est_type_argument_polymorphique = true;
-                continue;
-            }
-
-            // vérifie la contrainte
-            if (param->type->est_type_type_de_donnees()) {
-                if (!it->type->est_type_type_de_donnees()) {
-                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                }
-
-                items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
-            }
-            else {
-                if (!(it->type == param->type ||
-                      (it->type->est_type_entier_constant() && est_type_entier(param->type)))) {
-                    return ErreurAppariement::metypage_argument(it, param->type, it->type);
-                }
-
-                auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
-
-                if (valeur.est_errone) {
-                    espace.rapporte_erreur(it, "La valeur n'est pas constante");
-                }
-
-                items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
-            }
-        }
-
-        if (est_type_argument_polymorphique) {
-            auto type_poly = espace.compilatrice().typeuse.crée_polymorphique(nullptr);
-
-            type_poly->est_structure_poly = true;
-            type_poly->structure = decl_struct;
-
-            return CandidateAppariement::type_polymorphique(
-                1.0,
-                espace.compilatrice().typeuse.type_type_de_donnees(type_poly),
-                {},
-                {},
-                std::move(items_monomorphisation));
-        }
-
-        return CandidateAppariement::initialisation_structure(
-            1.0, decl_struct, decl_struct->type, {}, {}, std::move(items_monomorphisation));
     }
 
-    if (decl_struct->est_union) {
-        if (expr->parametres.taille() > 1) {
-            return ErreurAppariement::expression_extra_pour_union(expr);
+    if (!apparieuse_params.tous_les_slots_sont_remplis()) {
+        return apparieuse_params.erreur;
+    }
+
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+
+    auto index_param = 0;
+    // détecte les arguments polymorphiques dans les fonctions polymorphiques
+    auto est_type_argument_polymorphique = false;
+    POUR (apparieuse_params.slots()) {
+        auto param = params_polymorphiques->membre_pour_index(index_param);
+        index_param += 1;
+
+        if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            assert_rappel(false, []() {
+                std::cerr << "Les types polymorphiques ne sont pas supportés sur les "
+                             "structures pour le moment\n";
+            });
+            continue;
         }
 
-        if (expr->parametres.taille() == 0) {
-            return ErreurAppariement::expression_manquante_union(expr);
+        if (est_expression_type_ou_valeur_polymorphique(it)) {
+            est_type_argument_polymorphique = true;
+            continue;
+        }
+
+        // vérifie la contrainte
+        if (param->type->est_type_type_de_donnees()) {
+            if (!it->type->est_type_type_de_donnees()) {
+                return ErreurAppariement::metypage_argument(it, param->type, it->type);
+            }
+
+            items_monomorphisation.ajoute({param->ident, it->type, ValeurExpression(), true});
+        }
+        else {
+            if (!(it->type == param->type ||
+                  (it->type->est_type_entier_constant() && est_type_entier(param->type)))) {
+                return ErreurAppariement::metypage_argument(it, param->type, it->type);
+            }
+
+            auto valeur = evalue_expression(espace.compilatrice(), it->bloc_parent, it);
+
+            if (valeur.est_errone) {
+                espace.rapporte_erreur(it, "La valeur n'est pas constante");
+            }
+
+            items_monomorphisation.ajoute({param->ident, param->type, valeur.valeur, false});
         }
     }
 
+    if (est_type_argument_polymorphique) {
+        auto type_poly = espace.compilatrice().typeuse.crée_polymorphique(nullptr);
+
+        type_poly->est_structure_poly = true;
+        type_poly->structure = déclaration_type_composé->comme_type_structure();
+
+        return CandidateAppariement::type_polymorphique(
+            1.0,
+            espace.compilatrice().typeuse.type_type_de_donnees(type_poly),
+            {},
+            {},
+            std::move(items_monomorphisation));
+    }
+
+    return CandidateAppariement::initialisation_structure(
+        1.0,
+        déclaration_type_composé,
+        déclaration_type_composé->type->comme_type_compose(),
+        {},
+        {},
+        std::move(items_monomorphisation));
+}
+
+static ResultatAppariement apparie_construction_type_composé(
+    NoeudExpressionAppel const *expr,
+    NoeudDeclarationType *déclaration_type_composé,
+    TypeCompose const *type_compose,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
     POUR_INDEX (type_compose->membres) {
@@ -1109,10 +1107,50 @@ static ResultatAppariement apparie_appel_structure(
     }
 
     return CandidateAppariement::initialisation_structure(poids_appariement,
-                                                          decl_struct,
-                                                          decl_struct->type,
+                                                          déclaration_type_composé,
+                                                          déclaration_type_composé->type,
                                                           std::move(apparieuse_params.slots()),
                                                           std::move(transformations));
+}
+
+static ResultatAppariement apparie_appel_structure(
+    EspaceDeTravail &espace,
+    NoeudExpressionAppel const *expr,
+    NoeudStruct *decl_struct,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
+    assert(!decl_struct->est_union);
+
+    if (decl_struct->est_polymorphe) {
+        return apparie_construction_type_composé_polymorphique(
+            espace, expr, arguments, decl_struct, decl_struct->bloc_constantes);
+    }
+
+    return apparie_construction_type_composé(
+        expr, decl_struct, decl_struct->type->comme_type_compose(), arguments);
+}
+
+static ResultatAppariement apparie_construction_union(
+    EspaceDeTravail &espace,
+    NoeudExpressionAppel const *expr,
+    NoeudStruct *decl_struct,
+    kuri::tableau<IdentifiantEtExpression> const &arguments)
+{
+    if (decl_struct->est_polymorphe) {
+        return apparie_construction_type_composé_polymorphique(
+            espace, expr, arguments, decl_struct, decl_struct->bloc_constantes);
+    }
+
+    if (expr->parametres.taille() > 1) {
+        return ErreurAppariement::expression_extra_pour_union(expr);
+    }
+
+    if (expr->parametres.taille() == 0) {
+        return ErreurAppariement::expression_manquante_union(expr);
+    }
+
+    return apparie_construction_type_composé(
+        expr, decl_struct, decl_struct->type->comme_type_compose(), arguments);
 }
 
 /* ************************************************************************** */
@@ -1300,8 +1338,14 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                     return Attente::sur_type(decl->type);
                 }
 
-                état->résultats.ajoute(
-                    apparie_appel_structure(espace, expr, decl_struct, état->args));
+                if (decl_struct->est_union) {
+                    état->résultats.ajoute(
+                        apparie_construction_union(espace, expr, decl_struct, état->args));
+                }
+                else {
+                    état->résultats.ajoute(
+                        apparie_appel_structure(espace, expr, decl_struct, état->args));
+                }
             }
             else if (decl->est_type_opaque()) {
                 auto decl_opaque = decl->comme_type_opaque();
@@ -1346,8 +1390,8 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                     else if (type_connu->est_type_union()) {
                         auto type_union = type_connu->comme_type_union();
 
-                        état->résultats.ajoute(
-                            apparie_appel_structure(espace, expr, type_union->decl, état->args));
+                        état->résultats.ajoute(apparie_construction_union(
+                            espace, expr, type_union->decl, état->args));
                     }
                     else if (type_connu->est_type_opaque()) {
                         auto type_opaque = type_connu->comme_type_opaque();
