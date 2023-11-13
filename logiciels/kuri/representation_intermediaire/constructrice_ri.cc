@@ -3604,7 +3604,12 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [type]() {
+    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [&]() {
+        if (m_fonction_courante) {
+            std::cerr << "Dans la génération de RI pour " << m_fonction_courante->nom << " :\n";
+            std::cerr << *m_fonction_courante->decl << '\n';
+            std::cerr << chaine_type(m_fonction_courante->decl->type_initialisé()) << '\n';
+        }
         std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
     });
 

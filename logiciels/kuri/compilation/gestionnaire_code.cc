@@ -1521,6 +1521,8 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     determine_dependances(fonction, unite->espace, *graphe);
     determine_dependances(fonction->corps, unite->espace, *graphe);
 
+    assert(toutes_les_entêtes_à_valider_le_sont());
+
     unite->mute_raison_d_être(RaisonDEtre::GENERATION_RI);
     auto espace = unite->espace;
     TACHE_AJOUTEE(GENERATION_RI);
