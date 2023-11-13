@@ -95,8 +95,32 @@ RAPPEL_POUR_EST_RÉSOLUE(type)
 RAPPEL_POUR_ERREUR(type)
 {
     auto espace = unite->espace;
-    auto noeud = unite->noeud;
-    auto site = noeud;
+
+    /* À FAIRE : garantis un site valide pour chaque attente. */
+    auto site = NoeudExpression::nul();
+    switch (unite->donne_raison_d_être()) {
+        case RaisonDEtre::AUCUNE:
+        case RaisonDEtre::CHARGEMENT_FICHIER:
+        case RaisonDEtre::LEXAGE_FICHIER:
+        case RaisonDEtre::PARSAGE_FICHIER:
+        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
+        case RaisonDEtre::CONVERSION_NOEUD_CODE:
+        case RaisonDEtre::ENVOIE_MESSAGE:
+        case RaisonDEtre::GENERATION_RI:
+        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
+        case RaisonDEtre::EXECUTION:
+        case RaisonDEtre::LIAISON_PROGRAMME:
+        case RaisonDEtre::GENERATION_CODE_MACHINE:
+        {
+            break;
+        }
+        case RaisonDEtre::TYPAGE:
+        {
+            site = unite->noeud;
+            break;
+        }
+    }
+
     if (site && site->est_corps_fonction()) {
         auto corps = site->comme_corps_fonction();
         auto index_courant = unite->index_courant;
