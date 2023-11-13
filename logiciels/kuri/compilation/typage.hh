@@ -490,7 +490,7 @@ struct TypePolymorphique : public Type {
     IdentifiantCode *ident = nullptr;
 
     bool est_structure_poly = false;
-    NoeudStruct *structure = nullptr;
+    NoeudStruct const *structure = nullptr;
 };
 
 struct TypeOpaque : public Type {
