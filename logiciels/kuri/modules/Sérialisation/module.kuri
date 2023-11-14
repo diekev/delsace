@@ -154,3 +154,61 @@ désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_d
     désérialiseuse.curseur += (taille_de(T) comme z64)
     retourne résultat
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier binaire.
+ * \{ */
+
+FichierBinaire :: struct {
+    contenu : []octet
+    curseur : z32
+}
+
+lis_z8 :: fonc (fichier: *FichierBinaire) -> z8
+{
+    a := fichier.contenu[fichier.curseur] comme z8
+
+    fichier.curseur += 1
+
+    retourne a
+}
+
+lis_z16 :: fonc (fichier: *FichierBinaire) -> z16
+{
+    a := fichier.contenu[fichier.curseur] comme z16
+    b := fichier.contenu[fichier.curseur + 1] comme z16
+
+    fichier.curseur += 2
+
+    retourne b << 8 | a
+}
+
+lis_z32 :: fonc (fichier: *FichierBinaire) -> z32
+{
+    a := fichier.contenu[fichier.curseur] comme z32
+    b := fichier.contenu[fichier.curseur + 1] comme z32
+    c := fichier.contenu[fichier.curseur + 2] comme z32
+    d := fichier.contenu[fichier.curseur + 3] comme z32
+
+    fichier.curseur += 4
+
+    retourne d << 24 | c << 16 | b << 8 | a
+}
+
+lis_n64 :: fonc (fichier: *FichierBinaire) -> n64
+{
+    a := fichier.contenu[fichier.curseur] comme n64
+    b := fichier.contenu[fichier.curseur + 1] comme n64
+    c := fichier.contenu[fichier.curseur + 2] comme n64
+    d := fichier.contenu[fichier.curseur + 3] comme n64
+    e := fichier.contenu[fichier.curseur + 4] comme n64
+    f := fichier.contenu[fichier.curseur + 5] comme n64
+    g := fichier.contenu[fichier.curseur + 6] comme n64
+    h := fichier.contenu[fichier.curseur + 7] comme n64
+
+    fichier.curseur += 8
+
+    retourne h << 56 | g << 48 | f << 40 | e << 32 | d << 24 | c << 16 | b << 8 | a
+}
+
+/** } */
