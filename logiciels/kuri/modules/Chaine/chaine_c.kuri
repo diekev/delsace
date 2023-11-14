@@ -32,12 +32,18 @@ crée_chaine_c_temp :: fonc (chn: chaine) -> ChaineC
     retourne ChaineC(tampon comme *z8)
 }
 
-// Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+/* Crée une chaine native depuis une chaine C.
+ * La chaine retournée est allouée, et doit être délogée par le client. */
 convertis_chaine_c :: fonc (chn: ChaineC) -> chaine
 {
+    retourne copie_chaine(convertis_chaine_c_statique(résultat))
+}
+
+/* Crée une chaine native depuis une chaine C sans allouer de mémoire. */
+convertis_chaine_c_statique :: fonc (chn: ChaineC) -> chaine
+{
     taille := taille_chaine_c(chn)
-    résultat := construit_chaine(chn comme *z8, taille)
-    retourne copie_chaine(résultat)
+    retourne construit_chaine(chn comme *z8, taille)
 }
 
 détruit_chaine_c :: fonc (chn: &ChaineC)
