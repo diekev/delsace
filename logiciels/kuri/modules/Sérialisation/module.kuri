@@ -212,3 +212,88 @@ lis_n64 :: fonc (fichier: *FichierBinaire) -> n64
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponOctetFixe
+ * \{ */
+
+TamponOctetFixe :: struct {
+    données: [512]octet
+    position : z32
+}
+
+lis_n8 :: fonc (tampon: *TamponOctetFixe) -> n8
+{
+    tampon.position += 1
+    retourne tampon.données[tampon.position - 1] comme n8
+}
+
+lis_n16 :: fonc (tampon: *TamponOctetFixe) -> n16
+{
+    retourne tampon.lis_n8() comme n16 << 8 | tampon.lis_n8() comme n16
+}
+
+lis_n32 :: fonc (tampon: *TamponOctetFixe) -> n32
+{
+    retourne tampon.lis_n8() comme n32 << 24 | tampon.lis_n8() comme n32 << 16 | tampon.lis_n8() comme n32 << 8 | tampon.lis_n8() comme n32
+}
+
+positionne :: fonc (tampon: *TamponOctetFixe, position: z32)
+{
+    tampon.position = position
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponOctetDynamique
+ * \{ */
+
+TamponOctetDynamique :: struct {
+    données: []octet
+    curseur := 0
+}
+
+détruit_tampon :: fonc (tampon: *TamponOctetDynamique)
+{
+    déloge(tampon.données)
+}
+
+sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z32)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + 4)
+    sérialise_entier(tampon.données, curseur, entier)
+}
+
+sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z64)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + 8)
+    sérialise_entier(tampon.données, curseur, entier)
+}
+
+sérialise_chaine_sans_taille :: fonc (tampon: *TamponOctetDynamique, chn: chaine)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + chn.taille)
+    sérialise_chaine_sans_taille(tampon.données, curseur, chn)
+}
+
+désérialise_z32 :: fonc (tampon: *TamponOctetDynamique) -> z32
+{
+    résultat : z32
+    désérialise_entier(tampon.données, tampon.curseur, *résultat)
+    tampon.curseur += taille_de(z32) comme z32
+    retourne résultat
+}
+
+désérialise_chaine :: fonc (tampon: *TamponOctetDynamique) -> chaine
+{
+    résultat : chaine
+    désérialise_chaine(tampon.données, tampon.curseur, *résultat)
+    tampon.curseur += (résultat.taille + taille_de(z64) comme z64) comme z32
+    retourne résultat
+}
+
+/** } */
