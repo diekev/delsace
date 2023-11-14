@@ -136,9 +136,9 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
     tableau_ajoute(*tabuleuse.lignes, ligne)
 }
 
-alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
+définis_alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
 {
-    tabuleuse.alignements[idx] = align comme z32
+    tabuleuse.alignements[idx] = align
 }
 
 imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
