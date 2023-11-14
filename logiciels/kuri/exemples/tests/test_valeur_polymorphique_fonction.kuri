@@ -1,4 +1,5 @@
 importe Fondation
+importe Sérialisation
 
 imprime_N :: fonc (tampon: *TamponFixe(T = $T, N = N) @inutilisée, $N: z64)
 {

@@ -154,3 +154,163 @@ désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_d
     désérialiseuse.curseur += (taille_de(T) comme z64)
     retourne résultat
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier binaire.
+ * \{ */
+
+FichierBinaire :: struct {
+    contenu : []octet
+    curseur : z32
+}
+
+lis_z8 :: fonc (fichier: *FichierBinaire) -> z8
+{
+    a := fichier.contenu[fichier.curseur] comme z8
+
+    fichier.curseur += 1
+
+    retourne a
+}
+
+lis_z16 :: fonc (fichier: *FichierBinaire) -> z16
+{
+    a := fichier.contenu[fichier.curseur] comme z16
+    b := fichier.contenu[fichier.curseur + 1] comme z16
+
+    fichier.curseur += 2
+
+    retourne b << 8 | a
+}
+
+lis_z32 :: fonc (fichier: *FichierBinaire) -> z32
+{
+    a := fichier.contenu[fichier.curseur] comme z32
+    b := fichier.contenu[fichier.curseur + 1] comme z32
+    c := fichier.contenu[fichier.curseur + 2] comme z32
+    d := fichier.contenu[fichier.curseur + 3] comme z32
+
+    fichier.curseur += 4
+
+    retourne d << 24 | c << 16 | b << 8 | a
+}
+
+lis_n64 :: fonc (fichier: *FichierBinaire) -> n64
+{
+    a := fichier.contenu[fichier.curseur] comme n64
+    b := fichier.contenu[fichier.curseur + 1] comme n64
+    c := fichier.contenu[fichier.curseur + 2] comme n64
+    d := fichier.contenu[fichier.curseur + 3] comme n64
+    e := fichier.contenu[fichier.curseur + 4] comme n64
+    f := fichier.contenu[fichier.curseur + 5] comme n64
+    g := fichier.contenu[fichier.curseur + 6] comme n64
+    h := fichier.contenu[fichier.curseur + 7] comme n64
+
+    fichier.curseur += 8
+
+    retourne h << 56 | g << 48 | f << 40 | e << 32 | d << 24 | c << 16 | b << 8 | a
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponOctetFixe
+ * \{ */
+
+TamponOctetFixe :: struct {
+    données: [512]octet
+    position : z32
+}
+
+lis_n8 :: fonc (tampon: *TamponOctetFixe) -> n8
+{
+    tampon.position += 1
+    retourne tampon.données[tampon.position - 1] comme n8
+}
+
+lis_n16 :: fonc (tampon: *TamponOctetFixe) -> n16
+{
+    retourne tampon.lis_n8() comme n16 << 8 | tampon.lis_n8() comme n16
+}
+
+lis_n32 :: fonc (tampon: *TamponOctetFixe) -> n32
+{
+    retourne tampon.lis_n8() comme n32 << 24 | tampon.lis_n8() comme n32 << 16 | tampon.lis_n8() comme n32 << 8 | tampon.lis_n8() comme n32
+}
+
+positionne :: fonc (tampon: *TamponOctetFixe, position: z32)
+{
+    tampon.position = position
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponOctetDynamique
+ * \{ */
+
+TamponOctetDynamique :: struct {
+    données: []octet
+    curseur := 0
+}
+
+détruit_tampon :: fonc (tampon: *TamponOctetDynamique)
+{
+    déloge(tampon.données)
+}
+
+sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z32)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + 4)
+    sérialise_entier(tampon.données, curseur, entier)
+}
+
+sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z64)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + 8)
+    sérialise_entier(tampon.données, curseur, entier)
+}
+
+sérialise_chaine_sans_taille :: fonc (tampon: *TamponOctetDynamique, chn: chaine)
+{
+    curseur := tampon.données.taille
+    tableau_redimensionne(tampon.données, curseur + chn.taille)
+    sérialise_chaine_sans_taille(tampon.données, curseur, chn)
+}
+
+désérialise_z32 :: fonc (tampon: *TamponOctetDynamique) -> z32
+{
+    résultat : z32
+    désérialise_entier(tampon.données, tampon.curseur, *résultat)
+    tampon.curseur += taille_de(z32) comme z32
+    retourne résultat
+}
+
+désérialise_chaine :: fonc (tampon: *TamponOctetDynamique) -> chaine
+{
+    résultat : chaine
+    désérialise_chaine(tampon.données, tampon.curseur, *résultat)
+    tampon.curseur += (résultat.taille + taille_de(z64) comme z64) comme z32
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponFixe
+ * \{ */
+
+TamponFixe :: struct ($T: type_de_données, $N: z64) {
+    données : [N]T
+    curseur : z64 = 0
+}
+
+ajoute :: fonc (tampon: *TamponFixe(T = $T, N = N), v: T, $N: z64) #enligne
+{
+    tampon.données[tampon.curseur] = v
+    tampon.curseur += 1
+}
+
+/** } */

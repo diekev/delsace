@@ -2,6 +2,7 @@
  */
 
 importe Fondation
+importe Sérialisation
 
 __chaine_jour_pour_tm := ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 

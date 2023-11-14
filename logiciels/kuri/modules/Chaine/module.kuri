@@ -61,3 +61,40 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> boo
 
     retourne vrai
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChaineFixe
+ * \{ */
+
+ChaineFixe :: struct {
+    données: [23]z8 // À FAIRE : polymorphise, 23 est pour HTML
+    taille: z8
+}
+
+chaine_ajoute :: fonc (chn: *ChaineFixe, c: z8)
+{
+    chn.données[chn.taille] = c
+    chn.taille += 1
+}
+
+chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
+{
+    nombre_octets := point_de_code_vers_utf8(point_de_code, *chn.données[chn.taille] comme *n8)
+
+    si nombre_octets == 0 {
+        // À FAIRE : que faire ici ?
+        retourne
+    }
+
+    chn.taille += nombre_octets comme z8
+}
+
+converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
+{
+    résultat : chaine = ---
+    résultat.pointeur = *chn.données[0]
+    résultat.taille = chn.taille
+    retourne résultat
+}
+
+/** } */
