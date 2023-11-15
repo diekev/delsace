@@ -1815,6 +1815,29 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
         return nullptr;
     }
 
+    if (op_binaire->op == OpérateurBinaire::Genre::Ou_Binaire ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Droite_Arithm ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Droite_Logique ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Gauche) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Et_Binaire) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return droite;
+        }
+
+        return nullptr;
+    }
+
     return nullptr;
 }
 
