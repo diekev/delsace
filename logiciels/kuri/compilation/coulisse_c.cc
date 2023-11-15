@@ -99,12 +99,6 @@ struct GénératriceCodeC {
     kuri::chaine_statique génère_code_pour_atome_valeur_constante(
         AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale);
 
-    void débute_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
-
-    void termine_trace_appel(InstructionAppel const *inst_appel, Enchaineuse &os);
-
-    void initialise_trace_appel(AtomeFonction const *atome_fonc, Enchaineuse &os);
-
     void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
     void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
@@ -767,30 +761,10 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 
 /* ************************************************************************** */
 
-/* Ceci nous permet de tester le moultfilage en attendant de résoudre les concurrences critiques de
- * l'accès au contexte. */
-#define AJOUTE_TRACE_APPEL
-
 static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
     enchaineuse << "#include <stdint.h>\n";
-
-    enchaineuse <<
-        R"(
-#define INITIALISE_TRACE_APPEL(_nom_globale) \
-    KuriTraceAppel ma_trace = { 0 }; \
-    ma_trace.info_fonction = _nom_globale; \
-    ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
-    ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
-
-#define DEBUTE_RECORD_TRACE_APPEL(_nom_globale) \
-    ma_trace.info_appel = _nom_globale; \
-     __contexte_fil_principal.trace_appel = &ma_trace;
-
-#define TERMINE_RECORD_TRACE_APPEL \
-   __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
-	)";
 
     /* Déclaration des types de bases*/
 
@@ -1148,61 +1122,6 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
     return "";
 }
 
-void GénératriceCodeC::débute_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
-{
-#ifndef AJOUTE_TRACE_APPEL
-    return;
-#else
-    /* La fonction d'initialisation des globales n'a pas de site. */
-    if (m_fonction_courante->sanstrace || !inst_appel->site) {
-        return;
-    }
-
-    if (!m_espace.options.utilise_trace_appel) {
-        return;
-    }
-
-    static const auto DÉBUTE_RECORD = kuri::chaine_statique("  DEBUTE_RECORD_TRACE_APPEL(");
-    os << DÉBUTE_RECORD << génère_code_pour_atome(inst_appel->info_trace_appel, os, false)
-       << ");\n";
-#endif
-}
-
-void GénératriceCodeC::termine_trace_appel(const InstructionAppel *inst_appel, Enchaineuse &os)
-{
-#ifndef AJOUTE_TRACE_APPEL
-    return;
-#else
-    if (m_fonction_courante->sanstrace || !inst_appel->site) {
-        return;
-    }
-
-    if (!m_espace.options.utilise_trace_appel) {
-        return;
-    }
-
-    os << "  TERMINE_RECORD_TRACE_APPEL;\n";
-#endif
-}
-
-void GénératriceCodeC::initialise_trace_appel(const AtomeFonction *atome_fonc, Enchaineuse &os)
-{
-#ifndef AJOUTE_TRACE_APPEL
-    return;
-#else
-    if (atome_fonc->sanstrace || !atome_fonc->info_trace_appel) {
-        return;
-    }
-
-    if (!m_espace.options.utilise_trace_appel) {
-        return;
-    }
-
-    os << "INITIALISE_TRACE_APPEL("
-       << génère_code_pour_atome(atome_fonc->info_trace_appel, os, false) << ");\n";
-#endif
-}
-
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
@@ -1224,8 +1143,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case Instruction::Genre::APPEL:
         {
             auto inst_appel = inst->comme_appel();
-
-            débute_trace_appel(inst_appel, os);
 
             auto arguments = kuri::tablet<kuri::chaine, 10>();
 
@@ -1257,8 +1174,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 
             os << ");\n";
-
-            termine_trace_appel(inst_appel, os);
 
             break;
         }
@@ -1725,8 +1640,6 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
     os << "\n{\n";
 
-    initialise_trace_appel(atome_fonc, os);
-
     m_fonction_courante = atome_fonc;
 
     /* Créons une variable locale pour la valeur de sortie. */
@@ -1860,30 +1773,6 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
 #endif
 }
 
-/* Retourne le nombre d'instructions de la fonction en prenant en compte le besoin d'ajouter les
- * traces d'appel. Ceci afin d'éviter de générer des fichiers trop grand après expansion des macros
- * et accélérer un peu la compilation. */
-static int nombre_effectif_d_instructions(AtomeFonction const &fonction)
-{
-    auto résultat = fonction.instructions.taille();
-
-#ifdef AJOUTE_TRACE_APPEL
-    if (fonction.sanstrace) {
-        return résultat;
-    }
-
-    résultat += 1;
-
-    POUR (fonction.instructions) {
-        if (it->est_appel()) {
-            résultat += 2;
-        }
-    }
-#endif
-
-    return résultat;
-}
-
 void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
                                    CoulisseC &coulisse,
                                    Enchaineuse &os)
@@ -1936,7 +1825,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
         }
 
         génère_code_fonction(it, os);
-        nombre_instructions += nombre_effectif_d_instructions(*it);
+        nombre_instructions += it->instructions.taille();
 
         /* Vide l'enchaineuse si nous avons dépassé le maximum d'instructions, sauf si nous
          * compilons un fichier objet car nous devons n'avoir qu'un seul fichier "*.o". */
