@@ -4148,6 +4148,69 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstr
     empile_valeur(pointeur_tableau);
 }
 
+AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction)
+{
+    /* @concurrence critique. */
+    if (pour_fonction->info_trace_appel) {
+        return pour_fonction->info_trace_appel;
+    }
+
+    auto type_info_fonction_trace_appel = m_compilatrice.typeuse.type_info_fonction_trace_appel;
+    auto decl = pour_fonction->decl;
+    auto fichier = m_compilatrice.fichier(decl->lexeme->fichier);
+    auto nom_fonction = decl->ident ? crée_chaine(decl->ident->nom) : crée_chaine("???");
+    auto nom_fichier = crée_chaine(fichier->nom());
+
+    kuri::tableau<AtomeConstante *> valeurs(3);
+    valeurs[0] = nom_fonction;
+    valeurs[1] = nom_fichier;
+    // À FAIRE : adresse pour_fonction;
+    valeurs[2] = m_constructrice.crée_constante_nulle(TypeBase::PTR_RIEN);
+
+    auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
+                                                                   std::move(valeurs));
+
+    pour_fonction->info_trace_appel = m_constructrice.crée_globale(
+        type_info_fonction_trace_appel, initialisateur, false, true);
+
+    return pour_fonction->info_trace_appel;
+}
+
+AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel *pour_appel)
+{
+    /* @concurrence critique. */
+    if (pour_appel->info_trace_appel) {
+        return pour_appel->info_trace_appel;
+    }
+
+    auto type_info_appel_trace_appel = m_compilatrice.typeuse.type_info_appel_trace_appel;
+
+    /* Ligne colonne texte. */
+    kuri::tableau<AtomeConstante *> valeurs(3);
+    if (pour_appel->site) {
+        auto const lexeme = pour_appel->site->lexeme;
+        auto const fichier = m_compilatrice.fichier(pour_appel->site->lexeme->fichier);
+        auto const texte_ligne = fichier->tampon()[lexeme->ligne];
+
+        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
+        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne));
+        valeurs[2] = crée_chaine(kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
+    }
+    else {
+        valeurs[0] = m_constructrice.crée_z32(0);
+        valeurs[1] = m_constructrice.crée_z32(0);
+        valeurs[2] = crée_chaine("???");
+    }
+
+    auto initialisateur = m_constructrice.crée_constante_structure(type_info_appel_trace_appel,
+                                                                   std::move(valeurs));
+
+    pour_appel->info_trace_appel = m_constructrice.crée_globale(
+        type_info_appel_trace_appel, initialisateur, false, true);
+
+    return pour_appel->info_trace_appel;
+}
+
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
 {
     m_constructrice.rassemble_statistiques(stats);
