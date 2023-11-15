@@ -352,6 +352,8 @@ struct AtomeFonction : public Atome {
 
     int64_t decalage_appel_init_globale = 0;
 
+    AtomeGlobale *info_trace_appel = nullptr;
+
     AtomeFonction(Lexeme const *lexeme_, kuri::chaine_statique nom_) : nom(nom_), lexeme(lexeme_)
     {
         genre_atome = Atome::Genre::FONCTION;
@@ -499,6 +501,7 @@ struct InstructionAppel : public Instruction {
     Atome *appele = nullptr;
     kuri::tableau<Atome *, int> args{};
     InstructionAllocation *adresse_retour = nullptr;
+    AtomeGlobale *info_trace_appel = nullptr;
 
     EMPECHE_COPIE(InstructionAppel);
 
