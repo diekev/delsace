@@ -2504,10 +2504,19 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
         case TypeTransformation::EXTRAIT_EINI:
         {
             valeur = m_constructrice.crée_référence_membre(noeud, valeur, 0);
+
+            /* eini.pointeur est une adresse vers une adresse, donc nous avons deux niveaux de
+             * pointeur. */
             auto type_cible = m_compilatrice.typeuse.type_pointeur_pour(
                 const_cast<Type *>(transformation.type_cible), false);
+            type_cible = m_compilatrice.typeuse.type_pointeur_pour(type_cible, false);
+
             valeur = m_constructrice.crée_transtype(
                 noeud, type_cible, valeur, TypeTranstypage::BITS);
+
+            /* Déréférence eini.pointeur pour obtenir l'adresse de la valeur. */
+            valeur = m_constructrice.crée_charge_mem(noeud, valeur);
+            /* Charge la valeur depuis son adresse. */
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             break;
         }
@@ -4187,6 +4196,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     pour_fonction->info_trace_appel = m_constructrice.crée_globale(
         type_info_fonction_trace_appel, initialisateur, false, true);
 
+    crée_trace_appel(pour_fonction);
+
     return pour_fonction->info_trace_appel;
 }
 
@@ -4223,6 +4234,107 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
         type_info_appel_trace_appel, initialisateur, false, true);
 
     return pour_appel->info_trace_appel;
+}
+
+void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
+{
+    auto type_trace_appel = m_compilatrice.typeuse.type_trace_appel->comme_type_compose();
+    auto contexte_fil_principale = m_constructrice.trouve_globale(
+        m_compilatrice.globale_contexte_programme);
+    auto type_contexte_fil_principal = m_compilatrice.typeuse.type_contexte->comme_type_compose();
+    auto index_trace_appel_contexte =
+        donne_membre_pour_nom(type_contexte_fil_principal, ID::trace_appel)->index_membre;
+
+    auto anciennes_instructions = fonction->instructions;
+    fonction->instructions.efface();
+
+    définis_fonction_courante(fonction);
+
+    /* Insère le premier label. */
+    assert(anciennes_instructions[0]->est_label());
+    fonction->instructions.ajoute(anciennes_instructions[0]);
+
+    auto const index_précédente =
+        donne_membre_pour_nom(type_trace_appel, ID::précédente)->index_membre;
+    auto const index_info_fonction =
+        donne_membre_pour_nom(type_trace_appel, ID::info_fonction)->index_membre;
+    auto const index_info_appel =
+        donne_membre_pour_nom(type_trace_appel, ID::info_appel)->index_membre;
+    auto const index_profondeur =
+        donne_membre_pour_nom(type_trace_appel, ID::profondeur)->index_membre;
+
+    /* Crée la variable pour la trace d'appel. */
+    auto trace_appel = m_constructrice.crée_allocation(nullptr, type_trace_appel, nullptr);
+
+    /* trace.info_fonction = *info_fonction */
+    auto ref_info_fonction = m_constructrice.crée_référence_membre(
+        nullptr, trace_appel, index_info_fonction);
+    m_constructrice.crée_stocke_mem(nullptr, ref_info_fonction, fonction->info_trace_appel);
+
+    /* trace.précédente = __contexte_fil_principal.trace_appel */
+    auto trace_appel_contexte = m_constructrice.crée_référence_membre(
+        nullptr, contexte_fil_principale, index_trace_appel_contexte);
+    auto ref_trace_précédente = m_constructrice.crée_référence_membre(
+        nullptr, trace_appel, index_précédente);
+    m_constructrice.crée_stocke_mem(
+        nullptr,
+        ref_trace_précédente,
+        m_constructrice.crée_charge_mem(nullptr, trace_appel_contexte));
+
+    /* trace.profondeur = trace.précédente.profondeur + 1 */
+    auto ref_trace_précédente2 = m_constructrice.crée_référence_membre(
+        nullptr, trace_appel, index_précédente);
+    auto charge_ref_trace_précédente2 = m_constructrice.crée_charge_mem(nullptr,
+                                                                        ref_trace_précédente2);
+    auto ref_profondeur2 = m_constructrice.crée_référence_membre(
+        nullptr, charge_ref_trace_précédente2, index_profondeur);
+    auto charge_profondeur2 = m_constructrice.crée_charge_mem(nullptr, ref_profondeur2);
+    auto incrémentation = m_constructrice.crée_op_binaire(nullptr,
+                                                          TypeBase::Z32,
+                                                          OpérateurBinaire::Genre::Addition,
+                                                          charge_profondeur2,
+                                                          m_constructrice.crée_z32(1));
+
+    auto ref_profondeur = m_constructrice.crée_référence_membre(
+        nullptr, trace_appel, index_profondeur);
+    m_constructrice.crée_stocke_mem(nullptr, ref_profondeur, incrémentation);
+
+    /* Copie les instructions et crée les modifications de la trace d'appel. */
+
+    for (auto i = 1; i < anciennes_instructions.taille(); i++) {
+        auto inst = anciennes_instructions[i];
+
+        if (inst->est_appel()) {
+            /* Définis trace appel. */
+            /* trace_appel.info_appel = *info_appel */
+            auto ref_info_appel = m_constructrice.crée_référence_membre(
+                nullptr, trace_appel, index_info_appel);
+            m_constructrice.crée_stocke_mem(
+                nullptr, ref_info_appel, inst->comme_appel()->info_trace_appel);
+
+            /* __contexte_fil_principal.trace_appel = *ma_trace */
+            auto ref_trace_appel_contexte = m_constructrice.crée_référence_membre(
+                nullptr, contexte_fil_principale, index_trace_appel_contexte);
+            m_constructrice.crée_stocke_mem(nullptr, ref_trace_appel_contexte, trace_appel);
+        }
+
+        fonction->instructions.ajoute(inst);
+
+        if (inst->est_appel()) {
+            /* Restaure trace appel. */
+            /* __contexte_fil_principal.trace_appel = ma_trace.précédente */
+            auto ref_trace_appel_contexte = m_constructrice.crée_référence_membre(
+                nullptr, contexte_fil_principale, index_trace_appel_contexte);
+            auto ref_trace_précédente3 = m_constructrice.crée_référence_membre(
+                nullptr, trace_appel, index_précédente);
+            auto charge_ref_trace_précédente3 = m_constructrice.crée_charge_mem(
+                nullptr, ref_trace_précédente3);
+            m_constructrice.crée_stocke_mem(
+                nullptr, ref_trace_appel_contexte, charge_ref_trace_précédente3);
+        }
+    }
+
+    définis_fonction_courante(nullptr);
 }
 
 void CompilatriceRI::rassemble_statistiques(Statistiques &stats)

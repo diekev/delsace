@@ -1,0 +1,20 @@
+/* Crash lors de l'accès à une valeur extraite automatiquement depuis un eini.
+ * Catégorie : [crash, génération code]
+ */
+
+importe Fondation
+
+VALEUR_CHAINE :: "test"
+
+imprime_valeur_chaine :: fonc (e: eini)
+{
+    c : chaine = e
+    valeur := imprime_chaine("%", c)
+    assert(valeur == VALEUR_CHAINE)
+}
+
+principale :: fonc () -> z32
+{
+    imprime_valeur_chaine(VALEUR_CHAINE)    
+    retourne 0
+}
