@@ -308,6 +308,9 @@ struct CompilatriceRI {
     void genere_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
                                                 const kuri::tableau<AtomeGlobale *> &globales);
 
+    AtomeGlobale *crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction);
+    AtomeGlobale *crée_info_appel_pour_trace_appel(InstructionAppel *pour_appel);
+
   private:
     void crée_appel_fonction_init_type(NoeudExpression *site_, Type const *type, Atome *argument);
 
