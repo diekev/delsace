@@ -12,6 +12,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
@@ -2553,3 +2554,18 @@ static bool les_invariants_de_la_fonction_sont_respectés(
     return true;
 }
 #endif
+
+void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
+{
+    Indentation indentation;
+
+    while (bloc) {
+        dbg() << indentation << "bloc " << bloc;
+        indentation.incrémente();
+
+        POUR (*bloc->membres.verrou_lecture()) {
+            dbg() << indentation << it->ident->nom << " (" << it->ident << ")";
+        }
+        bloc = bloc->bloc_parent;
+    }
+}
