@@ -33,7 +33,8 @@ extern "C" {
 #endif
 
 #ifndef __cplusplus
-#ifndef bool // bool est défini dans stdbool.h
+/* bool est défini dans stdbool.h */
+#ifndef bool
 typedef unsigned char bool;
 #endif
 typedef unsigned short  r16;

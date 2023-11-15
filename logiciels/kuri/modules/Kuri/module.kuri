@@ -12,8 +12,8 @@ charge "r16"
 // Par contre, ce fichier ne devrait pas pouvoir être modifié par les
 // utilisateurs du langage.
 
-malloc :: fonc (taille : z64) -> *rien #externe libc
-realloc :: fonc (ptr : *rien, taille : z64) -> *rien #externe libc
+malloc :: fonc (taille : n64) -> *rien #externe libc
+realloc :: fonc (ptr : *rien, taille : n64) -> *rien #externe libc
 free :: fonc (ptr : *rien) -> rien #externe libc
 
 // --------------------------
@@ -75,7 +75,7 @@ allocatrice_défaut :: fonc(
                 données.pic_de_mémoire = données.mémoire_utilisée
             }
 
-            retourne malloc(nouvelle_taille)
+            retourne malloc(nouvelle_taille comme n64)
         }
         RÉALLOUE {
             données.mémoire_utilisée += nouvelle_taille - ancienne_taille
@@ -86,7 +86,7 @@ allocatrice_défaut :: fonc(
                 données.pic_de_mémoire = données.mémoire_utilisée
             }
 
-            retourne realloc(ancien_pointeur, nouvelle_taille)
+            retourne realloc(ancien_pointeur, nouvelle_taille comme n64)
         }
         DÉSALLOUE {
             données.mémoire_utilisée -= ancienne_taille
@@ -296,7 +296,7 @@ enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> []TraceAppel
     n := nombre_de_trace(racine)
 
     /* À FAIRE: remplace l'appel à malloc par allocatrice_défaut, ou loge_mémoire. */
-    t := malloc(taille_de(TraceAppel) comme z64 * n)
+    t := malloc(taille_de(TraceAppel) * n comme n64)
 
     tableau_traces : []TraceAppel
     tableau_traces.pointeur = t
