@@ -803,7 +803,8 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
     enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
 #endif
-    enchaineuse << "#ifndef bool // bool est défini dans stdbool.h\n";
+    /* bool est défini dans stdbool.h */
+    enchaineuse << "#ifndef bool\n";
     enchaineuse << "typedef uint8_t bool;\n";
     enchaineuse << "#endif\n";
     enchaineuse << "typedef uint8_t octet;\n";
@@ -1273,7 +1274,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             auto condition = génère_code_pour_atome(inst_branche->condition, os, false);
             os << "  if (" << condition;
             os << ") goto " << nom_base_label << inst_branche->label_si_vrai->id << "; ";
-            os << " goto " << nom_base_label << inst_branche->label_si_faux->id << ";\n";
+            os << " else goto " << nom_base_label << inst_branche->label_si_faux->id << ";\n";
             break;
         }
         case Instruction::Genre::CHARGE_MEMOIRE:
@@ -1327,10 +1328,10 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case Instruction::Genre::LABEL:
         {
             auto inst_label = inst->comme_label();
+            /* Le premier label est inutile (en C). */
             if (inst_label->id != 0) {
-                os << "\n";
+                os << "\n" << nom_base_label << inst_label->id << ":;\n";
             }
-            os << nom_base_label << inst_label->id << ":;\n";
             break;
         }
         case Instruction::Genre::OPERATION_UNAIRE:
@@ -1991,7 +1992,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         return;
     }
 
-    os << "const int8_t DC[" << repr_inter.taille_données_tableaux_constants << "]";
+    os << "const uint8_t DC[" << repr_inter.taille_données_tableaux_constants << "]";
 
     if (pour_entête) {
         os << ";\n";
