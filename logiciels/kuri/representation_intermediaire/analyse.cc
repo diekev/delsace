@@ -772,8 +772,25 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
             return false;
         }
 
-        auto di = it->instructions.dernière();
+        /* Nous pouvons avoir du code après un retour, par exemple le code après une discrimination
+         * dont toutes les branches retournent de la fonction.
+         * À FAIRE : déplace le diagnostique et ne génère pas la RI dans ce cas. */
+        auto branche_ou_retour_rencontré = false;
+        auto avertissement_donné = false;
+        POUR_NOMME (inst, it->instructions) {
+            if (inst->est_branche_ou_retourne()) {
+                branche_ou_retour_rencontré = true;
+                continue;
+            }
 
+            if (branche_ou_retour_rencontré && inst->site && !avertissement_donné) {
+                espace.rapporte_avertissement(inst->site,
+                                              "L'expression ne sera jamais évaluée.\n");
+                avertissement_donné = true;
+            }
+        }
+
+        auto di = it->instructions.dernière();
         if (di->est_branche_ou_retourne()) {
             continue;
         }
@@ -786,6 +803,7 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
         espace.rapporte_erreur(
             di->site, "Erreur interne : un bloc ne finit pas par une branche ou un retour !\n");
+        return false;
     }
 
     return true;
