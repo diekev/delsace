@@ -143,7 +143,12 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(chemin_de_ce_module, "chemin_de_ce_module")                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(nom_de_cette_fonction, "nom_de_cette_fonction")             \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__ret0, "__ret0")                                           \
-    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(libc, "libc")
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(libc, "libc")                                               \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(précédente, "précédente")                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_fonction, "info_fonction")                             \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(info_appel, "info_appel")                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(profondeur, "profondeur")                                   \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(trace_appel, "trace_appel")
 
 namespace ID {
 #define ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(x, y) extern IdentifiantCode *x;
