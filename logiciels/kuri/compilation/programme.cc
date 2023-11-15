@@ -1054,6 +1054,37 @@ std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
         génère_ri_fonction_init_globales(espace, compilatrice_ri, decl_init_globales, résultat);
     }
 
+    /* Créations des globales pour les traces d'appel. */
+    if (espace.options.utilise_trace_appel) {
+        POUR (résultat.fonctions) {
+            if (it->sanstrace || it->est_externe) {
+                continue;
+            }
+
+            bool possède_appels = false;
+            POUR_NOMME (inst, it->instructions) {
+                if (!inst->est_appel()) {
+                    continue;
+                }
+                possède_appels = true;
+                auto info_trace = compilatrice_ri.crée_info_appel_pour_trace_appel(
+                    inst->comme_appel());
+                résultat.ajoute_globale(info_trace);
+            }
+
+            /* Ne créons pas de globale si la fonction n'appelle rien. */
+            if (!possède_appels) {
+                continue;
+            }
+
+            auto info_trace_appel = compilatrice_ri.crée_info_fonction_pour_trace_appel(it);
+            résultat.ajoute_globale(info_trace_appel);
+        }
+
+        rassemble_globales_supplémentaires(résultat);
+        rassemble_types_supplémentaires(résultat);
+    }
+
     génère_table_des_types(espace.compilatrice().typeuse, résultat, compilatrice_ri);
 
     switch (espace.options.resultat) {
