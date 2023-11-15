@@ -260,6 +260,23 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
+            if (expr_un->op && expr_un->op->genre == OpérateurUnaire::Genre::Complement) {
+                if (expr_un->operande->est_litterale_entier()) {
+                    auto littérale = expr_un->operande->comme_litterale_entier();
+                    auto valeur_entière = int64_t(littérale->valeur);
+                    valeur_entière = -valeur_entière;
+                    littérale->valeur = uint64_t(valeur_entière);
+                    expr_un->substitution = littérale;
+                    return;
+                }
+                if (expr_un->operande->est_litterale_reel()) {
+                    auto littérale = expr_un->operande->comme_litterale_reel();
+                    littérale->valeur = -littérale->valeur;
+                    expr_un->substitution = littérale;
+                    return;
+                }
+            }
+
             simplifie(expr_un->operande);
 
             /* op peut être nul pour les opérateurs ! et * */
