@@ -36,7 +36,7 @@ crée_chaine_c_temp :: fonc (chn: chaine) -> ChaineC
  * La chaine retournée est allouée, et doit être délogée par le client. */
 convertis_chaine_c :: fonc (chn: ChaineC) -> chaine
 {
-    retourne copie_chaine(convertis_chaine_c_statique(résultat))
+    retourne copie_chaine(convertis_chaine_c_statique(chn))
 }
 
 /* Crée une chaine native depuis une chaine C sans allouer de mémoire. */

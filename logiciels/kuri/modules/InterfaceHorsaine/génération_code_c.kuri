@@ -154,26 +154,26 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
     discr type.id {
         ENTIER {
             info_entier := type comme *InfoTypeEntier
-            index := index_bit_taille_octet(info_entier.taille_en_octet)
+            index_nom := index_bit_taille_octet(info_entier.taille_en_octet)
             noms_signed := ["int8_t", "int16_t", "int32_t", "int64_t"]
 
             si info_entier.est_signé {
-                nouveau_type.nom_type_c = copie_chaine(noms_signed[index])
-                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[index])
-                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[index])
+                nouveau_type.nom_type_c = copie_chaine(noms_signed[index_nom])
+                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[index_nom])
+                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[index_nom])
             }
             sinon {
-                nouveau_type.nom_type_c = enchaine("u", noms_signed[index])
-                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[index])
-                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[index])
+                nouveau_type.nom_type_c = enchaine("u", noms_signed[index_nom])
+                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[index_nom])
+                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[index_nom])
             }
         }
         RÉEL {
-            index := index_bit_taille_octet(type.taille_en_octet)
+            index_nom := index_bit_taille_octet(type.taille_en_octet)
             noms_types := ["", "r16", "float", "double"]
-            nouveau_type.nom_type_c = copie_chaine(noms_types[index])
-            nouveau_type.nom_type_cpp = copie_chaine(noms_types[index])
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[index])
+            nouveau_type.nom_type_c = copie_chaine(noms_types[index_nom])
+            nouveau_type.nom_type_cpp = copie_chaine(noms_types[index_nom])
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[index_nom])
         }
         BOOLÉEN {
             nouveau_type.nom_type_c = copie_chaine("bool")
@@ -852,7 +852,7 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
         sinon pour index_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
             entrée := type_fonction.types_entrée[index_entrée]
             type_c_entrée := trouve_type(système, entrée.infos)
-            nom_type := type_c_entrée.nom_type_cpp
+            nom_type = type_c_entrée.nom_type_cpp
             si type_est_toujours_pointeur(entrée) {
                 nom_type = recule(nom_type, 1)
             }

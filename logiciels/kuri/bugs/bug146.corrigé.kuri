@@ -1,0 +1,14 @@
+/* Aucune erreur lorsqu'une variable redéfinie un paramètre.
+ * Catégorie : [validation sémantique]
+ */
+
+principale :: fonc () -> z32
+{
+    retourne test_redéfinition(0, 1)
+}
+
+test_redéfinition :: fonc (variable_redéfinie: z32, b: z32) -> z32
+{
+    variable_redéfinie := 5
+    retourne variable_redéfinie + b
+}

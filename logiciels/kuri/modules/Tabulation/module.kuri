@@ -99,7 +99,6 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
     si arg.info.id == id_info.CHAINE {
-        // À FAIRE(langage) : bug dans l'extraction des valeurs ?
         retourne arg.comme_chaine()
     }
 
