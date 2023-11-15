@@ -778,23 +778,15 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 
     enchaineuse <<
         R"(
-#define INITIALISE_TRACE_APPEL(_nom_fonction, _taille_nom, _fichier, _taille_fichier, _pointeur_fonction) \
-    static KuriInfoFonctionTraceAppel mon_info = { .nom = { .pointeur = _nom_fonction, .taille = _taille_nom }, .fichier = { .pointeur = _fichier, .taille = _taille_fichier }, .adresse = _pointeur_fonction }; \
+#define INITIALISE_TRACE_APPEL(_nom_globale) \
     KuriTraceAppel ma_trace = { 0 }; \
-	ma_trace.info_fonction = &mon_info; \
- ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
- ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
+    ma_trace.info_fonction = _nom_globale; \
+    ma_trace.prxC3xA9cxC3xA9dente = __contexte_fil_principal.trace_appel; \
+    ma_trace.profondeur = __contexte_fil_principal.trace_appel->profondeur + 1;
 
-#define DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
-    static KuriInfoAppelTraceAppel info_appel##_index = { .ligne = _ligne, .colonne = _colonne, .texte = { .pointeur = _ligne_appel, .taille = _taille_ligne } }; \
-	ma_trace.info_appel = &info_appel##_index; \
- __contexte_fil_principal.trace_appel = &ma_trace;
-
-#define DEBUTE_RECORD_TRACE_APPEL_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne) \
-	DEBUTE_RECORD_TRACE_APPEL_EX_EX(_index, _ligne, _colonne, _ligne_appel, _taille_ligne)
-
-#define DEBUTE_RECORD_TRACE_APPEL(_ligne, _colonne, _ligne_appel, _taille_ligne) \
-	DEBUTE_RECORD_TRACE_APPEL_EX(__COUNTER__, _ligne, _colonne, _ligne_appel, _taille_ligne)
+#define DEBUTE_RECORD_TRACE_APPEL(_nom_globale) \
+    ma_trace.info_appel = _nom_globale; \
+     __contexte_fil_principal.trace_appel = &ma_trace;
 
 #define TERMINE_RECORD_TRACE_APPEL \
    __contexte_fil_principal.trace_appel = ma_trace.prxC3xA9cxC3xA9dente;
@@ -1169,44 +1161,9 @@ void GénératriceCodeC::débute_trace_appel(const InstructionAppel *inst_appel,
         return;
     }
 
-    auto const &lexème = inst_appel->site->lexeme;
-    auto fichier = m_espace.compilatrice().fichier(lexème->fichier);
-    auto pos = position_lexeme(*lexème);
-
     static const auto DÉBUTE_RECORD = kuri::chaine_statique("  DEBUTE_RECORD_TRACE_APPEL(");
-
-    os << DÉBUTE_RECORD;
-    os << pos.numero_ligne << ",";
-    os << pos.pos << ",";
-    os << "\"";
-
-    auto ligne = fichier->tampon()[pos.index_ligne];
-
-    char tampon[1024];
-    char *ptr_tampon = tampon;
-    int taille_tampon = 0;
-
-    POUR (ligne) {
-        *ptr_tampon++ = '\\';
-        *ptr_tampon++ = 'x';
-        *ptr_tampon++ = dls::num::char_depuis_hex((it & 0xf0) >> 4);
-        *ptr_tampon++ = dls::num::char_depuis_hex(it & 0x0f);
-        taille_tampon += 4;
-
-        if (taille_tampon == 1024) {
-            os << kuri::chaine_statique(tampon, taille_tampon);
-            ptr_tampon = tampon;
-            taille_tampon = 0;
-        }
-    }
-
-    if (taille_tampon) {
-        os << kuri::chaine_statique(tampon, taille_tampon);
-    }
-
-    os << "\",";
-    os << ligne.taille();
-    os << ");\n";
+    os << DÉBUTE_RECORD << génère_code_pour_atome(inst_appel->info_trace_appel, os, false)
+       << ");\n";
 #endif
 }
 
@@ -1232,7 +1189,7 @@ void GénératriceCodeC::initialise_trace_appel(const AtomeFonction *atome_fonc,
 #ifndef AJOUTE_TRACE_APPEL
     return;
 #else
-    if (atome_fonc->sanstrace) {
+    if (atome_fonc->sanstrace || !atome_fonc->info_trace_appel) {
         return;
     }
 
@@ -1240,19 +1197,8 @@ void GénératriceCodeC::initialise_trace_appel(const AtomeFonction *atome_fonc,
         return;
     }
 
-    os << "INITIALISE_TRACE_APPEL(\"";
-
-    if (atome_fonc->lexeme != nullptr) {
-        auto fichier = m_espace.compilatrice().fichier(atome_fonc->lexeme->fichier);
-        os << atome_fonc->lexeme->chaine << "\", " << atome_fonc->lexeme->chaine.taille() << ", \""
-           << fichier->nom() << ".kuri\", " << fichier->nom().taille() + 5 << ", ";
-    }
-    else {
-        os << atome_fonc->nom << "\", " << atome_fonc->nom.taille() << ", "
-           << "\"???\", 3, ";
-    }
-
-    os << donne_nom_pour_fonction(atome_fonc) << ");\n";
+    os << "INITIALISE_TRACE_APPEL("
+       << génère_code_pour_atome(atome_fonc->info_trace_appel, os, false) << ");\n";
 #endif
 }
 
