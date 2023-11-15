@@ -32,6 +32,17 @@
   - problème avec l'enlignage : il semblerait que les pointeurs ne soit pas correctement « enlignés
   » pour les accès de membres
   - change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
+
+  Autres
+ - détecte les blocs ne faisant que retourner (sans valeur) et remplace les branches vers ceux-ci
+ par un retour
+ - détecte les vérifications >= 0 sur des nombre naturels, remplace par vrai, supprime branches
+ - expression du style (a & 16) == 10 => toujours faux (peut être généraliser avec un système de
+ mathématiques d'intervalles)
+ - détection de branches similaires (p.e. a == b && a == b)
+ - détection de branches consécutives sur des valeurs consécutives (p.e. discrimination
+ d'énumérations)
+ - a <= b && b <= c -> (b - a) >= (c - a)
  */
 
 enum {
