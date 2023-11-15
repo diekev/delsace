@@ -180,6 +180,15 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
 
+    résultat.ajoute("-Wuninitialized");
+    résultat.ajoute("-Wmissing-declarations");
+
+    // résultat.ajoute("-Wall");
+    // résultat.ajoute("-Wpedantic");
+    // résultat.ajoute("-Wextra");
+    // résultat.ajoute("-Winit-self");
+    // résultat.ajoute("-Werror");
+
     if (!options.protege_pile) {
         résultat.ajoute("-fno-stack-protector");
     }

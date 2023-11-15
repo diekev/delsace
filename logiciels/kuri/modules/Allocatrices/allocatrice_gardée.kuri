@@ -129,7 +129,7 @@ loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *Inf
 {
     taille_à_allouer := taille_à_allouer_avec_entête(taille)
 
-    entête := malloc(taille_à_allouer) comme *EntêteMémoire
+    entête := malloc(taille_à_allouer comme n64) comme *EntêteMémoire
     entête.info = info
     entête.taille = taille_alignée(taille)
 
