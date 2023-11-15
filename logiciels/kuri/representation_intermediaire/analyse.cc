@@ -497,6 +497,7 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
         espace.rapporte_erreur(
             di->site, "Erreur interne : un bloc ne finit pas par une branche ou un retour !\n");
+        return false;
     }
 
     return true;
