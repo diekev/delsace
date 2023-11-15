@@ -2504,10 +2504,19 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
         case TypeTransformation::EXTRAIT_EINI:
         {
             valeur = m_constructrice.crée_référence_membre(noeud, valeur, 0);
+
+            /* eini.pointeur est une adresse vers une adresse, donc nous avons deux niveaux de
+             * pointeur. */
             auto type_cible = m_compilatrice.typeuse.type_pointeur_pour(
                 const_cast<Type *>(transformation.type_cible), false);
+            type_cible = m_compilatrice.typeuse.type_pointeur_pour(type_cible, false);
+
             valeur = m_constructrice.crée_transtype(
                 noeud, type_cible, valeur, TypeTranstypage::BITS);
+
+            /* Déréférence eini.pointeur pour obtenir l'adresse de la valeur. */
+            valeur = m_constructrice.crée_charge_mem(noeud, valeur);
+            /* Charge la valeur depuis son adresse. */
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             break;
         }
