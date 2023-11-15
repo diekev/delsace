@@ -1745,6 +1745,160 @@ static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
     }
 }
 
+/* ******************************************************************************************* */
+
+static bool est_constante_zéro(Atome const *atome)
+{
+    if (!est_valeur_constante(atome)) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
+    return valeur_constante->valeur.valeur_entiere == 0;
+}
+
+static bool est_constante_un(Atome const *atome)
+{
+    if (!est_valeur_constante(atome)) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
+    return valeur_constante->valeur.valeur_entiere == 1;
+}
+
+static Atome *peut_remplacer_instruction_binaire_par_opérande(
+    InstructionOpBinaire *const op_binaire)
+{
+    if (op_binaire->op == OpérateurBinaire::Genre::Soustraction) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Addition) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Multiplication) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_un(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        if (est_constante_zéro(droite)) {
+            return droite;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Division_Naturel ||
+        op_binaire->op == OpérateurBinaire::Genre::Division_Relatif) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_un(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Ou_Binaire ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Droite_Arithm ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Droite_Logique ||
+        op_binaire->op == OpérateurBinaire::Genre::Dec_Gauche) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return op_binaire->valeur_gauche;
+        }
+
+        return nullptr;
+    }
+
+    if (op_binaire->op == OpérateurBinaire::Genre::Et_Binaire) {
+        auto droite = op_binaire->valeur_droite;
+
+        if (est_constante_zéro(droite)) {
+            return droite;
+        }
+
+        return nullptr;
+    }
+
+    return nullptr;
+}
+
+static bool supprime_op_binaires_inutiles(Bloc *bloc,
+                                          Graphe &graphe,
+                                          bool *branche_conditionnelle_fut_changée)
+{
+    auto instructions_à_supprimer = false;
+    POUR_NOMME (inst, bloc->instructions) {
+        if (!inst->est_op_binaire()) {
+            continue;
+        }
+
+        auto op_binaire = inst->comme_op_binaire();
+        auto remplacement = peut_remplacer_instruction_binaire_par_opérande(op_binaire);
+        if (!remplacement) {
+            continue;
+        }
+
+        graphe.visite_utilisateurs(inst, [&](Atome *utilisateur) {
+            if (!remplace_instruction_par_atome(
+                    utilisateur, inst, remplacement, branche_conditionnelle_fut_changée)) {
+                return;
+            }
+
+            inst->etat = EST_A_SUPPRIMER;
+        });
+
+        instructions_à_supprimer |= inst->etat == EST_A_SUPPRIMER;
+    }
+
+    if (!instructions_à_supprimer) {
+        return false;
+    }
+
+    auto nouvelle_fin = std::stable_partition(
+        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
+            return inst->etat != EST_A_SUPPRIMER;
+        });
+
+    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
+
+    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    return instructions_à_supprimer;
+}
+
+static void supprime_op_binaires_inutiles(FonctionEtBlocs &fonction_et_blocs,
+                                          Graphe &graphe,
+                                          bool *branche_conditionnelle_fut_changée)
+{
+    auto bloc_modifié = false;
+    POUR (fonction_et_blocs.blocs) {
+        bloc_modifié |= supprime_op_binaires_inutiles(
+            it, graphe, branche_conditionnelle_fut_changée);
+    }
+
+    if (bloc_modifié) {
+        fonction_et_blocs.marque_blocs_modifiés();
+    }
+}
+
 /* ********************************************************************************************
  */
 
@@ -1789,6 +1943,10 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
     auto branche_conditionnelle_fut_changée = false;
     supprime_op_binaires_constants(
         fonction_et_blocs, graphe, constructrice, &branche_conditionnelle_fut_changée);
+
+    réinitialise_graphe(graphe, fonction_et_blocs);
+
+    supprime_op_binaires_inutiles(fonction_et_blocs, graphe, &branche_conditionnelle_fut_changée);
 
     if (branche_conditionnelle_fut_changée) {
         supprime_branches_inutiles(fonction_et_blocs, visiteuse);

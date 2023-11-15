@@ -12,6 +12,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
@@ -28,7 +29,58 @@
 
 std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
 {
-    os << static_cast<uint32_t>(drapeaux);
+    if (drapeaux == DrapeauxNoeud(0)) {
+        os << "AUCUN";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((drapeaux & DrapeauxNoeud::drapeau) != DrapeauxNoeud(0)) {                                \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(EMPLOYE)
+    SI_DRAPEAU_UTILISE(EST_EXTERNE)
+    SI_DRAPEAU_UTILISE(EST_MEMBRE_STRUCTURE)
+    SI_DRAPEAU_UTILISE(EST_ASSIGNATION_COMPOSEE)
+    SI_DRAPEAU_UTILISE(EST_VARIADIQUE)
+    SI_DRAPEAU_UTILISE(EST_IMPLICITE)
+    SI_DRAPEAU_UTILISE(EST_GLOBALE)
+    SI_DRAPEAU_UTILISE(EST_CONSTANTE)
+    SI_DRAPEAU_UTILISE(DECLARATION_TYPE_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(DECLARATION_FUT_VALIDEE)
+    SI_DRAPEAU_UTILISE(RI_FUT_GENEREE)
+    SI_DRAPEAU_UTILISE(CODE_BINAIRE_FUT_GENERE)
+    SI_DRAPEAU_UTILISE(TRANSTYPAGE_IMPLICITE)
+    SI_DRAPEAU_UTILISE(EST_PARAMETRE)
+    SI_DRAPEAU_UTILISE(EST_VALEUR_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(POUR_CUISSON)
+    SI_DRAPEAU_UTILISE(ACCES_EST_ENUM_DRAPEAU)
+    SI_DRAPEAU_UTILISE(EST_UTILISEE)
+    SI_DRAPEAU_UTILISE(METAPROGRAMME_CORPS_TEXTE_FUT_CREE)
+    SI_DRAPEAU_UTILISE(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)
+    SI_DRAPEAU_UTILISE(DÉPENDANCES_FURENT_RÉSOLUES)
+    SI_DRAPEAU_UTILISE(IDENTIFIANT_EST_ACCENTUÉ_GRAVE)
+    SI_DRAPEAU_UTILISE(LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION)
+    SI_DRAPEAU_UTILISE(DROITE_ASSIGNATION)
+    SI_DRAPEAU_UTILISE(DROITE_CONDITION)
+    SI_DRAPEAU_UTILISE(GAUCHE_EXPRESSION_APPEL)
+    SI_DRAPEAU_UTILISE(EXPRESSION_BLOC_SI)
+    SI_DRAPEAU_UTILISE(EXPRESSION_TEST_DISCRIMINATION)
+    SI_DRAPEAU_UTILISE(EST_LOCALE)
+    SI_DRAPEAU_UTILISE(EST_DÉCLARATION_EXPRESSION_VIRGULE)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
+
     return os;
 }
 
@@ -40,7 +92,46 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
 
 std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
 {
-    os << static_cast<uint32_t>(drapeaux);
+    if (drapeaux == DrapeauxNoeudFonction(0)) {
+        os << "AUCUN";
+        return os;
+    }
+
+#define SI_DRAPEAU_UTILISE(drapeau)                                                               \
+    if ((drapeaux & DrapeauxNoeudFonction::drapeau) != DrapeauxNoeudFonction(0)) {                \
+        identifiants.ajoute(#drapeau);                                                            \
+    }
+
+    kuri::tablet<kuri::chaine_statique, 32> identifiants;
+
+    SI_DRAPEAU_UTILISE(FORCE_ENLIGNE)
+    SI_DRAPEAU_UTILISE(FORCE_HORSLIGNE)
+    SI_DRAPEAU_UTILISE(FORCE_SANSTRACE)
+    SI_DRAPEAU_UTILISE(FORCE_SANSBROYAGE)
+    SI_DRAPEAU_UTILISE(EST_EXTERNE)
+    SI_DRAPEAU_UTILISE(EST_IPA_COMPILATRICE)
+    SI_DRAPEAU_UTILISE(EST_RACINE)
+    SI_DRAPEAU_UTILISE(EST_INTRINSÈQUE)
+    SI_DRAPEAU_UTILISE(EST_INITIALISATION_TYPE)
+    SI_DRAPEAU_UTILISE(EST_MÉTAPROGRAMME)
+    SI_DRAPEAU_UTILISE(EST_VARIADIQUE)
+    SI_DRAPEAU_UTILISE(EST_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(EST_MONOMORPHISATION)
+    SI_DRAPEAU_UTILISE(FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE)
+    SI_DRAPEAU_UTILISE(CLICHÉ_ASA_FUT_REQUIS)
+    SI_DRAPEAU_UTILISE(CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)
+    SI_DRAPEAU_UTILISE(CLICHÉ_RI_FUT_REQUIS)
+    SI_DRAPEAU_UTILISE(CLICHÉ_RI_FINALE_FUT_REQUIS)
+    SI_DRAPEAU_UTILISE(CLICHÉ_CODE_BINAIRE_FUT_REQUIS)
+
+    auto virgule = "";
+
+    POUR (identifiants) {
+        os << virgule << it;
+        virgule = " | ";
+    }
+
+#undef SI_DRAPEAU_UTILISE
     return os;
 }
 
@@ -2463,3 +2554,18 @@ static bool les_invariants_de_la_fonction_sont_respectés(
     return true;
 }
 #endif
+
+void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
+{
+    Indentation indentation;
+
+    while (bloc) {
+        dbg() << indentation << "bloc " << bloc;
+        indentation.incrémente();
+
+        POUR (*bloc->membres.verrou_lecture()) {
+            dbg() << indentation << it->ident->nom << " (" << it->ident << ")";
+        }
+        bloc = bloc->bloc_parent;
+    }
+}

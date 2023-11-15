@@ -81,7 +81,7 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     auto bloc_courant = bloc;
 
     while (bloc_courant != bloc_final) {
-        auto autre_decl = bloc->declaration_avec_meme_ident_que(decl);
+        auto autre_decl = bloc_courant->declaration_avec_meme_ident_que(decl);
         if (autre_decl) {
             return autre_decl;
         }

@@ -2023,7 +2023,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         expr->noeud_fonction_appelee = type_opaque->decl;
         expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(
-            const_cast<Type *>(candidate->type));
+            const_cast<TypeOpaque *>(type_opaque));
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }
 

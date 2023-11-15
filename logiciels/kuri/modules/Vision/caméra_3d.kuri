@@ -447,7 +447,7 @@ calcul_champs_de_vue :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
 
 calcul_champs_de_vue_degrés :: fonc (largeur_senseur: r32, distance_focale: r32) -> r32
 {
-    retourne calcul_champs_de_vue(largeur_senseur, distance_focale) * 180.0 / 3.14159
+    retourne calcul_champs_de_vue(largeur_senseur, distance_focale) * 180.0 / Constantes(r32).PI
 }
 
 imprime_matrice :: fonc (mat: Mat4r) -> rien

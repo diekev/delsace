@@ -310,6 +310,7 @@ struct CompilatriceRI {
 
     AtomeGlobale *crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction);
     AtomeGlobale *crée_info_appel_pour_trace_appel(InstructionAppel *pour_appel);
+    void crée_trace_appel(AtomeFonction *fonction);
 
   private:
     void crée_appel_fonction_init_type(NoeudExpression *site_, Type const *type, Atome *argument);

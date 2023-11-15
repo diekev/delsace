@@ -273,3 +273,5 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 bool possède_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
 
 bool est_déclaration_polymorphique(NoeudDeclaration const *decl);
+
+void imprime_membres_blocs_récursifs(NoeudBloc const *bloc);
