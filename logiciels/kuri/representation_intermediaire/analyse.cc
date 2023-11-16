@@ -1320,6 +1320,10 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
     auto index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
+        if (!it->possède_instruction_de_genre(GenreInstruction::ALLOCATION)) {
+            continue;
+        }
+
         bloc_modifié |= rapproche_allocations_des_stockages(it);
         bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
@@ -1691,6 +1695,10 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                                            ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+        return false;
+    }
+
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!est_instruction_opérateur_binaire_constant(inst)) {
@@ -1845,6 +1853,10 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                                           Graphe &graphe,
                                           bool *branche_conditionnelle_fut_changée)
 {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+        return false;
+    }
+
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!inst->est_op_binaire()) {
