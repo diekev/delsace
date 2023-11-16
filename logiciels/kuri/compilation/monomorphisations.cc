@@ -5,6 +5,7 @@
 
 #include "parsage/identifiant.hh"
 
+#include "log.hh"
 #include "typage.hh"
 
 std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item)
@@ -86,12 +87,6 @@ void Monomorphisations::imprime(std::ostream &os) const
     Enchaineuse enchaineuse;
     imprime(enchaineuse);
     os << enchaineuse.chaine();
-}
-
-static kuri::chaine_statique chaine_indentations(int indentations)
-{
-    static std::string chaine = std::string(1024, '\t');
-    return {chaine.c_str(), static_cast<int64_t>(indentations)};
 }
 
 void Monomorphisations::imprime(Enchaineuse &os, int indentations) const
