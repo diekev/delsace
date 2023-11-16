@@ -183,6 +183,9 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
     résultat.ajoute("-Wuninitialized");
     résultat.ajoute("-Wmissing-declarations");
 
+    /* Arrête après une seule erreur. */
+    résultat.ajoute("-Wfatal-errors");
+
     // résultat.ajoute("-Wall");
     // résultat.ajoute("-Wpedantic");
     // résultat.ajoute("-Wextra");
