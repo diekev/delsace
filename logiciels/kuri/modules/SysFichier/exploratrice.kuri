@@ -127,7 +127,7 @@ opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
     // À FAIRE : cas pour ExploratriceFichier temporaire
     // diffère détruit(exploratrice)
 
-    exploratrice := crée_exploratrice_fichier(exploratrice.racine)
+    exploratrice = crée_exploratrice_fichier(exploratrice.racine)
     index := 0
 
     tantque !exploratrice.exploration_finie() {

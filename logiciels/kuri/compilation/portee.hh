@@ -28,9 +28,11 @@ NoeudDeclaration *trouve_dans_bloc(
     NoeudBloc const *bloc_final = nullptr,
     NoeudDeclarationEnteteFonction const *fonction_courante = nullptr);
 
-NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
-                                   NoeudDeclaration const *decl,
-                                   NoeudBloc const *bloc_final = nullptr);
+NoeudDeclaration *trouve_dans_bloc(
+    NoeudBloc const *bloc,
+    NoeudDeclaration const *decl,
+    NoeudBloc const *bloc_final = nullptr,
+    const NoeudDeclarationEnteteFonction *fonction_courante = nullptr);
 
 NoeudDeclaration *trouve_dans_bloc_ou_module(
     NoeudBloc const *bloc,

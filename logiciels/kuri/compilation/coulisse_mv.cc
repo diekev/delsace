@@ -29,14 +29,6 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
     auto métaprogramme = programme->pour_métaprogramme();
     assert(métaprogramme);
 
-    auto fonction = static_cast<AtomeFonction *>(métaprogramme->fonction->atome);
-
-    if (!fonction) {
-        espace.rapporte_erreur(métaprogramme->fonction,
-                               "Impossible de trouver la fonction pour le métaprogramme");
-        return false;
-    }
-
     /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées
      * par l'adresse de l'infotype. */
     POUR (repr_inter.globales) {
@@ -47,17 +39,6 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
         auto type = it->est_info_type_de;
         type->info_type = convertisseuse_noeud_code.crée_info_type_pour(const_cast<Type *>(type));
         assert(type->info_type);
-    }
-
-    if (!repr_inter.globales.est_vide()) {
-        auto fonc_init = compilatrice_ri.genere_fonction_init_globales_et_appel(
-            &espace, repr_inter.globales, fonction);
-
-        if (!fonc_init) {
-            return false;
-        }
-
-        repr_inter.ajoute_fonction(fonc_init);
     }
 
     POUR (repr_inter.fonctions) {

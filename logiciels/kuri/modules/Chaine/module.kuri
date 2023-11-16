@@ -1,4 +1,5 @@
 importe Fondation
+importe Unicode
 
 charge "chaine_c"
 charge "chaine_internée"
