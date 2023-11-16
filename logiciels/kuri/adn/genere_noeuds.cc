@@ -206,6 +206,7 @@ struct GeneratriceCodeCPP {
     void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#include \"noeud_expression.hh\"\n";
+        os << "#include \"compilation/log.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/outils_lexemes.hh\"\n";
@@ -231,11 +232,6 @@ struct GeneratriceCodeCPP {
 
     void genere_impression_arbre_syntaxique(FluxSortieCPP &os)
     {
-        os << "void imprime_tab(std::ostream &os, int n)\n";
-        os << "{\n";
-        os << "\tfor (int i = 0; i < n; ++i) { os << ' ' << ' '; }\n";
-        os << "}\n\n";
-
         os << "void imprime_arbre_substitue(const NoeudExpression *racine, std::ostream &os, int "
               "profondeur)\n";
         os << "{\n";
@@ -262,7 +258,7 @@ struct GeneratriceCodeCPP {
             os << "\t\tcase GenreNoeud::" << it->accede_nom_genre() << ":\n";
             os << "\t\t{\n";
 
-            os << "\t\t\timprime_tab(os, profondeur);\n";
+            os << "\t\t\tos << chaine_indentations(profondeur);\n";
             os << "\t\t\tos << \"<" << it->accede_nom_comme();
 
             os << " \" << (racine->ident ? racine->ident->nom : \"\") << \"";
@@ -295,7 +291,7 @@ struct GeneratriceCodeCPP {
             });
 
             if (it->possède_enfants()) {
-                os << "\t\t\timprime_tab(os, profondeur);\n";
+                os << "\t\t\tos << chaine_indentations(profondeur);\n";
                 os << "\t\t\tos << \"</" << it->accede_nom_comme() << ">\\n\";\n";
             }
 
