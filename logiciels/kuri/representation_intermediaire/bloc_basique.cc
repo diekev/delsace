@@ -3,12 +3,10 @@
 
 #include "bloc_basique.hh"
 
-#include <iostream>
-
+#include "compilation/espace_de_travail.hh"
 #include "compilation/log.hh"
 
 #include "constructrice_ri.hh"
-#include "espace_de_travail.hh"
 #include "impression.hh"
 #include "instructions.hh"
 
