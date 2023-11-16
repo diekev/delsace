@@ -332,10 +332,10 @@ void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité)
 {
     POUR (unité->donne_attentes()) {
         if (it.info && it.info->commentaire) {
-            std::cerr << "---- " << it.info->commentaire(it) << '\n';
+            os << "---- " << it.info->commentaire(it) << '\n';
         }
         else {
-            std::cerr << "---- attente sans commentaire\n";
+            os << "---- attente sans commentaire\n";
         }
     }
 }
@@ -368,11 +368,10 @@ static void imprime_noeud_index_courant_unité(
         auto appel = site->comme_appel();
 
         if (appel->état_résolution_appel) {
-            std::cerr << "-- " << static_cast<int>(appel->état_résolution_appel->état) << '\n';
+            os << "-- " << static_cast<int>(appel->état_résolution_appel->état) << '\n';
         }
         else {
-            std::cerr << "-- aucun état de résolution pour l'expression "
-                         "d'appel\n";
+            os << "-- aucun état de résolution pour l'expression d'appel\n";
         }
     }
 }
