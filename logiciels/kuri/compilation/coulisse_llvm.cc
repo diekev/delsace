@@ -653,6 +653,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
                     return valeur_;
                 }
+                case AtomeConstante::Genre::FONCTION:
+                {
+                    auto fonction = static_cast<AtomeFonction const *>(atome_const);
+                    return m_module->getFunction(vers_std_string(fonction->nom));
+                }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);

@@ -69,6 +69,10 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
                 {
                     return "";
                 }
+                case AtomeConstante::Genre::FONCTION:
+                {
+                    return "";
+                }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     return "";

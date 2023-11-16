@@ -874,6 +874,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
 
             return table_globales.valeur_ou(valeur_globale, "");
         }
+        case AtomeConstante::Genre::FONCTION:
+        {
+            auto fonction = static_cast<AtomeFonction const *>(atome_const);
+            return donne_nom_pour_fonction(fonction);
+        }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);

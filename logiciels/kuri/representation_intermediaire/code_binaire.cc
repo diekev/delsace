@@ -1241,6 +1241,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             genere_code_binaire_pour_atome(constante, chunk, true);
             break;
         }
+        case AtomeConstante::Genre::FONCTION:
+        {
+            genere_code_binaire_pour_atome(constante, chunk, true);
+            break;
+        }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype = static_cast<TranstypeConstant const *>(constante);
@@ -1681,6 +1686,15 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             patch.source = {ADRESSE_GLOBALE, globale.adresse};
             donnees_executions->patchs_données_constantes.ajoute(patch);
 
+            break;
+        }
+        case AtomeConstante::Genre::FONCTION:
+        {
+            assert_rappel(false, []() {
+                std::cerr
+                    << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
+                       "code binaire\n";
+            });
             break;
         }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
