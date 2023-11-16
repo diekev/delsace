@@ -111,55 +111,6 @@ void Bloc::enlève_parent(Bloc *parent)
 void Bloc::enlève_enfant(Bloc *enfant)
 {
     enlève_du_tableau(enfants, enfant);
-
-    /* quand nous enlevons un enfant, il faut modifier la cible des branches potentielles */
-
-    if (instructions.est_vide()) {
-        return;
-    }
-
-    /* création_contexte n'a pas d'instruction de retour à la fin de son bloc, et après
-     * l'enlignage, nous nous retrouvons avec un bloc vide à la fin de la fonction */
-    if (enfant->instructions.est_vide()) {
-        return;
-    }
-
-    auto inst = instructions.dernière();
-
-    if (log_actif) {
-        std::cerr << "-- dernière inststruction : ";
-        imprime_instruction(inst, std::cerr);
-    }
-
-    if (inst->est_branche()) {
-        // À FAIRE
-        return;
-    }
-
-    if (inst->est_branche_cond()) {
-        auto branche_cond = inst->comme_branche_cond();
-        auto label_si_vrai = branche_cond->label_si_vrai;
-        auto label_si_faux = branche_cond->label_si_faux;
-
-        if (label_si_vrai == enfant->label) {
-            branche_cond->label_si_vrai = label_si_faux;
-        }
-        else if (label_si_faux == enfant->label) {
-            branche_cond->label_si_faux = label_si_vrai;
-        }
-        else {
-            // assert(0);
-        }
-
-        return;
-    }
-
-    if (inst->est_retour()) {
-        return;
-    }
-
-    log(std::cerr, "bloc ", label->id);
-    assert(0);
 }
 
 bool Bloc::peut_fusionner_enfant()
