@@ -1125,12 +1125,12 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case Instruction::Genre::INVALIDE:
+        case GenreInstruction::INVALIDE:
         {
             os << "  invalide\n";
             break;
         }
-        case Instruction::Genre::ALLOCATION:
+        case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  " << donne_nom_pour_type(type_pointeur->type_pointe);
@@ -1140,7 +1140,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = enchaine("&", nom);
             break;
         }
-        case Instruction::Genre::APPEL:
+        case GenreInstruction::APPEL:
         {
             auto inst_appel = inst->comme_appel();
 
@@ -1177,13 +1177,13 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             break;
         }
-        case Instruction::Genre::BRANCHE:
+        case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
             os << "  goto " << nom_base_label << inst_branche->label->id << ";\n";
             break;
         }
-        case Instruction::Genre::BRANCHE_CONDITION:
+        case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
             auto condition = génère_code_pour_atome(inst_branche->condition, os, false);
@@ -1192,7 +1192,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << " else goto " << nom_base_label << inst_branche->label_si_faux->id << ";\n";
             break;
         }
-        case Instruction::Genre::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
@@ -1222,7 +1222,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = valeur_chargée;
             break;
         }
-        case Instruction::Genre::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
             auto valeur = génère_code_pour_atome(inst_stocke->valeur, os, false);
@@ -1240,7 +1240,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             break;
         }
-        case Instruction::Genre::LABEL:
+        case GenreInstruction::LABEL:
         {
             auto inst_label = inst->comme_label();
             /* Le premier label est inutile (en C). */
@@ -1249,7 +1249,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
             break;
         }
-        case Instruction::Genre::OPERATION_UNAIRE:
+        case GenreInstruction::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
             auto valeur = génère_code_pour_atome(inst_un->valeur, os, false);
@@ -1294,7 +1294,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = nom;
             break;
         }
-        case Instruction::Genre::OPERATION_BINAIRE:
+        case GenreInstruction::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
             auto valeur_gauche = génère_code_pour_atome(inst_bin->valeur_gauche, os, false);
@@ -1418,7 +1418,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             break;
         }
-        case Instruction::Genre::RETOUR:
+        case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
             if (inst_retour->valeur != nullptr) {
@@ -1434,7 +1434,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << ";\n";
             break;
         }
-        case Instruction::Genre::ACCEDE_INDEX:
+        case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_accès = inst->comme_acces_index();
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
@@ -1457,7 +1457,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = valeur;
             break;
         }
-        case Instruction::Genre::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto inst_accès = inst->comme_acces_membre();
 
@@ -1520,7 +1520,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = valeur_accédée;
             break;
         }
-        case Instruction::Genre::TRANSTYPE:
+        case GenreInstruction::TRANSTYPE:
         {
             auto inst_transtype = inst->comme_transtype();
             auto valeur = génère_code_pour_atome(inst_transtype->valeur, os, false);
