@@ -193,7 +193,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                              ID::init_globales_kuri)) {
                 assert_rappel(it->unite, [&]() {
                     std::cerr << "Aucune unité pour de compilation pour :\n";
-                    erreur::imprime_site(*m_espace, it);
+                    std::cerr << erreur::imprime_site(*m_espace, it);
                 });
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
@@ -787,11 +787,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     POUR (m_programme.fonctions()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
 
         auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
@@ -813,11 +813,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     POUR (m_programme.globales()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
             std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
         });

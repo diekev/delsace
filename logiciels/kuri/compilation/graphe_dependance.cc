@@ -322,7 +322,7 @@ NoeudDependance *GrapheDependance::garantie_noeud_dépendance(EspaceDeTravail *e
      * les constantes. */
     if (noeud->est_declaration_variable()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
-            erreur::imprime_site(*espace, noeud);
+            std::cerr << erreur::imprime_site(*espace, noeud);
             std::cerr << *noeud;
         });
         return crée_noeud_globale(noeud->comme_declaration_variable());
@@ -362,14 +362,14 @@ void imprime_dependances(const DonneesDependance &dependances,
 
     flux << "fonctions :\n";
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        erreur::imprime_site(*espace, fonction);
+        flux << erreur::imprime_site(*espace, fonction);
         return kuri::DécisionItération::Continue;
     });
 
     flux << "globales :\n";
     /* Requiers le typage de toutes les déclarations utilisées. */
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        erreur::imprime_site(*espace, globale);
+        flux << erreur::imprime_site(*espace, globale);
         return kuri::DécisionItération::Continue;
     });
 

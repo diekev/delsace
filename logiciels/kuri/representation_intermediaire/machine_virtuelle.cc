@@ -1648,9 +1648,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
 {
-    erreur::imprime_site(*m_metaprogramme->unite->espace, site);
+    std::cerr << erreur::imprime_site(*m_metaprogramme->unite->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
-        erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
+        std::cerr << erreur::imprime_site(*m_metaprogramme->unite->espace, frames[i].site);
     }
 }
 

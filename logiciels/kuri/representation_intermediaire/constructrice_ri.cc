@@ -864,7 +864,7 @@ void ConstructriceRI::imprime_site(NoeudExpression *site) const
         return;
     }
     auto espace = unité->espace;
-    erreur::imprime_site(*espace, site);
+    std::cerr << erreur::imprime_site(*espace, site);
 }
 
 void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
@@ -1125,7 +1125,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             assert_rappel(m_fonction_courante, [&]() {
                 std::cerr
                     << "Erreur interne : une déclaration de structure fut passée à la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1138,7 +1138,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : une " << noeud->genre
                           << " se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1149,7 +1149,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             assert_rappel(!inst->condition_est_vraie || !inst->bloc_si_faux, [&]() {
                 std::cerr << "Erreur interne : une directive " << noeud->genre
                           << " ne fut pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1158,7 +1158,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto directive = noeud->comme_execute();
             assert_rappel(directive->ident == ID::assert_, [&]() {
                 std::cerr << "Erreur interne : un directive ne fut pas simplifié !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1169,7 +1169,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : une " << noeud->genre
                           << " ne fut pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1188,7 +1188,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
                 std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1281,14 +1281,14 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     std::cerr << "Le type de l'atome est nul !\n";
                 }
 
-                erreur::imprime_site(*m_espace, expr_appel);
+                std::cerr << erreur::imprime_site(*m_espace, expr_appel);
             });
 
             assert_rappel(atome_fonc->type->est_type_fonction(), [&] {
                 std::cerr << "L'atome n'est pas de type fonction mais de type "
                           << chaine_type(atome_fonc->type) << " !\n";
-                erreur::imprime_site(*espace(), expr_appel);
-                erreur::imprime_site(*espace(), expr_appel->expression);
+                std::cerr << erreur::imprime_site(*espace(), expr_appel);
+                std::cerr << erreur::imprime_site(*espace(), expr_appel->expression);
                 if (!expr_appel->expression->substitution) {
                     std::cerr << "L'appelée n'a pas de substitution !\n";
                 }
@@ -1320,7 +1320,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto decl_ref = expr_ref->declaration_referee;
 
             assert_rappel(decl_ref, [&]() {
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
                 std::cerr << "La référence à la déclaration est nulle " << noeud->ident->nom
                           << " (" << chaine_type(noeud->type) << ")\n";
             });
@@ -1339,11 +1339,11 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto locale = decl_ref->comme_declaration_symbole()->atome;
             assert_rappel(locale, [&]() {
-                erreur::imprime_site(*m_espace, noeud);
+                std::cerr << erreur::imprime_site(*m_espace, noeud);
                 std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " ("
                           << chaine_type(noeud->type) << ")\n";
                 std::cerr << "\nLa locale fut déclarée ici :\n";
-                erreur::imprime_site(*m_espace, decl_ref);
+                std::cerr << erreur::imprime_site(*m_espace, decl_ref);
             });
             empile_valeur(locale);
             break;
@@ -1449,7 +1449,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0) ||
                     noeud->possède_drapeau(DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION),
                 [&]() {
-                    erreur::imprime_site(*espace(), noeud);
+                    std::cerr << erreur::imprime_site(*espace(), noeud);
                     std::cerr << "La chaine n'est pas de la bonne taille !\n";
                     std::cerr << "Le lexème a une chaine taille de "
                               << noeud->lexeme->chaine.taille()
@@ -2086,7 +2086,7 @@ void CompilatriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
 
     assert_rappel(valeur, [&] {
         std::cerr << __func__ << ", valeur est nulle pour " << noeud->genre << '\n';
-        erreur::imprime_site(*m_espace, noeud);
+        std::cerr << erreur::imprime_site(*m_espace, noeud);
     });
 
     transforme_valeur(noeud, valeur, transformation, place);
