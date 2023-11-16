@@ -1132,97 +1132,43 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         /* Ceux-ci doivent être ajoutés aux fonctions d'initialisation/finition de
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #ajoute_fini se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #ajoute_init se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
         {
             assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #pré_exécutable se retrouve dans la RI !\n";
+                std::cerr << "Erreur interne : une " << noeud->genre
+                          << " se retrouve dans la RI !\n";
                 erreur::imprime_site(*m_espace, noeud);
             });
-            break;
-        }
-        /* ceux-ci sont simplifiés */
-        case GenreNoeud::DIRECTIVE_CUISINE:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une directive #cuisine ne fut pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-
-            break;
-        }
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une expression de construction de structure ne fut "
-                             "pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-
             break;
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
-        {
-            auto inst = noeud->comme_si_statique();
-
-            if (!inst->condition_est_vraie && inst->bloc_si_faux) {
-                assert_rappel(false, [&]() {
-                    std::cerr << "Erreur interne : une directive #si ne fut pas simplifiée !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
-            break;
-        }
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         {
-            auto inst = noeud->comme_saufsi_statique();
-
-            if (inst->condition_est_vraie && inst->bloc_si_faux) {
-                assert_rappel(false, [&]() {
-                    std::cerr
-                        << "Erreur interne : une directive #saufsi ne fut pas simplifiée !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
+            auto inst = noeud->comme_si_statique();
+            assert_rappel(!inst->condition_est_vraie || !inst->bloc_si_faux, [&]() {
+                std::cerr << "Erreur interne : une directive " << noeud->genre
+                          << " ne fut pas simplifiée !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto directive = noeud->comme_execute();
-
-            if (directive->ident != ID::assert_) {
-                assert_rappel(false, [&]() {
-                    std::cerr << "Erreur interne : un directive ne fut pas simplifié !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
+            assert_rappel(directive->ident == ID::assert_, [&]() {
+                std::cerr << "Erreur interne : un directive ne fut pas simplifié !\n";
+                erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
+        case GenreNoeud::DIRECTIVE_CUISINE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une instruction pousse_contexte ne fut pas "
-                             "simplifiée !\n";
+                std::cerr << "Erreur interne : une " << noeud->genre
+                          << " ne fut pas simplifiée !\n";
                 erreur::imprime_site(*m_espace, noeud);
             });
             break;
@@ -1237,18 +1183,11 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         {
             assert_rappel(false, [&]() {
                 std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
                 std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
-        case GenreNoeud::DECLARATION_OPERATEUR_POUR:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : un opérateur « pour » ne fut pas simplifié !\n";
                 erreur::imprime_site(*m_espace, noeud);
             });
             break;
