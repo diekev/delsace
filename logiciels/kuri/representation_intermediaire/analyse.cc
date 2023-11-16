@@ -87,7 +87,7 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
             auto inst = racine->comme_instruction();
 
             switch (inst->genre) {
-                case Instruction::Genre::APPEL:
+                case GenreInstruction::APPEL:
                 {
                     auto appel = inst->comme_appel();
 
@@ -100,59 +100,59 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 
                     break;
                 }
-                case Instruction::Genre::CHARGE_MEMOIRE:
+                case GenreInstruction::CHARGE_MEMOIRE:
                 {
                     auto charge = inst->comme_charge();
                     incrémente_nombre_utilisations_récursif(charge->chargee);
                     break;
                 }
-                case Instruction::Genre::STOCKE_MEMOIRE:
+                case GenreInstruction::STOCKE_MEMOIRE:
                 {
                     auto stocke = inst->comme_stocke_mem();
                     incrémente_nombre_utilisations_récursif(stocke->valeur);
                     incrémente_nombre_utilisations_récursif(stocke->ou);
                     break;
                 }
-                case Instruction::Genre::OPERATION_UNAIRE:
+                case GenreInstruction::OPERATION_UNAIRE:
                 {
                     auto op = inst->comme_op_unaire();
                     incrémente_nombre_utilisations_récursif(op->valeur);
                     break;
                 }
-                case Instruction::Genre::OPERATION_BINAIRE:
+                case GenreInstruction::OPERATION_BINAIRE:
                 {
                     auto op = inst->comme_op_binaire();
                     incrémente_nombre_utilisations_récursif(op->valeur_droite);
                     incrémente_nombre_utilisations_récursif(op->valeur_gauche);
                     break;
                 }
-                case Instruction::Genre::ACCEDE_INDEX:
+                case GenreInstruction::ACCEDE_INDEX:
                 {
                     auto acces = inst->comme_acces_index();
                     incrémente_nombre_utilisations_récursif(acces->index);
                     incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }
-                case Instruction::Genre::ACCEDE_MEMBRE:
+                case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
                     incrémente_nombre_utilisations_récursif(acces->index);
                     incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }
-                case Instruction::Genre::TRANSTYPE:
+                case GenreInstruction::TRANSTYPE:
                 {
                     auto transtype = inst->comme_transtype();
                     incrémente_nombre_utilisations_récursif(transtype->valeur);
                     break;
                 }
-                case Instruction::Genre::BRANCHE_CONDITION:
+                case GenreInstruction::BRANCHE_CONDITION:
                 {
                     auto branche = inst->comme_branche_cond();
                     incrémente_nombre_utilisations_récursif(branche->condition);
                     break;
                 }
-                case Instruction::Genre::RETOUR:
+                case GenreInstruction::RETOUR:
                 {
                     auto retour = inst->comme_retour();
 
@@ -162,10 +162,10 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 
                     break;
                 }
-                case Instruction::Genre::ALLOCATION:
-                case Instruction::Genre::INVALIDE:
-                case Instruction::Genre::BRANCHE:
-                case Instruction::Genre::LABEL:
+                case GenreInstruction::ALLOCATION:
+                case GenreInstruction::INVALIDE:
+                case GenreInstruction::BRANCHE:
+                case GenreInstruction::LABEL:
                 {
                     break;
                 }
@@ -278,15 +278,15 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
         }
 
         switch (it->genre) {
-            case Instruction::Genre::BRANCHE:
-            case Instruction::Genre::BRANCHE_CONDITION:
-            case Instruction::Genre::LABEL:
-            case Instruction::Genre::RETOUR:
+            case GenreInstruction::BRANCHE:
+            case GenreInstruction::BRANCHE_CONDITION:
+            case GenreInstruction::LABEL:
+            case GenreInstruction::RETOUR:
             {
                 incrémente_nombre_utilisations_récursif(it);
                 break;
             }
-            case Instruction::Genre::APPEL:
+            case GenreInstruction::APPEL:
             {
                 auto appel = it->comme_appel();
 
@@ -296,7 +296,7 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
 
                 break;
             }
-            case Instruction::Genre::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = it->comme_stocke_mem();
                 auto cible = cible_finale_stockage(stocke);
@@ -607,7 +607,7 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
                 /* Remplace par une branche.
                  * À FAIRE : crée une instruction. */
                 auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
-                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->genre = GenreInstruction::BRANCHE;
                 nouvelle_branche->label = branche->label_si_faux;
                 bloc_modifié = true;
                 i -= 1;
@@ -630,7 +630,7 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
                 /* Remplace par une branche.
                  * À FAIRE : crée une instruction. */
                 auto nouvelle_branche = reinterpret_cast<InstructionBranche *>(branche);
-                nouvelle_branche->genre = Instruction::Genre::BRANCHE;
+                nouvelle_branche->genre = GenreInstruction::BRANCHE;
                 nouvelle_branche->label = label_cible;
                 bloc_modifié = true;
                 i -= 1;
@@ -1320,6 +1320,10 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
     auto index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
+        if (!it->possède_instruction_de_genre(GenreInstruction::ALLOCATION)) {
+            continue;
+        }
+
         bloc_modifié |= rapproche_allocations_des_stockages(it);
         bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
     }
@@ -1691,6 +1695,10 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                                            ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+        return false;
+    }
+
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!est_instruction_opérateur_binaire_constant(inst)) {
@@ -1845,6 +1853,10 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                                           Graphe &graphe,
                                           bool *branche_conditionnelle_fut_changée)
 {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+        return false;
+    }
+
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
         if (!inst->est_op_binaire()) {
