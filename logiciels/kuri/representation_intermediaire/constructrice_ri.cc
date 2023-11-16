@@ -1287,7 +1287,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto derniere_instruction = m_fonction_courante->derniere_instruction();
 
-            if (derniere_instruction->genre != Instruction::Genre::RETOUR) {
+            if (derniere_instruction->genre != GenreInstruction::RETOUR) {
                 /* Génère le code pour toutes les instructions différées de ce bloc. */
                 genere_ri_insts_differees(noeud_bloc, noeud_bloc->bloc_parent);
             }

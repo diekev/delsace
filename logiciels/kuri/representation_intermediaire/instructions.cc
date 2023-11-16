@@ -3,6 +3,8 @@
 
 #include "instructions.hh"
 
+#include <ostream>
+
 #include "code_binaire.hh"
 
 AtomeValeurConstante::Valeur::~Valeur()
@@ -30,6 +32,22 @@ Instruction *AtomeFonction::derniere_instruction() const
         return nullptr;
     }
     return instructions[instructions.taille() - 1];
+}
+
+std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
+{
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \
+    case GenreInstruction::Genre:                                                                 \
+    {                                                                                             \
+        os << #Genre;                                                                             \
+        break;                                                                                    \
+    }
+    switch (genre) {
+        ENUMERE_GENRE_INSTRUCTION(ENUMERE_GENRE_INSTRUCTION_EX)
+    }
+#undef ENUMERE_GENRE_INSTRUCTION_EX
+
+    return os;
 }
 
 void VisiteuseAtome::reinitialise()
@@ -147,7 +165,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
             auto inst = racine->comme_instruction();
 
             switch (inst->genre) {
-                case Instruction::Genre::APPEL:
+                case GenreInstruction::APPEL:
                 {
                     auto appel = inst->comme_appel();
 
@@ -160,68 +178,68 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
 
                     break;
                 }
-                case Instruction::Genre::CHARGE_MEMOIRE:
+                case GenreInstruction::CHARGE_MEMOIRE:
                 {
                     auto charge = inst->comme_charge();
                     visite_atome(charge->chargee, rappel);
                     break;
                 }
-                case Instruction::Genre::STOCKE_MEMOIRE:
+                case GenreInstruction::STOCKE_MEMOIRE:
                 {
                     auto stocke = inst->comme_stocke_mem();
                     visite_atome(stocke->valeur, rappel);
                     visite_atome(stocke->ou, rappel);
                     break;
                 }
-                case Instruction::Genre::OPERATION_UNAIRE:
+                case GenreInstruction::OPERATION_UNAIRE:
                 {
                     auto op = inst->comme_op_unaire();
                     visite_atome(op->valeur, rappel);
                     break;
                 }
-                case Instruction::Genre::OPERATION_BINAIRE:
+                case GenreInstruction::OPERATION_BINAIRE:
                 {
                     auto op = inst->comme_op_binaire();
                     visite_atome(op->valeur_droite, rappel);
                     visite_atome(op->valeur_gauche, rappel);
                     break;
                 }
-                case Instruction::Genre::ACCEDE_INDEX:
+                case GenreInstruction::ACCEDE_INDEX:
                 {
                     auto acces = inst->comme_acces_index();
                     visite_atome(acces->index, rappel);
                     visite_atome(acces->accede, rappel);
                     break;
                 }
-                case Instruction::Genre::ACCEDE_MEMBRE:
+                case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
                     visite_atome(acces->index, rappel);
                     visite_atome(acces->accede, rappel);
                     break;
                 }
-                case Instruction::Genre::TRANSTYPE:
+                case GenreInstruction::TRANSTYPE:
                 {
                     auto transtype = inst->comme_transtype();
                     visite_atome(transtype->valeur, rappel);
                     break;
                 }
-                case Instruction::Genre::BRANCHE_CONDITION:
+                case GenreInstruction::BRANCHE_CONDITION:
                 {
                     auto branche = inst->comme_branche_cond();
                     visite_atome(branche->condition, rappel);
                     break;
                 }
-                case Instruction::Genre::RETOUR:
+                case GenreInstruction::RETOUR:
                 {
                     auto retour = inst->comme_retour();
                     visite_atome(retour->valeur, rappel);
                     break;
                 }
-                case Instruction::Genre::ALLOCATION:
-                case Instruction::Genre::INVALIDE:
-                case Instruction::Genre::BRANCHE:
-                case Instruction::Genre::LABEL:
+                case GenreInstruction::ALLOCATION:
+                case GenreInstruction::INVALIDE:
+                case GenreInstruction::BRANCHE:
+                case GenreInstruction::LABEL:
                 {
                     /* Pas de sous-atome. */
                     break;
@@ -242,7 +260,7 @@ void visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
 void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *)> rappel)
 {
     switch (inst->genre) {
-        case Instruction::Genre::APPEL:
+        case GenreInstruction::APPEL:
         {
             auto appel = inst->comme_appel();
 
@@ -255,59 +273,59 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
 
             break;
         }
-        case Instruction::Genre::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto charge = inst->comme_charge();
             rappel(charge->chargee);
             break;
         }
-        case Instruction::Genre::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = inst->comme_stocke_mem();
             rappel(stocke->valeur);
             rappel(stocke->ou);
             break;
         }
-        case Instruction::Genre::OPERATION_UNAIRE:
+        case GenreInstruction::OPERATION_UNAIRE:
         {
             auto op = inst->comme_op_unaire();
             rappel(op->valeur);
             break;
         }
-        case Instruction::Genre::OPERATION_BINAIRE:
+        case GenreInstruction::OPERATION_BINAIRE:
         {
             auto op = inst->comme_op_binaire();
             rappel(op->valeur_droite);
             rappel(op->valeur_gauche);
             break;
         }
-        case Instruction::Genre::ACCEDE_INDEX:
+        case GenreInstruction::ACCEDE_INDEX:
         {
             auto acces = inst->comme_acces_index();
             rappel(acces->index);
             rappel(acces->accede);
             break;
         }
-        case Instruction::Genre::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto acces = inst->comme_acces_membre();
             rappel(acces->index);
             rappel(acces->accede);
             break;
         }
-        case Instruction::Genre::TRANSTYPE:
+        case GenreInstruction::TRANSTYPE:
         {
             auto transtype = inst->comme_transtype();
             rappel(transtype->valeur);
             break;
         }
-        case Instruction::Genre::BRANCHE_CONDITION:
+        case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = inst->comme_branche_cond();
             rappel(branche->condition);
             break;
         }
-        case Instruction::Genre::RETOUR:
+        case GenreInstruction::RETOUR:
         {
             auto retour = inst->comme_retour();
             if (retour->valeur) {
@@ -315,10 +333,10 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
             }
             break;
         }
-        case Instruction::Genre::ALLOCATION:
-        case Instruction::Genre::INVALIDE:
-        case Instruction::Genre::BRANCHE:
-        case Instruction::Genre::LABEL:
+        case GenreInstruction::ALLOCATION:
+        case GenreInstruction::INVALIDE:
+        case GenreInstruction::BRANCHE:
+        case GenreInstruction::LABEL:
         {
             /* Pas de sous-atome. */
             break;

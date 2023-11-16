@@ -34,6 +34,23 @@ static InstructionAllocation *alloc_ou_nul(Atome *atome)
 
 /* ********************************************************************************************* */
 
+static uint32_t donne_drapeau_masque_pour_instruction(GenreInstruction genre)
+{
+    return 1u << uint32_t(genre);
+}
+
+void Bloc::ajoute_instruction(Instruction *inst)
+{
+    masque_instructions |= donne_drapeau_masque_pour_instruction(inst->genre);
+    instructions.ajoute(inst);
+}
+
+bool Bloc::possède_instruction_de_genre(GenreInstruction genre) const
+{
+    auto const drapeau = donne_drapeau_masque_pour_instruction(genre);
+    return (masque_instructions & drapeau) != 0;
+}
+
 void Bloc::ajoute_enfant(Bloc *enfant)
 {
     enfant->ajoute_parent(this);
@@ -195,7 +212,7 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     this->instructions.reserve_delta(enfant->instructions.taille());
 
     POUR (enfant->instructions) {
-        this->instructions.ajoute(it);
+        this->ajoute_instruction(it);
     }
 
     this->variables_declarees.reserve(enfant->variables_declarees.taille() +
@@ -240,6 +257,7 @@ void Bloc::fusionne_enfant(Bloc *enfant)
 
 void Bloc::réinitialise()
 {
+    masque_instructions = 0;
     label = nullptr;
     est_atteignable = false;
     instructions.efface();
@@ -429,7 +447,7 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
             continue;
         }
 
-        bloc_courant->instructions.ajoute(it);
+        bloc_courant->ajoute_instruction(it);
 
         if (it->est_branche()) {
             auto bloc_cible = trouve_bloc_pour_label(blocs, it->comme_branche()->label);

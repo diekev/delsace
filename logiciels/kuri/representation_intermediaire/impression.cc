@@ -361,12 +361,12 @@ void imprime_atome(Atome const *atome, std::ostream &os)
 void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 {
     switch (inst->genre) {
-        case Instruction::Genre::INVALIDE:
+        case GenreInstruction::INVALIDE:
         {
             os << "  invalide";
             break;
         }
-        case Instruction::Genre::ALLOCATION:
+        case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  alloue " << chaine_type(type_pointeur->type_pointe, false) << ' ';
@@ -380,7 +380,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 
             break;
         }
-        case Instruction::Genre::APPEL:
+        case GenreInstruction::APPEL:
         {
             auto inst_appel = inst->comme_appel();
             os << "  appel " << chaine_type(inst_appel->type, false) << ' ';
@@ -402,13 +402,13 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 
             break;
         }
-        case Instruction::Genre::BRANCHE:
+        case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
             os << "  branche %" << inst_branche->label->numero;
             break;
         }
-        case Instruction::Genre::BRANCHE_CONDITION:
+        case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
             os << "  si ";
@@ -417,7 +417,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
                << inst_branche->label_si_faux->numero;
             break;
         }
-        case Instruction::Genre::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
@@ -437,7 +437,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 
             break;
         }
-        case Instruction::Genre::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->ou;
@@ -456,13 +456,13 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_stocke->valeur, os, true);
             break;
         }
-        case Instruction::Genre::LABEL:
+        case GenreInstruction::LABEL:
         {
             auto inst_label = inst->comme_label();
             os << "label " << inst_label->id;
             break;
         }
-        case Instruction::Genre::OPERATION_UNAIRE:
+        case GenreInstruction::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
             os << "  " << chaine_pour_genre_op(inst_un->op) << ' '
@@ -470,7 +470,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_un->valeur, os, true);
             break;
         }
-        case Instruction::Genre::OPERATION_BINAIRE:
+        case GenreInstruction::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
             os << "  " << chaine_pour_genre_op(inst_bin->op) << ' '
@@ -480,7 +480,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_bin->valeur_droite, os, true);
             break;
         }
-        case Instruction::Genre::RETOUR:
+        case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
             os << "  retourne ";
@@ -493,7 +493,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             }
             break;
         }
-        case Instruction::Genre::ACCEDE_INDEX:
+        case GenreInstruction::ACCEDE_INDEX:
         {
             auto inst_acces = inst->comme_acces_index();
             os << "  index " << chaine_type(inst_acces->type, false) << ' ';
@@ -502,7 +502,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_acces->index, os, true);
             break;
         }
-        case Instruction::Genre::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto inst_acces = inst->comme_acces_membre();
             os << "  membre " << chaine_type(inst_acces->type, false) << ' ';
@@ -511,7 +511,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             imprime_atome_ex(inst_acces->index, os, true);
             break;
         }
-        case Instruction::Genre::TRANSTYPE:
+        case GenreInstruction::TRANSTYPE:
         {
             auto inst_transtype = inst->comme_transtype();
             os << "  " << chaine_pour_type_transtypage(inst_transtype->op) << " ";

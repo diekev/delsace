@@ -374,26 +374,32 @@ struct AtomeFonction : public Atome {
     EMPECHE_COPIE(AtomeFonction);
 };
 
+#define ENUMERE_GENRE_INSTRUCTION(O)                                                              \
+    O(INVALIDE)                                                                                   \
+    O(APPEL)                                                                                      \
+    O(ALLOCATION)                                                                                 \
+    O(OPERATION_BINAIRE)                                                                          \
+    O(OPERATION_UNAIRE)                                                                           \
+    O(CHARGE_MEMOIRE)                                                                             \
+    O(STOCKE_MEMOIRE)                                                                             \
+    O(LABEL)                                                                                      \
+    O(BRANCHE)                                                                                    \
+    O(BRANCHE_CONDITION)                                                                          \
+    O(RETOUR)                                                                                     \
+    O(ACCEDE_MEMBRE)                                                                              \
+    O(ACCEDE_INDEX)                                                                               \
+    O(TRANSTYPE)
+
+enum class GenreInstruction : uint32_t {
+#define ENUMERE_GENRE_INSTRUCTION_EX(Genre) Genre,
+    ENUMERE_GENRE_INSTRUCTION(ENUMERE_GENRE_INSTRUCTION_EX)
+#undef ENUMERE_GENRE_INSTRUCTION_EX
+};
+
+std::ostream &operator<<(std::ostream &os, GenreInstruction genre);
+
 struct Instruction : public Atome {
-    enum class Genre {
-        INVALIDE,
-
-        APPEL,
-        ALLOCATION,
-        OPERATION_BINAIRE,
-        OPERATION_UNAIRE,
-        CHARGE_MEMOIRE,
-        STOCKE_MEMOIRE,
-        LABEL,
-        BRANCHE,
-        BRANCHE_CONDITION,
-        RETOUR,
-        ACCEDE_MEMBRE,
-        ACCEDE_INDEX,
-        TRANSTYPE,
-    };
-
-    Genre genre = Genre::INVALIDE;
+    GenreInstruction genre = GenreInstruction::INVALIDE;
     int numero = 0;
     NoeudExpression *site = nullptr;
 
@@ -422,55 +428,55 @@ struct Instruction : public Atome {
 
     inline bool est_acces_index() const
     {
-        return genre == Genre::ACCEDE_INDEX;
+        return genre == GenreInstruction::ACCEDE_INDEX;
     }
     inline bool est_acces_membre() const
     {
-        return genre == Genre::ACCEDE_MEMBRE;
+        return genre == GenreInstruction::ACCEDE_MEMBRE;
     }
     inline bool est_alloc() const
     {
-        return genre == Genre::ALLOCATION;
+        return genre == GenreInstruction::ALLOCATION;
     }
     inline bool est_appel() const
     {
-        return genre == Genre::APPEL;
+        return genre == GenreInstruction::APPEL;
     }
     inline bool est_branche() const
     {
-        return genre == Genre::BRANCHE;
+        return genre == GenreInstruction::BRANCHE;
     }
     inline bool est_branche_cond() const
     {
-        return genre == Genre::BRANCHE_CONDITION;
+        return genre == GenreInstruction::BRANCHE_CONDITION;
     }
     inline bool est_charge() const
     {
-        return genre == Genre::CHARGE_MEMOIRE;
+        return genre == GenreInstruction::CHARGE_MEMOIRE;
     }
     inline bool est_label() const
     {
-        return genre == Genre::LABEL;
+        return genre == GenreInstruction::LABEL;
     }
     inline bool est_op_binaire() const
     {
-        return genre == Genre::OPERATION_BINAIRE;
+        return genre == GenreInstruction::OPERATION_BINAIRE;
     }
     inline bool est_op_unaire() const
     {
-        return genre == Genre::OPERATION_UNAIRE;
+        return genre == GenreInstruction::OPERATION_UNAIRE;
     }
     inline bool est_retour() const
     {
-        return genre == Genre::RETOUR;
+        return genre == GenreInstruction::RETOUR;
     }
     inline bool est_stocke_mem() const
     {
-        return genre == Genre::STOCKE_MEMOIRE;
+        return genre == GenreInstruction::STOCKE_MEMOIRE;
     }
     inline bool est_transtype() const
     {
-        return genre == Genre::TRANSTYPE;
+        return genre == GenreInstruction::TRANSTYPE;
     }
 
     inline bool est_branche_ou_retourne() const
@@ -495,7 +501,7 @@ struct InstructionAppel : public Instruction {
     explicit InstructionAppel(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::APPEL;
+        genre = GenreInstruction::APPEL;
     }
 
     Atome *appele = nullptr;
@@ -524,7 +530,7 @@ struct InstructionAllocation : public Instruction {
     explicit InstructionAllocation(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::ALLOCATION;
+        genre = GenreInstruction::ALLOCATION;
         est_chargeable = true;
     }
 
@@ -546,7 +552,7 @@ struct InstructionRetour : public Instruction {
     explicit InstructionRetour(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::RETOUR;
+        genre = GenreInstruction::RETOUR;
     }
 
     Atome *valeur = nullptr;
@@ -563,7 +569,7 @@ struct InstructionOpBinaire : public Instruction {
     explicit InstructionOpBinaire(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::OPERATION_BINAIRE;
+        genre = GenreInstruction::OPERATION_BINAIRE;
     }
 
     OpérateurBinaire::Genre op{};
@@ -590,7 +596,7 @@ struct InstructionOpUnaire : public Instruction {
     explicit InstructionOpUnaire(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::OPERATION_UNAIRE;
+        genre = GenreInstruction::OPERATION_UNAIRE;
     }
 
     OpérateurUnaire::Genre op{};
@@ -614,7 +620,7 @@ struct InstructionChargeMem : public Instruction {
     explicit InstructionChargeMem(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::CHARGE_MEMOIRE;
+        genre = GenreInstruction::CHARGE_MEMOIRE;
         est_chargeable = true;
     }
 
@@ -635,7 +641,7 @@ struct InstructionStockeMem : public Instruction {
     explicit InstructionStockeMem(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::STOCKE_MEMOIRE;
+        genre = GenreInstruction::STOCKE_MEMOIRE;
     }
 
     Atome *ou = nullptr;
@@ -656,7 +662,7 @@ struct InstructionLabel : public Instruction {
     explicit InstructionLabel(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::LABEL;
+        genre = GenreInstruction::LABEL;
     }
 
     int id = 0;
@@ -671,7 +677,7 @@ struct InstructionBranche : public Instruction {
     explicit InstructionBranche(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::BRANCHE;
+        genre = GenreInstruction::BRANCHE;
     }
 
     InstructionLabel *label = nullptr;
@@ -689,7 +695,7 @@ struct InstructionBrancheCondition : public Instruction {
     explicit InstructionBrancheCondition(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::BRANCHE_CONDITION;
+        genre = GenreInstruction::BRANCHE_CONDITION;
     }
 
     Atome *condition = nullptr;
@@ -714,7 +720,7 @@ struct InstructionAccedeMembre : public Instruction {
     explicit InstructionAccedeMembre(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::ACCEDE_MEMBRE;
+        genre = GenreInstruction::ACCEDE_MEMBRE;
         est_chargeable = true;
     }
 
@@ -739,7 +745,7 @@ struct InstructionAccedeIndex : public Instruction {
     explicit InstructionAccedeIndex(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::ACCEDE_INDEX;
+        genre = GenreInstruction::ACCEDE_INDEX;
         est_chargeable = true;
     }
 
@@ -779,7 +785,7 @@ struct InstructionTranstype : public Instruction {
     explicit InstructionTranstype(NoeudExpression *site_)
     {
         site = site_;
-        genre = Instruction::Genre::TRANSTYPE;
+        genre = GenreInstruction::TRANSTYPE;
         est_chargeable = false;  // À FAIRE : uniquement si la valeur est un pointeur
     }
 

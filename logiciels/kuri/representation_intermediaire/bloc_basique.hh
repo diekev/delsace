@@ -13,6 +13,8 @@ struct Instruction;
 struct InstructionAllocation;
 struct InstructionLabel;
 
+enum class GenreInstruction : uint32_t;
+
 struct Bloc {
     InstructionLabel *label = nullptr;
 
@@ -28,6 +30,14 @@ struct Bloc {
     kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
 
     bool est_atteignable = false;
+
+  private:
+    uint32_t masque_instructions = 0;
+
+  public:
+    void ajoute_instruction(Instruction *inst);
+
+    bool possède_instruction_de_genre(GenreInstruction genre) const;
 
     void ajoute_enfant(Bloc *enfant);
 

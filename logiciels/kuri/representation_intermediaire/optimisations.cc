@@ -128,7 +128,7 @@ struct CopieuseInstruction {
         auto nouvelle_inst = static_cast<Instruction *>(nullptr);
 
         switch (inst->genre) {
-            case Instruction::Genre::APPEL:
+            case GenreInstruction::APPEL:
             {
                 auto appel = inst->comme_appel();
                 auto appelé = copie_atome(appel->appele);
@@ -146,7 +146,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = nouvel_appel;
                 break;
             }
-            case Instruction::Genre::CHARGE_MEMOIRE:
+            case GenreInstruction::CHARGE_MEMOIRE:
             {
                 auto charge = inst->comme_charge();
                 auto source = copie_atome(charge->chargee);
@@ -154,7 +154,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_charge;
                 break;
             }
-            case Instruction::Genre::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
                 auto destination = copie_atome(stocke->ou);
@@ -163,7 +163,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_stocke;
                 break;
             }
-            case Instruction::Genre::OPERATION_UNAIRE:
+            case GenreInstruction::OPERATION_UNAIRE:
             {
                 auto op = inst->comme_op_unaire();
                 auto type_opération = op->op;
@@ -173,7 +173,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_op;
                 break;
             }
-            case Instruction::Genre::OPERATION_BINAIRE:
+            case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = inst->comme_op_binaire();
                 auto type_opération = op->op;
@@ -184,7 +184,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_op;
                 break;
             }
-            case Instruction::Genre::ACCEDE_INDEX:
+            case GenreInstruction::ACCEDE_INDEX:
             {
                 auto acces = inst->comme_acces_index();
                 auto accedé = copie_atome(acces->accede);
@@ -193,7 +193,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_acces;
                 break;
             }
-            case Instruction::Genre::ACCEDE_MEMBRE:
+            case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto acces = inst->comme_acces_membre();
                 auto accedé = copie_atome(acces->accede);
@@ -203,7 +203,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_acces;
                 break;
             }
-            case Instruction::Genre::TRANSTYPE:
+            case GenreInstruction::TRANSTYPE:
             {
                 auto transtype = inst->comme_transtype();
                 auto op = transtype->op;
@@ -213,7 +213,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_transtype;
                 break;
             }
-            case Instruction::Genre::BRANCHE_CONDITION:
+            case GenreInstruction::BRANCHE_CONDITION:
             {
                 auto branche = inst->comme_branche_cond();
                 auto n_condition = copie_atome(branche->condition);
@@ -226,7 +226,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_branche;
                 break;
             }
-            case Instruction::Genre::BRANCHE:
+            case GenreInstruction::BRANCHE:
             {
                 auto branche = inst->comme_branche();
                 auto label = copie_atome(branche->label)->comme_instruction()->comme_label();
@@ -234,7 +234,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_branche;
                 break;
             }
-            case Instruction::Genre::RETOUR:
+            case GenreInstruction::RETOUR:
             {
                 auto retour = inst->comme_retour();
                 auto n_valeur = copie_atome(retour->valeur);
@@ -242,7 +242,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_retour;
                 break;
             }
-            case Instruction::Genre::ALLOCATION:
+            case GenreInstruction::ALLOCATION:
             {
                 auto alloc = inst->comme_alloc();
                 auto ident = alloc->ident;
@@ -251,7 +251,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_alloc;
                 break;
             }
-            case Instruction::Genre::LABEL:
+            case GenreInstruction::LABEL:
             {
                 auto label = inst->comme_label();
                 auto n_label = constructrice.crée_label(inst->site);
@@ -259,7 +259,7 @@ struct CopieuseInstruction {
                 nouvelle_inst = n_label;
                 break;
             }
-            case Instruction::Genre::INVALIDE:
+            case GenreInstruction::INVALIDE:
             {
                 break;
             }
@@ -293,7 +293,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
         if (atome->genre_atome == Atome::Genre::INSTRUCTION) {
             auto inst = atome->comme_instruction();
 
-            if (inst->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+            if (inst->genre == GenreInstruction::CHARGE_MEMOIRE) {
                 atome = inst->comme_charge()->chargee;
             }
             // À FAIRE : détection des pointeurs locaux plus robuste
@@ -333,7 +333,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
     nouvelles_instructions.reserve_delta(instructions_copiees.taille());
 
     POUR (instructions_copiees) {
-        if (it->genre == Instruction::Genre::LABEL) {
+        if (it->genre == GenreInstruction::LABEL) {
             auto label = it->comme_label();
 
             // saute le label d'entrée de la fonction
@@ -343,7 +343,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
 
             label->id = nombre_labels++;
         }
-        else if (it->genre == Instruction::Genre::RETOUR) {
+        else if (it->genre == GenreInstruction::RETOUR) {
             auto retour = it->comme_retour();
 
             if (retour->valeur) {
@@ -415,7 +415,7 @@ struct Substitutrice {
     Instruction *instruction_substituee(Instruction *instruction)
     {
         switch (instruction->genre) {
-            case Instruction::Genre::CHARGE_MEMOIRE:
+            case GenreInstruction::CHARGE_MEMOIRE:
             {
                 auto charge = instruction->comme_charge();
 
@@ -433,7 +433,7 @@ struct Substitutrice {
 
                 return charge;
             }
-            case Instruction::Genre::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = instruction->comme_stocke_mem();
 
@@ -452,7 +452,7 @@ struct Substitutrice {
 
                 return stocke;
             }
-            case Instruction::Genre::OPERATION_BINAIRE:
+            case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
 
@@ -470,7 +470,7 @@ struct Substitutrice {
 
                 return op;
             }
-            case Instruction::Genre::RETOUR:
+            case GenreInstruction::RETOUR:
             {
                 auto retour = instruction->comme_retour();
 
@@ -480,13 +480,13 @@ struct Substitutrice {
 
                 return retour;
             }
-            case Instruction::Genre::ACCEDE_MEMBRE:
+            case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto acces = instruction->comme_acces_membre();
                 acces->accede = valeur_substituee(acces->accede);
                 return acces;
             }
-            case Instruction::Genre::APPEL:
+            case GenreInstruction::APPEL:
             {
                 auto appel = instruction->comme_appel();
                 appel->appele = valeur_substituee(appel->appele);
@@ -558,11 +558,11 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
     auto nombre_fonctions_enlignees = 0;
 
     POUR (atome_fonc->instructions) {
-        nombre_labels += it->genre == Instruction::Genre::LABEL;
+        nombre_labels += it->genre == GenreInstruction::LABEL;
     }
 
     POUR (atome_fonc->instructions) {
-        if (it->genre != Instruction::Genre::APPEL) {
+        if (it->genre != GenreInstruction::APPEL) {
             nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
@@ -794,7 +794,7 @@ static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *, int> 
     }
 
     POUR (instructions) {
-        if (it->genre == Instruction::Genre::STOCKE_MEMOIRE) {
+        if (it->genre == GenreInstruction::STOCKE_MEMOIRE) {
             auto stocke = it->comme_stocke_mem();
 
             stocke->ou = substitutrice.valeur_substituee(stocke->ou);
@@ -808,7 +808,7 @@ static bool propage_constantes_et_temporaires(kuri::tableau<Instruction *, int> 
                 }
             }
         }
-        else if (it->genre == Instruction::Genre::CHARGE_MEMOIRE) {
+        else if (it->genre == GenreInstruction::CHARGE_MEMOIRE) {
             auto charge = it->comme_charge();
 
             for (auto dv : dernieres_valeurs) {
