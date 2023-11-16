@@ -230,7 +230,7 @@ struct ConstructriceRI {
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
   private:
-    void imprime_site(NoeudExpression *site) const;
+    kuri::chaine imprime_site(NoeudExpression *site) const;
 };
 
 /** \} */

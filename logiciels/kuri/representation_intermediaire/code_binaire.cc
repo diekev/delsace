@@ -16,6 +16,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
+#include "compilation/log.hh"
 #include "compilation/operateurs.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -615,13 +616,12 @@ ffi_type *converti_type_ffi(Type const *type)
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
         {
-            assert_rappel(false,
-                          [&]() { std::cerr << "Type polymorphique dans la conversion FFI\n"; });
+            assert_rappel(false, [&]() { dbg() << "Type polymorphique dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
         case GenreType::TUPLE:
         {
-            assert_rappel(false, [&]() { std::cerr << "Type tuple dans la conversion FFI\n"; });
+            assert_rappel(false, [&]() { dbg() << "Type tuple dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
         case GenreType::BOOL:
@@ -1550,9 +1550,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
                     assert_rappel(false, [&]() {
-                        std::cerr << "Les valeurs de globales de type tableau fixe ne sont pas "
-                                     "générées dans le code binaire pour le moment.\n";
-                        std::cerr << "Le type est " << chaine_type(constante->type) << '\n';
+                        dbg() << "Les valeurs de globales de type tableau fixe ne sont pas "
+                                 "générées dans le code binaire pour le moment.\n"
+                              << "    NOTE : le type de la globale est "
+                              << chaine_type(constante->type);
                     });
                     break;
                 }
@@ -1591,8 +1592,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             continue;
                         }
 
-                        // std::cerr << "Ajout du code pour le membre : " << type->membres[i].nom
-                        // << '\n';
+                        // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
 
                         auto type_membre = type->membres[i].type;
 
@@ -1691,9 +1691,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::FONCTION:
         {
             assert_rappel(false, []() {
-                std::cerr
-                    << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
-                       "code binaire\n";
+                dbg() << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
+                         "code binaire\n";
             });
             break;
         }
@@ -1707,22 +1706,22 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les opérations unaires constantes ne sont
-            // pas implémentées dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les opérations unaires constantes ne sont
+            // pas implémentées dans le code binaire"; });
             break;
         }
         case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les opérations binaires constantes ne sont
-            // pas implémentées dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les opérations binaires constantes ne sont
+            // pas implémentées dans le code binaire"; });
             break;
         }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les indexages constants ne sont pas
-            // implémentés dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les indexages constants ne sont pas
+            // implémentés dans le code binaire"; });
             break;
         }
     }
