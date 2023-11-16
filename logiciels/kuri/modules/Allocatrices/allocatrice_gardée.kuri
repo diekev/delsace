@@ -159,7 +159,7 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
 
     nouvelle_taille_à_allouer := taille_à_allouer_avec_entête(nouvelle_taille)
 
-    entête = realloc(entête, nouvelle_taille_à_allouer) comme *EntêteMémoire
+    entête = realloc(entête, nouvelle_taille_à_allouer comme n64) comme *EntêteMémoire
 
     entête.taille = taille_alignée(nouvelle_taille)
     entête.info = info
