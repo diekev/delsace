@@ -156,11 +156,11 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
 void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
-        case Instruction::Genre::INVALIDE:
+        case GenreInstruction::INVALIDE:
         {
             break;
         }
-        case Instruction::Genre::ALLOCATION:
+        case GenreInstruction::ALLOCATION:
         {
             /* il faut faire de la place sur la pile
              * @Incomplet : vérifie l'alignement.
@@ -171,7 +171,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
             os << "  sub " << RSP << ' ' << type_pointeur->type_pointe->taille_octet << '\n';
             break;
         }
-        case Instruction::Genre::APPEL:
+        case GenreInstruction::APPEL:
         {
             auto appel = inst->comme_appel();
 
@@ -183,38 +183,38 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
             os << "  call " << genere_code_pour_atome(appel->appele, os, false) << '\n';
             break;
         }
-        case Instruction::Genre::BRANCHE:
+        case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
             os << "  jmp label" << inst_branche->label->id << '\n';
             break;
         }
-        case Instruction::Genre::BRANCHE_CONDITION:
+        case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
             os << "  jmpz label" << inst_branche->label_si_faux->id << '\n';
             os << "  jmp label" << inst_branche->label_si_vrai->id << '\n';
             break;
         }
-        case Instruction::Genre::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MEMOIRE:
         {
             /* @Incomplet: charge depuis où? */
             os << "  mov \n";
             break;
         }
-        case Instruction::Genre::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MEMOIRE:
         {
             /* @Incomplet: met où? */
             os << "  mov \n";
             break;
         }
-        case Instruction::Genre::LABEL:
+        case GenreInstruction::LABEL:
         {
             auto inst_label = inst->comme_label();
             os << "\nlabel" << inst_label->id << ":\n";
             break;
         }
-        case Instruction::Genre::OPERATION_UNAIRE:
+        case GenreInstruction::OPERATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
 
@@ -248,7 +248,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
 
             break;
         }
-        case Instruction::Genre::OPERATION_BINAIRE:
+        case GenreInstruction::OPERATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
 
@@ -351,7 +351,7 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
 
             break;
         }
-        case Instruction::Genre::RETOUR:
+        case GenreInstruction::RETOUR:
         {
             auto inst_retour = inst->comme_retour();
 
@@ -367,17 +367,17 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
             os << "\n";
             break;
         }
-        case Instruction::Genre::ACCEDE_INDEX:
+        case GenreInstruction::ACCEDE_INDEX:
         {
             /* @Incomplet: [ptr + décalage] */
             break;
         }
-        case Instruction::Genre::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_MEMBRE:
         {
             /* @Incomplet: [ptr + décalage] */
             break;
         }
-        case Instruction::Genre::TRANSTYPE:
+        case GenreInstruction::TRANSTYPE:
         {
             /* @Incomplet: les types de transtypage */
             break;

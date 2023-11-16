@@ -907,13 +907,13 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         // génère le code binaire depuis les instructions « racines » (assignation, retour,
         // allocation, appel, et controle de flux).
         auto est_inst_racine = dls::outils::est_element(it->genre,
-                                                        Instruction::Genre::ALLOCATION,
-                                                        Instruction::Genre::APPEL,
-                                                        Instruction::Genre::BRANCHE,
-                                                        Instruction::Genre::BRANCHE_CONDITION,
-                                                        Instruction::Genre::LABEL,
-                                                        Instruction::Genre::RETOUR,
-                                                        Instruction::Genre::STOCKE_MEMOIRE);
+                                                        GenreInstruction::ALLOCATION,
+                                                        GenreInstruction::APPEL,
+                                                        GenreInstruction::BRANCHE,
+                                                        GenreInstruction::BRANCHE_CONDITION,
+                                                        GenreInstruction::LABEL,
+                                                        GenreInstruction::RETOUR,
+                                                        GenreInstruction::STOCKE_MEMOIRE);
 
         if (!est_inst_racine) {
             continue;
@@ -938,23 +938,23 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                                                             bool pour_operande)
 {
     switch (instruction->genre) {
-        case Instruction::Genre::INVALIDE:
+        case GenreInstruction::INVALIDE:
         {
             return;
         }
-        case Instruction::Genre::LABEL:
+        case GenreInstruction::LABEL:
         {
             auto label = instruction->comme_label();
             chunk.emets_label(label->site, label->id);
             break;
         }
-        case Instruction::Genre::BRANCHE:
+        case GenreInstruction::BRANCHE:
         {
             auto branche = instruction->comme_branche();
             chunk.emets_branche(branche->site, patchs_labels, branche->label->id);
             break;
         }
-        case Instruction::Genre::BRANCHE_CONDITION:
+        case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
             genere_code_binaire_pour_atome(branche->condition, chunk, true);
@@ -964,7 +964,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                                           branche->label_si_faux->id);
             break;
         }
-        case Instruction::Genre::ALLOCATION:
+        case GenreInstruction::ALLOCATION:
         {
             auto alloc = instruction->comme_alloc();
 
@@ -974,14 +974,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             break;
         }
-        case Instruction::Genre::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto charge = instruction->comme_charge();
             genere_code_binaire_pour_atome(charge->chargee, chunk, true);
             chunk.emets_charge(charge->site, charge->type, verifie_adresses);
             break;
         }
-        case Instruction::Genre::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = instruction->comme_stocke_mem();
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
@@ -991,7 +991,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 contexte(), stocke->site, stocke->valeur->type, verifie_adresses);
             break;
         }
-        case Instruction::Genre::APPEL:
+        case GenreInstruction::APPEL:
         {
             auto appel = instruction->comme_appel();
 
@@ -1043,7 +1043,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             break;
         }
-        case Instruction::Genre::RETOUR:
+        case GenreInstruction::RETOUR:
         {
             auto retour = instruction->comme_retour();
 
@@ -1055,7 +1055,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             chunk.emets(retour->site);
             break;
         }
-        case Instruction::Genre::TRANSTYPE:
+        case GenreInstruction::TRANSTYPE:
         {
             auto transtype = instruction->comme_transtype();
             auto valeur = transtype->valeur;
@@ -1138,7 +1138,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             break;
         }
-        case Instruction::Genre::ACCEDE_INDEX:
+        case GenreInstruction::ACCEDE_INDEX:
         {
             auto index = instruction->comme_acces_index();
             auto type_pointeur = index->type->comme_type_pointeur();
@@ -1158,7 +1158,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             chunk.emets_acces_index(index->site, type_pointeur->type_pointe);
             break;
         }
-        case Instruction::Genre::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto membre = instruction->comme_acces_membre();
             auto index_membre = static_cast<int>(
@@ -1177,7 +1177,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             break;
         }
-        case Instruction::Genre::OPERATION_UNAIRE:
+        case GenreInstruction::OPERATION_UNAIRE:
         {
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
@@ -1185,7 +1185,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             chunk.emets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
-        case Instruction::Genre::OPERATION_BINAIRE:
+        case GenreInstruction::OPERATION_BINAIRE:
         {
             auto op_binaire = instruction->comme_op_binaire();
 
