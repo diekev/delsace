@@ -11,18 +11,21 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
-#include "compilatrice.hh"
-#include "erreur.h"
-#include "espace_de_travail.hh"
+
+#include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/portee.hh"
+
 #include "parsage/outils_lexemes.hh"
-#include "portee.hh"
+
 #include "statistiques/statistiques.hh"
+
+#include "structures/enchaineuse.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
 #include "optimisations.hh"
-
-#include "structures/enchaineuse.hh"
 
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
