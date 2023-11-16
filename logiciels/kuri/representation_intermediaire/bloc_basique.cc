@@ -9,7 +9,6 @@
 #include "espace_de_travail.hh"
 #include "impression.hh"
 #include "instructions.hh"
-#include "log.hh"
 
 /* ********************************************************************************************* */
 
@@ -116,19 +115,15 @@ void Bloc::enlève_enfant(Bloc *enfant)
 bool Bloc::peut_fusionner_enfant()
 {
     if (enfants.taille() == 0) {
-        log(std::cerr, "enfant == 0");
         return false;
     }
 
     if (enfants.taille() > 1) {
-        log(std::cerr, "enfants.taille() > 1");
         return false;
     }
 
     auto enfant = enfants[0];
-
     if (enfant->parents.taille() > 1) {
-        log(std::cerr, "enfants.parents.taille() > 1");
         return false;
     }
 
@@ -153,12 +148,6 @@ void Bloc::utilise_variable(InstructionAllocation *variable)
 
 void Bloc::fusionne_enfant(Bloc *enfant)
 {
-    log(std::cerr,
-        "S'apprête à fusionner le bloc ",
-        enfant->label->id,
-        " dans le bloc ",
-        this->label->id);
-
     this->instructions.supprime_dernier();
     this->instructions.reserve_delta(enfant->instructions.taille());
 
@@ -190,17 +179,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     /* À FAIRE : c'est quoi ça ? */
     POUR (this->enfants) {
         it->enlève_parent(enfant);
-    }
-
-    //		std::cerr << "-- enfants après fusion : ";
-    //		POUR (this->enfants) {
-    //			std::cerr << it->label->id << " ";
-    //		}
-    //		std::cerr << "\n";
-
-    if (log_actif) {
-        std::cerr << "-- bloc après fusion :\n";
-        imprime_bloc(this, 0, std::cerr);
     }
 
     enfant->instructions.efface();
