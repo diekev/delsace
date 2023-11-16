@@ -76,17 +76,28 @@ NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
 
 NoeudDeclaration *trouve_dans_bloc(NoeudBloc const *bloc,
                                    NoeudDeclaration const *decl,
-                                   NoeudBloc const *bloc_final)
+                                   NoeudBloc const *bloc_final,
+                                   NoeudDeclarationEnteteFonction const *fonction_courante)
 {
     auto bloc_courant = bloc;
+    auto ignore_paramètres_et_locales = false;
 
     while (bloc_courant != bloc_final) {
         auto autre_decl = bloc_courant->declaration_avec_meme_ident_que(decl);
         if (autre_decl) {
-            return autre_decl;
+            if (!(ignore_paramètres_et_locales &&
+                  est_locale_ou_paramètre_non_polymorphique(autre_decl))) {
+                return autre_decl;
+            }
         }
 
         bloc_courant = bloc_courant->bloc_parent;
+
+        if (bloc_courant && la_fonction_courante_a_changé(fonction_courante,
+                                                          bloc_courant->appartiens_à_fonction)) {
+            /* Nous avons changé de fonction, ignore les paramètres et les locales. */
+            ignore_paramètres_et_locales = true;
+        }
     }
 
     return nullptr;
