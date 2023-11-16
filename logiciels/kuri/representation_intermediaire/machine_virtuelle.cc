@@ -296,16 +296,6 @@ DEFINIS_OPERATEUR(dec_droite, >>, T, T)
 
 /* ************************************************************************** */
 
-#if defined(DEBOGUE_VALEURS_ENTREE_SORTIE) || defined(DEBOGUE_LOCALES) ||                         \
-    defined(DEBOGUE_INTERPRETEUSE)
-static auto imprime_tab(std::ostream &os, int n)
-{
-    for (auto i = 0; i < n - 1; ++i) {
-        os << ' ';
-    }
-}
-#endif
-
 #if defined(DEBOGUE_VALEURS_ENTREE_SORTIE) || defined(DEBOGUE_LOCALES)
 static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 {
@@ -414,15 +404,13 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
                                     kuri::chaine const &nom,
                                     int profondeur_appel)
 {
-    imprime_tab(std::cerr, profondeur_appel);
-
-    std::cerr << "Appel de " << nom << '\n';
+    std::cerr << chaine_indentations(profondeur_appel) << "Appel de " << nom << '\n';
 
     auto index_sortie = 0;
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR (type_fonction->types_entrees) {
-        imprime_tab(std::cerr, profondeur_appel);
-        std::cerr << "-- paramètre " << index_sortie << " (" << chaine_type(it) << ") : ";
+        std::cerr << chaine_indentations(profondeur_appel) << "-- paramètre " << index_sortie
+                  << " (" << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, std::cerr);
         std::cerr << '\n';
 
@@ -436,9 +424,7 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
                                     kuri::chaine const &nom,
                                     int profondeur_appel)
 {
-    imprime_tab(std::cerr, profondeur_appel);
-
-    std::cerr << "Retour de " << nom << '\n';
+    std::cerr << chaine_indentations(profondeur_appel) << "Retour de " << nom << '\n';
 
     auto index_entree = 0;
     auto pointeur_lecture_retour = pointeur_debut_retour;
@@ -447,8 +433,8 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
             continue;
         }
 
-        imprime_tab(std::cerr, profondeur_appel);
-        std::cerr << "-- résultat " << index_entree << " : ";
+        std::cerr << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree
+                  << " : ";
         lis_valeur(pointeur_lecture_retour, it, std::cerr);
         std::cerr << '\n';
 
@@ -461,13 +447,12 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
 #ifdef DEBOGUE_LOCALES
 static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std::ostream &os)
 {
-    imprime_tab(os, profondeur_appel);
-    os << frame->fonction->nom << " :\n";
+    os << chaine_indentations(profondeur_appel) << frame->fonction->nom << " :\n";
 
     POUR (frame->fonction->chunk.locales) {
         auto pointeur_locale = &frame->pointeur_pile[it.adresse];
-        imprime_tab(std::cerr, profondeur_appel);
-        os << "Locale (" << static_cast<void *>(pointeur_locale) << ") : ";
+        os << chaine_indentations(profondeur_appel) << "Locale ("
+           << static_cast<void *>(pointeur_locale) << ") : ";
 
         if (it.ident) {
             os << it.ident->nom;
@@ -1040,7 +1025,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
     for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
 #ifdef DEBOGUE_INTERPRETEUSE
         auto &sortie = std::cerr;
-        imprime_tab(sortie, profondeur_appel);
+        sortie << chaine_indentations(profondeur_appel);
         desassemble_instruction(
             frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
 #endif

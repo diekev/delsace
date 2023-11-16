@@ -5,6 +5,10 @@
 
 #include <iostream>
 
+namespace kuri {
+struct chaine_statique;
+}
+
 struct LogConditionel {
     std::ostream &os;
     bool actif = false;
@@ -63,3 +67,5 @@ const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
     log_debug.os << valeur;
     return log_debug;
 }
+
+kuri::chaine_statique chaine_indentations(int indentations);

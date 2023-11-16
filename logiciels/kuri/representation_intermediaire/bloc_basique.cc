@@ -9,7 +9,6 @@
 #include "espace_de_travail.hh"
 #include "impression.hh"
 #include "instructions.hh"
-#include "log.hh"
 
 /* ********************************************************************************************* */
 
@@ -111,73 +110,20 @@ void Bloc::enlève_parent(Bloc *parent)
 void Bloc::enlève_enfant(Bloc *enfant)
 {
     enlève_du_tableau(enfants, enfant);
-
-    /* quand nous enlevons un enfant, il faut modifier la cible des branches potentielles */
-
-    if (instructions.est_vide()) {
-        return;
-    }
-
-    /* création_contexte n'a pas d'instruction de retour à la fin de son bloc, et après
-     * l'enlignage, nous nous retrouvons avec un bloc vide à la fin de la fonction */
-    if (enfant->instructions.est_vide()) {
-        return;
-    }
-
-    auto inst = instructions.dernière();
-
-    if (log_actif) {
-        std::cerr << "-- dernière inststruction : ";
-        imprime_instruction(inst, std::cerr);
-    }
-
-    if (inst->est_branche()) {
-        // À FAIRE
-        return;
-    }
-
-    if (inst->est_branche_cond()) {
-        auto branche_cond = inst->comme_branche_cond();
-        auto label_si_vrai = branche_cond->label_si_vrai;
-        auto label_si_faux = branche_cond->label_si_faux;
-
-        if (label_si_vrai == enfant->label) {
-            branche_cond->label_si_vrai = label_si_faux;
-        }
-        else if (label_si_faux == enfant->label) {
-            branche_cond->label_si_faux = label_si_vrai;
-        }
-        else {
-            // assert(0);
-        }
-
-        return;
-    }
-
-    if (inst->est_retour()) {
-        return;
-    }
-
-    log(std::cerr, "bloc ", label->id);
-    assert(0);
 }
 
 bool Bloc::peut_fusionner_enfant()
 {
     if (enfants.taille() == 0) {
-        log(std::cerr, "enfant == 0");
         return false;
     }
 
     if (enfants.taille() > 1) {
-        log(std::cerr, "enfants.taille() > 1");
         return false;
     }
 
     auto enfant = enfants[0];
-
     if (enfant->parents.taille() > 1) {
-        log(std::cerr, "enfants.parents.taille() > 1");
         return false;
     }
 
@@ -202,12 +148,6 @@ void Bloc::utilise_variable(InstructionAllocation *variable)
 
 void Bloc::fusionne_enfant(Bloc *enfant)
 {
-    log(std::cerr,
-        "S'apprête à fusionner le bloc ",
-        enfant->label->id,
-        " dans le bloc ",
-        this->label->id);
-
     this->instructions.supprime_dernier();
     this->instructions.reserve_delta(enfant->instructions.taille());
 
@@ -239,17 +179,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     /* À FAIRE : c'est quoi ça ? */
     POUR (this->enfants) {
         it->enlève_parent(enfant);
-    }
-
-    //		std::cerr << "-- enfants après fusion : ";
-    //		POUR (this->enfants) {
-    //			std::cerr << it->label->id << " ";
-    //		}
-    //		std::cerr << "\n";
-
-    if (log_actif) {
-        std::cerr << "-- bloc après fusion :\n";
-        imprime_bloc(this, 0, std::cerr);
     }
 
     enfant->instructions.efface();
