@@ -954,7 +954,7 @@ void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
     m_types_utilisés.insère(type);
 
     if (type->atome_info_type) {
-        ajoute_globale(static_cast<AtomeGlobale *>(type->atome_info_type), true);
+        ajoute_globale(type->atome_info_type, true);
     }
 
     if (!visite_type) {
@@ -1027,7 +1027,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             if (atome_table_des_types) {
                 /* Si la table des types est requise, créons un InfoType. */
                 auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
-                ajoute_globale(static_cast<AtomeGlobale *>(info_type), true);
+                ajoute_globale(info_type, true);
             }
             else {
                 /* La table n'est pas requise, ignorons-le. */
@@ -1035,7 +1035,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             }
         }
 
-        auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
+        auto atome = it->atome_info_type;
         auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
 
         if (est_structure_info_type_défaut(it->genre)) {

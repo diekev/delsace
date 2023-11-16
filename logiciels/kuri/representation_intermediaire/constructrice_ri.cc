@@ -3178,7 +3178,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
                                                std::move(valeurs_annotations));
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
+AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
 {
     if (type->atome_info_type != nullptr) {
         return type->atome_info_type;
@@ -3617,7 +3617,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
         std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
     });
 
-    static_cast<AtomeGlobale *>(type->atome_info_type)->est_info_type_de = type;
+    type->atome_info_type->est_info_type_de = type;
 
     return type->atome_info_type;
 }
@@ -3667,14 +3667,14 @@ void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConst
     valeurs[2] = m_constructrice.crée_z32(0);
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type_defaut(unsigned index, Type const *pour_type)
+AtomeGlobale *CompilatriceRI::crée_info_type_defaut(unsigned index, Type const *pour_type)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(3);
     remplis_membres_de_bases_info_type(valeurs, index, pour_type);
     return crée_globale_info_type(m_compilatrice.typeuse.type_info_type_, std::move(valeurs));
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool est_relatif)
+AtomeGlobale *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool est_relatif)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(2);
     valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENTIER, pour_type);
@@ -3690,8 +3690,8 @@ AtomeConstante *CompilatriceRI::crée_info_type_avec_transtype(Type const *type,
     return transtype_base_info_type(info_type);
 }
 
-AtomeConstante *CompilatriceRI::crée_globale_info_type(Type const *type_info_type,
-                                                       kuri::tableau<AtomeConstante *> &&valeurs)
+AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type,
+                                                     kuri::tableau<AtomeConstante *> &&valeurs)
 {
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_type,
                                                                    std::move(valeurs));

@@ -295,7 +295,7 @@ struct CompilatriceRI {
     Atome *crée_temporaire_si_non_chargeable(NoeudExpression *site_, Atome *source);
     InstructionAllocation *crée_temporaire(NoeudExpression *site_, Atome *source);
 
-    AtomeConstante *crée_info_type(Type const *type, NoeudExpression *site);
+    AtomeGlobale *crée_info_type(Type const *type, NoeudExpression *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
     AtomeConstante *crée_tableau_global(Type const *type,
@@ -351,11 +351,11 @@ struct CompilatriceRI {
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             uint32_t index,
                                             Type const *pour_type);
-    AtomeConstante *crée_info_type_defaut(unsigned index, Type const *pour_type);
-    AtomeConstante *crée_info_type_entier(Type const *pour_type, bool est_relatif);
+    AtomeGlobale *crée_info_type_defaut(unsigned index, Type const *pour_type);
+    AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression *site);
-    AtomeConstante *crée_globale_info_type(Type const *type_info_type,
-                                           kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
+                                         kuri::tableau<AtomeConstante *> &&valeurs);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
                                      Atome *pointeur_tableau_fixe,
