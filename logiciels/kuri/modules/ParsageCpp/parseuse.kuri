@@ -181,8 +181,7 @@ ContexteParsageClasse :: énum {
     TYPEDEF
 }
 
-// À FAIRE(langage) : n8
-SpécificationAccès :: énum {
+SpécificationAccès :: énum n8 {
     PUBLIC
     PROTÉGÉ
     PRIVÉ

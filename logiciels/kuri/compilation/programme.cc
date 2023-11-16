@@ -676,174 +676,6 @@ static void visite_type(Type *type, std::function<void(Type *)> rappel)
 #endif
 
 /** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name Représentation intermédiaire Programme.
- * \{ */
-
-void imprime_contenu_programme(const ProgrammeRepreInter &programme,
-                               uint32_t quoi,
-                               std::ostream &os)
-{
-    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_TYPES) != 0) {
-        os << "Types dans le programme...\n";
-        POUR (programme.types) {
-            os << "-- " << chaine_type(it) << '\n';
-        }
-    }
-
-    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_FONCTIONS) != 0) {
-        os << "Fonctions dans le programme...\n";
-        POUR (programme.fonctions) {
-            if (it->decl && it->decl->ident) {
-                os << "-- " << it->decl->ident->nom << ' ' << chaine_type(it->type) << '\n';
-            }
-            else {
-                os << "-- anonyme de type " << chaine_type(it->type) << '\n';
-            }
-        }
-    }
-
-    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_GLOBALES) != 0) {
-        os << "Globales dans le programme...\n";
-        POUR (programme.globales) {
-            if (it->ident) {
-                os << "-- " << it->ident->nom << '\n';
-            }
-            else {
-                os << "-- anonyme de type " << chaine_type(it->type) << '\n';
-            }
-        }
-    }
-}
-
-/* La seule raison d'existence pour cette fonction est de rassembler les globales pour les chaines
- * et InfoType. */
-static void rassemble_globales_supplémentaires(ProgrammeRepreInter &repr_inter,
-                                               Atome *atome,
-                                               VisiteuseAtome &visiteuse,
-                                               kuri::ensemble<AtomeGlobale *> &globales_utilisées)
-{
-    visiteuse.visite_atome(atome, [&](Atome *atome_local) {
-        if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
-            if (globales_utilisées.possède(static_cast<AtomeGlobale *>(atome_local))) {
-                return;
-            }
-
-            repr_inter.ajoute_globale(static_cast<AtomeGlobale *>(atome_local));
-            globales_utilisées.insère(static_cast<AtomeGlobale *>(atome_local));
-        }
-    });
-}
-
-static void rassemble_globales_supplémentaires(ProgrammeRepreInter &repr_inter,
-                                               AtomeFonction *fonction,
-                                               VisiteuseAtome &visiteuse,
-                                               kuri::ensemble<AtomeGlobale *> &globales_utilisées)
-{
-    POUR (fonction->instructions) {
-        rassemble_globales_supplémentaires(repr_inter, it, visiteuse, globales_utilisées);
-    }
-}
-
-static void rassemble_globales_pour_info_types(ProgrammeRepreInter &repr_inter,
-                                               VisiteuseAtome &visiteuse,
-                                               kuri::ensemble<AtomeGlobale *> &globales_utilisées)
-{
-    POUR (repr_inter.types) {
-        if (!it->atome_info_type) {
-            continue;
-        }
-
-        auto atome_info_type = static_cast<AtomeGlobale *>(it->atome_info_type);
-        if (globales_utilisées.possède(atome_info_type)) {
-            continue;
-        }
-
-        visiteuse.reinitialise();
-        repr_inter.ajoute_globale(atome_info_type);
-        globales_utilisées.insère(atome_info_type);
-
-        rassemble_globales_supplémentaires(
-            repr_inter, atome_info_type, visiteuse, globales_utilisées);
-    }
-}
-
-static void rassemble_globales_supplémentaires(ProgrammeRepreInter &repr_inter)
-{
-    auto globales_utilisées = repr_inter.donne_globales_utilisées();
-    VisiteuseAtome visiteuse{};
-
-    /* Prend en compte les globales pouvant être ajoutées via l'initialisation des tableaux fixes
-     * devant être convertis. */
-    /* Itération avec un index car l'insertion de nouvelles globales invaliderait les
-     * itérateurs. */
-    auto const nombre_de_globales = repr_inter.globales.taille();
-    for (auto i = 0; i < nombre_de_globales; i++) {
-        auto it = repr_inter.globales[i];
-
-        if (!it->initialisateur) {
-            continue;
-        }
-
-        rassemble_globales_supplémentaires(
-            repr_inter, it->initialisateur, visiteuse, globales_utilisées);
-    }
-
-    POUR (repr_inter.fonctions) {
-        visiteuse.reinitialise();
-        rassemble_globales_supplémentaires(repr_inter, it, visiteuse, globales_utilisées);
-    }
-
-    rassemble_globales_pour_info_types(repr_inter, visiteuse, globales_utilisées);
-}
-
-static void rassemble_types_supplémentaires(ProgrammeRepreInter &repr_inter)
-{
-    /* Ajoute les types de toutes les globales et toutes les fonctions, dans le cas où nous en
-     * aurions ajoutées (qui ne sont pas dans le programme initiale). */
-    auto types_utilisés = crée_ensemble(repr_inter.types);
-
-    VisiteuseType visiteuse{};
-    auto ajoute_type_si_nécessaire = [&](Type const *type_racine) {
-        visiteuse.visite_type(const_cast<Type *>(type_racine), [&](Type *type) {
-            if (types_utilisés.possède(type)) {
-                return;
-            }
-
-            types_utilisés.insère(type);
-            repr_inter.types.ajoute(type);
-        });
-    };
-
-    POUR (repr_inter.fonctions) {
-        ajoute_type_si_nécessaire(it->type);
-        for (auto &inst : it->instructions) {
-            ajoute_type_si_nécessaire(inst->type);
-        }
-    }
-
-    POUR (repr_inter.globales) {
-        /* Ces types ne sont pas utiles pour le code machine. */
-        if (est_globale_pour_tableau_données_constantes(it)) {
-            continue;
-        }
-        ajoute_type_si_nécessaire(it->type);
-    }
-}
-
-static void génère_ri_fonction_init_globales(EspaceDeTravail &espace,
-                                             CompilatriceRI &compilatrice_ri,
-                                             AtomeFonction *fonction,
-                                             ProgrammeRepreInter &repr_inter_programme)
-{
-    compilatrice_ri.genere_ri_pour_initialisation_globales(
-        &espace, fonction, repr_inter_programme.globales);
-    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
-     * sont peut-être pas encore dans la liste. */
-    repr_inter_programme.ajourne_globales_pour_fonction(fonction);
-}
-
 static bool est_type_pointeur_tuple(Type const *type)
 {
     if (!type->est_type_pointeur()) {
@@ -887,21 +719,302 @@ static bool est_type_tuple_ou_fonction_init_tuple(Type const *type)
     return false;
 }
 
-static void génère_table_des_types(Typeuse &typeuse,
-                                   ProgrammeRepreInter &repr_inter_programme,
-                                   CompilatriceRI &compilatrice_ri)
+/* ------------------------------------------------------------------------- */
+/** \name ConstructriceProgrammeFormeRI
+ *
+ * La ConstructriceProgrammeFormeRI s'occupe de créer un ProgrammeRepreInter
+ * depuis un Programme.
+ *
+ * Elle rassemble toutes les fonctions et globales ainsi que tous les types du
+ * Programme.
+ *
+ * Elle crée également le corps de la fonction d'initialisation des globales,
+ * les trace d'appels au sein des fonctions, les infos-types manquants pour les
+ * types, et la table des types.
+ * \{ */
+
+struct ConstructriceProgrammeFormeRI {
+  private:
+    ProgrammeRepreInter m_résultat{};
+
+    EspaceDeTravail &m_espace;
+    CompilatriceRI &m_compilatrice_ri;
+    Programme const &m_programme;
+
+    kuri::ensemble<AtomeGlobale *> m_globales_utilisées{};
+    kuri::ensemble<Type *> m_types_utilisés{};
+
+  public:
+    ConstructriceProgrammeFormeRI(EspaceDeTravail &espace,
+                                  CompilatriceRI &compilatrice_ri,
+                                  Programme const &programme)
+        : m_espace(espace), m_compilatrice_ri(compilatrice_ri), m_programme(programme)
+    {
+    }
+
+    std::optional<ProgrammeRepreInter> construit_représentation_intermédiaire_programme();
+
+  private:
+    void ajoute_fonction(AtomeFonction *fonction);
+
+    void ajoute_dépendances_fonction(AtomeFonction *fonction);
+
+    void ajoute_globale(AtomeGlobale *globale, bool visite_globale);
+
+    void ajoute_type(Type *type, bool visite_type);
+
+    void génère_ri_fonction_init_globales(AtomeFonction *fonction);
+
+    void génère_traces_d_appel();
+
+    void génère_table_des_types();
+};
+
+std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
+    construit_représentation_intermédiaire_programme()
+{
+    m_résultat.fonctions.reserve(m_programme.fonctions().taille() + m_programme.types().taille());
+    m_résultat.globales.reserve(m_programme.globales().taille());
+
+    /* Nous pouvons directement copier les types. */
+    m_résultat.types = m_programme.types();
+
+    auto nombre_fonctions_racines = 0;
+    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
+    auto decl_principale = static_cast<AtomeFonction *>(nullptr);
+
+    /* Extrait les atomes pour les fonctions. */
+    POUR (m_programme.fonctions()) {
+        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(*m_programme.espace(), it);
+        });
+        assert_rappel(it->atome, [&]() {
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(*m_programme.espace(), it);
+        });
+
+        auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
+        ajoute_fonction(atome_fonction);
+
+        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
+            ++nombre_fonctions_racines;
+        }
+
+        if (it->ident == ID::init_globales_kuri) {
+            decl_init_globales = atome_fonction;
+        }
+        else if (it->ident == ID::principale) {
+            decl_principale = atome_fonction;
+        }
+    }
+
+    /* Extrait les atomes pour les globales. */
+    POUR (m_programme.globales()) {
+        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
+            std::cerr << "La RI ne fut pas généré pour:\n";
+            erreur::imprime_site(*m_programme.espace(), it);
+        });
+        assert_rappel(it->atome, [&]() {
+            std::cerr << "Aucun atome pour:\n";
+            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
+            std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
+        });
+        ajoute_globale(static_cast<AtomeGlobale *>(it->atome), true);
+    }
+
+    if (m_programme.pour_métaprogramme()) {
+        auto métaprogramme = m_programme.pour_métaprogramme();
+        auto fonction = static_cast<AtomeFonction *>(métaprogramme->fonction->atome);
+
+        if (!fonction) {
+            m_espace.rapporte_erreur(métaprogramme->fonction,
+                                     "Impossible de trouver la fonction pour le métaprogramme");
+            return {};
+        }
+
+        if (!m_résultat.globales.est_vide()) {
+            auto fonc_init = m_compilatrice_ri.genere_fonction_init_globales_et_appel(
+                &m_espace, m_résultat.globales, fonction);
+
+            if (!fonc_init) {
+                return {};
+            }
+
+            ajoute_fonction(fonc_init);
+        }
+
+        /* Les métaprogrammes gèrent différemment les cas suivants, donc retournons directement. */
+        return m_résultat;
+    }
+
+    if (decl_init_globales) {
+        génère_ri_fonction_init_globales(decl_init_globales);
+    }
+
+    if (m_espace.options.utilise_trace_appel) {
+        génère_traces_d_appel();
+    }
+
+    génère_table_des_types();
+
+    switch (m_espace.options.resultat) {
+        case ResultatCompilation::RIEN:
+        {
+            break;
+        }
+        case ResultatCompilation::EXECUTABLE:
+        {
+            if (decl_principale == nullptr) {
+                assert(m_espace.fonction_principale == nullptr);
+                erreur::fonction_principale_manquante(m_espace);
+                return {};
+            }
+            break;
+        }
+        case ResultatCompilation::FICHIER_OBJET:
+        case ResultatCompilation::BIBLIOTHEQUE_STATIQUE:
+        case ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE:
+        {
+            if (nombre_fonctions_racines == 0) {
+                m_espace.rapporte_erreur_sans_site(
+                    "Aucune fonction racine trouvée pour générer le code !\n");
+                return {};
+            }
+            break;
+        }
+    }
+
+    return m_résultat;
+}
+
+void ConstructriceProgrammeFormeRI::ajoute_fonction(AtomeFonction *fonction)
+{
+    m_résultat.fonctions.ajoute(fonction);
+    ajoute_dépendances_fonction(fonction);
+}
+
+void ConstructriceProgrammeFormeRI::ajoute_dépendances_fonction(AtomeFonction *fonction)
+{
+    VisiteuseAtome visiteuse{};
+    POUR (fonction->instructions) {
+        visiteuse.visite_atome(it, [&](Atome *atome_local) {
+            if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
+                /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
+                ajoute_globale(static_cast<AtomeGlobale *>(atome_local), false);
+            }
+        });
+    }
+
+    ajoute_type(const_cast<Type *>(fonction->type), true);
+
+    POUR (fonction->instructions) {
+        if (!it->type) {
+            continue;
+        }
+        ajoute_type(const_cast<Type *>(it->type), true);
+    }
+}
+
+void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool visite_globale)
+{
+    if (m_globales_utilisées.possède(globale)) {
+        return;
+    }
+
+    m_résultat.ajoute_globale(globale);
+    m_globales_utilisées.insère(globale);
+
+    /* Ces types ne sont pas utiles pour le code machine. */
+    if (!est_globale_pour_tableau_données_constantes(globale)) {
+        ajoute_type(const_cast<Type *>(globale->type), true);
+    }
+
+    if (!visite_globale) {
+        return;
+    }
+
+    VisiteuseAtome visiteuse{};
+    visiteuse.visite_atome(globale, [&](Atome *atome_local) {
+        if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
+            /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
+            ajoute_globale(static_cast<AtomeGlobale *>(atome_local), false);
+        }
+    });
+}
+
+void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
+{
+    if (m_types_utilisés.possède(type)) {
+        return;
+    }
+
+    m_résultat.types.ajoute(type);
+    m_types_utilisés.insère(type);
+
+    if (type->atome_info_type) {
+        ajoute_globale(static_cast<AtomeGlobale *>(type->atome_info_type), true);
+    }
+
+    if (!visite_type) {
+        return;
+    }
+
+    VisiteuseType visiteuse{};
+    visiteuse.visite_type(type, [&](Type *type_enfant) { ajoute_type(type_enfant, false); });
+}
+
+void ConstructriceProgrammeFormeRI::génère_ri_fonction_init_globales(AtomeFonction *fonction)
+{
+    m_compilatrice_ri.genere_ri_pour_initialisation_globales(
+        &m_espace, fonction, m_résultat.globales);
+
+    /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
+     * sont peut-être pas encore dans la liste. */
+    ajoute_dépendances_fonction(fonction);
+}
+
+void ConstructriceProgrammeFormeRI::génère_traces_d_appel()
+{
+    POUR (m_résultat.fonctions) {
+        if (it->sanstrace || it->est_externe) {
+            continue;
+        }
+
+        bool possède_appels = false;
+        POUR_NOMME (inst, it->instructions) {
+            if (!inst->est_appel()) {
+                continue;
+            }
+            possède_appels = true;
+            auto info_trace = m_compilatrice_ri.crée_info_appel_pour_trace_appel(
+                inst->comme_appel());
+            ajoute_globale(info_trace, true);
+        }
+
+        /* Ne créons pas de globale si la fonction n'appelle rien. */
+        if (!possède_appels) {
+            continue;
+        }
+
+        auto info_trace_appel = m_compilatrice_ri.crée_info_fonction_pour_trace_appel(it);
+        ajoute_globale(info_trace_appel, true);
+    }
+}
+
+void ConstructriceProgrammeFormeRI::génère_table_des_types()
 {
     AtomeGlobale *atome_table_des_types = nullptr;
-    POUR (repr_inter_programme.globales) {
+    POUR (m_résultat.globales) {
         if (it->ident == ID::__table_des_types) {
             atome_table_des_types = it;
             break;
         }
     }
 
-    auto info_type_créé = false;
     auto index_type = 0u;
-    POUR (repr_inter_programme.types) {
+    POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
             /* Ignore les tuples, nous ne devrions pas avoir de variables de ce type (aucune
              * varible de type type_de_données(tuple) n'est possible). */
@@ -913,8 +1026,8 @@ static void génère_table_des_types(Typeuse &typeuse,
         if (!it->atome_info_type) {
             if (atome_table_des_types) {
                 /* Si la table des types est requise, créons un InfoType. */
-                compilatrice_ri.crée_info_type(it, nullptr);
-                info_type_créé = true;
+                auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
+                ajoute_globale(static_cast<AtomeGlobale *>(info_type), true);
             }
             else {
                 /* La table n'est pas requise, ignorons-le. */
@@ -946,175 +1059,87 @@ static void génère_table_des_types(Typeuse &typeuse,
         return;
     }
 
-    if (info_type_créé) {
-        repr_inter_programme.ajourne_globales_pour_table_types();
-    }
-
     kuri::tableau<AtomeConstante *> table_des_types;
     table_des_types.reserve(index_type);
 
-    POUR (repr_inter_programme.types) {
+    POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
             continue;
         }
 
         if (!it->atome_info_type) {
-            /* repr_inter_programme.ajourne_globales_pour_table_types() peut avoir ajouter des
-             * types qui n'auront pas d'infos-type. Nous pouvons les ignorer car ce sont sans doute
-             * des types auxiliaires (p.e. les types pour les tableaux de données constantes). */
+            /* L'inclusion des globales des infos-type peut avoir ajouter des types qui n'auront
+             * pas d'infos-type. Nous pouvons les ignorer car ce sont sans doute des types
+             * auxiliaires (p.e. les types pour les tableaux de données constantes). */
             continue;
         }
 
-        table_des_types.ajoute(compilatrice_ri.transtype_base_info_type(it->atome_info_type));
+        table_des_types.ajoute(m_compilatrice_ri.transtype_base_info_type(it->atome_info_type));
     }
 
+    auto &typeuse = m_espace.compilatrice().typeuse;
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-    atome_table_des_types->initialisateur = compilatrice_ri.crée_tableau_global(
+    atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tableau_global(
         type_pointeur_info_type, std::move(table_des_types));
 
     auto initialisateur = static_cast<AtomeValeurConstante *>(
         atome_table_des_types->initialisateur);
     auto atome_accès = static_cast<AccedeIndexConstant *>(
         initialisateur->valeur.valeur_structure.pointeur[0]);
-    repr_inter_programme.globales.ajoute(static_cast<AtomeGlobale *>(atome_accès->accede));
+    m_résultat.globales.ajoute(static_cast<AtomeGlobale *>(atome_accès->accede));
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
                                                        static_cast<int>(index_type));
-    repr_inter_programme.types.ajoute(type_tableau_fixe);
+    m_résultat.types.ajoute(type_tableau_fixe);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Représentation intermédiaire Programme.
+ * \{ */
+
+void imprime_contenu_programme(const ProgrammeRepreInter &programme,
+                               uint32_t quoi,
+                               std::ostream &os)
+{
+    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_TYPES) != 0) {
+        os << "Types dans le programme...\n";
+        POUR (programme.types) {
+            os << "-- " << chaine_type(it) << '\n';
+        }
+    }
+
+    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_FONCTIONS) != 0) {
+        os << "Fonctions dans le programme...\n";
+        POUR (programme.fonctions) {
+            if (it->decl && it->decl->ident) {
+                os << "-- " << it->decl->ident->nom << ' ' << chaine_type(it->type) << '\n';
+            }
+            else {
+                os << "-- anonyme de type " << chaine_type(it->type) << '\n';
+            }
+        }
+    }
+
+    if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_GLOBALES) != 0) {
+        os << "Globales dans le programme...\n";
+        POUR (programme.globales) {
+            if (it->ident) {
+                os << "-- " << it->ident->nom << '\n';
+            }
+            else {
+                os << "-- anonyme de type " << chaine_type(it->type) << '\n';
+            }
+        }
+    }
 }
 
 std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
     EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme)
 {
-    auto résultat = ProgrammeRepreInter{};
-
-    résultat.fonctions.reserve(programme.fonctions().taille() + programme.types().taille());
-    résultat.globales.reserve(programme.globales().taille());
-
-    /* Nous pouvons directement copier les types. */
-    résultat.types = programme.types();
-
-    auto nombre_fonctions_racines = 0;
-    auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
-    auto decl_principale = static_cast<AtomeFonction *>(nullptr);
-
-    /* Extrait les atomes pour les fonctions. */
-    POUR (programme.fonctions()) {
-        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
-            std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*programme.espace(), it);
-        });
-        assert_rappel(it->atome, [&]() {
-            std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*programme.espace(), it);
-        });
-
-        auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
-        résultat.fonctions.ajoute(atome_fonction);
-
-        if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
-            ++nombre_fonctions_racines;
-        }
-
-        if (it->ident == ID::init_globales_kuri) {
-            decl_init_globales = atome_fonction;
-        }
-        else if (it->ident == ID::principale) {
-            decl_principale = atome_fonction;
-        }
-    }
-
-    /* Extrait les atomes pour les globales. */
-    POUR (programme.globales()) {
-        assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
-            std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*programme.espace(), it);
-        });
-        assert_rappel(it->atome, [&]() {
-            std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*programme.espace(), it);
-            std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
-            std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
-        });
-        résultat.ajoute_globale(static_cast<AtomeGlobale *>(it->atome));
-    }
-
-    /* Traverse les instructions des fonctions, et rassemble les globales pour les chaines, les
-     * tableaux, et les infos-types. */
-    rassemble_globales_supplémentaires(résultat);
-
-    rassemble_types_supplémentaires(résultat);
-
-    if (programme.pour_métaprogramme()) {
-        /* Les métaprogrammes gèrent différemment les cas suivants, donc retournons directement. */
-        return résultat;
-    }
-
-    if (decl_init_globales) {
-        génère_ri_fonction_init_globales(espace, compilatrice_ri, decl_init_globales, résultat);
-    }
-
-    /* Créations des globales pour les traces d'appel. */
-    if (espace.options.utilise_trace_appel) {
-        POUR (résultat.fonctions) {
-            if (it->sanstrace || it->est_externe) {
-                continue;
-            }
-
-            bool possède_appels = false;
-            POUR_NOMME (inst, it->instructions) {
-                if (!inst->est_appel()) {
-                    continue;
-                }
-                possède_appels = true;
-                auto info_trace = compilatrice_ri.crée_info_appel_pour_trace_appel(
-                    inst->comme_appel());
-                résultat.ajoute_globale(info_trace);
-            }
-
-            /* Ne créons pas de globale si la fonction n'appelle rien. */
-            if (!possède_appels) {
-                continue;
-            }
-
-            auto info_trace_appel = compilatrice_ri.crée_info_fonction_pour_trace_appel(it);
-            résultat.ajoute_globale(info_trace_appel);
-        }
-
-        rassemble_globales_supplémentaires(résultat);
-        rassemble_types_supplémentaires(résultat);
-    }
-
-    génère_table_des_types(espace.compilatrice().typeuse, résultat, compilatrice_ri);
-
-    switch (espace.options.resultat) {
-        case ResultatCompilation::RIEN:
-        {
-            break;
-        }
-        case ResultatCompilation::EXECUTABLE:
-        {
-            if (decl_principale == nullptr) {
-                assert(espace.fonction_principale == nullptr);
-                erreur::fonction_principale_manquante(espace);
-                return {};
-            }
-            break;
-        }
-        case ResultatCompilation::FICHIER_OBJET:
-        case ResultatCompilation::BIBLIOTHEQUE_STATIQUE:
-        case ResultatCompilation::BIBLIOTHEQUE_DYNAMIQUE:
-        {
-            if (nombre_fonctions_racines == 0) {
-                espace.rapporte_erreur_sans_site(
-                    "Aucune fonction racine trouvée pour générer le code !\n");
-                return {};
-            }
-            break;
-        }
-    }
-
-    return résultat;
+    auto constructrice = ConstructriceProgrammeFormeRI(espace, compilatrice_ri, programme);
+    return constructrice.construit_représentation_intermédiaire_programme();
 }
 
 /* Cette fonction n'existe que parce que la principale peut ajouter des globales pour les
@@ -1129,30 +1154,6 @@ void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
     }
 
     globales.ajoute(globale);
-}
-
-void ProgrammeRepreInter::ajoute_fonction(AtomeFonction *fonction)
-{
-    fonctions.ajoute(fonction);
-    ajourne_globales_pour_fonction(fonction);
-}
-
-void ProgrammeRepreInter::ajourne_globales_pour_fonction(AtomeFonction *fonction)
-{
-    auto globales_utilisées = donne_globales_utilisées();
-    VisiteuseAtome visiteuse{};
-    rassemble_globales_supplémentaires(*this, fonction, visiteuse, globales_utilisées);
-    /* Les types ont peut-être changé. */
-    rassemble_types_supplémentaires(*this);
-}
-
-void ProgrammeRepreInter::ajourne_globales_pour_table_types()
-{
-    auto globales_utilisées = donne_globales_utilisées();
-    VisiteuseAtome visiteuse{};
-    rassemble_globales_pour_info_types(*this, visiteuse, globales_utilisées);
-    /* Les types ont peut-être changé. */
-    rassemble_types_supplémentaires(*this);
 }
 
 static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,
@@ -1183,15 +1184,6 @@ kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisé
         }
     }
     return résultat;
-}
-
-kuri::ensemble<AtomeGlobale *> ProgrammeRepreInter::donne_globales_utilisées() const
-{
-    auto globales_utilisées = crée_ensemble(this->globales);
-    POUR (tableaux_constants) {
-        globales_utilisées.insère(it.globale);
-    }
-    return globales_utilisées;
 }
 
 /** \} */

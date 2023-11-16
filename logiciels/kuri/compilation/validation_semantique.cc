@@ -4088,7 +4088,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
                           DECLARATION_VARIABLES__REDEFINITION);
             if (it.decl->ident && it.decl->ident != ID::_) {
-                auto decl_prec = trouve_dans_bloc(it.decl->bloc_parent, it.decl, bloc_final);
+                auto decl_prec = trouve_dans_bloc(
+                    it.decl->bloc_parent, it.decl, bloc_final, fonction_courante());
 
                 if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
                     if (decl->lexeme->ligne > decl_prec->lexeme->ligne) {
