@@ -224,32 +224,18 @@ static bool est_locale_ou_globale(Atome const *atome)
 
 static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
 {
-    auto ou = stocke->ou;
-    auto ancien_ou = ou;
+    auto destination = stocke->ou;
 
-    while (!est_locale_ou_globale(ou)) {
-        if (!ou->est_instruction()) {
+    while (!est_locale_ou_globale(destination)) {
+        if (!destination->est_instruction()) {
             break;
         }
 
-        auto inst = ou->comme_instruction();
-        ou = déréférence_instruction(inst);
-
-        if (ou == ancien_ou) {
-            std::cerr << "Boucle infinie !!!!!!\n";
-            imprime_atome(ou, std::cerr);
-
-            if (ou->est_instruction()) {
-                imprime_instruction(ou->comme_instruction(), std::cerr);
-            }
-
-            std::cerr << "\n";
-        }
-
-        ancien_ou = ou;
+        auto inst = destination->comme_instruction();
+        destination = déréférence_instruction(inst);
     }
 
-    return ou;
+    return destination;
 }
 
 /* Retourne vrai si un paramètre ou une globale fut utilisée lors de la production de l'atome. */

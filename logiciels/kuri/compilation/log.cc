@@ -3,6 +3,8 @@
 
 #include "log.hh"
 
+#include "structures/chaine_statique.hh"
+
 static Indentation __indente_globale;
 
 LogDebug dbg()
@@ -12,9 +14,7 @@ LogDebug dbg()
 
 LogDebug::LogDebug()
 {
-    for (auto i = 0; i < __indente_globale.v; ++i) {
-        os << ' ' << ' ';
-    }
+    os << chaine_indentations(__indente_globale.v);
 }
 
 LogDebug::~LogDebug()
@@ -39,10 +39,7 @@ void LogDebug::désindente()
 
 const LogDebug &operator<<(const LogDebug &log_debug, Indentation indentation)
 {
-    for (auto i = 0; i < indentation.v; ++i) {
-        log_debug.os << ' ';
-    }
-
+    log_debug.os << chaine_indentations(indentation.v);
     return log_debug;
 }
 
@@ -55,4 +52,10 @@ LogDebug::IncrémenteuseTemporaire::IncrémenteuseTemporaire()
 LogDebug::IncrémenteuseTemporaire::~IncrémenteuseTemporaire()
 {
     __indente_globale.v = indentation_courante;
+}
+
+kuri::chaine_statique chaine_indentations(int indentations)
+{
+    static std::string chaine = std::string(1024, '\t');
+    return {chaine.c_str(), static_cast<int64_t>(indentations)};
 }
