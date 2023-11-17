@@ -111,6 +111,21 @@ void Chunk::émets_logue_retour()
     émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
+void Chunk::ajoute_locale(InstructionAllocation *alloc)
+{
+    auto type = alloc->type->comme_type_pointeur()->type_pointe;
+
+    // XXX - À FAIRE : normalise les entiers constants
+    if (type->est_type_entier_constant()) {
+        const_cast<Type *>(type)->taille_octet = 4;
+    }
+    assert(type->taille_octet);
+
+    alloc->index_locale = locales.taille();
+    locales.ajoute({alloc->ident, alloc->type, taille_allouée});
+    taille_allouée += static_cast<int>(type->taille_octet);
+}
+
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
                                    void *pointeur_chaine,
                                    int64_t taille_chaine)
@@ -123,23 +138,6 @@ void Chunk::émets_chaine_constante(const NoeudExpression *site,
 void Chunk::émets_retour(NoeudExpression const *site)
 {
     émets_entête_op(OP_RETOURNE, site);
-}
-
-int Chunk::émets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
-{
-    // XXX - À FAIRE : normalise les entiers constants
-    if (type->est_type_entier_constant()) {
-        const_cast<Type *>(type)->taille_octet = 4;
-    }
-    assert(type->taille_octet);
-
-    // émets_entête_op(OP_ALLOUE, site);
-    // émets(type);
-    // émets(ident);
-
-    auto décalage = taille_allouée;
-    taille_allouée += static_cast<int>(type->taille_octet);
-    return décalage;
 }
 
 void Chunk::émets_assignation(ContexteGenerationCodeBinaire contexte,
@@ -348,8 +346,6 @@ void Chunk::émets_label(NoeudExpression const *site, int index)
     }
 
     décalages_labels[index] = static_cast<int>(compte);
-    // émets_entête_op(OP_LABEL, site);
-    // émets(index);
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
@@ -667,7 +663,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_DEC_GAUCHE:
         case OP_DEC_DROITE_ARITHM:
         case OP_DEC_DROITE_LOGIQUE:
-        case OP_LABEL:
         case OP_BRANCHE:
         case OP_ASSIGNE:
         case OP_CHARGE:
@@ -705,16 +700,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         {
             return instruction_2d<int, int64_t>(
                 chunk, chaine_code_operation(instruction), décalage, os);
-        }
-        case OP_ALLOUE:
-        {
-            décalage += 1;
-            auto v1 = *reinterpret_cast<Type **>(&chunk.code[décalage]);
-            décalage += static_cast<int64_t>(sizeof(Type *));
-            auto v2 = *reinterpret_cast<IdentifiantCode **>(&chunk.code[décalage]);
-            os << chaine_code_operation(instruction) << ' ' << chaine_type(v1) << ", " << v2
-               << "\n";
-            return décalage + static_cast<int64_t>(sizeof(IdentifiantCode *));
         }
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
@@ -1024,10 +1009,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
-        auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-        auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-        alloc->index_locale = chunk.locales.taille();
-        chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+        chunk.ajoute_locale(alloc);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1037,27 +1019,20 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {
-            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-            alloc->index_locale = chunk.locales.taille();
-            chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+            chunk.ajoute_locale(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            auto alloc = it->comme_alloc();
-            auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-            alloc->index_locale = chunk.locales.taille();
-            chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+            chunk.ajoute_locale(it->comme_alloc());
         }
     }
 
     POUR (fonction->instructions) {
         // génère le code binaire depuis les instructions « racines » (assignation, retour,
-        // allocation, appel, et controle de flux).
+        // appel, et controle de flux).
         auto est_inst_racine = dls::outils::est_element(it->genre,
-                                                        GenreInstruction::ALLOCATION,
                                                         GenreInstruction::APPEL,
                                                         GenreInstruction::BRANCHE,
                                                         GenreInstruction::BRANCHE_CONDITION,
@@ -1148,11 +1123,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = instruction->comme_alloc();
-
-            if (pour_operande) {
-                chunk.émets_référence_variable(alloc->site, alloc->index_locale);
-            }
-
+            assert(pour_operande);
+            chunk.émets_référence_variable(alloc->site, alloc->index_locale);
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
