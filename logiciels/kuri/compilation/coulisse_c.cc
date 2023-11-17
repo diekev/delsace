@@ -874,6 +874,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
 
             return table_globales.valeur_ou(valeur_globale, "");
         }
+        case AtomeConstante::Genre::FONCTION:
+        {
+            auto fonction = static_cast<AtomeFonction const *>(atome_const);
+            return donne_nom_pour_fonction(fonction);
+        }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
@@ -1593,9 +1598,12 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_inter, Enchaineuse &os)
 {
     /* Commençons par rassembler les tableaux de données constantes. */
-    POUR (repr_inter.tableaux_constants) {
-        auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
-        table_globales.insère(it.globale, nom_globale);
+    auto données_constantes = repr_inter.donne_données_constantes();
+    if (données_constantes.has_value()) {
+        POUR (données_constantes.value()->tableaux_constants) {
+            auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
+            table_globales.insère(it.globale, nom_globale);
+        }
     }
 
     /* Déclarons les globales. */
@@ -1877,11 +1885,19 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
 void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
     Enchaineuse &os, ProgrammeRepreInter const &repr_inter, bool pour_entête)
 {
-    if (repr_inter.tableaux_constants.taille() == 0) {
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (!opt_données_constantes.has_value()) {
         return;
     }
 
-    os << "const uint8_t DC[" << repr_inter.taille_données_tableaux_constants << "]";
+    auto données_constantes = opt_données_constantes.value();
+    POUR (données_constantes->tableaux_constants) {
+        auto nom_globale = enchaine("&DC[", it.décalage_dans_données_constantes, "]");
+        table_globales.insère(it.globale, nom_globale);
+    }
+
+    os << "_Alignas(" << données_constantes->alignement_désiré << ") ";
+    os << "const uint8_t DC[" << données_constantes->taille_données_tableaux_constants << "]";
 
     if (pour_entête) {
         os << ";\n";
@@ -1890,10 +1906,21 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
     auto virgule = " = {\n";
     auto compteur = 0;
-    POUR (repr_inter.tableaux_constants) {
+    POUR (données_constantes->tableaux_constants) {
         auto tableau = it.tableau;
         auto pointeur_données = tableau->valeur.valeur_tdc.pointeur;
         auto taille_données = tableau->valeur.valeur_tdc.taille;
+
+        for (auto i = 0; i < it.rembourrage; ++i) {
+            compteur++;
+            os << virgule;
+            if ((compteur % 20) == 0) {
+                os << "\n";
+            }
+            os << "0x0";
+            virgule = ", ";
+        }
+
         for (auto i = 0; i < taille_données; ++i) {
             auto octet = pointeur_données[i];
             compteur++;

@@ -2524,7 +2524,8 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
 
     expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-    assert_rappel(bloc_recherche != nullptr, [&]() { erreur::imprime_site(*espace, expr); });
+    assert_rappel(bloc_recherche != nullptr,
+                  [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
 
     /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
      * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
@@ -2708,7 +2709,7 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         // les fonctions peuvent ne pas avoir de type au moment si elles sont des appels
         // polymorphiques
         assert_rappel(decl->type || decl->est_entete_fonction() || decl->est_declaration_module(),
-                      [&]() { erreur::imprime_site(*espace, expr); });
+                      [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
         expr->declaration_referee = decl;
         expr->type = decl->type;
 
