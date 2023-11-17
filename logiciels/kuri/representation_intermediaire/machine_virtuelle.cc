@@ -15,6 +15,7 @@
 #include "compilation/espace_de_travail.hh"
 #include "compilation/gestionnaire_code.hh"
 #include "compilation/ipa.hh"
+#include "compilation/log.hh"
 #include "compilation/metaprogramme.hh"
 
 #include "parsage/identifiant.hh"
@@ -25,11 +26,6 @@
 #include "utilitaires/calcul.hh"
 
 #include "instructions.hh"
-
-#undef DEBOGUE_INTERPRETEUSE
-#undef CHRONOMETRE_INTERPRETATION
-#undef DEBOGUE_VALEURS_ENTREE_SORTIE
-#undef DEBOGUE_LOCALES
 
 /* ------------------------------------------------------------------------- */
 /** \name Fuites de mémoire.
@@ -128,6 +124,51 @@ void DonneesExecution::réinitialise()
     this->détectrice_fuite_de_mémoire.réinitialise();
     this->site = nullptr;
     this->dernier_site = nullptr;
+}
+
+void DonneesExecution::imprime_stats_instructions(std::ostream &os)
+{
+    using TypeEntréeStat = std::pair<octet_t, int>;
+    kuri::tableau<TypeEntréeStat> entrées;
+
+    auto nombre_instructions = 0;
+    for (auto i = 0; i < NOMBRE_OP_CODE; i++) {
+        if (i == OP_STAT_INSTRUCTION) {
+            nombre_instructions = compte_instructions[i];
+            continue;
+        }
+
+        if (compte_instructions[i] == 0) {
+            continue;
+        }
+
+        entrées.ajoute({octet_t(i), compte_instructions[i]});
+    }
+
+    std::sort(
+        entrées.begin(), entrées.end(), [](auto &a, auto &b) { return a.second > b.second; });
+
+    auto taille_max_chaine = 0l;
+    POUR (entrées) {
+        auto chaine_code = chaine_code_operation(it.first);
+        taille_max_chaine = std::max(taille_max_chaine, chaine_code.taille());
+    }
+
+    os << "------------------------------------ Instructions :\n";
+    os << "Instructions exécutées : " << nombre_instructions << "\n";
+
+    POUR (entrées) {
+        auto chaine_code = chaine_code_operation(it.first);
+        os << "-- " << chaine_code_operation(it.first);
+
+        for (int i = 0; i < (taille_max_chaine - chaine_code.taille()); i++) {
+            os << ' ';
+        }
+
+        os << " : " << it.second;
+        os << " (" << (double(it.second) * 100.0 / double(nombre_instructions)) << "%)";
+        os << '\n';
+    }
 }
 
 /** \} */
@@ -252,13 +293,20 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInte
 
 /* ************************************************************************** */
 
-#if defined(DEBOGUE_VALEURS_ENTREE_SORTIE) || defined(DEBOGUE_LOCALES)
 static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 {
     switch (type->genre) {
         default:
         {
             os << "valeur non prise en charge";
+            break;
+        }
+        case GenreType::TUPLE:
+        {
+            auto type_tuple = type->comme_type_tuple();
+            POUR (type_tuple->membres) {
+                lis_valeur(pointeur + it.decalage, it.type, os);
+            }
             break;
         }
         case GenreType::ENTIER_RELATIF:
@@ -352,11 +400,9 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
         }
     }
 }
-#endif
 
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
 static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
-                                    TypeFonction *type_fonction,
+                                    TypeFonction const *type_fonction,
                                     kuri::chaine const &nom,
                                     int profondeur_appel)
 {
@@ -376,7 +422,7 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
 }
 
 static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
-                                    TypeFonction *type_fonction,
+                                    TypeFonction const *type_fonction,
                                     kuri::chaine const &nom,
                                     int profondeur_appel)
 {
@@ -384,28 +430,23 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
 
     auto index_entree = 0;
     auto pointeur_lecture_retour = pointeur_debut_retour;
-    POUR (type_fonction->types_sorties) {
-        if (it->est_type_rien()) {
-            continue;
-        }
-
-        std::cerr << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree
-                  << " : ";
-        lis_valeur(pointeur_lecture_retour, it, std::cerr);
-        std::cerr << '\n';
-
-        pointeur_lecture_retour += it->taille_octet;
-        index_entree += 1;
+    auto type_sortie = type_fonction->type_sortie;
+    if (type_sortie->est_type_rien()) {
+        return;
     }
-}
-#endif
 
-#ifdef DEBOGUE_LOCALES
+    std::cerr << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree << " : ";
+    lis_valeur(pointeur_lecture_retour, type_sortie, std::cerr);
+    std::cerr << '\n';
+
+    index_entree += 1;
+}
+
 static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std::ostream &os)
 {
     os << chaine_indentations(profondeur_appel) << frame->fonction->nom << " :\n";
 
-    POUR (frame->fonction->chunk.locales) {
+    POUR (frame->fonction->données_exécution->chunk.locales) {
         auto pointeur_locale = &frame->pointeur_pile[it.adresse];
         os << chaine_indentations(profondeur_appel) << "Locale ("
            << static_cast<void *>(pointeur_locale) << ") : ";
@@ -422,7 +463,6 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
         os << '\n';
     }
 }
-#endif
 
 /* ************************************************************************** */
 
@@ -473,6 +513,8 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
     frame->site = site;
     frame->pointeur = fonction->données_exécution->chunk.code;
     frame->pointeur_pile = pointeur_pile;
+    /* Réserve de l'espace sur la pile pour nos locales. */
+    pointeur_pile += fonction->données_exécution->chunk.taille_allouée;
     return true;
 }
 
@@ -484,13 +526,6 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     // puisque les arguments utilisent des instructions d'allocations retire la taille des
     // arguments du pointeur de la pile pour ne pas que les allocations ne l'augmente
     pointeur_pile -= taille_argument;
-
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-    imprime_valeurs_entrees(pointeur_pile,
-                            ptr_fonction->type->comme_type_fonction(),
-                            ptr_fonction->nom,
-                            profondeur_appel);
-#endif
 
     if (!appel(ptr_fonction, site)) {
         return false;
@@ -783,11 +818,6 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
     auto pointeur_arguments = pointeur_pile - taille_argument;
 
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-    imprime_valeurs_entrees(
-        pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
-#endif
-
     auto pointeurs_arguments = kuri::tablet<void *, 12>();
     auto decalage_argument = 0u;
 
@@ -979,12 +1009,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
     auto frame = &frames[profondeur_appel - 1];
 
     for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
-#ifdef DEBOGUE_INTERPRETEUSE
-        auto &sortie = std::cerr;
-        sortie << chaine_indentations(profondeur_appel);
-        desassemble_instruction(
-            frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
-#endif
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
         assert_rappel(profondeur_appel > 0 && profondeur_appel < TAILLE_FRAMES_APPEL,
                       [&]() { imprime_trace_appel(m_metaprogramme->donnees_execution->site); });
@@ -1000,14 +1024,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             site = m_metaprogramme->donnees_execution->site;
         }
 
-#ifdef STATS_OP_CODES
-        m_metaprogramme->donnees_execution->compte_instructions[instruction] += 1;
-#endif
-
         switch (instruction) {
             case OP_LABEL:
             {
-                // saute le label
+                /* Saute le label. */
                 frame->pointeur += 4;
                 break;
             }
@@ -1047,6 +1067,52 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille_chaine = LIS_8_OCTETS();
                 empile(site, pointeur_chaine);
                 empile(site, taille_chaine);
+                break;
+            }
+            case OP_INCRÉMENTE:
+            {
+                auto taille = LIS_4_OCTETS();
+
+                if (taille == 1) {
+                    auto valeur = depile<uint8_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else if (taille == 2) {
+                    auto valeur = depile<uint16_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else if (taille == 4) {
+                    auto valeur = depile<uint32_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else {
+                    auto valeur = depile<uint64_t>(site);
+                    empile(site, valeur + 1);
+                }
+
+                break;
+            }
+            case OP_DÉCRÉMENTE:
+            {
+                auto taille = LIS_4_OCTETS();
+
+                if (taille == 1) {
+                    auto valeur = depile<uint8_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else if (taille == 2) {
+                    auto valeur = depile<uint16_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else if (taille == 4) {
+                    auto valeur = depile<uint32_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else {
+                    auto valeur = depile<uint64_t>(site);
+                    empile(site, valeur - 1);
+                }
+
                 break;
             }
             case OP_COMPLEMENT_ENTIER:
@@ -1340,22 +1406,16 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_RETOURNE:
             {
+                /* ATTENTION : si ceci change il faudra ajourner OP_LOGUE_SORTIES et
+                 * OP_LOGUE_RETOUR. */
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
                 auto pointeur_debut_retour = pointeur_pile - taille_retour;
 
-#ifdef DEBOGUE_LOCALES
-                imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
-#endif
-
-#ifdef DEBOGUE_VALEURS_ENTREE_SORTIE
-                imprime_valeurs_sorties(
-                    pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
-#endif
-
                 profondeur_appel--;
 
                 if (profondeur_appel == 0) {
+                    /* Nous retournons de la fonction principale du métaprogramme. */
                     if (pointeur_pile != pile) {
                         pointeur_pile = pointeur_debut_retour;
                     }
@@ -1364,10 +1424,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     return ResultatInterpretation::TERMINE;
                 }
 
+                /* Restaure le pointeur_pile pour la frame précédente. */
                 pointeur_pile = frame->pointeur_pile;
-                // std::cerr << "Retourne, décalage : " << static_cast<int>(pointeur_pile - pile)
-                // << '\n';
 
+                /* Empile le résultat de la fonction. */
                 if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
                     memcpy(pointeur_pile,
                            pointeur_debut_retour,
@@ -1375,9 +1435,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 }
 
                 pointeur_pile += taille_retour;
-                // std::cerr << "Empile " << taille_retour << " octet(s), décalage : " <<
-                // static_cast<int>(pointeur_pile - pile) << '\n';
 
+                /* Reprend l'exécution à la frame précédente. */
                 frame = &frames[profondeur_appel - 1];
                 break;
             }
@@ -1406,11 +1465,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille_argument = LIS_4_OCTETS();
                 // saute l'instruction d'appel
                 frame->pointeur += 8;
-
-#ifdef DEBOGUE_INTERPRETEUSE
-                std::cerr << "-- appel : " << ptr_fonction->nom << " ("
-                          << chaine_type(ptr_fonction->type) << ')' << '\n';
-#endif
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
                     compte_executees = i + 1;
@@ -1503,6 +1557,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 depile(site, taille);
                 break;
             }
+            case OP_ASSIGNE_VARIABLE:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+
+                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+                auto adresse_ou = &frame->pointeur_pile[locale.adresse];
+                auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+
+                depile(site, taille);
+                break;
+            }
             case OP_ALLOUE:
             {
                 auto type = LIS_POINTEUR(Type);
@@ -1514,7 +1581,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(
                             site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
-                        .ajoute_message("La type est : ", chaine_type(type), ".\n");
+                        .ajoute_message("Le type est : ", chaine_type(type), ".\n");
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1543,6 +1610,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = depile<void *>(site);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+                this->pointeur_pile += taille;
+                break;
+            }
+            case OP_CHARGE_VARIABLE:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+
+                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+                auto adresse_de = &frame->pointeur_pile[locale.adresse];
+                auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+
                 this->pointeur_pile += taille;
                 break;
             }
@@ -1586,6 +1666,63 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 //<<
                 //'\n'; 				std::cerr << "taille_donnees   : " << taille_donnees <<
                 //'\n';
+                break;
+            }
+            case OP_STAT_INSTRUCTION:
+            {
+                auto op = LIS_OCTET();
+                m_metaprogramme->donnees_execution->compte_instructions[op] += 1;
+                m_metaprogramme->donnees_execution->compte_instructions[OP_STAT_INSTRUCTION] += 1;
+                break;
+            }
+            case OP_LOGUE_INSTRUCTION:
+            {
+                auto décalage = LIS_4_OCTETS();
+                auto &chunk = frame->fonction->données_exécution->chunk;
+                auto &sortie = std::cerr;
+                sortie << chaine_indentations(profondeur_appel);
+                désassemble_instruction(chunk, décalage, sortie);
+                break;
+            }
+            case OP_LOGUE_VALEURS_LOCALES:
+            {
+                imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
+                break;
+            }
+            case OP_LOGUE_APPEL:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                std::cerr << "-- appel : " << ptr_fonction->nom << " ("
+                          << chaine_type(ptr_fonction->type) << ')' << '\n';
+                break;
+            }
+            case OP_LOGUE_ENTRÉES:
+            {
+                auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                auto taille_arguments = LIS_4_OCTETS();
+                auto pointeur_arguments = pointeur_pile - taille_arguments;
+                auto type_fonction = ptr_fonction->type->comme_type_fonction();
+                imprime_valeurs_entrees(
+                    pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
+                break;
+            }
+            case OP_LOGUE_SORTIES:
+            {
+                auto type_fonction = frame->fonction->type->comme_type_fonction();
+                auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
+                auto pointeur_debut_retour = pointeur_pile - taille_retour;
+                imprime_valeurs_sorties(
+                    pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
+                break;
+            }
+            case OP_LOGUE_RETOUR:
+            {
+                auto type_fonction = frame->fonction->type->comme_type_fonction();
+                auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
+                std::cerr << "Retourne, décalage : "
+                          << static_cast<int>(frame->pointeur_pile - pile) << '\n';
+                std::cerr << "Empile " << taille_retour << " octet(s), décalage : "
+                          << static_cast<int>(frame->pointeur_pile + taille_retour - pile) << '\n';
                 break;
             }
             default:
@@ -1759,10 +1896,6 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
     for (auto i = 0; i < nombre_metaprogrammes; ++i) {
         auto métaprogramme = m_metaprogrammes[i];
 
-#ifdef DEBOGUE_INTERPRETEUSE
-        std::cerr << "== exécution " << it->fonction->nom_broye(it->unite->espace) << " ==\n";
-#endif
-
         assert(métaprogramme->donnees_execution->profondeur_appel >= 1);
 
         installe_metaprogramme(métaprogramme);
@@ -1788,11 +1921,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             i -= 1;
 
 #ifdef STATS_OP_CODES
-            std::cerr << "------------------------------------ Instructions :\n";
-            for (auto j = 0; j < NOMBRE_OP_CODE; j++) {
-                std::cerr << chaine_code_operation(octet_t(j)) << " : "
-                          << it->donnees_execution->compte_instructions[j] << '\n';
-            }
+            métaprogramme->donnees_execution->imprime_stats_instructions(std::cerr);
 #endif
         }
 
