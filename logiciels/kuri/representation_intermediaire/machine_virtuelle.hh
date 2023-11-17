@@ -74,9 +74,7 @@ struct DonneesExecution {
 
     DétectriceFuiteDeMémoire détectrice_fuite_de_mémoire{};
 
-#ifdef STATS_OP_CODES
     int compte_instructions[NOMBRE_OP_CODE] = {};
-#endif
 
     /* Ces sites sont utilisés pour déterminer où se trouve le dernier site valide
      * au cas où le pointeur est désynchronisé et une instruction est invalide. */
@@ -84,6 +82,8 @@ struct DonneesExecution {
     NoeudExpression *dernier_site = nullptr;
 
     void réinitialise();
+
+    void imprime_stats_instructions(std::ostream &os);
 };
 
 struct EchantillonProfilage {
