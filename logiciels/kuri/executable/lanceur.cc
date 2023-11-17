@@ -19,6 +19,8 @@
 
 #include "structures/chemin_systeme.hh"
 
+#include "representation_intermediaire/machine_virtuelle.hh"
+
 #define AVEC_THREADS
 
 /**
@@ -103,7 +105,9 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         it->constructrice_ri.rassemble_statistiques(stats);
         it->allocatrice_noeud.rassemble_statistiques(stats);
 
-        it->mv.rassemble_statistiques(stats);
+        if (it->mv) {
+            it->mv->rassemble_statistiques(stats);
+        }
 
         // std::cerr << "tâcheronne " << it->id << " a dormis pendant " <<
         // it->temps_passe_a_dormir << "ms\n";
@@ -530,9 +534,9 @@ static bool compile_fichier(Compilatrice &compilatrice,
     lance_tacheronne(&tacheronne_mp);
 #endif
 
-    if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
+    if (compilatrice.chaines_ajoutées_à_la_compilation->nombre_de_chaines()) {
         auto fichier_chaines = std::ofstream(".chaines_ajoutées");
-        compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
+        compilatrice.chaines_ajoutées_à_la_compilation->imprime_dans(fichier_chaines);
     }
 
     /* restore le dossier d'origine */

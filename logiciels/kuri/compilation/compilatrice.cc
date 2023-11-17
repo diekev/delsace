@@ -28,9 +28,9 @@
 
 /* ************************************************************************** */
 
-int64_t GestionnaireChainesAjoutees::ajoute(kuri::chaine chaine)
+int64_t GestionnaireChainesAjoutées::ajoute(kuri::chaine chaine)
 {
-    int64_t decalage = nombre_total_de_lignes;
+    int64_t décalage = nombre_total_de_lignes;
 
     POUR (chaine) {
         nombre_total_de_lignes += (it == '\n');
@@ -39,15 +39,15 @@ int64_t GestionnaireChainesAjoutees::ajoute(kuri::chaine chaine)
     /* Nous ajoutons une ligne car toutes les chaines sont suffixées d'une ligne. */
     nombre_total_de_lignes += 1;
     m_chaines.ajoute(chaine);
-    return decalage;
+    return décalage;
 }
 
-int GestionnaireChainesAjoutees::nombre_de_chaines() const
+int GestionnaireChainesAjoutées::nombre_de_chaines() const
 {
     return m_chaines.taille();
 }
 
-void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
+void GestionnaireChainesAjoutées::imprime_dans(std::ostream &os)
 {
     auto d = hui_systeme();
 
@@ -58,6 +58,17 @@ void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
         os << it;
         os << "\n";
     }
+}
+
+int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
+{
+    int64_t résultat = m_chaines.taille_memoire();
+
+    POUR (m_chaines) {
+        résultat += it.taille();
+    }
+
+    return résultat;
 }
 
 /* ************************************************************************** */
@@ -240,27 +251,44 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
 
 int64_t Compilatrice::memoire_utilisee() const
 {
-    auto memoire = taille_de(Compilatrice);
+    auto résultat = taille_de(Compilatrice);
 
-    memoire += ordonnanceuse->memoire_utilisee();
-    memoire += table_identifiants->memoire_utilisee();
+    résultat += ordonnanceuse->memoire_utilisee();
+    résultat += table_identifiants->memoire_utilisee();
 
-    memoire += gerante_chaine->memoire_utilisee();
+    résultat += gerante_chaine->memoire_utilisee();
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
-        memoire += it->memoire_utilisee();
+        résultat += it->memoire_utilisee();
     }
 
-    memoire += messagere->mémoire_utilisée();
+    résultat += messagere->mémoire_utilisée();
 
-    memoire += sys_module->mémoire_utilisée();
+    résultat += sys_module->mémoire_utilisée();
 
     auto metaprogrammes_ = metaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
-        memoire += it.programme->memoire_utilisee();
+        résultat += it.programme->memoire_utilisee();
     }
 
-    return memoire;
+    résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
+
+    résultat += m_tableaux_lexemes.taille_memoire();
+    POUR (m_tableaux_lexemes) {
+        résultat += it.taille_memoire();
+    }
+
+    résultat += m_états_libres.taille_memoire();
+    POUR (m_états_libres) {
+        résultat += taille_de(EtatResolutionAppel);
+        résultat += it->args.taille_memoire();
+    }
+
+    résultat += broyeuse->mémoire_utilisée();
+    résultat += constructeurs_globaux->taille_memoire();
+    résultat += table_chaines->taille_mémoire();
+
+    return résultat;
 }
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
@@ -370,13 +398,13 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 {
     auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-    auto decalage = chaines_ajoutees_a_la_compilation->ajoute(
+    auto decalage = chaines_ajoutées_à_la_compilation->ajoute(
         kuri::chaine(c.pointeur(), c.taille()));
 
     /* Les fichiers sont comparés selon leurs chemins, donc il nous faut un chemin unique pour
      * chaque nouvelle chaine. */
     auto nom_fichier = enchaine("chaine_ajoutée",
-                                chaines_ajoutees_a_la_compilation->nombre_de_chaines());
+                                chaines_ajoutées_à_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
     auto resultat = this->trouve_ou_crée_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);

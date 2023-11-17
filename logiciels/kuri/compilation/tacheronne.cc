@@ -14,6 +14,7 @@
 #include "syntaxeuse.hh"
 
 #include "representation_intermediaire/analyse.hh"
+#include "representation_intermediaire/machine_virtuelle.hh"
 #include "representation_intermediaire/optimisations.hh"
 
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
@@ -233,6 +234,7 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 
 Tacheronne::~Tacheronne()
 {
+    memoire::deloge("MachineVirtuelle", mv);
     memoire::deloge("AssembleuseArbre", assembleuse);
     memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
@@ -266,7 +268,7 @@ void Tacheronne::gere_tache()
                 /* les tâches d'exécutions sont marquées comme terminées dès que leurs
                  * métaprogrammes sont ajoutés à la machine virtuelle, il se peut qu'il en reste à
                  * exécuter alors qu'il n'y a plus de tâches à exécuter */
-                if (!mv.terminee()) {
+                if (mv && !mv->terminee()) {
                     nombre_dodos = 0;
                     execute_metaprogrammes();
                 }
@@ -613,20 +615,24 @@ void Tacheronne::gere_unite_pour_optimisation(UniteCompilation *unite)
 
 void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
 {
+    if (!mv) {
+        mv = memoire::loge<MachineVirtuelle>("MachineVirtuelle", compilatrice);
+    }
+
     auto metaprogramme = unite->metaprogramme;
     assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
 
-    metaprogramme->donnees_execution = mv.loge_donnees_execution();
-    mv.ajoute_metaprogramme(metaprogramme);
+    metaprogramme->donnees_execution = mv->loge_donnees_execution();
+    mv->ajoute_metaprogramme(metaprogramme);
 
     execute_metaprogrammes();
 }
 
 void Tacheronne::execute_metaprogrammes()
 {
-    mv.execute_metaprogrammes_courants();
+    mv->execute_metaprogrammes_courants();
 
-    POUR (mv.metaprogrammes_termines()) {
+    POUR (mv->metaprogrammes_termines()) {
         auto espace = it->unite->espace;
 
         // À FAIRE : précision des messages d'erreurs
@@ -679,7 +685,7 @@ void Tacheronne::execute_metaprogrammes()
 
                 fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
 
-                fichier->décalage_fichier = compilatrice.chaines_ajoutees_a_la_compilation->ajoute(
+                fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
                     resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 
@@ -698,7 +704,7 @@ void Tacheronne::execute_metaprogrammes()
         it->fut_execute = true;
         imprime_fuites_de_mémoire(it);
 
-        mv.deloge_donnees_execution(it->donnees_execution);
+        mv->deloge_donnees_execution(it->donnees_execution);
 
         compilatrice.gestionnaire_code->tâche_unité_terminée(it->unite);
     }
