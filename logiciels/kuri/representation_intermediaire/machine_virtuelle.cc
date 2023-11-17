@@ -125,6 +125,51 @@ void DonneesExecution::réinitialise()
     this->dernier_site = nullptr;
 }
 
+void DonneesExecution::imprime_stats_instructions(std::ostream &os)
+{
+    using TypeEntréeStat = std::pair<octet_t, int>;
+    kuri::tableau<TypeEntréeStat> entrées;
+
+    auto nombre_instructions = 0;
+    for (auto i = 0; i < NOMBRE_OP_CODE; i++) {
+        if (i == OP_STAT_INSTRUCTION) {
+            nombre_instructions = compte_instructions[i];
+            continue;
+        }
+
+        if (compte_instructions[i] == 0) {
+            continue;
+        }
+
+        entrées.ajoute({octet_t(i), compte_instructions[i]});
+    }
+
+    std::sort(
+        entrées.begin(), entrées.end(), [](auto &a, auto &b) { return a.second > b.second; });
+
+    auto taille_max_chaine = 0l;
+    POUR (entrées) {
+        auto chaine_code = chaine_code_operation(it.first);
+        taille_max_chaine = std::max(taille_max_chaine, chaine_code.taille());
+    }
+
+    os << "------------------------------------ Instructions :\n";
+    os << "Instructions exécutées : " << nombre_instructions << "\n";
+
+    POUR (entrées) {
+        auto chaine_code = chaine_code_operation(it.first);
+        os << "-- " << chaine_code_operation(it.first);
+
+        for (int i = 0; i < (taille_max_chaine - chaine_code.taille()); i++) {
+            os << ' ';
+        }
+
+        os << " : " << it.second;
+        os << " (" << (double(it.second) * 100.0 / double(nombre_instructions)) << "%)";
+        os << '\n';
+    }
+}
+
 /** \} */
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
@@ -1803,11 +1848,7 @@ void MachineVirtuelle::execute_metaprogrammes_courants()
             i -= 1;
 
 #ifdef STATS_OP_CODES
-            std::cerr << "------------------------------------ Instructions :\n";
-            for (auto j = 0; j < NOMBRE_OP_CODE; j++) {
-                std::cerr << chaine_code_operation(octet_t(j)) << " : "
-                          << métaprogramme->donnees_execution->compte_instructions[j] << '\n';
-            }
+            métaprogramme->donnees_execution->imprime_stats_instructions(std::cerr);
 #endif
         }
 

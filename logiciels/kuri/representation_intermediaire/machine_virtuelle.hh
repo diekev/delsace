@@ -82,6 +82,8 @@ struct DonneesExecution {
     NoeudExpression *dernier_site = nullptr;
 
     void réinitialise();
+
+    void imprime_stats_instructions(std::ostream &os);
 };
 
 struct EchantillonProfilage {
