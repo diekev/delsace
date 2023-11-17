@@ -459,15 +459,15 @@ void imprime_site(Enchaineuse &enchaineuse,
     enchaineuse << '\n';
 }
 
-void imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 {
     if (site == nullptr) {
-        return;
+        return "aucun site";
     }
 
     Enchaineuse enchaineuse;
     imprime_site(enchaineuse, espace, site);
-    std::cerr << enchaineuse.chaine();
+    return enchaineuse.chaine();
 }
 
 }  // namespace erreur

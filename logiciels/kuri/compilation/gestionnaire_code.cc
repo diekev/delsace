@@ -1280,7 +1280,7 @@ void GestionnaireCode::typage_termine(UniteCompilation *unite)
     assert(unite->noeud);
     assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " ne fut pas validé !\n";
-        erreur::imprime_site(*unite->espace, unite->noeud);
+        std::cerr << erreur::imprime_site(*unite->espace, unite->noeud);
     });
 
     auto espace = unite->espace;
@@ -1348,7 +1348,7 @@ void GestionnaireCode::generation_ri_terminee(UniteCompilation *unite)
     assert(unite->noeud);
     assert_rappel(unite->noeud->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&] {
         std::cerr << "Le noeud de genre " << unite->noeud->genre << " n'eu pas de RI générée !\n";
-        erreur::imprime_site(*unite->espace, unite->noeud);
+        std::cerr << erreur::imprime_site(*unite->espace, unite->noeud);
     });
 
     auto espace = unite->espace;

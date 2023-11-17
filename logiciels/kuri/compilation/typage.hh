@@ -19,7 +19,7 @@
 
 #include "operateurs.hh"
 
-struct AtomeConstante;
+struct AtomeGlobale;
 struct Compilatrice;
 struct IdentifiantCode;
 struct InfoType;
@@ -189,7 +189,7 @@ struct Type {
     kuri::chaine_statique nom_broye{};
 
     mutable InfoType *info_type = nullptr;
-    mutable AtomeConstante *atome_info_type = nullptr;
+    mutable AtomeGlobale *atome_info_type = nullptr;
     NoeudDependance *noeud_dependance = nullptr;
 
     NoeudDeclarationEnteteFonction *fonction_init = nullptr;
