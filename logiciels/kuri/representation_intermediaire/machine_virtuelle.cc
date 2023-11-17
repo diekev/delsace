@@ -1510,6 +1510,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 depile(site, taille);
                 break;
             }
+            case OP_ASSIGNE_VARIABLE:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+
+                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+                auto adresse_ou = &frame->pointeur_pile[locale.adresse];
+                auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+
+                depile(site, taille);
+                break;
+            }
             case OP_ALLOUE:
             {
                 auto type = LIS_POINTEUR(Type);

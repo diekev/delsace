@@ -170,6 +170,27 @@ void Chunk::émets_assignation(ContexteGenerationCodeBinaire contexte,
     émets(type->taille_octet);
 }
 
+void Chunk::émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type)
+{
+#if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
+    assert_rappel(type->taille_octet, [&]() {
+        std::cerr << "Le type est " << chaine_type(type) << '\n';
+
+        auto fonction = contexte.fonction;
+        if (fonction) {
+            std::cerr << "La fonction est " << nom_humainement_lisible(fonction) << '\n';
+            std::cerr << *fonction << '\n';
+        }
+
+        erreur::imprime_site(*contexte.espace, site);
+    });
+#endif
+
+    émets_entête_op(OP_ASSIGNE_VARIABLE, site);
+    émets(pointeur);
+    émets(type->taille_octet);
+}
+
 void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
@@ -651,6 +672,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
             os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
             return décalage + 1;
         }
+        case OP_ASSIGNE_VARIABLE:
         case OP_CHARGE_VARIABLE:
         case OP_BRANCHE_CONDITION:
         {
@@ -1103,6 +1125,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         {
             auto stocke = instruction->comme_stocke_mem();
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
+
+            if (est_allocation(stocke->ou)) {
+                auto alloc = stocke->ou->comme_instruction()->comme_alloc();
+                chunk.émets_assignation_variable(
+                    stocke->site, alloc->index_locale, stocke->valeur->type);
+                break;
+            }
+
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             genere_code_binaire_pour_atome(stocke->ou, chunk, true);
             chunk.émets_assignation(
