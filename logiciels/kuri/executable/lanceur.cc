@@ -86,11 +86,11 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         return;
     }
 
+    compilatrice.rassemble_statistiques(stats);
+
     POUR (tacheronnes) {
         it->rassemble_statistiques(stats);
     }
-
-    compilatrice.rassemble_statistiques(stats);
 
     stats.memoire_ri = stats.stats_ri.totaux.memoire;
 }

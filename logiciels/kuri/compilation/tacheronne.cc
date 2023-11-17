@@ -1007,6 +1007,9 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     constructrice_ri.rassemble_statistiques(stats);
     allocatrice_noeud.rassemble_statistiques(stats);
 
+    stats.memoire_compilatrice += lexemes_extra.memoire_utilisee();
+    stats.memoire_compilatrice += convertisseuse_noeud_code.memoire_utilisee();
+
     if (mv) {
         mv->rassemble_statistiques(stats);
     }
