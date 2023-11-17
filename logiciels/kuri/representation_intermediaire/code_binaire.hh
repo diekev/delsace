@@ -295,6 +295,11 @@ struct Chunk {
                                  OpérateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
+
+    void émets_transtype(NoeudExpression const *site,
+                         uint8_t op,
+                         uint32_t taille_source,
+                         uint32_t taille_dest);
 };
 
 void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);

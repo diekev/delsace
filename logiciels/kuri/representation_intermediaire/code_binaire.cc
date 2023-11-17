@@ -337,6 +337,53 @@ static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
+static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
+{
+    switch (genre) {
+        case TypeTranstypage::BITS:
+        case TypeTranstypage::DEFAUT:
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        {
+            break;
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER:
+        {
+            return OP_REEL_VERS_ENTIER;
+        }
+        case TypeTranstypage::ENTIER_VERS_REEL:
+        {
+            return OP_ENTIER_VERS_REEL;
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        {
+            return OP_AUGMENTE_REEL;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            return OP_AUGMENTE_NATUREL;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            return OP_AUGMENTE_RELATIF;
+        }
+        case TypeTranstypage::DIMINUE_REEL:
+        {
+            return OP_DIMINUE_REEL;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            return OP_DIMINUE_NATUREL;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            return OP_DIMINUE_RELATIF;
+        }
+    }
+
+    return {};
+}
+
 void Chunk::emets_operation_binaire(NoeudExpression const *site,
                                     OpérateurBinaire::Genre op,
                                     Type const *type_gauche,
@@ -354,6 +401,17 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
     else {
         emets(taille_octet);
     }
+}
+
+void Chunk::émets_transtype(const NoeudExpression *site,
+                            uint8_t op,
+                            uint32_t taille_source,
+                            uint32_t taille_dest)
+{
+    emets(op);
+    emets(site);
+    emets(taille_source);
+    emets(taille_dest);
 }
 
 /* ************************************************************************** */
@@ -1062,77 +1120,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             genere_code_binaire_pour_atome(valeur, chunk, true);
 
-            switch (transtype->op) {
-                case TypeTranstypage::BITS:
-                case TypeTranstypage::DEFAUT:
-                case TypeTranstypage::POINTEUR_VERS_ENTIER:
-                case TypeTranstypage::ENTIER_VERS_POINTEUR:
-                {
-                    break;
+            auto opt_op_transtype = converti_type_transtypage(transtype->op);
+            if (opt_op_transtype.has_value()) {
+                auto op_transtype = opt_op_transtype.value();
+                if (op_transtype == OP_AUGMENTE_REEL) {
+                    chunk.émets_transtype(transtype->site, op_transtype, 4, 8);
                 }
-                case TypeTranstypage::REEL_VERS_ENTIER:
-                {
-                    chunk.emets(OP_REEL_VERS_ENTIER);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
+                else if (op_transtype == OP_DIMINUE_REEL) {
+                    chunk.émets_transtype(transtype->site, op_transtype, 8, 4);
                 }
-                case TypeTranstypage::ENTIER_VERS_REEL:
-                {
-                    chunk.emets(OP_ENTIER_VERS_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_REEL:
-                {
-                    chunk.emets(OP_AUGMENTE_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(4);
-                    chunk.emets(8);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_NATUREL:
-                {
-                    chunk.emets(OP_AUGMENTE_NATUREL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_RELATIF:
-                {
-                    chunk.emets(OP_AUGMENTE_RELATIF);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_REEL:
-                {
-                    chunk.emets(OP_DIMINUE_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(8);
-                    chunk.emets(4);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_NATUREL:
-                {
-                    chunk.emets(OP_DIMINUE_NATUREL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_RELATIF:
-                {
-                    chunk.emets(OP_DIMINUE_RELATIF);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
+                else {
+                    chunk.émets_transtype(transtype->site,
+                                          op_transtype,
+                                          valeur->type->taille_octet,
+                                          transtype->type->taille_octet);
                 }
             }
 
