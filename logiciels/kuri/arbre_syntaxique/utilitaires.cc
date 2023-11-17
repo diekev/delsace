@@ -1891,7 +1891,7 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
     }
     if (espace) {
         os << "-- Site de définition :\n";
-        erreur::imprime_site(*espace, entête);
+        os << erreur::imprime_site(*espace, entête);
     }
 }
 

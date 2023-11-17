@@ -86,6 +86,7 @@ struct AtomeConstante : public Atome {
 
     enum class Genre {
         GLOBALE,
+        FONCTION,
         VALEUR,
         TRANSTYPE_CONSTANT,
         OP_BINAIRE_CONSTANTE,
@@ -331,7 +332,7 @@ struct AccedeIndexConstant : public AtomeConstante {
     }
 };
 
-struct AtomeFonction : public Atome {
+struct AtomeFonction : public AtomeConstante {
     kuri::chaine_statique nom{};
 
     kuri::tableau<Atome *, int> params_entrees{};

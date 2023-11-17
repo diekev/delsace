@@ -128,6 +128,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"expression.hh\"\n";
         os << "#include \"utilitaires.hh\"\n";
         os << "class Broyeuse;\n";
+        os << "struct Enchaineuse;\n";
 
         // Prodéclarations des structures
         kuri::ensemble<kuri::chaine> noms_struct;
@@ -173,10 +174,18 @@ struct GeneratriceCodeCPP {
         }
 
         // Impression de l'arbre
+        os << "void imprime_arbre_substitue(const NoeudExpression *racine, Enchaineuse &os, int "
+              "profondeur);\n\n";
+        os << "void imprime_arbre(NoeudExpression const *racine, Enchaineuse &os, int "
+              "profondeur, bool substitution = false);\n\n";
         os << "void imprime_arbre_substitue(const NoeudExpression *racine, std::ostream &os, int "
               "profondeur);\n\n";
         os << "void imprime_arbre(NoeudExpression const *racine, std::ostream &os, int "
               "profondeur, bool substitution = false);\n\n";
+        os << "kuri::chaine imprime_arbre_substitue(const NoeudExpression *racine, int "
+              "profondeur);\n\n";
+        os << "kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool "
+              "substitution = false);\n\n";
 
         // Calcul de l'étendue
         os << "struct Etendue {\n";
@@ -208,6 +217,7 @@ struct GeneratriceCodeCPP {
         os << "#include \"noeud_expression.hh\"\n";
         os << "#include \"compilation/log.hh\"\n";
         os << "#include \"structures/chaine_statique.hh\"\n";
+        os << "#include \"structures/enchaineuse.hh\"\n";
         os << "#include \"parsage/identifiant.hh\"\n";
         os << "#include \"parsage/outils_lexemes.hh\"\n";
         os << "#include \"assembleuse.hh\"\n";
@@ -232,13 +242,13 @@ struct GeneratriceCodeCPP {
 
     void genere_impression_arbre_syntaxique(FluxSortieCPP &os)
     {
-        os << "void imprime_arbre_substitue(const NoeudExpression *racine, std::ostream &os, int "
+        os << "void imprime_arbre_substitue(const NoeudExpression *racine, Enchaineuse &os, int "
               "profondeur)\n";
         os << "{\n";
         os << "\timprime_arbre(racine, os, profondeur, true);\n";
         os << "}\n\n";
 
-        os << "void imprime_arbre(NoeudExpression const *racine, std::ostream &os, int "
+        os << "void imprime_arbre(NoeudExpression const *racine, Enchaineuse &os, int "
               "profondeur, bool substitution)\n";
         os << "{\n";
         os << "\tif (!racine) {\n";
@@ -301,6 +311,30 @@ struct GeneratriceCodeCPP {
 
         os << "\t}\n";
         os << "}\n\n";
+
+        static const char *implémentations_supplémentaires = R"(
+void imprime_arbre_substitue(const NoeudExpression *racine, std::ostream &os, int profondeur)
+{
+    os << imprime_arbre_substitue(racine, profondeur);
+}
+void imprime_arbre(NoeudExpression const *racine, std::ostream &os, int profondeur, bool substitution)
+{
+    os << imprime_arbre(racine, profondeur, substitution);
+}
+kuri::chaine imprime_arbre_substitue(const NoeudExpression *racine, int profondeur)
+{
+    Enchaineuse enchaineuse;
+    imprime_arbre_substitue(racine, enchaineuse, profondeur);
+    return enchaineuse.chaine();
+}
+kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool substitution)
+{
+    Enchaineuse enchaineuse;
+    imprime_arbre(racine, enchaineuse, profondeur, substitution);
+    return enchaineuse.chaine();
+}
+)";
+        os << implémentations_supplémentaires;
     }
 
     void genere_calcul_etendue_noeud(FluxSortieCPP &os)

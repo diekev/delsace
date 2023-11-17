@@ -16,6 +16,7 @@
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/ipa.hh"
+#include "compilation/log.hh"
 #include "compilation/operateurs.hh"
 
 #include "parsage/outils_lexemes.hh"
@@ -69,6 +70,26 @@ void Chunk::agrandis_si_necessaire(int64_t taille)
     }
 }
 
+void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
+{
+    emets(op);
+    emets(site);
+}
+
+void Chunk::émets_chaine_constante(const NoeudExpression *site,
+                                   void *pointeur_chaine,
+                                   int64_t taille_chaine)
+{
+    émets_entête_op(OP_CHAINE_CONSTANTE, site);
+    emets(pointeur_chaine);
+    emets(taille_chaine);
+}
+
+void Chunk::émets_retour(NoeudExpression const *site)
+{
+    émets_entête_op(OP_RETOURNE, site);
+}
+
 int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
@@ -76,8 +97,7 @@ int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, Ident
         const_cast<Type *>(type)->taille_octet = 4;
     }
     assert(type->taille_octet);
-    emets(OP_ALLOUE);
-    emets(site);
+    émets_entête_op(OP_ALLOUE, site);
     emets(type);
     emets(ident);
 
@@ -106,13 +126,11 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 #endif
 
     if (ajoute_verification) {
-        emets(OP_VERIFIE_ADRESSAGE_ASSIGNE);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_ADRESSAGE_ASSIGNE, site);
         emets(type->taille_octet);
     }
 
-    emets(OP_ASSIGNE);
-    emets(site);
+    émets_entête_op(OP_ASSIGNE, site);
     emets(type->taille_octet);
 }
 
@@ -121,13 +139,11 @@ void Chunk::emets_charge(NoeudExpression const *site, Type const *type, bool ajo
     assert(type->taille_octet);
 
     if (ajoute_verification) {
-        emets(OP_VERIFIE_ADRESSAGE_CHARGE);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_ADRESSAGE_CHARGE, site);
         emets(type->taille_octet);
     }
 
-    emets(OP_CHARGE);
-    emets(site);
+    émets_entête_op(OP_CHARGE, site);
     emets(type->taille_octet);
 }
 
@@ -143,22 +159,19 @@ void Chunk::emets_charge_variable(NoeudExpression const *site,
 
 void Chunk::emets_reference_globale(NoeudExpression const *site, int pointeur)
 {
-    emets(OP_REFERENCE_GLOBALE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_GLOBALE, site);
     emets(pointeur);
 }
 
 void Chunk::emets_reference_variable(NoeudExpression const *site, int pointeur)
 {
-    emets(OP_REFERENCE_VARIABLE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_VARIABLE, site);
     emets(pointeur);
 }
 
 void Chunk::emets_reference_membre(NoeudExpression const *site, unsigned decalage)
 {
-    emets(OP_REFERENCE_MEMBRE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_MEMBRE, site);
     emets(decalage);
 }
 
@@ -169,14 +182,12 @@ void Chunk::emets_appel(NoeudExpression const *site,
                         bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL);
-    emets(site);
+    émets_entête_op(OP_APPEL, site);
     emets(fonction);
     emets(taille_arguments);
     emets(inst_appel);
@@ -189,14 +200,12 @@ void Chunk::emets_appel_externe(NoeudExpression const *site,
                                 bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL_EXTERNE);
-    emets(site);
+    émets_entête_op(OP_APPEL_EXTERNE, site);
     emets(fonction);
     emets(taille_arguments);
     emets(inst_appel);
@@ -207,21 +216,18 @@ void Chunk::emets_appel_compilatrice(const NoeudExpression *site,
                                      bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL_COMPILATRICE);
-    emets(site);
+    émets_entête_op(OP_APPEL_COMPILATRICE, site);
     emets(fonction);
 }
 
 void Chunk::emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
 {
-    emets(OP_APPEL_INTRINSÈQUE);
-    emets(site);
+    émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
     emets(fonction);
 }
 
@@ -231,13 +237,11 @@ void Chunk::emets_appel_pointeur(NoeudExpression const *site,
                                  bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(true); /* est pointeur */
     }
 
-    emets(OP_APPEL_POINTEUR);
-    emets(site);
+    émets_entête_op(OP_APPEL_POINTEUR, site);
     emets(taille_arguments);
     emets(inst_appel);
 }
@@ -245,8 +249,7 @@ void Chunk::emets_appel_pointeur(NoeudExpression const *site,
 void Chunk::emets_acces_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
-    emets(OP_ACCEDE_INDEX);
-    emets(site);
+    émets_entête_op(OP_ACCEDE_INDEX, site);
     emets(type->taille_octet);
 }
 
@@ -254,8 +257,7 @@ void Chunk::emets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
-    emets(OP_BRANCHE);
-    emets(site);
+    émets_entête_op(OP_BRANCHE, site);
     emets(0);
 
     auto patch = PatchLabel();
@@ -269,8 +271,7 @@ void Chunk::emets_branche_condition(NoeudExpression const *site,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
 {
-    emets(OP_BRANCHE_CONDITION);
-    emets(site);
+    émets_entête_op(OP_BRANCHE_CONDITION, site);
     emets(0);
     emets(0);
 
@@ -292,8 +293,7 @@ void Chunk::emets_label(NoeudExpression const *site, int index)
     }
 
     decalages_labels[index] = static_cast<int>(compte);
-    emets(OP_LABEL);
-    emets(site);
+    émets_entête_op(OP_LABEL, site);
     emets(index);
 }
 
@@ -303,17 +303,14 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
 {
     if (op == OpérateurUnaire::Genre::Complement) {
         if (type->est_type_reel()) {
-            emets(OP_COMPLEMENT_REEL);
-            emets(site);
+            émets_entête_op(OP_COMPLEMENT_REEL, site);
         }
         else {
-            emets(OP_COMPLEMENT_ENTIER);
-            emets(site);
+            émets_entête_op(OP_COMPLEMENT_ENTIER, site);
         }
     }
     else if (op == OpérateurUnaire::Genre::Non_Binaire) {
-        emets(OP_NON_BINAIRE);
-        emets(site);
+        émets_entête_op(OP_NON_BINAIRE, site);
     }
 
     if (type->est_type_entier_constant()) {
@@ -336,14 +333,60 @@ static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
+static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
+{
+    switch (genre) {
+        case TypeTranstypage::BITS:
+        case TypeTranstypage::DEFAUT:
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        {
+            break;
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER:
+        {
+            return OP_REEL_VERS_ENTIER;
+        }
+        case TypeTranstypage::ENTIER_VERS_REEL:
+        {
+            return OP_ENTIER_VERS_REEL;
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        {
+            return OP_AUGMENTE_REEL;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            return OP_AUGMENTE_NATUREL;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            return OP_AUGMENTE_RELATIF;
+        }
+        case TypeTranstypage::DIMINUE_REEL:
+        {
+            return OP_DIMINUE_REEL;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            return OP_DIMINUE_NATUREL;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            return OP_DIMINUE_RELATIF;
+        }
+    }
+
+    return {};
+}
+
 void Chunk::emets_operation_binaire(NoeudExpression const *site,
                                     OpérateurBinaire::Genre op,
                                     Type const *type_gauche,
                                     Type const *type_droite)
 {
     auto op_comp = converti_op_binaire(op);
-    emets(op_comp);
-    emets(site);
+    émets_entête_op(op_comp, site);
 
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
@@ -353,6 +396,16 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
     else {
         emets(taille_octet);
     }
+}
+
+void Chunk::émets_transtype(const NoeudExpression *site,
+                            uint8_t op,
+                            uint32_t taille_source,
+                            uint32_t taille_dest)
+{
+    émets_entête_op(op, site);
+    emets(taille_source);
+    emets(taille_dest);
 }
 
 /* ************************************************************************** */
@@ -615,13 +668,12 @@ ffi_type *converti_type_ffi(Type const *type)
     switch (type->genre) {
         case GenreType::POLYMORPHIQUE:
         {
-            assert_rappel(false,
-                          [&]() { std::cerr << "Type polymorphique dans la conversion FFI\n"; });
+            assert_rappel(false, [&]() { dbg() << "Type polymorphique dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
         case GenreType::TUPLE:
         {
-            assert_rappel(false, [&]() { std::cerr << "Type tuple dans la conversion FFI\n"; });
+            assert_rappel(false, [&]() { dbg() << "Type tuple dans la conversion FFI"; });
             return static_cast<ffi_type *>(nullptr);
         }
         case GenreType::BOOL:
@@ -1051,8 +1103,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 genere_code_binaire_pour_atome(retour->valeur, chunk, true);
             }
 
-            chunk.emets(OP_RETOURNE);
-            chunk.emets(retour->site);
+            chunk.émets_retour(retour->site);
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1062,77 +1113,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             genere_code_binaire_pour_atome(valeur, chunk, true);
 
-            switch (transtype->op) {
-                case TypeTranstypage::BITS:
-                case TypeTranstypage::DEFAUT:
-                case TypeTranstypage::POINTEUR_VERS_ENTIER:
-                case TypeTranstypage::ENTIER_VERS_POINTEUR:
-                {
-                    break;
+            auto opt_op_transtype = converti_type_transtypage(transtype->op);
+            if (opt_op_transtype.has_value()) {
+                auto op_transtype = opt_op_transtype.value();
+                if (op_transtype == OP_AUGMENTE_REEL) {
+                    chunk.émets_transtype(transtype->site, op_transtype, 4, 8);
                 }
-                case TypeTranstypage::REEL_VERS_ENTIER:
-                {
-                    chunk.emets(OP_REEL_VERS_ENTIER);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
+                else if (op_transtype == OP_DIMINUE_REEL) {
+                    chunk.émets_transtype(transtype->site, op_transtype, 8, 4);
                 }
-                case TypeTranstypage::ENTIER_VERS_REEL:
-                {
-                    chunk.emets(OP_ENTIER_VERS_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_REEL:
-                {
-                    chunk.emets(OP_AUGMENTE_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(4);
-                    chunk.emets(8);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_NATUREL:
-                {
-                    chunk.emets(OP_AUGMENTE_NATUREL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::AUGMENTE_RELATIF:
-                {
-                    chunk.emets(OP_AUGMENTE_RELATIF);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_REEL:
-                {
-                    chunk.emets(OP_DIMINUE_REEL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(8);
-                    chunk.emets(4);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_NATUREL:
-                {
-                    chunk.emets(OP_DIMINUE_NATUREL);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
-                }
-                case TypeTranstypage::DIMINUE_RELATIF:
-                {
-                    chunk.emets(OP_DIMINUE_RELATIF);
-                    chunk.emets(transtype->site);
-                    chunk.emets(valeur->type->taille_octet);
-                    chunk.emets(transtype->type->taille_octet);
-                    break;
+                else {
+                    chunk.émets_transtype(transtype->site,
+                                          op_transtype,
+                                          valeur->type->taille_octet,
+                                          transtype->type->taille_octet);
                 }
             }
 
@@ -1237,6 +1231,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             break;
         }
         case AtomeConstante::Genre::GLOBALE:
+        {
+            genere_code_binaire_pour_atome(constante, chunk, true);
+            break;
+        }
+        case AtomeConstante::Genre::FONCTION:
         {
             genere_code_binaire_pour_atome(constante, chunk, true);
             break;
@@ -1397,10 +1396,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             if (type->est_type_chaine()) {
                 if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
                     // valeur nulle pour les chaines initilisées à zéro
-                    chunk.emets(OP_CHAINE_CONSTANTE);
-                    chunk.emets(nullptr); /* site */
-                    chunk.emets(nullptr);
-                    chunk.emets(0l);
+                    chunk.émets_chaine_constante(/* site */ nullptr, nullptr, 0);
                 }
                 else {
                     auto acces_index = static_cast<AccedeIndexConstant *>(tableau_valeur[0]);
@@ -1412,10 +1408,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                     auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                    chunk.emets(OP_CHAINE_CONSTANTE);
-                    chunk.emets(nullptr); /* site */
-                    chunk.emets(pointeur_chaine);
-                    chunk.emets(taille_chaine);
+                    chunk.émets_chaine_constante(
+                        /* site */ nullptr, pointeur_chaine, taille_chaine);
 
                     // reférence globale, tableau
                     // accède index
@@ -1545,9 +1539,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                 case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
                 {
                     assert_rappel(false, [&]() {
-                        std::cerr << "Les valeurs de globales de type tableau fixe ne sont pas "
-                                     "générées dans le code binaire pour le moment.\n";
-                        std::cerr << "Le type est " << chaine_type(constante->type) << '\n';
+                        dbg() << "Les valeurs de globales de type tableau fixe ne sont pas "
+                                 "générées dans le code binaire pour le moment.\n"
+                              << "    NOTE : le type de la globale est "
+                              << chaine_type(constante->type);
                     });
                     break;
                 }
@@ -1586,8 +1581,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             continue;
                         }
 
-                        // std::cerr << "Ajout du code pour le membre : " << type->membres[i].nom
-                        // << '\n';
+                        // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
 
                         auto type_membre = type->membres[i].type;
 
@@ -1683,6 +1677,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
             break;
         }
+        case AtomeConstante::Genre::FONCTION:
+        {
+            assert_rappel(false, []() {
+                dbg() << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
+                         "code binaire\n";
+            });
+            break;
+        }
         case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype = static_cast<TranstypeConstant *>(constante);
@@ -1693,22 +1695,22 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les opérations unaires constantes ne sont
-            // pas implémentées dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les opérations unaires constantes ne sont
+            // pas implémentées dans le code binaire"; });
             break;
         }
         case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les opérations binaires constantes ne sont
-            // pas implémentées dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les opérations binaires constantes ne sont
+            // pas implémentées dans le code binaire"; });
             break;
         }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
             // À FAIRE
-            // assert_rappel(false, []() { std::cerr << "Les indexages constants ne sont pas
-            // implémentés dans le code binaire\n"; });
+            // assert_rappel(false, []() { dbg() << "Les indexages constants ne sont pas
+            // implémentés dans le code binaire"; });
             break;
         }
     }

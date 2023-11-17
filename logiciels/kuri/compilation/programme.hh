@@ -293,13 +293,30 @@ struct ProgrammeRepreInter {
     struct DonnéesTableauxConstants {
         AtomeGlobale *globale = nullptr;
         AtomeValeurConstante const *tableau = nullptr;
+        /* Décalage en octet du premier élément au sein des données constantes. Ceci pointe à
+         * l'adresse suivant le rembourrage potentielle. */
         int64_t décalage_dans_données_constantes = 0;
+        /* Rembourrage requis pour s'assurer que les données sont alignées à une adresse correcte.
+         * Les coulisses sont responsables d'ajouter ce rembourrage aux données constantes _avant_
+         * les données de ce tableau. */
+        int64_t rembourrage = 0;
     };
 
-    kuri::tableau<DonnéesTableauxConstants> tableaux_constants{};
-    int64_t taille_données_tableaux_constants = 0;
+    struct DonnéesConstantes {
+        kuri::tableau<DonnéesTableauxConstants> tableaux_constants{};
+        int64_t taille_données_tableaux_constants = 0;
+        uint32_t alignement_désiré = 0;
+    };
 
+  private:
+    mutable DonnéesConstantes m_données_constantes{};
+    mutable bool m_données_constantes_construites = false;
+
+  public:
     void ajoute_globale(AtomeGlobale *globale);
+
+    std::optional<DonnéesConstantes const *> donne_données_constantes() const;
+
     kuri::tableau<Bibliotheque *> donne_bibliothèques_utilisées() const;
 };
 

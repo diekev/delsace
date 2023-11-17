@@ -80,6 +80,11 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     /* Déjà gérée, genre_atome étant GLOBALE. */
                     break;
                 }
+                case AtomeConstante::Genre::FONCTION:
+                {
+                    /* Déjà gérée, genre_atome étant FONCTION. */
+                    break;
+                }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(constante);

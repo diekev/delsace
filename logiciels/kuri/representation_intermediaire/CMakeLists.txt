@@ -15,6 +15,7 @@ set(BIBLIOTHEQUES
     kuri_ipa_compilatrice
     kuri_compilation
     kuri_statistiques
+    kuri::utilitaires
     dls::outils
     systeme_fichier
     ${BIBLIOTHEQUES_LIBFFI}
@@ -34,7 +35,6 @@ set(SOURCES
     constructrice_ri.cc
     impression.cc
     instructions.cc
-    log.cc
     machine_virtuelle.cc
     machine_virtuelle_intrinseques.cc
     optimisations.cc
@@ -45,7 +45,6 @@ set(SOURCES
     constructrice_ri.hh
     impression.hh
     instructions.hh
-    log.hh
     machine_virtuelle.hh
     optimisations.hh
 )

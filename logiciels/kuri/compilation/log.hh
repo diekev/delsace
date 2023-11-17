@@ -69,3 +69,20 @@ const LogDebug &operator<<(const LogDebug &log_debug, T valeur)
 }
 
 kuri::chaine_statique chaine_indentations(int indentations);
+
+extern bool log_actif;
+
+void active_log();
+
+void desactive_log();
+
+template <typename... Ts>
+void log(std::ostream &os, Ts... ts)
+{
+    if (!log_actif) {
+        return;
+    }
+
+    ((os << ts), ...);
+    os << '\n';
+}

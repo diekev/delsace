@@ -223,6 +223,7 @@ struct Chunk {
 
     void detruit();
 
+  private:
     void emets(octet_t o);
 
     template <typename T>
@@ -234,16 +235,24 @@ struct Chunk {
         compte += static_cast<int64_t>(sizeof(T));
     }
 
+    void agrandis_si_necessaire(int64_t taille);
+
+    void émets_entête_op(octet_t op, NoeudExpression const *site);
+
+  public:
     template <typename T>
     void emets_constante(T v)
     {
-        emets(OP_CONSTANTE);
-        emets(nullptr); /* site */
+        émets_entête_op(OP_CONSTANTE, nullptr);
         emets(drapeau_pour_constante<T>::valeur);
         emets(v);
     }
 
-    void agrandis_si_necessaire(int64_t taille);
+    void émets_chaine_constante(NoeudExpression const *site,
+                                void *pointeur_chaine,
+                                int64_t taille_chaine);
+
+    void émets_retour(NoeudExpression const *site);
 
     int emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,
@@ -295,6 +304,11 @@ struct Chunk {
                                  OpérateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
+
+    void émets_transtype(NoeudExpression const *site,
+                         uint8_t op,
+                         uint32_t taille_source,
+                         uint32_t taille_dest);
 };
 
 void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);

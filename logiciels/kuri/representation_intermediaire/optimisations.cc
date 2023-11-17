@@ -7,6 +7,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/log.hh"
+
 #include "parsage/identifiant.hh"
 
 #include "structures/table_hachage.hh"
@@ -17,7 +19,6 @@
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
-#include "log.hh"
 
 /*
   À FAIRE(optimisations) :
@@ -521,11 +522,11 @@ struct Substitutrice {
 // À FAIRE : définis de bonnes heuristiques pour l'enlignage
 static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 {
-    log(std::cerr, "candidate pour enlignage : ", fonction->nom);
+    dbg() << "candidate pour enlignage : " << fonction->nom;
 
     /* appel d'une fonction externe */
     if (fonction->instructions.taille() == 0) {
-        log(std::cerr, "-- ignore la candidate car il n'y a pas d'instructions...");
+        dbg() << "-- ignore la candidate car il n'y a pas d'instructions...";
         return false;
     }
 
@@ -539,12 +540,12 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
         }
 
         if (fonction->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
-            log(std::cerr, "-- ignore la candidate car nous forçons un horslignage...");
+            dbg() << "-- ignore la candidate car nous forçons un horslignage...";
             return false;
         }
     }
 
-    log(std::cerr, "-- ignore la candidate car il y a trop d'instructions...");
+    dbg() << "-- ignore la candidate car il y a trop d'instructions...";
     return false;
 }
 

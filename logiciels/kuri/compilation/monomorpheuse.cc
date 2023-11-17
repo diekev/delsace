@@ -751,7 +751,7 @@ void Monomorpheuse::logue() const
 {
     std::cerr << "------------------------------------------------\n";
     std::cerr << "Monomorphisation de " << polymorphe->ident->nom << '\n';
-    erreur::imprime_site(espace, polymorphe);
+    std::cerr << erreur::imprime_site(espace, polymorphe);
 
     POUR (candidats) {
         std::cerr << "Candidat " << it << '\n';

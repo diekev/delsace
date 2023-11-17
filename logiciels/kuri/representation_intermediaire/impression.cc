@@ -83,6 +83,11 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
                     os << " représentant une globale";
                     break;
                 }
+                case AtomeConstante::Genre::FONCTION:
+                {
+                    os << " représentant une fonction";
+                    break;
+                }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     os << " représentant un transtypage constant";
@@ -207,6 +212,10 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
 
         switch (atome_const->genre) {
             case AtomeConstante::Genre::GLOBALE:
+            {
+                break;
+            }
+            case AtomeConstante::Genre::FONCTION:
             {
                 break;
             }
