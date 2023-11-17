@@ -111,6 +111,14 @@ void Chunk::émets_logue_retour()
     émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
+void Chunk::ajoute_locate(InstructionAllocation *alloc)
+{
+    auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
+    auto adresse = émets_allocation(alloc->site, type_pointe, alloc->ident);
+    alloc->index_locale = locales.taille();
+    locales.ajoute({alloc->ident, alloc->type, adresse});
+}
+
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
                                    void *pointeur_chaine,
                                    int64_t taille_chaine)
@@ -1024,10 +1032,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
-        auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-        auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-        alloc->index_locale = chunk.locales.taille();
-        chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+        chunk.ajoute_locate(alloc);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1037,19 +1042,13 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {
-            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-            alloc->index_locale = chunk.locales.taille();
-            chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+            chunk.ajoute_locate(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            auto alloc = it->comme_alloc();
-            auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
-            alloc->index_locale = chunk.locales.taille();
-            chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
+            chunk.ajoute_locate(it->comme_alloc());
         }
     }
 

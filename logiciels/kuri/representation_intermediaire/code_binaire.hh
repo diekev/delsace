@@ -29,6 +29,7 @@ struct DonneesConstantesExecutions;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
+struct InstructionAllocation;
 struct InstructionAppel;
 struct MetaProgramme;
 struct NoeudDeclarationEnteteFonction;
@@ -257,6 +258,8 @@ struct Chunk {
     void émets_logue_retour();
 
   public:
+    void ajoute_locate(InstructionAllocation *alloc);
+
     template <typename T>
     void émets_constante(T v)
     {
