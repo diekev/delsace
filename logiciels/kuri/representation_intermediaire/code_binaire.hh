@@ -257,7 +257,7 @@ struct Chunk {
     void émets_logue_retour();
 
   public:
-    void ajoute_locate(InstructionAllocation *alloc);
+    void ajoute_locale(InstructionAllocation *alloc);
 
     template <typename T>
     void émets_constante(T v)

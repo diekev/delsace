@@ -111,7 +111,7 @@ void Chunk::émets_logue_retour()
     émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
-void Chunk::ajoute_locate(InstructionAllocation *alloc)
+void Chunk::ajoute_locale(InstructionAllocation *alloc)
 {
     auto type = alloc->type->comme_type_pointeur()->type_pointe;
 
@@ -1012,7 +1012,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
-        chunk.ajoute_locate(alloc);
+        chunk.ajoute_locale(alloc);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1022,13 +1022,13 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {
-            chunk.ajoute_locate(alloc);
+            chunk.ajoute_locale(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            chunk.ajoute_locate(it->comme_alloc());
+            chunk.ajoute_locale(it->comme_alloc());
         }
     }
 
