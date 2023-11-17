@@ -75,6 +75,11 @@ kuri::chaine_statique Broyeuse::broye_nom_simple(IdentifiantCode *ident)
     return ident->nom_broye;
 }
 
+int64_t Broyeuse::mémoire_utilisée() const
+{
+    return stockage_chaines.mémoire_utilisée() + stockage_chaines.mémoire_utilisée();
+}
+
 /* Broye le nom d'un type.
  *
  * Convention :

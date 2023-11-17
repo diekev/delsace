@@ -17,10 +17,13 @@
 #include "validation_semantique.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
-#include "../representation_intermediaire/machine_virtuelle.hh"
+
+using octet_t = unsigned char;
 
 struct Compilatrice;
 struct ContexteAnalyseRI;
+struct DétectriceFuiteDeMémoire;
+struct MachineVirtuelle;
 struct Tacheronne;
 
 /* Drapeaux pour les tâches étant dans des files. */
@@ -120,7 +123,7 @@ struct Tacheronne {
 
     CompilatriceRI constructrice_ri{compilatrice};
     ContexteAnalyseRI *analyseuse_ri = nullptr;
-    MachineVirtuelle mv{compilatrice};
+    MachineVirtuelle *mv = nullptr;
 
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;

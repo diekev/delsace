@@ -44,6 +44,8 @@ struct Enchaineuse {
 
     int nombre_tampons_alloues() const;
 
+    int64_t mémoire_utilisée() const;
+
     int64_t taille_chaine() const;
 
     kuri::chaine chaine() const;

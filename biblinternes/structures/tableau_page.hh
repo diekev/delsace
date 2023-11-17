@@ -59,10 +59,7 @@ struct tableau_page {
 	page *page_courante = nullptr;
 	int64_t nombre_elements = 0;
 
-	tableau_page()
-	{
-		ajoute_page();
-	}
+    tableau_page() = default;
 
 	tableau_page(tableau_page const &) = delete;
 	tableau_page &operator=(tableau_page const &) = delete;
@@ -93,7 +90,7 @@ struct tableau_page {
 	template <typename... Args>
 	T *ajoute_element(Args &&...args)
 	{
-		if (page_courante->occupe == TAILLE_PAGE) {
+        if (!page_courante || page_courante->occupe == TAILLE_PAGE) {
 			ajoute_page();
 		}
 

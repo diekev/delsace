@@ -1024,12 +1024,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         }
 
         switch (instruction) {
-            case OP_LABEL:
-            {
-                /* Saute le label. */
-                frame->pointeur += 4;
-                break;
-            }
             case OP_BRANCHE:
             {
                 /* frame->pointeur contient le décalage relatif à l'adresse du début de la
@@ -1567,24 +1561,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
                 depile(site, taille);
-                break;
-            }
-            case OP_ALLOUE:
-            {
-                auto type = LIS_POINTEUR(Type);
-                // saute l'identifiant
-                frame->pointeur += 8;
-                this->pointeur_pile += type->taille_octet;
-
-                if (type->taille_octet == 0) {
-                    m_metaprogramme->unite->espace
-                        ->rapporte_erreur(
-                            site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
-                        .ajoute_message("Le type est : ", chaine_type(type), ".\n");
-                    compte_executees = i + 1;
-                    return ResultatInterpretation::ERREUR;
-                }
-
                 break;
             }
             case OP_VERIFIE_ADRESSAGE_CHARGE:

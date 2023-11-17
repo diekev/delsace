@@ -46,5 +46,5 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(int64_t adresse) const
 
 int64_t GeranteChaine::memoire_utilisee() const
 {
-    return enchaineuse.nombre_tampons_alloues() * Enchaineuse::TAILLE_TAMPON;
+    return enchaineuse.mémoire_utilisée();
 }
