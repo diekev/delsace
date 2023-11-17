@@ -38,7 +38,7 @@ namespace kuri {
 struct Lexeme;
 }
 
-struct GestionnaireChainesAjoutees {
+struct GestionnaireChainesAjoutées {
   private:
     kuri::tableau<kuri::chaine, int> m_chaines{};
 
@@ -93,7 +93,7 @@ struct Compilatrice {
 
     ArgumentsCompilatrice arguments{};
 
-    dls::outils::Synchrone<GestionnaireChainesAjoutees> chaines_ajoutées_à_la_compilation{};
+    dls::outils::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
 
     kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
