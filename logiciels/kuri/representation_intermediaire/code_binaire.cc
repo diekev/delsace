@@ -183,14 +183,12 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool aj
     émets(type->taille_octet);
 }
 
-void Chunk::émets_charge_variable(NoeudExpression const *site,
-                                  int pointeur,
-                                  Type const *type,
-                                  bool ajoute_verification)
+void Chunk::émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type)
 {
     assert(type->taille_octet);
-    émets_référence_variable(site, pointeur);
-    émets_charge(site, type, ajoute_verification);
+    émets_entête_op(OP_CHARGE_VARIABLE, site);
+    émets(pointeur);
+    émets(type->taille_octet);
 }
 
 void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur)
@@ -653,6 +651,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
             os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
             return décalage + 1;
         }
+        case OP_CHARGE_VARIABLE:
         case OP_BRANCHE_CONDITION:
         {
             return instruction_2d<int, int>(
@@ -1040,6 +1039,11 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     return true;
 }
 
+static bool est_allocation(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_alloc();
+}
+
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
@@ -1084,6 +1088,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::CHARGE_MEMOIRE:
         {
             auto charge = instruction->comme_charge();
+
+            if (est_allocation(charge->chargee)) {
+                auto alloc = charge->chargee->comme_instruction()->comme_alloc();
+                chunk.émets_charge_variable(charge->site, alloc->index_locale, charge->type);
+                break;
+            }
+
             genere_code_binaire_pour_atome(charge->chargee, chunk, true);
             chunk.émets_charge(charge->site, charge->type, verifie_adresses);
             break;

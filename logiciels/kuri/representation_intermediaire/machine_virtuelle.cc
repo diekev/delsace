@@ -1553,6 +1553,19 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 this->pointeur_pile += taille;
                 break;
             }
+            case OP_CHARGE_VARIABLE:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+
+                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+                auto adresse_de = &frame->pointeur_pile[locale.adresse];
+                auto adresse_ou = static_cast<void *>(this->pointeur_pile);
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+
+                this->pointeur_pile += taille;
+                break;
+            }
             case OP_REFERENCE_VARIABLE:
             {
                 auto index = LIS_4_OCTETS();

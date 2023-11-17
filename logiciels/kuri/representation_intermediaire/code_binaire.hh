@@ -64,6 +64,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_CHAINE_CONSTANTE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
+    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_VARIABLE)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL)                                                     \
@@ -273,10 +274,7 @@ struct Chunk {
                            Type const *type,
                            bool ajoute_verification);
     void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
-    void émets_charge_variable(NoeudExpression const *site,
-                               int pointeur,
-                               Type const *type,
-                               bool ajoute_verification);
+    void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_variable(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
