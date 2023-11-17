@@ -70,20 +70,24 @@ void Chunk::agrandis_si_necessaire(int64_t taille)
     }
 }
 
+void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
+{
+    emets(op);
+    emets(site);
+}
+
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
                                    void *pointeur_chaine,
                                    int64_t taille_chaine)
 {
-    emets(OP_CHAINE_CONSTANTE);
-    emets(site);
+    émets_entête_op(OP_CHAINE_CONSTANTE, site);
     emets(pointeur_chaine);
     emets(taille_chaine);
 }
 
 void Chunk::émets_retour(NoeudExpression const *site)
 {
-    emets(OP_RETOURNE);
-    emets(site);
+    émets_entête_op(OP_RETOURNE, site);
 }
 
 int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
@@ -93,8 +97,7 @@ int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, Ident
         const_cast<Type *>(type)->taille_octet = 4;
     }
     assert(type->taille_octet);
-    emets(OP_ALLOUE);
-    emets(site);
+    émets_entête_op(OP_ALLOUE, site);
     emets(type);
     emets(ident);
 
@@ -123,13 +126,11 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 #endif
 
     if (ajoute_verification) {
-        emets(OP_VERIFIE_ADRESSAGE_ASSIGNE);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_ADRESSAGE_ASSIGNE, site);
         emets(type->taille_octet);
     }
 
-    emets(OP_ASSIGNE);
-    emets(site);
+    émets_entête_op(OP_ASSIGNE, site);
     emets(type->taille_octet);
 }
 
@@ -138,13 +139,11 @@ void Chunk::emets_charge(NoeudExpression const *site, Type const *type, bool ajo
     assert(type->taille_octet);
 
     if (ajoute_verification) {
-        emets(OP_VERIFIE_ADRESSAGE_CHARGE);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_ADRESSAGE_CHARGE, site);
         emets(type->taille_octet);
     }
 
-    emets(OP_CHARGE);
-    emets(site);
+    émets_entête_op(OP_CHARGE, site);
     emets(type->taille_octet);
 }
 
@@ -160,22 +159,19 @@ void Chunk::emets_charge_variable(NoeudExpression const *site,
 
 void Chunk::emets_reference_globale(NoeudExpression const *site, int pointeur)
 {
-    emets(OP_REFERENCE_GLOBALE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_GLOBALE, site);
     emets(pointeur);
 }
 
 void Chunk::emets_reference_variable(NoeudExpression const *site, int pointeur)
 {
-    emets(OP_REFERENCE_VARIABLE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_VARIABLE, site);
     emets(pointeur);
 }
 
 void Chunk::emets_reference_membre(NoeudExpression const *site, unsigned decalage)
 {
-    emets(OP_REFERENCE_MEMBRE);
-    emets(site);
+    émets_entête_op(OP_REFERENCE_MEMBRE, site);
     emets(decalage);
 }
 
@@ -186,14 +182,12 @@ void Chunk::emets_appel(NoeudExpression const *site,
                         bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL);
-    emets(site);
+    émets_entête_op(OP_APPEL, site);
     emets(fonction);
     emets(taille_arguments);
     emets(inst_appel);
@@ -206,14 +200,12 @@ void Chunk::emets_appel_externe(NoeudExpression const *site,
                                 bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL_EXTERNE);
-    emets(site);
+    émets_entête_op(OP_APPEL_EXTERNE, site);
     emets(fonction);
     emets(taille_arguments);
     emets(inst_appel);
@@ -224,21 +216,18 @@ void Chunk::emets_appel_compilatrice(const NoeudExpression *site,
                                      bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(false); /* est pointeur */
         emets(fonction);
     }
 
-    emets(OP_APPEL_COMPILATRICE);
-    emets(site);
+    émets_entête_op(OP_APPEL_COMPILATRICE, site);
     emets(fonction);
 }
 
 void Chunk::emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
 {
-    emets(OP_APPEL_INTRINSÈQUE);
-    emets(site);
+    émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
     emets(fonction);
 }
 
@@ -248,13 +237,11 @@ void Chunk::emets_appel_pointeur(NoeudExpression const *site,
                                  bool ajoute_verification)
 {
     if (ajoute_verification) {
-        emets(OP_VERIFIE_CIBLE_APPEL);
-        emets(site);
+        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
         emets(true); /* est pointeur */
     }
 
-    emets(OP_APPEL_POINTEUR);
-    emets(site);
+    émets_entête_op(OP_APPEL_POINTEUR, site);
     emets(taille_arguments);
     emets(inst_appel);
 }
@@ -262,8 +249,7 @@ void Chunk::emets_appel_pointeur(NoeudExpression const *site,
 void Chunk::emets_acces_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
-    emets(OP_ACCEDE_INDEX);
-    emets(site);
+    émets_entête_op(OP_ACCEDE_INDEX, site);
     emets(type->taille_octet);
 }
 
@@ -271,8 +257,7 @@ void Chunk::emets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
-    emets(OP_BRANCHE);
-    emets(site);
+    émets_entête_op(OP_BRANCHE, site);
     emets(0);
 
     auto patch = PatchLabel();
@@ -286,8 +271,7 @@ void Chunk::emets_branche_condition(NoeudExpression const *site,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
 {
-    emets(OP_BRANCHE_CONDITION);
-    emets(site);
+    émets_entête_op(OP_BRANCHE_CONDITION, site);
     emets(0);
     emets(0);
 
@@ -309,8 +293,7 @@ void Chunk::emets_label(NoeudExpression const *site, int index)
     }
 
     decalages_labels[index] = static_cast<int>(compte);
-    emets(OP_LABEL);
-    emets(site);
+    émets_entête_op(OP_LABEL, site);
     emets(index);
 }
 
@@ -320,17 +303,14 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
 {
     if (op == OpérateurUnaire::Genre::Complement) {
         if (type->est_type_reel()) {
-            emets(OP_COMPLEMENT_REEL);
-            emets(site);
+            émets_entête_op(OP_COMPLEMENT_REEL, site);
         }
         else {
-            emets(OP_COMPLEMENT_ENTIER);
-            emets(site);
+            émets_entête_op(OP_COMPLEMENT_ENTIER, site);
         }
     }
     else if (op == OpérateurUnaire::Genre::Non_Binaire) {
-        emets(OP_NON_BINAIRE);
-        emets(site);
+        émets_entête_op(OP_NON_BINAIRE, site);
     }
 
     if (type->est_type_entier_constant()) {
@@ -406,8 +386,7 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
                                     Type const *type_droite)
 {
     auto op_comp = converti_op_binaire(op);
-    emets(op_comp);
-    emets(site);
+    émets_entête_op(op_comp, site);
 
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
@@ -424,8 +403,7 @@ void Chunk::émets_transtype(const NoeudExpression *site,
                             uint32_t taille_source,
                             uint32_t taille_dest)
 {
-    emets(op);
-    emets(site);
+    émets_entête_op(op, site);
     emets(taille_source);
     emets(taille_dest);
 }

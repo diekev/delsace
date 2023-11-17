@@ -237,12 +237,13 @@ struct Chunk {
 
     void agrandis_si_necessaire(int64_t taille);
 
+    void émets_entête_op(octet_t op, NoeudExpression const *site);
+
   public:
     template <typename T>
     void emets_constante(T v)
     {
-        emets(OP_CONSTANTE);
-        emets(nullptr); /* site */
+        émets_entête_op(OP_CONSTANTE, nullptr);
         emets(drapeau_pour_constante<T>::valeur);
         emets(v);
     }
