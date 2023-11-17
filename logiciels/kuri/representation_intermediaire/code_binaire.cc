@@ -1054,9 +1054,8 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
 
     POUR (fonction->instructions) {
         // génère le code binaire depuis les instructions « racines » (assignation, retour,
-        // allocation, appel, et controle de flux).
+        // appel, et controle de flux).
         auto est_inst_racine = dls::outils::est_element(it->genre,
-                                                        GenreInstruction::ALLOCATION,
                                                         GenreInstruction::APPEL,
                                                         GenreInstruction::BRANCHE,
                                                         GenreInstruction::BRANCHE_CONDITION,
