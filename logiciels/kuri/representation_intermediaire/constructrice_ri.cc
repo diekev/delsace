@@ -3663,7 +3663,7 @@ AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
         return valeur;
     }
 
-    auto type_chaine = m_compilatrice.typeuse.type_chaine;
+    auto type_chaine = TypeBase::CHAINE;
 
     AtomeConstante *constante_chaine;
 
