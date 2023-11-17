@@ -111,7 +111,14 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)
+    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_STAT_INSTRUCTION)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_INSTRUCTION)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_VALEURS_LOCALES)                                           \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_APPEL)                                                     \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_ENTRÉES)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_SORTIES)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -119,7 +126,7 @@ enum : octet_t {
 #undef ENUMERE_CODE_OPERATION_EX
 };
 
-#define NOMBRE_OP_CODE (OP_VERIFIE_CIBLE_APPEL + 1)
+#define NOMBRE_OP_CODE (OP_LOGUE_RETOUR + 1)
 
 const char *chaine_code_operation(octet_t code_operation);
 
@@ -238,6 +245,12 @@ struct Chunk {
     void agrandis_si_necessaire(int64_t taille);
 
     void émets_entête_op(octet_t op, NoeudExpression const *site);
+
+    void émets_logue_instruction(int32_t décalage);
+    void émets_logue_appel(AtomeFonction const *atome);
+    void émets_logue_entrées(AtomeFonction const *atome, unsigned taille_arguments);
+    void émets_logue_sorties();
+    void émets_logue_retour();
 
   public:
     template <typename T>

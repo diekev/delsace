@@ -72,8 +72,43 @@ void Chunk::agrandis_si_necessaire(int64_t taille)
 
 void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 {
+#if 0
+    emets(OP_STAT_INSTRUCTION);
+    emets(site);
+    emets(op);
+#endif
+
     emets(op);
     emets(site);
+}
+
+void Chunk::émets_logue_instruction(int32_t décalage)
+{
+    émets_entête_op(OP_LOGUE_INSTRUCTION, nullptr);
+    emets(décalage);
+}
+
+void Chunk::émets_logue_appel(AtomeFonction const *atome)
+{
+    émets_entête_op(OP_LOGUE_APPEL, nullptr);
+    emets(atome);
+}
+
+void Chunk::émets_logue_entrées(AtomeFonction const *atome, unsigned taille_arguments)
+{
+    émets_entête_op(OP_LOGUE_ENTRÉES, nullptr);
+    emets(atome);
+    emets(taille_arguments);
+}
+
+void Chunk::émets_logue_sorties()
+{
+    émets_entête_op(OP_LOGUE_SORTIES, nullptr);
+}
+
+void Chunk::émets_logue_retour()
+{
+    émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
@@ -467,9 +502,11 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
     decalage += 8;
 
     switch (instruction) {
+        case OP_LOGUE_RETOUR:
+        case OP_LOGUE_SORTIES:
         case OP_RETOURNE:
         {
-            return instruction_simple("OP_RETOURNE", decalage, os);
+            return instruction_simple(chaine_code_operation(instruction), decalage, os);
         }
         case OP_CONSTANTE:
         {
@@ -604,8 +641,16 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_NON_BINAIRE:
         case OP_VERIFIE_ADRESSAGE_ASSIGNE:
         case OP_VERIFIE_ADRESSAGE_CHARGE:
+        case OP_LOGUE_INSTRUCTION:
         {
             return instruction_1d<int>(chunk, chaine_code_operation(instruction), decalage, os);
+        }
+        case OP_STAT_INSTRUCTION:
+        {
+            decalage += 1;
+            auto op = chunk.code[decalage];
+            os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
+            return decalage + 1;
         }
         case OP_BRANCHE_CONDITION:
         {
@@ -645,6 +690,15 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_REEL_VERS_ENTIER:
         {
             return instruction_2d<int, int>(
+                chunk, chaine_code_operation(instruction), decalage, os);
+        }
+        case OP_LOGUE_APPEL:
+        {
+            return instruction_1d<void *>(chunk, chaine_code_operation(instruction), decalage, os);
+        }
+        case OP_LOGUE_ENTRÉES:
+        {
+            return instruction_2d<void *, uint32_t>(
                 chunk, chaine_code_operation(instruction), decalage, os);
         }
         default:
