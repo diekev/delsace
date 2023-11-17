@@ -367,13 +367,13 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 {
     auto chaine = dls::chaine(c.pointeur(), c.taille());
 
-    auto decalage = chaines_ajoutees_a_la_compilation->ajoute(
+    auto decalage = chaines_ajoutées_à_la_compilation->ajoute(
         kuri::chaine(c.pointeur(), c.taille()));
 
     /* Les fichiers sont comparés selon leurs chemins, donc il nous faut un chemin unique pour
      * chaque nouvelle chaine. */
     auto nom_fichier = enchaine("chaine_ajoutée",
-                                chaines_ajoutees_a_la_compilation->nombre_de_chaines());
+                                chaines_ajoutées_à_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
     auto resultat = this->trouve_ou_crée_fichier(
         module, nom_fichier, chemin_fichier, importe_kuri);

@@ -666,7 +666,7 @@ void Tacheronne::execute_metaprogrammes()
 
                 fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
 
-                fichier->décalage_fichier = compilatrice.chaines_ajoutees_a_la_compilation->ajoute(
+                fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
                     resultat);
                 compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
 

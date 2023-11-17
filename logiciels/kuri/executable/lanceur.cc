@@ -526,9 +526,9 @@ static bool compile_fichier(Compilatrice &compilatrice,
     lance_tacheronne(&tacheronne_mp);
 #endif
 
-    if (compilatrice.chaines_ajoutees_a_la_compilation->nombre_de_chaines()) {
+    if (compilatrice.chaines_ajoutées_à_la_compilation->nombre_de_chaines()) {
         auto fichier_chaines = std::ofstream(".chaines_ajoutées");
-        compilatrice.chaines_ajoutees_a_la_compilation->imprime_dans(fichier_chaines);
+        compilatrice.chaines_ajoutées_à_la_compilation->imprime_dans(fichier_chaines);
     }
 
     /* restore le dossier d'origine */
