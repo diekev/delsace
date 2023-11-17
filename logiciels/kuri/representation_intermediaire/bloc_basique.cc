@@ -3,10 +3,10 @@
 
 #include "bloc_basique.hh"
 
-#include <iostream>
+#include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
 
 #include "constructrice_ri.hh"
-#include "espace_de_travail.hh"
 #include "impression.hh"
 #include "instructions.hh"
 
@@ -520,8 +520,8 @@ void transfère_instructions_blocs_à_fonction(kuri::tableau_statique<Bloc *> bl
 
     if (supprimées != 0) {
         instructions_supprimées += supprimées;
-        std::cerr << "Supprimé " << instructions_supprimées << " / " << instructions_totales
-                  << " instructions\n";
+        dbg() << "Supprimé " << instructions_supprimées << " / " << instructions_totales
+              << " instructions";
     }
 #endif
 }

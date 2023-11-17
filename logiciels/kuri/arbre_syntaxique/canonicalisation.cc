@@ -1425,7 +1425,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
     }
     else {
         assert_rappel(false, [&]() {
-            erreur::imprime_site(*espace, expr);
+            std::cerr << erreur::imprime_site(*espace, expr);
             std::cerr << "Expression invalide pour la simplification de l'assignation implicite "
                          "d'un bloc si !\n";
         });
