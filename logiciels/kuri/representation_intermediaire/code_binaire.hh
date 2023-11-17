@@ -49,6 +49,7 @@ using octet_t = unsigned char;
 #define ENUMERE_CODES_OPERATION                                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
+    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_ALLOUE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
@@ -108,6 +109,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RETOURNE)                                                        \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT)                                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_DÉCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
@@ -317,6 +319,9 @@ struct Chunk {
                                  OpérateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
+
+    void émets_incrémente(NoeudExpression const *site, Type const *type);
+    void émets_décrémente(NoeudExpression const *site, Type const *type);
 
     void émets_transtype(NoeudExpression const *site,
                          uint8_t op,

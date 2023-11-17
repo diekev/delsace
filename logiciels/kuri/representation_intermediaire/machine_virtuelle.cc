@@ -1068,6 +1068,52 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 empile(site, taille_chaine);
                 break;
             }
+            case OP_INCRÉMENTE:
+            {
+                auto taille = LIS_4_OCTETS();
+
+                if (taille == 1) {
+                    auto valeur = depile<uint8_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else if (taille == 2) {
+                    auto valeur = depile<uint16_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else if (taille == 4) {
+                    auto valeur = depile<uint32_t>(site);
+                    empile(site, valeur + 1);
+                }
+                else {
+                    auto valeur = depile<uint64_t>(site);
+                    empile(site, valeur + 1);
+                }
+
+                break;
+            }
+            case OP_DÉCRÉMENTE:
+            {
+                auto taille = LIS_4_OCTETS();
+
+                if (taille == 1) {
+                    auto valeur = depile<uint8_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else if (taille == 2) {
+                    auto valeur = depile<uint16_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else if (taille == 4) {
+                    auto valeur = depile<uint32_t>(site);
+                    empile(site, valeur - 1);
+                }
+                else {
+                    auto valeur = depile<uint64_t>(site);
+                    empile(site, valeur - 1);
+                }
+
+                break;
+            }
             case OP_COMPLEMENT_ENTIER:
             {
                 OP_UNAIRE(-)

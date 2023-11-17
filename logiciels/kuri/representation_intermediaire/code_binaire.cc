@@ -453,6 +453,26 @@ void Chunk::émets_operation_binaire(NoeudExpression const *site,
     }
 }
 
+void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
+{
+    auto taille_octet = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_octet = 4;
+    }
+    émets_entête_op(OP_INCRÉMENTE, site);
+    émets(taille_octet);
+}
+
+void Chunk::émets_décrémente(const NoeudExpression *site, const Type *type)
+{
+    auto taille_octet = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_octet = 4;
+    }
+    émets_entête_op(OP_DÉCRÉMENTE, site);
+    émets(taille_octet);
+}
+
 void Chunk::émets_transtype(const NoeudExpression *site,
                             uint8_t op,
                             uint32_t taille_source,
@@ -662,6 +682,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_VERIFIE_ADRESSAGE_ASSIGNE:
         case OP_VERIFIE_ADRESSAGE_CHARGE:
         case OP_LOGUE_INSTRUCTION:
+        case OP_INCRÉMENTE:
+        case OP_DÉCRÉMENTE:
         {
             return instruction_1d<int>(chunk, chaine_code_operation(instruction), décalage, os);
         }
@@ -1066,6 +1088,32 @@ static bool est_allocation(Atome const *atome)
     return atome->est_instruction() && atome->comme_instruction()->est_alloc();
 }
 
+static bool est_valeur_constante(Atome const *atome)
+{
+    if (!atome->est_constante()) {
+        return false;
+    }
+
+    auto const constante = static_cast<AtomeConstante const *>(atome);
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return dls::outils::est_element(valeur_constante->valeur.genre,
+                                    AtomeValeurConstante::Valeur::Genre::ENTIERE);
+}
+
+static bool est_constante_un(Atome const *atome)
+{
+    if (!est_valeur_constante(atome)) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
+    return valeur_constante->valeur.valeur_entiere == 1;
+}
+
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
@@ -1278,11 +1326,23 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::OPERATION_BINAIRE:
         {
             auto op_binaire = instruction->comme_op_binaire();
+            auto type_gauche = op_binaire->valeur_gauche->type;
 
             genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
+
+            if (op_binaire->op == OpérateurBinaire::Genre::Addition &&
+                est_constante_un(op_binaire->valeur_droite)) {
+                chunk.émets_incrémente(op_binaire->site, type_gauche);
+                break;
+            }
+            if (op_binaire->op == OpérateurBinaire::Genre::Soustraction &&
+                est_constante_un(op_binaire->valeur_droite)) {
+                chunk.émets_décrémente(op_binaire->site, type_gauche);
+                break;
+            }
+
             genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk, true);
 
-            auto type_gauche = op_binaire->valeur_gauche->type;
             auto type_droite = op_binaire->valeur_droite->type;
             chunk.émets_operation_binaire(
                 op_binaire->site, op_binaire->op, type_gauche, type_droite);
