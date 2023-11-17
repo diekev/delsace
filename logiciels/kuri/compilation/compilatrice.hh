@@ -54,6 +54,8 @@ struct GestionnaireChainesAjoutees {
     int nombre_de_chaines() const;
 
     void imprime_dans(std::ostream &os);
+
+    int64_t mémoire_utilisée() const;
 };
 
 /* Options passées sur la ligne de commande. */

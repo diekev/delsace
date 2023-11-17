@@ -59,6 +59,17 @@ void GestionnaireChainesAjoutees::imprime_dans(std::ostream &os)
     }
 }
 
+int64_t GestionnaireChainesAjoutees::mémoire_utilisée() const
+{
+    int64_t résultat = m_chaines.taille_memoire();
+
+    POUR (m_chaines) {
+        résultat += it.taille();
+    }
+
+    return résultat;
+}
+
 /* ************************************************************************** */
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
@@ -256,6 +267,8 @@ int64_t Compilatrice::memoire_utilisee() const
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
         memoire += it.programme->memoire_utilisee();
     }
+
+    memoire += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
     return memoire;
 }
