@@ -121,6 +121,11 @@ int Enchaineuse::nombre_tampons_alloues() const
     return nombre_tampons() - 1;
 }
 
+int64_t Enchaineuse::mémoire_utilisée() const
+{
+    return nombre_tampons_alloues() * TAILLE_TAMPON;
+}
+
 int64_t Enchaineuse::taille_chaine() const
 {
     auto taille = 0l;
