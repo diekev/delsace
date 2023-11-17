@@ -49,6 +49,7 @@ using octet_t = unsigned char;
 #define ENUMERE_CODES_OPERATION                                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
+    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_ALLOUE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
@@ -57,6 +58,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_INTRINSÈQUE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_VARIABLE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
@@ -64,6 +66,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_CHAINE_CONSTANTE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
+    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_VARIABLE)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL)                                                     \
@@ -106,12 +109,20 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RETOURNE)                                                        \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT)                                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_DÉCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)
+    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_STAT_INSTRUCTION)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_INSTRUCTION)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_VALEURS_LOCALES)                                           \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_APPEL)                                                     \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_ENTRÉES)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_SORTIES)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -119,9 +130,9 @@ enum : octet_t {
 #undef ENUMERE_CODE_OPERATION_EX
 };
 
-#define NOMBRE_OP_CODE (OP_VERIFIE_CIBLE_APPEL + 1)
+#define NOMBRE_OP_CODE (OP_LOGUE_RETOUR + 1)
 
-const char *chaine_code_operation(octet_t code_operation);
+kuri::chaine_statique chaine_code_operation(octet_t code_operation);
 
 enum : octet_t {
     CONSTANTE_ENTIER_NATUREL = 1,
@@ -205,15 +216,15 @@ struct Locale {
 struct Chunk {
     octet_t *code = nullptr;
     int64_t compte = 0;
-    int64_t capacite = 0;
+    int64_t capacité = 0;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
-    int taille_allouee = 0;
+    int taille_allouée = 0;
 
     int nombre_labels = 0;
 
-    kuri::tableau<int, int> decalages_labels{};
+    kuri::tableau<int, int> décalages_labels{};
 
     kuri::tableau<Locale, int> locales{};
 
@@ -221,31 +232,37 @@ struct Chunk {
 
     void initialise();
 
-    void detruit();
+    void détruit();
 
   private:
-    void emets(octet_t o);
+    void émets(octet_t o);
 
     template <typename T>
-    void emets(T v)
+    void émets(T v)
     {
-        agrandis_si_necessaire(static_cast<int64_t>(sizeof(T)));
+        agrandis_si_nécessaire(static_cast<int64_t>(sizeof(T)));
         auto ptr = reinterpret_cast<T *>(&code[compte]);
         *ptr = v;
         compte += static_cast<int64_t>(sizeof(T));
     }
 
-    void agrandis_si_necessaire(int64_t taille);
+    void agrandis_si_nécessaire(int64_t taille);
 
     void émets_entête_op(octet_t op, NoeudExpression const *site);
 
+    void émets_logue_instruction(int32_t décalage);
+    void émets_logue_appel(AtomeFonction const *atome);
+    void émets_logue_entrées(AtomeFonction const *atome, unsigned taille_arguments);
+    void émets_logue_sorties();
+    void émets_logue_retour();
+
   public:
     template <typename T>
-    void emets_constante(T v)
+    void émets_constante(T v)
     {
         émets_entête_op(OP_CONSTANTE, nullptr);
-        emets(drapeau_pour_constante<T>::valeur);
-        emets(v);
+        émets(drapeau_pour_constante<T>::valeur);
+        émets(v);
     }
 
     void émets_chaine_constante(NoeudExpression const *site,
@@ -254,56 +271,57 @@ struct Chunk {
 
     void émets_retour(NoeudExpression const *site);
 
-    int emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
-    void emets_assignation(ContexteGenerationCodeBinaire contexte,
+    int émets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
+    void émets_assignation(ContexteGenerationCodeBinaire contexte,
                            NoeudExpression const *site,
                            Type const *type,
                            bool ajoute_verification);
-    void emets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
-    void emets_charge_variable(NoeudExpression const *site,
-                               int pointeur,
-                               Type const *type,
-                               bool ajoute_verification);
-    void emets_reference_globale(NoeudExpression const *site, int pointeur);
-    void emets_reference_variable(NoeudExpression const *site, int pointeur);
-    void emets_reference_membre(NoeudExpression const *site, unsigned decalage);
-    void emets_appel(NoeudExpression const *site,
+    void émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
+    void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_référence_globale(NoeudExpression const *site, int pointeur);
+    void émets_référence_variable(NoeudExpression const *site, int pointeur);
+    void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
+    void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments,
                      InstructionAppel const *inst_appel,
                      bool ajoute_verification);
-    void emets_appel_externe(NoeudExpression const *site,
+    void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,
                              unsigned taille_arguments,
                              InstructionAppel const *inst_appel,
                              bool ajoute_verification);
-    void emets_appel_compilatrice(NoeudExpression const *site,
+    void émets_appel_compilatrice(NoeudExpression const *site,
                                   AtomeFonction const *fonction,
                                   bool ajoute_verification);
-    void emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
-    void emets_appel_pointeur(NoeudExpression const *site,
+    void émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
+    void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel,
                               bool ajoute_verification);
-    void emets_acces_index(NoeudExpression const *site, Type const *type);
+    void émets_accès_index(NoeudExpression const *site, Type const *type);
 
-    void emets_branche(NoeudExpression const *site,
+    void émets_branche(NoeudExpression const *site,
                        kuri::tableau<PatchLabel> &patchs_labels,
                        int index);
-    void emets_branche_condition(NoeudExpression const *site,
+    void émets_branche_condition(NoeudExpression const *site,
                                  kuri::tableau<PatchLabel> &patchs_labels,
                                  int index_label_si_vrai,
                                  int index_label_si_faux);
 
-    void emets_label(NoeudExpression const *site, int index);
+    void émets_label(NoeudExpression const *site, int index);
 
-    void emets_operation_unaire(NoeudExpression const *site,
+    void émets_operation_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,
                                 Type const *type);
-    void emets_operation_binaire(NoeudExpression const *site,
+    void émets_operation_binaire(NoeudExpression const *site,
                                  OpérateurBinaire::Genre op,
                                  Type const *type_gauche,
                                  Type const *type_droite);
+
+    void émets_incrémente(NoeudExpression const *site, Type const *type);
+    void émets_décrémente(NoeudExpression const *site, Type const *type);
 
     void émets_transtype(NoeudExpression const *site,
                          uint8_t op,
@@ -311,8 +329,8 @@ struct Chunk {
                          uint32_t taille_dest);
 };
 
-void desassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
-int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os);
+void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
+int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
