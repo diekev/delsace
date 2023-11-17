@@ -38,67 +38,67 @@ const char *chaine_code_operation(octet_t code_operation)
 
 Chunk::~Chunk()
 {
-    detruit();
+    détruit();
 }
 
 void Chunk::initialise()
 {
     code = nullptr;
     compte = 0;
-    capacite = 0;
+    capacité = 0;
 }
 
-void Chunk::detruit()
+void Chunk::détruit()
 {
-    memoire::deloge_tableau("Chunk::code", code, capacite);
+    memoire::deloge_tableau("Chunk::code", code, capacité);
     initialise();
 }
 
-void Chunk::emets(octet_t o)
+void Chunk::émets(octet_t o)
 {
-    agrandis_si_necessaire(1);
+    agrandis_si_nécessaire(1);
     code[compte] = o;
     compte += 1;
 }
 
-void Chunk::agrandis_si_necessaire(int64_t taille)
+void Chunk::agrandis_si_nécessaire(int64_t taille)
 {
-    if (capacite < compte + taille) {
-        auto nouvelle_capacite = capacite < 8 ? 8 : capacite * 2;
-        memoire::reloge_tableau("Chunk::code", code, capacite, nouvelle_capacite);
-        capacite = nouvelle_capacite;
+    if (capacité < compte + taille) {
+        auto nouvelle_capacité = capacité < 8 ? 8 : capacité * 2;
+        memoire::reloge_tableau("Chunk::code", code, capacité, nouvelle_capacité);
+        capacité = nouvelle_capacité;
     }
 }
 
 void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 {
 #if 0
-    emets(OP_STAT_INSTRUCTION);
-    emets(site);
-    emets(op);
+    émets(OP_STAT_INSTRUCTION);
+    émets(site);
+    émets(op);
 #endif
 
-    emets(op);
-    emets(site);
+    émets(op);
+    émets(site);
 }
 
 void Chunk::émets_logue_instruction(int32_t décalage)
 {
     émets_entête_op(OP_LOGUE_INSTRUCTION, nullptr);
-    emets(décalage);
+    émets(décalage);
 }
 
 void Chunk::émets_logue_appel(AtomeFonction const *atome)
 {
     émets_entête_op(OP_LOGUE_APPEL, nullptr);
-    emets(atome);
+    émets(atome);
 }
 
 void Chunk::émets_logue_entrées(AtomeFonction const *atome, unsigned taille_arguments)
 {
     émets_entête_op(OP_LOGUE_ENTRÉES, nullptr);
-    emets(atome);
-    emets(taille_arguments);
+    émets(atome);
+    émets(taille_arguments);
 }
 
 void Chunk::émets_logue_sorties()
@@ -116,8 +116,8 @@ void Chunk::émets_chaine_constante(const NoeudExpression *site,
                                    int64_t taille_chaine)
 {
     émets_entête_op(OP_CHAINE_CONSTANTE, site);
-    emets(pointeur_chaine);
-    emets(taille_chaine);
+    émets(pointeur_chaine);
+    émets(taille_chaine);
 }
 
 void Chunk::émets_retour(NoeudExpression const *site)
@@ -125,7 +125,7 @@ void Chunk::émets_retour(NoeudExpression const *site)
     émets_entête_op(OP_RETOURNE, site);
 }
 
-int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
+int Chunk::émets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
     if (type->est_type_entier_constant()) {
@@ -133,15 +133,15 @@ int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, Ident
     }
     assert(type->taille_octet);
     émets_entête_op(OP_ALLOUE, site);
-    emets(type);
-    emets(ident);
+    émets(type);
+    émets(ident);
 
-    auto decalage = taille_allouee;
-    taille_allouee += static_cast<int>(type->taille_octet);
-    return decalage;
+    auto décalage = taille_allouée;
+    taille_allouée += static_cast<int>(type->taille_octet);
+    return décalage;
 }
 
-void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
+void Chunk::émets_assignation(ContexteGenerationCodeBinaire contexte,
                               NoeudExpression const *site,
                               Type const *type,
                               bool ajoute_verification)
@@ -162,55 +162,55 @@ void Chunk::emets_assignation(ContexteGenerationCodeBinaire contexte,
 
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_ADRESSAGE_ASSIGNE, site);
-        emets(type->taille_octet);
+        émets(type->taille_octet);
     }
 
     émets_entête_op(OP_ASSIGNE, site);
-    emets(type->taille_octet);
+    émets(type->taille_octet);
 }
 
-void Chunk::emets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
+void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
 
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_ADRESSAGE_CHARGE, site);
-        emets(type->taille_octet);
+        émets(type->taille_octet);
     }
 
     émets_entête_op(OP_CHARGE, site);
-    emets(type->taille_octet);
+    émets(type->taille_octet);
 }
 
-void Chunk::emets_charge_variable(NoeudExpression const *site,
+void Chunk::émets_charge_variable(NoeudExpression const *site,
                                   int pointeur,
                                   Type const *type,
                                   bool ajoute_verification)
 {
     assert(type->taille_octet);
-    emets_reference_variable(site, pointeur);
-    emets_charge(site, type, ajoute_verification);
+    émets_référence_variable(site, pointeur);
+    émets_charge(site, type, ajoute_verification);
 }
 
-void Chunk::emets_reference_globale(NoeudExpression const *site, int pointeur)
+void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur)
 {
     émets_entête_op(OP_REFERENCE_GLOBALE, site);
-    emets(pointeur);
+    émets(pointeur);
 }
 
-void Chunk::emets_reference_variable(NoeudExpression const *site, int pointeur)
+void Chunk::émets_référence_variable(NoeudExpression const *site, int pointeur)
 {
     émets_entête_op(OP_REFERENCE_VARIABLE, site);
-    emets(pointeur);
+    émets(pointeur);
 }
 
-void Chunk::emets_reference_membre(NoeudExpression const *site, unsigned decalage)
+void Chunk::émets_référence_membre(NoeudExpression const *site, unsigned décalage)
 {
     émets_entête_op(OP_REFERENCE_MEMBRE, site);
-    emets(decalage);
+    émets(décalage);
 }
 
-void Chunk::emets_appel(NoeudExpression const *site,
+void Chunk::émets_appel(NoeudExpression const *site,
                         AtomeFonction const *fonction,
                         unsigned taille_arguments,
                         InstructionAppel const *inst_appel,
@@ -218,17 +218,17 @@ void Chunk::emets_appel(NoeudExpression const *site,
 {
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
-        emets(false); /* est pointeur */
-        emets(fonction);
+        émets(false); /* est pointeur */
+        émets(fonction);
     }
 
     émets_entête_op(OP_APPEL, site);
-    emets(fonction);
-    emets(taille_arguments);
-    emets(inst_appel);
+    émets(fonction);
+    émets(taille_arguments);
+    émets(inst_appel);
 }
 
-void Chunk::emets_appel_externe(NoeudExpression const *site,
+void Chunk::émets_appel_externe(NoeudExpression const *site,
                                 AtomeFonction const *fonction,
                                 unsigned taille_arguments,
                                 InstructionAppel const *inst_appel,
@@ -236,64 +236,64 @@ void Chunk::emets_appel_externe(NoeudExpression const *site,
 {
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
-        emets(false); /* est pointeur */
-        emets(fonction);
+        émets(false); /* est pointeur */
+        émets(fonction);
     }
 
     émets_entête_op(OP_APPEL_EXTERNE, site);
-    emets(fonction);
-    emets(taille_arguments);
-    emets(inst_appel);
+    émets(fonction);
+    émets(taille_arguments);
+    émets(inst_appel);
 }
 
-void Chunk::emets_appel_compilatrice(const NoeudExpression *site,
+void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
                                      const AtomeFonction *fonction,
                                      bool ajoute_verification)
 {
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
-        emets(false); /* est pointeur */
-        emets(fonction);
+        émets(false); /* est pointeur */
+        émets(fonction);
     }
 
     émets_entête_op(OP_APPEL_COMPILATRICE, site);
-    emets(fonction);
+    émets(fonction);
 }
 
-void Chunk::emets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
+void Chunk::émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
 {
     émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
-    emets(fonction);
+    émets(fonction);
 }
 
-void Chunk::emets_appel_pointeur(NoeudExpression const *site,
+void Chunk::émets_appel_pointeur(NoeudExpression const *site,
                                  unsigned taille_arguments,
                                  InstructionAppel const *inst_appel,
                                  bool ajoute_verification)
 {
     if (ajoute_verification) {
         émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
-        emets(true); /* est pointeur */
+        émets(true); /* est pointeur */
     }
 
     émets_entête_op(OP_APPEL_POINTEUR, site);
-    emets(taille_arguments);
-    emets(inst_appel);
+    émets(taille_arguments);
+    émets(inst_appel);
 }
 
-void Chunk::emets_acces_index(NoeudExpression const *site, Type const *type)
+void Chunk::émets_accès_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
     émets_entête_op(OP_ACCEDE_INDEX, site);
-    emets(type->taille_octet);
+    émets(type->taille_octet);
 }
 
-void Chunk::emets_branche(NoeudExpression const *site,
+void Chunk::émets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
     émets_entête_op(OP_BRANCHE, site);
-    emets(0);
+    émets(0);
 
     auto patch = PatchLabel();
     patch.index_label = index;
@@ -301,14 +301,14 @@ void Chunk::emets_branche(NoeudExpression const *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_branche_condition(NoeudExpression const *site,
+void Chunk::émets_branche_condition(NoeudExpression const *site,
                                     kuri::tableau<PatchLabel> &patchs_labels,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
 {
     émets_entête_op(OP_BRANCHE_CONDITION, site);
-    emets(0);
-    emets(0);
+    émets(0);
+    émets(0);
 
     auto patch = PatchLabel();
     patch.index_label = index_label_si_vrai;
@@ -321,18 +321,18 @@ void Chunk::emets_branche_condition(NoeudExpression const *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::emets_label(NoeudExpression const *site, int index)
+void Chunk::émets_label(NoeudExpression const *site, int index)
 {
-    if (decalages_labels.taille() <= index) {
-        decalages_labels.redimensionne(index + 1);
+    if (décalages_labels.taille() <= index) {
+        décalages_labels.redimensionne(index + 1);
     }
 
-    decalages_labels[index] = static_cast<int>(compte);
+    décalages_labels[index] = static_cast<int>(compte);
     émets_entête_op(OP_LABEL, site);
-    emets(index);
+    émets(index);
 }
 
-void Chunk::emets_operation_unaire(NoeudExpression const *site,
+void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
 {
@@ -349,10 +349,10 @@ void Chunk::emets_operation_unaire(NoeudExpression const *site,
     }
 
     if (type->est_type_entier_constant()) {
-        emets(4);
+        émets(4);
     }
     else {
-        emets(type->taille_octet);
+        émets(type->taille_octet);
     }
 }
 
@@ -415,7 +415,7 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
     return {};
 }
 
-void Chunk::emets_operation_binaire(NoeudExpression const *site,
+void Chunk::émets_operation_binaire(NoeudExpression const *site,
                                     OpérateurBinaire::Genre op,
                                     Type const *type_gauche,
                                     Type const *type_droite)
@@ -426,10 +426,10 @@ void Chunk::emets_operation_binaire(NoeudExpression const *site,
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
         assert(type_gauche->est_type_entier_constant() && type_droite->est_type_entier_constant());
-        emets(4);
+        émets(4);
     }
     else {
-        emets(taille_octet);
+        émets(taille_octet);
     }
 }
 
@@ -439,86 +439,86 @@ void Chunk::émets_transtype(const NoeudExpression *site,
                             uint32_t taille_dest)
 {
     émets_entête_op(op, site);
-    emets(taille_source);
-    emets(taille_dest);
+    émets(taille_source);
+    émets(taille_dest);
 }
 
 /* ************************************************************************** */
 
-static int64_t instruction_simple(const char *nom, int64_t decalage, std::ostream &os)
+static int64_t instruction_simple(const char *nom, int64_t décalage, std::ostream &os)
 {
     os << nom << '\n';
-    return decalage + 1;
+    return décalage + 1;
 }
 
 template <typename T>
 static int64_t instruction_1d(Chunk const &chunk,
                               const char *nom,
-                              int64_t decalage,
+                              int64_t décalage,
                               std::ostream &os)
 {
-    decalage += 1;
-    auto index = *reinterpret_cast<T *>(&chunk.code[decalage]);
+    décalage += 1;
+    auto index = *reinterpret_cast<T *>(&chunk.code[décalage]);
     os << nom << ' ' << index << '\n';
-    return decalage + static_cast<int64_t>(sizeof(T));
+    return décalage + static_cast<int64_t>(sizeof(T));
 }
 
 template <typename T1, typename T2>
 static int64_t instruction_2d(Chunk const &chunk,
                               const char *nom,
-                              int64_t decalage,
+                              int64_t décalage,
                               std::ostream &os)
 {
-    decalage += 1;
-    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
-    decalage += static_cast<int64_t>(sizeof(T1));
-    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[decalage]);
+    décalage += 1;
+    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
+    décalage += static_cast<int64_t>(sizeof(T1));
+    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
     os << nom << ' ' << v1 << ", " << v2 << "\n";
-    return decalage + static_cast<int64_t>(sizeof(T2));
+    return décalage + static_cast<int64_t>(sizeof(T2));
 }
 
 template <typename T1, typename T2, typename T3>
 static int64_t instruction_3d(Chunk const &chunk,
                               const char *nom,
-                              int64_t decalage,
+                              int64_t décalage,
                               std::ostream &os)
 {
-    decalage += 1;
-    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[decalage]);
-    decalage += static_cast<int64_t>(sizeof(T1));
-    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[decalage]);
-    decalage += static_cast<int64_t>(sizeof(T2));
-    auto v3 = *reinterpret_cast<T3 *>(&chunk.code[decalage]);
+    décalage += 1;
+    auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
+    décalage += static_cast<int64_t>(sizeof(T1));
+    auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
+    décalage += static_cast<int64_t>(sizeof(T2));
+    auto v3 = *reinterpret_cast<T3 *>(&chunk.code[décalage]);
     os << nom << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
-    return decalage + static_cast<int64_t>(sizeof(T3));
+    return décalage + static_cast<int64_t>(sizeof(T3));
 }
 
-int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os)
+int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ostream &os)
 {
-    os << std::setfill('0') << std::setw(4) << decalage << ' ';
+    os << std::setfill('0') << std::setw(4) << décalage << ' ';
 
-    auto instruction = chunk.code[decalage];
+    auto instruction = chunk.code[décalage];
     /* ignore le site */
-    decalage += 8;
+    décalage += 8;
 
     switch (instruction) {
         case OP_LOGUE_RETOUR:
         case OP_LOGUE_SORTIES:
         case OP_RETOURNE:
         {
-            return instruction_simple(chaine_code_operation(instruction), decalage, os);
+            return instruction_simple(chaine_code_operation(instruction), décalage, os);
         }
         case OP_CONSTANTE:
         {
-            decalage += 1;
-            auto drapeaux = chunk.code[decalage];
-            decalage += 1;
+            décalage += 1;
+            auto drapeaux = chunk.code[décalage];
+            décalage += 1;
             os << "OP_CONSTANTE " << ' ';
 
 #define LIS_CONSTANTE(type)                                                                       \
-    type v = *(reinterpret_cast<type *>(&chunk.code[decalage]));                                  \
+    type v = *(reinterpret_cast<type *>(&chunk.code[décalage]));                                  \
     os << v;                                                                                      \
-    decalage += (drapeaux >> 3);
+    décalage += (drapeaux >> 3);
 
             switch (drapeaux) {
                 case CONSTANTE_ENTIER_RELATIF | BITS_8:
@@ -548,8 +548,8 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
                 case CONSTANTE_ENTIER_NATUREL | BITS_8:
                 {
                     // erreur de compilation pour transtype inutile avec drapeaux stricts
-                    os << static_cast<int64_t>(chunk.code[decalage]);
-                    decalage += 1;
+                    os << static_cast<int64_t>(chunk.code[décalage]);
+                    décalage += 1;
                     os << " n8";
                     break;
                 }
@@ -587,12 +587,12 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
 
 #undef LIS_CONSTANTE
             os << '\n';
-            return decalage;
+            return décalage;
         }
         case OP_CHAINE_CONSTANTE:
         {
             os << "OP_CHAINE_CONSTANTE\n";
-            return decalage + 17;
+            return décalage + 17;
         }
         case OP_AJOUTE:
         case OP_AJOUTE_REEL:
@@ -643,34 +643,34 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_VERIFIE_ADRESSAGE_CHARGE:
         case OP_LOGUE_INSTRUCTION:
         {
-            return instruction_1d<int>(chunk, chaine_code_operation(instruction), decalage, os);
+            return instruction_1d<int>(chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_STAT_INSTRUCTION:
         {
-            decalage += 1;
-            auto op = chunk.code[decalage];
+            décalage += 1;
+            auto op = chunk.code[décalage];
             os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
-            return decalage + 1;
+            return décalage + 1;
         }
         case OP_BRANCHE_CONDITION:
         {
             return instruction_2d<int, int>(
-                chunk, chaine_code_operation(instruction), decalage, os);
+                chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_VERIFIE_CIBLE_APPEL:
         {
             return instruction_2d<int, int64_t>(
-                chunk, chaine_code_operation(instruction), decalage, os);
+                chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_ALLOUE:
         {
-            decalage += 1;
-            auto v1 = *reinterpret_cast<Type **>(&chunk.code[decalage]);
-            decalage += static_cast<int64_t>(sizeof(Type *));
-            auto v2 = *reinterpret_cast<IdentifiantCode **>(&chunk.code[decalage]);
+            décalage += 1;
+            auto v1 = *reinterpret_cast<Type **>(&chunk.code[décalage]);
+            décalage += static_cast<int64_t>(sizeof(Type *));
+            auto v2 = *reinterpret_cast<IdentifiantCode **>(&chunk.code[décalage]);
             os << chaine_code_operation(instruction) << ' ' << chaine_type(v1) << ", " << v2
                << "\n";
-            return decalage + static_cast<int64_t>(sizeof(IdentifiantCode *));
+            return décalage + static_cast<int64_t>(sizeof(IdentifiantCode *));
         }
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
@@ -678,7 +678,7 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_APPEL_COMPILATRICE:
         {
             return instruction_3d<void *, int, void *>(
-                chunk, chaine_code_operation(instruction), decalage, os);
+                chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_AUGMENTE_NATUREL:
         case OP_DIMINUE_NATUREL:
@@ -690,30 +690,30 @@ int64_t desassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostre
         case OP_REEL_VERS_ENTIER:
         {
             return instruction_2d<int, int>(
-                chunk, chaine_code_operation(instruction), decalage, os);
+                chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_LOGUE_APPEL:
         {
-            return instruction_1d<void *>(chunk, chaine_code_operation(instruction), decalage, os);
+            return instruction_1d<void *>(chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_LOGUE_ENTRÉES:
         {
             return instruction_2d<void *, uint32_t>(
-                chunk, chaine_code_operation(instruction), decalage, os);
+                chunk, chaine_code_operation(instruction), décalage, os);
         }
         default:
         {
             os << "Code Opération inconnu : " << instruction << '\n';
-            return decalage + 1;
+            return décalage + 1;
         }
     }
 }
 
-void desassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
+void désassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
 {
     os << "== " << nom << " ==\n";
-    for (auto decalage = int64_t(0); decalage < chunk.compte;) {
-        decalage = desassemble_instruction(chunk, decalage, os);
+    for (auto décalage = int64_t(0); décalage < chunk.compte;) {
+        décalage = désassemble_instruction(chunk, décalage, os);
     }
 }
 
@@ -899,7 +899,7 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
         /* Les fonction d'initialisation de globales n'ont pas de déclarations. */
         if (it->decl) {
             if (it->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_CODE_BINAIRE_FUT_REQUIS)) {
-                desassemble(it->données_exécution->chunk, it->nom, std::cerr);
+                désassemble(it->données_exécution->chunk, it->nom, std::cerr);
             }
         }
     }
@@ -981,7 +981,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     POUR (fonction->params_entrees) {
         auto alloc = it->comme_instruction()->comme_alloc();
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-        auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
+        auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
         alloc->index_locale = chunk.locales.taille();
         chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
     }
@@ -993,7 +993,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {
-            auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
+            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
             alloc->index_locale = chunk.locales.taille();
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
@@ -1003,7 +1003,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
         if (it->est_alloc()) {
             auto alloc = it->comme_alloc();
             auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
-            auto adresse = chunk.emets_allocation(alloc->site, type_pointe, alloc->ident);
+            auto adresse = chunk.émets_allocation(alloc->site, type_pointe, alloc->ident);
             alloc->index_locale = chunk.locales.taille();
             chunk.locales.ajoute({alloc->ident, alloc->type, adresse});
         }
@@ -1029,8 +1029,8 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     }
 
     POUR (patchs_labels) {
-        auto decalage = chunk.decalages_labels[it.index_label];
-        *reinterpret_cast<int *>(&chunk.code[it.adresse]) = decalage;
+        auto décalage = chunk.décalages_labels[it.index_label];
+        *reinterpret_cast<int *>(&chunk.code[it.adresse]) = décalage;
     }
 
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
@@ -1051,20 +1051,20 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::LABEL:
         {
             auto label = instruction->comme_label();
-            chunk.emets_label(label->site, label->id);
+            chunk.émets_label(label->site, label->id);
             break;
         }
         case GenreInstruction::BRANCHE:
         {
             auto branche = instruction->comme_branche();
-            chunk.emets_branche(branche->site, patchs_labels, branche->label->id);
+            chunk.émets_branche(branche->site, patchs_labels, branche->label->id);
             break;
         }
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
             genere_code_binaire_pour_atome(branche->condition, chunk, true);
-            chunk.emets_branche_condition(branche->site,
+            chunk.émets_branche_condition(branche->site,
                                           patchs_labels,
                                           branche->label_si_vrai->id,
                                           branche->label_si_faux->id);
@@ -1075,7 +1075,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto alloc = instruction->comme_alloc();
 
             if (pour_operande) {
-                chunk.emets_reference_variable(alloc->site, alloc->index_locale);
+                chunk.émets_référence_variable(alloc->site, alloc->index_locale);
             }
 
             break;
@@ -1084,7 +1084,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         {
             auto charge = instruction->comme_charge();
             genere_code_binaire_pour_atome(charge->chargee, chunk, true);
-            chunk.emets_charge(charge->site, charge->type, verifie_adresses);
+            chunk.émets_charge(charge->site, charge->type, verifie_adresses);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -1093,7 +1093,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             genere_code_binaire_pour_atome(stocke->ou, chunk, true);
-            chunk.emets_assignation(
+            chunk.émets_assignation(
                 contexte(), stocke->site, stocke->valeur->type, verifie_adresses);
             break;
         }
@@ -1127,24 +1127,24 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
                 if (atome_appelee->decl &&
                     atome_appelee->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
-                    chunk.emets_appel_intrinsèque(appel->site, atome_appelee);
+                    chunk.émets_appel_intrinsèque(appel->site, atome_appelee);
                 }
                 else if (atome_appelee->decl && atome_appelee->decl->possède_drapeau(
                                                     DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-                    chunk.emets_appel_compilatrice(appel->site, atome_appelee, verifie_adresses);
+                    chunk.émets_appel_compilatrice(appel->site, atome_appelee, verifie_adresses);
                 }
                 else if (atome_appelee->est_externe) {
-                    chunk.emets_appel_externe(
+                    chunk.émets_appel_externe(
                         appel->site, atome_appelee, taille_arguments, appel, verifie_adresses);
                 }
                 else {
-                    chunk.emets_appel(
+                    chunk.émets_appel(
                         appel->site, atome_appelee, taille_arguments, appel, verifie_adresses);
                 }
             }
             else {
                 genere_code_binaire_pour_atome(appelee, chunk, true);
-                chunk.emets_appel_pointeur(appel->site, taille_arguments, appel, verifie_adresses);
+                chunk.émets_appel_pointeur(appel->site, taille_arguments, appel, verifie_adresses);
             }
 
             break;
@@ -1199,11 +1199,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
                 if (type_accede->est_type_pointeur()) {
-                    chunk.emets_charge(index->site, type_pointeur, verifie_adresses);
+                    chunk.émets_charge(index->site, type_pointeur, verifie_adresses);
                 }
             }
 
-            chunk.emets_acces_index(index->site, type_pointeur->type_pointe);
+            chunk.émets_accès_index(index->site, type_pointeur->type_pointe);
             break;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
@@ -1219,9 +1219,9 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 type_compose = type_compose->comme_type_union()->type_structure;
             }
 
-            auto decalage = type_compose->membres[index_membre].decalage;
+            auto décalage = type_compose->membres[index_membre].decalage;
             genere_code_binaire_pour_atome(membre->accede, chunk, true);
-            chunk.emets_reference_membre(membre->site, decalage);
+            chunk.émets_référence_membre(membre->site, décalage);
 
             break;
         }
@@ -1230,7 +1230,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
             genere_code_binaire_pour_atome(op_unaire->valeur, chunk, true);
-            chunk.emets_operation_unaire(op_unaire->site, op_unaire->op, type);
+            chunk.émets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
         case GenreInstruction::OPERATION_BINAIRE:
@@ -1242,7 +1242,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
 
             auto type_gauche = op_binaire->valeur_gauche->type;
             auto type_droite = op_binaire->valeur_droite->type;
-            chunk.emets_operation_binaire(
+            chunk.émets_operation_binaire(
                 op_binaire->site, op_binaire->op, type_gauche, type_droite);
 
             break;
@@ -1304,7 +1304,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
         {
             auto op_unaire = static_cast<OpUnaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_unaire->operande, chunk);
-            chunk.emets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
+            chunk.émets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
             break;
         }
         case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
@@ -1312,7 +1312,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             auto op_binaire = static_cast<OpBinaireConstant const *>(constante);
             genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
             genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
-            chunk.emets_operation_binaire(nullptr,
+            chunk.émets_operation_binaire(nullptr,
                                           op_binaire->op,
                                           op_binaire->operande_gauche->type,
                                           op_binaire->operande_droite->type);
@@ -1324,7 +1324,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             auto type_pointeur = index_constant->type->comme_type_pointeur();
             genere_code_binaire_pour_constante(index_constant->index, chunk);
             genere_code_binaire_pour_constante(index_constant->accede, chunk);
-            chunk.emets_acces_index(nullptr, type_pointeur->type_pointe);
+            chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
             break;
         }
     }
@@ -1336,7 +1336,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
     switch (valeur_constante->valeur.genre) {
         case AtomeValeurConstante::Valeur::Genre::NULLE:
         {
-            chunk.emets_constante(int64_t(0));
+            chunk.émets_constante(int64_t(0));
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::TYPE:
@@ -1344,12 +1344,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             // utilisation du pointeur directement au lieu de l'index car la table de type
             // n'est pas implémentée, et il y a des concurrences critiques entre les
             // métaprogrammes
-            chunk.emets_constante(reinterpret_cast<int64_t>(valeur_constante->valeur.type));
+            chunk.émets_constante(reinterpret_cast<int64_t>(valeur_constante->valeur.type));
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
         {
-            chunk.emets_constante(valeur_constante->valeur.type->taille_octet);
+            chunk.émets_constante(valeur_constante->valeur.type->taille_octet);
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
@@ -1360,38 +1360,38 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
-                    chunk.emets_constante(static_cast<unsigned char>(valeur_entiere));
+                    chunk.émets_constante(static_cast<unsigned char>(valeur_entiere));
                 }
                 else if (type->taille_octet == 2) {
-                    chunk.emets_constante(static_cast<unsigned short>(valeur_entiere));
+                    chunk.émets_constante(static_cast<unsigned short>(valeur_entiere));
                 }
                 else if (type->taille_octet == 4) {
-                    chunk.emets_constante(static_cast<uint32_t>(valeur_entiere));
+                    chunk.émets_constante(static_cast<uint32_t>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(valeur_entiere);
+                    chunk.émets_constante(valeur_entiere);
                 }
             }
             else if (type->est_type_entier_relatif()) {
                 if (type->taille_octet == 1) {
-                    chunk.emets_constante(static_cast<char>(valeur_entiere));
+                    chunk.émets_constante(static_cast<char>(valeur_entiere));
                 }
                 else if (type->taille_octet == 2) {
-                    chunk.emets_constante(static_cast<short>(valeur_entiere));
+                    chunk.émets_constante(static_cast<short>(valeur_entiere));
                 }
                 else if (type->taille_octet == 4) {
-                    chunk.emets_constante(static_cast<int>(valeur_entiere));
+                    chunk.émets_constante(static_cast<int>(valeur_entiere));
                 }
                 else if (type->taille_octet == 8) {
-                    chunk.emets_constante(static_cast<int64_t>(valeur_entiere));
+                    chunk.émets_constante(static_cast<int64_t>(valeur_entiere));
                 }
             }
             else if (type->est_type_reel()) {
                 if (type->taille_octet == 4) {
-                    chunk.emets_constante(static_cast<float>(valeur_entiere));
+                    chunk.émets_constante(static_cast<float>(valeur_entiere));
                 }
                 else {
-                    chunk.emets_constante(static_cast<double>(valeur_entiere));
+                    chunk.émets_constante(static_cast<double>(valeur_entiere));
                 }
             }
 
@@ -1403,10 +1403,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             auto type = valeur_constante->type;
 
             if (type->taille_octet == 4) {
-                chunk.emets_constante(static_cast<float>(valeur_reele));
+                chunk.émets_constante(static_cast<float>(valeur_reele));
             }
             else {
-                chunk.emets_constante(valeur_reele);
+                chunk.émets_constante(valeur_reele);
             }
 
             break;
@@ -1433,13 +1433,13 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
         case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
         {
             auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
-            chunk.emets_constante(valeur_bool);
+            chunk.émets_constante(valeur_bool);
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::CARACTERE:
         {
             auto valeur_caractere = valeur_constante->valeur.valeur_entiere;
-            chunk.emets_constante(static_cast<char>(valeur_caractere));
+            chunk.émets_constante(static_cast<char>(valeur_caractere));
             break;
         }
         case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
@@ -1495,7 +1495,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                                       int decalage,
+                                                                       int décalage,
                                                                        int ou_patcher)
 {
     switch (constante->genre) {
@@ -1505,10 +1505,10 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             unsigned char *donnees = nullptr;
 
             if (ou_patcher == DONNÉES_GLOBALES) {
-                donnees = donnees_executions->données_globales.donnees() + decalage;
+                donnees = donnees_executions->données_globales.donnees() + décalage;
             }
             else {
-                donnees = donnees_executions->données_constantes.donnees() + decalage;
+                donnees = donnees_executions->données_constantes.donnees() + décalage;
             }
 
             switch (valeur_constante->valeur.genre) {
@@ -1639,7 +1639,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                         auto type_membre = type->membres[i].type;
 
-                        auto decalage_membre = type->membres[i].decalage;
+                        auto décalage_membre = type->membres[i].decalage;
 
                         if (type_membre->est_type_chaine()) {
                             auto valeur_chaine = static_cast<AtomeValeurConstante *>(
@@ -1656,7 +1656,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
                             auto donnees_ = donnees_executions->données_globales.donnees() +
-                                            decalage + static_cast<int>(decalage_membre);
+                                            décalage + static_cast<int>(décalage_membre);
                             *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
                             *reinterpret_cast<int64_t *>(donnees_ + 8) = taille_chaine;
                         }
@@ -1676,8 +1676,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
 
                             auto type_tableau = tableau->type->comme_type_tableau_fixe();
                             auto type_pointe = type_tableau->type_pointe;
-                            auto decalage_valeur = donnees_executions->données_constantes.taille();
-                            auto adresse_tableau = decalage_valeur;
+                            auto décalage_valeur = donnees_executions->données_constantes.taille();
+                            auto adresse_tableau = décalage_valeur;
 
                             donnees_executions->données_constantes.redimensionne(
                                 donnees_executions->données_constantes.taille() +
@@ -1687,25 +1687,25 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                             for (auto j = 0; j < taille; ++j) {
                                 auto pointeur_valeur = pointeur[j];
                                 genere_code_binaire_pour_initialisation_globale(
-                                    pointeur_valeur, decalage_valeur, DONNÉES_CONSTANTES);
-                                decalage_valeur += static_cast<int>(type_pointe->taille_octet);
+                                    pointeur_valeur, décalage_valeur, DONNÉES_CONSTANTES);
+                                décalage_valeur += static_cast<int>(type_pointe->taille_octet);
                             }
 
                             auto patch = PatchDonnéesConstantes{};
                             patch.destination = {DONNÉES_GLOBALES,
-                                                 decalage + static_cast<int>(decalage_membre)};
+                                                 décalage + static_cast<int>(décalage_membre)};
                             patch.source = {ADRESSE_CONSTANTE, adresse_tableau};
 
                             donnees_executions->patchs_données_constantes.ajoute(patch);
 
                             auto donnees_ = donnees_executions->données_globales.donnees() +
-                                            decalage + static_cast<int>(decalage_membre);
+                                            décalage + static_cast<int>(décalage_membre);
                             *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
                         }
                         else {
                             genere_code_binaire_pour_initialisation_globale(
                                 tableau_valeur[index_membre],
-                                decalage + static_cast<int>(decalage_membre),
+                                décalage + static_cast<int>(décalage_membre),
                                 ou_patcher);
                         }
 
@@ -1725,7 +1725,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             auto globale = donnees_executions->globales[index_globale];
 
             auto patch = PatchDonnéesConstantes{};
-            patch.destination = {ou_patcher, decalage};
+            patch.destination = {ou_patcher, décalage};
             patch.source = {ADRESSE_GLOBALE, globale.adresse};
             donnees_executions->patchs_données_constantes.ajoute(patch);
 
@@ -1743,7 +1743,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         {
             auto transtype = static_cast<TranstypeConstant *>(constante);
             genere_code_binaire_pour_initialisation_globale(
-                transtype->valeur, decalage, ou_patcher);
+                transtype->valeur, décalage, ou_patcher);
             break;
         }
         case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
@@ -1779,14 +1779,14 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         {
             auto atome_globale = static_cast<AtomeGlobale *>(atome);
             auto index_globale = genere_code_pour_globale(atome_globale);
-            chunk.emets_reference_globale(nullptr, index_globale);
+            chunk.émets_référence_globale(nullptr, index_globale);
             break;
         }
         case Atome::Genre::FONCTION:
         {
             // l'adresse pour les pointeurs de fonctions
             if (pour_operande) {
-                chunk.emets_constante(reinterpret_cast<int64_t>(atome));
+                chunk.émets_constante(reinterpret_cast<int64_t>(atome));
             }
 
             break;
@@ -1843,9 +1843,9 @@ ContexteGenerationCodeBinaire ConvertisseuseRI::contexte() const
 int64_t DonnéesExécutionFonction::mémoire_utilisée() const
 {
     int64_t résultat = 0;
-    résultat += chunk.capacite;
+    résultat += chunk.capacité;
     résultat += chunk.locales.taille_memoire();
-    résultat += chunk.decalages_labels.taille_memoire();
+    résultat += chunk.décalages_labels.taille_memoire();
 
     if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
         résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);

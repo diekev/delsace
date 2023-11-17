@@ -1561,7 +1561,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto &chunk = frame->fonction->données_exécution->chunk;
                 auto &sortie = std::cerr;
                 sortie << chaine_indentations(profondeur_appel);
-                desassemble_instruction(chunk, décalage, sortie);
+                désassemble_instruction(chunk, décalage, sortie);
                 break;
             }
             case OP_LOGUE_VALEURS_LOCALES:
