@@ -467,6 +467,8 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
     frame->site = site;
     frame->pointeur = fonction->données_exécution->chunk.code;
     frame->pointeur_pile = pointeur_pile;
+    /* Réserve de l'espace sur la pile pour nos locales. */
+    pointeur_pile += fonction->données_exécution->chunk.taille_allouée;
     return true;
 }
 

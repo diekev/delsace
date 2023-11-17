@@ -132,9 +132,10 @@ int Chunk::émets_allocation(NoeudExpression const *site, Type const *type, Iden
         const_cast<Type *>(type)->taille_octet = 4;
     }
     assert(type->taille_octet);
-    émets_entête_op(OP_ALLOUE, site);
-    émets(type);
-    émets(ident);
+
+    // émets_entête_op(OP_ALLOUE, site);
+    // émets(type);
+    // émets(ident);
 
     auto décalage = taille_allouée;
     taille_allouée += static_cast<int>(type->taille_octet);
@@ -328,8 +329,8 @@ void Chunk::émets_label(NoeudExpression const *site, int index)
     }
 
     décalages_labels[index] = static_cast<int>(compte);
-    émets_entête_op(OP_LABEL, site);
-    émets(index);
+    // émets_entête_op(OP_LABEL, site);
+    // émets(index);
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
