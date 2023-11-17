@@ -1126,11 +1126,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = instruction->comme_alloc();
-
-            if (pour_operande) {
-                chunk.émets_référence_variable(alloc->site, alloc->index_locale);
-            }
-
+            assert(pour_operande);
+            chunk.émets_référence_variable(alloc->site, alloc->index_locale);
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
