@@ -3,7 +3,6 @@
 
 #include "constructrice_ri.hh"
 
-#include <fstream>
 #include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -11,18 +10,22 @@
 #include "biblinternes/outils/sauvegardeuse_etat.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
-#include "compilatrice.hh"
-#include "erreur.h"
-#include "espace_de_travail.hh"
+
+#include "compilation/compilatrice.hh"
+#include "compilation/erreur.h"
+#include "compilation/espace_de_travail.hh"
+#include "compilation/log.hh"
+#include "compilation/portee.hh"
+
 #include "parsage/outils_lexemes.hh"
-#include "portee.hh"
+
 #include "statistiques/statistiques.hh"
+
+#include "structures/enchaineuse.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
 #include "optimisations.hh"
-
-#include "structures/enchaineuse.hh"
 
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
@@ -505,18 +508,16 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression *site_,
                                                        bool crée_seulement)
 {
     assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
-        std::cerr << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n';
-        imprime_site(site_);
+        dbg() << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n'
+              << imprime_site(site_);
     });
 
     assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
         auto type_élément_dest = type_dereference_pour(ou->type);
-        std::cerr << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
-                  << type_élément_dest << ") "
-                  << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type
-                  << ") " << '\n';
-
-        imprime_site(site_);
+        dbg() << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
+              << type_élément_dest << ") "
+              << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type << ")\n"
+              << imprime_site(site_);
     });
 
     auto type = valeur->type;
@@ -535,15 +536,13 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression *site_,
 {
     /* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
     assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_reference(), [&]() {
-        std::cerr << "Le type est '" << chaine_type(ou->type) << "'\n";
-        imprime_site(site_);
+        dbg() << "Le type est '" << chaine_type(ou->type) << "'\n" << imprime_site(site_);
     });
 
     assert_rappel(
         ou->genre_atome == Atome::Genre::INSTRUCTION || ou->genre_atome == Atome::Genre::GLOBALE,
         [=]() {
-            std::cerr << "Le genre de l'atome est : " << static_cast<int>(ou->genre_atome)
-                      << ".\n";
+            dbg() << "Le genre de l'atome est : " << static_cast<int>(ou->genre_atome) << ".";
         });
 
     auto type = type_dereference_pour(ou->type);
@@ -610,9 +609,8 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *sit
         type_élément = accédé->type;
     }
     else {
-        assert_rappel(accédé->type->est_type_pointeur(), [=]() {
-            std::cerr << "Type accédé : '" << chaine_type(accédé->type) << "'\n";
-        });
+        assert_rappel(accédé->type->est_type_pointeur(),
+                      [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
         auto type_pointeur = accédé->type->comme_type_pointeur();
         type_élément = type_pointeur->type_pointe;
     }
@@ -624,7 +622,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *sit
              dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifie->genre,
                                       GenreType::POINTEUR,
                                       GenreType::TABLEAU_FIXE)),
-        [=]() { std::cerr << "Type accédé : '" << chaine_type(accédé->type) << "'\n"; });
+        [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_élément), false);
 
@@ -650,7 +648,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
                                                                 bool crée_seulement)
 {
     assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_reference(),
-                  [=]() { std::cerr << "Type accédé : '" << chaine_type(accédé->type) << "'\n"; });
+                  [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type_élément = type_dereference_pour(accédé->type);
     if (type_élément->est_type_opaque()) {
@@ -658,8 +656,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
     }
 
     assert_rappel(est_type_compose(type_élément), [&]() {
-        std::cerr << "Type accédé : '" << chaine_type(type_élément) << "'\n";
-        imprime_site(site_);
+        dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
     });
 
     auto type_composé = static_cast<TypeCompose *>(type_élément);
@@ -671,9 +668,9 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
     assert_rappel(
         (type_composé->membres[index].drapeaux & MembreTypeComposé::PROVIENT_D_UN_EMPOI) == 0,
         [&]() {
-            std::cerr << chaine_type(type_composé) << '\n';
-            imprime_site(site_);
-            imprime_arbre(site_, std::cerr, 0);
+            dbg() << chaine_type(type_composé) << '\n'
+                  << imprime_site(site_) << '\n'
+                  << imprime_arbre(site_, 0);
         });
 
     /* nous retournons un pointeur vers le membre */
@@ -695,8 +692,8 @@ InstructionTranstype *ConstructriceRI::crée_transtype(NoeudExpression *site_,
                                                       Atome *valeur,
                                                       TypeTranstypage op)
 {
-    // std::cerr << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
-    // chaine_type(valeur->type) << '\n';
+    // dbg() << __func__ << ", type : " << chaine_type(type) << ", valeur " <<
+    // chaine_type(valeur->type);
     auto inst = insts_transtype.ajoute_element(site_, type, valeur, op);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
@@ -734,14 +731,12 @@ AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante
                                                                 AtomeConstante *index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
-                  [=]() { std::cerr << "Type accédé : '" << chaine_type(accédé->type) << "'\n"; });
+                  [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
     auto type_pointeur = accédé->type->comme_type_pointeur();
     assert_rappel(
         dls::outils::est_element(
             type_pointeur->type_pointe->genre, GenreType::POINTEUR, GenreType::TABLEAU_FIXE),
-        [=]() {
-            std::cerr << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'\n";
-        });
+        [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointe) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_dereference_pour(type_pointeur->type_pointe),
                                              false);
@@ -854,17 +849,17 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
     return nullptr;
 }
 
-void ConstructriceRI::imprime_site(NoeudExpression *site) const
+kuri::chaine ConstructriceRI::imprime_site(NoeudExpression *site) const
 {
     if (!m_fonction_courante || !m_fonction_courante->decl) {
-        return;
+        return "aucun site";
     }
     auto const unité = m_fonction_courante->decl->unite;
     if (!unité) {
-        return;
+        return "aucun site";
     }
     auto espace = unité->espace;
-    erreur::imprime_site(*espace, site);
+    return erreur::imprime_site(*espace, site);
 }
 
 void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
@@ -1123,107 +1118,50 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             /* Il est possible d'avoir des déclarations de structures dans les fonctions, donc il
              * est possible d'en avoir une ici. */
             assert_rappel(m_fonction_courante, [&]() {
-                std::cerr
-                    << "Erreur interne : une déclaration de structure fut passée à la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                dbg() << "Erreur interne : une déclaration de structure fut passée à la RI !\n"
+                      << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
         /* Ceux-ci doivent être ajoutés aux fonctions d'initialisation/finition de
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #ajoute_fini se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #ajoute_init se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
         {
             assert_rappel(false, [&]() {
-                std::cerr
-                    << "Erreur interne : une directive #pré_exécutable se retrouve dans la RI !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                dbg() << "Erreur interne : une " << noeud->genre << " se retrouve dans la RI !\n"
+                      << erreur::imprime_site(*m_espace, noeud);
             });
-            break;
-        }
-        /* ceux-ci sont simplifiés */
-        case GenreNoeud::DIRECTIVE_CUISINE:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une directive #cuisine ne fut pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-
-            break;
-        }
-        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une expression de construction de structure ne fut "
-                             "pas simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
-            });
-
             break;
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
-        {
-            auto inst = noeud->comme_si_statique();
-
-            if (!inst->condition_est_vraie && inst->bloc_si_faux) {
-                assert_rappel(false, [&]() {
-                    std::cerr << "Erreur interne : une directive #si ne fut pas simplifiée !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
-            break;
-        }
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
         {
-            auto inst = noeud->comme_saufsi_statique();
-
-            if (inst->condition_est_vraie && inst->bloc_si_faux) {
-                assert_rappel(false, [&]() {
-                    std::cerr
-                        << "Erreur interne : une directive #saufsi ne fut pas simplifiée !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
+            auto inst = noeud->comme_si_statique();
+            assert_rappel(!inst->condition_est_vraie || !inst->bloc_si_faux, [&]() {
+                dbg() << "Erreur interne : une directive " << noeud->genre
+                      << " ne fut pas simplifiée !\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
             auto directive = noeud->comme_execute();
-
-            if (directive->ident != ID::assert_) {
-                assert_rappel(false, [&]() {
-                    std::cerr << "Erreur interne : un directive ne fut pas simplifié !\n";
-                    erreur::imprime_site(*m_espace, noeud);
-                });
-            }
-
+            assert_rappel(directive->ident == ID::assert_, [&]() {
+                dbg() << "Erreur interne : un directive ne fut pas simplifié !\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
+        case GenreNoeud::DIRECTIVE_CUISINE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : une instruction pousse_contexte ne fut pas "
-                             "simplifiée !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                dbg() << "Erreur interne : une " << noeud->genre << " ne fut pas simplifiée !\n"
+                      << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1237,19 +1175,12 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
-        {
-            assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : un noeud ne fut pas simplifié !\n";
-                std::cerr << "Le noeud est de genre : " << noeud->genre << '\n';
-                erreur::imprime_site(*m_espace, noeud);
-            });
-            break;
-        }
         case GenreNoeud::DECLARATION_OPERATEUR_POUR:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Erreur interne : un opérateur « pour » ne fut pas simplifié !\n";
-                erreur::imprime_site(*m_espace, noeud);
+                dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
+                      << "Le noeud est de genre : " << noeud->genre << '\n'
+                      << erreur::imprime_site(*m_espace, noeud);
             });
             break;
         }
@@ -1336,23 +1267,22 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             assert_rappel(atome_fonc && atome_fonc->type != nullptr, [&] {
                 if (atome_fonc == nullptr) {
-                    std::cerr << "L'atome est nul !\n";
+                    dbg() << "L'atome est nul !\n" << erreur::imprime_site(*m_espace, expr_appel);
                 }
                 else if (atome_fonc->type == nullptr) {
-                    std::cerr << "Le type de l'atome est nul !\n";
+                    dbg() << "Le type de l'atome est nul !\n"
+                          << erreur::imprime_site(*m_espace, expr_appel);
                 }
-
-                erreur::imprime_site(*m_espace, expr_appel);
             });
 
             assert_rappel(atome_fonc->type->est_type_fonction(), [&] {
-                std::cerr << "L'atome n'est pas de type fonction mais de type "
-                          << chaine_type(atome_fonc->type) << " !\n";
-                erreur::imprime_site(*espace(), expr_appel);
-                erreur::imprime_site(*espace(), expr_appel->expression);
-                if (!expr_appel->expression->substitution) {
-                    std::cerr << "L'appelée n'a pas de substitution !\n";
-                }
+                dbg() << "L'atome n'est pas de type fonction mais de type "
+                      << chaine_type(atome_fonc->type) << " !\n"
+                      << erreur::imprime_site(*espace(), expr_appel) << '\n'
+                      << erreur::imprime_site(*espace(), expr_appel->expression) << '\n'
+                      << ((!expr_appel->expression->substitution) ?
+                              "L'appelée n'a pas de substitution !" :
+                              "");
             });
 
             auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1381,9 +1311,9 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
             auto decl_ref = expr_ref->declaration_referee;
 
             assert_rappel(decl_ref, [&]() {
-                erreur::imprime_site(*m_espace, noeud);
-                std::cerr << "La référence à la déclaration est nulle " << noeud->ident->nom
-                          << " (" << chaine_type(noeud->type) << ")\n";
+                dbg() << erreur::imprime_site(*m_espace, noeud) << '\n'
+                      << "La référence à la déclaration est nulle " << noeud->ident->nom << " ("
+                      << chaine_type(noeud->type) << ")\n";
             });
 
             if (decl_ref->est_entete_fonction()) {
@@ -1400,11 +1330,11 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto locale = decl_ref->comme_declaration_symbole()->atome;
             assert_rappel(locale, [&]() {
-                erreur::imprime_site(*m_espace, noeud);
-                std::cerr << "Aucune locale trouvée pour " << noeud->ident->nom << " ("
-                          << chaine_type(noeud->type) << ")\n";
-                std::cerr << "\nLa locale fut déclarée ici :\n";
-                erreur::imprime_site(*m_espace, decl_ref);
+                dbg() << erreur::imprime_site(*m_espace, noeud) << '\n'
+                      << "Aucune locale trouvée pour " << noeud->ident->nom << " ("
+                      << chaine_type(noeud->type) << ")\n"
+                      << "\nLa locale fut déclarée ici :\n"
+                      << erreur::imprime_site(*m_espace, decl_ref);
             });
             empile_valeur(locale);
             break;
@@ -1510,16 +1440,15 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
                     (noeud->lexeme->chaine.taille() == 0 && chaine.taille() == 0) ||
                     noeud->possède_drapeau(DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION),
                 [&]() {
-                    erreur::imprime_site(*espace(), noeud);
-                    std::cerr << "La chaine n'est pas de la bonne taille !\n";
-                    std::cerr << "Le lexème a une chaine taille de "
-                              << noeud->lexeme->chaine.taille()
-                              << " alors que la chaine littérale a une taille de "
-                              << chaine.taille() << '\n';
-                    std::cerr << "L'index de la chaine est de " << lit_chaine->valeur << '\n';
-                    std::cerr << "La valeur de la chaine du lexème est \"" << noeud->lexeme->chaine
-                              << "\"\n";
-                    std::cerr << "La valeur de la chaine littérale est \"" << chaine << "\"\n";
+                    dbg() << erreur::imprime_site(*espace(), noeud) << '\n'
+                          << "La chaine n'est pas de la bonne taille !\n"
+                          << "Le lexème a une chaine taille de " << noeud->lexeme->chaine.taille()
+                          << " alors que la chaine littérale a une taille de " << chaine.taille()
+                          << '\n'
+                          << "L'index de la chaine est de " << lit_chaine->valeur << '\n'
+                          << "La valeur de la chaine du lexème est \"" << noeud->lexeme->chaine
+                          << "\"\n"
+                          << "La valeur de la chaine littérale est \"" << chaine << "\"";
                 });
 
             if (m_fonction_courante == nullptr) {
@@ -2146,8 +2075,8 @@ void CompilatriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
     expression_gauche = ancienne_expression_gauche;
 
     assert_rappel(valeur, [&] {
-        std::cerr << __func__ << ", valeur est nulle pour " << noeud->genre << '\n';
-        erreur::imprime_site(*m_espace, noeud);
+        dbg() << __func__ << ", valeur est nulle pour " << noeud->genre << '\n'
+              << erreur::imprime_site(*m_espace, noeud);
     });
 
     transforme_valeur(noeud, valeur, transformation, place);
@@ -2180,7 +2109,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
         case TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "PREND_REFERENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !\n";
+                dbg() << "PREND_REFERENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !";
             });
             break;
         }
@@ -2213,7 +2142,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
             }
 
             assert_rappel(!valeur->type->est_type_entier_constant(), [=]() {
-                std::cerr << "Type de la valeur : " << chaine_type(valeur->type) << "\n.";
+                dbg() << "Type de la valeur : " << chaine_type(valeur->type) << ".";
             });
             break;
         }
@@ -3077,8 +3006,8 @@ void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *conditi
         default:
         {
             assert_rappel(false, [&]() {
-                std::cerr << "Type non géré pour la génération d'une condition d'une branche : "
-                          << chaine_type(type_condition) << '\n';
+                dbg() << "Type non géré pour la génération d'une condition d'une branche : "
+                      << chaine_type(type_condition);
             });
             break;
         }
@@ -3178,7 +3107,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
                                                std::move(valeurs_annotations));
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
+AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
 {
     if (type->atome_info_type != nullptr) {
         return type->atome_info_type;
@@ -3188,7 +3117,7 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
         case GenreType::POLYMORPHIQUE:
         case GenreType::TUPLE:
         {
-            assert_rappel(false, []() { std::cerr << "Obtenu un type tuple ou polymophique\n"; });
+            assert_rappel(false, []() { dbg() << "Obtenu un type tuple ou polymophique"; });
             break;
         }
         case GenreType::BOOL:
@@ -3614,10 +3543,10 @@ AtomeConstante *CompilatriceRI::crée_info_type(Type const *type, NoeudExpressio
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
     assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [type]() {
-        std::cerr << "Info type pour " << chaine_type(type) << " est incomplet\n";
+        dbg() << "Info type pour " << chaine_type(type) << " est incomplet";
     });
 
-    static_cast<AtomeGlobale *>(type->atome_info_type)->est_info_type_de = type;
+    type->atome_info_type->est_info_type_de = type;
 
     return type->atome_info_type;
 }
@@ -3667,14 +3596,14 @@ void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConst
     valeurs[2] = m_constructrice.crée_z32(0);
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type_defaut(unsigned index, Type const *pour_type)
+AtomeGlobale *CompilatriceRI::crée_info_type_defaut(unsigned index, Type const *pour_type)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(3);
     remplis_membres_de_bases_info_type(valeurs, index, pour_type);
     return crée_globale_info_type(m_compilatrice.typeuse.type_info_type_, std::move(valeurs));
 }
 
-AtomeConstante *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool est_relatif)
+AtomeGlobale *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool est_relatif)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(2);
     valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::ENTIER, pour_type);
@@ -3690,8 +3619,8 @@ AtomeConstante *CompilatriceRI::crée_info_type_avec_transtype(Type const *type,
     return transtype_base_info_type(info_type);
 }
 
-AtomeConstante *CompilatriceRI::crée_globale_info_type(Type const *type_info_type,
-                                                       kuri::tableau<AtomeConstante *> &&valeurs)
+AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type,
+                                                     kuri::tableau<AtomeConstante *> &&valeurs)
 {
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_type,
                                                                    std::move(valeurs));
@@ -4187,8 +4116,7 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
     valeurs[1] = nom_fichier;
-    // À FAIRE : adresse pour_fonction;
-    valeurs[2] = m_constructrice.crée_constante_nulle(TypeBase::PTR_RIEN);
+    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::PTR_RIEN, pour_fonction);
 
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
                                                                    std::move(valeurs));
