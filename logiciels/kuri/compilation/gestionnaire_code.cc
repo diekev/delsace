@@ -1470,7 +1470,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
 
 void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
 {
-    kuri::tableau<UniteCompilation *> nouvelles_unites;
+    m_nouvelles_unités.efface();
 
     if (plus_rien_n_est_a_faire()) {
         ordonnanceuse.marque_compilation_terminee();
@@ -1523,7 +1523,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
             case UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES:
             {
                 it->cycle += 1;
-                nouvelles_unites.ajoute(it);
+                m_nouvelles_unités.ajoute(it);
                 break;
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
@@ -1558,7 +1558,7 @@ void GestionnaireCode::crée_taches(OrdonnanceuseTache &ordonnanceuse)
         ordonnanceuse.supprime_toutes_les_taches();
     }
 
-    unites_en_attente = nouvelles_unites;
+    unites_en_attente.permute(m_nouvelles_unités);
 
 #ifdef DEBUG_UNITES_EN_ATTENTES
     std::cerr << "Unités en attente après la création des tâches : " << unites_en_attente.taille()
