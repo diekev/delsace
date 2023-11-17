@@ -223,6 +223,7 @@ struct Chunk {
 
     void detruit();
 
+  private:
     void emets(octet_t o);
 
     template <typename T>
@@ -234,6 +235,9 @@ struct Chunk {
         compte += static_cast<int64_t>(sizeof(T));
     }
 
+    void agrandis_si_necessaire(int64_t taille);
+
+  public:
     template <typename T>
     void emets_constante(T v)
     {
@@ -243,7 +247,11 @@ struct Chunk {
         emets(v);
     }
 
-    void agrandis_si_necessaire(int64_t taille);
+    void émets_chaine_constante(NoeudExpression const *site,
+                                void *pointeur_chaine,
+                                int64_t taille_chaine);
+
+    void émets_retour(NoeudExpression const *site);
 
     int emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
     void emets_assignation(ContexteGenerationCodeBinaire contexte,

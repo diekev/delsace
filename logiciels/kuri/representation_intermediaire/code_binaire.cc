@@ -70,6 +70,22 @@ void Chunk::agrandis_si_necessaire(int64_t taille)
     }
 }
 
+void Chunk::émets_chaine_constante(const NoeudExpression *site,
+                                   void *pointeur_chaine,
+                                   int64_t taille_chaine)
+{
+    emets(OP_CHAINE_CONSTANTE);
+    emets(site);
+    emets(pointeur_chaine);
+    emets(taille_chaine);
+}
+
+void Chunk::émets_retour(NoeudExpression const *site)
+{
+    emets(OP_RETOURNE);
+    emets(site);
+}
+
 int Chunk::emets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident)
 {
     // XXX - À FAIRE : normalise les entiers constants
@@ -1109,8 +1125,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 genere_code_binaire_pour_atome(retour->valeur, chunk, true);
             }
 
-            chunk.emets(OP_RETOURNE);
-            chunk.emets(retour->site);
+            chunk.émets_retour(retour->site);
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1403,10 +1418,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
             if (type->est_type_chaine()) {
                 if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
                     // valeur nulle pour les chaines initilisées à zéro
-                    chunk.emets(OP_CHAINE_CONSTANTE);
-                    chunk.emets(nullptr); /* site */
-                    chunk.emets(nullptr);
-                    chunk.emets(0l);
+                    chunk.émets_chaine_constante(/* site */ nullptr, nullptr, 0);
                 }
                 else {
                     auto acces_index = static_cast<AccedeIndexConstant *>(tableau_valeur[0]);
@@ -1418,10 +1430,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                     auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
                     auto taille_chaine = tableau->valeur.valeur_tdc.taille;
 
-                    chunk.emets(OP_CHAINE_CONSTANTE);
-                    chunk.emets(nullptr); /* site */
-                    chunk.emets(pointeur_chaine);
-                    chunk.emets(taille_chaine);
+                    chunk.émets_chaine_constante(
+                        /* site */ nullptr, pointeur_chaine, taille_chaine);
 
                     // reférence globale, tableau
                     // accède index
