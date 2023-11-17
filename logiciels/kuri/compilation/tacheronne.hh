@@ -163,6 +163,8 @@ struct Tacheronne {
 
     void gere_tache();
 
+    void rassemble_statistiques(Statistiques &stats);
+
   private:
     void gere_unite_pour_typage(UniteCompilation *unite);
     bool gere_unite_pour_ri(UniteCompilation *unite);
