@@ -1563,6 +1563,23 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 depile(site, taille);
                 break;
             }
+            case OP_COPIE_VARIABLE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto index_source = LIS_4_OCTETS();
+                auto index_destination = LIS_4_OCTETS();
+
+                auto const &locale_source =
+                    frame->fonction->données_exécution->chunk.locales[index_source];
+                auto const &locale_destination =
+                    frame->fonction->données_exécution->chunk.locales[index_destination];
+
+                auto adresse_source = &frame->pointeur_pile[locale_source.adresse];
+                auto adresse_destination = &frame->pointeur_pile[locale_destination.adresse];
+
+                memcpy(adresse_destination, adresse_source, static_cast<size_t>(taille));
+                break;
+            }
             case OP_VERIFIE_ADRESSAGE_CHARGE:
             {
                 auto taille = LIS_4_OCTETS();

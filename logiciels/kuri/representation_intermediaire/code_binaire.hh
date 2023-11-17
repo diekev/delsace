@@ -59,6 +59,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_VARIABLE)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_VARIABLE)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
@@ -277,6 +278,10 @@ struct Chunk {
                            Type const *type,
                            bool ajoute_verification);
     void émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_copie_variable(const NoeudExpression *site,
+                              const Type *type,
+                              int pointeur_source,
+                              int pointeur_destination);
     void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
     void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);

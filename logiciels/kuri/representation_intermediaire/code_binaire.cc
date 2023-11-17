@@ -189,6 +189,17 @@ void Chunk::émets_assignation_variable(NoeudExpression const *site, int pointeu
     émets(type->taille_octet);
 }
 
+void Chunk::émets_copie_variable(NoeudExpression const *site,
+                                 Type const *type,
+                                 int pointeur_source,
+                                 int pointeur_destination)
+{
+    émets_entête_op(OP_COPIE_VARIABLE, site);
+    émets(type->taille_octet);
+    émets(pointeur_source);
+    émets(pointeur_destination);
+}
+
 void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
 {
     assert(type->taille_octet);
@@ -709,6 +720,11 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
             return instruction_3d<void *, int, void *>(
                 chunk, chaine_code_operation(instruction), décalage, os);
         }
+        case OP_COPIE_VARIABLE:
+        {
+            return instruction_3d<int, int, int>(
+                chunk, chaine_code_operation(instruction), décalage, os);
+        }
         case OP_AUGMENTE_NATUREL:
         case OP_DIMINUE_NATUREL:
         case OP_AUGMENTE_RELATIF:
@@ -1089,6 +1105,31 @@ static bool est_constante_un(Atome const *atome)
     return valeur_constante->valeur.valeur_entiere == 1;
 }
 
+static InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
+    InstructionStockeMem const *inst)
+{
+    if (!est_allocation(inst->ou)) {
+        return nullptr;
+    }
+
+    auto atome_source = inst->valeur;
+    if (!atome_source->est_instruction()) {
+        return nullptr;
+    }
+
+    auto instruction_source = atome_source->comme_instruction();
+    if (!instruction_source->est_charge()) {
+        return nullptr;
+    }
+
+    auto chargement = instruction_source->comme_charge();
+    if (!est_allocation(chargement->chargee)) {
+        return nullptr;
+    }
+
+    return static_cast<InstructionAllocation const *>(chargement->chargee);
+}
+
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
@@ -1144,6 +1185,16 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = instruction->comme_stocke_mem();
+
+            if (auto alloc_source = est_stocke_alloc_depuis_charge_alloc(stocke)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                chunk.émets_copie_variable(stocke->site,
+                                           stocke->valeur->type,
+                                           alloc_source->index_locale,
+                                           alloc_destination->index_locale);
+                break;
+            }
+
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
 
             if (est_allocation(stocke->ou)) {
