@@ -128,7 +128,7 @@ enum : octet_t {
 
 #define NOMBRE_OP_CODE (OP_LOGUE_RETOUR + 1)
 
-const char *chaine_code_operation(octet_t code_operation);
+kuri::chaine_statique chaine_code_operation(octet_t code_operation);
 
 enum : octet_t {
     CONSTANTE_ENTIER_NATUREL = 1,

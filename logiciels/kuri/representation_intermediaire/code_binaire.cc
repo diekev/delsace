@@ -21,7 +21,7 @@
 
 #include "parsage/outils_lexemes.hh"
 
-const char *chaine_code_operation(octet_t code_operation)
+kuri::chaine_statique chaine_code_operation(octet_t code_operation)
 {
     switch (code_operation) {
 #define ENUMERE_CODE_OPERATION_EX(code)                                                           \
@@ -445,7 +445,7 @@ void Chunk::émets_transtype(const NoeudExpression *site,
 
 /* ************************************************************************** */
 
-static int64_t instruction_simple(const char *nom, int64_t décalage, std::ostream &os)
+static int64_t instruction_simple(kuri::chaine_statique nom, int64_t décalage, std::ostream &os)
 {
     os << nom << '\n';
     return décalage + 1;
@@ -453,7 +453,7 @@ static int64_t instruction_simple(const char *nom, int64_t décalage, std::ostre
 
 template <typename T>
 static int64_t instruction_1d(Chunk const &chunk,
-                              const char *nom,
+                              kuri::chaine_statique nom,
                               int64_t décalage,
                               std::ostream &os)
 {
@@ -465,7 +465,7 @@ static int64_t instruction_1d(Chunk const &chunk,
 
 template <typename T1, typename T2>
 static int64_t instruction_2d(Chunk const &chunk,
-                              const char *nom,
+                              kuri::chaine_statique nom,
                               int64_t décalage,
                               std::ostream &os)
 {
@@ -479,7 +479,7 @@ static int64_t instruction_2d(Chunk const &chunk,
 
 template <typename T1, typename T2, typename T3>
 static int64_t instruction_3d(Chunk const &chunk,
-                              const char *nom,
+                              kuri::chaine_statique nom,
                               int64_t décalage,
                               std::ostream &os)
 {
