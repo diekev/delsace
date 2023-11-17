@@ -127,6 +127,7 @@ RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
     memoire::deloge("Broyeuse", broyeuse);
+    memoire::deloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(const Lexeme *lexeme,
