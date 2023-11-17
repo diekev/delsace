@@ -18,8 +18,6 @@
 
 #include "structures/chemin_systeme.hh"
 
-#include "representation_intermediaire/machine_virtuelle.hh"
-
 #define AVEC_THREADS
 
 /**
@@ -89,33 +87,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
     }
 
     POUR (tacheronnes) {
-        stats.temps_executable = std::max(stats.temps_executable, it->temps_executable);
-        stats.temps_fichier_objet = std::max(stats.temps_fichier_objet, it->temps_fichier_objet);
-        stats.temps_generation_code = std::max(stats.temps_generation_code,
-                                               it->temps_generation_code);
-        stats.temps_ri = std::max(stats.temps_ri, it->constructrice_ri.temps_generation);
-        stats.temps_lexage = std::max(stats.temps_lexage, it->temps_lexage);
-        stats.temps_parsage = std::max(stats.temps_parsage, it->temps_parsage);
-        stats.temps_typage = std::max(stats.temps_typage, it->temps_validation);
-        stats.temps_scene = std::max(stats.temps_scene, it->temps_scene);
-        stats.temps_chargement = std::max(stats.temps_chargement, it->temps_chargement);
-        stats.temps_tampons = std::max(stats.temps_tampons, it->temps_tampons);
-
-        it->constructrice_ri.rassemble_statistiques(stats);
-        it->allocatrice_noeud.rassemble_statistiques(stats);
-
-        if (it->mv) {
-            it->mv->rassemble_statistiques(stats);
-        }
-
-        // std::cerr << "tâcheronne " << it->id << " a dormis pendant " <<
-        // it->temps_passe_a_dormir << "ms\n";
-
-#ifdef STATISTIQUES_DETAILLEES
-        if ((it->drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
-            it->stats_typage.imprime_stats();
-        }
-#endif
+        it->rassemble_statistiques(stats);
     }
 
     compilatrice.rassemble_statistiques(stats);
