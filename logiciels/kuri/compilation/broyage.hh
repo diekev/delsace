@@ -47,6 +47,8 @@ class Broyeuse {
      * Le résultat sera mis en cache dans l'identifiant. */
     kuri::chaine_statique broye_nom_simple(IdentifiantCode *ident);
 
+    int64_t mémoire_utilisée() const;
+
   private:
     /* Déplace la chaine du stockage temporaire dans le stockage final, et
      * retourne une chaine statique pour celle-ci. */
