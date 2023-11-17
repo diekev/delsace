@@ -18,6 +18,8 @@
 
 #include "structures/chemin_systeme.hh"
 
+#include "representation_intermediaire/machine_virtuelle.hh"
+
 #define AVEC_THREADS
 
 /**
@@ -102,7 +104,9 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
         it->constructrice_ri.rassemble_statistiques(stats);
         it->allocatrice_noeud.rassemble_statistiques(stats);
 
-        it->mv.rassemble_statistiques(stats);
+        if (it->mv) {
+            it->mv->rassemble_statistiques(stats);
+        }
 
         // std::cerr << "tâcheronne " << it->id << " a dormis pendant " <<
         // it->temps_passe_a_dormir << "ms\n";
