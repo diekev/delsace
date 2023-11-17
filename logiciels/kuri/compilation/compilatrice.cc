@@ -270,6 +270,21 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
+    résultat += m_tableaux_lexemes.taille_memoire();
+    POUR (m_tableaux_lexemes) {
+        résultat += it.taille_memoire();
+    }
+
+    résultat += m_états_libres.taille_memoire();
+    POUR (m_états_libres) {
+        résultat += taille_de(EtatResolutionAppel);
+        résultat += it->args.taille_memoire();
+    }
+
+    résultat += broyeuse->mémoire_utilisée();
+    résultat += constructeurs_globaux->taille_memoire();
+    résultat += table_chaines->taille_mémoire();
+
     return résultat;
 }
 
