@@ -96,7 +96,6 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE_RELATIF)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ET_BINAIRE)                                                      \
-    ENUMERE_CODE_OPERATION_EX(OP_LABEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_MULTIPLIE)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_MULTIPLIE_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_NON_BINAIRE)                                                     \

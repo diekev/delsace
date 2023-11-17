@@ -346,8 +346,6 @@ void Chunk::émets_label(NoeudExpression const *site, int index)
     }
 
     décalages_labels[index] = static_cast<int>(compte);
-    // émets_entête_op(OP_LABEL, site);
-    // émets(index);
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
@@ -665,7 +663,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_DEC_GAUCHE:
         case OP_DEC_DROITE_ARITHM:
         case OP_DEC_DROITE_LOGIQUE:
-        case OP_LABEL:
         case OP_BRANCHE:
         case OP_ASSIGNE:
         case OP_CHARGE:

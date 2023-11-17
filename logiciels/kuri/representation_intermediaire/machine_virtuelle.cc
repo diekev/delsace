@@ -1024,12 +1024,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
         }
 
         switch (instruction) {
-            case OP_LABEL:
-            {
-                /* Saute le label. */
-                frame->pointeur += 4;
-                break;
-            }
             case OP_BRANCHE:
             {
                 /* frame->pointeur contient le décalage relatif à l'adresse du début de la
