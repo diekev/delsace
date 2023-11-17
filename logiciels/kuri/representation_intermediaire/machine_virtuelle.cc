@@ -985,6 +985,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             frame->fonction->chunk, (frame->pointeur - frame->fonction->chunk.code), sortie);
 #endif
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
+        assert_rappel(profondeur_appel > 0 && profondeur_appel < TAILLE_FRAMES_APPEL,
+                      [&]() { imprime_trace_appel(m_metaprogramme->donnees_execution->site); });
         auto pointeur_debut = frame->pointeur;
         auto instruction = LIS_OCTET();
         auto site_courant = LIS_POINTEUR(NoeudExpression);
