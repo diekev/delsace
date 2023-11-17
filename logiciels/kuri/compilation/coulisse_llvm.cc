@@ -653,6 +653,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
                     return valeur_;
                 }
+                case AtomeConstante::Genre::FONCTION:
+                {
+                    auto fonction = static_cast<AtomeFonction const *>(atome_const);
+                    return m_module->getFunction(vers_std_string(fonction->nom));
+                }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
@@ -895,7 +900,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
             auto valeur_fonction = genere_code_pour_atome(inst_appel->appele, false);
             assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
-                erreur::imprime_site(m_espace, inst_appel->site);
+                std::cerr << erreur::imprime_site(m_espace, inst_appel->site);
                 imprime_atome(inst_appel->appele, std::cerr);
             });
             table_valeurs.insère(
@@ -942,14 +947,14 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto valeur_ou = genere_code_pour_atome(ou, false);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
-                erreur::imprime_site(m_espace, inst_stocke->site);
+                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
                 imprime_atome(inst_stocke, std::cerr);
                 std::cerr << '\n';
                 imprime_information_atome(inst_stocke->ou, std::cerr);
                 std::cerr << '\n';
             });
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
-                erreur::imprime_site(m_espace, inst_stocke->site);
+                std::cerr << erreur::imprime_site(m_espace, inst_stocke->site);
                 imprime_atome(inst_stocke, std::cerr);
                 std::cerr << '\n';
                 imprime_information_atome(inst_stocke->valeur, std::cerr);
@@ -1034,7 +1039,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
                 assert_rappel(inst_bin->valeur_droite->type == inst_bin->valeur_gauche->type,
                               [&]() {
-                                  erreur::imprime_site(m_espace, inst_bin->site);
+                                  std::cerr << erreur::imprime_site(m_espace, inst_bin->site);
                                   std::cerr << "Type à gauche "
                                             << chaine_type(inst_bin->valeur_gauche->type) << '\n';
                                   std::cerr << "Type à droite "
@@ -1044,7 +1049,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                               });
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
-                    erreur::imprime_site(m_espace, inst_bin->site);
+                    std::cerr << erreur::imprime_site(m_espace, inst_bin->site);
                     llvm::errs() << "Type à gauche LLVM " << *valeur_gauche->getType() << '\n';
                     llvm::errs() << "Type à droite LLVM " << *valeur_droite->getType() << '\n';
                     std::cerr << "Type à gauche " << chaine_type(inst_bin->valeur_gauche->type)
@@ -1158,7 +1163,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto const resultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
             table_valeurs.insère(inst, resultat);
             assert_rappel(!adresse_est_nulle(resultat), [&]() {
-                erreur::imprime_site(m_espace, inst_transtype->site);
+                std::cerr << erreur::imprime_site(m_espace, inst_transtype->site);
                 imprime_atome(inst_transtype->valeur, std::cerr);
             });
             break;

@@ -193,7 +193,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                              ID::init_globales_kuri)) {
                 assert_rappel(it->unite, [&]() {
                     std::cerr << "Aucune unité pour de compilation pour :\n";
-                    erreur::imprime_site(*m_espace, it);
+                    std::cerr << erreur::imprime_site(*m_espace, it);
                 });
                 diagnostique.ri_déclaration_à_générer = it;
                 return false;
@@ -787,11 +787,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     POUR (m_programme.fonctions()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
 
         auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
@@ -813,11 +813,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     POUR (m_programme.globales()) {
         assert_rappel(it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE), [&]() {
             std::cerr << "La RI ne fut pas généré pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
         assert_rappel(it->atome, [&]() {
             std::cerr << "Aucun atome pour:\n";
-            erreur::imprime_site(*m_programme.espace(), it);
+            std::cerr << erreur::imprime_site(*m_programme.espace(), it);
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
             std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
         });
@@ -954,7 +954,7 @@ void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
     m_types_utilisés.insère(type);
 
     if (type->atome_info_type) {
-        ajoute_globale(static_cast<AtomeGlobale *>(type->atome_info_type), true);
+        ajoute_globale(type->atome_info_type, true);
     }
 
     if (!visite_type) {
@@ -1027,7 +1027,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             if (atome_table_des_types) {
                 /* Si la table des types est requise, créons un InfoType. */
                 auto info_type = m_compilatrice_ri.crée_info_type(it, nullptr);
-                ajoute_globale(static_cast<AtomeGlobale *>(info_type), true);
+                ajoute_globale(info_type, true);
             }
             else {
                 /* La table n'est pas requise, ignorons-le. */
@@ -1035,7 +1035,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             }
         }
 
-        auto atome = static_cast<AtomeGlobale *>(it->atome_info_type);
+        auto atome = it->atome_info_type;
         auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
 
         if (est_structure_info_type_défaut(it->genre)) {
@@ -1148,12 +1148,59 @@ void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
 {
     if (est_globale_pour_tableau_données_constantes(globale)) {
         auto tableau_constant = static_cast<AtomeValeurConstante const *>(globale->initialisateur);
-        tableaux_constants.ajoute({globale, tableau_constant, taille_données_tableaux_constants});
-        taille_données_tableaux_constants += tableau_constant->valeur.valeur_tdc.taille;
+        m_données_constantes.tableaux_constants.ajoute({globale, tableau_constant, 0});
         return;
     }
 
     globales.ajoute(globale);
+}
+
+static Type const *donne_type_élément(AtomeValeurConstante const *tableau)
+{
+    return tableau->type->comme_type_tableau_fixe()->type_pointe;
+}
+
+std::optional<const ProgrammeRepreInter::DonnéesConstantes *> ProgrammeRepreInter::
+    donne_données_constantes() const
+{
+    if (m_données_constantes.tableaux_constants.est_vide()) {
+        return {};
+    }
+
+    if (m_données_constantes_construites) {
+        return &m_données_constantes;
+    }
+
+    /* Trie les tableaux selon le type de données, en mettant les tableaux des types les plus
+     * grands en premier. */
+    std::sort(m_données_constantes.tableaux_constants.begin(),
+              m_données_constantes.tableaux_constants.end(),
+              [](auto &tableau1, auto &tableau2) {
+                  auto type_élément_tableau1 = donne_type_élément(tableau1.tableau);
+                  auto type_élément_tableau2 = donne_type_élément(tableau2.tableau);
+                  return type_élément_tableau1->taille_octet > type_élément_tableau2->taille_octet;
+              });
+
+    /* Calcul de la taille finale ainsi que du rembourrage pour chaque tableau. */
+    auto alignement_désiré = 1u;
+    POUR (m_données_constantes.tableaux_constants) {
+        auto décalage = m_données_constantes.taille_données_tableaux_constants;
+        auto type_élément = donne_type_élément(it.tableau);
+        auto rembourrage = décalage % type_élément->alignement;
+        alignement_désiré = std::max(alignement_désiré, type_élément->alignement);
+        décalage += rembourrage;
+
+        it.décalage_dans_données_constantes = décalage;
+        it.rembourrage = rembourrage;
+
+        auto taille_tableau = it.tableau->valeur.valeur_tdc.taille;
+        m_données_constantes.taille_données_tableaux_constants += taille_tableau + rembourrage;
+    }
+
+    m_données_constantes.alignement_désiré = alignement_désiré;
+
+    m_données_constantes_construites = true;
+    return &m_données_constantes;
 }
 
 static void rassemble_bibliothèques_utilisées(kuri::tableau<Bibliotheque *> &bibliothèques,

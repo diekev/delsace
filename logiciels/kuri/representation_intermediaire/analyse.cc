@@ -13,6 +13,8 @@
 #include "structures/ensemble.hh"
 #include "structures/file.hh"
 
+#include "utilitaires/calcul.hh"
+
 #include "bloc_basique.hh"
 #include "impression.hh"
 #include "instructions.hh"
@@ -1641,46 +1643,6 @@ static bool est_instruction_opérateur_binaire_constant(Instruction const *inst)
 
     return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
 }
-
-#define GABARIT_OPERATION_ARITHMETIQUE(nom, lexeme_op)                                            \
-    struct nom {                                                                                  \
-        template <typename T>                                                                     \
-        static T applique_opération(T a, T b)                                                     \
-        {                                                                                         \
-            return a lexeme_op b;                                                                 \
-        }                                                                                         \
-    }
-
-GABARIT_OPERATION_ARITHMETIQUE(Addition, +);
-GABARIT_OPERATION_ARITHMETIQUE(Soustraction, -);
-GABARIT_OPERATION_ARITHMETIQUE(Division, /);
-GABARIT_OPERATION_ARITHMETIQUE(Multiplication, *);
-GABARIT_OPERATION_ARITHMETIQUE(Modulo, %);
-GABARIT_OPERATION_ARITHMETIQUE(DécalageGauche, <<);
-GABARIT_OPERATION_ARITHMETIQUE(DécalageDroite, >>);
-GABARIT_OPERATION_ARITHMETIQUE(ConjonctionBinaire, |);
-GABARIT_OPERATION_ARITHMETIQUE(ConjonctionBinaireExclusive, ^);
-GABARIT_OPERATION_ARITHMETIQUE(DisjonctionBinaire, &);
-
-#undef GABARIT_OPERATION_ARITHMETIQUE
-
-#define GABARIT_OPERATION_COMPARAISON(nom, lexeme_op)                                             \
-    struct nom {                                                                                  \
-        template <typename T>                                                                     \
-        static bool applique_opération(T a, T b)                                                  \
-        {                                                                                         \
-            return a lexeme_op b;                                                                 \
-        }                                                                                         \
-    }
-
-GABARIT_OPERATION_COMPARAISON(Égal, ==);
-GABARIT_OPERATION_COMPARAISON(Différent, !=);
-GABARIT_OPERATION_COMPARAISON(Supérieur, >);
-GABARIT_OPERATION_COMPARAISON(SupérieurÉgal, >=);
-GABARIT_OPERATION_COMPARAISON(Inférieur, <);
-GABARIT_OPERATION_COMPARAISON(InférieurÉgal, >=);
-
-#undef GABARIT_OPERATION_COMPARAISON
 
 struct Calculatrice {
     template <typename Opération>
