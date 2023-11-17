@@ -159,14 +159,20 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
 {
     switch (id) {
         case GenreLexeme::INFERIEUR:
-        case GenreLexeme::INFERIEUR_EGAL:
         {
             return a < b;
         }
+        case GenreLexeme::INFERIEUR_EGAL:
+        {
+            return a <= b;
+        }
         case GenreLexeme::SUPERIEUR:
-        case GenreLexeme::SUPERIEUR_EGAL:
         {
             return a > b;
+        }
+        case GenreLexeme::SUPERIEUR_EGAL:
+        {
+            return a >= b;
         }
         case GenreLexeme::DIFFERENCE:
         {

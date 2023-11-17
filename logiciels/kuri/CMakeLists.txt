@@ -104,6 +104,7 @@ add_subdirectory(representation_intermediaire)
 add_subdirectory(statistiques)
 add_subdirectory(structures)
 add_subdirectory(tests)
+add_subdirectory(utilitaires)
 
 if(AVEC_MODULES_C)
     add_subdirectory(modules_c/Aléa)
