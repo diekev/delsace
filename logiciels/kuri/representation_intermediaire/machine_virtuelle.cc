@@ -1513,7 +1513,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     m_metaprogramme->unite->espace
                         ->rapporte_erreur(
                             site, "Erreur interne : allocation d'un type de taille 0 dans la MV !")
-                        .ajoute_message("La type est : ", chaine_type(type), ".\n");
+                        .ajoute_message("Le type est : ", chaine_type(type), ".\n");
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
