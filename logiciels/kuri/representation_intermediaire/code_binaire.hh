@@ -52,7 +52,6 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
-    ENUMERE_CODE_OPERATION_EX(OP_ALLOUE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_COMPILATRICE)                                              \
@@ -274,7 +273,6 @@ struct Chunk {
 
     void émets_retour(NoeudExpression const *site);
 
-    int émets_allocation(NoeudExpression const *site, Type const *type, IdentifiantCode *ident);
     void émets_assignation(ContexteGenerationCodeBinaire contexte,
                            NoeudExpression const *site,
                            Type const *type,
