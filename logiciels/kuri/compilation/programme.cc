@@ -799,7 +799,7 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
             std::cerr << erreur::imprime_site(*m_programme.espace(), it);
         });
 
-        auto atome_fonction = static_cast<AtomeFonction *>(it->atome);
+        auto atome_fonction = it->atome->comme_fonction();
         ajoute_fonction(atome_fonction);
 
         if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
@@ -826,12 +826,12 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
             std::cerr << "Taille données decl  : " << it->donnees_decl.taille() << '\n';
             std::cerr << "Possède substitution : " << (it->substitution != nullptr) << '\n';
         });
-        ajoute_globale(static_cast<AtomeGlobale *>(it->atome), true);
+        ajoute_globale(it->atome->comme_globale(), true);
     }
 
     if (m_programme.pour_métaprogramme()) {
         auto métaprogramme = m_programme.pour_métaprogramme();
-        auto fonction = static_cast<AtomeFonction *>(métaprogramme->fonction->atome);
+        auto fonction = métaprogramme->fonction->atome->comme_fonction();
 
         if (!fonction) {
             m_espace.rapporte_erreur(métaprogramme->fonction,
@@ -907,7 +907,7 @@ void ConstructriceProgrammeFormeRI::ajoute_dépendances_fonction(AtomeFonction *
         visiteuse.visite_atome(it, [&](Atome *atome_local) {
             if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
                 /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
-                ajoute_globale(static_cast<AtomeGlobale *>(atome_local), false);
+                ajoute_globale(atome_local->comme_globale(), false);
             }
         });
     }
@@ -944,7 +944,7 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
     visiteuse.visite_atome(globale, [&](Atome *atome_local) {
         if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
             /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
-            ajoute_globale(static_cast<AtomeGlobale *>(atome_local), false);
+            ajoute_globale(atome_local->comme_globale(), false);
         }
     });
 }
@@ -1091,7 +1091,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         atome_table_des_types->initialisateur);
     auto atome_accès = static_cast<AccedeIndexConstant *>(
         initialisateur->valeur.valeur_structure.pointeur[0]);
-    m_résultat.globales.ajoute(static_cast<AtomeGlobale *>(atome_accès->accede));
+    m_résultat.globales.ajoute(atome_accès->accede->comme_globale());
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
                                                        static_cast<int>(index_type));

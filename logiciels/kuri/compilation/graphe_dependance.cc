@@ -292,14 +292,14 @@ void GrapheDependance::rassemble_fonctions_utilisees(NoeudDependance *racine,
 
         if (noeud->est_fonction()) {
             auto noeud_fonction = noeud->fonction();
-            atome_fonction = static_cast<AtomeFonction *>(noeud_fonction->atome);
+            atome_fonction = noeud_fonction->atome->comme_fonction();
         }
         else if (noeud->est_type()) {
             auto type = noeud->type();
             if (!type->fonction_init) {
                 return;
             }
-            atome_fonction = static_cast<AtomeFonction *>(type->fonction_init->atome);
+            atome_fonction = type->fonction_init->atome->comme_fonction();
         }
         else {
             return;
