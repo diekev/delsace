@@ -305,10 +305,12 @@ struct AtomeFonction : public AtomeConstante {
 
     AtomeFonction(NoeudDeclarationEnteteFonction const *decl_,
                   kuri::chaine_statique nom_,
-                  kuri::tableau<InstructionAllocation *, int> &&params_)
+                  kuri::tableau<InstructionAllocation *, int> &&params_,
+                  InstructionAllocation *param_sortie_)
         : AtomeFonction(decl_, nom_)
     {
         this->params_entrees = std::move(params_);
+        this->param_sortie = param_sortie_;
     }
 
     ~AtomeFonction();

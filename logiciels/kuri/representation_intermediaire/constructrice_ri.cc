@@ -173,12 +173,11 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl, decl->donne_nom_broyé(*broyeuse), std::move(params));
+        decl, decl->donne_nom_broyé(*broyeuse), std::move(params), atome_param_sortie);
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
     atome_fonc->decl = decl;
-    atome_fonc->param_sortie = atome_param_sortie;
     atome_fonc->enligne = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE);
 
     decl->atome = atome_fonc;
