@@ -39,6 +39,8 @@ struct Bloc {
 
     bool possède_instruction_de_genre(GenreInstruction genre) const;
 
+    int donne_id() const;
+
     void ajoute_enfant(Bloc *enfant);
 
     void remplace_enfant(Bloc *enfant, Bloc *par);

@@ -34,6 +34,181 @@ Instruction *AtomeFonction::derniere_instruction() const
     return instructions[instructions.taille() - 1];
 }
 
+bool est_valeur_constante_entière(Atome const *atome)
+{
+    if (!atome->est_constante()) {
+        return false;
+    }
+
+    auto const constante = static_cast<AtomeConstante const *>(atome);
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return dls::outils::est_element(valeur_constante->valeur.genre,
+                                    AtomeValeurConstante::Valeur::Genre::ENTIERE);
+}
+
+bool est_valeur_constante(Atome const *atome)
+{
+    if (!atome->est_constante()) {
+        return false;
+    }
+
+    auto const constante = static_cast<AtomeConstante const *>(atome);
+    if (constante->genre != AtomeConstante::Genre::VALEUR) {
+        return false;
+    }
+
+    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
+    return dls::outils::est_element(valeur_constante->valeur.genre,
+                                    AtomeValeurConstante::Valeur::Genre::ENTIERE,
+                                    AtomeValeurConstante::Valeur::Genre::REELLE,
+                                    AtomeValeurConstante::Valeur::Genre::BOOLEENNE,
+                                    AtomeValeurConstante::Valeur::Genre::CARACTERE);
+}
+
+static bool est_constante_entière_de_valeur(Atome const *atome, uint64_t valeur)
+{
+    if (!est_valeur_constante_entière(atome)) {
+        return false;
+    }
+
+    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
+    return valeur_constante->valeur.valeur_entiere == valeur;
+}
+
+bool est_constante_entière_zéro(Atome const *atome)
+{
+    return est_constante_entière_de_valeur(atome, 0);
+}
+
+bool est_constante_entière_un(Atome const *atome)
+{
+    return est_constante_entière_de_valeur(atome, 1);
+}
+
+bool est_allocation(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_alloc();
+}
+
+bool est_locale_ou_globale(Atome const *atome)
+{
+    if (atome->est_globale()) {
+        return true;
+    }
+
+    return est_allocation(atome);
+}
+
+bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_stocke_mem()) {
+        return false;
+    }
+
+    auto const stockage = inst0->comme_stocke_mem();
+    return stockage->ou == inst1;
+}
+
+bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_transtype()) {
+        return false;
+    }
+
+    auto const transtype = inst0->comme_transtype();
+    return transtype->valeur == inst1;
+}
+
+bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_charge()) {
+        return false;
+    }
+
+    auto const charge = inst0->comme_charge();
+    return charge->chargee == inst1;
+}
+
+InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(InstructionStockeMem const *inst)
+{
+    if (!est_allocation(inst->ou)) {
+        return nullptr;
+    }
+
+    auto atome_source = inst->valeur;
+    if (!atome_source->est_instruction()) {
+        return nullptr;
+    }
+
+    auto instruction_source = atome_source->comme_instruction();
+    if (!instruction_source->est_charge()) {
+        return nullptr;
+    }
+
+    auto chargement = instruction_source->comme_charge();
+    if (!est_allocation(chargement->chargee)) {
+        return nullptr;
+    }
+
+    return static_cast<InstructionAllocation const *>(chargement->chargee);
+}
+
+bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst)
+{
+    if (!est_allocation(inst->ou)) {
+        return false;
+    }
+
+    auto alloc_destination = inst->ou->comme_instruction()->comme_alloc();
+
+    auto atome_source = inst->valeur;
+    if (!atome_source->est_instruction()) {
+        return false;
+    }
+
+    auto instruction_source = atome_source->comme_instruction();
+    if (!instruction_source->est_op_binaire()) {
+        return false;
+    }
+
+    auto op_binaire = instruction_source->comme_op_binaire();
+    if (op_binaire->op != OpérateurBinaire::Genre::Addition) {
+        return false;
+    }
+
+    auto valeur_droite = op_binaire->valeur_droite;
+    if (!est_constante_entière_un(valeur_droite)) {
+        return false;
+    }
+
+    auto valeur_gauche = op_binaire->valeur_gauche;
+    if (!valeur_gauche->est_instruction()) {
+        return false;
+    }
+    if (!est_chargement_de(valeur_gauche->comme_instruction(), alloc_destination)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool est_opérateur_binaire_constant(Instruction const *inst)
+{
+    if (!inst->est_op_binaire()) {
+        return false;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    auto const opérande_gauche = op_binaire->valeur_gauche;
+    auto const opérande_droite = op_binaire->valeur_droite;
+
+    return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
+}
+
 std::ostream &operator<<(std::ostream &os, GenreInstruction genre)
 {
 #define ENUMERE_GENRE_INSTRUCTION_EX(Genre)                                                       \

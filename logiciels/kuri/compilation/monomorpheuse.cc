@@ -715,21 +715,6 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
     return nullptr;
 }
 
-/* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
- * arriver à un type racine) + 1.
- * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
- * a une de 3. */
-static int donne_profondeur_type(Type const *type)
-{
-    auto profondeur_type = 1;
-    auto type_courant = type;
-    while (Type *sous_type = type_dereference_pour(type_courant)) {
-        profondeur_type += 1;
-        type_courant = sous_type;
-    }
-    return profondeur_type;
-}
-
 RésultatRésolutionType Monomorpheuse::résoud_type_final(
     const NoeudExpression *expression_polymorphique)
 {

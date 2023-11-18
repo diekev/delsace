@@ -50,6 +50,11 @@ bool Bloc::possède_instruction_de_genre(GenreInstruction genre) const
     return (masque_instructions & drapeau) != 0;
 }
 
+int Bloc::donne_id() const
+{
+    return label->id;
+}
+
 void Bloc::ajoute_enfant(Bloc *enfant)
 {
     enfant->ajoute_parent(this);
