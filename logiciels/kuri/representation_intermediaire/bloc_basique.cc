@@ -347,6 +347,7 @@ static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 FonctionEtBlocs::~FonctionEtBlocs()
 {
     détruit_blocs(blocs);
+    détruit_blocs(blocs_libres);
 }
 
 bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction *atome_fonc)
