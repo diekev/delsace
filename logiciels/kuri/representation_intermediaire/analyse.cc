@@ -208,20 +208,6 @@ static Atome *déréférence_instruction(Instruction *inst)
     return inst;
 }
 
-static bool est_locale_ou_globale(Atome const *atome)
-{
-    if (atome->est_globale()) {
-        return true;
-    }
-
-    if (atome->est_instruction()) {
-        auto inst = atome->comme_instruction();
-        return inst->est_alloc();
-    }
-
-    return false;
-}
-
 static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
 {
     auto destination = stocke->ou;
@@ -548,25 +534,6 @@ static void supprime_blocs_vides(FonctionEtBlocs &fonction_et_blocs, VisiteuseBl
 }
 
 /* ******************************************************************************************** */
-
-static bool est_valeur_constante(Atome const *atome)
-{
-    if (!atome->est_constante()) {
-        return false;
-    }
-
-    auto const constante = static_cast<AtomeConstante const *>(atome);
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return dls::outils::est_element(valeur_constante->valeur.genre,
-                                    AtomeValeurConstante::Valeur::Genre::ENTIERE,
-                                    AtomeValeurConstante::Valeur::Genre::REELLE,
-                                    AtomeValeurConstante::Valeur::Genre::BOOLEENNE,
-                                    AtomeValeurConstante::Valeur::Genre::CARACTERE);
-}
 
 /**
  * Supprime les branches inconditionnelles d'un bloc à l'autre lorsque le bloc de la branche est le
@@ -1013,26 +980,6 @@ void Graphe::visite_utilisateurs(Instruction *inst, Fonction rappel) const
 
 /** \} */
 
-static bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
-{
-    if (!inst0->est_stocke_mem()) {
-        return false;
-    }
-
-    auto const stockage = inst0->comme_stocke_mem();
-    return stockage->ou == inst1;
-}
-
-static bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
-{
-    if (!inst0->est_transtype()) {
-        return false;
-    }
-
-    auto const transtype = inst0->comme_transtype();
-    return transtype->valeur == inst1;
-}
-
 /* Puisque les init_de peuvent être partagées, et alors requierent un transtypage, cette fonction
  * retourne le décalage + 1 à utiliser si la fonction est une fonction d'initialisation.
  * Retourne :
@@ -1065,16 +1012,6 @@ static int est_appel_initialisation(Instruction const *inst0, Instruction const 
     }
 
     return 0;
-}
-
-static bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
-{
-    if (!inst0->est_charge()) {
-        return false;
-    }
-
-    auto const charge = inst0->comme_charge();
-    return charge->chargee == inst1;
 }
 
 #define ASSIGNE_SI_EGAUX(a, b, c)                                                                 \
@@ -1322,19 +1259,6 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
 }
 
 /* ***************************************************************************************** */
-
-static bool est_instruction_opérateur_binaire_constant(Instruction const *inst)
-{
-    if (!inst->est_op_binaire()) {
-        return false;
-    }
-
-    auto const op_binaire = inst->comme_op_binaire();
-    auto const opérande_gauche = op_binaire->valeur_gauche;
-    auto const opérande_droite = op_binaire->valeur_droite;
-
-    return est_valeur_constante(opérande_gauche) && est_valeur_constante(opérande_droite);
-}
 
 struct Calculatrice {
     template <typename Opération>
@@ -1647,7 +1571,7 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
 
     auto instructions_à_supprimer = false;
     POUR_NOMME (inst, bloc->instructions) {
-        if (!est_instruction_opérateur_binaire_constant(inst)) {
+        if (!est_opérateur_binaire_constant(inst)) {
             continue;
         }
 
@@ -1701,33 +1625,13 @@ static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
 
 /* ******************************************************************************************* */
 
-static bool est_constante_zéro(Atome const *atome)
-{
-    if (!est_valeur_constante(atome)) {
-        return false;
-    }
-
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
-    return valeur_constante->valeur.valeur_entiere == 0;
-}
-
-static bool est_constante_un(Atome const *atome)
-{
-    if (!est_valeur_constante(atome)) {
-        return false;
-    }
-
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
-    return valeur_constante->valeur.valeur_entiere == 1;
-}
-
 static Atome *peut_remplacer_instruction_binaire_par_opérande(
     InstructionOpBinaire *const op_binaire)
 {
     if (op_binaire->op == OpérateurBinaire::Genre::Soustraction) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_zéro(droite)) {
+        if (est_constante_entière_zéro(droite)) {
             return op_binaire->valeur_gauche;
         }
 
@@ -1737,7 +1641,7 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
     if (op_binaire->op == OpérateurBinaire::Genre::Addition) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_zéro(droite)) {
+        if (est_constante_entière_zéro(droite)) {
             return op_binaire->valeur_gauche;
         }
 
@@ -1747,11 +1651,11 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
     if (op_binaire->op == OpérateurBinaire::Genre::Multiplication) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_un(droite)) {
+        if (est_constante_entière_un(droite)) {
             return op_binaire->valeur_gauche;
         }
 
-        if (est_constante_zéro(droite)) {
+        if (est_constante_entière_zéro(droite)) {
             return droite;
         }
 
@@ -1762,7 +1666,7 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
         op_binaire->op == OpérateurBinaire::Genre::Division_Relatif) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_un(droite)) {
+        if (est_constante_entière_un(droite)) {
             return op_binaire->valeur_gauche;
         }
 
@@ -1775,7 +1679,7 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
         op_binaire->op == OpérateurBinaire::Genre::Dec_Gauche) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_zéro(droite)) {
+        if (est_constante_entière_zéro(droite)) {
             return op_binaire->valeur_gauche;
         }
 
@@ -1785,7 +1689,7 @@ static Atome *peut_remplacer_instruction_binaire_par_opérande(
     if (op_binaire->op == OpérateurBinaire::Genre::Et_Binaire) {
         auto droite = op_binaire->valeur_droite;
 
-        if (est_constante_zéro(droite)) {
+        if (est_constante_entière_zéro(droite)) {
             return droite;
         }
 
