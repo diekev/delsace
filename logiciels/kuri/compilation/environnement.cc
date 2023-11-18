@@ -186,6 +186,10 @@ static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &opt
     /* Arrête après une seule erreur. */
     résultat.ajoute("-Wfatal-errors");
 
+    /* Nous devons gérer ce cas nous-même. C'est alors une erreur si la coulisse C se retrouve avec
+     * un paramètre inutilisé. */
+    résultat.ajoute("-Werror=unused-parameter");
+
     // résultat.ajoute("-Wall");
     // résultat.ajoute("-Wpedantic");
     // résultat.ajoute("-Wextra");
