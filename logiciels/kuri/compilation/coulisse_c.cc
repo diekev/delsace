@@ -1579,6 +1579,33 @@ static bool paramètre_est_marqué_comme_inutilisée(NoeudDeclarationEnteteFonct
     return param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE);
 }
 
+/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
+ * être. */
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
+    NoeudDeclarationEnteteFonction const *entête, int index)
+{
+    if (!entête) {
+        return {};
+    }
+
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (entête->ident->nom == "memcpy" && index == 1) {
+            return "const void *";
+        }
+        return {};
+    }
+
+    if (entête->ident == ID::__point_d_entree_systeme) {
+        if (index == 1) {
+            return "char **";
+        }
+
+        return {};
+    }
+
+    return {};
+}
+
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
     if (atome_fonc->decl &&
@@ -1609,7 +1636,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 
         auto type_pointeur = it->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointe;
-        os << donne_nom_pour_type(type_param) << ' ';
+        auto type_opt = type_paramètre_pour_fonction_clé(atome_fonc->decl, index_it);
+        if (type_opt.has_value()) {
+            os << type_opt.value();
+        }
+        else {
+            os << donne_nom_pour_type(type_param) << ' ';
+        }
 
         /* Dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
          * (void fonction(...)), n'imprime pas de nom. */
