@@ -1709,6 +1709,15 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        /* Marque les paramètres comme étant utilisés afin que les coulisses ne les marquent pas
+         * comme inutilisés. */
+        for (auto i = 0; i < decl->params.taille(); i++) {
+            auto param = decl->parametre_entree(i);
+            param->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        }
+    }
+
 #ifdef STATISTIQUES_DETAILLEES
     possède_erreur = false;
 #endif
@@ -2875,6 +2884,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
         if (possède_annotation(decl_param, "inutilisée")) {
+            decl_param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
             continue;
         }
 

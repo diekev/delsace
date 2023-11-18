@@ -767,6 +767,16 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
     enchaineuse << "#include <stdint.h>\n";
 
+    auto const attribut_inutilisé = R"(
+#ifdef __GNUC__
+#  define INUTILISE(x) INUTILISE_ ## x __attribute__((__unused__))
+#else
+#  define INUTILISE(x) INUTILISE_ ## x
+#endif
+)";
+
+    enchaineuse << attribut_inutilisé;
+
     /* Déclaration des types de bases*/
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
@@ -1551,6 +1561,17 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }
 
+static bool paramètre_est_marqué_comme_inutilisée(NoeudDeclarationEnteteFonction const *entête,
+                                                  int index)
+{
+    if (!entête) {
+        return false;
+    }
+
+    auto const param = entête->parametre_entree(index);
+    return param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE);
+}
+
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
     if (atome_fonc->decl &&
@@ -1573,7 +1594,11 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     auto virgule = "(";
 
     int numéro_inst = 0;
+    int index_paramètre = 0;
     for (auto param : atome_fonc->params_entrees) {
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc->decl,
+                                                                             index_paramètre++);
+
         os << virgule;
 
         auto type_pointeur = param->type->comme_type_pointeur();
@@ -1588,7 +1613,16 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
         }
 
         param->comme_instruction()->numero = numéro_inst++;
+
+        if (est_paramètre_inutilisé) {
+            os << "INUTILISE(";
+        }
+
         os << donne_nom_pour_instruction(param->comme_instruction());
+
+        if (est_paramètre_inutilisé) {
+            os << ")";
+        }
 
         virgule = ", ";
     }
