@@ -241,6 +241,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     : TypeTableauFixe()
 {
     assert(type_pointe_);
+    assert(taille_ > 0);
 
     this->membres = std::move(membres_);
     this->type_pointe = type_pointe_;
@@ -1952,6 +1953,232 @@ Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
         résultat = résultat->comme_type_opaque()->type_opacifie;
     }
     return résultat;
+}
+
+Type const *type_entier_sous_jacent(Type const *type)
+{
+    if (type->est_type_entier_constant()) {
+        return TypeBase::Z32;
+    }
+
+    if (type->est_type_enum()) {
+        return type->comme_type_enum()->type_sous_jacent;
+    }
+
+    if (type->est_type_erreur()) {
+        return type->comme_type_erreur()->type_sous_jacent;
+    }
+
+    if (type->est_type_type_de_donnees()) {
+        return TypeBase::Z64;
+    }
+
+    if (type->est_type_octet()) {
+        return TypeBase::N8;
+    }
+
+    if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
+        return type;
+    }
+
+    return nullptr;
+}
+
+std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
+                                         TypeStructure const *type_base_potentiel)
+{
+    POUR (type_dérivé->types_employés) {
+        auto struct_employée = it->type->comme_type_structure();
+        if (struct_employée == type_base_potentiel) {
+            return it->decalage;
+        }
+
+        auto décalage_depuis_struct_employée = est_type_de_base(struct_employée,
+                                                                type_base_potentiel);
+        if (décalage_depuis_struct_employée) {
+            return it->decalage + décalage_depuis_struct_employée.value();
+        }
+    }
+
+    return {};
+}
+
+std::optional<uint32_t> est_type_de_base(Type const *type_dérivé, Type const *type_base_potentiel)
+{
+    if (type_dérivé->est_type_structure() && type_base_potentiel->est_type_structure()) {
+        return est_type_de_base(type_dérivé->comme_type_structure(),
+                                type_base_potentiel->comme_type_structure());
+    }
+
+    return {};
+}
+
+bool est_type_pointeur_nul(Type const *type)
+{
+    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointe == nullptr;
+}
+
+ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose const *type,
+                                                                   Type const *type_a_tester)
+{
+    auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
+    int index_membre = -1;
+    int index_courant = 0;
+    POUR (type->membres) {
+        if (it.type == type_a_tester) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+        else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
+            if (pointeur_nul) {
+                if (index_membre != -1) {
+                    return PlusieursMembres{-1};
+                }
+
+                index_membre = index_courant;
+            }
+            else {
+                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointe;
+                auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointe;
+
+                if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
+                    if (index_membre != -1) {
+                        return PlusieursMembres{-1};
+                    }
+
+                    index_membre = index_courant;
+                }
+            }
+        }
+        else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
+            if (index_membre != -1) {
+                return PlusieursMembres{-1};
+            }
+
+            index_membre = index_courant;
+        }
+
+        index_courant += 1;
+    }
+
+    if (index_membre == -1) {
+        return AucunMembre{-1};
+    }
+
+    return IndexMembre{index_membre};
+}
+
+/* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
+ * arriver à un type racine) + 1.
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
+ * a une de 3. */
+int donne_profondeur_type(Type const *type)
+{
+    auto profondeur_type = 1;
+    auto type_courant = type;
+    while (Type *sous_type = type_dereference_pour(type_courant)) {
+        profondeur_type += 1;
+        type_courant = sous_type;
+    }
+    return profondeur_type;
+}
+
+bool est_type_valide_pour_membre(Type const *membre_type)
+{
+    if (membre_type->est_type_rien()) {
+        return false;
+    }
+
+    if (membre_type->est_type_variadique()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool peut_construire_union_via_rien(TypeUnion const *type_union)
+{
+    POUR (type_union->membres) {
+        if (it.type->est_type_rien()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/* Décide si le type peut être utilisé pour les expressions d'indexages basiques du langage.
+ * NOTE : les entiers relatifs ne sont pas considérées ici car nous utilisons cette décision pour
+ * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
+bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
+{
+    if (type->est_type_entier_naturel()) {
+        return true;
+    }
+
+    if (type->est_type_octet()) {
+        return true;
+    }
+
+    if (type->est_type_enum()) {
+        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
+         * arbitrairement larges. */
+        return !type->comme_type_enum()->est_drapeau;
+    }
+
+    if (type->est_type_bool()) {
+        return true;
+    }
+
+    if (type->est_type_type_de_donnees()) {
+        /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
+         * leurs valeurs dépends de l'index du type dans ladite table. */
+        return true;
+    }
+
+    if (type->est_type_opaque()) {
+        return est_type_implicitement_utilisable_pour_indexage(
+            type->comme_type_opaque()->type_opacifie);
+    }
+
+    return false;
+}
+
+bool peut_etre_type_constante(Type const *type)
+{
+    switch (type->genre) {
+        /* Possible mais non supporté pour le moment. */
+        case GenreType::STRUCTURE:
+        /* Il n'est pas encore clair comment prendre le pointeur de la constante pour les tableaux
+         * dynamiques. */
+        case GenreType::TABLEAU_DYNAMIQUE:
+        /* Sémantiquement, les variadiques ne peuvent être utilisées que pour les paramètres de
+         * fonctions. */
+        case GenreType::VARIADIQUE:
+        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un membre
+         * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
+         * lieu d'utilisation. */
+        case GenreType::UNION:
+        /* Un eini doit avoir une info-type, et prendre une valeur par pointeur, qui n'est pas
+         * encore supporté pour les constantes. */
+        case GenreType::EINI:
+        /* Les tuples ne sont que pour les retours de fonctions. */
+        case GenreType::TUPLE:
+        case GenreType::REFERENCE:
+        case GenreType::POINTEUR:
+        case GenreType::POLYMORPHIQUE:
+        case GenreType::RIEN:
+        {
+            return false;
+        }
+        default:
+        {
+            return true;
+        }
+    }
 }
 
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
