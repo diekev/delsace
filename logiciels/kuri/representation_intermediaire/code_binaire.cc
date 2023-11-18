@@ -116,7 +116,7 @@ void Chunk::ajoute_locale(InstructionAllocation *alloc)
 
     // XXX - À FAIRE : normalise les entiers constants
     if (type->est_type_entier_constant()) {
-        const_cast<Type *>(type)->taille_octet = 4;
+        type->taille_octet = 4;
     }
     assert(type->taille_octet);
 
@@ -1362,24 +1362,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *consta
             genere_code_binaire_pour_constante(transtype->valeur, chunk);
             break;
         }
-        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-        {
-            auto op_unaire = static_cast<OpUnaireConstant const *>(constante);
-            genere_code_binaire_pour_constante(op_unaire->operande, chunk);
-            chunk.émets_operation_unaire(nullptr, op_unaire->op, op_unaire->type);
-            break;
-        }
-        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-        {
-            auto op_binaire = static_cast<OpBinaireConstant const *>(constante);
-            genere_code_binaire_pour_constante(op_binaire->operande_gauche, chunk);
-            genere_code_binaire_pour_constante(op_binaire->operande_droite, chunk);
-            chunk.émets_operation_binaire(nullptr,
-                                          op_binaire->op,
-                                          op_binaire->operande_gauche->type,
-                                          op_binaire->operande_droite->type);
-            break;
-        }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
             auto index_constant = static_cast<AccedeIndexConstant const *>(constante);
@@ -1805,20 +1787,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
             auto transtype = static_cast<TranstypeConstant *>(constante);
             genere_code_binaire_pour_initialisation_globale(
                 transtype->valeur, décalage, ou_patcher);
-            break;
-        }
-        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-        {
-            // À FAIRE
-            // assert_rappel(false, []() { dbg() << "Les opérations unaires constantes ne sont
-            // pas implémentées dans le code binaire"; });
-            break;
-        }
-        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-        {
-            // À FAIRE
-            // assert_rappel(false, []() { dbg() << "Les opérations binaires constantes ne sont
-            // pas implémentées dans le code binaire"; });
             break;
         }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:

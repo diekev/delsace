@@ -706,28 +706,6 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
     return transtypes_constants.ajoute_element(type, valeur);
 }
 
-OpUnaireConstant *ConstructriceRI::crée_op_unaire_constant(Type const *type,
-                                                           OpérateurUnaire::Genre op,
-                                                           AtomeConstante *valeur)
-{
-    return op_unaires_constants.ajoute_element(type, op, valeur);
-}
-
-OpBinaireConstant *ConstructriceRI::crée_op_binaire_constant(Type const *type,
-                                                             OpérateurBinaire::Genre op,
-                                                             AtomeConstante *valeur_gauche,
-                                                             AtomeConstante *valeur_droite)
-{
-    return op_binaires_constants.ajoute_element(type, op, valeur_gauche, valeur_droite);
-}
-
-OpBinaireConstant *ConstructriceRI::crée_op_comparaison_constant(OpérateurBinaire::Genre op,
-                                                                 AtomeConstante *valeur_gauche,
-                                                                 AtomeConstante *valeur_droite)
-{
-    return crée_op_binaire_constant(TypeBase::BOOL, op, valeur_gauche, valeur_droite);
-}
-
 AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
                                                                 AtomeConstante *index)
 {
@@ -884,8 +862,6 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     AJOUTE_ENTREE(insts_accede_membre)
     AJOUTE_ENTREE(insts_transtype)
     AJOUTE_ENTREE(transtypes_constants)
-    AJOUTE_ENTREE(op_binaires_constants)
-    AJOUTE_ENTREE(op_unaires_constants)
     AJOUTE_ENTREE(accede_index_constants)
 
 #undef AJOUTE_ENTREE
