@@ -1601,14 +1601,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     auto virgule = "(";
 
     int numéro_inst = 0;
-    int index_paramètre = 0;
-    for (auto param : atome_fonc->params_entrees) {
+    POUR_INDEX (atome_fonc->params_entrees) {
         auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc->decl,
-                                                                             index_paramètre++);
+                                                                             index_it);
 
         os << virgule;
 
-        auto type_pointeur = param->type->comme_type_pointeur();
+        auto type_pointeur = it->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointe;
         os << donne_nom_pour_type(type_param) << ' ';
 
@@ -1619,13 +1618,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
             continue;
         }
 
-        param->comme_instruction()->numero = numéro_inst++;
+        it->comme_instruction()->numero = numéro_inst++;
 
         if (est_paramètre_inutilisé) {
             os << "INUTILISE(";
         }
 
-        os << donne_nom_pour_instruction(param->comme_instruction());
+        os << donne_nom_pour_instruction(it->comme_instruction());
 
         if (est_paramètre_inutilisé) {
             os << ")";
