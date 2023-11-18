@@ -1154,7 +1154,7 @@ static void supprime_instructions_à_supprimer(Bloc *bloc)
     bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
 }
 
-static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int index_bloc)
+static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
 {
     auto instructions_à_supprimer = false;
     for (int i = 0; i < bloc->instructions.taille() - 3; i++) {
@@ -1175,14 +1175,14 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc, int in
         }
 
         /* Si l'allocation n'est pas uniquement dans ce bloc, ce n'est pas une temporaire. */
-        if (!g.est_uniquement_utilisé_dans_bloc(inst0, index_bloc)) {
+        if (!g.est_uniquement_utilisé_dans_bloc(inst0, bloc->donne_id())) {
             continue;
         }
 
         /* Si le chargement n'est pas uniquement dans ce bloc, ce n'est pas une temporaire.
          * Ceci survient notamment dans la génération de code pour les vérifications des bornes des
          * tableaux ou chaines. */
-        if (!g.est_uniquement_utilisé_dans_bloc(inst2, index_bloc)) {
+        if (!g.est_uniquement_utilisé_dans_bloc(inst2, bloc->donne_id())) {
             continue;
         }
 
@@ -1295,9 +1295,8 @@ static void réinitialise_graphe(Graphe &graphe, FonctionEtBlocs &fonction_et_bl
 {
     graphe.réinitialise();
 
-    auto index_bloc = 0;
     POUR (fonction_et_blocs.blocs) {
-        graphe.construit(it->instructions, index_bloc++);
+        graphe.construit(it->instructions, it->donne_id());
     }
 }
 
@@ -1305,16 +1304,14 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
 {
     réinitialise_graphe(graphe, fonction_et_blocs);
 
-    auto index_bloc = 0;
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         if (!it->possède_instruction_de_genre(GenreInstruction::ALLOCATION)) {
-            index_bloc++;
             continue;
         }
 
         bloc_modifié |= rapproche_allocations_des_stockages(it);
-        bloc_modifié |= supprime_allocations_temporaires(graphe, it, index_bloc++);
+        bloc_modifié |= supprime_allocations_temporaires(graphe, it);
     }
 
     if (!bloc_modifié) {
