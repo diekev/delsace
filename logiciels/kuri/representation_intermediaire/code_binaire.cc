@@ -116,7 +116,7 @@ void Chunk::ajoute_locale(InstructionAllocation *alloc)
 
     // XXX - À FAIRE : normalise les entiers constants
     if (type->est_type_entier_constant()) {
-        const_cast<Type *>(type)->taille_octet = 4;
+        type->taille_octet = 4;
     }
     assert(type->taille_octet);
 
