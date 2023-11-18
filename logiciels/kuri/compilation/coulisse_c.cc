@@ -903,14 +903,6 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
             auto valeur = génère_code_pour_atome(transtype_const->valeur, os, pour_globale);
             return enchaine("(", donne_nom_pour_type(transtype_const->type), ")(", valeur, ")");
         }
-        case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-        {
-            break;
-        }
-        case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-        {
-            break;
-        }
         case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
         {
             auto inst_accès = static_cast<AccedeIndexConstant const *>(atome_const);
