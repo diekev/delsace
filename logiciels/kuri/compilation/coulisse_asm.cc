@@ -77,14 +77,6 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
                 {
                     return "";
                 }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    break;
-                }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
                 {
                     return "";
