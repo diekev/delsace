@@ -464,6 +464,12 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
     }
 }
 
+static inline void *donne_adresse_locale(FrameAppel *frame, int index)
+{
+    auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+    return &frame->pointeur_pile[locale.adresse];
+}
+
 /* ************************************************************************** */
 
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
@@ -1086,6 +1092,25 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
+            case OP_INCRÉMENTE_VARIABLE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto index = LIS_4_OCTETS();
+                auto adresse_variable = donne_adresse_locale(frame, index);
+                if (taille == 1) {
+                    *reinterpret_cast<uint8_t *>(adresse_variable) += 1;
+                }
+                else if (taille == 2) {
+                    *reinterpret_cast<uint16_t *>(adresse_variable) += 1;
+                }
+                else if (taille == 4) {
+                    *reinterpret_cast<uint32_t *>(adresse_variable) += 1;
+                }
+                else {
+                    *reinterpret_cast<uint64_t *>(adresse_variable) += 1;
+                }
+                break;
+            }
             case OP_DÉCRÉMENTE:
             {
                 auto taille = LIS_4_OCTETS();
@@ -1556,12 +1581,23 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
-                auto adresse_ou = &frame->pointeur_pile[locale.adresse];
+                auto adresse_ou = donne_adresse_locale(frame, index);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
                 depile(site, taille);
+                break;
+            }
+            case OP_COPIE_VARIABLE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto index_source = LIS_4_OCTETS();
+                auto index_destination = LIS_4_OCTETS();
+
+                auto adresse_source = donne_adresse_locale(frame, index_source);
+                auto adresse_destination = donne_adresse_locale(frame, index_destination);
+
+                memcpy(adresse_destination, adresse_source, static_cast<size_t>(taille));
                 break;
             }
             case OP_VERIFIE_ADRESSAGE_CHARGE:
@@ -1594,8 +1630,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
-                auto adresse_de = &frame->pointeur_pile[locale.adresse];
+                auto adresse_de = donne_adresse_locale(frame, index);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
@@ -1605,8 +1640,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_REFERENCE_VARIABLE:
             {
                 auto index = LIS_4_OCTETS();
-                auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
-                empile(site, &frame->pointeur_pile[locale.adresse]);
+                empile(site, donne_adresse_locale(frame, index));
                 break;
             }
             case OP_REFERENCE_GLOBALE:
@@ -1646,7 +1680,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_STAT_INSTRUCTION:
             {
-                auto op = LIS_OCTET();
+                /* L'opération est directement après nous. Il ne faut pas incémenter le pointeur.
+                 */
+                auto op = *frame->pointeur;
                 m_metaprogramme->donnees_execution->compte_instructions[op] += 1;
                 m_metaprogramme->donnees_execution->compte_instructions[OP_STAT_INSTRUCTION] += 1;
                 break;

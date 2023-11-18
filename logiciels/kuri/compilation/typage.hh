@@ -669,10 +669,6 @@ struct Typeuse {
     Type *type_info_appel_trace_appel = nullptr;
     Type *type_stockage_temporaire = nullptr;
     Type *type_annotation = nullptr;
-    // séparés car nous devons désalloué selon la bonne taille et ce sont plus des types « simples
-    // »
-    TypeCompose *type_eini = nullptr;
-    TypeCompose *type_chaine = nullptr;
 
     /* Trie pour les types fonctions. */
     Trie trie{};

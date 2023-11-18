@@ -1897,6 +1897,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.unite->index_courant += 1;
+                compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
                 copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
                 return Attente::sur_type(copie->type);
             }
