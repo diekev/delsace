@@ -177,7 +177,6 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
-    atome_fonc->decl = decl;
     atome_fonc->enligne = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE);
 
     decl->atome = atome_fonc;
