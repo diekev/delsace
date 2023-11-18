@@ -80,8 +80,6 @@ struct AtomeConstante : public Atome {
         FONCTION,
         VALEUR,
         TRANSTYPE_CONSTANT,
-        OP_BINAIRE_CONSTANTE,
-        OP_UNAIRE_CONSTANTE,
         ACCES_INDEX_CONSTANT,
     };
 
@@ -256,51 +254,6 @@ struct TranstypeConstant : public AtomeConstante {
     {
         this->type = type_;
         this->valeur = valeur_;
-    }
-};
-
-struct OpBinaireConstant : public AtomeConstante {
-    OpBinaireConstant()
-    {
-        genre = Genre::OP_BINAIRE_CONSTANTE;
-    }
-
-    OpérateurBinaire::Genre op{};
-    AtomeConstante *operande_gauche = nullptr;
-    AtomeConstante *operande_droite = nullptr;
-
-    EMPECHE_COPIE(OpBinaireConstant);
-
-    OpBinaireConstant(Type const *type_,
-                      OpérateurBinaire::Genre op_,
-                      AtomeConstante *operande_gauche_,
-                      AtomeConstante *operande_droite_)
-        : OpBinaireConstant()
-    {
-        this->type = type_;
-        this->op = op_;
-        this->operande_gauche = operande_gauche_;
-        this->operande_droite = operande_droite_;
-    }
-};
-
-struct OpUnaireConstant : public AtomeConstante {
-    OpUnaireConstant()
-    {
-        genre = Genre::OP_UNAIRE_CONSTANTE;
-    }
-
-    OpérateurUnaire::Genre op{};
-    AtomeConstante *operande = nullptr;
-
-    EMPECHE_COPIE(OpUnaireConstant);
-
-    OpUnaireConstant(Type const *type_, OpérateurUnaire::Genre op_, AtomeConstante *operande_)
-        : OpUnaireConstant()
-    {
-        this->type = type_;
-        this->op = op_;
-        this->operande = operande_;
     }
 };
 

@@ -94,16 +94,6 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
                     os << " représentant un transtypage constant";
                     break;
                 }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    os << " représentant une opération unaire constante";
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    os << " représentant une opération binaire constante";
-                    break;
-                }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
                 {
                     os << " représentant un indexage constant";
@@ -226,14 +216,6 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                 os << "  transtype ";
                 imprime_atome_ex(transtype_const->valeur, os, true);
                 os << " vers " << chaine_type(transtype_const->type, false) << '\n';
-                break;
-            }
-            case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-            {
-                break;
-            }
-            case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-            {
                 break;
             }
             case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:

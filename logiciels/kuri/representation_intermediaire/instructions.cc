@@ -281,19 +281,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                     visite_atome(transtype_const->valeur, rappel);
                     break;
                 }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    auto op_unaire_const = static_cast<OpUnaireConstant const *>(constante);
-                    visite_atome(op_unaire_const->operande, rappel);
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    auto op_unaire_const = static_cast<OpBinaireConstant const *>(constante);
-                    visite_atome(op_unaire_const->operande_gauche, rappel);
-                    visite_atome(op_unaire_const->operande_droite, rappel);
-                    break;
-                }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
                 {
                     auto inst_acces = static_cast<AccedeIndexConstant const *>(constante);
