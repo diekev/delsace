@@ -460,6 +460,7 @@ static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
 }
 
 static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
+                                          Lexeme const *lexème,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
                                           Type *type_donnees_argument_variadique)
@@ -472,8 +473,7 @@ static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
 
     /* Pour les fonctions variadiques interne, nous créons un tableau
      * correspondant au types des arguments. */
-    static Lexeme lexeme_tableau = {"", {}, GenreLexeme::CHAINE_CARACTERE, 0, 0, 0};
-    auto noeud_tableau = contexte.m_tacheronne.assembleuse->crée_args_variadiques(&lexeme_tableau);
+    auto noeud_tableau = contexte.m_tacheronne.assembleuse->crée_args_variadiques(lexème);
 
     noeud_tableau->type = type_donnees_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
@@ -619,7 +619,7 @@ static ResultatAppariement apparie_appel_pointeur(
             type_fonction->types_entrees[type_fonction->types_entrees.taille() - 1];
         auto type_donnees_argument_variadique = type_dereference_pour(dernier_type_parametre);
         crée_tableau_args_variadiques(
-            contexte, slots, nombre_args, type_donnees_argument_variadique);
+            contexte, b->lexeme, slots, nombre_args, type_donnees_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();
@@ -866,7 +866,7 @@ static ResultatAppariement apparie_appel_fonction(
         poids_args *= poids_variadique;
 
         crée_tableau_args_variadiques(
-            contexte, slots, nombre_args, type_donnees_argument_variadique);
+            contexte, expr->lexeme, slots, nombre_args, type_donnees_argument_variadique);
     }
 
     auto exprs = kuri::tablet<NoeudExpression *, 10>();

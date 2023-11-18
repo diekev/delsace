@@ -123,6 +123,7 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__table_des_types, "__table_des_types")                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_init, "ajoute_init")                                 \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(ajoute_fini, "ajoute_fini")                                 \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(__init_contexte_kuri, "__init_contexte_kuri")               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_execution_kuri, "__init_exécution_kuri")               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(fini_execution_kuri, "__fini_exécution_kuri")               \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(init_globales_kuri, "__init_globales_kuri")                 \

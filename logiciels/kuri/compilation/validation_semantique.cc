@@ -238,43 +238,6 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression *expressio
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
 
-/* Décide si le type peut être utilisé pour les expressions d'indexages basiques du langage.
- * NOTE : les entiers relatifs ne sont pas considérées ici car nous utilisons cette décision pour
- * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
-static inline bool est_type_implicitement_utilisable_pour_indexage(Type *type)
-{
-    if (type->est_type_entier_naturel()) {
-        return true;
-    }
-
-    if (type->est_type_octet()) {
-        return true;
-    }
-
-    if (type->est_type_enum()) {
-        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
-         * arbitrairement larges. */
-        return !type->comme_type_enum()->est_drapeau;
-    }
-
-    if (type->est_type_bool()) {
-        return true;
-    }
-
-    if (type->est_type_type_de_donnees()) {
-        /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
-         * leurs valeurs dépends de l'index du type dans ladite table. */
-        return true;
-    }
-
-    if (type->est_type_opaque()) {
-        return est_type_implicitement_utilisable_pour_indexage(
-            type->comme_type_opaque()->type_opacifie);
-    }
-
-    return false;
-}
-
 ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpression *noeud)
 {
     switch (noeud->genre) {
@@ -2179,17 +2142,6 @@ static void rassemble_expressions(NoeudExpression *expr,
     }
 }
 
-static bool peut_construire_union_via_rien(TypeUnion *type_union)
-{
-    POUR (type_union->membres) {
-        if (it.type->est_type_rien()) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 ResultatValidation ContexteValidationCode::valide_expression_retour(NoeudRetour *inst)
 {
     auto fonction = fonction_courante();
@@ -3546,19 +3498,6 @@ static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_com
     return false;
 }
 
-static bool est_type_valide_pour_membre(Type const *membre_type)
-{
-    if (membre_type->est_type_rien()) {
-        return false;
-    }
-
-    if (membre_type->est_type_variadique()) {
-        return false;
-    }
-
-    return true;
-}
-
 static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
                                                  TypeCompose const *type_composé,
                                                  NoeudExpression *membre)
@@ -4039,40 +3978,6 @@ ResultatValidation ContexteValidationCode::valide_union(NoeudStruct *decl)
 }
 
 /** \} */
-
-static bool peut_etre_type_constante(Type *type)
-{
-    switch (type->genre) {
-        /* Possible mais non supporté pour le moment. */
-        case GenreType::STRUCTURE:
-        /* Il n'est pas encore clair comment prendre le pointeur de la constante pour les tableaux
-         * dynamiques. */
-        case GenreType::TABLEAU_DYNAMIQUE:
-        /* Sémantiquement, les variadiques ne peuvent être utilisées que pour les paramètres de
-         * fonctions. */
-        case GenreType::VARIADIQUE:
-        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un membre
-         * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
-         * lieu d'utilisation. */
-        case GenreType::UNION:
-        /* Un eini doit avoir une info-type, et prendre une valeur par pointeur, qui n'est pas
-         * encore supporté pour les constantes. */
-        case GenreType::EINI:
-        /* Les tuples ne sont que pour les retours de fonctions. */
-        case GenreType::TUPLE:
-        case GenreType::REFERENCE:
-        case GenreType::POINTEUR:
-        case GenreType::POLYMORPHIQUE:
-        case GenreType::RIEN:
-        {
-            return false;
-        }
-        default:
-        {
-            return true;
-        }
-    }
-}
 
 ResultatValidation ContexteValidationCode::valide_declaration_variable(
     NoeudDeclarationVariable *decl)
