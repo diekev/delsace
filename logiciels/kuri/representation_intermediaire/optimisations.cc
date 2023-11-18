@@ -576,7 +576,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             continue;
         }
 
-        auto atome_fonc_appelee = static_cast<AtomeFonction *>(appele);
+        auto atome_fonc_appelee = appele->comme_fonction();
 
         if (!est_candidate_pour_enlignage(atome_fonc_appelee)) {
             nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));

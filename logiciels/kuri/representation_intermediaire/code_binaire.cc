@@ -1196,7 +1196,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             }
 
             if (appelee->genre_atome == Atome::Genre::FONCTION) {
-                auto atome_appelee = static_cast<AtomeFonction *>(appelee);
+                auto atome_appelee = appelee->comme_fonction();
 
                 if (atome_appelee->decl &&
                     atome_appelee->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
@@ -1495,7 +1495,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
                 }
                 else {
                     auto acces_index = static_cast<AccedeIndexConstant *>(tableau_valeur[0]);
-                    auto globale_tableau = static_cast<AtomeGlobale *>(acces_index->accede);
+                    auto globale_tableau = acces_index->accede->comme_globale();
 
                     auto tableau = static_cast<AtomeValeurConstante *>(
                         globale_tableau->initialisateur);
@@ -1687,8 +1687,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 tableau_valeur[index_membre]);
                             auto acces_index = static_cast<AccedeIndexConstant *>(
                                 valeur_chaine->valeur.valeur_structure.pointeur[0]);
-                            auto globale_tableau = static_cast<AtomeGlobale *>(
-                                acces_index->accede);
+                            auto globale_tableau = acces_index->accede->comme_globale();
 
                             auto tableau = static_cast<AtomeValeurConstante *>(
                                 globale_tableau->initialisateur);
@@ -1706,8 +1705,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                                 tableau_valeur[index_membre]);
                             auto acces_index = static_cast<AccedeIndexConstant *>(
                                 valeur_tableau->valeur.valeur_structure.pointeur[0]);
-                            auto globale_tableau = static_cast<AtomeGlobale *>(
-                                acces_index->accede);
+                            auto globale_tableau = acces_index->accede->comme_globale();
 
                             auto tableau = static_cast<AtomeValeurConstante *>(
                                 globale_tableau->initialisateur);
@@ -1761,7 +1759,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         }
         case AtomeConstante::Genre::GLOBALE:
         {
-            auto atome_globale = static_cast<AtomeGlobale *>(constante);
+            auto atome_globale = constante->comme_globale();
             auto index_globale = genere_code_pour_globale(atome_globale);
             auto globale = donnees_executions->globales[index_globale];
 
@@ -1804,7 +1802,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
         {
-            auto atome_globale = static_cast<AtomeGlobale *>(atome);
+            auto atome_globale = atome->comme_globale();
             auto index_globale = genere_code_pour_globale(atome_globale);
             chunk.émets_référence_globale(nullptr, index_globale);
             break;

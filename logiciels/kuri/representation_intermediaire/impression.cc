@@ -336,7 +336,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         }
     }
     else if (atome->genre_atome == Atome::Genre::FONCTION) {
-        auto atome_fonction = static_cast<AtomeFonction const *>(atome);
+        auto atome_fonction = atome->comme_fonction();
         os << atome_fonction->nom;
     }
     else {

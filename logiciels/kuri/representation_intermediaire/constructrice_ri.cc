@@ -144,7 +144,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     std::unique_lock lock(mutex_atomes_fonctions);
 
     if (decl->atome) {
-        return static_cast<AtomeFonction *>(decl->atome);
+        return decl->atome->comme_fonction();
     }
 
     auto params = kuri::tableau<InstructionAllocation *, int>();
@@ -203,7 +203,7 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_globale(NoeudDeclaration *decl)
 {
     std::unique_lock lock(mutex_atomes_globales);
     auto decl_var = decl->comme_declaration_variable();
-    return static_cast<AtomeGlobale *>(decl_var->atome);
+    return decl_var->atome->comme_globale();
 }
 
 AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *decl)
@@ -216,7 +216,7 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *
         decl_var->atome = crée_globale(decl->type, nullptr, false, false);
     }
 
-    return static_cast<AtomeGlobale *>(decl_var->atome);
+    return decl_var->atome->comme_globale();
 }
 
 void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
