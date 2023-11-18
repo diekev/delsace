@@ -48,7 +48,6 @@ struct Atome {
     };
 
     Type const *type = nullptr;
-    IdentifiantCode *ident = nullptr;
 
     Genre genre_atome{};
     // vrai si l'atome est celui d'une instruction chargeable
@@ -215,6 +214,7 @@ struct AtomeGlobale : public AtomeConstante {
         est_chargeable = true;
     }
 
+    IdentifiantCode *ident = nullptr;
     AtomeConstante *initialisateur{};
     bool est_externe = false;
     bool est_constante = false;
@@ -516,6 +516,8 @@ struct InstructionAllocation : public Instruction {
         genre = GenreInstruction::ALLOCATION;
         est_chargeable = true;
     }
+
+    IdentifiantCode *ident = nullptr;
 
     /* le nombre total de blocs utilisant cet allocation */
     int blocs_utilisants = 0;
