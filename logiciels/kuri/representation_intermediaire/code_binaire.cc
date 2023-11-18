@@ -1337,7 +1337,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
     }
 }
 
-static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
+static Type const *type_entier_sous_jacent(Type const *type)
 {
     if (type->est_type_entier_constant()) {
         return TypeBase::Z32;
@@ -1442,8 +1442,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
         {
             auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-            auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
-                                                valeur_constante->type);
+            auto type = type_entier_sous_jacent(valeur_constante->type);
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
