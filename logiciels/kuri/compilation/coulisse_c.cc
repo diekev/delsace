@@ -700,6 +700,13 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
         nom_broyé = enchaine(nom_broyé, type_structure);
     }
 
+    if (type_structure->decl && type_structure->decl->est_externe) {
+        if (type_structure->membres.taille() == 0) {
+            enchaineuse << "typedef struct " << nom_broyé << " " << nom_broyé << ";\n\n";
+            return;
+        }
+    }
+
     if (quoi == STRUCTURE) {
         enchaineuse << "typedef struct " << nom_broyé << "{\n";
     }
