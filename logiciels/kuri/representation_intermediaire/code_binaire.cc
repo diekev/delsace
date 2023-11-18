@@ -1337,31 +1337,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
     }
 }
 
-static Type const *type_entier_sous_jacent(Type const *type)
-{
-    if (type->est_type_entier_constant()) {
-        return TypeBase::Z32;
-    }
-
-    if (type->est_type_enum()) {
-        return type->comme_type_enum()->type_sous_jacent;
-    }
-
-    if (type->est_type_erreur()) {
-        return type->comme_type_erreur()->type_sous_jacent;
-    }
-
-    if (type->est_type_type_de_donnees()) {
-        return TypeBase::Z64;
-    }
-
-    if (type->est_type_octet()) {
-        return TypeBase::N8;
-    }
-
-    return type;
-}
-
 void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
 {
     switch (constante->genre) {

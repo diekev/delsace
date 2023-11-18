@@ -767,6 +767,40 @@ bool requiers_fonction_initialisation(Type const *type);
  */
 bool requiers_création_fonction_initialisation(Type const *type);
 
+/* Retourne le type entier sous-jacent pour les types pouvant être représentés par un nombre entier
+ * (p.e. les énumérations). Retourne nul sinon. */
+Type const *type_entier_sous_jacent(Type const *type);
+
+/** Si \a type_base_potentiel est un type employé par \a type_dérivé, ou employé par un type
+ * employé par \a type_dérivé, retourne le décalage absolu en octet dans la structure de \a
+ * type_dérivé du \a type_base_potentiel. Ceci prend en compte le décalage des emplois
+ * intermédiaire pour arriver à \a type_base_potentiel.
+ * S'il n'y a aucune filliation entre les types, ne retourne rien. */
+std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
+                                         TypeStructure const *type_base_potentiel);
+
+std::optional<uint32_t> est_type_de_base(Type const *type_dérivé, Type const *type_base_potentiel);
+
+bool est_type_pointeur_nul(Type const *type);
+
+/* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
+ * arriver à un type racine) + 1.
+ * Par exemple, *z32 a une profondeur de 2 (1 déréférencement de pointeur + 1), alors que []*z32 en
+ * a une de 3. */
+int donne_profondeur_type(Type const *type);
+
+/* Retourne vrai la variable est d'un type pouvant être le membre d'une structure. */
+bool est_type_valide_pour_membre(Type const *membre_type);
+
+bool peut_construire_union_via_rien(TypeUnion const *type_union);
+
+/* Décide si le type peut être utilisé pour les expressions d'indexages basiques du langage.
+ * NOTE : les entiers relatifs ne sont pas considérées ici car nous utilisons cette décision pour
+ * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
+bool est_type_implicitement_utilisable_pour_indexage(Type const *type);
+
+bool peut_etre_type_constante(Type const *type);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -778,6 +812,26 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose c
 
 std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_membre);
+
+template <typename T, int tag>
+struct ValeurOpaqueTaguee {
+    T valeur;
+};
+
+enum {
+    INDEX_MEMBRE = 0,
+    AUCUN_TROUVE = 1,
+    PLUSIEURS_TROUVES = 2,
+};
+
+using IndexMembre = ValeurOpaqueTaguee<int, INDEX_MEMBRE>;
+using PlusieursMembres = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
+using AucunMembre = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+
+using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, AucunMembre>;
+
+ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose const *type,
+                                                                   Type const *type_a_tester);
 
 /** \} */
 
