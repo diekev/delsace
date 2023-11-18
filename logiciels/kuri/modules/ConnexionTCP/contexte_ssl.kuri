@@ -255,7 +255,7 @@ contexte_ssl_parasite_quand_ouverture :: fonc (ctx: *ContextePriseSSL, rappel: f
     retourne sur_ouverture_ssl
 }
 
-contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (*Prise, []octet)(rien)) -> type_de(rappel)
+contexte_ssl_parasite_quand_données_reçues :: fonc (ctx: *ContextePriseSSL, rappel: fonc (*Prise, []octet)(rien)) -> type_de(rappel)
 {
     ctx.sur_données_reçues_base = rappel
     retourne sur_données_reçues_ssl

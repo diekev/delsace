@@ -1976,6 +1976,15 @@ NoeudDeclarationEnteteFonction *crée_entête_pour_initialisation_type(Type *typ
             &lexème_déclaration, type_param, ID::pointeur, nullptr);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
+        if (type->est_type_reference()) {
+            /* Les références ne sont pas initialisées. Marquons-les comme tel afin de plaire aux
+             * coulisses. */
+            déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
+        }
+        else {
+            déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        }
+
         entête->params.ajoute(déclaration_paramètre);
     }
 
