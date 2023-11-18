@@ -630,7 +630,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
         case Atome::Genre::FONCTION:
         {
             // dbg() << "FONCTION";
-            auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+            auto atome_fonc = atome->comme_fonction();
             return m_module->getFunction(vers_std_string(atome_fonc->nom));
         }
         case Atome::Genre::CONSTANTE:
@@ -641,7 +641,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
             switch (atome_const->genre) {
                 case AtomeConstante::Genre::GLOBALE:
                 {
-                    auto valeur_globale = static_cast<AtomeGlobale const *>(atome);
+                    auto valeur_globale = atome->comme_globale();
 
                     if (valeur_globale->ident) {
                         auto valeur_ = table_globales.valeur_ou(valeur_globale, nullptr);
@@ -655,7 +655,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                 }
                 case AtomeConstante::Genre::FONCTION:
                 {
-                    auto fonction = static_cast<AtomeFonction const *>(atome_const);
+                    auto fonction = atome_const->comme_fonction();
                     return m_module->getFunction(vers_std_string(fonction->nom));
                 }
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
@@ -676,7 +676,7 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                     assert(accede);
 
                     if (acces->accede->est_globale()) {
-                        auto globale = static_cast<AtomeGlobale *>(acces->accede);
+                        auto globale = acces->accede->comme_globale();
 
                         auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
                         assert(init);
@@ -1257,7 +1257,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         auto valeurs_args = fonction->arg_begin();
 
         for (auto &param : atome_fonc->params_entrees) {
-            auto const &nom_argument = param->comme_instruction()->comme_alloc()->ident->nom;
+            auto const &nom_argument = param->ident->nom;
 
             auto valeur = &(*valeurs_args++);
             valeur->setName(vers_std_string(nom_argument));

@@ -47,7 +47,7 @@ struct RegistreSymboliqueRI {
 
     ~RegistreSymboliqueRI();
 
-    AtomeFonction *crée_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier);
+    AtomeFonction *crée_fonction(kuri::chaine_statique nom_fonction);
 
     /* Il existe des dépendances cycliques entre les fonctions qui nous empêche de
      * générer le code linéairement. Cette fonction nous sers soit à trouver le
@@ -115,7 +115,7 @@ struct ConstructriceRI {
 
     void définis_fonction_courante(AtomeFonction *fonction_courante);
 
-    AtomeFonction *crée_fonction(const Lexeme *lexeme, const kuri::chaine &nom_fichier);
+    AtomeFonction *crée_fonction(kuri::chaine_statique nom_fonction);
 
     AtomeFonction *trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl);
 

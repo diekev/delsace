@@ -356,8 +356,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
             continue;
         }
 
-        auto alloc = it->comme_instruction()->comme_alloc();
-        auto decl_alloc = alloc->site;
+        auto decl_alloc = it->site;
 
         /* Si le site n'est pas une déclaration de variable (le contexte implicite n'a pas de
          * site propre, celui de la fonction est utilisé), ajoutons-la à la liste des
@@ -369,7 +368,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
 
         auto decl_var = decl_alloc->comme_declaration_variable();
         if (!possède_annotation(decl_var, "inutilisée")) {
-            allocs_inutilisees.ajoute(alloc);
+            allocs_inutilisees.ajoute(it);
         }
     }
 

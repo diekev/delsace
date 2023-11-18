@@ -429,7 +429,7 @@ RAPPEL_POUR_UNITÉ(ri)
     if (!ri_attendue || !ri_attendue->est_fonction()) {
         return nullptr;
     }
-    auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+    auto fonction = ri_attendue->comme_fonction();
     if (!fonction->decl) {
         return nullptr;
     }
@@ -444,7 +444,7 @@ RAPPEL_POUR_COMMENTAIRE(ri)
     }
 
     if (ri_attendue->est_fonction()) {
-        auto fonction = static_cast<AtomeFonction *>(ri_attendue);
+        auto fonction = ri_attendue->comme_fonction();
         if (fonction->decl) {
             auto decl = fonction->decl;
             if (decl->ident) {
@@ -457,7 +457,7 @@ RAPPEL_POUR_COMMENTAIRE(ri)
     }
 
     if (ri_attendue->est_globale()) {
-        auto globale = static_cast<AtomeGlobale *>(ri_attendue);
+        auto globale = ri_attendue->comme_globale();
         if (globale->ident) {
             return enchaine("RI de la globale ", globale->ident->nom);
         }

@@ -332,7 +332,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         }
         case Atome::Genre::GLOBALE:
         {
-            auto globale = static_cast<AtomeGlobale *>(racine);
+            auto globale = racine->comme_globale();
             visite_atome(globale->initialisateur, rappel);
             break;
         }

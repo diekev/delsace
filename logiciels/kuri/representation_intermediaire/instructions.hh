@@ -280,13 +280,10 @@ struct AccedeIndexConstant : public AtomeConstante {
 struct AtomeFonction : public AtomeConstante {
     kuri::chaine_statique nom{};
 
-    kuri::tableau<Atome *, int> params_entrees{};
-    Atome *param_sortie = nullptr;
+    kuri::tableau<InstructionAllocation *, int> params_entrees{};
+    InstructionAllocation *param_sortie = nullptr;
 
     kuri::tableau<Instruction *, int> instructions{};
-
-    /* pour les traces d'appels */
-    Lexeme const *lexeme = nullptr;
 
     bool sanstrace = false;
     bool est_externe = false;
@@ -300,17 +297,20 @@ struct AtomeFonction : public AtomeConstante {
 
     AtomeGlobale *info_trace_appel = nullptr;
 
-    AtomeFonction(Lexeme const *lexeme_, kuri::chaine_statique nom_) : nom(nom_), lexeme(lexeme_)
+    AtomeFonction(NoeudDeclarationEnteteFonction const *decl_, kuri::chaine_statique nom_)
+        : nom(nom_), decl(decl_)
     {
         genre_atome = Atome::Genre::FONCTION;
     }
 
-    AtomeFonction(Lexeme const *lexeme_,
+    AtomeFonction(NoeudDeclarationEnteteFonction const *decl_,
                   kuri::chaine_statique nom_,
-                  kuri::tableau<Atome *, int> &&params_)
-        : AtomeFonction(lexeme_, nom_)
+                  kuri::tableau<InstructionAllocation *, int> &&params_,
+                  InstructionAllocation *param_sortie_)
+        : AtomeFonction(decl_, nom_)
     {
         this->params_entrees = std::move(params_);
+        this->param_sortie = param_sortie_;
     }
 
     ~AtomeFonction();
