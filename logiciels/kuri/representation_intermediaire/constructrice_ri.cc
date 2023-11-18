@@ -879,8 +879,6 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 
 /* ************************************************************************** */
 
-#define IDENT_CODE(x) m_compilatrice.table_identifiants->identifiant_pour_chaine((x))
-
 CompilatriceRI::CompilatriceRI(Compilatrice &compilatrice)
     : m_compilatrice(compilatrice),
       m_constructrice(compilatrice.typeuse, *compilatrice.registre_ri)
