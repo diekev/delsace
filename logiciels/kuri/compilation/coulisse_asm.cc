@@ -57,7 +57,7 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
         {
-            auto atome_fonc = static_cast<AtomeFonction const *>(atome);
+            auto atome_fonc = atome->comme_fonction();
             return atome_fonc->nom;
         }
         case Atome::Genre::CONSTANTE:
