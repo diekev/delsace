@@ -53,10 +53,6 @@ struct Atome {
     // machine à état utilisée pour déterminer si un atome a été utilisé ou non
     int etat = 0;
 
-    Atome() = default;
-
-    EMPECHE_COPIE(Atome);
-
     inline Instruction *comme_instruction();
     inline Instruction const *comme_instruction() const;
 
