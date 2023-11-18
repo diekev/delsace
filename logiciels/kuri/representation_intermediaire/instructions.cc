@@ -7,6 +7,21 @@
 
 #include "code_binaire.hh"
 
+std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
+{
+#define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident)                                          \
+    case Atome::Genre::__genre:                                                                   \
+    {                                                                                             \
+        os << #__genre;                                                                           \
+        break;                                                                                    \
+    }
+    switch (genre_atome) {
+        ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+    }
+#undef ENUMERE_GENRE_ATOME_EX
+    return os;
+}
+
 AtomeValeurConstante::Valeur::~Valeur()
 {
     if (genre == Genre::STRUCTURE) {
@@ -264,19 +279,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 {
                     auto transtype_const = static_cast<TranstypeConstant const *>(constante);
                     visite_atome(transtype_const->valeur, rappel);
-                    break;
-                }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    auto op_unaire_const = static_cast<OpUnaireConstant const *>(constante);
-                    visite_atome(op_unaire_const->operande, rappel);
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    auto op_unaire_const = static_cast<OpBinaireConstant const *>(constante);
-                    visite_atome(op_unaire_const->operande_gauche, rappel);
-                    visite_atome(op_unaire_const->operande_droite, rappel);
                     break;
                 }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:

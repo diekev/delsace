@@ -13,6 +13,8 @@
 #include "structures/chaine_statique.hh"
 #include "structures/ensemble.hh"
 
+struct AtomeConstante;
+struct AtomeFonction;
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
 struct Instruction;
@@ -32,16 +34,20 @@ struct InstructionTranstype;
 struct Lexeme;
 struct Type;
 
+#define ENUMERE_GENRE_ATOME(O)                                                                    \
+    O(CONSTANTE, AtomeConstante, constante)                                                       \
+    O(FONCTION, AtomeFonction, fonction)                                                          \
+    O(INSTRUCTION, Instruction, instruction)                                                      \
+    O(GLOBALE, AtomeGlobale, globale)
+
 struct Atome {
     enum class Genre {
-        CONSTANTE,
-        FONCTION,
-        INSTRUCTION,
-        GLOBALE,
+#define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident) __genre,
+        ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+#undef ENUMERE_GENRE_ATOME_EX
     };
 
     Type const *type = nullptr;
-    IdentifiantCode *ident = nullptr;
 
     Genre genre_atome{};
     // vrai si l'atome est celui d'une instruction chargeable
@@ -53,30 +59,15 @@ struct Atome {
     // machine à état utilisée pour déterminer si un atome a été utilisé ou non
     int etat = 0;
 
-    Atome() = default;
-
-    EMPECHE_COPIE(Atome);
-
-    inline Instruction *comme_instruction();
-    inline Instruction const *comme_instruction() const;
-
-    inline bool est_constante() const
-    {
-        return genre_atome == Genre::CONSTANTE;
-    }
-    inline bool est_fonction() const
-    {
-        return genre_atome == Genre::FONCTION;
-    }
-    inline bool est_globale() const
-    {
-        return genre_atome == Genre::GLOBALE;
-    }
-    inline bool est_instruction() const
-    {
-        return genre_atome == Genre::INSTRUCTION;
-    }
+#define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident)                                          \
+    inline __type *comme_##__ident();                                                             \
+    inline __type const *comme_##__ident() const;                                                 \
+    inline bool est_##__ident() const;
+    ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+#undef ENUMERE_GENRE_ATOME_EX
 };
+
+std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome);
 
 struct AtomeConstante : public Atome {
     AtomeConstante()
@@ -89,8 +80,6 @@ struct AtomeConstante : public Atome {
         FONCTION,
         VALEUR,
         TRANSTYPE_CONSTANT,
-        OP_BINAIRE_CONSTANTE,
-        OP_UNAIRE_CONSTANTE,
         ACCES_INDEX_CONSTANT,
     };
 
@@ -223,6 +212,7 @@ struct AtomeGlobale : public AtomeConstante {
         est_chargeable = true;
     }
 
+    IdentifiantCode *ident = nullptr;
     AtomeConstante *initialisateur{};
     bool est_externe = false;
     bool est_constante = false;
@@ -264,51 +254,6 @@ struct TranstypeConstant : public AtomeConstante {
     {
         this->type = type_;
         this->valeur = valeur_;
-    }
-};
-
-struct OpBinaireConstant : public AtomeConstante {
-    OpBinaireConstant()
-    {
-        genre = Genre::OP_BINAIRE_CONSTANTE;
-    }
-
-    OpérateurBinaire::Genre op{};
-    AtomeConstante *operande_gauche = nullptr;
-    AtomeConstante *operande_droite = nullptr;
-
-    EMPECHE_COPIE(OpBinaireConstant);
-
-    OpBinaireConstant(Type const *type_,
-                      OpérateurBinaire::Genre op_,
-                      AtomeConstante *operande_gauche_,
-                      AtomeConstante *operande_droite_)
-        : OpBinaireConstant()
-    {
-        this->type = type_;
-        this->op = op_;
-        this->operande_gauche = operande_gauche_;
-        this->operande_droite = operande_droite_;
-    }
-};
-
-struct OpUnaireConstant : public AtomeConstante {
-    OpUnaireConstant()
-    {
-        genre = Genre::OP_UNAIRE_CONSTANTE;
-    }
-
-    OpérateurUnaire::Genre op{};
-    AtomeConstante *operande = nullptr;
-
-    EMPECHE_COPIE(OpUnaireConstant);
-
-    OpUnaireConstant(Type const *type_, OpérateurUnaire::Genre op_, AtomeConstante *operande_)
-        : OpUnaireConstant()
-    {
-        this->type = type_;
-        this->op = op_;
-        this->operande = operande_;
     }
 };
 
@@ -488,16 +433,6 @@ struct Instruction : public Atome {
 #undef COMME_INST
 };
 
-inline Instruction *Atome::comme_instruction()
-{
-    return static_cast<Instruction *>(this);
-}
-
-inline Instruction const *Atome::comme_instruction() const
-{
-    return static_cast<Instruction const *>(this);
-}
-
 struct InstructionAppel : public Instruction {
     explicit InstructionAppel(NoeudExpression *site_)
     {
@@ -534,6 +469,8 @@ struct InstructionAllocation : public Instruction {
         genre = GenreInstruction::ALLOCATION;
         est_chargeable = true;
     }
+
+    IdentifiantCode *ident = nullptr;
 
     /* le nombre total de blocs utilisant cet allocation */
     int blocs_utilisants = 0;
@@ -841,6 +778,24 @@ bool est_opérateur_binaire_constant(Instruction const *inst);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);
+
+#define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident)                                          \
+    inline __type *Atome::comme_##__ident()                                                       \
+    {                                                                                             \
+        assert(est_##__ident());                                                                  \
+        return static_cast<__type *>(this);                                                       \
+    }                                                                                             \
+    inline __type const *Atome::comme_##__ident() const                                           \
+    {                                                                                             \
+        assert(est_##__ident());                                                                  \
+        return static_cast<__type const *>(this);                                                 \
+    }                                                                                             \
+    inline bool Atome::est_##__ident() const                                                      \
+    {                                                                                             \
+        return genre_atome == Genre::__genre;                                                     \
+    }
+ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+#undef ENUMERE_GENRE_ATOME_EX
 
 #define COMME_INST(Type, Genre)                                                                   \
     inline Type *Instruction::comme_##Genre()                                                     \
