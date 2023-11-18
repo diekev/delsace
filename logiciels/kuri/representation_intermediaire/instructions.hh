@@ -807,6 +807,41 @@ struct InstructionTranstype : public Instruction {
     }
 };
 
+bool est_valeur_constante_entière(Atome const *atome);
+bool est_valeur_constante(Atome const *atome);
+bool est_constante_entière_zéro(Atome const *atome);
+bool est_constante_entière_un(Atome const *atome);
+bool est_allocation(Atome const *atome);
+bool est_locale_ou_globale(Atome const *atome);
+
+/**
+ * Retourne vrai si \a inst0 est un stockage vers \a inst1.
+ */
+bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1);
+
+/**
+ * Retourne vrai si \a inst0 est un transtypage de \a inst1.
+ */
+bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1);
+
+/**
+ * Retourne vrai si \a inst0 est un chargement de \a inst1.
+ */
+bool est_chargement_de(Instruction const *inst0, Instruction const *inst1);
+
+/**
+ * Retourne vrai si \a inst correspond à `x = x + 1`.
+ */
+bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst);
+
+/**
+ * Retourne vrai si \a inst est un opérateur binaire dont les opérandes sont des constantes.
+ */
+bool est_opérateur_binaire_constant(Instruction const *inst);
+
+InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
+    InstructionStockeMem const *inst);
+
 #define COMME_INST(Type, Genre)                                                                   \
     inline Type *Instruction::comme_##Genre()                                                     \
     {                                                                                             \

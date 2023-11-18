@@ -1145,6 +1145,21 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
     return "";
 }
 
+/* Utilisée pour transtyper le type du deuxième argument afin de faire taire GCC (char** vs. signed
+ * char**). */
+static bool est_appel_init_contexte(InstructionAppel const *inst_appel)
+{
+    auto appelée = inst_appel->appele;
+    if (!appelée->est_fonction()) {
+        return false;
+    }
+    auto fonction = static_cast<AtomeFonction const *>(appelée);
+    if (!fonction->decl) {
+        return false;
+    }
+    return fonction->decl->ident == ID::__init_contexte_kuri;
+}
+
 void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst, Enchaineuse &os)
 {
     switch (inst->genre) {
@@ -1166,6 +1181,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::APPEL:
         {
             auto inst_appel = inst->comme_appel();
+            auto const est_init_contexte = est_appel_init_contexte(inst_appel);
 
             auto arguments = kuri::tablet<kuri::chaine, 10>();
 
@@ -1186,8 +1202,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             auto virgule = "(";
 
-            POUR (arguments) {
+            POUR_INDEX (arguments) {
                 os << virgule;
+                if (est_init_contexte && index_it == 1) {
+                    os << "(signed char **)";
+                }
                 os << it;
                 virgule = ", ";
             }
