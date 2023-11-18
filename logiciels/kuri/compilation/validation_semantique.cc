@@ -2759,6 +2759,13 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         }
     }
 
+    if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
+            .ajoute_message("La déclaration fut déclarée ici :\n")
+            .ajoute_site(decl);
+        return CodeRetourValidation::Erreur;
+    }
+
     return CodeRetourValidation::OK;
 }
 
@@ -2883,8 +2890,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possède_annotation(decl_param, "inutilisée")) {
-            decl_param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
+        if (decl_param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
             continue;
         }
 
@@ -3026,6 +3032,13 @@ static void échange_corps_entêtes(NoeudDeclarationEnteteFonction *ancienne_fon
 ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorpsFonction *decl)
 {
     auto entete = decl->entete;
+
+    for (int i = 0; i < entete->params.taille(); ++i) {
+        auto decl_param = entete->parametre_entree(i);
+        if (possède_annotation(decl_param, "inutilisée")) {
+            decl_param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
+        }
+    }
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
         !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
