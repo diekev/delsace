@@ -148,13 +148,13 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     }
 
     auto params = kuri::tableau<InstructionAllocation *, int>();
-    params.reserve(decl->params.taille());
+    params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
-        params.ajoute(atome);
+        params[i] = atome;
     }
 
     /* Pour les sorties multiples, les valeurs de sorties sont des accès de
