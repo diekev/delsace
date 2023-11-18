@@ -419,6 +419,9 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
 
 #undef CREE_TYPE_SIMPLE
 
+    TypeBase::RIEN->drapeaux |= (TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                 INITIALISATION_TYPE_FUT_CREEE);
+
     TypeBase::ENTIER_CONSTANT = crée_type_entier_constant();
     types_simples->ajoute(TypeBase::ENTIER_CONSTANT);
 
@@ -993,7 +996,8 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
 
     marque_polymorphique(type);
 
-    type->drapeaux |= (TYPE_FUT_VALIDE);
+    type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                       INITIALISATION_TYPE_FUT_CREEE);
 
     return type;
 }
