@@ -130,12 +130,10 @@ RegistreSymboliqueRI::~RegistreSymboliqueRI()
     memoire::deloge("ConstructriceRI", m_constructrice);
 }
 
-AtomeFonction *RegistreSymboliqueRI::crée_fonction(const Lexeme *lexeme,
-                                                   const kuri::chaine &nom_fichier)
+AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */
-    return fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
+    return fonctions.ajoute_element(nullptr, nom_fonction);
 }
 
 AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
@@ -144,17 +142,17 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     std::unique_lock lock(mutex_atomes_fonctions);
 
     if (decl->atome) {
-        return static_cast<AtomeFonction *>(decl->atome);
+        return decl->atome->comme_fonction();
     }
 
-    auto params = kuri::tableau<Atome *, int>();
-    params.reserve(decl->params.taille());
+    auto params = kuri::tableau<InstructionAllocation *, int>();
+    params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
-        params.ajoute(atome);
+        params[i] = atome;
     }
 
     /* Pour les sorties multiples, les valeurs de sorties sont des accès de
@@ -175,12 +173,10 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->donne_nom_broyé(*broyeuse), std::move(params));
+        decl, decl->donne_nom_broyé(*broyeuse), std::move(params), atome_param_sortie);
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
-    atome_fonc->decl = decl;
-    atome_fonc->param_sortie = atome_param_sortie;
     atome_fonc->enligne = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_ENLIGNE);
 
     decl->atome = atome_fonc;
@@ -203,7 +199,7 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_globale(NoeudDeclaration *decl)
 {
     std::unique_lock lock(mutex_atomes_globales);
     auto decl_var = decl->comme_declaration_variable();
-    return static_cast<AtomeGlobale *>(decl_var->atome);
+    return decl_var->atome->comme_globale();
 }
 
 AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *decl)
@@ -216,7 +212,7 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *
         decl_var->atome = crée_globale(decl->type, nullptr, false, false);
     }
 
-    return static_cast<AtomeGlobale *>(decl_var->atome);
+    return decl_var->atome->comme_globale();
 }
 
 void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
@@ -253,10 +249,9 @@ void ConstructriceRI::définis_fonction_courante(AtomeFonction *fonction_courant
     m_fonction_courante = fonction_courante;
 }
 
-AtomeFonction *ConstructriceRI::crée_fonction(const Lexeme *lexeme,
-                                              const kuri::chaine &nom_fichier)
+AtomeFonction *ConstructriceRI::crée_fonction(kuri::chaine_statique nom_fonction)
 {
-    return m_registre.crée_fonction(lexeme, nom_fichier);
+    return m_registre.crée_fonction(nom_fonction);
 }
 
 AtomeFonction *ConstructriceRI::trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl)
@@ -879,8 +874,6 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 
 /* ************************************************************************** */
 
-#define IDENT_CODE(x) m_compilatrice.table_identifiants->identifiant_pour_chaine((x))
-
 CompilatriceRI::CompilatriceRI(Compilatrice &compilatrice)
     : m_compilatrice(compilatrice),
       m_constructrice(compilatrice.typeuse, *compilatrice.registre_ri)
@@ -921,7 +914,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     auto types_entrees = kuri::tablet<Type *, 6>(0);
     auto type_sortie = TypeBase::RIEN;
 
-    auto fonction = m_constructrice.crée_fonction(nullptr, nom_fontion);
+    auto fonction = m_constructrice.crée_fonction(nom_fontion);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
 
     définis_fonction_courante(fonction);
