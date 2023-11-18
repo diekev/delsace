@@ -130,12 +130,10 @@ RegistreSymboliqueRI::~RegistreSymboliqueRI()
     memoire::deloge("ConstructriceRI", m_constructrice);
 }
 
-AtomeFonction *RegistreSymboliqueRI::crée_fonction(const Lexeme *lexeme,
-                                                   const kuri::chaine &nom_fichier)
+AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
 {
     std::unique_lock lock(mutex_atomes_fonctions);
-    /* Le broyage est en soi inutile mais nous permet d'avoir une chaine_statique. */
-    return fonctions.ajoute_element(lexeme, broyeuse->broye_nom_simple(nom_fichier));
+    return fonctions.ajoute_element(nullptr, nom_fonction);
 }
 
 AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
@@ -175,7 +173,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     }
 
     auto atome_fonc = fonctions.ajoute_element(
-        decl->lexeme, decl->donne_nom_broyé(*broyeuse), std::move(params));
+        decl, decl->donne_nom_broyé(*broyeuse), std::move(params));
     atome_fonc->type = decl->type;
     atome_fonc->est_externe = decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE);
     atome_fonc->sanstrace = decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANSTRACE);
@@ -253,10 +251,9 @@ void ConstructriceRI::définis_fonction_courante(AtomeFonction *fonction_courant
     m_fonction_courante = fonction_courante;
 }
 
-AtomeFonction *ConstructriceRI::crée_fonction(const Lexeme *lexeme,
-                                              const kuri::chaine &nom_fichier)
+AtomeFonction *ConstructriceRI::crée_fonction(kuri::chaine_statique nom_fonction)
 {
-    return m_registre.crée_fonction(lexeme, nom_fichier);
+    return m_registre.crée_fonction(nom_fonction);
 }
 
 AtomeFonction *ConstructriceRI::trouve_ou_insère_fonction(NoeudDeclarationEnteteFonction *decl)
@@ -919,7 +916,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     auto types_entrees = kuri::tablet<Type *, 6>(0);
     auto type_sortie = TypeBase::RIEN;
 
-    auto fonction = m_constructrice.crée_fonction(nullptr, nom_fontion);
+    auto fonction = m_constructrice.crée_fonction(nom_fontion);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
 
     définis_fonction_courante(fonction);
