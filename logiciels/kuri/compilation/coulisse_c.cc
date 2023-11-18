@@ -32,6 +32,7 @@
  * des tableaux d'octets pour toutes les structures. */
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
+#undef IMPRIME_COMMENTAIRE
 #undef PRESERVE_NOMS_DANS_LE_CODE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
@@ -1556,6 +1557,10 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
         atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return;
     }
+
+#ifdef IMPRIME_COMMENTAIRE
+    os << "// " << atome_fonc->nom << '\n';
+#endif
 
     if (atome_fonc->enligne) {
         os << "static __attribute__((always_inline)) inline ";
