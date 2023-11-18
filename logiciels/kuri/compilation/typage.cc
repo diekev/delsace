@@ -241,6 +241,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     : TypeTableauFixe()
 {
     assert(type_pointe_);
+    assert(taille_ > 0);
 
     this->membres = std::move(membres_);
     this->type_pointe = type_pointe_;
