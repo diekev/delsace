@@ -1710,6 +1710,15 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        /* Marque les paramètres comme étant utilisés afin que les coulisses ne les marquent pas
+         * comme inutilisés. */
+        for (auto i = 0; i < decl->params.taille(); i++) {
+            auto param = decl->parametre_entree(i);
+            param->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+        }
+    }
+
 #ifdef STATISTIQUES_DETAILLEES
     possède_erreur = false;
 #endif
@@ -2751,6 +2760,13 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         }
     }
 
+    if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        espace->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
+            .ajoute_message("La déclaration fut déclarée ici :\n")
+            .ajoute_site(decl);
+        return CodeRetourValidation::Erreur;
+    }
+
     return CodeRetourValidation::OK;
 }
 
@@ -2875,12 +2891,19 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
 
     for (int i = 0; i < entete.params.taille(); ++i) {
         auto decl_param = entete.parametre_entree(i);
-        if (possède_annotation(decl_param, "inutilisée")) {
+        if (decl_param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
             continue;
         }
 
-        if (!decl_param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
-            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé");
+        if (decl_param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
+            continue;
+        }
+
+        if (entete.est_operateur && !entete.est_operateur_pour()) {
+            espace.rapporte_erreur(decl_param, "Paramètre d'opérateur inutilisé.");
+        }
+        else {
+            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé.");
         }
     }
 
@@ -3011,6 +3034,13 @@ ResultatValidation ContexteValidationCode::valide_fonction(NoeudDeclarationCorps
 {
     auto entete = decl->entete;
 
+    for (int i = 0; i < entete->params.taille(); ++i) {
+        auto decl_param = entete->parametre_entree(i);
+        if (possède_annotation(decl_param, "inutilisée")) {
+            decl_param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
+        }
+    }
+
     if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
         !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
         // nous ferons l'analyse sémantique plus tard
@@ -3132,6 +3162,8 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
     if (!entete->est_operateur_pour()) {
         simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
     }
+
+    avertis_declarations_inutilisees(*espace, *entete);
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
