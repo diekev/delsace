@@ -57,32 +57,33 @@ enum class DrapeauxNoeud : uint32_t {
     POUR_CUISSON = (1 << 15),                   // appel
     ACCES_EST_ENUM_DRAPEAU = (1 << 16),         // accès membre
     EST_UTILISEE = (1 << 17),                   // decl var
-    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 18),
-    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 19),
-    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 20),
-    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 21),
+    EST_MARQUÉE_INUTILISÉE = (1 << 18),         // decl var
+    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 19),
+    NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 20),
+    DÉPENDANCES_FURENT_RÉSOLUES = (1 << 21),
+    IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 22),
     /* Certaines assertions dans le code se base sur les lexèmes des littérales, mais la
      * canonicalisation peut réutiliser les lexèmes des sites sources faisant échouer les précitées
      * assertions. */
-    LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 22),
+    LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION = (1u << 23),
 
     /* Drapeaux pour définir où se trouve le noeud dans l'arbre syntaxique. */
 
     /* Le noeud est à droite de '=' ou ':='. */
-    DROITE_ASSIGNATION = (1u << 23),
+    DROITE_ASSIGNATION = (1u << 24),
     /* Le noeud est utilisé comme condition pour une boucle ou si/saufsi. */
-    DROITE_CONDITION = (1u << 24),
+    DROITE_CONDITION = (1u << 25),
     /* Le noeud est utilisé comme expression d'appel (p.e. noeud(...)). */
-    GAUCHE_EXPRESSION_APPEL = (1 << 25),
+    GAUCHE_EXPRESSION_APPEL = (1 << 26),
     /* Le noeud est une expression de bloc d'une instruction si. */
-    EXPRESSION_BLOC_SI = (1u << 26),
+    EXPRESSION_BLOC_SI = (1u << 27),
     /* Le noeud est une expression de test d'une discrimination (NoeudPaireDiscr.expression). */
-    EXPRESSION_TEST_DISCRIMINATION = (1u << 27),
+    EXPRESSION_TEST_DISCRIMINATION = (1u << 28),
 
-    EST_LOCALE = (1u << 28),  // decl var
+    EST_LOCALE = (1u << 29),  // decl var
     /* La déclaration est celle d'une variable déclarée dans une expression virgule
      * (p.e. a, b := ...). */
-    EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 29),  // decl var
+    EST_DÉCLARATION_EXPRESSION_VIRGULE = (1u << 30),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

@@ -32,6 +32,7 @@
  * des tableaux d'octets pour toutes les structures. */
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
+#undef IMPRIME_COMMENTAIRE
 #undef PRESERVE_NOMS_DANS_LE_CODE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
@@ -699,6 +700,13 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
         nom_broyé = enchaine(nom_broyé, type_structure);
     }
 
+    if (type_structure->decl && type_structure->decl->est_externe) {
+        if (type_structure->membres.taille() == 0) {
+            enchaineuse << "typedef struct " << nom_broyé << " " << nom_broyé << ";\n\n";
+            return;
+        }
+    }
+
     if (quoi == STRUCTURE) {
         enchaineuse << "typedef struct " << nom_broyé << "{\n";
     }
@@ -765,6 +773,16 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
     enchaineuse << "#include <stdint.h>\n";
+
+    auto const attribut_inutilisé = R"(
+#ifdef __GNUC__
+#  define INUTILISE(x) INUTILISE_ ## x __attribute__((__unused__))
+#else
+#  define INUTILISE(x) INUTILISE_ ## x
+#endif
+)";
+
+    enchaineuse << attribut_inutilisé;
 
     /* Déclaration des types de bases*/
 
@@ -1550,12 +1568,54 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }
 
+static bool paramètre_est_marqué_comme_inutilisée(NoeudDeclarationEnteteFonction const *entête,
+                                                  int index)
+{
+    if (!entête) {
+        return false;
+    }
+
+    auto const param = entête->parametre_entree(index);
+    return param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE);
+}
+
+/* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
+ * être. */
+static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
+    NoeudDeclarationEnteteFonction const *entête, int index)
+{
+    if (!entête) {
+        return {};
+    }
+
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+        if (entête->ident->nom == "memcpy" && index == 1) {
+            return "const void *";
+        }
+        return {};
+    }
+
+    if (entête->ident == ID::__point_d_entree_systeme) {
+        if (index == 1) {
+            return "char **";
+        }
+
+        return {};
+    }
+
+    return {};
+}
+
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
 {
     if (atome_fonc->decl &&
         atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
         return;
     }
+
+#ifdef IMPRIME_COMMENTAIRE
+    os << "// " << atome_fonc->nom << '\n';
+#endif
 
     if (atome_fonc->enligne) {
         os << "static __attribute__((always_inline)) inline ";
@@ -1568,12 +1628,21 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
     auto virgule = "(";
 
     int numéro_inst = 0;
-    for (auto param : atome_fonc->params_entrees) {
+    POUR_INDEX (atome_fonc->params_entrees) {
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc->decl,
+                                                                             index_it);
+
         os << virgule;
 
-        auto type_pointeur = param->type->comme_type_pointeur();
+        auto type_pointeur = it->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointe;
-        os << donne_nom_pour_type(type_param) << ' ';
+        auto type_opt = type_paramètre_pour_fonction_clé(atome_fonc->decl, index_it);
+        if (type_opt.has_value()) {
+            os << type_opt.value();
+        }
+        else {
+            os << donne_nom_pour_type(type_param) << ' ';
+        }
 
         /* Dans le cas des fonctions variadiques externes, si le paramètres n'est pas typé
          * (void fonction(...)), n'imprime pas de nom. */
@@ -1582,8 +1651,17 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
             continue;
         }
 
-        param->comme_instruction()->numero = numéro_inst++;
-        os << donne_nom_pour_instruction(param->comme_instruction());
+        it->comme_instruction()->numero = numéro_inst++;
+
+        if (est_paramètre_inutilisé) {
+            os << "INUTILISE(";
+        }
+
+        os << donne_nom_pour_instruction(it->comme_instruction());
+
+        if (est_paramètre_inutilisé) {
+            os << ")";
+        }
 
         virgule = ", ";
     }
