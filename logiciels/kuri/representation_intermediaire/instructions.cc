@@ -7,6 +7,21 @@
 
 #include "code_binaire.hh"
 
+std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
+{
+#define ENUMERE_GENRE_ATOME_EX(__genre, __type, __ident)                                          \
+    case Atome::Genre::__genre:                                                                   \
+    {                                                                                             \
+        os << #__genre;                                                                           \
+        break;                                                                                    \
+    }
+    switch (genre_atome) {
+        ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
+    }
+#undef ENUMERE_GENRE_ATOME_EX
+    return os;
+}
+
 AtomeValeurConstante::Valeur::~Valeur()
 {
     if (genre == Genre::STRUCTURE) {
