@@ -1085,111 +1085,6 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     return true;
 }
 
-static bool est_allocation(Atome const *atome)
-{
-    return atome->est_instruction() && atome->comme_instruction()->est_alloc();
-}
-
-static bool est_valeur_constante(Atome const *atome)
-{
-    if (!atome->est_constante()) {
-        return false;
-    }
-
-    auto const constante = static_cast<AtomeConstante const *>(atome);
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return dls::outils::est_element(valeur_constante->valeur.genre,
-                                    AtomeValeurConstante::Valeur::Genre::ENTIERE);
-}
-
-static bool est_constante_un(Atome const *atome)
-{
-    if (!est_valeur_constante(atome)) {
-        return false;
-    }
-
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
-    return valeur_constante->valeur.valeur_entiere == 1;
-}
-
-static InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
-    InstructionStockeMem const *inst)
-{
-    if (!est_allocation(inst->ou)) {
-        return nullptr;
-    }
-
-    auto atome_source = inst->valeur;
-    if (!atome_source->est_instruction()) {
-        return nullptr;
-    }
-
-    auto instruction_source = atome_source->comme_instruction();
-    if (!instruction_source->est_charge()) {
-        return nullptr;
-    }
-
-    auto chargement = instruction_source->comme_charge();
-    if (!est_allocation(chargement->chargee)) {
-        return nullptr;
-    }
-
-    return static_cast<InstructionAllocation const *>(chargement->chargee);
-}
-
-static bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
-{
-    if (!inst0->est_charge()) {
-        return false;
-    }
-
-    auto const charge = inst0->comme_charge();
-    return charge->chargee == inst1;
-}
-
-static bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst)
-{
-    if (!est_allocation(inst->ou)) {
-        return false;
-    }
-
-    auto alloc_destination = inst->ou->comme_instruction()->comme_alloc();
-
-    auto atome_source = inst->valeur;
-    if (!atome_source->est_instruction()) {
-        return false;
-    }
-
-    auto instruction_source = atome_source->comme_instruction();
-    if (!instruction_source->est_op_binaire()) {
-        return false;
-    }
-
-    auto op_binaire = instruction_source->comme_op_binaire();
-    if (op_binaire->op != OpérateurBinaire::Genre::Addition) {
-        return false;
-    }
-
-    auto valeur_droite = op_binaire->valeur_droite;
-    if (!est_constante_un(valeur_droite)) {
-        return false;
-    }
-
-    auto valeur_gauche = op_binaire->valeur_gauche;
-    if (!valeur_gauche->est_instruction()) {
-        return false;
-    }
-    if (!est_chargement_de(valeur_gauche->comme_instruction(), alloc_destination)) {
-        return false;
-    }
-
-    return true;
-}
-
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
@@ -1421,12 +1316,12 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
 
             if (op_binaire->op == OpérateurBinaire::Genre::Addition &&
-                est_constante_un(op_binaire->valeur_droite)) {
+                est_constante_entière_un(op_binaire->valeur_droite)) {
                 chunk.émets_incrémente(op_binaire->site, type_gauche);
                 break;
             }
             if (op_binaire->op == OpérateurBinaire::Genre::Soustraction &&
-                est_constante_un(op_binaire->valeur_droite)) {
+                est_constante_entière_un(op_binaire->valeur_droite)) {
                 chunk.émets_décrémente(op_binaire->site, type_gauche);
                 break;
             }
@@ -1440,31 +1335,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             break;
         }
     }
-}
-
-static Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
-{
-    if (type->est_type_entier_constant()) {
-        return TypeBase::Z32;
-    }
-
-    if (type->est_type_enum()) {
-        return type->comme_type_enum()->type_sous_jacent;
-    }
-
-    if (type->est_type_erreur()) {
-        return type->comme_type_erreur()->type_sous_jacent;
-    }
-
-    if (type->est_type_type_de_donnees()) {
-        return TypeBase::Z64;
-    }
-
-    if (type->est_type_octet()) {
-        return TypeBase::N8;
-    }
-
-    return type;
 }
 
 void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
@@ -1547,8 +1417,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
         case AtomeValeurConstante::Valeur::Genre::ENTIERE:
         {
             auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-            auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
-                                                valeur_constante->type);
+            auto type = type_entier_sous_jacent(valeur_constante->type);
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
