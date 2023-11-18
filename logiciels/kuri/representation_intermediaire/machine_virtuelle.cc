@@ -1091,6 +1091,25 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 break;
             }
+            case OP_INCRÉMENTE_VARIABLE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto index = LIS_4_OCTETS();
+                auto adresse_variable = donne_adresse_locale(frame, index);
+                if (taille == 1) {
+                    *reinterpret_cast<uint8_t *>(adresse_variable) += 1;
+                }
+                else if (taille == 2) {
+                    *reinterpret_cast<uint16_t *>(adresse_variable) += 1;
+                }
+                else if (taille == 4) {
+                    *reinterpret_cast<uint32_t *>(adresse_variable) += 1;
+                }
+                else {
+                    *reinterpret_cast<uint64_t *>(adresse_variable) += 1;
+                }
+                break;
+            }
             case OP_DÉCRÉMENTE:
             {
                 auto taille = LIS_4_OCTETS();

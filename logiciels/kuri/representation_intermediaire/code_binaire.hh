@@ -51,6 +51,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
+    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_VARIABLE)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
@@ -326,6 +327,7 @@ struct Chunk {
                                  Type const *type_droite);
 
     void émets_incrémente(NoeudExpression const *site, Type const *type);
+    void émets_incrémente_variable(const NoeudExpression *site, const Type *type, int pointeur);
     void émets_décrémente(NoeudExpression const *site, Type const *type);
 
     void émets_transtype(NoeudExpression const *site,
