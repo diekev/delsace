@@ -75,7 +75,6 @@ void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 #if 0
     émets(OP_STAT_INSTRUCTION);
     émets(site);
-    émets(op);
 #endif
 
     émets(op);

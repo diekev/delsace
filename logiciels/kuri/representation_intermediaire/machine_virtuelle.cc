@@ -1679,7 +1679,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_STAT_INSTRUCTION:
             {
-                auto op = LIS_OCTET();
+                /* L'opération est directement après nous. Il ne faut pas incémenter le pointeur.
+                 */
+                auto op = *frame->pointeur;
                 m_metaprogramme->donnees_execution->compte_instructions[op] += 1;
                 m_metaprogramme->donnees_execution->compte_instructions[OP_STAT_INSTRUCTION] += 1;
                 break;
