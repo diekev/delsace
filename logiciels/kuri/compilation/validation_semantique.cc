@@ -2892,7 +2892,7 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
             continue;
         }
 
-        if (entete.est_operateur) {
+        if (entete.est_operateur && !entete.est_operateur_pour()) {
             espace.rapporte_erreur(decl_param, "Paramètre d'opérateur inutilisé.");
         }
         else {
