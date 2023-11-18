@@ -31,7 +31,6 @@ struct InstructionOpUnaire;
 struct InstructionRetour;
 struct InstructionStockeMem;
 struct InstructionTranstype;
-struct Lexeme;
 struct Type;
 
 #define ENUMERE_GENRE_ATOME(O)                                                                    \
