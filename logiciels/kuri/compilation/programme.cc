@@ -48,6 +48,11 @@ Programme *Programme::crée_pour_metaprogramme(EspaceDeTravail *espace,
     return résultat;
 }
 
+Programme::~Programme()
+{
+    Coulisse::detruit(m_coulisse);
+}
+
 void Programme::ajoute_fonction(NoeudDeclarationEnteteFonction *fonction)
 {
     if (possède(fonction)) {
