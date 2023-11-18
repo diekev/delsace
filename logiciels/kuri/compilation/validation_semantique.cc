@@ -2878,8 +2878,15 @@ static void avertis_declarations_inutilisees(EspaceDeTravail const &espace,
             continue;
         }
 
-        if (!decl_param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
-            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé");
+        if (decl_param->possède_drapeau(DrapeauxNoeud::EST_UTILISEE)) {
+            continue;
+        }
+
+        if (entete.est_operateur) {
+            espace.rapporte_erreur(decl_param, "Paramètre d'opérateur inutilisé.");
+        }
+        else {
+            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé.");
         }
     }
 
@@ -3131,6 +3138,8 @@ ResultatValidation ContexteValidationCode::valide_operateur(NoeudDeclarationCorp
     if (!entete->est_operateur_pour()) {
         simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
     }
+
+    avertis_declarations_inutilisees(*espace, *entete);
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
