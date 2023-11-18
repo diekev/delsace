@@ -398,26 +398,32 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     : graphe_(g), operateurs_(o)
 {
     /* initialise les types communs */
-    type_eini = crée_type_eini();
-    type_chaine = crée_type_chaine();
+#define CREE_TYPE_SIMPLE(IDENT)                                                                   \
+    TypeBase::IDENT = crée_type_pour_lexeme(GenreLexeme::IDENT);                                  \
+    types_simples->ajoute(TypeBase::IDENT)
 
-    TypeBase::N8 = crée_type_pour_lexeme(GenreLexeme::N8);
-    TypeBase::N16 = crée_type_pour_lexeme(GenreLexeme::N16);
-    TypeBase::N32 = crée_type_pour_lexeme(GenreLexeme::N32);
-    TypeBase::N64 = crée_type_pour_lexeme(GenreLexeme::N64);
-    TypeBase::Z8 = crée_type_pour_lexeme(GenreLexeme::Z8);
-    TypeBase::Z16 = crée_type_pour_lexeme(GenreLexeme::Z16);
-    TypeBase::Z32 = crée_type_pour_lexeme(GenreLexeme::Z32);
-    TypeBase::Z64 = crée_type_pour_lexeme(GenreLexeme::Z64);
-    TypeBase::R16 = crée_type_pour_lexeme(GenreLexeme::R16);
-    TypeBase::R32 = crée_type_pour_lexeme(GenreLexeme::R32);
-    TypeBase::R64 = crée_type_pour_lexeme(GenreLexeme::R64);
-    TypeBase::EINI = type_eini;
-    TypeBase::CHAINE = type_chaine;
-    TypeBase::RIEN = crée_type_pour_lexeme(GenreLexeme::RIEN);
-    TypeBase::BOOL = crée_type_pour_lexeme(GenreLexeme::BOOL);
-    TypeBase::OCTET = crée_type_pour_lexeme(GenreLexeme::OCTET);
+    CREE_TYPE_SIMPLE(N8);
+    CREE_TYPE_SIMPLE(N16);
+    CREE_TYPE_SIMPLE(N32);
+    CREE_TYPE_SIMPLE(N64);
+    CREE_TYPE_SIMPLE(Z8);
+    CREE_TYPE_SIMPLE(Z16);
+    CREE_TYPE_SIMPLE(Z32);
+    CREE_TYPE_SIMPLE(Z64);
+    CREE_TYPE_SIMPLE(R16);
+    CREE_TYPE_SIMPLE(R32);
+    CREE_TYPE_SIMPLE(R64);
+    CREE_TYPE_SIMPLE(RIEN);
+    CREE_TYPE_SIMPLE(BOOL);
+    CREE_TYPE_SIMPLE(OCTET);
+
+#undef CREE_TYPE_SIMPLE
+
     TypeBase::ENTIER_CONSTANT = crée_type_entier_constant();
+    types_simples->ajoute(TypeBase::ENTIER_CONSTANT);
+
+    TypeBase::EINI = crée_type_eini();
+    TypeBase::CHAINE = crée_type_chaine();
 
     type_type_de_donnees_ = types_type_de_donnees->ajoute_element(nullptr);
 
@@ -455,9 +461,11 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     auto membres_eini = kuri::tableau<MembreTypeComposé, int>();
     membres_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
+    auto type_eini = TypeBase::EINI->comme_type_compose();
     type_eini->membres = std::move(membres_eini);
     type_eini->drapeaux |= (TYPE_FUT_VALIDE);
 
+    auto type_chaine = TypeBase::CHAINE->comme_type_compose();
     auto membres_chaine = kuri::tableau<MembreTypeComposé, int>();
     membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
     membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
@@ -467,17 +475,14 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
 
 Typeuse::~Typeuse()
 {
-#define DELOGE_TYPES(Type, Tableau)                                                               \
-    for (auto ptr : *Tableau.verrou_lecture()) {                                                  \
-        memoire::deloge(#Type, ptr);                                                              \
+    for (auto ptr : *types_simples.verrou_ecriture()) {
+        memoire::deloge("Type", ptr);
     }
 
-    DELOGE_TYPES(TypePointeur, types_simples);
-
-    memoire::deloge("TypeCompose", type_eini);
+    auto type_chaine = TypeBase::CHAINE->comme_type_compose();
     memoire::deloge("TypeCompose", type_chaine);
-
-#undef DELOGE_TYPES
+    auto type_eini = TypeBase::EINI->comme_type_compose();
+    memoire::deloge("TypeCompose", type_eini);
 }
 
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
@@ -1061,6 +1066,8 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
     stats_types.fusionne_entrée(
         {DONNEES_ENTREE(TypeFonction, types_fonctions) + memoire_params_fonctions});
 
+    auto type_eini = TypeBase::EINI->comme_type_compose();
+    auto type_chaine = TypeBase::CHAINE->comme_type_compose();
     stats_types.fusionne_entrée(
         {"eini",
          1,

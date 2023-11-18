@@ -121,6 +121,8 @@ struct MetaProgramme {
 
     ComportementMétaprogramme comportement{};
 
+    ~MetaProgramme();
+
     bool ajoutera_du_code() const
     {
         return (comportement & ComportementMétaprogramme::AJOUTE_CODE) !=
