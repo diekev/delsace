@@ -93,8 +93,6 @@ struct ConstructriceRI {
     tableau_page<InstructionAccedeMembre> insts_accede_membre{};
     tableau_page<InstructionTranstype> insts_transtype{};
     tableau_page<TranstypeConstant> transtypes_constants{};
-    tableau_page<OpBinaireConstant> op_binaires_constants{};
-    tableau_page<OpUnaireConstant> op_unaires_constants{};
     tableau_page<AccedeIndexConstant> accede_index_constants{};
 
     /* Utilisé pour assigner des identifiants aux labels. */
@@ -215,16 +213,6 @@ struct ConstructriceRI {
                                          TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    OpUnaireConstant *crée_op_unaire_constant(Type const *type,
-                                              OpérateurUnaire::Genre op,
-                                              AtomeConstante *valeur);
-    OpBinaireConstant *crée_op_binaire_constant(Type const *type,
-                                                OpérateurBinaire::Genre op,
-                                                AtomeConstante *valeur_gauche,
-                                                AtomeConstante *valeur_droite);
-    OpBinaireConstant *crée_op_comparaison_constant(OpérateurBinaire::Genre op,
-                                                    AtomeConstante *valeur_gauche,
-                                                    AtomeConstante *valeur_droite);
     AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, AtomeConstante *index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);

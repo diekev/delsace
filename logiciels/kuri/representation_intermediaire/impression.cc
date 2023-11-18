@@ -69,7 +69,8 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
         {
-            os << "globale " << (atome->ident ? atome->ident->nom : "anonyme") << " de type "
+            auto globale = atome->comme_globale();
+            os << "globale " << (globale->ident ? globale->ident->nom : "anonyme") << " de type "
                << chaine_type(atome->type, false);
             break;
         }
@@ -91,16 +92,6 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
                 case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
                 {
                     os << " représentant un transtypage constant";
-                    break;
-                }
-                case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-                {
-                    os << " représentant une opération unaire constante";
-                    break;
-                }
-                case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-                {
-                    os << " représentant une opération binaire constante";
                     break;
                 }
                 case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
@@ -189,8 +180,9 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
 static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_operande)
 {
     if (atome->genre_atome == Atome::Genre::GLOBALE) {
-        if (atome->ident) {
-            os << "@" << atome->ident->nom;
+        auto globale = atome->comme_globale();
+        if (globale->ident) {
+            os << "@" << globale->ident->nom;
         }
         else {
             os << "@globale" << atome;
@@ -199,7 +191,6 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         if (!pour_operande) {
             os << " = globale " << chaine_type(type_dereference_pour(atome->type), false);
 
-            auto globale = static_cast<AtomeGlobale const *>(atome);
             if (globale->initialisateur) {
                 os << ' ';
                 imprime_atome_ex(globale->initialisateur, os, true);
@@ -225,14 +216,6 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
                 os << "  transtype ";
                 imprime_atome_ex(transtype_const->valeur, os, true);
                 os << " vers " << chaine_type(transtype_const->type, false) << '\n';
-                break;
-            }
-            case AtomeConstante::Genre::OP_UNAIRE_CONSTANTE:
-            {
-                break;
-            }
-            case AtomeConstante::Genre::OP_BINAIRE_CONSTANTE:
-            {
                 break;
             }
             case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
@@ -377,11 +360,12 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
         }
         case GenreInstruction::ALLOCATION:
         {
+            auto alloc = inst->comme_alloc();
             auto type_pointeur = inst->type->comme_type_pointeur();
             os << "  alloue " << chaine_type(type_pointeur->type_pointe, false) << ' ';
 
-            if (inst->ident != nullptr) {
-                os << inst->ident->nom;
+            if (alloc->ident != nullptr) {
+                os << alloc->ident->nom;
             }
             else {
                 os << "val" << inst->numero;
@@ -549,7 +533,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     for (auto param : atome_fonc->params_entrees) {
         os << virgule;
-        os << param->ident->nom << ' ';
+        os << param->comme_instruction()->comme_alloc()->ident->nom << ' ';
 
         auto type_pointeur = param->type->comme_type_pointeur();
         os << chaine_type(type_pointeur->type_pointe, false);
