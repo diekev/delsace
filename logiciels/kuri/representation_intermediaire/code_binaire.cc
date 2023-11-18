@@ -1035,14 +1035,12 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     auto &chunk = données_exécution->chunk;
 
     POUR (fonction->params_entrees) {
-        auto alloc = it->comme_instruction()->comme_alloc();
-        chunk.ajoute_locale(alloc);
+        chunk.ajoute_locale(it);
     }
 
     /* crée une variable local pour la valeur de sortie */
     if (fonction->param_sortie) {
-        auto param = fonction->param_sortie;
-        auto alloc = param->comme_instruction()->comme_alloc();
+        auto alloc = fonction->param_sortie;
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {

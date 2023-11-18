@@ -1257,7 +1257,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         auto valeurs_args = fonction->arg_begin();
 
         for (auto &param : atome_fonc->params_entrees) {
-            auto const &nom_argument = param->comme_instruction()->comme_alloc()->ident->nom;
+            auto const &nom_argument = param->ident->nom;
 
             auto valeur = &(*valeurs_args++);
             valeur->setName(vers_std_string(nom_argument));

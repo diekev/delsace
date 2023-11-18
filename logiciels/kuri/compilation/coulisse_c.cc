@@ -1662,13 +1662,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
             continue;
         }
 
-        it->comme_instruction()->numero = numéro_inst++;
+        it->numero = numéro_inst++;
 
         if (est_paramètre_inutilisé) {
             os << "INUTILISE(";
         }
 
-        os << donne_nom_pour_instruction(it->comme_instruction());
+        os << donne_nom_pour_instruction(it);
 
         if (est_paramètre_inutilisé) {
             os << ")";
@@ -1730,9 +1730,8 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
     auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
-        param->comme_instruction()->numero = numéro_inst;
-        table_valeurs[numéro_inst++] = enchaine(
-            "&", donne_nom_pour_instruction(param->comme_instruction()));
+        param->numero = numéro_inst;
+        table_valeurs[numéro_inst++] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
     os << "\n{\n";
@@ -1743,14 +1742,13 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
-        param->comme_instruction()->numero = numéro_inst;
+        param->numero = numéro_inst;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
-        os << donne_nom_pour_instruction(param->comme_instruction());
+        os << donne_nom_pour_instruction(param);
         os << ";\n";
 
-        table_valeurs[numéro_inst++] = enchaine(
-            "&", donne_nom_pour_instruction(param->comme_instruction()));
+        table_valeurs[numéro_inst++] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
     /* Générons le code pour les accès de membres des retours multiples. */

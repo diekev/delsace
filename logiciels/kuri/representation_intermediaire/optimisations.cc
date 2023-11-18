@@ -286,7 +286,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
     auto copieuse = CopieuseInstruction(constructrice);
 
     for (auto i = 0; i < fonction_appelee->params_entrees.taille(); ++i) {
-        auto parametre = fonction_appelee->params_entrees[i]->comme_instruction();
+        auto parametre = fonction_appelee->params_entrees[i];
         auto atome = arguments[i];
 
         // À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (->

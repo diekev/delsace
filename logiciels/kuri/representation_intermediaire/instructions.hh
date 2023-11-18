@@ -280,8 +280,8 @@ struct AccedeIndexConstant : public AtomeConstante {
 struct AtomeFonction : public AtomeConstante {
     kuri::chaine_statique nom{};
 
-    kuri::tableau<Atome *, int> params_entrees{};
-    Atome *param_sortie = nullptr;
+    kuri::tableau<InstructionAllocation *, int> params_entrees{};
+    InstructionAllocation *param_sortie = nullptr;
 
     kuri::tableau<Instruction *, int> instructions{};
 
@@ -307,7 +307,7 @@ struct AtomeFonction : public AtomeConstante {
 
     AtomeFonction(Lexeme const *lexeme_,
                   kuri::chaine_statique nom_,
-                  kuri::tableau<Atome *, int> &&params_)
+                  kuri::tableau<InstructionAllocation *, int> &&params_)
         : AtomeFonction(lexeme_, nom_)
     {
         this->params_entrees = std::move(params_);

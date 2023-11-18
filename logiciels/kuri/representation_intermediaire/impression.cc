@@ -533,7 +533,7 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     for (auto param : atome_fonc->params_entrees) {
         os << virgule;
-        os << param->comme_instruction()->comme_alloc()->ident->nom << ' ';
+        os << param->ident->nom << ' ';
 
         auto type_pointeur = param->type->comme_type_pointeur();
         os << chaine_type(type_pointeur->type_pointe, false);
@@ -562,11 +562,11 @@ int numérote_instructions(AtomeFonction const &fonction)
     int resultat = 0;
 
     POUR (fonction.params_entrees) {
-        it->comme_instruction()->numero = resultat++;
+        it->numero = resultat++;
     }
 
     if (!fonction.param_sortie->type->est_type_rien()) {
-        fonction.param_sortie->comme_instruction()->numero = resultat++;
+        fonction.param_sortie->numero = resultat++;
     }
 
     POUR (fonction.instructions) {

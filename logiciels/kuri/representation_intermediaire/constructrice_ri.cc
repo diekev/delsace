@@ -147,7 +147,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
         return static_cast<AtomeFonction *>(decl->atome);
     }
 
-    auto params = kuri::tableau<Atome *, int>();
+    auto params = kuri::tableau<InstructionAllocation *, int>();
     params.reserve(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
