@@ -75,7 +75,6 @@ void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 #if 0
     émets(OP_STAT_INSTRUCTION);
     émets(site);
-    émets(op);
 #endif
 
     émets(op);
@@ -187,6 +186,17 @@ void Chunk::émets_assignation_variable(NoeudExpression const *site, int pointeu
     émets_entête_op(OP_ASSIGNE_VARIABLE, site);
     émets(pointeur);
     émets(type->taille_octet);
+}
+
+void Chunk::émets_copie_variable(NoeudExpression const *site,
+                                 Type const *type,
+                                 int pointeur_source,
+                                 int pointeur_destination)
+{
+    émets_entête_op(OP_COPIE_VARIABLE, site);
+    émets(type->taille_octet);
+    émets(pointeur_source);
+    émets(pointeur_destination);
 }
 
 void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification)
@@ -459,6 +469,17 @@ void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
     émets(taille_octet);
 }
 
+void Chunk::émets_incrémente_variable(const NoeudExpression *site, const Type *type, int pointeur)
+{
+    auto taille_octet = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_octet = 4;
+    }
+    émets_entête_op(OP_INCRÉMENTE_VARIABLE, site);
+    émets(taille_octet);
+    émets(pointeur);
+}
+
 void Chunk::émets_décrémente(const NoeudExpression *site, const Type *type)
 {
     auto taille_octet = type->taille_octet;
@@ -692,6 +713,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_ASSIGNE_VARIABLE:
         case OP_CHARGE_VARIABLE:
         case OP_BRANCHE_CONDITION:
+        case OP_INCRÉMENTE_VARIABLE:
         {
             return instruction_2d<int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
@@ -707,6 +729,11 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_APPEL_COMPILATRICE:
         {
             return instruction_3d<void *, int, void *>(
+                chunk, chaine_code_operation(instruction), décalage, os);
+        }
+        case OP_COPIE_VARIABLE:
+        {
+            return instruction_3d<int, int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
         }
         case OP_AUGMENTE_NATUREL:
@@ -1089,6 +1116,80 @@ static bool est_constante_un(Atome const *atome)
     return valeur_constante->valeur.valeur_entiere == 1;
 }
 
+static InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
+    InstructionStockeMem const *inst)
+{
+    if (!est_allocation(inst->ou)) {
+        return nullptr;
+    }
+
+    auto atome_source = inst->valeur;
+    if (!atome_source->est_instruction()) {
+        return nullptr;
+    }
+
+    auto instruction_source = atome_source->comme_instruction();
+    if (!instruction_source->est_charge()) {
+        return nullptr;
+    }
+
+    auto chargement = instruction_source->comme_charge();
+    if (!est_allocation(chargement->chargee)) {
+        return nullptr;
+    }
+
+    return static_cast<InstructionAllocation const *>(chargement->chargee);
+}
+
+static bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
+{
+    if (!inst0->est_charge()) {
+        return false;
+    }
+
+    auto const charge = inst0->comme_charge();
+    return charge->chargee == inst1;
+}
+
+static bool est_stocke_alloc_incrémente(InstructionStockeMem const *inst)
+{
+    if (!est_allocation(inst->ou)) {
+        return false;
+    }
+
+    auto alloc_destination = inst->ou->comme_instruction()->comme_alloc();
+
+    auto atome_source = inst->valeur;
+    if (!atome_source->est_instruction()) {
+        return false;
+    }
+
+    auto instruction_source = atome_source->comme_instruction();
+    if (!instruction_source->est_op_binaire()) {
+        return false;
+    }
+
+    auto op_binaire = instruction_source->comme_op_binaire();
+    if (op_binaire->op != OpérateurBinaire::Genre::Addition) {
+        return false;
+    }
+
+    auto valeur_droite = op_binaire->valeur_droite;
+    if (!est_constante_un(valeur_droite)) {
+        return false;
+    }
+
+    auto valeur_gauche = op_binaire->valeur_gauche;
+    if (!valeur_gauche->est_instruction()) {
+        return false;
+    }
+    if (!est_chargement_de(valeur_gauche->comme_instruction(), alloc_destination)) {
+        return false;
+    }
+
+    return true;
+}
+
 void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *instruction,
                                                             Chunk &chunk,
                                                             bool pour_operande)
@@ -1144,6 +1245,23 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::STOCKE_MEMOIRE:
         {
             auto stocke = instruction->comme_stocke_mem();
+
+            if (est_stocke_alloc_incrémente(stocke)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                chunk.émets_incrémente_variable(
+                    stocke->site, stocke->valeur->type, alloc_destination->index_locale);
+                break;
+            }
+
+            if (auto alloc_source = est_stocke_alloc_depuis_charge_alloc(stocke)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                chunk.émets_copie_variable(stocke->site,
+                                           stocke->valeur->type,
+                                           alloc_source->index_locale,
+                                           alloc_destination->index_locale);
+                break;
+            }
+
             genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
 
             if (est_allocation(stocke->ou)) {

@@ -5,6 +5,7 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "programme.hh"
 #include "typage.hh"
 
 int DonneesConstantesExecutions::ajoute_globale(Type *type,
@@ -42,4 +43,9 @@ void DonneesConstantesExecutions::rassemble_statistiques(Statistiques &stats) co
     memoire_mv += patchs_données_constantes.taille_memoire();
 
     stats.memoire_mv += memoire_mv;
+}
+
+MetaProgramme::~MetaProgramme()
+{
+    memoire::deloge("Programme", programme);
 }

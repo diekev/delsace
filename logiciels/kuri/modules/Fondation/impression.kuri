@@ -68,7 +68,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
     curseur : z64 = 0
 
     tantque tampon_courant != nul {
-        taille_tampon := tampon_courant.occupé
+        taille_tampon : z64 = tampon_courant.occupé
         src := *tampon_courant.données[0]
         dst := *chn[curseur]
 
@@ -130,12 +130,12 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
 {
-    index_caractère := 0
-    index_argument := 0
+    index_caractère : z64 = 0
+    index_argument : z64 = 0
     pointeur := format.pointeur
 
-    début_mot_courant := 0
-    taille_mot_courant := 0
+    début_mot_courant : z64 = 0
+    taille_mot_courant : z64 = 0
 
     tantque index_caractère < format.taille {
         c := pointeur[index_caractère]
@@ -373,8 +373,8 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
     résultat : [64]z8 = ---
 
-    index_fin := 63
-    index_début := index_fin
+    index_fin : z64 = 63
+    index_début : z64 = index_fin
 
     tantque v != 0 {
         chiffre := v % base

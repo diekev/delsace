@@ -181,8 +181,9 @@ static void imprime_stats_tableau(EntreesStats<EntreeNombreMemoire> const &stats
     tableau.alignement(2, Alignement::DROITE);
 
     POUR (stats.entrees) {
-        tableau.ajoute_ligne(
-            {dls::chaine(it.nom), formatte_nombre(it.compte), formatte_nombre(it.memoire)});
+        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
+                              formatte_nombre(it.compte),
+                              formatte_nombre(it.memoire)});
     }
 
     tableau.ajoute_ligne(
@@ -206,7 +207,7 @@ static void imprime_stats_fichier(EntreesStats<EntreeFichier> const &stats)
     tableau.alignement(4, Alignement::DROITE);
 
     POUR (stats.entrees) {
-        tableau.ajoute_ligne({dls::chaine(it.nom),
+        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
                               formatte_nombre(it.nombre_lignes),
                               formatte_nombre(it.mémoire_tampons),
                               formatte_nombre(it.nombre_lexèmes),
@@ -259,7 +260,7 @@ static void imprime_stats_tableaux(EntreesStats<EntreeTailleTableau> const &stat
             }
         }
 
-        tableau.ajoute_ligne({dls::chaine(it.nom),
+        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
                               formatte_nombre(it.taille_min),
                               formatte_nombre(mode),
                               formatte_nombre(it.taille_max)});

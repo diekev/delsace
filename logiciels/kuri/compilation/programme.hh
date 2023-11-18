@@ -169,6 +169,8 @@ struct Programme {
     static Programme *crée_pour_metaprogramme(EspaceDeTravail *espace,
                                               MetaProgramme *metaprogramme);
 
+    ~Programme();
+
     void change_d_espace(EspaceDeTravail *espace_)
     {
         m_espace = espace_;

@@ -30,7 +30,7 @@ concept TypeEntreesStats = requires(T a, T b)
 #endif
 
 struct EntreeNombreMemoire {
-    kuri::chaine nom = "";
+    kuri::chaine_statique nom = "";
     int64_t compte = 0;
     int64_t memoire = 0;
 
@@ -48,7 +48,7 @@ struct EntreeNombreMemoire {
 };
 
 struct EntreeTaille {
-    kuri::chaine nom = "";
+    kuri::chaine_statique nom = "";
     int64_t taille = 0;
 
     EntreeTaille &operator+=(EntreeTaille const &autre)
@@ -64,7 +64,7 @@ struct EntreeTaille {
 };
 
 struct EntreeTailleTableau {
-    kuri::chaine nom = "";
+    kuri::chaine_statique nom = "";
     int64_t taille_max = 0;
     int64_t taille_min = std::numeric_limits<int64_t>::max();
     kuri::tableau<int64_t> valeurs{};
@@ -90,8 +90,8 @@ struct EntreeTailleTableau {
 };
 
 struct EntreeFichier {
-    kuri::chaine chemin = "";
-    kuri::chaine nom = "";
+    kuri::chaine_statique chemin = "";
+    kuri::chaine_statique nom = "";
     int64_t mémoire_lexèmes = 0;
     int64_t nombre_lexèmes = 0;
     int64_t nombre_lignes = 0;
@@ -138,16 +138,16 @@ struct EntreeTemps {
 
 template <TypeEntreesStats T>
 struct EntreesStats {
-    kuri::chaine nom{};
+    kuri::chaine_statique nom{};
     /* Mutable pour pouvoir le trier avant l'impression. */
     mutable kuri::tableau<T, int> entrees{};
     T totaux{};
 
-    explicit EntreesStats(kuri::chaine const &nom_) : nom(nom_)
+    explicit EntreesStats(kuri::chaine_statique nom_) : nom(nom_)
     {
     }
 
-    EntreesStats(kuri::chaine const &nom_, std::initializer_list<const char *> &&noms_entrees)
+    EntreesStats(kuri::chaine_statique nom_, std::initializer_list<const char *> &&noms_entrees)
         : nom(nom_)
     {
         entrees.reserve(static_cast<int>(noms_entrees.size()));

@@ -1309,6 +1309,7 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
     auto bloc_modifié = false;
     POUR (fonction_et_blocs.blocs) {
         if (!it->possède_instruction_de_genre(GenreInstruction::ALLOCATION)) {
+            index_bloc++;
             continue;
         }
 
