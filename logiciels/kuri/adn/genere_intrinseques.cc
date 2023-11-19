@@ -97,7 +97,7 @@ static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFo
     auto ne_retourne_rien = est_type_rien(type_sortie);
 
     for (auto const &params : fonction->donne_paramètres()) {
-        os << "        auto " << params.nom << " = depile<" << *params.type << ">(site);\n";
+        os << "        auto " << params.nom << " = depile<" << *params.type << ">();\n";
     }
 
     os << "        ";
@@ -119,7 +119,7 @@ static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFo
     os << ");\n";
 
     if (!est_type_rien(type_sortie)) {
-        os << "        empile<" << *type_sortie << ">(site, résultat);\n";
+        os << "        empile<" << *type_sortie << ">(résultat);\n";
     }
 }
 
@@ -131,7 +131,7 @@ static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     auto ne_retourne_rien = est_type_rien(type_sortie);
 
     for (auto const &params : fonction->donne_paramètres()) {
-        os << "        auto " << params.nom << " = depile<" << *params.type << ">(site);\n";
+        os << "        auto " << params.nom << " = depile<" << *params.type << ">();\n";
     }
 
     if (!ne_retourne_rien) {
@@ -146,7 +146,7 @@ static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     }
 
     if (!est_type_rien(type_sortie)) {
-        os << "        empile<" << *type_sortie << ">(site, résultat);\n";
+        os << "        empile<" << *type_sortie << ">(résultat);\n";
     }
 }
 
@@ -176,8 +176,7 @@ static void genere_code_machine_virtuelle(const kuri::tableau<Proteine *> &prote
     inclus(os, "compilation/intrinseques.hh");
     os << "\n";
 
-    os << "void MachineVirtuelle::appel_fonction_intrinsèque(AtomeFonction *ptr_fonction,\n";
-    os << "                                                  NoeudExpression *site)\n";
+    os << "void MachineVirtuelle::appel_fonction_intrinsèque(AtomeFonction *ptr_fonction)\n";
     os << "{\n";
 
     os << "    auto decl = ptr_fonction->decl;\n";
