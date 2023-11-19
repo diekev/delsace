@@ -325,11 +325,11 @@ struct AccedeIndexConstant : public AtomeConstante {
     }
 
     AtomeConstante *accede = nullptr;
-    AtomeConstante *index = nullptr;
+    int64_t index = 0;
 
     EMPECHE_COPIE(AccedeIndexConstant);
 
-    AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, AtomeConstante *index_)
+    AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, int64_t index_)
         : AccedeIndexConstant()
     {
         this->type = type_;

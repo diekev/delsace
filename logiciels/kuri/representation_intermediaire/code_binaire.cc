@@ -1619,7 +1619,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         {
             auto index_constant = atome->comme_accès_index_constant();
             auto type_pointeur = index_constant->type->comme_type_pointeur();
-            genere_code_binaire_pour_atome(index_constant->index, chunk, true);
+            chunk.émets_constante(index_constant->index);
             genere_code_binaire_pour_atome(index_constant->accede, chunk, true);
             chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
             break;

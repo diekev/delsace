@@ -377,8 +377,7 @@ AtomeConstante *ConstructriceRI::crée_tableau_global(AtomeConstante *tableau_fi
 AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
     AtomeGlobale *globale_tableau_fixe, TypeTableauFixe const *type_tableau_fixe)
 {
-    AtomeConstante *ptr_premier_élément = crée_accès_index_constant(globale_tableau_fixe,
-                                                                    crée_z64(0));
+    AtomeConstante *ptr_premier_élément = crée_accès_index_constant(globale_tableau_fixe, 0);
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tableau_dyn = m_typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointe);
 
@@ -696,7 +695,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
 }
 
 AccedeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
-                                                                AtomeConstante *index)
+                                                                int64_t index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
@@ -3662,8 +3661,7 @@ AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
             type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
 
         auto globale_tableau = m_constructrice.crée_globale(type_tableau, tableau, false, true);
-        auto pointeur_chaine = m_constructrice.crée_accès_index_constant(
-            globale_tableau, m_constructrice.crée_z64(0));
+        auto pointeur_chaine = m_constructrice.crée_accès_index_constant(globale_tableau, 0);
         auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
 
         auto membres = kuri::tableau<AtomeConstante *>(2);

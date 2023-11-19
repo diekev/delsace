@@ -189,9 +189,7 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
     else if (atome->genre_atome == Atome::Genre::ACCÈS_INDEX_CONSTANT) {
         auto acces = static_cast<AccedeIndexConstant const *>(atome);
         imprime_atome_ex(acces->accede, os, true);
-        os << '[';
-        imprime_atome_ex(acces->index, os, true);
-        os << ']';
+        os << '[' << acces->index << ']';
     }
     else if (atome->genre_atome == Atome::Genre::CONSTANTE_BOOLÉENNE) {
         os << atome->comme_constante_booléenne()->valeur;

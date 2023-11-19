@@ -243,7 +243,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
         {
             auto inst_acces = racine->comme_accès_index_constant();
             visite_atome(inst_acces->accede, rappel);
-            visite_atome(inst_acces->index, rappel);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:

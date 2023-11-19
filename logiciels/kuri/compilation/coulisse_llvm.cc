@@ -645,7 +645,8 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             auto acces = atome->comme_accès_index_constant();
-            auto index = genere_code_pour_atome(acces->index, pour_globale);
+            auto index = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                uint64_t(acces->index));
             assert(index);
             auto accede = genere_code_pour_atome(acces->accede, pour_globale);
             assert(accede);

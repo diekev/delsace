@@ -879,14 +879,12 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
                 return valeur_accédée;
             }
 
-            auto valeur_index = génère_code_pour_atome(inst_accès->index, os, false);
-
             if (est_type_tableau_fixe(
                     inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
                 valeur_accédée = enchaine(valeur_accédée, ".d");
             }
 
-            return enchaine(valeur_accédée, "[", valeur_index, "]");
+            return enchaine(valeur_accédée, "[", inst_accès->index, "]");
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {

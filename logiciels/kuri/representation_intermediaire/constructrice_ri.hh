@@ -222,7 +222,7 @@ struct ConstructriceRI {
                                          TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, AtomeConstante *index);
+    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
