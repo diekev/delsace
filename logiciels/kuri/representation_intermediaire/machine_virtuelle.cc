@@ -811,7 +811,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
-                                              RésultatInterprétation &résultat)
+                                              RésultatInterprétation &résultat_interp)
 {
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
         auto taille = dépile<size_t>();
@@ -895,7 +895,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         if (status != FFI_OK) {
             rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
                                       "pour la fonction variadique externe.");
-            résultat = RésultatInterprétation::ERREUR;
+            résultat_interp = RésultatInterprétation::ERREUR;
             return;
         }
     }
