@@ -120,7 +120,7 @@ struct Compilatrice {
 
     /* Pour les executions des métaprogrammes. */
     std::mutex mutex_données_constantes_exécutions{};
-    DonneesConstantesExecutions données_constantes_exécutions{};
+    DonnéesConstantesExécutions données_constantes_exécutions{};
 
     struct DonneesConstructeurGlobale {
         AtomeGlobale *atome = nullptr;
