@@ -349,15 +349,6 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::émets_label(NoeudExpression const *site, int index)
-{
-    if (décalages_labels.taille() <= index) {
-        décalages_labels.redimensionne(index + 1);
-    }
-
-    décalages_labels[index] = static_cast<int>(compte);
-}
-
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
@@ -1073,11 +1064,12 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     }
 
     POUR (patchs_labels) {
-        auto décalage = chunk.décalages_labels[it.index_label];
+        auto décalage = décalages_labels[it.index_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = décalage;
     }
 
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
+    décalages_labels.efface();
     patchs_labels.efface();
 
     return true;
@@ -1095,7 +1087,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::LABEL:
         {
             auto label = instruction->comme_label();
-            chunk.émets_label(label->site, label->id);
+            if (décalages_labels.taille() <= label->id) {
+                décalages_labels.redimensionne(label->id + 1);
+            }
+
+            décalages_labels[label->id] = static_cast<int>(chunk.compte);
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -1282,8 +1278,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto membre = instruction->comme_acces_membre();
-            auto index_membre = static_cast<int>(
-                static_cast<AtomeValeurConstante *>(membre->index)->valeur.valeur_entiere);
+            auto index_membre = membre->index;
 
             auto type_compose = static_cast<TypeCompose *>(
                 type_dereference_pour(membre->accede->type));
@@ -1335,69 +1330,335 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
     }
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk)
+void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
+                                                                       int décalage,
+                                                                       int ou_patcher)
 {
-    switch (constante->genre) {
-        case AtomeConstante::Genre::VALEUR:
+    unsigned char *donnees = nullptr;
+    if (ou_patcher == DONNÉES_GLOBALES) {
+        donnees = donnees_executions->données_globales.donnees() + décalage;
+    }
+    else {
+        donnees = donnees_executions->données_constantes.donnees() + décalage;
+    }
+
+    switch (constante->genre_atome) {
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-            genere_code_binaire_pour_valeur_constante(valeur_constante, chunk);
+            auto transtype = static_cast<TranstypeConstant *>(constante);
+            genere_code_binaire_pour_initialisation_globale(
+                transtype->valeur, décalage, ou_patcher);
             break;
         }
-        case AtomeConstante::Genre::GLOBALE:
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
-            genere_code_binaire_pour_atome(constante, chunk, true);
+            // À FAIRE
+            // assert_rappel(false, []() { dbg() << "Les indexages constants ne sont pas
+            // implémentés dans le code binaire"; });
             break;
         }
-        case AtomeConstante::Genre::FONCTION:
+        case Atome::Genre::CONSTANTE_NULLE:
         {
-            genere_code_binaire_pour_atome(constante, chunk, true);
+            *reinterpret_cast<uint64_t *>(donnees) = 0;
             break;
         }
-        case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
+        case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto transtype = static_cast<TranstypeConstant const *>(constante);
-            genere_code_binaire_pour_constante(transtype->valeur, chunk);
+            // utilisation du pointeur directement au lieu de l'index car la table de type
+            // n'est pas implémentée, et il y a des concurrences critiques entre les
+            // métaprogrammes
+            auto type = constante->comme_constante_type()->type_de_données;
+            *reinterpret_cast<int64_t *>(donnees) = reinterpret_cast<int64_t>(type);
             break;
         }
-        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            auto index_constant = static_cast<AccedeIndexConstant const *>(constante);
-            auto type_pointeur = index_constant->type->comme_type_pointeur();
-            genere_code_binaire_pour_constante(index_constant->index, chunk);
-            genere_code_binaire_pour_constante(index_constant->accede, chunk);
-            chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
+            auto type = constante->comme_taille_de()->type_de_données;
+            *reinterpret_cast<uint32_t *>(donnees) = type->taille_octet;
+            break;
+        }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            auto constante_réelle = constante->comme_constante_réelle();
+            auto type = constante->type;
+
+            if (type->taille_octet == 4) {
+                *reinterpret_cast<float *>(donnees) = static_cast<float>(constante_réelle->valeur);
+            }
+            else {
+                *reinterpret_cast<double *>(donnees) = constante_réelle->valeur;
+            }
+
+            break;
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            auto constante_entière = constante->comme_constante_entière();
+            auto type = type_entier_sous_jacent(constante_entière->type);
+            auto valeur_entiere = constante_entière->valeur;
+
+            if (type->est_type_entier_naturel() || type->est_type_enum() ||
+                type->est_type_erreur()) {
+                if (type->taille_octet == 1) {
+                    *donnees = static_cast<unsigned char>(valeur_entiere);
+                }
+                else if (type->taille_octet == 2) {
+                    *reinterpret_cast<unsigned short *>(donnees) = static_cast<unsigned short>(
+                        valeur_entiere);
+                }
+                else if (type->taille_octet == 4) {
+                    *reinterpret_cast<uint32_t *>(donnees) = static_cast<uint32_t>(valeur_entiere);
+                }
+                else if (type->taille_octet == 8) {
+                    *reinterpret_cast<uint64_t *>(donnees) = valeur_entiere;
+                }
+            }
+            else if (type->est_type_entier_relatif()) {
+                if (type->taille_octet == 1) {
+                    *reinterpret_cast<char *>(donnees) = static_cast<char>(valeur_entiere);
+                }
+                else if (type->taille_octet == 2) {
+                    *reinterpret_cast<short *>(donnees) = static_cast<short>(valeur_entiere);
+                }
+                else if (type->taille_octet == 4) {
+                    *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
+                }
+                else if (type->taille_octet == 8) {
+                    *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(valeur_entiere);
+                }
+            }
+            else if (type->est_type_entier_constant()) {
+                *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
+            }
+
+            break;
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            auto constante_booléenne = constante->comme_constante_booléenne();
+            *reinterpret_cast<char *>(donnees) = static_cast<char>(constante_booléenne->valeur);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            auto caractère = constante->comme_constante_caractère();
+            *reinterpret_cast<char *>(donnees) = static_cast<char>(caractère->valeur);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            auto structure = constante->comme_constante_structure();
+            auto type = structure->type->comme_type_compose();
+            auto tableau_valeur = structure->donne_atomes_membres();
+
+            auto index_membre = 0;
+            for (auto i = 0; i < type->membres.taille(); ++i) {
+                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
+                    continue;
+                }
+
+                // les tableaux fixes ont une initialisation nulle
+                if (tableau_valeur[index_membre] == nullptr) {
+                    index_membre += 1;
+                    continue;
+                }
+
+                // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
+
+                auto type_membre = type->membres[i].type;
+
+                auto décalage_membre = type->membres[i].decalage;
+
+                if (type_membre->est_type_chaine()) {
+                    auto valeur_chaine = tableau_valeur[index_membre]->comme_constante_structure();
+                    auto acces_index =
+                        valeur_chaine->donne_atomes_membres()[0]->comme_accès_index_constant();
+                    auto globale_tableau = acces_index->accede->comme_globale();
+
+                    auto tableau = globale_tableau->initialisateur->comme_données_constantes();
+                    auto données_tableau = tableau->donne_données();
+
+                    auto donnees_ = donnees_executions->données_globales.donnees() + décalage +
+                                    static_cast<int>(décalage_membre);
+                    *reinterpret_cast<const char **>(donnees_) = données_tableau.begin();
+                    *reinterpret_cast<int64_t *>(donnees_ + 8) = données_tableau.taille();
+                }
+                else if (type_membre->est_type_tableau_dynamique()) {
+                    auto valeur_tableau =
+                        tableau_valeur[index_membre]->comme_constante_structure();
+                    auto acces_index =
+                        valeur_tableau->donne_atomes_membres()[0]->comme_accès_index_constant();
+                    auto globale_tableau = acces_index->accede->comme_globale();
+
+                    auto tableau = globale_tableau->initialisateur->comme_constante_tableau();
+                    auto données_tableau = tableau->donne_atomes_éléments();
+
+                    auto pointeur = données_tableau.begin();
+                    auto taille = données_tableau.taille();
+
+                    auto type_tableau = tableau->type->comme_type_tableau_fixe();
+                    auto type_pointe = type_tableau->type_pointe;
+                    auto décalage_valeur = donnees_executions->données_constantes.taille();
+                    auto adresse_tableau = décalage_valeur;
+
+                    donnees_executions->données_constantes.redimensionne(
+                        donnees_executions->données_constantes.taille() +
+                        static_cast<int>(type_pointe->taille_octet) * type_tableau->taille);
+
+                    for (auto j = 0; j < taille; ++j) {
+                        auto pointeur_valeur = pointeur[j];
+                        genere_code_binaire_pour_initialisation_globale(
+                            pointeur_valeur, décalage_valeur, DONNÉES_CONSTANTES);
+                        décalage_valeur += static_cast<int>(type_pointe->taille_octet);
+                    }
+
+                    auto patch = PatchDonnéesConstantes{};
+                    patch.destination = {DONNÉES_GLOBALES,
+                                         décalage + static_cast<int>(décalage_membre)};
+                    patch.source = {ADRESSE_CONSTANTE, adresse_tableau};
+
+                    donnees_executions->patchs_données_constantes.ajoute(patch);
+
+                    auto donnees_ = donnees_executions->données_globales.donnees() + décalage +
+                                    static_cast<int>(décalage_membre);
+                    *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
+                }
+                else {
+                    genere_code_binaire_pour_initialisation_globale(
+                        tableau_valeur[index_membre],
+                        décalage + static_cast<int>(décalage_membre),
+                        ou_patcher);
+                }
+
+                index_membre += 1;
+            }
+
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            assert_rappel(false, [&]() {
+                dbg() << "Les valeurs de globales de type tableau fixe ne sont pas "
+                         "générées dans le code binaire pour le moment.\n"
+                      << "    NOTE : le type de la globale est " << chaine_type(constante->type);
+            });
+            break;
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
+            break;
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            auto atome_globale = constante->comme_globale();
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            auto globale = donnees_executions->globales[index_globale];
+
+            auto patch = PatchDonnéesConstantes{};
+            patch.destination = {ou_patcher, décalage};
+            patch.source = {ADRESSE_GLOBALE, globale.adresse};
+            donnees_executions->patchs_données_constantes.ajoute(patch);
+
+            break;
+        }
+        case Atome::Genre::FONCTION:
+        {
+            assert_rappel(false, []() {
+                dbg() << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
+                         "code binaire\n";
+            });
+            break;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            assert_rappel(false, []() {
+                dbg() << "Une instruction se retrouve dans une initialisation de globale\n";
+            });
             break;
         }
     }
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
-    AtomeValeurConstante const *valeur_constante, Chunk &chunk)
+void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
+                                                      Chunk &chunk,
+                                                      bool pour_operande)
 {
-    switch (valeur_constante->valeur.genre) {
-        case AtomeValeurConstante::Valeur::Genre::NULLE:
+    switch (atome->genre_atome) {
+        case Atome::Genre::GLOBALE:
+        {
+            auto atome_globale = atome->comme_globale();
+            auto index_globale = genere_code_pour_globale(atome_globale);
+            chunk.émets_référence_globale(nullptr, index_globale);
+            break;
+        }
+        case Atome::Genre::FONCTION:
+        {
+            // l'adresse pour les pointeurs de fonctions
+            if (pour_operande) {
+                chunk.émets_constante(reinterpret_cast<int64_t>(atome));
+            }
+
+            break;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            genere_code_binaire_pour_instruction(atome->comme_instruction(), chunk, pour_operande);
+            break;
+        }
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        {
+            auto transtype = atome->comme_transtype_constant();
+            genere_code_binaire_pour_atome(transtype->valeur, chunk, true);
+            break;
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            auto index_constant = atome->comme_accès_index_constant();
+            auto type_pointeur = index_constant->type->comme_type_pointeur();
+            chunk.émets_constante(index_constant->index);
+            genere_code_binaire_pour_atome(index_constant->accede, chunk, true);
+            chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
         {
             chunk.émets_constante(int64_t(0));
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::TYPE:
+        case Atome::Genre::CONSTANTE_TYPE:
         {
             // utilisation du pointeur directement au lieu de l'index car la table de type
             // n'est pas implémentée, et il y a des concurrences critiques entre les
             // métaprogrammes
-            chunk.émets_constante(reinterpret_cast<int64_t>(valeur_constante->valeur.type));
+            auto type = atome->comme_constante_type()->type_de_données;
+            chunk.émets_constante(reinterpret_cast<int64_t>(type));
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            chunk.émets_constante(valeur_constante->valeur.type->taille_octet);
+            auto type = atome->comme_taille_de()->type_de_données;
+            chunk.émets_constante(type->taille_octet);
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-            auto type = type_entier_sous_jacent(valeur_constante->type);
+            auto constante_réelle = atome->comme_constante_réelle();
+            auto type = constante_réelle->type;
+
+            if (type->taille_octet == 4) {
+                chunk.émets_constante(static_cast<float>(constante_réelle->valeur));
+            }
+            else {
+                chunk.émets_constante(constante_réelle->valeur);
+            }
+
+            break;
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            auto constante_entière = atome->comme_constante_entière();
+            auto valeur_entiere = constante_entière->valeur;
+            auto type = type_entier_sous_jacent(constante_entière->type);
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
@@ -1438,73 +1699,37 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
 
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::REELLE:
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
-            auto valeur_reele = valeur_constante->valeur.valeur_reelle;
-            auto type = valeur_constante->type;
-
-            if (type->taille_octet == 4) {
-                chunk.émets_constante(static_cast<float>(valeur_reele));
-            }
-            else {
-                chunk.émets_constante(valeur_reele);
-            }
-
+            auto constante_booléenne = atome->comme_constante_booléenne();
+            chunk.émets_constante(constante_booléenne->valeur);
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
         {
-            AtomeConstante **pointeur = valeur_constante->valeur.valeur_tableau.pointeur;
-            const int64_t taille = valeur_constante->valeur.valeur_tableau.taille;
-
-            for (auto i = 0; i < taille; i++) {
-                genere_code_binaire_pour_constante(pointeur[i], chunk);
-            }
-
+            auto caractère = atome->comme_constante_caractère();
+            chunk.émets_constante(static_cast<char>(caractère->valeur));
             break;
         }
-        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+        case Atome::Genre::CONSTANTE_STRUCTURE:
         {
-            break;
-        }
-        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-        {
-            break;
-        }
-        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-        {
-            auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
-            chunk.émets_constante(valeur_bool);
-            break;
-        }
-        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-        {
-            auto valeur_caractere = valeur_constante->valeur.valeur_entiere;
-            chunk.émets_constante(static_cast<char>(valeur_caractere));
-            break;
-        }
-        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-        {
-            auto type = valeur_constante->type;
-            auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
+            auto structure = atome->comme_constante_structure();
+            auto type = atome->type;
+            auto tableau_valeur = structure->donne_atomes_membres();
 
             if (type->est_type_chaine()) {
-                if (tableau_valeur[0]->genre == AtomeConstante::Genre::VALEUR) {
+                if (tableau_valeur[0]->est_constante_nulle()) {
                     // valeur nulle pour les chaines initilisées à zéro
                     chunk.émets_chaine_constante(/* site */ nullptr, nullptr, 0);
                 }
                 else {
-                    auto acces_index = static_cast<AccedeIndexConstant *>(tableau_valeur[0]);
+                    auto acces_index = tableau_valeur[0]->comme_accès_index_constant();
                     auto globale_tableau = acces_index->accede->comme_globale();
-
-                    auto tableau = static_cast<AtomeValeurConstante *>(
-                        globale_tableau->initialisateur);
-
-                    auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
-                    auto taille_chaine = tableau->valeur.valeur_tdc.taille;
+                    auto tableau = globale_tableau->initialisateur->comme_données_constantes();
+                    auto données = tableau->donne_données();
 
                     chunk.émets_chaine_constante(
-                        /* site */ nullptr, pointeur_chaine, taille_chaine);
+                        /* site */ nullptr, const_cast<char *>(données.begin()), données.taille());
 
                     // reférence globale, tableau
                     // accède index
@@ -1532,298 +1757,19 @@ void ConvertisseuseRI::genere_code_binaire_pour_valeur_constante(
 
             break;
         }
-    }
-}
-
-void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                                       int décalage,
-                                                                       int ou_patcher)
-{
-    switch (constante->genre) {
-        case AtomeConstante::Genre::VALEUR:
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
-            auto valeur_constante = static_cast<AtomeValeurConstante *>(constante);
-            unsigned char *donnees = nullptr;
+            auto tableau = atome->comme_constante_tableau();
+            auto éléments = tableau->donne_atomes_éléments();
 
-            if (ou_patcher == DONNÉES_GLOBALES) {
-                donnees = donnees_executions->données_globales.donnees() + décalage;
-            }
-            else {
-                donnees = donnees_executions->données_constantes.donnees() + décalage;
-            }
-
-            switch (valeur_constante->valeur.genre) {
-                case AtomeValeurConstante::Valeur::Genre::NULLE:
-                {
-                    *reinterpret_cast<uint64_t *>(donnees) = 0;
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TYPE:
-                {
-                    // utilisation du pointeur directement au lieu de l'index car la table de type
-                    // n'est pas implémentée, et il y a des concurrences critiques entre les
-                    // métaprogrammes
-                    *reinterpret_cast<int64_t *>(donnees) = reinterpret_cast<int64_t>(
-                        valeur_constante->valeur.type);
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                {
-                    *reinterpret_cast<uint32_t *>(
-                        donnees) = valeur_constante->valeur.type->taille_octet;
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                {
-                    auto valeur_entiere = valeur_constante->valeur.valeur_entiere;
-                    auto type = constante->type;
-
-                    if (type->est_type_entier_naturel() || type->est_type_enum() ||
-                        type->est_type_erreur()) {
-                        if (type->taille_octet == 1) {
-                            *donnees = static_cast<unsigned char>(valeur_entiere);
-                        }
-                        else if (type->taille_octet == 2) {
-                            *reinterpret_cast<unsigned short *>(
-                                donnees) = static_cast<unsigned short>(valeur_entiere);
-                        }
-                        else if (type->taille_octet == 4) {
-                            *reinterpret_cast<uint32_t *>(donnees) = static_cast<uint32_t>(
-                                valeur_entiere);
-                        }
-                        else if (type->taille_octet == 8) {
-                            *reinterpret_cast<uint64_t *>(donnees) = valeur_entiere;
-                        }
-                    }
-                    else if (type->est_type_entier_relatif()) {
-                        if (type->taille_octet == 1) {
-                            *reinterpret_cast<char *>(donnees) = static_cast<char>(valeur_entiere);
-                        }
-                        else if (type->taille_octet == 2) {
-                            *reinterpret_cast<short *>(donnees) = static_cast<short>(
-                                valeur_entiere);
-                        }
-                        else if (type->taille_octet == 4) {
-                            *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
-                        }
-                        else if (type->taille_octet == 8) {
-                            *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(
-                                valeur_entiere);
-                        }
-                    }
-                    else if (type->est_type_entier_constant()) {
-                        *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
-                    }
-
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::REELLE:
-                {
-                    auto valeur_reele = valeur_constante->valeur.valeur_reelle;
-                    auto type = constante->type;
-
-                    if (type->taille_octet == 4) {
-                        *reinterpret_cast<float *>(donnees) = static_cast<float>(valeur_reele);
-                    }
-                    else {
-                        *reinterpret_cast<double *>(donnees) = valeur_reele;
-                    }
-
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                {
-                    assert_rappel(false, [&]() {
-                        dbg() << "Les valeurs de globales de type tableau fixe ne sont pas "
-                                 "générées dans le code binaire pour le moment.\n"
-                              << "    NOTE : le type de la globale est "
-                              << chaine_type(constante->type);
-                    });
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                {
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                {
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                {
-                    auto valeur_bool = valeur_constante->valeur.valeur_booleenne;
-                    *reinterpret_cast<char *>(donnees) = static_cast<char>(valeur_bool);
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                {
-                    break;
-                }
-                case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                {
-                    auto type = static_cast<TypeCompose const *>(constante->type);
-                    auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
-
-                    auto index_membre = 0;
-                    for (auto i = 0; i < type->membres.taille(); ++i) {
-                        if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
-                            continue;
-                        }
-
-                        // les tableaux fixes ont une initialisation nulle
-                        if (tableau_valeur[index_membre] == nullptr) {
-                            index_membre += 1;
-                            continue;
-                        }
-
-                        // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
-
-                        auto type_membre = type->membres[i].type;
-
-                        auto décalage_membre = type->membres[i].decalage;
-
-                        if (type_membre->est_type_chaine()) {
-                            auto valeur_chaine = static_cast<AtomeValeurConstante *>(
-                                tableau_valeur[index_membre]);
-                            auto acces_index = static_cast<AccedeIndexConstant *>(
-                                valeur_chaine->valeur.valeur_structure.pointeur[0]);
-                            auto globale_tableau = acces_index->accede->comme_globale();
-
-                            auto tableau = static_cast<AtomeValeurConstante *>(
-                                globale_tableau->initialisateur);
-
-                            auto pointeur_chaine = tableau->valeur.valeur_tdc.pointeur;
-                            auto taille_chaine = tableau->valeur.valeur_tdc.taille;
-
-                            auto donnees_ = donnees_executions->données_globales.donnees() +
-                                            décalage + static_cast<int>(décalage_membre);
-                            *reinterpret_cast<char **>(donnees_) = pointeur_chaine;
-                            *reinterpret_cast<int64_t *>(donnees_ + 8) = taille_chaine;
-                        }
-                        else if (type_membre->est_type_tableau_dynamique()) {
-                            auto valeur_tableau = static_cast<AtomeValeurConstante *>(
-                                tableau_valeur[index_membre]);
-                            auto acces_index = static_cast<AccedeIndexConstant *>(
-                                valeur_tableau->valeur.valeur_structure.pointeur[0]);
-                            auto globale_tableau = acces_index->accede->comme_globale();
-
-                            auto tableau = static_cast<AtomeValeurConstante *>(
-                                globale_tableau->initialisateur);
-
-                            auto pointeur = tableau->valeur.valeur_tableau.pointeur;
-                            auto taille = tableau->valeur.valeur_tableau.taille;
-
-                            auto type_tableau = tableau->type->comme_type_tableau_fixe();
-                            auto type_pointe = type_tableau->type_pointe;
-                            auto décalage_valeur = donnees_executions->données_constantes.taille();
-                            auto adresse_tableau = décalage_valeur;
-
-                            donnees_executions->données_constantes.redimensionne(
-                                donnees_executions->données_constantes.taille() +
-                                static_cast<int>(type_pointe->taille_octet) *
-                                    type_tableau->taille);
-
-                            for (auto j = 0; j < taille; ++j) {
-                                auto pointeur_valeur = pointeur[j];
-                                genere_code_binaire_pour_initialisation_globale(
-                                    pointeur_valeur, décalage_valeur, DONNÉES_CONSTANTES);
-                                décalage_valeur += static_cast<int>(type_pointe->taille_octet);
-                            }
-
-                            auto patch = PatchDonnéesConstantes{};
-                            patch.destination = {DONNÉES_GLOBALES,
-                                                 décalage + static_cast<int>(décalage_membre)};
-                            patch.source = {ADRESSE_CONSTANTE, adresse_tableau};
-
-                            donnees_executions->patchs_données_constantes.ajoute(patch);
-
-                            auto donnees_ = donnees_executions->données_globales.donnees() +
-                                            décalage + static_cast<int>(décalage_membre);
-                            *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
-                        }
-                        else {
-                            genere_code_binaire_pour_initialisation_globale(
-                                tableau_valeur[index_membre],
-                                décalage + static_cast<int>(décalage_membre),
-                                ou_patcher);
-                        }
-
-                        index_membre += 1;
-                    }
-
-                    break;
-                }
+            POUR (éléments) {
+                genere_code_binaire_pour_atome(it, chunk, true);
             }
 
             break;
         }
-        case AtomeConstante::Genre::GLOBALE:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
-            auto atome_globale = constante->comme_globale();
-            auto index_globale = genere_code_pour_globale(atome_globale);
-            auto globale = donnees_executions->globales[index_globale];
-
-            auto patch = PatchDonnéesConstantes{};
-            patch.destination = {ou_patcher, décalage};
-            patch.source = {ADRESSE_GLOBALE, globale.adresse};
-            donnees_executions->patchs_données_constantes.ajoute(patch);
-
-            break;
-        }
-        case AtomeConstante::Genre::FONCTION:
-        {
-            assert_rappel(false, []() {
-                dbg() << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
-                         "code binaire\n";
-            });
-            break;
-        }
-        case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-        {
-            auto transtype = static_cast<TranstypeConstant *>(constante);
-            genere_code_binaire_pour_initialisation_globale(
-                transtype->valeur, décalage, ou_patcher);
-            break;
-        }
-        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-        {
-            // À FAIRE
-            // assert_rappel(false, []() { dbg() << "Les indexages constants ne sont pas
-            // implémentés dans le code binaire"; });
-            break;
-        }
-    }
-}
-
-void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
-                                                      Chunk &chunk,
-                                                      bool pour_operande)
-{
-    switch (atome->genre_atome) {
-        case Atome::Genre::GLOBALE:
-        {
-            auto atome_globale = atome->comme_globale();
-            auto index_globale = genere_code_pour_globale(atome_globale);
-            chunk.émets_référence_globale(nullptr, index_globale);
-            break;
-        }
-        case Atome::Genre::FONCTION:
-        {
-            // l'adresse pour les pointeurs de fonctions
-            if (pour_operande) {
-                chunk.émets_constante(reinterpret_cast<int64_t>(atome));
-            }
-
-            break;
-        }
-        case Atome::Genre::INSTRUCTION:
-        {
-            genere_code_binaire_pour_instruction(atome->comme_instruction(), chunk, pour_operande);
-            break;
-        }
-        case Atome::Genre::CONSTANTE:
-        {
-            genere_code_binaire_pour_constante(static_cast<AtomeConstante *>(atome), chunk);
             break;
         }
     }
@@ -1870,7 +1816,6 @@ int64_t DonnéesExécutionFonction::mémoire_utilisée() const
     int64_t résultat = 0;
     résultat += chunk.capacité;
     résultat += chunk.locales.taille_memoire();
-    résultat += chunk.décalages_labels.taille_memoire();
 
     if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
         résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);

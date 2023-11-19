@@ -80,7 +80,18 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
     switch (racine->genre_atome) {
         case Atome::Genre::GLOBALE:
         case Atome::Genre::FONCTION:
-        case Atome::Genre::CONSTANTE:
+        case Atome::Genre::CONSTANTE_NULLE:
+        case Atome::Genre::CONSTANTE_TYPE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             break;
         }
@@ -138,7 +149,6 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
                 case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    incrémente_nombre_utilisations_récursif(acces->index);
                     incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }
@@ -570,9 +580,9 @@ void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs, VisiteuseBlo
 
             auto condition = branche->condition;
             if (est_valeur_constante(condition)) {
-                auto valeur_constante = static_cast<AtomeValeurConstante const *>(condition);
+                auto valeur_constante = condition->comme_constante_booléenne();
                 InstructionLabel *label_cible;
-                if (valeur_constante->valeur.valeur_booleenne) {
+                if (valeur_constante->valeur) {
                     label_cible = branche->label_si_vrai;
                     it->enfants[1]->déconnecte_pour_branche_morte(it);
                 }
@@ -727,7 +737,8 @@ static SourceAdresseAtome détermine_source_adresse_atome(
 
     /* Pour « nul », mais également les arithmétiques de pointeurs, ou encore les pointeurs connus
      * lors de la compilation. */
-    if (atome.est_constante()) {
+    if (atome.est_constante_nulle() || atome.est_transtype_constant() ||
+        atome.est_accès_index_constant()) {
         return SourceAdresseAtome::CONSTANTE;
     }
 
@@ -1261,52 +1272,49 @@ static void supprime_allocations_temporaires(Graphe &graphe, FonctionEtBlocs &fo
 
 struct Calculatrice {
     template <typename Opération>
-    static uint64_t applique_opération_entier(AtomeValeurConstante const *opérande_gauche,
-                                              AtomeValeurConstante const *opérande_droite)
+    static uint64_t applique_opération_entier(AtomeConstanteEntière const *opérande_gauche,
+                                              AtomeConstanteEntière const *opérande_droite)
     {
         auto const type = opérande_gauche->type;
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
-                return applique_opération_entier_ex<Opération, uint8_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                return applique_opération_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
+                                                                        opérande_droite->valeur);
             }
             if (type->taille_octet == 2) {
-                return applique_opération_entier_ex<Opération, uint16_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                return applique_opération_entier_ex<Opération, uint16_t>(opérande_gauche->valeur,
+                                                                         opérande_droite->valeur);
             }
             if (type->taille_octet == 4) {
-                return applique_opération_entier_ex<Opération, uint32_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                return applique_opération_entier_ex<Opération, uint32_t>(opérande_gauche->valeur,
+                                                                         opérande_droite->valeur);
             }
-            return applique_opération_entier_ex<Opération, uint64_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return applique_opération_entier_ex<Opération, uint64_t>(opérande_gauche->valeur,
+                                                                     opérande_droite->valeur);
         }
         if (type->taille_octet == 1) {
             auto résultat = applique_opération_entier_ex<Opération, int8_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+                opérande_gauche->valeur, opérande_droite->valeur);
             return uint8_t(résultat);
         }
         if (type->taille_octet == 2) {
             auto résultat = applique_opération_entier_ex<Opération, int16_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+                opérande_gauche->valeur, opérande_droite->valeur);
             return uint16_t(résultat);
         }
         if (type->taille_octet == 4 || type->est_type_entier_constant()) {
             auto résultat = applique_opération_entier_ex<Opération, int32_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+                opérande_gauche->valeur, opérande_droite->valeur);
             return uint32_t(résultat);
         }
-        auto résultat = applique_opération_entier_ex<Opération, int64_t>(
-            opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        auto résultat = applique_opération_entier_ex<Opération, int64_t>(opérande_gauche->valeur,
+                                                                         opérande_droite->valeur);
         return uint64_t(résultat);
     }
 
     template <typename Opération>
-    static double applique_opération_réel(AtomeValeurConstante const *opérande_gauche,
-                                          AtomeValeurConstante const *opérande_droite)
+    static double applique_opération_réel(AtomeConstanteRéelle const *opérande_gauche,
+                                          AtomeConstanteRéelle const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
@@ -1316,60 +1324,57 @@ struct Calculatrice {
             return 0.0;
         }
         if (type->taille_octet == 4 || type->est_type_entier_constant()) {
-            auto résultat = applique_opération_réel_ex<Opération, float>(
-                opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+            auto résultat = applique_opération_réel_ex<Opération, float>(opérande_gauche->valeur,
+                                                                         opérande_droite->valeur);
             return double(résultat);
         }
-        auto résultat = applique_opération_réel_ex<Opération, double>(
-            opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+        auto résultat = applique_opération_réel_ex<Opération, double>(opérande_gauche->valeur,
+                                                                      opérande_droite->valeur);
         return résultat;
     }
 
     template <typename Opération>
-    static bool applique_comparaison_entier(AtomeValeurConstante const *opérande_gauche,
-                                            AtomeValeurConstante const *opérande_droite)
+    static bool applique_comparaison_entier(AtomeConstanteEntière const *opérande_gauche,
+                                            AtomeConstanteEntière const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
         auto const type = opérande_gauche->type;
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
-                return applique_comparaison_entier_ex<Opération, uint8_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                return applique_comparaison_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
+                                                                          opérande_droite->valeur);
             }
             if (type->taille_octet == 2) {
                 return applique_comparaison_entier_ex<Opération, uint16_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                    opérande_gauche->valeur, opérande_droite->valeur);
             }
             if (type->taille_octet == 4) {
                 return applique_comparaison_entier_ex<Opération, uint32_t>(
-                    opérande_gauche->valeur.valeur_entiere,
-                    opérande_droite->valeur.valeur_entiere);
+                    opérande_gauche->valeur, opérande_droite->valeur);
             }
-            return applique_comparaison_entier_ex<Opération, uint64_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return applique_comparaison_entier_ex<Opération, uint64_t>(opérande_gauche->valeur,
+                                                                       opérande_droite->valeur);
         }
         if (type->taille_octet == 1) {
-            return applique_comparaison_entier_ex<Opération, int8_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return applique_comparaison_entier_ex<Opération, int8_t>(opérande_gauche->valeur,
+                                                                     opérande_droite->valeur);
         }
         if (type->taille_octet == 2) {
-            return applique_comparaison_entier_ex<Opération, int16_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return applique_comparaison_entier_ex<Opération, int16_t>(opérande_gauche->valeur,
+                                                                      opérande_droite->valeur);
         }
         if (type->taille_octet == 4 || type->est_type_entier_constant()) {
-            return applique_comparaison_entier_ex<Opération, int32_t>(
-                opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+            return applique_comparaison_entier_ex<Opération, int32_t>(opérande_gauche->valeur,
+                                                                      opérande_droite->valeur);
         }
-        return applique_comparaison_entier_ex<Opération, int64_t>(
-            opérande_gauche->valeur.valeur_entiere, opérande_droite->valeur.valeur_entiere);
+        return applique_comparaison_entier_ex<Opération, int64_t>(opérande_gauche->valeur,
+                                                                  opérande_droite->valeur);
     }
 
     template <typename Opération>
-    static bool applique_comparaison_réel(AtomeValeurConstante const *opérande_gauche,
-                                          AtomeValeurConstante const *opérande_droite)
+    static bool applique_comparaison_réel(AtomeConstanteRéelle const *opérande_gauche,
+                                          AtomeConstanteRéelle const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
@@ -1379,11 +1384,11 @@ struct Calculatrice {
             return 0.0;
         }
         if (type->taille_octet == 4 || type->est_type_entier_constant()) {
-            return applique_comparaison_réel_ex<Opération, float>(
-                opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+            return applique_comparaison_réel_ex<Opération, float>(opérande_gauche->valeur,
+                                                                  opérande_droite->valeur);
         }
-        return applique_comparaison_réel_ex<Opération, double>(
-            opérande_gauche->valeur.valeur_reelle, opérande_droite->valeur.valeur_reelle);
+        return applique_comparaison_réel_ex<Opération, double>(opérande_gauche->valeur,
+                                                               opérande_droite->valeur);
     }
 
   private:
@@ -1415,26 +1420,27 @@ struct Calculatrice {
 static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
                                                 ConstructriceRI &constructrice)
 {
-    auto const opérande_gauche = static_cast<AtomeValeurConstante const *>(inst->valeur_gauche);
-    auto const opérande_droite = static_cast<AtomeValeurConstante const *>(inst->valeur_droite);
+    auto const opérande_gauche = inst->valeur_gauche;
+    auto const opérande_droite = inst->valeur_droite;
 
 #define APPLIQUE_OPERATION_ENTIER(nom)                                                            \
-    auto résultat = Calculatrice::applique_opération_entier<nom>(opérande_gauche,                 \
-                                                                 opérande_droite);                \
+    auto résultat = Calculatrice::applique_opération_entier<nom>(                                 \
+        opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
     return constructrice.crée_constante_nombre_entier(inst->type, résultat)
 
 #define APPLIQUE_OPERATION_REEL(nom)                                                              \
-    auto résultat = Calculatrice::applique_opération_réel<nom>(opérande_gauche, opérande_droite); \
+    auto résultat = Calculatrice::applique_opération_réel<nom>(                                   \
+        opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
     return constructrice.crée_constante_nombre_réel(inst->type, résultat)
 
 #define APPLIQUE_COMPARAISON_ENTIER(nom)                                                          \
-    auto résultat = Calculatrice::applique_comparaison_entier<nom>(opérande_gauche,               \
-                                                                   opérande_droite);              \
+    auto résultat = Calculatrice::applique_comparaison_entier<nom>(                               \
+        opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
     return constructrice.crée_constante_booléenne(résultat)
 
 #define APPLIQUE_COMPARAISON_REEL(nom)                                                            \
-    auto résultat = Calculatrice::applique_comparaison_réel<nom>(opérande_gauche,                 \
-                                                                 opérande_droite);                \
+    auto résultat = Calculatrice::applique_comparaison_réel<nom>(                                 \
+        opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
     return constructrice.crée_constante_booléenne(résultat)
 
     switch (inst->op) {
