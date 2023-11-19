@@ -431,16 +431,14 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
     logueuse << chaine_indentations(profondeur_appel) << "Appel de " << fonction->nom << '\n';
 
     auto type_fonction = fonction->type->comme_type_fonction();
-    auto index_sortie = 0;
     auto pointeur_lecture_retour = pointeur_debut_entree;
-    POUR (type_fonction->types_entrees) {
-        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_sortie
-                 << " (" << chaine_type(it) << ") : ";
+    POUR_INDEX (type_fonction->types_entrees) {
+        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_it << " ("
+                 << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, logueuse);
         logueuse << '\n';
 
         pointeur_lecture_retour += it->taille_octet;
-        index_sortie += 1;
     }
 }
 
@@ -452,18 +450,14 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
     logueuse << chaine_indentations(profondeur_appel) << "Retour de " << fonction->nom << '\n';
 
     auto type_fonction = fonction->type->comme_type_fonction();
-    auto index_entree = 0;
-    auto pointeur_lecture_retour = pointeur_debut_retour;
     auto type_sortie = type_fonction->type_sortie;
     if (type_sortie->est_type_rien()) {
         return;
     }
 
-    logueuse << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree << " : ";
-    lis_valeur(pointeur_lecture_retour, type_sortie, logueuse);
+    logueuse << chaine_indentations(profondeur_appel) << "-- résultat : ";
+    lis_valeur(pointeur_debut_retour, type_sortie, logueuse);
     logueuse << '\n';
-
-    index_entree += 1;
 }
 
 static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enchaineuse &os)
