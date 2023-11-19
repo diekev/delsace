@@ -198,7 +198,7 @@ struct CopieuseInstruction {
             {
                 auto acces = inst->comme_acces_membre();
                 auto accedé = copie_atome(acces->accede);
-                auto index = copie_atome(acces->index);
+                auto index = acces->index;
                 auto n_acces = constructrice.crée_référence_membre(
                     inst->site, inst->type, accedé, index);
                 nouvelle_inst = n_acces;
@@ -315,7 +315,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
                 }
             }
         }
-        else if (atome->genre_atome == Atome::Genre::CONSTANTE) {
+        else if (atome->est_constante()) {
             POUR (fonction_appelee->instructions) {
                 if (it->est_charge()) {
                     auto charge = it->comme_charge();
@@ -650,28 +650,10 @@ static bool sont_equivalents(Atome *a, Atome *b)
         return false;
     }
 
-    if (a->est_constante()) {
-        auto const_a = static_cast<AtomeConstante *>(a);
-        auto const_b = static_cast<AtomeConstante *>(b);
-
-        if (const_a->genre != const_b->genre) {
-            return false;
-        }
-
-        if (const_a->genre == AtomeConstante::Genre::VALEUR) {
-            auto val_a = static_cast<AtomeValeurConstante *>(a);
-            auto val_b = static_cast<AtomeValeurConstante *>(b);
-
-            if (val_a->valeur.genre != val_b->valeur.genre) {
-                return false;
-            }
-
-            if (val_a->valeur.valeur_entiere != val_b->valeur.valeur_entiere) {
-                return false;
-            }
-
-            return true;
-        }
+    if (a->est_constante_entière()) {
+        auto const_a = a->comme_constante_entière();
+        auto const_b = b->comme_constante_entière();
+        return const_a->valeur == const_b->valeur;
     }
 
     if (a->est_instruction()) {
