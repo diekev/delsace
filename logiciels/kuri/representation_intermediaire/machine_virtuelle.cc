@@ -572,7 +572,7 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     }
 
 void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                                   RésultatInterprétation &resultat)
+                                                   RésultatInterprétation &résultat)
 {
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
@@ -585,7 +585,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto message = compilatrice.attend_message();
 
         if (!message) {
-            resultat = RésultatInterprétation::PASSE_AU_SUIVANT;
+            résultat = RésultatInterprétation::PASSE_AU_SUIVANT;
             return;
         }
 
@@ -1522,10 +1522,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
-                auto resultat = RésultatInterprétation::OK;
-                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, resultat);
-                if (resultat == RésultatInterprétation::ERREUR) {
-                    return resultat;
+                auto résultat = RésultatInterprétation::OK;
+                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                if (résultat == RésultatInterprétation::ERREUR) {
+                    return résultat;
                 }
                 break;
             }
@@ -1533,12 +1533,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
-                auto resultat = RésultatInterprétation::OK;
-                appel_fonction_compilatrice(ptr_fonction, resultat);
+                auto résultat = RésultatInterprétation::OK;
+                appel_fonction_compilatrice(ptr_fonction, résultat);
 
-                if (resultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
-                    return resultat;
+                    return résultat;
                 }
 
                 break;
@@ -1559,21 +1559,21 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-                    auto resultat = RésultatInterprétation::OK;
-                    appel_fonction_compilatrice(ptr_fonction, resultat);
+                    auto résultat = RésultatInterprétation::OK;
+                    appel_fonction_compilatrice(ptr_fonction, résultat);
 
-                    if (resultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                    if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
                         compte_exécutées = i + 1;
-                        return resultat;
+                        return résultat;
                     }
                 }
                 else if (ptr_fonction->est_externe) {
-                    auto resultat = RésultatInterprétation::OK;
+                    auto résultat = RésultatInterprétation::OK;
                     appel_fonction_externe(
-                        ptr_fonction, taille_argument, ptr_inst_appel, resultat);
-                    if (resultat == RésultatInterprétation::ERREUR) {
-                        return resultat;
+                        ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                    if (résultat == RésultatInterprétation::ERREUR) {
+                        return résultat;
                     }
                 }
                 else {
