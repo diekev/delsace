@@ -424,13 +424,13 @@ static void lis_valeur(octet_t *pointeur, Type *type, Enchaineuse &os)
 }
 
 static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
-                                    TypeFonction const *type_fonction,
-                                    kuri::chaine const &nom,
+                                    AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
 {
-    logueuse << chaine_indentations(profondeur_appel) << "Appel de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Appel de " << fonction->nom << '\n';
 
+    auto type_fonction = fonction->type->comme_type_fonction();
     auto index_sortie = 0;
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR (type_fonction->types_entrees) {
@@ -445,13 +445,13 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
 }
 
 static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
-                                    TypeFonction const *type_fonction,
-                                    kuri::chaine const &nom,
+                                    AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
 {
-    logueuse << chaine_indentations(profondeur_appel) << "Retour de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Retour de " << fonction->nom << '\n';
 
+    auto type_fonction = fonction->type->comme_type_fonction();
     auto index_entree = 0;
     auto pointeur_lecture_retour = pointeur_debut_retour;
     auto type_sortie = type_fonction->type_sortie;
@@ -1753,13 +1753,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_arguments = LIS_4_OCTETS();
                 auto pointeur_arguments = pointeur_pile - taille_arguments;
-                auto type_fonction = ptr_fonction->type->comme_type_fonction();
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_entrees(pointeur_arguments,
-                                        type_fonction,
-                                        ptr_fonction->nom,
-                                        profondeur_appel,
-                                        logueuse);
+                imprime_valeurs_entrees(
+                    pointeur_arguments, ptr_fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_SORTIES:
@@ -1768,11 +1764,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
                 auto pointeur_debut_retour = pointeur_pile - taille_retour;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_sorties(pointeur_debut_retour,
-                                        type_fonction,
-                                        frame->fonction->nom,
-                                        profondeur_appel,
-                                        logueuse);
+                imprime_valeurs_sorties(
+                    pointeur_debut_retour, frame->fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_RETOUR:
