@@ -1066,6 +1066,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(taille_chaine);
                 break;
             }
+            case OP_REMBOURRAGE:
+            {
+                auto rembourrage = LIS_4_OCTETS();
+                incrémente_pointeur_de_pile(rembourrage);
+                break;
+            }
             case OP_INCRÉMENTE:
             {
                 auto taille = LIS_4_OCTETS();

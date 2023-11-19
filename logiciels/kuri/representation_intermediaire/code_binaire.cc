@@ -541,6 +541,12 @@ void Chunk::émets_transtype(const NoeudExpression *site,
     émets(taille_dest);
 }
 
+void Chunk::émets_rembourrage(uint32_t rembourrage)
+{
+    émets_entête_op(OP_REMBOURRAGE, nullptr);
+    émets(rembourrage);
+}
+
 /* ************************************************************************** */
 
 static int64_t instruction_simple(kuri::chaine_statique nom, int64_t décalage, std::ostream &os)
@@ -739,6 +745,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
         case OP_LOGUE_INSTRUCTION:
         case OP_INCRÉMENTE:
         case OP_DÉCRÉMENTE:
+        case OP_REMBOURRAGE:
         {
             return instruction_1d<int>(chunk, chaine_code_operation(instruction), décalage, os);
         }
@@ -1776,10 +1783,17 @@ void ConvertisseuseRI::génère_code_pour_atome(Atome const *atome, Chunk &chunk
                     continue;
                 }
 
-                if (tableau_valeur[index_membre] != nullptr) {
-                    // À FAIRE(tableau fixe) : initialisation défaut
-                    génère_code_pour_atome(tableau_valeur[index_membre], chunk);
+                if (tableau_valeur[index_membre] == nullptr) {
+                    /* À FAIRE(tableau fixe) : initialisation défaut. */
+                    chunk.émets_rembourrage(it.type->taille_octet);
+                    continue;
                 }
+
+                if (it.rembourrage != 0) {
+                    chunk.émets_rembourrage(it.rembourrage);
+                }
+
+                génère_code_pour_atome(tableau_valeur[index_membre], chunk);
 
                 index_membre += 1;
             }

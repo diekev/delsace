@@ -113,6 +113,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
@@ -343,6 +344,8 @@ struct Chunk {
                          uint8_t op,
                          uint32_t taille_source,
                          uint32_t taille_dest);
+
+    void émets_rembourrage(uint32_t rembourrage);
 };
 
 void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
