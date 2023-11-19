@@ -608,17 +608,17 @@ void Tacheronne::gere_unite_pour_execution(UniteCompilation *unite)
     auto metaprogramme = unite->metaprogramme;
     assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
 
-    metaprogramme->donnees_execution = mv->loge_donnees_execution();
-    mv->ajoute_metaprogramme(metaprogramme);
+    metaprogramme->données_exécution = mv->loge_données_exécution();
+    mv->ajoute_métaprogramme(metaprogramme);
 
     execute_metaprogrammes();
 }
 
 void Tacheronne::execute_metaprogrammes()
 {
-    mv->execute_metaprogrammes_courants();
+    mv->exécute_métaprogrammes_courants();
 
-    POUR (mv->metaprogrammes_termines()) {
+    POUR (mv->métaprogrammes_terminés()) {
         auto espace = it->unite->espace;
 
         // À FAIRE : précision des messages d'erreurs
@@ -627,7 +627,7 @@ void Tacheronne::execute_metaprogrammes()
         }
         else if (!it->a_rapporté_une_erreur) {
             if (it->directive && it->directive->ident == ID::assert_) {
-                auto resultat = *reinterpret_cast<bool *>(it->donnees_execution->pointeur_pile);
+                auto resultat = *reinterpret_cast<bool *>(it->données_exécution->pointeur_pile);
 
                 if (!resultat) {
                     espace->rapporte_erreur(it->directive, "Échec de l'assertion");
@@ -635,7 +635,7 @@ void Tacheronne::execute_metaprogrammes()
             }
             else if (it->directive && it->directive->ident == ID::execute) {
                 auto type = it->directive->type;
-                auto pointeur = it->donnees_execution->pointeur_pile;
+                auto pointeur = it->données_exécution->pointeur_pile;
 
                 // Les directives pour des expressions dans des fonctions n'ont pas d'unités
                 if (!it->directive->unite) {
@@ -645,14 +645,14 @@ void Tacheronne::execute_metaprogrammes()
                         it->directive->lexeme,
                         type,
                         pointeur,
-                        it->donnees_execution->détectrice_fuite_de_mémoire);
+                        it->données_exécution->détectrice_fuite_de_mémoire);
                     resultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
                     it->directive->substitution = resultat;
                 }
             }
             else if (it->corps_texte) {
                 auto resultat = *reinterpret_cast<kuri::chaine_statique *>(
-                    it->donnees_execution->pointeur_pile);
+                    it->données_exécution->pointeur_pile);
 
                 if (resultat.taille() == 0) {
                     espace->rapporte_erreur(it->corps_texte,
@@ -677,7 +677,7 @@ void Tacheronne::execute_metaprogrammes()
 
                 /* La mémoire dû être allouée par notre_alloc, donc nous devrions pouvoir appeler
                  * free. */
-                it->donnees_execution->détectrice_fuite_de_mémoire.supprime_bloc(
+                it->données_exécution->détectrice_fuite_de_mémoire.supprime_bloc(
                     const_cast<char *>(resultat.pointeur()));
 
                 free(const_cast<char *>(resultat.pointeur()));
@@ -690,7 +690,7 @@ void Tacheronne::execute_metaprogrammes()
         it->fut_execute = true;
         imprime_fuites_de_mémoire(it);
 
-        mv->deloge_donnees_execution(it->donnees_execution);
+        mv->déloge_données_exécution(it->données_exécution);
 
         compilatrice.gestionnaire_code->execution_terminee(it->unite);
     }
