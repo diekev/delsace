@@ -54,6 +54,14 @@ void Chunk::détruit()
     initialise();
 }
 
+int64_t Chunk::mémoire_utilisée() const
+{
+    int64_t résultat = 0;
+    résultat += capacité;
+    résultat += locales.taille_memoire();
+    return résultat;
+}
+
 void Chunk::émets(octet_t o)
 {
     agrandis_si_nécessaire(1);
@@ -1803,8 +1811,7 @@ ContexteGenerationCodeBinaire ConvertisseuseRI::contexte() const
 int64_t DonnéesExécutionFonction::mémoire_utilisée() const
 {
     int64_t résultat = 0;
-    résultat += chunk.capacité;
-    résultat += chunk.locales.taille_memoire();
+    résultat += chunk.mémoire_utilisée();
 
     if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
         résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);

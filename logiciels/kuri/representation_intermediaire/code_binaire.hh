@@ -230,6 +230,8 @@ struct Chunk {
 
     void détruit();
 
+    int64_t mémoire_utilisée() const;
+
   private:
     void émets(octet_t o);
 
