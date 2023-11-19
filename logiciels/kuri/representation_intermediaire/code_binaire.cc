@@ -176,7 +176,7 @@ void Chunk::ajoute_locale(InstructionAllocation *alloc)
 }
 
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
-                                   void *pointeur_chaine,
+                                   const void *pointeur_chaine,
                                    int64_t taille_chaine)
 {
     émets_entête_op(OP_CHAINE_CONSTANTE, site);
@@ -1002,7 +1002,7 @@ bool ConvertisseuseRI::genere_code(const kuri::tableau<AtomeFonction *> &fonctio
     return true;
 }
 
-bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
+bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction const *fonction)
 {
     auto données_exécution = fonction->données_exécution;
 
@@ -1378,9 +1378,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
     }
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                                       int décalage,
-                                                                       int ou_patcher)
+void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(
+    AtomeConstante const *constante, int décalage, int ou_patcher)
 {
     unsigned char *donnees = nullptr;
     if (ou_patcher == DONNÉES_GLOBALES) {
@@ -1393,7 +1392,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
     switch (constante->genre_atome) {
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto transtype = static_cast<TranstypeConstant *>(constante);
+            auto transtype = constante->comme_transtype_constant();
             genere_code_binaire_pour_initialisation_globale(
                 transtype->valeur, décalage, ou_patcher);
             break;
@@ -1624,7 +1623,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
     }
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk)
+void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome const *atome, Chunk &chunk)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -1762,7 +1761,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
                 auto données = tableau->donne_données();
 
                 chunk.émets_chaine_constante(
-                    /* site */ nullptr, const_cast<char *>(données.begin()), données.taille());
+                    /* site */ nullptr, données.begin(), données.taille());
                 return;
             }
 
@@ -1802,17 +1801,17 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
     }
 }
 
-int ConvertisseuseRI::ajoute_globale(AtomeGlobale *globale)
+int ConvertisseuseRI::ajoute_globale(AtomeGlobale const *globale)
 {
     assert(globale->index == -1);
     auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
     auto index = donnees_executions->ajoute_globale(
         type_globale, globale->ident, globale->est_info_type_de);
-    globale->index = index;
+    const_cast<AtomeGlobale *>(globale)->index = index;
     return index;
 }
 
-int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale *atome_globale)
+int ConvertisseuseRI::genere_code_pour_globale(AtomeGlobale const *atome_globale)
 {
     auto index = atome_globale->index;
 

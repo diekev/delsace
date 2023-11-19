@@ -280,7 +280,7 @@ struct Chunk {
     }
 
     void émets_chaine_constante(NoeudExpression const *site,
-                                void *pointeur_chaine,
+                                const void *pointeur_chaine,
                                 int64_t taille_chaine);
 
     void émets_retour(NoeudExpression const *site);
@@ -394,21 +394,21 @@ class ConvertisseuseRI {
 
     bool genere_code(const kuri::tableau<AtomeFonction *> &fonctions);
 
-    bool genere_code_pour_fonction(AtomeFonction *fonction);
+    bool genere_code_pour_fonction(AtomeFonction const *fonction);
 
   private:
     void genere_code_binaire_pour_instruction(Instruction const *instruction,
                                               Chunk &chunk,
                                               bool pour_operande);
 
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
+    void genere_code_binaire_pour_initialisation_globale(AtomeConstante const *constante,
                                                          int decalage,
                                                          int ou_patcher);
 
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk);
+    void genere_code_binaire_pour_atome(Atome const *atome, Chunk &chunk);
 
-    int ajoute_globale(AtomeGlobale *globale);
-    int genere_code_pour_globale(AtomeGlobale *atome_globale);
+    int ajoute_globale(AtomeGlobale const *globale);
+    int genere_code_pour_globale(AtomeGlobale const *atome_globale);
 
     ContexteGenerationCodeBinaire contexte() const;
 };
