@@ -1041,22 +1041,21 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         }
 
         auto atome = it->atome_info_type;
-        auto initialisateur = static_cast<AtomeValeurConstante *>(atome->initialisateur);
+        auto initialisateur = atome->initialisateur->comme_constante_structure();
+        auto membres = initialisateur->donne_atomes_membres();
 
         if (est_structure_info_type_défaut(it->genre)) {
             /* Accède directement au membre. */
-            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
-                initialisateur->valeur.valeur_structure.pointeur[2]);
-            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+            auto atome_index_dans_table_types = membres[2]->comme_constante_entière();
+            atome_index_dans_table_types->valeur = it->index_dans_table_types;
         }
         else {
             /* Accède info.base */
-            auto atome_base = static_cast<AtomeValeurConstante *>(
-                initialisateur->valeur.valeur_structure.pointeur[0]);
+            auto atome_base = membres[0]->comme_constante_structure();
             /* Accède base.index_dans_table_types */
-            auto atome_index_dans_table_types = static_cast<AtomeValeurConstante *>(
-                atome_base->valeur.valeur_structure.pointeur[2]);
-            atome_index_dans_table_types->valeur.valeur_entiere = it->index_dans_table_types;
+            auto atome_index_dans_table_types =
+                atome_base->donne_atomes_membres()[2]->comme_constante_entière();
+            atome_index_dans_table_types->valeur = it->index_dans_table_types;
         }
     }
 
@@ -1087,10 +1086,9 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tableau_global(
         type_pointeur_info_type, std::move(table_des_types));
 
-    auto initialisateur = static_cast<AtomeValeurConstante *>(
-        atome_table_des_types->initialisateur);
-    auto atome_accès = static_cast<AccedeIndexConstant *>(
-        initialisateur->valeur.valeur_structure.pointeur[0]);
+    auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
+    auto membres_init = initialisateur->donne_atomes_membres();
+    auto atome_accès = membres_init[0]->comme_accès_index_constant();
     m_résultat.globales.ajoute(atome_accès->accede->comme_globale());
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
@@ -1152,7 +1150,7 @@ std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
 void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
 {
     if (est_globale_pour_tableau_données_constantes(globale)) {
-        auto tableau_constant = static_cast<AtomeValeurConstante const *>(globale->initialisateur);
+        auto tableau_constant = globale->initialisateur->comme_données_constantes();
         m_données_constantes.tableaux_constants.ajoute({globale, tableau_constant, 0});
         return;
     }
@@ -1160,7 +1158,7 @@ void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
     globales.ajoute(globale);
 }
 
-static Type const *donne_type_élément(AtomeValeurConstante const *tableau)
+static Type const *donne_type_élément(AtomeConstanteDonnéesConstantes const *tableau)
 {
     return tableau->type->comme_type_tableau_fixe()->type_pointe;
 }
@@ -1198,7 +1196,7 @@ std::optional<const ProgrammeRepreInter::DonnéesConstantes *> ProgrammeRepreInt
         it.décalage_dans_données_constantes = décalage;
         it.rembourrage = rembourrage;
 
-        auto taille_tableau = it.tableau->valeur.valeur_tdc.taille;
+        auto taille_tableau = it.tableau->donne_données().taille();
         m_données_constantes.taille_données_tableaux_constants += taille_tableau + rembourrage;
     }
 

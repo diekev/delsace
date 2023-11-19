@@ -60,80 +60,56 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
             auto atome_fonc = atome->comme_fonction();
             return atome_fonc->nom;
         }
-        case Atome::Genre::CONSTANTE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto atome_const = static_cast<AtomeConstante const *>(atome);
-
-            switch (atome_const->genre) {
-                case AtomeConstante::Genre::GLOBALE:
-                {
-                    return "";
-                }
-                case AtomeConstante::Genre::FONCTION:
-                {
-                    return "";
-                }
-                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                {
-                    return "";
-                }
-                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                {
-                    return "";
-                }
-                case AtomeConstante::Genre::VALEUR:
-                {
-                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
-
-                    switch (valeur_const->valeur.genre) {
-                        case AtomeValeurConstante::Valeur::Genre::NULLE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TYPE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::REELLE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                        {
-                            return enchaine(valeur_const->valeur.valeur_entiere);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                        {
-                            return enchaine(valeur_const->valeur.valeur_booleenne);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                        {
-                            return enchaine(valeur_const->valeur.valeur_entiere);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                        {
-                            return "";
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                        {
-                            return "";
-                        }
-                    }
-                }
-            }
-
+            return "";
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            return "";
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            return "0";
+        }
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            return "";
+        }
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            return "";
+        }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            auto constante_réelle = atome->comme_constante_réelle();
+            return enchaine(constante_réelle->valeur);
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            auto constante_entière = atome->comme_constante_entière();
+            return enchaine(constante_entière->valeur);
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            auto constante_booléenne = atome->comme_constante_booléenne();
+            return enchaine(constante_booléenne->valeur);
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            auto caractère = atome->comme_constante_caractère();
+            return enchaine(caractère->valeur);
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            return "";
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            return "";
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
             return "";
         }
         case Atome::Genre::INSTRUCTION:

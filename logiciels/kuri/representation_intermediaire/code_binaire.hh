@@ -24,7 +24,6 @@ struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
-struct AtomeValeurConstante;
 struct DonneesConstantesExecutions;
 struct EspaceDeTravail;
 struct IdentifiantCode;
@@ -390,10 +389,6 @@ class ConvertisseuseRI {
     void genere_code_binaire_pour_instruction(Instruction const *instruction,
                                               Chunk &chunk,
                                               bool pour_operande);
-
-    void genere_code_binaire_pour_constante(AtomeConstante *constante, Chunk &chunk);
-    void genere_code_binaire_pour_valeur_constante(AtomeValeurConstante const *valeur_constante,
-                                                   Chunk &chunk);
 
     void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
                                                          int decalage,

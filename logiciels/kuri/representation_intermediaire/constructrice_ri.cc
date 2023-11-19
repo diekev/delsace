@@ -296,21 +296,20 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression *site_,
     return inst;
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_nombre_entier(Type const *type, uint64_t valeur)
+AtomeConstanteEntière *ConstructriceRI::crée_constante_nombre_entier(Type const *type,
+                                                                     uint64_t valeur)
 {
-    return atomes_constante.ajoute_element(type, valeur);
+    return constantes_entières.ajoute_element(type, valeur);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_type(Type const *pointeur_type)
+AtomeConstanteType *ConstructriceRI::crée_constante_type(Type const *pointeur_type)
 {
-    return atomes_constante.ajoute_element(m_typeuse.type_type_de_donnees_, pointeur_type);
+    return constantes_types.ajoute_element(m_typeuse.type_type_de_donnees_, pointeur_type);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_taille_de(Type const *pointeur_type)
+AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *pointeur_type)
 {
-    auto taille_de = atomes_constante.ajoute_element(TypeBase::N32, pointeur_type);
-    taille_de->valeur.genre = AtomeValeurConstante::Valeur::Genre::TAILLE_DE;
-    return taille_de;
+    return constantes_taille_de.ajoute_element(TypeBase::N32, pointeur_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
@@ -323,36 +322,33 @@ AtomeConstante *ConstructriceRI::crée_z64(uint64_t valeur)
     return crée_constante_nombre_entier(TypeBase::Z64, valeur);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_nombre_réel(Type const *type, double valeur)
+AtomeConstanteRéelle *ConstructriceRI::crée_constante_nombre_réel(Type const *type, double valeur)
 {
-    return atomes_constante.ajoute_element(type, valeur);
+    return constantes_réelles.ajoute_element(type, valeur);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_structure(
+AtomeConstanteStructure *ConstructriceRI::crée_constante_structure(
     Type const *type, kuri::tableau<AtomeConstante *> &&valeurs)
 {
-    return atomes_constante.ajoute_element(type, std::move(valeurs));
+    return constantes_structures.ajoute_element(type, std::move(valeurs));
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_tableau_fixe(
+AtomeConstanteTableauFixe *ConstructriceRI::crée_constante_tableau_fixe(
     Type const *type, kuri::tableau<AtomeConstante *> &&valeurs)
 {
-    auto atome = atomes_constante.ajoute_element(type, std::move(valeurs));
-    atome->valeur.genre = AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE;
-    return atome;
+    return constantes_tableaux.ajoute_element(type, std::move(valeurs));
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_tableau_données_constantes(
+AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_données_constantes(
     Type const *type, kuri::tableau<char> &&données_constantes)
 {
-    return atomes_constante.ajoute_element(type, std::move(données_constantes));
+    return constantes_données_constantes.ajoute_element(type, std::move(données_constantes));
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_tableau_données_constantes(Type const *type,
-                                                                           char *pointeur,
-                                                                           int64_t taille)
+AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_données_constantes(
+    Type const *type, char *pointeur, int64_t taille)
 {
-    return atomes_constante.ajoute_element(type, pointeur, taille);
+    return constantes_données_constantes.ajoute_element(type, pointeur, taille);
 }
 
 AtomeConstante *ConstructriceRI::crée_tableau_global(Type const *type,
@@ -402,21 +398,20 @@ AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
     return crée_constante_structure(type_tableau_dyn, std::move(membres));
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_booléenne(bool valeur)
+AtomeConstanteBooléenne *ConstructriceRI::crée_constante_booléenne(bool valeur)
 {
-    return atomes_constante.ajoute_element(TypeBase::BOOL, valeur);
+    return constantes_booléennes.ajoute_element(TypeBase::BOOL, valeur);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_caractère(Type const *type, uint64_t valeur)
+AtomeConstanteCaractère *ConstructriceRI::crée_constante_caractère(Type const *type,
+                                                                   uint64_t valeur)
 {
-    auto atome = atomes_constante.ajoute_element(type, valeur);
-    atome->valeur.genre = AtomeValeurConstante::Valeur::Genre::CARACTERE;
-    return atome;
+    return constantes_caractères.ajoute_element(type, valeur);
 }
 
-AtomeConstante *ConstructriceRI::crée_constante_nulle(Type const *type)
+AtomeConstanteNulle *ConstructriceRI::crée_constante_nulle(Type const *type)
 {
-    return atomes_constante.ajoute_element(type);
+    return constantes_nulles.ajoute_element(type);
 }
 
 InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression *site_,
@@ -601,7 +596,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *sit
                                                           Atome *index)
 {
     auto type_élément = static_cast<Type const *>(nullptr);
-    if (accédé->genre_atome == Atome::Genre::CONSTANTE) {
+    if (accédé->est_constante_tableau() || accédé->est_données_constantes()) {
         type_élément = accédé->type;
     }
     else {
@@ -843,7 +838,16 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
 #define AJOUTE_ENTREE(Tableau)                                                                    \
     stats_ri.fusionne_entrée({#Tableau, Tableau.taille(), Tableau.memoire_utilisee()});
 
-    AJOUTE_ENTREE(atomes_constante)
+    AJOUTE_ENTREE(constantes_entières)
+    AJOUTE_ENTREE(constantes_réelles)
+    AJOUTE_ENTREE(constantes_booléennes)
+    AJOUTE_ENTREE(constantes_nulles)
+    AJOUTE_ENTREE(constantes_caractères)
+    AJOUTE_ENTREE(constantes_structures)
+    AJOUTE_ENTREE(constantes_tableaux)
+    AJOUTE_ENTREE(constantes_données_constantes)
+    AJOUTE_ENTREE(constantes_types)
+    AJOUTE_ENTREE(constantes_taille_de)
     AJOUTE_ENTREE(insts_allocation)
     AJOUTE_ENTREE(insts_branche)
     AJOUTE_ENTREE(insts_branche_condition)
@@ -2091,7 +2095,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
         case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
         {
             // valeur est déjà une constante, change simplement le type
-            if (valeur->genre_atome == Atome::Genre::CONSTANTE) {
+            if (est_valeur_constante(valeur)) {
                 valeur->type = transformation.type_cible;
             }
             // nous avons une temporaire créée lors d'une opération binaire
@@ -2429,7 +2433,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
             switch (noeud->type->genre) {
                 default:
                 {
-                    if (valeur->genre_atome == Atome::Genre::CONSTANTE) {
+                    if (valeur->est_constante()) {
                         valeur = crée_temporaire(noeud, valeur);
                     }
 
@@ -2779,9 +2783,9 @@ void CompilatriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
         pointeur_accede = m_constructrice.crée_charge_mem(noeud, pointeur_accede);
     }
 
-    if (pointeur_accede->genre_atome == Atome::Genre::CONSTANTE) {
-        auto initialisateur = static_cast<AtomeValeurConstante *>(pointeur_accede);
-        auto valeur = initialisateur->valeur.valeur_structure.pointeur[noeud->index_membre];
+    if (pointeur_accede->est_constante_structure()) {
+        auto initialisateur = pointeur_accede->comme_constante_structure();
+        auto valeur = initialisateur->donne_atomes_membres()[noeud->index_membre];
         empile_valeur(valeur);
         return;
     }

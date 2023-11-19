@@ -93,13 +93,6 @@ struct GénératriceCodeC {
 
     kuri::chaine_statique génère_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
 
-    kuri::chaine_statique génère_code_pour_atome_constante(AtomeConstante const *atome_const,
-                                                           Enchaineuse &os,
-                                                           bool pour_globale);
-
-    kuri::chaine_statique génère_code_pour_atome_valeur_constante(
-        AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale);
-
     void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
     void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
@@ -859,11 +852,6 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
 
             return donne_nom_pour_fonction(atome_fonc);
         }
-        case Atome::Genre::CONSTANTE:
-        {
-            auto atome_const = static_cast<AtomeConstante const *>(atome);
-            return génère_code_pour_atome_constante(atome_const, os, pour_globale);
-        }
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
@@ -873,39 +861,15 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
         {
             return table_globales.valeur_ou(atome, "");
         }
-    }
-
-    return "";
-}
-
-kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
-    AtomeConstante const *atome_const, Enchaineuse &os, bool pour_globale)
-{
-    switch (atome_const->genre) {
-        case AtomeConstante::Genre::GLOBALE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto valeur_globale = atome_const->comme_globale();
-
-            if (valeur_globale->ident) {
-                return valeur_globale->ident->nom;
-            }
-
-            return table_globales.valeur_ou(valeur_globale, "");
-        }
-        case AtomeConstante::Genre::FONCTION:
-        {
-            auto fonction = atome_const->comme_fonction();
-            return donne_nom_pour_fonction(fonction);
-        }
-        case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-        {
-            auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
+            auto transtype_const = atome->comme_transtype_constant();
             auto valeur = génère_code_pour_atome(transtype_const->valeur, os, pour_globale);
             return enchaine("(", donne_nom_pour_type(transtype_const->type), ")(", valeur, ")");
         }
-        case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
-            auto inst_accès = static_cast<AccedeIndexConstant const *>(atome_const);
+            auto inst_accès = atome->comme_accès_index_constant();
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accede, os, false);
 
             if (inst_accès->accede->genre_atome == Atome::Genre::GLOBALE &&
@@ -924,27 +888,13 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_constante(
 
             return enchaine(valeur_accédée, "[", valeur_index, "]");
         }
-        case AtomeConstante::Genre::VALEUR:
-        {
-            auto valeur_const = static_cast<AtomeValeurConstante const *>(atome_const);
-            return génère_code_pour_atome_valeur_constante(valeur_const, os, pour_globale);
-        }
-    }
-
-    return "";
-}
-
-kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_constante(
-    AtomeValeurConstante const *valeur_const, Enchaineuse &os, bool pour_globale)
-{
-    switch (valeur_const->valeur.genre) {
-        case AtomeValeurConstante::Valeur::Genre::NULLE:
+        case Atome::Genre::CONSTANTE_NULLE:
         {
             return "0";
         }
-        case AtomeValeurConstante::Valeur::Genre::TYPE:
+        case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto type = valeur_const->valeur.type;
+            auto type = atome->comme_constante_type()->type_de_données;
             if (type->est_type_type_de_donnees()) {
                 auto type_de_données = type->comme_type_type_de_donnees();
                 if (type_de_données->type_connu) {
@@ -953,24 +903,27 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
             }
             return enchaine(type->index_dans_table_types);
         }
-        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            return enchaine(valeur_const->valeur.type->taille_octet);
+            auto type = atome->comme_taille_de()->type_de_données;
+            return enchaine(type->taille_octet);
         }
-        case AtomeValeurConstante::Valeur::Genre::REELLE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            auto type = valeur_const->type;
+            auto constante_réelle = atome->comme_constante_réelle();
+            auto type = constante_réelle->type;
 
             if (type->taille_octet == 4) {
-                return enchaine("(float)", valeur_const->valeur.valeur_reelle);
+                return enchaine("(float)", constante_réelle->valeur);
             }
 
-            return enchaine("(double)", valeur_const->valeur.valeur_reelle);
+            return enchaine("(double)", constante_réelle->valeur);
         }
-        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
-            auto type = valeur_const->type;
-            auto valeur_entière = valeur_const->valeur.valeur_entiere;
+            auto constante_entière = atome->comme_constante_entière();
+            auto type = constante_entière->type;
+            auto valeur_entière = constante_entière->valeur;
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
@@ -1003,26 +956,25 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
 
             return "";
         }
-        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
             /* Convertis vers une valeur entière pour éviter les problèmes
              * d'instantiation de templates (Enchaineuse ne gère pas les valeurs
              * booléennes, et si elle devait, elle imprimerait "vrai" ou "faux",
              * qui ne sont pas des identifiants valides en C). */
-            return enchaine(valeur_const->valeur.valeur_booleenne ? 1 : 0);
+            auto constante_booléenne = atome->comme_constante_booléenne();
+            return enchaine(constante_booléenne->valeur ? 1 : 0);
         }
-        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
         {
-            return enchaine(valeur_const->valeur.valeur_entiere);
+            auto caractère = atome->comme_constante_caractère();
+            return enchaine(caractère->valeur);
         }
-        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
+        case Atome::Genre::CONSTANTE_STRUCTURE:
         {
-            return "";
-        }
-        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-        {
-            auto type = static_cast<TypeCompose const *>(valeur_const->type);
-            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
+            auto structure = atome->comme_constante_structure();
+            auto type = structure->type->comme_type_compose();
+            auto tableau_valeur = structure->donne_atomes_membres();
             auto résultat = Enchaineuse();
 
             auto virgule = "{ ";
@@ -1074,23 +1026,23 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
                << ";\n";
             return nom;
         }
-        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
-            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
-            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
+            auto tableau = atome->comme_constante_tableau();
+            auto éléments = tableau->donne_atomes_éléments();
             auto résultat = Enchaineuse();
 
             auto virgule = "{ .d = { ";
 
-            for (auto i = 0; i < taille_tableau; ++i) {
+            POUR (éléments) {
                 résultat << virgule;
-                résultat << génère_code_pour_atome(pointeur_tableau[i], os, pour_globale);
+                résultat << génère_code_pour_atome(it, os, pour_globale);
                 /* Retourne à la ligne car GCC à du mal avec des chaines trop
                  * grandes. */
                 virgule = ",\n";
             }
 
-            if (taille_tableau == 0) {
+            if (éléments.taille() == 0) {
                 résultat << "{}";
             }
             else {
@@ -1105,25 +1057,24 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome_valeur_consta
 
             return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
         }
-        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
-            auto pointeur_données = valeur_const->valeur.valeur_tdc.pointeur;
-            auto taille_données = valeur_const->valeur.valeur_tdc.taille;
+            auto constante = atome->comme_données_constantes();
+            auto données = constante->donne_données();
 
             enchaineuse_tmp.réinitialise();
 
             auto virgule = "{ ";
 
-            for (auto i = 0; i < taille_données; ++i) {
-                auto octet = pointeur_données[i];
+            POUR (données) {
                 enchaineuse_tmp << virgule;
                 enchaineuse_tmp << "0x";
-                enchaineuse_tmp << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                enchaineuse_tmp << dls::num::char_depuis_hex(octet & 0x0f);
+                enchaineuse_tmp << dls::num::char_depuis_hex((it & 0xf0) >> 4);
+                enchaineuse_tmp << dls::num::char_depuis_hex(it & 0x0f);
                 virgule = ", ";
             }
 
-            if (taille_données == 0) {
+            if (données.taille() == 0) {
                 enchaineuse_tmp << "{";
             }
 
@@ -1521,7 +1472,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             }
 
             auto index_membre = static_cast<int>(
-                static_cast<AtomeValeurConstante *>(inst_accès->index)->valeur.valeur_entiere);
+                inst_accès->index->comme_constante_entière()->valeur);
 
             if (valeur_accédée.pointeur()[0] == '&') {
                 valeur_accédée = enchaine(valeur_accédée, ".");
@@ -1992,9 +1943,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
     auto virgule = " = {\n";
     auto compteur = 0;
     POUR (données_constantes->tableaux_constants) {
-        auto tableau = it.tableau;
-        auto pointeur_données = tableau->valeur.valeur_tdc.pointeur;
-        auto taille_données = tableau->valeur.valeur_tdc.taille;
+        auto tableau = it.tableau->donne_données();
 
         for (auto i = 0; i < it.rembourrage; ++i) {
             compteur++;
@@ -2006,8 +1955,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
             virgule = ", ";
         }
 
-        for (auto i = 0; i < taille_données; ++i) {
-            auto octet = pointeur_données[i];
+        POUR_NOMME (octet, tableau) {
             compteur++;
             os << virgule;
             if ((compteur % 20) == 0) {

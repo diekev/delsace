@@ -74,94 +74,76 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
                << chaine_type(atome->type, false);
             break;
         }
-        case Atome::Genre::CONSTANTE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto atome_const = static_cast<AtomeConstante const *>(atome);
             os << "constante de type " << chaine_type(atome->type, false);
-            switch (atome_const->genre) {
-                case AtomeConstante::Genre::GLOBALE:
-                {
-                    os << " représentant une globale";
-                    break;
-                }
-                case AtomeConstante::Genre::FONCTION:
-                {
-                    os << " représentant une fonction";
-                    break;
-                }
-                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                {
-                    os << " représentant un transtypage constant";
-                    break;
-                }
-                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                {
-                    os << " représentant un indexage constant";
-                    break;
-                }
-                case AtomeConstante::Genre::VALEUR:
-                {
-                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
-
-                    switch (valeur_const->valeur.genre) {
-                        case AtomeValeurConstante::Valeur::Genre::NULLE:
-                        {
-                            os << " représentant une valeur constante NULLE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::REELLE:
-                        {
-                            os << " représentant une valeur constante REELLE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TYPE:
-                        {
-                            os << " représentant une valeur constante TYPE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                        {
-                            os << " représentant une valeur constante TAILLE_DE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                        {
-                            os << " représentant une valeur constante ENTIERE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                        {
-                            os << " représentant une valeur constante BOOLEENNE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                        {
-                            os << " représentant une valeur constante CARACTERE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                        {
-                            os << " représentant une valeur constante INDEFINIE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                        {
-                            os << " représentant une valeur constante STRUCTURE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                        {
-                            os << " représentant une valeur constante TABLEAU_FIXE";
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                        {
-                            os << " représentant une valeur constante TABLEAU_DONNEES_CONSTANTES";
-                            break;
-                        }
-                    }
-                }
-            }
+            os << " représentant un transtypage constant";
+            break;
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant un indexage constant";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante NULLE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante TYPE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante REELLE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante ENTIERE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante BOOLEENNE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante CARACTERE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante TABLEAU_DONNEES_CONSTANTES";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante TAILLE_DE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante STRUCTURE";
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            os << "constante de type " << chaine_type(atome->type, false);
+            os << " représentant une valeur constante TABLEAU_FIXE";
             break;
         }
         case Atome::Genre::INSTRUCTION:
@@ -198,142 +180,92 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
             os << '\n';
         }
     }
-    else if (atome->genre_atome == Atome::Genre::CONSTANTE) {
-        auto atome_const = static_cast<AtomeConstante const *>(atome);
+    else if (atome->genre_atome == Atome::Genre::TRANSTYPE_CONSTANT) {
+        auto transtype_const = atome->comme_transtype_constant();
+        os << "  transtype ";
+        imprime_atome_ex(transtype_const->valeur, os, true);
+        os << " vers " << chaine_type(transtype_const->type, false) << '\n';
+    }
+    else if (atome->genre_atome == Atome::Genre::ACCÈS_INDEX_CONSTANT) {
+        auto acces = static_cast<AccedeIndexConstant const *>(atome);
+        imprime_atome_ex(acces->accede, os, true);
+        os << '[';
+        imprime_atome_ex(acces->index, os, true);
+        os << ']';
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_BOOLÉENNE) {
+        os << atome->comme_constante_booléenne()->valeur;
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TYPE) {
+        os << atome->comme_constante_type()->type_de_données->index_dans_table_types;
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_ENTIÈRE) {
+        os << atome->comme_constante_entière()->valeur;
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_RÉELLE) {
+        os << atome->comme_constante_réelle()->valeur;
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_NULLE) {
+        os << "nul";
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_CARACTÈRE) {
+        os << atome->comme_constante_caractère()->valeur;
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TAILLE_DE) {
+        auto type_de_données = atome->comme_constante_type()->type_de_données;
+        os << "taille_de(" << chaine_type(type_de_données, false) << ')';
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_STRUCTURE) {
+        auto structure_const = atome->comme_constante_structure();
+        auto type = static_cast<TypeCompose const *>(atome->type);
+        auto atomes_membres = structure_const->donne_atomes_membres();
 
-        switch (atome_const->genre) {
-            case AtomeConstante::Genre::GLOBALE:
-            {
-                break;
+        auto virgule = "{ ";
+        auto index_membre = 0;
+
+        POUR (type->membres) {
+            if (it.ne_doit_pas_être_dans_code_machine()) {
+                continue;
             }
-            case AtomeConstante::Genre::FONCTION:
-            {
-                break;
-            }
-            case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-            {
-                auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
-                os << "  transtype ";
-                imprime_atome_ex(transtype_const->valeur, os, true);
-                os << " vers " << chaine_type(transtype_const->type, false) << '\n';
-                break;
-            }
-            case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-            {
-                auto acces = static_cast<AccedeIndexConstant const *>(atome);
-                imprime_atome_ex(acces->accede, os, true);
-                os << '[';
-                imprime_atome_ex(acces->index, os, true);
-                os << ']';
-                break;
-            }
-            case AtomeConstante::Genre::VALEUR:
-            {
-                auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
-
-                switch (valeur_constante->valeur.genre) {
-                    case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                    {
-                        os << valeur_constante->valeur.valeur_booleenne;
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::TYPE:
-                    {
-                        os << valeur_constante->valeur.type->index_dans_table_types;
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                    {
-                        os << valeur_constante->valeur.valeur_entiere;
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::REELLE:
-                    {
-                        os << valeur_constante->valeur.valeur_reelle;
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::NULLE:
-                    {
-                        os << "nul";
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                    {
-                        os << valeur_constante->valeur.valeur_entiere;
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                    {
-                        os << "indéfinie";
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                    {
-                        os << "taille_de(" << chaine_type(valeur_constante->valeur.type, false)
-                           << ')';
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                    {
-                        auto type = static_cast<TypeCompose const *>(atome->type);
-                        auto tableau_valeur = valeur_constante->valeur.valeur_structure.pointeur;
-
-                        auto virgule = "{ ";
-
-                        auto index_membre = 0;
-
-                        POUR (type->membres) {
-                            if (it.ne_doit_pas_être_dans_code_machine()) {
-                                continue;
-                            }
-                            os << virgule;
-                            os << it.nom->nom << " = ";
-                            imprime_atome_ex(tableau_valeur[index_membre], os, true);
-                            index_membre += 1;
-                            virgule = ", ";
-                        }
-
-                        os << " }";
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                    {
-                        auto pointeur_tableau = valeur_constante->valeur.valeur_tableau.pointeur;
-                        auto taille_tableau = valeur_constante->valeur.valeur_tableau.taille;
-
-                        auto virgule = "[ ";
-
-                        for (auto i = 0; i < taille_tableau; ++i) {
-                            os << virgule;
-                            imprime_atome_ex(pointeur_tableau[i], os, true);
-                            virgule = ", ";
-                        }
-
-                        os << ((taille_tableau == 0) ? "[]" : " ]");
-                        break;
-                    }
-                    case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                    {
-                        auto pointeur_donnnees = valeur_constante->valeur.valeur_tdc.pointeur;
-                        auto taille_donnees = valeur_constante->valeur.valeur_tdc.taille;
-
-                        auto virgule = "[ ";
-
-                        for (auto i = 0; i < taille_donnees; ++i) {
-                            auto octet = pointeur_donnnees[i];
-                            os << virgule;
-                            os << "0x";
-                            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                            os << dls::num::char_depuis_hex(octet & 0x0f);
-                            virgule = ", ";
-                        }
-
-                        os << ((taille_donnees == 0) ? "[]" : " ]");
-                        break;
-                    }
-                }
-            }
+            os << virgule;
+            os << it.nom->nom << " = ";
+            imprime_atome_ex(atomes_membres[index_membre], os, true);
+            index_membre += 1;
+            virgule = ", ";
         }
+
+        os << " }";
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES) {
+        auto données = atome->comme_données_constantes();
+        auto tableau_données = données->donne_données();
+
+        auto virgule = "[ ";
+
+        POUR (tableau_données) {
+            auto octet = it;
+            os << virgule;
+            os << "0x";
+            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+            os << dls::num::char_depuis_hex(octet & 0x0f);
+            virgule = ", ";
+        }
+
+        os << ((tableau_données.taille() == 0) ? "[]" : " ]");
+    }
+    else if (atome->genre_atome == Atome::Genre::CONSTANTE_TABLEAU_FIXE) {
+        auto tableau_const = atome->comme_constante_tableau();
+        auto éléments = tableau_const->donne_atomes_éléments();
+
+        auto virgule = "[ ";
+
+        POUR (éléments) {
+            os << virgule;
+            imprime_atome_ex(it, os, true);
+            virgule = ", ";
+        }
+
+        os << ((éléments.taille() == 0) ? "[]" : " ]");
     }
     else if (atome->genre_atome == Atome::Genre::FONCTION) {
         auto atome_fonction = atome->comme_fonction();
@@ -419,9 +351,6 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
 
             if (charge->genre_atome == Atome::Genre::GLOBALE) {
                 os << " @globale" << charge;
-            }
-            else if (charge->genre_atome == Atome::Genre::CONSTANTE) {
-                os << " @constante" << charge;
             }
             else {
                 auto inst_chargee = charge->comme_instruction();
