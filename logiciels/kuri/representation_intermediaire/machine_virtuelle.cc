@@ -122,8 +122,6 @@ void DonneesExecution::réinitialise()
     this->profondeur_appel = 0;
     this->instructions_executees = 0;
     this->détectrice_fuite_de_mémoire.réinitialise();
-    this->site = nullptr;
-    this->dernier_site = nullptr;
 }
 
 void DonneesExecution::imprime_stats_instructions(std::ostream &os)
@@ -219,8 +217,8 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInte
 
 #define OP_UNAIRE_POUR_TYPE(op, type)                                                             \
     if (taille == static_cast<int>(sizeof(type))) {                                               \
-        auto a = depile<type>(site);                                                              \
-        empile(site, op a);                                                                       \
+        auto a = depile<type>();                                                                  \
+        empile(op a);                                                                             \
     }
 
 #define OP_UNAIRE(op)                                                                             \
@@ -236,10 +234,10 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInte
 
 #define OP_BINAIRE_POUR_TYPE(op, type)                                                            \
     if (taille == static_cast<int>(sizeof(type))) {                                               \
-        auto b = depile<type>(site);                                                              \
-        auto a = depile<type>(site);                                                              \
+        auto b = depile<type>();                                                                  \
+        auto a = depile<type>();                                                                  \
         auto r = op::applique_opération<type>(a, b);                                              \
-        empile(site, r);                                                                          \
+        empile(r);                                                                                \
     }
 
 #define OP_BINAIRE(op)                                                                            \
@@ -261,8 +259,8 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::ResultatInte
 
 #define FAIS_TRANSTYPE(type_de, type_vers)                                                        \
     if (taille_vers == static_cast<int>(sizeof(type_vers))) {                                     \
-        auto v = depile<type_de>(site);                                                           \
-        empile(site, static_cast<type_vers>(v));                                                  \
+        auto v = depile<type_de>();                                                               \
+        empile(static_cast<type_vers>(v));                                                        \
     }
 
 #define FAIS_TRANSTYPE_AUGMENTE(type1, type2, type3, type4)                                       \
@@ -492,27 +490,25 @@ MachineVirtuelle::~MachineVirtuelle()
 }
 
 template <typename T>
-inline T depile(NoeudExpression *site, octet_t *&pointeur_pile)
+inline T depile(octet_t *&pointeur_pile)
 {
     pointeur_pile -= static_cast<int64_t>(sizeof(T));
     return *reinterpret_cast<T *>(pointeur_pile);
 }
 
-void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
+void MachineVirtuelle::depile(int64_t n)
 {
     pointeur_pile -= n;
     // std::cerr << "Dépile " << n << " octet(s), décalage : " << static_cast<int>(pointeur_pile -
     // pile) << '\n';
 #ifndef NDEBUG
     if (pointeur_pile < pile) {
-        rapporte_erreur_execution(site, "Erreur interne : sous-tamponnage de la pile de données");
+        rapporte_erreur_execution("Erreur interne : sous-tamponnage de la pile de données");
     }
-#else
-    static_cast<void>(site);
 #endif
 }
 
-bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
+bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *site)
 {
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;
@@ -526,13 +522,13 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
 
 bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
                                               int taille_argument,
-                                              FrameAppel *&frame,
-                                              NoeudExpression *site)
+                                              FrameAppel *&frame)
 {
     // puisque les arguments utilisent des instructions d'allocations retire la taille des
     // arguments du pointeur de la pile pour ne pas que les allocations ne l'augmente
     pointeur_pile -= taille_argument;
 
+    auto const site = donne_site_adresse_courante();
     if (!appel(ptr_fonction, site)) {
         return false;
     }
@@ -543,17 +539,16 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
 
 #define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
     if (!pointeur) {                                                                              \
-        rapporte_erreur_execution(site, message);                                                 \
+        rapporte_erreur_execution(message);                                                       \
     }
 
 void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                                   NoeudExpression *site,
                                                    ResultatInterpretation &resultat)
 {
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
     if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
-        empile(site, m_metaprogramme->unite->espace);
+        empile(m_metaprogramme->unite->espace);
         return;
     }
 
@@ -565,12 +560,12 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
             return;
         }
 
-        empile(site, message);
+        empile(message);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
-        auto espace_recu = depile<EspaceDeTravail *>(site);
+        auto espace_recu = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         auto &messagere = compilatrice.messagere;
@@ -582,10 +577,11 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
-        auto espace_recu = depile<EspaceDeTravail *>(site);
+        auto espace_recu = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         if (espace_recu->metaprogramme != m_metaprogramme) {
+            auto const site = donne_site_adresse_courante();
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
             m_metaprogramme->unite->espace->rapporte_erreur(
@@ -604,46 +600,50 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_lexe_fichier)) {
-        auto chemin_recu = depile<kuri::chaine_statique>(site);
+        auto const site = donne_site_adresse_courante();
+        auto chemin_recu = depile<kuri::chaine_statique>();
         auto espace = m_metaprogramme->unite->espace;
         auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
-        empile(site, lexemes);
+        empile(lexemes);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_obtiens_options)) {
         auto options = compilatrice.options_compilation();
-        empile(site, options);
+        empile(options);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_ajourne_options)) {
-        auto options = depile<OptionsDeCompilation *>(site);
+        auto options = depile<OptionsDeCompilation *>();
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options de compilation nulles");
         compilatrice.ajourne_options_compilation(options);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_a_la_compilation)) {
-        auto chaine = depile<kuri::chaine_statique>(site);
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto const site = donne_site_adresse_courante();
+        auto chaine = depile<kuri::chaine_statique>();
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_compilation(espace, site, chaine);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(ajoute_fichier_a_la_compilation)) {
-        auto chaine = depile<kuri::chaine_statique>(site);
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto const site = donne_site_adresse_courante();
+        auto chaine = depile<kuri::chaine_statique>();
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_fichier_compilation(espace, chaine, site);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_au_module)) {
-        auto chaine = depile<kuri::chaine_statique>(site);
-        auto module = depile<Module *>(site);
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto const site = donne_site_adresse_courante();
+        auto chaine = depile<kuri::chaine_statique>();
+        auto module = depile<Module *>();
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_chaine_au_module(espace, site, module, chaine);
@@ -651,26 +651,26 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(demarre_un_espace_de_travail)) {
-        auto options = depile<OptionsDeCompilation *>(site);
-        auto nom = depile<kuri::chaine_statique>(site);
+        auto options = depile<OptionsDeCompilation *>();
+        auto nom = depile<kuri::chaine_statique>();
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
         auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
-        empile(site, espace);
+        empile(espace);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(espace_defaut_compilation)) {
         auto espace = compilatrice.espace_defaut_compilation();
-        empile(site, espace);
+        empile(espace);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur)) {
-        auto message = depile<kuri::chaine_statique>(site);
+        auto message = depile<kuri::chaine_statique>();
         /* Dans les noeuds codes, les lignes commencent à 1. */
-        auto ligne = depile<int>(site) - 1;
-        auto fichier = depile<kuri::chaine_statique>(site);
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto ligne = depile<int>() - 1;
+        auto fichier = depile<kuri::chaine_statique>();
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         m_metaprogramme->a_rapporté_une_erreur = true;
@@ -678,32 +678,33 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement)) {
-        auto message = depile<kuri::chaine_statique>(site);
+        auto message = depile<kuri::chaine_statique>();
         /* Dans les noeuds codes, les lignes commencent à 1. */
-        auto ligne = depile<int>(site) - 1;
-        auto fichier = depile<kuri::chaine_statique>(site);
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto ligne = depile<int>() - 1;
+        auto fichier = depile<kuri::chaine_statique>();
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_possede_erreur)) {
-        auto espace = depile<EspaceDeTravail *>(site);
+        auto espace = depile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        empile(site, compilatrice.possède_erreur(espace));
+        empile(compilatrice.possède_erreur(espace));
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
+        auto const site = donne_site_adresse_courante();
         auto fichier = compilatrice.fichier(site->lexeme->fichier);
         auto module = fichier->module;
-        empile(site, module);
+        empile(module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_message_recu)) {
-        auto message = depile<Message *>(site);
+        auto message = depile<Message *>();
         RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
         compilatrice.gestionnaire_code->message_recu(message);
         return;
@@ -712,81 +713,80 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsees)) {
         auto espace = m_metaprogramme->unite->espace;
         auto fonctions = compilatrice.fonctions_parsees(espace);
-        empile(site, fonctions);
+        empile(fonctions);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
-        auto code = depile<NoeudCode *>(site);
+        auto code = depile<NoeudCode *>();
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
         const auto fichier = compilatrice.fichier(code->chemin_fichier);
         RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
         const auto module = fichier->module;
-        empile(site, module);
+        empile(module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_type)) {
-        auto info_type = depile<InfoType *>(site);
+        auto info_type = depile<InfoType *>();
         RAPPORTE_ERREUR_SI_NUL(info_type, "Reçu un InfoType nul");
         const auto decl = compilatrice.typeuse.decl_pour_info_type(info_type);
         if (!decl) {
-            empile(site, nullptr);
+            empile(nullptr);
             return;
         }
         const auto fichier = compilatrice.fichier(decl->lexeme->fichier);
         if (!fichier) {
-            empile(site, nullptr);
+            empile(nullptr);
             return;
         }
         const auto module = fichier->module;
-        empile(site, module);
+        empile(module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_nom_module)) {
-        auto module = depile<Module *>(site);
+        auto module = depile<Module *>();
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un Module nul");
-        empile(site, module->nom_->nom);
+        empile(module->nom_->nom);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_chemin_module)) {
-        auto module = depile<Module *>(site);
+        auto module = depile<Module *>();
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un Module nul");
-        empile(site, module->chemin());
+        empile(module->chemin());
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_racine_compilation)) {
         auto module = compilatrice.module_racine_compilation;
-        empile(site, module);
+        empile(module);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_racine_installation_kuri)) {
         kuri::chaine_statique racine_kuri = compilatrice.racine_kuri;
-        empile(site, racine_kuri);
+        empile(racine_kuri);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_donne_arguments_ligne_de_commande)) {
         kuri::tableau_statique<kuri::chaine_statique> arguments =
             compilatrice.arguments.arguments_pour_métaprogrammes;
-        empile(site, arguments);
+        empile(arguments);
         return;
     }
 }
 
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
-                                              InstructionAppel *inst_appel,
-                                              NoeudExpression *site)
+                                              InstructionAppel *inst_appel)
 {
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
-        auto taille = depile<size_t>(site);
+        auto taille = depile<size_t>();
         auto résultat = notre_malloc(taille);
-        empile(site, résultat);
+        empile(résultat);
 
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.ajoute_bloc(
@@ -795,14 +795,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(notre_realloc)) {
-        auto taille = depile<size_t>(site);
-        auto ptr = depile<void *>(site);
+        auto taille = depile<size_t>();
+        auto ptr = depile<void *>();
 
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
 
         auto résultat = notre_realloc(ptr, taille);
-        empile(site, résultat);
+        empile(résultat);
 
         données->détectrice_fuite_de_mémoire.ajoute_bloc(
             résultat, taille, donne_tableau_frame_appel());
@@ -810,7 +810,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(notre_free)) {
-        auto ptr = depile<void *>(site);
+        auto ptr = depile<void *>();
 
         auto données = m_metaprogramme->donnees_execution;
         données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
@@ -898,13 +898,13 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     pointeur_pile = pointeur_arguments + taille_type_retour;
 }
 
-inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel *frame)
+inline void MachineVirtuelle::empile_constante(FrameAppel *frame)
 {
     auto drapeaux = LIS_OCTET();
 
 #define EMPILE_CONSTANTE(type)                                                                    \
     type v = *(reinterpret_cast<type *>(frame->pointeur));                                        \
-    empile(site, v);                                                                              \
+    empile(v);                                                                                    \
     frame->pointeur += (drapeaux >> 3);                                                           \
     break;
 
@@ -928,7 +928,7 @@ inline void MachineVirtuelle::empile_constante(NoeudExpression *site, FrameAppel
         case CONSTANTE_ENTIER_NATUREL | BITS_8:
         {
             // erreur de compilation pour transtype inutile avec drapeaux stricts
-            empile(site, LIS_OCTET());
+            empile(LIS_OCTET());
             break;
         }
         case CONSTANTE_ENTIER_NATUREL | BITS_16:
@@ -1017,18 +1017,9 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
     for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
         assert_rappel(profondeur_appel > 0 && profondeur_appel < TAILLE_FRAMES_APPEL,
-                      [&]() { imprime_trace_appel(m_metaprogramme->donnees_execution->site); });
+                      [&]() { imprime_trace_appel(donne_site_adresse_courante()); });
         auto pointeur_debut = frame->pointeur;
         auto instruction = LIS_OCTET();
-        auto site_courant = LIS_POINTEUR(NoeudExpression);
-
-        NoeudExpression *site = site_courant;
-        if (site_courant) {
-            m_metaprogramme->donnees_execution->site = site_courant;
-        }
-        else {
-            site = m_metaprogramme->donnees_execution->site;
-        }
 
         switch (instruction) {
             case OP_BRANCHE:
@@ -1043,7 +1034,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             {
                 auto decalage_si_vrai = LIS_4_OCTETS();
                 auto decalage_si_faux = LIS_4_OCTETS();
-                auto condition = depile<bool>(site);
+                auto condition = depile<bool>();
 
                 if (condition) {
                     frame->pointeur = frame->fonction->données_exécution->chunk.code +
@@ -1058,15 +1049,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             case OP_CONSTANTE:
             {
-                empile_constante(site, frame);
+                empile_constante(frame);
                 break;
             }
             case OP_CHAINE_CONSTANTE:
             {
                 auto pointeur_chaine = LIS_8_OCTETS();
                 auto taille_chaine = LIS_8_OCTETS();
-                empile(site, pointeur_chaine);
-                empile(site, taille_chaine);
+                empile(pointeur_chaine);
+                empile(taille_chaine);
                 break;
             }
             case OP_INCRÉMENTE:
@@ -1074,20 +1065,20 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille = LIS_4_OCTETS();
 
                 if (taille == 1) {
-                    auto valeur = depile<uint8_t>(site);
-                    empile(site, valeur + 1);
+                    auto valeur = depile<uint8_t>();
+                    empile(valeur + 1);
                 }
                 else if (taille == 2) {
-                    auto valeur = depile<uint16_t>(site);
-                    empile(site, valeur + 1);
+                    auto valeur = depile<uint16_t>();
+                    empile(valeur + 1);
                 }
                 else if (taille == 4) {
-                    auto valeur = depile<uint32_t>(site);
-                    empile(site, valeur + 1);
+                    auto valeur = depile<uint32_t>();
+                    empile(valeur + 1);
                 }
                 else {
-                    auto valeur = depile<uint64_t>(site);
-                    empile(site, valeur + 1);
+                    auto valeur = depile<uint64_t>();
+                    empile(valeur + 1);
                 }
 
                 break;
@@ -1116,20 +1107,20 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille = LIS_4_OCTETS();
 
                 if (taille == 1) {
-                    auto valeur = depile<uint8_t>(site);
-                    empile(site, valeur - 1);
+                    auto valeur = depile<uint8_t>();
+                    empile(valeur - 1);
                 }
                 else if (taille == 2) {
-                    auto valeur = depile<uint16_t>(site);
-                    empile(site, valeur - 1);
+                    auto valeur = depile<uint16_t>();
+                    empile(valeur - 1);
                 }
                 else if (taille == 4) {
-                    auto valeur = depile<uint32_t>(site);
-                    empile(site, valeur - 1);
+                    auto valeur = depile<uint32_t>();
+                    empile(valeur - 1);
                 }
                 else {
-                    auto valeur = depile<uint64_t>(site);
-                    empile(site, valeur - 1);
+                    auto valeur = depile<uint64_t>();
+                    empile(valeur - 1);
                 }
 
                 break;
@@ -1348,8 +1339,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille_vers = LIS_4_OCTETS();
 
                 if (taille_de == 4 && taille_vers == 8) {
-                    auto v = depile<float>(site);
-                    empile(site, static_cast<double>(v));
+                    auto v = depile<float>();
+                    empile(static_cast<double>(v));
                 }
 
                 break;
@@ -1360,8 +1351,8 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto taille_vers = LIS_4_OCTETS();
 
                 if (taille_de == 8 && taille_vers == 4) {
-                    auto v = depile<double>(site);
-                    empile(site, static_cast<float>(v));
+                    auto v = depile<double>();
+                    empile(static_cast<float>(v));
                 }
 
                 break;
@@ -1374,15 +1365,15 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 #define TRANSTYPE_EVR(type_)                                                                      \
     if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
-        auto v = depile<type_>(site);                                                             \
+        auto v = depile<type_>();                                                                 \
         if (taille_vers == 2) {                                                                   \
             /* @Incomplet : r16 */                                                                \
         }                                                                                         \
         else if (taille_vers == 4) {                                                              \
-            empile(site, static_cast<float>(v));                                                  \
+            empile(static_cast<float>(v));                                                        \
         }                                                                                         \
         else if (taille_vers == 8) {                                                              \
-            empile(site, static_cast<double>(v));                                                 \
+            empile(static_cast<double>(v));                                                       \
         }                                                                                         \
     }
 
@@ -1402,18 +1393,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
 #define TRANSTYPE_RVE(type_)                                                                      \
     if (taille_de == static_cast<int>(taille_de(type_))) {                                        \
-        auto v = depile<type_>(site);                                                             \
+        auto v = depile<type_>();                                                                 \
         if (taille_vers == 1) {                                                                   \
-            empile(site, static_cast<char>(v));                                                   \
+            empile(static_cast<char>(v));                                                         \
         }                                                                                         \
         else if (taille_vers == 2) {                                                              \
-            empile(site, static_cast<short>(v));                                                  \
+            empile(static_cast<short>(v));                                                        \
         }                                                                                         \
         else if (taille_vers == 4) {                                                              \
-            empile(site, static_cast<int>(v));                                                    \
+            empile(static_cast<int>(v));                                                          \
         }                                                                                         \
         else if (taille_vers == 8) {                                                              \
-            empile(site, static_cast<int64_t>(v));                                                \
+            empile(static_cast<int64_t>(v));                                                      \
         }                                                                                         \
     }
 
@@ -1466,13 +1457,13 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 if (est_pointeur) {
                     /* Ne perturbe pas notre pile. */
                     auto ptr = this->pointeur_pile;
-                    auto adresse = ::depile<void *>(site, ptr);
+                    auto adresse = ::depile<void *>(ptr);
                     ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 }
                 else {
                     ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 }
-                if (verifie_cible_appel(ptr_fonction, site) != ResultatInterpretation::OK) {
+                if (verifie_cible_appel(ptr_fonction) != ResultatInterpretation::OK) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1485,7 +1476,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 // saute l'instruction d'appel
                 frame->pointeur += 8;
 
-                if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1497,7 +1488,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
-                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site);
+                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
                 break;
             }
             case OP_APPEL_COMPILATRICE:
@@ -1505,7 +1496,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
                 auto resultat = ResultatInterpretation::OK;
-                appel_fonction_compilatrice(ptr_fonction, site, resultat);
+                appel_fonction_compilatrice(ptr_fonction, resultat);
 
                 if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
@@ -1517,21 +1508,21 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_APPEL_INTRINSÈQUE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
-                appel_fonction_intrinsèque(ptr_fonction, site);
+                appel_fonction_intrinsèque(ptr_fonction);
                 break;
             }
             case OP_APPEL_POINTEUR:
             {
                 auto taille_argument = LIS_4_OCTETS();
                 auto valeur_inst = LIS_8_OCTETS();
-                auto adresse = depile<void *>(site);
+                auto adresse = depile<void *>();
                 auto ptr_fonction = reinterpret_cast<AtomeFonction *>(adresse);
                 auto ptr_inst_appel = reinterpret_cast<InstructionAppel *>(valeur_inst);
 
                 if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     auto resultat = ResultatInterpretation::OK;
-                    appel_fonction_compilatrice(ptr_fonction, site, resultat);
+                    appel_fonction_compilatrice(ptr_fonction, resultat);
 
                     if (resultat == ResultatInterpretation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
@@ -1540,10 +1531,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                     }
                 }
                 else if (ptr_fonction->est_externe) {
-                    appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, site);
+                    appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
                 }
                 else {
-                    if (!appel_fonction_interne(ptr_fonction, taille_argument, frame, site)) {
+                    if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
                         compte_executees = i + 1;
                         return ResultatInterpretation::ERREUR;
                     }
@@ -1557,10 +1548,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 /* Ne perturbe pas notre pile. */
                 auto ptr = this->pointeur_pile;
-                auto adresse_ou = ::depile<void *>(site, ptr);
+                auto adresse_ou = ::depile<void *>(ptr);
                 auto adresse_de = static_cast<void *>(ptr - taille);
 
-                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, true)) {
+                if (!adressage_est_possible(adresse_ou, adresse_de, taille, true)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1570,10 +1561,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_ASSIGNE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto adresse_ou = depile<void *>(site);
+                auto adresse_ou = depile<void *>();
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-                depile(site, taille);
+                depile(taille);
                 break;
             }
             case OP_ASSIGNE_VARIABLE:
@@ -1585,7 +1576,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
-                depile(site, taille);
+                depile(taille);
                 break;
             }
             case OP_COPIE_VARIABLE:
@@ -1606,10 +1597,10 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
                 /* Ne perturbe pas notre pile. */
                 auto ptr = this->pointeur_pile;
-                auto adresse_de = ::depile<void *>(site, ptr);
+                auto adresse_de = ::depile<void *>(ptr);
                 auto adresse_ou = static_cast<void *>(ptr);
 
-                if (!adressage_est_possible(site, adresse_ou, adresse_de, taille, false)) {
+                if (!adressage_est_possible(adresse_ou, adresse_de, taille, false)) {
                     compte_executees = i + 1;
                     return ResultatInterpretation::ERREUR;
                 }
@@ -1619,7 +1610,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_CHARGE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto adresse_de = depile<void *>(site);
+                auto adresse_de = depile<void *>();
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
                 this->pointeur_pile += taille;
@@ -1640,7 +1631,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             case OP_REFERENCE_VARIABLE:
             {
                 auto index = LIS_4_OCTETS();
-                empile(site, donne_adresse_locale(frame, index));
+                empile(donne_adresse_locale(frame, index));
                 break;
             }
             case OP_REFERENCE_GLOBALE:
@@ -1648,28 +1639,28 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto index = LIS_4_OCTETS();
                 auto const &globale = donnees_constantes->globales[index];
                 if (globale.adresse_pour_execution) {
-                    empile(site, globale.adresse_pour_execution);
+                    empile(globale.adresse_pour_execution);
                 }
                 else {
-                    empile(site, &ptr_donnees_globales[globale.adresse]);
+                    empile(&ptr_donnees_globales[globale.adresse]);
                 }
                 break;
             }
             case OP_REFERENCE_MEMBRE:
             {
                 auto decalage = LIS_4_OCTETS();
-                auto adresse_de = depile<char *>(site);
-                empile(site, adresse_de + decalage);
+                auto adresse_de = depile<char *>();
+                empile(adresse_de + decalage);
                 // std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
                 break;
             }
             case OP_ACCEDE_INDEX:
             {
                 auto taille_donnees = LIS_4_OCTETS();
-                auto adresse = depile<char *>(site);
-                auto index = depile<int64_t>(site);
+                auto adresse = depile<char *>();
+                auto index = depile<int64_t>();
                 auto nouvelle_adresse = adresse + index * taille_donnees;
-                empile(site, nouvelle_adresse);
+                empile(nouvelle_adresse);
                 //				std::cerr << "nouvelle_adresse : " << static_cast<void
                 //*>(nouvelle_adresse) << '\n'; 				std::cerr << "index            : "
                 //<< index
@@ -1739,21 +1730,18 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
             }
             default:
             {
-                rapporte_erreur_execution(m_metaprogramme->donnees_execution->dernier_site,
-                                          "Erreur interne : Opération inconnue dans la MV !");
+                rapporte_erreur_execution("Erreur interne : Opération inconnue dans la MV !");
                 compte_executees = i + 1;
                 return ResultatInterpretation::ERREUR;
             }
         }
-
-        m_metaprogramme->donnees_execution->dernier_site = site;
     }
 
     compte_executees = INSTRUCTIONS_PAR_BATCH;
     return ResultatInterpretation::OK;
 }
 
-void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
+void MachineVirtuelle::imprime_trace_appel(NoeudExpression const *site)
 {
     std::cerr << erreur::imprime_site(*m_metaprogramme->unite->espace, site);
     for (int i = profondeur_appel - 1; i >= 0; --i) {
@@ -1761,9 +1749,9 @@ void MachineVirtuelle::imprime_trace_appel(NoeudExpression *site)
     }
 }
 
-void MachineVirtuelle::rapporte_erreur_execution(NoeudExpression *site,
-                                                 kuri::chaine_statique message)
+void MachineVirtuelle::rapporte_erreur_execution(kuri::chaine_statique message)
 {
+    auto const site = donne_site_adresse_courante();
     auto e = m_metaprogramme->unite->espace->rapporte_erreur(site, message);
 
     if (site) {
@@ -1795,12 +1783,18 @@ kuri::tableau<FrameAppel> MachineVirtuelle::donne_tableau_frame_appel() const
     return résultat;
 }
 
-bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
-                                              const void *adresse_ou,
+NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
+{
+    auto frame = &frames[profondeur_appel - 1];
+    return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(frame->pointeur);
+}
+
+bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,
                                               const void *adresse_de,
                                               const int64_t taille,
                                               bool assignation)
 {
+    auto const site = donne_site_adresse_courante();
     auto const taille_disponible = std::abs(static_cast<const char *>(adresse_de) -
                                             static_cast<const char *>(adresse_ou));
     if (taille_disponible < taille) {
@@ -1821,14 +1815,14 @@ bool MachineVirtuelle::adressage_est_possible(NoeudExpression *site,
     if (adresse_est_nulle(adresse_de)) {
         auto message = assignation ? "Assignation depuis une adresse nulle !" :
                                      "Chargement depuis une adresse nulle !";
-        rapporte_erreur_execution(site, message);
+        rapporte_erreur_execution(message);
         return false;
     }
 
     if (adresse_est_nulle(adresse_ou)) {
         auto message = assignation ? "Assignation vers une adresse nulle !" :
                                      "Chargement vers une adresse nulle !";
-        rapporte_erreur_execution(site, message);
+        rapporte_erreur_execution(message);
         return false;
     }
 
@@ -1861,9 +1855,10 @@ bool MachineVirtuelle::adresse_est_assignable(const void *adresse)
 }
 
 MachineVirtuelle::ResultatInterpretation MachineVirtuelle::verifie_cible_appel(
-    AtomeFonction *ptr_fonction, NoeudExpression *site)
+    AtomeFonction *ptr_fonction)
 {
     if (!m_metaprogramme->cibles_appels.possède(ptr_fonction)) {
+        auto const site = donne_site_adresse_courante();
         auto espace = m_metaprogramme->unite->espace;
         espace
             ->rapporte_erreur(site,
