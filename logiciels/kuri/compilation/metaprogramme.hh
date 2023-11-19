@@ -89,6 +89,8 @@ enum class TypeLogMétaprogramme : uint32_t {
     STAT_INSTRUCTION,
     /* Les informations de profilage du métaprogramme. */
     PROFILAGE,
+    /* Les fuites de mémoire. */
+    FUITES_DE_MÉMOIRE,
 
     NOMBRE_DE_LOGS,
 };

@@ -29,21 +29,26 @@
 /** \name Fuites de mémoire.
  * \{ */
 
+static void imprime_entête_fuite_de_mémoire(Enchaineuse &enchaineuse, size_t taille_bloc)
+{
+    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme : " << taille_bloc
+                << " octets non libérés.\n\n";
+}
+
 static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
                                                          size_t taille_bloc,
                                                          kuri::tableau<FrameAppel> const &frames)
 {
     auto espace = métaprogramme->unite->espace;
-    Enchaineuse enchaineuse;
 
-    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme : " << taille_bloc
-                << " octets non libérés.\n\n";
+    auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
+    logueuse << "-----------------------------------------------------------------------------\n";
+
+    imprime_entête_fuite_de_mémoire(logueuse, taille_bloc);
 
     for (int f = int(frames.taille()) - 1; f >= 0; f--) {
-        erreur::imprime_site(enchaineuse, *espace, frames[f].site);
+        erreur::imprime_site(logueuse, *espace, frames[f].site);
     }
-
-    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
 }
 
 void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
@@ -94,18 +99,33 @@ void DétectriceFuiteDeMémoire::réinitialise()
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
 {
     auto données = métaprogramme->données_exécution;
+    auto taille_non_libérée = size_t(0);
 
 #ifdef UTILISE_NOTRE_TABLE
     données->détectrice_fuite_de_mémoire.table_allocations.pour_chaque_élément(
         [&](DétectriceFuiteDeMémoire::InformationsBloc const &info) {
+            taille_non_libérée += info.taille;
             rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, info.taille, info.frame);
         });
 #else
     POUR (données->détectrice_fuite_de_mémoire.table_allocations) {
+        taille_non_libérée += it.second.taille;
         rapporte_avertissement_pour_fuite_de_mémoire(
             métaprogramme, it.second.taille, it.second.frame);
     }
 #endif
+
+    if (taille_non_libérée == 0) {
+        return;
+    }
+
+    Enchaineuse enchaineuse;
+    imprime_entête_fuite_de_mémoire(enchaineuse, taille_non_libérée);
+    enchaineuse
+        << "Veuillez-vous référer au fichier de log du métaprogramme pour plus de détails.";
+
+    auto espace = métaprogramme->unite->espace;
+    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
 }
 
 /** \} */

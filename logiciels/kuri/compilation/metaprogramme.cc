@@ -78,6 +78,7 @@ void MetaProgramme::vidange_logs_sur_disque()
     vidange_log_sur_disque(TypeLogMétaprogramme::INSTRUCTION);
     vidange_log_sur_disque(TypeLogMétaprogramme::STAT_INSTRUCTION);
     vidange_log_sur_disque(TypeLogMétaprogramme::PROFILAGE);
+    vidange_log_sur_disque(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
 }
 
 static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme type_log)
@@ -98,6 +99,10 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
         case TypeLogMétaprogramme::PROFILAGE:
         {
             return "profilage";
+        }
+        case TypeLogMétaprogramme::FUITES_DE_MÉMOIRE:
+        {
+            return "fuites_de_mémoire";
         }
         default:
         {
