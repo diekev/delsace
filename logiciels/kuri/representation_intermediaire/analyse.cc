@@ -149,7 +149,6 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
                 case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    incrémente_nombre_utilisations_récursif(acces->index);
                     incrémente_nombre_utilisations_récursif(acces->accede);
                     break;
                 }

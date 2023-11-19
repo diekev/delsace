@@ -429,8 +429,7 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_acces = inst->comme_acces_membre();
             os << "  membre " << chaine_type(inst_acces->type, false) << ' ';
             imprime_atome_ex(inst_acces->accede, os, true);
-            os << ", ";
-            imprime_atome_ex(inst_acces->index, os, true);
+            os << ", " << inst_acces->index;
             break;
         }
         case GenreInstruction::TRANSTYPE:

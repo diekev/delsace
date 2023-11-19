@@ -1282,7 +1282,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto membre = instruction->comme_acces_membre();
-            auto index_membre = static_cast<int>(membre->index->comme_constante_entière()->valeur);
+            auto index_membre = membre->index;
 
             auto type_compose = static_cast<TypeCompose *>(
                 type_dereference_pour(membre->accede->type));

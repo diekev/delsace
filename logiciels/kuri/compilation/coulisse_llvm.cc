@@ -1063,7 +1063,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto accede = inst_acces->accede;
             auto valeur_accede = genere_code_pour_atome(accede, false);
 
-            auto index_membre = inst_acces->index->comme_constante_entière()->valeur;
+            auto index_membre = inst_acces->index;
 
             auto type_pointe = accede->type->comme_type_pointeur()->type_pointe;
 

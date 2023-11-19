@@ -623,7 +623,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *sit
 }
 
 InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
-    NoeudExpression *site_, Type const *type, Atome *accédé, Atome *index, bool crée_seulement)
+    NoeudExpression *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
 {
 
     auto inst = insts_accede_membre.ajoute_element(site_, type, accédé, index);
@@ -666,8 +666,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
 
     /* nous retournons un pointeur vers le membre */
     type = m_typeuse.type_pointeur_pour(type, false);
-    return crée_référence_membre(
-        site_, type, accédé, crée_z64(static_cast<unsigned>(index)), crée_seulement);
+    return crée_référence_membre(site_, type, accédé, index, crée_seulement);
 }
 
 Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression *site_,

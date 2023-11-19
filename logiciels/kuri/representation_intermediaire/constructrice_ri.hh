@@ -208,7 +208,7 @@ struct ConstructriceRI {
     InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
                                                    Type const *type,
                                                    Atome *accédé,
-                                                   Atome *index,
+                                                   int index,
                                                    bool crée_seulement = false);
     InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
                                                    Atome *accédé,

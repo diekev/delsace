@@ -1471,9 +1471,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 type_composé = type_composé->comme_type_union()->type_structure;
             }
 
-            auto index_membre = static_cast<int>(
-                inst_accès->index->comme_constante_entière()->valeur);
-
             if (valeur_accédée.pointeur()[0] == '&') {
                 valeur_accédée = enchaine(valeur_accédée, ".");
             }
@@ -1481,7 +1478,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine("&", valeur_accédée, "->");
             }
 
-            auto const &membre = type_composé->membres[index_membre];
+            auto const &membre = type_composé->membres[inst_accès->index];
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             auto nom_type = donne_nom_pour_type(membre.type);

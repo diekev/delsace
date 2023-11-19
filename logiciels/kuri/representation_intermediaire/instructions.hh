@@ -724,14 +724,12 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     Atome *accede = nullptr;
-    Atome *index = nullptr;
+    /* Index du membre accéder dans le type structurel accédé. */
+    int index = 0;
 
     EMPECHE_COPIE(InstructionAccedeMembre);
 
-    InstructionAccedeMembre(NoeudExpression *site_,
-                            Type const *type_,
-                            Atome *accede_,
-                            Atome *index_)
+    InstructionAccedeMembre(NoeudExpression *site_, Type const *type_, Atome *accede_, int index_)
         : InstructionAccedeMembre(site_)
     {
         this->type = type_;

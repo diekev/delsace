@@ -198,7 +198,7 @@ struct CopieuseInstruction {
             {
                 auto acces = inst->comme_acces_membre();
                 auto accedé = copie_atome(acces->accede);
-                auto index = copie_atome(acces->index);
+                auto index = acces->index;
                 auto n_acces = constructrice.crée_référence_membre(
                     inst->site, inst->type, accedé, index);
                 nouvelle_inst = n_acces;

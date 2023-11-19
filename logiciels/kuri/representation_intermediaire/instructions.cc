@@ -340,7 +340,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    visite_atome(acces->index, rappel);
                     visite_atome(acces->accede, rappel);
                     break;
                 }
@@ -435,7 +434,6 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto acces = inst->comme_acces_membre();
-            rappel(acces->index);
             rappel(acces->accede);
             break;
         }
