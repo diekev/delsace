@@ -222,8 +222,6 @@ struct Chunk {
     // d'exécution
     int taille_allouée = 0;
 
-    int nombre_labels = 0;
-
     kuri::tableau<int, int> décalages_labels{};
 
     kuri::tableau<Locale, int> locales{};
