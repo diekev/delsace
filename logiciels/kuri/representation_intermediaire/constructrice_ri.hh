@@ -78,7 +78,16 @@ struct RegistreSymboliqueRI {
 
 struct ConstructriceRI {
   private:
-    tableau_page<AtomeValeurConstante> atomes_constante{};
+    tableau_page<AtomeConstanteEntière> constantes_entières{};
+    tableau_page<AtomeConstanteRéelle> constantes_réelles{};
+    tableau_page<AtomeConstanteBooléenne> constantes_booléennes{};
+    tableau_page<AtomeConstanteNulle> constantes_nulles{};
+    tableau_page<AtomeConstanteCaractère> constantes_caractères{};
+    tableau_page<AtomeConstanteStructure> constantes_structures{};
+    tableau_page<AtomeConstanteTableauFixe> constantes_tableaux{};
+    tableau_page<AtomeConstanteDonnéesConstantes> constantes_données_constantes{};
+    tableau_page<AtomeConstanteType> constantes_types{};
+    tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
     tableau_page<InstructionAllocation> insts_allocation{};
     tableau_page<InstructionAppel> insts_appel{};
     tableau_page<InstructionBranche> insts_branche{};
@@ -133,24 +142,24 @@ struct ConstructriceRI {
                                            IdentifiantCode *ident,
                                            bool crée_seulement = false);
 
-    AtomeConstante *crée_constante_booléenne(bool valeur);
-    AtomeConstante *crée_constante_caractère(Type const *type, uint64_t valeur);
-    AtomeConstante *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
-    AtomeConstante *crée_constante_type(Type const *pointeur_type);
-    AtomeConstante *crée_constante_taille_de(Type const *pointeur_type);
+    AtomeConstanteBooléenne *crée_constante_booléenne(bool valeur);
+    AtomeConstanteCaractère *crée_constante_caractère(Type const *type, uint64_t valeur);
+    AtomeConstanteEntière *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
+    AtomeConstanteType *crée_constante_type(Type const *pointeur_type);
+    AtomeConstanteTailleDe *crée_constante_taille_de(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);
-    AtomeConstante *crée_constante_nulle(Type const *type);
-    AtomeConstante *crée_constante_nombre_réel(Type const *type, double valeur);
-    AtomeConstante *crée_constante_structure(Type const *type,
-                                             kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_constante_tableau_fixe(Type const *type,
-                                                kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeConstante *crée_constante_tableau_données_constantes(
+    AtomeConstanteNulle *crée_constante_nulle(Type const *type);
+    AtomeConstanteRéelle *crée_constante_nombre_réel(Type const *type, double valeur);
+    AtomeConstanteStructure *crée_constante_structure(Type const *type,
+                                                      kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstanteTableauFixe *crée_constante_tableau_fixe(
+        Type const *type, kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeConstanteDonnéesConstantes *crée_constante_tableau_données_constantes(
         Type const *type, kuri::tableau<char> &&données_constantes);
-    AtomeConstante *crée_constante_tableau_données_constantes(Type const *type,
-                                                              char *pointeur,
-                                                              int64_t taille);
+    AtomeConstanteDonnéesConstantes *crée_constante_tableau_données_constantes(Type const *type,
+                                                                               char *pointeur,
+                                                                               int64_t taille);
     AtomeConstante *crée_tableau_global(Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *crée_tableau_global(AtomeConstante *tableau_fixe);
@@ -199,7 +208,7 @@ struct ConstructriceRI {
     InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
                                                    Type const *type,
                                                    Atome *accédé,
-                                                   Atome *index,
+                                                   int index,
                                                    bool crée_seulement = false);
     InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
                                                    Atome *accédé,
@@ -213,7 +222,7 @@ struct ConstructriceRI {
                                          TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, AtomeConstante *index);
+    AccedeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 

@@ -12,7 +12,7 @@
 
 struct AtomeGlobale;
 struct AtomeFonction;
-struct AtomeValeurConstante;
+struct AtomeConstanteDonnéesConstantes;
 struct Bibliotheque;
 struct CompilatriceRI;
 struct Coulisse;
@@ -294,7 +294,7 @@ struct ProgrammeRepreInter {
 
     struct DonnéesTableauxConstants {
         AtomeGlobale *globale = nullptr;
-        AtomeValeurConstante const *tableau = nullptr;
+        AtomeConstanteDonnéesConstantes const *tableau = nullptr;
         /* Décalage en octet du premier élément au sein des données constantes. Ceci pointe à
          * l'adresse suivant le rembourrage potentielle. */
         int64_t décalage_dans_données_constantes = 0;

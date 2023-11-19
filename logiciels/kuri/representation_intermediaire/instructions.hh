@@ -13,8 +13,19 @@
 #include "structures/chaine_statique.hh"
 #include "structures/ensemble.hh"
 
-struct AtomeConstante;
+struct AccedeIndexConstant;
+struct AtomeConstanteBooléenne;
+struct AtomeConstanteCaractère;
+struct AtomeConstanteDonnéesConstantes;
+struct AtomeConstanteEntière;
+struct AtomeConstanteNulle;
+struct AtomeConstanteRéelle;
+struct AtomeConstanteStructure;
+struct AtomeConstanteTableauFixe;
+struct AtomeConstanteTailleDe;
+struct AtomeConstanteType;
 struct AtomeFonction;
+struct TranstypeConstant;
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
 struct Instruction;
@@ -31,11 +42,21 @@ struct InstructionOpUnaire;
 struct InstructionRetour;
 struct InstructionStockeMem;
 struct InstructionTranstype;
-struct Lexeme;
 struct Type;
 
 #define ENUMERE_GENRE_ATOME(O)                                                                    \
-    O(CONSTANTE, AtomeConstante, constante)                                                       \
+    O(CONSTANTE_ENTIÈRE, AtomeConstanteEntière, constante_entière)                                \
+    O(CONSTANTE_RÉELLE, AtomeConstanteRéelle, constante_réelle)                                   \
+    O(CONSTANTE_BOOLÉENNE, AtomeConstanteBooléenne, constante_booléenne)                          \
+    O(CONSTANTE_NULLE, AtomeConstanteNulle, constante_nulle)                                      \
+    O(CONSTANTE_CARACTÈRE, AtomeConstanteCaractère, constante_caractère)                          \
+    O(CONSTANTE_STRUCTURE, AtomeConstanteStructure, constante_structure)                          \
+    O(CONSTANTE_TABLEAU_FIXE, AtomeConstanteTableauFixe, constante_tableau)                       \
+    O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
+    O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
+    O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
+    O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
+    O(ACCÈS_INDEX_CONSTANT, AccedeIndexConstant, accès_index_constant)                            \
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
@@ -65,150 +86,190 @@ struct Atome {
     inline bool est_##__ident() const;
     ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
 #undef ENUMERE_GENRE_ATOME_EX
+
+    inline bool est_constante() const
+    {
+        return genre_atome >= Genre::CONSTANTE_ENTIÈRE &&
+               genre_atome <= Genre::CONSTANTE_TAILLE_DE;
+    }
 };
 
 std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome);
 
 struct AtomeConstante : public Atome {
-    AtomeConstante()
-    {
-        genre_atome = Atome::Genre::CONSTANTE;
-    }
-
-    enum class Genre {
-        GLOBALE,
-        FONCTION,
-        VALEUR,
-        TRANSTYPE_CONSTANT,
-        ACCES_INDEX_CONSTANT,
-    };
-
-    Genre genre{};
+    /* Ce type n'existe que pour différencier les atomes constantes des instructions (pour la
+     * sûreté de type). */
 };
 
-struct AtomeValeurConstante : public AtomeConstante {
-    AtomeValeurConstante()
+struct AtomeConstanteEntière : public AtomeConstante {
+    uint64_t valeur = 0;
+
+    AtomeConstanteEntière(Type const *type_, uint64_t v) : valeur(v)
     {
-        genre = Genre::VALEUR;
+        type = type_;
+        genre_atome = Genre::CONSTANTE_ENTIÈRE;
     }
+};
 
-    struct Valeur {
-        union {
-            uint64_t valeur_entiere;
-            double valeur_reelle;
-            bool valeur_booleenne;
-            struct {
-                char *pointeur;
-                int64_t taille;
-            } valeur_tdc;
-            struct {
-                AtomeConstante **pointeur;
-                int64_t taille;
-                int64_t capacite;
-            } valeur_structure;
-            struct {
-                AtomeConstante **pointeur;
-                int64_t taille;
-                int64_t capacite;
-            } valeur_tableau;
-            Type const *type;
-        };
+struct AtomeConstanteRéelle : public AtomeConstante {
+    double valeur = 0;
 
-        enum class Genre {
-            INDEFINIE,
-            ENTIERE,
-            REELLE,
-            BOOLEENNE,
-            NULLE,
-            CARACTERE,
-            STRUCTURE,
-            TABLEAU_FIXE,
-            TABLEAU_DONNEES_CONSTANTES,
-            TYPE,
-            TAILLE_DE,
-        };
+    AtomeConstanteRéelle(Type const *type_, double v) : valeur(v)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_RÉELLE;
+    }
+};
 
-        Genre genre{};
+struct AtomeConstanteBooléenne : public AtomeConstante {
+    bool valeur = false;
 
-        ~Valeur();
+    AtomeConstanteBooléenne(Type const *type_, bool v) : valeur(v)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_BOOLÉENNE;
+    }
+};
+
+struct AtomeConstanteNulle : public AtomeConstante {
+    AtomeConstanteNulle(Type const *type_)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_NULLE;
+    }
+};
+
+struct AtomeConstanteCaractère : public AtomeConstante {
+    uint64_t valeur = 0;
+
+    AtomeConstanteCaractère(Type const *type_, uint64_t v) : valeur(v)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_CARACTÈRE;
+    }
+};
+
+struct AtomeConstanteStructure : public AtomeConstante {
+  private:
+    struct Données {
+        AtomeConstante **pointeur = nullptr;
+        int64_t taille = 0;
+        int64_t capacite = 0;
     };
 
-    Valeur valeur{};
+    Données données{};
 
-    AtomeValeurConstante(Type const *type_, uint64_t valeur_) : AtomeValeurConstante()
+  public:
+    AtomeConstanteStructure(Type const *type_, kuri::tableau<AtomeConstante *> &&valeurs)
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::ENTIERE;
-        this->valeur.valeur_entiere = valeur_;
+        type = type_;
+        genre_atome = Genre::CONSTANTE_STRUCTURE;
+        auto tableau = reinterpret_cast<kuri::tableau<AtomeConstante *> *>(&this->données);
+        tableau->permute(valeurs);
     }
 
-    AtomeValeurConstante(Type const *type_, double valeur_) : AtomeValeurConstante()
+    ~AtomeConstanteStructure();
+
+    kuri::tableau_statique<AtomeConstante *> donne_atomes_membres() const
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::REELLE;
-        this->valeur.valeur_reelle = valeur_;
+        return {données.pointeur, données.taille};
+    }
+};
+
+struct AtomeConstanteTableauFixe : public AtomeConstante {
+  private:
+    struct Données {
+        AtomeConstante **pointeur = nullptr;
+        int64_t taille = 0;
+        int64_t capacite = 0;
+    };
+
+    Données données{};
+
+  public:
+    AtomeConstanteTableauFixe(Type const *type_, kuri::tableau<AtomeConstante *> &&valeurs)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_TABLEAU_FIXE;
+        auto tableau = reinterpret_cast<kuri::tableau<AtomeConstante *> *>(&this->données);
+        tableau->permute(valeurs);
     }
 
-    AtomeValeurConstante(Type const *type_, bool valeur_) : AtomeValeurConstante()
+    ~AtomeConstanteTableauFixe();
+
+    kuri::tableau_statique<AtomeConstante *> donne_atomes_éléments() const
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::BOOLEENNE;
-        this->valeur.valeur_booleenne = valeur_;
+        return {données.pointeur, données.taille};
+    }
+};
+
+struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
+  private:
+    struct Données {
+        char *pointeur = nullptr;
+        int64_t taille = 0;
+        int64_t capacité = 0;
+    };
+
+    Données données{};
+
+    AtomeConstanteDonnéesConstantes(Type const *type_)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_DONNÉES_CONSTANTES;
     }
 
-    AtomeValeurConstante(Type const *type_) : AtomeValeurConstante()
+  public:
+    AtomeConstanteDonnéesConstantes(Type const *type_, char *pointeur, int64_t taille)
+        : AtomeConstanteDonnéesConstantes(type_)
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::NULLE;
+        données.pointeur = pointeur;
+        données.taille = taille;
     }
 
-    AtomeValeurConstante(Type const *type_, Type const *pointeur_type) : AtomeValeurConstante()
+    AtomeConstanteDonnéesConstantes(Type const *type_, kuri::tableau<char> &&donnees_constantes)
+        : AtomeConstanteDonnéesConstantes(type_)
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::TYPE;
-        this->valeur.type = pointeur_type;
-    }
-
-    AtomeValeurConstante(Type const *type_, kuri::tableau<char> &&donnees_constantes)
-        : AtomeValeurConstante()
-    {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-        this->valeur.valeur_tdc.pointeur = nullptr;
-        this->valeur.valeur_tdc.taille = 0;
-        this->valeur.valeur_tdc.taille = 0;
-        auto valeur_tdc = reinterpret_cast<kuri::tableau<char> *>(&this->valeur.valeur_tdc);
+        auto valeur_tdc = reinterpret_cast<kuri::tableau<char> *>(&this->données);
         valeur_tdc->permute(donnees_constantes);
     }
 
-    AtomeValeurConstante(Type const *type_, char *pointeur, int64_t taille)
-        : AtomeValeurConstante()
+    kuri::tableau_statique<char> donne_données() const
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
-        this->valeur.valeur_tdc.pointeur = pointeur;
-        this->valeur.valeur_tdc.taille = taille;
+        return {données.pointeur, données.taille};
+    }
+};
+
+struct AtomeConstanteType : public AtomeConstante {
+    Type const *type_de_données = nullptr;
+
+    AtomeConstanteType(Type const *type_, Type const *type_de_données_)
+        : type_de_données(type_de_données_)
+    {
+        type = type_;
+        genre_atome = Genre::CONSTANTE_TYPE;
     }
 
-    AtomeValeurConstante(Type const *type_, kuri::tableau<AtomeConstante *> &&valeurs)
-        : AtomeValeurConstante()
+    EMPECHE_COPIE(AtomeConstanteType);
+};
+
+struct AtomeConstanteTailleDe : public AtomeConstante {
+    Type const *type_de_données = nullptr;
+
+    AtomeConstanteTailleDe(Type const *type_, Type const *type_de_données_)
+        : type_de_données(type_de_données_)
     {
-        this->type = type_;
-        this->valeur.genre = Valeur::Genre::STRUCTURE;
-        this->valeur.valeur_structure.pointeur = nullptr;
-        this->valeur.valeur_structure.taille = 0;
-        this->valeur.valeur_structure.taille = 0;
-        auto valeur_structure = reinterpret_cast<kuri::tableau<AtomeConstante *> *>(
-            &this->valeur.valeur_structure);
-        valeur_structure->permute(valeurs);
+        type = type_;
+        genre_atome = Genre::CONSTANTE_TAILLE_DE;
     }
+
+    EMPECHE_COPIE(AtomeConstanteTailleDe);
 };
 
 struct AtomeGlobale : public AtomeConstante {
     AtomeGlobale()
     {
-        genre = Genre::GLOBALE;
-        genre_atome = Atome::Genre::GLOBALE;
+        genre_atome = Genre::GLOBALE;
         est_chargeable = true;
     }
 
@@ -243,7 +304,7 @@ struct AtomeGlobale : public AtomeConstante {
 struct TranstypeConstant : public AtomeConstante {
     TranstypeConstant()
     {
-        genre = Genre::TRANSTYPE_CONSTANT;
+        genre_atome = Genre::TRANSTYPE_CONSTANT;
     }
 
     AtomeConstante *valeur = nullptr;
@@ -260,15 +321,15 @@ struct TranstypeConstant : public AtomeConstante {
 struct AccedeIndexConstant : public AtomeConstante {
     AccedeIndexConstant()
     {
-        genre = Genre::ACCES_INDEX_CONSTANT;
+        genre_atome = Genre::ACCÈS_INDEX_CONSTANT;
     }
 
     AtomeConstante *accede = nullptr;
-    AtomeConstante *index = nullptr;
+    int64_t index = 0;
 
     EMPECHE_COPIE(AccedeIndexConstant);
 
-    AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, AtomeConstante *index_)
+    AccedeIndexConstant(Type const *type_, AtomeConstante *accede_, int64_t index_)
         : AccedeIndexConstant()
     {
         this->type = type_;
@@ -300,7 +361,7 @@ struct AtomeFonction : public AtomeConstante {
     AtomeFonction(NoeudDeclarationEnteteFonction const *decl_, kuri::chaine_statique nom_)
         : nom(nom_), decl(decl_)
     {
-        genre_atome = Atome::Genre::FONCTION;
+        genre_atome = Genre::FONCTION;
     }
 
     AtomeFonction(NoeudDeclarationEnteteFonction const *decl_,
@@ -351,7 +412,7 @@ struct Instruction : public Atome {
 
     Instruction()
     {
-        genre_atome = Atome::Genre::INSTRUCTION;
+        genre_atome = Genre::INSTRUCTION;
     }
 
 #define COMME_INST(Type, Genre)                                                                   \
@@ -663,14 +724,12 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     Atome *accede = nullptr;
-    Atome *index = nullptr;
+    /* Index du membre accéder dans le type structurel accédé. */
+    int index = 0;
 
     EMPECHE_COPIE(InstructionAccedeMembre);
 
-    InstructionAccedeMembre(NoeudExpression *site_,
-                            Type const *type_,
-                            Atome *accede_,
-                            Atome *index_)
+    InstructionAccedeMembre(NoeudExpression *site_, Type const *type_, Atome *accede_, int index_)
         : InstructionAccedeMembre(site_)
     {
         this->type = type_;

@@ -22,17 +22,14 @@ std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
     return os;
 }
 
-AtomeValeurConstante::Valeur::~Valeur()
+AtomeConstanteStructure::~AtomeConstanteStructure()
 {
-    if (genre == Genre::STRUCTURE) {
-        memoire::deloge_tableau(
-            "valeur_structure", valeur_structure.pointeur, valeur_structure.capacite);
-    }
+    memoire::deloge_tableau("valeur_structure", données.pointeur, données.capacite);
+}
 
-    if (genre == Genre::TABLEAU_FIXE) {
-        memoire::deloge_tableau(
-            "valeur_tableau", valeur_tableau.pointeur, valeur_tableau.capacite);
-    }
+AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
+{
+    memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacite);
 }
 
 AtomeFonction::~AtomeFonction()
@@ -51,37 +48,13 @@ Instruction *AtomeFonction::derniere_instruction() const
 
 bool est_valeur_constante_entière(Atome const *atome)
 {
-    if (!atome->est_constante()) {
-        return false;
-    }
-
-    auto const constante = static_cast<AtomeConstante const *>(atome);
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return dls::outils::est_element(valeur_constante->valeur.genre,
-                                    AtomeValeurConstante::Valeur::Genre::ENTIERE);
+    return atome->est_constante_entière();
 }
 
 bool est_valeur_constante(Atome const *atome)
 {
-    if (!atome->est_constante()) {
-        return false;
-    }
-
-    auto const constante = static_cast<AtomeConstante const *>(atome);
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto const valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return dls::outils::est_element(valeur_constante->valeur.genre,
-                                    AtomeValeurConstante::Valeur::Genre::ENTIERE,
-                                    AtomeValeurConstante::Valeur::Genre::REELLE,
-                                    AtomeValeurConstante::Valeur::Genre::BOOLEENNE,
-                                    AtomeValeurConstante::Valeur::Genre::CARACTERE);
+    return atome->est_constante_booléenne() || atome->est_constante_caractère() ||
+           atome->est_constante_entière() || atome->est_constante_réelle();
 }
 
 static bool est_constante_entière_de_valeur(Atome const *atome, uint64_t valeur)
@@ -90,8 +63,8 @@ static bool est_constante_entière_de_valeur(Atome const *atome, uint64_t valeur
         return false;
     }
 
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(atome);
-    return valeur_constante->valeur.valeur_entiere == valeur;
+    auto valeur_constante = atome->comme_constante_entière();
+    return valeur_constante->valeur == valeur;
 }
 
 bool est_constante_entière_zéro(Atome const *atome)
@@ -260,74 +233,44 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
     rappel(racine);
 
     switch (racine->genre_atome) {
-        case Atome::Genre::CONSTANTE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto constante = static_cast<AtomeConstante *>(racine);
-
-            switch (constante->genre) {
-                case AtomeConstante::Genre::GLOBALE:
-                {
-                    /* Déjà gérée, genre_atome étant GLOBALE. */
-                    break;
-                }
-                case AtomeConstante::Genre::FONCTION:
-                {
-                    /* Déjà gérée, genre_atome étant FONCTION. */
-                    break;
-                }
-                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                {
-                    auto transtype_const = static_cast<TranstypeConstant const *>(constante);
-                    visite_atome(transtype_const->valeur, rappel);
-                    break;
-                }
-                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                {
-                    auto inst_acces = static_cast<AccedeIndexConstant const *>(constante);
-                    visite_atome(inst_acces->accede, rappel);
-                    visite_atome(inst_acces->index, rappel);
-                    break;
-                }
-                case AtomeConstante::Genre::VALEUR:
-                {
-                    auto valeur_const = static_cast<AtomeValeurConstante const *>(constante);
-
-                    switch (valeur_const->valeur.genre) {
-                        case AtomeValeurConstante::Valeur::Genre::NULLE:
-                        case AtomeValeurConstante::Valeur::Genre::TYPE:
-                        case AtomeValeurConstante::Valeur::Genre::REELLE:
-                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                        {
-                            /* Pas de sous-atome. */
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                        {
-                            auto pointeur_tableau = valeur_const->valeur.valeur_structure.pointeur;
-                            auto taille_tableau = valeur_const->valeur.valeur_structure.taille;
-                            for (auto i = 0; i < taille_tableau; ++i) {
-                                visite_atome(pointeur_tableau[i], rappel);
-                            }
-                            break;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                        {
-                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
-                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
-                            for (auto i = 0; i < taille_tableau; ++i) {
-                                visite_atome(pointeur_tableau[i], rappel);
-                            }
-                            break;
-                        }
-                    }
-                }
+            auto transtype_const = racine->comme_transtype_constant();
+            visite_atome(transtype_const->valeur, rappel);
+            break;
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            auto inst_acces = racine->comme_accès_index_constant();
+            visite_atome(inst_acces->accede, rappel);
+            break;
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        case Atome::Genre::CONSTANTE_TYPE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            /* Pas de sous-atome. */
+            break;
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            auto structure_const = racine->comme_constante_structure();
+            POUR (structure_const->donne_atomes_membres()) {
+                visite_atome(it, rappel);
             }
-
+            break;
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            auto tableau_const = racine->comme_constante_tableau();
+            POUR (tableau_const->donne_atomes_éléments()) {
+                visite_atome(it, rappel);
+            }
             break;
         }
         case Atome::Genre::GLOBALE:
@@ -396,7 +339,6 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
                 case GenreInstruction::ACCEDE_MEMBRE:
                 {
                     auto acces = inst->comme_acces_membre();
-                    visite_atome(acces->index, rappel);
                     visite_atome(acces->accede, rappel);
                     break;
                 }
@@ -491,7 +433,6 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto acces = inst->comme_acces_membre();
-            rappel(acces->index);
             rappel(acces->accede);
             break;
         }
@@ -528,13 +469,7 @@ void visite_opérandes_instruction(Instruction *inst, std::function<void(Atome *
 
 bool est_tableau_données_constantes(AtomeConstante const *constante)
 {
-    if (constante->genre != AtomeConstante::Genre::VALEUR) {
-        return false;
-    }
-
-    auto valeur_constante = static_cast<AtomeValeurConstante const *>(constante);
-    return valeur_constante->valeur.genre ==
-           AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES;
+    return constante->est_données_constantes();
 }
 
 bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale)
