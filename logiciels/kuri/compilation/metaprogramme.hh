@@ -8,6 +8,7 @@
 #include "structures/ensemble.hh"
 
 struct DonnéesExécution;
+struct Enchaineuse;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
@@ -75,6 +76,24 @@ DEFINIS_OPERATEURS_DRAPEAU(ComportementMétaprogramme)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name Type Log.
+ * \{ */
+
+enum class TypeLogMétaprogramme : uint32_t {
+    /* Toutes les instructions exécutées seront loguées. */
+    INSTRUCTION,
+    /* Les appels, entrées et sorties des fonction, ainsi que les variables locales seront loguées.
+     */
+    APPEL,
+    /* Le nombre de fois que chaque instruction fut exécutée. */
+    STAT_INSTRUCTION,
+
+    NOMBRE_DE_LOGS,
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name MétaProgramme.
  * \{ */
 
@@ -125,6 +144,10 @@ struct MetaProgramme {
 
     ComportementMétaprogramme comportement{};
 
+  private:
+    Enchaineuse *logueuses[static_cast<int>(TypeLogMétaprogramme::NOMBRE_DE_LOGS)];
+
+  public:
     ~MetaProgramme();
 
     bool ajoutera_du_code() const
@@ -138,6 +161,13 @@ struct MetaProgramme {
         return (comportement & ComportementMétaprogramme::REQUIERS_MESSAGE) !=
                static_cast<ComportementMétaprogramme>(0);
     }
+
+    Enchaineuse &donne_logueuse(TypeLogMétaprogramme type_log);
+
+    void vidange_logs_sur_disque();
+
+  private:
+    void vidange_log_sur_disque(TypeLogMétaprogramme type_log);
 };
 
 /** \} */

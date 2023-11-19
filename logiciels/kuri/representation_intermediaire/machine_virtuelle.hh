@@ -77,7 +77,7 @@ struct DonnéesExécution {
 
     void réinitialise();
 
-    void imprime_stats_instructions(std::ostream &os);
+    void imprime_stats_instructions(Enchaineuse &os);
 };
 
 struct EchantillonProfilage {
