@@ -190,31 +190,18 @@ struct MachineVirtuelle {
     inline void empile(T valeur)
     {
         *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
-#ifndef NDEBUG
-        if (pointeur_pile > (pile + TAILLE_PILE)) {
-            rapporte_erreur_execution("Erreur interne : surrentamponnage de la pile de données");
-        }
-#endif
-        this->pointeur_pile += static_cast<int64_t>(sizeof(T));
-        // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
-        // static_cast<int>(pointeur_pile - pile) << '\n';
+        incrémente_pointeur_de_pile(static_cast<int64_t>(sizeof(T)));
     }
 
     template <typename T>
     inline T depile()
     {
-        this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
-        // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
-        // static_cast<int>(pointeur_pile - pile) << '\n';
-#ifndef NDEBUG
-        if (pointeur_pile < pile) {
-            rapporte_erreur_execution("Erreur interne : sousentamponnage de la pile de données");
-        }
-#endif
+        décrémente_pointeur_de_pile(static_cast<int64_t>(sizeof(T)));
         return *reinterpret_cast<T *>(this->pointeur_pile);
     }
 
-    void depile(int64_t n);
+    void incrémente_pointeur_de_pile(int64_t taille);
+    void décrémente_pointeur_de_pile(int64_t taille);
 
     bool appel(AtomeFonction *fonction, NoeudExpression const *site);
 
