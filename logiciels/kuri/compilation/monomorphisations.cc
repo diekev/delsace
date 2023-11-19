@@ -86,7 +86,7 @@ void Monomorphisations::imprime(std::ostream &os) const
 {
     Enchaineuse enchaineuse;
     imprime(enchaineuse);
-    os << enchaineuse.chaine();
+    enchaineuse.imprime_dans_flux(os);
 }
 
 void Monomorphisations::imprime(Enchaineuse &os, int indentations) const
