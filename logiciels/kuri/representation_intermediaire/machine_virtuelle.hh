@@ -27,7 +27,6 @@ struct FrameAppel {
 static constexpr auto TAILLE_FRAMES_APPEL = 64;
 
 #undef UTILISE_NOTRE_TABLE
-#undef STATS_OP_CODES
 
 /* ------------------------------------------------------------------------- */
 /** \name Fuites de mémoire.
@@ -78,7 +77,7 @@ struct DonnéesExécution {
 
     void réinitialise();
 
-    void imprime_stats_instructions(std::ostream &os);
+    void imprime_stats_instructions(Enchaineuse &os);
 };
 
 struct EchantillonProfilage {
