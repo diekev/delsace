@@ -33,7 +33,6 @@
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
 #undef IMPRIME_COMMENTAIRE
-#undef PRESERVE_NOMS_DANS_LE_CODE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
 static const char *nom_base_chaine = "C";
@@ -120,6 +119,8 @@ struct GénératriceCodeC {
     kuri::chaine_statique donne_nom_pour_fonction(const AtomeFonction *fonction);
 
     kuri::chaine_statique donne_nom_pour_type(Type const *type);
+
+    bool préserve_symboles() const;
 };
 
 /** \} */
@@ -484,12 +485,14 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
             enchaineuse_tmp << ")";
             auto suffixe = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
 
-#ifdef PRESERVE_NOMS_DANS_LE_CODE
-            type->nom_broye = stockage_chn.ajoute_chaine_statique(
-                nouveau_nom_broye.chaine_statique());
-#else
-            type->nom_broye = génératrice_code.donne_nom_pour_type(type);
-#endif
+            if (génératrice_code.préserve_symboles()) {
+                type->nom_broye = stockage_chn.ajoute_chaine_statique(
+                    nouveau_nom_broye.chaine_statique());
+            }
+            else {
+                type->nom_broye = génératrice_code.donne_nom_pour_type(type);
+            }
+
             type_c.nom = type->nom_broye;
 
             type_c.typedef_ = enchaine(prefixe, type->nom_broye, ")", suffixe);
@@ -1731,11 +1734,12 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instr
      * nom mais des types différents peuvent exister dans le bloc de la fonction. Nous
      * devons rendre les noms uniques pour éviter des collisions. Nous faisons ceci en
      * ajoutant le numéro de l'instruction au nom de la variable. */
-#ifdef PRESERVE_NOMS_DANS_LE_CODE
-    if (instruction->ident != nullptr) {
-        return enchaine(broyeuse.broye_nom_simple(instruction->ident), "_", instruction->numero);
+    if (préserve_symboles()) {
+        if (est_allocation(instruction) && instruction->comme_alloc()->ident) {
+            auto ident = instruction->comme_alloc()->ident;
+            return enchaine(broyeuse.broye_nom_simple(ident), "_", instruction->numero);
+        }
     }
-#endif
 
     return enchaine(nom_base_variable, instruction->numero);
 }
@@ -1743,19 +1747,20 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instr
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
                                                                bool pour_entête)
 {
-#ifdef PRESERVE_NOMS_DANS_LE_CODE
-    if (valeur_globale->ident) {
-        return broyeuse.broye_nom_simple(valeur_globale->ident);
+    if (préserve_symboles()) {
+        if (valeur_globale->ident) {
+            return broyeuse.broye_nom_simple(valeur_globale->ident);
+        }
     }
-#else
-    /* __contexte_fil_principal est utilisé dans les macros. */
-    if (valeur_globale->ident == ID::__contexte_fil_principal) {
-        return valeur_globale->ident->nom;
+    else {
+        /* __contexte_fil_principal est utilisé dans les macros. */
+        if (valeur_globale->ident == ID::__contexte_fil_principal) {
+            return valeur_globale->ident->nom;
+        }
+        if (valeur_globale->est_externe) {
+            return valeur_globale->ident->nom;
+        }
     }
-    if (valeur_globale->est_externe) {
-        return valeur_globale->ident->nom;
-    }
-#endif
 
     if (!pour_entête) {
         /* Nous devons déjà avoir généré la globale. */
@@ -1768,9 +1773,10 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlob
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction const *fonction)
 {
-#ifdef PRESERVE_NOMS_DANS_LE_CODE
-    return fonction->nom;
-#else
+    if (préserve_symboles()) {
+        return fonction->nom;
+    }
+
     if (fonction->est_externe ||
         fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
         return fonction->nom;
@@ -1784,14 +1790,14 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction 
     }
 
     return nom;
-#endif
 }
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
 {
-#ifdef PRESERVE_NOMS_DANS_LE_CODE
-    return broyeuse.nom_broyé_type(const_cast<Type *>(type));
-#else
+    if (préserve_symboles()) {
+        return broyeuse.nom_broyé_type(const_cast<Type *>(type));
+    }
+
     if (type->est_type_variadique()) {
         auto type_tableau = type->comme_type_variadique()->type_tableau_dynamique;
         if (!type_tableau) {
@@ -1809,7 +1815,11 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     }
 
     return nom;
-#endif
+}
+
+bool GénératriceCodeC::préserve_symboles() const
+{
+    return m_espace.compilatrice().arguments.préserve_symboles;
 }
 
 void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
