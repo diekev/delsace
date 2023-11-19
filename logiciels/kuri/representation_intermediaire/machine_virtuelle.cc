@@ -810,7 +810,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
-                                              InstructionAppel *inst_appel)
+                                              InstructionAppel *inst_appel,
+                                              RésultatInterprétation &résultat)
 {
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
         auto taille = dépile<size_t>();
@@ -892,7 +893,9 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                        ptr_types_entrees);
 
         if (status != FFI_OK) {
-            std::cerr << "Impossible de préparer la fonction variadique externe !\n";
+            rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
+                                      "pour la fonction variadique externe.");
+            résultat = RésultatInterprétation::ERREUR;
             return;
         }
     }
@@ -1519,7 +1522,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
-                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+                auto resultat = RésultatInterprétation::OK;
+                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, resultat);
+                if (resultat == RésultatInterprétation::ERREUR) {
+                    return resultat;
+                }
                 break;
             }
             case OP_APPEL_COMPILATRICE:
@@ -1562,7 +1569,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                     }
                 }
                 else if (ptr_fonction->est_externe) {
-                    appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+                    auto resultat = RésultatInterprétation::OK;
+                    appel_fonction_externe(
+                        ptr_fonction, taille_argument, ptr_inst_appel, resultat);
+                    if (resultat == RésultatInterprétation::ERREUR) {
+                        return resultat;
+                    }
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {

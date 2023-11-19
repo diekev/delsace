@@ -209,7 +209,8 @@ struct MachineVirtuelle {
                                 FrameAppel *&frame);
     void appel_fonction_externe(AtomeFonction *ptr_fonction,
                                 int taille_argument,
-                                InstructionAppel *inst_appel);
+                                InstructionAppel *inst_appel,
+                                RésultatInterprétation &résultat);
     void appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
                                      RésultatInterprétation &resultat);
     void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction);
