@@ -405,7 +405,7 @@ class ConvertisseuseRI {
                                                          int decalage,
                                                          int ou_patcher);
 
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
+    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk);
 
     int ajoute_globale(AtomeGlobale *globale);
     int genere_code_pour_globale(AtomeGlobale *atome_globale);

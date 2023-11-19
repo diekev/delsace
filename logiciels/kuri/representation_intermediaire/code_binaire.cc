@@ -1151,7 +1151,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
-            genere_code_binaire_pour_atome(branche->condition, chunk, true);
+            genere_code_binaire_pour_atome(branche->condition, chunk);
             chunk.émets_branche_condition(branche->site,
                                           patchs_labels,
                                           branche->label_si_vrai->id,
@@ -1175,7 +1175,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 break;
             }
 
-            genere_code_binaire_pour_atome(charge->chargee, chunk, true);
+            genere_code_binaire_pour_atome(charge->chargee, chunk);
             chunk.émets_charge(charge->site, charge->type, verifie_adresses);
             break;
         }
@@ -1199,7 +1199,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 break;
             }
 
-            genere_code_binaire_pour_atome(stocke->valeur, chunk, true);
+            genere_code_binaire_pour_atome(stocke->valeur, chunk);
 
             if (est_allocation(stocke->ou)) {
                 auto alloc = stocke->ou->comme_instruction()->comme_alloc();
@@ -1209,7 +1209,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             }
 
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
-            genere_code_binaire_pour_atome(stocke->ou, chunk, true);
+            genere_code_binaire_pour_atome(stocke->ou, chunk);
             chunk.émets_assignation(
                 contexte(), stocke->site, stocke->valeur->type, verifie_adresses);
             break;
@@ -1229,7 +1229,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto taille_arguments = 0u;
 
             POUR (appel->args) {
-                genere_code_binaire_pour_atome(it, chunk, true);
+                genere_code_binaire_pour_atome(it, chunk);
 
                 if (it->type->est_type_entier_constant()) {
                     taille_arguments += 4;
@@ -1260,7 +1260,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 }
             }
             else {
-                genere_code_binaire_pour_atome(appelee, chunk, true);
+                genere_code_binaire_pour_atome(appelee, chunk);
                 chunk.émets_appel_pointeur(appel->site, taille_arguments, appel, verifie_adresses);
             }
 
@@ -1271,7 +1271,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto retour = instruction->comme_retour();
 
             if (retour->valeur) {
-                genere_code_binaire_pour_atome(retour->valeur, chunk, true);
+                genere_code_binaire_pour_atome(retour->valeur, chunk);
             }
 
             chunk.émets_retour(retour->site);
@@ -1282,7 +1282,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto transtype = instruction->comme_transtype();
             auto valeur = transtype->valeur;
 
-            genere_code_binaire_pour_atome(valeur, chunk, true);
+            genere_code_binaire_pour_atome(valeur, chunk);
 
             auto opt_op_transtype = converti_type_transtypage(transtype->op);
             if (opt_op_transtype.has_value()) {
@@ -1307,8 +1307,8 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         {
             auto index = instruction->comme_acces_index();
             auto type_pointeur = index->type->comme_type_pointeur();
-            genere_code_binaire_pour_atome(index->index, chunk, true);
-            genere_code_binaire_pour_atome(index->accede, chunk, true);
+            genere_code_binaire_pour_atome(index->index, chunk);
+            genere_code_binaire_pour_atome(index->accede, chunk);
 
             if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
                 auto accede = index->accede->comme_instruction();
@@ -1336,7 +1336,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             }
 
             auto décalage = type_compose->membres[index_membre].decalage;
-            genere_code_binaire_pour_atome(membre->accede, chunk, true);
+            genere_code_binaire_pour_atome(membre->accede, chunk);
             chunk.émets_référence_membre(membre->site, décalage);
 
             break;
@@ -1345,7 +1345,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         {
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
-            genere_code_binaire_pour_atome(op_unaire->valeur, chunk, true);
+            genere_code_binaire_pour_atome(op_unaire->valeur, chunk);
             chunk.émets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
@@ -1354,7 +1354,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
             auto op_binaire = instruction->comme_op_binaire();
             auto type_gauche = op_binaire->valeur_gauche->type;
 
-            genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk, true);
+            genere_code_binaire_pour_atome(op_binaire->valeur_gauche, chunk);
 
             if (op_binaire->op == OpérateurBinaire::Genre::Addition &&
                 est_constante_entière_un(op_binaire->valeur_droite)) {
@@ -1367,7 +1367,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
                 break;
             }
 
-            genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk, true);
+            genere_code_binaire_pour_atome(op_binaire->valeur_droite, chunk);
 
             auto type_droite = op_binaire->valeur_droite->type;
             chunk.émets_operation_binaire(
@@ -1624,9 +1624,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
     }
 }
 
-void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
-                                                      Chunk &chunk,
-                                                      bool pour_operande)
+void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -1638,22 +1636,19 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
         }
         case Atome::Genre::FONCTION:
         {
-            // l'adresse pour les pointeurs de fonctions
-            if (pour_operande) {
-                chunk.émets_constante(reinterpret_cast<int64_t>(atome));
-            }
-
+            /* L'adresse pour les pointeurs de fonctions. */
+            chunk.émets_constante(reinterpret_cast<int64_t>(atome));
             break;
         }
         case Atome::Genre::INSTRUCTION:
         {
-            genere_code_binaire_pour_instruction(atome->comme_instruction(), chunk, pour_operande);
+            genere_code_binaire_pour_instruction(atome->comme_instruction(), chunk, true);
             break;
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype = atome->comme_transtype_constant();
-            genere_code_binaire_pour_atome(transtype->valeur, chunk, true);
+            genere_code_binaire_pour_atome(transtype->valeur, chunk);
             break;
         }
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
@@ -1661,7 +1656,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
             auto index_constant = atome->comme_accès_index_constant();
             auto type_pointeur = index_constant->type->comme_type_pointeur();
             chunk.émets_constante(index_constant->index);
-            genere_code_binaire_pour_atome(index_constant->accede, chunk, true);
+            genere_code_binaire_pour_atome(index_constant->accede, chunk);
             chunk.émets_accès_index(nullptr, type_pointeur->type_pointe);
             break;
         }
@@ -1782,7 +1777,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 
                 if (tableau_valeur[index_membre] != nullptr) {
                     // À FAIRE(tableau fixe) : initialisation défaut
-                    genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk, true);
+                    genere_code_binaire_pour_atome(tableau_valeur[index_membre], chunk);
                 }
 
                 index_membre += 1;
@@ -1796,7 +1791,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
             auto éléments = tableau->donne_atomes_éléments();
 
             POUR (éléments) {
-                genere_code_binaire_pour_atome(it, chunk, true);
+                genere_code_binaire_pour_atome(it, chunk);
             }
 
             break;
