@@ -24,7 +24,7 @@ struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
-struct DonneesConstantesExecutions;
+struct DonnéesConstantesExécutions;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
@@ -352,7 +352,7 @@ struct Globale {
     IdentifiantCode *ident = nullptr;
     Type const *type = nullptr;
     int adresse = 0;
-    void *adresse_pour_execution = nullptr;
+    void *adresse_pour_exécution = nullptr;
 };
 
 struct DonnéesExécutionFonction {
@@ -364,14 +364,14 @@ struct DonnéesExécutionFonction {
         void (*ptr_fonction)() = nullptr;
     };
 
-    DonneesFonctionExterne donnees_externe{};
+    DonneesFonctionExterne données_externe{};
 
     int64_t mémoire_utilisée() const;
 };
 
 class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
-    DonneesConstantesExecutions *donnees_executions = nullptr;
+    DonnéesConstantesExécutions *donnees_executions = nullptr;
 
     const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
