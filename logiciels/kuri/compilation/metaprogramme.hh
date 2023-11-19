@@ -74,6 +74,10 @@ DEFINIS_OPERATEURS_DRAPEAU(ComportementMétaprogramme)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name MétaProgramme.
+ * \{ */
+
 struct MetaProgramme {
     enum class RésultatExécution : int {
         ERREUR,
@@ -135,3 +139,5 @@ struct MetaProgramme {
                static_cast<ComportementMétaprogramme>(0);
     }
 };
+
+/** \} */
