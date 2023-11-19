@@ -25,6 +25,7 @@ struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
 struct DonnéesConstantesExécutions;
+struct Enchaineuse;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
@@ -39,7 +40,7 @@ namespace kuri {
 struct chaine_statique;
 }
 
-struct ContexteGenerationCodeBinaire {
+struct ContexteGénérationCodeBinaire {
     EspaceDeTravail *espace = nullptr;
     const NoeudDeclarationEnteteFonction *fonction = nullptr;
 };
@@ -50,7 +51,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
-    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_VARIABLE)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
@@ -58,8 +59,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_INTRINSÈQUE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
-    ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_VARIABLE)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_COPIE_VARIABLE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_LOCALE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
@@ -67,7 +68,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_CHAINE_CONSTANTE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
-    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_VARIABLE)                                                 \
+    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL)                                                     \
@@ -104,7 +105,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_OU_EXCLUSIF)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_MEMBRE)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_VARIABLE)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_MEMBRE_LOCALE)                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_LOCALE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_NATUREL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RETOURNE)                                                        \
@@ -113,6 +115,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
     ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
@@ -218,6 +221,8 @@ struct Chunk {
     int64_t compte = 0;
     int64_t capacité = 0;
 
+    bool émets_stats_ops = false;
+
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
     int taille_allouée = 0;
@@ -280,43 +285,43 @@ struct Chunk {
     }
 
     void émets_chaine_constante(NoeudExpression const *site,
-                                void *pointeur_chaine,
+                                const void *pointeur_chaine,
                                 int64_t taille_chaine);
 
     void émets_retour(NoeudExpression const *site);
 
-    void émets_assignation(ContexteGenerationCodeBinaire contexte,
+    void émets_assignation(ContexteGénérationCodeBinaire contexte,
                            NoeudExpression const *site,
                            Type const *type,
-                           bool ajoute_verification);
-    void émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type);
-    void émets_copie_variable(const NoeudExpression *site,
-                              const Type *type,
-                              int pointeur_source,
-                              int pointeur_destination);
-    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
-    void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
+                           bool ajoute_vérification);
+    void émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_copie_locale(const NoeudExpression *site,
+                            const Type *type,
+                            int pointeur_source,
+                            int pointeur_destination);
+    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_vérification);
+    void émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
-    void émets_référence_variable(NoeudExpression const *site, int pointeur);
+    void émets_référence_locale(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
+    void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments,
-                     InstructionAppel const *inst_appel,
-                     bool ajoute_verification);
+                     bool ajoute_vérification);
     void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,
                              unsigned taille_arguments,
                              InstructionAppel const *inst_appel,
-                             bool ajoute_verification);
+                             bool ajoute_vérification);
     void émets_appel_compilatrice(NoeudExpression const *site,
                                   AtomeFonction const *fonction,
-                                  bool ajoute_verification);
+                                  bool ajoute_vérification);
     void émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel,
-                              bool ajoute_verification);
+                              bool ajoute_vérification);
     void émets_accès_index(NoeudExpression const *site, Type const *type);
 
     void émets_branche(NoeudExpression const *site,
@@ -336,17 +341,19 @@ struct Chunk {
                                  Type const *type_droite);
 
     void émets_incrémente(NoeudExpression const *site, Type const *type);
-    void émets_incrémente_variable(const NoeudExpression *site, const Type *type, int pointeur);
+    void émets_incrémente_locale(const NoeudExpression *site, const Type *type, int pointeur);
     void émets_décrémente(NoeudExpression const *site, Type const *type);
 
     void émets_transtype(NoeudExpression const *site,
                          uint8_t op,
                          uint32_t taille_source,
                          uint32_t taille_dest);
+
+    void émets_rembourrage(uint32_t rembourrage);
 };
 
 void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
-int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os);
+int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, Enchaineuse &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
@@ -358,26 +365,26 @@ struct Globale {
 struct DonnéesExécutionFonction {
     Chunk chunk{};
 
-    struct DonneesFonctionExterne {
-        kuri::tablet<ffi_type *, 6> types_entrees{};
+    struct DonnéesFonctionExterne {
+        kuri::tablet<ffi_type *, 6> types_entrées{};
         ffi_cif cif{};
         void (*ptr_fonction)() = nullptr;
     };
 
-    DonneesFonctionExterne données_externe{};
+    DonnéesFonctionExterne données_externe{};
 
     int64_t mémoire_utilisée() const;
 };
 
 class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
-    DonnéesConstantesExécutions *donnees_executions = nullptr;
+    DonnéesConstantesExécutions *données_exécutions = nullptr;
 
     const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
-    MetaProgramme *metaprogramme = nullptr;
+    MetaProgramme *métaprogramme = nullptr;
 
     /* Patchs pour les labels, puisque nous d'abord générer le code des branches avant de connaître
      * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
@@ -385,32 +392,33 @@ class ConvertisseuseRI {
     kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
-    bool verifie_adresses = false;
+    bool vérifie_adresses = false;
+    bool émets_stats_ops = false;
 
   public:
     ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
 
     EMPECHE_COPIE(ConvertisseuseRI);
 
-    bool genere_code(const kuri::tableau<AtomeFonction *> &fonctions);
+    bool génère_code(const kuri::tableau<AtomeFonction *> &fonctions);
 
-    bool genere_code_pour_fonction(AtomeFonction *fonction);
+    bool génère_code_pour_fonction(AtomeFonction const *fonction);
 
   private:
-    void genere_code_binaire_pour_instruction(Instruction const *instruction,
-                                              Chunk &chunk,
-                                              bool pour_operande);
+    void génère_code_pour_instruction(Instruction const *instruction,
+                                      Chunk &chunk,
+                                      bool pour_operande);
 
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante *constante,
-                                                         int decalage,
-                                                         int ou_patcher);
+    void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
+                                                 int decalage,
+                                                 int ou_patcher);
 
-    void genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk, bool pour_operande);
+    void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
-    int ajoute_globale(AtomeGlobale *globale);
-    int genere_code_pour_globale(AtomeGlobale *atome_globale);
+    int ajoute_globale(AtomeGlobale const *globale);
+    int génère_code_pour_globale(AtomeGlobale const *atome_globale);
 
-    ContexteGenerationCodeBinaire contexte() const;
+    ContexteGénérationCodeBinaire contexte() const;
 };
 
 ffi_type *converti_type_ffi(Type const *type);
