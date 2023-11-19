@@ -97,7 +97,7 @@ static void genere_code_appel_intrinsèque_défaut(FluxSortieCPP &os, ProteineFo
     auto ne_retourne_rien = est_type_rien(type_sortie);
 
     for (auto const &params : fonction->donne_paramètres()) {
-        os << "        auto " << params.nom << " = depile<" << *params.type << ">();\n";
+        os << "        auto " << params.nom << " = dépile<" << *params.type << ">();\n";
     }
 
     os << "        ";
@@ -131,7 +131,7 @@ static void genere_code_appel_intrinsèque_ignorée(FluxSortieCPP &os,
     auto ne_retourne_rien = est_type_rien(type_sortie);
 
     for (auto const &params : fonction->donne_paramètres()) {
-        os << "        auto " << params.nom << " = depile<" << *params.type << ">();\n";
+        os << "        auto " << params.nom << " = dépile<" << *params.type << ">();\n";
     }
 
     if (!ne_retourne_rien) {
