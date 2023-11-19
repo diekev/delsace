@@ -1427,9 +1427,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
                     *reinterpret_cast<int64_t *>(donnees) = static_cast<int64_t>(valeur_entiere);
                 }
             }
-            else if (type->est_type_entier_constant()) {
-                *reinterpret_cast<int *>(donnees) = static_cast<int>(valeur_entiere);
-            }
 
             break;
         }
@@ -1686,14 +1683,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
                 }
                 else if (type->taille_octet == 8) {
                     chunk.émets_constante(static_cast<int64_t>(valeur_entiere));
-                }
-            }
-            else if (type->est_type_reel()) {
-                if (type->taille_octet == 4) {
-                    chunk.émets_constante(static_cast<float>(valeur_entiere));
-                }
-                else {
-                    chunk.émets_constante(static_cast<double>(valeur_entiere));
                 }
             }
 
