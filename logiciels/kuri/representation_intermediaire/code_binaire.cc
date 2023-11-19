@@ -988,7 +988,8 @@ ffi_type *converti_type_ffi(Type const *type)
 
 /* ************************************************************************** */
 
-ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_)
+CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
+                                                 MetaProgramme *metaprogramme_)
     : espace(espace_), données_exécutions(&espace_->compilatrice().données_constantes_exécutions),
       métaprogramme(metaprogramme_)
 {
@@ -996,7 +997,7 @@ ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *meta
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
-bool ConvertisseuseRI::génère_code(const kuri::tableau<AtomeFonction *> &fonctions)
+bool CompilatriceCodeBinaire::génère_code(const kuri::tableau<AtomeFonction *> &fonctions)
 {
     POUR (fonctions) {
         /* Évite de recréer le code binaire. */
@@ -1023,7 +1024,7 @@ bool ConvertisseuseRI::génère_code(const kuri::tableau<AtomeFonction *> &fonct
     return true;
 }
 
-bool ConvertisseuseRI::génère_code_pour_fonction(AtomeFonction const *fonction)
+bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *fonction)
 {
     auto données_exécution = fonction->données_exécution;
 
@@ -1145,9 +1146,9 @@ bool ConvertisseuseRI::génère_code_pour_fonction(AtomeFonction const *fonction
     return true;
 }
 
-void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruction,
-                                                    Chunk &chunk,
-                                                    bool pour_operande)
+void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
+                                                           Chunk &chunk,
+                                                           bool pour_operande)
 {
     switch (instruction->genre) {
         case GenreInstruction::INVALIDE:
@@ -1407,9 +1408,8 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
     }
 }
 
-void ConvertisseuseRI::génère_code_pour_initialisation_globale(AtomeConstante const *constante,
-                                                               int décalage,
-                                                               int ou_patcher)
+void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
+    AtomeConstante const *constante, int décalage, int ou_patcher)
 {
     unsigned char *donnees = nullptr;
     if (ou_patcher == DONNÉES_GLOBALES) {
@@ -1652,7 +1652,7 @@ void ConvertisseuseRI::génère_code_pour_initialisation_globale(AtomeConstante 
     }
 }
 
-void ConvertisseuseRI::génère_code_pour_atome(Atome const *atome, Chunk &chunk)
+void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk &chunk)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
@@ -1840,7 +1840,7 @@ void ConvertisseuseRI::génère_code_pour_atome(Atome const *atome, Chunk &chunk
     }
 }
 
-int ConvertisseuseRI::ajoute_globale(AtomeGlobale const *globale)
+int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
 {
     assert(globale->index == -1);
     auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
@@ -1850,7 +1850,7 @@ int ConvertisseuseRI::ajoute_globale(AtomeGlobale const *globale)
     return index;
 }
 
-int ConvertisseuseRI::génère_code_pour_globale(AtomeGlobale const *atome_globale)
+int CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atome_globale)
 {
     auto index = atome_globale->index;
 
@@ -1870,7 +1870,7 @@ int ConvertisseuseRI::génère_code_pour_globale(AtomeGlobale const *atome_globa
     return index;
 }
 
-ContexteGénérationCodeBinaire ConvertisseuseRI::contexte() const
+ContexteGénérationCodeBinaire CompilatriceCodeBinaire::contexte() const
 {
     return {espace, fonction_courante};
 }

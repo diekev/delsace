@@ -376,7 +376,7 @@ struct DonnéesExécutionFonction {
     int64_t mémoire_utilisée() const;
 };
 
-class ConvertisseuseRI {
+class CompilatriceCodeBinaire {
     EspaceDeTravail *espace = nullptr;
     DonnéesConstantesExécutions *données_exécutions = nullptr;
 
@@ -396,9 +396,9 @@ class ConvertisseuseRI {
     bool émets_stats_ops = false;
 
   public:
-    ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
+    CompilatriceCodeBinaire(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
 
-    EMPECHE_COPIE(ConvertisseuseRI);
+    EMPECHE_COPIE(CompilatriceCodeBinaire);
 
     bool génère_code(const kuri::tableau<AtomeFonction *> &fonctions);
 
