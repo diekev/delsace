@@ -39,7 +39,7 @@ namespace kuri {
 struct chaine_statique;
 }
 
-struct ContexteGenerationCodeBinaire {
+struct ContexteGénérationCodeBinaire {
     EspaceDeTravail *espace = nullptr;
     const NoeudDeclarationEnteteFonction *fonction = nullptr;
 };
@@ -285,16 +285,16 @@ struct Chunk {
 
     void émets_retour(NoeudExpression const *site);
 
-    void émets_assignation(ContexteGenerationCodeBinaire contexte,
+    void émets_assignation(ContexteGénérationCodeBinaire contexte,
                            NoeudExpression const *site,
                            Type const *type,
-                           bool ajoute_verification);
+                           bool ajoute_vérification);
     void émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_copie_variable(const NoeudExpression *site,
                               const Type *type,
                               int pointeur_source,
                               int pointeur_destination);
-    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_verification);
+    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_vérification);
     void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_variable(NoeudExpression const *site, int pointeur);
@@ -303,20 +303,20 @@ struct Chunk {
                      AtomeFonction const *fonction,
                      unsigned taille_arguments,
                      InstructionAppel const *inst_appel,
-                     bool ajoute_verification);
+                     bool ajoute_vérification);
     void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,
                              unsigned taille_arguments,
                              InstructionAppel const *inst_appel,
-                             bool ajoute_verification);
+                             bool ajoute_vérification);
     void émets_appel_compilatrice(NoeudExpression const *site,
                                   AtomeFonction const *fonction,
-                                  bool ajoute_verification);
+                                  bool ajoute_vérification);
     void émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel,
-                              bool ajoute_verification);
+                              bool ajoute_vérification);
     void émets_accès_index(NoeudExpression const *site, Type const *type);
 
     void émets_branche(NoeudExpression const *site,
@@ -358,26 +358,26 @@ struct Globale {
 struct DonnéesExécutionFonction {
     Chunk chunk{};
 
-    struct DonneesFonctionExterne {
-        kuri::tablet<ffi_type *, 6> types_entrees{};
+    struct DonnéesFonctionExterne {
+        kuri::tablet<ffi_type *, 6> types_entrées{};
         ffi_cif cif{};
         void (*ptr_fonction)() = nullptr;
     };
 
-    DonneesFonctionExterne données_externe{};
+    DonnéesFonctionExterne données_externe{};
 
     int64_t mémoire_utilisée() const;
 };
 
 class ConvertisseuseRI {
     EspaceDeTravail *espace = nullptr;
-    DonnéesConstantesExécutions *donnees_executions = nullptr;
+    DonnéesConstantesExécutions *données_exécutions = nullptr;
 
     const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
 
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
-    MetaProgramme *metaprogramme = nullptr;
+    MetaProgramme *métaprogramme = nullptr;
 
     /* Patchs pour les labels, puisque nous d'abord générer le code des branches avant de connaître
      * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
@@ -385,32 +385,32 @@ class ConvertisseuseRI {
     kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
-    bool verifie_adresses = false;
+    bool vérifie_adresses = false;
 
   public:
     ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
 
     EMPECHE_COPIE(ConvertisseuseRI);
 
-    bool genere_code(const kuri::tableau<AtomeFonction *> &fonctions);
+    bool génère_code(const kuri::tableau<AtomeFonction *> &fonctions);
 
-    bool genere_code_pour_fonction(AtomeFonction const *fonction);
+    bool génère_code_pour_fonction(AtomeFonction const *fonction);
 
   private:
-    void genere_code_binaire_pour_instruction(Instruction const *instruction,
-                                              Chunk &chunk,
-                                              bool pour_operande);
+    void génère_code_pour_instruction(Instruction const *instruction,
+                                      Chunk &chunk,
+                                      bool pour_operande);
 
-    void genere_code_binaire_pour_initialisation_globale(AtomeConstante const *constante,
-                                                         int decalage,
-                                                         int ou_patcher);
+    void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
+                                                 int decalage,
+                                                 int ou_patcher);
 
-    void genere_code_binaire_pour_atome(Atome const *atome, Chunk &chunk);
+    void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
     int ajoute_globale(AtomeGlobale const *globale);
-    int genere_code_pour_globale(AtomeGlobale const *atome_globale);
+    int génère_code_pour_globale(AtomeGlobale const *atome_globale);
 
-    ContexteGenerationCodeBinaire contexte() const;
+    ContexteGénérationCodeBinaire contexte() const;
 };
 
 ffi_type *converti_type_ffi(Type const *type);

@@ -840,12 +840,12 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                                             1);
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
 
-        données_externe.types_entrees.efface();
-        données_externe.types_entrees.reserve(nombre_arguments_totaux);
+        données_externe.types_entrées.efface();
+        données_externe.types_entrées.reserve(nombre_arguments_totaux);
 
         POUR (inst_appel->args) {
             auto type = converti_type_ffi(it->type);
-            données_externe.types_entrees.ajoute(type);
+            données_externe.types_entrées.ajoute(type);
 
             auto ptr = &pointeur_arguments[decalage_argument];
             pointeurs_arguments.ajoute(ptr);
@@ -858,10 +858,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
             }
         }
 
-        données_externe.types_entrees.ajoute(nullptr);
+        données_externe.types_entrées.ajoute(nullptr);
 
         auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
-        auto ptr_types_entrees = données_externe.types_entrees.donnees();
+        auto ptr_types_entrees = données_externe.types_entrées.donnees();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
                                        FFI_DEFAULT_ABI,
