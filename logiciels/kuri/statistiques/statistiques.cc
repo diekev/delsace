@@ -99,6 +99,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde debut_
     tableau.ajoute_ligne(
         {"- Opérateurs", formatte_nombre(stats.stats_operateurs.totaux.memoire), "o"});
     tableau.ajoute_ligne({"- RI", formatte_nombre(stats.memoire_ri), "o"});
+    tableau.ajoute_ligne({"- Code binaire", formatte_nombre(stats.mémoire_code_binaire), "o"});
     tableau.ajoute_ligne(
         {"- Tampon", formatte_nombre(stats.stats_fichiers.totaux.mémoire_tampons), "o"});
     tableau.ajoute_ligne({"- Types", formatte_nombre(stats.stats_types.totaux.memoire), "o"});

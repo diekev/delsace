@@ -226,8 +226,8 @@ void RegistreSymboliqueRI::rassemble_statistiques(Statistiques &stats) const
         mémoire_fonctions += it.instructions.taille_memoire();
 
         if (it.données_exécution) {
-            mémoire_fonctions += it.données_exécution->mémoire_utilisée();
-            mémoire_fonctions += taille_de(DonnéesExécutionFonction);
+            stats.mémoire_code_binaire += it.données_exécution->mémoire_utilisée();
+            stats.mémoire_code_binaire += taille_de(DonnéesExécutionFonction);
         }
     });
 
