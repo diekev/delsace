@@ -1753,17 +1753,16 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome, Chunk &chunk
                 if (tableau_valeur[0]->est_constante_nulle()) {
                     /* Valeur nulle pour les chaines initilisées à zéro. */
                     chunk.émets_chaine_constante(/* site */ nullptr, nullptr, 0);
-                }
-                else {
-                    auto acces_index = tableau_valeur[0]->comme_accès_index_constant();
-                    auto globale_tableau = acces_index->accede->comme_globale();
-                    auto tableau = globale_tableau->initialisateur->comme_données_constantes();
-                    auto données = tableau->donne_données();
-
-                    chunk.émets_chaine_constante(
-                        /* site */ nullptr, const_cast<char *>(données.begin()), données.taille());
+                    return;
                 }
 
+                auto acces_index = tableau_valeur[0]->comme_accès_index_constant();
+                auto globale_tableau = acces_index->accede->comme_globale();
+                auto tableau = globale_tableau->initialisateur->comme_données_constantes();
+                auto données = tableau->donne_données();
+
+                chunk.émets_chaine_constante(
+                    /* site */ nullptr, const_cast<char *>(données.begin()), données.taille());
                 return;
             }
 
