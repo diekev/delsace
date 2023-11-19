@@ -349,15 +349,6 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
     patchs_labels.ajoute(patch);
 }
 
-void Chunk::émets_label(NoeudExpression const *site, int index)
-{
-    if (décalages_labels.taille() <= index) {
-        décalages_labels.redimensionne(index + 1);
-    }
-
-    décalages_labels[index] = static_cast<int>(compte);
-}
-
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
@@ -1073,11 +1064,12 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
     }
 
     POUR (patchs_labels) {
-        auto décalage = chunk.décalages_labels[it.index_label];
+        auto décalage = décalages_labels[it.index_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = décalage;
     }
 
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
+    décalages_labels.efface();
     patchs_labels.efface();
 
     return true;
@@ -1095,7 +1087,11 @@ void ConvertisseuseRI::genere_code_binaire_pour_instruction(Instruction const *i
         case GenreInstruction::LABEL:
         {
             auto label = instruction->comme_label();
-            chunk.émets_label(label->site, label->id);
+            if (décalages_labels.taille() <= label->id) {
+                décalages_labels.redimensionne(label->id + 1);
+            }
+
+            décalages_labels[label->id] = static_cast<int>(chunk.compte);
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -1820,7 +1816,6 @@ int64_t DonnéesExécutionFonction::mémoire_utilisée() const
     int64_t résultat = 0;
     résultat += chunk.capacité;
     résultat += chunk.locales.taille_memoire();
-    résultat += chunk.décalages_labels.taille_memoire();
 
     if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
         résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);

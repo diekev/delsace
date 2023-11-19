@@ -222,8 +222,6 @@ struct Chunk {
     // d'exécution
     int taille_allouée = 0;
 
-    kuri::tableau<int, int> décalages_labels{};
-
     kuri::tableau<Locale, int> locales{};
 
     ~Chunk();
@@ -313,8 +311,6 @@ struct Chunk {
                                  int index_label_si_vrai,
                                  int index_label_si_faux);
 
-    void émets_label(NoeudExpression const *site, int index);
-
     void émets_operation_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,
                                 Type const *type);
@@ -370,6 +366,7 @@ class ConvertisseuseRI {
     /* Patchs pour les labels, puisque nous d'abord générer le code des branches avant de connaître
      * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
      * endroit à la fin de la génération de code. */
+    kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
     bool verifie_adresses = false;
