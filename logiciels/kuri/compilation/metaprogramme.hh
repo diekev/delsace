@@ -7,8 +7,10 @@
 
 #include "structures/ensemble.hh"
 
+struct AtomeFonction;
 struct DonnéesExécution;
 struct Enchaineuse;
+struct IdentifiantCode;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
@@ -16,6 +18,7 @@ struct NoeudDirectiveExecute;
 struct NoeudStruct;
 struct Programme;
 struct Statistiques;
+struct Type;
 struct UniteCompilation;
 
 enum {
