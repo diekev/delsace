@@ -286,6 +286,8 @@ struct AtomeGlobale : public AtomeConstante {
      * InfoType créé par la compilatrice. */
     const Type *est_info_type_de = nullptr;
 
+    NoeudDeclarationVariable *decl = nullptr;
+
     EMPECHE_COPIE(AtomeGlobale);
 
     AtomeGlobale(Type const *type_,

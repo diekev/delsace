@@ -109,7 +109,6 @@ static constexpr auto table_drapeaux_lexemes = [] {
             case GenreLexeme::ENUM:
             case GenreLexeme::ENUM_DRAPEAU:
             case GenreLexeme::ERREUR:
-            case GenreLexeme::EXTERNE:
             case GenreLexeme::FAUX:
             case GenreLexeme::FONC:
             case GenreLexeme::INFO_DE:
@@ -879,17 +878,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             noeud->expression = analyse_expression({}, GenreLexeme::EMPL, lexeme_final);
             return noeud;
         }
-        case GenreLexeme::EXTERNE:
-        {
-            consomme();
-
-            auto expr = analyse_expression({}, GenreLexeme::EXTERNE, GenreLexeme::INCONNU);
-            expr->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-
-            consomme();
-
-            return expr;
-        }
         case GenreLexeme::FAUX:
         case GenreLexeme::VRAI:
         {
@@ -1443,6 +1431,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 if (!bloc_constantes_polymorphiques.est_vide()) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
+                analyse_directive_déclaration_variable(decl);
                 return decl;
             }
 
@@ -1531,6 +1520,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     donnees_precedence, racine_expression, lexeme_final);
 
                 m_noeud_expression_virgule = nullptr;
+
+                analyse_directive_déclaration_variable(decl);
 
                 return decl;
             }
@@ -2432,20 +2423,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 }
 
                 consomme();
-
-                if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
-                    rapporte_erreur("attendu une chaine de caractère après #externe");
-                }
-
-                noeud->ident_bibliotheque = lexeme_courant()->ident;
-
-                if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
-                    consomme();
-                    noeud->nom_symbole = lexeme_courant()->chaine;
-                }
-                else {
-                    noeud->nom_symbole = noeud->ident->nom;
-                }
+                analyse_directive_symbole_externe(noeud);
+                /* recule car nous consommons à la fin de la boucle */
+                recule();
             }
             else if (ident_directive == ID::principale) {
                 if (noeud->ident != ID::__principale) {
@@ -3107,4 +3087,52 @@ bool Syntaxeuse::ignore_point_virgule_implicite()
     }
 
     return false;
+}
+
+void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDeclarationVariable *déclaration)
+{
+    if (!apparie(GenreLexeme::DIRECTIVE)) {
+        return;
+    }
+
+    consomme();
+
+    if (!fonctions_courantes.est_vide()) {
+        rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
+        return;
+    }
+
+    auto lexème_directive = lexeme_courant();
+    if (lexème_directive->ident == ID::externe) {
+        if (déclaration->expression) {
+            rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
+                            "variables externes ne peuvent pas être initialisées.");
+            return;
+        }
+
+        consomme();
+        analyse_directive_symbole_externe(déclaration);
+        déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+        return;
+    }
+
+    rapporte_erreur("Directive de déclaration de variable inconnue.");
+}
+
+void Syntaxeuse::analyse_directive_symbole_externe(NoeudDeclarationSymbole *déclaration_symbole)
+{
+    if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+        rapporte_erreur("attendu une chaine de caractère après #externe");
+    }
+
+    déclaration_symbole->ident_bibliotheque = lexeme_courant()->ident;
+    consomme();
+
+    if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
+        déclaration_symbole->nom_symbole = lexeme_courant()->chaine;
+        consomme();
+    }
+    else {
+        déclaration_symbole->nom_symbole = déclaration_symbole->ident->nom;
+    }
 }

@@ -1843,9 +1843,27 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
 {
     assert(globale->index == -1);
+
+    void *adresse_pour_exécution = nullptr;
+    if (globale->est_info_type_de) {
+        adresse_pour_exécution = globale->est_info_type_de->info_type;
+    }
+    else if (globale->decl && globale->decl->symbole) {
+        auto decl = globale->decl;
+        if (!decl->symbole->charge(
+                espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
+            return false;
+        }
+
+        /* À FAIRE : sépare les adresses des objets des adresses des fonctions.
+         * Les objets sont void* alors que les fonction sont void(*)()
+         */
+        adresse_pour_exécution = reinterpret_cast<void *>(decl->symbole->adresse_pour_execution());
+    }
+
     auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
     auto index = données_exécutions->ajoute_globale(
-        type_globale, globale->ident, globale->est_info_type_de);
+        type_globale, globale->ident, adresse_pour_exécution);
     const_cast<AtomeGlobale *>(globale)->index = index;
     return index;
 }
