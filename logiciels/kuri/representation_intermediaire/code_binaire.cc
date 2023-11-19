@@ -1398,7 +1398,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_initialisation_globale(AtomeCons
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
             auto constante_entière = constante->comme_constante_entière();
-            auto type = constante_entière->type;
+            auto type = type_entier_sous_jacent(constante_entière->type);
             auto valeur_entiere = constante_entière->valeur;
 
             if (type->est_type_entier_naturel() || type->est_type_enum() ||
