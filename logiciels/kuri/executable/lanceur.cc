@@ -181,6 +181,9 @@ static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments
 static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArguments & /*parseuse*/,
                                                              ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_émets_stats_ops(ParseuseArguments & /*parseuse*/,
+                                                           ArgumentsCompilatrice &résultat);
+
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
@@ -219,6 +222,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "Ajoute des instructions de débogage aux métaprogrammes afin de pouvoir détecter des "
      "erreurs",
      gère_argument_débogue_exécution},
+    {"--stats_ops_exécution",
+     "",
+     "",
+     "Rapporte le nombre de fois que chaque instruction fut exécutée dans les métaprogrammes",
+     gère_argument_émets_stats_ops},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -322,6 +330,13 @@ static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArgument
                                                              ArgumentsCompilatrice &résultat)
 {
     résultat.debogue_execution = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_émets_stats_ops(ParseuseArguments & /*parseuse*/,
+                                                           ArgumentsCompilatrice &résultat)
+{
+    résultat.émets_stats_ops_exécution = true;
     return ActionParsageArgument::CONTINUE;
 }
 

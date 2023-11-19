@@ -3,7 +3,6 @@
 
 #include "machine_virtuelle.hh"
 
-#include <fstream>
 #include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -31,21 +30,26 @@
 /** \name Fuites de mémoire.
  * \{ */
 
+static void imprime_entête_fuite_de_mémoire(Enchaineuse &enchaineuse, size_t taille_bloc)
+{
+    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme : " << taille_bloc
+                << " octets non libérés.\n\n";
+}
+
 static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
                                                          size_t taille_bloc,
                                                          kuri::tableau<FrameAppel> const &frames)
 {
     auto espace = métaprogramme->unite->espace;
-    Enchaineuse enchaineuse;
 
-    enchaineuse << "Fuite de mémoire dans l'exécution du métaprogramme : " << taille_bloc
-                << " octets non libérés.\n\n";
+    auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
+    logueuse << "-----------------------------------------------------------------------------\n";
+
+    imprime_entête_fuite_de_mémoire(logueuse, taille_bloc);
 
     for (int f = int(frames.taille()) - 1; f >= 0; f--) {
-        erreur::imprime_site(enchaineuse, *espace, frames[f].site);
+        erreur::imprime_site(logueuse, *espace, frames[f].site);
     }
-
-    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
 }
 
 void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
@@ -96,18 +100,33 @@ void DétectriceFuiteDeMémoire::réinitialise()
 void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
 {
     auto données = métaprogramme->données_exécution;
+    auto taille_non_libérée = size_t(0);
 
 #ifdef UTILISE_NOTRE_TABLE
     données->détectrice_fuite_de_mémoire.table_allocations.pour_chaque_élément(
         [&](DétectriceFuiteDeMémoire::InformationsBloc const &info) {
+            taille_non_libérée += info.taille;
             rapporte_avertissement_pour_fuite_de_mémoire(métaprogramme, info.taille, info.frame);
         });
 #else
     POUR (données->détectrice_fuite_de_mémoire.table_allocations) {
+        taille_non_libérée += it.second.taille;
         rapporte_avertissement_pour_fuite_de_mémoire(
             métaprogramme, it.second.taille, it.second.frame);
     }
 #endif
+
+    if (taille_non_libérée == 0) {
+        return;
+    }
+
+    Enchaineuse enchaineuse;
+    imprime_entête_fuite_de_mémoire(enchaineuse, taille_non_libérée);
+    enchaineuse
+        << "Veuillez-vous référer au fichier de log du métaprogramme pour plus de détails.";
+
+    auto espace = métaprogramme->unite->espace;
+    espace->rapporte_avertissement(métaprogramme->directive, enchaineuse.chaine());
 }
 
 /** \} */
@@ -124,7 +143,7 @@ void DonnéesExécution::réinitialise()
     this->détectrice_fuite_de_mémoire.réinitialise();
 }
 
-void DonnéesExécution::imprime_stats_instructions(std::ostream &os)
+void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
 {
     using TypeEntréeStat = std::pair<octet_t, int>;
     kuri::tableau<TypeEntréeStat> entrées;
@@ -170,6 +189,12 @@ void DonnéesExécution::imprime_stats_instructions(std::ostream &os)
 }
 
 /** \} */
+
+void logue_stats_instructions(MetaProgramme *métaprogramme)
+{
+    auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::STAT_INSTRUCTION);
+    métaprogramme->données_exécution->imprime_stats_instructions(logueuse);
+}
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->données_exécution->données_externe.ptr_fonction ==                              \
@@ -291,12 +316,12 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
 
 /* ************************************************************************** */
 
-static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
+static void lis_valeur(octet_t *pointeur, Type *type, Enchaineuse &os)
 {
     switch (type->genre) {
         default:
         {
-            os << "valeur non prise en charge";
+            os << "valeur de type " << chaine_type(type) << " non prise en charge";
             break;
         }
         case GenreType::TUPLE:
@@ -402,17 +427,18 @@ static void lis_valeur(octet_t *pointeur, Type *type, std::ostream &os)
 static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
                                     TypeFonction const *type_fonction,
                                     kuri::chaine const &nom,
-                                    int profondeur_appel)
+                                    int profondeur_appel,
+                                    Enchaineuse &logueuse)
 {
-    std::cerr << chaine_indentations(profondeur_appel) << "Appel de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Appel de " << nom << '\n';
 
     auto index_sortie = 0;
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR (type_fonction->types_entrees) {
-        std::cerr << chaine_indentations(profondeur_appel) << "-- paramètre " << index_sortie
-                  << " (" << chaine_type(it) << ") : ";
-        lis_valeur(pointeur_lecture_retour, it, std::cerr);
-        std::cerr << '\n';
+        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_sortie
+                 << " (" << chaine_type(it) << ") : ";
+        lis_valeur(pointeur_lecture_retour, it, logueuse);
+        logueuse << '\n';
 
         pointeur_lecture_retour += it->taille_octet;
         index_sortie += 1;
@@ -422,9 +448,10 @@ static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
 static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
                                     TypeFonction const *type_fonction,
                                     kuri::chaine const &nom,
-                                    int profondeur_appel)
+                                    int profondeur_appel,
+                                    Enchaineuse &logueuse)
 {
-    std::cerr << chaine_indentations(profondeur_appel) << "Retour de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Retour de " << nom << '\n';
 
     auto index_entree = 0;
     auto pointeur_lecture_retour = pointeur_debut_retour;
@@ -433,14 +460,14 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
         return;
     }
 
-    std::cerr << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree << " : ";
-    lis_valeur(pointeur_lecture_retour, type_sortie, std::cerr);
-    std::cerr << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree << " : ";
+    lis_valeur(pointeur_lecture_retour, type_sortie, logueuse);
+    logueuse << '\n';
 
     index_entree += 1;
 }
 
-static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std::ostream &os)
+static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enchaineuse &os)
 {
     os << chaine_indentations(profondeur_appel) << frame->fonction->nom << " :\n";
 
@@ -457,7 +484,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, std
         }
 
         os << " = ";
-        lis_valeur(pointeur_locale, it.type->comme_type_pointeur()->type_pointe, std::cerr);
+        lis_valeur(pointeur_locale, it.type->comme_type_pointeur()->type_pointe, os);
         os << '\n';
     }
 }
@@ -841,12 +868,12 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                                             1);
         auto nombre_arguments_totaux = static_cast<unsigned>(inst_appel->args.taille());
 
-        données_externe.types_entrees.efface();
-        données_externe.types_entrees.reserve(nombre_arguments_totaux);
+        données_externe.types_entrées.efface();
+        données_externe.types_entrées.reserve(nombre_arguments_totaux);
 
         POUR (inst_appel->args) {
             auto type = converti_type_ffi(it->type);
-            données_externe.types_entrees.ajoute(type);
+            données_externe.types_entrées.ajoute(type);
 
             auto ptr = &pointeur_arguments[decalage_argument];
             pointeurs_arguments.ajoute(ptr);
@@ -859,10 +886,10 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
             }
         }
 
-        données_externe.types_entrees.ajoute(nullptr);
+        données_externe.types_entrées.ajoute(nullptr);
 
         auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
-        auto ptr_types_entrees = données_externe.types_entrees.donnees();
+        auto ptr_types_entrees = données_externe.types_entrées.donnees();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
                                        FFI_DEFAULT_ABI,
@@ -1067,6 +1094,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(taille_chaine);
                 break;
             }
+            case OP_REMBOURRAGE:
+            {
+                auto rembourrage = LIS_4_OCTETS();
+                incrémente_pointeur_de_pile(rembourrage);
+                break;
+            }
             case OP_INCRÉMENTE:
             {
                 auto taille = LIS_4_OCTETS();
@@ -1090,7 +1123,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_INCRÉMENTE_VARIABLE:
+            case OP_INCRÉMENTE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
                 auto index = LIS_4_OCTETS();
@@ -1480,8 +1513,6 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
-                // saute l'instruction d'appel
-                frame->pointeur += 8;
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
                     compte_exécutées = i + 1;
@@ -1574,7 +1605,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
-            case OP_ASSIGNE_VARIABLE:
+            case OP_ASSIGNE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
@@ -1586,7 +1617,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
-            case OP_COPIE_VARIABLE:
+            case OP_COPIE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
                 auto index_source = LIS_4_OCTETS();
@@ -1623,7 +1654,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 this->pointeur_pile += taille;
                 break;
             }
-            case OP_CHARGE_VARIABLE:
+            case OP_CHARGE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
@@ -1635,7 +1666,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 this->pointeur_pile += taille;
                 break;
             }
-            case OP_REFERENCE_VARIABLE:
+            case OP_RÉFÉRENCE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 empile(donne_adresse_locale(frame, index));
@@ -1659,6 +1690,15 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto adresse_de = dépile<char *>();
                 empile(adresse_de + decalage);
                 // std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
+                break;
+            }
+            case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+            {
+                auto pointeur = LIS_4_OCTETS();
+                auto décalage = LIS_4_OCTETS();
+                auto adresse_base = donne_adresse_locale(frame, pointeur);
+                auto adresse_membre = static_cast<char *>(adresse_base) + décalage;
+                empile(adresse_membre);
                 break;
             }
             case OP_ACCEDE_INDEX:
@@ -1689,21 +1729,24 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto décalage = LIS_4_OCTETS();
                 auto &chunk = frame->fonction->données_exécution->chunk;
-                auto &sortie = std::cerr;
-                sortie << chaine_indentations(profondeur_appel);
-                désassemble_instruction(chunk, décalage, sortie);
+                auto &logueuse = m_métaprogramme->donne_logueuse(
+                    TypeLogMétaprogramme::INSTRUCTION);
+                logueuse << chaine_indentations(profondeur_appel);
+                désassemble_instruction(chunk, décalage, logueuse);
                 break;
             }
             case OP_LOGUE_VALEURS_LOCALES:
             {
-                imprime_valeurs_locales(frame, profondeur_appel, std::cerr);
+                auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
+                imprime_valeurs_locales(frame, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_APPEL:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
-                std::cerr << "-- appel : " << ptr_fonction->nom << " ("
-                          << chaine_type(ptr_fonction->type) << ')' << '\n';
+                auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
+                logueuse << "-- appel : " << ptr_fonction->nom << " ("
+                         << chaine_type(ptr_fonction->type) << ')' << '\n';
                 break;
             }
             case OP_LOGUE_ENTRÉES:
@@ -1712,8 +1755,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_arguments = LIS_4_OCTETS();
                 auto pointeur_arguments = pointeur_pile - taille_arguments;
                 auto type_fonction = ptr_fonction->type->comme_type_fonction();
-                imprime_valeurs_entrees(
-                    pointeur_arguments, type_fonction, ptr_fonction->nom, profondeur_appel);
+                auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
+                imprime_valeurs_entrees(pointeur_arguments,
+                                        type_fonction,
+                                        ptr_fonction->nom,
+                                        profondeur_appel,
+                                        logueuse);
                 break;
             }
             case OP_LOGUE_SORTIES:
@@ -1721,18 +1768,23 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
                 auto pointeur_debut_retour = pointeur_pile - taille_retour;
-                imprime_valeurs_sorties(
-                    pointeur_debut_retour, type_fonction, frame->fonction->nom, profondeur_appel);
+                auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
+                imprime_valeurs_sorties(pointeur_debut_retour,
+                                        type_fonction,
+                                        frame->fonction->nom,
+                                        profondeur_appel,
+                                        logueuse);
                 break;
             }
             case OP_LOGUE_RETOUR:
             {
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-                std::cerr << "Retourne, décalage : "
-                          << static_cast<int>(frame->pointeur_pile - pile) << '\n';
-                std::cerr << "Empile " << taille_retour << " octet(s), décalage : "
-                          << static_cast<int>(frame->pointeur_pile + taille_retour - pile) << '\n';
+                auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
+                logueuse << "Retourne, décalage : "
+                         << static_cast<int>(frame->pointeur_pile - pile) << '\n';
+                logueuse << "Empile " << taille_retour << " octet(s), décalage : "
+                         << static_cast<int>(frame->pointeur_pile + taille_retour - pile) << '\n';
                 break;
             }
             default:
@@ -1934,9 +1986,9 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             nombre_métaprogrammes -= 1;
             i -= 1;
 
-#ifdef STATS_OP_CODES
-            métaprogramme->données_exécution->imprime_stats_instructions(std::cerr);
-#endif
+            if (compilatrice.arguments.émets_stats_ops_exécution) {
+                logue_stats_instructions(métaprogramme);
+            }
         }
 
         désinstalle_métaprogramme(métaprogramme, compte_exécutées);
@@ -2059,7 +2111,7 @@ void Profileuse::crée_rapports(FormatRapportProfilage format)
     }
 }
 
-static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
+static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
 {
     if (fonction->decl) {
         os << nom_humainement_lisible(fonction->decl);
@@ -2070,7 +2122,7 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os
 }
 
 static void crée_rapport_format_echantillons_total_plus_fonction(
-    const InformationProfilage &informations, std::ostream &os)
+    const InformationProfilage &informations, Enchaineuse &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
@@ -2105,7 +2157,7 @@ static void crée_rapport_format_echantillons_total_plus_fonction(
 }
 
 static void crée_rapport_format_brendan_gregg(const InformationProfilage &informations,
-                                              std::ostream &os)
+                                              Enchaineuse &os)
 {
     POUR (informations.echantillons) {
         if (it.profondeur_frame_appel == 0) {
@@ -2128,20 +2180,17 @@ static void crée_rapport_format_brendan_gregg(const InformationProfilage &infor
 void Profileuse::crée_rapport(const InformationProfilage &informations,
                               FormatRapportProfilage format)
 {
-    auto nom_base_fichier = enchaine("métaprogramme", informations.métaprogramme, ".txt");
-    auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_base_fichier);
-
-    std::ofstream os(vers_std_path(chemin_fichier));
+    auto &logueuse = informations.métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
 
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
         {
-            crée_rapport_format_echantillons_total_plus_fonction(informations, os);
+            crée_rapport_format_echantillons_total_plus_fonction(informations, logueuse);
             break;
         }
         case FormatRapportProfilage::BRENDAN_GREGG:
         {
-            crée_rapport_format_brendan_gregg(informations, os);
+            crée_rapport_format_brendan_gregg(informations, logueuse);
             break;
         }
     }
