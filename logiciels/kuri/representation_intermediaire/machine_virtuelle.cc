@@ -495,16 +495,20 @@ inline T depile(octet_t *&pointeur_pile)
     return *reinterpret_cast<T *>(pointeur_pile);
 }
 
-void MachineVirtuelle::depile(int64_t n)
+void MachineVirtuelle::incrémente_pointeur_de_pile(int64_t taille)
 {
-    pointeur_pile -= n;
-    // std::cerr << "Dépile " << n << " octet(s), décalage : " << static_cast<int>(pointeur_pile -
-    // pile) << '\n';
-#ifndef NDEBUG
-    if (pointeur_pile < pile) {
-        rapporte_erreur_execution("Erreur interne : sous-tamponnage de la pile de données");
+    this->pointeur_pile += taille;
+    if (pointeur_pile >= (pile + TAILLE_PILE)) {
+        rapporte_erreur_execution("sur-entamponnage de la pile de données");
     }
-#endif
+}
+
+void MachineVirtuelle::décrémente_pointeur_de_pile(int64_t taille)
+{
+    pointeur_pile -= taille;
+    if (pointeur_pile < pile) {
+        rapporte_erreur_execution("sous-entamponnage de la pile de données");
+    }
 }
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *site)
@@ -1566,7 +1570,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_ou = depile<void *>();
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-                depile(taille);
+                décrémente_pointeur_de_pile(taille);
                 break;
             }
             case OP_ASSIGNE_VARIABLE:
@@ -1578,7 +1582,7 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
-                depile(taille);
+                décrémente_pointeur_de_pile(taille);
                 break;
             }
             case OP_COPIE_VARIABLE:
