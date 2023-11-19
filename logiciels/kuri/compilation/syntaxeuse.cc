@@ -1120,7 +1120,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */
                 recule();
-                rapporte_erreur("Directive inconnue");
+                rapporte_erreur("Directive d'expression primaire inconnue.");
             }
 
             return nullptr;
@@ -2540,7 +2540,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                 noeud->nom_symbole = lexeme_courant()->chaine;
             }
             else {
-                rapporte_erreur("Directive inconnue");
+                rapporte_erreur("Directive de fonction inconnue.");
             }
 
             consomme();
@@ -2717,7 +2717,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_HORSLIGNE;
         }
         else {
-            rapporte_erreur("Directive inconnue");
+            rapporte_erreur("Directive d'opérateur inconnue.");
         }
 
         consomme();
@@ -2947,7 +2947,7 @@ void Syntaxeuse::analyse_directives_structure_ou_union(NoeudStruct *noeud)
             }
         }
         else {
-            rapporte_erreur("Directive inconnue");
+            rapporte_erreur("Directive de structure inconnue.");
         }
 
         consomme();
