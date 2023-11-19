@@ -509,6 +509,11 @@ void MachineVirtuelle::depile(int64_t n)
 
 bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *site)
 {
+    if (profondeur_appel == TAILLE_FRAMES_APPEL) {
+        rapporte_erreur_execution("Dépassement de la profondeur d'appels possibles.");
+        return false;
+    }
+
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;
     frame->site = site;
@@ -1015,8 +1020,6 @@ MachineVirtuelle::ResultatInterpretation MachineVirtuelle::execute_instructions(
 
     for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
-        assert_rappel(profondeur_appel > 0 && profondeur_appel < TAILLE_FRAMES_APPEL,
-                      [&]() { imprime_trace_appel(donne_site_adresse_courante()); });
         auto pointeur_debut = frame->pointeur;
         auto instruction = LIS_OCTET();
 
