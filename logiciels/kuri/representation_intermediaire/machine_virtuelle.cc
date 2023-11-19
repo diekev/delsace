@@ -1978,7 +1978,9 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             nombre_métaprogrammes -= 1;
             i -= 1;
 
-            logue_stats_instructions(métaprogramme);
+            if (compilatrice.arguments.émets_stats_ops_exécution) {
+                logue_stats_instructions(métaprogramme);
+            }
         }
 
         désinstalle_métaprogramme(métaprogramme, compte_exécutées);
