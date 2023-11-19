@@ -1765,6 +1765,9 @@ void ConvertisseuseRI::génère_code_pour_atome(Atome const *atome, Chunk &chunk
                 return;
             }
 
+            /* À FAIRE(code binaire) : considère avoir OP_STRUCTURE_CONSTANTE et d'écrire
+             * directement les données sans passer par des OP_CONSTANTES pour économiser de la
+             * mémoire. */
             auto type_composé = static_cast<TypeCompose const *>(type);
 
             auto index_membre = 0;
