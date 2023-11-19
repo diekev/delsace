@@ -1512,8 +1512,6 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
-                // saute l'instruction d'appel
-                frame->pointeur += 8;
 
                 if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
                     compte_exécutées = i + 1;

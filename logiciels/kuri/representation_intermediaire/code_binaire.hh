@@ -308,7 +308,6 @@ struct Chunk {
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments,
-                     InstructionAppel const *inst_appel,
                      bool ajoute_vérification);
     void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,

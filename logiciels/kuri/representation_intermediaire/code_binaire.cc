@@ -298,7 +298,6 @@ void Chunk::émets_référence_membre_locale(NoeudExpression *site, int pointeur
 void Chunk::émets_appel(NoeudExpression const *site,
                         AtomeFonction const *fonction,
                         unsigned taille_arguments,
-                        InstructionAppel const *inst_appel,
                         bool ajoute_vérification)
 {
     if (ajoute_vérification) {
@@ -310,7 +309,6 @@ void Chunk::émets_appel(NoeudExpression const *site,
     émets_entête_op(OP_APPEL, site);
     émets(fonction);
     émets(taille_arguments);
-    émets(inst_appel);
 }
 
 void Chunk::émets_appel_externe(NoeudExpression const *site,
@@ -1280,7 +1278,7 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
                 }
                 else {
                     chunk.émets_appel(
-                        appel->site, atome_appelee, taille_arguments, appel, vérifie_adresses);
+                        appel->site, atome_appelee, taille_arguments, vérifie_adresses);
                 }
             }
             else {
