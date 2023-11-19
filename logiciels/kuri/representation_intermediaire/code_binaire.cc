@@ -549,7 +549,7 @@ void Chunk::émets_rembourrage(uint32_t rembourrage)
 
 /* ************************************************************************** */
 
-static int64_t instruction_simple(kuri::chaine_statique nom, int64_t décalage, std::ostream &os)
+static int64_t instruction_simple(kuri::chaine_statique nom, int64_t décalage, Enchaineuse &os)
 {
     os << nom << '\n';
     return décalage + 1;
@@ -559,7 +559,7 @@ template <typename T>
 static int64_t instruction_1d(Chunk const &chunk,
                               kuri::chaine_statique nom,
                               int64_t décalage,
-                              std::ostream &os)
+                              Enchaineuse &os)
 {
     décalage += 1;
     auto index = *reinterpret_cast<T *>(&chunk.code[décalage]);
@@ -571,7 +571,7 @@ template <typename T1, typename T2>
 static int64_t instruction_2d(Chunk const &chunk,
                               kuri::chaine_statique nom,
                               int64_t décalage,
-                              std::ostream &os)
+                              Enchaineuse &os)
 {
     décalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
@@ -585,7 +585,7 @@ template <typename T1, typename T2, typename T3>
 static int64_t instruction_3d(Chunk const &chunk,
                               kuri::chaine_statique nom,
                               int64_t décalage,
-                              std::ostream &os)
+                              Enchaineuse &os)
 {
     décalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
@@ -597,7 +597,7 @@ static int64_t instruction_3d(Chunk const &chunk,
     return décalage + static_cast<int64_t>(sizeof(T3));
 }
 
-int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ostream &os)
+int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     os << std::setfill('0') << std::setw(4) << décalage << ' ';
 
@@ -811,12 +811,19 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
     }
 }
 
-void désassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
+static void désassemble(const Chunk &chunk, kuri::chaine_statique nom, Enchaineuse &os)
 {
     os << "== " << nom << " ==\n";
     for (auto décalage = int64_t(0); décalage < chunk.compte;) {
         décalage = désassemble_instruction(chunk, décalage, os);
     }
+}
+
+void désassemble(const Chunk &chunk, kuri::chaine_statique nom, std::ostream &os)
+{
+    Enchaineuse enchaineuse;
+    désassemble(chunk, nom, enchaineuse);
+    os << enchaineuse.chaine();
 }
 
 ffi_type *converti_type_ffi(Type const *type)

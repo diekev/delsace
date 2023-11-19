@@ -1694,9 +1694,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto décalage = LIS_4_OCTETS();
                 auto &chunk = frame->fonction->données_exécution->chunk;
+                Enchaineuse enchaineuse;
+                enchaineuse << chaine_indentations(profondeur_appel);
+                désassemble_instruction(chunk, décalage, enchaineuse);
                 auto &sortie = std::cerr;
-                sortie << chaine_indentations(profondeur_appel);
-                désassemble_instruction(chunk, décalage, sortie);
+                sortie << enchaineuse.chaine();
                 break;
             }
             case OP_LOGUE_VALEURS_LOCALES:

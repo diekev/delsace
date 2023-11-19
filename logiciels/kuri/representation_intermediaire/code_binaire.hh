@@ -25,6 +25,7 @@ struct AtomeConstante;
 struct AtomeFonction;
 struct AtomeGlobale;
 struct DonnéesConstantesExécutions;
+struct Enchaineuse;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Instruction;
@@ -351,7 +352,7 @@ struct Chunk {
 };
 
 void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
-int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, std::ostream &os);
+int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, Enchaineuse &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
