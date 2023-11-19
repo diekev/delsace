@@ -425,46 +425,40 @@ static void lis_valeur(octet_t *pointeur, Type *type, Enchaineuse &os)
 }
 
 static auto imprime_valeurs_entrees(octet_t *pointeur_debut_entree,
-                                    TypeFonction const *type_fonction,
-                                    kuri::chaine const &nom,
+                                    AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
 {
-    logueuse << chaine_indentations(profondeur_appel) << "Appel de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Appel de " << fonction->nom << '\n';
 
-    auto index_sortie = 0;
+    auto type_fonction = fonction->type->comme_type_fonction();
     auto pointeur_lecture_retour = pointeur_debut_entree;
-    POUR (type_fonction->types_entrees) {
-        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_sortie
-                 << " (" << chaine_type(it) << ") : ";
+    POUR_INDEX (type_fonction->types_entrees) {
+        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_it << " ("
+                 << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, logueuse);
         logueuse << '\n';
 
         pointeur_lecture_retour += it->taille_octet;
-        index_sortie += 1;
     }
 }
 
 static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
-                                    TypeFonction const *type_fonction,
-                                    kuri::chaine const &nom,
+                                    AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
 {
-    logueuse << chaine_indentations(profondeur_appel) << "Retour de " << nom << '\n';
+    logueuse << chaine_indentations(profondeur_appel) << "Retour de " << fonction->nom << '\n';
 
-    auto index_entree = 0;
-    auto pointeur_lecture_retour = pointeur_debut_retour;
+    auto type_fonction = fonction->type->comme_type_fonction();
     auto type_sortie = type_fonction->type_sortie;
     if (type_sortie->est_type_rien()) {
         return;
     }
 
-    logueuse << chaine_indentations(profondeur_appel) << "-- résultat " << index_entree << " : ";
-    lis_valeur(pointeur_lecture_retour, type_sortie, logueuse);
+    logueuse << chaine_indentations(profondeur_appel) << "-- résultat : ";
+    lis_valeur(pointeur_debut_retour, type_sortie, logueuse);
     logueuse << '\n';
-
-    index_entree += 1;
 }
 
 static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enchaineuse &os)
@@ -579,7 +573,7 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
     }
 
 void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                                   RésultatInterprétation &resultat)
+                                                   RésultatInterprétation &résultat)
 {
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
@@ -592,7 +586,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto message = compilatrice.attend_message();
 
         if (!message) {
-            resultat = RésultatInterprétation::PASSE_AU_SUIVANT;
+            résultat = RésultatInterprétation::PASSE_AU_SUIVANT;
             return;
         }
 
@@ -817,7 +811,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
-                                              InstructionAppel *inst_appel)
+                                              InstructionAppel *inst_appel,
+                                              RésultatInterprétation &résultat)
 {
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
         auto taille = dépile<size_t>();
@@ -899,7 +894,9 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                        ptr_types_entrees);
 
         if (status != FFI_OK) {
-            std::cerr << "Impossible de préparer la fonction variadique externe !\n";
+            rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
+                                      "pour la fonction variadique externe.");
+            résultat = RésultatInterprétation::ERREUR;
             return;
         }
     }
@@ -1526,19 +1523,23 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
-                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+                auto résultat = RésultatInterprétation::OK;
+                appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                if (résultat == RésultatInterprétation::ERREUR) {
+                    return résultat;
+                }
                 break;
             }
             case OP_APPEL_COMPILATRICE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
-                auto resultat = RésultatInterprétation::OK;
-                appel_fonction_compilatrice(ptr_fonction, resultat);
+                auto résultat = RésultatInterprétation::OK;
+                appel_fonction_compilatrice(ptr_fonction, résultat);
 
-                if (resultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
-                    return resultat;
+                    return résultat;
                 }
 
                 break;
@@ -1559,17 +1560,22 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-                    auto resultat = RésultatInterprétation::OK;
-                    appel_fonction_compilatrice(ptr_fonction, resultat);
+                    auto résultat = RésultatInterprétation::OK;
+                    appel_fonction_compilatrice(ptr_fonction, résultat);
 
-                    if (resultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                    if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
                         compte_exécutées = i + 1;
-                        return resultat;
+                        return résultat;
                     }
                 }
                 else if (ptr_fonction->est_externe) {
-                    appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel);
+                    auto résultat = RésultatInterprétation::OK;
+                    appel_fonction_externe(
+                        ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                    if (résultat == RésultatInterprétation::ERREUR) {
+                        return résultat;
+                    }
                 }
                 else {
                     if (!appel_fonction_interne(ptr_fonction, taille_argument, frame)) {
@@ -1754,13 +1760,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
                 auto taille_arguments = LIS_4_OCTETS();
                 auto pointeur_arguments = pointeur_pile - taille_arguments;
-                auto type_fonction = ptr_fonction->type->comme_type_fonction();
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_entrees(pointeur_arguments,
-                                        type_fonction,
-                                        ptr_fonction->nom,
-                                        profondeur_appel,
-                                        logueuse);
+                imprime_valeurs_entrees(
+                    pointeur_arguments, ptr_fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_SORTIES:
@@ -1769,11 +1771,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
                 auto pointeur_debut_retour = pointeur_pile - taille_retour;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
-                imprime_valeurs_sorties(pointeur_debut_retour,
-                                        type_fonction,
-                                        frame->fonction->nom,
-                                        profondeur_appel,
-                                        logueuse);
+                imprime_valeurs_sorties(
+                    pointeur_debut_retour, frame->fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_RETOUR:
