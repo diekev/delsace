@@ -1122,7 +1122,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_INCRÉMENTE_VARIABLE:
+            case OP_INCRÉMENTE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
                 auto index = LIS_4_OCTETS();
@@ -1606,7 +1606,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
-            case OP_ASSIGNE_VARIABLE:
+            case OP_ASSIGNE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
@@ -1618,7 +1618,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
-            case OP_COPIE_VARIABLE:
+            case OP_COPIE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
                 auto index_source = LIS_4_OCTETS();
@@ -1655,7 +1655,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 this->pointeur_pile += taille;
                 break;
             }
-            case OP_CHARGE_VARIABLE:
+            case OP_CHARGE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
@@ -1667,7 +1667,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 this->pointeur_pile += taille;
                 break;
             }
-            case OP_REFERENCE_VARIABLE:
+            case OP_RÉFÉRENCE_LOCALE:
             {
                 auto index = LIS_4_OCTETS();
                 empile(donne_adresse_locale(frame, index));

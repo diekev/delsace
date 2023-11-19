@@ -217,7 +217,7 @@ void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
     émets(type->taille_octet);
 }
 
-void Chunk::émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type)
+void Chunk::émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type)
 {
 #if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
@@ -233,17 +233,17 @@ void Chunk::émets_assignation_variable(NoeudExpression const *site, int pointeu
     });
 #endif
 
-    émets_entête_op(OP_ASSIGNE_VARIABLE, site);
+    émets_entête_op(OP_ASSIGNE_LOCALE, site);
     émets(pointeur);
     émets(type->taille_octet);
 }
 
-void Chunk::émets_copie_variable(NoeudExpression const *site,
-                                 Type const *type,
-                                 int pointeur_source,
-                                 int pointeur_destination)
+void Chunk::émets_copie_locale(NoeudExpression const *site,
+                               Type const *type,
+                               int pointeur_source,
+                               int pointeur_destination)
 {
-    émets_entête_op(OP_COPIE_VARIABLE, site);
+    émets_entête_op(OP_COPIE_LOCALE, site);
     émets(type->taille_octet);
     émets(pointeur_source);
     émets(pointeur_destination);
@@ -262,10 +262,10 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool aj
     émets(type->taille_octet);
 }
 
-void Chunk::émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type)
+void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type)
 {
     assert(type->taille_octet);
-    émets_entête_op(OP_CHARGE_VARIABLE, site);
+    émets_entête_op(OP_CHARGE_LOCALE, site);
     émets(pointeur);
     émets(type->taille_octet);
 }
@@ -276,9 +276,9 @@ void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur
     émets(pointeur);
 }
 
-void Chunk::émets_référence_variable(NoeudExpression const *site, int pointeur)
+void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
 {
-    émets_entête_op(OP_REFERENCE_VARIABLE, site);
+    émets_entête_op(OP_RÉFÉRENCE_LOCALE, site);
     émets(pointeur);
 }
 
@@ -517,13 +517,13 @@ void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
     émets(taille_octet);
 }
 
-void Chunk::émets_incrémente_variable(const NoeudExpression *site, const Type *type, int pointeur)
+void Chunk::émets_incrémente_locale(const NoeudExpression *site, const Type *type, int pointeur)
 {
     auto taille_octet = type->taille_octet;
     if (type->est_type_entier_constant()) {
         taille_octet = 4;
     }
-    émets_entête_op(OP_INCRÉMENTE_VARIABLE, site);
+    émets_entête_op(OP_INCRÉMENTE_LOCALE, site);
     émets(taille_octet);
     émets(pointeur);
 }
@@ -740,7 +740,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_ASSIGNE:
         case OP_CHARGE:
         case OP_REFERENCE_GLOBALE:
-        case OP_REFERENCE_VARIABLE:
+        case OP_RÉFÉRENCE_LOCALE:
         case OP_REFERENCE_MEMBRE:
         case OP_ACCEDE_INDEX:
         case OP_APPEL_POINTEUR:
@@ -763,10 +763,10 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
             return décalage + 1;
         }
-        case OP_ASSIGNE_VARIABLE:
-        case OP_CHARGE_VARIABLE:
+        case OP_ASSIGNE_LOCALE:
+        case OP_CHARGE_LOCALE:
         case OP_BRANCHE_CONDITION:
-        case OP_INCRÉMENTE_VARIABLE:
+        case OP_INCRÉMENTE_LOCALE:
         case OP_RÉFÉRENCE_MEMBRE_LOCALE:
         {
             return instruction_2d<int, int>(
@@ -785,7 +785,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_3d<void *, int, void *>(
                 chunk, chaine_code_operation(instruction), décalage, os);
         }
-        case OP_COPIE_VARIABLE:
+        case OP_COPIE_LOCALE:
         {
             return instruction_3d<int, int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
@@ -1186,7 +1186,7 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
         {
             auto alloc = instruction->comme_alloc();
             assert(pour_operande);
-            chunk.émets_référence_variable(alloc->site, alloc->index_locale);
+            chunk.émets_référence_locale(alloc->site, alloc->index_locale);
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
@@ -1195,7 +1195,7 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
 
             if (est_allocation(charge->chargee)) {
                 auto alloc = charge->chargee->comme_instruction()->comme_alloc();
-                chunk.émets_charge_variable(charge->site, alloc->index_locale, charge->type);
+                chunk.émets_charge_locale(charge->site, alloc->index_locale, charge->type);
                 break;
             }
 
@@ -1209,17 +1209,17 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
 
             if (est_stocke_alloc_incrémente(stocke)) {
                 auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
-                chunk.émets_incrémente_variable(
+                chunk.émets_incrémente_locale(
                     stocke->site, stocke->valeur->type, alloc_destination->index_locale);
                 break;
             }
 
             if (auto alloc_source = est_stocke_alloc_depuis_charge_alloc(stocke)) {
                 auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
-                chunk.émets_copie_variable(stocke->site,
-                                           stocke->valeur->type,
-                                           alloc_source->index_locale,
-                                           alloc_destination->index_locale);
+                chunk.émets_copie_locale(stocke->site,
+                                         stocke->valeur->type,
+                                         alloc_source->index_locale,
+                                         alloc_destination->index_locale);
                 break;
             }
 
@@ -1227,7 +1227,7 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
 
             if (est_allocation(stocke->ou)) {
                 auto alloc = stocke->ou->comme_instruction()->comme_alloc();
-                chunk.émets_assignation_variable(
+                chunk.émets_assignation_locale(
                     stocke->site, alloc->index_locale, stocke->valeur->type);
                 break;
             }

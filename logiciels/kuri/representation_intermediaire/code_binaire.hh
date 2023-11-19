@@ -51,7 +51,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
-    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_VARIABLE)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
@@ -59,8 +59,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_INTRINSÈQUE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
-    ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_VARIABLE)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_COPIE_VARIABLE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_LOCALE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
@@ -68,7 +68,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_CHAINE_CONSTANTE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
-    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_VARIABLE)                                                 \
+    ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL_REEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL)                                                     \
@@ -106,7 +106,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_MEMBRE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_MEMBRE_LOCALE)                                         \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_VARIABLE)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_LOCALE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_NATUREL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RETOURNE)                                                        \
@@ -294,15 +294,15 @@ struct Chunk {
                            NoeudExpression const *site,
                            Type const *type,
                            bool ajoute_vérification);
-    void émets_assignation_variable(NoeudExpression const *site, int pointeur, Type const *type);
-    void émets_copie_variable(const NoeudExpression *site,
-                              const Type *type,
-                              int pointeur_source,
-                              int pointeur_destination);
+    void émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_copie_locale(const NoeudExpression *site,
+                            const Type *type,
+                            int pointeur_source,
+                            int pointeur_destination);
     void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_vérification);
-    void émets_charge_variable(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
-    void émets_référence_variable(NoeudExpression const *site, int pointeur);
+    void émets_référence_locale(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
     void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
@@ -342,7 +342,7 @@ struct Chunk {
                                  Type const *type_droite);
 
     void émets_incrémente(NoeudExpression const *site, Type const *type);
-    void émets_incrémente_variable(const NoeudExpression *site, const Type *type, int pointeur);
+    void émets_incrémente_locale(const NoeudExpression *site, const Type *type, int pointeur);
     void émets_décrémente(NoeudExpression const *site, Type const *type);
 
     void émets_transtype(NoeudExpression const *site,
