@@ -201,6 +201,7 @@ struct Statistiques {
     int64_t nombre_metaprogrammes_executes = 0l;
     int64_t memoire_compilatrice = 0l;
     int64_t memoire_ri = 0l;
+    int64_t mémoire_code_binaire = 0l;
     int64_t memoire_mv = 0l;
     int64_t memoire_bibliotheques = 0l;
     int64_t instructions_executees = 0l;
