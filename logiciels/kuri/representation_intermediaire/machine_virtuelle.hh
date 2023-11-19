@@ -19,7 +19,7 @@ struct Statistiques;
 
 struct FrameAppel {
     AtomeFonction *fonction = nullptr;
-    NoeudExpression *site = nullptr;
+    NoeudExpression const *site = nullptr;
     octet_t *pointeur = nullptr;
     octet_t *pointeur_pile = nullptr;
 };
@@ -75,11 +75,6 @@ struct DonneesExecution {
     DétectriceFuiteDeMémoire détectrice_fuite_de_mémoire{};
 
     int compte_instructions[NOMBRE_OP_CODE] = {};
-
-    /* Ces sites sont utilisés pour déterminer où se trouve le dernier site valide
-     * au cas où le pointeur est désynchronisé et une instruction est invalide. */
-    NoeudExpression *site = nullptr;
-    NoeudExpression *dernier_site = nullptr;
 
     void réinitialise();
 
@@ -192,16 +187,13 @@ struct MachineVirtuelle {
 
   private:
     template <typename T>
-    inline void empile(NoeudExpression *site, T valeur)
+    inline void empile(T valeur)
     {
         *reinterpret_cast<T *>(this->pointeur_pile) = valeur;
 #ifndef NDEBUG
         if (pointeur_pile > (pile + TAILLE_PILE)) {
-            rapporte_erreur_execution(site,
-                                      "Erreur interne : surrentamponnage de la pile de données");
+            rapporte_erreur_execution("Erreur interne : surrentamponnage de la pile de données");
         }
-#else
-        static_cast<void>(site);
 #endif
         this->pointeur_pile += static_cast<int64_t>(sizeof(T));
         // std::cerr << "Empile " << sizeof(T) << " octet(s), décalage : " <<
@@ -209,40 +201,34 @@ struct MachineVirtuelle {
     }
 
     template <typename T>
-    inline T depile(NoeudExpression *site)
+    inline T depile()
     {
         this->pointeur_pile -= static_cast<int64_t>(sizeof(T));
         // std::cerr << "Dépile " << sizeof(T) << " octet(s), décalage : " <<
         // static_cast<int>(pointeur_pile - pile) << '\n';
 #ifndef NDEBUG
         if (pointeur_pile < pile) {
-            rapporte_erreur_execution(site,
-                                      "Erreur interne : sousentamponnage de la pile de données");
+            rapporte_erreur_execution("Erreur interne : sousentamponnage de la pile de données");
         }
-#else
-        static_cast<void>(site);
 #endif
         return *reinterpret_cast<T *>(this->pointeur_pile);
     }
 
-    void depile(NoeudExpression *site, int64_t n);
+    void depile(int64_t n);
 
-    bool appel(AtomeFonction *fonction, NoeudExpression *site);
+    bool appel(AtomeFonction *fonction, NoeudExpression const *site);
 
     bool appel_fonction_interne(AtomeFonction *ptr_fonction,
                                 int taille_argument,
-                                FrameAppel *&frame,
-                                NoeudExpression *site);
+                                FrameAppel *&frame);
     void appel_fonction_externe(AtomeFonction *ptr_fonction,
                                 int taille_argument,
-                                InstructionAppel *inst_appel,
-                                NoeudExpression *site);
+                                InstructionAppel *inst_appel);
     void appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                     NoeudExpression *site,
                                      ResultatInterpretation &resultat);
-    void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction, NoeudExpression *site);
+    void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction);
 
-    inline void empile_constante(NoeudExpression *site, FrameAppel *frame);
+    inline void empile_constante(FrameAppel *frame);
 
     void installe_metaprogramme(MetaProgramme *metaprogramme);
 
@@ -250,20 +236,21 @@ struct MachineVirtuelle {
 
     ResultatInterpretation execute_instructions(int &compte_executees);
 
-    void imprime_trace_appel(NoeudExpression *site);
+    void imprime_trace_appel(NoeudExpression const *site);
 
-    void rapporte_erreur_execution(NoeudExpression *site, kuri::chaine_statique message);
+    void rapporte_erreur_execution(kuri::chaine_statique message);
 
     bool adresse_est_assignable(const void *adresse);
 
-    ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction, NoeudExpression *site);
+    ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction);
 
-    bool adressage_est_possible(NoeudExpression *site,
-                                const void *adresse_ou,
+    bool adressage_est_possible(const void *adresse_ou,
                                 const void *adresse_de,
                                 const int64_t taille,
                                 bool assignation);
     void ajoute_trace_appel(Erreur &e);
 
     kuri::tableau<FrameAppel> donne_tableau_frame_appel() const;
+
+    NoeudExpression const *donne_site_adresse_courante() const;
 };
