@@ -1044,19 +1044,14 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         auto initialisateur = atome->initialisateur->comme_constante_structure();
         auto membres = initialisateur->donne_atomes_membres();
 
-        if (est_structure_info_type_défaut(it->genre)) {
-            /* Accède directement au membre. */
-            auto atome_index_dans_table_types = membres[2]->comme_constante_entière();
-            atome_index_dans_table_types->valeur = it->index_dans_table_types;
-        }
-        else {
+        if (!est_structure_info_type_défaut(it->genre)) {
             /* Accède info.base */
             auto atome_base = membres[0]->comme_constante_structure();
-            /* Accède base.index_dans_table_types */
-            auto atome_index_dans_table_types =
-                atome_base->donne_atomes_membres()[2]->comme_constante_entière();
-            atome_index_dans_table_types->valeur = it->index_dans_table_types;
+            membres = atome_base->donne_atomes_membres();
         }
+
+        auto atome_index_dans_table_types = membres[2]->comme_constante_entière();
+        atome_index_dans_table_types->valeur = it->index_dans_table_types;
     }
 
     if (!atome_table_des_types) {
