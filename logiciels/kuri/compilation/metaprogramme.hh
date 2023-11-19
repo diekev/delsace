@@ -7,7 +7,7 @@
 
 #include "structures/ensemble.hh"
 
-struct DonneesExecution;
+struct DonnéesExécution;
 struct Fichier;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
@@ -43,7 +43,7 @@ struct PatchDonnéesConstantes {
 
 std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch);
 
-struct DonneesConstantesExecutions {
+struct DonnéesConstantesExécutions {
     kuri::tableau<Globale, int> globales{};
     kuri::tableau<unsigned char, int> données_globales{};
     kuri::tableau<unsigned char, int> données_constantes{};
@@ -99,7 +99,7 @@ struct MetaProgramme {
 
     RésultatExécution resultat{};
 
-    DonneesExecution *donnees_execution = nullptr;
+    DonnéesExécution *données_exécution = nullptr;
 
     Programme *programme = nullptr;
 

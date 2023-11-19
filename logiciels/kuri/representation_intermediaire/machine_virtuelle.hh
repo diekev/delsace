@@ -64,13 +64,13 @@ void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
 
 /** \} */
 
-struct DonneesExecution {
+struct DonnéesExécution {
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
 
     FrameAppel frames[TAILLE_FRAMES_APPEL];
     int profondeur_appel = 0;
-    int64_t instructions_executees = 0;
+    int64_t instructions_exécutées = 0;
 
     DétectriceFuiteDeMémoire détectrice_fuite_de_mémoire{};
 
@@ -88,7 +88,7 @@ struct EchantillonProfilage {
 };
 
 struct InformationProfilage {
-    MetaProgramme *metaprogramme = nullptr;
+    MetaProgramme *métaprogramme = nullptr;
     kuri::tableau<EchantillonProfilage> echantillons{};
 };
 
@@ -100,11 +100,11 @@ struct PaireEnchantillonFonction {
 enum class FormatRapportProfilage : int;
 
 struct Profileuse {
-    kuri::tableau<InformationProfilage> informations_pour_metaprogrammes{};
+    kuri::tableau<InformationProfilage> informations_pour_métaprogrammes{};
 
-    InformationProfilage &informations_pour(MetaProgramme *metaprogramme);
+    InformationProfilage &informations_pour(MetaProgramme *métaprogramme);
 
-    void ajoute_echantillon(MetaProgramme *metaprogramme, int poids);
+    void ajoute_echantillon(MetaProgramme *métaprogramme, int poids);
 
     void crée_rapports(FormatRapportProfilage format);
 
@@ -112,11 +112,11 @@ struct Profileuse {
 };
 
 struct MachineVirtuelle {
-    enum class ResultatInterpretation : int {
+    enum class RésultatInterprétation : int {
         OK,
         ERREUR,
-        COMPILATION_ARRETEE,
-        TERMINE,
+        COMPILATION_ARRÊTÉE,
+        TERMINÉ,
         PASSE_AU_SUIVANT,
     };
 
@@ -125,35 +125,35 @@ struct MachineVirtuelle {
   private:
     Compilatrice &compilatrice;
 
-    tableau_page<DonneesExecution> donnees_execution{};
+    tableau_page<DonnéesExécution> données_exécution{};
     /* Ramasse-miettes pour les données d'exécutions des métaprogrammes exécutés. */
-    kuri::tableau<DonneesExecution *> m_données_exécution_libres{};
+    kuri::tableau<DonnéesExécution *> m_données_exécution_libres{};
 
-    DonneesConstantesExecutions *donnees_constantes = nullptr;
+    DonnéesConstantesExécutions *données_constantes = nullptr;
 
-    kuri::tableau<MetaProgramme *, int> m_metaprogrammes{};
-    kuri::tableau<MetaProgramme *, int> m_metaprogrammes_termines{};
+    kuri::tableau<MetaProgramme *, int> m_métaprogrammes{};
+    kuri::tableau<MetaProgramme *, int> m_métaprogrammes_terminés{};
 
-    bool m_metaprogrammes_termines_lu = false;
+    bool m_métaprogrammes_terminés_lu = false;
 
     /* données pour l'exécution de chaque métaprogramme */
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
 
-    unsigned char *ptr_donnees_constantes = nullptr;
-    unsigned char *ptr_donnees_globales = nullptr;
+    unsigned char *ptr_données_constantes = nullptr;
+    unsigned char *ptr_données_globales = nullptr;
 
     Intervalle<void *> intervalle_adresses_globales{};
-    Intervalle<void *> intervalle_adresses_pile_execution{};
+    Intervalle<void *> intervalle_adresses_pile_exécution{};
 
     FrameAppel *frames = nullptr;
     int profondeur_appel = 0;
 
-    int nombre_de_metaprogrammes_executes = 0;
-    double temps_execution_metaprogammes = 0;
-    int64_t instructions_executees = 0;
+    int nombre_de_métaprogrammes_exécutés = 0;
+    double temps_exécution_métaprogammes = 0;
+    int64_t instructions_exécutées = 0;
 
-    MetaProgramme *m_metaprogramme = nullptr;
+    MetaProgramme *m_métaprogramme = nullptr;
 
     Profileuse profileuse{};
 
@@ -165,22 +165,22 @@ struct MachineVirtuelle {
 
     EMPECHE_COPIE(MachineVirtuelle);
 
-    void ajoute_metaprogramme(MetaProgramme *metaprogramme);
+    void ajoute_métaprogramme(MetaProgramme *métaprogramme);
 
-    void execute_metaprogrammes_courants();
+    void exécute_métaprogrammes_courants();
 
-    kuri::tableau<MetaProgramme *, int> const &metaprogrammes_termines()
+    kuri::tableau<MetaProgramme *, int> const &métaprogrammes_terminés()
     {
-        m_metaprogrammes_termines_lu = true;
-        return m_metaprogrammes_termines;
+        m_métaprogrammes_terminés_lu = true;
+        return m_métaprogrammes_terminés;
     }
 
-    DonneesExecution *loge_donnees_execution();
-    void deloge_donnees_execution(DonneesExecution *&donnees);
+    DonnéesExécution *loge_données_exécution();
+    void déloge_données_exécution(DonnéesExécution *&donnees);
 
     bool terminee() const
     {
-        return m_metaprogrammes.est_vide();
+        return m_métaprogrammes.est_vide();
     }
 
     void rassemble_statistiques(Statistiques &stats);
@@ -194,7 +194,7 @@ struct MachineVirtuelle {
     }
 
     template <typename T>
-    inline T depile()
+    inline T dépile()
     {
         décrémente_pointeur_de_pile(static_cast<int64_t>(sizeof(T)));
         return *reinterpret_cast<T *>(this->pointeur_pile);
@@ -212,24 +212,24 @@ struct MachineVirtuelle {
                                 int taille_argument,
                                 InstructionAppel *inst_appel);
     void appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
-                                     ResultatInterpretation &resultat);
+                                     RésultatInterprétation &resultat);
     void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction);
 
     inline void empile_constante(FrameAppel *frame);
 
-    void installe_metaprogramme(MetaProgramme *metaprogramme);
+    void installe_métaprogramme(MetaProgramme *métaprogramme);
 
-    void desinstalle_metaprogramme(MetaProgramme *metaprogramme, int compte_executees);
+    void désinstalle_métaprogramme(MetaProgramme *métaprogramme, int compte_exécutées);
 
-    ResultatInterpretation execute_instructions(int &compte_executees);
+    RésultatInterprétation exécute_instructions(int &compte_exécutées);
 
     void imprime_trace_appel(NoeudExpression const *site);
 
-    void rapporte_erreur_execution(kuri::chaine_statique message);
+    void rapporte_erreur_exécution(kuri::chaine_statique message);
 
     bool adresse_est_assignable(const void *adresse);
 
-    ResultatInterpretation verifie_cible_appel(AtomeFonction *ptr_fonction);
+    RésultatInterprétation vérifie_cible_appel(AtomeFonction *ptr_fonction);
 
     bool adressage_est_possible(const void *adresse_ou,
                                 const void *adresse_de,
