@@ -224,7 +224,19 @@ struct Chunk {
 
     kuri::tableau<Locale, int> locales{};
 
+  private:
+    struct SiteSource {
+        /* Le décalage dans les instructions où se trouve le site. */
+        int décalage = 0;
+        NoeudExpression const *site = nullptr;
+    };
+
+    kuri::tableau<SiteSource, int> m_sites_source{};
+
+  public:
     ~Chunk();
+
+    NoeudExpression const *donne_site_pour_adresse(octet_t *adresse) const;
 
     void initialise();
 
@@ -253,6 +265,8 @@ struct Chunk {
     void émets_logue_entrées(AtomeFonction const *atome, unsigned taille_arguments);
     void émets_logue_sorties();
     void émets_logue_retour();
+
+    void ajoute_site_source(NoeudExpression const *site);
 
   public:
     void ajoute_locale(InstructionAllocation *alloc);

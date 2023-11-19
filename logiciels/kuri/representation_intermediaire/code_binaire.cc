@@ -41,11 +41,52 @@ Chunk::~Chunk()
     détruit();
 }
 
+NoeudExpression const *Chunk::donne_site_pour_adresse(octet_t *adresse) const
+{
+    assert(adresse >= code && adresse < (code + compte));
+
+    if (m_sites_source.est_vide()) {
+        return nullptr;
+    }
+
+    auto décalage = static_cast<int>(adresse - code);
+    if (décalage < 0 || décalage >= compte) {
+        return nullptr;
+    }
+
+    for (int i = 0; i < m_sites_source.taille() - 1; i++) {
+        if (décalage >= m_sites_source[i].décalage && décalage < m_sites_source[i + 1].décalage) {
+            return m_sites_source[i].site;
+        }
+    }
+
+    return m_sites_source.dernière().site;
+}
+
+void Chunk::ajoute_site_source(NoeudExpression const *site)
+{
+    if (!site) {
+        return;
+    }
+
+    if (m_sites_source.est_vide()) {
+        m_sites_source.ajoute({static_cast<int>(compte), site});
+        return;
+    }
+
+    if (m_sites_source.dernière().site == site) {
+        return;
+    }
+
+    m_sites_source.ajoute({static_cast<int>(compte), site});
+}
+
 void Chunk::initialise()
 {
     code = nullptr;
     compte = 0;
     capacité = 0;
+    m_sites_source.efface();
 }
 
 void Chunk::détruit()
@@ -59,6 +100,7 @@ int64_t Chunk::mémoire_utilisée() const
     int64_t résultat = 0;
     résultat += capacité;
     résultat += locales.taille_memoire();
+    résultat += m_sites_source.taille_memoire();
     return résultat;
 }
 
@@ -80,13 +122,13 @@ void Chunk::agrandis_si_nécessaire(int64_t taille)
 
 void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 {
+    ajoute_site_source(site);
+
 #if 0
     émets(OP_STAT_INSTRUCTION);
-    émets(site);
 #endif
 
     émets(op);
-    émets(site);
 }
 
 void Chunk::émets_logue_instruction(int32_t décalage)
@@ -554,8 +596,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, std::ost
     os << std::setfill('0') << std::setw(4) << décalage << ' ';
 
     auto instruction = chunk.code[décalage];
-    /* ignore le site */
-    décalage += 8;
 
     switch (instruction) {
         case OP_LOGUE_RETOUR:
