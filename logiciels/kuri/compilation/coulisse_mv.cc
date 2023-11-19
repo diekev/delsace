@@ -48,7 +48,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
     auto convertisseuse_ri = ConvertisseuseRI(&espace, métaprogramme);
-    return convertisseuse_ri.genere_code(repr_inter.fonctions);
+    return convertisseuse_ri.génère_code(repr_inter.fonctions);
 }
 
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
