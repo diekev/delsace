@@ -1693,6 +1693,15 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 // std::cerr << "adresse_de : " << static_cast<void *>(adresse_de) << '\n';
                 break;
             }
+            case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+            {
+                auto pointeur = LIS_4_OCTETS();
+                auto décalage = LIS_4_OCTETS();
+                auto adresse_base = donne_adresse_locale(frame, pointeur);
+                auto adresse_membre = static_cast<char *>(adresse_base) + décalage;
+                empile(adresse_membre);
+                break;
+            }
             case OP_ACCEDE_INDEX:
             {
                 auto taille_données = LIS_4_OCTETS();

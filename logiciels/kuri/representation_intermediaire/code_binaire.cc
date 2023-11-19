@@ -288,6 +288,13 @@ void Chunk::émets_référence_membre(NoeudExpression const *site, unsigned déc
     émets(décalage);
 }
 
+void Chunk::émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage)
+{
+    émets_entête_op(OP_RÉFÉRENCE_MEMBRE_LOCALE, site);
+    émets(pointeur);
+    émets(décalage);
+}
+
 void Chunk::émets_appel(NoeudExpression const *site,
                         AtomeFonction const *fonction,
                         unsigned taille_arguments,
@@ -760,6 +767,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_CHARGE_VARIABLE:
         case OP_BRANCHE_CONDITION:
         case OP_INCRÉMENTE_VARIABLE:
+        case OP_RÉFÉRENCE_MEMBRE_LOCALE:
         {
             return instruction_2d<int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
@@ -1352,6 +1360,13 @@ void ConvertisseuseRI::génère_code_pour_instruction(Instruction const *instruc
             }
 
             auto décalage = type_compose->membres[index_membre].decalage;
+
+            if (est_allocation(membre->accede)) {
+                auto alloc = membre->accede->comme_instruction()->comme_alloc();
+                chunk.émets_référence_membre_locale(membre->site, alloc->index_locale, décalage);
+                break;
+            }
+
             génère_code_pour_atome(membre->accede, chunk);
             chunk.émets_référence_membre(membre->site, décalage);
 

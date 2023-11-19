@@ -105,6 +105,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_OU_EXCLUSIF)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_MEMBRE)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_MEMBRE_LOCALE)                                         \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_VARIABLE)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_NATUREL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
@@ -303,6 +304,7 @@ struct Chunk {
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_variable(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
+    void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments,
