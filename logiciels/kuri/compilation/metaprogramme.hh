@@ -87,6 +87,8 @@ enum class TypeLogMétaprogramme : uint32_t {
     APPEL,
     /* Le nombre de fois que chaque instruction fut exécutée. */
     STAT_INSTRUCTION,
+    /* Les informations de profilage du métaprogramme. */
+    PROFILAGE,
 
     NOMBRE_DE_LOGS,
 };

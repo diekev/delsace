@@ -3,7 +3,6 @@
 
 #include "machine_virtuelle.hh"
 
-#include <fstream>
 #include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
@@ -2082,7 +2081,7 @@ void Profileuse::crée_rapports(FormatRapportProfilage format)
     }
 }
 
-static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os)
+static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
 {
     if (fonction->decl) {
         os << nom_humainement_lisible(fonction->decl);
@@ -2093,7 +2092,7 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, std::ostream &os
 }
 
 static void crée_rapport_format_echantillons_total_plus_fonction(
-    const InformationProfilage &informations, std::ostream &os)
+    const InformationProfilage &informations, Enchaineuse &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
@@ -2128,7 +2127,7 @@ static void crée_rapport_format_echantillons_total_plus_fonction(
 }
 
 static void crée_rapport_format_brendan_gregg(const InformationProfilage &informations,
-                                              std::ostream &os)
+                                              Enchaineuse &os)
 {
     POUR (informations.echantillons) {
         if (it.profondeur_frame_appel == 0) {
@@ -2151,20 +2150,17 @@ static void crée_rapport_format_brendan_gregg(const InformationProfilage &infor
 void Profileuse::crée_rapport(const InformationProfilage &informations,
                               FormatRapportProfilage format)
 {
-    auto nom_base_fichier = enchaine("métaprogramme", informations.métaprogramme, ".txt");
-    auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_base_fichier);
-
-    std::ofstream os(vers_std_path(chemin_fichier));
+    auto &logueuse = informations.métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
 
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
         {
-            crée_rapport_format_echantillons_total_plus_fonction(informations, os);
+            crée_rapport_format_echantillons_total_plus_fonction(informations, logueuse);
             break;
         }
         case FormatRapportProfilage::BRENDAN_GREGG:
         {
-            crée_rapport_format_brendan_gregg(informations, os);
+            crée_rapport_format_brendan_gregg(informations, logueuse);
             break;
         }
     }
