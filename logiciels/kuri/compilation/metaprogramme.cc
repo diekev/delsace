@@ -119,7 +119,6 @@ void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
         return;
     }
     auto &logueuse = logueuses[index_logueuse];
-    auto texte = logueuse->chaine();
 
     auto nom_fichier = enchaine(
         "métaprogramme", this, "_", donne_suffixe_pour_type_log(type_log), ".txt");
