@@ -219,6 +219,8 @@ struct Chunk {
     int64_t compte = 0;
     int64_t capacité = 0;
 
+    bool émets_stats_ops = false;
+
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
     int taille_allouée = 0;
@@ -389,6 +391,7 @@ class ConvertisseuseRI {
     kuri::tableau<PatchLabel> patchs_labels{};
 
     bool vérifie_adresses = false;
+    bool émets_stats_ops = false;
 
   public:
     ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);

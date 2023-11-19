@@ -1939,9 +1939,9 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             nombre_métaprogrammes -= 1;
             i -= 1;
 
-#ifdef STATS_OP_CODES
-            métaprogramme->données_exécution->imprime_stats_instructions(std::cerr);
-#endif
+            if (compilatrice.arguments.émets_stats_ops_exécution) {
+                métaprogramme->données_exécution->imprime_stats_instructions(std::cerr);
+            }
         }
 
         désinstalle_métaprogramme(métaprogramme, compte_exécutées);

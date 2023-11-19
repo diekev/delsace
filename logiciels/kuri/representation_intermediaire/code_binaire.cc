@@ -124,9 +124,9 @@ void Chunk::émets_entête_op(octet_t op, const NoeudExpression *site)
 {
     ajoute_site_source(site);
 
-#if 0
-    émets(OP_STAT_INSTRUCTION);
-#endif
+    if (émets_stats_ops) {
+        émets(OP_STAT_INSTRUCTION);
+    }
 
     émets(op);
 }
@@ -980,6 +980,7 @@ ConvertisseuseRI::ConvertisseuseRI(EspaceDeTravail *espace_, MetaProgramme *meta
       métaprogramme(metaprogramme_)
 {
     vérifie_adresses = espace->compilatrice().arguments.debogue_execution;
+    émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
 bool ConvertisseuseRI::génère_code(const kuri::tableau<AtomeFonction *> &fonctions)
@@ -1079,6 +1080,7 @@ bool ConvertisseuseRI::génère_code_pour_fonction(AtomeFonction const *fonction
     }
 
     auto &chunk = données_exécution->chunk;
+    chunk.émets_stats_ops = émets_stats_ops;
 
     POUR (fonction->params_entrees) {
         chunk.ajoute_locale(it);
