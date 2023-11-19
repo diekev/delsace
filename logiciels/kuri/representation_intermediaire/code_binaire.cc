@@ -1756,7 +1756,7 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 
             if (type->est_type_chaine()) {
                 if (tableau_valeur[0]->est_constante_nulle()) {
-                    // valeur nulle pour les chaines initilisées à zéro
+                    /* Valeur nulle pour les chaines initilisées à zéro. */
                     chunk.émets_chaine_constante(/* site */ nullptr, nullptr, 0);
                 }
                 else {
@@ -1767,10 +1767,6 @@ void ConvertisseuseRI::genere_code_binaire_pour_atome(Atome *atome,
 
                     chunk.émets_chaine_constante(
                         /* site */ nullptr, const_cast<char *>(données.begin()), données.taille());
-
-                    // reférence globale, tableau
-                    // accède index
-                    // --> pointeur de la chaine
                 }
 
                 return;
