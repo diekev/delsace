@@ -511,7 +511,7 @@ void MachineVirtuelle::depile(NoeudExpression *site, int64_t n)
 #endif
 }
 
-bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression *site)
+bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *site)
 {
     auto frame = &frames[profondeur_appel++];
     frame->fonction = fonction;

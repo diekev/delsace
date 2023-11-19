@@ -19,7 +19,7 @@ struct Statistiques;
 
 struct FrameAppel {
     AtomeFonction *fonction = nullptr;
-    NoeudExpression *site = nullptr;
+    NoeudExpression const *site = nullptr;
     octet_t *pointeur = nullptr;
     octet_t *pointeur_pile = nullptr;
 };
@@ -227,7 +227,7 @@ struct MachineVirtuelle {
 
     void depile(NoeudExpression *site, int64_t n);
 
-    bool appel(AtomeFonction *fonction, NoeudExpression *site);
+    bool appel(AtomeFonction *fonction, NoeudExpression const *site);
 
     bool appel_fonction_interne(AtomeFonction *ptr_fonction,
                                 int taille_argument,
