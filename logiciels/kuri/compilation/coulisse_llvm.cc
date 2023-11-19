@@ -633,216 +633,169 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
             auto atome_fonc = atome->comme_fonction();
             return m_module->getFunction(vers_std_string(atome_fonc->nom));
         }
-        case Atome::Genre::CONSTANTE:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            auto atome_const = static_cast<AtomeConstante const *>(atome);
-            auto type_llvm = converti_type_llvm(atome_const->type);
+            auto transtype_const = atome->comme_transtype_constant();
+            auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
+            auto valeur_ = llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
+                                                          converti_type_llvm(atome->type));
+            // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
+            return valeur_;
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            auto acces = atome->comme_accès_index_constant();
+            auto index = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                uint64_t(acces->index));
+            assert(index);
+            auto accede = genere_code_pour_atome(acces->accede, pour_globale);
+            assert(accede);
 
-            switch (atome_const->genre) {
-                case AtomeConstante::Genre::GLOBALE:
-                {
-                    auto valeur_globale = atome->comme_globale();
+            if (acces->accede->est_globale()) {
+                auto globale = acces->accede->comme_globale();
 
-                    if (valeur_globale->ident) {
-                        auto valeur_ = table_globales.valeur_ou(valeur_globale, nullptr);
-                        // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
-                        return valeur_;
-                    }
+                auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
+                assert(init);
+                auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
 
-                    auto valeur_ = table_valeurs.valeur_ou(valeur_globale, nullptr);
-                    // dbg() << "CONSTANTE GLOBALE: " << *valeur_;
-                    return valeur_;
-                }
-                case AtomeConstante::Genre::FONCTION:
-                {
-                    auto fonction = atome_const->comme_fonction();
-                    return m_module->getFunction(vers_std_string(fonction->nom));
-                }
-                case AtomeConstante::Genre::TRANSTYPE_CONSTANT:
-                {
-                    auto transtype_const = static_cast<TranstypeConstant const *>(atome_const);
-                    auto valeur = genere_code_pour_atome(transtype_const->valeur, pour_globale);
-                    auto valeur_ = llvm::ConstantExpr::getBitCast(
-                        llvm::cast<llvm::Constant>(valeur), type_llvm);
-                    // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
-                    return valeur_;
-                }
-                case AtomeConstante::Genre::ACCES_INDEX_CONSTANT:
-                {
-                    auto acces = static_cast<AccedeIndexConstant const *>(atome_const);
-                    auto index = genere_code_pour_atome(acces->index, pour_globale);
-                    assert(index);
-                    auto accede = genere_code_pour_atome(acces->accede, pour_globale);
-                    assert(accede);
+                accede = globale_llvm;
 
-                    if (acces->accede->est_globale()) {
-                        auto globale = acces->accede->comme_globale();
-
-                        auto init = genere_code_pour_atome(globale->initialisateur, pour_globale);
-                        assert(init);
-                        auto globale_llvm = table_globales.valeur_ou(globale, nullptr);
-
-                        accede = globale_llvm;
-
-                        globale_llvm->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-                        globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
-                    }
-
-                    auto index_array = std::vector<llvm::Value *>();
-                    auto type_accede = acces->accede->type;
-                    if (type_accede->comme_type_pointeur()->type_pointe->est_type_pointeur()) {
-                        index_array.resize(1);
-                        index_array[0] = index;
-                    }
-                    else {
-                        index_array.resize(2);
-                        index_array[0] = llvm::ConstantInt::get(
-                            llvm::Type::getInt32Ty(m_contexte_llvm), 0);
-                        index_array[1] = index;
-                    }
-
-                    assert(type_llvm);
-
-                    // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
-
-                    return llvm::ConstantExpr::getInBoundsGetElementPtr(
-                        nullptr, llvm::cast<llvm::Constant>(accede), index_array);
-                }
-                case AtomeConstante::Genre::VALEUR:
-                {
-                    // dbg() << "VALEUR";
-                    auto valeur_const = static_cast<AtomeValeurConstante const *>(atome);
-
-                    switch (valeur_const->valeur.genre) {
-                        case AtomeValeurConstante::Valeur::Genre::NULLE:
-                        {
-                            return llvm::ConstantPointerNull::get(static_cast<llvm::PointerType *>(
-                                converti_type_llvm(valeur_const->type)));
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::REELLE:
-                        {
-                            if (atome_const->type->taille_octet == 2) {
-                                return llvm::ConstantInt::get(
-                                    llvm::Type::getInt16Ty(m_contexte_llvm),
-                                    static_cast<unsigned>(valeur_const->valeur.valeur_reelle));
-                            }
-
-                            return llvm::ConstantFP::get(type_llvm,
-                                                         valeur_const->valeur.valeur_reelle);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TYPE:
-                        {
-                            return llvm::ConstantInt::get(
-                                type_llvm, valeur_const->valeur.type->index_dans_table_types);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TAILLE_DE:
-                        {
-                            return llvm::ConstantInt::get(type_llvm,
-                                                          valeur_const->valeur.type->taille_octet);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::ENTIERE:
-                        {
-                            // À FAIRE : la RI peut modifier le type mais pas le genre de l'atome.
-                            if (atome->type->est_type_reel()) {
-                                auto valeur_reelle = static_cast<double>(
-                                    valeur_const->valeur.valeur_entiere);
-                                return llvm::ConstantFP::get(type_llvm, valeur_reelle);
-                            }
-
-                            return llvm::ConstantInt::get(type_llvm,
-                                                          valeur_const->valeur.valeur_entiere);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::BOOLEENNE:
-                        {
-                            return llvm::ConstantInt::get(type_llvm,
-                                                          valeur_const->valeur.valeur_booleenne);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::CARACTERE:
-                        {
-                            return llvm::ConstantInt::get(type_llvm,
-                                                          valeur_const->valeur.valeur_entiere);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::INDEFINIE:
-                        {
-                            return nullptr;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::STRUCTURE:
-                        {
-                            auto type = static_cast<TypeCompose const *>(atome->type);
-                            auto tableau_valeur = valeur_const->valeur.valeur_structure.pointeur;
-
-                            auto tableau_membre = std::vector<llvm::Constant *>();
-
-                            auto index_membre = 0;
-                            for (auto i = 0; i < type->membres.taille(); ++i) {
-                                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
-                                    continue;
-                                }
-
-                                auto valeur = static_cast<llvm::Constant *>(nullptr);
-
-                                // les tableaux fixes ont une initialisation nulle
-                                if (tableau_valeur[index_membre] == nullptr) {
-                                    auto type_llvm_valeur = converti_type_llvm(
-                                        type->membres[i].type);
-                                    valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
-                                }
-                                else {
-                                    // dbg() << "Génère code pour le membre " <<
-                                    // type->membres[i].nom->nom;
-                                    valeur = llvm::cast<llvm::Constant>(genere_code_pour_atome(
-                                        tableau_valeur[index_membre], pour_globale));
-                                }
-
-                                tableau_membre.push_back(valeur);
-                                index_membre += 1;
-                            }
-
-                            return llvm::ConstantStruct::get(
-                                llvm::cast<llvm::StructType>(converti_type_llvm(type)),
-                                tableau_membre);
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_FIXE:
-                        {
-                            auto pointeur_tableau = valeur_const->valeur.valeur_tableau.pointeur;
-                            auto taille_tableau = valeur_const->valeur.valeur_tableau.taille;
-
-                            std::vector<llvm::Constant *> valeurs;
-                            valeurs.reserve(static_cast<size_t>(taille_tableau));
-
-                            for (auto i = 0; i < taille_tableau; ++i) {
-                                auto valeur = genere_code_pour_atome(pointeur_tableau[i],
-                                                                     pour_globale);
-                                valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
-                            }
-
-                            auto resultat = llvm::ConstantArray::get(
-                                llvm::cast<llvm::ArrayType>(type_llvm), valeurs);
-                            // dbg() << "TABLEAU_FIXE : " << *resultat;
-                            return resultat;
-                        }
-                        case AtomeValeurConstante::Valeur::Genre::TABLEAU_DONNEES_CONSTANTES:
-                        {
-                            auto pointeur_donnnees = valeur_const->valeur.valeur_tdc.pointeur;
-                            auto taille_donnees = valeur_const->valeur.valeur_tdc.taille;
-
-                            std::vector<unsigned char> donnees;
-                            donnees.resize(static_cast<size_t>(taille_donnees));
-
-                            for (auto i = 0; i < taille_donnees; ++i) {
-                                donnees[static_cast<size_t>(i)] = static_cast<unsigned char>(
-                                    pointeur_donnnees[i]);
-                            }
-
-                            auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
-                            // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
-                            return valeur_;
-                        }
-                    }
-                }
+                globale_llvm->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+                globale_llvm->setInitializer(llvm::cast<llvm::Constant>(init));
             }
 
-            return nullptr;
+            auto index_array = std::vector<llvm::Value *>();
+            auto type_accede = acces->accede->type;
+            if (type_accede->comme_type_pointeur()->type_pointe->est_type_pointeur()) {
+                index_array.resize(1);
+                index_array[0] = index;
+            }
+            else {
+                index_array.resize(2);
+                index_array[0] = llvm::ConstantInt::get(llvm::Type::getInt32Ty(m_contexte_llvm),
+                                                        0);
+                index_array[1] = index;
+            }
+
+            // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
+
+            return llvm::ConstantExpr::getInBoundsGetElementPtr(
+                nullptr, llvm::cast<llvm::Constant>(accede), index_array);
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            return llvm::ConstantPointerNull::get(
+                static_cast<llvm::PointerType *>(converti_type_llvm(atome->type)));
+        }
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            auto type = atome->comme_constante_type()->type_de_données;
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type),
+                                          type->index_dans_table_types);
+        }
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            auto type = atome->comme_taille_de()->type_de_données;
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type), type->taille_octet);
+        }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            auto constante_réelle = atome->comme_constante_réelle();
+            auto type = constante_réelle->type;
+            if (type->taille_octet == 2) {
+                return llvm::ConstantInt::get(llvm::Type::getInt16Ty(m_contexte_llvm),
+                                              static_cast<unsigned>(constante_réelle->valeur));
+            }
+
+            return llvm::ConstantFP::get(converti_type_llvm(atome->type),
+                                         constante_réelle->valeur);
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            auto constante_entière = atome->comme_constante_entière();
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type),
+                                          constante_entière->valeur);
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            auto constante_booléenne = atome->comme_constante_booléenne();
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type),
+                                          constante_booléenne->valeur);
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            auto caractère = atome->comme_constante_caractère();
+            return llvm::ConstantInt::get(converti_type_llvm(atome->type), caractère->valeur);
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            auto structure = atome->comme_constante_structure();
+            auto type = structure->type->comme_type_compose();
+            auto tableau_valeur = structure->donne_atomes_membres();
+
+            auto tableau_membre = std::vector<llvm::Constant *>();
+
+            auto index_membre = 0;
+            for (auto i = 0; i < type->membres.taille(); ++i) {
+                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
+                    continue;
+                }
+
+                auto valeur = static_cast<llvm::Constant *>(nullptr);
+
+                // les tableaux fixes ont une initialisation nulle
+                if (tableau_valeur[index_membre] == nullptr) {
+                    auto type_llvm_valeur = converti_type_llvm(type->membres[i].type);
+                    valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
+                }
+                else {
+                    // dbg() << "Génère code pour le membre " <<
+                    // type->membres[i].nom->nom;
+                    valeur = llvm::cast<llvm::Constant>(
+                        genere_code_pour_atome(tableau_valeur[index_membre], pour_globale));
+                }
+
+                tableau_membre.push_back(valeur);
+                index_membre += 1;
+            }
+
+            return llvm::ConstantStruct::get(
+                llvm::cast<llvm::StructType>(converti_type_llvm(type)), tableau_membre);
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            auto tableau = atome->comme_constante_tableau();
+            auto éléments = tableau->donne_atomes_éléments();
+
+            std::vector<llvm::Constant *> valeurs;
+            valeurs.reserve(static_cast<size_t>(éléments.taille()));
+
+            POUR (éléments) {
+                auto valeur = genere_code_pour_atome(it, pour_globale);
+                valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
+            }
+
+            auto type_llvm = converti_type_llvm(atome->type);
+            auto resultat = llvm::ConstantArray::get(llvm::cast<llvm::ArrayType>(type_llvm),
+                                                     valeurs);
+            // dbg() << "TABLEAU_FIXE : " << *resultat;
+            return resultat;
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
+            auto constante = atome->comme_données_constantes();
+            auto données = constante->donne_données();
+
+            std::vector<unsigned char> donnees;
+            donnees.resize(static_cast<size_t>(données.taille()));
+
+            POUR_INDEX (données) {
+                donnees[static_cast<size_t>(index_it)] = static_cast<unsigned char>(it);
+            }
+
+            auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
+            // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
+            return valeur_;
         }
         case Atome::Genre::INSTRUCTION:
         {
@@ -1111,8 +1064,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto accede = inst_acces->accede;
             auto valeur_accede = genere_code_pour_atome(accede, false);
 
-            auto index_membre =
-                static_cast<AtomeValeurConstante *>(inst_acces->index)->valeur.valeur_entiere;
+            auto index_membre = inst_acces->index;
 
             auto type_pointe = accede->type->comme_type_pointeur()->type_pointe;
 
