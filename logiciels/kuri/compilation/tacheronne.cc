@@ -689,6 +689,7 @@ void Tacheronne::execute_metaprogrammes()
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
         it->fut_execute = true;
         imprime_fuites_de_mémoire(it);
+        it->vidange_logs_sur_disque();
 
         mv->déloge_données_exécution(it->données_exécution);
 

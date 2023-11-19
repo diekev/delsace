@@ -103,6 +103,19 @@ unsigned nombre_chiffre_base_10_pro(T v)
     }
 }
 
+inline unsigned nombre_chiffre_base_10_pro(uint8_t v)
+{
+    if (PROBABLE(v < 10)) {
+        return 1;
+    }
+
+    if (PROBABLE(v < 100)) {
+        return 2;
+    }
+
+    return 3;
+}
+
 template <typename T>
 unsigned nombre_vers_chaine(char *tampon, T valeur)
 {
@@ -114,7 +127,7 @@ unsigned nombre_vers_chaine(char *tampon, T valeur)
         auto const q = valeur / 10;
         auto const r = valeur % 10;
         tampon[pos--] = static_cast<char>('0' + r);
-        valeur = q;
+        valeur = T(q);
     }
 
     tampon[0] = static_cast<char>('0' + valeur);

@@ -3,7 +3,13 @@
 
 #include "metaprogramme.hh"
 
+#include <fstream>
+#include <iostream>
+
 #include "statistiques/statistiques.hh"
+
+#include "structures/chemin_systeme.hh"
+#include "structures/enchaineuse.hh"
 
 #include "programme.hh"
 #include "typage.hh"
@@ -47,5 +53,80 @@ void DonnéesConstantesExécutions::rassemble_statistiques(Statistiques &stats) 
 
 MetaProgramme::~MetaProgramme()
 {
+    POUR (logueuses) {
+        if (it) {
+            memoire::deloge("Enchaineuse", it);
+        }
+    }
     memoire::deloge("Programme", programme);
+}
+
+Enchaineuse &MetaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
+{
+    assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
+    auto index_logueuse = static_cast<int>(type_log);
+    if (logueuses[index_logueuse] == nullptr) {
+        logueuses[index_logueuse] = memoire::loge<Enchaineuse>("Enchaineuse");
+    }
+
+    return *logueuses[index_logueuse];
+}
+
+void MetaProgramme::vidange_logs_sur_disque()
+{
+    vidange_log_sur_disque(TypeLogMétaprogramme::APPEL);
+    vidange_log_sur_disque(TypeLogMétaprogramme::INSTRUCTION);
+    vidange_log_sur_disque(TypeLogMétaprogramme::STAT_INSTRUCTION);
+    vidange_log_sur_disque(TypeLogMétaprogramme::PROFILAGE);
+    vidange_log_sur_disque(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
+}
+
+static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme type_log)
+{
+    switch (type_log) {
+        case TypeLogMétaprogramme::APPEL:
+        {
+            return "appel";
+        }
+        case TypeLogMétaprogramme::INSTRUCTION:
+        {
+            return "flux_instructions";
+        }
+        case TypeLogMétaprogramme::STAT_INSTRUCTION:
+        {
+            return "stats_instructions";
+        }
+        case TypeLogMétaprogramme::PROFILAGE:
+        {
+            return "profilage";
+        }
+        case TypeLogMétaprogramme::FUITES_DE_MÉMOIRE:
+        {
+            return "fuites_de_mémoire";
+        }
+        default:
+        {
+            return "inconnu";
+        }
+    }
+}
+
+void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
+{
+    assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
+    auto index_logueuse = static_cast<int>(type_log);
+    if (!logueuses[index_logueuse]) {
+        return;
+    }
+    auto &logueuse = logueuses[index_logueuse];
+
+    auto nom_fichier = enchaine(
+        "métaprogramme", this, "_", donne_suffixe_pour_type_log(type_log), ".txt");
+
+    std::cout << "Écriture de log de métaprogramme..." << std::endl;
+
+    auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
+    std::ofstream of(vers_std_path(chemin_fichier_entete));
+    logueuse->imprime_dans_flux(of);
+    of.close();
 }

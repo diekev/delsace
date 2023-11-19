@@ -40,5 +40,5 @@ void imprime_erreur(SiteSource site, kuri::chaine message)
     enchaineuse << "^~~~\n";
     enchaineuse << message;
 
-    std::cerr << enchaineuse.chaine();
+    enchaineuse.imprime_dans_flux(std::cerr);
 }
