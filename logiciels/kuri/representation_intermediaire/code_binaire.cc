@@ -1012,7 +1012,7 @@ bool ConvertisseuseRI::genere_code_pour_fonction(AtomeFonction *fonction)
             return true;
         }
 
-        auto &donnees_externe = données_exécution->donnees_externe;
+        auto &donnees_externe = données_exécution->données_externe;
         auto decl = fonction->decl;
 
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
@@ -1853,8 +1853,8 @@ int64_t DonnéesExécutionFonction::mémoire_utilisée() const
     int64_t résultat = 0;
     résultat += chunk.mémoire_utilisée();
 
-    if (!donnees_externe.types_entrees.est_stocke_dans_classe()) {
-        résultat += donnees_externe.types_entrees.capacite() * taille_de(ffi_type *);
+    if (!données_externe.types_entrees.est_stocke_dans_classe()) {
+        résultat += données_externe.types_entrees.capacite() * taille_de(ffi_type *);
     }
 
     return résultat;
