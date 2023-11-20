@@ -57,11 +57,6 @@ Instruction *AtomeFonction::derniere_instruction() const
     return instructions[instructions.taille() - 1];
 }
 
-bool est_valeur_constante_entière(Atome const *atome)
-{
-    return atome->est_constante_entière();
-}
-
 bool est_valeur_constante(Atome const *atome)
 {
     return atome->est_constante_booléenne() || atome->est_constante_caractère() ||
@@ -70,7 +65,7 @@ bool est_valeur_constante(Atome const *atome)
 
 static bool est_constante_entière_de_valeur(Atome const *atome, uint64_t valeur)
 {
-    if (!est_valeur_constante_entière(atome)) {
+    if (!atome->est_constante_entière()) {
         return false;
     }
 

@@ -43,6 +43,30 @@ static const char *nom_base_type = "T";
 static const char *nom_base_variable = "V";
 
 /* ------------------------------------------------------------------------- */
+/** \name Utilitaires locaux.
+ * \{ */
+
+static bool transtypage_est_utile(InstructionTranstype const *transtype)
+{
+    auto const type_source = transtype->valeur->type;
+    auto const type_cible = transtype->type;
+
+    /* Les types opaques sont traités comme les types opacifiés dans le code C.
+     * Le code peut avoir des instructions de transtypes d'opaque vers opacifié, et vice versa, car
+     * notre RI est typée comme l'arbre syntaxique. Or, ISO C interdit de transtyper vers le même
+     * type pour les types non-scalaire. Donc détectons ces cas, et n'émettons pas de transtype
+     * pour ceux-ci.
+     */
+    if (est_type_opacifié(type_source, type_cible) || est_type_opacifié(type_cible, type_source)) {
+        return false;
+    }
+
+    return true;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
 
@@ -768,9 +792,10 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
-    enchaineuse << "#include <stdint.h>\n";
 
-    auto const attribut_inutilisé = R"(
+    auto const préambule = R"(
+#include <stdint.h>
+
 #ifdef __GNUC__
 #  define INUTILISE(x) INUTILISE_ ## x __attribute__((__unused__))
 #else
@@ -796,28 +821,65 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #  define SYMBOLE_PUBLIC
 #  define SYMBOLE_LOCAL
 #endif
+
+#ifdef __GNUC__
+#  define VARIABLE_INUTILISEE __attribute__((unused))
+#else
+#  define VARIABLE_INUTILISEE
+#endif
+
+#ifndef bool
+typedef uint8_t bool;
+#endif
+
+#define __point_d_entree_systeme main
+
+typedef uint8_t octet;
+typedef void Ksnul;
+typedef int8_t ** KPKPKsz8;
 )";
 
-    enchaineuse << attribut_inutilisé;
+    enchaineuse << préambule;
 
     /* Déclaration des types de bases*/
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    enchaineuse << "typedef struct chaine { union { unsigned char d[16]; struct { char *pointeur; "
-                   "int64_t taille; };}; } chaine;\n";
-    enchaineuse << "typedef struct eini { union { unsigned char d[16]; struct { void *pointeur; "
-                   "struct KuriInfoType *info; };}; } eini;\n";
+    auto const types_chaine_et_eini = R"(
+typedef struct chaine {
+    union {
+        unsigned char d[16];
+        struct {
+            char *pointeur;
+            int64_t taille;
+        };
+    };
+} chaine;
+
+typedef struct eini {
+    union {
+        unsigned char d[16];
+        struct {
+            void *pointeur;
+            struct KuriInfoType *info;
+        };
+    };
+} eini;
+)";
 #else
-    enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
-    enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
+    auto const types_chaine_et_eini = R"(
+typedef struct chaine {
+    char *pointeur;
+    int64_t taille;
+} chaine;
+
+typedef struct eini {
+    void *pointeur;
+    struct KuriInfoType *info;
+} eini;
+)";
 #endif
-    /* bool est défini dans stdbool.h */
-    enchaineuse << "#ifndef bool\n";
-    enchaineuse << "typedef uint8_t bool;\n";
-    enchaineuse << "#endif\n";
-    enchaineuse << "typedef uint8_t octet;\n";
-    enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
+
+    enchaineuse << types_chaine_et_eini;
     /* Pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      * de LibC dont les arguments variadiques ne sont pas typés. */
     enchaineuse << "#define Kv ...\n\n";
@@ -826,8 +888,6 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
      * "__principale" par un appel à "principale". On pourrait également définir ceci selon le nom
      * de la fonction principale définie par les programmes. */
     enchaineuse << "#define __principale principale\n\n";
-
-    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
 /* Documentation GCC pour la visibilité : https://gcc.gnu.org/wiki/Visibility */
@@ -1152,10 +1212,18 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
-            os << "  " << donne_nom_pour_type(type_pointeur->type_pointe);
+            os << "  ";
 
+            auto const alloc = inst->comme_alloc();
+            auto const est_ignorée = alloc->ident == ID::_;
+            if (est_ignorée) {
+                os << "VARIABLE_INUTILISEE ";
+            }
+
+            os << donne_nom_pour_type(type_pointeur->type_pointe);
             auto nom = donne_nom_pour_instruction(inst);
-            os << ' ' << nom << ";\n";
+            os << ' ' << nom;
+            os << ";\n";
             table_valeurs[inst->numero] = enchaine("&", nom);
             break;
         }
@@ -1543,7 +1611,10 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_transtype = inst->comme_transtype();
             auto valeur = génère_code_pour_atome(inst_transtype->valeur, os, false);
-            valeur = enchaine("((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
+            if (transtypage_est_utile(inst_transtype)) {
+                valeur = enchaine(
+                    "((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
+            }
             table_valeurs[inst->numero] = valeur;
             break;
         }
@@ -1693,7 +1764,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
     }
 
     /* Déclarons les globales. */
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         déclare_globale(os, it, true);
         os << ";\n";
     }
@@ -1701,18 +1772,13 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
     génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
 
     /* Déclarons ensuite les fonctions. */
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         déclare_fonction(os, it, true);
         os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (repr_inter.fonctions) {
-        /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
-        if (it->instructions.taille() == 0 || !it->enligne) {
-            continue;
-        }
-
+    POUR (repr_inter.donne_fonctions_enlignées()) {
         génère_code_fonction(it, os);
     }
 }
@@ -1803,10 +1869,6 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlob
         }
     }
     else {
-        /* __contexte_fil_principal est utilisé dans les macros. */
-        if (valeur_globale->ident == ID::__contexte_fil_principal) {
-            return valeur_globale->ident->nom;
-        }
         if (valeur_globale->est_externe) {
             return valeur_globale->ident->nom;
         }
@@ -1881,28 +1943,41 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
 
     génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
+    /* À FAIRE : les types de pointeurs de fonctions ne peuvent être convertis vers des types de
+     * pointeurs d'objets. Nous devrons avoir des types distincts et supprimer *rien. En attendant,
+     * désactivation de l'avertissement "pedantic" car les globales des traces d'appel prennent des
+     * pointeurs de fonctions ccomme paramètres convertis vers *rien. */
+    auto const désactive_pedantic = R"(
+#if defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+)";
+    auto const active_pedantic = R"(
+#if defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
+)";
+
+    os << désactive_pedantic;
+
     /* Définis les globales. */
-    POUR (repr_inter.globales) {
-        if (it->est_externe) {
-            /* Inutile de regénérer le code. */
-            continue;
-        }
-        auto valeur_globale = it;
+    POUR (repr_inter.donne_globales_internes()) {
         auto valeur_initialisateur = kuri::chaine_statique();
 
-        if (valeur_globale->initialisateur) {
-            valeur_initialisateur = génère_code_pour_atome(
-                valeur_globale->initialisateur, os, true);
+        if (it->initialisateur) {
+            valeur_initialisateur = génère_code_pour_atome(it->initialisateur, os, true);
         }
 
-        déclare_globale(os, valeur_globale, false);
+        déclare_globale(os, it, false);
 
-        if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
+        if (it->initialisateur) {
             os << " = " << valeur_initialisateur;
         }
 
         os << ";\n";
     }
+    os << active_pedantic;
 
     /* Vide l'enchaineuse sauf si nous compilons un fichier objet car nous devons n'avoir qu'un
      * seul fichier "*.o". */
@@ -1917,12 +1992,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     int nombre_instructions = 0;
 
     /* Définis les fonctions. */
-    POUR (repr_inter.fonctions) {
-        /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
-        if (it->instructions.taille() == 0 || it->enligne) {
-            continue;
-        }
-
+    POUR (repr_inter.donne_fonctions_horslignées()) {
         génère_code_fonction(it, os);
         nombre_instructions += it->instructions.taille();
 
@@ -1955,11 +2025,11 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
     ConvertisseuseTypeC convertisseuse_type_c(broyeuse, *this);
     génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
-    POUR (repr_inter_programme.types) {
+    POUR (repr_inter_programme.donne_types()) {
         convertisseuse_type_c.génère_typedef(it, enchaineuse);
     }
 
-    POUR (repr_inter_programme.types) {
+    POUR (repr_inter_programme.donne_types()) {
         convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
     }
 
