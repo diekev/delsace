@@ -13,6 +13,8 @@
 
 #include "representation_intermediaire/instructions.hh"
 
+#include "utilitaires/algorithmes.hh"
+
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "erreur.h"
@@ -773,6 +775,8 @@ struct ConstructriceProgrammeFormeRI {
     void génère_traces_d_appel();
 
     void génère_table_des_types();
+
+    void tri_fonctions_et_globales();
 };
 
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
@@ -896,6 +900,8 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
             break;
         }
     }
+
+    tri_fonctions_et_globales();
 
     return m_résultat;
 }
@@ -1097,6 +1103,50 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     m_résultat.types.ajoute(type_tableau_fixe);
 }
 
+void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
+{
+    /* Triage des globales :
+     * - globales externes
+     * - globales constantes (p.e. infos types, trace d'appels, etc.)
+     * - globales internes non-constantes
+     */
+    auto partition_globales = partition_stable(m_résultat.globales,
+                                               [](auto &globale) { return globale->est_externe; });
+    m_résultat.définis_partition(partition_globales.vrai, ProgrammeRepreInter::GLOBALES_EXTERNES);
+    m_résultat.définis_partition(partition_globales.faux, ProgrammeRepreInter::GLOBALES_INTERNES);
+
+    partition_globales = partition_stable(partition_globales.faux,
+                                          [](auto &globale) { return globale->est_constante; });
+    m_résultat.définis_partition(partition_globales.vrai,
+                                 ProgrammeRepreInter::GLOBALES_CONSTANTES);
+    m_résultat.définis_partition(partition_globales.faux, ProgrammeRepreInter::GLOBALES_MUTABLES);
+
+    /* Triage des fonctions :
+     * - fonctions externes
+     * - fonctions internes enlignées
+     * - fonctions internes horslignées
+     */
+    auto partition_fonctions = partition_stable(
+        m_résultat.fonctions, [](auto &fonction) { return fonction->est_externe; });
+    m_résultat.définis_partition(partition_fonctions.vrai,
+                                 ProgrammeRepreInter::FONCTIONS_EXTERNES);
+    m_résultat.définis_partition(partition_fonctions.faux,
+                                 ProgrammeRepreInter::FONCTIONS_INTERNES);
+
+    tri_stable(partition_fonctions.vrai, [](auto &fonction1, auto &fonction2) {
+        auto bib1 = fonction1->decl->symbole->bibliotheque;
+        auto bib2 = fonction2->decl->symbole->bibliotheque;
+        return bib1->nom < bib2->nom;
+    });
+
+    partition_fonctions = partition_stable(partition_fonctions.faux,
+                                           [](auto &fonction) { return fonction->enligne; });
+    m_résultat.définis_partition(partition_fonctions.vrai,
+                                 ProgrammeRepreInter::FONCTIONS_ENLIGNÉES);
+    m_résultat.définis_partition(partition_fonctions.faux,
+                                 ProgrammeRepreInter::FONCTIONS_HORSLIGNÉES);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1164,9 +1214,27 @@ kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales() con
     return globales;
 }
 
+kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales_internes() const
+{
+    auto données = partitions_globales[GLOBALES_INTERNES];
+    return {const_cast<AtomeGlobale **>(globales.begin()) + données.first, données.second};
+}
+
 kuri::tableau_statique<AtomeFonction *> ProgrammeRepreInter::donne_fonctions() const
 {
     return fonctions;
+}
+
+kuri::tableau_statique<AtomeFonction *> ProgrammeRepreInter::donne_fonctions_enlignées() const
+{
+    auto données = partitions_fonctions[FONCTIONS_ENLIGNÉES];
+    return {const_cast<AtomeFonction **>(fonctions.begin()) + données.first, données.second};
+}
+
+kuri::tableau_statique<AtomeFonction *> ProgrammeRepreInter::donne_fonctions_horslignées() const
+{
+    auto données = partitions_fonctions[FONCTIONS_HORSLIGNÉES];
+    return {const_cast<AtomeFonction **>(fonctions.begin()) + données.first, données.second};
 }
 
 kuri::tableau_statique<Type *> ProgrammeRepreInter::donne_types() const

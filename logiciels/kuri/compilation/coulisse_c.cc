@@ -1707,12 +1707,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (repr_inter.donne_fonctions()) {
-        /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
-        if (it->instructions.taille() == 0 || !it->enligne) {
-            continue;
-        }
-
+    POUR (repr_inter.donne_fonctions_enlignées()) {
         génère_code_fonction(it, os);
     }
 }
@@ -1882,11 +1877,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
     /* Définis les globales. */
-    POUR (repr_inter.donne_globales()) {
-        if (it->est_externe) {
-            /* Inutile de regénérer le code. */
-            continue;
-        }
+    POUR (repr_inter.donne_globales_internes()) {
         auto valeur_globale = it;
         auto valeur_initialisateur = kuri::chaine_statique();
 
@@ -1917,12 +1908,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     int nombre_instructions = 0;
 
     /* Définis les fonctions. */
-    POUR (repr_inter.donne_fonctions()) {
-        /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
-        if (it->instructions.taille() == 0 || it->enligne) {
-            continue;
-        }
-
+    POUR (repr_inter.donne_fonctions_horslignées()) {
         génère_code_fonction(it, os);
         nombre_instructions += it->instructions.taille();
 
