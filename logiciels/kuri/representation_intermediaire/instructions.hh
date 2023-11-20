@@ -809,7 +809,6 @@ struct InstructionTranstype : public Instruction {
     }
 };
 
-bool est_valeur_constante_entière(Atome const *atome);
 bool est_valeur_constante(Atome const *atome);
 bool est_constante_entière_zéro(Atome const *atome);
 bool est_constante_entière_un(Atome const *atome);

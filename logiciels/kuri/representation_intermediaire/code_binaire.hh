@@ -397,7 +397,7 @@ class CompilatriceCodeBinaire {
 
     EMPECHE_COPIE(CompilatriceCodeBinaire);
 
-    bool génère_code(const kuri::tableau<AtomeFonction *> &fonctions);
+    bool génère_code(kuri::tableau_statique<AtomeFonction *> fonctions);
 
     bool génère_code_pour_fonction(AtomeFonction const *fonction);
 

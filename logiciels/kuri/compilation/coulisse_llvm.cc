@@ -1115,7 +1115,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
 
 void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
 {
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Prédéclare globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
@@ -1144,7 +1144,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         table_globales.insère(valeur_globale, globale);
     }
 
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         // LogDebug::réinitialise_indentation();
         // dbg() << "Génère code pour globale " << it.ident << ' ' << chaine_type(it.type);
         auto valeur_globale = it;
@@ -1160,7 +1160,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
         }
     }
 
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         auto atome_fonc = it;
 
         auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1174,7 +1174,7 @@ void GeneratriceCodeLLVM::genere_code(const ProgrammeRepreInter &repr_inter)
     }
 
     // auto index_fonction = 0l;
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         auto atome_fonc = it;
         table_valeurs.efface();
         table_blocs.efface();

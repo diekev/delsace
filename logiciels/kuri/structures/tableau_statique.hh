@@ -12,14 +12,14 @@ namespace kuri {
 template <typename T>
 struct tableau_statique {
   private:
-    T const *pointeur = nullptr;
+    T *pointeur = nullptr;
     int64_t taille_ = 0;
     /* La capacité n'est que pour s'assurer que le tableau a la même taille que dans le langage. */
     int64_t capacite = 0;
 
+  public:
     tableau_statique() = default;
 
-  public:
     tableau_statique(T *ptr, int64_t nombre_elements) : pointeur(ptr), taille_(nombre_elements)
     {
     }
@@ -27,6 +27,16 @@ struct tableau_statique {
     int64_t taille() const
     {
         return taille_;
+    }
+
+    T *begin()
+    {
+        return pointeur;
+    }
+
+    T *end()
+    {
+        return pointeur + taille();
     }
 
     T const *begin() const

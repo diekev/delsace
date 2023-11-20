@@ -7,11 +7,14 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+    kuri::structures
 )
 
 set(SOURCES
+    algorithmes.cc
     calcul.cc
 
+    algorithmes.hh
     calcul.hh
 )
 

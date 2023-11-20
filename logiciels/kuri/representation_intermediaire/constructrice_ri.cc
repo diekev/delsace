@@ -68,12 +68,6 @@ static bool est_référence_compatible_pointeur(Type const *type_dest, Type cons
     return true;
 }
 
-static bool est_type_opacifié(Type const *type_dest, Type const *type_source)
-{
-    return type_dest->est_type_opaque() &&
-           type_dest->comme_type_opaque()->type_opacifie == type_source;
-}
-
 static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
                                                       Type const *type_source)
 {
