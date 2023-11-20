@@ -43,6 +43,30 @@ static const char *nom_base_type = "T";
 static const char *nom_base_variable = "V";
 
 /* ------------------------------------------------------------------------- */
+/** \name Utilitaires locaux.
+ * \{ */
+
+static bool transtypage_est_utile(InstructionTranstype const *transtype)
+{
+    auto const type_source = transtype->valeur->type;
+    auto const type_cible = transtype->type;
+
+    /* Les types opaques sont traités comme les types opacifiés dans le code C.
+     * Le code peut avoir des instructions de transtypes d'opaque vers opacifié, et vice versa, car
+     * notre RI est typée comme l'arbre syntaxique. Or, ISO C interdit de transtyper vers le même
+     * type pour les types non-scalaire. Donc détectons ces cas, et n'émettons pas de transtype
+     * pour ceux-ci.
+     */
+    if (est_type_opacifié(type_source, type_cible) || est_type_opacifié(type_cible, type_source)) {
+        return false;
+    }
+
+    return true;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
 
@@ -1543,7 +1567,10 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         {
             auto inst_transtype = inst->comme_transtype();
             auto valeur = génère_code_pour_atome(inst_transtype->valeur, os, false);
-            valeur = enchaine("((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
+            if (transtypage_est_utile(inst_transtype)) {
+                valeur = enchaine(
+                    "((", donne_nom_pour_type(inst_transtype->type), ")(", valeur, "))");
+            }
             table_valeurs[inst->numero] = valeur;
             break;
         }
