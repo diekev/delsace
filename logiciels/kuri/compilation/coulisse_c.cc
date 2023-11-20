@@ -818,6 +818,7 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
+/* Documentation GCC pour la visibilité : https://gcc.gnu.org/wiki/Visibility */
 static kuri::chaine_statique donne_chaine_pour_visibilité(VisibilitéSymbole visibilité)
 {
     switch (visibilité) {
