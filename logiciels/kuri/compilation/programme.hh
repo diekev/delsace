@@ -288,10 +288,38 @@ void imprime_contenu_programme(Programme const &programme, uint32_t quoi, std::o
 /* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
  * tous les types utilisées. */
 struct ProgrammeRepreInter {
+    /* Pour les partitions des globales. */
+    enum {
+        GLOBALES_EXTERNES,
+        GLOBALES_INTERNES,
+        GLOBALES_CONSTANTES,
+        GLOBALES_MUTABLES,
+
+        NOMBRE_PARTITIONS_GLOBALES,
+    };
+
+    /* Pour les partitions des fonctions. */
+    enum {
+        FONCTIONS_EXTERNES,
+        FONCTIONS_INTERNES,
+        FONCTIONS_ENLIGNÉES,
+        FONCTIONS_HORSLIGNÉES,
+
+        NOMBRE_PARTITIONS_FONCTIONS,
+    };
+
+  private:
+    friend struct ConstructriceProgrammeFormeRI;
+
     kuri::tableau<AtomeGlobale *> globales{};
+    std::pair<int, int> partitions_globales[NOMBRE_PARTITIONS_GLOBALES];
+
     kuri::tableau<AtomeFonction *> fonctions{};
+    std::pair<int, int> partitions_fonctions[NOMBRE_PARTITIONS_FONCTIONS];
+
     kuri::tableau<Type *> types{};
 
+  public:
     struct DonnéesTableauxConstants {
         AtomeGlobale *globale = nullptr;
         AtomeConstanteDonnéesConstantes const *tableau = nullptr;
@@ -314,8 +342,29 @@ struct ProgrammeRepreInter {
     mutable DonnéesConstantes m_données_constantes{};
     mutable bool m_données_constantes_construites = false;
 
-  public:
     void ajoute_globale(AtomeGlobale *globale);
+
+    void définis_partition(kuri::tableau_statique<AtomeGlobale *> partition, int quoi)
+    {
+        auto décalage = int(partition.begin() - globales.begin());
+        partitions_globales[quoi] = {décalage, int(partition.taille())};
+    }
+
+    void définis_partition(kuri::tableau_statique<AtomeFonction *> partition, int quoi)
+    {
+        auto décalage = int(partition.begin() - fonctions.begin());
+        partitions_fonctions[quoi] = {décalage, int(partition.taille())};
+    }
+
+  public:
+    kuri::tableau_statique<AtomeGlobale *> donne_globales() const;
+    kuri::tableau_statique<AtomeGlobale *> donne_globales_internes() const;
+
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions() const;
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions_enlignées() const;
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions_horslignées() const;
+
+    kuri::tableau_statique<Type *> donne_types() const;
 
     std::optional<DonnéesConstantes const *> donne_données_constantes() const;
 
