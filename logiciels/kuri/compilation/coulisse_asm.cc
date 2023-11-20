@@ -41,8 +41,8 @@ struct GeneratriceCodeASM {
 
     void genere_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
-    void genere_code(const kuri::tableau<AtomeGlobale *> &globales,
-                     kuri::tableau<AtomeFonction *> const &fonctions,
+    void genere_code(kuri::tableau_statique<AtomeGlobale *> globales,
+                     kuri::tableau_statique<AtomeFonction *> fonctions,
                      Enchaineuse &os);
 };
 
@@ -357,8 +357,8 @@ void GeneratriceCodeASM::genere_code_pour_instruction(const Instruction *inst, E
     }
 }
 
-void GeneratriceCodeASM::genere_code(const kuri::tableau<AtomeGlobale *> &globales,
-                                     const kuri::tableau<AtomeFonction *> &fonctions,
+void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> globales,
+                                     kuri::tableau_statique<AtomeFonction *> fonctions,
                                      Enchaineuse &os)
 {
     // prédéclare les globales pour éviter les problèmes de références cycliques
@@ -485,8 +485,9 @@ bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
     // genere_code_pour_types(compilatrice, graphe, enchaineuse);
 
     auto generatrice = GeneratriceCodeASM(espace);
-    generatrice.genere_code(
-        repr_inter_programme->globales, repr_inter_programme->fonctions, enchaineuse);
+    generatrice.genere_code(repr_inter_programme->donne_globales(),
+                            repr_inter_programme->donne_fonctions(),
+                            enchaineuse);
 
     enchaineuse.imprime_dans_flux(fichier_sortie);
 
