@@ -800,6 +800,12 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         });
 
         auto atome_fonction = it->atome->comme_fonction();
+
+        if (it->ident == ID::__principale) {
+            /* Cette fonction est symbolique et ne doit pas être dans le code généré. */
+            continue;
+        }
+
         ajoute_fonction(atome_fonction);
 
         if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
