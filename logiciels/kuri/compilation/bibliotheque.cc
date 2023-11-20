@@ -78,8 +78,9 @@ bool Symbole::charge(EspaceDeTravail *espace,
         case RaisonRechercheSymbole::EXECUTION_METAPROGRAMME:
         {
             /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de charger le
-             * symbole. */
-            if (adresse_execution || etat_recherche == EtatRechercheSymbole::TROUVE) {
+             * symbole. NOTE : puisque adresse_exécution est une union, nous pouvons tester
+             * n'importe quel membre. */
+            if (adresse_exécution.fonction || etat_recherche == EtatRechercheSymbole::TROUVE) {
                 return true;
             }
             break;
@@ -101,7 +102,13 @@ bool Symbole::charge(EspaceDeTravail *espace,
 
     try {
         auto ptr_symbole = bibliotheque->bib(dls::chaine(nom.pointeur(), nom.taille()));
-        this->adresse_liaison = reinterpret_cast<Symbole::type_fonction>(ptr_symbole.ptr());
+        if (type == TypeSymbole::FONCTION) {
+            this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
+                ptr_symbole.ptr());
+        }
+        else {
+            this->adresse_liaison.objet = ptr_symbole.ptr();
+        }
         etat_recherche = EtatRechercheSymbole::TROUVE;
     }
     catch (...) {
@@ -118,20 +125,45 @@ bool Symbole::charge(EspaceDeTravail *espace,
     return true;
 }
 
-void Symbole::adresse_pour_execution(type_fonction pointeur)
+void Symbole::définis_adresse_pour_exécution(type_adresse_fonction adresse)
 {
-    adresse_execution = pointeur;
+    assert(type == TypeSymbole::FONCTION);
+    adresse_exécution.fonction = adresse;
 }
 
-Symbole::type_fonction Symbole::adresse_pour_execution()
+void Symbole::définis_adresse_pour_exécution(type_adresse_objet adresse)
 {
-    if (adresse_execution) {
-        return adresse_execution;
+    assert(type == TypeSymbole::VARIABLE_GLOBALE);
+    adresse_exécution.objet = adresse;
+}
+
+Symbole::type_adresse_fonction Symbole::donne_adresse_fonction_pour_exécution()
+{
+    assert(type == TypeSymbole::FONCTION);
+    if (type != TypeSymbole::FONCTION) {
+        return nullptr;
     }
-    return adresse_liaison;
+
+    if (adresse_exécution.fonction) {
+        return adresse_exécution.fonction;
+    }
+    return adresse_liaison.fonction;
 }
 
-Symbole *Bibliotheque::crée_symbole(kuri::chaine_statique nom_symbole)
+Symbole::type_adresse_objet Symbole::donne_adresse_objet_pour_exécution()
+{
+    assert(type == TypeSymbole::VARIABLE_GLOBALE);
+    if (type != TypeSymbole::VARIABLE_GLOBALE) {
+        return nullptr;
+    }
+
+    if (adresse_exécution.objet) {
+        return adresse_exécution.objet;
+    }
+    return adresse_liaison.objet;
+}
+
+Symbole *Bibliotheque::crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type)
 {
     POUR_TABLEAU_PAGE (symboles) {
         if (it.nom == nom_symbole) {
@@ -139,7 +171,7 @@ Symbole *Bibliotheque::crée_symbole(kuri::chaine_statique nom_symbole)
         }
     }
 
-    auto symbole = symboles.ajoute_element();
+    auto symbole = symboles.ajoute_element(type);
     symbole->nom = nom_symbole;
     symbole->bibliotheque = this;
     return symbole;
@@ -312,27 +344,34 @@ bool GestionnaireBibliotheques::initialise_bibliotheques_pour_execution(Compilat
     /* La bibliothèque C. */
     auto libc = gestionnaire->crée_bibliotheque(*espace, nullptr, ID::libc, "c");
 
-    auto malloc_ = libc->crée_symbole("malloc");
-    malloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_malloc));
+    auto malloc_ = libc->crée_symbole("malloc", TypeSymbole::FONCTION);
+    malloc_->définis_adresse_pour_exécution(
+        reinterpret_cast<Symbole::type_adresse_fonction>(notre_malloc));
 
-    auto realloc_ = libc->crée_symbole("realloc");
-    realloc_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_realloc));
+    auto realloc_ = libc->crée_symbole("realloc", TypeSymbole::FONCTION);
+    realloc_->définis_adresse_pour_exécution(
+        reinterpret_cast<Symbole::type_adresse_fonction>(notre_realloc));
 
-    auto free_ = libc->crée_symbole("free");
-    free_->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(notre_free));
+    auto free_ = libc->crée_symbole("free", TypeSymbole::FONCTION);
+    free_->définis_adresse_pour_exécution(
+        reinterpret_cast<Symbole::type_adresse_fonction>(notre_free));
 
     /* La bibliothèque r16. */
     auto bibr16 = gestionnaire->crée_bibliotheque(
         *espace, nullptr, table_idents->identifiant_pour_chaine("libr16"), "r16");
 
-    bibr16->crée_symbole("DLS_vers_r32")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r32));
-    bibr16->crée_symbole("DLS_depuis_r32")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r32));
-    bibr16->crée_symbole("DLS_vers_r64")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(vers_r64));
-    bibr16->crée_symbole("DLS_depuis_r64")
-        ->adresse_pour_execution(reinterpret_cast<Symbole::type_fonction>(depuis_r64));
+    bibr16->crée_symbole("DLS_vers_r32", TypeSymbole::FONCTION)
+        ->définis_adresse_pour_exécution(
+            reinterpret_cast<Symbole::type_adresse_fonction>(vers_r32));
+    bibr16->crée_symbole("DLS_depuis_r32", TypeSymbole::FONCTION)
+        ->définis_adresse_pour_exécution(
+            reinterpret_cast<Symbole::type_adresse_fonction>(depuis_r32));
+    bibr16->crée_symbole("DLS_vers_r64", TypeSymbole::FONCTION)
+        ->définis_adresse_pour_exécution(
+            reinterpret_cast<Symbole::type_adresse_fonction>(vers_r64));
+    bibr16->crée_symbole("DLS_depuis_r64", TypeSymbole::FONCTION)
+        ->définis_adresse_pour_exécution(
+            reinterpret_cast<Symbole::type_adresse_fonction>(depuis_r64));
 
     /* La bibliothèque pthread. */
     gestionnaire->crée_bibliotheque(
