@@ -183,6 +183,9 @@ static ActionParsageArgument gère_argument_débogue_exécution(ParseuseArgument
 static ActionParsageArgument gère_argument_émets_stats_ops(ParseuseArguments & /*parseuse*/,
                                                            ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments & /*parseuse*/,
+                                                            ArgumentsCompilatrice &résultat);
+
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
@@ -226,6 +229,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Rapporte le nombre de fois que chaque instruction fut exécutée dans les métaprogrammes",
      gère_argument_émets_stats_ops},
+    {"--préserve_symboles",
+     "",
+     "",
+     "Indique aux coulisses de préserver les symboles non-globaux",
+     gère_argument_préserve_symbole},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -336,6 +344,13 @@ static ActionParsageArgument gère_argument_émets_stats_ops(ParseuseArguments &
                                                            ArgumentsCompilatrice &résultat)
 {
     résultat.émets_stats_ops_exécution = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments & /*parseuse*/,
+                                                            ArgumentsCompilatrice &résultat)
+{
+    résultat.préserve_symboles = true;
     return ActionParsageArgument::CONTINUE;
 }
 

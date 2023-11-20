@@ -19,6 +19,14 @@ struct NoeudExpression;
 struct OptionsDeCompilation;
 struct Statistiques;
 
+enum class TypeSymbole : uint8_t {
+    INCONNU,
+    /* Le symbole est une globale. */
+    VARIABLE_GLOBALE,
+    /* Le symbole est une fonction. */
+    FONCTION,
+};
+
 enum class EtatRechercheSymbole : unsigned char {
     NON_RECHERCHE,
     TROUVE,
@@ -33,29 +41,49 @@ enum class RaisonRechercheSymbole : unsigned char {
 };
 
 struct Symbole {
-    using type_fonction = void (*)();
+    using type_adresse_fonction = void (*)();
+    using type_adresse_objet = void *;
 
     Bibliotheque *bibliotheque = nullptr;
     kuri::chaine nom = "";
     EtatRechercheSymbole etat_recherche = EtatRechercheSymbole::NON_RECHERCHE;
 
+  private:
+    TypeSymbole type{};
+
+    union type_adresse {
+        type_adresse_fonction fonction = nullptr;
+        type_adresse_objet objet;
+    };
+
     /* L'adresse pour la liaison du programme final. */
-    type_fonction adresse_liaison = nullptr;
+    type_adresse adresse_liaison{};
     /* L'adresse pour l'exécution d'un métaprogramme. Elle peut-être différente de #adresse_liaison
      * si nous le remplaçons par l'une de nos fonctions. */
-    type_fonction adresse_execution = nullptr;
+    type_adresse adresse_exécution{};
+
+  public:
+    Symbole(TypeSymbole type_) : type(type_)
+    {
+    }
+
+    EMPECHE_COPIE(Symbole);
 
     bool charge(EspaceDeTravail *espace,
                 NoeudExpression const *site,
                 RaisonRechercheSymbole raison);
 
     /* Renseigne une adresse spécifique à utilisée pour l'exécution de métaprogrammes. */
-    void adresse_pour_execution(type_fonction pointeur);
+    void définis_adresse_pour_exécution(type_adresse_fonction adresse);
+    void définis_adresse_pour_exécution(type_adresse_objet adresse);
 
     /* Retourne l'adresse à utilisée pour l'exécution de métaprogramme : soit l'adresse chargée
      * depuis la bibliothèque, soit l'adresse mise en place par #adresse_pour_execution(adresse) si
-     * elle existe. */
-    type_fonction adresse_pour_execution();
+     * elle existe.
+     * La fonction a utilisée dépend du type du symbole. Retourne nul si aucune adresse existe pour
+     * le type. */
+    type_adresse_fonction donne_adresse_fonction_pour_exécution();
+    type_adresse_objet donne_adresse_objet_pour_exécution();
 };
 
 enum class EtatRechercheBibliotheque : unsigned char {
@@ -110,7 +138,7 @@ struct Bibliotheque {
     kuri::tableau_compresse<Bibliotheque *, int> dependances{};
     tableau_page<Symbole> symboles{};
 
-    Symbole *crée_symbole(kuri::chaine_statique nom_symbole);
+    Symbole *crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type);
 
     bool charge(EspaceDeTravail *espace);
 
