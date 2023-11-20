@@ -820,6 +820,12 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #  define SYMBOLE_PUBLIC
 #  define SYMBOLE_LOCAL
 #endif
+
+#ifdef __GNUC__
+#  define VARIABLE_INUTILISEE __attribute__((unused))
+#else
+#  define VARIABLE_INUTILISEE
+#endif
 )";
 
     enchaineuse << attribut_inutilisé;
@@ -1176,10 +1182,18 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
         case GenreInstruction::ALLOCATION:
         {
             auto type_pointeur = inst->type->comme_type_pointeur();
-            os << "  " << donne_nom_pour_type(type_pointeur->type_pointe);
+            os << "  ";
 
+            auto const alloc = inst->comme_alloc();
+            auto const est_ignorée = alloc->ident == ID::_;
+            if (est_ignorée) {
+                os << "VARIABLE_INUTILISEE ";
+            }
+
+            os << donne_nom_pour_type(type_pointeur->type_pointe);
             auto nom = donne_nom_pour_instruction(inst);
-            os << ' ' << nom << ";\n";
+            os << ' ' << nom;
+            os << ";\n";
             table_valeurs[inst->numero] = enchaine("&", nom);
             break;
         }
