@@ -78,6 +78,8 @@ struct TableIdentifiant {
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(enligne, "enligne")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(horsligne, "horsligne")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(externe, "externe")                                         \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interne, "interne")                                         \
+    ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(exporte, "exporte")                                         \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(sanstrace, "sanstrace")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(interface, "interface")                                     \
     ENUMERE_IDENTIFIANT_COMMUN_SIMPLE(bibliotheque, "bibliothèque")                               \
