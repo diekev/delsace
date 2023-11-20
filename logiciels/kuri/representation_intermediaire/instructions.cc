@@ -5,6 +5,8 @@
 
 #include <ostream>
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "code_binaire.hh"
 
 std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
@@ -30,6 +32,15 @@ AtomeConstanteStructure::~AtomeConstanteStructure()
 AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 {
     memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacite);
+}
+
+VisibilitéSymbole AtomeGlobale::donne_visibilité_symbole() const
+{
+    if (!decl) {
+        return VisibilitéSymbole::INTERNE;
+    }
+
+    return decl->visibilité_symbole;
 }
 
 AtomeFonction::~AtomeFonction()

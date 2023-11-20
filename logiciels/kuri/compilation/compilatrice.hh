@@ -64,6 +64,7 @@ struct ArgumentsCompilatrice {
     bool profile_metaprogrammes = false;
     bool debogue_execution = false;
     bool émets_stats_ops_exécution = false;
+    bool préserve_symboles = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */

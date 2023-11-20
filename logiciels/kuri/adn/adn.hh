@@ -104,7 +104,7 @@ struct IdentifiantADN {
   private:
     void préserve_accents_si_nom_le_requiers()
     {
-        if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire") {
+        if (nom == "OpérateurUnaire" || nom == "OpérateurBinaire" || nom == "VisibilitéSymbole") {
             préserve_accents();
         }
     }

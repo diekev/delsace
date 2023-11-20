@@ -1369,7 +1369,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
 		noeud->lexeme = lexeme;
 		noeud->bloc_parent = bloc_courant();
 
-		if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE || noeud->lexeme->genre == GenreLexeme::EXTERNE)) {
+        if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE)) {
 			noeud->ident = lexeme->ident;
 		}
 

@@ -456,7 +456,7 @@ MYSQL_TIME :: struct #externe {
     time_zone_displacement : z32
 }
 // Error messages
-externe client_errors : []*z8
+client_errors : **z8 #externe libmysqlclient
 // Visual Studio requires '__inline' for C code
 ER_CLIENT :: fonc (client_errno : z32) -> *z8 #enligne
 {
@@ -467,8 +467,9 @@ ER_CLIENT :: fonc (client_errno : z32) -> *z8 #enligne
     retourne client_errors[2000]
 }
 
-externe mysql_port : n32
-externe mysql_unix_port : *z8
+mysql_port : n32 #externe libmysqlclient
+mysql_unix_port : *z8 #externe libmysqlclient
+
 MYSQL_FIELD :: struct #externe {
     // Name of column
     name : *z8

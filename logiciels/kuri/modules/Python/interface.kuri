@@ -200,7 +200,7 @@ Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERS
 Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0
 
 /* Déclaration du "object" dont les classes Python hérite par défaut. */
-externe PyBaseObject_Type: PyTypeObject
+PyBaseObject_Type: PyTypeObject #externe libpython
 
 PyType_Ready :: fonc (type: *PyTypeObject) -> z32 #externe libpython
 
@@ -281,7 +281,7 @@ METH_METHOD :: 0x0200
 
 PYTHON_API_VERSION :: 1013
 
-externe _Py_NoneStruct : PyObject
+_Py_NoneStruct : PyObject #externe libpython
 Py_None : *PyObject = *_Py_NoneStruct
 
 python_retourne_rien :: fonc () -> *PyObject
@@ -290,14 +290,14 @@ python_retourne_rien :: fonc () -> *PyObject
     retourne Py_None
 }
 
-externe PyBool_Type : PyTypeObject
+PyBool_Type : PyTypeObject #externe libpython
 
 _longobject :: struct {
     ob_base: PyVarObject
     ob_digit: [1]digit;
 }
 
-externe _Py_FalseStruct: PyObject // À FAIRE _longobject
+_Py_FalseStruct: PyObject #externe libpython // À FAIRE _longobject
 Py_False : *PyObject = *_Py_FalseStruct
 
 python_retourne_faux :: fonc () -> *PyObject
@@ -306,7 +306,7 @@ python_retourne_faux :: fonc () -> *PyObject
     retourne Py_False
 }
 
-externe _Py_TrueStruct : PyObject // À FAIRE _longobject
+_Py_TrueStruct : PyObject #externe libpython // À FAIRE _longobject
 Py_True : *PyObject = *_Py_TrueStruct
 
 python_retourne_true :: fonc () -> *PyObject
@@ -317,7 +317,7 @@ python_retourne_true :: fonc () -> *PyObject
 
 PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
 
-externe _Py_NotImplementedStruct : PyObject
+_Py_NotImplementedStruct : PyObject #externe libpython
 Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct
 
 // ---------------------------------------------------
@@ -502,7 +502,7 @@ PyLong_FromN64 :: fonc (l: n64) -> *PyObject
 // ---------------------------------------------------
 // Objet Réel/Double
 
-externe PyFloat_Type : PyTypeObject
+PyFloat_Type : PyTypeObject #externe libpython
 
 PyFloat_Check :: fonc (ob: *PyObject) -> bool
 {
@@ -525,7 +525,7 @@ PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
 // ---------------------------------------------------
 // Objet Unicode
 
-externe PyUnicode_Type : PyTypeObject
+PyUnicode_Type : PyTypeObject #externe libpython
 
 PyUnicode_Check :: fonc (ob: *PyObject) -> bool
 {
@@ -1040,59 +1040,59 @@ fonction_PyUnicodeEnum_Value_pour_info :: fonc (info_énum: *InfoTypeÉnum) -> c
 // ---------------------------------------------------
 // Exceptions
 
-externe PyExc_BaseException: *PyObject
-externe PyExc_Exception: *PyObject
-externe PyExc_ArithmeticError: *PyObject
-externe PyExc_AssertionError: *PyObject
-externe PyExc_AttributeError: *PyObject
-externe PyExc_BlockingIOError: *PyObject
-externe PyExc_BrokenPipeError: *PyObject
-externe PyExc_BufferError: *PyObject
-externe PyExc_ChildProcessError: *PyObject
-externe PyExc_ConnectionAbortedError: *PyObject
-externe PyExc_ConnectionError: *PyObject
-externe PyExc_ConnectionRefusedError: *PyObject
-externe PyExc_ConnectionResetError: *PyObject
-externe PyExc_EOFError: *PyObject
-externe PyExc_FileExistsError: *PyObject
-externe PyExc_FileNotFoundError: *PyObject
-externe PyExc_FloatingPointError: *PyObject
-externe PyExc_GeneratorExit: *PyObject
-externe PyExc_ImportError: *PyObject
-externe PyExc_IndentationError: *PyObject
-externe PyExc_IndexError: *PyObject
-externe PyExc_InterruptedError: *PyObject
-externe PyExc_IsADirectoryError: *PyObject
-externe PyExc_KeyError: *PyObject
-externe PyExc_KeyboardInterrupt: *PyObject
-externe PyExc_LookupError: *PyObject
-externe PyExc_MemoryError: *PyObject
-externe PyExc_ModuleNotFoundError: *PyObject
-externe PyExc_NameError: *PyObject
-externe PyExc_NotADirectoryError: *PyObject
-externe PyExc_NotImplementedError: *PyObject
-externe PyExc_OSError: *PyObject
-externe PyExc_OverflowError: *PyObject
-externe PyExc_PermissionError: *PyObject
-externe PyExc_ProcessLookupError: *PyObject
-externe PyExc_RecursionError: *PyObject
-externe PyExc_ReferenceError: *PyObject
-externe PyExc_RuntimeError: *PyObject
-externe PyExc_StopAsyncIteration: *PyObject
-externe PyExc_StopIteration: *PyObject
-externe PyExc_SyntaxError: *PyObject
-externe PyExc_SystemError: *PyObject
-externe PyExc_SystemExit: *PyObject
-externe PyExc_TabError: *PyObject
-externe PyExc_TimeoutError: *PyObject
-externe PyExc_TypeError: *PyObject
-externe PyExc_UnboundLocalError: *PyObject
-externe PyExc_UnicodeDecodeError: *PyObject
-externe PyExc_UnicodeEncodeError: *PyObject
-externe PyExc_UnicodeError: *PyObject
-externe PyExc_UnicodeTranslateError: *PyObject
-externe PyExc_ValueError: *PyObject
-externe PyExc_ZeroDivisionError: *PyObject
+PyExc_BaseException: *PyObject #externe libpython
+PyExc_Exception: *PyObject #externe libpython
+PyExc_ArithmeticError: *PyObject #externe libpython
+PyExc_AssertionError: *PyObject #externe libpython
+PyExc_AttributeError: *PyObject #externe libpython
+PyExc_BlockingIOError: *PyObject #externe libpython
+PyExc_BrokenPipeError: *PyObject #externe libpython
+PyExc_BufferError: *PyObject #externe libpython
+PyExc_ChildProcessError: *PyObject #externe libpython
+PyExc_ConnectionAbortedError: *PyObject #externe libpython
+PyExc_ConnectionError: *PyObject #externe libpython
+PyExc_ConnectionRefusedError: *PyObject #externe libpython
+PyExc_ConnectionResetError: *PyObject #externe libpython
+PyExc_EOFError: *PyObject #externe libpython
+PyExc_FileExistsError: *PyObject #externe libpython
+PyExc_FileNotFoundError: *PyObject #externe libpython
+PyExc_FloatingPointError: *PyObject #externe libpython
+PyExc_GeneratorExit: *PyObject #externe libpython
+PyExc_ImportError: *PyObject #externe libpython
+PyExc_IndentationError: *PyObject #externe libpython
+PyExc_IndexError: *PyObject #externe libpython
+PyExc_InterruptedError: *PyObject #externe libpython
+PyExc_IsADirectoryError: *PyObject #externe libpython
+PyExc_KeyError: *PyObject #externe libpython
+PyExc_KeyboardInterrupt: *PyObject #externe libpython
+PyExc_LookupError: *PyObject #externe libpython
+PyExc_MemoryError: *PyObject #externe libpython
+PyExc_ModuleNotFoundError: *PyObject #externe libpython
+PyExc_NameError: *PyObject #externe libpython
+PyExc_NotADirectoryError: *PyObject #externe libpython
+PyExc_NotImplementedError: *PyObject #externe libpython
+PyExc_OSError: *PyObject #externe libpython
+PyExc_OverflowError: *PyObject #externe libpython
+PyExc_PermissionError: *PyObject #externe libpython
+PyExc_ProcessLookupError: *PyObject #externe libpython
+PyExc_RecursionError: *PyObject #externe libpython
+PyExc_ReferenceError: *PyObject #externe libpython
+PyExc_RuntimeError: *PyObject #externe libpython
+PyExc_StopAsyncIteration: *PyObject #externe libpython
+PyExc_StopIteration: *PyObject #externe libpython
+PyExc_SyntaxError: *PyObject #externe libpython
+PyExc_SystemError: *PyObject #externe libpython
+PyExc_SystemExit: *PyObject #externe libpython
+PyExc_TabError: *PyObject #externe libpython
+PyExc_TimeoutError: *PyObject #externe libpython
+PyExc_TypeError: *PyObject #externe libpython
+PyExc_UnboundLocalError: *PyObject #externe libpython
+PyExc_UnicodeDecodeError: *PyObject #externe libpython
+PyExc_UnicodeEncodeError: *PyObject #externe libpython
+PyExc_UnicodeError: *PyObject #externe libpython
+PyExc_UnicodeTranslateError: *PyObject #externe libpython
+PyExc_ValueError: *PyObject #externe libpython
+PyExc_ZeroDivisionError: *PyObject #externe libpython
 
 PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
 

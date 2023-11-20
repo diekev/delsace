@@ -53,7 +53,7 @@ struct DonnéesConstantesExécutions {
     kuri::tableau<unsigned char, int> données_constantes{};
     kuri::tableau<PatchDonnéesConstantes, int> patchs_données_constantes{};
 
-    int ajoute_globale(Type *type, IdentifiantCode *ident, const Type *pour_info_type);
+    int ajoute_globale(Type *type, IdentifiantCode *ident, const void *adresse_pour_exécution);
 
     void rassemble_statistiques(Statistiques &stats) const;
 };
@@ -144,8 +144,6 @@ struct MetaProgramme {
      *
      * L'idée est similaire que celle du garde de controle de flux de Microsoft Windows :
      * https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
-     *
-     * À FAIRE : cibles des branches.
      */
     kuri::ensemble<AtomeFonction *> cibles_appels{};
 

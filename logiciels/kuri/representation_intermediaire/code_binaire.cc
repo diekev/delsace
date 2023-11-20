@@ -191,8 +191,7 @@ void Chunk::émets_retour(NoeudExpression const *site)
 
 void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
                               NoeudExpression const *site,
-                              Type const *type,
-                              bool ajoute_vérification)
+                              Type const *type)
 {
 #if 0  // ndef CMAKE_BUILD_TYPE_PROFILE
     assert_rappel(type->taille_octet, [&]() {
@@ -208,8 +207,8 @@ void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
     });
 #endif
 
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_ADRESSAGE_ASSIGNE, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_ADRESSAGE_ASSIGNE, site);
         émets(type->taille_octet);
     }
 
@@ -249,12 +248,12 @@ void Chunk::émets_copie_locale(NoeudExpression const *site,
     émets(pointeur_destination);
 }
 
-void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_vérification)
+void Chunk::émets_charge(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
 
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_ADRESSAGE_CHARGE, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_ADRESSAGE_CHARGE, site);
         émets(type->taille_octet);
     }
 
@@ -297,11 +296,10 @@ void Chunk::émets_référence_membre_locale(NoeudExpression *site, int pointeur
 
 void Chunk::émets_appel(NoeudExpression const *site,
                         AtomeFonction const *fonction,
-                        unsigned taille_arguments,
-                        bool ajoute_vérification)
+                        unsigned taille_arguments)
 {
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -314,11 +312,10 @@ void Chunk::émets_appel(NoeudExpression const *site,
 void Chunk::émets_appel_externe(NoeudExpression const *site,
                                 AtomeFonction const *fonction,
                                 unsigned taille_arguments,
-                                InstructionAppel const *inst_appel,
-                                bool ajoute_vérification)
+                                InstructionAppel const *inst_appel)
 {
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -329,12 +326,10 @@ void Chunk::émets_appel_externe(NoeudExpression const *site,
     émets(inst_appel);
 }
 
-void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
-                                     const AtomeFonction *fonction,
-                                     bool ajoute_vérification)
+void Chunk::émets_appel_compilatrice(const NoeudExpression *site, const AtomeFonction *fonction)
 {
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -351,11 +346,10 @@ void Chunk::émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction
 
 void Chunk::émets_appel_pointeur(NoeudExpression const *site,
                                  unsigned taille_arguments,
-                                 InstructionAppel const *inst_appel,
-                                 bool ajoute_vérification)
+                                 InstructionAppel const *inst_appel)
 {
-    if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(true); /* est pointeur */
     }
 
@@ -375,13 +369,15 @@ void Chunk::émets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
+    }
+
     émets_entête_op(OP_BRANCHE, site);
     émets(0);
-
-    auto patch = PatchLabel();
-    patch.index_label = index;
-    patch.adresse = static_cast<int>(compte - 4);
-    patchs_labels.ajoute(patch);
+    patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_branche_condition(NoeudExpression const *site,
@@ -389,19 +385,19 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
 {
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        émets(0);
+        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    }
+
     émets_entête_op(OP_BRANCHE_CONDITION, site);
     émets(0);
+    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
     émets(0);
-
-    auto patch = PatchLabel();
-    patch.index_label = index_label_si_vrai;
-    patch.adresse = static_cast<int>(compte - 8);
-    patchs_labels.ajoute(patch);
-
-    patch = PatchLabel();
-    patch.index_label = index_label_si_faux;
-    patch.adresse = static_cast<int>(compte - 4);
-    patchs_labels.ajoute(patch);
+    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
@@ -612,6 +608,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_LOGUE_RETOUR:
         case OP_LOGUE_SORTIES:
         case OP_RETOURNE:
+        case OP_VÉRIFIE_CIBLE_BRANCHE:
+        case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
         {
             return instruction_simple(chaine_code_operation(instruction), décalage, os);
         }
@@ -745,8 +743,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
-        case OP_VERIFIE_ADRESSAGE_ASSIGNE:
-        case OP_VERIFIE_ADRESSAGE_CHARGE:
+        case OP_VÉRIFIE_ADRESSAGE_ASSIGNE:
+        case OP_VÉRIFIE_ADRESSAGE_CHARGE:
         case OP_LOGUE_INSTRUCTION:
         case OP_INCRÉMENTE:
         case OP_DÉCRÉMENTE:
@@ -770,7 +768,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_2d<int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
         }
-        case OP_VERIFIE_CIBLE_APPEL:
+        case OP_VÉRIFIE_CIBLE_APPEL:
         {
             return instruction_2d<int, int64_t>(
                 chunk, chaine_code_operation(instruction), décalage, os);
@@ -1059,7 +1057,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
                 return false;
             }
 
-            donnees_externe.ptr_fonction = decl->symbole->adresse_pour_execution();
+            donnees_externe.ptr_fonction = decl->symbole->donne_adresse_fonction_pour_exécution();
         }
 
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
@@ -1095,6 +1093,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
 
     auto &chunk = données_exécution->chunk;
     chunk.émets_stats_ops = émets_stats_ops;
+    chunk.émets_vérification_branches = vérifie_adresses;
 
     POUR (fonction->params_entrees) {
         chunk.ajoute_locale(it);
@@ -1199,7 +1198,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             }
 
             génère_code_pour_atome(charge->chargee, chunk);
-            chunk.émets_charge(charge->site, charge->type, vérifie_adresses);
+            chunk.émets_charge(charge->site, charge->type);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -1233,8 +1232,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             // l'adresse de la valeur doit être au sommet de la pile lors de l'assignation
             génère_code_pour_atome(stocke->ou, chunk);
-            chunk.émets_assignation(
-                contexte(), stocke->site, stocke->valeur->type, vérifie_adresses);
+            chunk.émets_assignation(contexte(), stocke->site, stocke->valeur->type);
             break;
         }
         case GenreInstruction::APPEL:
@@ -1271,20 +1269,18 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 }
                 else if (atome_appelee->decl && atome_appelee->decl->possède_drapeau(
                                                     DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-                    chunk.émets_appel_compilatrice(appel->site, atome_appelee, vérifie_adresses);
+                    chunk.émets_appel_compilatrice(appel->site, atome_appelee);
                 }
                 else if (atome_appelee->est_externe) {
-                    chunk.émets_appel_externe(
-                        appel->site, atome_appelee, taille_arguments, appel, vérifie_adresses);
+                    chunk.émets_appel_externe(appel->site, atome_appelee, taille_arguments, appel);
                 }
                 else {
-                    chunk.émets_appel(
-                        appel->site, atome_appelee, taille_arguments, vérifie_adresses);
+                    chunk.émets_appel(appel->site, atome_appelee, taille_arguments);
                 }
             }
             else {
                 génère_code_pour_atome(appelee, chunk);
-                chunk.émets_appel_pointeur(appel->site, taille_arguments, appel, vérifie_adresses);
+                chunk.émets_appel_pointeur(appel->site, taille_arguments, appel);
             }
 
             break;
@@ -1339,7 +1335,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
                 if (type_accede->est_type_pointeur()) {
-                    chunk.émets_charge(index->site, type_pointeur, vérifie_adresses);
+                    chunk.émets_charge(index->site, type_pointeur);
                 }
             }
 
@@ -1796,7 +1792,9 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             /* À FAIRE(code binaire) : considère avoir OP_STRUCTURE_CONSTANTE et d'écrire
              * directement les données sans passer par des OP_CONSTANTES pour économiser de la
-             * mémoire. */
+             * mémoire. Ceci ne sera possible que si les globales ont des adresses stables pour
+             * pouvoir garantir que fonctions pointent vers la même globale pour chaque
+             * métaprogramme. */
             auto type_composé = static_cast<TypeCompose const *>(type);
 
             auto index_membre = 0;
@@ -1843,9 +1841,24 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
 {
     assert(globale->index == -1);
+
+    void *adresse_pour_exécution = nullptr;
+    if (globale->est_info_type_de) {
+        adresse_pour_exécution = globale->est_info_type_de->info_type;
+    }
+    else if (globale->decl && globale->decl->symbole) {
+        auto decl = globale->decl;
+        if (!decl->symbole->charge(
+                espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
+            return false;
+        }
+
+        adresse_pour_exécution = decl->symbole->donne_adresse_objet_pour_exécution();
+    }
+
     auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
     auto index = données_exécutions->ajoute_globale(
-        type_globale, globale->ident, globale->est_info_type_de);
+        type_globale, globale->ident, adresse_pour_exécution);
     const_cast<AtomeGlobale *>(globale)->index = index;
     return index;
 }

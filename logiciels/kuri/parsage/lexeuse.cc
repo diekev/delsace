@@ -265,8 +265,6 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
         /* fermeture */
         case GenreLexeme::PARENTHESE_FERMANTE:
         case GenreLexeme::CROCHET_FERMANT:
-        /* pour les déclarations de structures externes sans définitions */
-        case GenreLexeme::EXTERNE:
         case GenreLexeme::NON_INITIALISATION:
         {
             return true;
@@ -356,10 +354,7 @@ void Lexeuse::performe_lexage()
         auto table_identifiants = m_table_identifiants.verrou_ecriture();
 
         POUR (m_donnees->lexèmes) {
-            if (it.genre == GenreLexeme::EXTERNE) {
-                it.ident = ID::externe;
-            }
-            else if (it.genre == GenreLexeme::SI) {
+            if (it.genre == GenreLexeme::SI) {
                 it.ident = ID::si;
             }
             else if (it.genre == GenreLexeme::SAUFSI) {

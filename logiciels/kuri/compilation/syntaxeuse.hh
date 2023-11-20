@@ -11,6 +11,8 @@ struct Annotation;
 struct Compilatrice;
 struct NoeudBloc;
 struct NoeudDeclarationEnteteFonction;
+struct NoeudDeclarationSymbole;
+struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionVirgule;
 struct NoeudPour;
@@ -112,4 +114,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void requiers_typage(NoeudExpression *noeud);
 
     bool ignore_point_virgule_implicite();
+
+    void analyse_directive_déclaration_variable(NoeudDeclarationVariable *déclaration);
+    void analyse_directive_symbole_externe(NoeudDeclarationSymbole *déclaration_symbole);
 };
