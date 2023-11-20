@@ -116,9 +116,11 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_CHARGE)                                        \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_ASSIGNE)                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_CIBLE_APPEL)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_CIBLE_BRANCHE)                                           \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION)                                 \
     ENUMERE_CODE_OPERATION_EX(OP_STAT_INSTRUCTION)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_INSTRUCTION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_VALEURS_LOCALES)                                           \
@@ -222,6 +224,7 @@ struct Chunk {
     int64_t capacité = 0;
 
     bool émets_stats_ops = false;
+    bool émets_vérification_branches = false;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
@@ -292,14 +295,13 @@ struct Chunk {
 
     void émets_assignation(ContexteGénérationCodeBinaire contexte,
                            NoeudExpression const *site,
-                           Type const *type,
-                           bool ajoute_vérification);
+                           Type const *type);
     void émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_copie_locale(const NoeudExpression *site,
                             const Type *type,
                             int pointeur_source,
                             int pointeur_destination);
-    void émets_charge(NoeudExpression const *site, Type const *type, bool ajoute_vérification);
+    void émets_charge(NoeudExpression const *site, Type const *type);
     void émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type);
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
@@ -307,21 +309,16 @@ struct Chunk {
     void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
-                     unsigned taille_arguments,
-                     bool ajoute_vérification);
+                     unsigned taille_arguments);
     void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,
                              unsigned taille_arguments,
-                             InstructionAppel const *inst_appel,
-                             bool ajoute_vérification);
-    void émets_appel_compilatrice(NoeudExpression const *site,
-                                  AtomeFonction const *fonction,
-                                  bool ajoute_vérification);
+                             InstructionAppel const *inst_appel);
+    void émets_appel_compilatrice(NoeudExpression const *site, AtomeFonction const *fonction);
     void émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
-                              InstructionAppel const *inst_appel,
-                              bool ajoute_vérification);
+                              InstructionAppel const *inst_appel);
     void émets_accès_index(NoeudExpression const *site, Type const *type);
 
     void émets_branche(NoeudExpression const *site,

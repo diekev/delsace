@@ -209,7 +209,9 @@ AtomeGlobale *RegistreSymboliqueRI::trouve_ou_insère_globale(NoeudDeclaration *
     auto decl_var = decl->comme_declaration_variable();
 
     if (decl_var->atome == nullptr) {
-        decl_var->atome = crée_globale(decl->type, nullptr, false, false);
+        auto globale = crée_globale(decl->type, nullptr, false, false);
+        globale->decl = decl_var;
+        decl_var->atome = globale;
     }
 
     return decl_var->atome->comme_globale();

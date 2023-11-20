@@ -197,7 +197,7 @@ void logue_stats_instructions(MetaProgramme *métaprogramme)
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->données_exécution->données_externe.ptr_fonction ==                              \
-        reinterpret_cast<Symbole::type_fonction>(fonction)
+        reinterpret_cast<Symbole::type_adresse_fonction>(fonction)
 
 inline bool adresse_est_nulle(const void *adresse)
 {
@@ -486,6 +486,27 @@ static inline void *donne_adresse_locale(FrameAppel *frame, int index)
 {
     auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
     return &frame->pointeur_pile[locale.adresse];
+}
+
+struct LimitesCodeFrame {
+    octet_t const *adresse_début = nullptr;
+    octet_t const *adresse_fin = nullptr;
+};
+
+static LimitesCodeFrame donne_limite_code_frame(FrameAppel const *frame)
+{
+    auto adresse_base = frame->fonction->données_exécution->chunk.code;
+    auto taille = frame->fonction->données_exécution->chunk.compte;
+    return {adresse_base, adresse_base + taille};
+}
+
+static bool est_hors_limites(LimitesCodeFrame const limites, octet_t const *adresse)
+{
+    if (adresse < limites.adresse_début || adresse >= limites.adresse_fin) {
+        return true;
+    }
+
+    return false;
 }
 
 /* ************************************************************************** */
@@ -811,7 +832,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
-                                              RésultatInterprétation &résultat)
+                                              RésultatInterprétation &résultat_interp)
 {
     if (EST_FONCTION_COMPILATRICE(notre_malloc)) {
         auto taille = dépile<size_t>();
@@ -895,7 +916,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         if (status != FFI_OK) {
             rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
                                       "pour la fonction variadique externe.");
-            résultat = RésultatInterprétation::ERREUR;
+            résultat_interp = RésultatInterprétation::ERREUR;
             return;
         }
     }
@@ -1052,12 +1073,43 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
         auto instruction = LIS_OCTET();
 
         switch (instruction) {
+            case OP_VÉRIFIE_CIBLE_BRANCHE:
+            {
+                auto const décalage = LIS_4_OCTETS();
+                auto const limites = donne_limite_code_frame(frame);
+                auto const adresse_finale = limites.adresse_début + décalage;
+                if (est_hors_limites(limites, adresse_finale)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
+                break;
+            }
             case OP_BRANCHE:
             {
                 /* frame->pointeur contient le décalage relatif à l'adresse du début de la
                  * fonction, leur addition nous donne donc le nouveau pointeur. */
                 frame->pointeur = frame->fonction->données_exécution->chunk.code +
                                   *reinterpret_cast<int *>(frame->pointeur);
+                break;
+            }
+            case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
+            {
+                auto const décalage_si_vrai = LIS_4_OCTETS();
+                auto const limites = donne_limite_code_frame(frame);
+                auto const adresse_finale_si_vrai = limites.adresse_début + décalage_si_vrai;
+                if (est_hors_limites(limites, adresse_finale_si_vrai)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
+                auto const décalage_si_faux = LIS_4_OCTETS();
+                auto const adresse_finale_si_faux = limites.adresse_début + décalage_si_faux;
+                if (est_hors_limites(limites, adresse_finale_si_faux)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
                 break;
             }
             case OP_BRANCHE_CONDITION:
@@ -1486,7 +1538,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 frame = &frames[profondeur_appel - 1];
                 break;
             }
-            case OP_VERIFIE_CIBLE_APPEL:
+            case OP_VÉRIFIE_CIBLE_APPEL:
             {
                 auto est_pointeur = LIS_OCTET();
                 AtomeFonction *ptr_fonction = nullptr;
@@ -1585,7 +1637,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_VERIFIE_ADRESSAGE_ASSIGNE:
+            case OP_VÉRIFIE_ADRESSAGE_ASSIGNE:
             {
                 auto taille = LIS_4_OCTETS();
 
@@ -1634,7 +1686,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 memcpy(adresse_destination, adresse_source, static_cast<size_t>(taille));
                 break;
             }
-            case OP_VERIFIE_ADRESSAGE_CHARGE:
+            case OP_VÉRIFIE_ADRESSAGE_CHARGE:
             {
                 auto taille = LIS_4_OCTETS();
 
