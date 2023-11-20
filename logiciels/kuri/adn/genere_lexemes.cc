@@ -90,7 +90,6 @@ static void construit_lexemes(ListeLexemes &lexemes)
     lexemes.ajoute_mot_cle("eini_erreur", EST_IDENTIFIANT_TYPE);
     lexemes.ajoute_mot_cle("empl");
     lexemes.ajoute_mot_cle("erreur");
-    lexemes.ajoute_mot_cle("externe");
     lexemes.ajoute_mot_cle("faux");
     lexemes.ajoute_mot_cle("fonc");
     lexemes.ajoute_mot_cle("garde");

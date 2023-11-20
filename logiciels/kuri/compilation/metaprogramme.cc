@@ -16,19 +16,13 @@
 
 int DonnéesConstantesExécutions::ajoute_globale(Type *type,
                                                 IdentifiantCode *ident,
-                                                const Type *pour_info_type)
+                                                const void *adresse_pour_exécution)
 {
     auto globale = Globale{};
     globale.type = type;
     globale.ident = ident;
     globale.adresse = données_globales.taille();
-
-    if (pour_info_type) {
-        globale.adresse_pour_exécution = pour_info_type->info_type;
-    }
-    else {
-        globale.adresse_pour_exécution = nullptr;
-    }
+    globale.adresse_pour_exécution = const_cast<void *>(adresse_pour_exécution);
 
     données_globales.redimensionne(données_globales.taille() +
                                    static_cast<int>(type->taille_octet));

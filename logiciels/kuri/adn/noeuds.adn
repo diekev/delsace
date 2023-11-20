@@ -237,6 +237,16 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
      * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
      * lexical si ajoutée lors du syntaxage. */
     NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
+
+    /* Pour les fonctions et globales externes :
+     * - nom du symbole dans la bibliothèque
+     * - la bibliothèque où se trouve le Symbole
+     * - le symbole lui-même */
+    chaine_statique nom_symbole
+    IdentifiantCode *ident_bibliothèque
+    Symbole *symbole
+
+    VisibilitéSymbole visibilité_symbole [préserve_accents]
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
@@ -410,14 +420,6 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
     bool est_opérateur [code copie]
     bool est_coroutine [code copie]
     bool est_déclaration_type [copie]
-
-    /* pour les fonctions externes :
-     * - nom du symbole dans la bibliothèque
-     * - la bibliothèque où se trouve le Symbole
-     * - le symbole lui-même */
-    chaine_statique nom_symbole
-    IdentifiantCode *ident_bibliothèque
-    Symbole *symbole
 
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
