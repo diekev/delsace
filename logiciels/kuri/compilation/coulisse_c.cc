@@ -96,7 +96,7 @@ struct GénératriceCodeC {
 
     void déclare_globale(Enchaineuse &os, AtomeGlobale const *valeur_globale, bool pour_entete);
 
-    void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc);
+    void déclare_fonction(Enchaineuse &os, AtomeFonction const *atome_fonc, bool pour_entête);
 
     void génère_code(ProgrammeRepreInter const &repr_inter, CoulisseC &coulisse, Enchaineuse &os);
 
@@ -776,6 +776,14 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #else
 #  define INUTILISE(x) INUTILISE_ ## x
 #endif
+
+#if __GNUC__ >= 4
+#  define SYMBOLE_PUBLIC __attribute__ ((visibility ("default")))
+#  define SYMBOLE_LOCAL  __attribute__ ((visibility ("hidden")))
+#else
+#  define SYMBOLE_PUBLIC
+#  define SYMBOLE_LOCAL
+#endif
 )";
 
     enchaineuse << attribut_inutilisé;
@@ -810,23 +818,40 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
     enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
+static kuri::chaine_statique donne_chaine_pour_visibilité(VisibilitéSymbole visibilité)
+{
+    switch (visibilité) {
+        case VisibilitéSymbole::EXPORTÉ:
+        {
+            return "SYMBOLE_PUBLIC ";
+        }
+        case VisibilitéSymbole::INTERNE:
+        {
+            return "SYMBOLE_LOCAL ";
+        }
+    }
+
+    return "";
+}
+
 static void déclare_visibilité_globale(Enchaineuse &os,
                                        AtomeGlobale const *valeur_globale,
                                        bool pour_entête)
 {
     if (valeur_globale->est_externe) {
         os << "extern ";
+        return;
     }
-    else if (valeur_globale->est_constante) {
+
+    if (pour_entête) {
+        os << donne_chaine_pour_visibilité(valeur_globale->donne_visibilité_symbole());
+    }
+
+    if (valeur_globale->est_constante) {
         if (pour_entête) {
             os << "extern ";
         }
         os << "const ";
-    }
-    else {
-        // À FAIRE : permet de définir la visibilité des globales
-        //           en dehors des fichiers dynamiques.
-        // os << "static ";
     }
 }
 
@@ -1564,7 +1589,9 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
     return {};
 }
 
-void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction *atome_fonc)
+void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
+                                        const AtomeFonction *atome_fonc,
+                                        bool pour_entête)
 {
     if (atome_fonc->decl &&
         atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
@@ -1577,6 +1604,9 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os, const AtomeFonction 
 
     if (atome_fonc->enligne) {
         os << "static __attribute__((always_inline)) inline ";
+    }
+    else if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
+        os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
     }
 
     auto type_fonction = atome_fonc->type->comme_type_fonction();
@@ -1652,7 +1682,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
 
     /* Déclarons ensuite les fonctions. */
     POUR (repr_inter.fonctions) {
-        déclare_fonction(os, it);
+        déclare_fonction(os, it, true);
         os << ";\n\n";
     }
 
@@ -1669,7 +1699,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
 
 void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc, Enchaineuse &os)
 {
-    déclare_fonction(os, atome_fonc);
+    déclare_fonction(os, atome_fonc, false);
 
     table_valeurs.redimensionne(atome_fonc->params_entrees.taille() + 1 +
                                 atome_fonc->instructions.taille() +

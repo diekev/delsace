@@ -44,6 +44,8 @@ struct InstructionStockeMem;
 struct InstructionTranstype;
 struct Type;
 
+enum class VisibilitéSymbole : uint8_t;
+
 #define ENUMERE_GENRE_ATOME(O)                                                                    \
     O(CONSTANTE_ENTIÈRE, AtomeConstanteEntière, constante_entière)                                \
     O(CONSTANTE_RÉELLE, AtomeConstanteRéelle, constante_réelle)                                   \
@@ -301,6 +303,8 @@ struct AtomeGlobale : public AtomeConstante {
         this->est_externe = est_externe_;
         this->est_constante = est_constante_;
     }
+
+    VisibilitéSymbole donne_visibilité_symbole() const;
 };
 
 struct TranstypeConstant : public AtomeConstante {

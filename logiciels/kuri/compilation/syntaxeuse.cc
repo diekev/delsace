@@ -2519,6 +2519,12 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
                 noeud->nom_symbole = lexeme_courant()->chaine;
             }
+            else if (ident_directive == ID::interne) {
+                noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            }
+            else if (ident_directive == ID::exporte) {
+                noeud->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
+            }
             else {
                 rapporte_erreur("Directive de fonction inconnue.");
             }
@@ -3113,6 +3119,18 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDeclarationVariabl
         consomme();
         analyse_directive_symbole_externe(déclaration);
         déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+        return;
+    }
+
+    if (lexème_directive->ident == ID::interne) {
+        consomme();
+        déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+        return;
+    }
+
+    if (lexème_directive->ident == ID::exporte) {
+        consomme();
+        déclaration->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
         return;
     }
 
