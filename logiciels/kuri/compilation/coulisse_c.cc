@@ -1869,10 +1869,6 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlob
         }
     }
     else {
-        /* __contexte_fil_principal est utilisé dans les macros. */
-        if (valeur_globale->ident == ID::__contexte_fil_principal) {
-            return valeur_globale->ident->nom;
-        }
         if (valeur_globale->est_externe) {
             return valeur_globale->ident->nom;
         }
