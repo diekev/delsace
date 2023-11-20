@@ -138,6 +138,22 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Visibilité symbole.
+ * Définis la visibilité des symboles dans les bibliothèques partagées.
+ * \{ */
+
+enum class VisibilitéSymbole : uint8_t {
+    /* Le symbole ne sera pas visible. */
+    INTERNE,
+    /* Le symbole sera visible. */
+    EXPORTÉ,
+};
+
+std::ostream &operator<<(std::ostream &os, VisibilitéSymbole visibilité);
+
+/** \} */
+
 enum {
     /* instruction 'pour' */
     GENERE_BOUCLE_PLAGE,

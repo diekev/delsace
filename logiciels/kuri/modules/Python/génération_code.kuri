@@ -904,7 +904,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("    m_free = nul)\n")
 
     /* La fonction d'initialisation du module doit avoir la signature : PyInit_nom_module :: fonc () -> *PyObject */
-    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace\n", module.nom)
+    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace #exporte\n", module.nom)
     enchaineuse.ajoute_au_tampon("{\n")
     enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
 
