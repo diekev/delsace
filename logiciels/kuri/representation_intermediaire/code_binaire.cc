@@ -1796,7 +1796,9 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             /* À FAIRE(code binaire) : considère avoir OP_STRUCTURE_CONSTANTE et d'écrire
              * directement les données sans passer par des OP_CONSTANTES pour économiser de la
-             * mémoire. */
+             * mémoire. Ceci ne sera possible que si les globales ont des adresses stables pour
+             * pouvoir garantir que fonctions pointent vers la même globale pour chaque
+             * métaprogramme. */
             auto type_composé = static_cast<TypeCompose const *>(type);
 
             auto index_membre = 0;
