@@ -369,13 +369,15 @@ void Chunk::émets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
                           int index)
 {
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
+    }
+
     émets_entête_op(OP_BRANCHE, site);
     émets(0);
-
-    auto patch = PatchLabel();
-    patch.index_label = index;
-    patch.adresse = static_cast<int>(compte - 4);
-    patchs_labels.ajoute(patch);
+    patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_branche_condition(NoeudExpression const *site,
@@ -383,19 +385,19 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
                                     int index_label_si_vrai,
                                     int index_label_si_faux)
 {
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        émets(0);
+        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    }
+
     émets_entête_op(OP_BRANCHE_CONDITION, site);
     émets(0);
+    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
     émets(0);
-
-    auto patch = PatchLabel();
-    patch.index_label = index_label_si_vrai;
-    patch.adresse = static_cast<int>(compte - 8);
-    patchs_labels.ajoute(patch);
-
-    patch = PatchLabel();
-    patch.index_label = index_label_si_faux;
-    patch.adresse = static_cast<int>(compte - 4);
-    patchs_labels.ajoute(patch);
+    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
@@ -606,6 +608,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_LOGUE_RETOUR:
         case OP_LOGUE_SORTIES:
         case OP_RETOURNE:
+        case OP_VÉRIFIE_CIBLE_BRANCHE:
+        case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
         {
             return instruction_simple(chaine_code_operation(instruction), décalage, os);
         }

@@ -488,6 +488,27 @@ static inline void *donne_adresse_locale(FrameAppel *frame, int index)
     return &frame->pointeur_pile[locale.adresse];
 }
 
+struct LimitesCodeFrame {
+    octet_t const *adresse_début = nullptr;
+    octet_t const *adresse_fin = nullptr;
+};
+
+static LimitesCodeFrame donne_limite_code_frame(FrameAppel const *frame)
+{
+    auto adresse_base = frame->fonction->données_exécution->chunk.code;
+    auto taille = frame->fonction->données_exécution->chunk.compte;
+    return {adresse_base, adresse_base + taille};
+}
+
+static bool est_hors_limites(LimitesCodeFrame const limites, octet_t const *adresse)
+{
+    if (adresse < limites.adresse_début || adresse >= limites.adresse_fin) {
+        return true;
+    }
+
+    return false;
+}
+
 /* ************************************************************************** */
 
 MachineVirtuelle::MachineVirtuelle(Compilatrice &compilatrice_) : compilatrice(compilatrice_)
@@ -1052,12 +1073,43 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
         auto instruction = LIS_OCTET();
 
         switch (instruction) {
+            case OP_VÉRIFIE_CIBLE_BRANCHE:
+            {
+                auto const décalage = LIS_4_OCTETS();
+                auto const limites = donne_limite_code_frame(frame);
+                auto const adresse_finale = limites.adresse_début + décalage;
+                if (est_hors_limites(limites, adresse_finale)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
+                break;
+            }
             case OP_BRANCHE:
             {
                 /* frame->pointeur contient le décalage relatif à l'adresse du début de la
                  * fonction, leur addition nous donne donc le nouveau pointeur. */
                 frame->pointeur = frame->fonction->données_exécution->chunk.code +
                                   *reinterpret_cast<int *>(frame->pointeur);
+                break;
+            }
+            case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
+            {
+                auto const décalage_si_vrai = LIS_4_OCTETS();
+                auto const limites = donne_limite_code_frame(frame);
+                auto const adresse_finale_si_vrai = limites.adresse_début + décalage_si_vrai;
+                if (est_hors_limites(limites, adresse_finale_si_vrai)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
+                auto const décalage_si_faux = LIS_4_OCTETS();
+                auto const adresse_finale_si_faux = limites.adresse_début + décalage_si_faux;
+                if (est_hors_limites(limites, adresse_finale_si_faux)) {
+                    rapporte_erreur_exécution(
+                        "Branche vers une destination hors des limites de la fonction");
+                    return RésultatInterprétation::ERREUR;
+                }
                 break;
             }
             case OP_BRANCHE_CONDITION:

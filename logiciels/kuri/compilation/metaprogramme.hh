@@ -144,8 +144,6 @@ struct MetaProgramme {
      *
      * L'idée est similaire que celle du garde de controle de flux de Microsoft Windows :
      * https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
-     *
-     * À FAIRE : cibles des branches.
      */
     kuri::ensemble<AtomeFonction *> cibles_appels{};
 
