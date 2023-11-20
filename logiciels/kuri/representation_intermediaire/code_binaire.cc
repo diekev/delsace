@@ -995,7 +995,7 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
-bool CompilatriceCodeBinaire::génère_code(const kuri::tableau<AtomeFonction *> &fonctions)
+bool CompilatriceCodeBinaire::génère_code(kuri::tableau_statique<AtomeFonction *> fonctions)
 {
     POUR (fonctions) {
         /* Évite de recréer le code binaire. */

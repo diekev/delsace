@@ -288,10 +288,14 @@ void imprime_contenu_programme(Programme const &programme, uint32_t quoi, std::o
 /* La représentation intermédiaire des fonctions et globles contenues dans un Programme, ainsi que
  * tous les types utilisées. */
 struct ProgrammeRepreInter {
+  private:
+    friend struct ConstructriceProgrammeFormeRI;
+
     kuri::tableau<AtomeGlobale *> globales{};
     kuri::tableau<AtomeFonction *> fonctions{};
     kuri::tableau<Type *> types{};
 
+  public:
     struct DonnéesTableauxConstants {
         AtomeGlobale *globale = nullptr;
         AtomeConstanteDonnéesConstantes const *tableau = nullptr;
@@ -314,8 +318,12 @@ struct ProgrammeRepreInter {
     mutable DonnéesConstantes m_données_constantes{};
     mutable bool m_données_constantes_construites = false;
 
-  public:
     void ajoute_globale(AtomeGlobale *globale);
+
+  public:
+    kuri::tableau_statique<AtomeGlobale *> donne_globales() const;
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions() const;
+    kuri::tableau_statique<Type *> donne_types() const;
 
     std::optional<DonnéesConstantes const *> donne_données_constantes() const;
 

@@ -1103,14 +1103,14 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
 {
     if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_TYPES) != 0) {
         os << "Types dans le programme...\n";
-        POUR (programme.types) {
+        POUR (programme.donne_types()) {
             os << "-- " << chaine_type(it) << '\n';
         }
     }
 
     if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_FONCTIONS) != 0) {
         os << "Fonctions dans le programme...\n";
-        POUR (programme.fonctions) {
+        POUR (programme.donne_fonctions()) {
             if (it->decl && it->decl->ident) {
                 os << "-- " << it->decl->ident->nom << ' ' << chaine_type(it->type) << '\n';
             }
@@ -1122,7 +1122,7 @@ void imprime_contenu_programme(const ProgrammeRepreInter &programme,
 
     if (quoi == IMPRIME_TOUT || (quoi & IMPRIME_GLOBALES) != 0) {
         os << "Globales dans le programme...\n";
-        POUR (programme.globales) {
+        POUR (programme.donne_globales()) {
             if (it->ident) {
                 os << "-- " << it->ident->nom << '\n';
             }
@@ -1151,6 +1151,21 @@ void ProgrammeRepreInter::ajoute_globale(AtomeGlobale *globale)
     }
 
     globales.ajoute(globale);
+}
+
+kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales() const
+{
+    return globales;
+}
+
+kuri::tableau_statique<AtomeFonction *> ProgrammeRepreInter::donne_fonctions() const
+{
+    return fonctions;
+}
+
+kuri::tableau_statique<Type *> ProgrammeRepreInter::donne_types() const
+{
+    return types;
 }
 
 static Type const *donne_type_élément(AtomeConstanteDonnéesConstantes const *tableau)

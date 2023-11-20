@@ -1693,7 +1693,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
     }
 
     /* Déclarons les globales. */
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         déclare_globale(os, it, true);
         os << ";\n";
     }
@@ -1701,13 +1701,13 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
     génère_code_pour_tableaux_données_constantes(os, repr_inter, true);
 
     /* Déclarons ensuite les fonctions. */
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         déclare_fonction(os, it, true);
         os << ";\n\n";
     }
 
     /* Définissons ensuite les fonctions devant être enlignées. */
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         /* Ignore les fonctions externes ou les fonctions qui ne sont pas enlignées. */
         if (it->instructions.taille() == 0 || !it->enligne) {
             continue;
@@ -1882,7 +1882,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     génère_code_pour_tableaux_données_constantes(os, repr_inter, false);
 
     /* Définis les globales. */
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         if (it->est_externe) {
             /* Inutile de regénérer le code. */
             continue;
@@ -1917,7 +1917,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     int nombre_instructions = 0;
 
     /* Définis les fonctions. */
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         /* Ignore les fonctions externes ou les fonctions qui sont enlignées. */
         if (it->instructions.taille() == 0 || it->enligne) {
             continue;
@@ -1955,11 +1955,11 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter_pro
     ConvertisseuseTypeC convertisseuse_type_c(broyeuse, *this);
     génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
 
-    POUR (repr_inter_programme.types) {
+    POUR (repr_inter_programme.donne_types()) {
         convertisseuse_type_c.génère_typedef(it, enchaineuse);
     }
 
-    POUR (repr_inter_programme.types) {
+    POUR (repr_inter_programme.donne_types()) {
         convertisseuse_type_c.génère_code_pour_type(it, enchaineuse);
     }
 
