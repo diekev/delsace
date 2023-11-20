@@ -27,6 +27,7 @@ struct NoeudDirectiveCuisine;
 struct NoeudDirectiveDependanceBibliotheque;
 struct NoeudDirectiveExecute;
 struct NoeudDeclarationOperateurPour;
+struct NoeudDeclarationSymbole;
 struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionBinaire;
@@ -47,6 +48,8 @@ struct UniteCompilation;
 namespace erreur {
 enum class Genre : int;
 }
+
+enum class TypeSymbole : uint8_t;
 
 enum class CodeRetourValidation : int {
     OK,
@@ -131,7 +134,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_types_parametres_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_definition_unique_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_definition_unique_operateur(NoeudDeclarationEnteteFonction *);
-    ResultatValidation valide_symbole_fonction(NoeudDeclarationEnteteFonction *);
+    ResultatValidation valide_symbole_externe(NoeudDeclarationSymbole *, TypeSymbole type_symbole);
     ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 

@@ -137,6 +137,29 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeudFonction const drapeaux)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Visibilité symbole.
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, VisibilitéSymbole visibilité)
+{
+    switch (visibilité) {
+        case VisibilitéSymbole::INTERNE:
+        {
+            os << "INTERNE";
+            break;
+        }
+        case VisibilitéSymbole::EXPORTÉ:
+        {
+            os << "EXPORTÉ";
+            break;
+        }
+    }
+    return os << "VISIBILITÉ INCONNUE";
+}
+
+/** \} */
+
 /* ************************************************************************** */
 
 static void aplatis_arbre(NoeudExpression *racine,
