@@ -777,6 +777,18 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #  define INUTILISE(x) INUTILISE_ ## x
 #endif
 
+#ifdef __GNUC__
+#  define TOUJOURS_ENLIGNE __attribute__((always_inline)) inline
+#else
+#  define TOUJOURS_ENLIGNE
+#endif
+
+#ifdef __GNUC__
+#  define TOUJOURS_HORSLIGNE __attribute__((noinline))
+#else
+#  define TOUJOURS_HORSLIGNE
+#endif
+
 #if __GNUC__ >= 4
 #  define SYMBOLE_PUBLIC __attribute__ ((visibility ("default")))
 #  define SYMBOLE_LOCAL  __attribute__ ((visibility ("hidden")))
@@ -1604,10 +1616,17 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 #endif
 
     if (atome_fonc->enligne) {
-        os << "static __attribute__((always_inline)) inline ";
+        os << "static TOUJOURS_ENLIGNE ";
     }
-    else if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
-        os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+    else {
+        if (atome_fonc->decl &&
+            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+            os << "TOUJOURS_HORSLIGNE ";
+        }
+
+        if (pour_entête && atome_fonc->decl && !atome_fonc->est_externe) {
+            os << donne_chaine_pour_visibilité(atome_fonc->decl->visibilité_symbole);
+        }
     }
 
     auto type_fonction = atome_fonc->type->comme_type_fonction();
