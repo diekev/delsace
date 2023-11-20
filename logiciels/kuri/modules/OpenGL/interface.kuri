@@ -104,7 +104,7 @@ GL_COLOR_BUFFER_BIT : GLenum : 0x00004000
 
 glDepthFunc :: fonc (x: n32) -> rien #externe libGL
 
-externe glewExperimental : z32
+glewExperimental : z32 #externe libGLEW
 
 glewInit :: fonc () -> z32 #externe libGLEW
 
