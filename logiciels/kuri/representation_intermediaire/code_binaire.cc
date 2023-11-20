@@ -1059,7 +1059,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
                 return false;
             }
 
-            donnees_externe.ptr_fonction = decl->symbole->adresse_pour_execution();
+            donnees_externe.ptr_fonction = decl->symbole->donne_adresse_fonction_pour_exécution();
         }
 
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
@@ -1855,10 +1855,7 @@ int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
             return false;
         }
 
-        /* À FAIRE : sépare les adresses des objets des adresses des fonctions.
-         * Les objets sont void* alors que les fonction sont void(*)()
-         */
-        adresse_pour_exécution = reinterpret_cast<void *>(decl->symbole->adresse_pour_execution());
+        adresse_pour_exécution = decl->symbole->donne_adresse_objet_pour_exécution();
     }
 
     auto type_globale = globale->type->comme_type_pointeur()->type_pointe;

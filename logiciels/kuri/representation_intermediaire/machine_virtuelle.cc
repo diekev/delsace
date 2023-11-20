@@ -197,7 +197,7 @@ void logue_stats_instructions(MetaProgramme *métaprogramme)
 
 #define EST_FONCTION_COMPILATRICE(fonction)                                                       \
     ptr_fonction->données_exécution->données_externe.ptr_fonction ==                              \
-        reinterpret_cast<Symbole::type_fonction>(fonction)
+        reinterpret_cast<Symbole::type_adresse_fonction>(fonction)
 
 inline bool adresse_est_nulle(const void *adresse)
 {

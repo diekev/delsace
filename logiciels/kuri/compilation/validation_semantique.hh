@@ -49,6 +49,8 @@ namespace erreur {
 enum class Genre : int;
 }
 
+enum class TypeSymbole : uint8_t;
+
 enum class CodeRetourValidation : int {
     OK,
     Erreur,
@@ -132,7 +134,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_types_parametres_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_definition_unique_fonction(NoeudDeclarationEnteteFonction *);
     ResultatValidation valide_definition_unique_operateur(NoeudDeclarationEnteteFonction *);
-    ResultatValidation valide_symbole_externe(NoeudDeclarationSymbole *);
+    ResultatValidation valide_symbole_externe(NoeudDeclarationSymbole *, TypeSymbole type_symbole);
     ResultatValidation valide_fonction(NoeudDeclarationCorpsFonction *);
     ResultatValidation valide_operateur(NoeudDeclarationCorpsFonction *);
 

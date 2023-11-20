@@ -1668,7 +1668,7 @@ ResultatValidation ContexteValidationCode::valide_entete_fonction(
 
     TENTE(valide_types_parametres_fonction(decl));
     TENTE(valide_definition_unique_fonction(decl));
-    TENTE(valide_symbole_externe(decl));
+    TENTE(valide_symbole_externe(decl, TypeSymbole::FONCTION));
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
@@ -2017,7 +2017,8 @@ ResultatValidation ContexteValidationCode::valide_definition_unique_operateur(
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_symbole_externe(NoeudDeclarationSymbole *decl)
+ResultatValidation ContexteValidationCode::valide_symbole_externe(NoeudDeclarationSymbole *decl,
+                                                                  TypeSymbole type_symbole)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
     if (!decl->ident_bibliotheque) {
@@ -2035,7 +2036,7 @@ ResultatValidation ContexteValidationCode::valide_symbole_externe(NoeudDeclarati
         return CodeRetourValidation::Erreur;
     }
 
-    decl->symbole = bibliotheque->crée_symbole(decl->nom_symbole);
+    decl->symbole = bibliotheque->crée_symbole(decl->nom_symbole, type_symbole);
     return CodeRetourValidation::OK;
 }
 
@@ -4268,7 +4269,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
         simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, decl);
 
         POUR (decls_et_refs) {
-            TENTE(valide_symbole_externe(it.decl))
+            TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
         }
 
         /* Pour la génération de RI pour les globales, nous devons attendre que le type fut validé.
