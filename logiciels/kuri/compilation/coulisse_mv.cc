@@ -31,7 +31,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
 
     /* Génère les infos type manquants. Les globales représentant des infos types sont substitutées
      * par l'adresse de l'infotype. */
-    POUR (repr_inter.globales) {
+    POUR (repr_inter.donne_globales()) {
         if (!it->est_info_type_de) {
             continue;
         }
@@ -41,14 +41,14 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
         assert(type->info_type);
     }
 
-    POUR (repr_inter.fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         métaprogramme->cibles_appels.insère(it);
     }
 
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
     auto compilatrice_cb = CompilatriceCodeBinaire(&espace, métaprogramme);
-    return compilatrice_cb.génère_code(repr_inter.fonctions);
+    return compilatrice_cb.génère_code(repr_inter.donne_fonctions());
 }
 
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
