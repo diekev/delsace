@@ -209,7 +209,7 @@ void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
 #endif
 
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_ADRESSAGE_ASSIGNE, site);
+        émets_entête_op(OP_VÉRIFIE_ADRESSAGE_ASSIGNE, site);
         émets(type->taille_octet);
     }
 
@@ -254,7 +254,7 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type, bool aj
     assert(type->taille_octet);
 
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_ADRESSAGE_CHARGE, site);
+        émets_entête_op(OP_VÉRIFIE_ADRESSAGE_CHARGE, site);
         émets(type->taille_octet);
     }
 
@@ -301,7 +301,7 @@ void Chunk::émets_appel(NoeudExpression const *site,
                         bool ajoute_vérification)
 {
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -318,7 +318,7 @@ void Chunk::émets_appel_externe(NoeudExpression const *site,
                                 bool ajoute_vérification)
 {
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -334,7 +334,7 @@ void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
                                      bool ajoute_vérification)
 {
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(false); /* est pointeur */
         émets(fonction);
     }
@@ -355,7 +355,7 @@ void Chunk::émets_appel_pointeur(NoeudExpression const *site,
                                  bool ajoute_vérification)
 {
     if (ajoute_vérification) {
-        émets_entête_op(OP_VERIFIE_CIBLE_APPEL, site);
+        émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
         émets(true); /* est pointeur */
     }
 
@@ -745,8 +745,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
-        case OP_VERIFIE_ADRESSAGE_ASSIGNE:
-        case OP_VERIFIE_ADRESSAGE_CHARGE:
+        case OP_VÉRIFIE_ADRESSAGE_ASSIGNE:
+        case OP_VÉRIFIE_ADRESSAGE_CHARGE:
         case OP_LOGUE_INSTRUCTION:
         case OP_INCRÉMENTE:
         case OP_DÉCRÉMENTE:
@@ -770,7 +770,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_2d<int, int>(
                 chunk, chaine_code_operation(instruction), décalage, os);
         }
-        case OP_VERIFIE_CIBLE_APPEL:
+        case OP_VÉRIFIE_CIBLE_APPEL:
         {
             return instruction_2d<int, int64_t>(
                 chunk, chaine_code_operation(instruction), décalage, os);

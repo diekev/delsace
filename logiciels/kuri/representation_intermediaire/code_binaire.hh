@@ -116,9 +116,9 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_ENTIER)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_ENTIER_VERS_REEL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_CHARGE)                                        \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_ADRESSAGE_ASSIGNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_VERIFIE_CIBLE_APPEL)                                             \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_CHARGE)                                        \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_ASSIGNE)                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_CIBLE_APPEL)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_STAT_INSTRUCTION)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_INSTRUCTION)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_VALEURS_LOCALES)                                           \

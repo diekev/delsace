@@ -1486,7 +1486,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 frame = &frames[profondeur_appel - 1];
                 break;
             }
-            case OP_VERIFIE_CIBLE_APPEL:
+            case OP_VÉRIFIE_CIBLE_APPEL:
             {
                 auto est_pointeur = LIS_OCTET();
                 AtomeFonction *ptr_fonction = nullptr;
@@ -1585,7 +1585,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_VERIFIE_ADRESSAGE_ASSIGNE:
+            case OP_VÉRIFIE_ADRESSAGE_ASSIGNE:
             {
                 auto taille = LIS_4_OCTETS();
 
@@ -1634,7 +1634,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 memcpy(adresse_destination, adresse_source, static_cast<size_t>(taille));
                 break;
             }
-            case OP_VERIFIE_ADRESSAGE_CHARGE:
+            case OP_VÉRIFIE_ADRESSAGE_CHARGE:
             {
                 auto taille = LIS_4_OCTETS();
 
