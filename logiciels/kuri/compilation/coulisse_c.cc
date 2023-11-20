@@ -1897,7 +1897,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
 
         déclare_globale(os, valeur_globale, false);
 
-        if (!valeur_globale->est_externe && valeur_globale->initialisateur) {
+        if (valeur_globale->initialisateur) {
             os << " = " << valeur_initialisateur;
         }
 
