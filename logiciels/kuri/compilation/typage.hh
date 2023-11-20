@@ -805,6 +805,11 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type);
 
 bool peut_etre_type_constante(Type const *type);
 
+/**
+ * Retourne vrai si type_dest opacifie type_source.
+ */
+bool est_type_opacifié(Type const *type_dest, Type const *type_source);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

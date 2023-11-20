@@ -69,6 +69,7 @@ set(SOURCES
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
+add_library(kuri::structures ALIAS kuri_structures)
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 

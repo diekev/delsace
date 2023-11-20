@@ -2173,6 +2173,12 @@ bool peut_etre_type_constante(Type const *type)
     }
 }
 
+bool est_type_opacifié(Type const *type_dest, Type const *type_source)
+{
+    return type_dest->est_type_opaque() &&
+           type_dest->comme_type_opaque()->type_opacifie == type_source;
+}
+
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,
                                             kuri::tablet<Attente, 16> &attentes)
