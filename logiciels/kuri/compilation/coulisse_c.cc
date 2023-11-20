@@ -1878,17 +1878,15 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
 
     /* Définis les globales. */
     POUR (repr_inter.donne_globales_internes()) {
-        auto valeur_globale = it;
         auto valeur_initialisateur = kuri::chaine_statique();
 
-        if (valeur_globale->initialisateur) {
-            valeur_initialisateur = génère_code_pour_atome(
-                valeur_globale->initialisateur, os, true);
+        if (it->initialisateur) {
+            valeur_initialisateur = génère_code_pour_atome(it->initialisateur, os, true);
         }
 
-        déclare_globale(os, valeur_globale, false);
+        déclare_globale(os, it, false);
 
-        if (valeur_globale->initialisateur) {
+        if (it->initialisateur) {
             os << " = " << valeur_initialisateur;
         }
 
