@@ -792,9 +792,10 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine const &racine_kuri)
 {
     enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
-    enchaineuse << "#include <stdint.h>\n";
 
-    auto const attribut_inutilisé = R"(
+    auto const préambule = R"(
+#include <stdint.h>
+
 #ifdef __GNUC__
 #  define INUTILISE(x) INUTILISE_ ## x __attribute__((__unused__))
 #else
@@ -826,28 +827,59 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
 #else
 #  define VARIABLE_INUTILISEE
 #endif
+
+#ifndef bool
+typedef uint8_t bool;
+#endif
+
+#define __point_d_entree_systeme main
+
+typedef uint8_t octet;
+typedef void Ksnul;
+typedef int8_t ** KPKPKsz8;
 )";
 
-    enchaineuse << attribut_inutilisé;
+    enchaineuse << préambule;
 
     /* Déclaration des types de bases*/
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    enchaineuse << "typedef struct chaine { union { unsigned char d[16]; struct { char *pointeur; "
-                   "int64_t taille; };}; } chaine;\n";
-    enchaineuse << "typedef struct eini { union { unsigned char d[16]; struct { void *pointeur; "
-                   "struct KuriInfoType *info; };}; } eini;\n";
+    auto const types_chaine_et_eini = R"(
+typedef struct chaine {
+    union {
+        unsigned char d[16];
+        struct {
+            char *pointeur;
+            int64_t taille;
+        };
+    };
+} chaine;
+
+typedef struct eini {
+    union {
+        unsigned char d[16];
+        struct {
+            void *pointeur;
+            struct KuriInfoType *info;
+        };
+    };
+} eini;
+)";
 #else
-    enchaineuse << "typedef struct chaine { char *pointeur; int64_t taille; } chaine;\n";
-    enchaineuse << "typedef struct eini { void *pointeur; struct KuriInfoType *info; } eini;\n";
+    auto const types_chaine_et_eini = R"(
+typedef struct chaine {
+    char *pointeur;
+    int64_t taille;
+} chaine;
+
+typedef struct eini {
+    void *pointeur;
+    struct KuriInfoType *info;
+} eini;
+)";
 #endif
-    /* bool est défini dans stdbool.h */
-    enchaineuse << "#ifndef bool\n";
-    enchaineuse << "typedef uint8_t bool;\n";
-    enchaineuse << "#endif\n";
-    enchaineuse << "typedef uint8_t octet;\n";
-    enchaineuse << "typedef void Ksnul;\n";
-    enchaineuse << "typedef int8_t ** KPKPKsz8;\n";
+
+    enchaineuse << types_chaine_et_eini;
     /* Pas beau, mais un pointeur de fonction peut être un pointeur vers une fonction
      * de LibC dont les arguments variadiques ne sont pas typés. */
     enchaineuse << "#define Kv ...\n\n";
@@ -856,8 +888,6 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine 
      * "__principale" par un appel à "principale". On pourrait également définir ceci selon le nom
      * de la fonction principale définie par les programmes. */
     enchaineuse << "#define __principale principale\n\n";
-
-    enchaineuse << "#define __point_d_entree_systeme main\n\n";
 }
 
 /* Documentation GCC pour la visibilité : https://gcc.gnu.org/wiki/Visibility */
