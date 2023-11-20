@@ -1228,6 +1228,16 @@ kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisé
                 résultat, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
         }
     }
+    POUR (globales) {
+        if (!it->decl) {
+            continue;
+        }
+        if (!it->decl->ident_bibliotheque) {
+            continue;
+        }
+        rassemble_bibliothèques_utilisées(
+            résultat, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
+    }
     return résultat;
 }
 
