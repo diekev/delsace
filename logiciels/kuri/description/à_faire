@@ -2,6 +2,10 @@ réusine opérateurs (partage entre types)
 
 - ne crée pas de trace d'appels pour les fonctions pures
 
+ADN pour les arguments de compilation
+ADN pour le code binaire
+ADN pour les directives
+
 // -----------------------------------
 // Directives
 

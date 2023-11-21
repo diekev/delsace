@@ -3,7 +3,11 @@
 
 #include "impression.hh"
 
+#include <iostream>
+
 #include "biblinternes/outils/numerique.hh"
+
+#include "arbre_syntaxique/noeud_expression.hh"
 
 #include "compilation/typage.hh"
 
@@ -345,16 +349,8 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
 
-            os << "  charge " << chaine_type(inst->type, false);
-
-            if (charge->genre_atome == Atome::Genre::GLOBALE) {
-                os << " @globale" << charge;
-            }
-            else {
-                auto inst_chargee = charge->comme_instruction();
-                os << " %" << inst_chargee->numero;
-            }
-
+            os << "  charge " << chaine_type(inst->type, false) << ' ';
+            imprime_atome_ex(charge, os, true);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -362,16 +358,8 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->ou;
 
-            os << "  stocke " << chaine_type(ou->type, false);
-
-            if (ou->genre_atome == Atome::Genre::GLOBALE) {
-                os << " @globale" << ou;
-            }
-            else {
-                auto inst_chargee = ou->comme_instruction();
-                os << " %" << inst_chargee->numero;
-            }
-
+            os << "  stocke " << chaine_type(ou->type, false) << ' ';
+            imprime_atome_ex(ou, os, true);
             os << ", " << chaine_type(inst_stocke->valeur->type, false) << ' ';
             imprime_atome_ex(inst_stocke->valeur, os, true);
             break;
@@ -485,21 +473,29 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
 int numérote_instructions(AtomeFonction const &fonction)
 {
-    int resultat = 0;
+    int résultat = 0;
 
     POUR (fonction.params_entrees) {
-        it->numero = resultat++;
+        it->numero = résultat++;
     }
 
     if (!fonction.param_sortie->type->est_type_rien()) {
-        fonction.param_sortie->numero = resultat++;
+        fonction.param_sortie->numero = résultat++;
+
+        auto decl = fonction.decl;
+        if (decl && decl->params_sorties.taille() > 1) {
+            POUR (decl->params_sorties) {
+                auto inst = it->comme_declaration_variable()->atome->comme_instruction();
+                inst->numero = résultat++;
+            }
+        }
     }
 
     POUR (fonction.instructions) {
-        it->numero = resultat++;
+        it->numero = résultat++;
     }
 
-    return resultat;
+    return résultat;
 }
 
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
