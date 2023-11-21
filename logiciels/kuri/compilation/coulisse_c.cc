@@ -114,7 +114,9 @@ struct GénératriceCodeC {
 
     EMPECHE_COPIE(GénératriceCodeC);
 
-    kuri::chaine_statique génère_code_pour_atome(Atome *atome, Enchaineuse &os, bool pour_globale);
+    kuri::chaine_statique génère_code_pour_atome(Atome const *atome,
+                                                 Enchaineuse &os,
+                                                 bool pour_globale);
 
     void génère_code_pour_instruction(Instruction const *inst, Enchaineuse &os);
 
@@ -155,7 +157,7 @@ struct GénératriceCodeC {
  * \{ */
 
 struct TypeC {
-    Type *type_kuri = nullptr;
+    Type const *type_kuri = nullptr;
     kuri::chaine_statique nom = "";
     kuri::chaine_statique typedef_ = "";
     bool code_machine_fut_généré = false;
@@ -175,7 +177,7 @@ struct ConvertisseuseTypeC {
     Broyeuse &broyeuse;
     GénératriceCodeC &génératrice_code;
 
-    kuri::table_hachage<Type *, TypeC *> table_types_c{""};
+    kuri::table_hachage<Type const *, TypeC *> table_types_c{""};
 
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -191,9 +193,9 @@ struct ConvertisseuseTypeC {
     {
     }
 
-    TypeC &type_c_pour(Type *type);
+    TypeC &type_c_pour(Type const *type);
 
-    bool typedef_fut_généré(Type *type_kuri);
+    bool typedef_fut_généré(const Type *type_kuri);
 
     void génère_typedef(Type *type, Enchaineuse &enchaineuse);
 
@@ -207,10 +209,10 @@ struct ConvertisseuseTypeC {
      * structures utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la
      * structure parent.
      */
-    void génère_code_pour_type(Type *type, Enchaineuse &enchaineuse);
+    void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
     void génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                      TypeStructure *type_structure,
+                                      TypeStructure const *type_structure,
                                       int quoi);
 };
 
@@ -220,7 +222,7 @@ struct ConvertisseuseTypeC {
 /** \name Implémentation de ConvertisseuseTypeC.
  * \{ */
 
-TypeC &ConvertisseuseTypeC::type_c_pour(Type *type)
+TypeC &ConvertisseuseTypeC::type_c_pour(Type const *type)
 {
     auto type_c = table_types_c.valeur_ou(type, nullptr);
     if (type_c) {
@@ -234,7 +236,7 @@ TypeC &ConvertisseuseTypeC::type_c_pour(Type *type)
     return *type_c;
 }
 
-bool ConvertisseuseTypeC::typedef_fut_généré(Type *type_kuri)
+bool ConvertisseuseTypeC::typedef_fut_généré(Type const *type_kuri)
 {
     auto &type_c = type_c_pour(type_kuri);
     return type_c.typedef_ != "";
@@ -270,7 +272,7 @@ void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
         case GenreType::ERREUR:
         case GenreType::ENUM:
         {
-            auto type_enum = static_cast<TypeEnum *>(type);
+            auto type_enum = static_cast<TypeEnum const *>(type);
             génère_typedef(type_enum->type_sous_jacent, enchaineuse);
             auto nom_broye_type_donnees = génératrice_code.donne_nom_pour_type(
                 type_enum->type_sous_jacent);
@@ -555,7 +557,7 @@ enum {
     STRUCTURE_ANONYME,
 };
 
-void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &enchaineuse)
+void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse &enchaineuse)
 {
     if (!type) {
         /* Les types variadiques externes, ou encore les types pointés des pointeurs nuls
@@ -711,10 +713,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(Type *type, Enchaineuse &encha
 }
 
 void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineuse,
-                                                       TypeStructure *type_structure,
+                                                       const TypeStructure *type_structure,
                                                        int quoi)
 {
-    auto nom_broyé = broyeuse.broye_nom_simple(donne_nom_portable(type_structure));
+    auto nom_broyé = broyeuse.broye_nom_simple(
+        donne_nom_portable(const_cast<TypeStructure *>(type_structure)));
 
     if (type_structure->decl && type_structure->decl->est_monomorphisation) {
         nom_broyé = enchaine(nom_broyé, type_structure);
@@ -937,7 +940,7 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
 {
 }
 
-kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome *atome,
+kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *atome,
                                                                Enchaineuse &os,
                                                                bool pour_globale)
 {

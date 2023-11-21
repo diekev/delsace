@@ -306,7 +306,9 @@ struct Chunk {
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
-    void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
+    void émets_référence_membre_locale(NoeudExpression const *site,
+                                       int pointeur,
+                                       uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments);
@@ -403,23 +405,23 @@ class CompilatriceCodeBinaire {
 
     bool génère_code(kuri::tableau_statique<AtomeFonction *> fonctions);
 
+  private:
     bool génère_code_pour_fonction(AtomeFonction const *fonction);
 
-  private:
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
                                       bool pour_operande);
 
     void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
                                                  int decalage,
-                                                 int ou_patcher);
+                                                 int ou_patcher) const;
 
     void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
-    int ajoute_globale(AtomeGlobale const *globale);
-    int génère_code_pour_globale(AtomeGlobale const *atome_globale);
+    int ajoute_globale(AtomeGlobale const *globale) const;
+    int génère_code_pour_globale(AtomeGlobale const *atome_globale) const;
 
-    int donne_index_locale(InstructionAllocation const *alloc);
+    int donne_index_locale(InstructionAllocation const *alloc) const;
 
     ContexteGénérationCodeBinaire contexte() const;
 };

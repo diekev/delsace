@@ -300,7 +300,9 @@ void Chunk::émets_référence_membre(NoeudExpression const *site, unsigned déc
     émets(décalage);
 }
 
-void Chunk::émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage)
+void Chunk::émets_référence_membre_locale(const NoeudExpression *site,
+                                          int pointeur,
+                                          uint32_t décalage)
 {
     émets_entête_op(OP_RÉFÉRENCE_MEMBRE_LOCALE, site);
     émets(pointeur);
@@ -1425,7 +1427,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 }
 
 void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
-    AtomeConstante const *constante, int décalage, int ou_patcher)
+    AtomeConstante const *constante, int décalage, int ou_patcher) const
 {
     unsigned char *donnees = nullptr;
     if (ou_patcher == DONNÉES_GLOBALES) {
@@ -1858,7 +1860,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
     }
 }
 
-int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
+int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale) const
 {
     assert(globale->index == -1);
 
@@ -1883,7 +1885,7 @@ int CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale const *globale)
     return index;
 }
 
-int CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atome_globale)
+int CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atome_globale) const
 {
     auto index = atome_globale->index;
 
@@ -1903,7 +1905,7 @@ int CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atom
     return index;
 }
 
-int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc)
+int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc) const
 {
     return m_index_locales[alloc->numero];
 }
