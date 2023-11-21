@@ -2090,6 +2090,8 @@ void CompilatriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *dec
         imprime_fonction(atome_fonc, std::cerr);
     }
 
+    m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
+
     définis_fonction_courante(nullptr);
 }
 
