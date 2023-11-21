@@ -345,16 +345,8 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargee;
 
-            os << "  charge " << chaine_type(inst->type, false);
-
-            if (charge->genre_atome == Atome::Genre::GLOBALE) {
-                os << " @globale" << charge;
-            }
-            else {
-                auto inst_chargee = charge->comme_instruction();
-                os << " %" << inst_chargee->numero;
-            }
-
+            os << "  charge " << chaine_type(inst->type, false) << ' ';
+            imprime_atome_ex(charge, os, true);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -362,16 +354,8 @@ void imprime_instruction_ex(Instruction const *inst, std::ostream &os)
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->ou;
 
-            os << "  stocke " << chaine_type(ou->type, false);
-
-            if (ou->genre_atome == Atome::Genre::GLOBALE) {
-                os << " @globale" << ou;
-            }
-            else {
-                auto inst_chargee = ou->comme_instruction();
-                os << " %" << inst_chargee->numero;
-            }
-
+            os << "  stocke " << chaine_type(ou->type, false) << ' ';
+            imprime_atome_ex(ou, os, true);
             os << ", " << chaine_type(inst_stocke->valeur->type, false) << ' ';
             imprime_atome_ex(inst_stocke->valeur, os, true);
             break;
