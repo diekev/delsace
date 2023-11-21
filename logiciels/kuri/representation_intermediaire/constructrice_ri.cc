@@ -978,12 +978,14 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
-    auto nom_fontion = enchaine("init_globale", fonction_pour);
+    auto nom_fonction = enchaine("init_globale", fonction_pour);
+    auto ident_nom = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
+        nom_fonction);
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
     auto type_sortie = TypeBase::RIEN;
 
-    auto fonction = m_constructrice.crée_fonction(nom_fontion);
+    auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
