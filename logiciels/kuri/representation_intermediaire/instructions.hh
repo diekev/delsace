@@ -539,9 +539,6 @@ struct InstructionAllocation : public Instruction {
 
     IdentifiantCode *ident = nullptr;
 
-    /* le nombre total de blocs utilisant cet allocation */
-    int blocs_utilisants = 0;
-
     // pour la génération de code binaire, mise en place lors de la génération de celle-ci
     int index_locale = 0;
 
