@@ -914,6 +914,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
 
     auto fonction = m_constructrice.crée_fonction(nom_fontion);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
 
