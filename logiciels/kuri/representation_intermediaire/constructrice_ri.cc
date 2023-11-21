@@ -22,6 +22,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "structures/enchaineuse.hh"
+#include "structures/rassembleuse.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
@@ -904,16 +905,89 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     return genere_fonction_init_globales_et_appel(globales, fonction_pour);
 }
 
+static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
+    kuri::tableau_statique<AtomeGlobale *> globales, Compilatrice &compilatrice)
+{
+    /* Commence par rassembler les globales qui furent déclarées dans le code. */
+    kuri::tableau<AtomeGlobale *> globales_avec_déclarations;
+    POUR (globales) {
+        if (!it->decl) {
+            continue;
+        }
+
+        globales_avec_déclarations.ajoute(it);
+    }
+
+    /* Tri ces globales selon leurs dépendances entre elles (les globales dépendant d'autres
+     * doivent être initialisées après). */
+    kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
+    {
+        auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
+        graphe->prepare_visite();
+
+        POUR (globales_avec_déclarations) {
+            auto noeud = it->decl->noeud_dependance;
+            assert(noeud);
+
+            if (rassembleuse_atomes.possède(it)) {
+                continue;
+            }
+
+            graphe->traverse(noeud, [&](NoeudDependance const *relation) {
+                if (noeud == relation) {
+                    return;
+                }
+                if (relation->est_globale()) {
+                    auto globale = relation->globale();
+                    assert(globale->atome);
+                    rassembleuse_atomes.insère(globale->atome->comme_globale());
+                }
+            });
+
+            rassembleuse_atomes.insère(it);
+        }
+    }
+
+    kuri::tableau<AtomeGlobale *> globales_triées = rassembleuse_atomes.donne_copie_éléments();
+    rassembleuse_atomes.réinitialise();
+
+    /* Le résultat est composé des globales et des globales dans leurs initialisateurs. */
+    POUR (globales_triées) {
+        if (rassembleuse_atomes.possède(it)) {
+            continue;
+        }
+
+        /* Visite les initialisateurs d'abord. */
+        if (it->initialisateur) {
+            visite_atome(it->initialisateur, [&](Atome *atome_visité) {
+                if (!atome_visité->est_globale()) {
+                    return;
+                }
+
+                auto globale_visitée = atome_visité->comme_globale();
+                rassembleuse_atomes.insère(globale_visitée);
+            });
+        }
+
+        rassembleuse_atomes.insère(it);
+    }
+
+    return rassembleuse_atomes.donne_copie_éléments();
+}
+
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
-    auto nom_fontion = enchaine("init_globale", fonction_pour);
+    auto nom_fonction = enchaine("init_globale", fonction_pour);
+    auto ident_nom = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
+        nom_fonction);
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
     auto type_sortie = TypeBase::RIEN;
 
-    auto fonction = m_constructrice.crée_fonction(nom_fontion);
+    auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
 
@@ -929,11 +1003,8 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
         return nullptr;
     };
 
-    POUR (globales) {
-        if (it->est_info_type_de) {
-            // À FAIRE : ignore également les globales utilisées uniquement dans celles-ci.
-            continue;
-        }
+    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
+    POUR (globales_à_initialiser) {
         auto constructeur = trouve_constructeur_pour(it);
         if (constructeur) {
             genere_ri_transformee_pour_noeud(
@@ -1996,6 +2067,8 @@ void CompilatriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *dec
     if (decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FUT_REQUIS)) {
         imprime_fonction(atome_fonc, std::cerr);
     }
+
+    m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
 
     définis_fonction_courante(nullptr);
 }
