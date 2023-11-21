@@ -22,6 +22,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "structures/enchaineuse.hh"
+#include "structures/rassembleuse.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
@@ -919,8 +920,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
 
     /* Tri ces globales selon leurs dépendances entre elles (les globales dépendant d'autres
      * doivent être initialisées après). */
-    kuri::tableau<AtomeGlobale *> globales_triées;
-    kuri::ensemble<AtomeGlobale *> globales_visitées;
+    kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
         auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
         graphe->prepare_visite();
@@ -929,7 +929,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
             auto noeud = it->decl->noeud_dependance;
             assert(noeud);
 
-            if (globales_visitées.possède(it)) {
+            if (rassembleuse_atomes.possède(it)) {
                 continue;
             }
 
@@ -940,25 +940,20 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
                 if (relation->est_globale()) {
                     auto globale = relation->globale();
                     assert(globale->atome);
-                    if (globales_visitées.possède(globale->atome->comme_globale())) {
-                        return;
-                    }
-                    globales_visitées.insère(globale->atome->comme_globale());
-                    globales_triées.ajoute(globale->atome->comme_globale());
+                    rassembleuse_atomes.insère(globale->atome->comme_globale());
                 }
             });
 
-            globales_visitées.insère(it);
-            globales_triées.ajoute(it);
+            rassembleuse_atomes.insère(it);
         }
-
-        globales_visitées.efface();
     }
 
+    kuri::tableau<AtomeGlobale *> globales_triées = rassembleuse_atomes.donne_copie_éléments();
+    rassembleuse_atomes.réinitialise();
+
     /* Le résultat est composé des globales et des globales dans leurs initialisateurs. */
-    kuri::tableau<AtomeGlobale *> globales_à_initialiser;
     POUR (globales_triées) {
-        if (globales_visitées.possède(it)) {
+        if (rassembleuse_atomes.possède(it)) {
             continue;
         }
 
@@ -970,19 +965,14 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
                 }
 
                 auto globale_visitée = atome_visité->comme_globale();
-                if (globales_visitées.possède(globale_visitée)) {
-                    return;
-                }
-                globales_visitées.insère(globale_visitée);
-                globales_à_initialiser.ajoute(globale_visitée);
+                rassembleuse_atomes.insère(globale_visitée);
             });
         }
 
-        globales_visitées.insère(it);
-        globales_à_initialiser.ajoute(it);
+        rassembleuse_atomes.insère(it);
     }
 
-    return globales_à_initialiser;
+    return rassembleuse_atomes.donne_copie_éléments();
 }
 
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
