@@ -730,7 +730,7 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     Atome *accede = nullptr;
-    /* Index du membre accéder dans le type structurel accédé. */
+    /* Index du membre accédé dans le type structurel accédé. */
     int index = 0;
 
     EMPECHE_COPIE(InstructionAccedeMembre);
