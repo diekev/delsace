@@ -1590,13 +1590,11 @@ void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
                     continue;
                 }
 
-                // les tableaux fixes ont une initialisation nulle
+                /* Les tableaux fixes ont une initialisation nulle. */
                 if (tableau_valeur[index_membre] == nullptr) {
                     index_membre += 1;
                     continue;
                 }
-
-                // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
 
                 auto décalage_membre = type->membres[i].decalage;
                 génère_code_pour_initialisation_globale(tableau_valeur[index_membre],
