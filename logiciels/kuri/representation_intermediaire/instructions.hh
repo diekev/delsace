@@ -541,9 +541,6 @@ struct InstructionAllocation : public Instruction {
 
     IdentifiantCode *ident = nullptr;
 
-    // pour la génération de code binaire, mise en place lors de la génération de celle-ci
-    int index_locale = 0;
-
     InstructionAllocation(NoeudExpression *site_, Type const *type_, IdentifiantCode *ident_)
         : InstructionAllocation(site_)
     {

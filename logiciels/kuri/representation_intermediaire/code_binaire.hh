@@ -277,7 +277,7 @@ struct Chunk {
     void ajoute_site_source(NoeudExpression const *site);
 
   public:
-    void ajoute_locale(InstructionAllocation *alloc);
+    [[nodiscard]] int ajoute_locale(InstructionAllocation const *alloc);
 
     template <typename T>
     void émets_constante(T v)
@@ -390,6 +390,9 @@ class CompilatriceCodeBinaire {
     kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
+    /* Pour stocker les index des locales. */
+    kuri::tableau<int> m_index_locales{};
+
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
 
@@ -415,6 +418,8 @@ class CompilatriceCodeBinaire {
 
     int ajoute_globale(AtomeGlobale const *globale);
     int génère_code_pour_globale(AtomeGlobale const *atome_globale);
+
+    int donne_index_locale(InstructionAllocation const *alloc);
 
     ContexteGénérationCodeBinaire contexte() const;
 };

@@ -21,6 +21,8 @@
 
 #include "parsage/outils_lexemes.hh"
 
+#include "impression.hh"
+
 kuri::chaine_statique chaine_code_operation(octet_t code_operation)
 {
     switch (code_operation) {
@@ -170,7 +172,7 @@ void Chunk::émets_logue_retour()
     émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
-void Chunk::ajoute_locale(InstructionAllocation *alloc)
+int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
     auto type = alloc->type->comme_type_pointeur()->type_pointe;
 
@@ -180,9 +182,10 @@ void Chunk::ajoute_locale(InstructionAllocation *alloc)
     }
     assert(type->taille_octet);
 
-    alloc->index_locale = locales.taille();
+    auto index = locales.taille();
     locales.ajoute({alloc->ident, alloc->type, taille_allouée});
     taille_allouée += static_cast<int>(type->taille_octet);
+    return index;
 }
 
 void Chunk::émets_chaine_constante(const NoeudExpression *site,
@@ -1105,8 +1108,11 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
 
+    m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
+    numérote_instructions(*fonction);
+
     POUR (fonction->params_entrees) {
-        chunk.ajoute_locale(it);
+        m_index_locales[it->numero] = chunk.ajoute_locale(it);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1115,13 +1121,13 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
 
         if (!type_pointe->est_type_rien()) {
-            chunk.ajoute_locale(alloc);
+            m_index_locales[alloc->numero] = chunk.ajoute_locale(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            chunk.ajoute_locale(it->comme_alloc());
+            m_index_locales[it->numero] = chunk.ajoute_locale(it->comme_alloc());
         }
     }
 
@@ -1151,6 +1157,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
     décalages_labels.efface();
     patchs_labels.efface();
+    m_index_locales.efface();
 
     chunk.rétrécis_capacité_sur_taille();
 
@@ -1196,7 +1203,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         {
             auto alloc = instruction->comme_alloc();
             assert(pour_operande);
-            chunk.émets_référence_locale(alloc->site, alloc->index_locale);
+            chunk.émets_référence_locale(alloc->site, donne_index_locale(alloc));
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
@@ -1205,7 +1212,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             if (est_allocation(charge->chargee)) {
                 auto alloc = charge->chargee->comme_instruction()->comme_alloc();
-                chunk.émets_charge_locale(charge->site, alloc->index_locale, charge->type);
+                chunk.émets_charge_locale(charge->site, donne_index_locale(alloc), charge->type);
                 break;
             }
 
@@ -1220,7 +1227,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             if (est_stocke_alloc_incrémente(stocke)) {
                 auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
                 chunk.émets_incrémente_locale(
-                    stocke->site, stocke->valeur->type, alloc_destination->index_locale);
+                    stocke->site, stocke->valeur->type, donne_index_locale(alloc_destination));
                 break;
             }
 
@@ -1228,8 +1235,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
                 chunk.émets_copie_locale(stocke->site,
                                          stocke->valeur->type,
-                                         alloc_source->index_locale,
-                                         alloc_destination->index_locale);
+                                         donne_index_locale(alloc_source),
+                                         donne_index_locale(alloc_destination));
                 break;
             }
 
@@ -1238,7 +1245,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             if (est_allocation(stocke->ou)) {
                 auto alloc = stocke->ou->comme_instruction()->comme_alloc();
                 chunk.émets_assignation_locale(
-                    stocke->site, alloc->index_locale, stocke->valeur->type);
+                    stocke->site, donne_index_locale(alloc), stocke->valeur->type);
                 break;
             }
 
@@ -1370,7 +1377,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             if (est_allocation(membre->accede)) {
                 auto alloc = membre->accede->comme_instruction()->comme_alloc();
-                chunk.émets_référence_membre_locale(membre->site, alloc->index_locale, décalage);
+                chunk.émets_référence_membre_locale(
+                    membre->site, donne_index_locale(alloc), décalage);
                 break;
             }
 
@@ -1893,6 +1901,11 @@ int CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atom
     }
 
     return index;
+}
+
+int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc)
+{
+    return m_index_locales[alloc->numero];
 }
 
 ContexteGénérationCodeBinaire CompilatriceCodeBinaire::contexte() const
