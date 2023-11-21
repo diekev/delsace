@@ -655,7 +655,7 @@ static SourceAdresseAtome détermine_source_adresse_atome(
     /* Pour « nul », mais également les arithmétiques de pointeurs, ou encore les pointeurs connus
      * lors de la compilation. */
     if (atome.est_constante_nulle() || atome.est_transtype_constant() ||
-        atome.est_accès_index_constant()) {
+        atome.est_accès_index_constant() || atome.est_constante_structure()) {
         return SourceAdresseAtome::CONSTANTE;
     }
 
