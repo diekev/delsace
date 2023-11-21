@@ -347,6 +347,7 @@ struct Chunk {
                          uint32_t taille_dest);
 
     void émets_rembourrage(uint32_t rembourrage);
+    void rétrécis_capacité_sur_taille();
 };
 
 void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);

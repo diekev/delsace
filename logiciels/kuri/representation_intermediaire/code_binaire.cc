@@ -95,6 +95,16 @@ void Chunk::détruit()
     initialise();
 }
 
+void Chunk::rétrécis_capacité_sur_taille()
+{
+    if (compte == capacité) {
+        return;
+    }
+
+    memoire::reloge_tableau("Chunk::code", code, capacité, compte);
+    capacité = compte;
+}
+
 int64_t Chunk::mémoire_utilisée() const
 {
     int64_t résultat = 0;
@@ -1141,6 +1151,8 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
     décalages_labels.efface();
     patchs_labels.efface();
+
+    chunk.rétrécis_capacité_sur_taille();
 
     return true;
 }
