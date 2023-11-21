@@ -61,8 +61,9 @@ int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
 {
     /* +1 pour la sortie. */
     auto résultat = params_entrees.taille() + instructions.taille() + 1;
-    if (param_sortie->type->est_type_tuple()) {
-        résultat += param_sortie->type->comme_type_tuple()->membres.taille();
+    auto type_sortie = param_sortie->type->comme_type_pointeur()->type_pointe;
+    if (type_sortie->est_type_tuple()) {
+        résultat += type_sortie->comme_type_tuple()->membres.taille();
     }
     return résultat;
 }
