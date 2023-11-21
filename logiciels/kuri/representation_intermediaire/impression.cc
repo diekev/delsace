@@ -473,29 +473,29 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
 int numérote_instructions(AtomeFonction const &fonction)
 {
-    int resultat = 0;
+    int résultat = 0;
 
     POUR (fonction.params_entrees) {
-        it->numero = resultat++;
+        it->numero = résultat++;
     }
 
     if (!fonction.param_sortie->type->est_type_rien()) {
-        fonction.param_sortie->numero = resultat++;
+        fonction.param_sortie->numero = résultat++;
 
         auto decl = fonction.decl;
         if (decl && decl->params_sorties.taille() > 1) {
             POUR (decl->params_sorties) {
                 auto inst = it->comme_declaration_variable()->atome->comme_instruction();
-                inst->numero = resultat++;
+                inst->numero = résultat++;
             }
         }
     }
 
     POUR (fonction.instructions) {
-        it->numero = resultat++;
+        it->numero = résultat++;
     }
 
-    return resultat;
+    return résultat;
 }
 
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
