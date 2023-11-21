@@ -57,6 +57,17 @@ Instruction *AtomeFonction::derniere_instruction() const
     return instructions[instructions.taille() - 1];
 }
 
+int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
+{
+    /* +1 pour la sortie. */
+    auto résultat = params_entrees.taille() + instructions.taille() + 1;
+    auto type_sortie = param_sortie->type->comme_type_pointeur()->type_pointe;
+    if (type_sortie->est_type_tuple()) {
+        résultat += type_sortie->comme_type_tuple()->membres.taille();
+    }
+    return résultat;
+}
+
 bool est_valeur_constante(Atome const *atome)
 {
     return atome->est_constante_booléenne() || atome->est_constante_caractère() ||
