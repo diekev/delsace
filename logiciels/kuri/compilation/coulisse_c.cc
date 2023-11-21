@@ -27,6 +27,7 @@
 #include "typage.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/impression.hh"
 
 /* Défini si les structures doivent avoir des membres explicites. Sinon, le code généré utilisera
  * des tableaux d'octets pour toutes les structures. */
@@ -1706,7 +1707,6 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
     auto virgule = "(";
 
-    int numéro_inst = 0;
     POUR_INDEX (atome_fonc->params_entrees) {
         auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc->decl,
                                                                              index_it);
@@ -1729,8 +1729,6 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             type_param->comme_type_variadique()->type_pointe == nullptr) {
             continue;
         }
-
-        it->numero = numéro_inst++;
 
         if (est_paramètre_inutilisé) {
             os << "INUTILISE(";
@@ -1773,6 +1771,7 @@ void GénératriceCodeC::génère_code_entête(ProgrammeRepreInter const &repr_i
 
     /* Déclarons ensuite les fonctions. */
     POUR (repr_inter.donne_fonctions()) {
+        numérote_instructions(*it);
         déclare_fonction(os, it, true);
         os << ";\n\n";
     }
@@ -1789,10 +1788,8 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
     table_valeurs.redimensionne(atome_fonc->nombre_d_instructions_avec_entrées_sorties());
 
-    auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
-        param->numero = numéro_inst;
-        table_valeurs[numéro_inst++] = enchaine("&", donne_nom_pour_instruction(param));
+        table_valeurs[param->numero] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
     os << "\n{\n";
@@ -1803,26 +1800,23 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
     auto type_fonction = atome_fonc->type->comme_type_fonction();
     if (!type_fonction->type_sortie->est_type_rien()) {
         auto param = atome_fonc->param_sortie;
-        param->numero = numéro_inst;
         auto type_pointeur = param->type->comme_type_pointeur();
         os << donne_nom_pour_type(type_pointeur->type_pointe) << ' ';
         os << donne_nom_pour_instruction(param);
         os << ";\n";
 
-        table_valeurs[numéro_inst++] = enchaine("&", donne_nom_pour_instruction(param));
+        table_valeurs[param->numero] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
     /* Générons le code pour les accès de membres des retours multiples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             auto inst = param->comme_declaration_variable()->atome->comme_instruction();
-            inst->numero = numéro_inst++;
             génère_code_pour_instruction(inst, os);
         }
     }
 
     for (auto inst : atome_fonc->instructions) {
-        inst->numero = numéro_inst++;
         génère_code_pour_instruction(inst, os);
     }
 

@@ -5,6 +5,8 @@
 
 #include "biblinternes/outils/numerique.hh"
 
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
@@ -477,6 +479,14 @@ int numérote_instructions(AtomeFonction const &fonction)
 
     if (!fonction.param_sortie->type->est_type_rien()) {
         fonction.param_sortie->numero = resultat++;
+
+        auto decl = fonction.decl;
+        if (decl && decl->params_sorties.taille() > 1) {
+            POUR (decl->params_sorties) {
+                auto inst = it->comme_declaration_variable()->atome->comme_instruction();
+                inst->numero = resultat++;
+            }
+        }
     }
 
     POUR (fonction.instructions) {
