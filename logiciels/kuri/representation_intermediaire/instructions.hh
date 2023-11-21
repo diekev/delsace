@@ -384,6 +384,8 @@ struct AtomeFonction : public AtomeConstante {
 
     Instruction *derniere_instruction() const;
 
+    int nombre_d_instructions_avec_entrées_sorties() const;
+
     EMPECHE_COPIE(AtomeFonction);
 };
 

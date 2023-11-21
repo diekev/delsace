@@ -1787,9 +1787,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 {
     déclare_fonction(os, atome_fonc, false);
 
-    table_valeurs.redimensionne(atome_fonc->params_entrees.taille() + 1 +
-                                atome_fonc->instructions.taille() +
-                                atome_fonc->decl->params_sorties.taille());
+    table_valeurs.redimensionne(atome_fonc->nombre_d_instructions_avec_entrées_sorties());
 
     auto numéro_inst = 0;
     for (auto param : atome_fonc->params_entrees) {
