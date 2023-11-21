@@ -48,7 +48,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 
     auto compilatrice_cb = CompilatriceCodeBinaire(&espace, métaprogramme);
-    return compilatrice_cb.génère_code(repr_inter.donne_fonctions());
+    return compilatrice_cb.génère_code(repr_inter.donne_globales(), repr_inter.donne_fonctions());
 }
 
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,

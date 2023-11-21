@@ -188,6 +188,16 @@ struct tableau {
         taille_ = nombre;
     }
 
+    void rétrécis_capacité_sur_taille()
+    {
+        if (capacite == taille_) {
+            return;
+        }
+
+        memoire::reloge_tableau("kuri::tableau", this->pointeur, this->capacite, taille_);
+        this->capacite = taille_;
+    }
+
     void redimensionne(TypeIndex nombre, T valeur_defaut)
     {
         reserve(nombre);

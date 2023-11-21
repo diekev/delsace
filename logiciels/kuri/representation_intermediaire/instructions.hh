@@ -384,6 +384,8 @@ struct AtomeFonction : public AtomeConstante {
 
     Instruction *derniere_instruction() const;
 
+    int nombre_d_instructions_avec_entrées_sorties() const;
+
     EMPECHE_COPIE(AtomeFonction);
 };
 
@@ -538,12 +540,6 @@ struct InstructionAllocation : public Instruction {
     }
 
     IdentifiantCode *ident = nullptr;
-
-    /* le nombre total de blocs utilisant cet allocation */
-    int blocs_utilisants = 0;
-
-    // pour la génération de code binaire, mise en place lors de la génération de celle-ci
-    int index_locale = 0;
 
     InstructionAllocation(NoeudExpression *site_, Type const *type_, IdentifiantCode *ident_)
         : InstructionAllocation(site_)
@@ -730,7 +726,7 @@ struct InstructionAccedeMembre : public Instruction {
     }
 
     Atome *accede = nullptr;
-    /* Index du membre accéder dans le type structurel accédé. */
+    /* Index du membre accédé dans le type structurel accédé. */
     int index = 0;
 
     EMPECHE_COPIE(InstructionAccedeMembre);

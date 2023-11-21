@@ -1494,7 +1494,7 @@ génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_ty
         ajoute_au_tampon(enchaineuse, "rien")
     }
 
-    ajoute_au_tampon(enchaineuse, "#racine #sansbroyage\n")
+    ajoute_au_tampon(enchaineuse, "#racine #sansbroyage #exporte\n")
 
     ajoute_au_tampon(enchaineuse, "{\n")
 

@@ -148,7 +148,6 @@ void Bloc::utilise_variable(InstructionAllocation *variable)
     }
 
     this->variables_utilisees.ajoute(variable);
-    variable->blocs_utilisants += 1;
 }
 
 void Bloc::fusionne_enfant(Bloc *enfant)
@@ -167,7 +166,6 @@ void Bloc::fusionne_enfant(Bloc *enfant)
     }
 
     POUR (enfant->variables_utilisees) {
-        it->blocs_utilisants -= 1;
         this->utilise_variable(it);
     }
 

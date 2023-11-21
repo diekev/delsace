@@ -1259,3 +1259,79 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
 
     retourne module
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation
+ * \{ */
+
+Py_Initialize :: fonc () -> rien #externe libpython
+
+Py_InitializeEx :: fonc (initsigs: z32) -> rien #externe libpython
+
+Py_FinalizeEx :: fonc () -> z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Exécution de code.
+ * \{ */
+
+PyCompilerFlags :: struct {
+    cf_flag: z32
+    cf_feature_version: z32
+}
+
+PyRun_SimpleString :: fonc (command: ChaineC) -> z32 #externe libpython
+
+PyRun_SimpleStringFlags :: fonc (command: ChaineC, flags: *PyCompilerFlags) -> z32 #externe libpython
+
+PyRun_String :: fonc (str: ChaineC, start: z32, globals: *PyObject, locals: *PyObject) -> *PyObject #externe libpython
+
+PyRun_StringFlags :: fonc (str: ChaineC, start: z32, globals: *PyObject, locals: *PyObject, flags: *PyCompilerFlags) -> *PyObject #externe libpython
+
+Py_CompileString :: fonc (str: ChaineC, filename: ChaineC, start: z32) -> *PyObject #externe libpython
+
+Py_CompileStringFlags :: fonc (str: ChaineC, filename: ChaineC, start: z32, flags: *PyCompilerFlags) -> *PyObject #externe libpython
+
+Py_CompileStringObject :: fonc (str: ChaineC, filename: *PyObject, start: z32, flags: *PyCompilerFlags, optimize: z32) -> *PyObject #externe libpython
+
+Py_CompileStringExFlags :: fonc (str: ChaineC, filename: ChaineC, start: z32, flags: *PyCompilerFlags, optimize: z32) -> *PyObject #externe libpython
+
+PyEval_EvalCode :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject) -> *PyObject #externe libpython
+
+PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: **PyObject, argcount: z32, kws: **PyObject, kwcount: z32, defs: **PyObject, defcount: z32, kwdefs: *PyObject, closure: *PyObject) -> *PyObject #externe libpython
+
+/* The start symbol from the Python grammar for isolated expressions;
+ * for use with Py_CompileString(). */
+Py_eval_input : z32 #externe libpython
+
+/* The start symbol from the Python grammar for sequences of statements as read
+ * from a file or other source; for use with Py_CompileString(). This is the
+ * symbol to use when compiling arbitrarily long Python source code. */
+Py_file_input : z32 #externe libpython
+
+/* The start symbol from the Python grammar for a single statement;
+ * for use with Py_CompileString(). This is the symbol used for the interactive
+ * interpreter loop. */
+Py_single_input : z32 #externe libpython
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Enveloppes.
+ * \{ */
+
+PyRun_SimpleString :: fonc (command: chaine) -> bool
+{
+    command_c := crée_chaine_c(command)
+    diffère détruit_chaine_c(command_c)
+
+    retourne PyRun_SimpleString(command_c) == 0
+}
+
+PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: []*PyObject, kws: []*PyObject, defs: []*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
+{
+    retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32)
+}
+
+/** } */

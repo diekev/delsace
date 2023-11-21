@@ -4,13 +4,16 @@
 #pragma once
 
 #include <functional>
-#include <ostream>
-
-#include "structures/tableau.hh"
+#include <iosfwd>
 
 struct Atome;
 struct AtomeFonction;
 struct Instruction;
+
+namespace kuri {
+template <typename T, typename TypeIndex>
+struct tableau;
+}
 
 void imprime_information_atome(Atome const *atome, std::ostream &os);
 
