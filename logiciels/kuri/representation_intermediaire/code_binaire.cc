@@ -1446,9 +1446,32 @@ void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
         }
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
-            // À FAIRE
-            // assert_rappel(false, []() { dbg() << "Les indexages constants ne sont pas
-            // implémentés dans le code binaire"; });
+            auto indexage = constante->comme_accès_index_constant();
+            auto indexée = indexage->accede->comme_globale();
+
+            if (indexée->initialisateur->est_données_constantes()) {
+                assert(indexage->index == 0);
+                auto tableau = indexée->initialisateur->comme_données_constantes();
+                auto données_tableau = tableau->donne_données();
+                *reinterpret_cast<const char **>(donnees) = données_tableau.begin();
+            }
+            else if (indexée->initialisateur->est_constante_tableau()) {
+                assert(indexage->index == 0);
+                auto globale = données_exécutions->globales[indexée->index];
+
+                auto patch = PatchDonnéesConstantes{};
+                patch.destination = {ou_patcher, décalage};
+                patch.source = {ADRESSE_GLOBALE, globale.adresse};
+                données_exécutions->patchs_données_constantes.ajoute(patch);
+            }
+            else {
+                assert_rappel(false, [&]() {
+                    dbg() << "Indexage constant non-implémenté dans le code binaire pour le genre "
+                             "d'atome "
+                          << indexée->initialisateur->genre_atome;
+                });
+            }
+
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -1556,70 +1579,11 @@ void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
 
                 // dbg() << "Ajout du code pour le membre : " << type->membres[i].nom;
 
-                auto type_membre = type->membres[i].type;
-
                 auto décalage_membre = type->membres[i].decalage;
-
-                if (type_membre->est_type_chaine()) {
-                    auto valeur_chaine = tableau_valeur[index_membre]->comme_constante_structure();
-                    auto acces_index =
-                        valeur_chaine->donne_atomes_membres()[0]->comme_accès_index_constant();
-                    auto globale_tableau = acces_index->accede->comme_globale();
-
-                    auto tableau = globale_tableau->initialisateur->comme_données_constantes();
-                    auto données_tableau = tableau->donne_données();
-
-                    auto donnees_ = données_exécutions->données_globales.donnees() + décalage +
-                                    static_cast<int>(décalage_membre);
-                    *reinterpret_cast<const char **>(donnees_) = données_tableau.begin();
-                    *reinterpret_cast<int64_t *>(donnees_ + 8) = données_tableau.taille();
-                }
-                else if (type_membre->est_type_tableau_dynamique()) {
-                    auto valeur_tableau =
-                        tableau_valeur[index_membre]->comme_constante_structure();
-                    auto acces_index =
-                        valeur_tableau->donne_atomes_membres()[0]->comme_accès_index_constant();
-                    auto globale_tableau = acces_index->accede->comme_globale();
-
-                    auto tableau = globale_tableau->initialisateur->comme_constante_tableau();
-                    auto données_tableau = tableau->donne_atomes_éléments();
-
-                    auto pointeur = données_tableau.begin();
-                    auto taille = données_tableau.taille();
-
-                    auto type_tableau = tableau->type->comme_type_tableau_fixe();
-                    auto type_pointe = type_tableau->type_pointe;
-                    auto décalage_valeur = données_exécutions->données_constantes.taille();
-                    auto adresse_tableau = décalage_valeur;
-
-                    données_exécutions->données_constantes.redimensionne(
-                        données_exécutions->données_constantes.taille() +
-                        static_cast<int>(type_pointe->taille_octet) * type_tableau->taille);
-
-                    for (auto j = 0; j < taille; ++j) {
-                        auto pointeur_valeur = pointeur[j];
-                        génère_code_pour_initialisation_globale(
-                            pointeur_valeur, décalage_valeur, DONNÉES_CONSTANTES);
-                        décalage_valeur += static_cast<int>(type_pointe->taille_octet);
-                    }
-
-                    auto patch = PatchDonnéesConstantes{};
-                    patch.destination = {DONNÉES_GLOBALES,
-                                         décalage + static_cast<int>(décalage_membre)};
-                    patch.source = {ADRESSE_CONSTANTE, adresse_tableau};
-
-                    données_exécutions->patchs_données_constantes.ajoute(patch);
-
-                    auto donnees_ = données_exécutions->données_globales.donnees() + décalage +
-                                    static_cast<int>(décalage_membre);
-                    *reinterpret_cast<int64_t *>(donnees_ + 8) = taille;
-                }
-                else {
-                    génère_code_pour_initialisation_globale(tableau_valeur[index_membre],
-                                                            décalage +
-                                                                static_cast<int>(décalage_membre),
-                                                            ou_patcher);
-                }
+                génère_code_pour_initialisation_globale(tableau_valeur[index_membre],
+                                                        décalage +
+                                                            static_cast<int>(décalage_membre),
+                                                        ou_patcher);
 
                 index_membre += 1;
             }
@@ -1628,11 +1592,15 @@ void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
-            assert_rappel(false, [&]() {
-                dbg() << "Les valeurs de globales de type tableau fixe ne sont pas "
-                         "générées dans le code binaire pour le moment.\n"
-                      << "    NOTE : le type de la globale est " << chaine_type(constante->type);
-            });
+            auto tableau_fixe = constante->comme_constante_tableau();
+            auto type_tableau = constante->type->comme_type_tableau_fixe();
+            auto type_élément = type_tableau->type_pointe;
+
+            auto décalage_élément = décalage;
+            POUR (tableau_fixe->donne_atomes_éléments()) {
+                génère_code_pour_initialisation_globale(it, décalage_élément, ou_patcher);
+                décalage_élément += int(type_élément->taille_octet);
+            }
             break;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
@@ -1654,10 +1622,7 @@ void CompilatriceCodeBinaire::génère_code_pour_initialisation_globale(
         }
         case Atome::Genre::FONCTION:
         {
-            assert_rappel(false, []() {
-                dbg() << "Les fonctions comme valeurs constantes ne sont pas implémentées dans le "
-                         "code binaire\n";
-            });
+            *reinterpret_cast<AtomeFonction const **>(donnees) = constante->comme_fonction();
             break;
         }
         case Atome::Genre::INSTRUCTION:
