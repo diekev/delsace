@@ -403,7 +403,8 @@ class CompilatriceCodeBinaire {
 
     EMPECHE_COPIE(CompilatriceCodeBinaire);
 
-    bool génère_code(kuri::tableau_statique<AtomeFonction *> fonctions);
+    bool génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
+                     kuri::tableau_statique<AtomeFonction *> fonctions);
 
   private:
     bool génère_code_pour_fonction(AtomeFonction const *fonction);
@@ -418,8 +419,8 @@ class CompilatriceCodeBinaire {
 
     void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
-    int ajoute_globale(AtomeGlobale const *globale) const;
-    int génère_code_pour_globale(AtomeGlobale const *atome_globale) const;
+    bool ajoute_globale(AtomeGlobale *globale) const;
+    void génère_code_pour_globale(AtomeGlobale const *atome_globale) const;
 
     int donne_index_locale(InstructionAllocation const *alloc) const;
 
