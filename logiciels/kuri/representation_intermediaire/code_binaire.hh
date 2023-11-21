@@ -277,7 +277,7 @@ struct Chunk {
     void ajoute_site_source(NoeudExpression const *site);
 
   public:
-    void ajoute_locale(InstructionAllocation *alloc);
+    [[nodiscard]] int ajoute_locale(InstructionAllocation const *alloc);
 
     template <typename T>
     void émets_constante(T v)
@@ -306,7 +306,9 @@ struct Chunk {
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
     void émets_référence_membre(NoeudExpression const *site, unsigned decalage);
-    void émets_référence_membre_locale(NoeudExpression *site, int pointeur, uint32_t décalage);
+    void émets_référence_membre_locale(NoeudExpression const *site,
+                                       int pointeur,
+                                       uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      unsigned taille_arguments);
@@ -347,6 +349,7 @@ struct Chunk {
                          uint32_t taille_dest);
 
     void émets_rembourrage(uint32_t rembourrage);
+    void rétrécis_capacité_sur_taille();
 };
 
 void désassemble(Chunk const &chunk, kuri::chaine_statique nom, std::ostream &os);
@@ -389,6 +392,9 @@ class CompilatriceCodeBinaire {
     kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
+    /* Pour stocker les index des locales. */
+    kuri::tableau<int> m_index_locales{};
+
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
 
@@ -397,23 +403,26 @@ class CompilatriceCodeBinaire {
 
     EMPECHE_COPIE(CompilatriceCodeBinaire);
 
-    bool génère_code(kuri::tableau_statique<AtomeFonction *> fonctions);
-
-    bool génère_code_pour_fonction(AtomeFonction const *fonction);
+    bool génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
+                     kuri::tableau_statique<AtomeFonction *> fonctions);
 
   private:
+    bool génère_code_pour_fonction(AtomeFonction const *fonction);
+
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
                                       bool pour_operande);
 
     void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
                                                  int decalage,
-                                                 int ou_patcher);
+                                                 int ou_patcher) const;
 
     void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
-    int ajoute_globale(AtomeGlobale const *globale);
-    int génère_code_pour_globale(AtomeGlobale const *atome_globale);
+    bool ajoute_globale(AtomeGlobale *globale) const;
+    void génère_code_pour_globale(AtomeGlobale const *atome_globale) const;
+
+    int donne_index_locale(InstructionAllocation const *alloc) const;
 
     ContexteGénérationCodeBinaire contexte() const;
 };
