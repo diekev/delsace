@@ -904,6 +904,87 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     return genere_fonction_init_globales_et_appel(globales, fonction_pour);
 }
 
+static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
+    kuri::tableau_statique<AtomeGlobale *> globales, Compilatrice &compilatrice)
+{
+    /* Commence par rassembler les globales qui furent déclarées dans le code. */
+    kuri::tableau<AtomeGlobale *> globales_avec_déclarations;
+    POUR (globales) {
+        if (!it->decl) {
+            continue;
+        }
+
+        globales_avec_déclarations.ajoute(it);
+    }
+
+    /* Tri ces globales selon leurs dépendances entre elles (les globales dépendant d'autres
+     * doivent être initialisées après). */
+    kuri::tableau<AtomeGlobale *> globales_triées;
+    kuri::ensemble<AtomeGlobale *> globales_visitées;
+    {
+        auto graphe = compilatrice.graphe_dependance.verrou_ecriture();
+        graphe->prepare_visite();
+
+        POUR (globales_avec_déclarations) {
+            auto noeud = it->decl->noeud_dependance;
+            assert(noeud);
+
+            if (globales_visitées.possède(it)) {
+                continue;
+            }
+
+            graphe->traverse(noeud, [&](NoeudDependance const *relation) {
+                if (noeud == relation) {
+                    return;
+                }
+                if (relation->est_globale()) {
+                    auto globale = relation->globale();
+                    assert(globale->atome);
+                    if (globales_visitées.possède(globale->atome->comme_globale())) {
+                        return;
+                    }
+                    globales_visitées.insère(globale->atome->comme_globale());
+                    globales_triées.ajoute(globale->atome->comme_globale());
+                }
+            });
+
+            globales_visitées.insère(it);
+            globales_triées.ajoute(it);
+        }
+
+        globales_visitées.efface();
+    }
+
+    /* Le résultat est composé des globales et des globales dans leurs initialisateurs. */
+    kuri::tableau<AtomeGlobale *> globales_à_initialiser;
+    POUR (globales_triées) {
+        if (globales_visitées.possède(it)) {
+            continue;
+        }
+
+        /* Visite les initialisateurs d'abord. */
+        if (it->initialisateur) {
+            visite_atome(it->initialisateur, [&](Atome *atome_visité) {
+                if (!atome_visité->est_globale()) {
+                    return;
+                }
+
+                auto globale_visitée = atome_visité->comme_globale();
+                if (globales_visitées.possède(globale_visitée)) {
+                    return;
+                }
+                globales_visitées.insère(globale_visitée);
+                globales_à_initialiser.ajoute(globale_visitée);
+            });
+        }
+
+        globales_visitées.insère(it);
+        globales_à_initialiser.ajoute(it);
+    }
+
+    return globales_à_initialiser;
+}
+
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
 {
@@ -930,11 +1011,8 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
         return nullptr;
     };
 
-    POUR (globales) {
-        if (it->est_info_type_de) {
-            // À FAIRE : ignore également les globales utilisées uniquement dans celles-ci.
-            continue;
-        }
+    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
+    POUR (globales_à_initialiser) {
         auto constructeur = trouve_constructeur_pour(it);
         if (constructeur) {
             genere_ri_transformee_pour_noeud(
