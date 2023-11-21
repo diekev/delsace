@@ -26,7 +26,6 @@
 #include "programme.hh"
 #include "typage.hh"
 
-#include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"
 
 /* Défini si les structures doivent avoir des membres explicites. Sinon, le code généré utilisera
