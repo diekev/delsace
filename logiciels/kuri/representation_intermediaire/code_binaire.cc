@@ -125,8 +125,12 @@ void Chunk::émets(octet_t o)
 
 void Chunk::agrandis_si_nécessaire(int64_t taille)
 {
-    if (capacité < compte + taille) {
-        auto nouvelle_capacité = capacité < 8 ? 8 : capacité * 2;
+    auto taille_requise = compte + taille;
+    if (capacité < taille_requise) {
+        auto nouvelle_capacité = taille_requise < 8 ? 8 : taille_requise;
+        if (nouvelle_capacité < capacité * 2) {
+            nouvelle_capacité = capacité * 2;
+        }
         memoire::reloge_tableau("Chunk::code", code, capacité, nouvelle_capacité);
         capacité = nouvelle_capacité;
     }
