@@ -8,9 +8,6 @@ ADN pour les directives
 
 // noms des globales
     -- info_type_pour_
-    -- trace_appel_
-    -- info_fonction_trace_appel
-    -- info_trace_appel
 // noms des fonctions d'initialisation des types
 // noms des fonctions d'initialisation des globales
 // noms des valeurs de retours

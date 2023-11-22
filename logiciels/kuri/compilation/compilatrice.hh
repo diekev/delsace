@@ -308,6 +308,8 @@ struct Compilatrice {
     }
 
     int donne_nombre_occurences_chaine(kuri::chaine_statique chn);
+
+    IdentifiantCode *donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

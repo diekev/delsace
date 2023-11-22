@@ -628,6 +628,17 @@ int Compilatrice::donne_nombre_occurences_chaine(kuri::chaine_statique chn)
     return 0;
 }
 
+IdentifiantCode *Compilatrice::donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base)
+{
+    auto occurences = donne_nombre_occurences_chaine(nom_de_base);
+    if (occurences == 0) {
+        return table_identifiants->identifiant_pour_nouvelle_chaine(nom_de_base);
+    }
+
+    auto nom = enchaine(nom_de_base, '_', occurences);
+    return table_identifiants->identifiant_pour_nouvelle_chaine(nom);
+}
+
 /* ************************************************************************** */
 
 // fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
