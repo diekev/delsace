@@ -567,7 +567,7 @@ bool MachineVirtuelle::appel(AtomeFonction *fonction, NoeudExpression const *sit
     frame->pointeur = fonction->données_exécution->chunk.code;
     frame->pointeur_pile = pointeur_pile;
     /* Réserve de l'espace sur la pile pour nos locales. */
-    pointeur_pile += fonction->données_exécution->chunk.taille_allouée;
+    incrémente_pointeur_de_pile(fonction->données_exécution->chunk.taille_allouée);
     return true;
 }
 
@@ -577,7 +577,7 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
 {
     // puisque les arguments utilisent des instructions d'allocations retire la taille des
     // arguments du pointeur de la pile pour ne pas que les allocations ne l'augmente
-    pointeur_pile -= taille_argument;
+    décrémente_pointeur_de_pile(taille_argument);
 
     auto const site = donne_site_adresse_courante();
     if (!appel(ptr_fonction, site)) {
@@ -1537,7 +1537,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                            static_cast<unsigned>(taille_retour));
                 }
 
-                pointeur_pile += taille_retour;
+                incrémente_pointeur_de_pile(taille_retour);
 
                 /* Reprend l'exécution à la frame précédente. */
                 frame = &frames[profondeur_appel - 1];
@@ -1713,7 +1713,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto adresse_de = dépile<void *>();
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
-                this->pointeur_pile += taille;
+                incrémente_pointeur_de_pile(taille);
                 break;
             }
             case OP_CHARGE_LOCALE:
@@ -1725,7 +1725,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
-                this->pointeur_pile += taille;
+                incrémente_pointeur_de_pile(taille);
                 break;
             }
             case OP_RÉFÉRENCE_LOCALE:
