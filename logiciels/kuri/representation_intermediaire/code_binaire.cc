@@ -1646,12 +1646,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto atome_globale = atome->comme_globale();
             auto globale = données_exécutions->globales[atome_globale->index];
-
-            auto patch = PatchDonnéesConstantes{};
-            patch.destination = adressage_destination;
-            patch.destination.décalage = décalage;
-            patch.source = {ADRESSE_GLOBALE, globale.adresse};
-            données_exécutions->patchs_données_constantes.ajoute(patch);
+            if (globale.adresse_pour_exécution) {
+                assigne(destination, globale.adresse_pour_exécution);
+            }
+            else {
+                assert(!atome_globale->est_externe);
+                ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+            }
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1678,12 +1679,14 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto indexée = indexage->accede->comme_globale();
 
             if (!indexée->initialisateur) {
-                auto patch = PatchDonnéesConstantes{};
                 auto globale = données_exécutions->globales[indexée->index];
-                patch.destination = adressage_destination;
-                patch.destination.décalage = décalage;
-                patch.source = {ADRESSE_GLOBALE, globale.adresse};
-                données_exécutions->patchs_données_constantes.ajoute(patch);
+                if (globale.adresse_pour_exécution) {
+                    assigne(destination, globale.adresse_pour_exécution);
+                }
+                else {
+                    assert(!indexée->est_externe);
+                    ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                }
                 return;
             }
 
@@ -1696,12 +1699,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             else if (indexée->initialisateur->est_constante_tableau()) {
                 assert(indexage->index == 0);
                 auto globale = données_exécutions->globales[indexée->index];
-
-                auto patch = PatchDonnéesConstantes{};
-                patch.destination = adressage_destination;
-                patch.destination.décalage = décalage;
-                patch.source = {ADRESSE_GLOBALE, globale.adresse};
-                données_exécutions->patchs_données_constantes.ajoute(patch);
+                if (globale.adresse_pour_exécution) {
+                    assigne(destination, globale.adresse_pour_exécution);
+                }
+                else {
+                    assert(!indexée->est_externe);
+                    ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                }
             }
             else {
                 assert_rappel(false, [&]() {
@@ -1900,6 +1904,18 @@ int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *all
 ContexteGénérationCodeBinaire CompilatriceCodeBinaire::contexte() const
 {
     return {espace, fonction_courante};
+}
+
+void CompilatriceCodeBinaire::ajoute_réadressage_pour_globale(
+    Globale const &globale,
+    AdresseDonnéesExécution const &adressage_destination,
+    int décalage) const
+{
+    auto patch = PatchDonnéesConstantes{};
+    patch.destination = adressage_destination;
+    patch.destination.décalage = décalage;
+    patch.source = {ADRESSE_GLOBALE, globale.adresse};
+    données_exécutions->patchs_données_constantes.ajoute(patch);
 }
 
 int64_t DonnéesExécutionFonction::mémoire_utilisée() const

@@ -425,6 +425,10 @@ class CompilatriceCodeBinaire {
     int donne_index_locale(InstructionAllocation const *alloc) const;
 
     ContexteGénérationCodeBinaire contexte() const;
+
+    void ajoute_réadressage_pour_globale(const Globale &globale,
+                                         const AdresseDonnéesExécution &adressage_destination,
+                                         int décalage) const;
 };
 
 ffi_type *converti_type_ffi(Type const *type);

@@ -779,6 +779,12 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression)
 {
+    if (!expression) {
+        /* Nous pouvons avoir des sous-expressions nulles (par exemple dans la construction de
+         * structures dont certains membres ne sont pas initialisés). */
+        return nullptr;
+    }
+
     switch (expression->genre) {
         default:
         {
@@ -934,6 +940,93 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
     }
 
     return expression;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Détection de valeurs constantes pour les globales.
+ * \{ */
+
+bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression const *expression)
+{
+    if (!expression) {
+        /* Membre non définis d'une construction de structure. */
+        return true;
+    }
+
+    switch (expression->genre) {
+        default:
+        {
+            return false;
+        }
+        case GenreNoeud::EXPRESSION_LITTERALE_NUL:
+        case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
+        case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
+        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
+        case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
+        case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
+        case GenreNoeud::EXPRESSION_TYPE_DE:
+        case GenreNoeud::EXPRESSION_TAILLE_DE:
+        case GenreNoeud::EXPRESSION_INFO_DE:
+        case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
+        case GenreNoeud::DIRECTIVE_INTROSPECTION:
+        {
+            return true;
+        }
+        case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
+        {
+            auto référence_déclaration = expression->comme_reference_declaration();
+            if (!référence_déclaration->declaration_referee) {
+                return false;
+            }
+
+            auto déclaration_référée = référence_déclaration->declaration_referee;
+            if (déclaration_référée->est_declaration_type()) {
+                return true;
+            }
+
+            if (déclaration_référée->est_entete_fonction()) {
+                return true;
+            }
+
+            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+                return true;
+            }
+
+            return false;
+        }
+        case GenreNoeud::EXPRESSION_PARENTHESE:
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        {
+            auto op = static_cast<NoeudExpressionUnaire const *>(expression);
+            return peut_être_utilisée_pour_initialisation_constante_globale(op->operande);
+        }
+        case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
+        {
+            auto appel = static_cast<NoeudExpressionAppel const *>(expression);
+
+            POUR (appel->parametres_resolus) {
+                if (!peut_être_utilisée_pour_initialisation_constante_globale(it)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        case GenreNoeud::EXPRESSION_VIRGULE:
+        {
+            auto op = static_cast<NoeudExpressionVirgule const *>(expression);
+
+            POUR (op->expressions) {
+                if (!peut_être_utilisée_pour_initialisation_constante_globale(it)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
 }
 
 /** \} */
