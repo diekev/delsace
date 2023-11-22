@@ -163,6 +163,9 @@ struct Compilatrice {
 
     kuri::table_hachage<kuri::chaine, int> m_nombre_occurences_chaines{"noms_uniques"};
 
+    std::mutex m_mutex_noms_valeurs_retours_défaut{};
+    kuri::tableau<IdentifiantCode *> m_noms_valeurs_retours_défaut{};
+
   public:
     /* ********************************************************************** */
 
@@ -310,6 +313,8 @@ struct Compilatrice {
     int donne_nombre_occurences_chaine(kuri::chaine_statique chn);
 
     IdentifiantCode *donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base);
+
+    IdentifiantCode *donne_nom_défaut_valeur_retour(int index);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

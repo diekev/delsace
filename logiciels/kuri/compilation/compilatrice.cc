@@ -639,6 +639,19 @@ IdentifiantCode *Compilatrice::donne_identifiant_pour_globale(kuri::chaine_stati
     return table_identifiants->identifiant_pour_nouvelle_chaine(nom);
 }
 
+IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
+{
+    std::unique_lock verrouille(m_mutex_noms_valeurs_retours_défaut);
+
+    if (index >= m_noms_valeurs_retours_défaut.taille()) {
+        auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(
+            enchaine("__ret", index));
+        m_noms_valeurs_retours_défaut.ajoute(ident);
+    }
+
+    return m_noms_valeurs_retours_défaut[index];
+}
+
 /* ************************************************************************** */
 
 // fonction pour tester les appels de fonctions variadiques externe dans la machine virtuelle
