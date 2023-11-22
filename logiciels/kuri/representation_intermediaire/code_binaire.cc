@@ -1776,8 +1776,6 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             auto type_composé = static_cast<TypeCompose const *>(type);
 
-            dbg() << "structure constante " << chaine_type(type);
-
             auto index_membre = 0;
             POUR (type_composé->membres) {
                 if (it.ne_doit_pas_être_dans_code_machine()) {
