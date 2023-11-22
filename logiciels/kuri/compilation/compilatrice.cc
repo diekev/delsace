@@ -14,7 +14,6 @@
 #include "parsage/lexeuse.hh"
 
 #include "structures/chemin_systeme.hh"
-#include "structures/date.hh"
 
 #include "broyage.hh"
 #include "environnement.hh"
@@ -92,6 +91,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
+
+    m_date_début_compilation = hui_systeme();
 }
 
 Compilatrice::~Compilatrice()
@@ -615,6 +616,43 @@ void Compilatrice::libère_état_résolution_appel(EtatResolutionAppel *&état)
 {
     m_états_libres.ajoute(état);
     état = nullptr;
+}
+
+int Compilatrice::donne_nombre_occurences_chaine(kuri::chaine_statique chn)
+{
+    auto trouvé = false;
+    auto n = m_nombre_occurences_chaines.trouve(chn, trouvé);
+    if (trouvé) {
+        m_nombre_occurences_chaines.trouve_ref(chn) += 1;
+        return n;
+    }
+
+    m_nombre_occurences_chaines.insère(chn, 1);
+    return 0;
+}
+
+IdentifiantCode *Compilatrice::donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base)
+{
+    auto occurences = donne_nombre_occurences_chaine(nom_de_base);
+    if (occurences == 0) {
+        return table_identifiants->identifiant_pour_nouvelle_chaine(nom_de_base);
+    }
+
+    auto nom = enchaine(nom_de_base, '_', occurences);
+    return table_identifiants->identifiant_pour_nouvelle_chaine(nom);
+}
+
+IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
+{
+    std::unique_lock verrouille(m_mutex_noms_valeurs_retours_défaut);
+
+    if (index >= m_noms_valeurs_retours_défaut.taille()) {
+        auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(
+            enchaine("__ret", index));
+        m_noms_valeurs_retours_défaut.ajoute(ident);
+    }
+
+    return m_noms_valeurs_retours_défaut[index];
 }
 
 /* ************************************************************************** */
