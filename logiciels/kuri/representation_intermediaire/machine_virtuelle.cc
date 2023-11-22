@@ -1135,12 +1135,16 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile_constante(frame);
                 break;
             }
-            case OP_CHAINE_CONSTANTE:
+            case OP_STRUCTURE_CONSTANTE:
             {
-                auto pointeur_chaine = LIS_8_OCTETS();
-                auto taille_chaine = LIS_8_OCTETS();
-                empile(pointeur_chaine);
-                empile(taille_chaine);
+                auto taille_structure = LIS_4_OCTETS();
+
+                auto source = frame->pointeur;
+                auto destination = this->pointeur_pile;
+                memcpy(destination, source, size_t(taille_structure));
+
+                frame->pointeur += taille_structure;
+                incrémente_pointeur_de_pile(taille_structure);
                 break;
             }
             case OP_REMBOURRAGE:
