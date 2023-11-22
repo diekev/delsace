@@ -1581,6 +1581,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
                 if (tableau_valeur[index_membre] == nullptr) {
                     /* À FAIRE(tableau fixe) : initialisation défaut. */
+                    index_membre += 1;
                     continue;
                 }
 

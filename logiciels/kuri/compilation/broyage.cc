@@ -446,9 +446,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
     }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-        auto type_param = decl->parametre_entree(0)->type->comme_type_pointeur()->type_pointe;
-        // Ajout du pointeur du type pour différencier les types monomorphés.
-        stockage_temp << "initialise_" << type_param;
+        stockage_temp << "initialise_" << decl->type_initialisé();
         return chaine_finale_pour_stockage_temp();
     }
 

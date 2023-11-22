@@ -5,6 +5,7 @@
 
 #include "representation_intermediaire/code_binaire.hh"
 
+#include "structures/chaine.hh"
 #include "structures/ensemble.hh"
 
 struct AtomeFonction;
@@ -154,6 +155,8 @@ struct MetaProgramme {
   private:
     Enchaineuse *logueuses[static_cast<int>(TypeLogMétaprogramme::NOMBRE_DE_LOGS)];
 
+    kuri::chaine m_nom_pour_fichier_log{};
+
   public:
     ~MetaProgramme();
 
@@ -174,6 +177,8 @@ struct MetaProgramme {
     void vidange_logs_sur_disque();
 
   private:
+    kuri::chaine_statique donne_nom_pour_fichier_log();
+
     void vidange_log_sur_disque(TypeLogMétaprogramme type_log);
 };
 
