@@ -779,6 +779,12 @@ void aplatis_arbre(NoeudExpression *declaration)
 
 NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression)
 {
+    if (!expression) {
+        /* Nous pouvons avoir des sous-expressions nulles (par exemple dans la construction de
+         * structures dont certains membres ne sont pas initialisés). */
+        return nullptr;
+    }
+
     switch (expression->genre) {
         default:
         {
