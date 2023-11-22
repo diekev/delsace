@@ -2108,8 +2108,11 @@ std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
     if (patch.destination.type == DONNÉES_CONSTANTES) {
         os << "données constantes\n";
     }
-    else {
+    else if (patch.destination.type == DONNÉES_GLOBALES) {
         os << "données globales\n";
+    }
+    else {
+        os << "code fonction " << patch.destination.fonction->nom << '\n';
     }
 
     os << "-- source              : ";
