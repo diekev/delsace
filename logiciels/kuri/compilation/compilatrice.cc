@@ -14,7 +14,6 @@
 #include "parsage/lexeuse.hh"
 
 #include "structures/chemin_systeme.hh"
-#include "structures/date.hh"
 
 #include "broyage.hh"
 #include "environnement.hh"
@@ -90,6 +89,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
+
+    m_date_début_compilation = hui_systeme();
 }
 
 Compilatrice::~Compilatrice()
@@ -612,6 +613,19 @@ void Compilatrice::libère_état_résolution_appel(EtatResolutionAppel *&état)
 {
     m_états_libres.ajoute(état);
     état = nullptr;
+}
+
+int Compilatrice::donne_nombre_occurences_chaine(kuri::chaine_statique chn)
+{
+    auto trouvé = false;
+    auto n = m_nombre_occurences_chaines.trouve(chn, trouvé);
+    if (trouvé) {
+        m_nombre_occurences_chaines.trouve_ref(chn) += 1;
+        return n;
+    }
+
+    m_nombre_occurences_chaines.insère(chn, 1);
+    return 0;
 }
 
 /* ************************************************************************** */

@@ -21,6 +21,7 @@
 #include "typage.hh"
 
 #include "structures/chemin_systeme.hh"
+#include "structures/date.hh"
 
 class Broyeuse;
 struct ContexteLexage;
@@ -155,6 +156,14 @@ struct Compilatrice {
 
     kuri::tableau<EtatResolutionAppel *> m_états_libres{};
 
+  private:
+    /* Note la date de début de la compilation. Principalement utilisé pour générer les noms des
+     * fichiers de logs. */
+    Date m_date_début_compilation{};
+
+    kuri::table_hachage<kuri::chaine, int> m_nombre_occurences_chaines{"noms_uniques"};
+
+  public:
     /* ********************************************************************** */
 
     Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_);
@@ -292,6 +301,13 @@ struct Compilatrice {
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */
     EtatResolutionAppel *crée_ou_donne_état_résolution_appel();
     void libère_état_résolution_appel(EtatResolutionAppel *&état);
+
+    Date donne_date_début_compilation() const
+    {
+        return m_date_début_compilation;
+    }
+
+    int donne_nombre_occurences_chaine(kuri::chaine_statique chn);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
