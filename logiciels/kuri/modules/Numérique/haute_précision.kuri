@@ -2,8 +2,8 @@
 // Tiré de :
 // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
 
-DÉCALAGE_MOT : n32 = 32
-COMPTE : n32 = 5
+DÉCALAGE_MOT : n32 : 32
+COMPTE : n32 : 5
 
 // À FAIRE : template <size_t COMPTE>
 HautePrécision :: struct {
@@ -12,7 +12,7 @@ HautePrécision :: struct {
 
     // Les « chiffres » (en réalité des nombres entiers naturels sur 32-bits)
     // qui composent le nombre. Le chiffre le plus significatif est dans données[0]
-    données : [5]n32
+    données : [COMPTE]n32
 }
 
 construit_nombre_haute_précision :: fonc() -> HautePrécision
