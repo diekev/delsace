@@ -4181,6 +4181,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
 
     pour_fonction->info_trace_appel = m_constructrice.crée_globale(
         type_info_fonction_trace_appel, initialisateur, false, true);
+    pour_fonction->info_trace_appel->ident = m_compilatrice.donne_identifiant_pour_globale(
+        "info_fonction_trace_appel");
 
     crée_trace_appel(pour_fonction);
 
@@ -4218,6 +4220,8 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
 
     pour_appel->info_trace_appel = m_constructrice.crée_globale(
         type_info_appel_trace_appel, initialisateur, false, true);
+    pour_appel->info_trace_appel->ident = m_compilatrice.donne_identifiant_pour_globale(
+        "info_appel_trace_appel");
 
     return pour_appel->info_trace_appel;
 }
