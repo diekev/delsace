@@ -1831,7 +1831,7 @@ static inline void assigne(octet_t *tampon, T valeur)
     *reinterpret_cast<T *>(tampon) = valeur;
 }
 
-void CompilatriceCodeBinaire::génère_code_membre_structure_constante(Atome const *atome,
+void CompilatriceCodeBinaire::génère_code_membre_structure_constante(AtomeConstante const *atome,
                                                                      octet_t *destination,
                                                                      int décalage)
 {

@@ -411,7 +411,7 @@ class CompilatriceCodeBinaire {
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
                                       bool pour_operande);
-    void génère_code_membre_structure_constante(const Atome *atome,
+    void génère_code_membre_structure_constante(const AtomeConstante *atome,
                                                 octet_t *destination,
                                                 int décalage);
 
