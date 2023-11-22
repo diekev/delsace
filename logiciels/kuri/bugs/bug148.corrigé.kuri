@@ -1,0 +1,28 @@
+/* Crash dans lorsqu'une globale est initialisée par un tableau de valeurs
+ * retournées depuis des fonctions.
+ * Catégorie : [crash, génération code, RI]
+ */
+
+importe Fondation
+
+retourne_entier :: fonc () -> z32
+{
+    retourne 1
+}
+
+globale := [
+    retourne_entier(),
+    retourne_entier(),
+    retourne_entier(),
+    retourne_entier(),
+    retourne_entier(),
+    retourne_entier()
+]
+
+principale :: fonc () -> z32
+{
+    pour globale {
+        imprime("%\n", it)
+    }
+    retourne 0
+}
