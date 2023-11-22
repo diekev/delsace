@@ -1646,7 +1646,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto atome_globale = atome->comme_globale();
             auto globale = données_exécutions->globales[atome_globale->index];
-            ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+            if (globale.adresse_pour_exécution) {
+                assigne(destination, globale.adresse_pour_exécution);
+            }
+            else {
+                assert(!atome_globale->est_externe);
+                ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+            }
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1674,7 +1680,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
 
             if (!indexée->initialisateur) {
                 auto globale = données_exécutions->globales[indexée->index];
-                ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                if (globale.adresse_pour_exécution) {
+                    assigne(destination, globale.adresse_pour_exécution);
+                }
+                else {
+                    assert(!indexée->est_externe);
+                    ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                }
                 return;
             }
 
@@ -1687,7 +1699,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             else if (indexée->initialisateur->est_constante_tableau()) {
                 assert(indexage->index == 0);
                 auto globale = données_exécutions->globales[indexée->index];
-                ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                if (globale.adresse_pour_exécution) {
+                    assigne(destination, globale.adresse_pour_exécution);
+                }
+                else {
+                    assert(!indexée->est_externe);
+                    ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
+                }
             }
             else {
                 assert_rappel(false, [&]() {
