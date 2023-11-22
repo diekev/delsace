@@ -1879,7 +1879,6 @@ void CompilatriceCodeBinaire::génère_code_membre_structure_constante(Atome con
             }
 
             if (indexée->initialisateur->est_données_constantes()) {
-                assert(indexage->index == 0);
                 auto tableau = indexée->initialisateur->comme_données_constantes();
                 auto données_tableau = tableau->donne_données();
                 assigne(destination,
