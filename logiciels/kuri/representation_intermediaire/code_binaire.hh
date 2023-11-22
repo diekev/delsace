@@ -20,6 +20,7 @@
 //           optimisation et alloue de l'espace pour toutes les variables au début de chaque
 //           fonction.
 
+struct AdresseDonnéesExécution;
 struct Atome;
 struct AtomeConstante;
 struct AtomeFonction;
@@ -411,13 +412,10 @@ class CompilatriceCodeBinaire {
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
                                       bool pour_operande);
-    void génère_code_membre_structure_constante(const Atome *atome,
-                                                octet_t *destination,
-                                                int décalage);
-
-    void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
-                                                 int decalage,
-                                                 int ou_patcher) const;
+    void génère_code_atome_constant(const AtomeConstante *atome,
+                                    const AdresseDonnéesExécution &adressage_destination,
+                                    octet_t *destination,
+                                    int décalage) const;
 
     void génère_code_pour_atome(Atome const *atome, Chunk &chunk);
 
