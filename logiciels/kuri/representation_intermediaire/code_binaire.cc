@@ -1801,10 +1801,19 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
             auto tableau = atome->comme_constante_tableau();
+            auto type = tableau->type;
+            auto type_élément = type->comme_type_tableau_fixe()->type_pointe;
             auto éléments = tableau->donne_atomes_éléments();
 
+            auto décalage = chunk.émets_structure_constante(type->taille_octet);
+            auto destination = chunk.code + décalage;
+
+            auto destination_membre = destination;
+            auto décalage_membre = décalage;
             POUR (éléments) {
-                génère_code_pour_atome(it, chunk);
+                génère_code_membre_structure_constante(it, destination_membre, décalage_membre);
+                destination_membre += type_élément->taille_octet;
+                décalage_membre += int(type_élément->taille_octet);
             }
 
             break;
