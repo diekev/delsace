@@ -66,7 +66,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_CHAINE_CONSTANTE)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_STRUCTURE_CONSTANTE)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
@@ -287,9 +287,7 @@ struct Chunk {
         émets(v);
     }
 
-    void émets_chaine_constante(NoeudExpression const *site,
-                                const void *pointeur_chaine,
-                                int64_t taille_chaine);
+    int émets_structure_constante(uint32_t taille_structure);
 
     void émets_retour(NoeudExpression const *site);
 
@@ -381,6 +379,7 @@ class CompilatriceCodeBinaire {
     DonnéesConstantesExécutions *données_exécutions = nullptr;
 
     const NoeudDeclarationEnteteFonction *fonction_courante = nullptr;
+    AtomeFonction *m_atome_fonction_courante = nullptr;
 
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
@@ -412,6 +411,9 @@ class CompilatriceCodeBinaire {
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
                                       bool pour_operande);
+    void génère_code_membre_structure_constante(const Atome *atome,
+                                                octet_t *destination,
+                                                int décalage);
 
     void génère_code_pour_initialisation_globale(AtomeConstante const *constante,
                                                  int decalage,

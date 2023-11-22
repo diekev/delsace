@@ -24,6 +24,7 @@ struct UniteCompilation;
 enum {
     DONNÉES_CONSTANTES,
     DONNÉES_GLOBALES,
+    CODE_FONCTION,
 };
 
 enum {
@@ -34,6 +35,7 @@ enum {
 struct AdresseDonnéesExécution {
     int type{};
     int décalage{};
+    AtomeFonction const *fonction{};
 };
 
 // Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
