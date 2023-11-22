@@ -571,43 +571,34 @@ void Chunk::émets_rembourrage(uint32_t rembourrage)
 
 /* ************************************************************************** */
 
-static int64_t instruction_simple(kuri::chaine_statique nom, int64_t décalage, Enchaineuse &os)
+static int64_t instruction_simple(int64_t décalage, Enchaineuse &os)
 {
-    os << nom << '\n';
+    os << '\n';
     return décalage + 1;
 }
 
 template <typename T>
-static int64_t instruction_1d(Chunk const &chunk,
-                              kuri::chaine_statique nom,
-                              int64_t décalage,
-                              Enchaineuse &os)
+static int64_t instruction_1d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
     auto index = *reinterpret_cast<T *>(&chunk.code[décalage]);
-    os << nom << ' ' << index << '\n';
+    os << ' ' << index << '\n';
     return décalage + static_cast<int64_t>(sizeof(T));
 }
 
 template <typename T1, typename T2>
-static int64_t instruction_2d(Chunk const &chunk,
-                              kuri::chaine_statique nom,
-                              int64_t décalage,
-                              Enchaineuse &os)
+static int64_t instruction_2d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
     décalage += static_cast<int64_t>(sizeof(T1));
     auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
-    os << nom << ' ' << v1 << ", " << v2 << "\n";
+    os << ' ' << v1 << ", " << v2 << "\n";
     return décalage + static_cast<int64_t>(sizeof(T2));
 }
 
 template <typename T1, typename T2, typename T3>
-static int64_t instruction_3d(Chunk const &chunk,
-                              kuri::chaine_statique nom,
-                              int64_t décalage,
-                              Enchaineuse &os)
+static int64_t instruction_3d(Chunk const &chunk, int64_t décalage, Enchaineuse &os)
 {
     décalage += 1;
     auto v1 = *reinterpret_cast<T1 *>(&chunk.code[décalage]);
@@ -615,7 +606,7 @@ static int64_t instruction_3d(Chunk const &chunk,
     auto v2 = *reinterpret_cast<T2 *>(&chunk.code[décalage]);
     décalage += static_cast<int64_t>(sizeof(T2));
     auto v3 = *reinterpret_cast<T3 *>(&chunk.code[décalage]);
-    os << nom << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
+    os << ' ' << v1 << ", " << v2 << ", " << v3 << "\n";
     return décalage + static_cast<int64_t>(sizeof(T3));
 }
 
@@ -625,6 +616,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
 
     auto instruction = chunk.code[décalage];
 
+    os << chaine_code_operation(instruction);
+
     switch (instruction) {
         case OP_LOGUE_RETOUR:
         case OP_LOGUE_SORTIES:
@@ -632,14 +625,14 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_VÉRIFIE_CIBLE_BRANCHE:
         case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
         {
-            return instruction_simple(chaine_code_operation(instruction), décalage, os);
+            return instruction_simple(décalage, os);
         }
         case OP_CONSTANTE:
         {
             décalage += 1;
             auto drapeaux = chunk.code[décalage];
             décalage += 1;
-            os << "OP_CONSTANTE " << ' ';
+            os << ' ';
 
 #define LIS_CONSTANTE(type)                                                                       \
     type v = *(reinterpret_cast<type *>(&chunk.code[décalage]));                                  \
@@ -717,7 +710,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         }
         case OP_STRUCTURE_CONSTANTE:
         {
-            os << "OP_STRUCTURE_CONSTANTE\n";
+            os << "\n";
             décalage += 1;
             auto taille_structure = *reinterpret_cast<int *>(&chunk.code[décalage]);
             return décalage + taille_structure + 4;
@@ -773,13 +766,13 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_DÉCRÉMENTE:
         case OP_REMBOURRAGE:
         {
-            return instruction_1d<int>(chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_1d<int>(chunk, décalage, os);
         }
         case OP_STAT_INSTRUCTION:
         {
             décalage += 1;
             auto op = chunk.code[décalage];
-            os << chaine_code_operation(instruction) << ' ' << chaine_code_operation(op) << '\n';
+            os << ' ' << chaine_code_operation(op) << '\n';
             return décalage + 1;
         }
         case OP_ASSIGNE_LOCALE:
@@ -788,26 +781,22 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_INCRÉMENTE_LOCALE:
         case OP_RÉFÉRENCE_MEMBRE_LOCALE:
         {
-            return instruction_2d<int, int>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_VÉRIFIE_CIBLE_APPEL:
         {
-            return instruction_2d<int, int64_t>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_2d<int, int64_t>(chunk, décalage, os);
         }
         case OP_APPEL:
         case OP_APPEL_EXTERNE:
         case OP_APPEL_INTRINSÈQUE:
         case OP_APPEL_COMPILATRICE:
         {
-            return instruction_3d<void *, int, void *>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_3d<void *, int, void *>(chunk, décalage, os);
         }
         case OP_COPIE_LOCALE:
         {
-            return instruction_3d<int, int, int>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_3d<int, int, int>(chunk, décalage, os);
         }
         case OP_AUGMENTE_NATUREL:
         case OP_DIMINUE_NATUREL:
@@ -818,17 +807,15 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_ENTIER_VERS_REEL:
         case OP_REEL_VERS_ENTIER:
         {
-            return instruction_2d<int, int>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_LOGUE_APPEL:
         {
-            return instruction_1d<void *>(chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_1d<void *>(chunk, décalage, os);
         }
         case OP_LOGUE_ENTRÉES:
         {
-            return instruction_2d<void *, uint32_t>(
-                chunk, chaine_code_operation(instruction), décalage, os);
+            return instruction_2d<void *, uint32_t>(chunk, décalage, os);
         }
         default:
         {
