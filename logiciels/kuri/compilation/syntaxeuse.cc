@@ -2751,8 +2751,8 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDeclarationEnteteFonction *
         }
 
         if (!decl_sortie->est_declaration_variable()) {
-            auto ident = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
-                enchaine("__ret", noeud->params_sorties.taille()));
+            auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(
+                noeud->params_sorties.taille());
 
             auto ref = m_tacheronne.assembleuse->crée_reference_declaration(decl_sortie->lexeme);
             ref->ident = ident;
