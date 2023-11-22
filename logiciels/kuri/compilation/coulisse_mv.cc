@@ -100,12 +100,18 @@ bool CoulisseMV::crée_exécutable_impl(Compilatrice &compilatrice,
         if (it.destination.type == DONNÉES_CONSTANTES) {
             adresse_destination = ptr_données_constantes + it.destination.décalage;
         }
-        else {
+        else if (it.destination.type == DONNÉES_GLOBALES) {
             adresse_destination = ptr_données_globales + it.destination.décalage;
+        }
+        else {
+            assert(it.destination.type == CODE_FONCTION);
+            adresse_destination = it.destination.fonction->données_exécution->chunk.code +
+                                  it.destination.décalage;
         }
 
         *reinterpret_cast<void **>(adresse_destination) = adresse_source;
-        // std::cerr << "Écris adresse : " << adresse_quoi << ", à " << adresse_ou << '\n';
+        // std::cerr << "Écris adresse : " << adresse_source << ", à " << adresse_destination <<
+        // '\n';
     }
 
     return true;
