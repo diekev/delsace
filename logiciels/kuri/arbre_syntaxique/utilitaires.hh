@@ -261,6 +261,13 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
  */
 NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *expression);
 
+/**
+ * Traverse l'expression donnée et retourne vrai si l'expression et ses sous-expression sont
+ * toutes des expressions constantes utilisables pour générer une initialisation constante
+ * dans la RI.
+ */
+bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression const *expression);
+
 /* Retourne un texte lisible pour le nom du noeud. Par exemple, si le noeud est la fonction
  * d'initialisation du type z32, retourne "init_de(z32)". */
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);

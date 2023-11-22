@@ -3830,6 +3830,10 @@ static MéthodeConstructionGlobale détermine_méthode_construction_globale(
 
         auto const type_pointe = type_dereference_pour(expression->type);
 
+        if (!peut_être_utilisée_pour_initialisation_constante_globale(expression)) {
+            return MéthodeConstructionGlobale::NORMALE;
+        }
+
         /* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le
          * contexte global. Ceci nécessitera d'avoir une deuxième version de la génération de code
          * pour les structures avec des instructions constantes. */
