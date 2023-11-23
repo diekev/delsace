@@ -102,6 +102,10 @@ struct GénératriceCodeC {
     /* Si une chaine est trop large pour le stockage de chaines statiques, nous la stockons ici. */
     kuri::tableau<kuri::chaine> chaines_trop_larges_pour_stockage_chn{};
 
+    /* Définis si la génération de code d'atome est pour l'initialisation d'un tableau fixe.
+     * Utilisé notamment pour ne pas imprimer les noms dans les structures constantes. */
+    bool pour_init_tableau = false;
+
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
     {
@@ -1090,23 +1094,19 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                     continue;
                 }
 
-                // les tableaux fixes ont une initialisation nulle
-                if (tableau_valeur[index_membre] == nullptr) {
-                    index_membre += 1;
-                    continue;
-                }
-
                 résultat << virgule;
                 virgule_placee = true;
 
-                résultat << ".";
-                if (type->membres[i].nom == ID::chaine_vide) {
-                    résultat << "membre_invisible";
+                if (!pour_init_tableau) {
+                    résultat << ".";
+                    if (type->membres[i].nom == ID::chaine_vide) {
+                        résultat << "membre_invisible";
+                    }
+                    else {
+                        résultat << broyeuse.broye_nom_simple(type->membres[i].nom);
+                    }
+                    résultat << " = ";
                 }
-                else {
-                    résultat << broyeuse.broye_nom_simple(type->membres[i].nom);
-                }
-                résultat << " = ";
                 résultat << génère_code_pour_atome(tableau_valeur[index_membre], os, pour_globale);
 
                 virgule = ", ";
@@ -1181,6 +1181,28 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             }
 
             enchaineuse_tmp << " }";
+
+            return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = atome->comme_initialisation_tableau();
+
+            auto ancien_pour_init_tableau = pour_init_tableau;
+            pour_init_tableau = true;
+            auto valeur = génère_code_pour_atome(init_tableau->valeur, os, pour_globale);
+            pour_init_tableau = ancien_pour_init_tableau;
+
+            enchaineuse_tmp.réinitialise();
+
+            /* Ne mettre qu'une seule fois la valeur suffit. */
+            enchaineuse_tmp << "{ " << valeur << " }";
+
+            if (enchaineuse_tmp.nombre_tampons() > 1) {
+                auto chaine_resultat = enchaineuse_tmp.chaine();
+                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_resultat);
+                return chaines_trop_larges_pour_stockage_chn.dernière();
+            }
 
             return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
         }
