@@ -3154,11 +3154,18 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     auto type_pointeur_annotation = m_compilatrice.typeuse.type_pointeur_pour(type_annotation);
 
     POUR (annotations) {
+        auto annotation_existante = m_registre_annotations.trouve_globale_pour_annotation(it);
+        if (annotation_existante) {
+            valeurs_annotations.ajoute(annotation_existante);
+            continue;
+        }
+
         kuri::tableau<AtomeConstante *> valeurs(2);
         valeurs[0] = crée_chaine(it.nom);
         valeurs[1] = crée_chaine(it.valeur);
         auto valeur = crée_globale_info_type(type_annotation, std::move(valeurs));
         valeurs_annotations.ajoute(valeur);
+        m_registre_annotations.ajoute_annotation(it, valeur);
     }
 
     auto résultat = m_constructrice.crée_tableau_global(type_pointeur_annotation,
@@ -4338,3 +4345,42 @@ void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
 {
     m_constructrice.rassemble_statistiques(stats);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name RegistreAnnotations.
+ * \{ */
+
+AtomeGlobale *RegistreAnnotations::trouve_globale_pour_annotation(
+    const Annotation &annotation) const
+{
+    auto trouvée = false;
+    auto const &paires = m_table.trouve(annotation.nom, trouvée);
+    if (!trouvée) {
+        return nullptr;
+    }
+
+    POUR (paires) {
+        if (it.valeur == annotation.valeur) {
+            return it.globale;
+        }
+    }
+
+    return nullptr;
+}
+
+void RegistreAnnotations::ajoute_annotation(const Annotation &annotation, AtomeGlobale *globale)
+{
+    auto paire = PaireValeurGlobale{annotation.valeur, globale};
+
+    auto ptr = m_table.trouve_pointeur(annotation.nom);
+    if (ptr) {
+        ptr->ajoute(paire);
+        return;
+    }
+
+    auto tableau = kuri::tableau<PaireValeurGlobale, int>();
+    tableau.ajoute(paire);
+    m_table.insère(annotation.nom, tableau);
+}
+
+/** \} */
