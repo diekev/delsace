@@ -1858,12 +1858,12 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto type_tableau = atome->type->comme_type_tableau_fixe();
             auto type_élément = type_tableau->type_pointe;
 
+            auto destination_élément = destination;
             auto décalage_élément = décalage;
             POUR (tableau_fixe->donne_atomes_éléments()) {
-                génère_code_atome_constant(it,
-                                           adressage_destination,
-                                           destination + type_élément->taille_octet,
-                                           décalage_élément);
+                génère_code_atome_constant(
+                    it, adressage_destination, destination_élément, décalage_élément);
+                destination_élément += type_élément->taille_octet;
                 décalage_élément += int(type_élément->taille_octet);
             }
             break;
