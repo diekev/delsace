@@ -1906,16 +1906,17 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
 
 void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atome_globale) const
 {
-    auto index = atome_globale->index;
-
-    if (atome_globale->est_constante) {
-        auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
-        auto globale = données_exécutions->globales[index];
-        auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
-        auto initialisateur = atome_globale->initialisateur;
-        génère_code_atome_constant(
-            initialisateur, adressage_destination, destination, globale.adresse);
+    if (!atome_globale->initialisateur) {
+        return;
     }
+
+    auto index = atome_globale->index;
+    auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
+    auto globale = données_exécutions->globales[index];
+    auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
+    auto initialisateur = atome_globale->initialisateur;
+    génère_code_atome_constant(
+        initialisateur, adressage_destination, destination, globale.adresse);
 }
 
 int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc) const

@@ -1015,14 +1015,6 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
             }
             m_constructrice.crée_stocke_mem(nullptr, it, valeur);
         }
-        // À FAIRE : it->ident est utilisé car les globales générées par la compilatrice font
-        // crasher l'exécution dans la MV. Sans doute, les expressions constantes n'ont pas de
-        // place allouée sur la pile, donc l'assignation dépile de la mémoire appartenant à
-        // quelqu'un d'autres. Il faudra également avoir un bon système pour garantir un site à
-        // imprimer.
-        else if (it->initialisateur && it->ident) {
-            m_constructrice.crée_stocke_mem(nullptr, it, it->initialisateur);
-        }
     }
 
     m_constructrice.crée_retour(nullptr, nullptr);
