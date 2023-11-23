@@ -907,7 +907,7 @@ void CompilatriceRI::genere_ri_pour_fonction_metaprogramme(
 
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     EspaceDeTravail *espace,
-    const kuri::tableau<AtomeGlobale *> &globales,
+    kuri::tableau_statique<AtomeGlobale *> globales,
     AtomeFonction *fonction_pour)
 {
     m_espace = espace;
@@ -985,7 +985,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
 }
 
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
-    const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour)
+    kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour)
 {
     auto nom_fonction = enchaine("init_globale", fonction_pour);
     auto ident_nom = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
@@ -3612,7 +3612,7 @@ AtomeConstante *CompilatriceRI::transtype_base_info_type(AtomeConstante *info_ty
 void CompilatriceRI::genere_ri_pour_initialisation_globales(
     EspaceDeTravail *espace,
     AtomeFonction *fonction_init,
-    const kuri::tableau<AtomeGlobale *> &globales)
+    kuri::tableau_statique<AtomeGlobale *> globales)
 {
     m_espace = espace;
     genere_ri_pour_initialisation_globales(fonction_init, globales);
@@ -3739,7 +3739,7 @@ AtomeConstante *CompilatriceRI::crée_chaine(kuri::chaine_statique chaine)
 }
 
 void CompilatriceRI::genere_ri_pour_initialisation_globales(
-    AtomeFonction *fonction_init, kuri::tableau<AtomeGlobale *> const &globales)
+    AtomeFonction *fonction_init, kuri::tableau_statique<AtomeGlobale *> globales)
 {
     définis_fonction_courante(fonction_init);
 
