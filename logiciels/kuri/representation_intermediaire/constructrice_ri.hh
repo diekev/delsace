@@ -89,6 +89,7 @@ struct ConstructriceRI {
     tableau_page<AtomeConstanteType> constantes_types{};
     tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
     tableau_page<AtomeInitialisationTableau> initialisations_tableau{};
+    tableau_page<AtomeNonInitialisation> non_initialisations{};
     tableau_page<InstructionAllocation> insts_allocation{};
     tableau_page<InstructionAppel> insts_appel{};
     tableau_page<InstructionBranche> insts_branche{};
@@ -163,6 +164,7 @@ struct ConstructriceRI {
                                                                                int64_t taille);
     AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
                                                             AtomeConstante const *valeur);
+    AtomeNonInitialisation *crée_non_initialisation();
     AtomeConstante *crée_tableau_global(Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *crée_tableau_global(AtomeConstante *tableau_fixe);
@@ -302,7 +304,7 @@ struct CompilatriceRI {
                                                NoeudDeclarationEnteteFonction *fonction);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
-        const kuri::tableau<AtomeGlobale *> &globales,
+        kuri::tableau_statique<AtomeGlobale *> globales,
         AtomeFonction *fonction_pour);
 
     Compilatrice &compilatrice() const
@@ -334,10 +336,10 @@ struct CompilatriceRI {
 
     void genere_ri_pour_initialisation_globales(EspaceDeTravail *espace,
                                                 AtomeFonction *fonction_init,
-                                                const kuri::tableau<AtomeGlobale *> &globales);
+                                                kuri::tableau_statique<AtomeGlobale *> globales);
 
     void genere_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
-                                                const kuri::tableau<AtomeGlobale *> &globales);
+                                                kuri::tableau_statique<AtomeGlobale *> globales);
 
     AtomeGlobale *crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction);
     AtomeGlobale *crée_info_appel_pour_trace_appel(InstructionAppel *pour_appel);
@@ -347,7 +349,7 @@ struct CompilatriceRI {
     void crée_appel_fonction_init_type(NoeudExpression *site_, Type const *type, Atome *argument);
 
     AtomeFonction *genere_fonction_init_globales_et_appel(
-        const kuri::tableau<AtomeGlobale *> &globales, AtomeFonction *fonction_pour);
+        kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
     void genere_ri_pour_noeud(NoeudExpression *noeud);
     void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);

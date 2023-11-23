@@ -1121,6 +1121,14 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
 
     partition_globales = partition_stable(partition_globales.faux,
                                           [](auto &globale) { return globale->est_constante; });
+
+    /* Rassemble les globales selon leurs types. */
+    kuri::tri_stable(partition_globales.vrai, [](auto &globale1, auto &globale2) {
+        auto type1 = globale1->type->comme_type_pointeur()->type_pointe;
+        auto type2 = globale2->type->comme_type_pointeur()->type_pointe;
+        return type1 > type2;
+    });
+
     m_résultat.définis_partition(partition_globales.vrai,
                                  ProgrammeRepreInter::GLOBALES_CONSTANTES);
     m_résultat.définis_partition(partition_globales.faux, ProgrammeRepreInter::GLOBALES_MUTABLES);
