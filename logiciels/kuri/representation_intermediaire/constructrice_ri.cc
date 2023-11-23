@@ -3143,6 +3143,10 @@ struct IDInfoType {
 AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     kuri::tableau<Annotation, int> const &annotations)
 {
+    if (annotations.est_vide() && m_globale_annotations_vides) {
+        return m_globale_annotations_vides;
+    }
+
     kuri::tableau<AtomeConstante *> valeurs_annotations;
     valeurs_annotations.reserve(annotations.taille());
 
@@ -3157,8 +3161,12 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
         valeurs_annotations.ajoute(valeur);
     }
 
-    return m_constructrice.crée_tableau_global(type_pointeur_annotation,
-                                               std::move(valeurs_annotations));
+    auto résultat = m_constructrice.crée_tableau_global(type_pointeur_annotation,
+                                                        std::move(valeurs_annotations));
+    if (annotations.est_vide()) {
+        m_globale_annotations_vides = résultat;
+    }
+    return résultat;
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)

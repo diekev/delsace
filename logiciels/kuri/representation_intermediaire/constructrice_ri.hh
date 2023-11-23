@@ -254,6 +254,11 @@ struct CompilatriceRI {
 
     AtomeFonction *m_fonction_courante = nullptr;
 
+    /* Globale pour les annotations vides des membres des infos-type.
+     * Nous n'en créons qu'une seule dans ce cas afin d'économiser de la mémoire.
+     */
+    AtomeConstante *m_globale_annotations_vides = nullptr;
+
   public:
     double temps_generation = 0.0;
 
