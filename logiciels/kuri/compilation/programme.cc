@@ -777,6 +777,8 @@ struct ConstructriceProgrammeFormeRI {
     void génère_table_des_types();
 
     void tri_fonctions_et_globales();
+
+    void partitionne_globales_info_types();
 };
 
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
@@ -850,6 +852,8 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         }
 
         if (!m_résultat.globales.est_vide()) {
+            partitionne_globales_info_types();
+
             auto fonc_init = m_compilatrice_ri.genere_fonction_init_globales_et_appel(
                 &m_espace, m_résultat.globales, fonction);
 
@@ -1147,6 +1151,40 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
                                  ProgrammeRepreInter::FONCTIONS_HORSLIGNÉES);
 }
 
+void ConstructriceProgrammeFormeRI::partitionne_globales_info_types()
+{
+    kuri::tableau<AtomeGlobale *> globales_infos_types;
+    POUR (m_résultat.globales) {
+        if (it->est_info_type_de) {
+            globales_infos_types.ajoute(it);
+        }
+    }
+
+    VisiteuseAtome visiteuse;
+    kuri::ensemble<AtomeGlobale *> globales_utilisées_par_infos;
+    POUR (globales_infos_types) {
+        globales_utilisées_par_infos.insère(it);
+        visiteuse.visite_atome(it, [&](Atome *atome_visité) {
+            if (!atome_visité->est_globale()) {
+                return;
+            }
+
+            if (est_globale_pour_tableau_données_constantes(atome_visité->comme_globale())) {
+                return;
+            }
+
+            globales_utilisées_par_infos.insère(atome_visité->comme_globale());
+        });
+    }
+
+    auto partition = partition_stable(m_résultat.globales, [&](auto &globale) {
+        return !globales_utilisées_par_infos.possède(globale);
+    });
+
+    m_résultat.définis_partition(partition.vrai, ProgrammeRepreInter::GLOBALES_NON_INFO_TYPES);
+    m_résultat.définis_partition(partition.faux, ProgrammeRepreInter::GLOBALES_INFO_TYPES);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1217,6 +1255,18 @@ kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales() con
 kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales_internes() const
 {
     auto données = partitions_globales[GLOBALES_INTERNES];
+    return {const_cast<AtomeGlobale **>(globales.begin()) + données.first, données.second};
+}
+
+kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales_info_types() const
+{
+    auto données = partitions_globales[GLOBALES_INFO_TYPES];
+    return {const_cast<AtomeGlobale **>(globales.begin()) + données.first, données.second};
+}
+
+kuri::tableau_statique<AtomeGlobale *> ProgrammeRepreInter::donne_globales_non_info_types() const
+{
+    auto données = partitions_globales[GLOBALES_NON_INFO_TYPES];
     return {const_cast<AtomeGlobale **>(globales.begin()) + données.first, données.second};
 }
 

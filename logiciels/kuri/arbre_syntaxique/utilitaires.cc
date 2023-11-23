@@ -990,11 +990,26 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
                 return true;
             }
 
+            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+                return true;
+            }
+
             if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
                 return true;
             }
 
             return false;
+        }
+        case GenreNoeud::OPERATEUR_UNAIRE:
+        {
+            auto op_unaire = expression->comme_expression_unaire();
+
+            /* Les prises d'adresses n'ont pas d'opérateurs. */
+            if (op_unaire->lexeme->genre != GenreLexeme::FOIS_UNAIRE) {
+                return false;
+            }
+
+            return peut_être_utilisée_pour_initialisation_constante_globale(op_unaire->operande);
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
