@@ -155,6 +155,11 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
             os << "constante d'initialisation de tableau fixe";
             break;
         }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            os << "non-initialisation";
+            break;
+        }
         case Atome::Genre::INSTRUCTION:
         {
             os << "instruction";

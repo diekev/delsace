@@ -26,6 +26,7 @@ struct AtomeConstanteTailleDe;
 struct AtomeConstanteType;
 struct AtomeFonction;
 struct AtomeInitialisationTableau;
+struct AtomeNonInitialisation;
 struct TranstypeConstant;
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
@@ -59,6 +60,7 @@ enum class VisibilitéSymbole : uint8_t;
     O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
+    O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
     O(ACCÈS_INDEX_CONSTANT, AccedeIndexConstant, accès_index_constant)                            \
     O(FONCTION, AtomeFonction, fonction)                                                          \
@@ -279,6 +281,13 @@ struct AtomeInitialisationTableau : public AtomeConstante {
     {
         type = type_;
         genre_atome = Genre::INITIALISATION_TABLEAU;
+    }
+};
+
+struct AtomeNonInitialisation : public AtomeConstante {
+    AtomeNonInitialisation()
+    {
+        genre_atome = Genre::NON_INITIALISATION;
     }
 };
 

@@ -1663,6 +1663,10 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             break;
         }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            break;
+        }
     }
 }
 
@@ -1899,6 +1903,10 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             assert(false);
+            break;
+        }
+        case Atome::Genre::NON_INITIALISATION:
+        {
             break;
         }
     }

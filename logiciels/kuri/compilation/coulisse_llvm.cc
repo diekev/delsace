@@ -803,6 +803,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
             // dbg() << "GLOBALE: " << *valeur;
             return valeur;
         }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            assert(false);
+            return nullptr;
+        }
     }
 
     return nullptr;

@@ -116,6 +116,10 @@ kuri::chaine GeneratriceCodeASM::genere_code_pour_atome(Atome *atome,
         {
             return "";
         }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            return "";
+        }
         case Atome::Genre::INSTRUCTION:
         {
             return "";
