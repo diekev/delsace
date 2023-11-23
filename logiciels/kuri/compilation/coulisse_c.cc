@@ -1135,13 +1135,19 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto résultat = Enchaineuse();
 
             auto virgule = "{ .d = { ";
+            auto nombre_de_tampons = 1;
 
             POUR (éléments) {
                 résultat << virgule;
                 résultat << génère_code_pour_atome(it, os, pour_globale);
-                /* Retourne à la ligne car GCC à du mal avec des chaines trop
-                 * grandes. */
-                virgule = ",\n";
+                virgule = ", ";
+
+                if (résultat.nombre_tampons() > nombre_de_tampons) {
+                    /* Retourne à la ligne car GCC à du mal avec des chaines trop
+                     * grandes. */
+                    résultat << "\n";
+                    nombre_de_tampons = résultat.nombre_tampons();
+                }
             }
 
             if (éléments.taille() == 0) {
