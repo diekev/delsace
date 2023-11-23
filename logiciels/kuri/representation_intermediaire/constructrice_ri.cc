@@ -354,6 +354,11 @@ AtomeInitialisationTableau *ConstructriceRI::crée_initialisation_tableau(
     return initialisations_tableau.ajoute_element(type, valeur);
 }
 
+AtomeNonInitialisation *ConstructriceRI::crée_non_initialisation()
+{
+    return non_initialisations.ajoute_element();
+}
+
 AtomeConstante *ConstructriceRI::crée_tableau_global(Type const *type,
                                                      kuri::tableau<AtomeConstante *> &&valeurs)
 {
@@ -846,6 +851,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     AJOUTE_ENTREE(constantes_types)
     AJOUTE_ENTREE(constantes_taille_de)
     AJOUTE_ENTREE(initialisations_tableau)
+    AJOUTE_ENTREE(non_initialisations)
     AJOUTE_ENTREE(insts_allocation)
     AJOUTE_ENTREE(insts_branche)
     AJOUTE_ENTREE(insts_branche_condition)

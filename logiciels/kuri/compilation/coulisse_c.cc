@@ -1212,6 +1212,10 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
         }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            return "{}";
+        }
     }
 
     return "";
