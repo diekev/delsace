@@ -990,34 +990,10 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
-
-    auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
-    auto trouve_constructeur_pour =
-        [&constructeurs](
-            AtomeGlobale *globale) -> const Compilatrice::DonneesConstructeurGlobale * {
-        for (auto &constructeur : *constructeurs) {
-            if (globale == constructeur.atome) {
-                return &constructeur;
-            }
-        }
-        return nullptr;
-    };
-
-    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
-    POUR (globales_à_initialiser) {
-        auto constructeur = trouve_constructeur_pour(it);
-        if (constructeur) {
-            genere_ri_transformee_pour_noeud(
-                constructeur->expression, nullptr, constructeur->transformation);
-            auto valeur = depile_valeur();
-            if (!valeur) {
-                continue;
-            }
-            m_constructrice.crée_stocke_mem(nullptr, it, valeur);
-        }
-    }
-
+    /* Génère d'abord le retour car generi_ri_pour_initialisation_globales le requiers. */
     m_constructrice.crée_retour(nullptr, nullptr);
+
+    genere_ri_pour_initialisation_globales(fonction, globales);
 
     // crée l'appel de cette fonction et ajoute là au début de la fonction_pour
 
@@ -3762,26 +3738,33 @@ void CompilatriceRI::genere_ri_pour_initialisation_globales(
     auto di = fonction_init->instructions.dernière();
     fonction_init->instructions.supprime_dernier();
 
-    auto constructeurs_globaux = m_compilatrice.constructeurs_globaux.verrou_lecture();
-
-    POUR (*constructeurs_globaux) {
-        bool globale_trouvee = false;
-        for (auto &globale : globales) {
-            if (it.atome == globale) {
-                globale_trouvee = true;
-                break;
+    auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
+    auto trouve_constructeur_pour =
+        [&constructeurs](
+            AtomeGlobale *globale) -> const Compilatrice::DonneesConstructeurGlobale * {
+        for (auto &constructeur : *constructeurs) {
+            if (globale == constructeur.atome) {
+                return &constructeur;
             }
         }
+        return nullptr;
+    };
 
-        if (!globale_trouvee) {
+    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
+    POUR (globales_à_initialiser) {
+        auto constructeur = trouve_constructeur_pour(it);
+        if (!constructeur) {
             continue;
         }
 
-        if (it.expression->est_non_initialisation()) {
+        genere_ri_transformee_pour_noeud(
+            constructeur->expression, nullptr, constructeur->transformation);
+
+        auto valeur = depile_valeur();
+        if (!valeur) {
             continue;
         }
-
-        genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
+        m_constructrice.crée_stocke_mem(nullptr, it, valeur);
     }
 
     /* Restaure le retour. */
