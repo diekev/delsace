@@ -1901,8 +1901,8 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
 
     if (atome_globale->est_constante && !atome_globale->est_info_type_de) {
         auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
-        auto destination = données_exécutions->données_globales.donnees();
         auto globale = données_exécutions->globales[index];
+        auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
         auto initialisateur = atome_globale->initialisateur;
         génère_code_atome_constant(
             initialisateur, adressage_destination, destination, globale.adresse);
