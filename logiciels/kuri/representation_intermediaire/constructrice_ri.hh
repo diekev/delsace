@@ -88,6 +88,7 @@ struct ConstructriceRI {
     tableau_page<AtomeConstanteDonnéesConstantes> constantes_données_constantes{};
     tableau_page<AtomeConstanteType> constantes_types{};
     tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
+    tableau_page<AtomeInitialisationTableau> initialisations_tableau{};
     tableau_page<InstructionAllocation> insts_allocation{};
     tableau_page<InstructionAppel> insts_appel{};
     tableau_page<InstructionBranche> insts_branche{};
@@ -160,6 +161,8 @@ struct ConstructriceRI {
     AtomeConstanteDonnéesConstantes *crée_constante_tableau_données_constantes(Type const *type,
                                                                                char *pointeur,
                                                                                int64_t taille);
+    AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
+                                                            AtomeConstante const *valeur);
     AtomeConstante *crée_tableau_global(Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *crée_tableau_global(AtomeConstante *tableau_fixe);

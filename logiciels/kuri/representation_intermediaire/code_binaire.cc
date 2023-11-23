@@ -1601,12 +1601,6 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                     continue;
                 }
 
-                if (tableau_valeur[index_membre] == nullptr) {
-                    /* À FAIRE(tableau fixe) : initialisation défaut. */
-                    index_membre += 1;
-                    continue;
-                }
-
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
 
@@ -1640,6 +1634,27 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                     it, adressage_destination, destination_membre, décalage_membre);
                 destination_membre += type_élément->taille_octet;
                 décalage_membre += int(type_élément->taille_octet);
+            }
+
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = atome->comme_initialisation_tableau();
+            auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
+            auto type_élément = type_tableau->type_pointe;
+
+            auto décalage = chunk.émets_structure_constante(type_tableau->taille_octet);
+            auto destination = chunk.code + décalage;
+
+            auto adressage_destination = AdresseDonnéesExécution{
+                CODE_FONCTION, 0, m_atome_fonction_courante};
+
+            for (auto i = 0; i < type_tableau->taille; i++) {
+                génère_code_atome_constant(
+                    init_tableau->valeur, adressage_destination, destination, décalage);
+                destination += type_élément->taille_octet;
+                décalage += int(type_élément->taille_octet);
             }
 
             break;
@@ -1834,12 +1849,6 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
                     continue;
                 }
 
-                if (tableau_valeur[index_membre] == nullptr) {
-                    /* À FAIRE(tableau fixe) : initialisation défaut. */
-                    index_membre += 1;
-                    continue;
-                }
-
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
                 génère_code_atome_constant(tableau_valeur[index_membre],
@@ -1866,6 +1875,25 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
                 destination_élément += type_élément->taille_octet;
                 décalage_élément += int(type_élément->taille_octet);
             }
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = atome->comme_initialisation_tableau();
+            auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
+            auto type_élément = type_tableau->type_pointe;
+
+            auto décalage_élément = décalage;
+            auto destination_élément = destination;
+            for (auto i = 0; i < type_tableau->taille; i++) {
+                génère_code_atome_constant(init_tableau->valeur,
+                                           adressage_destination,
+                                           destination_élément,
+                                           décalage_élément);
+                destination_élément += type_élément->taille_octet;
+                décalage_élément += int(type_élément->taille_octet);
+            }
+
             break;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:

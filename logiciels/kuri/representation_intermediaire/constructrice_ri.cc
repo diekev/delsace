@@ -348,6 +348,12 @@ AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_donn�
     return constantes_données_constantes.ajoute_element(type, pointeur, taille);
 }
 
+AtomeInitialisationTableau *ConstructriceRI::crée_initialisation_tableau(
+    const Type *type, const AtomeConstante *valeur)
+{
+    return initialisations_tableau.ajoute_element(type, valeur);
+}
+
 AtomeConstante *ConstructriceRI::crée_tableau_global(Type const *type,
                                                      kuri::tableau<AtomeConstante *> &&valeurs)
 {
@@ -749,8 +755,9 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         }
         case GenreType::TABLEAU_FIXE:
         {
-            // À FAIRE(tableau fixe) : initialisation défaut
-            return nullptr;
+            auto type_tableau = type->comme_type_tableau_fixe();
+            auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointe);
+            return crée_initialisation_tableau(type_tableau, valeur);
         }
         case GenreType::UNION:
         {
@@ -800,12 +807,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         {
             auto type_opaque = type->comme_type_opaque();
             auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifie);
-
-            // À FAIRE(tableau fixe) : initialisation défaut
-            if (valeur) {
-                valeur->type = type_opaque;
-            }
-
+            valeur->type = type_opaque;
             return valeur;
         }
     }
@@ -843,6 +845,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     AJOUTE_ENTREE(constantes_données_constantes)
     AJOUTE_ENTREE(constantes_types)
     AJOUTE_ENTREE(constantes_taille_de)
+    AJOUTE_ENTREE(initialisations_tableau)
     AJOUTE_ENTREE(insts_allocation)
     AJOUTE_ENTREE(insts_branche)
     AJOUTE_ENTREE(insts_branche_condition)
