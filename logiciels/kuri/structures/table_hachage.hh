@@ -181,6 +181,18 @@ struct table_hachage {
         return valeurs[index];
     }
 
+    Valeur *trouve_pointeur(Cle const &clé)
+    {
+        auto empreinte = std::hash<Cle>()(clé);
+        auto index = trouve_index(clé, empreinte);
+
+        if (index == -1) {
+            return nullptr;
+        }
+
+        return &valeurs[index];
+    }
+
     Valeur const &trouve_ref(Cle const &cle) const
     {
         auto empreinte = std::hash<Cle>()(cle);

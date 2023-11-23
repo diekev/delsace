@@ -290,6 +290,12 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
             }
             break;
         }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = racine->comme_initialisation_tableau();
+            visite_atome(const_cast<AtomeConstante *>(init_tableau->valeur), rappel);
+            break;
+        }
         case Atome::Genre::GLOBALE:
         {
             auto globale = racine->comme_globale();
