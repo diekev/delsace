@@ -348,6 +348,12 @@ AtomeConstanteDonnéesConstantes *ConstructriceRI::crée_constante_tableau_donn�
     return constantes_données_constantes.ajoute_element(type, pointeur, taille);
 }
 
+AtomeInitialisationTableau *ConstructriceRI::crée_initialisation_tableau(
+    const Type *type, const AtomeConstante *valeur)
+{
+    return initialisations_tableau.ajoute_element(type, valeur);
+}
+
 AtomeConstante *ConstructriceRI::crée_tableau_global(Type const *type,
                                                      kuri::tableau<AtomeConstante *> &&valeurs)
 {
@@ -749,8 +755,9 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         }
         case GenreType::TABLEAU_FIXE:
         {
-            // À FAIRE(tableau fixe) : initialisation défaut
-            return nullptr;
+            auto type_tableau = type->comme_type_tableau_fixe();
+            auto valeur = crée_initialisation_défaut_pour_type(type_tableau->type_pointe);
+            return crée_initialisation_tableau(type_tableau, valeur);
         }
         case GenreType::UNION:
         {
@@ -800,12 +807,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         {
             auto type_opaque = type->comme_type_opaque();
             auto valeur = crée_initialisation_défaut_pour_type(type_opaque->type_opacifie);
-
-            // À FAIRE(tableau fixe) : initialisation défaut
-            if (valeur) {
-                valeur->type = type_opaque;
-            }
-
+            valeur->type = type_opaque;
             return valeur;
         }
     }
@@ -843,6 +845,7 @@ void ConstructriceRI::rassemble_statistiques(Statistiques &stats)
     AJOUTE_ENTREE(constantes_données_constantes)
     AJOUTE_ENTREE(constantes_types)
     AJOUTE_ENTREE(constantes_taille_de)
+    AJOUTE_ENTREE(initialisations_tableau)
     AJOUTE_ENTREE(insts_allocation)
     AJOUTE_ENTREE(insts_branche)
     AJOUTE_ENTREE(insts_branche_condition)
@@ -990,42 +993,10 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
-
-    auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
-    auto trouve_constructeur_pour =
-        [&constructeurs](
-            AtomeGlobale *globale) -> const Compilatrice::DonneesConstructeurGlobale * {
-        for (auto &constructeur : *constructeurs) {
-            if (globale == constructeur.atome) {
-                return &constructeur;
-            }
-        }
-        return nullptr;
-    };
-
-    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
-    POUR (globales_à_initialiser) {
-        auto constructeur = trouve_constructeur_pour(it);
-        if (constructeur) {
-            genere_ri_transformee_pour_noeud(
-                constructeur->expression, nullptr, constructeur->transformation);
-            auto valeur = depile_valeur();
-            if (!valeur) {
-                continue;
-            }
-            m_constructrice.crée_stocke_mem(nullptr, it, valeur);
-        }
-        // À FAIRE : it->ident est utilisé car les globales générées par la compilatrice font
-        // crasher l'exécution dans la MV. Sans doute, les expressions constantes n'ont pas de
-        // place allouée sur la pile, donc l'assignation dépile de la mémoire appartenant à
-        // quelqu'un d'autres. Il faudra également avoir un bon système pour garantir un site à
-        // imprimer.
-        else if (it->initialisateur && it->ident) {
-            m_constructrice.crée_stocke_mem(nullptr, it, it->initialisateur);
-        }
-    }
-
+    /* Génère d'abord le retour car generi_ri_pour_initialisation_globales le requiers. */
     m_constructrice.crée_retour(nullptr, nullptr);
+
+    genere_ri_pour_initialisation_globales(fonction, globales);
 
     // crée l'appel de cette fonction et ajoute là au début de la fonction_pour
 
@@ -3143,6 +3114,10 @@ struct IDInfoType {
 AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     kuri::tableau<Annotation, int> const &annotations)
 {
+    if (annotations.est_vide() && m_globale_annotations_vides) {
+        return m_globale_annotations_vides;
+    }
+
     kuri::tableau<AtomeConstante *> valeurs_annotations;
     valeurs_annotations.reserve(annotations.taille());
 
@@ -3150,15 +3125,26 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     auto type_pointeur_annotation = m_compilatrice.typeuse.type_pointeur_pour(type_annotation);
 
     POUR (annotations) {
+        auto annotation_existante = m_registre_annotations.trouve_globale_pour_annotation(it);
+        if (annotation_existante) {
+            valeurs_annotations.ajoute(annotation_existante);
+            continue;
+        }
+
         kuri::tableau<AtomeConstante *> valeurs(2);
         valeurs[0] = crée_chaine(it.nom);
         valeurs[1] = crée_chaine(it.valeur);
         auto valeur = crée_globale_info_type(type_annotation, std::move(valeurs));
         valeurs_annotations.ajoute(valeur);
+        m_registre_annotations.ajoute_annotation(it, valeur);
     }
 
-    return m_constructrice.crée_tableau_global(type_pointeur_annotation,
-                                               std::move(valeurs_annotations));
+    auto résultat = m_constructrice.crée_tableau_global(type_pointeur_annotation,
+                                                        std::move(valeurs_annotations));
+    if (annotations.est_vide()) {
+        m_globale_annotations_vides = résultat;
+    }
+    return résultat;
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
@@ -3755,26 +3741,33 @@ void CompilatriceRI::genere_ri_pour_initialisation_globales(
     auto di = fonction_init->instructions.dernière();
     fonction_init->instructions.supprime_dernier();
 
-    auto constructeurs_globaux = m_compilatrice.constructeurs_globaux.verrou_lecture();
-
-    POUR (*constructeurs_globaux) {
-        bool globale_trouvee = false;
-        for (auto &globale : globales) {
-            if (it.atome == globale) {
-                globale_trouvee = true;
-                break;
+    auto constructeurs = m_compilatrice.constructeurs_globaux.verrou_lecture();
+    auto trouve_constructeur_pour =
+        [&constructeurs](
+            AtomeGlobale *globale) -> const Compilatrice::DonneesConstructeurGlobale * {
+        for (auto &constructeur : *constructeurs) {
+            if (globale == constructeur.atome) {
+                return &constructeur;
             }
         }
+        return nullptr;
+    };
 
-        if (!globale_trouvee) {
+    auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
+    POUR (globales_à_initialiser) {
+        auto constructeur = trouve_constructeur_pour(it);
+        if (!constructeur) {
             continue;
         }
 
-        if (it.expression->est_non_initialisation()) {
+        genere_ri_transformee_pour_noeud(
+            constructeur->expression, nullptr, constructeur->transformation);
+
+        auto valeur = depile_valeur();
+        if (!valeur) {
             continue;
         }
-
-        genere_ri_transformee_pour_noeud(it.expression, it.atome, it.transformation);
+        m_constructrice.crée_stocke_mem(nullptr, it, valeur);
     }
 
     /* Restaure le retour. */
@@ -4330,3 +4323,42 @@ void CompilatriceRI::rassemble_statistiques(Statistiques &stats)
 {
     m_constructrice.rassemble_statistiques(stats);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name RegistreAnnotations.
+ * \{ */
+
+AtomeGlobale *RegistreAnnotations::trouve_globale_pour_annotation(
+    const Annotation &annotation) const
+{
+    auto trouvée = false;
+    auto const &paires = m_table.trouve(annotation.nom, trouvée);
+    if (!trouvée) {
+        return nullptr;
+    }
+
+    POUR (paires) {
+        if (it.valeur == annotation.valeur) {
+            return it.globale;
+        }
+    }
+
+    return nullptr;
+}
+
+void RegistreAnnotations::ajoute_annotation(const Annotation &annotation, AtomeGlobale *globale)
+{
+    auto paire = PaireValeurGlobale{annotation.valeur, globale};
+
+    auto ptr = m_table.trouve_pointeur(annotation.nom);
+    if (ptr) {
+        ptr->ajoute(paire);
+        return;
+    }
+
+    auto tableau = kuri::tableau<PaireValeurGlobale, int>();
+    tableau.ajoute(paire);
+    m_table.insère(annotation.nom, tableau);
+}
+
+/** \} */

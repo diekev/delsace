@@ -1738,12 +1738,13 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto index = LIS_4_OCTETS();
                 auto const &globale = données_constantes->globales[index];
-                if (globale.adresse_pour_exécution) {
-                    empile(globale.adresse_pour_exécution);
-                }
-                else {
-                    empile(&ptr_données_globales[globale.adresse]);
-                }
+                empile(&ptr_données_globales[globale.adresse]);
+                break;
+            }
+            case OP_REFERENCE_GLOBALE_EXTERNE:
+            {
+                auto adresse = LIS_8_OCTETS();
+                empile(adresse);
                 break;
             }
             case OP_REFERENCE_MEMBRE:
