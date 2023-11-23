@@ -13,9 +13,11 @@ set(BIBLIOTHEQUES
 set(SOURCES
     algorithmes.cc
     calcul.cc
+    compteuse_cas.cc
 
     algorithmes.hh
     calcul.hh
+    compteuse_cas.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

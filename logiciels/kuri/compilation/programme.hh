@@ -295,6 +295,10 @@ struct ProgrammeRepreInter {
         GLOBALES_CONSTANTES,
         GLOBALES_MUTABLES,
 
+        /* Pour les métaprogrammes. */
+        GLOBALES_INFO_TYPES,
+        GLOBALES_NON_INFO_TYPES,
+
         NOMBRE_PARTITIONS_GLOBALES,
     };
 
@@ -359,6 +363,8 @@ struct ProgrammeRepreInter {
   public:
     kuri::tableau_statique<AtomeGlobale *> donne_globales() const;
     kuri::tableau_statique<AtomeGlobale *> donne_globales_internes() const;
+    kuri::tableau_statique<AtomeGlobale *> donne_globales_info_types() const;
+    kuri::tableau_statique<AtomeGlobale *> donne_globales_non_info_types() const;
 
     kuri::tableau_statique<AtomeFonction *> donne_fonctions() const;
     kuri::tableau_statique<AtomeFonction *> donne_fonctions_enlignées() const;

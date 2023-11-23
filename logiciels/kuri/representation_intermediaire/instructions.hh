@@ -25,6 +25,7 @@ struct AtomeConstanteTableauFixe;
 struct AtomeConstanteTailleDe;
 struct AtomeConstanteType;
 struct AtomeFonction;
+struct AtomeInitialisationTableau;
 struct TranstypeConstant;
 struct DonnéesExécutionFonction;
 struct IdentifiantCode;
@@ -57,6 +58,7 @@ enum class VisibilitéSymbole : uint8_t;
     O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
     O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
+    O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
     O(ACCÈS_INDEX_CONSTANT, AccedeIndexConstant, accès_index_constant)                            \
     O(FONCTION, AtomeFonction, fonction)                                                          \
@@ -266,6 +268,18 @@ struct AtomeConstanteTailleDe : public AtomeConstante {
     }
 
     EMPECHE_COPIE(AtomeConstanteTailleDe);
+};
+
+/* Pour initialiser les tableaux constants avec une même valeur. */
+struct AtomeInitialisationTableau : public AtomeConstante {
+    /* La valeur à répéter (le compte est celui de la taille du tableau). */
+    AtomeConstante const *valeur = nullptr;
+
+    AtomeInitialisationTableau(Type const *type_, AtomeConstante const *valeur_) : valeur(valeur_)
+    {
+        type = type_;
+        genre_atome = Genre::INITIALISATION_TABLEAU;
+    }
 };
 
 struct AtomeGlobale : public AtomeConstante {

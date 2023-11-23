@@ -18,6 +18,7 @@
 #include "compilation/ipa.hh"
 #include "compilation/log.hh"
 #include "compilation/operateurs.hh"
+#include "compilation/programme.hh"
 
 #include "parsage/outils_lexemes.hh"
 
@@ -292,6 +293,12 @@ void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur
 {
     émets_entête_op(OP_REFERENCE_GLOBALE, site);
     émets(pointeur);
+}
+
+void Chunk::émets_référence_globale_externe(const NoeudExpression *site, const void *adresse)
+{
+    émets_entête_op(OP_REFERENCE_GLOBALE_EXTERNE, site);
+    émets(adresse);
 }
 
 void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
@@ -810,6 +817,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_LOGUE_APPEL:
+        case OP_REFERENCE_GLOBALE_EXTERNE:
         {
             return instruction_1d<void *>(chunk, décalage, os);
         }
@@ -1005,12 +1013,20 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
-bool CompilatriceCodeBinaire::génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
-                                          kuri::tableau_statique<AtomeFonction *> fonctions)
+bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
 {
-    kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
+    POUR (repr_inter.donne_globales_info_types()) {
+        if (it->index != -1) {
+            continue;
+        }
 
-    POUR (globales) {
+        if (!ajoute_globale(it)) {
+            return false;
+        }
+    }
+
+    kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
+    POUR (repr_inter.donne_globales_non_info_types()) {
         if (it->index != -1) {
             continue;
         }
@@ -1026,7 +1042,7 @@ bool CompilatriceCodeBinaire::génère_code(kuri::tableau_statique<AtomeGlobale 
         génère_code_pour_globale(it);
     }
 
-    POUR (fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         /* Évite de recréer le code binaire. */
         if (it->données_exécution) {
             continue;
@@ -1447,7 +1463,13 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = atome->comme_globale();
-            chunk.émets_référence_globale(nullptr, atome_globale->index);
+            auto globale = données_exécutions->globales[atome_globale->index];
+            if (globale.adresse_pour_exécution) {
+                chunk.émets_référence_globale_externe(nullptr, globale.adresse_pour_exécution);
+            }
+            else {
+                chunk.émets_référence_globale(nullptr, atome_globale->index);
+            }
             break;
         }
         case Atome::Genre::FONCTION:
@@ -1579,12 +1601,6 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                     continue;
                 }
 
-                if (tableau_valeur[index_membre] == nullptr) {
-                    /* À FAIRE(tableau fixe) : initialisation défaut. */
-                    index_membre += 1;
-                    continue;
-                }
-
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
 
@@ -1618,6 +1634,27 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                     it, adressage_destination, destination_membre, décalage_membre);
                 destination_membre += type_élément->taille_octet;
                 décalage_membre += int(type_élément->taille_octet);
+            }
+
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = atome->comme_initialisation_tableau();
+            auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
+            auto type_élément = type_tableau->type_pointe;
+
+            auto décalage = chunk.émets_structure_constante(type_tableau->taille_octet);
+            auto destination = chunk.code + décalage;
+
+            auto adressage_destination = AdresseDonnéesExécution{
+                CODE_FONCTION, 0, m_atome_fonction_courante};
+
+            for (auto i = 0; i < type_tableau->taille; i++) {
+                génère_code_atome_constant(
+                    init_tableau->valeur, adressage_destination, destination, décalage);
+                destination += type_élément->taille_octet;
+                décalage += int(type_élément->taille_octet);
             }
 
             break;
@@ -1812,12 +1849,6 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
                     continue;
                 }
 
-                if (tableau_valeur[index_membre] == nullptr) {
-                    /* À FAIRE(tableau fixe) : initialisation défaut. */
-                    index_membre += 1;
-                    continue;
-                }
-
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
                 génère_code_atome_constant(tableau_valeur[index_membre],
@@ -1836,14 +1867,33 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto type_tableau = atome->type->comme_type_tableau_fixe();
             auto type_élément = type_tableau->type_pointe;
 
+            auto destination_élément = destination;
             auto décalage_élément = décalage;
             POUR (tableau_fixe->donne_atomes_éléments()) {
-                génère_code_atome_constant(it,
-                                           adressage_destination,
-                                           destination + type_élément->taille_octet,
-                                           décalage_élément);
+                génère_code_atome_constant(
+                    it, adressage_destination, destination_élément, décalage_élément);
+                destination_élément += type_élément->taille_octet;
                 décalage_élément += int(type_élément->taille_octet);
             }
+            break;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            auto init_tableau = atome->comme_initialisation_tableau();
+            auto type_tableau = init_tableau->type->comme_type_tableau_fixe();
+            auto type_élément = type_tableau->type_pointe;
+
+            auto décalage_élément = décalage;
+            auto destination_élément = destination;
+            for (auto i = 0; i < type_tableau->taille; i++) {
+                génère_code_atome_constant(init_tableau->valeur,
+                                           adressage_destination,
+                                           destination_élément,
+                                           décalage_élément);
+                destination_élément += type_élément->taille_octet;
+                décalage_élément += int(type_élément->taille_octet);
+            }
+
             break;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
@@ -1884,16 +1934,17 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
 
 void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *atome_globale) const
 {
-    auto index = atome_globale->index;
-
-    if (atome_globale->est_constante && !atome_globale->est_info_type_de) {
-        auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
-        auto destination = données_exécutions->données_globales.donnees();
-        auto globale = données_exécutions->globales[index];
-        auto initialisateur = atome_globale->initialisateur;
-        génère_code_atome_constant(
-            initialisateur, adressage_destination, destination, globale.adresse);
+    if (!atome_globale->initialisateur) {
+        return;
     }
+
+    auto index = atome_globale->index;
+    auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
+    auto globale = données_exécutions->globales[index];
+    auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
+    auto initialisateur = atome_globale->initialisateur;
+    génère_code_atome_constant(
+        initialisateur, adressage_destination, destination, globale.adresse);
 }
 
 int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc) const

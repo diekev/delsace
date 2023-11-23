@@ -150,6 +150,11 @@ void imprime_information_atome(Atome const *atome, std::ostream &os)
             os << " représentant une valeur constante TABLEAU_FIXE";
             break;
         }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            os << "constante d'initialisation de tableau fixe";
+            break;
+        }
         case Atome::Genre::INSTRUCTION:
         {
             os << "instruction";
