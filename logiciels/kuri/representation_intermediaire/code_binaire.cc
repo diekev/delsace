@@ -1015,9 +1015,18 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
 
 bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
 {
-    kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
+    POUR (repr_inter.donne_globales_info_types()) {
+        if (it->index != -1) {
+            continue;
+        }
 
-    POUR (repr_inter.donne_globales()) {
+        if (!ajoute_globale(it)) {
+            return false;
+        }
+    }
+
+    kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
+    POUR (repr_inter.donne_globales_non_info_types()) {
         if (it->index != -1) {
             continue;
         }
@@ -1899,7 +1908,7 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
 {
     auto index = atome_globale->index;
 
-    if (atome_globale->est_constante && !atome_globale->est_info_type_de) {
+    if (atome_globale->est_constante) {
         auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
         auto globale = données_exécutions->globales[index];
         auto destination = données_exécutions->données_globales.donnees() + globale.adresse;
