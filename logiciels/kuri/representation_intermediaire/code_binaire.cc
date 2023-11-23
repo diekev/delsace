@@ -18,6 +18,7 @@
 #include "compilation/ipa.hh"
 #include "compilation/log.hh"
 #include "compilation/operateurs.hh"
+#include "compilation/programme.hh"
 
 #include "parsage/outils_lexemes.hh"
 
@@ -1012,12 +1013,11 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
-bool CompilatriceCodeBinaire::génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
-                                          kuri::tableau_statique<AtomeFonction *> fonctions)
+bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
 {
     kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
 
-    POUR (globales) {
+    POUR (repr_inter.donne_globales()) {
         if (it->index != -1) {
             continue;
         }
@@ -1033,7 +1033,7 @@ bool CompilatriceCodeBinaire::génère_code(kuri::tableau_statique<AtomeGlobale 
         génère_code_pour_globale(it);
     }
 
-    POUR (fonctions) {
+    POUR (repr_inter.donne_fonctions()) {
         /* Évite de recréer le code binaire. */
         if (it->données_exécution) {
             continue;

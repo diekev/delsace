@@ -35,6 +35,7 @@ struct InstructionAppel;
 struct MetaProgramme;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudExpression;
+struct ProgrammeRepreInter;
 struct Type;
 
 namespace kuri {
@@ -405,8 +406,7 @@ class CompilatriceCodeBinaire {
 
     EMPECHE_COPIE(CompilatriceCodeBinaire);
 
-    bool génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
-                     kuri::tableau_statique<AtomeFonction *> fonctions);
+    bool génère_code(const ProgrammeRepreInter &repr_inter);
 
   private:
     bool génère_code_pour_fonction(AtomeFonction const *fonction);
