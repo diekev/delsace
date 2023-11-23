@@ -740,20 +740,10 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
                 if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
                     continue;
                 }
-
-                auto valeur = static_cast<llvm::Constant *>(nullptr);
-
-                // les tableaux fixes ont une initialisation nulle
-                if (tableau_valeur[index_membre] == nullptr) {
-                    auto type_llvm_valeur = converti_type_llvm(type->membres[i].type);
-                    valeur = llvm::ConstantAggregateZero::get(type_llvm_valeur);
-                }
-                else {
-                    // dbg() << "Génère code pour le membre " <<
-                    // type->membres[i].nom->nom;
-                    valeur = llvm::cast<llvm::Constant>(
-                        genere_code_pour_atome(tableau_valeur[index_membre], pour_globale));
-                }
+                // dbg() << "Génère code pour le membre " <<
+                // type->membres[i].nom->nom;
+                auto valeur = llvm::cast<llvm::Constant>(
+                    genere_code_pour_atome(tableau_valeur[index_membre], pour_globale));
 
                 tableau_membre.push_back(valeur);
                 index_membre += 1;
@@ -796,6 +786,11 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
             auto valeur_ = llvm::ConstantDataArray::get(m_contexte_llvm, donnees);
             // dbg() << "TABLEAU_DONNEES_CONSTANTES: " << *valeur_;
             return valeur_;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            assert(false);
+            return nullptr;
         }
         case Atome::Genre::INSTRUCTION:
         {

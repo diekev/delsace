@@ -88,6 +88,7 @@ struct ConstructriceRI {
     tableau_page<AtomeConstanteDonnéesConstantes> constantes_données_constantes{};
     tableau_page<AtomeConstanteType> constantes_types{};
     tableau_page<AtomeConstanteTailleDe> constantes_taille_de{};
+    tableau_page<AtomeInitialisationTableau> initialisations_tableau{};
     tableau_page<InstructionAllocation> insts_allocation{};
     tableau_page<InstructionAppel> insts_appel{};
     tableau_page<InstructionBranche> insts_branche{};
@@ -160,6 +161,8 @@ struct ConstructriceRI {
     AtomeConstanteDonnéesConstantes *crée_constante_tableau_données_constantes(Type const *type,
                                                                                char *pointeur,
                                                                                int64_t taille);
+    AtomeInitialisationTableau *crée_initialisation_tableau(Type const *type,
+                                                            AtomeConstante const *valeur);
     AtomeConstante *crée_tableau_global(Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeConstante *crée_tableau_global(AtomeConstante *tableau_fixe);
@@ -233,6 +236,30 @@ struct ConstructriceRI {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name RegistreAnnotations
+ * Stucture contenant les atomes globaux pour les Annotation, afin de ne créer
+ * qu'une seule globale pour les annotations de même nom et de même valeur.
+ * \{ */
+
+struct RegistreAnnotations {
+  private:
+    struct PaireValeurGlobale {
+        kuri::chaine_statique valeur{};
+        AtomeGlobale *globale = nullptr;
+    };
+
+    kuri::table_hachage<kuri::chaine_statique, kuri::tableau<PaireValeurGlobale, int>> m_table{
+        "table_annotations"};
+
+  public:
+    AtomeGlobale *trouve_globale_pour_annotation(Annotation const &annotation) const;
+
+    void ajoute_annotation(Annotation const &annotation, AtomeGlobale *globale);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name CompilatriceRI
  * La compilatrice RI convertis en RI les noeuds syntaxiques des fonctions et
  * des globales.
@@ -253,6 +280,13 @@ struct CompilatriceRI {
     kuri::tablet<Atome *, 8> m_pile{};
 
     AtomeFonction *m_fonction_courante = nullptr;
+
+    /* Globale pour les annotations vides des membres des infos-type.
+     * Nous n'en créons qu'une seule dans ce cas afin d'économiser de la mémoire.
+     */
+    AtomeConstante *m_globale_annotations_vides = nullptr;
+
+    RegistreAnnotations m_registre_annotations{};
 
   public:
     double temps_generation = 0.0;
