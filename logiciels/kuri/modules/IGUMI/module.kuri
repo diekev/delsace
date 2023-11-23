@@ -175,7 +175,7 @@ largeur_cannevas : z32
 hauteur_cannevas : z32
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
-sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU
+sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
 num_sommets_immédiat : z32 = 0
 va_immédiat : n32
 vbo_immédiat : n32
