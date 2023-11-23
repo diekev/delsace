@@ -294,6 +294,12 @@ void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur
     émets(pointeur);
 }
 
+void Chunk::émets_référence_globale_externe(const NoeudExpression *site, const void *adresse)
+{
+    émets_entête_op(OP_REFERENCE_GLOBALE_EXTERNE, site);
+    émets(adresse);
+}
+
 void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
 {
     émets_entête_op(OP_RÉFÉRENCE_LOCALE, site);
@@ -810,6 +816,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_LOGUE_APPEL:
+        case OP_REFERENCE_GLOBALE_EXTERNE:
         {
             return instruction_1d<void *>(chunk, décalage, os);
         }
@@ -1447,7 +1454,13 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = atome->comme_globale();
-            chunk.émets_référence_globale(nullptr, atome_globale->index);
+            auto globale = données_exécutions->globales[atome_globale->index];
+            if (globale.adresse_pour_exécution) {
+                chunk.émets_référence_globale_externe(nullptr, globale.adresse_pour_exécution);
+            }
+            else {
+                chunk.émets_référence_globale(nullptr, atome_globale->index);
+            }
             break;
         }
         case Atome::Genre::FONCTION:
