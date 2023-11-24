@@ -122,7 +122,9 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_APPEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_ENTRÉES)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_SORTIES)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)
+    ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_EMPILAGE_VALEUR)                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -220,6 +222,7 @@ struct Chunk {
 
     bool émets_stats_ops = false;
     bool émets_vérification_branches = false;
+    bool émets_notifications_empilage = false;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
@@ -269,6 +272,13 @@ struct Chunk {
     void émets_logue_sorties();
     void émets_logue_retour();
 
+    void émets_notifie_empilage(NoeudExpression const *site, uint32_t taille);
+    void émets_notifie_dépilage(NoeudExpression const *site, uint32_t taille);
+
+    void émets_dépilage_paramètres_appel(NoeudExpression const *site,
+                                         InstructionAppel const *inst);
+    void émets_empilage_retour_appel(NoeudExpression const *site, InstructionAppel const *inst);
+
     void ajoute_site_source(NoeudExpression const *site);
 
   public:
@@ -280,11 +290,12 @@ struct Chunk {
         émets_entête_op(OP_CONSTANTE, nullptr);
         émets(drapeau_pour_constante<T>::valeur);
         émets(v);
+        émets_notifie_empilage(nullptr, sizeof(T));
     }
 
     int émets_structure_constante(uint32_t taille_structure);
 
-    void émets_retour(NoeudExpression const *site);
+    void émets_retour(NoeudExpression const *site, Atome const *valeur);
 
     void émets_assignation(ContexteGénérationCodeBinaire contexte,
                            NoeudExpression const *site,
@@ -305,13 +316,18 @@ struct Chunk {
                                        uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
+                     const InstructionAppel *inst_appel,
                      unsigned taille_arguments);
     void émets_appel_externe(NoeudExpression const *site,
                              AtomeFonction const *fonction,
                              unsigned taille_arguments,
                              InstructionAppel const *inst_appel);
-    void émets_appel_compilatrice(NoeudExpression const *site, AtomeFonction const *fonction);
-    void émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction);
+    void émets_appel_compilatrice(NoeudExpression const *site,
+                                  AtomeFonction const *fonction,
+                                  InstructionAppel const *inst_appel);
+    void émets_appel_intrinsèque(NoeudExpression const *site,
+                                 AtomeFonction const *fonction,
+                                 InstructionAppel const *inst_appel);
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel);
@@ -330,6 +346,7 @@ struct Chunk {
                                 Type const *type);
     void émets_operation_binaire(NoeudExpression const *site,
                                  OpérateurBinaire::Genre op,
+                                 Type const *type_résultat,
                                  Type const *type_gauche,
                                  Type const *type_droite);
 
@@ -392,6 +409,7 @@ class CompilatriceCodeBinaire {
 
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
+    bool notifie_empilage = false;
 
   public:
     CompilatriceCodeBinaire(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
