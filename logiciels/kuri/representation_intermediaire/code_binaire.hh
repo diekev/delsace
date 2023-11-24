@@ -6,11 +6,11 @@
 #include <ffi.h>  // pour ffi_type qui est un typedef
 #include <iosfwd>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "compilation/operateurs.hh"
 
 #include "structures/tableau.hh"
+
+#include "utilitaires/macros.hh"
 
 struct AdresseDonnéesExécution;
 struct Atome;

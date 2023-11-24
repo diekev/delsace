@@ -29,7 +29,7 @@ static void genere_code_cpp(FluxSortieCPP &os,
         os << "#pragma once\n\n";
         inclus_systeme(os, "iosfwd");
         os << '\n';
-        inclus(os, "biblinternes/outils/definitions.h");
+        inclus(os, "utilitaires/macros.hh");
         os << '\n';
         inclus(os, "structures/chaine.hh");
         inclus(os, "structures/chaine_statique.hh");
