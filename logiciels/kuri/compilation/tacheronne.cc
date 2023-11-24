@@ -695,13 +695,14 @@ void Tacheronne::execute_metaprogrammes()
 
                 free(const_cast<char *>(resultat.pointeur()));
             }
+
+            imprime_fuites_de_mémoire(it);
         }
 
         /* Maintenant que nous avons le résultat des opérations, nous pouvons indiquer que le
          * métaprogramme fut exécuté. Nous ne pouvons le faire plus tôt car un autre fil
          * d'exécution pourrait tenté d'accéder au résultat avant sa création. */
         it->fut_execute = true;
-        imprime_fuites_de_mémoire(it);
         it->vidange_logs_sur_disque();
 
         mv->déloge_données_exécution(it->données_exécution);

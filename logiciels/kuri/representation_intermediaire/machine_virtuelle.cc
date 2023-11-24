@@ -140,6 +140,7 @@ void DonnéesExécution::réinitialise()
     this->profondeur_appel = 0;
     this->instructions_exécutées = 0;
     this->détectrice_fuite_de_mémoire.réinitialise();
+    this->tailles_empilées.efface();
 }
 
 void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
@@ -1852,6 +1853,21 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                          << static_cast<int>(frame->pointeur_pile + taille_retour - pile) << '\n';
                 break;
             }
+            case OP_NOTIFIE_DÉPILAGE_VALEUR:
+            {
+                auto taille_données = LIS_4_OCTETS();
+                auto résultat = notifie_dépile(frame, frame->pointeur, uint32_t(taille_données));
+                if (résultat != RésultatInterprétation::OK) {
+                    return résultat;
+                }
+                break;
+            }
+            case OP_NOTIFIE_EMPILAGE_VALEUR:
+            {
+                auto taille_données = LIS_4_OCTETS();
+                notifie_empile(frame, frame->pointeur, uint32_t(taille_données));
+                break;
+            }
             default:
             {
                 rapporte_erreur_exécution("Erreur interne : Opération inconnue dans la MV !");
@@ -1905,6 +1921,60 @@ kuri::tableau<FrameAppel> MachineVirtuelle::donne_tableau_frame_appel() const
     }
 
     return résultat;
+}
+
+void MachineVirtuelle::notifie_empile(FrameAppel *frame, octet_t *adresse_op, uint32_t taille)
+{
+    m_métaprogramme->données_exécution->tailles_empilées.empile({frame, adresse_op, taille});
+    auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::PILE_DE_VALEURS);
+    logueuse << profondeur_appel << 'e' << taille << '\n';
+}
+
+MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(FrameAppel *frame,
+                                                                          octet_t *adresse_op,
+                                                                          uint32_t taille)
+{
+    auto données_exécution_ = m_métaprogramme->données_exécution;
+
+    auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::PILE_DE_VALEURS);
+    logueuse << profondeur_appel << 'd' << taille << '\n';
+
+    if (données_exécution_->tailles_empilées.est_vide()) {
+        m_métaprogramme->préserve_log_empilage();
+
+        auto message = enchaine("Dans l'exécution du métaprogramme \"",
+                                m_métaprogramme->donne_nom_pour_fichier_log(),
+                                "\" : tentative de dépiler ",
+                                taille,
+                                " octets alors que la pile d'exécution est vide.");
+        rapporte_erreur_exécution(message);
+        return RésultatInterprétation::ERREUR;
+    }
+
+    auto données = m_métaprogramme->données_exécution->tailles_empilées.depile();
+
+    if (données.taille != taille) {
+        m_métaprogramme->préserve_log_empilage();
+
+        auto site_empilage = données.frame->fonction->données_exécution->chunk
+                                 .donne_site_pour_adresse(données.adresse);
+        auto chaine_site_empilage = erreur::imprime_site(*m_métaprogramme->unite->espace,
+                                                         site_empilage);
+
+        auto message = enchaine("Dans l'exécution du métaprogramme \"",
+                                m_métaprogramme->donne_nom_pour_fichier_log(),
+                                "\" : tentative de dépiler ",
+                                taille,
+                                " octets alors que la dernière taille empilée était de ",
+                                données.taille,
+                                "\nNOTE : l'empilage fut fait ici: ",
+                                chaine_site_empilage,
+                                "\n");
+        rapporte_erreur_exécution(message);
+        return RésultatInterprétation::ERREUR;
+    }
+
+    return RésultatInterprétation::OK;
 }
 
 NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
