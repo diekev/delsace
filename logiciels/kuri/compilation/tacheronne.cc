@@ -623,7 +623,11 @@ void Tacheronne::execute_metaprogrammes()
 
         // À FAIRE : précision des messages d'erreurs
         if (it->resultat == MetaProgramme::RésultatExécution::ERREUR) {
-            espace->rapporte_erreur(it->directive, "Erreur lors de l'exécution du métaprogramme");
+            if (!espace->possède_erreur) {
+                /* Ne rapporte qu'une seule erreur. */
+                espace->rapporte_erreur(it->directive,
+                                        "Erreur lors de l'exécution du métaprogramme");
+            }
         }
         else if (!it->a_rapporté_une_erreur) {
             if (it->directive && it->directive->ident == ID::assert_) {
@@ -812,11 +816,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_resultat(
             auto construction_structure = assembleuse->crée_construction_structure(lexeme,
                                                                                    type_structure);
 
-            POUR (type_structure->membres) {
-                if (it.ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
-
+            POUR (type_structure->donne_membres_pour_code_machine()) {
                 auto pointeur_membre = pointeur + it.decalage;
                 auto noeud_membre = noeud_syntaxique_depuis_resultat(espace,
                                                                      directive,

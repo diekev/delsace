@@ -749,11 +749,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
     enchaineuse << "  struct {\n ";
 #endif
 
-    POUR (type_structure->membres) {
-        if (it.ne_doit_pas_être_dans_code_machine()) {
-            continue;
-        }
-
+    POUR (type_structure->donne_membres_pour_code_machine()) {
         enchaineuse << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
@@ -1088,29 +1084,23 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             // n'est pas initialisé
             auto virgule_placee = false;
 
-            auto index_membre = 0;
-            for (auto i = 0; i < type->membres.taille(); ++i) {
-                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
-
+            POUR_INDEX (type->donne_membres_pour_code_machine()) {
                 résultat << virgule;
                 virgule_placee = true;
 
                 if (!pour_init_tableau) {
                     résultat << ".";
-                    if (type->membres[i].nom == ID::chaine_vide) {
+                    if (it.nom == ID::chaine_vide) {
                         résultat << "membre_invisible";
                     }
                     else {
-                        résultat << broyeuse.broye_nom_simple(type->membres[i].nom);
+                        résultat << broyeuse.broye_nom_simple(it.nom);
                     }
                     résultat << " = ";
                 }
-                résultat << génère_code_pour_atome(tableau_valeur[index_membre], os, pour_globale);
+                résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
 
                 virgule = ", ";
-                index_membre += 1;
             }
 
             if (!virgule_placee) {
