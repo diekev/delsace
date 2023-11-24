@@ -12,14 +12,6 @@
 
 #include "structures/tableau.hh"
 
-// À FAIRE : l'optimisation pour la réutilisation de la mémoire des locales en se basant sur la
-// durée de vie de celles-ci ne fonctionne pas
-//           il existe des superposition partiells entre certaines variables
-//           lors de la dernière investigation, il semberait que les instructions de retours au
-//           milieu des fonctions y soient pour quelque chose pour le moment désactive cet
-//           optimisation et alloue de l'espace pour toutes les variables au début de chaque
-//           fonction.
-
 struct AdresseDonnéesExécution;
 struct Atome;
 struct AtomeConstante;

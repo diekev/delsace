@@ -83,7 +83,6 @@ bool DétectriceFuiteDeMémoire::supprime_bloc(void *ptr)
     }
 #endif
 
-    // À FAIRE : erreur
     return false;
 }
 
@@ -850,7 +849,12 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ptr = dépile<void *>();
 
         auto données = m_métaprogramme->données_exécution;
-        données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
+        if (!données->détectrice_fuite_de_mémoire.supprime_bloc(ptr)) {
+            rapporte_erreur_exécution(
+                "Réallocation d'un objet logé à une adresse qui ne fut pas allouée.");
+            résultat_interp = RésultatInterprétation::ERREUR;
+            return;
+        }
 
         auto résultat = notre_realloc(ptr, taille);
         empile(résultat);
@@ -864,7 +868,12 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         auto ptr = dépile<void *>();
 
         auto données = m_métaprogramme->données_exécution;
-        données->détectrice_fuite_de_mémoire.supprime_bloc(ptr);
+        if (!données->détectrice_fuite_de_mémoire.supprime_bloc(ptr)) {
+            rapporte_erreur_exécution(
+                "Délogement d'un objet logé à une adresse qui ne fut pas allouée.");
+            résultat_interp = RésultatInterprétation::ERREUR;
+            return;
+        }
 
         notre_free(ptr);
         return;
