@@ -349,6 +349,20 @@ struct TypeCompose : public Type {
      * À FAIRE : remplace ceci par l'utilisation d'un pointeur dans les infos-types contenant la
      * type parent. */
     kuri::chaine nom_hiérarchique_ = "";
+
+    /* Nombre de membres qui seront dans le code machine.
+     * Afin de simplifier la génération de code, les membres « réels » sont placés au début des
+     * membres du type. Ainsi, la représentation de constante de type dans la RI aura une
+     * disposition similaire à celle des membres réels et nous n'aurons pas gérer des indexages
+     * différents (c-à-d que l'index de la valeur du membre correspond à l'index du membre, sans
+     * mappage entre les deux dû à l'absence des membres constants ou provenant d'un emploi dans la
+     * RI). */
+    int nombre_de_membres_réels = 0;
+
+    kuri::tableau_statique<const MembreTypeComposé> donne_membres_pour_code_machine() const
+    {
+        return {membres.begin(), nombre_de_membres_réels};
+    }
 };
 
 inline bool est_type_compose(const Type *type)

@@ -244,6 +244,7 @@ TypeTableauFixe::TypeTableauFixe(Type *type_pointe_,
     assert(taille_ > 0);
 
     this->membres = std::move(membres_);
+    this->nombre_de_membres_réels = 0;
     this->type_pointe = type_pointe_;
     this->taille = taille_;
     this->alignement = type_pointe_->alignement;
@@ -264,6 +265,7 @@ TypeTableauDynamique::TypeTableauDynamique(Type *type_pointe_,
     assert(type_pointe_);
 
     this->membres = std::move(membres_);
+    this->nombre_de_membres_réels = this->membres.taille();
     this->type_pointe = type_pointe_;
     this->taille_octet = 24;
     this->alignement = 8;
@@ -287,6 +289,7 @@ TypeVariadique::TypeVariadique(Type *type_pointe_,
     }
 
     this->membres = std::move(membres_);
+    this->nombre_de_membres_réels = this->membres.taille();
     this->taille_octet = 24;
     this->alignement = 8;
     this->drapeaux |= (TYPE_FUT_VALIDE);
@@ -467,6 +470,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     auto type_eini = TypeBase::EINI->comme_type_compose();
     type_eini->membres = std::move(membres_eini);
+    type_eini->nombre_de_membres_réels = type_eini->membres.taille();
     type_eini->drapeaux |= (TYPE_FUT_VALIDE);
 
     auto type_chaine = TypeBase::CHAINE->comme_type_compose();
@@ -474,6 +478,7 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDependance> &g,
     membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
     membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
     type_chaine->membres = std::move(membres_chaine);
+    type_chaine->nombre_de_membres_réels = type_chaine->membres.taille();
     type_chaine->drapeaux |= (TYPE_FUT_VALIDE);
 }
 
@@ -893,6 +898,7 @@ TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &mem
     POUR (membres) {
         type->membres.ajoute(it);
     }
+    type->nombre_de_membres_réels = type->membres.taille();
 
     type->est_anonyme = true;
     type->drapeaux |= (TYPE_FUT_VALIDE);
@@ -994,6 +1000,7 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
         type->membres.ajoute(it);
         graphe_->connecte_type_type(type, it.type);
     }
+    type->nombre_de_membres_réels = type->membres.taille();
 
     marque_polymorphique(type);
 
@@ -1355,11 +1362,13 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
         membres_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
         membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type->type_structure->membres = std::move(membres_);
+        type->type_structure->nombre_de_membres_réels = type->type_structure->membres.taille();
     }
     else {
         auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
         membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
         type->type_structure->membres = std::move(membres_);
+        type->type_structure->nombre_de_membres_réels = type->type_structure->membres.taille();
     }
 
     type->type_structure->taille_octet = type->taille_octet;
@@ -1748,11 +1757,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     auto decalage = 0u;
     auto alignement_max = 0u;
 
-    POUR (type->membres) {
-        if (it.ne_doit_pas_être_dans_code_machine()) {
-            continue;
-        }
-
+    POUR (type->donne_membres_pour_code_machine()) {
         assert_rappel(it.type->taille_octet != 0, [&] {
             std::cerr << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »\n";
         });
@@ -1767,11 +1772,11 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 
             alignement_max = std::max(alignement_type, alignement_max);
             auto rembourrage = marge_pour_alignement(alignement_type, decalage);
-            it.rembourrage = rembourrage;
+            const_cast<MembreTypeComposé &>(it).rembourrage = rembourrage;
             decalage += rembourrage;
         }
 
-        it.decalage = decalage;
+        const_cast<MembreTypeComposé &>(it).decalage = decalage;
         decalage += it.type->taille_octet;
     }
 
@@ -1803,11 +1808,7 @@ void calcule_taille_type_compose(TypeCompose *type, bool compacte, uint32_t alig
         auto taille_union = 0u;
         auto type_le_plus_grand = Type::nul();
 
-        POUR (type->membres) {
-            if (it.ne_doit_pas_être_dans_code_machine()) {
-                continue;
-            }
-
+        POUR (type->donne_membres_pour_code_machine()) {
             auto type_membre = it.type;
             auto taille = type_membre->taille_octet;
 
