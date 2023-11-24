@@ -868,7 +868,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_RÉFÉRENCE_LOCALE:
         case OP_REFERENCE_MEMBRE:
         case OP_ACCEDE_INDEX:
-        case OP_APPEL_POINTEUR:
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
@@ -882,6 +881,10 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_NOTIFIE_EMPILAGE_VALEUR:
         {
             return instruction_1d<int>(chunk, décalage, os);
+        }
+        case OP_APPEL_POINTEUR:
+        {
+            return instruction_2d<int, void *>(chunk, décalage, os);
         }
         case OP_STAT_INSTRUCTION:
         {
@@ -903,11 +906,17 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return instruction_2d<int, int64_t>(chunk, décalage, os);
         }
         case OP_APPEL:
+        {
+            return instruction_2d<void *, int>(chunk, décalage, os);
+        }
         case OP_APPEL_EXTERNE:
-        case OP_APPEL_INTRINSÈQUE:
-        case OP_APPEL_COMPILATRICE:
         {
             return instruction_3d<void *, int, void *>(chunk, décalage, os);
+        }
+        case OP_APPEL_COMPILATRICE:
+        case OP_APPEL_INTRINSÈQUE:
+        {
+            return instruction_1d<void *>(chunk, décalage, os);
         }
         case OP_COPIE_LOCALE:
         {
