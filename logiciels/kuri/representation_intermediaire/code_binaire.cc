@@ -177,6 +177,53 @@ void Chunk::émets_logue_retour()
     émets_entête_op(OP_LOGUE_RETOUR, nullptr);
 }
 
+void Chunk::émets_notifie_empilage(NoeudExpression const *site, uint32_t taille)
+{
+    if (!émets_notifications_empilage) {
+        return;
+    }
+    émets_entête_op(OP_NOTIFIE_EMPILAGE_VALEUR, site);
+    émets(taille);
+}
+
+void Chunk::émets_notifie_dépilage(NoeudExpression const *site, uint32_t taille)
+{
+    if (!émets_notifications_empilage) {
+        return;
+    }
+    émets_entête_op(OP_NOTIFIE_DÉPILAGE_VALEUR, site);
+    émets(taille);
+}
+
+void Chunk::émets_dépilage_paramètres_appel(NoeudExpression const *site,
+                                            InstructionAppel const *inst)
+{
+    if (!émets_notifications_empilage) {
+        return;
+    }
+    auto nombre_d_arguments = inst->args.taille();
+    for (auto i = nombre_d_arguments - 1; i >= 0; --i) {
+        auto type = inst->args[i]->type;
+        auto taille_type = type->taille_octet;
+        if (type->est_type_entier_constant()) {
+            taille_type = 4;
+        }
+
+        émets_notifie_dépilage(site, taille_type);
+    }
+}
+
+void Chunk::émets_empilage_retour_appel(NoeudExpression const *site, InstructionAppel const *inst)
+{
+    if (!émets_notifications_empilage) {
+        return;
+    }
+    auto type_retourné = inst->type;
+    if (!type_retourné->est_type_rien()) {
+        émets_notifie_empilage(site, type_retourné->taille_octet);
+    }
+}
+
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
     auto type = alloc->type->comme_type_pointeur()->type_pointe;
@@ -201,11 +248,19 @@ int Chunk::émets_structure_constante(uint32_t taille_structure)
     auto décalage = compte;
     agrandis_si_nécessaire(taille_structure);
     compte += taille_structure;
+    émets_notifie_empilage(nullptr, taille_structure);
     return int32_t(décalage);
 }
 
-void Chunk::émets_retour(NoeudExpression const *site)
+void Chunk::émets_retour(NoeudExpression const *site, Atome const *valeur)
 {
+    if (valeur) {
+        /* Puisque nous avons des fonctions externes (incluant les intrinsèques et l'IPA de la
+         * compilatrice) qui n'ont pas de retour via une instruction du code binaire, nous
+         * « dépilons » la valeur de retour afin qu'elle ne pollue pas la pile; la notification de
+         * l'empilage d'une se fera via l'instruction d'appel. */
+        émets_notifie_dépilage(site, valeur->type->taille_octet);
+    }
     émets_entête_op(OP_RETOURNE, site);
 }
 
@@ -232,6 +287,8 @@ void Chunk::émets_assignation(ContexteGénérationCodeBinaire contexte,
         émets(type->taille_octet);
     }
 
+    émets_notifie_dépilage(site, 8); /* adresse */
+    émets_notifie_dépilage(site, type->taille_octet);
     émets_entête_op(OP_ASSIGNE, site);
     émets(type->taille_octet);
 }
@@ -252,6 +309,7 @@ void Chunk::émets_assignation_locale(NoeudExpression const *site, int pointeur,
     });
 #endif
 
+    émets_notifie_dépilage(site, type->taille_octet);
     émets_entête_op(OP_ASSIGNE_LOCALE, site);
     émets(pointeur);
     émets(type->taille_octet);
@@ -277,8 +335,10 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type)
         émets(type->taille_octet);
     }
 
+    émets_notifie_dépilage(site, 8); /* adresse */
     émets_entête_op(OP_CHARGE, site);
     émets(type->taille_octet);
+    émets_notifie_empilage(site, type->taille_octet);
 }
 
 void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type)
@@ -287,30 +347,36 @@ void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type
     émets_entête_op(OP_CHARGE_LOCALE, site);
     émets(pointeur);
     émets(type->taille_octet);
+    émets_notifie_empilage(site, type->taille_octet);
 }
 
 void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur)
 {
     émets_entête_op(OP_REFERENCE_GLOBALE, site);
     émets(pointeur);
+    émets_notifie_empilage(site, 8); /* adresse */
 }
 
 void Chunk::émets_référence_globale_externe(const NoeudExpression *site, const void *adresse)
 {
     émets_entête_op(OP_REFERENCE_GLOBALE_EXTERNE, site);
     émets(adresse);
+    émets_notifie_empilage(site, 8); /* adresse */
 }
 
 void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
 {
     émets_entête_op(OP_RÉFÉRENCE_LOCALE, site);
     émets(pointeur);
+    émets_notifie_empilage(site, 8); /* adresse */
 }
 
 void Chunk::émets_référence_membre(NoeudExpression const *site, unsigned décalage)
 {
+    émets_notifie_dépilage(site, 8); /* adresse */
     émets_entête_op(OP_REFERENCE_MEMBRE, site);
     émets(décalage);
+    émets_notifie_empilage(site, 8); /* adresse membre */
 }
 
 void Chunk::émets_référence_membre_locale(const NoeudExpression *site,
@@ -320,10 +386,12 @@ void Chunk::émets_référence_membre_locale(const NoeudExpression *site,
     émets_entête_op(OP_RÉFÉRENCE_MEMBRE_LOCALE, site);
     émets(pointeur);
     émets(décalage);
+    émets_notifie_empilage(site, 8); /* adresse membre */
 }
 
 void Chunk::émets_appel(NoeudExpression const *site,
                         AtomeFonction const *fonction,
+                        InstructionAppel const *inst_appel,
                         unsigned taille_arguments)
 {
     if (émets_vérification_branches) {
@@ -332,9 +400,13 @@ void Chunk::émets_appel(NoeudExpression const *site,
         émets(fonction);
     }
 
+    émets_dépilage_paramètres_appel(site, inst_appel);
+
     émets_entête_op(OP_APPEL, site);
     émets(fonction);
     émets(taille_arguments);
+
+    émets_empilage_retour_appel(site, inst_appel);
 }
 
 void Chunk::émets_appel_externe(NoeudExpression const *site,
@@ -348,13 +420,19 @@ void Chunk::émets_appel_externe(NoeudExpression const *site,
         émets(fonction);
     }
 
+    émets_dépilage_paramètres_appel(site, inst_appel);
+
     émets_entête_op(OP_APPEL_EXTERNE, site);
     émets(fonction);
     émets(taille_arguments);
     émets(inst_appel);
+
+    émets_empilage_retour_appel(site, inst_appel);
 }
 
-void Chunk::émets_appel_compilatrice(const NoeudExpression *site, const AtomeFonction *fonction)
+void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
+                                     const AtomeFonction *fonction,
+                                     InstructionAppel const *inst_appel)
 {
     if (émets_vérification_branches) {
         émets_entête_op(OP_VÉRIFIE_CIBLE_APPEL, site);
@@ -362,14 +440,24 @@ void Chunk::émets_appel_compilatrice(const NoeudExpression *site, const AtomeFo
         émets(fonction);
     }
 
+    émets_dépilage_paramètres_appel(site, inst_appel);
+
     émets_entête_op(OP_APPEL_COMPILATRICE, site);
     émets(fonction);
+
+    émets_empilage_retour_appel(site, inst_appel);
 }
 
-void Chunk::émets_appel_intrinsèque(NoeudExpression const *site, AtomeFonction const *fonction)
+void Chunk::émets_appel_intrinsèque(NoeudExpression const *site,
+                                    AtomeFonction const *fonction,
+                                    InstructionAppel const *inst_appel)
 {
+    émets_dépilage_paramètres_appel(site, inst_appel);
+
     émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
     émets(fonction);
+
+    émets_empilage_retour_appel(site, inst_appel);
 }
 
 void Chunk::émets_appel_pointeur(NoeudExpression const *site,
@@ -381,16 +469,24 @@ void Chunk::émets_appel_pointeur(NoeudExpression const *site,
         émets(true); /* est pointeur */
     }
 
+    émets_notifie_dépilage(site, 8); /* adresse. */
+    émets_dépilage_paramètres_appel(site, inst_appel);
+
     émets_entête_op(OP_APPEL_POINTEUR, site);
     émets(taille_arguments);
     émets(inst_appel);
+
+    émets_empilage_retour_appel(site, inst_appel);
 }
 
 void Chunk::émets_accès_index(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
+    émets_notifie_dépilage(site, 8); /* adresse */
+    émets_notifie_dépilage(site, 8); /* index */
     émets_entête_op(OP_ACCEDE_INDEX, site);
     émets(type->taille_octet);
+    émets_notifie_empilage(site, 8); /* nouvelle_adresse */
 }
 
 void Chunk::émets_branche(NoeudExpression const *site,
@@ -421,6 +517,7 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
         patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
     }
 
+    émets_notifie_dépilage(site, 1);
     émets_entête_op(OP_BRANCHE_CONDITION, site);
     émets(0);
     patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
@@ -432,6 +529,13 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
 {
+    auto taille_type = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_type = 4;
+    }
+
+    émets_notifie_dépilage(site, taille_type);
+
     if (op == OpérateurUnaire::Genre::Complement) {
         if (type->est_type_reel()) {
             émets_entête_op(OP_COMPLEMENT_REEL, site);
@@ -444,12 +548,8 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
         émets_entête_op(OP_NON_BINAIRE, site);
     }
 
-    if (type->est_type_entier_constant()) {
-        émets(4);
-    }
-    else {
-        émets(type->taille_octet);
-    }
+    émets(taille_type);
+    émets_notifie_empilage(site, taille_type);
 }
 
 static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
@@ -513,20 +613,24 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
 
 void Chunk::émets_operation_binaire(NoeudExpression const *site,
                                     OpérateurBinaire::Genre op,
+                                    Type const *type_résultat,
                                     Type const *type_gauche,
                                     Type const *type_droite)
 {
-    auto op_comp = converti_op_binaire(op);
-    émets_entête_op(op_comp, site);
-
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
         assert(type_gauche->est_type_entier_constant() && type_droite->est_type_entier_constant());
-        émets(4);
+        taille_octet = 4;
     }
-    else {
-        émets(taille_octet);
-    }
+
+    émets_notifie_dépilage(site, taille_octet);
+    émets_notifie_dépilage(site, taille_octet);
+
+    auto op_comp = converti_op_binaire(op);
+    émets_entête_op(op_comp, site);
+    émets(taille_octet);
+
+    émets_notifie_empilage(site, type_résultat->taille_octet);
 }
 
 void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
@@ -565,9 +669,11 @@ void Chunk::émets_transtype(const NoeudExpression *site,
                             uint32_t taille_source,
                             uint32_t taille_dest)
 {
+    émets_notifie_dépilage(site, taille_source);
     émets_entête_op(op, site);
     émets(taille_source);
     émets(taille_dest);
+    émets_notifie_empilage(site, taille_dest);
 }
 
 void Chunk::émets_rembourrage(uint32_t rembourrage)
@@ -772,6 +878,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_INCRÉMENTE:
         case OP_DÉCRÉMENTE:
         case OP_REMBOURRAGE:
+        case OP_NOTIFIE_DÉPILAGE_VALEUR:
+        case OP_NOTIFIE_EMPILAGE_VALEUR:
         {
             return instruction_1d<int>(chunk, décalage, os);
         }
@@ -1010,6 +1118,7 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
       métaprogramme(metaprogramme_)
 {
     vérifie_adresses = espace->compilatrice().arguments.debogue_execution;
+    notifie_empilage = espace->compilatrice().arguments.debogue_execution;
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
 }
 
@@ -1140,6 +1249,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     auto &chunk = données_exécution->chunk;
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
+    chunk.émets_notifications_empilage = notifie_empilage;
 
     m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
     numérote_instructions(*fonction);
@@ -1317,17 +1427,17 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
                 if (atome_appelee->decl &&
                     atome_appelee->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
-                    chunk.émets_appel_intrinsèque(appel->site, atome_appelee);
+                    chunk.émets_appel_intrinsèque(appel->site, atome_appelee, appel);
                 }
                 else if (atome_appelee->decl && atome_appelee->decl->possède_drapeau(
                                                     DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-                    chunk.émets_appel_compilatrice(appel->site, atome_appelee);
+                    chunk.émets_appel_compilatrice(appel->site, atome_appelee, appel);
                 }
                 else if (atome_appelee->est_externe) {
                     chunk.émets_appel_externe(appel->site, atome_appelee, taille_arguments, appel);
                 }
                 else {
-                    chunk.émets_appel(appel->site, atome_appelee, taille_arguments);
+                    chunk.émets_appel(appel->site, atome_appelee, appel, taille_arguments);
                 }
             }
             else {
@@ -1345,7 +1455,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 génère_code_pour_atome(retour->valeur, chunk);
             }
 
-            chunk.émets_retour(retour->site);
+            chunk.émets_retour(retour->site, retour->valeur);
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -1450,7 +1560,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             auto type_droite = op_binaire->valeur_droite->type;
             chunk.émets_operation_binaire(
-                op_binaire->site, op_binaire->op, type_gauche, type_droite);
+                op_binaire->site, op_binaire->op, op_binaire->type, type_gauche, type_droite);
 
             break;
         }
