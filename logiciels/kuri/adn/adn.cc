@@ -204,11 +204,7 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
                 const auto nom_comme = derivee.m_nom_comme;
                 const auto nom_noeud = derivee.m_nom;
-
-                os << "\n";
-                os << "\tinline bool est_" << nom_comme << "() const;\n";
-                os << "\tinline " << nom_noeud << " *comme_" << nom_comme << "();\n";
-                os << "\tinline const " << nom_noeud << " *comme_" << nom_comme << "() const;\n";
+                génère_déclaration_fonctions_discrimination(os, nom_noeud, nom_comme);
             });
         }
 
@@ -302,60 +298,7 @@ void ProteineStruct::genere_code_cpp_apres_declaration(FluxSortieCPP &os)
                 return;
             }
 
-            const auto &nom_comme = derivee.m_nom_comme;
-            const auto &nom_noeud = derivee.m_nom;
-            const auto &nom_genre = derivee.m_nom_genre;
-
-            // À FAIRE: si/discr
-            if (derivee.est_racine_soushierachie() && nom_genre.nom_cpp() == "") {
-                os << "inline bool " << m_nom << "::est_" << nom_comme << "() const\n";
-                os << "{\n";
-                os << "\t ";
-
-                auto separateur = "return";
-
-                for (auto &derive : derivee.derivees()) {
-                    os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
-                    separateur = "|| ";
-                }
-
-                os << ";\n";
-                os << "}\n\n";
-            }
-            else {
-                os << "inline bool " << m_nom << "::est_" << nom_comme << "() const\n";
-                os << "{\n";
-
-                if (derivee.est_racine_soushierachie()) {
-                    os << "\treturn this->genre == GenreNoeud::" << nom_genre;
-
-                    for (auto &derive : derivee.derivees()) {
-                        os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
-                    }
-
-                    os << ";\n";
-                }
-                else {
-                    os << "\treturn this->genre == GenreNoeud::" << nom_genre << ";\n";
-                }
-
-                os << "}\n\n";
-            }
-
-            os << "inline " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme << "()\n";
-            os << "{\n";
-            os << "\tassert_rappel(est_" << nom_comme
-               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
-            os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
-            os << "}\n\n";
-
-            os << "inline const " << nom_noeud << " *" << m_nom << "::comme_" << nom_comme
-               << "() const\n";
-            os << "{\n";
-            os << "\tassert_rappel(est_" << nom_comme
-               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
-            os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
-            os << "}\n\n";
+            génère_définition_fonctions_discrimination(os, m_nom.nom_cpp(), derivee, false);
         });
     }
 }
@@ -1171,6 +1114,76 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &prot
     identifiants.pour_chaque_element([&](kuri::chaine_statique it) {
         os << "\tID::" << it << " = table.identifiant_pour_chaine(\"" << it << "\");\n";
     });
+    os << "}\n\n";
+}
+
+void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
+                                                 IdentifiantADN const &nom_noeud,
+                                                 IdentifiantADN const &nom_comme)
+{
+    os << "\tinline bool est_" << nom_comme << "() const;\n";
+    os << "\tinline " << nom_noeud << " *comme_" << nom_comme << "();\n";
+    os << "\tinline const " << nom_noeud << " *comme_" << nom_comme << "() const;\n";
+}
+
+void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
+                                                kuri::chaine_statique nom_classe,
+                                                ProteineStruct const &derivee,
+                                                bool pour_noeud_code)
+{
+    const auto &nom_comme = derivee.accede_nom_comme();
+    const auto &nom_noeud = pour_noeud_code ? derivee.accede_nom_code() : derivee.nom();
+    const auto &nom_genre = derivee.accede_nom_genre();
+
+    // À FAIRE: si/discr
+    if (derivee.est_racine_soushierachie() && nom_genre.nom_cpp() == "") {
+        os << "inline bool " << nom_classe << "::est_" << nom_comme << "() const\n";
+        os << "{\n";
+        os << "\t ";
+
+        auto separateur = "return";
+
+        for (auto &derive : derivee.derivees()) {
+            os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
+            separateur = "|| ";
+        }
+
+        os << ";\n";
+        os << "}\n\n";
+    }
+    else {
+        os << "inline bool " << nom_classe << "::est_" << nom_comme << "() const\n";
+        os << "{\n";
+
+        if (derivee.est_racine_soushierachie()) {
+            os << "\treturn this->genre == GenreNoeud::" << nom_genre;
+
+            for (auto &derive : derivee.derivees()) {
+                os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
+            }
+
+            os << ";\n";
+        }
+        else {
+            os << "\treturn this->genre == GenreNoeud::" << nom_genre << ";\n";
+        }
+
+        os << "}\n\n";
+    }
+
+    os << "inline " << nom_noeud << " *" << nom_classe << "::comme_" << nom_comme << "()\n";
+    os << "{\n";
+    os << "\tassert_rappel(est_" << nom_comme
+       << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
+    os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
+    os << "}\n\n";
+
+    os << "inline const " << nom_noeud << " *" << nom_classe << "::comme_" << nom_comme
+       << "() const\n";
+    os << "{\n";
+    os << "\tassert_rappel(est_" << nom_comme
+       << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
+    os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
     os << "}\n\n";
 }
 
