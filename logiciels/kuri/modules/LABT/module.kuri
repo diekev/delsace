@@ -148,7 +148,7 @@ parse_document :: fonc (texte: chaine) -> *Document
     document := loge(Document)
     document.texte_original = copie_chaine(texte)
 
-    parseuse := ParseuseDocument(document.texte_original)
+    parseuse := ParseuseDocument(chn = document.texte_original)
     parseuse.document = document
 
     diffère détruit_parseuse(parseuse)

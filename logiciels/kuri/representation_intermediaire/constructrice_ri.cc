@@ -791,11 +791,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
             auto valeurs = kuri::tableau<AtomeConstante *>();
             valeurs.reserve(type_composé->membres.taille());
 
-            POUR (type_composé->membres) {
-                if (it.ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
-
+            POUR (type_composé->donne_membres_pour_code_machine()) {
                 auto valeur = crée_initialisation_défaut_pour_type(it.type);
                 valeurs.ajoute(valeur);
             }

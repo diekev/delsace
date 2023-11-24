@@ -57,36 +57,6 @@ inline bool adresse_est_nulle(void *adresse)
 
 /* ************************************************************************** */
 
-/* À FAIRE(typage) : l'index des membres utilisé pour les accès à des membres est l'index absolu
- * dans le tableau de membres du type. Hors ceci contient également les membres constants. Avoir de
- * tels index pour les accès est plus ou moins correcte pour la coulisse C, mais pour LLVM, dont
- * les types n'ont pas de membres constants, les index sont faux et peuvent pointer endehors du
- * type donc nous devons les corriger afin d'accéder au membre correspondant du type LLVM.
- * Nous pourrions stocker les membres constants à la fin du tableau de membre afin de ne pas avoir
- * à se soucier de ce genre de choses. */
-static unsigned index_reel_pour_membre(TypeCompose const &type, unsigned index)
-{
-    auto index_reel = 0u;
-
-    POUR (type.membres) {
-        if (index == 0) {
-            break;
-        }
-
-        index -= 1;
-
-        if (it.ne_doit_pas_être_dans_code_machine()) {
-            continue;
-        }
-
-        index_reel += 1;
-    }
-
-    return index_reel;
-}
-
-/* ************************************************************************** */
-
 static const LogDebug &operator<<(const LogDebug &log_debug, const llvm::Value &llvm_value)
 {
     llvm::errs() << llvm_value;
@@ -517,10 +487,7 @@ llvm::Type *GeneratriceCodeLLVM::converti_type_llvm(Type const *type)
             std::vector<llvm::Type *> types_membres;
             types_membres.reserve(static_cast<size_t>(type_struct->membres.taille()));
 
-            POUR (type_struct->membres) {
-                if (it.ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
+            POUR (type_struct->donne_membres_pour_code_machine()) {
                 types_membres.push_back(converti_type_llvm(it.type));
             }
 
@@ -735,18 +702,14 @@ llvm::Value *GeneratriceCodeLLVM::genere_code_pour_atome(Atome *atome, bool pour
 
             auto tableau_membre = std::vector<llvm::Constant *>();
 
-            auto index_membre = 0;
-            for (auto i = 0; i < type->membres.taille(); ++i) {
-                if (type->membres[i].ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
+            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+                static_cast<void>(it);
                 // dbg() << "Génère code pour le membre " <<
                 // type->membres[i].nom->nom;
                 auto valeur = llvm::cast<llvm::Constant>(
-                    genere_code_pour_atome(tableau_valeur[index_membre], pour_globale));
+                    genere_code_pour_atome(tableau_valeur[index_it], pour_globale));
 
                 tableau_membre.push_back(valeur);
-                index_membre += 1;
             }
 
             return llvm::ConstantStruct::get(
@@ -1064,18 +1027,14 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
             auto accede = inst_acces->accede;
             auto valeur_accede = genere_code_pour_atome(accede, false);
 
-            auto index_membre = inst_acces->index;
+            auto index_membre = uint32_t(inst_acces->index);
 
             auto type_pointe = accede->type->comme_type_pointeur()->type_pointe;
-
-            auto index_reel = index_reel_pour_membre(
-                *accede->type->comme_type_pointeur()->type_pointe->comme_type_compose(),
-                static_cast<uint32_t>(index_membre));
 
             if (!type_pointe->est_type_pointeur()) {
                 auto index = std::vector<llvm::Value *>(2);
                 index[0] = m_builder.getInt32(0);
-                index[1] = m_builder.getInt32(index_reel);
+                index[1] = m_builder.getInt32(index_membre);
 
                 auto valeur_membre = m_builder.CreateInBoundsGEP(valeur_accede, index);
                 table_valeurs.insère(inst, valeur_membre);
@@ -1084,7 +1043,7 @@ void GeneratriceCodeLLVM::genere_code_pour_instruction(const Instruction *inst)
                 valeur_accede = table_globales.valeur_ou(accede, nullptr);
 
                 auto index = std::vector<llvm::Value *>(1);
-                index[0] = m_builder.getInt32(index_reel);
+                index[0] = m_builder.getInt32(index_membre);
 
                 table_valeurs.insère(inst, m_builder.CreateGEP(valeur_accede, index));
             }
