@@ -233,16 +233,11 @@ static void imprime_atome_ex(Atome const *atome, std::ostream &os, bool pour_ope
         auto atomes_membres = structure_const->donne_atomes_membres();
 
         auto virgule = "{ ";
-        auto index_membre = 0;
 
-        POUR (type->membres) {
-            if (it.ne_doit_pas_être_dans_code_machine()) {
-                continue;
-            }
+        POUR_INDEX (type->donne_membres_pour_code_machine()) {
             os << virgule;
             os << it.nom->nom << " = ";
-            imprime_atome_ex(atomes_membres[index_membre], os, true);
-            index_membre += 1;
+            imprime_atome_ex(atomes_membres[index_it], os, true);
             virgule = ", ";
         }
 
