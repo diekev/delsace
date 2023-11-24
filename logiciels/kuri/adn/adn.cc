@@ -1187,4 +1187,20 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
     os << "}\n\n";
 }
 
+void génère_code_cpp(FluxSortieCPP &os,
+                     const kuri::tableau<Proteine *> &proteines,
+                     bool pour_entête)
+{
+    POUR (proteines) {
+        it->genere_code_cpp(os, pour_entête);
+    }
+}
+
+void génère_code_kuri(FluxSortieKuri &os, const kuri::tableau<Proteine *> &proteines)
+{
+    POUR (proteines) {
+        it->genere_code_kuri(os);
+    }
+}
+
 /** \} */

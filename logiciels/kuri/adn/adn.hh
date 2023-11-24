@@ -772,4 +772,10 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 ProteineStruct const &derivee,
                                                 bool pour_noeud_code);
 
+void génère_code_cpp(FluxSortieCPP &os,
+                     const kuri::tableau<Proteine *> &proteines,
+                     bool pour_entête);
+
+void génère_code_kuri(FluxSortieKuri &os, kuri::tableau<Proteine *> const &proteines);
+
 /** \} */
