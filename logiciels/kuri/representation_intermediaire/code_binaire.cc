@@ -432,6 +432,11 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
 {
+    auto taille_type = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_type = 4;
+    }
+
     if (op == OpérateurUnaire::Genre::Complement) {
         if (type->est_type_reel()) {
             émets_entête_op(OP_COMPLEMENT_REEL, site);
@@ -444,12 +449,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
         émets_entête_op(OP_NON_BINAIRE, site);
     }
 
-    if (type->est_type_entier_constant()) {
-        émets(4);
-    }
-    else {
-        émets(type->taille_octet);
-    }
+    émets(taille_type);
 }
 
 static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
@@ -516,17 +516,15 @@ void Chunk::émets_operation_binaire(NoeudExpression const *site,
                                     Type const *type_gauche,
                                     Type const *type_droite)
 {
-    auto op_comp = converti_op_binaire(op);
-    émets_entête_op(op_comp, site);
-
     auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
     if (taille_octet == 0) {
         assert(type_gauche->est_type_entier_constant() && type_droite->est_type_entier_constant());
-        émets(4);
+        taille_octet = 4;
     }
-    else {
-        émets(taille_octet);
-    }
+
+    auto op_comp = converti_op_binaire(op);
+    émets_entête_op(op_comp, site);
+    émets(taille_octet);
 }
 
 void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
