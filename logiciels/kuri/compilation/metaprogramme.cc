@@ -130,11 +130,9 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 
 void MetaProgramme::vidange_logs_sur_disque()
 {
-    vidange_log_sur_disque(TypeLogMétaprogramme::APPEL);
-    vidange_log_sur_disque(TypeLogMétaprogramme::INSTRUCTION);
-    vidange_log_sur_disque(TypeLogMétaprogramme::STAT_INSTRUCTION);
-    vidange_log_sur_disque(TypeLogMétaprogramme::PROFILAGE);
-    vidange_log_sur_disque(TypeLogMétaprogramme::FUITES_DE_MÉMOIRE);
+    for (int i = 0; i < int(TypeLogMétaprogramme::NOMBRE_DE_LOGS); i++) {
+        vidange_log_sur_disque(TypeLogMétaprogramme(i));
+    }
 }
 
 static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme type_log)
