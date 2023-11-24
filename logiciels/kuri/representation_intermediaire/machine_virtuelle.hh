@@ -7,6 +7,8 @@
 
 #include "biblinternes/structures/tableau_page.hh"
 
+#include "structures/pile.hh"
+
 #include "structures/chaine.hh"
 #include "structures/intervalle.hh"
 #include "structures/table_hachage.hh"
@@ -74,6 +76,14 @@ struct DonnéesExécution {
     DétectriceFuiteDeMémoire détectrice_fuite_de_mémoire{};
 
     int compte_instructions[NOMBRE_OP_CODE] = {};
+
+    struct DonnéesTailleEmpilée {
+        FrameAppel *frame = nullptr;
+        octet_t *adresse = nullptr;
+        uint32_t taille = 0;
+    };
+
+    kuri::pile<DonnéesTailleEmpilée> tailles_empilées{};
 
     void réinitialise();
 
@@ -240,4 +250,9 @@ struct MachineVirtuelle {
     kuri::tableau<FrameAppel> donne_tableau_frame_appel() const;
 
     NoeudExpression const *donne_site_adresse_courante() const;
+
+    void notifie_empile(FrameAppel *frame, octet_t *adresse_op, uint32_t);
+    [[nodiscard]] RésultatInterprétation notifie_dépile(FrameAppel *frame,
+                                                        octet_t *adresse_op,
+                                                        uint32_t);
 };
