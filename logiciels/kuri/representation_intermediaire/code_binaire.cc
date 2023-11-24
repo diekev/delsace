@@ -1714,21 +1714,14 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
 
-            auto index_membre = 0;
-            POUR (type_composé->membres) {
-                if (it.ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
-
+            POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
 
-                génère_code_atome_constant(tableau_valeur[index_membre],
+                génère_code_atome_constant(tableau_valeur[index_it],
                                            adressage_destination,
                                            destination_membre,
                                            décalage_membre);
-
-                index_membre += 1;
             }
 
             break;
@@ -1966,20 +1959,13 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto tableau_valeur = structure->donne_atomes_membres();
             auto type_composé = static_cast<TypeCompose const *>(type);
 
-            auto index_membre = 0;
-            POUR (type_composé->membres) {
-                if (it.ne_doit_pas_être_dans_code_machine()) {
-                    continue;
-                }
-
+            POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
-                génère_code_atome_constant(tableau_valeur[index_membre],
+                génère_code_atome_constant(tableau_valeur[index_it],
                                            adressage_destination,
                                            destination_membre,
                                            décalage_membre);
-
-                index_membre += 1;
             }
 
             break;
