@@ -97,6 +97,8 @@ enum class TypeLogMétaprogramme : uint32_t {
     PROFILAGE,
     /* Les fuites de mémoire. */
     FUITES_DE_MÉMOIRE,
+    /* Les empilages et dépilages lors des exécutions. */
+    PILE_DE_VALEURS,
 
     NOMBRE_DE_LOGS,
 };
@@ -153,6 +155,11 @@ struct MetaProgramme {
     ComportementMétaprogramme comportement{};
 
   private:
+    /* Les logs d'empilage peuvent être très lourds. Nous ne devrions les préserver que si les
+     * métaprogrammes ont une erreur d'empilage. (La marque de préservation est fait par la
+     * MachineVirtuelle.) */
+    bool m_le_log_d_empilage_doit_être_préservé = false;
+
     Enchaineuse *logueuses[static_cast<int>(TypeLogMétaprogramme::NOMBRE_DE_LOGS)];
 
     kuri::chaine m_nom_pour_fichier_log{};
@@ -176,9 +183,14 @@ struct MetaProgramme {
 
     void vidange_logs_sur_disque();
 
-  private:
     kuri::chaine_statique donne_nom_pour_fichier_log();
 
+    void préserve_log_empilage()
+    {
+        m_le_log_d_empilage_doit_être_préservé = true;
+    }
+
+  private:
     void vidange_log_sur_disque(TypeLogMétaprogramme type_log);
 };
 

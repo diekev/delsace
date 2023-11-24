@@ -130,6 +130,10 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
 
 void MetaProgramme::vidange_logs_sur_disque()
 {
+    if (!m_le_log_d_empilage_doit_être_préservé) {
+        memoire::deloge("Enchaineuse", logueuses[int(TypeLogMétaprogramme::PILE_DE_VALEURS)]);
+    }
+
     for (int i = 0; i < int(TypeLogMétaprogramme::NOMBRE_DE_LOGS); i++) {
         vidange_log_sur_disque(TypeLogMétaprogramme(i));
     }
@@ -157,6 +161,10 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
         case TypeLogMétaprogramme::FUITES_DE_MÉMOIRE:
         {
             return "fuites_de_mémoire";
+        }
+        case TypeLogMétaprogramme::PILE_DE_VALEURS:
+        {
+            return "pile_de_valeurs";
         }
         case TypeLogMétaprogramme::NOMBRE_DE_LOGS:
         {
