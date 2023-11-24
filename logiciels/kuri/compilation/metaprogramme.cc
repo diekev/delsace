@@ -158,11 +158,12 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
         {
             return "fuites_de_mémoire";
         }
-        default:
+        case TypeLogMétaprogramme::NOMBRE_DE_LOGS:
         {
-            return "inconnu";
+            break;
         }
     }
+    return "inconnu";
 }
 
 void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
