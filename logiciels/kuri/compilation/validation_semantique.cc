@@ -3390,6 +3390,9 @@ struct ConstructriceMembresTypeComposé {
     TypeCompose &m_type_composé;
     int m_membres_non_constant = 0;
 
+    /* Les membres n'apparaissant pas dans le code machine sont ajoutés à la fin. */
+    kuri::tablet<MembreTypeComposé, 6> m_membres_extras{};
+
   public:
     ConstructriceMembresTypeComposé(TypeCompose &type_composé, NoeudBloc const *bloc)
         : m_type_composé(type_composé)
@@ -3399,28 +3402,37 @@ struct ConstructriceMembresTypeComposé {
         type_composé.membres.reserve(bloc->nombre_de_membres());
     }
 
+    void finalise()
+    {
+        m_type_composé.nombre_de_membres_réels = m_type_composé.membres.taille();
+
+        POUR (m_membres_extras) {
+            m_type_composé.membres.ajoute(it);
+        }
+    }
+
     void ajoute_type_de_données(NoeudDeclarationType *déclaration, Typeuse &typeuse)
     {
         // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
         auto type_de_donnees = typeuse.type_type_de_donnees(déclaration->type);
-        m_type_composé.membres.ajoute({nullptr,
-                                       type_de_donnees,
-                                       déclaration->ident,
-                                       0,
-                                       0,
-                                       nullptr,
-                                       MembreTypeComposé::EST_CONSTANT});
+        m_membres_extras.ajoute({nullptr,
+                                 type_de_donnees,
+                                 déclaration->ident,
+                                 0,
+                                 0,
+                                 nullptr,
+                                 MembreTypeComposé::EST_CONSTANT});
     }
 
     void ajoute_constante(NoeudDeclarationVariable *déclaration)
     {
-        m_type_composé.membres.ajoute({déclaration,
-                                       déclaration->type,
-                                       déclaration->ident,
-                                       0,
-                                       0,
-                                       déclaration->expression,
-                                       MembreTypeComposé::EST_CONSTANT});
+        m_membres_extras.ajoute({déclaration,
+                                 déclaration->type,
+                                 déclaration->ident,
+                                 0,
+                                 0,
+                                 déclaration->expression,
+                                 MembreTypeComposé::EST_CONSTANT});
     }
 
     void ajoute_membre_employé(NoeudDeclaration *déclaration)
@@ -3438,13 +3450,13 @@ struct ConstructriceMembresTypeComposé {
     void ajoute_membre_provenant_d_un_emploi(NoeudDeclarationVariable *déclaration)
     {
         m_membres_non_constant += 1;
-        m_type_composé.membres.ajoute({déclaration,
-                                       déclaration->type,
-                                       déclaration->ident,
-                                       0,
-                                       0,
-                                       déclaration->expression,
-                                       MembreTypeComposé::PROVIENT_D_UN_EMPOI});
+        m_membres_extras.ajoute({déclaration,
+                                 déclaration->type,
+                                 déclaration->ident,
+                                 0,
+                                 0,
+                                 déclaration->expression,
+                                 MembreTypeComposé::PROVIENT_D_UN_EMPOI});
     }
 
     void ajoute_membre_simple(NoeudExpression *membre, NoeudExpression *initialisateur)
@@ -3463,6 +3475,13 @@ struct ConstructriceMembresTypeComposé {
 
         m_type_composé.membres.ajoute(
             {decl_var_enfant, membre->type, membre->ident, 0, 0, initialisateur, 0});
+    }
+
+    void ajoute_membre_invisible()
+    {
+        m_membres_non_constant += 1;
+        /* Ajoute un membre, d'un octet de taille. */
+        m_type_composé.membres.ajoute({nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
     }
 
     int donne_compte_membres_non_constant() const
@@ -3735,6 +3754,14 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         }
     }
 
+    if (constructrice.donne_compte_membres_non_constant() == 0) {
+        if (!decl->est_externe) {
+            constructrice.ajoute_membre_invisible();
+        }
+    }
+
+    constructrice.finalise();
+
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
         if (!it->est_assignation_variable()) {
             continue;
@@ -3758,12 +3785,7 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
     TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
 
     if (constructrice.donne_compte_membres_non_constant() == 0) {
-        if (!decl->est_externe) {
-            /* Ajoute un membre, d'un octet de taille. */
-            type_compose->membres.ajoute(
-                {nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
-            calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
-        }
+        assert(decl->est_externe);
     }
     else {
         calcule_taille_type_compose(type_compose, decl->est_compacte, decl->alignement_desire);
@@ -3952,6 +3974,8 @@ ResultatValidation ContexteValidationCode::valide_union(NoeudStruct *decl)
             }
         }
     }
+
+    constructrice.finalise();
 
     /* Valide les types avant le calcul de la taille des types. */
     TENTE(valide_types_pour_calcule_taille_type(espace, type_compose));
