@@ -309,12 +309,12 @@ ajourne :: fonc (empl caméra: *Caméra3D)
     tête_ := vers_radians(tête)
     inclinaison_ := vers_radians(inclinaison)
 
-    position.x = cible[0] + distance * cos(tête_) * cos(inclinaison_)
-    position.y = cible[1] + distance * sin(tête_)
-    position.z = cible[2] + distance * cos(tête_) * sin(inclinaison_)
+    position.x = cible[0] + distance * cosinus(tête_) * cosinus(inclinaison_)
+    position.y = cible[1] + distance * sinus(tête_)
+    position.z = cible[2] + distance * cosinus(tête_) * sinus(inclinaison_)
 
     direction = normalise(cible - position)
-    vecteur_haut.y = si (cos(tête_)) > 0 { 1.0 } sinon { -1.0 }
+    vecteur_haut.y = si (cosinus(tête_)) > 0 { 1.0 } sinon { -1.0 }
     vecteur_droite = produit_en_croix(direction, vecteur_haut)
 
     ajourne_projection(caméra)
