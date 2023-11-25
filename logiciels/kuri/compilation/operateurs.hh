@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau_page.hh"
 
 #include "transformation_type.hh"
@@ -11,6 +10,8 @@
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 #include "structures/tablet.hh"
+
+#include "utilitaires/macros.hh"
 
 #include <optional>
 

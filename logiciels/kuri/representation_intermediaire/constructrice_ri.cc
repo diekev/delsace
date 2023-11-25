@@ -3988,7 +3988,15 @@ void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *
             for (auto &var : it.variables.plage()) {
                 auto pointeur = m_constructrice.crée_allocation(var, var->type, var->ident);
                 auto type_var = var->type;
-                crée_appel_fonction_init_type(var, type_var, pointeur);
+                if (est_type_fondamental(type_var)) {
+                    m_constructrice.crée_stocke_mem(
+                        var,
+                        pointeur,
+                        m_constructrice.crée_initialisation_défaut_pour_type(type_var));
+                }
+                else {
+                    crée_appel_fonction_init_type(var, type_var, pointeur);
+                }
 
                 static_cast<NoeudDeclarationSymbole *>(
                     var->comme_reference_declaration()->declaration_referee)

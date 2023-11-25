@@ -4,7 +4,6 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/resultat.hh"
 #include "biblinternes/structures/tableau_page.hh"
 
@@ -16,6 +15,8 @@
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
+
+#include "utilitaires/macros.hh"
 
 #include "lexemes.hh"
 
