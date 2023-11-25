@@ -61,6 +61,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_SI_ZÉRO)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_STRUCTURE_CONSTANTE)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
@@ -348,6 +349,12 @@ struct Chunk {
                                  kuri::tableau<PatchLabel> &patchs_labels,
                                  int index_label_si_vrai,
                                  int index_label_si_faux);
+
+    void émets_branche_si_zéro(NoeudExpression const *site,
+                               kuri::tableau<PatchLabel> &patchs_labels,
+                               int taille_opérande,
+                               int index_label_si_vrai,
+                               int index_label_si_faux);
 
     void émets_operation_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,

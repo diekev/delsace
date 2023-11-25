@@ -558,6 +558,29 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
     patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
 }
 
+void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
+                                  kuri::tableau<PatchLabel> &patchs_labels,
+                                  int taille_opérande,
+                                  int index_label_si_vrai,
+                                  int index_label_si_faux)
+{
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        émets(0);
+        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    }
+
+    émets_notifie_dépilage(site, taille_opérande);
+    émets_entête_op(OP_BRANCHE_SI_ZÉRO, site);
+    émets(taille_opérande);
+    émets(0);
+    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+    émets(0);
+    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+}
+
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
@@ -936,6 +959,10 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_INIT_LOCALE_ZÉRO:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
+        }
+        case OP_BRANCHE_SI_ZÉRO:
+        {
+            return instruction_3d<int, int, int>(chunk, décalage, os);
         }
         case OP_VÉRIFIE_CIBLE_APPEL:
         {
@@ -1354,6 +1381,26 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     return true;
 }
 
+static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
+{
+    if (!inst->est_op_binaire()) {
+        return nullptr;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+
+    if (op_binaire->op != OpérateurBinaire::Genre::Comp_Egal) {
+        return nullptr;
+    }
+
+    if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
+        !op_binaire->valeur_droite->est_constante_nulle()) {
+        return nullptr;
+    }
+
+    return op_binaire->valeur_gauche;
+}
+
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
                                                            Chunk &chunk,
                                                            bool pour_operande)
@@ -1382,6 +1429,17 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
+            if (auto atome = est_comparaison_égal_zéro(branche->condition->comme_instruction())) {
+                génère_code_pour_atome(atome, chunk);
+                chunk.émets_branche_si_zéro(branche->site,
+                                            patchs_labels,
+                                            atome->type->taille_octet,
+                                            branche->label_si_vrai->id,
+                                            branche->label_si_faux->id);
+
+                break;
+            }
+
             génère_code_pour_atome(branche->condition, chunk);
             chunk.émets_branche_condition(branche->site,
                                           patchs_labels,

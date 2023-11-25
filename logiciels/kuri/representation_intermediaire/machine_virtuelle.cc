@@ -1155,6 +1155,54 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
+            case OP_BRANCHE_SI_ZÉRO:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto decalage_si_vrai = LIS_4_OCTETS();
+                auto decalage_si_faux = LIS_4_OCTETS();
+
+                auto condition = false;
+                switch (taille) {
+                    case 1:
+                    {
+                        auto valeur = dépile<int8_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 2:
+                    {
+                        auto valeur = dépile<int16_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 4:
+                    {
+                        auto valeur = dépile<int32_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 8:
+                    {
+                        auto valeur = dépile<int64_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    default:
+                    {
+                        assert(false);
+                        break;
+                    }
+                }
+                if (condition) {
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_vrai;
+                }
+                else {
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_faux;
+                }
+                break;
+            }
             case OP_CONSTANTE:
             {
                 empile_constante(frame);
