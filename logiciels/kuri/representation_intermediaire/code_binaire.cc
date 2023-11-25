@@ -1381,15 +1381,15 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     return true;
 }
 
-static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
+static Atome const *est_comparaison_avec_zéro(Instruction const *inst,
+                                              OpérateurBinaire::Genre genre_comp)
 {
     if (!inst->est_op_binaire()) {
         return nullptr;
     }
 
     auto const op_binaire = inst->comme_op_binaire();
-
-    if (op_binaire->op != OpérateurBinaire::Genre::Comp_Egal) {
+    if (op_binaire->op != genre_comp) {
         return nullptr;
     }
 
@@ -1399,6 +1399,16 @@ static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
     }
 
     return op_binaire->valeur_gauche;
+}
+
+static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Egal);
+}
+
+static Atome const *est_comparaison_inégal_zéro(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Inegal);
 }
 
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
@@ -1436,6 +1446,19 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                                             atome->type->taille_octet,
                                             branche->label_si_vrai->id,
                                             branche->label_si_faux->id);
+
+                break;
+            }
+
+            if (auto atome = est_comparaison_inégal_zéro(
+                    branche->condition->comme_instruction())) {
+                génère_code_pour_atome(atome, chunk);
+                /* Utilise branche_si_zéro, mais inverse les labels. */
+                chunk.émets_branche_si_zéro(branche->site,
+                                            patchs_labels,
+                                            atome->type->taille_octet,
+                                            branche->label_si_faux->id,
+                                            branche->label_si_vrai->id);
 
                 break;
             }
