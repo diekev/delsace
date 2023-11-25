@@ -1277,6 +1277,40 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     });
 
     m_résultat.fonctions.redimensionne(part.vrai.taille());
+
+#if 0
+    pour_chaque_element(m_espace.compilatrice().sys_module->modules, [&](Module const &module) {
+        if (module.nom()->nom != "Coeur") {
+            return;
+        }
+
+        POUR (*module.bloc->membres.verrou_lecture()) {
+            if (!it->est_entete_fonction()) {
+                continue;
+            }
+
+            auto fonction = it->comme_entete_fonction();
+            if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+                if (!fonction->monomorphisations || fonction->monomorphisations->taille() == 0) {
+                    std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction)
+                              << '\n';
+                }
+                continue;
+            }
+
+            if (!fonction->atome) {
+                std::cerr << "Fonction sans atome : " << nom_humainement_lisible(fonction) << '\n';
+                continue;
+            }
+
+            if (fonctions_visitées.possède(fonction->atome->comme_fonction())) {
+                continue;
+            }
+
+            std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction) << '\n';
+        }
+    });
+#endif
 }
 
 void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
