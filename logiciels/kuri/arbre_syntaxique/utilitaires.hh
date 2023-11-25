@@ -5,11 +5,11 @@
 
 #include <iosfwd>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "compilation/transformation_type.hh"
 
 #include "structures/tableau_compresse.hh"
+
+#include "utilitaires/macros.hh"
 
 struct AssembleuseArbre;
 struct Compilatrice;
