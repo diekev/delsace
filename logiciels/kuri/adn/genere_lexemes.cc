@@ -6,8 +6,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
 #include "structures/tableau.hh"

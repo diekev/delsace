@@ -763,4 +763,19 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Proteine *> &prot
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction);
 
+void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
+                                                 IdentifiantADN const &nom_noeud,
+                                                 IdentifiantADN const &nom_comme);
+
+void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
+                                                kuri::chaine_statique nom_classe,
+                                                ProteineStruct const &derivee,
+                                                bool pour_noeud_code);
+
+void génère_code_cpp(FluxSortieCPP &os,
+                     const kuri::tableau<Proteine *> &proteines,
+                     bool pour_entête);
+
+void génère_code_kuri(FluxSortieKuri &os, kuri::tableau<Proteine *> const &proteines);
+
 /** \} */
