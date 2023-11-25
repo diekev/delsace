@@ -682,8 +682,8 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 #endif
             enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
                         << " *pointeur;\n";
-            enchaineuse << "      long taille;\n"
-                        << "      long " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
+            enchaineuse << "      int64_t taille;\n"
+                        << "      int64_t " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "    };\n";  // struct
