@@ -4,6 +4,7 @@
 #include "machine_virtuelle.hh"
 
 #include <iostream>
+#include <x86intrin.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
 
@@ -1042,6 +1043,9 @@ void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
     assert(pointeur_pile);
 
     m_métaprogramme = métaprogramme;
+    if (compilatrice.arguments.profile_metaprogrammes) {
+        de->profileuse.prépare_pour_profilage();
+    }
 }
 
 void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme,
@@ -2216,6 +2220,21 @@ void Profileuse::réinitialise()
     échantillons.efface();
 }
 
+void Profileuse::prépare_pour_profilage()
+{
+    ajourne_ticks();
+}
+
+void Profileuse::ajourne_ticks()
+{
+    ticks_de_bases = __rdtsc();
+}
+
+uint64_t Profileuse::donne_ticks()
+{
+    return __rdtsc() - ticks_de_bases;
+}
+
 static bool les_frames_sont_les_mêmes(FrameAppel const *frame1,
                                       int taille1,
                                       FrameAppel const *frame2,
@@ -2240,6 +2259,8 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
         return;
     }
 
+    auto ticks = donne_ticks();
+
     auto de = métaprogramme->données_exécution;
     if (!échantillons.est_vide()) {
         auto &dernier_échantillon = échantillons.dernière();
@@ -2249,20 +2270,22 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
                                       profondeur_échantillon,
                                       de->frames,
                                       de->profondeur_appel)) {
-            dernier_échantillon.poids += poids;
+            dernier_échantillon.poids += ticks;
             return;
         }
     }
 
     auto echantillon = EchantillonProfilage();
     echantillon.profondeur_frame_appel = de->profondeur_appel;
-    echantillon.poids = poids;
+    echantillon.poids = ticks;
 
     for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
         echantillon.frames[i] = de->frames[i];
     }
 
     échantillons.ajoute(echantillon);
+
+    ajourne_ticks();
 }
 
 static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
