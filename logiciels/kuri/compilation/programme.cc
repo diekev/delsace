@@ -555,6 +555,7 @@ bool operator!=(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatComp
 
 struct VisiteuseType {
     kuri::ensemble<Type *> visites{};
+    bool visite_types_fonctions_init = true;
 
     void visite_type(Type *type, std::function<void(Type *)> rappel)
     {
@@ -569,7 +570,7 @@ struct VisiteuseType {
         visites.insère(type);
         rappel(type);
 
-        if (type->fonction_init) {
+        if (visite_types_fonctions_init && type->fonction_init) {
             visite_type(type->fonction_init->type, rappel);
         }
 
