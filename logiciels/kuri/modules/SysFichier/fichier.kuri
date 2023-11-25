@@ -347,7 +347,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 lis_tout :: fonc (fichier: *Fichier, résultat: &[]octet) -> ErreurFichier
 {
     TAILLE_MAX :: 1024
-    tampon : [TAILLE_MAX]z8
+    tampon : [TAILLE_MAX]z8 = ---
 
     résultat.taille = 0
 

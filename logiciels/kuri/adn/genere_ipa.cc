@@ -32,9 +32,7 @@ static void genere_code_kuri(const kuri::tableau<Proteine *> &proteines, FluxSor
     os << "// Interface de métaprogrammation pour controler ou communiquer avec la Compilatrice\n";
     os << "\n";
 
-    POUR (proteines) {
-        it->genere_code_kuri(os);
-    }
+    génère_code_kuri(os, proteines);
 }
 
 static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
@@ -76,9 +74,7 @@ static void genere_code_cpp(const kuri::tableau<Proteine *> &proteines,
 
     genere_déclaration_identifiants_code(proteines, os, pour_entete, "ipa");
 
-    POUR (proteines) {
-        it->genere_code_cpp(os, pour_entete);
-    }
+    génère_code_cpp(os, proteines, pour_entete);
 
     if (pour_entete) {
         os << "using type_fonction_compilatrice = void(*)();\n\n";

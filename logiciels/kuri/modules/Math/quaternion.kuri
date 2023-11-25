@@ -216,11 +216,11 @@ interpolation_sphérique :: fonc (a: Quaternion, t: r32, b: Quaternion) -> Quate
         retourne normalise((un - t) * a + t * b)
     }
 
-    theta := acos(restreint(cos_theta, -un, un))
+    theta := arccosinus(restreint(cos_theta, -un, un))
     thetap := theta * t;
     qperp := normalise(b - a * thetap)
 
-    retourne a * cos(thetap) + qperp * sin(thetap)
+    retourne a * cosinus(thetap) + qperp * sinus(thetap)
 }
 
 /* https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion */

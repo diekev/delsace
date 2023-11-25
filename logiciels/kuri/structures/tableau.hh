@@ -5,9 +5,10 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/outils/definitions.h"
 
 #include "tableau_statique.hh"
+
+#include "utilitaires/macros.hh"
 
 namespace kuri {
 

@@ -73,6 +73,11 @@ cosinus :: fonc (a: r64) -> r64
     retourne cos(a)
 }
 
+arccosinus :: fonc (a: r32) -> r32
+{
+    retourne acos(a comme r64) comme r32
+}
+
 sinus :: fonc (a: r32) -> r32
 {
     retourne sin(a) comme r32
@@ -108,6 +113,16 @@ arcsinus_borné :: fonc (a: r64) -> r64 #enligne
         retourne Constantes(r64).PI_2
     }
     retourne asin(a)
+}
+
+tan :: fonc (a: r32) -> r32
+{
+    retourne atan(a comme r64) comme r32
+}
+
+atan :: fonc (a: r32) -> r32
+{
+    retourne atan(a comme r64) comme r32
 }
 
 atan2 :: fonc (a: r32, b: r32) -> r32

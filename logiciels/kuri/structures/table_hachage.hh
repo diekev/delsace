@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-
 #include "structures/tableau.hh"
+
+#include "utilitaires/macros.hh"
 
 namespace kuri {
 

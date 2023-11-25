@@ -2036,6 +2036,24 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         }
 
         if (entete->est_operateur) {
+            if (entete->params.taille() == 2) {
+                auto const type1 = entete->parametre_entree(0)->type;
+                auto const type2 = entete->parametre_entree(1)->type;
+                return enchaine("opérateur ",
+                                entete->lexeme->chaine,
+                                " (",
+                                chaine_type(type1),
+                                ", ",
+                                chaine_type(type2),
+                                ")");
+            }
+
+            if (entete->params.taille() == 1) {
+                auto const type1 = entete->parametre_entree(0)->type;
+                return enchaine(
+                    "opérateur ", entete->lexeme->chaine, " (", chaine_type(type1), ")");
+            }
+
             return enchaine("opérateur ", entete->lexeme->chaine);
         }
 

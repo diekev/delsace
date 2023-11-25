@@ -5,13 +5,13 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/canonicalisation.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "parsage/outils_lexemes.hh"
+
+#include "utilitaires/macros.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"

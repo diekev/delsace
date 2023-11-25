@@ -790,11 +790,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         continue;
                     }
 
-                    os << "\n";
-                    os << "\tinline bool est_" << nom_comme << "() const;\n";
-                    os << "\tinline " << nom_noeud << " *comme_" << nom_comme << "();\n";
-                    os << "\tinline const " << nom_noeud << " *comme_" << nom_comme
-                       << "() const;\n";
+                    génère_déclaration_fonctions_discrimination(os, nom_noeud, nom_comme);
                 }
             }
 
@@ -817,56 +813,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            if (it->est_racine_soushierachie() && it->accede_nom_genre().est_nul()) {
-                os << "inline bool NoeudCode::est_" << nom_comme << "() const\n";
-                os << "{\n";
-                os << "\t ";
-
-                auto separateur = "return";
-
-                for (auto &derive : it->derivees()) {
-                    os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
-                    separateur = "|| ";
-                }
-
-                os << ";\n";
-                os << "}\n\n";
-            }
-            else {
-                os << "inline bool NoeudCode::est_" << nom_comme << "() const\n";
-                os << "{\n";
-
-                if (it->est_racine_soushierachie()) {
-                    os << "\treturn this->genre == GenreNoeud::" << it->accede_nom_genre();
-
-                    for (auto &derive : it->derivees()) {
-                        os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
-                    }
-
-                    os << ";\n";
-                }
-                else {
-                    os << "\treturn this->genre == GenreNoeud::" << it->accede_nom_genre()
-                       << ";\n";
-                }
-
-                os << "}\n\n";
-            }
-
-            os << "inline " << nom_noeud << " *NoeudCode::comme_" << nom_comme << "()\n";
-            os << "{\n";
-            os << "\tassert_rappel(est_" << nom_comme
-               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
-            os << "\treturn static_cast<" << nom_noeud << " *>(this);\n";
-            os << "}\n\n";
-
-            os << "inline const " << nom_noeud << " *NoeudCode::comme_" << nom_comme
-               << "() const\n";
-            os << "{\n";
-            os << "\tassert_rappel(est_" << nom_comme
-               << "(), [this]() { imprime_genre_noeud_pour_assert(this); });\n";
-            os << "\treturn static_cast<const " << nom_noeud << " *>(this);\n";
-            os << "}\n\n";
+            génère_définition_fonctions_discrimination(os, "NoeudCode", *it, true);
         }
 
         // Implémente une convertisseuse

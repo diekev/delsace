@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-
 #include <cstdint>
 #include <iosfwd>
 #include <variant>
+
+#include "utilitaires/macros.hh"
 
 struct Compilatrice;
 struct NoeudBloc;

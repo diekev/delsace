@@ -5,13 +5,13 @@
 
 #include <utility>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
 
 #include "structures/chaine_statique.hh"
 #include "structures/ensemble.hh"
+
+#include "utilitaires/macros.hh"
 
 struct AccedeIndexConstant;
 struct AtomeConstanteBooléenne;

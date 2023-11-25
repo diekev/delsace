@@ -224,6 +224,22 @@ void Chunk::émets_empilage_retour_appel(NoeudExpression const *site, Instructio
     }
 }
 
+void Chunk::émets_profile_débute_appel()
+{
+    if (!émets_profilage) {
+        return;
+    }
+    émets_entête_op(OP_PROFILE_DÉBUTE_APPEL, nullptr);
+}
+
+void Chunk::émets_profile_termine_appel()
+{
+    if (!émets_profilage) {
+        return;
+    }
+    émets_entête_op(OP_PROFILE_TERMINE_APPEL, nullptr);
+}
+
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
     auto type = alloc->type->comme_type_pointeur()->type_pointe;
@@ -315,6 +331,13 @@ void Chunk::émets_assignation_locale(NoeudExpression const *site, int pointeur,
     émets(type->taille_octet);
 }
 
+void Chunk::émets_init_locale_zéro(const NoeudExpression *site, int pointeur, const Type *type)
+{
+    émets_entête_op(OP_INIT_LOCALE_ZÉRO, site);
+    émets(pointeur);
+    émets(type->taille_octet);
+}
+
 void Chunk::émets_copie_locale(NoeudExpression const *site,
                                Type const *type,
                                int pointeur_source,
@@ -401,11 +424,13 @@ void Chunk::émets_appel(NoeudExpression const *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL, site);
     émets(fonction);
     émets(taille_arguments);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -421,12 +446,14 @@ void Chunk::émets_appel_externe(NoeudExpression const *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_EXTERNE, site);
     émets(fonction);
     émets(taille_arguments);
     émets(inst_appel);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -441,10 +468,12 @@ void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_COMPILATRICE, site);
     émets(fonction);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -453,10 +482,12 @@ void Chunk::émets_appel_intrinsèque(NoeudExpression const *site,
                                     InstructionAppel const *inst_appel)
 {
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
     émets(fonction);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -471,11 +502,13 @@ void Chunk::émets_appel_pointeur(NoeudExpression const *site,
 
     émets_notifie_dépilage(site, 8); /* adresse. */
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_POINTEUR, site);
     émets(taille_arguments);
     émets(inst_appel);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -519,6 +552,29 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
 
     émets_notifie_dépilage(site, 1);
     émets_entête_op(OP_BRANCHE_CONDITION, site);
+    émets(0);
+    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+    émets(0);
+    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+}
+
+void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
+                                  kuri::tableau<PatchLabel> &patchs_labels,
+                                  int taille_opérande,
+                                  int index_label_si_vrai,
+                                  int index_label_si_faux)
+{
+    if (émets_vérification_branches) {
+        émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
+        émets(0);
+        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        émets(0);
+        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    }
+
+    émets_notifie_dépilage(site, taille_opérande);
+    émets_entête_op(OP_BRANCHE_SI_ZÉRO, site);
+    émets(taille_opérande);
     émets(0);
     patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
     émets(0);
@@ -737,6 +793,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_RETOURNE:
         case OP_VÉRIFIE_CIBLE_BRANCHE:
         case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
+        case OP_PROFILE_DÉBUTE_APPEL:
+        case OP_PROFILE_TERMINE_APPEL:
         {
             return instruction_simple(décalage, os);
         }
@@ -898,8 +956,13 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_BRANCHE_CONDITION:
         case OP_INCRÉMENTE_LOCALE:
         case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+        case OP_INIT_LOCALE_ZÉRO:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
+        }
+        case OP_BRANCHE_SI_ZÉRO:
+        {
+            return instruction_3d<int, int, int>(chunk, décalage, os);
         }
         case OP_VÉRIFIE_CIBLE_APPEL:
         {
@@ -1129,6 +1192,7 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
     vérifie_adresses = espace->compilatrice().arguments.debogue_execution;
     notifie_empilage = espace->compilatrice().arguments.debogue_execution;
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
+    émets_profilage = espace->compilatrice().arguments.profile_metaprogrammes;
 }
 
 bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
@@ -1259,6 +1323,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
     chunk.émets_notifications_empilage = notifie_empilage;
+    chunk.émets_profilage = émets_profilage;
 
     m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
     numérote_instructions(*fonction);
@@ -1316,6 +1381,36 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     return true;
 }
 
+static Atome const *est_comparaison_avec_zéro(Instruction const *inst,
+                                              OpérateurBinaire::Genre genre_comp)
+{
+    if (!inst->est_op_binaire()) {
+        return nullptr;
+    }
+
+    auto const op_binaire = inst->comme_op_binaire();
+    if (op_binaire->op != genre_comp) {
+        return nullptr;
+    }
+
+    if (!est_constante_entière_zéro(op_binaire->valeur_droite) &&
+        !op_binaire->valeur_droite->est_constante_nulle()) {
+        return nullptr;
+    }
+
+    return op_binaire->valeur_gauche;
+}
+
+static Atome const *est_comparaison_égal_zéro(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Egal);
+}
+
+static Atome const *est_comparaison_inégal_zéro(Instruction const *inst)
+{
+    return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Inegal);
+}
+
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
                                                            Chunk &chunk,
                                                            bool pour_operande)
@@ -1344,6 +1439,30 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
+            if (auto atome = est_comparaison_égal_zéro(branche->condition->comme_instruction())) {
+                génère_code_pour_atome(atome, chunk);
+                chunk.émets_branche_si_zéro(branche->site,
+                                            patchs_labels,
+                                            atome->type->taille_octet,
+                                            branche->label_si_vrai->id,
+                                            branche->label_si_faux->id);
+
+                break;
+            }
+
+            if (auto atome = est_comparaison_inégal_zéro(
+                    branche->condition->comme_instruction())) {
+                génère_code_pour_atome(atome, chunk);
+                /* Utilise branche_si_zéro, mais inverse les labels. */
+                chunk.émets_branche_si_zéro(branche->site,
+                                            patchs_labels,
+                                            atome->type->taille_octet,
+                                            branche->label_si_faux->id,
+                                            branche->label_si_vrai->id);
+
+                break;
+            }
+
             génère_code_pour_atome(branche->condition, chunk);
             chunk.émets_branche_condition(branche->site,
                                           patchs_labels,
@@ -1389,6 +1508,13 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                                          stocke->valeur->type,
                                          donne_index_locale(alloc_source),
                                          donne_index_locale(alloc_destination));
+                break;
+            }
+
+            if (est_allocation(stocke->ou) && est_constante_entière_zéro(stocke->valeur)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                chunk.émets_init_locale_zéro(
+                    stocke->site, donne_index_locale(alloc_destination), stocke->valeur->type);
                 break;
             }
 

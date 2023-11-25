@@ -183,7 +183,7 @@ angle_entre :: fonc (a: Vec2, b: Vec2) -> r32 #enligne
     a = normalise(a)
     b = normalise(b)
 
-    /* Plus précis que acos(produit_scalaire(a, b)). */
+    /* Plus précis que arccosinus(produit_scalaire(a, b)). */
     si produit_scalaire(a, b) >= 0.0 {
         retourne 2.0 * arcsinus_borné(longueur(a, b) * 0.5)
     }

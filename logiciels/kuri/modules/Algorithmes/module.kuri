@@ -1,3 +1,5 @@
+importe Math
+
 // Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
 // de comparaisons, et sont résistant aux dépassement de bornes.
 
@@ -159,6 +161,36 @@ accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
     }
 
     retourne résultat
+}
+
+/* Sommation de nombres réels par Kahan et Babuska, variante de Neumaier.
+ * Ceci accumule moins d'erreur en point flottant.
+ * https://en.wikipedia.org/wiki/Kahan_summation_algorithm
+ */
+accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: []r32) -> r32
+{
+    saufsi tableau {
+        retourne 0.0
+    }
+
+    résultat := tableau[0]
+    err := 0.0
+
+    pour 1 ... tableau.taille - 1 {
+        k := tableau[it]
+        m := résultat + k
+
+        err += si abs(résultat) >= abs(k) {
+            résultat - m + k
+        }
+        sinon {
+            k - m + résultat
+        }
+
+        résultat = m
+    }
+
+    retourne résultat + err
 }
 
 /* ------------------------------------------------------------------------- */

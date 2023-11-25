@@ -387,13 +387,13 @@ cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, co
     phi_delta := Constantes(r32).TAU / 32.0
 
     pour segs {
-        ca0 := cx + cos(phi) comme r32 * r
-        sa0 := cy + sin(phi) comme r32 * r
+        ca0 := cx + cosinus(phi) * r
+        sa0 := cy + sinus(phi) * r
 
         phi += phi_delta
 
-        ca1 := cx + cos(phi) comme r32 * r
-        sa1 := cy + sin(phi) comme r32 * r
+        ca1 := cx + cosinus(phi) * r
+        sa1 := cy + sinus(phi) * r
 
         p1 := Vec3(ca0, sa0, 0.0)
         p2 := Vec3(ca1, sa1, 0.0)

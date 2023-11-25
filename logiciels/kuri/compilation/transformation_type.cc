@@ -185,30 +185,32 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->est_type_reel() && type_vers->est_type_reel()) {
-        /* cas spéciaux pour R16 */
-        if (type_de->taille_octet == 2) {
-            if (type_vers->taille_octet == 4) {
-                return TransformationType{TypeTransformation::R16_VERS_R32, type_vers};
+        if (POUR_TRANSTYPAGE) {
+            /* cas spéciaux pour R16 */
+            if (type_de->taille_octet == 2) {
+                if (type_vers->taille_octet == 4) {
+                    return TransformationType{TypeTransformation::R16_VERS_R32, type_vers};
+                }
+
+                if (type_vers->taille_octet == 8) {
+                    return TransformationType{TypeTransformation::R16_VERS_R64, type_vers};
+                }
+
+                return TypeTransformation::IMPOSSIBLE;
             }
 
-            if (type_vers->taille_octet == 8) {
-                return TransformationType{TypeTransformation::R16_VERS_R64, type_vers};
+            /* cas spéciaux pour R16 */
+            if (type_vers->taille_octet == 2) {
+                if (type_de->taille_octet == 4) {
+                    return TransformationType{TypeTransformation::R32_VERS_R16, type_vers};
+                }
+
+                if (type_de->taille_octet == 8) {
+                    return TransformationType{TypeTransformation::R64_VERS_R16, type_vers};
+                }
+
+                return TypeTransformation::IMPOSSIBLE;
             }
-
-            return TypeTransformation::IMPOSSIBLE;
-        }
-
-        /* cas spéciaux pour R16 */
-        if (type_vers->taille_octet == 2) {
-            if (type_de->taille_octet == 4) {
-                return TransformationType{TypeTransformation::R32_VERS_R16, type_vers};
-            }
-
-            if (type_de->taille_octet == 8) {
-                return TransformationType{TypeTransformation::R64_VERS_R16, type_vers};
-            }
-
-            return TypeTransformation::IMPOSSIBLE;
         }
 
         if (type_de->taille_octet < type_vers->taille_octet) {

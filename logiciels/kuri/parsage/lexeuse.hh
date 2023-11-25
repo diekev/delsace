@@ -4,9 +4,10 @@
 #pragma once
 
 #include "biblinternes/moultfilage/synchrone.hh"
-#include "biblinternes/outils/definitions.h"
 
 #include "structures/chaine.hh"
+
+#include "utilitaires/macros.hh"
 
 #include "lexemes.hh"
 #include "site_source.hh"
@@ -62,7 +63,7 @@ struct Lexeuse {
     }
 
   private:
-    ENLIGNE_TOUJOURS bool fini() const
+    TOUJOURS_ENLIGNE bool fini() const
     {
         return m_possède_erreur || m_debut >= m_fin;
     }
@@ -82,12 +83,12 @@ struct Lexeuse {
 
     void avance(int n = 1);
 
-    ENLIGNE_TOUJOURS char caractère_courant() const
+    TOUJOURS_ENLIGNE char caractère_courant() const
     {
         return *m_debut;
     }
 
-    ENLIGNE_TOUJOURS char caractère_voisin(int n = 1) const
+    TOUJOURS_ENLIGNE char caractère_voisin(int n = 1) const
     {
         return *(m_debut + n);
     }
@@ -96,7 +97,7 @@ struct Lexeuse {
 
     void rapporte_erreur(const kuri::chaine &quoi, int centre, int min, int max);
 
-    ENLIGNE_TOUJOURS void ajoute_caractère(int n = 1)
+    TOUJOURS_ENLIGNE void ajoute_caractère(int n = 1)
     {
         m_taille_mot_courant += n;
     }
@@ -105,7 +106,7 @@ struct Lexeuse {
     void ajoute_lexème(GenreLexeme identifiant);
     void ajoute_lexème(Lexeme lexème);
 
-    ENLIGNE_TOUJOURS void enregistre_pos_mot()
+    TOUJOURS_ENLIGNE void enregistre_pos_mot()
     {
         m_pos_mot = m_position_ligne;
         m_debut_mot = m_debut;

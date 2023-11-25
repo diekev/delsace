@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.h"
-
 #include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "utilitaires/macros.hh"
 
 #include "monomorpheuse.hh"
 #include "monomorphisations.hh"

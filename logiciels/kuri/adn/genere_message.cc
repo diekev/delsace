@@ -29,7 +29,7 @@ static void genere_code_cpp(FluxSortieCPP &os,
         os << "#pragma once\n\n";
         inclus_systeme(os, "iosfwd");
         os << '\n';
-        inclus(os, "biblinternes/outils/definitions.h");
+        inclus(os, "utilitaires/macros.hh");
         os << '\n';
         inclus(os, "structures/chaine_statique.hh");
         os << '\n';
@@ -44,16 +44,7 @@ static void genere_code_cpp(FluxSortieCPP &os,
         os << '\n';
     }
 
-    POUR (proteines) {
-        it->genere_code_cpp(os, pour_entete);
-    }
-}
-
-static void genere_code_kuri(FluxSortieKuri &os, kuri::tableau<Proteine *> const &proteines)
-{
-    POUR (proteines) {
-        it->genere_code_kuri(os);
-    }
+    génère_code_cpp(os, proteines, pour_entete);
 }
 
 int main(int argc, const char **argv)
@@ -110,7 +101,7 @@ int main(int argc, const char **argv)
             nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/message.kuri");
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
-            genere_code_kuri(flux, syntaxeuse.proteines);
+            génère_code_kuri(flux, syntaxeuse.proteines);
         }
     }
 
