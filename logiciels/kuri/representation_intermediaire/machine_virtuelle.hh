@@ -65,6 +65,37 @@ void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Profilage.
+ * \{ */
+
+struct EchantillonProfilage {
+    FrameAppel frames[TAILLE_FRAMES_APPEL];
+    int profondeur_frame_appel = 0;
+    int poids = 0;
+};
+
+struct PaireEnchantillonFonction {
+    AtomeFonction *fonction = nullptr;
+    int nombre_echantillons = 0;
+};
+
+enum class FormatRapportProfilage : int;
+
+struct Profileuse {
+  private:
+    kuri::tableau<EchantillonProfilage> échantillons{};
+
+  public:
+    void réinitialise();
+
+    void ajoute_echantillon(MetaProgramme *métaprogramme, int poids);
+
+    void crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format);
+};
+
+/** \} */
+
 struct DonnéesExécution {
     octet_t *pile = nullptr;
     octet_t *pointeur_pile = nullptr;
@@ -85,39 +116,11 @@ struct DonnéesExécution {
 
     kuri::pile<DonnéesTailleEmpilée> tailles_empilées{};
 
+    Profileuse profileuse{};
+
     void réinitialise();
 
     void imprime_stats_instructions(Enchaineuse &os);
-};
-
-struct EchantillonProfilage {
-    FrameAppel frames[TAILLE_FRAMES_APPEL];
-    int profondeur_frame_appel = 0;
-    int poids = 0;
-};
-
-struct InformationProfilage {
-    MetaProgramme *métaprogramme = nullptr;
-    kuri::tableau<EchantillonProfilage> echantillons{};
-};
-
-struct PaireEnchantillonFonction {
-    AtomeFonction *fonction = nullptr;
-    int nombre_echantillons = 0;
-};
-
-enum class FormatRapportProfilage : int;
-
-struct Profileuse {
-    kuri::tableau<InformationProfilage> informations_pour_métaprogrammes{};
-
-    InformationProfilage &informations_pour(MetaProgramme *métaprogramme);
-
-    void ajoute_echantillon(MetaProgramme *métaprogramme, int poids);
-
-    void crée_rapports(FormatRapportProfilage format);
-
-    void crée_rapport(InformationProfilage const &informations, FormatRapportProfilage format);
 };
 
 struct MachineVirtuelle {
@@ -163,8 +166,6 @@ struct MachineVirtuelle {
     int64_t instructions_exécutées = 0;
 
     MetaProgramme *m_métaprogramme = nullptr;
-
-    Profileuse profileuse{};
 
   public:
     bool stop = false;

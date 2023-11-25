@@ -140,6 +140,7 @@ void DonnéesExécution::réinitialise()
     this->instructions_exécutées = 0;
     this->détectrice_fuite_de_mémoire.réinitialise();
     this->tailles_empilées.efface();
+    this->profileuse.réinitialise();
 }
 
 void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
@@ -1066,7 +1067,7 @@ void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme
 
     de->instructions_exécutées += compte_exécutées;
     if (compilatrice.arguments.profile_metaprogrammes) {
-        profileuse.ajoute_echantillon(métaprogramme, compte_exécutées);
+        de->profileuse.ajoute_echantillon(métaprogramme, compte_exécutées);
     }
 }
 
@@ -2103,6 +2104,8 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
         int compte_exécutées = 0;
         auto res = exécute_instructions(compte_exécutées);
 
+        désinstalle_métaprogramme(métaprogramme, compte_exécutées);
+
         if (res == RésultatInterprétation::PASSE_AU_SUIVANT) {
             // RÀF
         }
@@ -2123,9 +2126,13 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             if (compilatrice.arguments.émets_stats_ops_exécution) {
                 logue_stats_instructions(métaprogramme);
             }
-        }
 
-        désinstalle_métaprogramme(métaprogramme, compte_exécutées);
+            if (compilatrice.arguments.profile_metaprogrammes) {
+                auto &profileuse = métaprogramme->données_exécution->profileuse;
+                profileuse.crée_rapport(métaprogramme,
+                                        compilatrice.arguments.format_rapport_profilage);
+            }
+        }
 
         if (stop || compilatrice.possède_erreur()) {
             break;
@@ -2173,10 +2180,6 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.nombre_metaprogrammes_executes += nombre_de_métaprogrammes_exécutés;
     stats.temps_metaprogrammes += temps_exécution_métaprogammes;
     stats.instructions_executees += instructions_exécutées;
-
-    if (compilatrice.arguments.profile_metaprogrammes) {
-        profileuse.crée_rapports(compilatrice.arguments.format_rapport_profilage);
-    }
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
@@ -2208,18 +2211,9 @@ std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
     return os;
 }
 
-InformationProfilage &Profileuse::informations_pour(MetaProgramme *métaprogramme)
+void Profileuse::réinitialise()
 {
-    POUR (informations_pour_métaprogrammes) {
-        if (it.métaprogramme == métaprogramme) {
-            return it;
-        }
-    }
-
-    auto informations = InformationProfilage();
-    informations.métaprogramme = métaprogramme;
-    informations_pour_métaprogrammes.ajoute(informations);
-    return informations_pour_métaprogrammes.dernière();
+    échantillons.efface();
 }
 
 void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
@@ -2227,8 +2221,6 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
     if (poids == 0) {
         return;
     }
-
-    auto &informations = informations_pour(métaprogramme);
 
     auto echantillon = EchantillonProfilage();
     echantillon.profondeur_frame_appel = métaprogramme->données_exécution->profondeur_appel;
@@ -2238,14 +2230,7 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
         echantillon.frames[i] = métaprogramme->données_exécution->frames[i];
     }
 
-    informations.echantillons.ajoute(echantillon);
-}
-
-void Profileuse::crée_rapports(FormatRapportProfilage format)
-{
-    POUR (informations_pour_métaprogrammes) {
-        crée_rapport(it, format);
-    }
+    échantillons.ajoute(echantillon);
 }
 
 static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
@@ -2259,12 +2244,12 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
 }
 
 static void crée_rapport_format_echantillons_total_plus_fonction(
-    const InformationProfilage &informations, Enchaineuse &os)
+    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
 
-    POUR (informations.echantillons) {
+    POUR (échantillons) {
         for (int i = 0; i < it.profondeur_frame_appel; i++) {
             auto &frame = it.frames[i];
             auto valeur = table.valeur_ou(frame.fonction, 0);
@@ -2293,10 +2278,10 @@ static void crée_rapport_format_echantillons_total_plus_fonction(
     }
 }
 
-static void crée_rapport_format_brendan_gregg(const InformationProfilage &informations,
-                                              Enchaineuse &os)
+static void crée_rapport_format_brendan_gregg(
+    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
 {
-    POUR (informations.echantillons) {
+    POUR (échantillons) {
         if (it.profondeur_frame_appel == 0) {
             continue;
         }
@@ -2314,20 +2299,19 @@ static void crée_rapport_format_brendan_gregg(const InformationProfilage &infor
     }
 }
 
-void Profileuse::crée_rapport(const InformationProfilage &informations,
-                              FormatRapportProfilage format)
+void Profileuse::crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format)
 {
-    auto &logueuse = informations.métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
+    auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
 
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
         {
-            crée_rapport_format_echantillons_total_plus_fonction(informations, logueuse);
+            crée_rapport_format_echantillons_total_plus_fonction(échantillons, logueuse);
             break;
         }
         case FormatRapportProfilage::BRENDAN_GREGG:
         {
-            crée_rapport_format_brendan_gregg(informations, logueuse);
+            crée_rapport_format_brendan_gregg(échantillons, logueuse);
             break;
         }
     }
