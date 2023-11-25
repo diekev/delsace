@@ -624,7 +624,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
         enchaineuse << "  union {\n";
-        enchaineuse << "    unsigned char d[" << type->taille_octet << "];\n";
+        enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
         enchaineuse << "    struct {\n";
 #endif
         POUR_INDEX (type_tuple->membres) {
@@ -677,7 +677,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "  union {\n";
-            enchaineuse << "    unsigned char d[" << type->taille_octet << "];\n";
+            enchaineuse << "    uint8_t d[" << type->taille_octet << "];\n";
             enchaineuse << "    struct {\n";
 #endif
             enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
@@ -746,7 +746,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "union {\n";
-    enchaineuse << "    unsigned char d[" << type_structure->taille_octet << "];\n";
+    enchaineuse << "    uint8_t d[" << type_structure->taille_octet << "];\n";
     enchaineuse << "    struct {\n";
 #endif
 
@@ -851,7 +851,7 @@ typedef int8_t ** KPKPKsz8;
     auto const types_chaine_et_eini = R"(
 typedef struct chaine {
     union {
-        unsigned char d[16];
+        uint8_t d[16];
         struct {
             char *pointeur;
             int64_t taille;
@@ -861,7 +861,7 @@ typedef struct chaine {
 
 typedef struct eini {
     union {
-        unsigned char d[16];
+        uint8_t d[16];
         struct {
             void *pointeur;
             struct KuriInfoType *info;
