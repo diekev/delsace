@@ -655,9 +655,9 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         auto tableau_fixe = type->comme_type_tableau_fixe();
         génère_code_pour_type(tableau_fixe->type_pointe, enchaineuse);
         auto const &nom_broyé = génératrice_code.donne_nom_pour_type(type);
-        enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{ "
+        enchaineuse << "typedef struct TableauFixe_" << nom_broyé << "{\n  "
                     << génératrice_code.donne_nom_pour_type(tableau_fixe->type_pointe);
-        enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];";
+        enchaineuse << " d[" << type->comme_type_tableau_fixe()->taille << "];\n";
         enchaineuse << " } TableauFixe_" << nom_broyé << ";\n\n";
     }
     else if (type->est_type_tableau_dynamique()) {
@@ -673,20 +673,21 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         if (!type_c.code_machine_fut_généré) {
             auto const &nom_broye = génératrice_code.donne_nom_pour_type(type);
             enchaineuse << "typedef struct Tableau_" << nom_broye;
-            enchaineuse << "{\n\t";
+            enchaineuse << "{\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             enchaineuse << "  union {\n";
-            enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
-            enchaineuse << "  struct {\n";
+            enchaineuse << "    unsigned char d[" << type->taille_octet << "];\n";
+            enchaineuse << "    struct {\n";
 #endif
-            enchaineuse << génératrice_code.donne_nom_pour_type(type_élément) << " *pointeur;";
-            enchaineuse << "\n\tlong taille;\n"
-                        << "\tlong " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
+            enchaineuse << "      " << génératrice_code.donne_nom_pour_type(type_élément)
+                        << " *pointeur;\n";
+            enchaineuse << "      long taille;\n"
+                        << "      long " << broyeuse.broye_nom_simple(ID::capacite) << ";\n";
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-            enchaineuse << "};\n";  // struct
-            enchaineuse << "};\n";  // union
+            enchaineuse << "    };\n";  // struct
+            enchaineuse << "  };\n";    // union
 #endif
             enchaineuse << "} Tableau_" << nom_broye << ";\n\n";
         }
@@ -745,12 +746,12 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
     enchaineuse << "union {\n";
-    enchaineuse << "  unsigned char d[" << type_structure->taille_octet << "];\n";
-    enchaineuse << "  struct {\n ";
+    enchaineuse << "    unsigned char d[" << type_structure->taille_octet << "];\n";
+    enchaineuse << "    struct {\n";
 #endif
 
     POUR (type_structure->donne_membres_pour_code_machine()) {
-        enchaineuse << génératrice_code.donne_nom_pour_type(it.type) << ' ';
+        enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
 
         /* Cas pour les structures vides. */
         if (it.nom == ID::chaine_vide) {
@@ -763,8 +764,8 @@ void ConvertisseuseTypeC::génère_déclaration_structure(Enchaineuse &enchaineu
     }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-    enchaineuse << "};\n";  // struct
-    enchaineuse << "};\n";  // union
+    enchaineuse << "    };\n";  // struct
+    enchaineuse << "  };\n";    // union
 #endif
     enchaineuse << "} ";
 
