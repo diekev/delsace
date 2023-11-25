@@ -24,7 +24,7 @@ matrice_projection :: fonc (
     plan_éloigné: r32) -> Mat4r
 {
     ratio_aspect := hauteur / largeur
-    champs_de_vue_rad := 1.0 / tan(champs_de_vue * 0.5 / 180.0 * Constantes(r32).PI) comme r32
+    champs_de_vue_rad := 1.0 / tan(champs_de_vue * 0.5 / 180.0 * Constantes(r32).PI)
 
     mat : Mat4r
 
