@@ -2216,18 +2216,50 @@ void Profileuse::réinitialise()
     échantillons.efface();
 }
 
+static bool les_frames_sont_les_mêmes(FrameAppel const *frame1,
+                                      int taille1,
+                                      FrameAppel const *frame2,
+                                      int taille2)
+{
+    if (taille1 != taille2) {
+        return false;
+    }
+
+    for (int i = 0; i < taille1; ++i) {
+        if (frame1[i].fonction != frame2[i].fonction) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
 {
     if (poids == 0) {
         return;
     }
 
+    auto de = métaprogramme->données_exécution;
+    if (!échantillons.est_vide()) {
+        auto &dernier_échantillon = échantillons.dernière();
+        auto profondeur_échantillon = dernier_échantillon.profondeur_frame_appel;
+
+        if (les_frames_sont_les_mêmes(dernier_échantillon.frames,
+                                      profondeur_échantillon,
+                                      de->frames,
+                                      de->profondeur_appel)) {
+            dernier_échantillon.poids += poids;
+            return;
+        }
+    }
+
     auto echantillon = EchantillonProfilage();
-    echantillon.profondeur_frame_appel = métaprogramme->données_exécution->profondeur_appel;
+    echantillon.profondeur_frame_appel = de->profondeur_appel;
     echantillon.poids = poids;
 
     for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
-        echantillon.frames[i] = métaprogramme->données_exécution->frames[i];
+        echantillon.frames[i] = de->frames[i];
     }
 
     échantillons.ajoute(echantillon);
