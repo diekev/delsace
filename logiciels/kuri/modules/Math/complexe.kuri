@@ -64,7 +64,7 @@ template <typename T>
 auto exp(complexe<T> const &c)
 {
     auto r = std::exp(c.reel());
-    return complexe<T>(std::cos(c.imag()) * r, std::sin(c.imag()) * r);
+    return complexe<T>(cosinus(c.imag()) * r, std::sin(c.imag()) * r);
 }
 
 template <typename T>

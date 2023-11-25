@@ -2188,6 +2188,46 @@ bool est_type_opacifié(Type const *type_dest, Type const *type_source)
            type_dest->comme_type_opaque()->type_opacifie == type_source;
 }
 
+bool est_type_fondamental(const Type *type)
+{
+    switch (type->genre) {
+        case GenreType::EINI:
+        case GenreType::CHAINE:
+        case GenreType::RIEN:
+        case GenreType::REFERENCE:
+        case GenreType::UNION:
+        case GenreType::STRUCTURE:
+        case GenreType::TABLEAU_DYNAMIQUE:
+        case GenreType::TABLEAU_FIXE:
+        case GenreType::VARIADIQUE:
+        case GenreType::POLYMORPHIQUE:
+        case GenreType::TUPLE:
+        {
+            return false;
+        }
+        case GenreType::BOOL:
+        case GenreType::OCTET:
+        case GenreType::ENTIER_CONSTANT:
+        case GenreType::ENTIER_NATUREL:
+        case GenreType::ENTIER_RELATIF:
+        case GenreType::REEL:
+        case GenreType::POINTEUR:
+        case GenreType::FONCTION:
+        case GenreType::ENUM:
+        case GenreType::ERREUR:
+        case GenreType::TYPE_DE_DONNEES:
+        {
+            return true;
+        }
+        case GenreType::OPAQUE:
+        {
+            return est_type_fondamental(type->comme_type_opaque()->type_opacifie);
+        }
+    }
+
+    return false;
+}
+
 void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &types,
                                             int drapeau,
                                             kuri::tablet<Attente, 16> &attentes)
