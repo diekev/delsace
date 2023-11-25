@@ -124,7 +124,9 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_SORTIES)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_EMPILAGE_VALEUR)                                         \
-    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)
+    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_PROFILE_DÉBUTE_APPEL)                                            \
+    ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -223,6 +225,7 @@ struct Chunk {
     bool émets_stats_ops = false;
     bool émets_vérification_branches = false;
     bool émets_notifications_empilage = false;
+    bool émets_profilage = false;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
@@ -278,6 +281,9 @@ struct Chunk {
     void émets_dépilage_paramètres_appel(NoeudExpression const *site,
                                          InstructionAppel const *inst);
     void émets_empilage_retour_appel(NoeudExpression const *site, InstructionAppel const *inst);
+
+    void émets_profile_débute_appel();
+    void émets_profile_termine_appel();
 
     void ajoute_site_source(NoeudExpression const *site);
 
@@ -410,6 +416,7 @@ class CompilatriceCodeBinaire {
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
     bool notifie_empilage = false;
+    bool émets_profilage = false;
 
   public:
     CompilatriceCodeBinaire(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);

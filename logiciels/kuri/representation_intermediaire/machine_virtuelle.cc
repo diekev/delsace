@@ -831,6 +831,17 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 }
 
+void MachineVirtuelle::empile_fonction_non_interne(AtomeFonction *ptr_fonction)
+{
+    profondeur_appel++;
+    frames[profondeur_appel - 1].fonction = ptr_fonction;
+}
+
+void MachineVirtuelle::dépile_fonction_non_interne(AtomeFonction * /*ptr_fonction*/)
+{
+    profondeur_appel--;
+}
+
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
@@ -1594,10 +1605,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
                 auto résultat = RésultatInterprétation::OK;
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, résultat);
                 if (résultat == RésultatInterprétation::ERREUR) {
                     return résultat;
                 }
+                dépile_fonction_non_interne(ptr_fonction);
                 break;
             }
             case OP_APPEL_COMPILATRICE:
@@ -1605,7 +1618,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
                 auto résultat = RésultatInterprétation::OK;
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_compilatrice(ptr_fonction, résultat);
+                dépile_fonction_non_interne(ptr_fonction);
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
@@ -1617,7 +1632,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_APPEL_INTRINSÈQUE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_intrinsèque(ptr_fonction);
+                dépile_fonction_non_interne(ptr_fonction);
                 break;
             }
             case OP_APPEL_POINTEUR:
@@ -1631,7 +1648,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     auto résultat = RésultatInterprétation::OK;
+                    empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_compilatrice(ptr_fonction, résultat);
+                    dépile_fonction_non_interne(ptr_fonction);
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
@@ -1641,8 +1660,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 }
                 else if (ptr_fonction->est_externe) {
                     auto résultat = RésultatInterprétation::OK;
+                    empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_externe(
                         ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                    dépile_fonction_non_interne(ptr_fonction);
                     if (résultat == RésultatInterprétation::ERREUR) {
                         return résultat;
                     }
@@ -1872,6 +1893,23 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 notifie_empile(frame, frame->pointeur, uint32_t(taille_données));
                 break;
             }
+            case OP_PROFILE_DÉBUTE_APPEL:
+            {
+                auto de = m_métaprogramme->données_exécution;
+                de->profondeur_appel = profondeur_appel;
+                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                break;
+            }
+            case OP_PROFILE_TERMINE_APPEL:
+            {
+                auto de = m_métaprogramme->données_exécution;
+                /* La profondeur d'appel fut modifiée par dépile_fonction_non_interne ou par les
+                 * retours, donc nous devons l'ajuster ici. */
+                de->profondeur_appel = profondeur_appel + 1;
+                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                de->profondeur_appel = profondeur_appel;
+                break;
+            }
             default:
             {
                 rapporte_erreur_exécution("Erreur interne : Opération inconnue dans la MV !");
@@ -1984,6 +2022,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
 NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
 {
     auto frame = &frames[profondeur_appel - 1];
+    /* Fonction externe. */
+    if (frame->fonction->est_externe) {
+        frame--;
+    }
     return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(frame->pointeur);
 }
 

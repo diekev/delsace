@@ -224,6 +224,22 @@ void Chunk::émets_empilage_retour_appel(NoeudExpression const *site, Instructio
     }
 }
 
+void Chunk::émets_profile_débute_appel()
+{
+    if (!émets_profilage) {
+        return;
+    }
+    émets_entête_op(OP_PROFILE_DÉBUTE_APPEL, nullptr);
+}
+
+void Chunk::émets_profile_termine_appel()
+{
+    if (!émets_profilage) {
+        return;
+    }
+    émets_entête_op(OP_PROFILE_TERMINE_APPEL, nullptr);
+}
+
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
     auto type = alloc->type->comme_type_pointeur()->type_pointe;
@@ -401,11 +417,13 @@ void Chunk::émets_appel(NoeudExpression const *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL, site);
     émets(fonction);
     émets(taille_arguments);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -421,12 +439,14 @@ void Chunk::émets_appel_externe(NoeudExpression const *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_EXTERNE, site);
     émets(fonction);
     émets(taille_arguments);
     émets(inst_appel);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -441,10 +461,12 @@ void Chunk::émets_appel_compilatrice(const NoeudExpression *site,
     }
 
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_COMPILATRICE, site);
     émets(fonction);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -453,10 +475,12 @@ void Chunk::émets_appel_intrinsèque(NoeudExpression const *site,
                                     InstructionAppel const *inst_appel)
 {
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_INTRINSÈQUE, site);
     émets(fonction);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -471,11 +495,13 @@ void Chunk::émets_appel_pointeur(NoeudExpression const *site,
 
     émets_notifie_dépilage(site, 8); /* adresse. */
     émets_dépilage_paramètres_appel(site, inst_appel);
+    émets_profile_débute_appel();
 
     émets_entête_op(OP_APPEL_POINTEUR, site);
     émets(taille_arguments);
     émets(inst_appel);
 
+    émets_profile_termine_appel();
     émets_empilage_retour_appel(site, inst_appel);
 }
 
@@ -737,6 +763,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_RETOURNE:
         case OP_VÉRIFIE_CIBLE_BRANCHE:
         case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
+        case OP_PROFILE_DÉBUTE_APPEL:
+        case OP_PROFILE_TERMINE_APPEL:
         {
             return instruction_simple(décalage, os);
         }
@@ -1129,6 +1157,7 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
     vérifie_adresses = espace->compilatrice().arguments.debogue_execution;
     notifie_empilage = espace->compilatrice().arguments.debogue_execution;
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
+    émets_profilage = espace->compilatrice().arguments.profile_metaprogrammes;
 }
 
 bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
@@ -1259,6 +1288,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
     chunk.émets_notifications_empilage = notifie_empilage;
+    chunk.émets_profilage = émets_profilage;
 
     m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
     numérote_instructions(*fonction);

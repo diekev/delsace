@@ -233,6 +233,9 @@ struct MachineVirtuelle {
                                      RésultatInterprétation &resultat);
     void appel_fonction_intrinsèque(AtomeFonction *ptr_fonction);
 
+    void empile_fonction_non_interne(AtomeFonction *ptr_fonction);
+    void dépile_fonction_non_interne(AtomeFonction *ptr_fonction);
+
     inline void empile_constante(FrameAppel *frame);
 
     void installe_métaprogramme(MetaProgramme *métaprogramme);
