@@ -624,17 +624,17 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
         enchaineuse << "  union {\n";
-        enchaineuse << "  unsigned char d[" << type->taille_octet << "];\n";
-        enchaineuse << "  struct {\n";
+        enchaineuse << "    unsigned char d[" << type->taille_octet << "];\n";
+        enchaineuse << "    struct {\n";
 #endif
         POUR_INDEX (type_tuple->membres) {
-            enchaineuse << génératrice_code.donne_nom_pour_type(it.type) << " _" << index_it
-                        << ";\n";
+            enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << " _"
+                        << index_it << ";\n";
         }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-        enchaineuse << "};\n";  // struct
-        enchaineuse << "};\n";  // union
+        enchaineuse << "    };\n";  // struct
+        enchaineuse << "  };\n";    // union
 #endif
 
         enchaineuse << "} " << nom_broyé << ";\n";
