@@ -18,7 +18,7 @@ opérateur != :: fonc (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
 
 initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
 {
-    résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier
+    résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier = ---
 
     pour & résultat {
         it = ErreurFichier.Inconnue
@@ -498,7 +498,7 @@ système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n
 
 système_chemin_courant :: fonc() -> Résultat(CheminFichier, ErreurFichier)
 {
-    tampon : [1024]z8
+    tampon : [1024]z8 = ---
     pointeur := getcwd(ChaineC(*tampon[0]), 1024)
 
     si (pointeur comme *z8) == nul {
@@ -794,7 +794,7 @@ système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichi
 
 système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
-    tampon : [TAILLE_MAX_CHEMIN]z8
+    tampon : [TAILLE_MAX_CHEMIN]z8 = ---
     ptr_tampon := *tampon[0]
 
     chn_c_chemin := crée_chaine_c(chemin.chn)
@@ -833,7 +833,7 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     résultat : CheminFichier
 
     TAILLE_TAMPON_READLINK :: 1024
-    tampon: [TAILLE_TAMPON_READLINK]z8
+    tampon: [TAILLE_TAMPON_READLINK]z8 = ---
 
     lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
     si lus < 0 {
