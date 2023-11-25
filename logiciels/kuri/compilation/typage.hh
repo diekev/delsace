@@ -820,6 +820,11 @@ bool peut_etre_type_constante(Type const *type);
  */
 bool est_type_opacifié(Type const *type_dest, Type const *type_source);
 
+/**
+ * Retourne vrai si le type est un type fondamental (p.e. z32, r32, bool, etc.).
+ */
+bool est_type_fondamental(Type const *type);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

@@ -188,30 +188,28 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
         retourne -1
     }
 
-    résultat : z32
-
     c0 := caractère[0] comme z32
 
     si (c0 & 0x80) == 0x0 {
-        résultat = c0
+        retourne c0
     }
 
     si (c0 & 0xC0) == 0xC0 {
         c1 := caractère[1] comme z32
-        résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
+        retourne ((c0 & 0x3F) << 6) | (c1 & 0x3F)
     }
 
     si (c0 & 0xE0) == 0xE0 {
         c1 := caractère[1] comme z32
         c2 := caractère[2] comme z32
-        résultat = ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
+        retourne ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
     }
 
     si (c0 & 0xF0) == 0xF0 {
         c1 := caractère[1] comme z32
         c2 := caractère[2] comme z32
         c3 := caractère[3] comme z32
-        résultat = ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
+        retourne ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
     }
 
     si (c0 & 0xF8) == 0xF8 {
@@ -219,10 +217,10 @@ converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
         c2 := caractère[2] comme z32
         c3 := caractère[3] comme z32
         c4 := caractère[4] comme z32
-        résultat = ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
+        retourne ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
     }
 
-    retourne résultat
+    retourne -1
 }
 
 point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
@@ -377,13 +375,14 @@ est_espace_blanche_unicode :: fonc (point_de_code: n32) -> bool
 /** \nom Remplacement de caractères accentués.
  * \{ */
 
-remplace_caractères_accentués :: fonc (chn: *chaine)
-{
-    ptr_source := chn.pointeur
-    ptr_final := ptr_source + chn.taille
-    ptr_dest := chn.pointeur
+PaireAccentAscii :: struct {
+    rune: Rune
+    ascii: z8
+}
 
-    paires_unicode_ascii := [
+initialise_table_accents_ascii :: fonc ()
+{
+    paires_unicode_ascii : [NOMBRE_PAIRES_ACCENT_ASCII][2]chaine = [
         ["À", "A"],
         ["Â", "A"],
         ["à", "a"],
@@ -403,29 +402,58 @@ remplace_caractères_accentués :: fonc (chn: *chaine)
         ["Û", "U"],
         ["û", "u"]]
 
-    tantque ptr_source < ptr_final {
-        it := mémoire(ptr_source)
+    pour paires_unicode_ascii {
+        n := nombre_octets_utf8(it[0].pointeur)
+        rune := Rune(converti_utf8_utf32(it[0].pointeur, n) comme n32)
+        __table_accents_vers_ascii[index_it] = PaireAccentAscii(rune, it[1][0])
+    }
 
-        si 'a' <= it <= 'z' || 'A' <= it <= 'Z' || it == '_' || '0' <= it <= '9' {
-            mémoire(ptr_dest) = it
+    __table_accents_vers_ascii_fut_initialisé = vrai
+}
+
+NOMBRE_PAIRES_ACCENT_ASCII :: 18
+__table_accents_vers_ascii_fut_initialisé := faux
+__table_accents_vers_ascii : [NOMBRE_PAIRES_ACCENT_ASCII]PaireAccentAscii = ---
+
+remplace_caractères_accentués :: fonc (chn: *chaine)
+{
+    ptr_source := chn.pointeur
+    ptr_final := ptr_source + chn.taille
+    ptr_dest := chn.pointeur
+
+    saufsi __table_accents_vers_ascii_fut_initialisé {
+        initialise_table_accents_ascii()
+    }
+
+    tantque ptr_source < ptr_final {
+        c := mémoire(ptr_source)
+
+        si 'a' <= c <= 'z' || 'A' <= c <= 'Z' || c == '_' || '0' <= c <= '9' {
+            mémoire(ptr_dest) = c
             ptr_source += 1
             ptr_dest += 1
             continue
         }
 
-        tmp : chaine = ---
-        tmp.pointeur = ptr_source
-        tmp.taille = 2
-        pour paire dans paires_unicode_ascii {
-            si paire[0] == tmp {
-                mémoire(ptr_dest) = paire[1][0]
-                ptr_source += 2
+        n := nombre_octets_utf8_rapide(ptr_source)
+        si n <= 1 {
+            mémoire(ptr_dest) = c
+            ptr_source += 1
+            ptr_dest += 1
+            continue
+        }
+
+        rune := converti_utf8_utf32(ptr_source, n)
+        pour __table_accents_vers_ascii {
+            si it.rune comme n32 == rune comme n32 {
+                mémoire(ptr_dest) = it.ascii
+                ptr_source += n
                 ptr_dest += 1
                 arrête
             }
         }
         sansarrêt {
-            mémoire(ptr_dest) = it
+            mémoire(ptr_dest) = c
             ptr_source += 1
             ptr_dest += 1
         }

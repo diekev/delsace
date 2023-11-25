@@ -15,6 +15,8 @@
 
 #include "utilitaires/algorithmes.hh"
 
+#include "structures/pile.hh"
+
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "erreur.h"
@@ -555,6 +557,7 @@ bool operator!=(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatComp
 
 struct VisiteuseType {
     kuri::ensemble<Type *> visites{};
+    bool visite_types_fonctions_init = true;
 
     void visite_type(Type *type, std::function<void(Type *)> rappel)
     {
@@ -569,7 +572,7 @@ struct VisiteuseType {
         visites.insère(type);
         rappel(type);
 
-        if (type->fonction_init) {
+        if (visite_types_fonctions_init && type->fonction_init) {
             visite_type(type->fonction_init->type, rappel);
         }
 
@@ -664,10 +667,16 @@ struct VisiteuseType {
             }
             case GenreType::OPAQUE:
             {
+                auto type_opaque = type->comme_type_opaque();
+                visite_type(type_opaque->type_opacifie, rappel);
                 break;
             }
             case GenreType::TUPLE:
             {
+                auto type_tuple = type->comme_type_tuple();
+                POUR (type_tuple->membres) {
+                    visite_type(it.type, rappel);
+                }
                 break;
             }
         }
@@ -751,6 +760,8 @@ struct ConstructriceProgrammeFormeRI {
     kuri::ensemble<AtomeGlobale *> m_globales_utilisées{};
     kuri::ensemble<Type *> m_types_utilisés{};
 
+    kuri::tableau<AtomeFonction *> m_fonctions_racines{};
+
   public:
     ConstructriceProgrammeFormeRI(EspaceDeTravail &espace,
                                   CompilatriceRI &compilatrice_ri,
@@ -779,6 +790,16 @@ struct ConstructriceProgrammeFormeRI {
     void tri_fonctions_et_globales();
 
     void partitionne_globales_info_types();
+
+    /* Traverse les fonctions racines et supprime du résultat les fonctions qui ne sont pas
+     * utilisées. Ces fonctions sont principalement les fonctions d'initialisation des types
+     * inutilisées. */
+    void supprime_fonctions_inutilisées();
+
+    /* Traverse les fonctions et globales et supprime du résultat les types qui ne sont pas
+     * utilisés (soit comme paramètre ou comme comme variable). Ces types sont principalement les
+     * types des fonctions. */
+    void supprime_types_inutilisés();
 };
 
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
@@ -793,6 +814,11 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     auto nombre_fonctions_racines = 0;
     auto decl_init_globales = static_cast<AtomeFonction *>(nullptr);
     auto decl_principale = static_cast<AtomeFonction *>(nullptr);
+
+    if (m_programme.pour_métaprogramme()) {
+        m_fonctions_racines.ajoute(
+            m_programme.pour_métaprogramme()->fonction->atome->comme_fonction());
+    }
 
     /* Extrait les atomes pour les fonctions. */
     POUR (m_programme.fonctions()) {
@@ -816,13 +842,28 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
 
         if (it->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
             ++nombre_fonctions_racines;
+            m_fonctions_racines.ajoute(atome_fonction);
         }
 
         if (it->ident == ID::init_globales_kuri) {
             decl_init_globales = atome_fonction;
+            m_fonctions_racines.ajoute(atome_fonction);
         }
         else if (it->ident == ID::principale) {
             decl_principale = atome_fonction;
+            m_fonctions_racines.ajoute(atome_fonction);
+        }
+        else if (it->ident == ID::__point_d_entree_systeme) {
+            m_fonctions_racines.ajoute(atome_fonction);
+        }
+        else if (it->ident == ID::__init_contexte_kuri) {
+            m_fonctions_racines.ajoute(atome_fonction);
+        }
+        else if (it->ident == ID::__point_d_entree_dynamique) {
+            m_fonctions_racines.ajoute(atome_fonction);
+        }
+        else if (it->ident == ID::__point_de_sortie_dynamique) {
+            m_fonctions_racines.ajoute(atome_fonction);
         }
     }
 
@@ -875,6 +916,9 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
     if (m_espace.options.utilise_trace_appel) {
         génère_traces_d_appel();
     }
+
+    supprime_fonctions_inutilisées();
+    supprime_types_inutilisés();
 
     génère_table_des_types();
 
@@ -1191,6 +1235,133 @@ void ConstructriceProgrammeFormeRI::partitionne_globales_info_types()
 
     m_résultat.définis_partition(partition.vrai, ProgrammeRepreInter::GLOBALES_NON_INFO_TYPES);
     m_résultat.définis_partition(partition.faux, ProgrammeRepreInter::GLOBALES_INFO_TYPES);
+}
+
+void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
+{
+    kuri::pile<AtomeFonction *> fonction_à_visiter;
+    POUR (m_fonctions_racines) {
+        fonction_à_visiter.empile(it);
+    }
+
+    POUR (m_résultat.globales) {
+        visite_atome(it, [&](Atome *atome) {
+            if (atome->est_fonction()) {
+                fonction_à_visiter.empile(atome->comme_fonction());
+            }
+        });
+    }
+
+    kuri::tableau<AtomeFonction *> fonctions_utilisées;
+    kuri::ensemble<AtomeFonction *> fonctions_visitées;
+    while (!fonction_à_visiter.est_vide()) {
+        auto fonction = fonction_à_visiter.depile();
+        if (fonctions_visitées.possède(fonction)) {
+            continue;
+        }
+
+        fonctions_visitées.insère(fonction);
+        fonctions_utilisées.ajoute(fonction);
+
+        POUR (fonction->instructions) {
+            visite_atome(it, [&](Atome *atome) {
+                if (atome->est_fonction()) {
+                    fonction_à_visiter.empile(atome->comme_fonction());
+                }
+            });
+        }
+    }
+
+    auto part = kuri::partition_stable(m_résultat.fonctions, [&](auto &fonction1) {
+        return fonctions_visitées.possède(fonction1);
+    });
+
+    m_résultat.fonctions.redimensionne(part.vrai.taille());
+
+#if 0
+    pour_chaque_element(m_espace.compilatrice().sys_module->modules, [&](Module const &module) {
+        if (module.nom()->nom != "Coeur") {
+            return;
+        }
+
+        POUR (*module.bloc->membres.verrou_lecture()) {
+            if (!it->est_entete_fonction()) {
+                continue;
+            }
+
+            auto fonction = it->comme_entete_fonction();
+            if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+                if (!fonction->monomorphisations || fonction->monomorphisations->taille() == 0) {
+                    std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction)
+                              << '\n';
+                }
+                continue;
+            }
+
+            if (!fonction->atome) {
+                std::cerr << "Fonction sans atome : " << nom_humainement_lisible(fonction) << '\n';
+                continue;
+            }
+
+            if (fonctions_visitées.possède(fonction->atome->comme_fonction())) {
+                continue;
+            }
+
+            std::cerr << "Fonction inutilisée : " << nom_humainement_lisible(fonction) << '\n';
+        }
+    });
+#endif
+}
+
+void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
+{
+    kuri::ensemble<Type const *> types_utilisés;
+    POUR (m_résultat.globales) {
+        types_utilisés.insère(it->type->comme_type_pointeur()->type_pointe);
+    }
+
+    POUR (m_résultat.fonctions) {
+        if (it->est_externe) {
+            POUR_NOMME (param, it->params_entrees) {
+                types_utilisés.insère(param->type->comme_type_pointeur()->type_pointe);
+            }
+
+            types_utilisés.insère(it->param_sortie->type->comme_type_pointeur()->type_pointe);
+        }
+
+        POUR_NOMME (inst, it->instructions) {
+            if (inst->est_stocke_mem()) {
+                types_utilisés.insère(inst->comme_stocke_mem()->valeur->type);
+            }
+            else if (inst->est_charge()) {
+                types_utilisés.insère(inst->comme_charge()->chargee->type);
+            }
+            else if (inst->est_alloc()) {
+                types_utilisés.insère(
+                    inst->comme_alloc()->type->comme_type_pointeur()->type_pointe);
+            }
+            else if (inst->est_transtype()) {
+                types_utilisés.insère(inst->type);
+            }
+        }
+    }
+
+    kuri::pile<Type const *> types_à_visiter;
+    types_utilisés.pour_chaque_element([&](Type const *type) { types_à_visiter.empile(type); });
+
+    VisiteuseType visiteuse{};
+    visiteuse.visite_types_fonctions_init = false;
+    while (!types_à_visiter.est_vide()) {
+        auto type = types_à_visiter.depile();
+        visiteuse.visite_type(const_cast<Type *>(type), [&](Type *tv) {
+            types_à_visiter.empile(tv);
+            types_utilisés.insère(tv);
+        });
+    }
+
+    auto part_type = kuri::partition_stable(
+        m_résultat.types, [&](auto &type) { return types_utilisés.possède(type); });
+    m_résultat.types.redimensionne(part_type.vrai.taille());
 }
 
 /** \} */
