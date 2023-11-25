@@ -1714,6 +1714,34 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
+            case OP_INIT_LOCALE_ZÉRO:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+                auto adresse_ou = donne_adresse_locale(frame, index);
+
+                switch (taille) {
+                    case 1:
+                        *reinterpret_cast<int8_t *>(adresse_ou) = 0;
+                        break;
+                    case 2:
+                        *reinterpret_cast<int16_t *>(adresse_ou) = 0;
+                        break;
+                    case 4:
+                        *reinterpret_cast<int32_t *>(adresse_ou) = 0;
+                        break;
+                    case 8:
+                        *reinterpret_cast<int64_t *>(adresse_ou) = 0;
+                        break;
+                    default:
+                    {
+                        assert(false);
+                        break;
+                    }
+                }
+
+                break;
+            }
             case OP_COPIE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();

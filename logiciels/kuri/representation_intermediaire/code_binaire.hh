@@ -54,6 +54,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_LOCALE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_INIT_LOCALE_ZÉRO)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
@@ -307,6 +308,7 @@ struct Chunk {
                            NoeudExpression const *site,
                            Type const *type);
     void émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_init_locale_zéro(const NoeudExpression *site, int pointeur, Type const *type);
     void émets_copie_locale(const NoeudExpression *site,
                             const Type *type,
                             int pointeur_source,

@@ -331,6 +331,13 @@ void Chunk::émets_assignation_locale(NoeudExpression const *site, int pointeur,
     émets(type->taille_octet);
 }
 
+void Chunk::émets_init_locale_zéro(const NoeudExpression *site, int pointeur, const Type *type)
+{
+    émets_entête_op(OP_INIT_LOCALE_ZÉRO, site);
+    émets(pointeur);
+    émets(type->taille_octet);
+}
+
 void Chunk::émets_copie_locale(NoeudExpression const *site,
                                Type const *type,
                                int pointeur_source,
@@ -926,6 +933,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_BRANCHE_CONDITION:
         case OP_INCRÉMENTE_LOCALE:
         case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+        case OP_INIT_LOCALE_ZÉRO:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
         }
@@ -1419,6 +1427,13 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                                          stocke->valeur->type,
                                          donne_index_locale(alloc_source),
                                          donne_index_locale(alloc_destination));
+                break;
+            }
+
+            if (est_allocation(stocke->ou) && est_constante_entière_zéro(stocke->valeur)) {
+                auto alloc_destination = static_cast<InstructionAllocation const *>(stocke->ou);
+                chunk.émets_init_locale_zéro(
+                    stocke->site, donne_index_locale(alloc_destination), stocke->valeur->type);
                 break;
             }
 
