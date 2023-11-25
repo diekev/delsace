@@ -664,10 +664,16 @@ struct VisiteuseType {
             }
             case GenreType::OPAQUE:
             {
+                auto type_opaque = type->comme_type_opaque();
+                visite_type(type_opaque->type_opacifie, rappel);
                 break;
             }
             case GenreType::TUPLE:
             {
+                auto type_tuple = type->comme_type_tuple();
+                POUR (type_tuple->membres) {
+                    visite_type(it.type, rappel);
+                }
                 break;
             }
         }
