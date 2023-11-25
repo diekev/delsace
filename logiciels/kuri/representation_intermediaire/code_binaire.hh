@@ -6,11 +6,11 @@
 #include <ffi.h>  // pour ffi_type qui est un typedef
 #include <iosfwd>
 
-#include "biblinternes/outils/definitions.h"
-
 #include "compilation/operateurs.hh"
 
 #include "structures/tableau.hh"
+
+#include "utilitaires/macros.hh"
 
 struct AdresseDonnéesExécution;
 struct Atome;
@@ -54,12 +54,14 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_POINTEUR)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_ASSIGNE_LOCALE)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_INIT_LOCALE_ZÉRO)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_SI_ZÉRO)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_STRUCTURE_CONSTANTE)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
@@ -124,7 +126,9 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_SORTIES)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_LOGUE_RETOUR)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_EMPILAGE_VALEUR)                                         \
-    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)
+    ENUMERE_CODE_OPERATION_EX(OP_NOTIFIE_DÉPILAGE_VALEUR)                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_PROFILE_DÉBUTE_APPEL)                                            \
+    ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -223,6 +227,7 @@ struct Chunk {
     bool émets_stats_ops = false;
     bool émets_vérification_branches = false;
     bool émets_notifications_empilage = false;
+    bool émets_profilage = false;
 
     // tient trace de toutes les allocations pour savoir où les variables se trouvent sur la pile
     // d'exécution
@@ -279,6 +284,9 @@ struct Chunk {
                                          InstructionAppel const *inst);
     void émets_empilage_retour_appel(NoeudExpression const *site, InstructionAppel const *inst);
 
+    void émets_profile_débute_appel();
+    void émets_profile_termine_appel();
+
     void ajoute_site_source(NoeudExpression const *site);
 
   public:
@@ -301,6 +309,7 @@ struct Chunk {
                            NoeudExpression const *site,
                            Type const *type);
     void émets_assignation_locale(NoeudExpression const *site, int pointeur, Type const *type);
+    void émets_init_locale_zéro(const NoeudExpression *site, int pointeur, Type const *type);
     void émets_copie_locale(const NoeudExpression *site,
                             const Type *type,
                             int pointeur_source,
@@ -340,6 +349,12 @@ struct Chunk {
                                  kuri::tableau<PatchLabel> &patchs_labels,
                                  int index_label_si_vrai,
                                  int index_label_si_faux);
+
+    void émets_branche_si_zéro(NoeudExpression const *site,
+                               kuri::tableau<PatchLabel> &patchs_labels,
+                               int taille_opérande,
+                               int index_label_si_vrai,
+                               int index_label_si_faux);
 
     void émets_operation_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,
@@ -410,6 +425,7 @@ class CompilatriceCodeBinaire {
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
     bool notifie_empilage = false;
+    bool émets_profilage = false;
 
   public:
     CompilatriceCodeBinaire(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);

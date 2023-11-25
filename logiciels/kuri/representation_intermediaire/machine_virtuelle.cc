@@ -4,6 +4,7 @@
 #include "machine_virtuelle.hh"
 
 #include <iostream>
+#include <x86intrin.h>
 
 #include "biblinternes/chrono/chronometrage.hh"
 
@@ -141,6 +142,7 @@ void DonnéesExécution::réinitialise()
     this->instructions_exécutées = 0;
     this->détectrice_fuite_de_mémoire.réinitialise();
     this->tailles_empilées.efface();
+    this->profileuse.réinitialise();
 }
 
 void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
@@ -830,6 +832,17 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 }
 
+void MachineVirtuelle::empile_fonction_non_interne(AtomeFonction *ptr_fonction)
+{
+    profondeur_appel++;
+    frames[profondeur_appel - 1].fonction = ptr_fonction;
+}
+
+void MachineVirtuelle::dépile_fonction_non_interne(AtomeFonction * /*ptr_fonction*/)
+{
+    profondeur_appel--;
+}
+
 void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               InstructionAppel *inst_appel,
@@ -1042,6 +1055,9 @@ void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
     assert(pointeur_pile);
 
     m_métaprogramme = métaprogramme;
+    if (compilatrice.arguments.profile_metaprogrammes) {
+        de->profileuse.prépare_pour_profilage();
+    }
 }
 
 void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme,
@@ -1067,7 +1083,7 @@ void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme
 
     de->instructions_exécutées += compte_exécutées;
     if (compilatrice.arguments.profile_metaprogrammes) {
-        profileuse.ajoute_echantillon(métaprogramme, compte_exécutées);
+        de->profileuse.ajoute_echantillon(métaprogramme, compte_exécutées);
     }
 }
 
@@ -1138,6 +1154,54 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                                       decalage_si_faux;
                 }
 
+                break;
+            }
+            case OP_BRANCHE_SI_ZÉRO:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto decalage_si_vrai = LIS_4_OCTETS();
+                auto decalage_si_faux = LIS_4_OCTETS();
+
+                auto condition = false;
+                switch (taille) {
+                    case 1:
+                    {
+                        auto valeur = dépile<int8_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 2:
+                    {
+                        auto valeur = dépile<int16_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 4:
+                    {
+                        auto valeur = dépile<int32_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    case 8:
+                    {
+                        auto valeur = dépile<int64_t>();
+                        condition = valeur == 0;
+                        break;
+                    }
+                    default:
+                    {
+                        assert(false);
+                        break;
+                    }
+                }
+                if (condition) {
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_vrai;
+                }
+                else {
+                    frame->pointeur = frame->fonction->données_exécution->chunk.code +
+                                      decalage_si_faux;
+                }
                 break;
             }
             case OP_CONSTANTE:
@@ -1590,10 +1654,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto taille_argument = LIS_4_OCTETS();
                 auto ptr_inst_appel = LIS_POINTEUR(InstructionAppel);
                 auto résultat = RésultatInterprétation::OK;
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_externe(ptr_fonction, taille_argument, ptr_inst_appel, résultat);
                 if (résultat == RésultatInterprétation::ERREUR) {
                     return résultat;
                 }
+                dépile_fonction_non_interne(ptr_fonction);
                 break;
             }
             case OP_APPEL_COMPILATRICE:
@@ -1601,7 +1667,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
 
                 auto résultat = RésultatInterprétation::OK;
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_compilatrice(ptr_fonction, résultat);
+                dépile_fonction_non_interne(ptr_fonction);
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                     frame->pointeur = pointeur_debut;
@@ -1613,7 +1681,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_APPEL_INTRINSÈQUE:
             {
                 auto ptr_fonction = LIS_POINTEUR(AtomeFonction);
+                empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_intrinsèque(ptr_fonction);
+                dépile_fonction_non_interne(ptr_fonction);
                 break;
             }
             case OP_APPEL_POINTEUR:
@@ -1627,7 +1697,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(
                                               DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
                     auto résultat = RésultatInterprétation::OK;
+                    empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_compilatrice(ptr_fonction, résultat);
+                    dépile_fonction_non_interne(ptr_fonction);
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
                         frame->pointeur = pointeur_debut;
@@ -1637,8 +1709,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 }
                 else if (ptr_fonction->est_externe) {
                     auto résultat = RésultatInterprétation::OK;
+                    empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_externe(
                         ptr_fonction, taille_argument, ptr_inst_appel, résultat);
+                    dépile_fonction_non_interne(ptr_fonction);
                     if (résultat == RésultatInterprétation::ERREUR) {
                         return résultat;
                     }
@@ -1687,6 +1761,34 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
                 décrémente_pointeur_de_pile(taille);
+                break;
+            }
+            case OP_INIT_LOCALE_ZÉRO:
+            {
+                auto index = LIS_4_OCTETS();
+                auto taille = LIS_4_OCTETS();
+                auto adresse_ou = donne_adresse_locale(frame, index);
+
+                switch (taille) {
+                    case 1:
+                        *reinterpret_cast<int8_t *>(adresse_ou) = 0;
+                        break;
+                    case 2:
+                        *reinterpret_cast<int16_t *>(adresse_ou) = 0;
+                        break;
+                    case 4:
+                        *reinterpret_cast<int32_t *>(adresse_ou) = 0;
+                        break;
+                    case 8:
+                        *reinterpret_cast<int64_t *>(adresse_ou) = 0;
+                        break;
+                    default:
+                    {
+                        assert(false);
+                        break;
+                    }
+                }
+
                 break;
             }
             case OP_COPIE_LOCALE:
@@ -1868,6 +1970,23 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 notifie_empile(frame, frame->pointeur, uint32_t(taille_données));
                 break;
             }
+            case OP_PROFILE_DÉBUTE_APPEL:
+            {
+                auto de = m_métaprogramme->données_exécution;
+                de->profondeur_appel = profondeur_appel;
+                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                break;
+            }
+            case OP_PROFILE_TERMINE_APPEL:
+            {
+                auto de = m_métaprogramme->données_exécution;
+                /* La profondeur d'appel fut modifiée par dépile_fonction_non_interne ou par les
+                 * retours, donc nous devons l'ajuster ici. */
+                de->profondeur_appel = profondeur_appel + 1;
+                de->profileuse.ajoute_echantillon(m_métaprogramme, 1);
+                de->profondeur_appel = profondeur_appel;
+                break;
+            }
             default:
             {
                 rapporte_erreur_exécution("Erreur interne : Opération inconnue dans la MV !");
@@ -1980,6 +2099,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
 NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
 {
     auto frame = &frames[profondeur_appel - 1];
+    /* Fonction externe. */
+    if (frame->fonction->est_externe) {
+        frame--;
+    }
     return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(frame->pointeur);
 }
 
@@ -2104,6 +2227,8 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
         int compte_exécutées = 0;
         auto res = exécute_instructions(compte_exécutées);
 
+        désinstalle_métaprogramme(métaprogramme, compte_exécutées);
+
         if (res == RésultatInterprétation::PASSE_AU_SUIVANT) {
             // RÀF
         }
@@ -2124,9 +2249,13 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             if (compilatrice.arguments.émets_stats_ops_exécution) {
                 logue_stats_instructions(métaprogramme);
             }
-        }
 
-        désinstalle_métaprogramme(métaprogramme, compte_exécutées);
+            if (compilatrice.arguments.profile_metaprogrammes) {
+                auto &profileuse = métaprogramme->données_exécution->profileuse;
+                profileuse.crée_rapport(métaprogramme,
+                                        compilatrice.arguments.format_rapport_profilage);
+            }
+        }
 
         if (stop || compilatrice.possède_erreur()) {
             break;
@@ -2174,10 +2303,6 @@ void MachineVirtuelle::rassemble_statistiques(Statistiques &stats)
     stats.nombre_metaprogrammes_executes += nombre_de_métaprogrammes_exécutés;
     stats.temps_metaprogrammes += temps_exécution_métaprogammes;
     stats.instructions_executees += instructions_exécutées;
-
-    if (compilatrice.arguments.profile_metaprogrammes) {
-        profileuse.crée_rapports(compilatrice.arguments.format_rapport_profilage);
-    }
 }
 
 std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
@@ -2209,18 +2334,42 @@ std::ostream &operator<<(std::ostream &os, PatchDonnéesConstantes const &patch)
     return os;
 }
 
-InformationProfilage &Profileuse::informations_pour(MetaProgramme *métaprogramme)
+void Profileuse::réinitialise()
 {
-    POUR (informations_pour_métaprogrammes) {
-        if (it.métaprogramme == métaprogramme) {
-            return it;
+    échantillons.efface();
+}
+
+void Profileuse::prépare_pour_profilage()
+{
+    ajourne_ticks();
+}
+
+void Profileuse::ajourne_ticks()
+{
+    ticks_de_bases = __rdtsc();
+}
+
+uint64_t Profileuse::donne_ticks()
+{
+    return __rdtsc() - ticks_de_bases;
+}
+
+static bool les_frames_sont_les_mêmes(FrameAppel const *frame1,
+                                      int taille1,
+                                      FrameAppel const *frame2,
+                                      int taille2)
+{
+    if (taille1 != taille2) {
+        return false;
+    }
+
+    for (int i = 0; i < taille1; ++i) {
+        if (frame1[i].fonction != frame2[i].fonction) {
+            return false;
         }
     }
 
-    auto informations = InformationProfilage();
-    informations.métaprogramme = métaprogramme;
-    informations_pour_métaprogrammes.ajoute(informations);
-    return informations_pour_métaprogrammes.dernière();
+    return true;
 }
 
 void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
@@ -2229,24 +2378,33 @@ void Profileuse::ajoute_echantillon(MetaProgramme *métaprogramme, int poids)
         return;
     }
 
-    auto &informations = informations_pour(métaprogramme);
+    auto ticks = donne_ticks();
+
+    auto de = métaprogramme->données_exécution;
+    if (!échantillons.est_vide()) {
+        auto &dernier_échantillon = échantillons.dernière();
+        auto profondeur_échantillon = dernier_échantillon.profondeur_frame_appel;
+
+        if (les_frames_sont_les_mêmes(dernier_échantillon.frames,
+                                      profondeur_échantillon,
+                                      de->frames,
+                                      de->profondeur_appel)) {
+            dernier_échantillon.poids += ticks;
+            return;
+        }
+    }
 
     auto echantillon = EchantillonProfilage();
-    echantillon.profondeur_frame_appel = métaprogramme->données_exécution->profondeur_appel;
-    echantillon.poids = poids;
+    echantillon.profondeur_frame_appel = de->profondeur_appel;
+    echantillon.poids = ticks;
 
     for (int i = 0; i < echantillon.profondeur_frame_appel; i++) {
-        echantillon.frames[i] = métaprogramme->données_exécution->frames[i];
+        echantillon.frames[i] = de->frames[i];
     }
 
-    informations.echantillons.ajoute(echantillon);
-}
+    échantillons.ajoute(echantillon);
 
-void Profileuse::crée_rapports(FormatRapportProfilage format)
-{
-    POUR (informations_pour_métaprogrammes) {
-        crée_rapport(it, format);
-    }
+    ajourne_ticks();
 }
 
 static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
@@ -2260,12 +2418,12 @@ static void imprime_nom_fonction(AtomeFonction const *fonction, Enchaineuse &os)
 }
 
 static void crée_rapport_format_echantillons_total_plus_fonction(
-    const InformationProfilage &informations, Enchaineuse &os)
+    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
 {
     auto table = kuri::table_hachage<AtomeFonction *, int>("Échantillons profilage");
     auto fonctions = kuri::ensemble<AtomeFonction *>();
 
-    POUR (informations.echantillons) {
+    POUR (échantillons) {
         for (int i = 0; i < it.profondeur_frame_appel; i++) {
             auto &frame = it.frames[i];
             auto valeur = table.valeur_ou(frame.fonction, 0);
@@ -2294,10 +2452,10 @@ static void crée_rapport_format_echantillons_total_plus_fonction(
     }
 }
 
-static void crée_rapport_format_brendan_gregg(const InformationProfilage &informations,
-                                              Enchaineuse &os)
+static void crée_rapport_format_brendan_gregg(
+    kuri::tableau_statique<EchantillonProfilage> échantillons, Enchaineuse &os)
 {
-    POUR (informations.echantillons) {
+    POUR (échantillons) {
         if (it.profondeur_frame_appel == 0) {
             continue;
         }
@@ -2315,20 +2473,19 @@ static void crée_rapport_format_brendan_gregg(const InformationProfilage &infor
     }
 }
 
-void Profileuse::crée_rapport(const InformationProfilage &informations,
-                              FormatRapportProfilage format)
+void Profileuse::crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format)
 {
-    auto &logueuse = informations.métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
+    auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
 
     switch (format) {
         case FormatRapportProfilage::ECHANTILLONS_TOTAL_POUR_FONCTION:
         {
-            crée_rapport_format_echantillons_total_plus_fonction(informations, logueuse);
+            crée_rapport_format_echantillons_total_plus_fonction(échantillons, logueuse);
             break;
         }
         case FormatRapportProfilage::BRENDAN_GREGG:
         {
-            crée_rapport_format_brendan_gregg(informations, logueuse);
+            crée_rapport_format_brendan_gregg(échantillons, logueuse);
             break;
         }
     }
