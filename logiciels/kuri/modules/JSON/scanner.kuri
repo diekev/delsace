@@ -625,7 +625,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
         }
 
         si valeur.est_r16() {
-            valeur.assigne_r16(scanner.nombre_réel)
+            valeur.assigne_r16(scanner.nombre_réel comme r16)
         }
         sinon si valeur.est_r32() {
             valeur.assigne_r32(scanner.nombre_réel comme r32)
