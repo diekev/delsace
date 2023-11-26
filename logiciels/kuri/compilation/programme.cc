@@ -1170,8 +1170,8 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
 
     /* Rassemble les globales selon leurs types. */
     kuri::tri_stable(partition_globales.vrai, [](auto &globale1, auto &globale2) {
-        auto type1 = globale1->type->comme_type_pointeur()->type_pointe;
-        auto type2 = globale2->type->comme_type_pointeur()->type_pointe;
+        auto type1 = globale1->donne_type_alloué();
+        auto type2 = globale2->donne_type_alloué();
         return type1 > type2;
     });
 
@@ -1322,16 +1322,16 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
 {
     kuri::ensemble<Type const *> types_utilisés;
     POUR (m_résultat.globales) {
-        types_utilisés.insère(it->type->comme_type_pointeur()->type_pointe);
+        types_utilisés.insère(it->donne_type_alloué());
     }
 
     POUR (m_résultat.fonctions) {
         if (it->est_externe) {
             POUR_NOMME (param, it->params_entrees) {
-                types_utilisés.insère(param->type->comme_type_pointeur()->type_pointe);
+                types_utilisés.insère(param->donne_type_alloué());
             }
 
-            types_utilisés.insère(it->param_sortie->type->comme_type_pointeur()->type_pointe);
+            types_utilisés.insère(it->param_sortie->donne_type_alloué());
         }
 
         POUR_NOMME (inst, it->instructions) {
@@ -1342,8 +1342,7 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
                 types_utilisés.insère(inst->comme_charge()->chargee->type);
             }
             else if (inst->est_alloc()) {
-                types_utilisés.insère(
-                    inst->comme_alloc()->type->comme_type_pointeur()->type_pointe);
+                types_utilisés.insère(inst->comme_alloc()->donne_type_alloué());
             }
             else if (inst->est_transtype()) {
                 types_utilisés.insère(inst->type);

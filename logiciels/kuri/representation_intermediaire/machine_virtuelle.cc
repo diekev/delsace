@@ -479,7 +479,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enc
         }
 
         os << " = ";
-        lis_valeur(pointeur_locale, it.type->comme_type_pointeur()->type_pointe, os);
+        lis_valeur(pointeur_locale, it.type, os);
         os << '\n';
     }
 }
