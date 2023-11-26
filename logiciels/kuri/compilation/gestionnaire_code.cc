@@ -1605,7 +1605,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 #endif
     POUR (unités_prêtes) {
         it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
-        ordonnanceuse->cree_tache_pour_unite(it);
+        ordonnanceuse->crée_tache_pour_unite(it);
     }
 
     pour_chaque_element(espaces_errones, [&](EspaceDeTravail *espace) {
@@ -1923,7 +1923,7 @@ void GestionnaireCode::gère_choses_terminées()
     // std::cerr << "unités terminées : " << m_unités_terminées.taille() << '\n';
 
     POUR (m_unités_terminées.donne_données_locales()) {
-        switch (it->raison_d_etre()) {
+        switch (it->donne_raison_d_être()) {
             case RaisonDEtre::AUCUNE:
             {
                 // erreur ?

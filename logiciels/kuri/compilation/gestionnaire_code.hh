@@ -287,7 +287,6 @@ class GestionnaireCode {
 
     void optimisation_terminee(UniteCompilation *unite);
 
-  public:
     /* Remplis les tâches. */
     void crée_tâches_pour_ordonnanceuse();
 

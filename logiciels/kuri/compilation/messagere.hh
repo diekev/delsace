@@ -53,7 +53,7 @@ struct Messagère {
 
     inline bool est_interception_commencée() const
     {
-        return interception_commencee;
+        return interception_commencée;
     }
 
     Message const *defile();
