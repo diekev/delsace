@@ -34,6 +34,16 @@ AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
     memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacite);
 }
 
+const Type *AtomeGlobale::donne_type_alloué() const
+{
+    return type->comme_type_pointeur()->type_pointe;
+}
+
+const Type *AccedeIndexConstant::donne_type_accédé() const
+{
+    return accede->type->comme_type_pointeur()->type_pointe;
+}
+
 VisibilitéSymbole AtomeGlobale::donne_visibilité_symbole() const
 {
     if (!decl) {
@@ -61,11 +71,30 @@ int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
 {
     /* +1 pour la sortie. */
     auto résultat = params_entrees.taille() + instructions.taille() + 1;
-    auto type_sortie = param_sortie->type->comme_type_pointeur()->type_pointe;
+    auto type_sortie = param_sortie->donne_type_alloué();
     if (type_sortie->est_type_tuple()) {
         résultat += type_sortie->comme_type_tuple()->membres.taille();
     }
     return résultat;
+}
+
+const Type *InstructionAllocation::donne_type_alloué() const
+{
+    return type->comme_type_pointeur()->type_pointe;
+}
+
+const Type *InstructionAccedeMembre::donne_type_accédé() const
+{
+    auto type_accédé = accede->type;
+    if (type_accédé->est_type_reference()) {
+        return type_accédé->comme_type_reference()->type_pointe;
+    }
+    return type_accédé->comme_type_pointeur()->type_pointe;
+}
+
+const Type *InstructionAccedeIndex::donne_type_accédé() const
+{
+    return accede->type->comme_type_pointeur()->type_pointe;
 }
 
 bool est_valeur_constante(Atome const *atome)

@@ -248,7 +248,7 @@ struct CopieuseInstruction {
                 auto alloc = inst->comme_alloc();
                 auto ident = alloc->ident;
                 auto n_alloc = constructrice.crée_allocation(
-                    inst->site, alloc->type->comme_type_pointeur()->type_pointe, ident, true);
+                    inst->site, alloc->donne_type_alloué(), ident, true);
                 nouvelle_inst = n_alloc;
                 break;
             }
@@ -300,7 +300,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
             // À FAIRE : détection des pointeurs locaux plus robuste
             // détecte les cas où nous avons une référence à une variable
             else if (inst->est_alloc()) {
-                auto type_pointe = inst->type->comme_type_pointeur()->type_pointe;
+                auto type_pointe = inst->comme_alloc()->donne_type_alloué();
                 if (type_pointe != atome->type) {
                     // remplace l'instruction de déréférence par l'atome
                     POUR (fonction_appelee->instructions) {

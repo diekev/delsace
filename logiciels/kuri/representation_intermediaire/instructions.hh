@@ -327,6 +327,8 @@ struct AtomeGlobale : public AtomeConstante {
         this->est_constante = est_constante_;
     }
 
+    Type const *donne_type_alloué() const;
+
     VisibilitéSymbole donne_visibilité_symbole() const;
 };
 
@@ -365,6 +367,8 @@ struct AccedeIndexConstant : public AtomeConstante {
         this->accede = accede_;
         this->index = index_;
     }
+
+    Type const *donne_type_accédé() const;
 };
 
 struct AtomeFonction : public AtomeConstante {
@@ -570,6 +574,8 @@ struct InstructionAllocation : public Instruction {
         this->type = type_;
         this->ident = ident_;
     }
+
+    const Type *donne_type_alloué() const;
 };
 
 struct InstructionRetour : public Instruction {
@@ -761,6 +767,8 @@ struct InstructionAccedeMembre : public Instruction {
         this->accede = accede_;
         this->index = index_;
     }
+
+    const Type *donne_type_accédé() const;
 };
 
 struct InstructionAccedeIndex : public Instruction {
@@ -786,6 +794,8 @@ struct InstructionAccedeIndex : public Instruction {
         this->accede = accede_;
         this->index = index_;
     }
+
+    const Type *donne_type_accédé() const;
 };
 
 enum TypeTranstypage {

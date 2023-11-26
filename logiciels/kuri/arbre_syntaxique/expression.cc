@@ -14,7 +14,7 @@
 #include "noeud_expression.hh"
 
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont
- * toujours surl les lexèmes */
+ * toujours sur les lexèmes */
 
 /* ************************************************************************** */
 

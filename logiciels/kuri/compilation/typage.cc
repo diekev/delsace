@@ -1907,7 +1907,7 @@ bool est_type_polymorphique(Type const *type)
     return false;
 }
 
-bool est_type_tableau_fixe(Type *type)
+bool est_type_tableau_fixe(Type const *type)
 {
     return type->est_type_tableau_fixe() ||
            (type->est_type_opaque() &&

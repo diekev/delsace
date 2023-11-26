@@ -317,7 +317,7 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
 
 /* ************************************************************************** */
 
-static void lis_valeur(octet_t *pointeur, Type *type, Enchaineuse &os)
+static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 {
     switch (type->genre) {
         default:
@@ -479,7 +479,7 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enc
         }
 
         os << " = ";
-        lis_valeur(pointeur_locale, it.type->comme_type_pointeur()->type_pointe, os);
+        lis_valeur(pointeur_locale, it.type, os);
         os << '\n';
     }
 }
