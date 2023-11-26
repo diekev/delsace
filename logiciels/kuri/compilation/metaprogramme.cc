@@ -21,7 +21,7 @@
 #include "typage.hh"
 #include "unite_compilation.hh"
 
-int DonnéesConstantesExécutions::ajoute_globale(Type *type,
+int DonnéesConstantesExécutions::ajoute_globale(Type const *type,
                                                 IdentifiantCode *ident,
                                                 const void *adresse_pour_exécution)
 {

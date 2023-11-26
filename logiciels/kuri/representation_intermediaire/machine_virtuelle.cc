@@ -317,7 +317,7 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
 
 /* ************************************************************************** */
 
-static void lis_valeur(octet_t *pointeur, Type *type, Enchaineuse &os)
+static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 {
     switch (type->genre) {
         default:

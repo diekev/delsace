@@ -242,17 +242,18 @@ void Chunk::émets_profile_termine_appel()
 
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
-    auto type = alloc->type->comme_type_pointeur()->type_pointe;
+    auto type_alloué = alloc->type->comme_type_pointeur()->type_pointe;
+    auto taille_octet = type_alloué->taille_octet;
 
     // XXX - À FAIRE : normalise les entiers constants
-    if (type->est_type_entier_constant()) {
-        type->taille_octet = 4;
+    if (type_alloué->est_type_entier_constant()) {
+        taille_octet = 4;
     }
-    assert(type->taille_octet);
+    assert(taille_octet);
 
     auto index = locales.taille();
     locales.ajoute({alloc->ident, alloc->type, taille_allouée});
-    taille_allouée += static_cast<int>(type->taille_octet);
+    taille_allouée += static_cast<int>(taille_octet);
     return index;
 }
 
