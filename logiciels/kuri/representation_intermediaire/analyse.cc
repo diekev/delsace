@@ -1520,14 +1520,7 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
         return false;
     }
 
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
-        });
-
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    supprime_instructions_à_supprimer(bloc);
     return instructions_à_supprimer;
 }
 
@@ -1659,14 +1652,7 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
         return false;
     }
 
-    auto nouvelle_fin = std::stable_partition(
-        bloc->instructions.debut(), bloc->instructions.fin(), [](Instruction *inst) {
-            return inst->etat != EST_A_SUPPRIMER;
-        });
-
-    auto nouvelle_taille = std::distance(bloc->instructions.debut(), nouvelle_fin);
-
-    bloc->instructions.redimensionne(static_cast<int>(nouvelle_taille));
+    supprime_instructions_à_supprimer(bloc);
     return instructions_à_supprimer;
 }
 
