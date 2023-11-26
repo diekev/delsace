@@ -56,7 +56,7 @@ struct DonnéesConstantesExécutions {
     kuri::tableau<unsigned char, int> données_constantes{};
     kuri::tableau<PatchDonnéesConstantes, int> patchs_données_constantes{};
 
-    int ajoute_globale(Type *type, IdentifiantCode *ident, const void *adresse_pour_exécution);
+    int ajoute_globale(const Type *type, IdentifiantCode *ident, const void *adresse_pour_exécution);
 
     void rassemble_statistiques(Statistiques &stats) const;
 };
