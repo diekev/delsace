@@ -242,17 +242,18 @@ void Chunk::émets_profile_termine_appel()
 
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
-    auto type = alloc->type->comme_type_pointeur()->type_pointe;
+    auto type_alloué = alloc->donne_type_alloué();
+    auto taille_octet = type_alloué->taille_octet;
 
     // XXX - À FAIRE : normalise les entiers constants
-    if (type->est_type_entier_constant()) {
-        type->taille_octet = 4;
+    if (type_alloué->est_type_entier_constant()) {
+        taille_octet = 4;
     }
-    assert(type->taille_octet);
+    assert(taille_octet);
 
     auto index = locales.taille();
-    locales.ajoute({alloc->ident, alloc->type, taille_allouée});
-    taille_allouée += static_cast<int>(type->taille_octet);
+    locales.ajoute({alloc->ident, type_alloué, taille_allouée});
+    taille_allouée += static_cast<int>(taille_octet);
     return index;
 }
 
@@ -560,7 +561,7 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
 
 void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
                                   kuri::tableau<PatchLabel> &patchs_labels,
-                                  int taille_opérande,
+                                  uint32_t taille_opérande,
                                   int index_label_si_vrai,
                                   int index_label_si_faux)
 {
@@ -1335,7 +1336,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     /* crée une variable local pour la valeur de sortie */
     if (fonction->param_sortie) {
         auto alloc = fonction->param_sortie;
-        auto type_pointe = alloc->type->comme_type_pointeur()->type_pointe;
+        auto type_pointe = alloc->donne_type_alloué();
 
         if (!type_pointe->est_type_rien()) {
             m_index_locales[alloc->numero] = chunk.ajoute_locale(alloc);
@@ -1627,8 +1628,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             génère_code_pour_atome(index->accede, chunk);
 
             if (index->accede->genre_atome == Atome::Genre::INSTRUCTION) {
-                auto accede = index->accede->comme_instruction();
-                auto type_accede = accede->type->comme_type_pointeur()->type_pointe;
+                auto type_accede = index->donne_type_accédé();
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
                 if (type_accede->est_type_pointeur()) {
@@ -2164,7 +2164,7 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
         adresse_pour_exécution = decl->symbole->donne_adresse_objet_pour_exécution();
     }
 
-    auto type_globale = globale->type->comme_type_pointeur()->type_pointe;
+    auto type_globale = globale->donne_type_alloué();
     auto index = données_exécutions->ajoute_globale(
         type_globale, globale->ident, adresse_pour_exécution);
     globale->index = index;
