@@ -984,8 +984,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 return valeur_accédée;
             }
 
-            if (est_type_tableau_fixe(
-                    inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
+            if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
                 valeur_accédée = enchaine(valeur_accédée, ".d");
             }
 
@@ -1564,8 +1563,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine(
                     "&((", donne_nom_pour_type(inst_accès->type), ")", valeur_accédée, ")");
             }
-            else if (est_type_tableau_fixe(
-                         inst_accès->accede->type->comme_type_pointeur()->type_pointe)) {
+            else if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
                 valeur_accédée = enchaine(valeur_accédée, ".d");
             }
 
@@ -1583,20 +1581,13 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             assert(valeur_accédée != "");
 
-            auto type_accedé = inst_accès->accede->type;
-            auto type_adressé = Type::nul();
-            if (type_accedé->est_type_pointeur()) {
-                type_adressé = type_accedé->comme_type_pointeur()->type_pointe;
-            }
-            else if (type_accedé->est_type_reference()) {
-                type_adressé = type_accedé->comme_type_reference()->type_pointe;
-            }
+            auto type_adressé = inst_accès->donne_type_accédé();
 
             if (type_adressé->est_type_opaque()) {
                 type_adressé = type_adressé->comme_type_opaque()->type_opacifie;
             }
 
-            auto type_composé = static_cast<TypeCompose *>(type_adressé);
+            auto type_composé = type_adressé->comme_type_compose();
 
             /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
              * + index. */
@@ -1653,7 +1644,7 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
 {
     déclare_visibilité_globale(os, valeur_globale, pour_entete);
 
-    auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
+    auto type = valeur_globale->donne_type_alloué();
     os << donne_nom_pour_type(type) << ' ';
 
     auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entete);
