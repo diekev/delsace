@@ -3121,9 +3121,6 @@ enum {
 template <int N>
 ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, TypeEnum *type_enum)
 {
-    auto &graphe = m_compilatrice.graphe_dependance;
-    graphe->connecte_type_type(type_enum, type_enum->type_sous_jacent);
-
     type_enum->taille_octet = type_enum->type_sous_jacent->taille_octet;
     type_enum->alignement = type_enum->type_sous_jacent->alignement;
 
@@ -3603,10 +3600,6 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
         decl->type = m_compilatrice.typeuse.reserve_type_structure(decl);
     }
 
-    auto &graphe = m_compilatrice.graphe_dependance;
-    auto noeud_dependance = graphe->crée_noeud_type(decl->type);
-    decl->noeud_dependance = noeud_dependance;
-
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
@@ -3836,10 +3829,6 @@ ResultatValidation ContexteValidationCode::valide_union(NoeudStruct *decl)
     if (decl->type == nullptr) {
         decl->type = m_compilatrice.typeuse.reserve_type_union(decl);
     }
-
-    auto &graphe = m_compilatrice.graphe_dependance;
-    auto noeud_dependance = graphe->crée_noeud_type(decl->type);
-    decl->noeud_dependance = noeud_dependance;
 
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -4254,11 +4243,7 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
             decl_var->type = variable->type;
 
-            if (decl_var->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
-                auto graphe = m_compilatrice.graphe_dependance.verrou_ecriture();
-                graphe->crée_noeud_globale(decl_var);
-            }
-            else {
+            if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
                 /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
                  * syntaxeuse. */
                 if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
