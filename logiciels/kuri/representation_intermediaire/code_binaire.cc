@@ -367,11 +367,14 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type)
 
 void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type)
 {
-    assert(type->taille_octet);
+    auto taille_octet = type->taille_octet;
+    if (type->est_type_entier_constant()) {
+        taille_octet = 4;
+    }
     émets_entête_op(OP_CHARGE_LOCALE, site);
     émets(pointeur);
-    émets(type->taille_octet);
-    émets_notifie_empilage(site, type->taille_octet);
+    émets(taille_octet);
+    émets_notifie_empilage(site, taille_octet);
 }
 
 void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur)

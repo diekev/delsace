@@ -1029,6 +1029,77 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unite_attendante,
     ajoute_unité_à_liste_attente(unite_attendante);
 }
 
+void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
+{
+    switch (unité->donne_raison_d_être()) {
+        case RaisonDEtre::AUCUNE:
+        {
+            // erreur ?
+            break;
+        }
+        case RaisonDEtre::CHARGEMENT_FICHIER:
+        {
+            chargement_fichier_termine(unité);
+            break;
+        }
+        case RaisonDEtre::LEXAGE_FICHIER:
+        {
+            lexage_fichier_termine(unité);
+            break;
+        }
+        case RaisonDEtre::PARSAGE_FICHIER:
+        {
+            parsage_fichier_termine(unité);
+            break;
+        }
+        case RaisonDEtre::CREATION_FONCTION_INIT_TYPE:
+        {
+            fonction_initialisation_type_creee(unité);
+            break;
+        }
+        case RaisonDEtre::TYPAGE:
+        {
+            typage_termine(unité);
+            break;
+        }
+        case RaisonDEtre::CONVERSION_NOEUD_CODE:
+        {
+            conversion_noeud_code_terminee(unité);
+            break;
+        }
+        case RaisonDEtre::ENVOIE_MESSAGE:
+        {
+            envoi_message_termine(unité);
+            break;
+        }
+        case RaisonDEtre::GENERATION_RI:
+        {
+            generation_ri_terminee(unité);
+            break;
+        }
+        case RaisonDEtre::GENERATION_RI_PRINCIPALE_MP:
+        {
+            generation_ri_terminee(unité);
+            break;
+        }
+        case RaisonDEtre::EXECUTION:
+        {
+            execution_terminee(unité);
+            break;
+        }
+        case RaisonDEtre::LIAISON_PROGRAMME:
+        {
+            liaison_programme_terminee(unité);
+            break;
+        }
+        case RaisonDEtre::GENERATION_CODE_MACHINE:
+        {
+            generation_code_machine_terminee(unité);
+            break;
+        }
+    }
+}
+
 void GestionnaireCode::chargement_fichier_termine(UniteCompilation *unite)
 {
     assert(unite->fichier);
