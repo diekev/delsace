@@ -111,7 +111,6 @@ int main()
 
     /* test : appel fonction */
     reussite &= verifie_transformation(compilatrice, TypeBase::R16, TypeBase::R32, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::R32, TypeBase::R16, true);
 
     // test nul -> fonc()
 

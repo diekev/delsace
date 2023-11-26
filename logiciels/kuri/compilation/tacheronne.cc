@@ -296,7 +296,7 @@ void Tacheronne::gere_tache()
                 }
 
                 if (fichier->fut_chargé) {
-                    compilatrice.gestionnaire_code->chargement_fichier_termine(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 else {
                     compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
@@ -328,7 +328,7 @@ void Tacheronne::gere_tache()
                 }
 
                 if (fichier->fut_lexé) {
-                    compilatrice.gestionnaire_code->lexage_fichier_termine(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 else {
                     compilatrice.gestionnaire_code->mets_en_attente(
@@ -345,7 +345,7 @@ void Tacheronne::gere_tache()
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
                 unite->fichier->fut_parsé = true;
-                compilatrice.gestionnaire_code->parsage_fichier_termine(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 temps_parsage += debut_parsage.temps();
                 break;
             }
@@ -364,7 +364,7 @@ void Tacheronne::gere_tache()
                     dls::outils::possede_drapeau(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
                 auto debut_generation = dls::chrono::compte_seconde();
                 if (gere_unite_pour_ri(tache.unite)) {
-                    compilatrice.gestionnaire_code->generation_ri_terminee(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 constructrice_ri.temps_generation += debut_generation.temps();
                 break;
@@ -393,7 +393,7 @@ void Tacheronne::gere_tache()
                                                  programme,
                                                  constructrice_ri,
                                                  broyeuse)) {
-                    compilatrice.gestionnaire_code->generation_code_machine_terminee(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 temps_generation_code += coulisse->temps_generation_code;
                 temps_fichier_objet += coulisse->temps_fichier_objet;
@@ -406,7 +406,7 @@ void Tacheronne::gere_tache()
                 auto programme = tache.unite->programme;
                 auto coulisse = programme->coulisse();
                 if (coulisse->crée_exécutable(compilatrice, *tache.espace, programme)) {
-                    compilatrice.gestionnaire_code->liaison_programme_terminee(tache.unite);
+                    compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 }
                 temps_executable += coulisse->temps_executable;
                 break;
@@ -456,7 +456,7 @@ void Tacheronne::gere_tache()
                 // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
                 // (créer un NoeudCode prématurément peut se faire)
                 convertisseuse_noeud_code.convertis_noeud_syntaxique(espace, noeud);
-                compilatrice.gestionnaire_code->conversion_noeud_code_terminee(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 break;
             }
             case GenreTache::ENVOIE_MESSAGE:
@@ -464,7 +464,7 @@ void Tacheronne::gere_tache()
                 assert(dls::outils::possede_drapeau(drapeaux,
                                                     DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
                 compilatrice.messagere->envoie_message(tache.unite->message);
-                compilatrice.gestionnaire_code->envoi_message_termine(tache.unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tache.unite);
                 break;
             }
             case GenreTache::CREATION_FONCTION_INIT_TYPE:
@@ -478,7 +478,7 @@ void Tacheronne::gere_tache()
                 assert(type);
 
                 crée_noeud_initialisation_type(espace, type, this->assembleuse);
-                compilatrice.gestionnaire_code->fonction_initialisation_type_creee(unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
                 break;
             }
             case GenreTache::NOMBRE_ELEMENTS:
@@ -507,7 +507,7 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
     temps_validation -= contexte.temps_chargement;
 
     CHRONO_TYPAGE(stats_typage.finalisation, FINALISATION__FINALISATION);
-    compilatrice.gestionnaire_code->typage_termine(unite);
+    compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
 }
 
 static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
@@ -698,7 +698,7 @@ void Tacheronne::execute_metaprogrammes()
 
         mv->déloge_données_exécution(it->données_exécution);
 
-        compilatrice.gestionnaire_code->execution_terminee(it->unite);
+        compilatrice.gestionnaire_code->tâche_unité_terminée(it->unite);
     }
 }
 

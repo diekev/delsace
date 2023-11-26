@@ -223,6 +223,11 @@ class GestionnaireCode {
                          kuri::tableau_statique<Attente> attentes);
 
     /* Fin d'une tâche. */
+    void tâche_unité_terminée(UniteCompilation *unité);
+
+    void message_recu(Message const *message);
+
+  private:
     void chargement_fichier_termine(UniteCompilation *unite);
 
     void lexage_fichier_termine(UniteCompilation *unite);
@@ -234,8 +239,6 @@ class GestionnaireCode {
     void generation_ri_terminee(UniteCompilation *unite);
 
     void envoi_message_termine(UniteCompilation *unité);
-
-    void message_recu(Message const *message);
 
     void execution_terminee(UniteCompilation *unite);
 
@@ -249,6 +252,7 @@ class GestionnaireCode {
 
     void optimisation_terminee(UniteCompilation *unite);
 
+  public:
     /* Remplis les tâches. */
     void crée_taches(OrdonnanceuseTache &ordonnanceuse);
 
