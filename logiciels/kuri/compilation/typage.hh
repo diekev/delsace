@@ -921,7 +921,7 @@ inline bool est_type_entier(Type const *type)
 
 bool est_type_booleen_implicite(Type *type);
 
-bool est_type_tableau_fixe(Type *type);
+bool est_type_tableau_fixe(Type const *type);
 
 bool est_pointeur_vers_tableau_fixe(Type const *type);
 

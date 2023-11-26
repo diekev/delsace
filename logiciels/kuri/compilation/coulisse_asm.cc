@@ -377,7 +377,7 @@ void GeneratriceCodeASM::genere_code(kuri::tableau_statique<AtomeGlobale *> glob
     //            continue;
     //        }
 
-    //        auto type = valeur_globale->type->comme_type_pointeur()->type_pointe;
+    //        auto type = valeur_globale->donne_type_alloué();
 
     //        os << "static const " << nom_broye_type(type) << ' ';
 
