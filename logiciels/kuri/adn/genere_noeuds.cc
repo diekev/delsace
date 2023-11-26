@@ -1237,11 +1237,11 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         const char *empile_bloc = R"(
 NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction)
 {
-	auto bloc = static_cast<NoeudBloc *>(crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
+    auto bloc = static_cast<NoeudBloc *>(crée_noeud<GenreNoeud::INSTRUCTION_COMPOSEE>(lexeme));
     bloc->appartiens_à_fonction = appartiens_à_fonction;
-	bloc->bloc_parent = bloc_courant();
-	m_blocs.empile(bloc);
-	return bloc;
+    bloc->bloc_parent = bloc_courant();
+    m_blocs.empile(bloc);
+    return bloc;
 }
 )";
 
@@ -1275,65 +1275,65 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "public:\n";
 
         const char *methodes = R"(
-	explicit AssembleuseArbre(AllocatriceNoeud &allocatrice)
-		: m_allocatrice(allocatrice)
-	{}
+    explicit AssembleuseArbre(AllocatriceNoeud &allocatrice)
+        : m_allocatrice(allocatrice)
+    {}
 
     NoeudBloc *empile_bloc(Lexeme const *lexeme, NoeudDeclarationEnteteFonction *appartiens_à_fonction);
 
-	NoeudBloc *bloc_courant() const
-	{
-		if (m_blocs.est_vide()) {
-			return nullptr;
-		}
+    NoeudBloc *bloc_courant() const
+    {
+        if (m_blocs.est_vide()) {
+            return nullptr;
+        }
 
-		return m_blocs.haut();
-	}
+        return m_blocs.haut();
+    }
 
-	void bloc_courant(NoeudBloc *bloc)
-	{
-		m_blocs.empile(bloc);
-	}
+    void bloc_courant(NoeudBloc *bloc)
+    {
+        m_blocs.empile(bloc);
+    }
 
-	void depile_tout()
-	{
-		m_blocs.efface();
-	}
+    void depile_tout()
+    {
+        m_blocs.efface();
+    }
 
-	void depile_bloc()
-	{
-		m_blocs.depile();
-	}
+    void depile_bloc()
+    {
+        m_blocs.depile();
+    }
 
-	/* Utilisation d'un gabarit car à part pour les copies, nous connaissons
-	 * toujours le genre de noeud à créer, et spécialiser cette fonction nous
-	 * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */
-	template <GenreNoeud genre>
-	NoeudExpression *crée_noeud(Lexeme const *lexeme)
-	{
-		auto noeud = m_allocatrice.crée_noeud<genre>();
-		noeud->genre = genre;
-		noeud->lexeme = lexeme;
-		noeud->bloc_parent = bloc_courant();
+    /* Utilisation d'un gabarit car à part pour les copies, nous connaissons
+     * toujours le genre de noeud à créer, et spécialiser cette fonction nous
+     * économise pas mal de temps d'exécution, au prix d'un exécutable plus gros. */
+    template <GenreNoeud genre>
+    NoeudExpression *crée_noeud(Lexeme const *lexeme)
+    {
+        auto noeud = m_allocatrice.crée_noeud<genre>();
+        noeud->genre = genre;
+        noeud->lexeme = lexeme;
+        noeud->bloc_parent = bloc_courant();
 
         if (noeud->lexeme && (noeud->lexeme->genre == GenreLexeme::CHAINE_CARACTERE)) {
-			noeud->ident = lexeme->ident;
-		}
+            noeud->ident = lexeme->ident;
+        }
 
-		if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
-			auto entete = noeud->comme_entete_fonction();
-			entete->corps->lexeme = lexeme;
-			entete->corps->ident = lexeme->ident;
-			entete->corps->bloc_parent = entete->bloc_parent;
-		}
+        if (genre == GenreNoeud::DECLARATION_ENTETE_FONCTION) {
+            auto entete = noeud->comme_entete_fonction();
+            entete->corps->lexeme = lexeme;
+            entete->corps->ident = lexeme->ident;
+            entete->corps->bloc_parent = entete->bloc_parent;
+        }
 
-		if (genre == GenreNoeud::EXPRESSION_LITTERALE_CHAINE) {
-			/* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
-			noeud->comme_litterale_chaine()->valeur = lexeme->index_chaine;
-		}
+        if (genre == GenreNoeud::EXPRESSION_LITTERALE_CHAINE) {
+            /* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
+            noeud->comme_litterale_chaine()->valeur = lexeme->index_chaine;
+        }
 
-		return noeud;
-	}
+        return noeud;
+    }
 )";
 
         os << methodes;
@@ -1349,24 +1349,24 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         }
 
         const char *decls_extras = R"(
-	NoeudSi *crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
-	NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref);
-	NoeudAssignation *crée_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
-	NoeudAssignation *crée_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-	NoeudAssignation *crée_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
-	NoeudBloc *crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
-	NoeudDeclarationVariable *crée_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
-	NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
-	NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
+    NoeudSi *crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud);
+    NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref);
+    NoeudAssignation *crée_assignation_variable(const Lexeme *lexeme, NoeudExpression *assignee, NoeudExpression *expression);
+    NoeudAssignation *crée_incrementation(const Lexeme *lexeme, NoeudExpression *valeur);
+    NoeudAssignation *crée_decrementation(const Lexeme *lexeme, NoeudExpression *valeur);
+    NoeudBloc *crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent);
+    NoeudDeclarationVariable *crée_declaration_variable(const Lexeme *lexeme, Type *type, IdentifiantCode *ident, NoeudExpression *expression);
+    NoeudDeclarationVariable *crée_declaration_variable(NoeudExpressionReference *ref, NoeudExpression *expression);
+    NoeudExpressionLitteraleEntier *crée_litterale_entier(const Lexeme *lexeme, Type *type, uint64_t valeur);
     NoeudExpressionLitteraleBool *crée_litterale_bool(const Lexeme *lexeme, Type *type, bool valeur);
-	NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
-	NoeudExpression *crée_reference_type(const Lexeme *lexeme, Type *type);
-	NoeudExpressionAppel *crée_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
-	NoeudExpressionBinaire *crée_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
-	NoeudExpressionBinaire *crée_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-	NoeudExpressionMembre *crée_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
-	NoeudExpressionReference *crée_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
-	NoeudExpressionAppel *crée_construction_structure(const Lexeme *lexeme, TypeCompose *type);
+    NoeudExpressionLitteraleReel *crée_litterale_reel(const Lexeme *lexeme, Type *type, double valeur);
+    NoeudExpression *crée_reference_type(const Lexeme *lexeme, Type *type);
+    NoeudExpressionAppel *crée_appel(const Lexeme *lexeme, NoeudExpression *appelee, Type *type);
+    NoeudExpressionBinaire *crée_indexage(const Lexeme *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
+    NoeudExpressionBinaire *crée_expression_binaire(const Lexeme *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
+    NoeudExpressionMembre *crée_reference_membre(const Lexeme *lexeme, NoeudExpression *accede, Type *type, int index);
+    NoeudExpressionReference *crée_reference_declaration(const Lexeme *lexeme, NoeudDeclaration *decl);
+    NoeudExpressionAppel *crée_construction_structure(const Lexeme *lexeme, TypeCompose *type);
 )";
 
         os << decls_extras;
@@ -1556,14 +1556,14 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
 
         const char *crée_monomorphisations = R"(
     Monomorphisations *crée_monomorphisations_fonction()
-	{
-		return m_monomorphisations_fonctions.ajoute_element();
-	}
+    {
+        return m_monomorphisations_fonctions.ajoute_element();
+    }
 
     Monomorphisations *crée_monomorphisations_struct()
-	{
-		return m_monomorphisations_structs.ajoute_element();
-	}
+    {
+        return m_monomorphisations_structs.ajoute_element();
+    }
 )";
 
         os << crée_monomorphisations;
