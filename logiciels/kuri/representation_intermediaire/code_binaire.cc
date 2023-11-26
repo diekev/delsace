@@ -560,7 +560,7 @@ void Chunk::émets_branche_condition(NoeudExpression const *site,
 
 void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
                                   kuri::tableau<PatchLabel> &patchs_labels,
-                                  int taille_opérande,
+                                  uint32_t taille_opérande,
                                   int index_label_si_vrai,
                                   int index_label_si_faux)
 {
