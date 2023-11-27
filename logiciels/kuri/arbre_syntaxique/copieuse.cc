@@ -25,6 +25,8 @@ void Copieuse::copie_membres_de_bases_et_insère(const NoeudExpression *racine,
     nracine->ident = racine->ident;
     nracine->type = racine->type;
     nracine->drapeaux = racine->drapeaux;
+    /* Les paramètres des copies des opérateurs « pour » ne sont pas revalidés. */
+    nracine->genre_valeur = racine->genre_valeur;
     if ((m_options & OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION) == OptionsCopieNoeud(0)) {
         nracine->drapeaux &= ~DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     }

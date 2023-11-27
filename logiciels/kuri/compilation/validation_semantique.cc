@@ -1355,6 +1355,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_var_piege->type = var_piege->type;
                 decl_var_piege->ident = var_piege->ident;
                 decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+                decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
                 inst->expression_piegee->comme_reference_declaration()->declaration_referee =
                     decl_var_piege;
@@ -1440,6 +1441,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_membre->declaration_vient_d_un_emploi = decl;
                 decl_membre->index_membre_employe = index_it;
                 decl_membre->expression = it.expression_valeur_defaut;
+                decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
                 bloc_parent->ajoute_membre(decl_membre);
             }
@@ -1491,12 +1493,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             auto type_référée = déclaration_référée->type;
             if (déclaration_référée->est_declaration_type()) {
                 type_référée = m_compilatrice.typeuse.type_type_de_donnees(type_référée);
-                expression_membre->genre_valeur = GenreValeur::DROITE;
-            }
-            else if (déclaration_référée->est_entete_fonction()) {
-                expression_membre->genre_valeur = GenreValeur::DROITE;
             }
 
+            expression_membre->genre_valeur = déclaration_référée->genre_valeur;
             expression_membre->déclaration_référée = déclaration_référée;
             expression_membre->type = type_référée;
             return CodeRetourValidation::OK;
@@ -2472,8 +2471,6 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
-    expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
     assert_rappel(bloc_recherche != nullptr,
                   [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
 
@@ -2550,6 +2547,7 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
          * les déclaration référées. */
         if (expr->ident == ID::it) {
             expr->declaration_referee = noeud_pour->decl_it;
+            expr->genre_valeur = noeud_pour->decl_it->genre_valeur;
             expr->type = noeud_pour->decl_it->type;
             return CodeRetourValidation::OK;
         }
@@ -2557,6 +2555,7 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         if (expr->ident == ID::index_it) {
             expr->declaration_referee = noeud_pour->decl_index_it;
             expr->type = noeud_pour->decl_index_it->type;
+            expr->genre_valeur = noeud_pour->decl_index_it->genre_valeur;
             return CodeRetourValidation::OK;
         }
 
@@ -2641,7 +2640,6 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
-        expr->genre_valeur = GenreValeur::DROITE;
     }
     else {
         if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2683,14 +2681,9 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
                 expr->declaration_referee = decl;
             }
         }
-
-        expr->genre_valeur = GenreValeur::DROITE;
     }
 
-    if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->possède_drapeau(
-                                           DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-        expr->genre_valeur = GenreValeur::DROITE;
-    }
+    expr->genre_valeur = decl->genre_valeur;
 
     decl->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     if (decl->est_declaration_variable()) {
@@ -4250,6 +4243,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
 
             decl_var->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+            if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+                decl_var->genre_valeur = GenreValeur::DROITE;
+                variable->genre_valeur = GenreValeur::DROITE;
+            }
+            else {
+                decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
+                variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
+            }
         }
     }
 
@@ -5293,6 +5295,8 @@ static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArb
     decl->type = type;
     decl->valeur->type = type;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
+    variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return decl;
 }
 

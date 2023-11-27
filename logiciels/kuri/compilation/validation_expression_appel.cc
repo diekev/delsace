@@ -1306,6 +1306,7 @@ static ResultatValidation trouve_candidates_pour_appel(
                 return Attente::sur_symbole(acces->accedee->comme_reference_declaration());
             }
 
+            acces->accedee->genre_valeur = GenreValeur::TRANSCENDANTALE;
             args.pousse_front({nullptr, nullptr, acces->accedee});
 
             for (auto c : candidates) {
