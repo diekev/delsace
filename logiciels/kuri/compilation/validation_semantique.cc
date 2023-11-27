@@ -1604,13 +1604,13 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
 
     /* Il est valide de redéfinir la fonction principale dans un autre espace. */
     if (fonction1.ident == ID::principale) {
-        if (!fonction1.unite || !fonction2.unite) {
+        if (!fonction1.unité || !fonction2.unité) {
             /* S'il manque une unité, nous revérifierons lors de la validation de la deuxième
              * fonction. */
             return false;
         }
 
-        if (fonction1.unite->espace != fonction2.unite->espace) {
+        if (fonction1.unité->espace != fonction2.unité->espace) {
             return false;
         }
     }

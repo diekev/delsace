@@ -34,7 +34,7 @@ struct NoeudExpression {
 
     NoeudBloc * bloc_parent [copie]
 
-    UniteCompilation * unite
+    UniteCompilation * unité [préserve_accents]
     NoeudCode * noeud_code
 
     /* Pour la simplification de l'arbre syntaxique. */

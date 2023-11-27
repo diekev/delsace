@@ -78,7 +78,7 @@ RAPPEL_POUR_UNITÉ(type)
         return nullptr;
     }
 
-    return decl->unite;
+    return decl->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(type)
@@ -154,7 +154,7 @@ InfoTypeAttente info_type_attente_sur_type = {NOM_RAPPEL_POUR_UNITÉ(type),
 
 RAPPEL_POUR_UNITÉ(déclaration)
 {
-    return attente.declaration()->unite;
+    return attente.declaration()->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(declaration)
@@ -184,7 +184,7 @@ RAPPEL_POUR_ERREUR(déclaration)
 {
     auto espace = unite->espace;
     auto decl = attente.declaration();
-    auto unite_decl = decl->unite;
+    auto unite_decl = decl->unité;
     auto erreur = espace->rapporte_erreur(
         decl, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
 
@@ -210,7 +210,7 @@ InfoTypeAttente info_type_attente_sur_déclaration = {NOM_RAPPEL_POUR_UNITÉ(dé
 
 RAPPEL_POUR_UNITÉ(opérateur)
 {
-    return attente.operateur()->unite;
+    return attente.operateur()->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(opérateur)
@@ -367,7 +367,7 @@ RAPPEL_POUR_UNITÉ(métaprogramme)
     auto metaprogramme_attendu = attente.metaprogramme();
     // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
     // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
-    return metaprogramme_attendu->fonction->unite;
+    return metaprogramme_attendu->fonction->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(métaprogramme)
@@ -433,7 +433,7 @@ RAPPEL_POUR_UNITÉ(ri)
     if (!fonction->decl) {
         return nullptr;
     }
-    return fonction->decl->unite;
+    return fonction->decl->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(ri)
