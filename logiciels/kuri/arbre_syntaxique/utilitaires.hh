@@ -7,6 +7,7 @@
 
 #include "compilation/transformation_type.hh"
 
+#include "structures/chaine_statique.hh"
 #include "structures/tableau_compresse.hh"
 
 #include "utilitaires/macros.hh"
@@ -22,13 +23,13 @@ struct NoeudDeclarationVariable;
 struct NoeudExpression;
 struct NoeudExpressionReference;
 struct NoeudExpressionUnaire;
+struct Symbole;
 struct Type;
 struct TypePointeur;
 struct Typeuse;
 
 namespace kuri {
 struct chaine;
-struct chaine_statique;
 template <typename T, uint64_t>
 struct tablet;
 }  // namespace kuri
@@ -240,6 +241,22 @@ struct DonneesAssignations {
         return false;
     }
 };
+
+/* ------------------------------------------------------------------------- */
+/** \name Données symboles externes.
+ * \{ */
+
+/* Pour les fonctions et globales externes :
+ * - nom du symbole dans la bibliothèque
+ * - la bibliothèque où se trouve le Symbole
+ * - le symbole lui-même */
+struct DonnéesSymboleExterne {
+    kuri::chaine_statique nom_symbole = "";
+    IdentifiantCode *ident_bibliotheque = nullptr;
+    Symbole *symbole = nullptr;
+};
+
+/** \} */
 
 void aplatis_arbre(NoeudExpression *declaration);
 
