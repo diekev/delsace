@@ -1130,6 +1130,13 @@ static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaratio
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
 {
+    if (decl->ident == ID::_ || decl->ident == nullptr) {
+        /* Inutile d'avoir les variables ignorées ou les temporaires créées lors de la
+         * canonicalisation ou la génération des initialisations des types comme membres du bloc.
+         */
+        return;
+    }
+
     if (decl->est_declaration_symbole()) {
         auto decl_existante = declaration_pour_ident(decl->ident);
         if (decl_existante && decl_existante->est_declaration_symbole()) {
@@ -2282,7 +2289,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto valeur_résultat = assembleuse->crée_declaration_variable(
                 &lexème_sentinel,
                 type_tableau,
-                ID::resultat,
+                nullptr,
                 assembleuse->crée_non_initialisation(&lexème_sentinel));
             assembleuse->bloc_courant()->ajoute_membre(valeur_résultat);
             assembleuse->bloc_courant()->ajoute_expression(valeur_résultat);
@@ -2295,7 +2302,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             init_it->type = type_pointeur_type_pointe;
 
             auto decl_it = assembleuse->crée_declaration_variable(
-                &lexème_sentinel, type_pointeur_type_pointe, ID::it, init_it);
+                &lexème_sentinel, type_pointeur_type_pointe, nullptr, init_it);
             auto ref_it = assembleuse->crée_reference_declaration(&lexème_sentinel, decl_it);
 
             assembleuse->bloc_courant()->ajoute_membre(decl_it);

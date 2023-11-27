@@ -131,7 +131,7 @@ détruit_données_ssl_boucle :: fonc (données_ssl_boucle: *DonnéesSSLBoucle)
     déloge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, données_ssl_boucle.ssl_read_output, info_de(*rien), PositionCodeSource())
 
     _ := BIO_free(données_ssl_boucle.bio_partagé_lecture)
-    _ = BIO_free(données_ssl_boucle.bio_partagé_écriture)
+    _ := BIO_free(données_ssl_boucle.bio_partagé_écriture)
 
     BIO_meth_free(données_ssl_boucle.méthode_bio_mémoire)
 
