@@ -257,12 +257,6 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
     NoeudDependance *noeud_dependance
     Atome *atome
 
-    /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
-     * identifiant. Ceci n'est mis en place que pour le premier symbole
-     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
-     * lexical si ajoutée lors du syntaxage. */
-    NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
-
     /* Pour les fonctions et globales externes :
      * - nom du symbole dans la bibliothèque
      * - la bibliothèque où se trouve le Symbole
@@ -472,6 +466,12 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
      * soit une variable créée par la compilatrice pour les fonctions en retournant plusieurs; */
     NoeudDéclarationVariable *param_sortie [copie]
+
+    /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
+     * identifiant. Ceci n'est mis en place que pour le premier symbole
+     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+     * lexical si ajoutée lors du syntaxage. */
+    NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
 
 struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
@@ -524,6 +524,12 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     @genre_valeur DROITE
 
     UniteCompilation * unité [préserve_accents]
+
+    /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
+     * identifiant. Ceci n'est mis en place que pour le premier symbole
+     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+     * lexical si ajoutée lors du syntaxage. */
+    NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
 
 struct NoeudStruct : NoeudDéclarationType {
