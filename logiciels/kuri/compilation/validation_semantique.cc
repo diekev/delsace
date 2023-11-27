@@ -407,7 +407,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            expr->genre_valeur = GenreValeur::DROITE;
             return valide_appel_fonction(m_compilatrice, *espace, *this, expr);
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
@@ -474,7 +473,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
             auto inst = noeud->comme_reference_membre();
-            noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return valide_acces_membre(inst);
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -492,14 +490,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::R32;
             noeud->comme_litterale_reel()->valeur = noeud->lexeme->valeur_reelle;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::ENTIER_CONSTANT;
             noeud->comme_litterale_entier()->valeur = noeud->lexeme->valeur_entiere;
             break;
@@ -516,7 +512,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr = noeud->comme_expression_unaire();
-            expr->genre_valeur = GenreValeur::DROITE;
 
             auto enfant = expr->operande;
             auto type = enfant->type;
@@ -612,7 +607,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto expr = noeud->comme_indexage();
-            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
             auto enfant1 = expr->operande_gauche;
             auto enfant2 = expr->operande_droite;
@@ -710,25 +704,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
             auto inst = noeud->comme_retourne();
-            noeud->genre_valeur = GenreValeur::DROITE;
             return valide_expression_retour(inst);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
         {
             noeud->type = TypeBase::CHAINE;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::BOOL;
             noeud->comme_litterale_bool()->valeur = noeud->lexeme->chaine == "vrai";
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::Z8;
             noeud->comme_litterale_caractere()->valeur = static_cast<uint32_t>(
                 noeud->lexeme->valeur_entiere);
@@ -806,7 +796,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = noeud->comme_comme();
-            expr->genre_valeur = GenreValeur::DROITE;
 
             if (resoud_type_final(expr->expression_type, expr->type) ==
                 CodeRetourValidation::Erreur) {
@@ -860,14 +849,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::PTR_NUL;
             break;
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
             auto expr = noeud->comme_taille_de();
-            expr->genre_valeur = GenreValeur::DROITE;
             expr->type = TypeBase::N32;
 
             auto expr_type = expr->expression;
@@ -978,7 +965,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto expr = noeud->comme_construction_tableau();
-            noeud->genre_valeur = GenreValeur::DROITE;
 
             auto feuilles = expr->expression->comme_virgule();
 
@@ -1112,7 +1098,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = m_compilatrice.typeuse.type_pointeur_pour(type_info_type);
 
             break;
@@ -1133,7 +1118,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
                                                                       TypeBase::RIEN);
             noeud->type = type_fonction;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -1154,7 +1138,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud->type = m_compilatrice.typeuse.type_type_de_donnees(expr_type->type);
             }
 
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_MEMOIRE:
@@ -1171,7 +1154,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             auto type_pointeur = type->comme_type_pointeur();
-            noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
             noeud->type = type_pointeur->type_pointe;
 
             break;
@@ -1285,7 +1267,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto inst = noeud->comme_tente();
             inst->type = inst->expression_appelee->type;
-            inst->genre_valeur = GenreValeur::DROITE;
 
             auto type_de_l_erreur = Type::nul();
 
@@ -1475,7 +1456,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             noeud->type = TypeBase::CHAINE;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
     }
@@ -4748,7 +4728,6 @@ void ContexteValidationCode::crée_transtypage_implicite_au_besoin(
 
 ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
-    expr->genre_valeur = GenreValeur::DROITE;
     CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
     if (expr->lexeme->genre == GenreLexeme::TABLEAU) {

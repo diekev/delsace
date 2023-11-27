@@ -106,7 +106,13 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
 
         if (!accede_nom_genre().est_nul()) {
             os << "\t" << m_nom << "() { genre = " << enum_discriminante()->nom()
-               << "::" << accede_nom_genre() << "; }\n";
+               << "::" << accede_nom_genre() << ";";
+
+            if (!m_genre_valeur.est_nul()) {
+                os << " genre_valeur = GenreValeur::" << m_genre_valeur << ";";
+            }
+
+            os << " }\n";
             os << "\tCOPIE_CONSTRUCT(" << m_nom << ");\n";
             os << "\n";
         }
@@ -887,6 +893,15 @@ void SyntaxeuseADN::parse_struct()
                 }
             }
 
+            consomme();
+        }
+        else if (apparie("genre_valeur")) {
+            consomme();
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu une chaine de caractère après @genre_valeur");
+            }
+
+            proteine->mute_genre_valeur(lexeme_courant()->chaine);
             consomme();
         }
         else {
