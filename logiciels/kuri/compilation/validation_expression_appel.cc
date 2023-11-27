@@ -1288,19 +1288,19 @@ static ResultatValidation trouve_candidates_pour_appel(
 
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
-            auto acces = static_cast<NoeudExpressionBinaire *>(it.decl);
+            auto acces = it.decl->comme_reference_membre();
             auto candidates = ListeCandidatesExpressionAppel();
             resultat_validation = trouve_candidates_pour_fonction_appelee(
-                contexte, espace, acces->operande_droite, candidates);
+                contexte, espace, acces->membre, candidates);
             if (!est_ok(resultat_validation)) {
                 return resultat_validation;
             }
 
             if (candidates.taille() == 0) {
-                return Attente::sur_symbole(acces->operande_droite->comme_reference_declaration());
+                return Attente::sur_symbole(acces->membre->comme_reference_declaration());
             }
 
-            args.pousse_front({nullptr, nullptr, acces->operande_gauche});
+            args.pousse_front({nullptr, nullptr, acces->accedee});
 
             for (auto c : candidates) {
                 resultat.ajoute(c);
