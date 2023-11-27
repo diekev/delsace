@@ -1195,8 +1195,8 @@ void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
                                  ProgrammeRepreInter::FONCTIONS_INTERNES);
 
     tri_stable(partition_fonctions.vrai, [](auto &fonction1, auto &fonction2) {
-        auto bib1 = fonction1->decl->symbole->bibliotheque;
-        auto bib2 = fonction2->decl->symbole->bibliotheque;
+        auto bib1 = fonction1->decl->données_externes->symbole->bibliotheque;
+        auto bib2 = fonction2->decl->données_externes->symbole->bibliotheque;
         return bib1->nom < bib2->nom;
     });
 
@@ -1548,20 +1548,21 @@ kuri::tableau<Bibliotheque *> ProgrammeRepreInter::donne_bibliothèques_utilisé
     kuri::ensemble<Bibliotheque *> bibliothèques_utilisées;
     POUR (fonctions) {
         if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
-            it->decl->symbole) {
-            rassemble_bibliothèques_utilisées(
-                résultat, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
+            it->decl->données_externes && it->decl->données_externes->symbole) {
+            rassemble_bibliothèques_utilisées(résultat,
+                                              bibliothèques_utilisées,
+                                              it->decl->données_externes->symbole->bibliotheque);
         }
     }
     POUR (globales) {
         if (!it->decl) {
             continue;
         }
-        if (!it->decl->ident_bibliotheque) {
+        if (!it->decl->données_externes) {
             continue;
         }
         rassemble_bibliothèques_utilisées(
-            résultat, bibliothèques_utilisées, it->decl->symbole->bibliotheque);
+            résultat, bibliothèques_utilisées, it->decl->données_externes->symbole->bibliotheque);
     }
     return résultat;
 }
