@@ -299,3 +299,5 @@ bool possède_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_stat
 bool est_déclaration_polymorphique(NoeudDeclaration const *decl);
 
 void imprime_membres_blocs_récursifs(NoeudBloc const *bloc);
+
+UniteCompilation **donne_adresse_unité(NoeudExpression *noeud);

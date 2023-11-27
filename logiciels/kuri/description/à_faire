@@ -1,5 +1,8 @@
 réusine opérateurs (partage entre types)
 
+- pour les déclarations de types (structure, énums) : decl.type sera type_de_données(type) 
+    les références de membres ou de déclaration n'auront plus à créer un type de données
+
 - ne crée pas de trace d'appels pour les fonctions pures
 
 ADN pour les arguments de compilation
@@ -136,15 +139,6 @@ remplace les noeuds de dépendances par des unités de compilations
 
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
-
-considère revoir l'arbre syntaxique des références de membres, pour simpilfier la génération de code et économiser de la mémoire
-
-    .
-        accédé
-        membre
-
-    membre
-        accédé
 
 - stabilité de pointeur pour les infos types
     - utilisation d'une poule de mémoire
