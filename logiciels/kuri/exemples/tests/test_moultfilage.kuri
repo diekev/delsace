@@ -29,13 +29,13 @@ fn_store :: fonc(p_data : *rien) -> *rien
 
     boucle {
         _ := pthread_mutex_lock(*store.mutex)
-        _ = pthread_cond_wait(*store.cond_store, *store.mutex)
+        _ := pthread_cond_wait(*store.cond_store, *store.mutex)
 
         store.stock = 20
         imprime("Remplissage du stock de % articles !\n", store.stock)
 
-        _ = pthread_cond_signal(*store.cond_clients)
-        _ = pthread_mutex_unlock(*store.mutex)
+        _ := pthread_cond_signal(*store.cond_clients)
+        _ := pthread_mutex_unlock(*store.mutex)
     }
 
     retourne nul
@@ -62,8 +62,8 @@ fn_clients :: fonc(p_data : *rien) -> *rien
         _ := pthread_mutex_lock(*store.mutex)
 
         si val > store.stock {
-            _ = pthread_cond_signal(*store.cond_store)
-            _ = pthread_cond_wait(*store.cond_clients, *store.mutex)
+            _ := pthread_cond_signal(*store.cond_store)
+            _ := pthread_cond_wait(*store.cond_clients, *store.mutex)
         }
 
         store.stock = store.stock - val
@@ -71,7 +71,7 @@ fn_clients :: fonc(p_data : *rien) -> *rien
         imprime("Client % prend % du stock, reste % en stock !\n", nb, val, store.stock)
         //printf("-- pthread_self() : %d\n".pointeur, pthread_getthreadid_np())
 
-        _ = pthread_mutex_unlock(*store.mutex)
+        _ := pthread_mutex_unlock(*store.mutex)
     }
 
     retourne nul

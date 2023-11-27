@@ -20,9 +20,9 @@ FenêtreSDL :: struct {
 crée_fenêtre_sdl :: fonc (args: *ArgumentsCréationFenêtre) -> Optionnel(*FenêtreSDL)
 {
     _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, 1)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
-    _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4)
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0)
+    _ := SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 8)
 
     drapeaux := SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE
     si args.plein_écran {
