@@ -1504,6 +1504,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
                << "{};\n";
         }
 
+        os << "\ttableau_page<DonnéesSymboleExterne> m_données_symbole_externe{};\n";
         os << "\ttableau_page<Monomorphisations> m_monomorphisations_fonctions{};\n";
         os << "\ttableau_page<Monomorphisations> m_monomorphisations_structs{};\n";
 
@@ -1555,6 +1556,11 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexeme const *lexeme, NoeudDeclarationE
         os << "\t}\n";
 
         const char *crée_monomorphisations = R"(
+    DonnéesSymboleExterne *crée_données_symbole_externe()
+    {
+        return m_données_symbole_externe.ajoute_element();
+    }
+
     Monomorphisations *crée_monomorphisations_fonction()
     {
         return m_monomorphisations_fonctions.ajoute_element();
