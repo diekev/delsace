@@ -269,7 +269,7 @@ analyse_si :: fonc (syntaxeuse : &Syntaxeuse) -> rien
         retourne
     }
 
-    _ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
     syntaxeuse.analyse_page()
 }
@@ -299,7 +299,7 @@ analyse_pour :: fonc (syntaxeuse : &Syntaxeuse) -> rien
         retourne
     }
 
-    _ = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 
     syntaxeuse.analyse_page()
 }

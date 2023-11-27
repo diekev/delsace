@@ -1130,6 +1130,11 @@ static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDeclaratio
 
 void NoeudBloc::ajoute_membre(NoeudDeclaration *decl)
 {
+    if (decl->ident == ID::_) {
+        /* Inutile d'avoir les variables ignorées comme membres du bloc. */
+        return;
+    }
+
     if (decl->est_declaration_symbole()) {
         auto decl_existante = declaration_pour_ident(decl->ident);
         if (decl_existante && decl_existante->est_declaration_symbole()) {
