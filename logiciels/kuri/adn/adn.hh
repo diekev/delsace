@@ -427,6 +427,7 @@ class ProteineStruct final : public Proteine {
     IdentifiantADN m_nom_code{};
     IdentifiantADN m_nom_genre{};
     IdentifiantADN m_nom_comme{};
+    IdentifiantADN m_genre_valeur{};
 
     kuri::tableau<ProteineStruct *> m_proteines_derivees{};
 
@@ -491,6 +492,11 @@ class ProteineStruct final : public Proteine {
         if (m_paire) {
             m_paire->m_nom_comme = m_nom_comme;
         }
+    }
+
+    void mute_genre_valeur(dls::vue_chaine_compacte chaine)
+    {
+        m_genre_valeur = chaine;
     }
 
     void mute_nom_code(dls::vue_chaine_compacte chaine)
