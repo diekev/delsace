@@ -136,8 +136,6 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
             retourne copie_chaine("")
         }
     }
-
-    retourne copie_chaine("")
 }
 
 imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *ChaineInternée)
@@ -225,8 +223,6 @@ trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
             retourne nul
         }
     }
-
-    retourne nul
 }
 
 détruit_chaines_internées :: fonc ()

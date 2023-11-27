@@ -711,8 +711,6 @@ test_discrimination_entier :: fonc (v: z32) -> bool
             retourne faux
         }
     }
-
-    retourne faux
 }
 
 #assert test_discrimination_entier(1) == vrai
@@ -732,8 +730,6 @@ test_discrimination_réel :: fonc (v: r32) -> bool
             retourne faux
         }
     }
-
-    retourne faux
 }
 
 #assert test_discrimination_réel(1.0) == vrai
@@ -753,8 +749,6 @@ test_discrimination_chaine :: fonc (v: chaine) -> bool
             retourne faux
         }
     }
-
-    retourne faux
 }
 
 #assert test_discrimination_chaine("kuri") == vrai
