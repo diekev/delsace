@@ -1284,12 +1284,13 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
                 }
             }
 
-            if (!decl->symbole->charge(
+            if (!decl->données_externes->symbole->charge(
                     espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
                 return false;
             }
 
-            donnees_externe.ptr_fonction = decl->symbole->donne_adresse_fonction_pour_exécution();
+            donnees_externe.ptr_fonction =
+                decl->données_externes->symbole->donne_adresse_fonction_pour_exécution();
         }
 
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
@@ -2157,14 +2158,15 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
     if (globale->est_info_type_de) {
         adresse_pour_exécution = globale->est_info_type_de->info_type;
     }
-    else if (globale->decl && globale->decl->symbole) {
+    else if (globale->decl && globale->decl->données_externes) {
         auto decl = globale->decl;
-        if (!decl->symbole->charge(
+        if (!decl->données_externes->symbole->charge(
                 espace, decl, RaisonRechercheSymbole::EXECUTION_METAPROGRAMME)) {
             return false;
         }
 
-        adresse_pour_exécution = decl->symbole->donne_adresse_objet_pour_exécution();
+        adresse_pour_exécution =
+            decl->données_externes->symbole->donne_adresse_objet_pour_exécution();
     }
 
     auto type_globale = globale->donne_type_alloué();

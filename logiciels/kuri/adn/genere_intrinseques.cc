@@ -188,7 +188,7 @@ static void genere_code_machine_virtuelle(const kuri::tableau<Proteine *> &prote
         auto fonction = dynamic_cast<ProteineFonction *>(it);
         auto symbole = fonction->donne_symbole_gcc();
 
-        os << "    if (decl->nom_symbole == \"" << symbole << "\") {\n";
+        os << "    if (decl->données_externes->nom_symbole == \"" << symbole << "\") {\n";
         genere_code_appel_intrinsèque(os, fonction);
         os << "        return;\n";
         os << "    }\n";
