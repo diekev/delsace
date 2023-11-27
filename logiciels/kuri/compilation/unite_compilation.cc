@@ -415,13 +415,13 @@ static void imprime_noeud_index_courant_unité(
 void imprime_noeud_index_courant_unité(std::ostream &os,
                                        const NoeudDeclarationEnteteFonction *entête)
 {
-    imprime_noeud_index_courant_unité(os, entête->arbre_aplatis, entête->unite);
+    imprime_noeud_index_courant_unité(os, entête->arbre_aplatis, entête->unité);
 }
 
 void imprime_noeud_index_courant_unité(std::ostream &os,
                                        const NoeudDeclarationCorpsFonction *corps)
 {
-    imprime_noeud_index_courant_unité(os, corps->arbre_aplatis, corps->unite);
+    imprime_noeud_index_courant_unité(os, corps->arbre_aplatis, corps->unité);
 }
 
 /** \} */

@@ -655,7 +655,7 @@ void Tacheronne::execute_metaprogrammes()
                 auto pointeur = it->données_exécution->pointeur_pile;
 
                 // Les directives pour des expressions dans des fonctions n'ont pas d'unités
-                if (!it->directive->unite) {
+                if (!it->directive->unité) {
                     auto resultat = noeud_syntaxique_depuis_resultat(
                         espace,
                         it->directive,
