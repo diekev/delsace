@@ -1433,6 +1433,22 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                     continue;
                 }
 
+                auto decl_existante = trouve_dans_bloc(
+                    bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
+
+                if (decl_existante) {
+                    espace
+                        ->rapporte_erreur(decl,
+                                          "Impossible d'employer la déclaration car une "
+                                          "déclaration avec le même nom qu'un de ses membres "
+                                          "existe déjà dans le bloc.")
+                        .ajoute_message("La déclaration existante est :\n")
+                        .ajoute_site(decl_existante)
+                        .ajoute_message("Le membre en conflit est :\n")
+                        .ajoute_site(it.decl);
+                    return CodeRetourValidation::Erreur;
+                }
+
                 auto decl_membre = m_tacheronne.assembleuse->crée_declaration_variable(
                     decl->lexeme);
                 decl_membre->ident = it.nom;

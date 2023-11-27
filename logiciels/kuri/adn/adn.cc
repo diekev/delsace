@@ -317,7 +317,13 @@ void ProteineStruct::genere_code_kuri(FluxSortieKuri &os)
     }
     os << "{";
     if (m_mere) {
-        os << "\n\templ base: " << m_mere->nom() << "\n";
+        if (m_mere->accede_nom_comme().est_nul()) {
+            os << "\n\templ base";
+        }
+        else {
+            os << "\n\templ base_" << m_mere->accede_nom_comme();
+        }
+        os << ": " << m_mere->nom() << "\n";
     }
 
     if (!membres().est_vide() || !m_mere) {

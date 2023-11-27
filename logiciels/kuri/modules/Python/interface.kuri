@@ -35,7 +35,7 @@ PyGetSetDef :: struct #externe {
 _typeobject :: PyTypeObject
 
 PyTypeObject :: struct #externe {
-    empl ob_base: PyVarObject
+    empl base_var_object: PyVarObject
 
     tp_name: ChaineC /* For printing, in format "<module>.<name>" */
 
@@ -210,7 +210,7 @@ PyObject :: struct #externe {
 }
 
 PyVarObject :: struct {
-    empl ob_base: PyObject
+    empl base_object: PyObject
     ob_size: Py_ssize_t /* Number of items in variable part */
 }
 
