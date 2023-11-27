@@ -841,7 +841,8 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             if (accédé->est_reference_declaration()) {
                 if (accédé->comme_reference_declaration()
                         ->declaration_referee->est_declaration_module()) {
-                    return trouve_expression_non_constante(référence_membre->membre);
+                    assert(référence_membre->déclaration_référée);
+                    return trouve_expression_non_constante(référence_membre->déclaration_référée);
                 }
             }
 
@@ -871,7 +872,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
 
-            return référence_membre->membre;
+            return référence_membre;
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:

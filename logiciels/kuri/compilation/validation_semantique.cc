@@ -1486,24 +1486,38 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     NoeudExpressionMembre *expression_membre)
 {
     auto structure = expression_membre->accedee;
-    auto membre = expression_membre->membre;
 
     if (structure->est_reference_declaration()) {
         auto decl = structure->comme_reference_declaration()->declaration_referee;
 
         if (decl->est_declaration_module()) {
-            auto ref = membre->comme_reference_declaration();
-
             auto module_ref = decl->comme_declaration_module()->module;
             /* À FAIRE(gestion) : attente spécifique sur tout le module. */
             if (module_ref->bloc == nullptr) {
-                return Attente::sur_symbole(ref);
+                return Attente::sur_symbole(structure->comme_reference_declaration());
             }
 
-            TENTE(valide_référence_déclaration(ref, module_ref->bloc));
+            auto déclaration_référée = trouve_dans_bloc(module_ref->bloc,
+                                                        expression_membre->ident);
+            if (!déclaration_référée) {
+                return Attente::sur_symbole(structure->comme_reference_declaration());
+            }
 
-            expression_membre->type = membre->type;
-            expression_membre->genre_valeur = membre->genre_valeur;
+            if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(déclaration_référée);
+            }
+
+            auto type_référée = déclaration_référée->type;
+            if (déclaration_référée->est_declaration_type()) {
+                type_référée = m_compilatrice.typeuse.type_type_de_donnees(type_référée);
+                expression_membre->genre_valeur = GenreValeur::DROITE;
+            }
+            else if (déclaration_référée->est_entete_fonction()) {
+                expression_membre->genre_valeur = GenreValeur::DROITE;
+            }
+
+            expression_membre->déclaration_référée = déclaration_référée;
+            expression_membre->type = type_référée;
             return CodeRetourValidation::OK;
         }
     }
@@ -1528,9 +1542,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
 
         auto type_compose = static_cast<TypeCompose *>(type);
-        auto info_membre = donne_membre_pour_nom(type_compose, membre->ident);
+        auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
-            rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
+            rapporte_erreur_membre_inconnu(expression_membre, expression_membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
@@ -1539,9 +1553,6 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                                          MembreTypeComposé::EST_CONSTANT;
         auto const membre_est_implicite = info_membre->membre.drapeaux &
                                           MembreTypeComposé::EST_IMPLICITE;
-        auto const decl_membre = info_membre->membre.decl;
-
-        membre->comme_reference_declaration()->declaration_referee = decl_membre;
 
         expression_membre->type = info_membre->membre.type;
         expression_membre->index_membre = index_membre;

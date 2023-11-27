@@ -314,7 +314,6 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
         auto acces = static_cast<NoeudExpressionMembre *>(appelee);
 
         auto accede = acces->accedee;
-        auto membre = acces->membre;
 
         if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
             auto declaration_referee = accede->comme_reference_declaration()->declaration_referee;
@@ -331,7 +330,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
 
                 auto module = espace.compilatrice().module(accede->ident);
                 auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
-                trouve_declarations_dans_bloc(declarations, module->bloc, membre->ident);
+                trouve_declarations_dans_bloc(declarations, module->bloc, acces->ident);
 
                 POUR (declarations) {
                     candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
@@ -365,7 +364,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
                 return Attente::sur_type(type_accede);
             }
 
-            auto info_membre = donne_membre_pour_nom(type_struct, membre->ident);
+            auto info_membre = donne_membre_pour_nom(type_struct, acces->ident);
 
             if (info_membre.has_value()) {
                 acces->type = info_membre->membre.type;
@@ -1289,15 +1288,22 @@ static ResultatValidation trouve_candidates_pour_appel(
     POUR (candidates_appel) {
         if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
             auto acces = it.decl->comme_reference_membre();
+            // À FAIRE : supprime ça
+            auto référence = NoeudExpressionReference();
+            référence.lexeme = acces->lexeme;
+            référence.bloc_parent = acces->bloc_parent;
+            référence.ident = acces->ident;
+
             auto candidates = ListeCandidatesExpressionAppel();
             resultat_validation = trouve_candidates_pour_fonction_appelee(
-                contexte, espace, acces->membre, candidates);
+                contexte, espace, &référence, candidates);
             if (!est_ok(resultat_validation)) {
                 return resultat_validation;
             }
 
             if (candidates.taille() == 0) {
-                return Attente::sur_symbole(acces->membre->comme_reference_declaration());
+                /* À FAIRE : nous devons attendre sur le membre... */
+                return Attente::sur_symbole(acces->accedee->comme_reference_declaration());
             }
 
             args.pousse_front({nullptr, nullptr, acces->accedee});
@@ -1559,7 +1565,7 @@ static NoeudStruct *monomorphise_au_besoin(
 static NoeudExpressionReference *symbole_pour_expression(NoeudExpression *expression)
 {
     if (expression->est_reference_membre()) {
-        return expression->comme_reference_membre()->membre->comme_reference_declaration();
+        return expression->comme_reference_membre()->accedee->comme_reference_declaration();
     }
 
     return expression->comme_reference_declaration();

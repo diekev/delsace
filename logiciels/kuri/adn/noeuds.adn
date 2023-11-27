@@ -374,7 +374,10 @@ struct NoeudExpressionMembre : NoeudExpression {
     @code  NoeudCodeRéférenceMembre
 
     NoeudExpression *accédée [code enfant]
-    NoeudExpression *membre [code enfant]
+
+    /* Pour l'accès à des modules. */
+    NoeudDéclaration *déclaration_référée [préserve_accents]
+    /* Pour l'accès à des structures. */
     int index_membre
 }
 

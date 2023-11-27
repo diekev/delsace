@@ -474,14 +474,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
             }
 
             if (type_accede->est_type_tableau_fixe()) {
-                if (!ref_membre->membre->est_reference_declaration()) {
-                    return erreur_evaluation(
-                        b, "L'expression n'est pas constante et ne peut être calculée !");
-                }
-
-                auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
-
-                if (ref_decl_membre->ident == ID::taille) {
+                if (ref_membre->ident == ID::taille) {
                     return ValeurExpression(type_accede->comme_type_tableau_fixe()->taille);
                 }
             }
