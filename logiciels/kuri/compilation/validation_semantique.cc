@@ -1154,6 +1154,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 noeud->type = m_compilatrice.typeuse.type_type_de_donnees(expr_type->type);
             }
 
+            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_MEMOIRE:
