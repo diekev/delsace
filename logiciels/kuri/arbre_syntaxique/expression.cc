@@ -481,7 +481,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
 
                 auto ref_decl_membre = ref_membre->membre->comme_reference_declaration();
 
-                if (ref_decl_membre->ident->nom == "taille") {
+                if (ref_decl_membre->ident == ID::taille) {
                     return ValeurExpression(type_accede->comme_type_tableau_fixe()->taille);
                 }
             }
