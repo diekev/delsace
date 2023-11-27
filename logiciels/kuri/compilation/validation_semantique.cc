@@ -1604,8 +1604,10 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
      * pouvoir comparer des fonctions externes même si elles sont définies par des modules
      * différents. */
     if (fonction1.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) &&
-        fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) &&
-        fonction1.ident_bibliotheque == fonction2.ident_bibliotheque) {
+        fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) && fonction1.données_externes &&
+        fonction2.données_externes &&
+        fonction1.données_externes->ident_bibliotheque ==
+            fonction2.données_externes->ident_bibliotheque) {
         return true;
     }
 
@@ -2023,22 +2025,26 @@ ResultatValidation ContexteValidationCode::valide_symbole_externe(NoeudDeclarati
                                                                   TypeSymbole type_symbole)
 {
     // À FAIRE: n'utilise externe que pour les fonctions vraiment externes...
-    if (!decl->ident_bibliotheque) {
+    if (!decl->données_externes || !decl->données_externes->ident_bibliotheque) {
         return CodeRetourValidation::OK;
     }
 
+    auto données_externes = decl->données_externes;
+
     auto bibliotheque = m_compilatrice.gestionnaire_bibliotheques->trouve_bibliotheque(
-        decl->ident_bibliotheque);
+        données_externes->ident_bibliotheque);
 
     if (!bibliotheque) {
         espace
             ->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver le symbole")
-            .ajoute_message(
-                "« ", decl->ident_bibliotheque->nom, " » ne réfère à aucune bibliothèque !");
+            .ajoute_message("« ",
+                            données_externes->ident_bibliotheque->nom,
+                            " » ne réfère à aucune bibliothèque !");
         return CodeRetourValidation::Erreur;
     }
 
-    decl->symbole = bibliotheque->crée_symbole(decl->nom_symbole, type_symbole);
+    données_externes->symbole = bibliotheque->crée_symbole(données_externes->nom_symbole,
+                                                           type_symbole);
     return CodeRetourValidation::OK;
 }
 

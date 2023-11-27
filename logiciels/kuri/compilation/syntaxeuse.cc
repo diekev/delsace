@@ -2522,7 +2522,9 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
                     rapporte_erreur("Attendu le symbole de l'intrinsèque");
                 }
 
-                noeud->nom_symbole = lexeme_courant()->chaine;
+                noeud->données_externes =
+                    m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
+                noeud->données_externes->nom_symbole = lexeme_courant()->chaine;
             }
             else if (ident_directive == ID::interne) {
                 noeud->visibilité_symbole = VisibilitéSymbole::INTERNE;
@@ -3148,14 +3150,17 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDeclarationSymbole *déc
         rapporte_erreur("attendu une chaine de caractère après #externe");
     }
 
-    déclaration_symbole->ident_bibliotheque = lexeme_courant()->ident;
+    déclaration_symbole->données_externes =
+        m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
+    auto données_externes = déclaration_symbole->données_externes;
+    données_externes->ident_bibliotheque = lexeme_courant()->ident;
     consomme();
 
     if (apparie(GenreLexeme::CHAINE_LITTERALE)) {
-        déclaration_symbole->nom_symbole = lexeme_courant()->chaine;
+        données_externes->nom_symbole = lexeme_courant()->chaine;
         consomme();
     }
     else {
-        déclaration_symbole->nom_symbole = déclaration_symbole->ident->nom;
+        données_externes->nom_symbole = déclaration_symbole->ident->nom;
     }
 }
