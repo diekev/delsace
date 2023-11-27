@@ -952,7 +952,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             if (atome_fonc->decl &&
                 atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE)) {
-                return atome_fonc->decl->nom_symbole;
+                return atome_fonc->decl->données_externes->nom_symbole;
             }
 
             return donne_nom_pour_fonction(atome_fonc);
