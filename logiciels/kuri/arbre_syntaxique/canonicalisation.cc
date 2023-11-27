@@ -1906,10 +1906,7 @@ static NoeudExpression *crée_référence_pour_membre_employé(AssembleuseArbre 
     POUR (hiérarchie) {
         auto accès_base = assem->crée_reference_membre(
             lexeme, ref_membre_courant, it.membre.type, it.index_membre);
-
-        auto ref_membre_empl = assem->crée_reference_declaration(lexeme, it.membre.decl);
-        accès_base->membre = ref_membre_empl;
-
+        accès_base->ident = it.membre.nom;
         ref_membre_courant = accès_base;
     }
 
@@ -1944,8 +1941,9 @@ void Simplificatrice::simplifie_référence_membre(NoeudExpressionMembre *ref_me
 
     if (accede->est_reference_declaration()) {
         if (accede->comme_reference_declaration()->declaration_referee->est_declaration_module()) {
-            ref_membre->substitution = ref_membre->membre;
-            simplifie(ref_membre->membre);
+            ref_membre->substitution = assem->crée_reference_declaration(
+                lexeme, ref_membre->déclaration_référée);
+            simplifie(ref_membre->substitution);
             return;
         }
     }

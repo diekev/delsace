@@ -202,17 +202,18 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     /* L'initialisation est une extraction de la valeur de l'union.
      * À FAIRE(discr) : ignore la vérification sur l'activité du membre. */
-    auto initialation_déclaration = assembleuse->crée_comme(param->lexeme);
-    initialation_déclaration->expression = expression;
-    initialation_déclaration->type = type_membre;
-    initialation_déclaration->transformation = {
+    auto initialisation_déclaration = assembleuse->crée_comme(param->lexeme);
+    initialisation_déclaration->expression = expression;
+    initialisation_déclaration->type = type_membre;
+    initialisation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION, type_membre, info_membre.index_membre};
 
     auto déclaration_pour_expression = assembleuse->crée_declaration_variable(
-        param->comme_reference_declaration(), initialation_déclaration);
+        param->comme_reference_declaration(), initialisation_déclaration);
     déclaration_pour_expression->bloc_parent = bloc_insertion;
     déclaration_pour_expression->type = type_membre;
     déclaration_pour_expression->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    déclaration_pour_expression->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
     bloc_insertion->expressions->pousse_front(déclaration_pour_expression);
     bloc_insertion->ajoute_membre(déclaration_pour_expression);
