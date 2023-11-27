@@ -565,7 +565,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
     kuri::pour_chaque_element(dependances.fonctions_utilisees, [&](auto &fonction) {
-        if (!fonction->corps->unite &&
+        if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
             gestionnaire.requiers_typage(espace, fonction->corps);
@@ -575,7 +575,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
 
     /* Requiers le typage de toutes les déclarations utilisées. */
     kuri::pour_chaque_element(dependances.globales_utilisees, [&](auto &globale) {
-        if (!globale->unite) {
+        if (!globale->unité) {
             gestionnaire.requiers_typage(espace, const_cast<NoeudDeclarationVariable *>(globale));
         }
         return kuri::DécisionItération::Continue;
@@ -584,7 +584,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage de tous les types utilisés. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         auto decl = decl_pour_type(type);
-        if (decl && !decl->unite) {
+        if (decl && !decl->comme_declaration_type()->unité) {
             // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
             // sémantique.
             if (!(type->est_type_union() && type->comme_type_union()->est_anonyme) &&
@@ -686,7 +686,7 @@ void GestionnaireCode::determine_dependances(NoeudExpression *noeud,
 
             it->ajoute_racine(entete);
 
-            if (entete->corps && !entete->corps->unite) {
+            if (entete->corps && !entete->corps->unité) {
                 requiers_typage(espace, entete->corps);
             }
         }
@@ -744,7 +744,7 @@ UniteCompilation *GestionnaireCode::crée_unite_pour_noeud(EspaceDeTravail *espa
 {
     auto unite = crée_unite(espace, raison, met_en_attente);
     unite->noeud = noeud;
-    noeud->unite = unite;
+    *donne_adresse_unité(noeud) = unite;
     return unite;
 }
 
@@ -855,7 +855,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
     // À FAIRE : déplace ceci quand toutes les entêtes seront validées avant le reste.
     programme->ajoute_fonction(decl_creation_contexte);
 
-    if (!decl_creation_contexte->unite) {
+    if (!decl_creation_contexte->unité) {
         requiers_typage(espace, decl_creation_contexte);
         return false;
     }
@@ -866,7 +866,7 @@ bool GestionnaireCode::tente_de_garantir_presence_creation_contexte(EspaceDeTrav
 
     determine_dependances(decl_creation_contexte, espace, graphe);
 
-    if (!decl_creation_contexte->corps->unite) {
+    if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
         return false;
     }
@@ -912,7 +912,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
     if (metaprogramme->corps_texte) {
         if (metaprogramme->corps_texte_pour_fonction) {
             auto recipiente = metaprogramme->corps_texte_pour_fonction;
-            assert(!recipiente->corps->unite);
+            assert(!recipiente->corps->unité);
             requiers_typage(espace, recipiente->corps);
 
             /* Crée un fichier pour le métaprogramme, et fait dépendre le corps de la fonction
@@ -920,7 +920,7 @@ void GestionnaireCode::requiers_compilation_metaprogramme(EspaceDeTravail *espac
              * assurer que personne n'essayera de performer le typage du corps recipient avant que
              * les sources du fichiers ne soient générées, lexées, et parsées. */
             auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(metaprogramme);
-            recipiente->corps->unite->ajoute_attente(Attente::sur_parsage(fichier));
+            recipiente->corps->unité->ajoute_attente(Attente::sur_parsage(fichier));
         }
         else if (metaprogramme->corps_texte_pour_structure) {
             /* Les fichiers pour les #corps_texte des structures sont créés lors de la validation
@@ -958,7 +958,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     if (attente.est<AttenteSurType>()) {
         Type *type = const_cast<Type *>(attente.type());
         auto decl = decl_pour_type(type);
-        if (decl && decl->unite == nullptr) {
+        if (decl && decl->comme_declaration_type()->unité == nullptr) {
             requiers_typage(espace, decl);
         }
         /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
@@ -967,7 +967,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     }
     else if (attente.est<AttenteSurDeclaration>()) {
         NoeudDeclaration *decl = attente.declaration();
-        if (decl->unite == nullptr) {
+        if (*donne_adresse_unité(decl) == nullptr) {
             requiers_typage(espace, decl);
         }
     }
@@ -994,7 +994,7 @@ void GestionnaireCode::flush_noeuds_à_typer()
     m_fonctions_init_type_requises.efface();
 
     POUR (m_noeuds_à_valider) {
-        if (it.noeud->unite) {
+        if (*donne_adresse_unité(it.noeud)) {
             continue;
         }
 
@@ -1142,13 +1142,14 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
 
     POUR (unite->fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
-        if (it->unite) {
+        auto adresse_unité = donne_adresse_unité(it);
+        if (*adresse_unité) {
             continue;
         }
 
         if (it->est_charge() || it->est_importe()) {
             requiers_typage(espace, it);
-            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(it->unite);
+            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
         else {
             m_noeuds_à_valider.ajoute({espace, it});
@@ -1253,7 +1254,11 @@ static bool declaration_est_invalide(NoeudExpression *decl)
         return false;
     }
 
-    auto const unite = decl->unite;
+    auto adresse_unité = donne_adresse_unité(decl);
+    if (!adresse_unité) {
+        return true;
+    }
+    auto unite = *adresse_unité;
     if (!unite) {
         /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
         return true;
@@ -1514,7 +1519,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     assert((unite->type->drapeaux & INITIALISATION_TYPE_FUT_CREEE) != 0);
 
     auto fonction = unite->type->fonction_init;
-    if (fonction->unite) {
+    if (fonction->unité) {
         /* Pour les pointeurs, énums, et fonctions, la fonction est partagée, nous ne devrions pas
          * générer la RI plusieurs fois. L'unité de compilation est utilisée pour indiquée que la
          * RI est en cours de génération. */
@@ -1535,7 +1540,7 @@ void GestionnaireCode::fonction_initialisation_type_creee(UniteCompilation *unit
     auto espace = unite->espace;
     TACHE_AJOUTEE(GENERATION_RI);
     unite->noeud = fonction;
-    fonction->unite = unite;
+    fonction->unité = unite;
     ajoute_unité_à_liste_attente(unite);
 }
 

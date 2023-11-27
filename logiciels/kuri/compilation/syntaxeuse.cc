@@ -1554,10 +1554,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
+            if (!apparie(GenreLexeme::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après '.'");
+            }
+
+            lexeme = lexeme_courant();
+            consomme();
+
             auto noeud = m_tacheronne.assembleuse->crée_reference_membre(lexeme);
             noeud->accedee = gauche;
-            noeud->membre = analyse_expression(
-                donnees_precedence, racine_expression, lexeme_final);
             return noeud;
         }
         case GenreLexeme::TROIS_POINTS:

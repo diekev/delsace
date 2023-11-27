@@ -821,7 +821,7 @@ kuri::chaine ConstructriceRI::imprime_site(NoeudExpression *site) const
     if (!m_fonction_courante || !m_fonction_courante->decl) {
         return "aucun site";
     }
-    auto const unité = m_fonction_courante->decl->unite;
+    auto const unité = m_fonction_courante->decl->unité;
     if (!unité) {
         return "aucun site";
     }

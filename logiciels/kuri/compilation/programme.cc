@@ -200,7 +200,7 @@ bool Programme::ri_generees(DiagnostiqueÉtatCompilation &diagnostique) const
                              ID::init_execution_kuri,
                              ID::fini_execution_kuri,
                              ID::init_globales_kuri)) {
-                assert_rappel(it->unite, [&]() {
+                assert_rappel(it->unité, [&]() {
                     std::cerr << "Aucune unité pour de compilation pour :\n";
                     std::cerr << erreur::imprime_site(*m_espace, it);
                 });
@@ -457,7 +457,7 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDecl
         return;
     }
 
-    auto unité_corps = corps->unite;
+    auto unité_corps = corps->unité;
     if (!unité_corps) {
         os << "-- validation non performée car aucune unité pour le corps de "
            << nom_humainement_lisible(déclaration) << "\n";
@@ -484,15 +484,18 @@ static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDeclaration
     if (déclaration->est_entete_fonction()) {
         auto entête = déclaration->comme_entete_fonction();
         os << "-- état de l'unité de l'entête :\n";
-        imprime_état_unité(os, entête->unite);
-        if (entête->corps->unite) {
+        imprime_état_unité(os, entête->unité);
+        if (entête->corps->unité) {
             os << "-- état de l'unité du corps :\n";
-            imprime_état_unité(os, entête->corps->unite);
+            imprime_état_unité(os, entête->corps->unité);
         }
     }
-    else if (déclaration->unite) {
-        os << "-- état de l'unité :\n";
-        imprime_état_unité(os, déclaration->unite);
+    else {
+        auto adresse_unité = donne_adresse_unité(déclaration);
+        if (*adresse_unité) {
+            os << "-- état de l'unité :\n";
+            imprime_état_unité(os, *adresse_unité);
+        }
     }
 }
 

@@ -407,7 +407,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            expr->genre_valeur = GenreValeur::DROITE;
             return valide_appel_fonction(m_compilatrice, *espace, *this, expr);
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
@@ -474,7 +473,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
             auto inst = noeud->comme_reference_membre();
-            noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return valide_acces_membre(inst);
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -492,14 +490,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::R32;
             noeud->comme_litterale_reel()->valeur = noeud->lexeme->valeur_reelle;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::ENTIER_CONSTANT;
             noeud->comme_litterale_entier()->valeur = noeud->lexeme->valeur_entiere;
             break;
@@ -516,7 +512,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr = noeud->comme_expression_unaire();
-            expr->genre_valeur = GenreValeur::DROITE;
 
             auto enfant = expr->operande;
             auto type = enfant->type;
@@ -612,7 +607,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto expr = noeud->comme_indexage();
-            expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
             auto enfant1 = expr->operande_gauche;
             auto enfant2 = expr->operande_droite;
@@ -710,25 +704,21 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
             auto inst = noeud->comme_retourne();
-            noeud->genre_valeur = GenreValeur::DROITE;
             return valide_expression_retour(inst);
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CHAINE:
         {
             noeud->type = TypeBase::CHAINE;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::BOOL;
             noeud->comme_litterale_bool()->valeur = noeud->lexeme->chaine == "vrai";
             break;
         }
         case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::Z8;
             noeud->comme_litterale_caractere()->valeur = static_cast<uint32_t>(
                 noeud->lexeme->valeur_entiere);
@@ -806,7 +796,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = noeud->comme_comme();
-            expr->genre_valeur = GenreValeur::DROITE;
 
             if (resoud_type_final(expr->expression_type, expr->type) ==
                 CodeRetourValidation::Erreur) {
@@ -860,14 +849,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::EXPRESSION_LITTERALE_NUL:
         {
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = TypeBase::PTR_NUL;
             break;
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
             auto expr = noeud->comme_taille_de();
-            expr->genre_valeur = GenreValeur::DROITE;
             expr->type = TypeBase::N32;
 
             auto expr_type = expr->expression;
@@ -978,7 +965,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto expr = noeud->comme_construction_tableau();
-            noeud->genre_valeur = GenreValeur::DROITE;
 
             auto feuilles = expr->expression->comme_virgule();
 
@@ -1112,7 +1098,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 }
             }
 
-            noeud->genre_valeur = GenreValeur::DROITE;
             noeud->type = m_compilatrice.typeuse.type_pointeur_pour(type_info_type);
 
             break;
@@ -1133,7 +1118,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees,
                                                                       TypeBase::RIEN);
             noeud->type = type_fonction;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_DE:
@@ -1170,7 +1154,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             auto type_pointeur = type->comme_type_pointeur();
-            noeud->genre_valeur = GenreValeur::TRANSCENDANTALE;
             noeud->type = type_pointeur->type_pointe;
 
             break;
@@ -1284,7 +1267,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         {
             auto inst = noeud->comme_tente();
             inst->type = inst->expression_appelee->type;
-            inst->genre_valeur = GenreValeur::DROITE;
 
             auto type_de_l_erreur = Type::nul();
 
@@ -1373,6 +1355,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_var_piege->type = var_piege->type;
                 decl_var_piege->ident = var_piege->ident;
                 decl_var_piege->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+                decl_var_piege->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
                 inst->expression_piegee->comme_reference_declaration()->declaration_referee =
                     decl_var_piege;
@@ -1458,6 +1441,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 decl_membre->declaration_vient_d_un_emploi = decl;
                 decl_membre->index_membre_employe = index_it;
                 decl_membre->expression = it.expression_valeur_defaut;
+                decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
                 bloc_parent->ajoute_membre(decl_membre);
             }
@@ -1474,7 +1458,6 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             }
 
             noeud->type = TypeBase::CHAINE;
-            noeud->genre_valeur = GenreValeur::DROITE;
             break;
         }
     }
@@ -1486,24 +1469,35 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
     NoeudExpressionMembre *expression_membre)
 {
     auto structure = expression_membre->accedee;
-    auto membre = expression_membre->membre;
 
     if (structure->est_reference_declaration()) {
         auto decl = structure->comme_reference_declaration()->declaration_referee;
 
         if (decl->est_declaration_module()) {
-            auto ref = membre->comme_reference_declaration();
-
             auto module_ref = decl->comme_declaration_module()->module;
             /* À FAIRE(gestion) : attente spécifique sur tout le module. */
             if (module_ref->bloc == nullptr) {
-                return Attente::sur_symbole(ref);
+                return Attente::sur_symbole(structure->comme_reference_declaration());
             }
 
-            TENTE(valide_référence_déclaration(ref, module_ref->bloc));
+            auto déclaration_référée = trouve_dans_bloc(module_ref->bloc,
+                                                        expression_membre->ident);
+            if (!déclaration_référée) {
+                return Attente::sur_symbole(structure->comme_reference_declaration());
+            }
 
-            expression_membre->type = membre->type;
-            expression_membre->genre_valeur = membre->genre_valeur;
+            if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                return Attente::sur_declaration(déclaration_référée);
+            }
+
+            auto type_référée = déclaration_référée->type;
+            if (déclaration_référée->est_declaration_type()) {
+                type_référée = m_compilatrice.typeuse.type_type_de_donnees(type_référée);
+            }
+
+            expression_membre->genre_valeur = déclaration_référée->genre_valeur;
+            expression_membre->déclaration_référée = déclaration_référée;
+            expression_membre->type = type_référée;
             return CodeRetourValidation::OK;
         }
     }
@@ -1528,9 +1522,9 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         }
 
         auto type_compose = static_cast<TypeCompose *>(type);
-        auto info_membre = donne_membre_pour_nom(type_compose, membre->ident);
+        auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
-            rapporte_erreur_membre_inconnu(expression_membre, membre, type_compose);
+            rapporte_erreur_membre_inconnu(expression_membre, expression_membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
@@ -1539,9 +1533,6 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
                                          MembreTypeComposé::EST_CONSTANT;
         auto const membre_est_implicite = info_membre->membre.drapeaux &
                                           MembreTypeComposé::EST_IMPLICITE;
-        auto const decl_membre = info_membre->membre.decl;
-
-        membre->comme_reference_declaration()->declaration_referee = decl_membre;
 
         expression_membre->type = info_membre->membre.type;
         expression_membre->index_membre = index_membre;
@@ -1613,13 +1604,13 @@ static bool fonctions_ont_memes_definitions(NoeudDeclarationEnteteFonction const
 
     /* Il est valide de redéfinir la fonction principale dans un autre espace. */
     if (fonction1.ident == ID::principale) {
-        if (!fonction1.unite || !fonction2.unite) {
+        if (!fonction1.unité || !fonction2.unité) {
             /* S'il manque une unité, nous revérifierons lors de la validation de la deuxième
              * fonction. */
             return false;
         }
 
-        if (fonction1.unite->espace != fonction2.unite->espace) {
+        if (fonction1.unité->espace != fonction2.unité->espace) {
             return false;
         }
     }
@@ -2480,8 +2471,6 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
 {
     CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
-    expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
     assert_rappel(bloc_recherche != nullptr,
                   [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
 
@@ -2558,6 +2547,7 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
          * les déclaration référées. */
         if (expr->ident == ID::it) {
             expr->declaration_referee = noeud_pour->decl_it;
+            expr->genre_valeur = noeud_pour->decl_it->genre_valeur;
             expr->type = noeud_pour->decl_it->type;
             return CodeRetourValidation::OK;
         }
@@ -2565,6 +2555,7 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         if (expr->ident == ID::index_it) {
             expr->declaration_referee = noeud_pour->decl_index_it;
             expr->type = noeud_pour->decl_index_it->type;
+            expr->genre_valeur = noeud_pour->decl_index_it->genre_valeur;
             return CodeRetourValidation::OK;
         }
 
@@ -2649,7 +2640,6 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
-        expr->genre_valeur = GenreValeur::DROITE;
     }
     else {
         if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2691,14 +2681,9 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
                 expr->declaration_referee = decl;
             }
         }
-
-        expr->genre_valeur = GenreValeur::DROITE;
     }
 
-    if (decl->est_entete_fonction() && !decl->comme_entete_fonction()->possède_drapeau(
-                                           DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-        expr->genre_valeur = GenreValeur::DROITE;
-    }
+    expr->genre_valeur = decl->genre_valeur;
 
     decl->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     if (decl->est_declaration_variable()) {
@@ -4258,6 +4243,15 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
 
             decl_var->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+            if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+                decl_var->genre_valeur = GenreValeur::DROITE;
+                variable->genre_valeur = GenreValeur::DROITE;
+            }
+            else {
+                decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
+                variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
+            }
         }
     }
 
@@ -4736,7 +4730,6 @@ void ContexteValidationCode::crée_transtypage_implicite_au_besoin(
 
 ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
-    expr->genre_valeur = GenreValeur::DROITE;
     CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
     if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
@@ -5302,6 +5295,8 @@ static NoeudDeclarationVariable *crée_déclaration_pour_variable(AssembleuseArb
     decl->type = type;
     decl->valeur->type = type;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl->genre_valeur = GenreValeur::TRANSCENDANTALE;
+    variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
     return decl;
 }
 
