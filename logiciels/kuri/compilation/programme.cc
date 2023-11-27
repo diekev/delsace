@@ -490,9 +490,12 @@ static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDeclaration
             imprime_état_unité(os, entête->corps->unité);
         }
     }
-    else if (déclaration->unité) {
-        os << "-- état de l'unité :\n";
-        imprime_état_unité(os, déclaration->unité);
+    else {
+        auto adresse_unité = donne_adresse_unité(déclaration);
+        if (*adresse_unité) {
+            os << "-- état de l'unité :\n";
+            imprime_état_unité(os, *adresse_unité);
+        }
     }
 }
 

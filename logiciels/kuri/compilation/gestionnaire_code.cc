@@ -584,7 +584,7 @@ static void garantie_typage_des_dependances(GestionnaireCode &gestionnaire,
     /* Requiers le typage de tous les types utilisés. */
     kuri::pour_chaque_element(dependances.types_utilises, [&](auto &type) {
         auto decl = decl_pour_type(type);
-        if (decl && !decl->unité) {
+        if (decl && !decl->comme_declaration_type()->unité) {
             // Inutile de typer les unions anonymes, ceci fut fait lors de la validation
             // sémantique.
             if (!(type->est_type_union() && type->comme_type_union()->est_anonyme) &&
@@ -744,7 +744,7 @@ UniteCompilation *GestionnaireCode::crée_unite_pour_noeud(EspaceDeTravail *espa
 {
     auto unite = crée_unite(espace, raison, met_en_attente);
     unite->noeud = noeud;
-    noeud->unité = unite;
+    *donne_adresse_unité(noeud) = unite;
     return unite;
 }
 
@@ -958,7 +958,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     if (attente.est<AttenteSurType>()) {
         Type *type = const_cast<Type *>(attente.type());
         auto decl = decl_pour_type(type);
-        if (decl && decl->unité == nullptr) {
+        if (decl && decl->comme_declaration_type()->unité == nullptr) {
             requiers_typage(espace, decl);
         }
         /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
@@ -967,7 +967,7 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     }
     else if (attente.est<AttenteSurDeclaration>()) {
         NoeudDeclaration *decl = attente.declaration();
-        if (decl->unité == nullptr) {
+        if (*donne_adresse_unité(decl) == nullptr) {
             requiers_typage(espace, decl);
         }
     }
@@ -994,7 +994,7 @@ void GestionnaireCode::flush_noeuds_à_typer()
     m_fonctions_init_type_requises.efface();
 
     POUR (m_noeuds_à_valider) {
-        if (it.noeud->unité) {
+        if (*donne_adresse_unité(it.noeud)) {
             continue;
         }
 
@@ -1142,13 +1142,14 @@ void GestionnaireCode::parsage_fichier_termine(UniteCompilation *unite)
 
     POUR (unite->fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
-        if (it->unité) {
+        auto adresse_unité = donne_adresse_unité(it);
+        if (*adresse_unité) {
             continue;
         }
 
         if (it->est_charge() || it->est_importe()) {
             requiers_typage(espace, it);
-            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(it->unité);
+            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
         else {
             m_noeuds_à_valider.ajoute({espace, it});
@@ -1253,7 +1254,11 @@ static bool declaration_est_invalide(NoeudExpression *decl)
         return false;
     }
 
-    auto const unite = decl->unité;
+    auto adresse_unité = donne_adresse_unité(decl);
+    if (!adresse_unité) {
+        return true;
+    }
+    auto unite = *adresse_unité;
     if (!unite) {
         /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
         return true;

@@ -34,7 +34,6 @@ struct NoeudExpression {
 
     NoeudBloc * bloc_parent [copie]
 
-    UniteCompilation * unité [préserve_accents]
     NoeudCode * noeud_code
 
     /* Pour la simplification de l'arbre syntaxique. */
@@ -117,6 +116,7 @@ struct NoeudInstructionCharge : NoeudExpression {
     @code  NoeudCodeCharge
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpression * expression [code enfant]
 }
 
@@ -171,6 +171,7 @@ struct NoeudInstructionImporte : NoeudExpression {
     @code  NoeudCodeImporte
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpression * expression [code enfant]
 }
 
@@ -279,6 +280,7 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
     @genre DÉCLARATION_BIBLIOTHÈQUE
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     Bibliothèque *bibliothèque
 }
 
@@ -287,6 +289,8 @@ struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
     @comme déclaration_variable
     @code  NoeudCodeDéclarationVariable
     @genre_valeur INVALIDE
+
+    UniteCompilation * unité [préserve_accents]
 
     // pour une expression de style a := 5, a est la valeur, et 5 l'expression
     // pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
@@ -432,6 +436,7 @@ struct NoeudDéclarationEnteteFonction : NoeudDéclarationSymbole {
     @code  NoeudCodeEntêteFonction
     @genre_valeur DROITE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudDéclarationCorpsFonction *corps [code enfant]
     NoeudExpression * [] arbre_aplatis
 
@@ -475,6 +480,7 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     @code  NoeudCodeCorpsFonction
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudDéclarationEnteteFonction *entête [code]
     NoeudBloc *bloc [code enfant]
     NoeudExpression * [] arbre_aplatis
@@ -516,6 +522,8 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     @comme déclaration_type
     @code  NoeudCodeDéclarationType
     @genre_valeur DROITE
+
+    UniteCompilation * unité [préserve_accents]
 }
 
 struct NoeudStruct : NoeudDéclarationType {
@@ -783,6 +791,7 @@ struct NoeudDirectiveExécute : NoeudExpression {
     @code  NoeudCodeDirectiveExécute
     @genre_valeur DROITE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
 
     NoeudExpression * [] arbre_aplatis
@@ -840,6 +849,7 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
     @code  NoeudCodeDépendanceBibliothèque
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpressionReference *bibliothèque_dépendante [code enfant préserve_accents]
     NoeudExpressionReference *bibliothèque_dépendue [code enfant préserve_accents]
 }
@@ -850,6 +860,7 @@ struct NoeudDirectiveAjouteInit : NoeudExpression {
     @code NoeudCodeAjouteInit
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
     NoeudExpression * [] arbre_aplatis
 }
@@ -860,6 +871,7 @@ struct NoeudDirectiveAjouteFini : NoeudExpression {
     @code NoeudCodeAjouteFini
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité [préserve_accents]
     NoeudExpression *expression [code enfant]
     NoeudExpression * [] arbre_aplatis
 }

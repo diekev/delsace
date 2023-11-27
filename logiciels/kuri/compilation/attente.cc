@@ -78,7 +78,7 @@ RAPPEL_POUR_UNITÉ(type)
         return nullptr;
     }
 
-    return decl->unité;
+    return decl->comme_declaration_type()->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(type)
@@ -154,7 +154,11 @@ InfoTypeAttente info_type_attente_sur_type = {NOM_RAPPEL_POUR_UNITÉ(type),
 
 RAPPEL_POUR_UNITÉ(déclaration)
 {
-    return attente.declaration()->unité;
+    auto adresse = donne_adresse_unité(attente.declaration());
+    if (adresse) {
+        return *adresse;
+    }
+    return nullptr;
 }
 
 RAPPEL_POUR_COMMENTAIRE(declaration)
@@ -184,12 +188,12 @@ RAPPEL_POUR_ERREUR(déclaration)
 {
     auto espace = unite->espace;
     auto decl = attente.declaration();
-    auto unite_decl = decl->unité;
+    auto unite_decl = donne_adresse_unité(decl);
     auto erreur = espace->rapporte_erreur(
         decl, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
 
     // À FAIRE : ne devrait pas arriver
-    if (unite_decl) {
+    if (unite_decl && *unite_decl) {
         erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
             .ajoute_message(unite->chaine_attentes_récursives())
             .ajoute_message("\n");
@@ -210,7 +214,7 @@ InfoTypeAttente info_type_attente_sur_déclaration = {NOM_RAPPEL_POUR_UNITÉ(dé
 
 RAPPEL_POUR_UNITÉ(opérateur)
 {
-    return attente.operateur()->unité;
+    return nullptr;
 }
 
 RAPPEL_POUR_COMMENTAIRE(opérateur)

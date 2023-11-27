@@ -2728,3 +2728,52 @@ void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
         bloc = bloc->bloc_parent;
     }
 }
+
+UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
+{
+    if (noeud->est_entete_fonction()) {
+        return &noeud->comme_entete_fonction()->unité;
+    }
+    if (noeud->est_corps_fonction()) {
+        return &noeud->comme_corps_fonction()->unité;
+    }
+    if (noeud->est_importe()) {
+        return &noeud->comme_importe()->unité;
+    }
+    if (noeud->est_charge()) {
+        return &noeud->comme_charge()->unité;
+    }
+    if (noeud->est_declaration_variable()) {
+        return &noeud->comme_declaration_variable()->unité;
+    }
+    if (noeud->est_execute()) {
+        return &noeud->comme_execute()->unité;
+    }
+    if (noeud->est_type_structure()) {
+        return &noeud->comme_type_structure()->unité;
+    }
+    if (noeud->est_declaration_bibliotheque()) {
+        return &noeud->comme_declaration_bibliotheque()->unité;
+    }
+    if (noeud->est_type_opaque()) {
+        return &noeud->comme_type_opaque()->unité;
+    }
+    if (noeud->est_dependance_bibliotheque()) {
+        return &noeud->comme_dependance_bibliotheque()->unité;
+    }
+    if (noeud->est_type_enum()) {
+        return &noeud->comme_type_enum()->unité;
+    }
+    if (noeud->est_ajoute_fini()) {
+        return &noeud->comme_ajoute_fini()->unité;
+    }
+    if (noeud->est_ajoute_init()) {
+        return &noeud->comme_ajoute_init()->unité;
+    }
+
+    assert_rappel(false, [&]() {
+        std::cerr << "Noeud non-géré pour l'adresse de l'unité de compilation " << noeud->genre
+                  << '\n';
+    });
+    return nullptr;
+}
