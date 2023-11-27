@@ -362,7 +362,7 @@ ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
     caméra_vers_monde = inverse(monde_vers_caméra)
 
     champs_de_vue := 2.0 * atan(0.5 * largeur_senseur / longueur_focale)
-    caméra.échelle = tan(champs_de_vue * 0.5) comme r32
+    caméra.échelle = tan(champs_de_vue * 0.5)
 
     caméra_vers_rateau = construit_mat4r_neutre()
     caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))

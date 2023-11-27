@@ -33,8 +33,8 @@ principale :: fonc () -> z32
 
     _ := ptr("je ne sais pas")
 
-    _ = foo(1)
-    _ = foo("nouvelle chaine")
+    _ := foo(1)
+    _ := foo("nouvelle chaine")
 
     retourne 0
 }

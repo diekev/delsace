@@ -166,12 +166,12 @@ test_initialisation_spéciale_membre_avec_indirection :: fonc ()
     }
 
     Base2 :: struct {
-        empl base: Base1
+        empl base1: Base1
         x = 456
     }
 
     Base3 :: struct {
-        empl base: Base2
+        empl base2: Base2
     }
 
     b3: Base3

@@ -252,7 +252,7 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
         Parent {
             /* Le processus parent écrira. Fermons les descripteurs ne servant à rien. */
             _ := ferme(*canal_lecture.auteur)
-            _ = ferme(*canal_écriture.lecteur)
+            _ := ferme(*canal_écriture.lecteur)
         }
         sinon {
             retourne
