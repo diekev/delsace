@@ -266,7 +266,7 @@ RAPPEL_POUR_ERREUR(opérateur)
     auto espace = unite->espace;
     auto operateur_attendu = attente.operateur();
     if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
-        auto expression_operation = static_cast<NoeudExpressionBinaire *>(operateur_attendu);
+        auto expression_operation = operateur_attendu->comme_expression_binaire();
         auto type1 = expression_operation->operande_gauche->type;
         auto type2 = expression_operation->operande_droite->type;
 
@@ -331,7 +331,7 @@ RAPPEL_POUR_ERREUR(opérateur)
         e.ajoute_message("{\n\tretourne ...\n}\n");
     }
     else {
-        auto expression_operation = static_cast<NoeudExpressionUnaire *>(operateur_attendu);
+        auto expression_operation = operateur_attendu->comme_expression_unaire();
         auto type_operande = expression_operation->operande->type;
         espace
             ->rapporte_erreur(operateur_attendu,
