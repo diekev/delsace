@@ -35,7 +35,7 @@ struct Coulisse {
      */
     bool crée_fichier_objet(Compilatrice &compilatrice,
                             EspaceDeTravail &espace,
-                            Programme *programme,
+                            Programme const *programme,
                             CompilatriceRI &compilatrice_ri,
                             Broyeuse &);
 
@@ -51,19 +51,18 @@ struct Coulisse {
   protected:
     virtual bool génère_code_impl(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
-                                  Programme *programme,
+                                  Programme const *programme,
                                   CompilatriceRI &compilatrice_ri,
                                   Broyeuse &) = 0;
 
     virtual bool crée_fichier_objet_impl(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         Programme *programme,
-                                         CompilatriceRI &compilatrice_ri,
-                                         Broyeuse &) = 0;
+                                         Programme const *programme,
+                                         CompilatriceRI &compilatrice_ri) = 0;
 
     virtual bool crée_exécutable_impl(Compilatrice &compilatrice,
                                       EspaceDeTravail &espace,
-                                      Programme *programme) = 0;
+                                      Programme const *programme) = 0;
 
   private:
     bool est_coulisse_métaprogramme() const;
