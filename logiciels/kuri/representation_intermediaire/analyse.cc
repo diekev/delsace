@@ -111,7 +111,7 @@ enum {
     EST_PARAMETRE_FONCTION = (1 << 1),
 };
 
-static Atome *déréférence_instruction(Instruction *inst)
+static Atome const *déréférence_instruction(Instruction const *inst)
 {
     if (inst->est_acces_index()) {
         auto acces = inst->comme_acces_index();
@@ -137,9 +137,9 @@ static Atome *déréférence_instruction(Instruction *inst)
     return inst;
 }
 
-static Atome *cible_finale_stockage(InstructionStockeMem *stocke)
+static Atome const *cible_finale_stockage(InstructionStockeMem const *stocke)
 {
-    auto destination = stocke->ou;
+    Atome const *destination = stocke->ou;
 
     while (!est_locale_ou_globale(destination)) {
         if (!destination->est_instruction()) {
@@ -343,7 +343,8 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
 
 /* ******************************************************************************************** */
 
-static bool atome_est_pour_création_contexte(Compilatrice &compilatrice, AtomeFonction *atome)
+static bool atome_est_pour_création_contexte(Compilatrice const &compilatrice,
+                                             AtomeFonction const *atome)
 {
     auto interface = compilatrice.interface_kuri;
 
@@ -957,6 +958,63 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Pureté d'une fonction.
+ * \{ */
+
+#if 0
+/* Pour référence https://en.wikipedia.org/wiki/Pure_function */
+static bool fonction_est_pure(AtomeFonction const *fonction)
+{
+    if (fonction->est_externe) {
+        /* À FAIRE : note les fonctions externes pures comme tel. */
+        return false;
+    }
+
+    POUR (fonction->params_entrees) {
+        it->etat = EST_PARAMETRE_FONCTION;
+    }
+
+    POUR (fonction->instructions) {
+        if (it->est_appel()) {
+            /* À FAIRE : test si la fonction est pur. */
+            return false;
+        }
+
+        if (it->est_op_binaire()) {
+            auto op_binaire = it->comme_op_binaire();
+            /* Le mode d'arrondissement des nombres réels peut être modifié lors de l'exécution.
+             * Ainsi, tous les opérations binaires sont impures. */
+            if (op_binaire->valeur_droite->type->est_type_reel()) {
+                return false;
+            }
+        }
+
+        if (it->est_charge()) {
+            auto charge = it->comme_charge();
+            /* À FAIRE : uniquement si la valeur globale est écrite dans la sortie. */
+            if (charge->chargee->est_globale()) {
+                return false;
+            }
+        }
+
+        if (it->est_stocke_mem()) {
+            auto stocke = it->comme_stocke_mem();
+            auto cible = cible_finale_stockage(stocke);
+            /* À FAIRE : alias de la mémoire. */
+            if (cible->est_globale() || (cible->etat == EST_PARAMETRE_FONCTION)) {
+                /* Modification d'une globale ou d'un paramètre. */
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+#endif
+
+/** \} */
+
 /** ******************************************************************************************
  * \name Graphe
  * \{
@@ -985,7 +1043,7 @@ void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, in
     }
 }
 
-bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction *inst, int index_bloc) const
+bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
 {
     auto idx = connexions_pour_inst.valeur_ou(inst, {});
     POUR (idx) {
@@ -1005,7 +1063,7 @@ void Graphe::réinitialise()
 }
 
 template <typename Fonction>
-void Graphe::visite_utilisateurs(Instruction *inst, Fonction rappel) const
+void Graphe::visite_utilisateurs(Instruction const *inst, Fonction rappel) const
 {
     auto idx = connexions_pour_inst.valeur_ou(inst, {});
     POUR (idx) {
@@ -1160,7 +1218,7 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
         }
 
         auto est_utilisee_uniquement_pour_charge_et_stocke = true;
-        g.visite_utilisateurs(inst0, [&](Atome *utilisateur) {
+        g.visite_utilisateurs(inst0, [&](Atome const *utilisateur) {
             if (utilisateur != inst1 && utilisateur != inst2) {
                 est_utilisee_uniquement_pour_charge_et_stocke = false;
             }
@@ -1191,8 +1249,8 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
     return true;
 }
 
-static std::optional<int> trouve_stockage_dans_bloc(Bloc *bloc,
-                                                    Instruction *alloc,
+static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
+                                                    Instruction const *alloc,
                                                     int début_recherche)
 {
     for (int i = début_recherche; i < bloc->instructions.taille() - 1; i++) {
@@ -1650,7 +1708,7 @@ static void supprime_op_binaires_constants(FonctionEtBlocs &fonction_et_blocs,
 /* ******************************************************************************************* */
 
 static Atome *peut_remplacer_instruction_binaire_par_opérande(
-    InstructionOpBinaire *const op_binaire)
+    InstructionOpBinaire const *op_binaire)
 {
     if (op_binaire->op == OpérateurBinaire::Genre::Soustraction) {
         auto droite = op_binaire->valeur_droite;
