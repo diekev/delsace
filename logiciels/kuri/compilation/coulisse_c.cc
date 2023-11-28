@@ -1705,6 +1705,11 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
     if (atome_fonc->enligne) {
         os << "static TOUJOURS_ENLIGNE ";
+
+        if (atome_fonc->decl &&
+            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            os << "__attribute__ ((nonnull (1))) ";
+        }
     }
     else {
         if (atome_fonc->decl &&
