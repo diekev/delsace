@@ -603,7 +603,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto si = static_cast<NoeudSi *>(noeud);
+            auto si = noeud->comme_si();
             simplifie(si->condition);
             simplifie(si->bloc_si_vrai);
             simplifie(si->bloc_si_faux);
@@ -1219,7 +1219,7 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
             rassemble_feuilles(enfant1, feuilles);
 
-            auto idx = static_cast<NoeudExpression *>(nullptr);
+            auto idx = NoeudExpression::nul();
             auto nom_idx = kuri::chaine{};
 
             if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
@@ -1317,12 +1317,12 @@ void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
 static void rassemble_operations_chainees(NoeudExpression *racine,
                                           kuri::tableau<NoeudExpressionBinaire> &comparaisons)
 {
-    auto expr_bin = static_cast<NoeudExpressionBinaire *>(racine);
+    auto expr_bin = racine->comme_expression_binaire();
 
     if (est_opérateur_comparaison(expr_bin->operande_gauche->lexeme->genre)) {
         rassemble_operations_chainees(expr_bin->operande_gauche, comparaisons);
 
-        auto expr_operande = static_cast<NoeudExpressionBinaire *>(expr_bin->operande_gauche);
+        auto expr_operande = expr_bin->operande_gauche->comme_expression_binaire();
 
         auto comparaison = NoeudExpressionBinaire{};
         comparaison.lexeme = expr_bin->lexeme;
@@ -2190,9 +2190,8 @@ void Simplificatrice::simplifie_coroutine(NoeudDeclarationEnteteFonction *corout
 void Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
 {
 #if 0
-    auto inst = static_cast<NoeudExpressionUnaire *>(noeud);
     auto df = compilatrice.donnees_fonction;
-    auto enfant = inst->expr;
+    auto enfant = retiens->expression;
 
     constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 

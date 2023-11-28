@@ -274,7 +274,7 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                     b, "La référence n'est pas celle d'une variable constante !");
             }
 
-            auto decl_var = static_cast<NoeudDeclarationVariable *>(decl);
+            auto decl_var = decl->comme_declaration_variable();
 
             if (decl_var->valeur_expression.est_valide()) {
                 return decl_var->valeur_expression;

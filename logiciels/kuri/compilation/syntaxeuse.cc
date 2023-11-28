@@ -788,8 +788,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire(GenreLexeme lexeme_final)
     auto precedence = precedence_pour_operateur(lexeme->genre);
     auto associativite = associativite_pour_operateur(lexeme->genre);
 
-    auto noeud = static_cast<NoeudExpressionUnaire *>(
-        m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme));
+    auto noeud = m_tacheronne.assembleuse->crée_noeud<GenreNoeud::OPERATEUR_UNAIRE>(lexeme)
+                     ->comme_expression_unaire();
     noeud->genre = genre_noeud;
 
     // cette vérification n'est utile que pour les arguments variadiques sans type
@@ -1615,8 +1615,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             auto inst = m_tacheronne.assembleuse->crée_differe(lexeme);
 
             if (apparie(GenreLexeme::ACCOLADE_OUVRANTE)) {
-                inst->expression = analyse_bloc();
-                static_cast<NoeudBloc *>(inst->expression)->appartiens_a_differe = inst;
+                auto bloc = analyse_bloc();
+                bloc->appartiens_a_differe = inst;
+                inst->expression = bloc;
             }
             else {
                 inst->expression = analyse_expression(
@@ -2329,7 +2330,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (param->est_declaration_variable()) {
-            auto decl_var = static_cast<NoeudDeclarationVariable *>(param);
+            auto decl_var = param->comme_declaration_variable();
             decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
             params.ajoute(decl_var);
 
@@ -2376,6 +2377,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
         while (!fini()) {
             auto type_declare = analyse_expression({}, GenreLexeme::FONC, GenreLexeme::VIRGULE);
+            /* À FAIRE : ceci est faux, nous devrions avoir des expressions de types. */
             noeud->params_sorties.ajoute(static_cast<NoeudDeclarationVariable *>(type_declare));
 
             if (!apparie(GenreLexeme::VIRGULE)) {
