@@ -2065,6 +2065,10 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         table_globales.insère(it.globale, nom_globale);
     }
 
+    if (pour_entête) {
+        os << "extern ";
+    }
+
     os << "_Alignas(" << données_constantes->alignement_désiré << ") ";
     os << "const uint8_t DC[" << données_constantes->taille_données_tableaux_constants << "]";
 
