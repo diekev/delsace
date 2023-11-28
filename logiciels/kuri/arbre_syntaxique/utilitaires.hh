@@ -175,6 +175,9 @@ enum {
     REQUIERS_CODE_EXTRA_RETOUR,
     RETOURNE_UNE_UNION_VIA_RIEN,
     REQUIERS_RETOUR_UNION_VIA_RIEN,
+
+    /* Référence membre. */
+    PEUT_ÊTRE_APPEL_UNIFORME,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.
