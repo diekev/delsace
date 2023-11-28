@@ -1750,7 +1750,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto inst_si = static_cast<NoeudSi *>(noeud);
+            auto inst_si = noeud->comme_si();
 
             auto label_si_vrai = m_constructrice.réserve_label(noeud);
             auto label_si_faux = m_constructrice.réserve_label(noeud);
@@ -1789,7 +1789,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_REPETE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
-            auto boucle = static_cast<NoeudBoucle *>(noeud);
+            auto boucle = noeud->comme_boucle();
 
             /* labels pour les différents blocs possible */
             auto label_boucle = m_constructrice.réserve_label(noeud);

@@ -502,12 +502,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
-            return valide_operateur_binaire(static_cast<NoeudExpressionBinaire *>(noeud));
+            return valide_operateur_binaire(noeud->comme_expression_binaire());
         }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
             /* Nous devrions être ici uniquement si nous avions une attente. */
-            return valide_operateur_binaire_chaine(static_cast<NoeudExpressionBinaire *>(noeud));
+            return valide_operateur_binaire_chaine(noeud->comme_expression_binaire());
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
@@ -727,8 +727,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto inst = static_cast<NoeudSi *>(noeud);
-            return valide_instruction_si(inst);
+            return valide_instruction_si(noeud->comme_si());
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
@@ -5532,7 +5531,7 @@ static bool rassemble_blocs_pour_expression_si(NoeudSi const *inst,
         }
 
         if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
-            inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+            inst = inst->bloc_si_faux->comme_si();
             continue;
         }
 

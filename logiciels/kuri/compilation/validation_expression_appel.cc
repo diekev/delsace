@@ -311,7 +311,7 @@ static ResultatValidation trouve_candidates_pour_fonction_appelee(
     }
 
     if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-        auto acces = static_cast<NoeudExpressionMembre *>(appelee);
+        auto acces = appelee->comme_reference_membre();
 
         auto accede = acces->accedee;
 
@@ -516,7 +516,7 @@ static void applique_transformations(ContexteValidationCode &contexte,
     /* les drapeaux pour les arguments variadics */
     if (!candidate->exprs.est_vide() &&
         candidate->exprs.back()->genre == GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES) {
-        auto noeud_tableau = static_cast<NoeudTableauArgsVariadiques *>(candidate->exprs.back());
+        auto noeud_tableau = candidate->exprs.back()->comme_args_variadiques();
 
         for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
             contexte.crée_transtypage_implicite_au_besoin(noeud_tableau->expressions[j],
@@ -1337,8 +1337,8 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
 
-            if (decl->genre == GenreNoeud::DECLARATION_STRUCTURE) {
-                auto decl_struct = static_cast<NoeudStruct *>(decl);
+            if (decl->est_type_structure()) {
+                auto decl_struct = decl->comme_type_structure();
 
                 if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
                     return Attente::sur_type(decl->type);
