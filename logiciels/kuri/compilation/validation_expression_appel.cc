@@ -248,187 +248,62 @@ static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> v
     }
 }
 
-static ResultatValidation trouve_candidates_pour_fonction_appelee(
+static void trouve_candidates_pour_expression(
     ContexteValidationCode &contexte,
     EspaceDeTravail &espace,
     NoeudExpression *appelee,
+    Fichier const *fichier,
     kuri::tablet<CandidateExpressionAppel, TAILLE_CANDIDATES_DEFAUT> &candidates)
 {
-    auto fichier = espace.compilatrice().fichier(appelee->lexeme->fichier);
+    auto modules_visites = kuri::ensemblon<Module const *, 10>();
+    auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
+    trouve_declarations_dans_bloc_ou_module(
+        declarations, modules_visites, appelee->bloc_parent, appelee->ident, fichier);
 
-    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-        auto modules_visites = kuri::ensemblon<Module const *, 10>();
-        auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
-        trouve_declarations_dans_bloc_ou_module(
-            declarations, modules_visites, appelee->bloc_parent, appelee->ident, fichier);
+    if (contexte.fonction_courante()) {
+        auto fonction_courante = contexte.fonction_courante();
 
-        if (contexte.fonction_courante()) {
-            auto fonction_courante = contexte.fonction_courante();
+        if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+            auto site_monomorphisation = fonction_courante->site_monomorphisation;
+            assert_rappel(site_monomorphisation->lexeme,
+                          [&]() { std::cerr << erreur::imprime_site(espace, appelee); });
+            auto fichier_site = espace.compilatrice().fichier(
+                site_monomorphisation->lexeme->fichier);
 
-            if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-                auto site_monomorphisation = fonction_courante->site_monomorphisation;
-                assert_rappel(site_monomorphisation->lexeme,
-                              [&]() { std::cerr << erreur::imprime_site(espace, appelee); });
-                auto fichier_site = espace.compilatrice().fichier(
-                    site_monomorphisation->lexeme->fichier);
+            if (fichier_site != fichier) {
+                auto anciennes_declarations = declarations;
+                auto anciennes_modules_visites = modules_visites;
+                trouve_declarations_dans_bloc_ou_module(declarations,
+                                                        modules_visites,
+                                                        site_monomorphisation->bloc_parent,
+                                                        appelee->ident,
+                                                        fichier_site);
 
-                if (fichier_site != fichier) {
-                    auto anciennes_declarations = declarations;
-                    auto anciennes_modules_visites = modules_visites;
-                    trouve_declarations_dans_bloc_ou_module(declarations,
-                                                            modules_visites,
-                                                            site_monomorphisation->bloc_parent,
-                                                            appelee->ident,
-                                                            fichier_site);
-
-                    /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
-                     * blocs parents de toutes les expressions nous faisant potentiellement
-                     * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
-                     * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
-                     * devrons proprement gérer tout ça pour éviter de perdre du temps. */
-                    supprime_doublons(declarations);
-                }
-            }
-        }
-
-        POUR (declarations) {
-            // on peut avoir des expressions du genre inverse := inverse(matrice),
-            // À FAIRE : si nous enlevons la vérification du drapeau EST_GLOBALE, la compilation
-            // est bloquée dans une boucle infinie, il nous faudra un état pour dire qu'aucune
-            // candidate n'a été trouvée
-            if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
-                if (it->lexeme->fichier == appelee->lexeme->fichier &&
-                    it->lexeme->ligne >= appelee->lexeme->ligne &&
-                    !it->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
-                    continue;
-                }
-            }
-
-            candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
-        }
-
-        return CodeRetourValidation::OK;
-    }
-
-    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-        auto acces = appelee->comme_reference_membre();
-
-        auto accede = acces->accedee;
-
-        if (accede->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-            auto declaration_referee = accede->comme_reference_declaration()->declaration_referee;
-
-            if (declaration_referee->est_declaration_module()) {
-                if (!fichier->importe_module(declaration_referee->ident)) {
-                    /* Nous savons que c'est un module car un autre fichier du module l'importe :
-                     * la validation sémantique utilise #trouve_dans_bloc_ou_module. */
-                    espace.rapporte_erreur(
-                        accede,
-                        "Référence d'un module alors qu'il n'a pas été importé dans le fichier.");
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto module = espace.compilatrice().module(accede->ident);
-                auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
-                trouve_declarations_dans_bloc(declarations, module->bloc, acces->ident);
-
-                POUR (declarations) {
-                    candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
-                }
-
-                return CodeRetourValidation::OK;
-            }
-        }
-
-        auto type_accede = accede->type;
-
-        if (type_accede->est_type_type_de_donnees()) {
-            /* Construction d'une structure ou union. */
-            type_accede = type_accede->comme_type_type_de_donnees()->type_connu;
-
-            if (!type_accede) {
-                contexte.rapporte_erreur("Impossible d'accéder à un « type_de_données »", acces);
-                return CodeRetourValidation::Erreur;
-            }
-        }
-        else {
-            while (type_accede->est_type_pointeur() || type_accede->est_type_reference()) {
-                type_accede = type_dereference_pour(type_accede);
-            }
-        }
-
-        if (type_accede->est_type_structure()) {
-            auto type_struct = type_accede->comme_type_structure();
-
-            if ((type_accede->drapeaux & TYPE_FUT_VALIDE) == 0) {
-                return Attente::sur_type(type_accede);
-            }
-
-            auto info_membre = donne_membre_pour_nom(type_struct, acces->ident);
-
-            if (info_membre.has_value()) {
-                acces->type = info_membre->membre.type;
-
-                if (acces->type->est_type_type_de_donnees()) {
-                    auto type_membre = acces->type->comme_type_type_de_donnees()->type_connu;
-                    if (!type_accede) {
-                        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                                 "dans une expression d'appel",
-                                                 acces);
-                        return CodeRetourValidation::Erreur;
-                    }
-
-                    if (type_membre->est_type_structure()) {
-                        candidates.ajoute({CANDIDATE_EST_DECLARATION,
-                                           type_membre->comme_type_structure()->decl});
-                        return CodeRetourValidation::OK;
-                    }
-
-                    if (type_membre->est_type_union()) {
-                        candidates.ajoute(
-                            {CANDIDATE_EST_DECLARATION, type_membre->comme_type_union()->decl});
-                        return CodeRetourValidation::OK;
-                    }
-                }
-
-                candidates.ajoute({CANDIDATE_EST_ACCES, acces});
-                acces->index_membre = info_membre->index_membre;
-                return CodeRetourValidation::OK;
-            }
-        }
-
-        candidates.ajoute({CANDIDATE_EST_APPEL_UNIFORME, acces});
-        return CodeRetourValidation::OK;
-    }
-
-    if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
-        candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
-        return CodeRetourValidation::OK;
-    }
-
-    if (appelee->type->est_type_fonction()) {
-        candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
-        return CodeRetourValidation::OK;
-    }
-
-    if (appelee->est_construction_structure() || appelee->est_appel()) {
-        if (appelee->type->est_type_type_de_donnees()) {
-            auto type = appelee->type->comme_type_type_de_donnees()->type_connu;
-
-            if (type->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_structure()->decl});
-                return CodeRetourValidation::OK;
-            }
-
-            if (type->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_union()->decl});
-                return CodeRetourValidation::OK;
+                /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
+                 * blocs parents de toutes les expressions nous faisant potentiellement
+                 * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
+                 * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
+                 * devrons proprement gérer tout ça pour éviter de perdre du temps. */
+                supprime_doublons(declarations);
             }
         }
     }
 
-    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
-    return CodeRetourValidation::Erreur;
+    POUR (declarations) {
+        // on peut avoir des expressions du genre inverse := inverse(matrice),
+        // À FAIRE : si nous enlevons la vérification du drapeau EST_GLOBALE, la compilation
+        // est bloquée dans une boucle infinie, il nous faudra un état pour dire qu'aucune
+        // candidate n'a été trouvée
+        if (it->genre == GenreNoeud::DECLARATION_VARIABLE) {
+            if (it->lexeme->fichier == appelee->lexeme->fichier &&
+                it->lexeme->ligne >= appelee->lexeme->ligne &&
+                !it->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+                continue;
+            }
+        }
+
+        candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
+    }
 }
 
 static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
@@ -1267,58 +1142,106 @@ static ResultatAppariement apparie_construction_opaque(
 
 /* ************************************************************************** */
 
-static ResultatValidation trouve_candidates_pour_appel(
+static CodeRetourValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
     NoeudExpressionAppel *expr,
     kuri::tableau<IdentifiantEtExpression> &args,
-    ListeCandidatesExpressionAppel &resultat)
+    ListeCandidatesExpressionAppel &candidates)
 {
-    auto candidates_appel = ListeCandidatesExpressionAppel();
-    auto resultat_validation = trouve_candidates_pour_fonction_appelee(
-        contexte, espace, expr->expression, candidates_appel);
-    if (!est_ok(resultat_validation)) {
-        return resultat_validation;
+    auto appelee = expr->expression;
+    auto fichier = espace.compilatrice().fichier(appelee->lexeme->fichier);
+
+    if (appelee->est_reference_declaration()) {
+        trouve_candidates_pour_expression(contexte, espace, appelee, fichier, candidates);
+        return CodeRetourValidation::OK;
     }
 
-    if (candidates_appel.taille() == 0) {
-        return CodeRetourValidation::Erreur;
-    }
+    if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
+        auto acces = appelee->comme_reference_membre();
 
-    POUR (candidates_appel) {
-        if (it.quoi == CANDIDATE_EST_APPEL_UNIFORME) {
-            auto acces = it.decl->comme_reference_membre();
-            // À FAIRE : supprime ça
-            auto référence = NoeudExpressionReference();
+        if (acces->aide_generation_code == PEUT_ÊTRE_APPEL_UNIFORME) {
+            auto référence = NoeudExpression();
             référence.lexeme = acces->lexeme;
             référence.bloc_parent = acces->bloc_parent;
             référence.ident = acces->ident;
-
-            auto candidates = ListeCandidatesExpressionAppel();
-            resultat_validation = trouve_candidates_pour_fonction_appelee(
-                contexte, espace, &référence, candidates);
-            if (!est_ok(resultat_validation)) {
-                return resultat_validation;
-            }
-
-            if (candidates.taille() == 0) {
-                /* À FAIRE : nous devons attendre sur le membre... */
-                return Attente::sur_symbole(acces->accedee->comme_reference_declaration());
-            }
-
+            trouve_candidates_pour_expression(contexte, espace, &référence, fichier, candidates);
             acces->accedee->genre_valeur = GenreValeur::TRANSCENDANTALE;
             args.pousse_front({nullptr, nullptr, acces->accedee});
-
-            for (auto c : candidates) {
-                resultat.ajoute(c);
-            }
+            return CodeRetourValidation::OK;
         }
-        else {
-            resultat.ajoute(it);
+
+        auto accede = acces->accedee;
+        if (acces->déclaration_référée) {
+            auto module = espace.compilatrice().module(accede->ident);
+            auto declarations = kuri::tablet<NoeudDeclaration *, 10>();
+            trouve_declarations_dans_bloc(declarations, module->bloc, acces->ident);
+
+            POUR (declarations) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, it});
+            }
+            return CodeRetourValidation::OK;
+        }
+
+        if (acces->type->est_type_type_de_donnees()) {
+            auto type_connu = acces->type->comme_type_type_de_donnees()->type_connu;
+            if (!type_connu) {
+                contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                         "dans une expression d'appel",
+                                         acces);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (type_connu->est_type_structure()) {
+                candidates.ajoute(
+                    {CANDIDATE_EST_DECLARATION, type_connu->comme_type_structure()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            if (type_connu->est_type_union()) {
+                candidates.ajoute(
+                    {CANDIDATE_EST_DECLARATION, type_connu->comme_type_union()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                     "dans une expression d'appel",
+                                     acces);
+            return CodeRetourValidation::Erreur;
+        }
+
+        candidates.ajoute({CANDIDATE_EST_ACCES, acces});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->genre == GenreNoeud::EXPRESSION_INIT_DE) {
+        candidates.ajoute({CANDIDATE_EST_INIT_DE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->type->est_type_fonction()) {
+        candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelee});
+        return CodeRetourValidation::OK;
+    }
+
+    if (appelee->est_construction_structure() || appelee->est_appel()) {
+        if (appelee->type->est_type_type_de_donnees()) {
+            auto type = appelee->type->comme_type_type_de_donnees()->type_connu;
+
+            if (type->est_type_structure()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_structure()->decl});
+                return CodeRetourValidation::OK;
+            }
+
+            if (type->est_type_union()) {
+                candidates.ajoute({CANDIDATE_EST_DECLARATION, type->comme_type_union()->decl});
+                return CodeRetourValidation::OK;
+            }
         }
     }
 
-    return CodeRetourValidation::OK;
+    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelee);
+    return CodeRetourValidation::Erreur;
 }
 
 static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
@@ -1644,30 +1567,28 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel *expr, EtatRe
     état->état = EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS;
 }
 
-static std::optional<Attente> crée_liste_candidates(NoeudExpressionAppel *expr,
-                                                    EtatResolutionAppel *état,
-                                                    EspaceDeTravail &espace,
-                                                    ContexteValidationCode &contexte)
+static ResultatValidation crée_liste_candidates(NoeudExpressionAppel *expr,
+                                                EtatResolutionAppel *état,
+                                                EspaceDeTravail &espace,
+                                                ContexteValidationCode &contexte)
 {
     /* Si nous revenons ici suite à une attente nous devons recommencer donc vide la liste pour
      * éviter d'avoir des doublons. */
     état->liste_candidates.efface();
 
-    auto resultat_validation = trouve_candidates_pour_appel(
+    auto code_retour = trouve_candidates_pour_appel(
         espace, contexte, expr, état->args, état->liste_candidates);
-    if (est_attente(resultat_validation)) {
-        return std::get<Attente>(resultat_validation);
+
+    if (code_retour == CodeRetourValidation::Erreur) {
+        return code_retour;
     }
 
-    if (!est_ok(resultat_validation)) {
-        // À FAIRE : il est possible qu'une erreur fut rapportée, il faudra sans doute
-        //           granulariser ResultatValidation pour différencier d'une erreur lourde ou
-        //           rattrappable
+    if (état->liste_candidates.taille() == 0) {
         return Attente::sur_symbole(symbole_pour_expression(expr->expression));
     }
 
     état->état = EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
-    return {};
+    return CodeRetourValidation::OK;
 }
 
 static ResultatValidation sélectionne_candidate(NoeudExpressionAppel *expr,
@@ -1767,10 +1688,9 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
                       VALIDATION_APPEL__TROUVE_CANDIDATES);
 
-        auto attente_potentielle = crée_liste_candidates(expr, &état, espace, contexte);
-
-        if (attente_potentielle.has_value()) {
-            return attente_potentielle.value();
+        auto résultat_liste = crée_liste_candidates(expr, &état, espace, contexte);
+        if (!est_ok(résultat_liste)) {
+            return résultat_liste;
         }
     }
 

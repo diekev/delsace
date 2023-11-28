@@ -393,22 +393,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             auto expr = racine->comme_appel();
             expr->drapeaux |= drapeau;
 
-            auto appelee = expr->expression;
-
-            if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-                // pour les expresssions de références de membre, puisqu'elles peuvent être des
-                // expressions d'appels avec syntaxe uniforme, nous n'aplatissons que la branche
-                // de l'accédée, la branche de membre pouvant être une fonction, ferait échouer la
-                // validation sémantique
-                auto ref_membre = appelee->comme_reference_membre();
-                aplatis_arbre(ref_membre->accedee,
-                              arbre_aplatis,
-                              drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
-            }
-            else {
-                aplatis_arbre(
-                    appelee, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
-            }
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
 
             POUR (expr->parametres) {
                 if (it->est_assignation_variable()) {

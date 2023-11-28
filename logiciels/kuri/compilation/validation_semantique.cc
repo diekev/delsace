@@ -1540,6 +1540,12 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         auto type_compose = static_cast<TypeCompose *>(type);
         auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
+            if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+                /* Laisse la validation d'appel gérer ce cas. */
+                expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
+                return CodeRetourValidation::OK;
+            }
+
             rapporte_erreur_membre_inconnu(expression_membre, expression_membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
@@ -1588,6 +1594,12 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
         }
 
+        return CodeRetourValidation::OK;
+    }
+
+    if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        /* Laisse la validation d'appel gérer ce cas. */
+        expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
         return CodeRetourValidation::OK;
     }
 
