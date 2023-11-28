@@ -119,7 +119,7 @@ struct ErreurAppariement {
         return erreur;
     }
 
-    static ErreurAppariement monomorphisation(NoeudExpression *site,
+    static ErreurAppariement monomorphisation(NoeudExpression const *site,
                                               ErreurMonomorphisation erreur_monomorphisation)
     {
         auto erreur = crée_erreur(MONOMORPHISATION, site);

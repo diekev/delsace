@@ -24,10 +24,10 @@ struct Bloc {
     kuri::tableau<Bloc *, int> enfants{};
 
     /* les variables déclarées dans ce bloc */
-    kuri::tableau<InstructionAllocation *, int> variables_declarees{};
+    kuri::tableau<InstructionAllocation const *, int> variables_declarees{};
 
     /* les variables utilisées dans ce bloc */
-    kuri::tableau<InstructionAllocation *, int> variables_utilisees{};
+    kuri::tableau<InstructionAllocation const *, int> variables_utilisees{};
 
     bool est_atteignable = false;
 
@@ -53,7 +53,7 @@ struct Bloc {
 
     bool peut_fusionner_enfant();
 
-    void utilise_variable(InstructionAllocation *variable);
+    void utilise_variable(const InstructionAllocation *variable);
 
     void fusionne_enfant(Bloc *enfant);
 
@@ -64,12 +64,12 @@ struct Bloc {
     void déconnecte_pour_branche_morte(Bloc *parent);
 
   private:
-    void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc);
+    void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, const Bloc *bloc);
 
     void ajoute_parent(Bloc *parent);
 };
 
-void imprime_bloc(Bloc *bloc,
+void imprime_bloc(const Bloc *bloc,
                   int decalage_instruction,
                   std::ostream &os,
                   bool surligne_inutilisees = false);

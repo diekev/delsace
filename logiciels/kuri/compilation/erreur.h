@@ -93,7 +93,7 @@ void lance_erreur_type_operation(const Type *type_gauche,
                                  const NoeudExpression *site);
 
 void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
-                                    NoeudExpression *n,
+                                    NoeudExpression const *n,
                                     kuri::tablet<ErreurAppariement, 10> const &erreurs);
 
 void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
@@ -102,7 +102,7 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *decl_appel);
 
 void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
-                                     NoeudExpression *b,
+                                     NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
                                      int64_t index_acces);
