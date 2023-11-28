@@ -478,9 +478,9 @@ static inline Associativite associativite_pour_operateur(GenreLexeme genre_opera
     return associativite;
 }
 
-Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite)
+Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite)
     : BaseSyntaxeuse(unite->fichier), m_compilatrice(tacheronne.compilatrice),
-      m_tacheronne(tacheronne), m_unite(unite)
+      m_tacheronne(tacheronne), m_unité(unite)
 {
     auto module = m_fichier->module;
 
@@ -647,7 +647,7 @@ void Syntaxeuse::analyse_une_chose()
             requiers_typage(noeud);
         }
         else {
-            m_unite->espace->rapporte_erreur(
+            m_unité->espace->rapporte_erreur(
                 noeud,
                 "Expression invalide pour le contexte global. Le contexte global doit contenir "
                 "des déclarations ou des directives.");
@@ -1341,7 +1341,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         noeud->ident = gauche->ident;
                         noeud->bibliotheque =
                             m_compilatrice.gestionnaire_bibliotheques->crée_bibliotheque(
-                                *m_unite->espace, noeud, gauche->ident, chaine_bib);
+                                *m_unité->espace, noeud, gauche->ident, chaine_bib);
                         return noeud;
                     }
 
@@ -1399,13 +1399,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             if (m_noeud_expression_virgule) {
                 POUR (m_noeud_expression_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unite->espace->rapporte_erreur(it,
+                        m_unité->espace->rapporte_erreur(it,
                                                          "Obtenu une déclaration de variable au "
                                                          "sein d'une expression-virgule.");
                     }
 
                     if (!it->est_reference_declaration()) {
-                        m_unite->espace->rapporte_erreur(
+                        m_unité->espace->rapporte_erreur(
                             it, "Expression inattendue dans l'expression virgule.");
                     }
                 }
@@ -1444,14 +1444,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 return decl;
             }
 
-            m_unite->espace->rapporte_erreur(gauche,
+            m_unité->espace->rapporte_erreur(gauche,
                                              "Expression inattendu à gauche du double-point");
             return nullptr;
         }
         case GenreLexeme::DECLARATION_VARIABLE:
         {
             if (gauche->est_declaration_variable()) {
-                m_unite->espace->rapporte_erreur(
+                m_unité->espace->rapporte_erreur(
                     gauche, "Utilisation de « := » alors qu'un type fut déclaré avec « : »");
             }
 
@@ -1461,12 +1461,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // détecte les expressions du style : a : z32, b := ... , a[0] := ..., etc.
                 POUR (noeud_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unite->espace->rapporte_erreur(
+                        m_unité->espace->rapporte_erreur(
                             it, "Utilisation de « := » alors qu'un type fut déclaré avec « : ».");
                     }
 
                     if (!it->est_reference_declaration()) {
-                        m_unite->espace->rapporte_erreur(
+                        m_unité->espace->rapporte_erreur(
                             it, "Expression inattendue à gauche de « := »");
                     }
 
@@ -1479,7 +1479,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
             }
             else if (!gauche->est_reference_declaration()) {
-                m_unite->espace->rapporte_erreur(gauche,
+                m_unité->espace->rapporte_erreur(gauche,
                                                  "Expression inattendue à gauche de « := »");
             }
 
@@ -1532,7 +1532,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 // détecte les expressions du style : a : z32, b = ...
                 POUR (noeud_virgule->expressions) {
                     if (it->est_declaration_variable()) {
-                        m_unite->espace->rapporte_erreur(
+                        m_unité->espace->rapporte_erreur(
                             it,
                             "Obtenu une déclaration de variable dans l'expression séparée par "
                             "virgule à gauche d'une assignation. Les variables doivent être "
@@ -2284,14 +2284,14 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
 
     // @concurrence critique, si nous avons plusieurs définitions
     if (noeud->ident == ID::principale) {
-        if (m_unite->espace->fonction_principale) {
-            m_unite->espace
+        if (m_unité->espace->fonction_principale) {
+            m_unité->espace
                 ->rapporte_erreur(noeud, "Redéfinition de la fonction principale pour cet espace.")
                 .ajoute_message("La fonction principale fut déjà définie ici :\n")
-                .ajoute_site(m_unite->espace->fonction_principale);
+                .ajoute_site(m_unité->espace->fonction_principale);
         }
 
-        m_unite->espace->fonction_principale = noeud;
+        m_unité->espace->fonction_principale = noeud;
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
     }
 
@@ -2368,7 +2368,7 @@ NoeudDeclarationEnteteFonction *Syntaxeuse::analyse_declaration_fonction(Lexeme 
         if (eu_declarations) {
             POUR (noeud->params) {
                 if (it->est_declaration_variable()) {
-                    m_unite->espace->rapporte_erreur(it,
+                    m_unité->espace->rapporte_erreur(it,
                                                      "Obtenu la déclaration d'une variable dans "
                                                      "la déclaration d'un type de fonction");
                 }
@@ -2652,7 +2652,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
         auto param = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::VIRGULE);
 
         if (!param->est_declaration_variable()) {
-            m_unite->espace->rapporte_erreur(
+            m_unité->espace->rapporte_erreur(
                 param, "Expression inattendue dans la déclaration des paramètres de l'opérateur");
         }
 
@@ -2670,7 +2670,7 @@ NoeudExpression *Syntaxeuse::analyse_declaration_operateur()
     copie_tablet_tableau(params, noeud->params);
 
     if (noeud->params.taille() > 2) {
-        m_unite->espace->rapporte_erreur(
+        m_unité->espace->rapporte_erreur(
             noeud, "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
     }
     else if (noeud->params.taille() == 1) {
@@ -2972,7 +2972,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(NoeudStru
             {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
 
         if (!expression->est_declaration_variable()) {
-            m_unite->espace->rapporte_erreur(expression,
+            m_unité->espace->rapporte_erreur(expression,
                                              "Attendu une déclaration de variable dans les "
                                              "paramètres polymorphiques de la structure");
         }
@@ -3036,13 +3036,13 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl
         auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
         if (!expression_est_valide_pour_bloc_structure(noeud)) {
-            m_unite->espace->rapporte_erreur(noeud,
+            m_unité->espace->rapporte_erreur(noeud,
                                              "Expression invalide pour le bloc de la structure");
         }
 
         if (noeud->est_reference_declaration()) {
             if (!decl_struct->est_union || decl_struct->est_nonsure) {
-                m_unite->espace->rapporte_erreur(
+                m_unité->espace->rapporte_erreur(
                     noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
             }
 
@@ -3078,7 +3078,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudStruct *decl
 
 void Syntaxeuse::gere_erreur_rapportee(const kuri::chaine &message_erreur)
 {
-    m_unite->espace->rapporte_erreur(
+    m_unité->espace->rapporte_erreur(
         SiteSource::cree(m_fichier, lexeme_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();

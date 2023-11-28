@@ -850,6 +850,113 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     return true;
 }
 
+/* ------------------------------------------------------------------------- */
+/** \name Diagnostique pour les opérateurs binaires.
+ * \{ */
+
+static bool est_opérateur_comparaison_ordre(OpérateurBinaire::Genre genre)
+{
+    return genre == OpérateurBinaire::Genre::Comp_Inf ||
+           genre == OpérateurBinaire::Genre::Comp_Inf_Egal ||
+           genre == OpérateurBinaire::Genre::Comp_Sup ||
+           genre == OpérateurBinaire::Genre::Comp_Sup_Egal;
+}
+
+static bool est_constante_pointeur_nul(Atome const *atome)
+{
+    if (atome->est_constante_nulle()) {
+        return true;
+    }
+
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto const inst = atome->comme_instruction();
+    if (!inst->est_transtype()) {
+        return false;
+    }
+
+    auto const transtype = inst->comme_transtype();
+    return transtype->type->est_type_pointeur() && est_constante_pointeur_nul(transtype->valeur);
+}
+
+static bool est_comparaison_pointeur_nul(InstructionOpBinaire const *op_binaire)
+{
+    auto const genre = op_binaire->op;
+    if (!est_opérateur_comparaison_ordre(genre)) {
+        return false;
+    }
+
+    /* À FAIRE : quand les instructions seront canonicalisées, supprime la version dépréciée. */
+    auto const opérande_droite = op_binaire->valeur_droite;
+    auto const opérande_gauche = op_binaire->valeur_gauche;
+
+    return (est_constante_pointeur_nul(opérande_droite) &&
+            opérande_gauche->type->est_type_pointeur()) ||
+           (est_constante_pointeur_nul(opérande_gauche) &&
+            opérande_droite->type->est_type_pointeur());
+}
+
+static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *op_binaire)
+{
+    auto const genre = op_binaire->op;
+    auto const opérande_droite = op_binaire->valeur_droite;
+    auto const opérande_gauche = op_binaire->valeur_gauche;
+
+    /* À FAIRE : canonicalisation. */
+
+    /* Détecte 0 <= naturel. */
+    if (genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
+        genre == OpérateurBinaire::Genre::Comp_Inf_Nat) {
+        return est_constante_entière_zéro(opérande_gauche) &&
+               opérande_droite->type->est_type_entier_naturel();
+    }
+
+    /* Détecte naturel >= 0. */
+    if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat ||
+        genre == OpérateurBinaire::Genre::Comp_Sup_Nat) {
+        return est_constante_entière_zéro(opérande_droite) &&
+               opérande_gauche->type->est_type_entier_naturel();
+    }
+
+    return false;
+}
+
+static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
+                                                   FonctionEtBlocs const &fonction_et_blocs)
+{
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+            continue;
+        }
+
+        POUR (bloc->instructions) {
+            if (!it->est_op_binaire()) {
+                continue;
+            }
+
+            if (est_comparaison_pointeur_nul(it->comme_op_binaire())) {
+                espace.rapporte_erreur(it->site,
+                                       "Comparaison ordonnée d'un pointeur avec nul; veuillez "
+                                       "utiliser une comparaison d'égalité.");
+                return false;
+            }
+
+            if (est_comparaison_ordonnée_naturel_zéro(it->comme_op_binaire())) {
+                espace.rapporte_avertissement(
+                    it->site,
+                    "La comparaison ordonnée d'un entier naturel avec zéro est toujours vrai.");
+                continue;
+            }
+        }
+    }
+
+    return true;
+}
+
+/** \} */
+
 /** ******************************************************************************************
  * \name Graphe
  * \{
@@ -1709,6 +1816,11 @@ void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
     supprime_branches_inutiles(fonction_et_blocs, visiteuse);
 
     supprime_allocations_temporaires(graphe, fonction_et_blocs);
+
+    /* À faire après la supressions des allocations temporaires. */
+    if (!détecte_opérateurs_binaires_suspicieux(espace, fonction_et_blocs)) {
+        return;
+    }
 
     réinitialise_graphe(graphe, fonction_et_blocs);
 
