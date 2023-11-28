@@ -502,12 +502,12 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
-            return valide_operateur_binaire(static_cast<NoeudExpressionBinaire *>(noeud));
+            return valide_operateur_binaire(noeud->comme_expression_binaire());
         }
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
             /* Nous devrions être ici uniquement si nous avions une attente. */
-            return valide_operateur_binaire_chaine(static_cast<NoeudExpressionBinaire *>(noeud));
+            return valide_operateur_binaire_chaine(noeud->comme_expression_binaire());
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
@@ -722,8 +722,7 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto inst = static_cast<NoeudSi *>(noeud);
-            return valide_instruction_si(inst);
+            return valide_instruction_si(noeud->comme_si());
         }
         case GenreNoeud::INSTRUCTION_SI_STATIQUE:
         case GenreNoeud::INSTRUCTION_SAUFSI_STATIQUE:
@@ -1179,7 +1178,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            return valide_expression_retour(static_cast<NoeudRetour *>(noeud));
+            rapporte_erreur("Les coroutines ne sont plus supportées pour l'instant.", noeud);
+            return CodeRetourValidation::Erreur;
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         {
@@ -1535,6 +1535,12 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
         auto type_compose = static_cast<TypeCompose *>(type);
         auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
         if (!info_membre.has_value()) {
+            if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+                /* Laisse la validation d'appel gérer ce cas. */
+                expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
+                return CodeRetourValidation::OK;
+            }
+
             rapporte_erreur_membre_inconnu(expression_membre, expression_membre, type_compose);
             return CodeRetourValidation::Erreur;
         }
@@ -1583,6 +1589,12 @@ ResultatValidation ContexteValidationCode::valide_acces_membre(
             expression_membre->genre = GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION;
         }
 
+        return CodeRetourValidation::OK;
+    }
+
+    if (expression_membre->possède_drapeau(DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        /* Laisse la validation d'appel gérer ce cas. */
+        expression_membre->aide_generation_code = PEUT_ÊTRE_APPEL_UNIFORME;
         return CodeRetourValidation::OK;
     }
 
@@ -5526,7 +5538,7 @@ static bool rassemble_blocs_pour_expression_si(NoeudSi const *inst,
         }
 
         if (inst->bloc_si_faux->est_si() || inst->bloc_si_faux->est_saufsi()) {
-            inst = static_cast<NoeudSi *>(inst->bloc_si_faux);
+            inst = inst->bloc_si_faux->comme_si();
             continue;
         }
 

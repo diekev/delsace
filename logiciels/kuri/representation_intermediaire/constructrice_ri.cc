@@ -1736,7 +1736,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto inst_si = static_cast<NoeudSi *>(noeud);
+            auto inst_si = noeud->comme_si();
 
             auto label_si_vrai = m_constructrice.réserve_label(noeud);
             auto label_si_faux = m_constructrice.réserve_label(noeud);
@@ -1775,7 +1775,7 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_REPETE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
-            auto boucle = static_cast<NoeudBoucle *>(noeud);
+            auto boucle = noeud->comme_boucle();
 
             /* labels pour les différents blocs possible */
             auto label_boucle = m_constructrice.réserve_label(noeud);
@@ -3303,21 +3303,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             POUR (type_union->membres) {
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
                 auto valeurs = kuri::tableau<AtomeConstante *>(5);
-                valeurs[0] = crée_chaine(it.nom->nom);
-                valeurs[1] = crée_info_type_avec_transtype(it.type, site);
-                valeurs[2] = m_constructrice.crée_z64(static_cast<uint64_t>(it.decalage));
-                valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(it.drapeaux));
-
-                if (it.decl) {
-                    valeurs[4] = crée_tableau_annotations_pour_info_membre(it.decl->annotations);
-                }
-                else {
-                    valeurs[4] = crée_tableau_annotations_pour_info_membre({});
-                }
-
-                /* Création d'un InfoType globale. */
-                auto globale_membre = crée_globale_info_type(type_struct_membre,
-                                                             std::move(valeurs));
+                auto globale_membre = crée_info_type_membre_structure(it, site);
                 valeurs_membres.ajoute(globale_membre);
             }
 
@@ -3386,23 +3372,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                     continue;
                 }
 
-                /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-                auto valeurs = kuri::tableau<AtomeConstante *>(5);
-                valeurs[0] = crée_chaine(it.nom->nom);
-                valeurs[1] = crée_info_type_avec_transtype(it.type, site);
-                valeurs[2] = m_constructrice.crée_z64(static_cast<uint64_t>(it.decalage));
-                valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(it.drapeaux));
-
-                if (it.decl) {
-                    valeurs[4] = crée_tableau_annotations_pour_info_membre(it.decl->annotations);
-                }
-                else {
-                    valeurs[4] = crée_tableau_annotations_pour_info_membre({});
-                }
-
-                /* Création d'un InfoType globale. */
-                auto globale_membre = crée_globale_info_type(type_struct_membre,
-                                                             std::move(valeurs));
+                auto globale_membre = crée_info_type_membre_structure(it, site);
                 valeurs_membres.ajoute(globale_membre);
             }
 
@@ -3653,6 +3623,28 @@ AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_type,
                                                                    std::move(valeurs));
     return m_constructrice.crée_globale(type_info_type, initialisateur, false, true);
+}
+
+AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeComposé &membre,
+                                                              NoeudExpression *site)
+{
+    auto type_struct_membre = m_compilatrice.typeuse.type_info_type_membre_structure;
+
+    /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
+    auto valeurs = kuri::tableau<AtomeConstante *>(5);
+    valeurs[0] = crée_chaine(membre.nom->nom);
+    valeurs[1] = crée_info_type_avec_transtype(membre.type, site);
+    valeurs[2] = m_constructrice.crée_z64(static_cast<uint64_t>(membre.decalage));
+    valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
+
+    if (membre.decl) {
+        valeurs[4] = crée_tableau_annotations_pour_info_membre(membre.decl->annotations);
+    }
+    else {
+        valeurs[4] = crée_tableau_annotations_pour_info_membre({});
+    }
+
+    return crée_globale_info_type(type_struct_membre, std::move(valeurs));
 }
 
 Atome *CompilatriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud,
