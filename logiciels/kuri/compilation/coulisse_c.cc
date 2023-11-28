@@ -1690,6 +1690,9 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
     return {};
 }
 
+/* Pour une liste des attributs GCC pour les fonctions :
+ * https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html
+ */
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                                         const AtomeFonction *atome_fonc,
                                         bool pour_entête)
@@ -1705,6 +1708,11 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
     if (atome_fonc->enligne) {
         os << "static TOUJOURS_ENLIGNE ";
+
+        if (atome_fonc->decl &&
+            atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            os << "__attribute__ ((nonnull (1))) ";
+        }
     }
     else {
         if (atome_fonc->decl &&
@@ -2065,6 +2073,10 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         table_globales.insère(it.globale, nom_globale);
     }
 
+    if (pour_entête) {
+        os << "extern ";
+    }
+
     os << "_Alignas(" << données_constantes->alignement_désiré << ") ";
     os << "const uint8_t DC[" << données_constantes->taille_données_tableaux_constants << "]";
 
@@ -2107,7 +2119,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
-                                 Programme *programme,
+                                 Programme const *programme,
                                  CompilatriceRI &compilatrice_ri,
                                  Broyeuse &broyeuse)
 {
@@ -2129,9 +2141,8 @@ bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
 
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
-                                        Programme *programme,
-                                        CompilatriceRI &compilatrice_ri,
-                                        Broyeuse &broyeuse)
+                                        Programme const *programme,
+                                        CompilatriceRI &compilatrice_ri)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;
@@ -2199,7 +2210,7 @@ bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
 
 bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
                                      EspaceDeTravail &espace,
-                                     Programme * /*programme*/)
+                                     Programme const * /*programme*/)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;

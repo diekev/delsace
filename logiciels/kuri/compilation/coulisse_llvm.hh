@@ -24,17 +24,16 @@ struct CoulisseLLVM final : public Coulisse {
   private:
     bool génère_code_impl(Compilatrice &compilatrice,
                           EspaceDeTravail &espace,
-                          Programme *programme,
+                          Programme const *programme,
                           CompilatriceRI &compilatrice_ri,
                           Broyeuse &) override;
 
     bool crée_fichier_objet_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
-                                 Programme *programme,
-                                 CompilatriceRI &compilatrice_ri,
-                                 Broyeuse &) override;
+                                 Programme const *programme,
+                                 CompilatriceRI &compilatrice_ri) override;
 
     bool crée_exécutable_impl(Compilatrice &compilatrice,
                               EspaceDeTravail &espace,
-                              Programme *programme) override;
+                              Programme const *programme) override;
 };
