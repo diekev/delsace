@@ -236,7 +236,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
-            auto bloc = static_cast<NoeudBloc *>(racine);
+            auto bloc = racine->comme_bloc();
 
             auto const &expressions = bloc->expressions.verrou_lecture();
 
@@ -300,7 +300,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::DECLARATION_VARIABLE:
         {
-            auto expr = static_cast<NoeudDeclarationVariable *>(racine);
+            auto expr = racine->comme_declaration_variable();
 
             // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
             aplatis_arbre(
@@ -335,10 +335,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
-        case GenreNoeud::EXPRESSION_PLAGE:
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         {
-            auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+            auto expr = racine->comme_expression_binaire();
             expr->drapeaux |= drapeau;
 
             aplatis_arbre(expr->operande_gauche, arbre_aplatis, drapeau);
@@ -347,9 +346,18 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
+        case GenreNoeud::EXPRESSION_PLAGE:
+        {
+            auto expr = racine->comme_plage();
+            expr->drapeaux |= drapeau;
+            aplatis_arbre(expr->debut, arbre_aplatis, drapeau);
+            aplatis_arbre(expr->fin, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
         case GenreNoeud::OPERATEUR_BINAIRE:
         {
-            auto expr = static_cast<NoeudExpressionBinaire *>(racine);
+            auto expr = racine->comme_expression_binaire();
             expr->drapeaux |= drapeau;
 
             if (est_assignation_composée(expr->lexeme->genre)) {
@@ -368,7 +376,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
-            auto expr = static_cast<NoeudExpressionMembre *>(racine);
+            auto expr = racine->comme_reference_membre();
             expr->drapeaux |= drapeau;
 
             aplatis_arbre(expr->accedee, arbre_aplatis, drapeau);
@@ -382,25 +390,11 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::EXPRESSION_APPEL:
         {
-            auto expr = static_cast<NoeudExpressionAppel *>(racine);
+            auto expr = racine->comme_appel();
             expr->drapeaux |= drapeau;
 
-            auto appelee = expr->expression;
-
-            if (appelee->genre == GenreNoeud::EXPRESSION_REFERENCE_MEMBRE) {
-                // pour les expresssions de références de membre, puisqu'elles peuvent être des
-                // expressions d'appels avec syntaxe uniforme, nous n'aplatissons que la branche
-                // de l'accédée, la branche de membre pouvant être une fonction, ferait échouer la
-                // validation sémantique
-                auto ref_membre = static_cast<NoeudExpressionMembre *>(appelee);
-                aplatis_arbre(ref_membre->accedee,
-                              arbre_aplatis,
-                              drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
-            }
-            else {
-                aplatis_arbre(
-                    appelee, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
-            }
+            aplatis_arbre(
+                expr->expression, arbre_aplatis, drapeau | DrapeauxNoeud::GAUCHE_EXPRESSION_APPEL);
 
             POUR (expr->parametres) {
                 if (it->est_assignation_variable()) {
@@ -499,7 +493,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::DIRECTIVE_EXECUTE:
         {
-            auto expr = static_cast<NoeudDirectiveExecute *>(racine);
+            auto expr = racine->comme_execute();
             expr->drapeaux |= drapeau;
 
             if (expr->ident == ID::assert_ || expr->ident == ID::test) {
@@ -539,7 +533,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_REPETE:
         case GenreNoeud::INSTRUCTION_TANTQUE:
         {
-            auto expr = static_cast<NoeudBoucle *>(racine);
+            auto expr = racine->comme_boucle();
 
             aplatis_arbre(expr->condition,
                           arbre_aplatis,
@@ -551,7 +545,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::INSTRUCTION_POUR:
         {
-            auto expr = static_cast<NoeudPour *>(racine);
+            auto expr = racine->comme_pour();
 
             // n'ajoute pas la variable, sa déclaration n'a pas de type
             aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
@@ -567,7 +561,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_DISCR_ENUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         {
-            auto expr = static_cast<NoeudDiscr *>(racine);
+            auto expr = racine->comme_discr();
 
             aplatis_arbre(
                 expr->expression_discriminee, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
@@ -610,7 +604,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_SAUFSI:
         case GenreNoeud::INSTRUCTION_SI:
         {
-            auto expr = static_cast<NoeudSi *>(racine);
+            auto expr = racine->comme_si();
 
             /* préserve le drapeau au cas où nous serions à droite d'une expression */
             expr->drapeaux |= drapeau;
@@ -652,7 +646,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
         {
-            auto expr = static_cast<NoeudPousseContexte *>(racine);
+            auto expr = racine->comme_pousse_contexte();
 
             aplatis_arbre(expr->expression, arbre_aplatis, DrapeauxNoeud::DROITE_ASSIGNATION);
             arbre_aplatis.ajoute(expr);
@@ -662,7 +656,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::INSTRUCTION_TENTE:
         {
-            auto inst = static_cast<NoeudInstructionTente *>(racine);
+            auto inst = racine->comme_tente();
 
             if (inst->expression_piegee) {
                 drapeau |= DrapeauxNoeud::DROITE_ASSIGNATION;
@@ -875,17 +869,25 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             return référence_membre;
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
+        {
+            auto op = expression->comme_parenthese();
+            return trouve_expression_non_constante(op->expression);
+        }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
+        {
+            auto op = expression->comme_construction_tableau();
+            return trouve_expression_non_constante(op->expression);
+        }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
-            auto op = static_cast<NoeudExpressionUnaire const *>(expression);
+            auto op = expression->comme_expression_unaire();
             return trouve_expression_non_constante(op->operande);
         }
         case GenreNoeud::OPERATEUR_BINAIRE:
         case GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE:
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
-            auto op = static_cast<NoeudExpressionBinaire const *>(expression);
+            auto op = expression->comme_expression_binaire();
 
             if (auto expr_variable = trouve_expression_non_constante(op->operande_gauche)) {
                 return expr_variable;
@@ -900,7 +902,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::EXPRESSION_APPEL:
         {
-            auto appel = static_cast<NoeudExpressionAppel const *>(expression);
+            auto appel = expression->comme_appel();
 
             POUR (appel->parametres_resolus) {
                 if (auto expr_variable = trouve_expression_non_constante(it)) {
@@ -912,7 +914,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
         }
         case GenreNoeud::EXPRESSION_VIRGULE:
         {
-            auto op = static_cast<NoeudExpressionVirgule const *>(expression);
+            auto op = expression->comme_virgule();
 
             POUR (op->expressions) {
                 if (auto expr_variable = trouve_expression_non_constante(it)) {
@@ -1013,14 +1015,18 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
             return peut_être_utilisée_pour_initialisation_constante_globale(op_unaire->operande);
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
+        {
+            auto op = expression->comme_parenthese();
+            return peut_être_utilisée_pour_initialisation_constante_globale(op->expression);
+        }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
-            auto op = static_cast<NoeudExpressionUnaire const *>(expression);
-            return peut_être_utilisée_pour_initialisation_constante_globale(op->operande);
+            auto op = expression->comme_construction_tableau();
+            return peut_être_utilisée_pour_initialisation_constante_globale(op->expression);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         {
-            auto appel = static_cast<NoeudExpressionAppel const *>(expression);
+            auto appel = expression->comme_construction_structure();
 
             POUR (appel->parametres_resolus) {
                 if (!peut_être_utilisée_pour_initialisation_constante_globale(it)) {
@@ -1032,7 +1038,7 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
         }
         case GenreNoeud::EXPRESSION_VIRGULE:
         {
-            auto op = static_cast<NoeudExpressionVirgule const *>(expression);
+            auto op = expression->comme_virgule();
 
             POUR (op->expressions) {
                 if (!peut_être_utilisée_pour_initialisation_constante_globale(it)) {
@@ -1258,6 +1264,18 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
     }
 }
 
+static void remplis_membre_info_type(InfoTypeMembreStructure *info_type_membre,
+                                     MembreTypeComposé const &membre)
+{
+    info_type_membre->decalage = membre.decalage;
+    info_type_membre->nom = membre.nom->nom;
+    info_type_membre->drapeaux = membre.drapeaux;
+
+    if (membre.decl) {
+        copie_annotations(membre.decl->annotations, info_type_membre->annotations);
+    }
+}
+
 InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
 {
     auto crée_info_type_entier = [this](uint32_t taille_en_octet, bool est_signe) {
@@ -1445,14 +1463,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(it.type);
-                info_type_membre->decalage = it.decalage;
-                info_type_membre->nom = it.nom->nom;
-                info_type_membre->drapeaux = it.drapeaux;
-
-                if (it.decl) {
-                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
-                }
-
+                remplis_membre_info_type(info_type_membre, it);
                 info_type->membres.ajoute(info_type_membre);
             }
 
@@ -1488,14 +1499,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(it.type);
-                info_type_membre->decalage = it.decalage;
-                info_type_membre->nom = it.nom->nom;
-                info_type_membre->drapeaux = it.drapeaux;
-
-                if (it.decl) {
-                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
-                }
-
+                remplis_membre_info_type(info_type_membre, it);
                 info_type->membres.ajoute(info_type_membre);
             }
 
@@ -1762,10 +1766,10 @@ NoeudExpressionReference *AssembleuseArbre::crée_reference_declaration(const Le
 NoeudSi *AssembleuseArbre::crée_si(const Lexeme *lexeme, GenreNoeud genre_noeud)
 {
     if (genre_noeud == GenreNoeud::INSTRUCTION_SI) {
-        return static_cast<NoeudSi *>(crée_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme));
+        return crée_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme)->comme_si();
     }
 
-    return static_cast<NoeudSi *>(crée_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme));
+    return crée_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme)->comme_saufsi();
 }
 
 NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexeme *lexeme, NoeudBloc *bloc_parent)
