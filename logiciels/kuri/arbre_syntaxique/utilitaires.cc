@@ -1258,6 +1258,18 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
     }
 }
 
+static void remplis_membre_info_type(InfoTypeMembreStructure *info_type_membre,
+                                     MembreTypeComposé const &membre)
+{
+    info_type_membre->decalage = membre.decalage;
+    info_type_membre->nom = membre.nom->nom;
+    info_type_membre->drapeaux = membre.drapeaux;
+
+    if (membre.decl) {
+        copie_annotations(membre.decl->annotations, info_type_membre->annotations);
+    }
+}
+
 InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
 {
     auto crée_info_type_entier = [this](uint32_t taille_en_octet, bool est_signe) {
@@ -1445,14 +1457,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(it.type);
-                info_type_membre->decalage = it.decalage;
-                info_type_membre->nom = it.nom->nom;
-                info_type_membre->drapeaux = it.drapeaux;
-
-                if (it.decl) {
-                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
-                }
-
+                remplis_membre_info_type(info_type_membre, it);
                 info_type->membres.ajoute(info_type_membre);
             }
 
@@ -1488,14 +1493,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Type *type)
                 auto info_type_membre =
                     allocatrice_infos_types.infos_types_membres_structures.ajoute_element();
                 info_type_membre->info = crée_info_type_pour(it.type);
-                info_type_membre->decalage = it.decalage;
-                info_type_membre->nom = it.nom->nom;
-                info_type_membre->drapeaux = it.drapeaux;
-
-                if (it.decl) {
-                    copie_annotations(it.decl->annotations, info_type_membre->annotations);
-                }
-
+                remplis_membre_info_type(info_type_membre, it);
                 info_type->membres.ajoute(info_type_membre);
             }
 
