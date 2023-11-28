@@ -957,6 +957,63 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name Pureté d'une fonction.
+ * \{ */
+
+#if 0
+/* Pour référence https://en.wikipedia.org/wiki/Pure_function */
+static bool fonction_est_pure(AtomeFonction const *fonction)
+{
+    if (fonction->est_externe) {
+        /* À FAIRE : note les fonctions externes pures comme tel. */
+        return false;
+    }
+
+    POUR (fonction->params_entrees) {
+        it->etat = EST_PARAMETRE_FONCTION;
+    }
+
+    POUR (fonction->instructions) {
+        if (it->est_appel()) {
+            /* À FAIRE : test si la fonction est pur. */
+            return false;
+        }
+
+        if (it->est_op_binaire()) {
+            auto op_binaire = it->comme_op_binaire();
+            /* Le mode d'arrondissement des nombres réels peut être modifié lors de l'exécution.
+             * Ainsi, tous les opérations binaires sont impures. */
+            if (op_binaire->valeur_droite->type->est_type_reel()) {
+                return false;
+            }
+        }
+
+        if (it->est_charge()) {
+            auto charge = it->comme_charge();
+            /* À FAIRE : uniquement si la valeur globale est écrite dans la sortie. */
+            if (charge->chargee->est_globale()) {
+                return false;
+            }
+        }
+
+        if (it->est_stocke_mem()) {
+            auto stocke = it->comme_stocke_mem();
+            auto cible = cible_finale_stockage(stocke);
+            /* À FAIRE : alias de la mémoire. */
+            if (cible->est_globale() || (cible->etat == EST_PARAMETRE_FONCTION)) {
+                /* Modification d'une globale ou d'un paramètre. */
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+#endif
+
+/** \} */
+
 /** ******************************************************************************************
  * \name Graphe
  * \{
