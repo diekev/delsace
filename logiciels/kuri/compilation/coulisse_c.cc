@@ -1690,6 +1690,9 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
     return {};
 }
 
+/* Pour une liste des attributs GCC pour les fonctions :
+ * https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html
+ */
 void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                                         const AtomeFonction *atome_fonc,
                                         bool pour_entête)
