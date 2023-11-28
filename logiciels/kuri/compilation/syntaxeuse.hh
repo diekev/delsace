@@ -36,7 +36,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
   private:
     Compilatrice &m_compilatrice;
     Tacheronne &m_tacheronne;
-    UniteCompilation *m_unite = nullptr;
+    UniteCompilation const *m_unité = nullptr;
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
@@ -48,7 +48,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     kuri::pile<NoeudDeclarationEnteteFonction *> fonctions_courantes{};
 
   public:
-    Syntaxeuse(Tacheronne &tacheronne, UniteCompilation *unite);
+    Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);
 
     EMPECHE_COPIE(Syntaxeuse);
 
