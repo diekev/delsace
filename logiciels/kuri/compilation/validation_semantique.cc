@@ -1184,7 +1184,8 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
                 return CodeRetourValidation::Erreur;
             }
 
-            return valide_expression_retour(static_cast<NoeudRetour *>(noeud));
+            rapporte_erreur("Les coroutines ne sont plus supportées pour l'instant.", noeud);
+            return CodeRetourValidation::Erreur;
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
         {
