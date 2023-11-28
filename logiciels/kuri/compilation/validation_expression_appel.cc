@@ -1252,7 +1252,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
     état->résultats.efface();
 
     POUR (état->liste_candidates) {
-        if (it.quoi == CANDIDATE_EST_ACCES) {
+        if (it.quoi == CANDIDATE_EST_ACCES || it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
             état->résultats.ajoute(
                 apparie_appel_pointeur(contexte, expr, it.decl, espace, état->args));
         }
@@ -1350,10 +1350,6 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
         else if (it.quoi == CANDIDATE_EST_INIT_DE) {
             // ici nous pourrions directement retourner si le type est correcte...
             état->résultats.ajoute(apparie_appel_init_de(it.decl, état->args));
-        }
-        else if (it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            état->résultats.ajoute(
-                apparie_appel_pointeur(contexte, expr, it.decl, espace, état->args));
         }
     }
 
