@@ -12,7 +12,7 @@
 
 /* ********************************************************************************************* */
 
-static InstructionAllocation *alloc_ou_nul(Atome *atome)
+static InstructionAllocation const *alloc_ou_nul(Atome const *atome)
 {
     if (!atome->est_instruction()) {
         return nullptr;
@@ -135,7 +135,7 @@ bool Bloc::peut_fusionner_enfant()
     return true;
 }
 
-void Bloc::utilise_variable(InstructionAllocation *variable)
+void Bloc::utilise_variable(InstructionAllocation const *variable)
 {
     if (!variable) {
         return;
@@ -215,7 +215,7 @@ void Bloc::déconnecte_pour_branche_morte(Bloc *parent)
     }
 }
 
-void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc *bloc)
+void Bloc::enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, Bloc const *bloc)
 {
     for (auto i = 0; i < tableau.taille(); ++i) {
         if (tableau[i] == bloc) {
@@ -237,7 +237,7 @@ void Bloc::ajoute_parent(Bloc *parent)
     parents.ajoute(parent);
 }
 
-void imprime_bloc(Bloc *bloc,
+void imprime_bloc(Bloc const *bloc,
                   int decalage_instruction,
                   std::ostream &os,
                   bool surligne_inutilisees)
@@ -307,7 +307,8 @@ void construit_liste_variables_utilisées(Bloc *bloc)
     }
 }
 
-static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs, InstructionLabel *label)
+static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
+                                    InstructionLabel const *label)
 {
     POUR (blocs) {
         if (it->label == label) {
