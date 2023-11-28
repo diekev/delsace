@@ -24,7 +24,7 @@ struct Graphe {
     };
 
     kuri::tableau<Connexion> connexions{};
-    mutable kuri::table_hachage<Atome *, kuri::tablet<int, 4>> connexions_pour_inst{""};
+    mutable kuri::table_hachage<Atome const *, kuri::tablet<int, 4>> connexions_pour_inst{""};
 
   public:
     /* a est utilisé par b */
@@ -32,10 +32,10 @@ struct Graphe {
 
     void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc);
 
-    bool est_uniquement_utilisé_dans_bloc(Instruction *inst, int index_bloc) const;
+    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
 
     template <typename Fonction>
-    void visite_utilisateurs(Instruction *inst, Fonction rappel) const;
+    void visite_utilisateurs(Instruction const *inst, Fonction rappel) const;
 
     void réinitialise();
 };
