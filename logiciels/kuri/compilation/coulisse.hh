@@ -58,8 +58,7 @@ struct Coulisse {
     virtual bool crée_fichier_objet_impl(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
                                          Programme *programme,
-                                         CompilatriceRI &compilatrice_ri,
-                                         Broyeuse &) = 0;
+                                         CompilatriceRI &compilatrice_ri) = 0;
 
     virtual bool crée_exécutable_impl(Compilatrice &compilatrice,
                                       EspaceDeTravail &espace,

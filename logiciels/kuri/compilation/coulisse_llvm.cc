@@ -1594,8 +1594,7 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
 bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                            EspaceDeTravail &espace,
                                            Programme *programme,
-                                           CompilatriceRI & /*constructrice_ri*/,
-                                           Broyeuse &)
+                                           CompilatriceRI & /*constructrice_ri*/)
 {
     if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
         return true;

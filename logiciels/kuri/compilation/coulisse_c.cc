@@ -2130,8 +2130,7 @@ bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
                                         Programme *programme,
-                                        CompilatriceRI &compilatrice_ri,
-                                        Broyeuse &broyeuse)
+                                        CompilatriceRI &compilatrice_ri)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;

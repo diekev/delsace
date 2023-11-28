@@ -94,7 +94,7 @@ bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
         std::cout << "Création du fichier objet..." << std::endl;
     }
     auto debut_fichier_objet = dls::chrono::compte_seconde();
-    if (!crée_fichier_objet_impl(compilatrice, espace, programme, compilatrice_ri, broyeuse)) {
+    if (!crée_fichier_objet_impl(compilatrice, espace, programme, compilatrice_ri)) {
         espace.rapporte_erreur_sans_site("Impossible de générer les fichiers objets");
         return false;
     }

@@ -54,8 +54,7 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                          EspaceDeTravail & /*espace*/,
                                          Programme * /*programme*/,
-                                         CompilatriceRI & /*compilatrice_ri*/,
-                                         Broyeuse &)
+                                         CompilatriceRI & /*compilatrice_ri*/)
 {
     return true;
 }

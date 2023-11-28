@@ -474,8 +474,7 @@ bool CoulisseASM::génère_code_impl(Compilatrice & /*compilatrice*/,
 bool CoulisseASM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                           EspaceDeTravail &espace,
                                           Programme *programme,
-                                          CompilatriceRI &compilatrice_ri,
-                                          Broyeuse &)
+                                          CompilatriceRI &compilatrice_ri)
 {
     std::ostream &fichier_sortie = std::cerr;
     Enchaineuse enchaineuse;
