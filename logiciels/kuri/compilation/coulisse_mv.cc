@@ -16,7 +16,7 @@
 
 bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
-                                  Programme *programme,
+                                  Programme const *programme,
                                   CompilatriceRI &compilatrice_ri,
                                   Broyeuse &)
 {
@@ -53,16 +53,15 @@ bool CoulisseMV::génère_code_impl(Compilatrice &compilatrice,
 
 bool CoulisseMV::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                          EspaceDeTravail & /*espace*/,
-                                         Programme * /*programme*/,
-                                         CompilatriceRI & /*compilatrice_ri*/,
-                                         Broyeuse &)
+                                         Programme const * /*programme*/,
+                                         CompilatriceRI & /*compilatrice_ri*/)
 {
     return true;
 }
 
 bool CoulisseMV::crée_exécutable_impl(Compilatrice &compilatrice,
                                       EspaceDeTravail &espace,
-                                      Programme *programme)
+                                      Programme const *programme)
 {
     std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
 

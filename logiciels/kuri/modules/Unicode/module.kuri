@@ -58,7 +58,7 @@ nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
 
     s0 := caractère[0] comme n8
 
-    si 0x00 <= s0 <= 0x7F {
+    si s0 <= 0x7F {
         retourne 1
     }
 
