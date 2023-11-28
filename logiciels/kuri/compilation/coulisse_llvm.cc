@@ -1538,7 +1538,7 @@ CoulisseLLVM::~CoulisseLLVM()
 
 bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
                                     EspaceDeTravail &espace,
-                                    Programme *programme,
+                                    Programme const *programme,
                                     CompilatriceRI &compilatrice_ri,
                                     Broyeuse &)
 {
@@ -1593,9 +1593,8 @@ bool CoulisseLLVM::génère_code_impl(Compilatrice & /*compilatrice*/,
 
 bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
                                            EspaceDeTravail &espace,
-                                           Programme *programme,
-                                           CompilatriceRI & /*constructrice_ri*/,
-                                           Broyeuse &)
+                                           Programme const *programme,
+                                           CompilatriceRI & /*constructrice_ri*/)
 {
     if (espace.options.resultat != ResultatCompilation::EXECUTABLE) {
         return true;
@@ -1610,7 +1609,7 @@ bool CoulisseLLVM::crée_fichier_objet_impl(Compilatrice & /*compilatrice*/,
 
 bool CoulisseLLVM::crée_exécutable_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
-                                        Programme * /*programme*/)
+                                        Programme const * /*programme*/)
 {
     if (!::crée_executable(
             espace, nom_sortie_resultat_final(espace.options), compilatrice.racine_kuri)) {
