@@ -306,10 +306,7 @@ static void trouve_candidates_pour_expression(
 }
 
 static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
-    EspaceDeTravail &espace,
-    NoeudExpression *slot,
-    Type *type_du_parametre,
-    Type *type_de_l_expression)
+    NoeudExpression *slot, Type *type_du_parametre, Type *type_de_l_expression)
 {
     if (type_du_parametre->est_type_variadique()) {
         /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
@@ -403,7 +400,6 @@ static ResultatAppariement apparie_appel_pointeur(
     ContexteValidationCode &contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression *decl_pointeur_fonction,
-    EspaceDeTravail &espace,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     auto type = decl_pointeur_fonction->type;
@@ -459,7 +455,7 @@ static ResultatAppariement apparie_appel_pointeur(
         auto type_prm = type_fonction->types_entrees[static_cast<int>(index_param)];
         auto type_enf = slot->type;
 
-        auto resultat = apparie_type_parametre_appel_fonction(espace, slot, type_prm, type_enf);
+        auto resultat = apparie_type_parametre_appel_fonction(slot, type_prm, type_enf);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return ErreurAppariement::dependance_non_satisfaite(slot, std::get<Attente>(resultat));
@@ -569,7 +565,6 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
 }
 
 static ResultatAppariement apparie_appel_fonction(
-    EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
     NoeudExpressionAppel *expr,
     NoeudDeclarationEnteteFonction *decl,
@@ -661,7 +656,7 @@ static ResultatAppariement apparie_appel_fonction(
         }
 
         auto resultat = apparie_type_parametre_appel_fonction(
-            espace, slot, type_du_parametre, type_de_l_expression);
+            slot, type_du_parametre, type_de_l_expression);
 
         if (std::holds_alternative<Attente>(resultat)) {
             return ErreurAppariement::dependance_non_satisfaite(arg, std::get<Attente>(resultat));
@@ -794,10 +789,10 @@ static ResultatAppariement apparie_appel_fonction(
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         Monomorpheuse monomorpheuse(espace, decl);
-        return apparie_appel_fonction(espace, contexte, expr, decl, args, &monomorpheuse);
+        return apparie_appel_fonction(contexte, expr, decl, args, &monomorpheuse);
     }
 
-    return apparie_appel_fonction(espace, contexte, expr, decl, args, nullptr);
+    return apparie_appel_fonction(contexte, expr, decl, args, nullptr);
 }
 
 /* ************************************************************************** */
@@ -1253,8 +1248,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
 
     POUR (état->liste_candidates) {
         if (it.quoi == CANDIDATE_EST_ACCES || it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
-            état->résultats.ajoute(
-                apparie_appel_pointeur(contexte, expr, it.decl, espace, état->args));
+            état->résultats.ajoute(apparie_appel_pointeur(contexte, expr, it.decl, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_DECLARATION) {
             auto decl = it.decl;
@@ -1334,7 +1328,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 }
                 else if (type->est_type_fonction()) {
                     état->résultats.ajoute(
-                        apparie_appel_pointeur(contexte, expr, decl, espace, état->args));
+                        apparie_appel_pointeur(contexte, expr, decl, état->args));
                 }
                 else if (type->est_type_opaque()) {
                     auto type_opaque = type->comme_type_opaque();
