@@ -157,6 +157,8 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
     }
 }
 
+/* Pour les options d'avertissements et d'erreurs de GCC, voir :
+ * https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html */
 static TableauOptions options_pour_fichier_objet(OptionsDeCompilation const &options)
 {
     TableauOptions résultat;
