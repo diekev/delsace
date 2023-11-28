@@ -250,7 +250,7 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
     }
 
     if (di->est_si()) {
-        auto inst = static_cast<NoeudSi *>(di);
+        auto inst = di->comme_si();
 
         if (inst->bloc_si_faux == nullptr) {
             return NoeudExpression::nul();
@@ -263,8 +263,8 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b)
         return derniere_instruction(inst->bloc_si_faux->comme_bloc());
     }
 
-    if (di->genre == GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE) {
-        auto inst = static_cast<NoeudPousseContexte *>(di);
+    if (di->est_pousse_contexte()) {
+        auto inst = di->comme_pousse_contexte();
         return derniere_instruction(inst->bloc);
     }
 

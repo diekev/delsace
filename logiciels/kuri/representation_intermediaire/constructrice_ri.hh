@@ -389,6 +389,8 @@ struct CompilatriceRI {
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
                                          kuri::tableau<AtomeConstante *> &&valeurs);
+    AtomeGlobale *crée_info_type_membre_structure(MembreTypeComposé const &membre,
+                                                  NoeudExpression *site);
 
     Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
                                      Atome *pointeur_tableau_fixe,
