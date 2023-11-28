@@ -306,7 +306,7 @@ static void trouve_candidates_pour_expression(
 }
 
 static ResultatPoidsTransformation apparie_type_parametre_appel_fonction(
-    NoeudExpression *slot, Type *type_du_parametre, Type *type_de_l_expression)
+    NoeudExpression const *slot, Type const *type_du_parametre, Type const *type_de_l_expression)
 {
     if (type_du_parametre->est_type_variadique()) {
         /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
@@ -364,7 +364,7 @@ static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
 }
 
 static void applique_transformations(ContexteValidationCode &contexte,
-                                     CandidateAppariement *candidate,
+                                     CandidateAppariement const *candidate,
                                      NoeudExpressionAppel *expr)
 {
     auto nombre_args_simples = static_cast<int>(candidate->exprs.taille());
@@ -399,7 +399,7 @@ static void applique_transformations(ContexteValidationCode &contexte,
 static ResultatAppariement apparie_appel_pointeur(
     ContexteValidationCode &contexte,
     NoeudExpressionAppel const *b,
-    NoeudExpression *decl_pointeur_fonction,
+    NoeudExpression const *decl_pointeur_fonction,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     auto type = decl_pointeur_fonction->type;
@@ -502,7 +502,7 @@ static ResultatAppariement apparie_appel_pointeur(
 }
 
 static ResultatAppariement apparie_appel_init_de(
-    NoeudExpression *expr, kuri::tableau<IdentifiantEtExpression> const &args)
+    NoeudExpression const *expr, kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() > 1) {
         return ErreurAppariement::mecomptage_arguments(expr, 1, args.taille());
@@ -530,8 +530,8 @@ static ResultatAppariement apparie_appel_init_de(
 static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
-    NoeudDeclarationEnteteFonction *decl,
+    NoeudExpressionAppel const *expr,
+    NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (!decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
@@ -566,8 +566,8 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
 
 static ResultatAppariement apparie_appel_fonction(
     ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
-    NoeudDeclarationEnteteFonction *decl,
+    NoeudExpressionAppel const *expr,
+    NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args,
     Monomorpheuse *monomorpheuse)
 {
@@ -779,8 +779,8 @@ static ResultatAppariement apparie_appel_fonction(
 static ResultatAppariement apparie_appel_fonction(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
-    NoeudDeclarationEnteteFonction *decl,
+    NoeudExpressionAppel const *expr,
+    NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (expr->possède_drapeau(DrapeauxNoeud::POUR_CUISSON)) {
@@ -824,7 +824,7 @@ static ResultatAppariement apparie_construction_type_composé_polymorphique(
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> const &arguments,
     NoeudDeclarationType const *déclaration_type_composé,
-    NoeudBloc *params_polymorphiques)
+    NoeudBloc const *params_polymorphiques)
 {
     if (expr->parametres.taille() != params_polymorphiques->nombre_de_membres()) {
         return ErreurAppariement::mecomptage_arguments(
@@ -1139,7 +1139,7 @@ static ResultatAppariement apparie_construction_opaque(
 static CodeRetourValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
     ContexteValidationCode &contexte,
-    NoeudExpressionAppel *expr,
+    NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> &args,
     ListeCandidatesExpressionAppel &candidates)
 {
@@ -1240,7 +1240,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
 
 static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                                                   ContexteValidationCode &contexte,
-                                                  NoeudExpressionAppel *expr,
+                                                  NoeudExpressionAppel const *expr,
                                                   EtatResolutionAppel *état)
 {
     /* Réinitialise en cas d'attentes passées. */
@@ -1352,7 +1352,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
 
 /* ************************************************************************** */
 
-static NoeudBloc *bloc_constantes_pour(NoeudExpression *noeud)
+static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
 {
     if (noeud->est_entete_fonction()) {
         return noeud->comme_entete_fonction()->bloc_constantes;
@@ -1535,7 +1535,8 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
 
 /* ************************************************************************** */
 
-static void rassemble_expressions_paramètres(NoeudExpressionAppel *expr, EtatResolutionAppel *état)
+static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
+                                             EtatResolutionAppel *état)
 {
     auto &args = état->args;
     args.reserve(expr->parametres.taille());
@@ -1556,7 +1557,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel *expr, EtatRe
     état->état = EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS;
 }
 
-static ResultatValidation crée_liste_candidates(NoeudExpressionAppel *expr,
+static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace,
                                                 ContexteValidationCode &contexte)
@@ -1580,7 +1581,7 @@ static ResultatValidation crée_liste_candidates(NoeudExpressionAppel *expr,
     return CodeRetourValidation::OK;
 }
 
-static ResultatValidation sélectionne_candidate(NoeudExpressionAppel *expr,
+static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace)
 {
