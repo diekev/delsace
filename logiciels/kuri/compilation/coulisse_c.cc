@@ -2107,7 +2107,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
 
 bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
                                  EspaceDeTravail &espace,
-                                 Programme *programme,
+                                 Programme const *programme,
                                  CompilatriceRI &compilatrice_ri,
                                  Broyeuse &broyeuse)
 {
@@ -2129,7 +2129,7 @@ bool CoulisseC::génère_code_impl(Compilatrice &compilatrice,
 
 bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
                                         EspaceDeTravail &espace,
-                                        Programme *programme,
+                                        Programme const *programme,
                                         CompilatriceRI &compilatrice_ri)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
@@ -2198,7 +2198,7 @@ bool CoulisseC::crée_fichier_objet_impl(Compilatrice &compilatrice,
 
 bool CoulisseC::crée_exécutable_impl(Compilatrice &compilatrice,
                                      EspaceDeTravail &espace,
-                                     Programme * /*programme*/)
+                                     Programme const * /*programme*/)
 {
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return true;

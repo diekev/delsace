@@ -77,7 +77,7 @@ void Coulisse::detruit(Coulisse *coulisse)
 
 bool Coulisse::crée_fichier_objet(Compilatrice &compilatrice,
                                   EspaceDeTravail &espace,
-                                  Programme *programme,
+                                  Programme const *programme,
                                   CompilatriceRI &compilatrice_ri,
                                   Broyeuse &broyeuse)
 {
