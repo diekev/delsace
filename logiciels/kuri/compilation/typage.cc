@@ -1409,7 +1409,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                 enchaineuse << chaine_type(it->type->comme_type_type_de_donnees()->type_connu);
             }
             else {
-                enchaineuse << it->comme_declaration_variable()->valeur_expression;
+                enchaineuse << it->comme_declaration_constante()->valeur_expression;
             }
 
             virgule = ", ";

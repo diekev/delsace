@@ -48,7 +48,6 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
     SI_DRAPEAU_UTILISE(EST_VARIADIQUE)
     SI_DRAPEAU_UTILISE(EST_IMPLICITE)
     SI_DRAPEAU_UTILISE(EST_GLOBALE)
-    SI_DRAPEAU_UTILISE(EST_CONSTANTE)
     SI_DRAPEAU_UTILISE(DECLARATION_TYPE_POLYMORPHIQUE)
     SI_DRAPEAU_UTILISE(DECLARATION_FUT_VALIDEE)
     SI_DRAPEAU_UTILISE(RI_FUT_GENEREE)
@@ -310,6 +309,19 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             arbre_aplatis.ajoute(expr);
 
+            break;
+        }
+        case GenreNoeud::DECLARATION_CONSTANTE:
+        {
+            auto constante = racine->comme_declaration_constante();
+
+            // N'aplatis pas expr->valeur car ça ne sers à rien dans ce cas.
+            aplatis_arbre(
+                constante->expression, arbre_aplatis, drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            aplatis_arbre(constante->expression_type,
+                          arbre_aplatis,
+                          drapeau | DrapeauxNoeud::DROITE_ASSIGNATION);
+            arbre_aplatis.ajoute(constante);
             break;
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -741,6 +753,14 @@ void aplatis_arbre(NoeudExpression *declaration)
         return;
     }
 
+    if (declaration->est_declaration_constante()) {
+        auto declaration_variable = declaration->comme_declaration_constante();
+        if (declaration_variable->arbre_aplatis.taille() == 0) {
+            aplatis_arbre(declaration_variable, declaration_variable->arbre_aplatis, {});
+        }
+        return;
+    }
+
     if (declaration->est_ajoute_fini()) {
         auto ajoute_fini = declaration->comme_ajoute_fini();
         if (ajoute_fini->arbre_aplatis.taille() == 0) {
@@ -818,7 +838,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
 
-            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+            if (déclaration_référée->est_declaration_constante()) {
                 return nullptr;
             }
 
@@ -997,7 +1017,7 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
                 return true;
             }
 
-            if (déclaration_référée->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+            if (déclaration_référée->est_declaration_constante()) {
                 return true;
             }
 
@@ -1272,7 +1292,14 @@ static void remplis_membre_info_type(InfoTypeMembreStructure *info_type_membre,
     info_type_membre->drapeaux = membre.drapeaux;
 
     if (membre.decl) {
-        copie_annotations(membre.decl->annotations, info_type_membre->annotations);
+        if (membre.decl->est_declaration_variable()) {
+            copie_annotations(membre.decl->comme_declaration_variable()->annotations,
+                              info_type_membre->annotations);
+        }
+        else if (membre.decl->est_declaration_constante()) {
+            copie_annotations(membre.decl->comme_declaration_constante()->annotations,
+                              info_type_membre->annotations);
+        }
     }
 }
 
@@ -2683,7 +2710,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 
 /** \} */
 
-bool possède_annotation(const NoeudDeclarationVariable *decl, kuri::chaine_statique annotation)
+bool possède_annotation(const BaseDeclarationVariable *decl, kuri::chaine_statique annotation)
 {
     POUR (decl->annotations) {
         if (it.nom == annotation) {
@@ -2798,6 +2825,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_ajoute_init()) {
         return &noeud->comme_ajoute_init()->unité;
+    }
+    if (noeud->est_declaration_constante()) {
+        return &noeud->comme_declaration_constante()->unité;
     }
 
     assert_rappel(false, [&]() {

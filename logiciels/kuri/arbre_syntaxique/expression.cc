@@ -265,16 +265,12 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 return ValeurExpression(decl->comme_entete_fonction());
             }
 
-            if (decl->genre != GenreNoeud::DECLARATION_VARIABLE) {
-                return erreur_evaluation(b, "La référence n'est pas celle d'une variable !");
-            }
-
-            if (!decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
+            if (!decl->est_declaration_constante()) {
                 return erreur_evaluation(
                     b, "La référence n'est pas celle d'une variable constante !");
             }
 
-            auto decl_var = decl->comme_declaration_variable();
+            auto decl_var = decl->comme_declaration_constante();
 
             if (decl_var->valeur_expression.est_valide()) {
                 return decl_var->valeur_expression;

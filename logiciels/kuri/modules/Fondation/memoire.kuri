@@ -6,6 +6,16 @@
 
 importe GlibC // pour memcpy
 
+/* Retourne la taille alignée pour être un multiple de N.
+ * N doit être une puissance de 2, car nous présupposons
+ * un alignement en mémoire. */
+taille_alignée :: fonc (taille: z64, $N: z32) -> z64 #enligne
+{
+    #assert (N & (N - 1)) == 0
+    /* (taille + (2^n - 1) & ~(2^n - 1) */
+    retourne (taille + N - 1) & ~(N - 1)
+}
+
 comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
 {
     si a.taille < taille {

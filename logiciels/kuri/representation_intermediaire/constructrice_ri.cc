@@ -144,7 +144,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
+        auto param = decl->parametre_entree(i)->comme_declaration_variable();
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params[i] = atome;
@@ -1122,6 +1122,14 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         {
+            break;
+        }
+        case GenreNoeud::DECLARATION_CONSTANTE:
+        {
+            assert_rappel(!noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
+                dbg() << "Obtenu une constante dans la RI.\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
         /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
@@ -3225,7 +3233,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
             }
             else {
-                valeurs[1] = nullptr;
+                auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                    m_compilatrice.typeuse.type_info_type_, false);
+                valeurs[1] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
             }
             valeurs[2] = m_constructrice.crée_constante_booléenne(type->est_type_reference());
 
@@ -3430,11 +3440,16 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         case GenreType::TABLEAU_DYNAMIQUE:
         {
             auto type_deref = type_dereference_pour(type);
+            auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                m_compilatrice.typeuse.type_info_type_, false);
 
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TABLEAU, type);
-            valeurs[1] = type_deref ? crée_info_type_avec_transtype(type_deref, site) : nullptr;
+            valeurs[1] = type_deref ?
+                             crée_info_type_avec_transtype(type_deref, site) :
+                             m_constructrice.crée_constante_nulle(type_pointeur_info_type);
+            ;
             valeurs[2] = m_constructrice.crée_constante_booléenne(false);
             valeurs[3] = m_constructrice.crée_z32(0);
 
@@ -3540,12 +3555,15 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         {
             auto type_variadique = type->comme_type_variadique();
             auto type_élément = type_variadique->type_pointe;
+            auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                m_compilatrice.typeuse.type_info_type_, false);
 
             /* { base, type_élément } */
             auto valeurs = kuri::tableau<AtomeConstante *>(2);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::VARIADIQUE, type);
-            valeurs[1] = type_élément ? crée_info_type_avec_transtype(type_élément, site) :
-                                        nullptr;
+            valeurs[1] = type_élément ?
+                             crée_info_type_avec_transtype(type_élément, site) :
+                             m_constructrice.crée_constante_nulle(type_pointeur_info_type);
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_variadique, std::move(valeurs));
@@ -3652,7 +3670,17 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
 
     if (membre.decl) {
-        valeurs[4] = crée_tableau_annotations_pour_info_membre(membre.decl->annotations);
+        if (membre.decl->est_declaration_variable()) {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre(
+                membre.decl->comme_declaration_variable()->annotations);
+        }
+        else if (membre.decl->est_declaration_constante()) {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre(
+                membre.decl->comme_declaration_constante()->annotations);
+        }
+        else {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre({});
+        }
     }
     else {
         valeurs[4] = crée_tableau_annotations_pour_info_membre({});
@@ -3850,10 +3878,6 @@ static MéthodeConstructionGlobale détermine_méthode_construction_globale(
 
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl)
 {
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-        return;
-    }
-
     if (m_fonction_courante == nullptr) {
         génère_ri_pour_variable_globale(decl);
         return;

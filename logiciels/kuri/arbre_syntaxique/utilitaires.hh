@@ -13,6 +13,7 @@
 #include "utilitaires/macros.hh"
 
 struct AssembleuseArbre;
+struct BaseDeclarationVariable;
 struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
@@ -40,14 +41,14 @@ struct tablet;
 
 enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
-    EMPLOYE = (1 << 0),                         // decl var
-    EST_EXTERNE = (1 << 1),                     // decl var
-    EST_MEMBRE_STRUCTURE = (1 << 2),            // decl structure, decl union
-    EST_ASSIGNATION_COMPOSEE = (1 << 3),        // operateur binaire
-    EST_VARIADIQUE = (1 << 4),                  // decl var
-    EST_IMPLICITE = (1 << 5),                   // controle boucle
-    EST_GLOBALE = (1 << 6),                     // decl var
-    EST_CONSTANTE = (1 << 7),                   // decl var
+    EMPLOYE = (1 << 0),                   // decl var
+    EST_EXTERNE = (1 << 1),               // decl var
+    EST_MEMBRE_STRUCTURE = (1 << 2),      // decl structure, decl union
+    EST_ASSIGNATION_COMPOSEE = (1 << 3),  // operateur binaire
+    EST_VARIADIQUE = (1 << 4),            // decl var
+    EST_IMPLICITE = (1 << 5),             // controle boucle
+    EST_GLOBALE = (1 << 6),               // decl var
+    /* DISPONIBLE = (1 << 7), */
     DECLARATION_TYPE_POLYMORPHIQUE = (1 << 8),  // decl var
     DECLARATION_FUT_VALIDEE = (1 << 9),         // déclaration
     RI_FUT_GENEREE = (1 << 10),                 // déclaration
@@ -314,7 +315,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
 
-bool possède_annotation(NoeudDeclarationVariable const *decl, kuri::chaine_statique annotation);
+bool possède_annotation(const BaseDeclarationVariable *decl, kuri::chaine_statique annotation);
 
 bool est_déclaration_polymorphique(NoeudDeclaration const *decl);
 

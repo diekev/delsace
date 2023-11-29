@@ -30,7 +30,7 @@ static const char *copie_extra_entete_fonction = R"(
              * sont placés par la Syntaxeuse directement dans les membres. */
             POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                 auto copie_membre = copie_noeud(it);
-                copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
+                copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
             }
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
             )";
@@ -40,7 +40,7 @@ static const char *copie_extra_entête_opérateur_pour = R"(
                 for (int64_t i = 0; i < copie->params.taille(); i++) {
                     copie->bloc_parametres->membres->ajoute(copie->parametre_entree(i));
                 }
-                copie->bloc_parametres->membres->ajoute(copie->param_sortie->comme_declaration_variable());
+                copie->bloc_parametres->membres->ajoute(copie->param_sortie->comme_base_declaration_variable());
             }
             )";
 
@@ -59,7 +59,7 @@ static const char *copie_extra_structure = R"(
                  * sont placés par la Syntaxeuse directement dans les membres. */
                 POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
                     auto copie_membre = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_variable());
+                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_declaration_constante());
                 }
             }
 )";
