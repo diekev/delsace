@@ -150,7 +150,7 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
                               it->type,
                               {},
                               false,
-                              it->comme_declaration_variable()->expression_type});
+                              it->comme_declaration_constante()->expression_type});
             }
         }
         else if (it->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -392,7 +392,7 @@ void Monomorpheuse::ajoute_candidats_depuis_declaration_structure(const NoeudStr
             }
             else {
                 ajoute_candidat_valeur(
-                    it->ident, it->type, it->comme_declaration_variable()->valeur_expression);
+                    it->ident, it->type, it->comme_declaration_constante()->valeur_expression);
             }
         }
         else if (param_poly->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -465,7 +465,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
                 ajoute_candidat_valeur(
                     it->ident,
                     param_poly->type,
-                    param_poly->comme_declaration_variable()->valeur_expression);
+                    param_poly->comme_declaration_constante()->valeur_expression);
             }
         }
         else if (decl_referee->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -1062,7 +1062,8 @@ RésultatMonomorphisation détermine_monomorphisation(
         auto slot = arguments_reçus[i];
 
         if (param->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            monomorpheuse.parse_candidats(param->expression_type, slot, slot->type);
+            monomorpheuse.parse_candidats(
+                param->comme_base_declaration_variable()->expression_type, slot, slot->type);
         }
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
