@@ -644,9 +644,6 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_parametre = arg->type;
         auto poids_polymorphique = POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
 
-        assert_rappel(arg->type,
-                      [&]() { std::cerr << decl->ident->nom << "." << arg->ident->nom << '\n'; });
-
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
             if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
