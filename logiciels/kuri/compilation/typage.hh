@@ -282,7 +282,7 @@ struct MembreTypeComposé {
         MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
     };
 
-    NoeudDeclarationVariable *decl = nullptr;
+    NoeudDeclaration *decl = nullptr;
     Type *type = nullptr;
     IdentifiantCode *nom = nullptr;
     unsigned decalage = 0;

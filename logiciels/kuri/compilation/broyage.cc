@@ -474,7 +474,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
-        broye_nom_simple(param->valeur->ident);
+        broye_nom_simple(param->ident);
         nom_broyé_type(param->type);
     }
 
@@ -534,7 +534,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(
     for (auto i = 0; i < decl->params.taille(); ++i) {
         auto param = decl->parametre_entree(i);
 
-        auto nom_ascii = param->valeur->ident->nom_broye;
+        auto nom_ascii = param->ident->nom_broye;
         stockage_temp << nom_ascii.taille();
         stockage_temp << nom_ascii;
 

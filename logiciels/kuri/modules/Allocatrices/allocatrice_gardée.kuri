@@ -45,12 +45,6 @@ enlève_lien :: fonc (liste: *ListeChainée, vlien: *rien)
     }
 }
 
-// À FAIRE: généralise (taille + (2^n - 1) & ~(2^n - 1)
-taille_alignée :: fonc (taille: z64) -> z64 #enligne
-{
-    retourne (taille + 3) & (~3)
-}
-
 EntêteMémoire :: struct {
     suivante: *EntêteMémoire
     précédente: *EntêteMémoire
@@ -82,7 +76,7 @@ AllocatriceGardée :: struct {
 
 taille_à_allouer_avec_entête :: fonc (taille: z64) -> z64 #enligne
 {
-    retourne taille_alignée(taille) + taille_de(EntêteMémoire) comme z64
+    retourne taille_alignée(taille, 4) + taille_de(EntêteMémoire) comme z64
 }
 
 entête_depuis_lien :: fonc (lien: *rien) -> *EntêteMémoire #enligne
@@ -131,7 +125,7 @@ loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *Inf
 
     entête := malloc(taille_à_allouer comme n64) comme *EntêteMémoire
     entête.info = info
-    entête.taille = taille_alignée(taille)
+    entête.taille = taille_alignée(taille, 4)
 
     traces := enregistre_liste_trace_appels(contexte().trace_appel)
     entête.traces = traces
@@ -151,7 +145,7 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
     }
 
     /* calcule la taille alignée correspondante à l'allocation */
-    // taille_allouée := taille_alignée(ancienne_taille)
+    // taille_allouée := taille_alignée(ancienne_taille, 4)
     // À FAIRE: vérifie taille
 
     entête := entête_depuis_pointeur(ancien_pointeur)
@@ -161,7 +155,7 @@ reloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *rie
 
     entête = realloc(entête, nouvelle_taille_à_allouer comme n64) comme *EntêteMémoire
 
-    entête.taille = taille_alignée(nouvelle_taille)
+    entête.taille = taille_alignée(nouvelle_taille, 4)
     entête.info = info
     détruit_liste_trace_appels(entête.traces)
     entête.traces = enregistre_liste_trace_appels(contexte().trace_appel)
@@ -177,7 +171,7 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
     }
 
     /* calcule la taille alignée correspondante à l'allocation */
-    taille_allouée := taille_alignée(ancienne_taille)
+    taille_allouée := taille_alignée(ancienne_taille, 4)
 
     entête := entête_depuis_pointeur(ancien_pointeur)
 
