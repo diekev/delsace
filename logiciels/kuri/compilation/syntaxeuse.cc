@@ -614,8 +614,8 @@ void Syntaxeuse::analyse_une_chose()
         if (noeud->est_declaration()) {
             noeud->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
 
-            if (noeud->est_declaration_variable()) {
-                noeud->bloc_parent->ajoute_membre(noeud->comme_declaration_variable());
+            if (noeud->est_base_declaration_variable()) {
+                noeud->bloc_parent->ajoute_membre(noeud->comme_base_declaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
                     m_compilatrice.globale_contexte_programme =
                         noeud->comme_declaration_variable();
@@ -1122,7 +1122,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
 
             auto noeud = m_tacheronne.assembleuse->crée_reference_declaration(lexeme);
 
-            auto noeud_decl_param = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+            auto noeud_decl_param = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
             noeud_decl_param->valeur = noeud;
             noeud->declaration_referee = noeud_decl_param;
 
@@ -1146,14 +1146,12 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
                 noeud_decl_param->expression_type = analyse_expression(
                     {}, racine_expression, lexeme_final);
                 /* Nous avons une déclaration de valeur polymorphique, retournons-la. */
-                noeud_decl_param->drapeaux |= (DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
-                                               DrapeauxNoeud::EST_CONSTANTE);
+                noeud_decl_param->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
                 return noeud_decl_param;
             }
 
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
-            noeud_decl_param->drapeaux |= (DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE |
-                                           DrapeauxNoeud::EST_CONSTANTE);
+            noeud_decl_param->drapeaux |= DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
             return noeud;
         }
         case GenreLexeme::FONC:
@@ -1296,12 +1294,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     auto noeud_fonction = analyse_declaration_fonction(gauche->lexeme);
 
                     if (noeud_fonction->est_declaration_type) {
-                        auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+                        auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
                         noeud->ident = gauche->ident;
                         noeud->valeur = gauche;
                         noeud->expression = noeud_fonction;
-                        noeud->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
-                        gauche->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
                         gauche->comme_reference_declaration()->declaration_referee = noeud;
 
                         return noeud;
@@ -1372,13 +1368,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 }
             }
 
-            auto noeud = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+            auto noeud = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
             noeud->ident = gauche->ident;
             noeud->valeur = gauche;
             noeud->expression = analyse_expression(
                 donnees_precedence, racine_expression, lexeme_final);
-            noeud->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
-            gauche->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
 
             if (gauche->est_reference_declaration()) {
                 gauche->comme_reference_declaration()->declaration_referee = noeud;
@@ -1437,11 +1431,15 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             if (gauche->est_declaration_variable()) {
                 // nous avons la déclaration d'une constante (a: z32 : 12)
+                // À FAIRE : réutilise la mémoire
                 auto decl = gauche->comme_declaration_variable();
-                decl->expression = analyse_expression(
+                auto constante = m_tacheronne.assembleuse->crée_declaration_constante(lexeme);
+                constante->ident = decl->valeur->ident;
+                constante->valeur = decl->valeur;
+                constante->expression_type = decl->expression_type;
+                constante->expression = analyse_expression(
                     donnees_precedence, racine_expression, lexeme_final);
-                decl->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
-                return decl;
+                return constante;
             }
 
             m_unité->espace->rapporte_erreur(gauche,
@@ -2243,13 +2241,16 @@ NoeudExpression *Syntaxeuse::analyse_declaration_enum(NoeudExpression *gauche)
         auto noeud = analyse_expression({}, GenreLexeme::INCONNU, GenreLexeme::INCONNU);
 
         if (noeud->est_reference_declaration()) {
-            auto decl_variable = m_tacheronne.assembleuse->crée_declaration_variable(
-                noeud->comme_reference_declaration());
-            decl_variable->drapeaux |= DrapeauxNoeud::EST_CONSTANTE;
+            auto decl_variable = m_tacheronne.assembleuse->crée_declaration_constante(
+                noeud->lexeme);
+            decl_variable->valeur = noeud;
             expressions.ajoute(decl_variable);
         }
-        else {
+        else if (noeud->est_declaration_constante()) {
             expressions.ajoute(noeud);
+        }
+        else {
+            rapporte_erreur("Expression inattendu dans la déclaration des membres de l'énum");
         }
     }
 
@@ -2971,9 +2972,9 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(NoeudStru
         auto expression = analyse_expression(
             {}, GenreLexeme::PARENTHESE_OUVRANTE, GenreLexeme::VIRGULE);
 
-        if (!expression->est_declaration_variable()) {
+        if (!expression->est_declaration_constante()) {
             m_unité->espace->rapporte_erreur(expression,
-                                             "Attendu une déclaration de variable dans les "
+                                             "Attendu une déclaration constante dans les "
                                              "paramètres polymorphiques de la structure");
         }
 

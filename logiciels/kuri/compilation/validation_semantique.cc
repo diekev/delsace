@@ -79,6 +79,11 @@ ResultatValidation ContexteValidationCode::valide()
         return valide_arbre_aplatis(decl, decl->arbre_aplatis);
     }
 
+    if (racine_validation()->est_declaration_constante()) {
+        auto decl = racine_validation()->comme_declaration_constante();
+        return valide_arbre_aplatis(decl, decl->arbre_aplatis);
+    }
+
     if (racine_validation()->est_execute()) {
         auto execute = racine_validation()->comme_execute();
         return valide_arbre_aplatis(execute, execute->arbre_aplatis);
@@ -483,6 +488,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         case GenreNoeud::DECLARATION_VARIABLE:
         {
             return valide_declaration_variable(noeud->comme_declaration_variable());
+        }
+        case GenreNoeud::DECLARATION_CONSTANTE:
+        {
+            return valide_déclaration_constante(noeud->comme_declaration_constante());
         }
         case GenreNoeud::DECLARATION_OPAQUE:
         {
@@ -1823,7 +1832,8 @@ ResultatValidation ContexteValidationCode::valide_parametres_fonction(
     auto dernier_est_variadic = false;
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl()) {
+        if (!decl->params[i]->est_declaration_variable() && !decl->params[i]->est_empl() &&
+            !decl->params[i]->est_declaration_constante()) {
             unite->espace->rapporte_erreur(decl->params[i],
                                            "Le paramètre n'est ni une déclaration, ni un emploi");
             return CodeRetourValidation::Erreur;
@@ -2704,16 +2714,14 @@ ResultatValidation ContexteValidationCode::valide_référence_déclaration(
         }
     }
 
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-        if (decl->est_declaration_variable()) {
-            auto valeur = decl->comme_declaration_variable()->valeur_expression;
-            /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
-             * avoir à s'en soucier plus tard. */
-            if (valeur.est_fonction()) {
-                decl->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                decl = valeur.fonction();
-                expr->declaration_referee = decl;
-            }
+    if (decl->est_declaration_constante()) {
+        auto valeur = decl->comme_declaration_constante()->valeur_expression;
+        /* Remplace tout de suite les constantes de fonctions par les fonctions, pour ne pas
+         * avoir à s'en soucier plus tard. */
+        if (valeur.est_fonction()) {
+            decl->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            decl = valeur.fonction();
+            expr->declaration_referee = decl;
         }
     }
 
@@ -3164,12 +3172,12 @@ ResultatValidation ContexteValidationCode::valide_enum_impl(NoeudEnum *decl, Typ
     int64_t valeurs_legales = 0;
 
     POUR (*decl->bloc->expressions.verrou_ecriture()) {
-        if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
+        if (!it->est_declaration_constante()) {
             rapporte_erreur("Type d'expression inattendu dans l'énum", it);
             return CodeRetourValidation::Erreur;
         }
 
-        auto decl_expr = it->comme_declaration_variable();
+        auto decl_expr = it->comme_declaration_constante();
         decl_expr->type = type_enum;
 
         decl->bloc->ajoute_membre(decl_expr);
@@ -3445,7 +3453,7 @@ struct ConstructriceMembresTypeComposé {
                                  MembreTypeComposé::EST_CONSTANT});
     }
 
-    void ajoute_constante(NoeudDeclarationVariable *déclaration)
+    void ajoute_constante(NoeudDeclarationConstante *déclaration)
     {
         m_membres_extras.ajoute({déclaration,
                                  déclaration->type,
@@ -3717,17 +3725,17 @@ ResultatValidation ContexteValidationCode::valide_structure(NoeudStruct *decl)
             continue;
         }
 
+        if (it->est_declaration_constante()) {
+            constructrice.ajoute_constante(it->comme_declaration_constante());
+            continue;
+        }
+
         if (it->genre != GenreNoeud::DECLARATION_VARIABLE) {
             rapporte_erreur("Déclaration inattendu dans le bloc de la structure", it);
             return CodeRetourValidation::Erreur;
         }
 
         auto decl_var = it->comme_declaration_variable();
-
-        if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-            constructrice.ajoute_constante(decl_var);
-            continue;
-        }
 
         // À FAIRE(emploi) : préserve l'emploi dans les données types
         if (decl_var->declaration_vient_d_un_emploi) {
@@ -3938,17 +3946,17 @@ ResultatValidation ContexteValidationCode::valide_union(NoeudStruct *decl)
             continue;
         }
 
+        if (it->est_declaration_constante()) {
+            constructrice.ajoute_constante(it->comme_declaration_constante());
+            continue;
+        }
+
         if (!it->est_declaration_variable()) {
             espace->rapporte_erreur(it, "Expression inattendue dans le bloc de l'union");
             return CodeRetourValidation::Erreur;
         }
 
         auto decl_var = it->comme_declaration_variable();
-
-        if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-            constructrice.ajoute_constante(decl_var);
-            continue;
-        }
 
         for (auto &donnees : decl_var->donnees_decl.plage()) {
             for (auto i = 0; i < donnees.variables.taille(); ++i) {
@@ -4102,10 +4110,10 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
 
     auto &donnees_assignations = ctx.donnees_assignations;
 
-    auto ajoute_variable = [this, decl](DonneesAssignations &donnees,
-                                        NoeudExpression *variable,
-                                        NoeudExpression *expression,
-                                        Type *type_de_l_expression) -> ResultatValidation {
+    auto ajoute_variable = [this](DonneesAssignations &donnees,
+                                  NoeudExpression *variable,
+                                  NoeudExpression *expression,
+                                  Type *type_de_l_expression) -> ResultatValidation {
         if (variable->type == nullptr) {
             if (type_de_l_expression->est_type_entier_constant()) {
                 variable->type = TypeBase::Z32;
@@ -4144,25 +4152,6 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             donnees.transformations.ajoute(transformation);
         }
 
-        if (decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE) &&
-            !type_de_l_expression->est_type_type_de_donnees()) {
-            if (!peut_etre_type_constante(type_de_l_expression)) {
-                rapporte_erreur("L'expression de la constante n'a pas un type pouvant être celui "
-                                "d'une expression constante",
-                                expression);
-                return CodeRetourValidation::Erreur;
-            }
-
-            auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
-
-            if (res_exec.est_errone) {
-                rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
-                return CodeRetourValidation::Erreur;
-            }
-
-            decl->valeur_expression = res_exec.valeur;
-        }
-
         return CodeRetourValidation::OK;
     };
 
@@ -4177,12 +4166,6 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             // il est possible d'ignorer les variables
             if (variables.est_vide()) {
                 espace->rapporte_erreur(decl, "Trop d'expressions ou de types pour l'assignation");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE) &&
-                it->est_non_initialisation()) {
-                rapporte_erreur("Impossible de ne pas initialiser une constante", it);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4277,15 +4260,8 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             }
 
             decl_var->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-
-            if (decl_var->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-                decl_var->genre_valeur = GenreValeur::DROITE;
-                variable->genre_valeur = GenreValeur::DROITE;
-            }
-            else {
-                decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
-                variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
-            }
+            decl_var->genre_valeur = GenreValeur::TRANSCENDANTALE;
+            variable->genre_valeur = GenreValeur::TRANSCENDANTALE;
         }
     }
 
@@ -4316,6 +4292,100 @@ ResultatValidation ContexteValidationCode::valide_declaration_variable(
             unite->index_courant += 1;
             return Attente::sur_type(decl->type);
         }
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+ResultatValidation ContexteValidationCode::valide_déclaration_constante(
+    NoeudDeclarationConstante *decl)
+{
+    if (resoud_type_final(decl->expression_type, decl->type) == CodeRetourValidation::Erreur) {
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto expression = decl->expression;
+    if (!expression) {
+        if (decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl->valeur->type = decl->type;
+            return CodeRetourValidation::OK;
+        }
+        if (decl->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
+            decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl->valeur->type = decl->type;
+            return CodeRetourValidation::OK;
+        }
+        rapporte_erreur("Impossible de ne pas initialiser une constante.", decl);
+        return CodeRetourValidation::Erreur;
+    }
+
+    /* Utilise la subsitution si existante (p.e. pour #exécute). */
+    if (expression->substitution) {
+        expression = expression->substitution;
+    }
+
+    if (expression->est_non_initialisation()) {
+        rapporte_erreur("Impossible de ne pas initialiser une constante.", expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expression->est_virgule()) {
+        rapporte_erreur("Trop de valeurs pour l'initialisation de la constante.", expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (expression->type->est_type_tuple()) {
+        rapporte_erreur("Ne peut initialisation une constante depuis un tuple.", expression);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (decl->type) {
+        auto resultat = cherche_transformation(expression->type, decl->type);
+
+        if (std::holds_alternative<Attente>(resultat)) {
+            return std::get<Attente>(resultat);
+        }
+
+        auto transformation = std::get<TransformationType>(resultat);
+        if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+            rapporte_erreur_assignation_type_differents(decl->type, expression->type, expression);
+            return CodeRetourValidation::Erreur;
+        }
+    }
+    else {
+        if (expression->type->est_type_entier_constant()) {
+            decl->type = TypeBase::Z32;
+        }
+        else {
+            decl->type = expression->type;
+        }
+    }
+
+    if (!expression->type->est_type_type_de_donnees()) {
+        if (!peut_etre_type_constante(expression->type)) {
+            rapporte_erreur("L'expression de la constante n'a pas un type pouvant être celui "
+                            "d'une expression constante",
+                            expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto res_exec = evalue_expression(m_compilatrice, decl->bloc_parent, expression);
+
+        if (res_exec.est_errone) {
+            rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
+            return CodeRetourValidation::Erreur;
+        }
+
+        decl->valeur_expression = res_exec.valeur;
+    }
+
+    decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl->valeur->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl->valeur->type = decl->type;
+
+    if (!decl->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+        decl->bloc_parent->ajoute_membre(decl);
     }
 
     return CodeRetourValidation::OK;
