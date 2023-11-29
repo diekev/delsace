@@ -3233,7 +3233,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
             }
             else {
-                valeurs[1] = nullptr;
+                auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                    m_compilatrice.typeuse.type_info_type_, false);
+                valeurs[1] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
             }
             valeurs[2] = m_constructrice.crée_constante_booléenne(type->est_type_reference());
 
@@ -3438,11 +3440,16 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         case GenreType::TABLEAU_DYNAMIQUE:
         {
             auto type_deref = type_dereference_pour(type);
+            auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                m_compilatrice.typeuse.type_info_type_, false);
 
             /* { id, taille_en_octet, type_pointé, est_tableau_fixe, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::TABLEAU, type);
-            valeurs[1] = type_deref ? crée_info_type_avec_transtype(type_deref, site) : nullptr;
+            valeurs[1] = type_deref ?
+                             crée_info_type_avec_transtype(type_deref, site) :
+                             m_constructrice.crée_constante_nulle(type_pointeur_info_type);
+            ;
             valeurs[2] = m_constructrice.crée_constante_booléenne(false);
             valeurs[3] = m_constructrice.crée_z32(0);
 
@@ -3548,12 +3555,15 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         {
             auto type_variadique = type->comme_type_variadique();
             auto type_élément = type_variadique->type_pointe;
+            auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
+                m_compilatrice.typeuse.type_info_type_, false);
 
             /* { base, type_élément } */
             auto valeurs = kuri::tableau<AtomeConstante *>(2);
             valeurs[0] = crée_constante_info_type_pour_base(IDInfoType::VARIADIQUE, type);
-            valeurs[1] = type_élément ? crée_info_type_avec_transtype(type_élément, site) :
-                                        nullptr;
+            valeurs[1] = type_élément ?
+                             crée_info_type_avec_transtype(type_élément, site) :
+                             m_constructrice.crée_constante_nulle(type_pointeur_info_type);
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_variadique, std::move(valeurs));
