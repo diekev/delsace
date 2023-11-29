@@ -272,22 +272,24 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
     Bibliothèque *bibliothèque
 }
 
-struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
+struct BaseDéclarationVariable : NoeudDéclarationSymbole {
+    @comme base_déclaration_variable
+    @code  NoeudCodeBaseDéclarationVariable
+
+    UniteCompilation * unité [préserve_accents]
+
+    NoeudExpression * expression [code enfant]
+    NoeudExpression * expression_type [code enfant]
+    NoeudExpression * valeur [code enfant]
+
+    Annotation [] annotations [code copie]
+}
+
+struct NoeudDéclarationVariable : BaseDéclarationVariable {
     @genre DÉCLARATION_VARIABLE
     @comme déclaration_variable
     @code  NoeudCodeDéclarationVariable
     @genre_valeur INVALIDE
-
-    UniteCompilation * unité [préserve_accents]
-
-    // pour une expression de style a := 5, a est la valeur, et 5 l'expression
-    // pour une expression de style a, b := foo(7) , « a, b » est la valeur, et foo(7) l'expression
-    NoeudExpression *valeur [code enfant]
-    NoeudExpression *expression [code enfant]
-
-    NoeudExpression *expression_type [code enfant]
-
-    ValeurExpression valeur_expression
 
     NoeudDéclarationSymbole *declaration_vient_d_un_emploi
     int index_membre_employe
@@ -296,8 +298,18 @@ struct NoeudDéclarationVariable : NoeudDéclarationSymbole {
     NoeudExpression * [] arbre_aplatis
 
     DonneesAssignations [compressé] donnees_decl
+}
 
-    Annotation [] annotations [code copie]
+struct NoeudDéclarationConstante : BaseDéclarationVariable {
+    @genre DÉCLARATION_CONSTANTE
+    @comme déclaration_constante
+    @code  NoeudCodeDéclarationConstante
+    @genre_valeur DROITE
+
+    /* Pour les variables globales. */
+    NoeudExpression * [] arbre_aplatis
+
+    ValeurExpression valeur_expression
 }
 
 struct NoeudAssignation : NoeudExpression {

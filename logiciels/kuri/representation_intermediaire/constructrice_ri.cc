@@ -144,7 +144,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
+        auto param = decl->parametre_entree(i)->comme_declaration_variable();
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params[i] = atome;
@@ -1122,6 +1122,14 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         {
+            break;
+        }
+        case GenreNoeud::DECLARATION_CONSTANTE:
+        {
+            assert_rappel(!noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
+                dbg() << "Obtenu une constante dans la RI.\n"
+                      << erreur::imprime_site(*m_espace, noeud);
+            });
             break;
         }
         /* Les déclarations de structures doivent passer par les fonctions d'initialisation. */
@@ -3652,7 +3660,17 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
 
     if (membre.decl) {
-        valeurs[4] = crée_tableau_annotations_pour_info_membre(membre.decl->annotations);
+        if (membre.decl->est_declaration_variable()) {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre(
+                membre.decl->comme_declaration_variable()->annotations);
+        }
+        else if (membre.decl->est_declaration_constante()) {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre(
+                membre.decl->comme_declaration_constante()->annotations);
+        }
+        else {
+            valeurs[4] = crée_tableau_annotations_pour_info_membre({});
+        }
     }
     else {
         valeurs[4] = crée_tableau_annotations_pour_info_membre({});
@@ -3850,10 +3868,6 @@ static MéthodeConstructionGlobale détermine_méthode_construction_globale(
 
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl)
 {
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-        return;
-    }
-
     if (m_fonction_courante == nullptr) {
         génère_ri_pour_variable_globale(decl);
         return;
