@@ -586,7 +586,7 @@ static ResultatAppariement apparie_appel_fonction(
 
     /* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles
      */
-    kuri::tablet<NoeudDeclarationVariable *, 10> parametres_entree;
+    kuri::tablet<BaseDeclarationVariable *, 10> parametres_entree;
     for (auto i = 0; i < decl->params.taille(); ++i) {
         parametres_entree.ajoute(decl->parametre_entree(i));
     }
@@ -643,6 +643,9 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_de_l_expression = slot->type;
         auto type_du_parametre = arg->type;
         auto poids_polymorphique = POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
+
+        assert_rappel(arg->type,
+                      [&]() { std::cerr << decl->ident->nom << "." << arg->ident->nom << '\n'; });
 
         if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
             auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
@@ -1288,11 +1291,11 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 état->résultats.ajoute(
                     apparie_appel_fonction(espace, contexte, expr, decl_fonc, état->args));
             }
-            else if (decl->est_declaration_variable()) {
+            else if (decl->est_base_declaration_variable()) {
                 auto type = decl->type;
 
                 if (!decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                    return Attente::sur_declaration(decl->comme_declaration_variable());
+                    return Attente::sur_declaration(decl->comme_base_declaration_variable());
                 }
 
                 /* Nous pouvons avoir une constante polymorphique ou un alias. */
@@ -1382,9 +1385,8 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
     /* Ajourne les constantes dans le bloc. */
     POUR (items_monomorphisation) {
         auto decl_constante =
-            trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_declaration_variable();
-        decl_constante->drapeaux |= (DrapeauxNoeud::EST_CONSTANTE |
-                                     DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+            trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_declaration_constante();
+        decl_constante->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                       DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
         decl_constante->type = const_cast<Type *>(it.type);
