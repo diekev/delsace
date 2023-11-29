@@ -48,6 +48,7 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        case GenreNoeud::DECLARATION_CONSTANTE:
         {
             break;
         }
@@ -338,8 +339,8 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
             auto expr_ref = noeud->comme_reference_declaration();
             auto decl_ref = expr_ref->declaration_referee;
 
-            if (decl_ref->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-                auto decl_const = decl_ref->comme_declaration_variable();
+            if (decl_ref->est_declaration_constante()) {
+                auto decl_const = decl_ref->comme_declaration_constante();
 
                 if (decl_ref->type->est_type_type_de_donnees()) {
                     expr_ref->substitution = assem->crée_reference_type(
@@ -1869,7 +1870,8 @@ static kuri::tableau<InformationMembreTypeCompose, int> trouve_hiérarchie_emplo
     auto membre_courant = membre;
 
     while (true) {
-        auto decl_employée = membre_courant.decl->declaration_vient_d_un_emploi;
+        auto decl_membre = membre_courant.decl->comme_declaration_variable();
+        auto decl_employée = decl_membre->declaration_vient_d_un_emploi;
         auto info = trouve_information_membre_ayant_ajouté_decl(type_composé_courant,
                                                                 decl_employée);
         assert(info.has_value());
