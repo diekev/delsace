@@ -1062,8 +1062,7 @@ RésultatMonomorphisation détermine_monomorphisation(
         auto slot = arguments_reçus[i];
 
         if (param->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            monomorpheuse.parse_candidats(
-                param->comme_base_declaration_variable()->expression_type, slot, slot->type);
+            monomorpheuse.parse_candidats(param->expression_type, slot, slot->type);
         }
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
