@@ -34,8 +34,11 @@ static bool est_locale_ou_paramètre_non_polymorphique(NoeudExpression const *no
 {
     /* Détecte les paramètres polymorphiques (p.e. $Type: type_de_données), qui ne doivent
      * pas être ignorés. */
-    if (noeud->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
-                               DrapeauxNoeud::EST_CONSTANTE)) {
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+        return false;
+    }
+
+    if (noeud->est_declaration_constante()) {
         return false;
     }
 

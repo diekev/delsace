@@ -19,6 +19,7 @@ struct Lexeme;
 struct MetaProgramme;
 struct NoeudAssignation;
 struct NoeudBloc;
+struct NoeudDeclarationConstante;
 struct NoeudDeclarationCorpsFonction;
 struct NoeudDeclarationEnteteFonction;
 struct NoeudDeclarationTypeOpaque;
@@ -145,6 +146,7 @@ struct ContexteValidationCode {
     ResultatValidation valide_structure(NoeudStruct *);
     ResultatValidation valide_union(NoeudStruct *);
     ResultatValidation valide_declaration_variable(NoeudDeclarationVariable *decl);
+    ResultatValidation valide_déclaration_constante(NoeudDeclarationConstante *decl);
     ResultatValidation valide_assignation(NoeudAssignation *inst);
     ResultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
                                             kuri::tableau<NoeudExpression *, int> &arbre_aplatis);
