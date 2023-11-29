@@ -162,15 +162,15 @@ void ProteineStruct::genere_code_cpp(FluxSortieCPP &os, bool pour_entete)
         }
         else if (m_nom.nom_cpp() == "NoeudDeclarationEnteteFonction") {
             os << "\t";
-            os << "\tNoeudDeclarationVariable *parametre_entree(int64_t i) const\n";
+            os << "\tBaseDeclarationVariable *parametre_entree(int64_t i) const\n";
             os << "\t{\n";
             os << "\t\tauto param = params[static_cast<int>(i)];\n";
 
             os << "\t\tif (param->est_empl()) {\n";
-            os << "\t\t\treturn param->comme_empl()->expression->comme_declaration_variable();\n";
+            os << "\t\t\treturn param->comme_empl()->expression->comme_base_declaration_variable();\n";
             os << "\t\t}\n";
 
-            os << "\t\treturn param->comme_declaration_variable();\n";
+            os << "\t\treturn param->comme_base_declaration_variable();\n";
             os << "\t}\n";
 
             os << "\tkuri::chaine_statique donne_nom_broyé(Broyeuse &broyeuse);\n";

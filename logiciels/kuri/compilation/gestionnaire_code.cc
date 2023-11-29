@@ -208,10 +208,6 @@ static bool est_declaration_variable_globale(NoeudExpression const *noeud)
         return false;
     }
 
-    if (noeud->possède_drapeau(DrapeauxNoeud::EST_CONSTANTE)) {
-        return false;
-    }
-
     return noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE);
 }
 
@@ -1267,7 +1263,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
     }
 
     if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
-        !noeud->est_type_enum() && !noeud->est_declaration_bibliotheque()) {
+        !noeud->est_type_enum() && !noeud->est_declaration_bibliotheque() &&
+        !noeud->est_declaration_constante()) {
         if (noeud->est_execute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1286,7 +1283,7 @@ static bool doit_determiner_les_dependances(NoeudExpression *noeud)
         }
 
         return !(noeud->est_charge() || noeud->est_importe() ||
-                 noeud->est_declaration_bibliotheque());
+                 noeud->est_declaration_bibliotheque() || noeud->est_declaration_constante());
     }
 
     if (noeud->est_execute()) {
