@@ -2244,6 +2244,11 @@ static void crée_initialisation_defaut_pour_type(Type *type,
                                                  NoeudExpression *expr_valeur_défaut,
                                                  Typeuse &typeuse)
 {
+    if (expr_valeur_défaut) {
+        crée_assignation(assembleuse, ref_param, expr_valeur_défaut);
+        return;
+    }
+
     switch (type->genre) {
         case GenreType::RIEN:
         case GenreType::POLYMORPHIQUE:
@@ -2257,11 +2262,6 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreType::VARIADIQUE:
         case GenreType::UNION:
         {
-            if (expr_valeur_défaut) {
-                crée_assignation(assembleuse, ref_param, expr_valeur_défaut);
-                break;
-            }
-
             static Lexeme lexème_op = {};
             lexème_op.genre = GenreLexeme::FOIS_UNAIRE;
             auto prise_adresse = crée_prise_adresse(
@@ -2275,13 +2275,10 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         }
         case GenreType::BOOL:
         {
-            auto valeur_défaut = expr_valeur_défaut;
-            if (!valeur_défaut) {
-                static Lexeme littéral_bool = {};
-                littéral_bool.genre = GenreLexeme::FAUX;
-                valeur_défaut = assembleuse->crée_litterale_bool(&littéral_bool);
-                valeur_défaut->type = type;
-            }
+            static Lexeme littéral_bool = {};
+            littéral_bool.genre = GenreLexeme::FAUX;
+            auto valeur_défaut = assembleuse->crée_litterale_bool(&littéral_bool);
+            valeur_défaut->type = type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
@@ -2293,19 +2290,13 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            auto valeur_défaut = expr_valeur_défaut;
-            if (!valeur_défaut) {
-                valeur_défaut = assembleuse->crée_litterale_entier(&lexème_sentinel, type, 0);
-            }
+            auto valeur_défaut = assembleuse->crée_litterale_entier(&lexème_sentinel, type, 0);
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
         case GenreType::REEL:
         {
-            auto valeur_défaut = expr_valeur_défaut;
-            if (!valeur_défaut) {
-                valeur_défaut = assembleuse->crée_litterale_reel(&lexème_sentinel, type, 0);
-            }
+            auto valeur_défaut = assembleuse->crée_litterale_reel(&lexème_sentinel, type, 0);
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
@@ -2316,10 +2307,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreType::POINTEUR:
         case GenreType::FONCTION:
         {
-            auto valeur_défaut = expr_valeur_défaut;
-            if (!valeur_défaut) {
-                valeur_défaut = assembleuse->crée_litterale_nul(&lexème_sentinel);
-            }
+            auto valeur_défaut = assembleuse->crée_litterale_nul(&lexème_sentinel);
             valeur_défaut->type = ref_param->type;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
