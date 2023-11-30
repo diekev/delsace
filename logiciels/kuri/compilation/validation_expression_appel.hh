@@ -94,7 +94,7 @@ struct ErreurAppariement {
         int64_t nombre_requis = 0;
     } nombre_arguments{};
 
-    static ErreurAppariement mecomptage_arguments(NoeudExpression const *site,
+    static ErreurAppariement mécomptage_arguments(NoeudExpression const *site,
                                                   int64_t nombre_requis,
                                                   int64_t nombre_obtenu)
     {
@@ -109,7 +109,7 @@ struct ErreurAppariement {
         Type *type_obtenu = nullptr;
     } type_arguments{};
 
-    static ErreurAppariement metypage_argument(NoeudExpression const *site,
+    static ErreurAppariement métypage_argument(NoeudExpression const *site,
                                                Type *type_attendu,
                                                Type *type_obtenu)
     {
@@ -134,7 +134,7 @@ struct ErreurAppariement {
         return erreur;
     }
 
-    static ErreurAppariement menommage_arguments(NoeudExpression const *site,
+    static ErreurAppariement ménommage_arguments(NoeudExpression const *site,
                                                  IdentifiantCode *ident)
     {
         auto erreur = crée_erreur(MENOMMAGE_ARG, site);
@@ -150,7 +150,7 @@ struct ErreurAppariement {
         return erreur;
     }
 
-    static ErreurAppariement dependance_non_satisfaite(NoeudExpression const *site,
+    static ErreurAppariement dépendance_non_satisfaite(NoeudExpression const *site,
                                                        Attente attente)
     {
         auto erreur = crée_erreur(ERREUR_DEPENDANCE, site);

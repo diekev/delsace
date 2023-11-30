@@ -493,7 +493,7 @@ ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_
     return cherche_transformation<true>(type_de, type_vers);
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers, Type const *type_de)
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de)
 {
     auto resultat = cherche_transformation<false>(type_de, type_vers);
 
@@ -522,7 +522,7 @@ ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers, Type co
     return PoidsTransformation{transformation, 0.5};
 }
 
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers,
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   NoeudExpression const *noeud)
 {

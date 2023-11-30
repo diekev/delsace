@@ -143,9 +143,9 @@ struct PoidsTransformation {
 using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers, Type const *type_de);
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-ResultatPoidsTransformation verifie_compatibilite(Type const *type_vers,
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   NoeudExpression const *noeud);
