@@ -5736,7 +5736,7 @@ ResultatValidation ContexteValidationCode::valide_instruction_si(NoeudSi *inst)
             return CodeRetourValidation::Erreur;
         }
 
-        auto const résultat_compatibilité = verifie_compatibilite(type_inféré, expr->type);
+        auto const résultat_compatibilité = vérifie_compatibilité(type_inféré, expr->type);
 
         if (std::holds_alternative<Attente>(résultat_compatibilité)) {
             return std::get<Attente>(résultat_compatibilité);
