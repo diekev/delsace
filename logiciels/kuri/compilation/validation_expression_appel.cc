@@ -1419,9 +1419,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     entete->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     entete->site_monomorphisation = site;
 
-    // Supprime les valeurs polymorphiques
-    // À FAIRE : optimise
-    auto nouveau_params = kuri::tableau<NoeudExpression *, int>();
+    /* Supprime les valeurs polymorphiques.
+     * À FAIRE : optimise en utilisant un drapeau sur l'entête pour dire que les paramètres
+     * contiennent une déclaration de valeur ou de type polymorphique. */
+    auto nouveau_params = kuri::tablet<NoeudExpression *, 6>();
     POUR (entete->params) {
         auto decl_constante = trouve_dans_bloc_seul(entete->bloc_constantes, it->ident);
         if (decl_constante) {
@@ -1432,7 +1433,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     }
 
     if (nouveau_params.taille() != entete->params.taille()) {
-        entete->params = std::move(nouveau_params);
+        POUR_INDEX (nouveau_params) {
+            entete->params[index_it] = nouveau_params[index_it];
+        }
+        entete->params.redimensionne(nouveau_params.taille());
     }
 
     compilatrice.gestionnaire_code->requiers_typage(&espace, entete);
