@@ -378,8 +378,7 @@ void Lexeuse::performe_lexage()
                 continue;
             }
 
-            /* Metton-nous sur la bonne ligne en cas d'erreur.
-             * À FAIRE : il est possible qu'il existe des nouvelles lignes dans la chaine. */
+            /* Metton-nous sur la bonne ligne en cas d'erreur. */
             this->m_compte_ligne = it.ligne;
             this->m_position_ligne = it.colonne;
 
@@ -390,6 +389,10 @@ void Lexeuse::performe_lexage()
             chaine.reserve(it.chaine.taille());
 
             while (m_debut != fin_chaine) {
+                if (*m_debut == '\n') {
+                    this->m_compte_ligne += 1;
+                    this->m_position_ligne = 0;
+                }
                 this->lexe_caractère_litteral(&chaine);
             }
 
@@ -662,6 +665,10 @@ Lexeme Lexeuse::lèxe_chaine_littérale()
         this->enregistre_pos_mot();
     }
 
+    /* Sauvegarde la ligne au cas où nous aurions des nouvelles lignes dans le texte. Ce sera
+     * utilisé comme ligne pour le lexème. */
+    auto const ligne_début = m_compte_ligne;
+
     while (!this->fini()) {
         if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
             break;
@@ -682,7 +689,7 @@ Lexeme Lexeuse::lèxe_chaine_littérale()
                        {0ul},
                        GenreLexeme::CHAINE_LITTERALE,
                        static_cast<int>(m_donnees->id()),
-                       m_compte_ligne,
+                       ligne_début,
                        m_pos_mot};
 
     return résultat;
@@ -703,6 +710,10 @@ Lexeme Lexeuse::lèxe_chaine_littérale_guillemet()
     }
 
     auto profondeur = 0;
+
+    /* Sauvegarde la ligne au cas où nous aurions des nouvelles lignes dans le texte. Ce sera
+     * utilisé comme ligne pour le lexème. */
+    auto const ligne_début = m_compte_ligne;
 
     while (!this->fini()) {
         nombre_octet = lng::nombre_octets(m_debut);
@@ -740,7 +751,7 @@ Lexeme Lexeuse::lèxe_chaine_littérale_guillemet()
                        {0ul},
                        GenreLexeme::CHAINE_LITTERALE,
                        static_cast<int>(m_donnees->id()),
-                       m_compte_ligne,
+                       ligne_début,
                        m_pos_mot};
 
     return résultat;
