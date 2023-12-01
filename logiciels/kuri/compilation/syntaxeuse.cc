@@ -1100,7 +1100,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             }
             else if (directive == ID::nom_de_cette_fonction ||
                      directive == ID::chemin_de_ce_fichier ||
-                     directive == ID::chemin_de_ce_module) {
+                     directive == ID::chemin_de_ce_module ||
+                     directive == ID::type_de_cette_fonction ||
+                     directive == ID::type_de_cette_structure) {
                 auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexeme);
                 return noeud;
             }

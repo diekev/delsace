@@ -888,6 +888,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     fonction_courante->ident->nom);
                 noeud->substitution = littérale_chaine;
             }
+            else if (noeud->ident == ID::type_de_cette_fonction ||
+                     noeud->ident == ID::type_de_cette_structure) {
+                noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
+            }
 
             return;
         }

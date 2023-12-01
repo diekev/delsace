@@ -1474,6 +1474,32 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
+            if (noeud->ident == ID::type_de_cette_fonction) {
+                if (!racine_validation()->est_corps_fonction()) {
+                    espace->rapporte_erreur(
+                        noeud,
+                        "#type_de_cette_fonction utilisée en dehors du corps d'une fonction.");
+                    return CodeRetourValidation::Erreur;
+                }
+
+                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(
+                    fonction_courante()->type);
+                return CodeRetourValidation::OK;
+            }
+
+            if (noeud->ident == ID::type_de_cette_structure) {
+                auto type = union_ou_structure_courante();
+                if (!type) {
+                    espace->rapporte_erreur(noeud,
+                                            "#type_de_cette_structure utilisée en dehors du bloc "
+                                            "d'une structure ou d'une union.");
+                    return CodeRetourValidation::Erreur;
+                }
+
+                noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type);
+                return CodeRetourValidation::OK;
+            }
+
             if (noeud->ident == ID::nom_de_cette_fonction) {
                 if (!fonction_courante()) {
                     espace->rapporte_erreur(
