@@ -33,6 +33,7 @@ struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionLitteraleBool;
+struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudInstructionImporte;
 struct NoeudPour;
@@ -168,6 +169,8 @@ struct ContexteValidationCode {
         NoeudExpressionBinaire *expr,
         NoeudExpressionMembre *expr_acces_enum,
         NoeudExpressionLitteraleBool *expr_bool);
+
+    ResultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
 
     ResultatValidation valide_discrimination(NoeudDiscr *inst);
     ResultatValidation valide_discr_énum(NoeudDiscr *inst, Type *type);

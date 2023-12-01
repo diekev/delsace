@@ -389,6 +389,16 @@ struct NoeudExpressionIndexage : NoeudExpressionBinaire {
     @genre_valeur TRANSCENDANTALE
 }
 
+struct NoeudExpressionLogique : NoeudExpression {
+    @genre EXPRESSION_LOGIQUE
+    @comme expression_logique
+    @code  NoeudCodeExpressionLogique
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande_gauche [code enfant préserve_accents]
+    NoeudExpression *opérande_droite [code enfant préserve_accents]
+}
+
 struct NoeudExpressionParenthèse : NoeudExpression {
     @genre EXPRESSION_PARENTHÈSE
     @comme parenthèse

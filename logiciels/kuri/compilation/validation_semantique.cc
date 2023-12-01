@@ -518,6 +518,10 @@ ResultatValidation ContexteValidationCode::valide_semantique_noeud(NoeudExpressi
             /* Nous devrions être ici uniquement si nous avions une attente. */
             return valide_operateur_binaire_chaine(noeud->comme_expression_binaire());
         }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            return valide_expression_logique(noeud->comme_expression_logique());
+        }
         case GenreNoeud::OPERATEUR_UNAIRE:
         {
             auto expr = noeud->comme_expression_unaire();
@@ -4881,45 +4885,6 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
         return valide_operateur_binaire_chaine(expr);
     }
 
-    if (dls::outils::est_element(type_op, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-        if (!est_expression_convertible_en_bool(enfant1)) {
-            espace->rapporte_erreur(
-                enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
-            return CodeRetourValidation::Erreur;
-        }
-
-        if (!est_expression_convertible_en_bool(enfant2)) {
-            espace->rapporte_erreur(
-                enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
-            return CodeRetourValidation::Erreur;
-        }
-
-        /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
-         * car nous ne pouvons déterminer le bon ordre d'exécution. */
-        if (expr->lexeme->genre == GenreLexeme::BARRE_BARRE) {
-            if (enfant1->lexeme->genre == GenreLexeme::ESP_ESP) {
-                espace
-                    ->rapporte_erreur(
-                        enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
-                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                    "l'ordre des comparaisons.");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
-                espace
-                    ->rapporte_erreur(
-                        enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
-                    .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                    "l'ordre des comparaisons.");
-                return CodeRetourValidation::Erreur;
-            }
-        }
-
-        expr->type = TypeBase::BOOL;
-        return CodeRetourValidation::OK;
-    }
-
     if (enfant1->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
         enfant2->est_litterale_bool()) {
         return valide_comparaison_enum_drapeau_bool(
@@ -5292,6 +5257,56 @@ ResultatValidation ContexteValidationCode::valide_comparaison_enum_drapeau_bool(
     expr->type = type_bool;
     return CodeRetourValidation::OK;
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Expression logique.
+ * \{ */
+
+ResultatValidation ContexteValidationCode::valide_expression_logique(
+    NoeudExpressionLogique *logique)
+{
+    auto opérande_gauche = logique->opérande_gauche;
+    auto opérande_droite = logique->opérande_droite;
+
+    if (!est_expression_convertible_en_bool(opérande_gauche)) {
+        espace->rapporte_erreur(opérande_gauche,
+                                "Expression non conditionnable à gauche de l'opérateur logique !");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!est_expression_convertible_en_bool(opérande_droite)) {
+        espace->rapporte_erreur(opérande_droite,
+                                "Expression non conditionnable à droite de l'opérateur logique !");
+        return CodeRetourValidation::Erreur;
+    }
+
+    /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
+     * car nous ne pouvons déterminer le bon ordre d'exécution. */
+    if (logique->lexeme->genre == GenreLexeme::BARRE_BARRE) {
+        if (opérande_gauche->lexeme->genre == GenreLexeme::ESP_ESP) {
+            espace
+                ->rapporte_erreur(opérande_gauche,
+                                  "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
+                .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                "l'ordre des comparaisons.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (opérande_droite->lexeme->genre == GenreLexeme::ESP_ESP) {
+            espace
+                ->rapporte_erreur(opérande_droite,
+                                  "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
+                .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
+                                "l'ordre des comparaisons.");
+            return CodeRetourValidation::Erreur;
+        }
+    }
+
+    logique->type = TypeBase::BOOL;
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Boucle « pour ».

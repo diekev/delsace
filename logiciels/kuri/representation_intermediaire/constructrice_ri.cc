@@ -1503,12 +1503,6 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
         {
             auto expr_bin = noeud->comme_expression_binaire();
 
-            if (dls::outils::est_element(
-                    noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-                genere_ri_pour_expression_logique(noeud, nullptr);
-                return;
-            }
-
             genere_ri_pour_expression_droite(expr_bin->operande_gauche, nullptr);
             auto valeur_gauche = depile_valeur();
             genere_ri_pour_expression_droite(expr_bin->operande_droite, nullptr);
@@ -1518,6 +1512,11 @@ void CompilatriceRI::genere_ri_pour_noeud(NoeudExpression *noeud)
 
             auto alloc = crée_temporaire(noeud, resultat);
             empile_valeur(alloc);
+            break;
+        }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            genere_ri_pour_expression_logique(noeud->comme_expression_logique(), nullptr);
             break;
         }
         case GenreNoeud::EXPRESSION_INDEXAGE:
@@ -2938,9 +2937,9 @@ void CompilatriceRI::genere_ri_pour_condition(NoeudExpression *condition,
         m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
     }
     else if (genre_lexeme == GenreLexeme::ESP_ESP) {
-        auto expr_bin = condition->comme_expression_binaire();
-        auto cond1 = expr_bin->operande_gauche;
-        auto cond2 = expr_bin->operande_droite;
+        auto expr_bin = condition->comme_expression_logique();
+        auto cond1 = expr_bin->opérande_gauche;
+        auto cond2 = expr_bin->opérande_droite;
 
         auto nouveau_label = m_constructrice.réserve_label(condition);
         genere_ri_pour_condition(cond1, nouveau_label, label_si_faux);
@@ -2948,9 +2947,9 @@ void CompilatriceRI::genere_ri_pour_condition(NoeudExpression *condition,
         genere_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
     else if (genre_lexeme == GenreLexeme::BARRE_BARRE) {
-        auto expr_bin = condition->comme_expression_binaire();
-        auto cond1 = expr_bin->operande_gauche;
-        auto cond2 = expr_bin->operande_droite;
+        auto expr_bin = condition->comme_expression_logique();
+        auto cond1 = expr_bin->opérande_gauche;
+        auto cond2 = expr_bin->opérande_droite;
 
         auto nouveau_label = m_constructrice.réserve_label(condition);
         genere_ri_pour_condition(cond1, label_si_vrai, nouveau_label);
@@ -3051,7 +3050,7 @@ void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *conditi
     m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
 }
 
-void CompilatriceRI::genere_ri_pour_expression_logique(NoeudExpression *noeud, Atome *place)
+void CompilatriceRI::genere_ri_pour_expression_logique(NoeudExpressionLogique *noeud, Atome *place)
 {
     auto label_si_vrai = m_constructrice.réserve_label(noeud);
     auto label_si_faux = m_constructrice.réserve_label(noeud);

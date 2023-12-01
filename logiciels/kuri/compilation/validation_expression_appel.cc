@@ -1435,9 +1435,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 
     if (nouveau_params.taille() != entête->params.taille()) {
         POUR_INDEX (nouveau_params) {
+            static_cast<void>(it);
             entête->params[index_it] = nouveau_params[index_it];
         }
-        entête->params.redimensionne(nouveau_params.taille());
+        entête->params.redimensionne(int(nouveau_params.taille()));
     }
 
     compilatrice.gestionnaire_code->requiers_typage(&espace, entête);

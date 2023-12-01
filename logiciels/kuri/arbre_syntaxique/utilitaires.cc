@@ -385,6 +385,15 @@ static void aplatis_arbre(NoeudExpression *racine,
 
             break;
         }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            auto logique = racine->comme_expression_logique();
+            logique->drapeaux |= drapeau;
+            aplatis_arbre(logique->opérande_gauche, arbre_aplatis, drapeau);
+            aplatis_arbre(logique->opérande_droite, arbre_aplatis, drapeau);
+            arbre_aplatis.ajoute(logique);
+            break;
+        }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
@@ -917,6 +926,17 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return expr_variable;
             }
 
+            return nullptr;
+        }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            auto logique = expression->comme_expression_logique();
+            if (auto expr_variable = trouve_expression_non_constante(logique->opérande_gauche)) {
+                return expr_variable;
+            }
+            if (auto expr_variable = trouve_expression_non_constante(logique->opérande_droite)) {
+                return expr_variable;
+            }
             return nullptr;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
