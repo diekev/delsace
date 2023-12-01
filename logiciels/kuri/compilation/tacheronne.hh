@@ -14,7 +14,6 @@
 #include "statistiques/statistiques.hh"
 #include "tache.hh"
 #include "unite_compilation.hh"
-#include "validation_semantique.hh"
 
 #include "../representation_intermediaire/constructrice_ri.hh"
 
@@ -129,8 +128,6 @@ struct Tacheronne {
     AssembleuseArbre *assembleuse = nullptr;
 
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
-
-    ContexteValidationDeclaration contexte_validation_declaration{};
 
     tableau_page<Lexeme> lexemes_extra{};
 

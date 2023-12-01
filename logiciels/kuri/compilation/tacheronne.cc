@@ -493,21 +493,22 @@ void Tacheronne::gere_tache()
 
 void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 {
-    auto contexte = Sémanticienne(compilatrice, *this, *unite);
-    auto resultat = contexte.valide();
+    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(*this);
+    auto resultat = sémanticienne->valide(unite);
     if (est_erreur(resultat)) {
         assert(unite->espace->possède_erreur);
+        compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
     if (est_attente(resultat)) {
         compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(resultat));
+        compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
-    /* Pour les imports et chargements. */
-    temps_validation -= contexte.donne_temps_chargement();
 
-    CHRONO_TYPAGE(contexte.donne_stats_typage().finalisation, FINALISATION__FINALISATION);
+    CHRONO_TYPAGE(sémanticienne->donne_stats_typage().finalisation, FINALISATION__FINALISATION);
     compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+    compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
 static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
@@ -1016,10 +1017,4 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     }
 
     // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
-
-#if 0  // def STATISTIQUES_DETAILLEES
-    if ((drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
-        stats_typage.imprime_stats();
-    }
-#endif
 }

@@ -113,7 +113,7 @@ struct ContexteValidationDeclaration {
 struct Sémanticienne {
   private:
     Compilatrice &m_compilatrice;
-    Tacheronne &m_tacheronne;
+    Tacheronne *m_tacheronne = nullptr;
 
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;
@@ -122,12 +122,17 @@ struct Sémanticienne {
 
     StatistiquesTypage m_stats_typage{};
 
+    ContexteValidationDeclaration contexte_validation_declaration{};
+
   public:
-    Sémanticienne(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &unite);
+    Sémanticienne(Compilatrice &compilatrice);
 
     EMPECHE_COPIE(Sémanticienne);
 
-    ResultatValidation valide();
+    void réinitialise();
+    void définis_tacheronne(Tacheronne &tacheronne);
+
+    ResultatValidation valide(UniteCompilation *unité);
 
     NoeudDeclarationEnteteFonction *fonction_courante() const;
 

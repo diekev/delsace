@@ -30,16 +30,25 @@
 
 #define TENTE(x) TENTE_IMPL(VARIABLE_ANONYME(resultat), x)
 
-Sémanticienne::Sémanticienne(Compilatrice &compilatrice,
-                             Tacheronne &tacheronne,
-                             UniteCompilation &u)
-    : m_compilatrice(compilatrice), m_tacheronne(tacheronne), unite(&u), espace(unite->espace)
+Sémanticienne::Sémanticienne(Compilatrice &compilatrice) : m_compilatrice(compilatrice)
 {
+}
+
+void Sémanticienne::réinitialise()
+{
+    m_tacheronne = nullptr;
+    espace = nullptr;
+    unite = nullptr;
+}
+
+void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
+{
+    m_tacheronne = &tacheronne;
 }
 
 AssembleuseArbre *Sémanticienne::donne_assembleuse()
 {
-    return m_tacheronne.assembleuse;
+    return m_tacheronne->assembleuse;
 }
 
 StatistiquesTypage &Sémanticienne::donne_stats_typage()
@@ -57,8 +66,11 @@ UniteCompilation *Sémanticienne::donne_unité()
  * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.
  * En outre, ceci nous permet de mieux controler les racines de validations, qui doivent être
  * des déclarations ou directives globales. */
-ResultatValidation Sémanticienne::valide()
+ResultatValidation Sémanticienne::valide(UniteCompilation *unité)
 {
+    unite = unité;
+    espace = unité->espace;
+
     if (racine_validation()->est_entete_fonction()) {
         return valide_entete_fonction(racine_validation()->comme_entete_fonction());
     }
@@ -132,7 +144,7 @@ ResultatValidation Sémanticienne::valide()
 
 MetaProgramme *Sémanticienne::crée_metaprogramme_pour_directive(NoeudDirectiveExecute *directive)
 {
-    auto assembleuse = m_tacheronne.assembleuse;
+    auto assembleuse = m_tacheronne->assembleuse;
     assert(assembleuse->bloc_courant() == nullptr);
 
     // crée une fonction pour l'exécution
@@ -1371,7 +1383,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
 
                 var_piege->type = type_de_l_erreur;
 
-                auto decl_var_piege = m_tacheronne.assembleuse->crée_declaration_variable(
+                auto decl_var_piege = m_tacheronne->assembleuse->crée_declaration_variable(
                     var_piege->lexeme);
                 decl_var_piege->bloc_parent = inst->bloc;
                 decl_var_piege->valeur = var_piege;
@@ -1471,7 +1483,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto decl_membre = m_tacheronne.assembleuse->crée_declaration_variable(
+                auto decl_membre = m_tacheronne->assembleuse->crée_declaration_variable(
                     decl->lexeme);
                 decl_membre->ident = it.nom;
                 decl_membre->type = it.type;
@@ -1855,7 +1867,8 @@ void Sémanticienne::valide_parametres_constants_fonction(NoeudDeclarationEntete
     }
 
     if (!decl->monomorphisations) {
-        decl->monomorphisations = m_tacheronne.allocatrice_noeud.crée_monomorphisations_fonction();
+        decl->monomorphisations =
+            m_tacheronne->allocatrice_noeud.crée_monomorphisations_fonction();
     }
 }
 
@@ -2808,14 +2821,14 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
                                                              NoeudBloc *bloc_parent,
                                                              const Lexeme *lexeme)
 {
-    auto fonction = m_tacheronne.assembleuse->crée_entete_fonction(lexeme);
+    auto fonction = m_tacheronne->assembleuse->crée_entete_fonction(lexeme);
     auto nouveau_corps = fonction->corps;
 
-    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
-    m_tacheronne.assembleuse->bloc_courant(bloc_parent);
+    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
+    m_tacheronne->assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction);
-    fonction->bloc_parametres = m_tacheronne.assembleuse->empile_bloc(lexeme, fonction);
+    fonction->bloc_constantes = m_tacheronne->assembleuse->empile_bloc(lexeme, fonction);
+    fonction->bloc_parametres = m_tacheronne->assembleuse->empile_bloc(lexeme, fonction);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_parametres;
@@ -2826,7 +2839,7 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
     fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                     DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
-    auto decl_sortie = m_tacheronne.assembleuse->crée_declaration_variable(lexeme);
+    auto decl_sortie = m_tacheronne->assembleuse->crée_declaration_variable(lexeme);
     decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
     decl_sortie->type = TypeBase::CHAINE;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -2845,10 +2858,10 @@ MetaProgramme *Sémanticienne::crée_metaprogramme_corps_texte(NoeudBloc *bloc_c
     metaprogramme->corps_texte = bloc_corps_texte;
     metaprogramme->fonction = fonction;
 
-    m_tacheronne.assembleuse->depile_bloc();
-    m_tacheronne.assembleuse->depile_bloc();
-    m_tacheronne.assembleuse->depile_bloc();
-    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
+    m_tacheronne->assembleuse->depile_bloc();
+    m_tacheronne->assembleuse->depile_bloc();
+    m_tacheronne->assembleuse->depile_bloc();
+    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
 
     return metaprogramme;
 }
@@ -3123,7 +3136,7 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
         }
     }
 
-    simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
         /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
@@ -3168,7 +3181,7 @@ ResultatValidation Sémanticienne::valide_operateur(NoeudDeclarationCorpsFonctio
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_operateur_pour()) {
-        simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, entete);
     }
 
     avertis_declarations_inutilisees(*espace, *entete);
@@ -3678,7 +3691,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne.allocatrice_noeud.crée_monomorphisations_struct();
+                m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
         }
 
         // nous validerons les membres lors de la monomorphisation
@@ -3883,7 +3896,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     decl->type->drapeaux |= TYPE_FUT_VALIDE;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -3908,7 +3921,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne.allocatrice_noeud.crée_monomorphisations_struct();
+                m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
         }
 
         // nous validerons les membres lors de la monomorphisation
@@ -4050,7 +4063,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
 
 ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationVariable *decl)
 {
-    auto &ctx = m_tacheronne.contexte_validation_declaration;
+    auto &ctx = contexte_validation_declaration;
     ctx.variables.efface();
     ctx.donnees_temp.efface();
     ctx.decls_et_refs.efface();
@@ -4304,7 +4317,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(unite->espace, m_tacheronne.assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -4837,7 +4850,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     auto tfm = transformation;
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
-        auto noeud_comme = m_tacheronne.assembleuse->crée_comme(expression->lexeme);
+        auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
         noeud_comme->type = m_compilatrice.typeuse.type_reference_pour(expression->type);
         noeud_comme->expression = expression;
         noeud_comme->transformation = TypeTransformation::PREND_REFERENCE;
@@ -4847,7 +4860,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
     }
 
-    auto noeud_comme = m_tacheronne.assembleuse->crée_comme(expression->lexeme);
+    auto noeud_comme = m_tacheronne->assembleuse->crée_comme(expression->lexeme);
     noeud_comme->type = const_cast<Type *>(type_cible);
     noeud_comme->expression = expression;
     noeud_comme->transformation = tfm;
@@ -5095,7 +5108,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpression
 
             // @concurrence critique
             if (type_union->decl == nullptr) {
-                auto decl_struct = m_tacheronne.assembleuse->crée_type_structure(expr->lexeme);
+                auto decl_struct = m_tacheronne->assembleuse->crée_type_structure(expr->lexeme);
                 decl_struct->bloc_parent = expr->bloc_parent;
                 decl_struct->type = type_union;
                 decl_struct->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -5556,8 +5569,8 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
      * l'être puisqu'elles sont directement testées avec la condition de fin de la
      * boucle.
      */
-    auto assembleuse = m_tacheronne.assembleuse;
-    assert(m_tacheronne.assembleuse->bloc_courant() == nullptr);
+    auto assembleuse = m_tacheronne->assembleuse;
+    assert(m_tacheronne->assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(inst->bloc_parent);
 
     inst->decl_it = crée_déclaration_pour_variable(assembleuse, variable, type_itérateur, true);
@@ -5599,7 +5612,7 @@ ResultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto opérateur_pour = table_opérateurs->opérateur_pour;
 
     /* Copie le macro. */
-    auto copie_macro = copie_noeud(m_tacheronne.assembleuse,
+    auto copie_macro = copie_noeud(m_tacheronne->assembleuse,
                                    opérateur_pour,
                                    opérateur_pour->bloc_parent,
                                    OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -5939,7 +5952,7 @@ ResultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionIm
     }
     else {
         fichier->modules_importés.insere(module);
-        auto noeud_module = m_tacheronne.assembleuse
+        auto noeud_module = m_tacheronne->assembleuse
                                 ->crée_noeud<GenreNoeud::DECLARATION_MODULE>(inst->lexeme)
                                 ->comme_declaration_module();
         noeud_module->module = module;
