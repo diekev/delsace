@@ -1037,7 +1037,7 @@ void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
 
 void ConstructriceProgrammeFormeRI::génère_ri_fonction_init_globales(AtomeFonction *fonction)
 {
-    m_compilatrice_ri.genere_ri_pour_initialisation_globales(
+    m_compilatrice_ri.génère_ri_pour_initialisation_globales(
         &m_espace, fonction, m_résultat.globales);
 
     /* Il faut ajourner les globales, car les globales référencées par les initialisations ne
