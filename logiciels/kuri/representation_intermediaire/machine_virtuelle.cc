@@ -1443,17 +1443,17 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_ET_BINAIRE:
             {
-                OP_BINAIRE(DisjonctionBinaire)
+                OP_BINAIRE(ConjonctionBinaire)
                 break;
             }
             case OP_OU_BINAIRE:
             {
-                OP_BINAIRE(ConjonctionBinaire)
+                OP_BINAIRE(DisjonctionBinaire)
                 break;
             }
             case OP_OU_EXCLUSIF:
             {
-                OP_BINAIRE(ConjonctionBinaireExclusive)
+                OP_BINAIRE(DisjonctionBinaireExclusive)
                 break;
             }
             case OP_DEC_GAUCHE:
