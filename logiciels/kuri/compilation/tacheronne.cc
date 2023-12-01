@@ -562,11 +562,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
     if (unite->est_pour_generation_ri_principale_mp()) {
-        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace,
+        constructrice_ri.génère_ri_pour_fonction_metaprogramme(unite->espace,
                                                                noeud->comme_entete_fonction());
     }
     else {
-        constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
+        constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
     if (noeud->est_corps_fonction()) {

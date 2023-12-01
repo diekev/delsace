@@ -282,7 +282,7 @@ struct CompilatriceRI {
     EspaceDeTravail *m_espace = nullptr;
 
     /* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
-     * appelons les genere_ri_*, il faut dépiler la valeur que nous désirons, si
+     * appelons les génère_ri_*, il faut dépiler la valeur que nous désirons, si
      * nous en désirons une */
     kuri::tablet<Atome *, 8> m_pile{};
 
@@ -304,8 +304,8 @@ struct CompilatriceRI {
 
     ~CompilatriceRI();
 
-    void genere_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void genere_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
+    void génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
+    void génère_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
                                                NoeudDeclarationEnteteFonction *fonction);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
@@ -339,11 +339,11 @@ struct CompilatriceRI {
     AtomeConstante *crée_tableau_global(Type const *type,
                                         kuri::tableau<AtomeConstante *> &&valeurs);
 
-    void genere_ri_pour_initialisation_globales(EspaceDeTravail *espace,
+    void génère_ri_pour_initialisation_globales(EspaceDeTravail *espace,
                                                 AtomeFonction *fonction_init,
                                                 kuri::tableau_statique<AtomeGlobale *> globales);
 
-    void genere_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
+    void génère_ri_pour_initialisation_globales(AtomeFonction *fonction_init,
                                                 kuri::tableau_statique<AtomeGlobale *> globales);
 
     AtomeGlobale *crée_info_fonction_pour_trace_appel(AtomeFonction *pour_fonction);
@@ -358,24 +358,24 @@ struct CompilatriceRI {
     AtomeFonction *genere_fonction_init_globales_et_appel(
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
-    void genere_ri_pour_noeud(NoeudExpression *noeud);
-    void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
-    void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
-    void genere_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
-    void genere_ri_transformee_pour_noeud(NoeudExpression const *noeud,
+    void génère_ri_pour_noeud(NoeudExpression *noeud);
+    void génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
+    void génère_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
+    void génère_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
+    void génère_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
-    void genere_ri_pour_tente(NoeudInstructionTente const *noeud);
-    void genere_ri_pour_acces_membre(NoeudExpressionMembre const *noeud);
-    void genere_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud);
-    void genere_ri_pour_condition(NoeudExpression const *condition,
+    void génère_ri_pour_tente(NoeudInstructionTente const *noeud);
+    void génère_ri_pour_acces_membre(NoeudExpressionMembre const *noeud);
+    void génère_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud);
+    void génère_ri_pour_condition(NoeudExpression const *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
-    void genere_ri_pour_condition_implicite(NoeudExpression const *condition,
+    void génère_ri_pour_condition_implicite(NoeudExpression const *condition,
                                             InstructionLabel *label_si_vrai,
                                             InstructionLabel *label_si_faux);
-    void genere_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
-    void genere_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
+    void génère_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
+    void génère_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
