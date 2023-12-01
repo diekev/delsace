@@ -3687,7 +3687,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis_params));
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
@@ -3917,7 +3917,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
     }
 
     if (decl->est_polymorphe) {
-        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis_params));
+        TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
