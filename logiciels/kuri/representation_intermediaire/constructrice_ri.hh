@@ -405,8 +405,6 @@ struct CompilatriceRI {
 
     AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
 
-    Atome *valeur_enum(TypeEnum *type_enum, IdentifiantCode *ident);
-
     void empile_valeur(Atome *valeur);
     Atome *depile_valeur();
 
