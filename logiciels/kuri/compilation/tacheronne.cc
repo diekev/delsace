@@ -493,21 +493,22 @@ void Tacheronne::gere_tache()
 
 void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
 {
-    auto contexte = ContexteValidationCode(compilatrice, *this, *unite);
-    auto resultat = contexte.valide();
+    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(*this);
+    auto resultat = sémanticienne->valide(unite);
     if (est_erreur(resultat)) {
         assert(unite->espace->possède_erreur);
+        compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
     if (est_attente(resultat)) {
         compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(resultat));
+        compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
-    /* Pour les imports et chargements. */
-    temps_validation -= contexte.temps_chargement;
 
-    CHRONO_TYPAGE(stats_typage.finalisation, FINALISATION__FINALISATION);
+    CHRONO_TYPAGE(sémanticienne->donne_stats_typage().finalisation, FINALISATION__FINALISATION);
     compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+    compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
 static NoeudDeclarationEnteteFonction *entete_fonction(NoeudExpression *noeud)
@@ -562,11 +563,11 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
     }
 
     if (unite->est_pour_generation_ri_principale_mp()) {
-        constructrice_ri.genere_ri_pour_fonction_metaprogramme(unite->espace,
+        constructrice_ri.génère_ri_pour_fonction_métaprogramme(unite->espace,
                                                                noeud->comme_entete_fonction());
     }
     else {
-        constructrice_ri.genere_ri_pour_noeud(unite->espace, noeud);
+        constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
     if (noeud->est_corps_fonction()) {
@@ -1016,10 +1017,4 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     }
 
     // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
-
-#ifdef STATISTIQUES_DETAILLEES
-    if ((drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
-        stats_typage.imprime_stats();
-    }
-#endif
 }
