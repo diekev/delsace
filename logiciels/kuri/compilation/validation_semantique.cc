@@ -4902,7 +4902,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
                     ->rapporte_erreur(
                         enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
                     .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                    "l'ordre des comparisons.");
+                                    "l'ordre des comparaisons.");
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4911,7 +4911,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
                     ->rapporte_erreur(
                         enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
                     .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
-                                    "l'ordre des comparisons.");
+                                    "l'ordre des comparaisons.");
                 return CodeRetourValidation::Erreur;
             }
         }
