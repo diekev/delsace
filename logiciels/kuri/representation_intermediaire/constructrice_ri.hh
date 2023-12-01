@@ -140,7 +140,7 @@ struct ConstructriceRI {
 
     AtomeGlobale *trouve_ou_insère_globale(NoeudDeclaration *decl);
 
-    InstructionAllocation *crée_allocation(NoeudExpression *site_,
+    InstructionAllocation *crée_allocation(NoeudExpression const *site_,
                                            Type const *type,
                                            IdentifiantCode *ident,
                                            bool crée_seulement = false);
@@ -172,57 +172,61 @@ struct ConstructriceRI {
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
                                                        TypeTableauFixe const *type_tableau_fixe);
 
-    InstructionBranche *crée_branche(NoeudExpression *site_,
+    InstructionBranche *crée_branche(NoeudExpression const *site_,
                                      InstructionLabel *label,
                                      bool crée_seulement = false);
-    InstructionBrancheCondition *crée_branche_condition(NoeudExpression *site_,
+    InstructionBrancheCondition *crée_branche_condition(NoeudExpression const *site_,
                                                         Atome *valeur,
                                                         InstructionLabel *label_si_vrai,
                                                         InstructionLabel *label_si_faux);
-    InstructionLabel *crée_label(NoeudExpression *site_);
-    InstructionLabel *réserve_label(NoeudExpression *site_);
+    InstructionLabel *crée_label(NoeudExpression const *site_);
+    InstructionLabel *réserve_label(NoeudExpression const *site_);
     void insère_label(InstructionLabel *label);
     void insère_label_si_utilisé(InstructionLabel *label);
-    InstructionRetour *crée_retour(NoeudExpression *site_, Atome *valeur);
-    InstructionStockeMem *crée_stocke_mem(NoeudExpression *site_,
+    InstructionRetour *crée_retour(NoeudExpression const *site_, Atome *valeur);
+    InstructionStockeMem *crée_stocke_mem(NoeudExpression const *site_,
                                           Atome *ou,
                                           Atome *valeur,
                                           bool crée_seulement = false);
-    InstructionChargeMem *crée_charge_mem(NoeudExpression *site_,
+    InstructionChargeMem *crée_charge_mem(NoeudExpression const *site_,
                                           Atome *ou,
                                           bool crée_seulement = false);
-    InstructionAppel *crée_appel(NoeudExpression *site_, Atome *appelé);
-    InstructionAppel *crée_appel(NoeudExpression *site_,
+    InstructionAppel *crée_appel(NoeudExpression const *site_, Atome *appelé);
+    InstructionAppel *crée_appel(NoeudExpression const *site_,
                                  Atome *appelé,
                                  kuri::tableau<Atome *, int> &&args);
 
-    InstructionOpUnaire *crée_op_unaire(NoeudExpression *site_,
+    InstructionOpUnaire *crée_op_unaire(NoeudExpression const *site_,
                                         Type const *type,
                                         OpérateurUnaire::Genre op,
                                         Atome *valeur);
-    InstructionOpBinaire *crée_op_binaire(NoeudExpression *site_,
+    InstructionOpBinaire *crée_op_binaire(NoeudExpression const *site_,
                                           Type const *type,
                                           OpérateurBinaire::Genre op,
                                           Atome *valeur_gauche,
                                           Atome *valeur_droite);
-    InstructionOpBinaire *crée_op_comparaison(NoeudExpression *site_,
+    InstructionOpBinaire *crée_op_comparaison(NoeudExpression const *site_,
                                               OpérateurBinaire::Genre op,
                                               Atome *valeur_gauche,
                                               Atome *valeur_droite);
 
-    InstructionAccedeIndex *crée_accès_index(NoeudExpression *site_, Atome *accédé, Atome *index);
-    InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
+    InstructionAccedeIndex *crée_accès_index(NoeudExpression const *site_,
+                                             Atome *accédé,
+                                             Atome *index);
+    InstructionAccedeMembre *crée_référence_membre(NoeudExpression const *site_,
                                                    Type const *type,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    InstructionAccedeMembre *crée_référence_membre(NoeudExpression *site_,
+    InstructionAccedeMembre *crée_référence_membre(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    Instruction *crée_reference_membre_et_charge(NoeudExpression *site_, Atome *accédé, int index);
+    Instruction *crée_reference_membre_et_charge(NoeudExpression const *site_,
+                                                 Atome *accédé,
+                                                 int index);
 
-    InstructionTranstype *crée_transtype(NoeudExpression *site_,
+    InstructionTranstype *crée_transtype(NoeudExpression const *site_,
                                          Type const *type,
                                          Atome *valeur,
                                          TypeTranstypage op);
@@ -233,7 +237,7 @@ struct ConstructriceRI {
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
   private:
-    kuri::chaine imprime_site(NoeudExpression *site) const;
+    kuri::chaine imprime_site(NoeudExpression const *site) const;
 };
 
 /** \} */
@@ -325,11 +329,11 @@ struct CompilatriceRI {
 
     void rassemble_statistiques(Statistiques &stats);
 
-    Atome *crée_charge_mem_si_chargeable(NoeudExpression *site_, Atome *source);
-    Atome *crée_temporaire_si_non_chargeable(NoeudExpression *site_, Atome *source);
-    InstructionAllocation *crée_temporaire(NoeudExpression *site_, Atome *source);
+    Atome *crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source);
+    Atome *crée_temporaire_si_non_chargeable(NoeudExpression const *site_, Atome *source);
+    InstructionAllocation *crée_temporaire(NoeudExpression const *site_, Atome *source);
 
-    AtomeGlobale *crée_info_type(Type const *type, NoeudExpression *site);
+    AtomeGlobale *crée_info_type(Type const *type, NoeudExpression const *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
     AtomeConstante *crée_tableau_global(Type const *type,
@@ -347,7 +351,9 @@ struct CompilatriceRI {
     void crée_trace_appel(AtomeFonction *fonction);
 
   private:
-    void crée_appel_fonction_init_type(NoeudExpression *site_, Type const *type, Atome *argument);
+    void crée_appel_fonction_init_type(NoeudExpression const *site_,
+                                       Type const *type,
+                                       Atome *argument);
 
     AtomeFonction *genere_fonction_init_globales_et_appel(
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
@@ -355,28 +361,28 @@ struct CompilatriceRI {
     void genere_ri_pour_noeud(NoeudExpression *noeud);
     void genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
     void genere_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
-    void genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place);
-    void genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
+    void genere_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
+    void genere_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
-    void genere_ri_pour_tente(NoeudInstructionTente *noeud);
-    void genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud);
-    void genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud);
-    void genere_ri_pour_condition(NoeudExpression *condition,
+    void genere_ri_pour_tente(NoeudInstructionTente const *noeud);
+    void genere_ri_pour_acces_membre(NoeudExpressionMembre const *noeud);
+    void genere_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud);
+    void genere_ri_pour_condition(NoeudExpression const *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
-    void genere_ri_pour_condition_implicite(NoeudExpression *condition,
+    void genere_ri_pour_condition_implicite(NoeudExpression const *condition,
                                             InstructionLabel *label_si_vrai,
                                             InstructionLabel *label_si_faux);
-    void genere_ri_pour_expression_logique(NoeudExpressionLogique *noeud, Atome *place);
-    void genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final);
+    void genere_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
+    void genere_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
     void genere_ri_pour_position_code_source(NoeudExpression *noeud);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
-    void génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl);
-    void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr);
+    void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
+    void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr);
 
-    void transforme_valeur(NoeudExpression *noeud,
+    void transforme_valeur(NoeudExpression const *noeud,
                            Atome *valeur,
                            const TransformationType &transformation,
                            Atome *place);
@@ -387,15 +393,15 @@ struct CompilatriceRI {
                                             Type const *pour_type);
     AtomeGlobale *crée_info_type_defaut(unsigned index, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
-    AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression *site);
+    AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
                                          kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeGlobale *crée_info_type_membre_structure(MembreTypeComposé const &membre,
-                                                  NoeudExpression *site);
+                                                  NoeudExpression const *site);
 
-    Atome *converti_vers_tableau_dyn(NoeudExpression *noeud,
+    Atome *converti_vers_tableau_dyn(NoeudExpression const *noeud,
                                      Atome *pointeur_tableau_fixe,
-                                     TypeTableauFixe *type_tableau_fixe,
+                                     TypeTableauFixe const *type_tableau_fixe,
                                      Atome *place);
 
     AtomeConstante *crée_chaine(kuri::chaine_statique chaine);
@@ -408,7 +414,7 @@ struct CompilatriceRI {
     AtomeConstante *crée_tableau_annotations_pour_info_membre(
         const kuri::tableau<Annotation, int> &annotations);
 
-    Atome *crée_transtype_entre_base_et_dérivé(NoeudExpression *noeud,
+    Atome *crée_transtype_entre_base_et_dérivé(NoeudExpression const *noeud,
                                                Atome *valeur,
                                                const TransformationType &transformation,
                                                OpérateurBinaire::Genre op);

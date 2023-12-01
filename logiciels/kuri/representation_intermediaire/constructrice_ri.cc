@@ -274,7 +274,7 @@ AtomeGlobale *ConstructriceRI::trouve_ou_insère_globale(NoeudDeclaration *decl)
     return m_registre.trouve_ou_insère_globale(decl);
 }
 
-InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression *site_,
+InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression const *site_,
                                                         Type const *type,
                                                         IdentifiantCode *ident,
                                                         bool crée_seulement)
@@ -421,7 +421,7 @@ AtomeConstanteNulle *ConstructriceRI::crée_constante_nulle(Type const *type)
     return constantes_nulles.ajoute_element(type);
 }
 
-InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression *site_,
+InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression const *site_,
                                                   InstructionLabel *label,
                                                   bool crée_seulement)
 {
@@ -437,7 +437,7 @@ InstructionBranche *ConstructriceRI::crée_branche(NoeudExpression *site_,
 }
 
 InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
-    NoeudExpression *site_,
+    NoeudExpression const *site_,
     Atome *valeur,
     InstructionLabel *label_si_vrai,
     InstructionLabel *label_si_faux)
@@ -452,14 +452,14 @@ InstructionBrancheCondition *ConstructriceRI::crée_branche_condition(
     return inst;
 }
 
-InstructionLabel *ConstructriceRI::crée_label(NoeudExpression *site_)
+InstructionLabel *ConstructriceRI::crée_label(NoeudExpression const *site_)
 {
     auto inst = insts_label.ajoute_element(site_, m_nombre_labels++);
     insère_label(inst);
     return inst;
 }
 
-InstructionLabel *ConstructriceRI::réserve_label(NoeudExpression *site_)
+InstructionLabel *ConstructriceRI::réserve_label(NoeudExpression const *site_)
 {
     return insts_label.ajoute_element(site_, m_nombre_labels++);
 }
@@ -493,14 +493,14 @@ void ConstructriceRI::insère_label_si_utilisé(InstructionLabel *label)
     insère_label(label);
 }
 
-InstructionRetour *ConstructriceRI::crée_retour(NoeudExpression *site_, Atome *valeur)
+InstructionRetour *ConstructriceRI::crée_retour(NoeudExpression const *site_, Atome *valeur)
 {
     auto inst = insts_retour.ajoute_element(site_, valeur);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
-InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression *site_,
+InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *site_,
                                                        Atome *ou,
                                                        Atome *valeur,
                                                        bool crée_seulement)
@@ -528,7 +528,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression *site_,
     return inst;
 }
 
-InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression *site_,
+InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *site_,
                                                        Atome *ou,
                                                        bool crée_seulement)
 {
@@ -553,14 +553,14 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression *site_,
     return inst;
 }
 
-InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_, Atome *appelé)
+InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_, Atome *appelé)
 {
     auto inst = insts_appel.ajoute_element(site_, appelé);
     m_fonction_courante->instructions.ajoute(inst);
     return inst;
 }
 
-InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_,
+InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
                                               Atome *appelé,
                                               kuri::tableau<Atome *, int> &&args)
 {
@@ -569,7 +569,7 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression *site_,
     return inst;
 }
 
-InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression *site_,
+InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression const *site_,
                                                      Type const *type,
                                                      OpérateurUnaire::Genre op,
                                                      Atome *valeur)
@@ -579,7 +579,7 @@ InstructionOpUnaire *ConstructriceRI::crée_op_unaire(NoeudExpression *site_,
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression *site_,
+InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
                                                        Type const *type,
                                                        OpérateurBinaire::Genre op,
                                                        Atome *valeur_gauche,
@@ -590,7 +590,7 @@ InstructionOpBinaire *ConstructriceRI::crée_op_binaire(NoeudExpression *site_,
     return inst;
 }
 
-InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression *site_,
+InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
                                                            OpérateurBinaire::Genre op,
                                                            Atome *valeur_gauche,
                                                            Atome *valeur_droite)
@@ -598,7 +598,7 @@ InstructionOpBinaire *ConstructriceRI::crée_op_comparaison(NoeudExpression *sit
     return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
 }
 
-InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *site_,
+InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,
                                                           Atome *accédé,
                                                           Atome *index)
 {
@@ -630,7 +630,7 @@ InstructionAccedeIndex *ConstructriceRI::crée_accès_index(NoeudExpression *sit
 }
 
 InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
-    NoeudExpression *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
+    NoeudExpression const *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
 {
 
     auto inst = insts_accede_membre.ajoute_element(site_, type, accédé, index);
@@ -640,7 +640,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(
     return inst;
 }
 
-InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpression *site_,
+InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpression const *site_,
                                                                 Atome *accédé,
                                                                 int index,
                                                                 bool crée_seulement)
@@ -676,7 +676,7 @@ InstructionAccedeMembre *ConstructriceRI::crée_référence_membre(NoeudExpressi
     return crée_référence_membre(site_, type, accédé, index, crée_seulement);
 }
 
-Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression *site_,
+Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression const *site_,
                                                               Atome *accédé,
                                                               int index)
 {
@@ -684,7 +684,7 @@ Instruction *ConstructriceRI::crée_reference_membre_et_charge(NoeudExpression *
     return crée_charge_mem(site_, inst);
 }
 
-InstructionTranstype *ConstructriceRI::crée_transtype(NoeudExpression *site_,
+InstructionTranstype *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
                                                       Type const *type,
                                                       Atome *valeur,
                                                       TypeTranstypage op)
@@ -816,7 +816,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
     return nullptr;
 }
 
-kuri::chaine ConstructriceRI::imprime_site(NoeudExpression *site) const
+kuri::chaine ConstructriceRI::imprime_site(NoeudExpression const *site) const
 {
     if (!m_fonction_courante || !m_fonction_courante->decl) {
         return "aucun site";
@@ -1028,7 +1028,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_global(const Type *type,
     return m_constructrice.crée_tableau_global(type, std::move(valeurs));
 }
 
-Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression *site_, Atome *source)
+Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source)
 {
     if (source->est_chargeable) {
         return m_constructrice.crée_charge_mem(site_, source);
@@ -1036,7 +1036,8 @@ Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression *site_, At
     return source;
 }
 
-Atome *CompilatriceRI::crée_temporaire_si_non_chargeable(NoeudExpression *site_, Atome *source)
+Atome *CompilatriceRI::crée_temporaire_si_non_chargeable(NoeudExpression const *site_,
+                                                         Atome *source)
 {
     if (source->est_chargeable) {
         return source;
@@ -1045,14 +1046,14 @@ Atome *CompilatriceRI::crée_temporaire_si_non_chargeable(NoeudExpression *site_
     return crée_temporaire(site_, source);
 }
 
-InstructionAllocation *CompilatriceRI::crée_temporaire(NoeudExpression *site_, Atome *source)
+InstructionAllocation *CompilatriceRI::crée_temporaire(NoeudExpression const *site_, Atome *source)
 {
     auto résultat = m_constructrice.crée_allocation(site_, source->type, nullptr);
     m_constructrice.crée_stocke_mem(site_, résultat, source);
     return résultat;
 }
 
-void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression *site_,
+void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_,
                                                    Type const *type,
                                                    Atome *argument)
 {
@@ -2067,11 +2068,11 @@ void CompilatriceRI::genere_ri_pour_fonction(NoeudDeclarationEnteteFonction *dec
     définis_fonction_courante(nullptr);
 }
 
-void CompilatriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud, Atome *place)
+void CompilatriceRI::genere_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place)
 {
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;
-    genere_ri_pour_noeud(noeud);
+    genere_ri_pour_noeud(const_cast<NoeudExpression *>(noeud));
     auto atome = depile_valeur();
     expression_gauche = ancienne_expression_gauche;
 
@@ -2085,13 +2086,13 @@ void CompilatriceRI::genere_ri_pour_expression_droite(NoeudExpression *noeud, At
     }
 }
 
-void CompilatriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
+void CompilatriceRI::genere_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                                       Atome *place,
                                                       TransformationType const &transformation)
 {
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;
-    genere_ri_pour_noeud(noeud);
+    genere_ri_pour_noeud(const_cast<NoeudExpression *>(noeud));
     auto valeur = depile_valeur();
     expression_gauche = ancienne_expression_gauche;
 
@@ -2103,24 +2104,25 @@ void CompilatriceRI::genere_ri_transformee_pour_noeud(NoeudExpression *noeud,
     transforme_valeur(noeud, valeur, transformation, place);
 }
 
-void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
+void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                        Atome *valeur,
                                        TransformationType const &transformation,
                                        Atome *place)
 {
     auto place_fut_utilisee = false;
 
-    auto transforme_avec_fonction =
-        [this](NoeudExpression *noeud_, Atome *valeur_, NoeudDeclarationEnteteFonction *fonction) {
-            auto atome_fonction = m_constructrice.trouve_ou_insère_fonction(fonction);
+    auto transforme_avec_fonction = [this](NoeudExpression const *noeud_,
+                                           Atome *valeur_,
+                                           NoeudDeclarationEnteteFonction *fonction) {
+        auto atome_fonction = m_constructrice.trouve_ou_insère_fonction(fonction);
 
-            valeur_ = crée_charge_mem_si_chargeable(noeud_, valeur_);
+        valeur_ = crée_charge_mem_si_chargeable(noeud_, valeur_);
 
-            auto args = kuri::tableau<Atome *, int>();
-            args.ajoute(valeur_);
+        auto args = kuri::tableau<Atome *, int>();
+        args.ajoute(valeur_);
 
-            return m_constructrice.crée_appel(noeud_, atome_fonction, std::move(args));
-        };
+        return m_constructrice.crée_appel(noeud_, atome_fonction, std::move(args));
+    };
 
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
@@ -2659,7 +2661,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression *noeud,
 }
 
 Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
-    NoeudExpression *noeud,
+    NoeudExpression const *noeud,
     Atome *valeur,
     TransformationType const &transformation,
     OpérateurBinaire::Genre op)
@@ -2688,7 +2690,7 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
         noeud, transformation.type_cible, valeur, TypeTranstypage::BITS);
 }
 
-void CompilatriceRI::genere_ri_pour_tente(NoeudInstructionTente *noeud)
+void CompilatriceRI::genere_ri_pour_tente(NoeudInstructionTente const *noeud)
 {
     // À FAIRE(retours multiples)
     genere_ri_pour_expression_droite(noeud->expression_appelee, nullptr);
@@ -2830,7 +2832,7 @@ Atome *CompilatriceRI::depile_valeur()
     return v;
 }
 
-void CompilatriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
+void CompilatriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre const *noeud)
 {
     auto accede = noeud->accedee;
     auto type_accede = accede->type;
@@ -2854,7 +2856,7 @@ void CompilatriceRI::genere_ri_pour_acces_membre(NoeudExpressionMembre *noeud)
         m_constructrice.crée_référence_membre(noeud, pointeur_accede, noeud->index_membre));
 }
 
-void CompilatriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *noeud)
+void CompilatriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud)
 {
     genere_ri_pour_noeud(noeud->accedee);
     auto ptr_union = depile_valeur();
@@ -2924,7 +2926,7 @@ void CompilatriceRI::genere_ri_pour_acces_membre_union(NoeudExpressionMembre *no
 }
 
 // Logique tirée de « Basics of Compiler Design », Torben Ægidius Mogensen
-void CompilatriceRI::genere_ri_pour_condition(NoeudExpression *condition,
+void CompilatriceRI::genere_ri_pour_condition(NoeudExpression const *condition,
                                               InstructionLabel *label_si_vrai,
                                               InstructionLabel *label_si_faux)
 {
@@ -2975,7 +2977,7 @@ void CompilatriceRI::genere_ri_pour_condition(NoeudExpression *condition,
     }
 }
 
-void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *condition,
+void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression const *condition,
                                                         InstructionLabel *label_si_vrai,
                                                         InstructionLabel *label_si_faux)
 {
@@ -3016,7 +3018,7 @@ void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *conditi
         }
         case GenreType::EINI:
         {
-            genere_ri_pour_noeud(condition);
+            genere_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
             auto pointeur = depile_valeur();
             auto pointeur_pointeur = m_constructrice.crée_référence_membre(condition, pointeur, 0);
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_pointeur);
@@ -3028,7 +3030,7 @@ void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *conditi
         case GenreType::CHAINE:
         case GenreType::TABLEAU_DYNAMIQUE:
         {
-            genere_ri_pour_noeud(condition);
+            genere_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
             auto pointeur = depile_valeur();
             auto pointeur_taille = m_constructrice.crée_référence_membre(condition, pointeur, 1);
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_taille);
@@ -3050,7 +3052,8 @@ void CompilatriceRI::genere_ri_pour_condition_implicite(NoeudExpression *conditi
     m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
 }
 
-void CompilatriceRI::genere_ri_pour_expression_logique(NoeudExpressionLogique *noeud, Atome *place)
+void CompilatriceRI::genere_ri_pour_expression_logique(NoeudExpressionLogique const *noeud,
+                                                       Atome *place)
 {
     auto label_si_vrai = m_constructrice.réserve_label(noeud);
     auto label_si_faux = m_constructrice.réserve_label(noeud);
@@ -3074,7 +3077,7 @@ void CompilatriceRI::genere_ri_pour_expression_logique(NoeudExpressionLogique *n
     empile_valeur(place);
 }
 
-void CompilatriceRI::genere_ri_insts_differees(NoeudBloc *bloc, const NoeudBloc *bloc_final)
+void CompilatriceRI::genere_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
@@ -3156,7 +3159,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
     return résultat;
 }
 
-AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression *site)
+AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression const *site)
 {
     if (type->atome_info_type != nullptr) {
         return type->atome_info_type;
@@ -3642,7 +3645,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_entier(Type const *pour_type, bool
 }
 
 AtomeConstante *CompilatriceRI::crée_info_type_avec_transtype(Type const *type,
-                                                              NoeudExpression *site)
+                                                              NoeudExpression const *site)
 {
     auto info_type = crée_info_type(type, site);
     return transtype_base_info_type(info_type);
@@ -3657,7 +3660,7 @@ AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeComposé &membre,
-                                                              NoeudExpression *site)
+                                                              NoeudExpression const *site)
 {
     auto type_struct_membre = m_compilatrice.typeuse.type_info_type_membre_structure;
 
@@ -3688,9 +3691,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     return crée_globale_info_type(type_struct_membre, std::move(valeurs));
 }
 
-Atome *CompilatriceRI::converti_vers_tableau_dyn(NoeudExpression *noeud,
+Atome *CompilatriceRI::converti_vers_tableau_dyn(NoeudExpression const *noeud,
                                                  Atome *pointeur_tableau_fixe,
-                                                 TypeTableauFixe *type_tableau_fixe,
+                                                 TypeTableauFixe const *type_tableau_fixe,
                                                  Atome *place)
 {
     auto alloc_tableau_dyn = place;
@@ -3957,7 +3960,7 @@ void CompilatriceRI::génère_ri_pour_variable_globale(NoeudDeclarationVariable 
     decl->drapeaux |= DrapeauxNoeud::RI_FUT_GENEREE;
 }
 
-void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable *decl)
+void CompilatriceRI::génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl)
 {
     POUR (decl->donnees_decl.plage()) {
         auto expression = it.expression;
@@ -4118,7 +4121,8 @@ static void remplis_données_constantes_réelles(char *données_constantes,
     }
 }
 
-void CompilatriceRI::génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau *expr)
+void CompilatriceRI::génère_ri_pour_construction_tableau(
+    NoeudExpressionConstructionTableau const *expr)
 {
     auto feuilles = expr->expression->comme_virgule();
 
