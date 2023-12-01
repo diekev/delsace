@@ -10,6 +10,7 @@
 #include "parsage/modules.hh"
 
 #include "bibliotheque.hh"
+#include "erreur.h"
 #include "gestionnaire_code.hh"
 #include "graphe_dependance.hh"
 #include "interface_module_kuri.hh"
@@ -28,6 +29,7 @@ struct ContexteLexage;
 struct EspaceDeTravail;
 struct NoeudCodeEnteteFonction;
 struct OptionsDeCompilation;
+struct Sémanticienne;
 struct Statistiques;
 
 enum class FormatRapportProfilage : int {
@@ -165,6 +167,9 @@ struct Compilatrice {
 
     std::mutex m_mutex_noms_valeurs_retours_défaut{};
     kuri::tableau<IdentifiantCode *> m_noms_valeurs_retours_défaut{};
+
+    std::mutex m_mutex_sémanticiennes{};
+    kuri::tableau<Sémanticienne *> m_sémanticiennes{};
 
   public:
     /* ********************************************************************** */
@@ -315,6 +320,9 @@ struct Compilatrice {
     IdentifiantCode *donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base);
 
     IdentifiantCode *donne_nom_défaut_valeur_retour(int index);
+
+    Sémanticienne *donne_sémanticienne_disponible(Tacheronne &tacheronne);
+    void dépose_sémanticienne(Sémanticienne *sémanticienne);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);

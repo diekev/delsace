@@ -7,6 +7,8 @@
 
 #include "arbre_syntaxique/utilitaires.hh"
 
+#include "statistiques/statistiques.hh"
+
 #include "structures/ensemble.hh"
 #include "structures/file_fixe.hh"
 #include "structures/tablet.hh"
@@ -33,6 +35,7 @@ struct NoeudDiscr;
 struct NoeudEnum;
 struct NoeudExpressionBinaire;
 struct NoeudExpressionLitteraleBool;
+struct NoeudExpressionLogique;
 struct NoeudExpressionMembre;
 struct NoeudInstructionImporte;
 struct NoeudPour;
@@ -107,23 +110,51 @@ struct ContexteValidationDeclaration {
     DonneesAssignations donnees_temp{};
 };
 
-struct ContexteValidationCode {
+struct Sémanticienne {
+  private:
     Compilatrice &m_compilatrice;
-    Tacheronne &m_tacheronne;
+    Tacheronne *m_tacheronne = nullptr;
 
     UniteCompilation *unite = nullptr;
     EspaceDeTravail *espace = nullptr;
 
     double temps_chargement = 0.0;
 
-    ContexteValidationCode(Compilatrice &compilatrice,
-                           Tacheronne &tacheronne,
-                           UniteCompilation &unite);
+    StatistiquesTypage m_stats_typage{};
 
-    EMPECHE_COPIE(ContexteValidationCode);
+    ContexteValidationDeclaration contexte_validation_declaration{};
 
-    ResultatValidation valide();
+  public:
+    Sémanticienne(Compilatrice &compilatrice);
 
+    EMPECHE_COPIE(Sémanticienne);
+
+    void réinitialise();
+    void définis_tacheronne(Tacheronne &tacheronne);
+
+    ResultatValidation valide(UniteCompilation *unité);
+
+    NoeudDeclarationEnteteFonction *fonction_courante() const;
+
+    Type *union_ou_structure_courante() const;
+
+    AssembleuseArbre *donne_assembleuse();
+
+    StatistiquesTypage &donne_stats_typage();
+
+    UniteCompilation *donne_unité();
+
+    double donne_temps_chargement() const
+    {
+        return temps_chargement;
+    }
+
+    void rapporte_erreur(const char *message, const NoeudExpression *noeud);
+
+    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
+                                              TransformationType const &transformation);
+
+  private:
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
@@ -169,6 +200,8 @@ struct ContexteValidationCode {
         NoeudExpressionMembre *expr_acces_enum,
         NoeudExpressionLitteraleBool *expr_bool);
 
+    ResultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
+
     ResultatValidation valide_discrimination(NoeudDiscr *inst);
     ResultatValidation valide_discr_énum(NoeudDiscr *inst, Type *type);
     ResultatValidation valide_discr_union(NoeudDiscr *inst, Type *type);
@@ -177,7 +210,6 @@ struct ContexteValidationCode {
 
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
-    void rapporte_erreur(const char *message, const NoeudExpression *noeud);
     void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
     void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
     void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl,
@@ -216,14 +248,8 @@ struct ContexteValidationCode {
 
     ResultatValidation crée_transtypage_implicite_si_possible(
         NoeudExpression *&expression, Type *type_cible, RaisonTranstypageImplicite const raison);
-    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
-                                              TransformationType const &transformation);
 
     NoeudExpression *racine_validation() const;
-
-    NoeudDeclarationEnteteFonction *fonction_courante() const;
-
-    Type *union_ou_structure_courante() const;
 
     MetaProgramme *crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,

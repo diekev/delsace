@@ -443,7 +443,7 @@ std::ostream &operator<<(std::ostream &os, GenreInstruction genre);
 struct Instruction : public Atome {
     GenreInstruction genre = GenreInstruction::INVALIDE;
     int numero = 0;
-    NoeudExpression *site = nullptr;
+    NoeudExpression const *site = nullptr;
 
     Instruction()
     {
@@ -530,7 +530,7 @@ struct Instruction : public Atome {
 };
 
 struct InstructionAppel : public Instruction {
-    explicit InstructionAppel(NoeudExpression *site_)
+    explicit InstructionAppel(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::APPEL;
@@ -543,7 +543,7 @@ struct InstructionAppel : public Instruction {
 
     EMPECHE_COPIE(InstructionAppel);
 
-    InstructionAppel(NoeudExpression *site_, Atome *appele_) : InstructionAppel(site_)
+    InstructionAppel(NoeudExpression const *site_, Atome *appele_) : InstructionAppel(site_)
     {
         auto type_fonction = appele_->type->comme_type_fonction();
         this->type = type_fonction->type_sortie;
@@ -551,7 +551,9 @@ struct InstructionAppel : public Instruction {
         this->appele = appele_;
     }
 
-    InstructionAppel(NoeudExpression *site_, Atome *appele_, kuri::tableau<Atome *, int> &&args_)
+    InstructionAppel(NoeudExpression const *site_,
+                     Atome *appele_,
+                     kuri::tableau<Atome *, int> &&args_)
         : InstructionAppel(site_, appele_)
     {
         this->args = std::move(args_);
@@ -559,7 +561,7 @@ struct InstructionAppel : public Instruction {
 };
 
 struct InstructionAllocation : public Instruction {
-    explicit InstructionAllocation(NoeudExpression *site_)
+    explicit InstructionAllocation(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::ALLOCATION;
@@ -568,7 +570,7 @@ struct InstructionAllocation : public Instruction {
 
     IdentifiantCode *ident = nullptr;
 
-    InstructionAllocation(NoeudExpression *site_, Type const *type_, IdentifiantCode *ident_)
+    InstructionAllocation(NoeudExpression const *site_, Type const *type_, IdentifiantCode *ident_)
         : InstructionAllocation(site_)
     {
         this->type = type_;
@@ -579,7 +581,7 @@ struct InstructionAllocation : public Instruction {
 };
 
 struct InstructionRetour : public Instruction {
-    explicit InstructionRetour(NoeudExpression *site_)
+    explicit InstructionRetour(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::RETOUR;
@@ -589,14 +591,14 @@ struct InstructionRetour : public Instruction {
 
     EMPECHE_COPIE(InstructionRetour);
 
-    InstructionRetour(NoeudExpression *site_, Atome *valeur_) : InstructionRetour(site_)
+    InstructionRetour(NoeudExpression const *site_, Atome *valeur_) : InstructionRetour(site_)
     {
         this->valeur = valeur_;
     }
 };
 
 struct InstructionOpBinaire : public Instruction {
-    explicit InstructionOpBinaire(NoeudExpression *site_)
+    explicit InstructionOpBinaire(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::OPERATION_BINAIRE;
@@ -608,7 +610,7 @@ struct InstructionOpBinaire : public Instruction {
 
     EMPECHE_COPIE(InstructionOpBinaire);
 
-    InstructionOpBinaire(NoeudExpression *site_,
+    InstructionOpBinaire(NoeudExpression const *site_,
                          Type const *type_,
                          OpérateurBinaire::Genre op_,
                          Atome *valeur_gauche_,
@@ -623,7 +625,7 @@ struct InstructionOpBinaire : public Instruction {
 };
 
 struct InstructionOpUnaire : public Instruction {
-    explicit InstructionOpUnaire(NoeudExpression *site_)
+    explicit InstructionOpUnaire(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::OPERATION_UNAIRE;
@@ -634,7 +636,7 @@ struct InstructionOpUnaire : public Instruction {
 
     EMPECHE_COPIE(InstructionOpUnaire);
 
-    InstructionOpUnaire(NoeudExpression *site_,
+    InstructionOpUnaire(NoeudExpression const *site_,
                         Type const *type_,
                         OpérateurUnaire::Genre op_,
                         Atome *valeur_)
@@ -647,7 +649,7 @@ struct InstructionOpUnaire : public Instruction {
 };
 
 struct InstructionChargeMem : public Instruction {
-    explicit InstructionChargeMem(NoeudExpression *site_)
+    explicit InstructionChargeMem(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::CHARGE_MEMOIRE;
@@ -658,7 +660,7 @@ struct InstructionChargeMem : public Instruction {
 
     EMPECHE_COPIE(InstructionChargeMem);
 
-    InstructionChargeMem(NoeudExpression *site_, Type const *type_, Atome *chargee_)
+    InstructionChargeMem(NoeudExpression const *site_, Type const *type_, Atome *chargee_)
         : InstructionChargeMem(site_)
     {
         this->type = type_;
@@ -668,7 +670,7 @@ struct InstructionChargeMem : public Instruction {
 };
 
 struct InstructionStockeMem : public Instruction {
-    explicit InstructionStockeMem(NoeudExpression *site_)
+    explicit InstructionStockeMem(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::STOCKE_MEMOIRE;
@@ -679,7 +681,10 @@ struct InstructionStockeMem : public Instruction {
 
     EMPECHE_COPIE(InstructionStockeMem);
 
-    InstructionStockeMem(NoeudExpression *site_, Type const *type_, Atome *ou_, Atome *valeur_)
+    InstructionStockeMem(NoeudExpression const *site_,
+                         Type const *type_,
+                         Atome *ou_,
+                         Atome *valeur_)
         : InstructionStockeMem(site_)
     {
         this->type = type_;
@@ -689,7 +694,7 @@ struct InstructionStockeMem : public Instruction {
 };
 
 struct InstructionLabel : public Instruction {
-    explicit InstructionLabel(NoeudExpression *site_)
+    explicit InstructionLabel(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::LABEL;
@@ -697,14 +702,14 @@ struct InstructionLabel : public Instruction {
 
     int id = 0;
 
-    InstructionLabel(NoeudExpression *site_, int id_) : InstructionLabel(site_)
+    InstructionLabel(NoeudExpression const *site_, int id_) : InstructionLabel(site_)
     {
         this->id = id_;
     }
 };
 
 struct InstructionBranche : public Instruction {
-    explicit InstructionBranche(NoeudExpression *site_)
+    explicit InstructionBranche(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::BRANCHE;
@@ -714,7 +719,7 @@ struct InstructionBranche : public Instruction {
 
     EMPECHE_COPIE(InstructionBranche);
 
-    InstructionBranche(NoeudExpression *site_, InstructionLabel *label_)
+    InstructionBranche(NoeudExpression const *site_, InstructionLabel *label_)
         : InstructionBranche(site_)
     {
         this->label = label_;
@@ -722,7 +727,7 @@ struct InstructionBranche : public Instruction {
 };
 
 struct InstructionBrancheCondition : public Instruction {
-    explicit InstructionBrancheCondition(NoeudExpression *site_)
+    explicit InstructionBrancheCondition(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::BRANCHE_CONDITION;
@@ -734,7 +739,7 @@ struct InstructionBrancheCondition : public Instruction {
 
     EMPECHE_COPIE(InstructionBrancheCondition);
 
-    InstructionBrancheCondition(NoeudExpression *site_,
+    InstructionBrancheCondition(NoeudExpression const *site_,
                                 Atome *condition_,
                                 InstructionLabel *label_si_vrai_,
                                 InstructionLabel *label_si_faux_)
@@ -747,7 +752,7 @@ struct InstructionBrancheCondition : public Instruction {
 };
 
 struct InstructionAccedeMembre : public Instruction {
-    explicit InstructionAccedeMembre(NoeudExpression *site_)
+    explicit InstructionAccedeMembre(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_MEMBRE;
@@ -760,7 +765,10 @@ struct InstructionAccedeMembre : public Instruction {
 
     EMPECHE_COPIE(InstructionAccedeMembre);
 
-    InstructionAccedeMembre(NoeudExpression *site_, Type const *type_, Atome *accede_, int index_)
+    InstructionAccedeMembre(NoeudExpression const *site_,
+                            Type const *type_,
+                            Atome *accede_,
+                            int index_)
         : InstructionAccedeMembre(site_)
     {
         this->type = type_;
@@ -772,7 +780,7 @@ struct InstructionAccedeMembre : public Instruction {
 };
 
 struct InstructionAccedeIndex : public Instruction {
-    explicit InstructionAccedeIndex(NoeudExpression *site_)
+    explicit InstructionAccedeIndex(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::ACCEDE_INDEX;
@@ -784,7 +792,7 @@ struct InstructionAccedeIndex : public Instruction {
 
     EMPECHE_COPIE(InstructionAccedeIndex);
 
-    InstructionAccedeIndex(NoeudExpression *site_,
+    InstructionAccedeIndex(NoeudExpression const *site_,
                            Type const *type_,
                            Atome *accede_,
                            Atome *index_)
@@ -814,7 +822,7 @@ enum TypeTranstypage {
 };
 
 struct InstructionTranstype : public Instruction {
-    explicit InstructionTranstype(NoeudExpression *site_)
+    explicit InstructionTranstype(NoeudExpression const *site_)
     {
         site = site_;
         genre = GenreInstruction::TRANSTYPE;
@@ -826,7 +834,7 @@ struct InstructionTranstype : public Instruction {
 
     EMPECHE_COPIE(InstructionTranstype);
 
-    InstructionTranstype(NoeudExpression *site_,
+    InstructionTranstype(NoeudExpression const *site_,
                          Type const *type_,
                          Atome *valeur_,
                          TypeTranstypage op_)

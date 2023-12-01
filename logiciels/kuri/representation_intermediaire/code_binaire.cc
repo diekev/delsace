@@ -1416,6 +1416,47 @@ static Atome const *est_comparaison_inégal_zéro(Instruction const *inst)
     return est_comparaison_avec_zéro(inst, OpérateurBinaire::Genre::Comp_Inegal);
 }
 
+struct AccèsMembreFusionné {
+    Atome *accédé = nullptr;
+    uint32_t décalage = 0;
+};
+
+/* "Fusionne" les accès de membre consécutifs (x.y.z).
+ * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
+static AccèsMembreFusionné fusionne_accès_membres(InstructionAccedeMembre const *membre)
+{
+    AccèsMembreFusionné résultat;
+
+    while (true) {
+        auto index_membre = membre->index;
+
+        auto type_compose = static_cast<TypeCompose *>(
+            type_dereference_pour(membre->accede->type));
+
+        if (type_compose->est_type_union()) {
+            type_compose = type_compose->comme_type_union()->type_structure;
+        }
+
+        auto décalage = type_compose->membres[index_membre].decalage;
+
+        résultat.accédé = membre->accede;
+        résultat.décalage += décalage;
+
+        if (!membre->accede->est_instruction()) {
+            break;
+        }
+
+        auto inst = membre->accede->comme_instruction();
+        if (!inst->est_acces_membre()) {
+            break;
+        }
+
+        membre = inst->comme_acces_membre();
+    }
+
+    return résultat;
+}
+
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
                                                            Chunk &chunk,
                                                            bool pour_operande)
@@ -1646,27 +1687,17 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::ACCEDE_MEMBRE:
         {
             auto membre = instruction->comme_acces_membre();
-            auto index_membre = membre->index;
+            auto accès_fusionné = fusionne_accès_membres(membre);
 
-            auto type_compose = static_cast<TypeCompose *>(
-                type_dereference_pour(membre->accede->type));
-
-            if (type_compose->est_type_union()) {
-                type_compose = type_compose->comme_type_union()->type_structure;
-            }
-
-            auto décalage = type_compose->membres[index_membre].decalage;
-
-            if (est_allocation(membre->accede)) {
-                auto alloc = membre->accede->comme_instruction()->comme_alloc();
+            if (est_allocation(accès_fusionné.accédé)) {
+                auto alloc = accès_fusionné.accédé->comme_instruction()->comme_alloc();
                 chunk.émets_référence_membre_locale(
-                    membre->site, donne_index_locale(alloc), décalage);
+                    membre->site, donne_index_locale(alloc), accès_fusionné.décalage);
                 break;
             }
 
-            génère_code_pour_atome(membre->accede, chunk);
-            chunk.émets_référence_membre(membre->site, décalage);
-
+            génère_code_pour_atome(accès_fusionné.accédé, chunk);
+            chunk.émets_référence_membre(membre->site, accès_fusionné.décalage);
             break;
         }
         case GenreInstruction::OPERATION_UNAIRE:
