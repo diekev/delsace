@@ -31,12 +31,12 @@ struct ContexteLexage {
 
 struct Lexeuse {
   private:
-    dls::outils::Synchrone<GeranteChaine> &m_gerante_chaine;
+    dls::outils::Synchrone<GeranteChaine> &m_gérante_chaine;
     dls::outils::Synchrone<TableIdentifiant> &m_table_identifiants;
-    Fichier *m_donnees;
+    Fichier *m_données;
 
-    const char *m_debut_mot = nullptr;
-    const char *m_debut = nullptr;
+    const char *m_début_mot = nullptr;
+    const char *m_début = nullptr;
     const char *m_fin = nullptr;
 
     int m_position_ligne = 0;
@@ -50,7 +50,7 @@ struct Lexeuse {
     bool m_possède_erreur = false;
 
   public:
-    Lexeuse(ContexteLexage contexte, Fichier *donnees, int drapeaux = 0);
+    Lexeuse(ContexteLexage contexte, Fichier *données, int drapeaux = 0);
 
     Lexeuse(Lexeuse const &) = delete;
     Lexeuse &operator=(Lexeuse const &) = delete;
@@ -65,32 +65,32 @@ struct Lexeuse {
   private:
     TOUJOURS_ENLIGNE bool fini() const
     {
-        return m_possède_erreur || m_debut >= m_fin;
+        return m_possède_erreur || m_début >= m_fin;
     }
 
     template <int N>
     void avance_fixe()
     {
         m_position_ligne += N;
-        m_debut += N;
+        m_début += N;
     }
 
     void avance_sans_nouvelle_ligne(int n)
     {
         m_position_ligne += n;
-        m_debut += n;
+        m_début += n;
     }
 
     void avance(int n = 1);
 
     TOUJOURS_ENLIGNE char caractère_courant() const
     {
-        return *m_debut;
+        return *m_début;
     }
 
     TOUJOURS_ENLIGNE char caractère_voisin(int n = 1) const
     {
-        return *(m_debut + n);
+        return *(m_début + n);
     }
 
     dls::vue_chaine_compacte mot_courant() const;
@@ -109,7 +109,7 @@ struct Lexeuse {
     TOUJOURS_ENLIGNE void enregistre_pos_mot()
     {
         m_pos_mot = m_position_ligne;
-        m_debut_mot = m_debut;
+        m_début_mot = m_début;
     }
 
     void consomme_espaces_blanches();
@@ -124,21 +124,21 @@ struct Lexeuse {
     Lexeme lèxe_chaine_littérale();
     Lexeme lèxe_chaine_littérale_guillemet();
     Lexeme lèxe_caractère_littérale();
-    unsigned lexe_caractère_litteral(kuri::chaine *chaine);
+    unsigned lèxe_caractère_littéral(kuri::chaine *chaine);
     Lexeme lèxe_commentaire();
     Lexeme lèxe_commentaire_bloc();
     Lexeme lèxe_littérale_nombre();
     Lexeme lèxe_identifiant();
 
     template <bool INCLUS_COMMENTAIRE>
-    Lexeme lexe_commentaire_impl();
+    Lexeme lèxe_commentaire_impl();
 
     template <bool INCLUS_COMMENTAIRE>
-    Lexeme lexe_commentaire_bloc_impl();
+    Lexeme lèxe_commentaire_bloc_impl();
 
-    Lexeme lexe_nombre_decimal();
-    Lexeme lexe_nombre_hexadecimal();
-    Lexeme lexe_nombre_binaire();
-    Lexeme lexe_nombre_octal();
-    Lexeme lexe_nombre_reel_hexadecimal();
+    Lexeme lèxe_nombre_décimal();
+    Lexeme lèxe_nombre_hexadécimal();
+    Lexeme lèxe_nombre_binaire();
+    Lexeme lèxe_nombre_octal();
+    Lexeme lèxe_nombre_reel_hexadécimal();
 };
