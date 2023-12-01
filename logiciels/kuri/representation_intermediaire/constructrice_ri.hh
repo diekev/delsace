@@ -376,7 +376,6 @@ struct CompilatriceRI {
                                             InstructionLabel *label_si_faux);
     void genere_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
     void genere_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
-    void genere_ri_pour_position_code_source(NoeudExpression *noeud);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
