@@ -305,7 +305,7 @@ struct CompilatriceRI {
     ~CompilatriceRI();
 
     void génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
-    void génère_ri_pour_fonction_metaprogramme(EspaceDeTravail *espace,
+    void génère_ri_pour_fonction_métaprogramme(EspaceDeTravail *espace,
                                                NoeudDeclarationEnteteFonction *fonction);
     AtomeFonction *genere_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
@@ -360,14 +360,14 @@ struct CompilatriceRI {
 
     void génère_ri_pour_noeud(NoeudExpression *noeud);
     void génère_ri_pour_fonction(NoeudDeclarationEnteteFonction *decl);
-    void génère_ri_pour_fonction_metaprogramme(NoeudDeclarationEnteteFonction *fonction);
+    void génère_ri_pour_fonction_métaprogramme(NoeudDeclarationEnteteFonction *fonction);
     void génère_ri_pour_expression_droite(NoeudExpression const *noeud, Atome *place);
     void génère_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
     void génère_ri_pour_tente(NoeudInstructionTente const *noeud);
-    void génère_ri_pour_acces_membre(NoeudExpressionMembre const *noeud);
-    void génère_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud);
+    void génère_ri_pour_accès_membre(NoeudExpressionMembre const *noeud);
+    void génère_ri_pour_accès_membre_union(NoeudExpressionMembre const *noeud);
     void génère_ri_pour_condition(NoeudExpression const *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
@@ -375,7 +375,7 @@ struct CompilatriceRI {
                                             InstructionLabel *label_si_vrai,
                                             InstructionLabel *label_si_faux);
     void génère_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
-    void génère_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
+    void génère_ri_insts_différées(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);
@@ -390,7 +390,7 @@ struct CompilatriceRI {
     void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             uint32_t index,
                                             Type const *pour_type);
-    AtomeGlobale *crée_info_type_defaut(unsigned index, Type const *pour_type);
+    AtomeGlobale *crée_info_type_défaut(unsigned index, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,

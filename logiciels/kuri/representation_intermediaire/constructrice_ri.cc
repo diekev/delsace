@@ -894,11 +894,11 @@ void CompilatriceRI::génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpres
     génère_ri_pour_noeud(noeud);
 }
 
-void CompilatriceRI::génère_ri_pour_fonction_metaprogramme(
+void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
     EspaceDeTravail *espace, NoeudDeclarationEnteteFonction *fonction)
 {
     m_espace = espace;
-    génère_ri_pour_fonction_metaprogramme(fonction);
+    génère_ri_pour_fonction_métaprogramme(fonction);
 }
 
 AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
@@ -1241,7 +1241,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
 
             if (derniere_instruction->genre != GenreInstruction::RETOUR) {
                 /* Génère le code pour toutes les instructions différées de ce bloc. */
-                génère_ri_insts_differees(noeud_bloc, noeud_bloc->bloc_parent);
+                génère_ri_insts_différées(noeud_bloc, noeud_bloc->bloc_parent);
             }
 
             break;
@@ -1362,12 +1362,12 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
         {
-            génère_ri_pour_acces_membre(noeud->comme_reference_membre());
+            génère_ri_pour_accès_membre(noeud->comme_reference_membre());
             break;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION:
         {
-            génère_ri_pour_acces_membre_union(noeud->comme_reference_membre_union());
+            génère_ri_pour_accès_membre_union(noeud->comme_reference_membre_union());
             break;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_TYPE:
@@ -1751,7 +1751,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 bloc_final = m_fonction_courante->decl->bloc_constantes;
             }
 
-            génère_ri_insts_differees(noeud->bloc_parent, bloc_final);
+            génère_ri_insts_différées(noeud->bloc_parent, bloc_final);
             m_constructrice.crée_retour(noeud, valeur_ret);
             break;
         }
@@ -1892,7 +1892,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             }
             else {
                 auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
-                génère_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
+                génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
                 m_constructrice.crée_branche(noeud, label);
             }
 
@@ -1903,7 +1903,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             auto inst = noeud->comme_continue();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_continue;
-            génère_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
+            génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
             break;
         }
@@ -1912,7 +1912,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             auto inst = noeud->comme_reprends();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
-            génère_ri_insts_differees(inst->bloc_parent, boucle_controlee->bloc_parent);
+            génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
             break;
         }
@@ -2832,7 +2832,7 @@ Atome *CompilatriceRI::depile_valeur()
     return v;
 }
 
-void CompilatriceRI::génère_ri_pour_acces_membre(NoeudExpressionMembre const *noeud)
+void CompilatriceRI::génère_ri_pour_accès_membre(NoeudExpressionMembre const *noeud)
 {
     auto accede = noeud->accedee;
     auto type_accede = accede->type;
@@ -2856,7 +2856,7 @@ void CompilatriceRI::génère_ri_pour_acces_membre(NoeudExpressionMembre const *
         m_constructrice.crée_référence_membre(noeud, pointeur_accede, noeud->index_membre));
 }
 
-void CompilatriceRI::génère_ri_pour_acces_membre_union(NoeudExpressionMembre const *noeud)
+void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre const *noeud)
 {
     génère_ri_pour_noeud(noeud->accedee);
     auto ptr_union = depile_valeur();
@@ -3077,7 +3077,7 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     empile_valeur(place);
 }
 
-void CompilatriceRI::génère_ri_insts_differees(NoeudBloc const *bloc, const NoeudBloc *bloc_final)
+void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc, const NoeudBloc *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
@@ -3174,12 +3174,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreType::BOOL:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::BOOLEEN, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::BOOLEEN, type);
             break;
         }
         case GenreType::OCTET:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::OCTET, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::OCTET, type);
             break;
         }
         case GenreType::ENTIER_CONSTANT:
@@ -3220,7 +3220,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreType::REEL:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::REEL, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::REEL, type);
             break;
         }
         case GenreType::REFERENCE:
@@ -3519,22 +3519,22 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreType::EINI:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::EINI, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::EINI, type);
             break;
         }
         case GenreType::RIEN:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::RIEN, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::RIEN, type);
             break;
         }
         case GenreType::CHAINE:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::CHAINE, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::CHAINE, type);
             break;
         }
         case GenreType::TYPE_DE_DONNEES:
         {
-            type->atome_info_type = crée_info_type_defaut(IDInfoType::TYPE_DE_DONNEES, type);
+            type->atome_info_type = crée_info_type_défaut(IDInfoType::TYPE_DE_DONNEES, type);
             break;
         }
         case GenreType::OPAQUE:
@@ -3628,7 +3628,7 @@ void CompilatriceRI::remplis_membres_de_bases_info_type(kuri::tableau<AtomeConst
     valeurs[2] = m_constructrice.crée_z32(0);
 }
 
-AtomeGlobale *CompilatriceRI::crée_info_type_defaut(unsigned index, Type const *pour_type)
+AtomeGlobale *CompilatriceRI::crée_info_type_défaut(unsigned index, Type const *pour_type)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(3);
     remplis_membres_de_bases_info_type(valeurs, index, pour_type);
@@ -3800,7 +3800,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     définis_fonction_courante(nullptr);
 }
 
-void CompilatriceRI::génère_ri_pour_fonction_metaprogramme(
+void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
     NoeudDeclarationEnteteFonction *fonction)
 {
     assert(fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME));
