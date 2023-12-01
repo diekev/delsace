@@ -793,6 +793,11 @@ void aplatis_arbre(NoeudExpression *declaration)
         }
         return;
     }
+
+    assert_rappel(false, [&]() {
+        std::cerr << "Noeud non-géré pour l'aplatissement de l'arbre : " << declaration->genre
+                  << '\n';
+    });
 }
 
 /* ------------------------------------------------------------------------- */
