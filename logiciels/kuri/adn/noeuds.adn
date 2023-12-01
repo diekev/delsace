@@ -389,6 +389,16 @@ struct NoeudExpressionIndexage : NoeudExpressionBinaire {
     @genre_valeur TRANSCENDANTALE
 }
 
+struct NoeudExpressionLogique : NoeudExpression {
+    @genre EXPRESSION_LOGIQUE
+    @comme expression_logique
+    @code  NoeudCodeExpressionLogique
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande_gauche [code enfant préserve_accents]
+    NoeudExpression *opérande_droite [code enfant préserve_accents]
+}
+
 struct NoeudExpressionParenthèse : NoeudExpression {
     @genre EXPRESSION_PARENTHÈSE
     @comme parenthèse
@@ -558,7 +568,6 @@ struct NoeudStruct : NoeudDéclarationType {
     uint32_t alignement_desire
 
     NoeudBloc *bloc_constantes [copie]
-    NoeudExpression * [] arbre_aplatis_params
 
     /* Le polymorphe d'où vient cette structure, non-nul si monomorphe. */
     NoeudStruct *polymorphe_de_base
@@ -721,7 +730,6 @@ struct NoeudBloc : NoeudExpression {
     NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
-    NoeudInstructionDiffère * [] instructions_différées
     bool est_nonsur
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
      * membres du bloc pour savoir s'il en reste à valider. */
