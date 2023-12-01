@@ -62,8 +62,8 @@ opérateur / :: fonc (v1: Vec2, v: r32) -> Vec2
 
 opérateur / :: fonc (v: r32, v1: Vec2) -> Vec2
 {
-    résultat : Vec2 = v
-    réciproque_vn_s(*résultat.x, 2)
+    résultat : Vec2 = v1
+    réciproque_vn_s(*résultat.x, v, 2)
     retourne résultat
 }
 

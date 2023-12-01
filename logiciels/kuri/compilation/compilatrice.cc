@@ -103,6 +103,10 @@ Compilatrice::~Compilatrice()
         memoire::deloge("EtatResolutionAppel", it);
     }
 
+    POUR (m_sémanticiennes) {
+        memoire::deloge("Sémanticienne", it);
+    }
+
     memoire::deloge("Broyeuse", broyeuse);
     memoire::deloge("RegistreSymboliqueRI", registre_ri);
 }
@@ -313,6 +317,13 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     données_constantes_exécutions.rassemble_statistiques(stats);
     registre_ri->rassemble_statistiques(stats);
+
+    POUR (m_sémanticiennes) {
+        stats.temps_typage -= it->donne_temps_chargement();
+#ifdef STATISTIQUES_DETAILLEES
+        it->donne_stats_typage().imprime_stats();
+#endif
+    }
 }
 
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
@@ -650,6 +661,32 @@ IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
     }
 
     return m_noms_valeurs_retours_défaut[index];
+}
+
+Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacheronne)
+{
+    std::unique_lock l(m_mutex_sémanticiennes);
+
+    Sémanticienne *résultat;
+
+    if (!m_sémanticiennes.est_vide()) {
+        résultat = m_sémanticiennes.dernière();
+        m_sémanticiennes.supprime_dernier();
+    }
+    else {
+        résultat = memoire::loge<Sémanticienne>("Sémanticienne", *this);
+    }
+
+    résultat->réinitialise();
+    résultat->définis_tacheronne(tacheronne);
+
+    return résultat;
+}
+
+void Compilatrice::dépose_sémanticienne(Sémanticienne *sémanticienne)
+{
+    std::unique_lock l(m_mutex_sémanticiennes);
+    m_sémanticiennes.ajoute(sémanticienne);
 }
 
 /* ************************************************************************** */

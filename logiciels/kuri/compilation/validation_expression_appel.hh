@@ -17,7 +17,7 @@
 #include "validation_semantique.hh"  // pour ResultatValidation
 
 struct Compilatrice;
-struct ContexteValidationCode;
+struct Sémanticienne;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct ItemMonomorphisation;
@@ -474,5 +474,5 @@ struct EtatResolutionAppel {
 
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte_validation,
+                                         Sémanticienne &contexte_validation,
                                          NoeudExpressionAppel *expr);

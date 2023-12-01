@@ -555,7 +555,7 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
 #if 0
 static bool transformation_impossible(
 		EspaceDeTravail &espace,
-		ContexteValidationCode &contexte,
+		Sémanticienne &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation)
@@ -566,7 +566,7 @@ static bool transformation_impossible(
 
 static bool transformation_inutile(
 		EspaceDeTravail &espace,
-		ContexteValidationCode &contexte,
+		Sémanticienne &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation)
@@ -577,7 +577,7 @@ static bool transformation_inutile(
 
 static bool tansformation_type_vers_eini(
 		EspaceDeTravail &espace,
-		ContexteValidationCode &contexte,
+		Sémanticienne &contexte,
 		Type *type_de,
 		Type *type_vers,
 		TransformationType &transformation)
@@ -607,7 +607,7 @@ struct matrice {
 #    define comme_int(x) static_cast<int>(GenreType::x)
 
 static constexpr auto table_transformation_type = [] {
-	using type_fonction = bool(*)(EspaceDeTravail &, ContexteValidationCode &, Type *, Type *, TransformationType &);
+	using type_fonction = bool(*)(EspaceDeTravail &, Sémanticienne &, Type *, Type *, TransformationType &);
 
 	matrice<type_fonction, static_cast<int>(GenreType::TOTAL)> table{};
 	table.remplis(transformation_impossible);

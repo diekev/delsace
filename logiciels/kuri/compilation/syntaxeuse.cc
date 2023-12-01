@@ -1100,7 +1100,9 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexeme racine_expr
             }
             else if (directive == ID::nom_de_cette_fonction ||
                      directive == ID::chemin_de_ce_fichier ||
-                     directive == ID::chemin_de_ce_module) {
+                     directive == ID::chemin_de_ce_module ||
+                     directive == ID::type_de_cette_fonction ||
+                     directive == ID::type_de_cette_structure) {
                 auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexeme);
                 return noeud;
             }
@@ -1204,7 +1206,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
     switch (lexeme->genre) {
         case GenreLexeme::BARRE:
-        case GenreLexeme::BARRE_BARRE:
         case GenreLexeme::CHAPEAU:
         case GenreLexeme::DECALAGE_DROITE:
         case GenreLexeme::DECALAGE_GAUCHE:
@@ -1215,7 +1216,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         case GenreLexeme::DIVISE_EGAL:
         case GenreLexeme::EGALITE:
         case GenreLexeme::ESPERLUETTE:
-        case GenreLexeme::ESP_ESP:
         case GenreLexeme::ET_EGAL:
         case GenreLexeme::FOIS:
         case GenreLexeme::INFERIEUR:
@@ -1238,6 +1238,19 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->operande_gauche = gauche;
             noeud->operande_droite = analyse_expression(
                 donnees_precedence, racine_expression, lexeme_final);
+            return noeud;
+        }
+        case GenreLexeme::BARRE_BARRE:
+        case GenreLexeme::ESP_ESP:
+        {
+            consomme();
+
+            auto opérande_droite = analyse_expression(
+                donnees_precedence, racine_expression, lexeme_final);
+
+            auto noeud = m_tacheronne.assembleuse->crée_expression_logique(lexeme);
+            noeud->opérande_gauche = gauche;
+            noeud->opérande_droite = opérande_droite;
             return noeud;
         }
         case GenreLexeme::VIRGULE:

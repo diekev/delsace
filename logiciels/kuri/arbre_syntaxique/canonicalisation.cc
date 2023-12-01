@@ -242,14 +242,16 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 return;
             }
 
-            if (dls::outils::est_element(
-                    noeud->lexeme->genre, GenreLexeme::BARRE_BARRE, GenreLexeme::ESP_ESP)) {
-                // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
-                // il faudra également modifier la RI pour prendre en compte la substitution
-                return;
-            }
-
             noeud->substitution = simplifie_operateur_binaire(expr_bin, false);
+            return;
+        }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            auto logique = noeud->comme_expression_logique();
+            simplifie(logique->opérande_droite);
+            simplifie(logique->opérande_gauche);
+            // À FAIRE : simplifie les accès à des énum_drapeaux dans les expressions || ou &&,
+            // il faudra également modifier la RI pour prendre en compte la substitution
             return;
         }
         case GenreNoeud::OPERATEUR_UNAIRE:
@@ -888,6 +890,10 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                     fonction_courante->ident->nom);
                 noeud->substitution = littérale_chaine;
             }
+            else if (noeud->ident == ID::type_de_cette_fonction ||
+                     noeud->ident == ID::type_de_cette_structure) {
+                noeud->substitution = assem->crée_reference_type(noeud->lexeme, noeud->type);
+            }
 
             return;
         }
@@ -1368,9 +1374,9 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainee(
         auto a = exprs.depile();
         auto b = exprs.depile();
 
-        auto et = assem->crée_expression_binaire(lexeme_op_logique);
-        et->operande_gauche = a;
-        et->operande_droite = b;
+        auto et = assem->crée_expression_logique(lexeme_op_logique);
+        et->opérande_gauche = a;
+        et->opérande_droite = b;
 
         if (exprs.est_vide()) {
             resultat = et;
