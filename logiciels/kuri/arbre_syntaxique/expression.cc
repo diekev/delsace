@@ -178,17 +178,9 @@ static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
         {
             return a != b;
         }
-        case GenreLexeme::ESP_ESP:
-        {
-            return a && b;
-        }
         case GenreLexeme::EGALITE:
         {
             return a == b;
-        }
-        case GenreLexeme::BARRE_BARRE:
-        {
-            return a || b;
         }
         default:
         {
@@ -445,6 +437,39 @@ ResultatExpression evalue_expression(const Compilatrice &compilatrice,
                 }
             }
 
+            return res;
+        }
+        case GenreNoeud::EXPRESSION_LOGIQUE:
+        {
+            auto logique = b->comme_expression_logique();
+
+            auto res1 = evalue_expression(compilatrice, bloc, logique->opérande_gauche);
+            if (res1.est_errone) {
+                return res1;
+            }
+            if (!res1.valeur.est_booleenne()) {
+                return erreur_evaluation(
+                    logique->opérande_gauche,
+                    "L'expression n'est pas évaluable car elle n'est pas de type booléen.");
+            }
+
+            auto res2 = evalue_expression(compilatrice, bloc, logique->opérande_droite);
+            if (res2.est_errone) {
+                return res2;
+            }
+            if (!res2.valeur.est_booleenne()) {
+                return erreur_evaluation(
+                    logique->opérande_droite,
+                    "L'expression n'est pas évaluable car elle n'est pas de type booléen.");
+            }
+
+            ValeurExpression res = ValeurExpression();
+            if (logique->lexeme->genre == GenreLexeme::ESP_ESP) {
+                res = res1.valeur.booleenne() && res2.valeur.booleenne();
+            }
+            else {
+                res = res1.valeur.booleenne() || res2.valeur.booleenne();
+            }
             return res;
         }
         case GenreNoeud::EXPRESSION_PARENTHESE:
