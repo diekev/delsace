@@ -286,6 +286,9 @@ struct CompilatriceRI {
      * nous en désirons une */
     kuri::tablet<Atome *, 8> m_pile{};
 
+    bool m_est_dans_diffère = false;
+    kuri::tableau<NoeudExpression *> m_instructions_diffères{};
+
     AtomeFonction *m_fonction_courante = nullptr;
 
     /* Globale pour les annotations vides des membres des infos-type.
@@ -375,7 +378,7 @@ struct CompilatriceRI {
                                             InstructionLabel *label_si_vrai,
                                             InstructionLabel *label_si_faux);
     void génère_ri_pour_expression_logique(NoeudExpressionLogique const *noeud, Atome *place);
-    void génère_ri_insts_différées(NoeudBloc const *bloc, const NoeudBloc *bloc_final);
+    void génère_ri_insts_différées(NoeudBloc const *bloc_final);
     void génère_ri_pour_déclaration_variable(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_globale(NoeudDeclarationVariable *decl);
     void génère_ri_pour_variable_locale(NoeudDeclarationVariable const *decl);

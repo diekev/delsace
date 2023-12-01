@@ -730,7 +730,6 @@ struct NoeudBloc : NoeudExpression {
     NoeudDéclarationEnteteFonction *appartiens_à_fonction [préserve_accents copie]
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
-    NoeudInstructionDiffère * [] instructions_différées
     bool est_nonsur
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
      * membres du bloc pour savoir s'il en reste à valider. */

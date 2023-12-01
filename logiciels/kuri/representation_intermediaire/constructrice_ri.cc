@@ -1223,12 +1223,17 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
         }
         case GenreNoeud::INSTRUCTION_DIFFERE:
         {
-            noeud->bloc_parent->instructions_differees.ajoute(noeud->comme_differe());
+            m_instructions_diffères.ajoute(noeud);
             break;
         }
         case GenreNoeud::INSTRUCTION_COMPOSEE:
         {
             auto noeud_bloc = noeud->comme_bloc();
+
+            if (!m_est_dans_diffère) {
+                /* Utilise le bloc parent comme sentinelle. */
+                m_instructions_diffères.ajoute(noeud_bloc->bloc_parent);
+            }
 
             POUR (*noeud_bloc->expressions.verrou_lecture()) {
                 if (it->est_entete_fonction()) {
@@ -1241,7 +1246,15 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
 
             if (derniere_instruction->genre != GenreInstruction::RETOUR) {
                 /* Génère le code pour toutes les instructions différées de ce bloc. */
-                génère_ri_insts_différées(noeud_bloc, noeud_bloc->bloc_parent);
+                génère_ri_insts_différées(noeud_bloc->bloc_parent);
+            }
+
+            if (!m_est_dans_diffère) {
+                /* Dépile jusqu'à la sentinelle. */
+                while (m_instructions_diffères.dernière() != noeud_bloc->bloc_parent) {
+                    m_instructions_diffères.supprime_dernier();
+                }
+                m_instructions_diffères.supprime_dernier();
             }
 
             break;
@@ -1751,7 +1764,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
                 bloc_final = m_fonction_courante->decl->bloc_constantes;
             }
 
-            génère_ri_insts_différées(noeud->bloc_parent, bloc_final);
+            génère_ri_insts_différées(bloc_final);
             m_constructrice.crée_retour(noeud, valeur_ret);
             break;
         }
@@ -1892,7 +1905,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             }
             else {
                 auto label = boucle_controlee->comme_boucle()->label_pour_arrete;
-                génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
+                génère_ri_insts_différées(boucle_controlee->bloc_parent);
                 m_constructrice.crée_branche(noeud, label);
             }
 
@@ -1903,7 +1916,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             auto inst = noeud->comme_continue();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_continue;
-            génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
+            génère_ri_insts_différées(boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
             break;
         }
@@ -1912,7 +1925,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud)
             auto inst = noeud->comme_reprends();
             auto boucle_controlee = boucle_controlée_effective(inst->boucle_controlee);
             auto label = boucle_controlee->comme_boucle()->label_pour_reprends;
-            génère_ri_insts_différées(inst->bloc_parent, boucle_controlee->bloc_parent);
+            génère_ri_insts_différées(boucle_controlee->bloc_parent);
             m_constructrice.crée_branche(noeud, label);
             break;
         }
@@ -3077,7 +3090,7 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
     empile_valeur(place);
 }
 
-void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc, const NoeudBloc *bloc_final)
+void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
 {
 #if 0
 	if (compilatrice.donnees_fonction->est_coroutine) {
@@ -3088,15 +3101,26 @@ void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc, const 
 	}
 #endif
 
-    /* À FAIRE : la hiérarchie de blocs des #corps_texte n'a pas le bloc de la fonction... */
-    while (bloc && bloc != bloc_final) {
-        for (auto i = bloc->instructions_differees.taille() - 1; i >= 0; --i) {
-            auto instruction_differee = bloc->instructions_differees[i];
-            génère_ri_pour_noeud(instruction_differee->expression);
+    if (m_est_dans_diffère) {
+        return;
+    }
+
+    m_est_dans_diffère = true;
+
+    for (auto i = m_instructions_diffères.taille() - 1; i >= 0; i--) {
+        auto expr = m_instructions_diffères[i];
+        if (expr == bloc_final) {
+            break;
         }
 
-        bloc = bloc->bloc_parent;
+        if (expr->est_bloc()) {
+            continue;
+        }
+        auto instruction_differee = expr->comme_differe();
+        génère_ri_pour_noeud(instruction_differee->expression);
     }
+
+    m_est_dans_diffère = false;
 }
 
 /* À tenir synchronisé avec l'énum dans info_type.kuri
