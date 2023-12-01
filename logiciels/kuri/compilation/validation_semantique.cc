@@ -37,6 +37,21 @@ Sémanticienne::Sémanticienne(Compilatrice &compilatrice,
 {
 }
 
+AssembleuseArbre *Sémanticienne::donne_assembleuse()
+{
+    return m_tacheronne.assembleuse;
+}
+
+StatistiquesTypage &Sémanticienne::donne_stats_typage()
+{
+    return m_stats_typage;
+}
+
+UniteCompilation *Sémanticienne::donne_unité()
+{
+    return unite;
+}
+
 /* Point d'entrée pour la validation sémantique. Nous utilisons ceci au lieu de directement appeler
  * valide_semantique_noeud, puisque la validation des arbres aplatis pourrait résulter en un
  * dépassement de pile dans le cas où l'arbre aplatis contient également la fonction racine.
@@ -537,7 +552,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             if (type->est_type_type_de_donnees() &&
                 dls::outils::est_element(
                     expr->lexeme->genre, GenreLexeme::FOIS_UNAIRE, GenreLexeme::ESP_UNAIRE)) {
-                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE);
                 auto type_de_donnees = type->comme_type_type_de_donnees();
                 auto type_connu = type_de_donnees->type_connu;
 
@@ -546,24 +561,20 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 }
 
                 if (expr->lexeme->genre == GenreLexeme::FOIS_UNAIRE) {
-                    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                                  OPERATEUR_UNAIRE__POINTEUR);
+                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__POINTEUR);
                     type_connu = m_compilatrice.typeuse.type_pointeur_pour(type_connu);
                 }
                 else if (expr->lexeme->genre == GenreLexeme::ESP_UNAIRE) {
-                    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                                  OPERATEUR_UNAIRE__REFERENCE);
+                    CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__REFERENCE);
                     type_connu = m_compilatrice.typeuse.type_reference_pour(type_connu);
                 }
 
-                CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                              OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
+                CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__TYPE_DE_DONNEES);
                 noeud->type = m_compilatrice.typeuse.type_type_de_donnees(type_connu);
                 break;
             }
 
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_unaire,
-                          OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
+            CHRONO_TYPAGE(m_stats_typage.operateurs_unaire, OPERATEUR_UNAIRE__OPERATEUR_UNAIRE);
             if (type->est_type_reference()) {
                 type = type_dereference_pour(type);
 
@@ -1699,18 +1710,18 @@ ResultatValidation Sémanticienne::valide_entete_fonction(NoeudDeclarationEntete
     auto possède_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
-            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entrée(
-                ENTETE_FONCTION__TENTATIVES_RATEES, {"", temps});
+            m_stats_typage.entetes_fonctions.fusionne_entrée(ENTETE_FONCTION__TENTATIVES_RATEES,
+                                                             {"", temps});
         }
     });
 #endif
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
     valide_parametres_constants_fonction(decl);
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
+        CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
     }
 
@@ -1751,23 +1762,22 @@ ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEntet
     auto possède_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
-            m_tacheronne.stats_typage.entetes_fonctions.fusionne_entrée(
-                {"tentatives râtées", temps});
+            m_stats_typage.entetes_fonctions.fusionne_entrée({"tentatives râtées", temps});
         }
     });
 #endif
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
+        CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
     }
 
     TENTE(valide_parametres_fonction(decl));
     TENTE(valide_types_parametres_fonction(decl));
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_OPERATEURS);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_OPERATEURS);
     auto type_fonc = decl->type->comme_type_fonction();
     auto type_resultat = type_fonc->type_sortie;
 
@@ -1795,10 +1805,10 @@ ResultatValidation Sémanticienne::valide_entete_operateur(NoeudDeclarationEntet
 ResultatValidation Sémanticienne::valide_entete_operateur_pour(
     NoeudDeclarationOperateurPour *opérateur)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
+        CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(opérateur, opérateur->arbre_aplatis));
     }
 
@@ -1851,7 +1861,7 @@ void Sémanticienne::valide_parametres_constants_fonction(NoeudDeclarationEntete
 
 ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__PARAMETRES);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__PARAMETRES);
     auto noms = kuri::ensemblon<IdentifiantCode *, 16>();
     auto dernier_est_variadic = false;
 
@@ -1912,7 +1922,7 @@ ResultatValidation Sémanticienne::valide_parametres_fonction(NoeudDeclarationEn
 ResultatValidation Sémanticienne::valide_types_parametres_fonction(
     NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_PARAMETRES);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_PARAMETRES);
 
     kuri::tablet<Type *, 6> types_entrees;
     types_entrees.reserve(decl->params.taille());
@@ -1971,7 +1981,7 @@ ResultatValidation Sémanticienne::valide_types_parametres_fonction(
         }
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_FONCTION);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__TYPES_FONCTION);
     decl->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
 
     return CodeRetourValidation::OK;
@@ -1994,7 +2004,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_fonction(
         return CodeRetourValidation::OK;
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions, ENTETE_FONCTION__REDEFINITION);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__REDEFINITION);
     auto decl_existante = decl->bloc_parent->declaration_pour_ident(decl->ident);
 
     if (!decl_existante || !decl_existante->est_entete_fonction()) {
@@ -2019,8 +2029,7 @@ ResultatValidation Sémanticienne::valide_definition_unique_fonction(
 ResultatValidation Sémanticienne::valide_definition_unique_operateur(
     NoeudDeclarationEnteteFonction *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.entetes_fonctions,
-                  ENTETE_FONCTION__REDEFINITION_OPERATEUR);
+    CHRONO_TYPAGE(m_stats_typage.entetes_fonctions, ENTETE_FONCTION__REDEFINITION_OPERATEUR);
     auto operateurs = m_compilatrice.operateurs.verrou_ecriture();
     auto type_fonc = decl->type->comme_type_fonction();
     auto type_resultat = type_fonc->type_sortie;
@@ -2537,7 +2546,7 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
 ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressionReference *expr,
                                                                NoeudBloc *bloc_recherche)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__VALIDATION);
 
     assert_rappel(bloc_recherche != nullptr,
                   [&]() { std::cerr << erreur::imprime_site(*espace, expr); });
@@ -2705,7 +2714,7 @@ ResultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpressi
             return Attente::sur_declaration(decl);
         }
 
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
+        CHRONO_TYPAGE(m_stats_typage.ref_decl, REFERENCE_DECLARATION__TYPE_DE_DONNES);
         expr->type = m_compilatrice.typeuse.type_type_de_donnees(decl->type);
         expr->declaration_referee = decl;
     }
@@ -3082,7 +3091,7 @@ ResultatValidation Sémanticienne::valide_fonction(NoeudDeclarationCorpsFonction
         entete = fonction;
     }
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.corps_fonctions, CORPS_FONCTION__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.corps_fonctions, CORPS_FONCTION__VALIDATION);
 
     TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
@@ -3356,7 +3365,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
 
 ResultatValidation Sémanticienne::valide_enum(NoeudEnum *decl)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.enumerations, ENUMERATION__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.enumerations, ENUMERATION__VALIDATION);
     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
     if (!type_enum) {
@@ -3713,7 +3722,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, STRUCTURE__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
         auto decl_precedente = trouve_dans_bloc(
@@ -3943,7 +3952,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
 
     TENTE(valide_arbre_aplatis(decl, decl->arbre_aplatis));
 
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.structures, STRUCTURE__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
         auto decl_precedente = trouve_dans_bloc(
@@ -4051,8 +4060,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
     auto &feuilles_variables = ctx.feuilles_variables;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__RASSEMBLE_VARIABLES);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__RASSEMBLE_VARIABLES);
         rassemble_expressions(decl->valeur, feuilles_variables);
     }
 
@@ -4060,8 +4068,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     auto &decls_et_refs = ctx.decls_et_refs;
     decls_et_refs.redimensionne(feuilles_variables.taille());
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__PREPARATION);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__PREPARATION);
 
         if (feuilles_variables.taille() == 1) {
             auto variable = feuilles_variables[0]->comme_reference_declaration();
@@ -4088,8 +4095,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
         }
 
         {
-            CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                          DECLARATION_VARIABLES__REDEFINITION);
+            CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__REDEFINITION);
             if (it.decl->ident && it.decl->ident != ID::_) {
                 auto decl_prec = trouve_dans_bloc(
                     it.decl->bloc_parent, it.decl, bloc_final, fonction_courante());
@@ -4103,8 +4109,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
             }
         }
 
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__RESOLUTION_TYPE);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__RESOLUTION_TYPE);
         if (resoud_type_final(it.decl->expression_type, it.ref_decl->type) ==
             CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
@@ -4113,7 +4118,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
     auto &feuilles_expressions = ctx.feuilles_expressions;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+        CHRONO_TYPAGE(m_stats_typage.validation_decl,
                       DECLARATION_VARIABLES__RASSEMBLE_EXPRESSIONS);
         rassemble_expressions(decl->expression, feuilles_expressions);
     }
@@ -4123,8 +4128,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
     auto &variables = ctx.variables;
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__ENFILE_VARIABLES);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__ENFILE_VARIABLES);
 
         POUR (feuilles_variables) {
             variables.enfile(it);
@@ -4179,7 +4183,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     };
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
+        CHRONO_TYPAGE(m_stats_typage.validation_decl,
                       DECLARATION_VARIABLES__ASSIGNATION_EXPRESSIONS);
 
         POUR (feuilles_expressions) {
@@ -4259,8 +4263,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     }
 
     {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__VALIDATION_FINALE);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__VALIDATION_FINALE);
 
         POUR (decls_et_refs) {
             auto decl_var = it.decl;
@@ -4291,8 +4294,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
     /* Les paramètres de fonctions n'ont pas besoin de données pour les assignations d'expressions.
      */
     if (!decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
-        CHRONO_TYPAGE(m_tacheronne.stats_typage.validation_decl,
-                      DECLARATION_VARIABLES__COPIE_DONNEES);
+        CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__COPIE_DONNEES);
 
         decl->donnees_decl.reserve(static_cast<int>(donnees_assignations.taille()));
 
@@ -4415,7 +4417,7 @@ ResultatValidation Sémanticienne::valide_déclaration_constante(NoeudDeclaratio
 
 ResultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.assignations, ASSIGNATION__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.assignations, ASSIGNATION__VALIDATION);
     auto variable = inst->variable;
 
     kuri::file_fixe<NoeudExpression *, 6> variables;
@@ -4856,7 +4858,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
 ResultatValidation Sémanticienne::valide_operateur_binaire(NoeudExpressionBinaire *expr)
 {
-    CHRONO_TYPAGE(m_tacheronne.stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
+    CHRONO_TYPAGE(m_stats_typage.operateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
 
     if (expr->lexeme->genre == GenreLexeme::TABLEAU) {
         return valide_operateur_binaire_tableau(expr);

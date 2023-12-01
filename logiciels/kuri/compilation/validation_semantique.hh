@@ -7,6 +7,8 @@
 
 #include "arbre_syntaxique/utilitaires.hh"
 
+#include "statistiques/statistiques.hh"
+
 #include "structures/ensemble.hh"
 #include "structures/file_fixe.hh"
 #include "structures/tablet.hh"
@@ -109,6 +111,7 @@ struct ContexteValidationDeclaration {
 };
 
 struct Sémanticienne {
+  private:
     Compilatrice &m_compilatrice;
     Tacheronne &m_tacheronne;
 
@@ -117,14 +120,36 @@ struct Sémanticienne {
 
     double temps_chargement = 0.0;
 
-    Sémanticienne(Compilatrice &compilatrice,
-                           Tacheronne &tacheronne,
-                           UniteCompilation &unite);
+    StatistiquesTypage m_stats_typage{};
+
+  public:
+    Sémanticienne(Compilatrice &compilatrice, Tacheronne &tacheronne, UniteCompilation &unite);
 
     EMPECHE_COPIE(Sémanticienne);
 
     ResultatValidation valide();
 
+    NoeudDeclarationEnteteFonction *fonction_courante() const;
+
+    Type *union_ou_structure_courante() const;
+
+    AssembleuseArbre *donne_assembleuse();
+
+    StatistiquesTypage &donne_stats_typage();
+
+    UniteCompilation *donne_unité();
+
+    double donne_temps_chargement() const
+    {
+        return temps_chargement;
+    }
+
+    void rapporte_erreur(const char *message, const NoeudExpression *noeud);
+
+    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
+                                              TransformationType const &transformation);
+
+  private:
     ResultatValidation valide_semantique_noeud(NoeudExpression *);
     ResultatValidation valide_acces_membre(NoeudExpressionMembre *expression_membre);
 
@@ -180,7 +205,6 @@ struct Sémanticienne {
 
     CodeRetourValidation resoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
-    void rapporte_erreur(const char *message, const NoeudExpression *noeud);
     void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
     void rapporte_erreur_redefinition_symbole(NoeudExpression *decl, NoeudDeclaration *decl_prec);
     void rapporte_erreur_redefinition_fonction(NoeudDeclarationEnteteFonction *decl,
@@ -219,14 +243,8 @@ struct Sémanticienne {
 
     ResultatValidation crée_transtypage_implicite_si_possible(
         NoeudExpression *&expression, Type *type_cible, RaisonTranstypageImplicite const raison);
-    void crée_transtypage_implicite_au_besoin(NoeudExpression *&expression,
-                                              TransformationType const &transformation);
 
     NoeudExpression *racine_validation() const;
-
-    NoeudDeclarationEnteteFonction *fonction_courante() const;
-
-    Type *union_ou_structure_courante() const;
 
     MetaProgramme *crée_metaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,

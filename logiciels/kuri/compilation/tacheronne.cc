@@ -504,9 +504,9 @@ void Tacheronne::gere_unite_pour_typage(UniteCompilation *unite)
         return;
     }
     /* Pour les imports et chargements. */
-    temps_validation -= contexte.temps_chargement;
+    temps_validation -= contexte.donne_temps_chargement();
 
-    CHRONO_TYPAGE(stats_typage.finalisation, FINALISATION__FINALISATION);
+    CHRONO_TYPAGE(contexte.donne_stats_typage().finalisation, FINALISATION__FINALISATION);
     compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
 }
 
@@ -1017,7 +1017,7 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
 
     // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
 
-#ifdef STATISTIQUES_DETAILLEES
+#if 0  // def STATISTIQUES_DETAILLEES
     if ((drapeaux & DrapeauxTacheronne::PEUT_TYPER) == DrapeauxTacheronne::PEUT_TYPER) {
         stats_typage.imprime_stats();
     }

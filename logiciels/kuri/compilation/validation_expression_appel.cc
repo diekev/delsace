@@ -342,7 +342,7 @@ static void crée_tableau_args_variadiques(Sémanticienne &contexte,
 
     /* Pour les fonctions variadiques interne, nous créons un tableau
      * correspondant au types des arguments. */
-    auto noeud_tableau = contexte.m_tacheronne.assembleuse->crée_args_variadiques(lexème);
+    auto noeud_tableau = contexte.donne_assembleuse()->crée_args_variadiques(lexème);
 
     noeud_tableau->type = type_données_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
@@ -1405,7 +1405,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
                                                           decl,
                                                           decl->monomorphisations,
                                                           std::move(items_monomorphisation));
@@ -1451,7 +1451,7 @@ static NoeudStruct *monomorphise_au_besoin(
     NoeudStruct const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
                                                           decl_struct,
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation));
@@ -1473,7 +1473,7 @@ static NoeudStruct *monomorphise_au_besoin(
         structure->type = espace.compilatrice().typeuse.reserve_type_structure(structure);
     }
 
-    contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, structure);
+    espace.compilatrice().gestionnaire_code->requiers_typage(&espace, structure);
 
     return structure;
 }
@@ -1660,10 +1660,10 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     auto possède_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
-            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
+            contexte.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
-        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
+        contexte.donne_stats_typage().validation_appel.fusionne_entrée(
             {"valide_appel_fonction", temps});
     });
 #endif
@@ -1674,13 +1674,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     EtatResolutionAppel &état = *expr->état_résolution_appel;
 
     if (état.état == EtatResolutionAppel::État::RÉSOLUTION_NON_COMMENCÉE) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__PREPARE_ARGUMENTS);
         rassemble_expressions_paramètres(expr, &état);
     }
 
     if (état.état == EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__TROUVE_CANDIDATES);
 
         auto résultat_liste = crée_liste_candidates(expr, &état, espace, contexte);
@@ -1690,7 +1690,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
 
     if (état.état == EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__APPARIE_CANDIDATES);
         auto attente_possible = apparies_candidates(espace, contexte, expr, &état);
         if (attente_possible.has_value()) {
@@ -1713,8 +1713,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // copie les données
 
-    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
-                  VALIDATION_APPEL__COPIE_DONNEES);
+    CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
 
     expr->parametres_resolus.efface();
     expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
@@ -1817,7 +1816,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0 &&
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
-                contexte.unite->index_courant += 1;
+                contexte.donne_unité()->index_courant += 1;
                 compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
                 copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
                 return Attente::sur_type(copie->type);
@@ -1900,7 +1899,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+            type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
         }
         else {
@@ -1940,12 +1939,12 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
         if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+            type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, type_opacifie->type_connu);
         }
 
         expr->noeud_fonction_appelee = type_opaque->decl;
-        expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(
+        expr->type = espace.compilatrice().typeuse.type_type_de_donnees(
             const_cast<TypeOpaque *>(type_opaque));
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }

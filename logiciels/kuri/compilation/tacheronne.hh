@@ -130,8 +130,6 @@ struct Tacheronne {
 
     ConvertisseuseNoeudCode convertisseuse_noeud_code{};
 
-    StatistiquesTypage stats_typage{};
-
     ContexteValidationDeclaration contexte_validation_declaration{};
 
     tableau_page<Lexeme> lexemes_extra{};
