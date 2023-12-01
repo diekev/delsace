@@ -329,10 +329,6 @@ struct CompilatriceRI {
 
     void rassemble_statistiques(Statistiques &stats);
 
-    Atome *crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source);
-    Atome *crée_temporaire_si_non_chargeable(NoeudExpression const *site_, Atome *source);
-    InstructionAllocation *crée_temporaire(NoeudExpression const *site_, Atome *source);
-
     AtomeGlobale *crée_info_type(Type const *type, NoeudExpression const *site);
     AtomeConstante *transtype_base_info_type(AtomeConstante *info_type);
 
@@ -351,6 +347,10 @@ struct CompilatriceRI {
     void crée_trace_appel(AtomeFonction *fonction);
 
   private:
+    Atome *crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source);
+    Atome *crée_temporaire_si_non_chargeable(NoeudExpression const *site_, Atome *source);
+    InstructionAllocation *crée_temporaire(NoeudExpression const *site_, Atome *source);
+
     void crée_appel_fonction_init_type(NoeudExpression const *site_,
                                        Type const *type,
                                        Atome *argument);
