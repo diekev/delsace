@@ -248,7 +248,7 @@ static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> v
 }
 
 static void trouve_candidates_pour_expression(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     EspaceDeTravail &espace,
     NoeudExpression *appelée,
     Fichier const *fichier,
@@ -328,7 +328,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
     return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot);
 }
 
-static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
+static void crée_tableau_args_variadiques(Sémanticienne &contexte,
                                           Lexeme const *lexème,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
@@ -342,7 +342,7 @@ static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
 
     /* Pour les fonctions variadiques interne, nous créons un tableau
      * correspondant au types des arguments. */
-    auto noeud_tableau = contexte.m_tacheronne.assembleuse->crée_args_variadiques(lexème);
+    auto noeud_tableau = contexte.donne_assembleuse()->crée_args_variadiques(lexème);
 
     noeud_tableau->type = type_données_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
@@ -363,7 +363,7 @@ static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
     slots.redimensionne(nombre_args);
 }
 
-static void applique_transformations(ContexteValidationCode &contexte,
+static void applique_transformations(Sémanticienne &contexte,
                                      CandidateAppariement const *candidate,
                                      NoeudExpressionAppel *expr)
 {
@@ -397,7 +397,7 @@ static void applique_transformations(ContexteValidationCode &contexte,
 }
 
 static ResultatAppariement apparie_appel_pointeur(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression const *decl_pointeur_fonction,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -529,7 +529,7 @@ static ResultatAppariement apparie_appel_init_de(
 
 static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -565,7 +565,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
 }
 
 static ResultatAppariement apparie_appel_fonction(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args,
@@ -778,7 +778,7 @@ static ResultatAppariement apparie_appel_fonction(
 
 static ResultatAppariement apparie_appel_fonction(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -1138,7 +1138,7 @@ static ResultatAppariement apparie_construction_opaque(
 
 static CodeRetourValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> &args,
     ListeCandidatesExpressionAppel &candidates)
@@ -1239,7 +1239,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
 }
 
 static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
+                                                  Sémanticienne &contexte,
                                                   NoeudExpressionAppel const *expr,
                                                   EtatResolutionAppel *état)
 {
@@ -1398,14 +1398,14 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
 }
 
 static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     Compilatrice &compilatrice,
     EspaceDeTravail &espace,
     NoeudDeclarationEnteteFonction const *decl,
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
                                                           decl,
                                                           decl->monomorphisations,
                                                           std::move(items_monomorphisation));
@@ -1435,9 +1435,10 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 
     if (nouveau_params.taille() != entête->params.taille()) {
         POUR_INDEX (nouveau_params) {
+            static_cast<void>(it);
             entête->params[index_it] = nouveau_params[index_it];
         }
-        entête->params.redimensionne(nouveau_params.taille());
+        entête->params.redimensionne(int(nouveau_params.taille()));
     }
 
     compilatrice.gestionnaire_code->requiers_typage(&espace, entête);
@@ -1445,12 +1446,12 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 }
 
 static NoeudStruct *monomorphise_au_besoin(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     EspaceDeTravail &espace,
     NoeudStruct const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.m_tacheronne.assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
                                                           decl_struct,
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation));
@@ -1472,7 +1473,7 @@ static NoeudStruct *monomorphise_au_besoin(
         structure->type = espace.compilatrice().typeuse.reserve_type_structure(structure);
     }
 
-    contexte.m_compilatrice.gestionnaire_code->requiers_typage(&espace, structure);
+    espace.compilatrice().gestionnaire_code->requiers_typage(&espace, structure);
 
     return structure;
 }
@@ -1564,7 +1565,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
 static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace,
-                                                ContexteValidationCode &contexte)
+                                                Sémanticienne &contexte)
 {
     /* Si nous revenons ici suite à une attente nous devons recommencer donc vide la liste pour
      * éviter d'avoir des doublons. */
@@ -1652,17 +1653,17 @@ static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *exp
 
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte,
+                                         Sémanticienne &contexte,
                                          NoeudExpressionAppel *expr)
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
     dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
-            contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
+            contexte.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
-        contexte.m_tacheronne.stats_typage.validation_appel.fusionne_entrée(
+        contexte.donne_stats_typage().validation_appel.fusionne_entrée(
             {"valide_appel_fonction", temps});
     });
 #endif
@@ -1673,13 +1674,13 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     EtatResolutionAppel &état = *expr->état_résolution_appel;
 
     if (état.état == EtatResolutionAppel::État::RÉSOLUTION_NON_COMMENCÉE) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__PREPARE_ARGUMENTS);
         rassemble_expressions_paramètres(expr, &état);
     }
 
     if (état.état == EtatResolutionAppel::État::ARGUMENTS_RASSEMBLÉS) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__TROUVE_CANDIDATES);
 
         auto résultat_liste = crée_liste_candidates(expr, &état, espace, contexte);
@@ -1689,7 +1690,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
 
     if (état.état == EtatResolutionAppel::État::LISTE_CANDIDATES_CRÉÉE) {
-        CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
+        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__APPARIE_CANDIDATES);
         auto attente_possible = apparies_candidates(espace, contexte, expr, &état);
         if (attente_possible.has_value()) {
@@ -1712,8 +1713,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // copie les données
 
-    CHRONO_TYPAGE(contexte.m_tacheronne.stats_typage.validation_appel,
-                  VALIDATION_APPEL__COPIE_DONNEES);
+    CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
 
     expr->parametres_resolus.efface();
     expr->parametres_resolus.reserve(static_cast<int>(candidate->exprs.taille()));
@@ -1816,7 +1816,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0 &&
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
-                contexte.unite->index_courant += 1;
+                contexte.donne_unité()->index_courant += 1;
                 compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
                 copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
                 return Attente::sur_type(copie->type);
@@ -1899,7 +1899,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
-            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+            type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
         }
         else {
@@ -1939,12 +1939,12 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
         if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
-            type_opaque = contexte.espace->compilatrice().typeuse.monomorphe_opaque(
+            type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, type_opacifie->type_connu);
         }
 
         expr->noeud_fonction_appelee = type_opaque->decl;
-        expr->type = contexte.espace->compilatrice().typeuse.type_type_de_donnees(
+        expr->type = espace.compilatrice().typeuse.type_type_de_donnees(
             const_cast<TypeOpaque *>(type_opaque));
         expr->aide_generation_code = MONOMORPHE_TYPE_OPAQUE;
     }

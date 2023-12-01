@@ -1620,15 +1620,15 @@ static AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *in
         }
         case OpérateurBinaire::Genre::Et_Binaire:
         {
-            APPLIQUE_OPERATION_ENTIER(DisjonctionBinaire);
+            APPLIQUE_OPERATION_ENTIER(ConjonctionBinaire);
         }
         case OpérateurBinaire::Genre::Ou_Binaire:
         {
-            APPLIQUE_OPERATION_ENTIER(ConjonctionBinaire);
+            APPLIQUE_OPERATION_ENTIER(DisjonctionBinaire);
         }
         case OpérateurBinaire::Genre::Ou_Exclusif:
         {
-            APPLIQUE_OPERATION_ENTIER(ConjonctionBinaireExclusive);
+            APPLIQUE_OPERATION_ENTIER(DisjonctionBinaireExclusive);
         }
         case OpérateurBinaire::Genre::Dec_Gauche:
         {
