@@ -248,7 +248,7 @@ static auto supprime_doublons(kuri::tablet<NoeudDeclaration *, 10> &tablet) -> v
 }
 
 static void trouve_candidates_pour_expression(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     EspaceDeTravail &espace,
     NoeudExpression *appelée,
     Fichier const *fichier,
@@ -328,7 +328,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
     return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot);
 }
 
-static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
+static void crée_tableau_args_variadiques(Sémanticienne &contexte,
                                           Lexeme const *lexème,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
@@ -363,7 +363,7 @@ static void crée_tableau_args_variadiques(ContexteValidationCode &contexte,
     slots.redimensionne(nombre_args);
 }
 
-static void applique_transformations(ContexteValidationCode &contexte,
+static void applique_transformations(Sémanticienne &contexte,
                                      CandidateAppariement const *candidate,
                                      NoeudExpressionAppel *expr)
 {
@@ -397,7 +397,7 @@ static void applique_transformations(ContexteValidationCode &contexte,
 }
 
 static ResultatAppariement apparie_appel_pointeur(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression const *decl_pointeur_fonction,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -529,7 +529,7 @@ static ResultatAppariement apparie_appel_init_de(
 
 static ResultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -565,7 +565,7 @@ static ResultatAppariement apparie_appel_fonction_pour_cuisson(
 }
 
 static ResultatAppariement apparie_appel_fonction(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args,
@@ -778,7 +778,7 @@ static ResultatAppariement apparie_appel_fonction(
 
 static ResultatAppariement apparie_appel_fonction(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDeclarationEnteteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -1138,7 +1138,7 @@ static ResultatAppariement apparie_construction_opaque(
 
 static CodeRetourValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> &args,
     ListeCandidatesExpressionAppel &candidates)
@@ -1239,7 +1239,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
 }
 
 static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
-                                                  ContexteValidationCode &contexte,
+                                                  Sémanticienne &contexte,
                                                   NoeudExpressionAppel const *expr,
                                                   EtatResolutionAppel *état)
 {
@@ -1398,7 +1398,7 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
 }
 
 static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     Compilatrice &compilatrice,
     EspaceDeTravail &espace,
     NoeudDeclarationEnteteFonction const *decl,
@@ -1446,7 +1446,7 @@ static std::pair<NoeudDeclarationEnteteFonction *, bool> monomorphise_au_besoin(
 }
 
 static NoeudStruct *monomorphise_au_besoin(
-    ContexteValidationCode &contexte,
+    Sémanticienne &contexte,
     EspaceDeTravail &espace,
     NoeudStruct const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
@@ -1565,7 +1565,7 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
 static ResultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 EtatResolutionAppel *état,
                                                 EspaceDeTravail &espace,
-                                                ContexteValidationCode &contexte)
+                                                Sémanticienne &contexte)
 {
     /* Si nous revenons ici suite à une attente nous devons recommencer donc vide la liste pour
      * éviter d'avoir des doublons. */
@@ -1653,7 +1653,7 @@ static ResultatValidation sélectionne_candidate(NoeudExpressionAppel const *exp
 
 ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         ContexteValidationCode &contexte,
+                                         Sémanticienne &contexte,
                                          NoeudExpressionAppel *expr)
 {
 #ifdef STATISTIQUES_DETAILLEES

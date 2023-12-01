@@ -46,7 +46,7 @@ static ResultatValidation valide_présence_membre(
 
 // --------------------------------------------
 
-ResultatValidation ContexteValidationCode::valide_discr_énum(NoeudDiscr *inst, Type *type)
+ResultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
     auto type_énum = static_cast<TypeEnum *>(type);
@@ -223,7 +223,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     return true;
 }
 
-ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, Type *type)
+ResultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
     auto expression = inst->expression_discriminee;
     auto type_union = type->comme_type_union();
@@ -323,7 +323,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union(NoeudDiscr *inst, 
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
+ResultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
     auto type_union = type->comme_type_union();
     inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
@@ -433,7 +433,7 @@ ResultatValidation ContexteValidationCode::valide_discr_union_anonyme(NoeudDiscr
  * des opérateurs personnalisés (peut également être résolu via un système de définition de
  * conversion dans le langage).
  */
-ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
+ResultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type *type)
 {
     auto type_pour_la_recherche = type;
     if (type->est_type_type_de_donnees()) {
@@ -506,7 +506,7 @@ ResultatValidation ContexteValidationCode::valide_discr_scalaire(NoeudDiscr *ins
     return CodeRetourValidation::OK;
 }
 
-ResultatValidation ContexteValidationCode::valide_discrimination(NoeudDiscr *inst)
+ResultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
 {
     auto expression = inst->expression_discriminee;
     auto type = expression->type;

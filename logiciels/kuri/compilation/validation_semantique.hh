@@ -108,7 +108,7 @@ struct ContexteValidationDeclaration {
     DonneesAssignations donnees_temp{};
 };
 
-struct ContexteValidationCode {
+struct Sémanticienne {
     Compilatrice &m_compilatrice;
     Tacheronne &m_tacheronne;
 
@@ -117,11 +117,11 @@ struct ContexteValidationCode {
 
     double temps_chargement = 0.0;
 
-    ContexteValidationCode(Compilatrice &compilatrice,
+    Sémanticienne(Compilatrice &compilatrice,
                            Tacheronne &tacheronne,
                            UniteCompilation &unite);
 
-    EMPECHE_COPIE(ContexteValidationCode);
+    EMPECHE_COPIE(Sémanticienne);
 
     ResultatValidation valide();
 
