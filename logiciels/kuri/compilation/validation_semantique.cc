@@ -4885,11 +4885,13 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
         if (!est_expression_convertible_en_bool(enfant1)) {
             espace->rapporte_erreur(
                 enfant1, "Expression non conditionnable à gauche de l'opérateur logique !");
+            return CodeRetourValidation::Erreur;
         }
 
         if (!est_expression_convertible_en_bool(enfant2)) {
             espace->rapporte_erreur(
                 enfant2, "Expression non conditionnable à droite de l'opérateur logique !");
+            return CodeRetourValidation::Erreur;
         }
 
         /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
@@ -4901,6 +4903,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
                         enfant1, "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
                     .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
                                     "l'ordre des comparisons.");
+                return CodeRetourValidation::Erreur;
             }
 
             if (enfant2->lexeme->genre == GenreLexeme::ESP_ESP) {
@@ -4909,6 +4912,7 @@ ResultatValidation ContexteValidationCode::valide_operateur_binaire(NoeudExpress
                         enfant2, "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")
                     .ajoute_message("Veuillez utiliser des parenthèses pour clarifier "
                                     "l'ordre des comparisons.");
+                return CodeRetourValidation::Erreur;
             }
         }
 
