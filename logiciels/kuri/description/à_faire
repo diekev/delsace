@@ -406,6 +406,15 @@ avoir un bon système d'appariement de motif :
     utilisation de '_' comme caractère générique pouvant être n'importe quelle valeur
 
 
+permet de contraindre les discriminations sur des types_de_données pour ne considérer
+que les types de bases et dérivés
+
+    discr expr: MonTypeDeBase {
+        TypeDérivé1 {}
+        TypeDérivé2 {}
+        ...
+    }
+
 // --------------------------- Boucles
 
 - amélioration boucle pour :
