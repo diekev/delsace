@@ -122,9 +122,9 @@ RAPPEL_POUR_ERREUR(type)
     }
 
     if (site && site->est_corps_fonction()) {
-        auto corps = site->comme_corps_fonction();
-        auto index_courant = unite->index_courant;
-        site = corps->arbre_aplatis[index_courant];
+        if (unite->arbre_aplatis) {
+            site = unite->arbre_aplatis->noeuds[unite->arbre_aplatis->index_courant];
+        }
     }
 
     espace
