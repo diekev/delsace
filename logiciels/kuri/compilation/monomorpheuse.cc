@@ -951,7 +951,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
     /* Nous avons une valeur, il faut vérifier le type. */
     auto type_item = item.type;
 
-    if (type_item->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+    if (type_item->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         /* Le type peut être polymorphique, par exemple fonc(T)(rien), dans lequel cas il nous
          * faut d'abord résoudre le type final. */
         type_item = résoud_type_final_impl(item.expression_type);
@@ -1061,7 +1061,7 @@ RésultatMonomorphisation détermine_monomorphisation(
         auto param = entête->parametre_entree(index_arg);
         auto slot = arguments_reçus[i];
 
-        if (param->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (param->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             monomorpheuse.parse_candidats(param->expression_type, slot, slot->type);
         }
 
