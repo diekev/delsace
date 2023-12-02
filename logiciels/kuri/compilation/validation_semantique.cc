@@ -289,6 +289,17 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
         }
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         {
+            if (!fonction_courante()) {
+                espace->rapporte_erreur(noeud,
+                                        "Utilisation de #corps_boucle en dehors d'une fonction.");
+                return CodeRetourValidation::Erreur;
+            }
+            auto corps = fonction_courante()->corps;
+            if (!corps->est_macro_boucle_pour) {
+                espace->rapporte_erreur(
+                    noeud, "Utilisation de #corps_boucle en dehors d'un opérateur pour.");
+                return CodeRetourValidation::Erreur;
+            }
             auto boucle_parent = bloc_est_dans_boucle(noeud->bloc_parent, nullptr);
             if (!boucle_parent) {
                 espace->rapporte_erreur(
