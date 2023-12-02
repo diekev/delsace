@@ -517,7 +517,7 @@ ResultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
         type = type->comme_type_reference()->type_pointe;
     }
 
-    if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+    if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
         return Attente::sur_type(type);
     }
 

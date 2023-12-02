@@ -173,7 +173,7 @@ bool Programme::typages_termines(DiagnostiqueÉtatCompilation &diagnostique) con
 
     if (elements_sont_sales[TYPES][POUR_TYPAGE]) {
         POUR (m_types) {
-            if ((it->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!it->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 diagnostique.type_à_valider = it;
                 return false;
             }

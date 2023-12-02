@@ -643,7 +643,7 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_du_paramètre = arg->type;
         auto poids_polymorphique = POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
 
-        if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (arg->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             auto résultat_type = monomorpheuse->résoud_type_final(param->expression_type);
             if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
                 return ErreurAppariement::monomorphisation(
@@ -675,7 +675,7 @@ static ResultatAppariement apparie_appel_fonction(
 
         // allège les polymorphes pour que les versions déjà monomorphées soient préférées pour
         // la selection de la meilleure candidate
-        if (arg->type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (arg->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             poids_pour_enfant *= poids_polymorphique;
         }
 
@@ -695,7 +695,8 @@ static ResultatAppariement apparie_appel_fonction(
         auto type_données_argument_variadique = type_dereference_pour(dernier_type_paramètre);
         auto poids_variadique = POIDS_POUR_ARGUMENT_VARIADIQUE;
 
-        if (type_données_argument_variadique->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (type_données_argument_variadique->possède_drapeau(
+                DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             auto résultat_type = monomorpheuse->résoud_type_final(
                 dernier_paramètre->expression_type);
             if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
@@ -811,7 +812,7 @@ static bool est_expression_type_ou_valeur_polymorphique(const NoeudExpression *e
     if (expr->type->est_type_type_de_donnees()) {
         auto type_connu = expr->type->comme_type_type_de_donnees()->type_connu;
 
-        if (type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (type_connu->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             return true;
         }
     }
@@ -1076,7 +1077,7 @@ static ResultatAppariement apparie_construction_opaque(
     TypeOpaque const *type_opaque,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
-    if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+    if (type_opaque->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         return apparie_construction_opaque_polymorphique(expr, type_opaque, arguments);
     }
 
@@ -1257,7 +1258,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             if (decl->est_type_structure()) {
                 auto decl_struct = decl->comme_type_structure();
 
-                if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+                if (!decl->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                     return Attente::sur_type(decl->type);
                 }
 
@@ -1813,7 +1814,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             /* il est possible d'utiliser un type avant sa validation final, par exemple en
              * paramètre d'une fonction de rappel qui est membre de la structure */
-            if ((copie->type->drapeaux & TYPE_FUT_VALIDE) == 0 &&
+            if (!copie->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE) &&
                 copie->type != contexte.union_ou_structure_courante()) {
                 // saute l'expression pour ne plus revenir
                 contexte.donne_arbre()->index_courant += 1;
@@ -1898,7 +1899,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         auto type_opaque = candidate->type->comme_type_opaque();
-        if (type_opaque->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (type_opaque->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, candidate->exprs[0]->type);
         }
@@ -1938,7 +1939,7 @@ ResultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_opacifie = candidate->exprs[0]->type->comme_type_type_de_donnees();
 
         /* différencie entre Type($T) et Type(T) où T dans le deuxième cas est connu */
-        if ((type_opacifie->type_connu->drapeaux & TYPE_EST_POLYMORPHIQUE) == 0) {
+        if (!type_opacifie->type_connu->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
                 type_opaque->decl, type_opacifie->type_connu);
         }

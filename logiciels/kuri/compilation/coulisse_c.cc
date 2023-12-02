@@ -248,7 +248,7 @@ bool ConvertisseuseTypeC::typedef_fut_généré(Type const *type_kuri)
 
 void ConvertisseuseTypeC::génère_typedef(Type *type, Enchaineuse &enchaineuse)
 {
-    if (type->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+    if (type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         return;
     }
 
@@ -609,7 +609,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
     else if (type->est_type_tuple()) {
         auto type_tuple = type->comme_type_tuple();
 
-        if (type_tuple->drapeaux & TYPE_EST_POLYMORPHIQUE) {
+        if (type_tuple->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             return;
         }
 
