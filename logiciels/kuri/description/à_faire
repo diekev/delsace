@@ -15,6 +15,19 @@ ADN pour les directives
 // noms des fonctions d'initialisation des globales
 
 // -----------------------------------
+// Noms des types
+
+- centralise la création des noms des types (noms pour LLVM, etc.)
+- différents cas pour chaine_type (avec ou sans points, etc.)
+
+// -----------------------------------
+// Réusinage Arbre (pour les allouer dans un tampon plat)
+
+- supprime assembleuse de la validation sémantique
+- syntaxe en mettant en place les valeurs après la création du noeud les recevant
+- trouve une solution pour les tables de symboles
+
+// -----------------------------------
 // Directives
 
 - ajout de #portée_fichier
