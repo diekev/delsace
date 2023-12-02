@@ -918,7 +918,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 return CodeRetourValidation::Erreur;
             }
 
-            if ((expr_type->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!expr_type->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
                 m_arbre_courant->index_courant += 1;
                 return Attente::sur_type(expr_type->type);
@@ -1073,8 +1073,8 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
              * avoir à attendre. */
             kuri::ensemblon<Type *, 16> types_utilises;
             types_utilises.insere(type);
-            auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
-                                                                         TYPE_FUT_VALIDE);
+            auto attente_possible = attente_sur_type_si_drapeau_manquant(
+                types_utilises, DrapeauxTypes::TYPE_FUT_VALIDE);
 
             if (attente_possible && attente_possible->est<AttenteSurType>() &&
                 attente_possible->type() != racine_validation()->type) {
@@ -1333,7 +1333,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
             // - si union -> voir si l'union est sûre et contient une erreur, dépaquete celle-ci
             // dans le génération de code
 
-            if ((inst->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!inst->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(inst->type);
             }
 
@@ -1468,7 +1468,7 @@ ResultatValidation Sémanticienne::valide_semantique_noeud(NoeudExpression *noeu
                 return CodeRetourValidation::Erreur;
             }
 
-            if ((type_employe->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!type_employe->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(type_employe);
             }
 
@@ -1615,7 +1615,7 @@ ResultatValidation Sémanticienne::valide_acces_membre(NoeudExpressionMembre *ex
     }
 
     if (est_type_compose(type)) {
-        if ((type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type);
         }
 
@@ -2836,7 +2836,7 @@ ResultatValidation Sémanticienne::valide_type_opaque(NoeudDeclarationTypeOpaque
             return CodeRetourValidation::Erreur;
         }
 
-        if ((type_opacifie->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_opacifie->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_opacifie);
         }
     }
@@ -3405,7 +3405,7 @@ ResultatValidation Sémanticienne::valide_enum_impl(NoeudEnum *decl, TypeEnum *t
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->type->drapeaux |= TYPE_FUT_VALIDE;
+    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
     return CodeRetourValidation::OK;
 }
 
@@ -3670,7 +3670,7 @@ static ResultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail 
             continue;
         }
 
-        if ((it.type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!it.type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(it.type);
         }
 
@@ -3714,8 +3714,9 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
-        decl->type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                 INITIALISATION_TYPE_FUT_CREEE);
+        decl->type->drapeaux_type |= (DrapeauxTypes::TYPE_FUT_VALIDE |
+                                      DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                      DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
         return CodeRetourValidation::OK;
     }
 
@@ -3729,7 +3730,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux |= TYPE_FUT_VALIDE;
+        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
         return CodeRetourValidation::OK;
     }
 
@@ -3925,7 +3926,7 @@ ResultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 #endif
     }
 
-    decl->type->drapeaux |= TYPE_FUT_VALIDE;
+    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     simplifie_arbre(unite->espace, m_tacheronne->assembleuse, m_compilatrice.typeuse, decl);
@@ -3943,8 +3944,9 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
     if (decl->est_externe && decl->bloc == nullptr) {
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         /* INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant */
-        decl->type->drapeaux |= (TYPE_FUT_VALIDE | TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                 INITIALISATION_TYPE_FUT_CREEE);
+        decl->type->drapeaux_type |= (DrapeauxTypes::TYPE_FUT_VALIDE |
+                                      DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                      DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
         return CodeRetourValidation::OK;
     }
 
@@ -3958,7 +3960,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
 
         // nous validerons les membres lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->type->drapeaux |= TYPE_FUT_VALIDE;
+        decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
         return CodeRetourValidation::OK;
     }
 
@@ -4085,7 +4087,7 @@ ResultatValidation Sémanticienne::valide_union(NoeudStruct *decl)
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    decl->type->drapeaux |= TYPE_FUT_VALIDE;
+    decl->type->drapeaux_type |= DrapeauxTypes::TYPE_FUT_VALIDE;
 
     return CodeRetourValidation::OK;
 }
@@ -4356,7 +4358,7 @@ ResultatValidation Sémanticienne::valide_declaration_variable(NoeudDeclarationV
 
         /* Pour la génération de RI pour les globales, nous devons attendre que le type fut validé.
          */
-        if ((decl->type->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!decl->type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             /* Ne revalide pas ce noeud. */
             m_arbre_courant->index_courant += 1;
             return Attente::sur_type(decl->type);
@@ -5067,7 +5069,7 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_tableau(NoeudExpress
     if (taille_tableau != 0) {
         // À FAIRE: détermine proprement que nous avons un type s'utilisant par valeur
         // via un membre
-        if ((type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+        if (!type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
             return Attente::sur_type(type_connu);
         }
 
@@ -5122,11 +5124,11 @@ ResultatValidation Sémanticienne::valide_operateur_binaire_type(NoeudExpression
                 return CodeRetourValidation::Erreur;
             }
 
-            if ((type_type1->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!type_type1->type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(type_type1->type_connu);
             }
 
-            if ((type_type2->type_connu->drapeaux & TYPE_FUT_VALIDE) == 0) {
+            if (!type_type2->type_connu->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE)) {
                 return Attente::sur_type(type_type2->type_connu);
             }
 
