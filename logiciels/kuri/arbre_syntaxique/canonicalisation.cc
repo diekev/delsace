@@ -47,7 +47,6 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::DECLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::DIRECTIVE_PRE_EXECUTABLE:
-        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DECLARATION_CONSTANTE:
         {
             break;
@@ -431,6 +430,15 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
             }
 
+            if (!m_substitutions_boucles_pour.est_vide()) {
+                /* Si nous somme dans le corps d'une boucle-pour personnalisée, substitue le
+                 * paramètre de l'opérateur par la variable. */
+                auto &données_substitution = m_substitutions_boucles_pour.haut();
+                if (expr_ref->declaration_referee == données_substitution.param) {
+                    expr_ref->substitution = données_substitution.référence_paramètre;
+                }
+            }
+
             return;
         }
         case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
@@ -540,6 +548,17 @@ void Simplificatrice::simplifie(NoeudExpression *noeud)
 
             nouvelle_boucle->bloc = nouveau_bloc;
             boucle->substitution = nouvelle_boucle;
+            return;
+        }
+        case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        {
+            assert(!m_substitutions_boucles_pour.est_vide());
+            auto &données = m_substitutions_boucles_pour.haut();
+            noeud->substitution = données.corps_boucle;
+            /* Le nouveau bloc parent du bloc originel de la boucle doit être le bloc parent de
+             * l'instruction qu'il remplace pour que les instructions « diffère » fonctionnent
+             * proprement. */
+            données.corps_boucle->bloc_parent = noeud->bloc_parent;
             return;
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
@@ -1272,7 +1291,6 @@ void Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
 void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
 {
-    simplifie(inst->corps_operateur_pour);
     auto corps_opérateur_pour = inst->corps_operateur_pour;
 
     auto bloc_substitution = assem->crée_bloc_seul(corps_opérateur_pour->bloc->lexeme,
@@ -1295,28 +1313,14 @@ void Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *inst)
     auto entête = corps_opérateur_pour->entete;
     auto param = entête->parametre_entree(0);
 
-    POUR (corps_opérateur_pour->arbre_aplatis) {
-        /* Substitue le paramètre par la variable. */
-        if (it->est_reference_declaration()) {
-            auto référence = it->comme_reference_declaration();
-            if (référence->declaration_referee != param) {
-                continue;
-            }
+    SubstitutionBouclePourOpérée substitution_manuelle;
+    substitution_manuelle.référence_paramètre = ref_temporaire;
+    substitution_manuelle.param = param;
+    substitution_manuelle.corps_boucle = inst->bloc;
 
-            référence->substitution = ref_temporaire;
-            continue;
-        }
-
-        /* Substitue #corps_boucle par le bloc. */
-        if (it->est_directive_corps_boucle()) {
-            it->substitution = inst->bloc;
-            /* Le nouveau bloc parent du bloc originel de la boucle doit être le bloc parent de
-             * l'instruction qu'il remplace pour que les instructions « diffère » fonctionnent
-             * proprement. */
-            inst->bloc->bloc_parent = it->bloc_parent;
-            continue;
-        }
-    }
+    m_substitutions_boucles_pour.empile(substitution_manuelle);
+    simplifie(inst->corps_operateur_pour);
+    m_substitutions_boucles_pour.depile();
 
     inst->substitution = bloc_substitution;
 }
