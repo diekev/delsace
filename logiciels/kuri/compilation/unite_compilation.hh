@@ -11,6 +11,7 @@
 
 #include "attente.hh"
 
+struct ArbreAplatis;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
@@ -78,8 +79,6 @@ struct UniteCompilation {
 #undef ENUMERE_ETAT_ATTENTE_EX
     };
 
-    int index_courant = 0;
-
   private:
     État état = État::EN_COURS_DE_COMPILATION;
     RaisonDEtre m_raison_d_être = RaisonDEtre::AUCUNE;
@@ -130,6 +129,11 @@ struct UniteCompilation {
         Message *message;
         Type *type;
     };
+
+    /* Mis en place par les sémanticiennes. Uniquement valide lors de la
+     * validation sémantique, pour les unités de compilation dont la raison
+     * d'être est pour le typage. */
+    ArbreAplatis *arbre_aplatis = nullptr;
 
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
@@ -277,10 +281,6 @@ void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité);
 /** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
 void imprime_état_unité(std::ostream &os, const UniteCompilation *unité);
 
-void imprime_noeud_index_courant_unité(std::ostream &os,
-                                       const NoeudDeclarationEnteteFonction *entête);
-
-void imprime_noeud_index_courant_unité(std::ostream &os,
-                                       const NoeudDeclarationCorpsFonction *corps);
+void imprime_noeud_index_courant_unité(std::ostream &os, const UniteCompilation *unité);
 
 /** \} */

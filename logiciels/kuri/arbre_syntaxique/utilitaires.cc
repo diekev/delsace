@@ -713,20 +713,20 @@ static void aplatis_arbre(NoeudExpression *racine,
     }
 }
 
-void aplatis_arbre(NoeudExpression *declaration)
+void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
 {
     if (declaration->est_entete_fonction()) {
         auto entete = declaration->comme_entete_fonction();
-        if (entete->arbre_aplatis.taille() == 0) {
-            aplatis_entête_fonction(entete, entete->arbre_aplatis);
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_entête_fonction(entete, arbre_aplatis->noeuds);
         }
         return;
     }
 
     if (declaration->est_corps_fonction()) {
         auto corps = declaration->comme_corps_fonction();
-        if (corps->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(corps->bloc, corps->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(corps->bloc, arbre_aplatis->noeuds, {});
         }
         return;
     }
@@ -734,14 +734,14 @@ void aplatis_arbre(NoeudExpression *declaration)
     if (declaration->est_type_structure()) {
         auto structure = declaration->comme_type_structure();
 
-        if (structure->arbre_aplatis.taille() == 0) {
+        if (arbre_aplatis->noeuds.taille() == 0) {
             if (structure->est_polymorphe) {
                 POUR (*structure->bloc_constantes->membres.verrou_lecture()) {
-                    aplatis_arbre(it, structure->arbre_aplatis, {});
+                    aplatis_arbre(it, arbre_aplatis->noeuds, {});
                 }
             }
             else {
-                aplatis_arbre(structure->bloc, structure->arbre_aplatis, {});
+                aplatis_arbre(structure->bloc, arbre_aplatis->noeuds, {});
             }
         }
         return;
@@ -749,48 +749,48 @@ void aplatis_arbre(NoeudExpression *declaration)
 
     if (declaration->est_execute()) {
         auto execute = declaration->comme_execute();
-        if (execute->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(execute, execute->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(execute, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     if (declaration->est_declaration_variable()) {
         auto declaration_variable = declaration->comme_declaration_variable();
-        if (declaration_variable->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(declaration_variable, declaration_variable->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     if (declaration->est_declaration_constante()) {
         auto declaration_variable = declaration->comme_declaration_constante();
-        if (declaration_variable->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(declaration_variable, declaration_variable->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     if (declaration->est_ajoute_fini()) {
         auto ajoute_fini = declaration->comme_ajoute_fini();
-        if (ajoute_fini->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(ajoute_fini, ajoute_fini->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(ajoute_fini, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     if (declaration->est_ajoute_init()) {
         auto ajoute_init = declaration->comme_ajoute_init();
-        if (ajoute_init->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(ajoute_init, ajoute_init->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(ajoute_init, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     if (declaration->est_type_opaque()) {
         auto opaque = declaration->comme_type_opaque();
-        if (opaque->arbre_aplatis.taille() == 0) {
-            aplatis_arbre(opaque, opaque->arbre_aplatis, {});
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(opaque, arbre_aplatis->noeuds, {});
         }
         return;
     }

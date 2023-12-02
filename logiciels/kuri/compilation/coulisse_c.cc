@@ -1962,7 +1962,7 @@ void GénératriceCodeC::génère_code(ProgrammeRepreInter const &repr_inter,
     /* À FAIRE : les types de pointeurs de fonctions ne peuvent être convertis vers des types de
      * pointeurs d'objets. Nous devrons avoir des types distincts et supprimer *rien. En attendant,
      * désactivation de l'avertissement "pedantic" car les globales des traces d'appel prennent des
-     * pointeurs de fonctions ccomme paramètres convertis vers *rien. */
+     * pointeurs de fonctions comme paramètres convertis vers *rien. */
     auto const désactive_pedantic = R"(
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push

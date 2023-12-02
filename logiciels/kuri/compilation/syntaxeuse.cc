@@ -541,7 +541,9 @@ void Syntaxeuse::quand_commence()
     }
     else if (metaprogramme->corps_texte_pour_structure) {
         auto recipiente = metaprogramme->corps_texte_pour_structure;
-        recipiente->arbre_aplatis.efface();
+        if (recipiente->unité && recipiente->unité->arbre_aplatis) {
+            recipiente->unité->arbre_aplatis->réinitialise();
+        }
 
         auto bloc_parent = (recipiente->bloc_constantes) ? recipiente->bloc_constantes :
                                                            recipiente->bloc_parent;

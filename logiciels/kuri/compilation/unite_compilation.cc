@@ -351,17 +351,20 @@ void imprime_état_unité(std::ostream &os, const UniteCompilation *unité)
     imprime_attentes_unité(os, unité);
 }
 
-static void imprime_noeud_index_courant_unité(
-    std::ostream &os,
-    kuri::tableau_statique<NoeudExpression *> const &arbre_aplatis,
-    UniteCompilation const *unité)
+void imprime_noeud_index_courant_unité(std::ostream &os, UniteCompilation const *unité)
 {
-    if (arbre_aplatis.taille() == 0) {
+    auto arbre_aplatis = unité->arbre_aplatis;
+    if (!arbre_aplatis) {
+        os << "-- aucun arbre aplatis\n";
+        return;
+    }
+
+    if (arbre_aplatis->noeuds.taille() == 0) {
         os << "-- l'arbre est vide\n";
         return;
     }
 
-    auto site = arbre_aplatis[unité->index_courant];
+    auto site = arbre_aplatis->noeuds[arbre_aplatis->index_courant];
     os << "-- " << *site << '\n';
 
     if (site->est_appel()) {
@@ -374,18 +377,6 @@ static void imprime_noeud_index_courant_unité(
             os << "-- aucun état de résolution pour l'expression d'appel\n";
         }
     }
-}
-
-void imprime_noeud_index_courant_unité(std::ostream &os,
-                                       const NoeudDeclarationEnteteFonction *entête)
-{
-    imprime_noeud_index_courant_unité(os, entête->arbre_aplatis, entête->unité);
-}
-
-void imprime_noeud_index_courant_unité(std::ostream &os,
-                                       const NoeudDeclarationCorpsFonction *corps)
-{
-    imprime_noeud_index_courant_unité(os, corps->arbre_aplatis, corps->unité);
 }
 
 /** \} */
