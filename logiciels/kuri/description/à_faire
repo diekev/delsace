@@ -15,6 +15,19 @@ ADN pour les directives
 // noms des fonctions d'initialisation des globales
 
 // -----------------------------------
+// Noms des types
+
+- centralise la création des noms des types (noms pour LLVM, etc.)
+- différents cas pour chaine_type (avec ou sans points, etc.)
+
+// -----------------------------------
+// Réusinage Arbre (pour les allouer dans un tampon plat)
+
+- supprime assembleuse de la validation sémantique
+- syntaxe en mettant en place les valeurs après la création du noeud les recevant
+- trouve une solution pour les tables de symboles
+
+// -----------------------------------
 // Directives
 
 - ajout de #portée_fichier
@@ -392,6 +405,15 @@ avoir un bon système d'appariement de motif :
 
     utilisation de '_' comme caractère générique pouvant être n'importe quelle valeur
 
+
+permet de contraindre les discriminations sur des types_de_données pour ne considérer
+que les types de bases et dérivés
+
+    discr expr: MonTypeDeBase {
+        TypeDérivé1 {}
+        TypeDérivé2 {}
+        ...
+    }
 
 // --------------------------- Boucles
 
