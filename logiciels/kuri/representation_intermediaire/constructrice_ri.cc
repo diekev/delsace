@@ -3581,7 +3581,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel((type->drapeaux & TYPE_FUT_VALIDE) != 0, [type]() {
+    assert_rappel(type->possède_drapeau(DrapeauxTypes::TYPE_FUT_VALIDE), [type]() {
         dbg() << "Info type pour " << chaine_type(type) << " est incomplet";
     });
 

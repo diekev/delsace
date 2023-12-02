@@ -443,8 +443,8 @@ void Tacheronne::gere_tache()
                                  return DecisionVisiteNoeud::CONTINUE;
                              });
 
-                auto attente_possible = attente_sur_type_si_drapeau_manquant(types_utilises,
-                                                                             TYPE_FUT_VALIDE);
+                auto attente_possible = attente_sur_type_si_drapeau_manquant(
+                    types_utilises, DrapeauxTypes::TYPE_FUT_VALIDE);
                 if (attente_possible) {
                     compilatrice.gestionnaire_code->mets_en_attente(tache.unite,
                                                                     attente_possible.value());
@@ -554,7 +554,7 @@ bool Tacheronne::gere_unite_pour_ri(UniteCompilation *unite)
 
         auto attentes_possibles = kuri::tablet<Attente, 16>();
         attentes_sur_types_si_drapeau_manquant(
-            types_utilises, INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
+            types_utilises, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
 
         if (!attentes_possibles.est_vide()) {
             compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
