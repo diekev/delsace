@@ -338,7 +338,7 @@ struct TypeCompose : public Type {
     kuri::tableau<MembreTypeComposé, int> membres{};
 
     /* Le nom tel que donné dans le script (p.e. Structure, pour Structure :: struct ...). */
-    IdentifiantCode *nom = nullptr;
+    IdentifiantCode *ident = nullptr;
 
     /* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure ::
      * struct dans le module Module). */

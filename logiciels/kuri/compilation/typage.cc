@@ -841,7 +841,7 @@ TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 
     // decl peut être nulle pour la réservation du type pour InfoType
     if (type->decl) {
-        type->nom = decl->lexeme->ident;
+        type->ident = decl->lexeme->ident;
     }
 
     return type;
@@ -850,7 +850,7 @@ TypeStructure *Typeuse::reserve_type_structure(NoeudStruct *decl)
 TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 {
     auto type = types_enums->ajoute_element();
-    type->nom = decl->lexeme->ident;
+    type->ident = decl->lexeme->ident;
     type->decl = decl;
 
     return type;
@@ -859,7 +859,7 @@ TypeEnum *Typeuse::reserve_type_enum(NoeudEnum *decl)
 TypeUnion *Typeuse::reserve_type_union(NoeudStruct *decl)
 {
     auto type = types_unions->ajoute_element();
-    type->nom = decl->lexeme->ident;
+    type->ident = decl->lexeme->ident;
     type->decl = decl;
     return type;
 }
@@ -892,7 +892,7 @@ TypeUnion *Typeuse::union_anonyme(const kuri::tablet<MembreTypeComposé, 6> &mem
     }
 
     auto type = types_unions_->ajoute_element();
-    type->nom = ID::anonyme;
+    type->ident = ID::anonyme;
 
     type->membres.reserve(static_cast<int>(membres.taille()));
     POUR (membres) {
@@ -1272,7 +1272,7 @@ kuri::chaine const &donne_nom_portable(TypeUnion *type)
     }
 
     type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
-                                       type->nom->nom);
+                                       type->ident->nom);
     return type->nom_portable_;
 }
 
@@ -1283,7 +1283,7 @@ kuri::chaine const &donne_nom_portable(TypeEnum *type)
     }
 
     type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
-                                       type->nom->nom);
+                                       type->ident->nom);
     return type->nom_portable_;
 }
 
@@ -1304,7 +1304,7 @@ kuri::chaine const &donne_nom_portable(TypeStructure *type)
     }
 
     type->nom_portable_ = nom_portable(type->decl ? type->decl->bloc_parent : nullptr,
-                                       type->nom->nom);
+                                       type->ident->nom);
     return type->nom_portable_;
 }
 
@@ -1373,7 +1373,7 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
 
     type->type_structure->taille_octet = type->taille_octet;
     type->type_structure->alignement = type->alignement;
-    type->type_structure->nom = type->nom;
+    type->type_structure->ident = type->ident;
     type->type_structure->est_anonyme = type->est_anonyme;
     // Il nous faut la déclaration originelle afin de pouvoir utiliser un typedef différent
     // dans la coulisse pour chaque monomorphisation.
@@ -1395,7 +1395,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
                                   const NoeudStruct *decl,
                                   bool ajoute_nom_paramètres_polymorphiques)
 {
-    enchaineuse << type_structure->nom->nom;
+    enchaineuse << type_structure->ident->nom;
     const char *virgule = "(";
     if (decl->est_monomorphisation) {
         POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
@@ -1560,7 +1560,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
         {
             auto type_union = static_cast<TypeUnion const *>(type);
 
-            if (!type_union->nom || !type_union->decl) {
+            if (!type_union->ident || !type_union->decl) {
                 enchaineuse.ajoute("union.anonyme");
                 return;
             }
@@ -1573,7 +1573,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
         {
             auto type_structure = static_cast<TypeStructure const *>(type);
 
-            if (!type_structure->nom || !type_structure->decl) {
+            if (!type_structure->ident || !type_structure->decl) {
                 enchaineuse.ajoute("struct.anonyme");
                 return;
             }
@@ -1639,7 +1639,7 @@ static void chaine_type(Enchaineuse &enchaineuse,
         case GenreType::ENUM:
         case GenreType::ERREUR:
         {
-            enchaineuse << static_cast<TypeEnum const *>(type)->nom->nom;
+            enchaineuse << static_cast<TypeEnum const *>(type)->ident->nom;
             return;
         }
         case GenreType::TYPE_DE_DONNEES:
